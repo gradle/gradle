@@ -1,0 +1,1106 @@
+{
+  "schemaVersion": 1,
+  "date": "2026-09-05",
+  "rawDirectory": "/tmp/property-provenance-enabled-state-production-20260905",
+  "description": "Gradle production help: matching no-provenance baseline, prototype disabled, origin-only provenance. Whole-daemon full-GC live heap, not exclusive retained size. Preparation and warmups excluded from summaries.",
+  "runtime": {
+    "baseRevision": "4d0c00f73a1ff691d0c467d03482202b1239d793",
+    "baselineRevision": "850edf55835529446bf63488489f6364ce5d2387",
+    "blobs": {
+      "AbstractProperty.java": "52722c6290115ece80d40692f85c525b76c7db8b",
+      "ValueState.java": "816ea9b0b04cbc916f1aa68b8303b1c51bf50661",
+      "PropertyProvenanceState.java": "6c5332ae8a41b75b92006d65e1df42a28fa47fad"
+    }
+  },
+  "manifest": {
+    "config": {
+      "sourceRevision": "850edf55835529446bf63488489f6364ce5d2387",
+      "readOnlyCache": "/home/agent/.gradle/caches",
+      "forks": 3,
+      "warmups": 8,
+      "runs": 8,
+      "heapRuns": 2,
+      "jvmArgs": "-Xms1536m -Xmx3300m -XX:MaxMetaspaceSize=768m -XX:+UseG1GC",
+      "args": [
+        "help",
+        "--offline",
+        "-Pkotlin.compiler.execution.strategy=in-process"
+      ],
+      "variants": {
+        "baseline": {
+          "project": "/tmp/gradle-provenance-production-baseline-20260904",
+          "gradle": "/tmp/gradle-provenance-baseline-20260904/packaging/distributions-full/build/bin distribution/bin/gradle"
+        },
+        "disabled": {
+          "project": "/tmp/gradle-provenance-production-disabled-20260904",
+          "gradle": "/home/agent/projects/gradle-provenance-prototype-20260904/packaging/distributions-full/build/bin distribution/bin/gradle"
+        },
+        "origins": {
+          "project": "/tmp/gradle-provenance-production-originsx-20260904",
+          "gradle": "/home/agent/projects/gradle-provenance-prototype-20260904/packaging/distributions-full/build/bin distribution/bin/gradle"
+        }
+      }
+    },
+    "platform": "linux",
+    "arch": "arm64",
+    "cpus": 8,
+    "variants": {
+      "baseline": {
+        "revision": "850edf55835529446bf63488489f6364ce5d2387",
+        "version": "\n------------------------------------------------------------\nGradle 9.9.0-20260904000000+0000\n------------------------------------------------------------\n\nBuild time:    2026-09-04 00:00:00 UTC\nRevision:      850edf55835529446bf63488489f6364ce5d2387\n\nKotlin:        2.4.10\nGroovy:        4.0.33\nAnt:           Apache Ant(TM) version 1.10.17 compiled on April 6 2026\nLauncher JVM:  25.0.4 (Ubuntu 25.0.4+7-1-26.04-Ubuntu)\nDaemon JVM:    Compatible with Java 25, any vendor, nativeImageCapable=false (from gradle/gradle-daemon-jvm.properties)\nOS:            Linux 7.0.12 aarch64\n\n"
+      },
+      "disabled": {
+        "revision": "850edf55835529446bf63488489f6364ce5d2387",
+        "version": "\nWelcome to Gradle 9.9.0-20260905000000+0000!\n\n\n------------------------------------------------------------\nGradle 9.9.0-20260905000000+0000\n------------------------------------------------------------\n\nBuild time:    2026-09-05 00:00:00 UTC\nRevision:      4d0c00f73a1ff691d0c467d03482202b1239d793\n\nKotlin:        2.4.10\nGroovy:        4.0.33\nAnt:           Apache Ant(TM) version 1.10.17 compiled on April 6 2026\nLauncher JVM:  25.0.4 (Ubuntu 25.0.4+7-1-26.04-Ubuntu)\nDaemon JVM:    Compatible with Java 25, any vendor, nativeImageCapable=false (from gradle/gradle-daemon-jvm.properties)\nOS:            Linux 7.0.12 aarch64\n\n"
+      },
+      "origins": {
+        "revision": "850edf55835529446bf63488489f6364ce5d2387",
+        "version": "\n------------------------------------------------------------\nGradle 9.9.0-20260905000000+0000\n------------------------------------------------------------\n\nBuild time:    2026-09-05 00:00:00 UTC\nRevision:      4d0c00f73a1ff691d0c467d03482202b1239d793\n\nKotlin:        2.4.10\nGroovy:        4.0.33\nAnt:           Apache Ant(TM) version 1.10.17 compiled on April 6 2026\nLauncher JVM:  25.0.4 (Ubuntu 25.0.4+7-1-26.04-Ubuntu)\nDaemon JVM:    Compatible with Java 25, any vendor, nativeImageCapable=false (from gradle/gradle-daemon-jvm.properties)\nOS:            Linux 7.0.12 aarch64\n\n"
+      }
+    }
+  },
+  "checks": {
+    "builds": 165,
+    "timingSamples": 72,
+    "heapSamples": 18,
+    "measurementDaemons": 9,
+    "configuredMainProjects": 253,
+    "mainGraphTasks": 1,
+    "timingTaskSummary": "242 actionable tasks: 1 executed, 241 up-to-date",
+    "allHeapModeControlsPassed": true,
+    "allSixPropertyLayoutsMatchBaseline": true
+  },
+  "caveats": [
+    "Only three independent measurement daemons per mode; workstation background activity and finite warmup remain.",
+    "Disabled configuration median is 2.99% above baseline, positive in all three repetitions; this remains a profiling follow-up.",
+    "Enabled timing below baseline does not establish a provenance speedup.",
+    "Baseline predates the whole provenance prototype; this run cannot isolate the state change timing.",
+    "Histogram groups are shallow totals; whole-daemon live-heap differences are not exclusive retained sizes."
+  ],
+  "structuralComparison": {
+    "historicalPath": "/tmp/property-provenance-compact-check-20260904/origins-heap-4.histogram",
+    "historical": {
+      "liveInstances": 19069104,
+      "liveBytes": 689578648,
+      "provenance": [
+        {
+          "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceState",
+          "instances": 75263,
+          "shallowBytes": 1806312
+        },
+        {
+          "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord",
+          "instances": 12658,
+          "shallowBytes": 303792
+        },
+        {
+          "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin",
+          "instances": 6329,
+          "shallowBytes": 151896
+        },
+        {
+          "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$BindingRecords",
+          "instances": 6329,
+          "shallowBytes": 151896
+        },
+        {
+          "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Snapshot",
+          "instances": 1367,
+          "shallowBytes": 32808
+        },
+        {
+          "name": "[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceRecord;",
+          "instances": 1241,
+          "shallowBytes": 31176
+        },
+        {
+          "name": "[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Limitation;",
+          "instances": 767,
+          "shallowBytes": 18432
+        },
+        {
+          "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceKind",
+          "instances": 9,
+          "shallowBytes": 288
+        },
+        {
+          "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Limitation",
+          "instances": 5,
+          "shallowBytes": 160
+        },
+        {
+          "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type",
+          "instances": 5,
+          "shallowBytes": 120
+        },
+        {
+          "name": "[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceKind;",
+          "instances": 1,
+          "shallowBytes": 56
+        },
+        {
+          "name": "[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type;",
+          "instances": 1,
+          "shallowBytes": 40
+        },
+        {
+          "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry",
+          "instances": 1,
+          "shallowBytes": 24
+        },
+        {
+          "name": "org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$$Lambda/0x0000000201994810",
+          "instances": 1,
+          "shallowBytes": 16
+        }
+      ],
+      "properties": [
+        {
+          "name": "org.gradle.api.internal.provider.DefaultProperty",
+          "instances": 100253,
+          "shallowBytes": 4812144
+        },
+        {
+          "name": "org.gradle.api.internal.provider.DefaultMapProperty",
+          "instances": 52080,
+          "shallowBytes": 2916480
+        },
+        {
+          "name": "org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar",
+          "instances": 19287,
+          "shallowBytes": 1080072
+        },
+        {
+          "name": "org.gradle.api.internal.provider.DefaultSetProperty",
+          "instances": 7867,
+          "shallowBytes": 377616
+        },
+        {
+          "name": "org.gradle.api.internal.provider.DefaultListProperty",
+          "instances": 4489,
+          "shallowBytes": 215472
+        },
+        {
+          "name": "org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar",
+          "instances": 2761,
+          "shallowBytes": 132528
+        }
+      ],
+      "valueStates": [
+        {
+          "name": "org.gradle.api.internal.provider.ValueState$NonFinalizedValue",
+          "instances": 184550,
+          "shallowBytes": 4429200
+        },
+        {
+          "name": "org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier",
+          "instances": 16013,
+          "shallowBytes": 512416
+        },
+        {
+          "name": "org.gradle.api.internal.provider.ValueState$FinalizedValue",
+          "instances": 1,
+          "shallowBytes": 16
+        }
+      ]
+    },
+    "currentSample": {
+      "mode": "origins",
+      "fork": 0,
+      "phase": "heap",
+      "iteration": 0
+    },
+    "groups": {
+      "properties": {
+        "beforeBytes": 9534312,
+        "afterBytes": 8040416,
+        "deltaBytes": -1493896
+      },
+      "valueStates": {
+        "beforeBytes": 4941632,
+        "afterBytes": 5705176,
+        "deltaBytes": 763544
+      },
+      "provenance": {
+        "beforeBytes": 2497016,
+        "afterBytes": 690704,
+        "deltaBytes": -1806312
+      }
+    },
+    "totalDeltaBytes": -2536664
+  },
+  "summary": [
+    {
+      "mode": "baseline",
+      "configurationMs": {
+        "n": 24,
+        "median": 7834.3813785,
+        "min": 7559.213212,
+        "max": 8819.172629
+      },
+      "wallMs": {
+        "n": 24,
+        "median": 8522.697087499953,
+        "min": 8228.475170999998,
+        "max": 9773.987129000016
+      },
+      "liveBytes": {
+        "n": 6,
+        "median": 683001316,
+        "min": 682568344,
+        "max": 683532504
+      },
+      "propertyLayouts": [
+        {
+          "name": "org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar",
+          "instances": {
+            "n": 6,
+            "median": 19287,
+            "min": 19287,
+            "max": 19287
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 48,
+            "min": 48,
+            "max": 48
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar",
+          "instances": {
+            "n": 6,
+            "median": 2761,
+            "min": 2761,
+            "max": 2761
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 40,
+            "min": 40,
+            "max": 40
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.DefaultListProperty",
+          "instances": {
+            "n": 6,
+            "median": 4489,
+            "min": 4489,
+            "max": 4489
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 40,
+            "min": 40,
+            "max": 40
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.DefaultMapProperty",
+          "instances": {
+            "n": 6,
+            "median": 52053,
+            "min": 52044,
+            "max": 52080
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 48,
+            "min": 48,
+            "max": 48
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.DefaultProperty",
+          "instances": {
+            "n": 6,
+            "median": 100253,
+            "min": 100253,
+            "max": 100253
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 40,
+            "min": 40,
+            "max": 40
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.DefaultSetProperty",
+          "instances": {
+            "n": 6,
+            "median": 7867,
+            "min": 7867,
+            "max": 7867
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 40,
+            "min": 40,
+            "max": 40
+          }
+        }
+      ],
+      "valueStateLayouts": [
+        {
+          "name": "org.gradle.api.internal.provider.ValueState$FinalizedValue",
+          "instances": {
+            "n": 6,
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 16,
+            "min": 16,
+            "max": 16
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.ValueState$NonFinalizedValue",
+          "instances": {
+            "n": 6,
+            "median": 184523,
+            "min": 184514,
+            "max": 184550
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 24,
+            "min": 24,
+            "max": 24
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier",
+          "instances": {
+            "n": 6,
+            "median": 16013,
+            "min": 16013,
+            "max": 16013
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 32,
+            "min": 32,
+            "max": 32
+          }
+        }
+      ],
+      "forks": [
+        {
+          "fork": 0,
+          "configurationMs": {
+            "n": 8,
+            "median": 7962.552441,
+            "min": 7820.02417,
+            "max": 8819.172629
+          },
+          "wallMs": {
+            "n": 8,
+            "median": 8681.208983500022,
+            "min": 8496.326545999967,
+            "max": 9773.987129000016
+          },
+          "liveBytes": {
+            "n": 2,
+            "median": 682826956,
+            "min": 682568344,
+            "max": 683085568
+          }
+        },
+        {
+          "fork": 1,
+          "configurationMs": {
+            "n": 8,
+            "median": 7655.0037745,
+            "min": 7559.213212,
+            "max": 8202.525629
+          },
+          "wallMs": {
+            "n": 8,
+            "median": 8346.421711999923,
+            "min": 8228.475170999998,
+            "max": 8923.960544999922
+          },
+          "liveBytes": {
+            "n": 2,
+            "median": 683069224,
+            "min": 682917064,
+            "max": 683221384
+          }
+        },
+        {
+          "fork": 2,
+          "configurationMs": {
+            "n": 8,
+            "median": 7818.963837,
+            "min": 7687.714128,
+            "max": 8248.40092
+          },
+          "wallMs": {
+            "n": 8,
+            "median": 8509.268983499962,
+            "min": 8369.715087000048,
+            "max": 8970.796587000135
+          },
+          "liveBytes": {
+            "n": 2,
+            "median": 683056380,
+            "min": 682580256,
+            "max": 683532504
+          }
+        }
+      ]
+    },
+    {
+      "mode": "disabled",
+      "configurationMs": {
+        "n": 24,
+        "median": 8068.3060454999995,
+        "min": 7686.880629,
+        "max": 8991.305171
+      },
+      "wallMs": {
+        "n": 24,
+        "median": 8795.067295999965,
+        "min": 8353.15767100011,
+        "max": 9729.380712999962
+      },
+      "liveBytes": {
+        "n": 6,
+        "median": 683597956,
+        "min": 682961656,
+        "max": 684017328
+      },
+      "propertyLayouts": [
+        {
+          "name": "org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar",
+          "instances": {
+            "n": 6,
+            "median": 19287,
+            "min": 19287,
+            "max": 19287
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 48,
+            "min": 48,
+            "max": 48
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar",
+          "instances": {
+            "n": 6,
+            "median": 2761,
+            "min": 2761,
+            "max": 2761
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 40,
+            "min": 40,
+            "max": 40
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.DefaultListProperty",
+          "instances": {
+            "n": 6,
+            "median": 4489,
+            "min": 4489,
+            "max": 4489
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 40,
+            "min": 40,
+            "max": 40
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.DefaultMapProperty",
+          "instances": {
+            "n": 6,
+            "median": 52053,
+            "min": 52044,
+            "max": 52071
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 48,
+            "min": 48,
+            "max": 48
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.DefaultProperty",
+          "instances": {
+            "n": 6,
+            "median": 100253,
+            "min": 100253,
+            "max": 100253
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 40,
+            "min": 40,
+            "max": 40
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.DefaultSetProperty",
+          "instances": {
+            "n": 6,
+            "median": 7867,
+            "min": 7867,
+            "max": 7867
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 40,
+            "min": 40,
+            "max": 40
+          }
+        }
+      ],
+      "valueStateLayouts": [
+        {
+          "name": "org.gradle.api.internal.provider.ValueState$FinalizedValue",
+          "instances": {
+            "n": 6,
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 16,
+            "min": 16,
+            "max": 16
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.ValueState$NonFinalizedValue",
+          "instances": {
+            "n": 6,
+            "median": 184523,
+            "min": 184514,
+            "max": 184541
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 24,
+            "min": 24,
+            "max": 24
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier",
+          "instances": {
+            "n": 6,
+            "median": 16013,
+            "min": 16013,
+            "max": 16013
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 32,
+            "min": 32,
+            "max": 32
+          }
+        }
+      ],
+      "forks": [
+        {
+          "fork": 0,
+          "configurationMs": {
+            "n": 8,
+            "median": 8135.4729205,
+            "min": 7686.880629,
+            "max": 8366.519004
+          },
+          "wallMs": {
+            "n": 8,
+            "median": 8815.306087500008,
+            "min": 8353.15767100011,
+            "max": 9113.373170999927
+          },
+          "liveBytes": {
+            "n": 2,
+            "median": 683898760,
+            "min": 683780192,
+            "max": 684017328
+          }
+        },
+        {
+          "fork": 1,
+          "configurationMs": {
+            "n": 8,
+            "median": 7988.0611705,
+            "min": 7835.292962,
+            "max": 8346.561504
+          },
+          "wallMs": {
+            "n": 8,
+            "median": 8740.107212500065,
+            "min": 8543.050254000118,
+            "max": 9105.728338000132
+          },
+          "liveBytes": {
+            "n": 2,
+            "median": 683444768,
+            "min": 683112864,
+            "max": 683776672
+          }
+        },
+        {
+          "fork": 2,
+          "configurationMs": {
+            "n": 8,
+            "median": 7954.873858,
+            "min": 7701.201295,
+            "max": 8991.305171
+          },
+          "wallMs": {
+            "n": 8,
+            "median": 8681.956982999807,
+            "min": 8389.437586999964,
+            "max": 9729.380712999962
+          },
+          "liveBytes": {
+            "n": 2,
+            "median": 683190448,
+            "min": 682961656,
+            "max": 683419240
+          }
+        }
+      ]
+    },
+    {
+      "mode": "origins",
+      "configurationMs": {
+        "n": 24,
+        "median": 7680.801504,
+        "min": 7438.123504,
+        "max": 7930.548879
+      },
+      "wallMs": {
+        "n": 24,
+        "median": 8373.473420000053,
+        "min": 8108.049088000087,
+        "max": 8894.985712000052
+      },
+      "liveBytes": {
+        "n": 6,
+        "median": 685678532,
+        "min": 685372056,
+        "max": 686722264
+      },
+      "propertyLayouts": [
+        {
+          "name": "org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar",
+          "instances": {
+            "n": 6,
+            "median": 19287,
+            "min": 19287,
+            "max": 19287
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 48,
+            "min": 48,
+            "max": 48
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar",
+          "instances": {
+            "n": 6,
+            "median": 2761,
+            "min": 2761,
+            "max": 2761
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 40,
+            "min": 40,
+            "max": 40
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.DefaultListProperty",
+          "instances": {
+            "n": 6,
+            "median": 4489,
+            "min": 4489,
+            "max": 4489
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 40,
+            "min": 40,
+            "max": 40
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.DefaultMapProperty",
+          "instances": {
+            "n": 6,
+            "median": 52062,
+            "min": 52044,
+            "max": 52089
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 48,
+            "min": 48,
+            "max": 48
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.DefaultProperty",
+          "instances": {
+            "n": 6,
+            "median": 100253,
+            "min": 100253,
+            "max": 100253
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 40,
+            "min": 40,
+            "max": 40
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.DefaultSetProperty",
+          "instances": {
+            "n": 6,
+            "median": 7867,
+            "min": 7867,
+            "max": 7867
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 40,
+            "min": 40,
+            "max": 40
+          }
+        }
+      ],
+      "valueStateLayouts": [
+        {
+          "name": "org.gradle.api.internal.provider.ValueState$FinalizedValue",
+          "instances": {
+            "n": 6,
+            "median": 1,
+            "min": 1,
+            "max": 1
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 16,
+            "min": 16,
+            "max": 16
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.ValueState$FinalizedValueWithProvenance",
+          "instances": {
+            "n": 6,
+            "median": 2097,
+            "min": 2097,
+            "max": 2097
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 32,
+            "min": 32,
+            "max": 32
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.ValueState$NonFinalizedValue",
+          "instances": {
+            "n": 6,
+            "median": 97477,
+            "min": 97459,
+            "max": 97504
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 24,
+            "min": 24,
+            "max": 24
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier",
+          "instances": {
+            "n": 6,
+            "median": 16013,
+            "min": 16013,
+            "max": 16013
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 32,
+            "min": 32,
+            "max": 32
+          }
+        },
+        {
+          "name": "org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithProvenance",
+          "instances": {
+            "n": 6,
+            "median": 87055,
+            "min": 87055,
+            "max": 87055
+          },
+          "bytesPerInstance": {
+            "n": 6,
+            "median": 32,
+            "min": 32,
+            "max": 32
+          }
+        }
+      ],
+      "forks": [
+        {
+          "fork": 0,
+          "configurationMs": {
+            "n": 8,
+            "median": 7691.982171,
+            "min": 7653.231171,
+            "max": 7924.431837
+          },
+          "wallMs": {
+            "n": 8,
+            "median": 8425.223233499972,
+            "min": 8315.52429500001,
+            "max": 8894.985712000052
+          },
+          "liveBytes": {
+            "n": 2,
+            "median": 686002732,
+            "min": 685511824,
+            "max": 686493640
+          }
+        },
+        {
+          "fork": 1,
+          "configurationMs": {
+            "n": 8,
+            "median": 7642.398962,
+            "min": 7497.928712,
+            "max": 7898.797837
+          },
+          "wallMs": {
+            "n": 8,
+            "median": 8370.11321199988,
+            "min": 8191.022920999909,
+            "max": 8644.088546000188
+          },
+          "liveBytes": {
+            "n": 2,
+            "median": 686232832,
+            "min": 685743400,
+            "max": 686722264
+          }
+        },
+        {
+          "fork": 2,
+          "configurationMs": {
+            "n": 8,
+            "median": 7629.2881705,
+            "min": 7438.123504,
+            "max": 7930.548879
+          },
+          "wallMs": {
+            "n": 8,
+            "median": 8323.319378500106,
+            "min": 8108.049088000087,
+            "max": 8620.806546000065
+          },
+          "liveBytes": {
+            "n": 2,
+            "median": 685492860,
+            "min": 685372056,
+            "max": 685613664
+          }
+        }
+      ]
+    }
+  ],
+  "samples": [
+    {"mode":"baseline","fork":-1,"phase":"prepare","iteration":0,"wallMs":101103.08658900001,"configurationMs":74362.263827,"pid":327092,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":-1,"phase":"prepare","iteration":0,"wallMs":188987.021007,"configurationMs":152598.074989,"pid":327623,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":-1,"phase":"prepare","iteration":0,"wallMs":190997.773133,"configurationMs":155051.598574,"pid":328692,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":0,"phase":"warmup","iteration":0,"wallMs":22378.18684400001,"configurationMs":16484.387383,"pid":329719,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":0,"phase":"warmup","iteration":1,"wallMs":10053.964630000002,"configurationMs":9108.240046,"pid":329719,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":0,"phase":"warmup","iteration":2,"wallMs":9306.017712000059,"configurationMs":8544.278129,"pid":329719,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":0,"phase":"warmup","iteration":3,"wallMs":9089.82112899993,"configurationMs":8324.186962,"pid":329719,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":0,"phase":"warmup","iteration":4,"wallMs":8985.796505000093,"configurationMs":8245.717213,"pid":329719,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":0,"phase":"warmup","iteration":5,"wallMs":9215.592795999954,"configurationMs":8370.773379,"pid":329719,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":0,"phase":"warmup","iteration":6,"wallMs":8754.89983800007,"configurationMs":8060.099254,"pid":329719,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":0,"phase":"warmup","iteration":7,"wallMs":8712.798003999982,"configurationMs":7996.062545,"pid":329719,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":0,"phase":"timing","iteration":0,"wallMs":8549.06762899994,"configurationMs":7848.738587,"pid":329719,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":0,"phase":"timing","iteration":1,"wallMs":8643.56596300006,"configurationMs":7900.684878,"pid":329719,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":0,"phase":"timing","iteration":2,"wallMs":9057.355546000064,"configurationMs":8364.102254,"pid":329719,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":0,"phase":"timing","iteration":3,"wallMs":9579.545296999975,"configurationMs":8796.698296,"pid":329719,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":0,"phase":"timing","iteration":4,"wallMs":9773.987129000016,"configurationMs":8819.172629,"pid":329719,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":0,"phase":"timing","iteration":5,"wallMs":8575.164378999965,"configurationMs":7867.100504,"pid":329719,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":0,"phase":"timing","iteration":6,"wallMs":8718.852003999986,"configurationMs":8024.420004,"pid":329719,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":0,"phase":"timing","iteration":7,"wallMs":8496.326545999967,"configurationMs":7820.02417,"pid":329719,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":0,"phase":"heap","iteration":0,"wallMs":8796.488170999917,"configurationMs":7517.992212,"pid":329719,"tasks":1,"configuredProjects":253,"liveInstances":18931857,"liveBytes":682568344,"provenance":[],"properties":[{"name":"org.gradle.api.internal.provider.DefaultProperty","instances":100253,"shallowBytes":4010120},{"name":"org.gradle.api.internal.provider.DefaultMapProperty","instances":52053,"shallowBytes":2498544},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar","instances":19287,"shallowBytes":925776},{"name":"org.gradle.api.internal.provider.DefaultSetProperty","instances":7867,"shallowBytes":314680},{"name":"org.gradle.api.internal.provider.DefaultListProperty","instances":4489,"shallowBytes":179560},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar","instances":2761,"shallowBytes":110440}],"valueStates":[{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValue","instances":184523,"shallowBytes":4428552},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier","instances":16013,"shallowBytes":512416},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValue","instances":1,"shallowBytes":16}]},
+    {"mode":"baseline","fork":0,"phase":"heap","iteration":1,"wallMs":8631.066503999988,"configurationMs":7548.576712,"pid":329719,"tasks":1,"configuredProjects":253,"liveInstances":18932881,"liveBytes":683085568,"provenance":[],"properties":[{"name":"org.gradle.api.internal.provider.DefaultProperty","instances":100253,"shallowBytes":4010120},{"name":"org.gradle.api.internal.provider.DefaultMapProperty","instances":52044,"shallowBytes":2498112},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar","instances":19287,"shallowBytes":925776},{"name":"org.gradle.api.internal.provider.DefaultSetProperty","instances":7867,"shallowBytes":314680},{"name":"org.gradle.api.internal.provider.DefaultListProperty","instances":4489,"shallowBytes":179560},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar","instances":2761,"shallowBytes":110440}],"valueStates":[{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValue","instances":184514,"shallowBytes":4428336},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier","instances":16013,"shallowBytes":512416},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValue","instances":1,"shallowBytes":16}]},
+    {"mode":"disabled","fork":0,"phase":"warmup","iteration":0,"wallMs":23360.35955199995,"configurationMs":17481.051633,"pid":331868,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":0,"phase":"warmup","iteration":1,"wallMs":10036.736547000008,"configurationMs":9046.830629,"pid":331868,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":0,"phase":"warmup","iteration":2,"wallMs":9342.312838000013,"configurationMs":8549.869213,"pid":331868,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":0,"phase":"warmup","iteration":3,"wallMs":9152.677087999997,"configurationMs":8406.944046,"pid":331868,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":0,"phase":"warmup","iteration":4,"wallMs":9041.809837999986,"configurationMs":8342.017046,"pid":331868,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":0,"phase":"warmup","iteration":5,"wallMs":9330.727130000014,"configurationMs":8544.951504,"pid":331868,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":0,"phase":"warmup","iteration":6,"wallMs":8788.749921000097,"configurationMs":8100.943879,"pid":331868,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":0,"phase":"warmup","iteration":7,"wallMs":8871.07458799996,"configurationMs":8099.944629,"pid":331868,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":0,"phase":"timing","iteration":0,"wallMs":8802.141128999996,"configurationMs":8083.370379,"pid":331868,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":0,"phase":"timing","iteration":1,"wallMs":8828.47104600002,"configurationMs":8144.587254,"pid":331868,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":0,"phase":"timing","iteration":2,"wallMs":9092.963879000046,"configurationMs":8366.519004,"pid":331868,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":0,"phase":"timing","iteration":3,"wallMs":9113.373170999927,"configurationMs":8303.912254,"pid":331868,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":0,"phase":"timing","iteration":4,"wallMs":8353.15767100011,"configurationMs":7686.880629,"pid":331868,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":0,"phase":"timing","iteration":5,"wallMs":8787.993462999933,"configurationMs":8101.169629,"pid":331868,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":0,"phase":"timing","iteration":6,"wallMs":8771.440003999975,"configurationMs":8126.358587,"pid":331868,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":0,"phase":"timing","iteration":7,"wallMs":8840.885754000046,"configurationMs":8156.932337,"pid":331868,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":0,"phase":"heap","iteration":0,"wallMs":8772.63825399999,"configurationMs":7508.748128,"pid":331868,"tasks":1,"configuredProjects":253,"liveInstances":18945212,"liveBytes":683780192,"provenance":[{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceKind","instances":9,"shallowBytes":288},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type","instances":5,"shallowBytes":120},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceKind;","instances":1,"shallowBytes":56},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord","instances":2,"shallowBytes":48},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type;","instances":1,"shallowBytes":40},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin","instances":1,"shallowBytes":24},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry","instances":1,"shallowBytes":24},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$BindingRecords","instances":1,"shallowBytes":24}],"properties":[{"name":"org.gradle.api.internal.provider.DefaultProperty","instances":100253,"shallowBytes":4010120},{"name":"org.gradle.api.internal.provider.DefaultMapProperty","instances":52062,"shallowBytes":2498976},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar","instances":19287,"shallowBytes":925776},{"name":"org.gradle.api.internal.provider.DefaultSetProperty","instances":7867,"shallowBytes":314680},{"name":"org.gradle.api.internal.provider.DefaultListProperty","instances":4489,"shallowBytes":179560},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar","instances":2761,"shallowBytes":110440}],"valueStates":[{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValue","instances":184532,"shallowBytes":4428768},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier","instances":16013,"shallowBytes":512416},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValue","instances":1,"shallowBytes":16}]},
+    {"mode":"disabled","fork":0,"phase":"heap","iteration":1,"wallMs":8821.594546000008,"configurationMs":7739.451545,"pid":331868,"tasks":1,"configuredProjects":253,"liveInstances":18944448,"liveBytes":684017328,"provenance":[{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceKind","instances":9,"shallowBytes":288},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type","instances":5,"shallowBytes":120},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceKind;","instances":1,"shallowBytes":56},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord","instances":2,"shallowBytes":48},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type;","instances":1,"shallowBytes":40},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin","instances":1,"shallowBytes":24},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry","instances":1,"shallowBytes":24},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$BindingRecords","instances":1,"shallowBytes":24}],"properties":[{"name":"org.gradle.api.internal.provider.DefaultProperty","instances":100253,"shallowBytes":4010120},{"name":"org.gradle.api.internal.provider.DefaultMapProperty","instances":52053,"shallowBytes":2498544},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar","instances":19287,"shallowBytes":925776},{"name":"org.gradle.api.internal.provider.DefaultSetProperty","instances":7867,"shallowBytes":314680},{"name":"org.gradle.api.internal.provider.DefaultListProperty","instances":4489,"shallowBytes":179560},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar","instances":2761,"shallowBytes":110440}],"valueStates":[{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValue","instances":184523,"shallowBytes":4428552},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier","instances":16013,"shallowBytes":512416},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValue","instances":1,"shallowBytes":16}]},
+    {"mode":"origins","fork":0,"phase":"warmup","iteration":0,"wallMs":22299.762094000005,"configurationMs":16121.466424,"pid":334293,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":0,"phase":"warmup","iteration":1,"wallMs":9489.989462999976,"configurationMs":8621.170087,"pid":334293,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":0,"phase":"warmup","iteration":2,"wallMs":9040.470671000076,"configurationMs":8268.697962,"pid":334293,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":0,"phase":"warmup","iteration":3,"wallMs":8692.118213000009,"configurationMs":7962.59442,"pid":334293,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":0,"phase":"warmup","iteration":4,"wallMs":8803.052796000033,"configurationMs":8017.855379,"pid":334293,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":0,"phase":"warmup","iteration":5,"wallMs":8640.328795999987,"configurationMs":7932.143337,"pid":334293,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":0,"phase":"warmup","iteration":6,"wallMs":8581.211170999915,"configurationMs":7864.444628,"pid":334293,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":0,"phase":"warmup","iteration":7,"wallMs":8437.822129999986,"configurationMs":7724.13492,"pid":334293,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":0,"phase":"timing","iteration":0,"wallMs":8553.218546000076,"configurationMs":7895.025463,"pid":334293,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":0,"phase":"timing","iteration":1,"wallMs":8354.471669999999,"configurationMs":7691.562921,"pid":334293,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":0,"phase":"timing","iteration":2,"wallMs":8390.249295999995,"configurationMs":7692.401421,"pid":334293,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":0,"phase":"timing","iteration":3,"wallMs":8458.24654600001,"configurationMs":7774.36842,"pid":334293,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":0,"phase":"timing","iteration":4,"wallMs":8894.985712000052,"configurationMs":7924.431837,"pid":334293,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":0,"phase":"timing","iteration":5,"wallMs":8532.71071200003,"configurationMs":7676.716962,"pid":334293,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":0,"phase":"timing","iteration":6,"wallMs":8315.52429500001,"configurationMs":7653.231171,"pid":334293,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":0,"phase":"timing","iteration":7,"wallMs":8392.199920999934,"configurationMs":7688.672296,"pid":334293,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":0,"phase":"heap","iteration":0,"wallMs":9346.768712999998,"configurationMs":8164.224837,"pid":334293,"tasks":1,"configuredProjects":253,"liveInstances":19000275,"liveBytes":685511824,"provenance":[{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord","instances":12658,"shallowBytes":303792},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin","instances":6329,"shallowBytes":151896},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$BindingRecords","instances":6329,"shallowBytes":151896},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Snapshot","instances":1367,"shallowBytes":32808},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceRecord;","instances":1241,"shallowBytes":31176},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Limitation;","instances":767,"shallowBytes":18432},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceKind","instances":9,"shallowBytes":288},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Limitation","instances":5,"shallowBytes":160},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type","instances":5,"shallowBytes":120},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceKind;","instances":1,"shallowBytes":56},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type;","instances":1,"shallowBytes":40},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry","instances":1,"shallowBytes":24},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$Lambda/0x0000038001992998","instances":1,"shallowBytes":16}],"properties":[{"name":"org.gradle.api.internal.provider.DefaultProperty","instances":100253,"shallowBytes":4010120},{"name":"org.gradle.api.internal.provider.DefaultMapProperty","instances":52080,"shallowBytes":2499840},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar","instances":19287,"shallowBytes":925776},{"name":"org.gradle.api.internal.provider.DefaultSetProperty","instances":7867,"shallowBytes":314680},{"name":"org.gradle.api.internal.provider.DefaultListProperty","instances":4489,"shallowBytes":179560},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar","instances":2761,"shallowBytes":110440}],"valueStates":[{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithProvenance","instances":87055,"shallowBytes":2785760},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValue","instances":97495,"shallowBytes":2339880},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier","instances":16013,"shallowBytes":512416},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValueWithProvenance","instances":2097,"shallowBytes":67104},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValue","instances":1,"shallowBytes":16}]},
+    {"mode":"origins","fork":0,"phase":"heap","iteration":1,"wallMs":8813.322878999985,"configurationMs":7735.065046,"pid":334293,"tasks":1,"configuredProjects":253,"liveInstances":19001920,"liveBytes":686493640,"provenance":[{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord","instances":12658,"shallowBytes":303792},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin","instances":6329,"shallowBytes":151896},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$BindingRecords","instances":6329,"shallowBytes":151896},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Snapshot","instances":1367,"shallowBytes":32808},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceRecord;","instances":1241,"shallowBytes":31176},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Limitation;","instances":767,"shallowBytes":18432},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceKind","instances":9,"shallowBytes":288},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Limitation","instances":5,"shallowBytes":160},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type","instances":5,"shallowBytes":120},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceKind;","instances":1,"shallowBytes":56},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type;","instances":1,"shallowBytes":40},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry","instances":1,"shallowBytes":24},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$Lambda/0x0000038001992998","instances":1,"shallowBytes":16}],"properties":[{"name":"org.gradle.api.internal.provider.DefaultProperty","instances":100253,"shallowBytes":4010120},{"name":"org.gradle.api.internal.provider.DefaultMapProperty","instances":52089,"shallowBytes":2500272},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar","instances":19287,"shallowBytes":925776},{"name":"org.gradle.api.internal.provider.DefaultSetProperty","instances":7867,"shallowBytes":314680},{"name":"org.gradle.api.internal.provider.DefaultListProperty","instances":4489,"shallowBytes":179560},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar","instances":2761,"shallowBytes":110440}],"valueStates":[{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithProvenance","instances":87055,"shallowBytes":2785760},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValue","instances":97504,"shallowBytes":2340096},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier","instances":16013,"shallowBytes":512416},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValueWithProvenance","instances":2097,"shallowBytes":67104},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValue","instances":1,"shallowBytes":16}]},
+    {"mode":"disabled","fork":1,"phase":"warmup","iteration":0,"wallMs":22003.519426999963,"configurationMs":16131.935883,"pid":336598,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":1,"phase":"warmup","iteration":1,"wallMs":9856.53900400002,"configurationMs":8982.016504,"pid":336598,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":1,"phase":"warmup","iteration":2,"wallMs":9624.70650500001,"configurationMs":8682.870295,"pid":336598,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":1,"phase":"warmup","iteration":3,"wallMs":9097.752379999845,"configurationMs":8310.276587,"pid":336598,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":1,"phase":"warmup","iteration":4,"wallMs":9030.476671000011,"configurationMs":8265.014504,"pid":336598,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":1,"phase":"warmup","iteration":5,"wallMs":9082.433212999953,"configurationMs":8370.517295,"pid":336598,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":1,"phase":"warmup","iteration":6,"wallMs":8920.299503999995,"configurationMs":8176.068546,"pid":336598,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":1,"phase":"warmup","iteration":7,"wallMs":8940.602003999986,"configurationMs":8179.962629,"pid":336598,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":1,"phase":"timing","iteration":0,"wallMs":8721.672671000008,"configurationMs":7961.584462,"pid":336598,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":1,"phase":"timing","iteration":1,"wallMs":8758.541754000122,"configurationMs":8053.241712,"pid":336598,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":1,"phase":"timing","iteration":2,"wallMs":8848.405379999895,"configurationMs":8137.421546,"pid":336598,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":1,"phase":"timing","iteration":3,"wallMs":8599.47892000014,"configurationMs":7884.17692,"pid":336598,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":1,"phase":"timing","iteration":4,"wallMs":8543.050254000118,"configurationMs":7835.292962,"pid":336598,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":1,"phase":"timing","iteration":5,"wallMs":8613.98412899999,"configurationMs":7923.177087,"pid":336598,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":1,"phase":"timing","iteration":6,"wallMs":9105.728338000132,"configurationMs":8346.561504,"pid":336598,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":1,"phase":"timing","iteration":7,"wallMs":8877.64421300008,"configurationMs":8014.537879,"pid":336598,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":1,"phase":"heap","iteration":0,"wallMs":9201.542378999991,"configurationMs":7936.865546,"pid":336598,"tasks":1,"configuredProjects":253,"liveInstances":18941899,"liveBytes":683112864,"provenance":[{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceKind","instances":9,"shallowBytes":288},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type","instances":5,"shallowBytes":120},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceKind;","instances":1,"shallowBytes":56},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord","instances":2,"shallowBytes":48},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type;","instances":1,"shallowBytes":40},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin","instances":1,"shallowBytes":24},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry","instances":1,"shallowBytes":24},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$BindingRecords","instances":1,"shallowBytes":24}],"properties":[{"name":"org.gradle.api.internal.provider.DefaultProperty","instances":100253,"shallowBytes":4010120},{"name":"org.gradle.api.internal.provider.DefaultMapProperty","instances":52071,"shallowBytes":2499408},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar","instances":19287,"shallowBytes":925776},{"name":"org.gradle.api.internal.provider.DefaultSetProperty","instances":7867,"shallowBytes":314680},{"name":"org.gradle.api.internal.provider.DefaultListProperty","instances":4489,"shallowBytes":179560},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar","instances":2761,"shallowBytes":110440}],"valueStates":[{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValue","instances":184541,"shallowBytes":4428984},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier","instances":16013,"shallowBytes":512416},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValue","instances":1,"shallowBytes":16}]},
+    {"mode":"disabled","fork":1,"phase":"heap","iteration":1,"wallMs":8915.281337999972,"configurationMs":7831.94592,"pid":336598,"tasks":1,"configuredProjects":253,"liveInstances":18943531,"liveBytes":683776672,"provenance":[{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceKind","instances":9,"shallowBytes":288},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type","instances":5,"shallowBytes":120},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceKind;","instances":1,"shallowBytes":56},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord","instances":2,"shallowBytes":48},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type;","instances":1,"shallowBytes":40},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin","instances":1,"shallowBytes":24},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry","instances":1,"shallowBytes":24},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$BindingRecords","instances":1,"shallowBytes":24}],"properties":[{"name":"org.gradle.api.internal.provider.DefaultProperty","instances":100253,"shallowBytes":4010120},{"name":"org.gradle.api.internal.provider.DefaultMapProperty","instances":52053,"shallowBytes":2498544},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar","instances":19287,"shallowBytes":925776},{"name":"org.gradle.api.internal.provider.DefaultSetProperty","instances":7867,"shallowBytes":314680},{"name":"org.gradle.api.internal.provider.DefaultListProperty","instances":4489,"shallowBytes":179560},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar","instances":2761,"shallowBytes":110440}],"valueStates":[{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValue","instances":184523,"shallowBytes":4428552},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier","instances":16013,"shallowBytes":512416},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValue","instances":1,"shallowBytes":16}]},
+    {"mode":"origins","fork":1,"phase":"warmup","iteration":0,"wallMs":21875.331385999918,"configurationMs":16182.168132,"pid":338837,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":1,"phase":"warmup","iteration":1,"wallMs":9573.481254999992,"configurationMs":8697.067671,"pid":338837,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":1,"phase":"warmup","iteration":2,"wallMs":9177.576671000104,"configurationMs":8357.615212,"pid":338837,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":1,"phase":"warmup","iteration":3,"wallMs":8984.8803379999,"configurationMs":8247.677796,"pid":338837,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":1,"phase":"warmup","iteration":4,"wallMs":8883.027629000135,"configurationMs":8139.08942,"pid":338837,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":1,"phase":"warmup","iteration":5,"wallMs":8670.531838000054,"configurationMs":7967.030421,"pid":338837,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":1,"phase":"warmup","iteration":6,"wallMs":8834.65921199997,"configurationMs":8079.05467,"pid":338837,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":1,"phase":"warmup","iteration":7,"wallMs":10082.843297000043,"configurationMs":9350.73963,"pid":338837,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":1,"phase":"timing","iteration":0,"wallMs":8644.088546000188,"configurationMs":7898.797837,"pid":338837,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":1,"phase":"timing","iteration":1,"wallMs":8588.019587999908,"configurationMs":7862.153462,"pid":338837,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":1,"phase":"timing","iteration":2,"wallMs":8577.711878999835,"configurationMs":7870.096671,"pid":338837,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":1,"phase":"timing","iteration":3,"wallMs":8441.473836999852,"configurationMs":7662.32942,"pid":338837,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":1,"phase":"timing","iteration":4,"wallMs":8191.022920999909,"configurationMs":7497.928712,"pid":338837,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":1,"phase":"timing","iteration":5,"wallMs":8298.752586999908,"configurationMs":7622.468504,"pid":338837,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":1,"phase":"timing","iteration":6,"wallMs":8237.254087999929,"configurationMs":7517.267545,"pid":338837,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":1,"phase":"timing","iteration":7,"wallMs":8247.078838000074,"configurationMs":7565.089629,"pid":338837,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":1,"phase":"heap","iteration":0,"wallMs":8741.971336999908,"configurationMs":7569.668045,"pid":338837,"tasks":1,"configuredProjects":253,"liveInstances":19001020,"liveBytes":685743400,"provenance":[{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord","instances":12658,"shallowBytes":303792},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin","instances":6329,"shallowBytes":151896},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$BindingRecords","instances":6329,"shallowBytes":151896},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Snapshot","instances":1367,"shallowBytes":32808},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceRecord;","instances":1241,"shallowBytes":31176},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Limitation;","instances":767,"shallowBytes":18432},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceKind","instances":9,"shallowBytes":288},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Limitation","instances":5,"shallowBytes":160},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type","instances":5,"shallowBytes":120},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceKind;","instances":1,"shallowBytes":56},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type;","instances":1,"shallowBytes":40},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry","instances":1,"shallowBytes":24},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$Lambda/0x0000001f01992998","instances":1,"shallowBytes":16}],"properties":[{"name":"org.gradle.api.internal.provider.DefaultProperty","instances":100253,"shallowBytes":4010120},{"name":"org.gradle.api.internal.provider.DefaultMapProperty","instances":52080,"shallowBytes":2499840},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar","instances":19287,"shallowBytes":925776},{"name":"org.gradle.api.internal.provider.DefaultSetProperty","instances":7867,"shallowBytes":314680},{"name":"org.gradle.api.internal.provider.DefaultListProperty","instances":4489,"shallowBytes":179560},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar","instances":2761,"shallowBytes":110440}],"valueStates":[{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithProvenance","instances":87055,"shallowBytes":2785760},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValue","instances":97495,"shallowBytes":2339880},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier","instances":16013,"shallowBytes":512416},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValueWithProvenance","instances":2097,"shallowBytes":67104},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValue","instances":1,"shallowBytes":16}]},
+    {"mode":"origins","fork":1,"phase":"heap","iteration":1,"wallMs":8479.792961999774,"configurationMs":7436.077504,"pid":338837,"tasks":1,"configuredProjects":253,"liveInstances":19003435,"liveBytes":686722264,"provenance":[{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord","instances":12658,"shallowBytes":303792},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin","instances":6329,"shallowBytes":151896},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$BindingRecords","instances":6329,"shallowBytes":151896},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Snapshot","instances":1367,"shallowBytes":32808},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceRecord;","instances":1241,"shallowBytes":31176},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Limitation;","instances":767,"shallowBytes":18432},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceKind","instances":9,"shallowBytes":288},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Limitation","instances":5,"shallowBytes":160},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type","instances":5,"shallowBytes":120},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceKind;","instances":1,"shallowBytes":56},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type;","instances":1,"shallowBytes":40},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry","instances":1,"shallowBytes":24},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$Lambda/0x0000001f01992998","instances":1,"shallowBytes":16}],"properties":[{"name":"org.gradle.api.internal.provider.DefaultProperty","instances":100253,"shallowBytes":4010120},{"name":"org.gradle.api.internal.provider.DefaultMapProperty","instances":52044,"shallowBytes":2498112},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar","instances":19287,"shallowBytes":925776},{"name":"org.gradle.api.internal.provider.DefaultSetProperty","instances":7867,"shallowBytes":314680},{"name":"org.gradle.api.internal.provider.DefaultListProperty","instances":4489,"shallowBytes":179560},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar","instances":2761,"shallowBytes":110440}],"valueStates":[{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithProvenance","instances":87055,"shallowBytes":2785760},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValue","instances":97459,"shallowBytes":2339016},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier","instances":16013,"shallowBytes":512416},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValueWithProvenance","instances":2097,"shallowBytes":67104},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValue","instances":1,"shallowBytes":16}]},
+    {"mode":"baseline","fork":1,"phase":"warmup","iteration":0,"wallMs":21265.066301999846,"configurationMs":15649.332966,"pid":341110,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":1,"phase":"warmup","iteration":1,"wallMs":9360.371213000035,"configurationMs":8481.08217,"pid":341110,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":1,"phase":"warmup","iteration":2,"wallMs":9088.049337999895,"configurationMs":8317.871754,"pid":341110,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":1,"phase":"warmup","iteration":3,"wallMs":8794.755337000126,"configurationMs":8050.625295,"pid":341110,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":1,"phase":"warmup","iteration":4,"wallMs":8851.552920999937,"configurationMs":8105.182463,"pid":341110,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":1,"phase":"warmup","iteration":5,"wallMs":8536.146254000021,"configurationMs":7835.135462,"pid":341110,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":1,"phase":"warmup","iteration":6,"wallMs":8473.180003999965,"configurationMs":7769.948337,"pid":341110,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":1,"phase":"warmup","iteration":7,"wallMs":8479.988421000075,"configurationMs":7777.154921,"pid":341110,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":1,"phase":"timing","iteration":0,"wallMs":8327.099461999955,"configurationMs":7653.687878,"pid":341110,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":1,"phase":"timing","iteration":1,"wallMs":8923.960544999922,"configurationMs":8202.525629,"pid":341110,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":1,"phase":"timing","iteration":2,"wallMs":8492.09029600001,"configurationMs":7768.767754,"pid":341110,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":1,"phase":"timing","iteration":3,"wallMs":8228.475170999998,"configurationMs":7559.213212,"pid":341110,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":1,"phase":"timing","iteration":4,"wallMs":8263.025463000173,"configurationMs":7571.02167,"pid":341110,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":1,"phase":"timing","iteration":5,"wallMs":8378.426711999811,"configurationMs":7670.196087,"pid":341110,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":1,"phase":"timing","iteration":6,"wallMs":8365.743961999891,"configurationMs":7656.319671,"pid":341110,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":1,"phase":"timing","iteration":7,"wallMs":8310.23808699986,"configurationMs":7577.41942,"pid":341110,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":1,"phase":"heap","iteration":0,"wallMs":8710.053378999932,"configurationMs":7558.562837,"pid":341110,"tasks":1,"configuredProjects":253,"liveInstances":18933614,"liveBytes":682917064,"provenance":[],"properties":[{"name":"org.gradle.api.internal.provider.DefaultProperty","instances":100253,"shallowBytes":4010120},{"name":"org.gradle.api.internal.provider.DefaultMapProperty","instances":52080,"shallowBytes":2499840},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar","instances":19287,"shallowBytes":925776},{"name":"org.gradle.api.internal.provider.DefaultSetProperty","instances":7867,"shallowBytes":314680},{"name":"org.gradle.api.internal.provider.DefaultListProperty","instances":4489,"shallowBytes":179560},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar","instances":2761,"shallowBytes":110440}],"valueStates":[{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValue","instances":184550,"shallowBytes":4429200},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier","instances":16013,"shallowBytes":512416},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValue","instances":1,"shallowBytes":16}]},
+    {"mode":"baseline","fork":1,"phase":"heap","iteration":1,"wallMs":8602.22062999988,"configurationMs":7497.320379,"pid":341110,"tasks":1,"configuredProjects":253,"liveInstances":18935115,"liveBytes":683221384,"provenance":[],"properties":[{"name":"org.gradle.api.internal.provider.DefaultProperty","instances":100253,"shallowBytes":4010120},{"name":"org.gradle.api.internal.provider.DefaultMapProperty","instances":52053,"shallowBytes":2498544},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar","instances":19287,"shallowBytes":925776},{"name":"org.gradle.api.internal.provider.DefaultSetProperty","instances":7867,"shallowBytes":314680},{"name":"org.gradle.api.internal.provider.DefaultListProperty","instances":4489,"shallowBytes":179560},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar","instances":2761,"shallowBytes":110440}],"valueStates":[{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValue","instances":184523,"shallowBytes":4428552},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier","instances":16013,"shallowBytes":512416},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValue","instances":1,"shallowBytes":16}]},
+    {"mode":"origins","fork":2,"phase":"warmup","iteration":0,"wallMs":21966.148844000185,"configurationMs":16213.935966,"pid":343329,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":2,"phase":"warmup","iteration":1,"wallMs":9282.066004999913,"configurationMs":8427.090254,"pid":343329,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":2,"phase":"warmup","iteration":2,"wallMs":9067.553045999957,"configurationMs":8307.597587,"pid":343329,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":2,"phase":"warmup","iteration":3,"wallMs":8801.961546000093,"configurationMs":8064.973087,"pid":343329,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":2,"phase":"warmup","iteration":4,"wallMs":8736.208961999975,"configurationMs":7977.775754,"pid":343329,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":2,"phase":"warmup","iteration":5,"wallMs":8570.514794999966,"configurationMs":7879.655712,"pid":343329,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":2,"phase":"warmup","iteration":6,"wallMs":8568.116961999796,"configurationMs":7867.633837,"pid":343329,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":2,"phase":"warmup","iteration":7,"wallMs":8405.83017099998,"configurationMs":7709.496754,"pid":343329,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":2,"phase":"timing","iteration":0,"wallMs":8316.246378000127,"configurationMs":7599.404337,"pid":343329,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":2,"phase":"timing","iteration":1,"wallMs":8330.392379000084,"configurationMs":7622.838129,"pid":343329,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":2,"phase":"timing","iteration":2,"wallMs":8620.806546000065,"configurationMs":7930.548879,"pid":343329,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":2,"phase":"timing","iteration":3,"wallMs":8315.789128999924,"configurationMs":7635.738212,"pid":343329,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":2,"phase":"timing","iteration":4,"wallMs":8372.729294999968,"configurationMs":7684.886046,"pid":343329,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":2,"phase":"timing","iteration":5,"wallMs":8374.217545000138,"configurationMs":7693.21817,"pid":343329,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":2,"phase":"timing","iteration":6,"wallMs":8270.849086999893,"configurationMs":7588.191587,"pid":343329,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":2,"phase":"timing","iteration":7,"wallMs":8108.049088000087,"configurationMs":7438.123504,"pid":343329,"tasks":1,"configuredProjects":253},
+    {"mode":"origins","fork":2,"phase":"heap","iteration":0,"wallMs":8938.178588000126,"configurationMs":7597.637212,"pid":343329,"tasks":1,"configuredProjects":253,"liveInstances":18995361,"liveBytes":685372056,"provenance":[{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord","instances":12658,"shallowBytes":303792},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin","instances":6329,"shallowBytes":151896},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$BindingRecords","instances":6329,"shallowBytes":151896},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Snapshot","instances":1367,"shallowBytes":32808},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceRecord;","instances":1241,"shallowBytes":31176},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Limitation;","instances":767,"shallowBytes":18432},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceKind","instances":9,"shallowBytes":288},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Limitation","instances":5,"shallowBytes":160},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type","instances":5,"shallowBytes":120},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceKind;","instances":1,"shallowBytes":56},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type;","instances":1,"shallowBytes":40},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry","instances":1,"shallowBytes":24},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$Lambda/0x00003fff01991a90","instances":1,"shallowBytes":16}],"properties":[{"name":"org.gradle.api.internal.provider.DefaultProperty","instances":100253,"shallowBytes":4010120},{"name":"org.gradle.api.internal.provider.DefaultMapProperty","instances":52044,"shallowBytes":2498112},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar","instances":19287,"shallowBytes":925776},{"name":"org.gradle.api.internal.provider.DefaultSetProperty","instances":7867,"shallowBytes":314680},{"name":"org.gradle.api.internal.provider.DefaultListProperty","instances":4489,"shallowBytes":179560},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar","instances":2761,"shallowBytes":110440}],"valueStates":[{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithProvenance","instances":87055,"shallowBytes":2785760},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValue","instances":97459,"shallowBytes":2339016},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier","instances":16013,"shallowBytes":512416},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValueWithProvenance","instances":2097,"shallowBytes":67104},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValue","instances":1,"shallowBytes":16}]},
+    {"mode":"origins","fork":2,"phase":"heap","iteration":1,"wallMs":8473.406421000138,"configurationMs":7434.237128,"pid":343329,"tasks":1,"configuredProjects":253,"liveInstances":18994842,"liveBytes":685613664,"provenance":[{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord","instances":12658,"shallowBytes":303792},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin","instances":6329,"shallowBytes":151896},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$BindingRecords","instances":6329,"shallowBytes":151896},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Snapshot","instances":1367,"shallowBytes":32808},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceRecord;","instances":1241,"shallowBytes":31176},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Limitation;","instances":767,"shallowBytes":18432},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceKind","instances":9,"shallowBytes":288},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace$Limitation","instances":5,"shallowBytes":160},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type","instances":5,"shallowBytes":120},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceKind;","instances":1,"shallowBytes":56},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type;","instances":1,"shallowBytes":40},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry","instances":1,"shallowBytes":24},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$Lambda/0x00003fff01991a90","instances":1,"shallowBytes":16}],"properties":[{"name":"org.gradle.api.internal.provider.DefaultProperty","instances":100253,"shallowBytes":4010120},{"name":"org.gradle.api.internal.provider.DefaultMapProperty","instances":52044,"shallowBytes":2498112},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar","instances":19287,"shallowBytes":925776},{"name":"org.gradle.api.internal.provider.DefaultSetProperty","instances":7867,"shallowBytes":314680},{"name":"org.gradle.api.internal.provider.DefaultListProperty","instances":4489,"shallowBytes":179560},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar","instances":2761,"shallowBytes":110440}],"valueStates":[{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithProvenance","instances":87055,"shallowBytes":2785760},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValue","instances":97459,"shallowBytes":2339016},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier","instances":16013,"shallowBytes":512416},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValueWithProvenance","instances":2097,"shallowBytes":67104},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValue","instances":1,"shallowBytes":16}]},
+    {"mode":"baseline","fork":2,"phase":"warmup","iteration":0,"wallMs":21141.28909399989,"configurationMs":15564.329799,"pid":345642,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":2,"phase":"warmup","iteration":1,"wallMs":9676.462504999945,"configurationMs":8790.033004,"pid":345642,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":2,"phase":"warmup","iteration":2,"wallMs":9048.92162899999,"configurationMs":8290.51817,"pid":345642,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":2,"phase":"warmup","iteration":3,"wallMs":8851.528920999961,"configurationMs":8130.090754,"pid":345642,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":2,"phase":"warmup","iteration":4,"wallMs":8866.898796000052,"configurationMs":8126.055254,"pid":345642,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":2,"phase":"warmup","iteration":5,"wallMs":9598.304753999924,"configurationMs":8763.434379,"pid":345642,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":2,"phase":"warmup","iteration":6,"wallMs":8750.152545999968,"configurationMs":8044.862254,"pid":345642,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":2,"phase":"warmup","iteration":7,"wallMs":8428.217586999992,"configurationMs":7694.659129,"pid":345642,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":2,"phase":"timing","iteration":0,"wallMs":8556.420046000043,"configurationMs":7895.590379,"pid":345642,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":2,"phase":"timing","iteration":1,"wallMs":8415.936503999867,"configurationMs":7738.838171,"pid":345642,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":2,"phase":"timing","iteration":2,"wallMs":8387.791086999932,"configurationMs":7700.600337,"pid":345642,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":2,"phase":"timing","iteration":3,"wallMs":8369.715087000048,"configurationMs":7687.714128,"pid":345642,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":2,"phase":"timing","iteration":4,"wallMs":8885.390170999803,"configurationMs":8031.777129,"pid":345642,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":2,"phase":"timing","iteration":5,"wallMs":8650.770462000044,"configurationMs":7962.22142,"pid":345642,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":2,"phase":"timing","iteration":6,"wallMs":8462.11792099988,"configurationMs":7742.337295,"pid":345642,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":2,"phase":"timing","iteration":7,"wallMs":8970.796587000135,"configurationMs":8248.40092,"pid":345642,"tasks":1,"configuredProjects":253},
+    {"mode":"baseline","fork":2,"phase":"heap","iteration":0,"wallMs":8849.441003999906,"configurationMs":7630.576753,"pid":345642,"tasks":1,"configuredProjects":253,"liveInstances":18933743,"liveBytes":682580256,"provenance":[],"properties":[{"name":"org.gradle.api.internal.provider.DefaultProperty","instances":100253,"shallowBytes":4010120},{"name":"org.gradle.api.internal.provider.DefaultMapProperty","instances":52062,"shallowBytes":2498976},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar","instances":19287,"shallowBytes":925776},{"name":"org.gradle.api.internal.provider.DefaultSetProperty","instances":7867,"shallowBytes":314680},{"name":"org.gradle.api.internal.provider.DefaultListProperty","instances":4489,"shallowBytes":179560},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar","instances":2761,"shallowBytes":110440}],"valueStates":[{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValue","instances":184532,"shallowBytes":4428768},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier","instances":16013,"shallowBytes":512416},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValue","instances":1,"shallowBytes":16}]},
+    {"mode":"baseline","fork":2,"phase":"heap","iteration":1,"wallMs":9518.318129000021,"configurationMs":8434.707254,"pid":345642,"tasks":1,"configuredProjects":253,"liveInstances":18936187,"liveBytes":683532504,"provenance":[],"properties":[{"name":"org.gradle.api.internal.provider.DefaultProperty","instances":100253,"shallowBytes":4010120},{"name":"org.gradle.api.internal.provider.DefaultMapProperty","instances":52053,"shallowBytes":2498544},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar","instances":19287,"shallowBytes":925776},{"name":"org.gradle.api.internal.provider.DefaultSetProperty","instances":7867,"shallowBytes":314680},{"name":"org.gradle.api.internal.provider.DefaultListProperty","instances":4489,"shallowBytes":179560},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar","instances":2761,"shallowBytes":110440}],"valueStates":[{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValue","instances":184523,"shallowBytes":4428552},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier","instances":16013,"shallowBytes":512416},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValue","instances":1,"shallowBytes":16}]},
+    {"mode":"disabled","fork":2,"phase":"warmup","iteration":0,"wallMs":22635.176219000015,"configurationMs":16744.477133,"pid":347864,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":2,"phase":"warmup","iteration":1,"wallMs":10242.526045999955,"configurationMs":9296.180462,"pid":347864,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":2,"phase":"warmup","iteration":2,"wallMs":9735.681503999978,"configurationMs":8905.29238,"pid":347864,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":2,"phase":"warmup","iteration":3,"wallMs":9931.814505000133,"configurationMs":9130.293088,"pid":347864,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":2,"phase":"warmup","iteration":4,"wallMs":9287.477753999876,"configurationMs":8481.340129,"pid":347864,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":2,"phase":"warmup","iteration":5,"wallMs":9109.306296000024,"configurationMs":8337.95092,"pid":347864,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":2,"phase":"warmup","iteration":6,"wallMs":8948.210546000162,"configurationMs":8240.324087,"pid":347864,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":2,"phase":"warmup","iteration":7,"wallMs":9067.614962999942,"configurationMs":8235.106837,"pid":347864,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":2,"phase":"timing","iteration":0,"wallMs":9131.353046000004,"configurationMs":8274.403295,"pid":347864,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":2,"phase":"timing","iteration":1,"wallMs":9615.845796000212,"configurationMs":8864.800713,"pid":347864,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":2,"phase":"timing","iteration":2,"wallMs":9729.380712999962,"configurationMs":8991.305171,"pid":347864,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":2,"phase":"timing","iteration":3,"wallMs":8811.948211999843,"configurationMs":8042.098171,"pid":347864,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":2,"phase":"timing","iteration":4,"wallMs":8434.462129000109,"configurationMs":7736.923753,"pid":347864,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":2,"phase":"timing","iteration":5,"wallMs":8389.437586999964,"configurationMs":7701.201295,"pid":347864,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":2,"phase":"timing","iteration":6,"wallMs":8434.762836999958,"configurationMs":7731.054045,"pid":347864,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":2,"phase":"timing","iteration":7,"wallMs":8551.965753999772,"configurationMs":7867.649545,"pid":347864,"tasks":1,"configuredProjects":253},
+    {"mode":"disabled","fork":2,"phase":"heap","iteration":0,"wallMs":9875.793754999992,"configurationMs":8634.990254,"pid":347864,"tasks":1,"configuredProjects":253,"liveInstances":18938716,"liveBytes":682961656,"provenance":[{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceKind","instances":9,"shallowBytes":288},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type","instances":5,"shallowBytes":120},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceKind;","instances":1,"shallowBytes":56},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord","instances":2,"shallowBytes":48},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type;","instances":1,"shallowBytes":40},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin","instances":1,"shallowBytes":24},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry","instances":1,"shallowBytes":24},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$BindingRecords","instances":1,"shallowBytes":24}],"properties":[{"name":"org.gradle.api.internal.provider.DefaultProperty","instances":100253,"shallowBytes":4010120},{"name":"org.gradle.api.internal.provider.DefaultMapProperty","instances":52044,"shallowBytes":2498112},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar","instances":19287,"shallowBytes":925776},{"name":"org.gradle.api.internal.provider.DefaultSetProperty","instances":7867,"shallowBytes":314680},{"name":"org.gradle.api.internal.provider.DefaultListProperty","instances":4489,"shallowBytes":179560},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar","instances":2761,"shallowBytes":110440}],"valueStates":[{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValue","instances":184514,"shallowBytes":4428336},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier","instances":16013,"shallowBytes":512416},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValue","instances":1,"shallowBytes":16}]},
+    {"mode":"disabled","fork":2,"phase":"heap","iteration":1,"wallMs":9524.231838000007,"configurationMs":8391.758504,"pid":347864,"tasks":1,"configuredProjects":253,"liveInstances":18940349,"liveBytes":683419240,"provenance":[{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceKind","instances":9,"shallowBytes":288},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type","instances":5,"shallowBytes":120},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceKind;","instances":1,"shallowBytes":56},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord","instances":2,"shallowBytes":48},{"name":"[Lorg.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin$Type;","instances":1,"shallowBytes":40},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceOrigin","instances":1,"shallowBytes":24},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry","instances":1,"shallowBytes":24},{"name":"org.gradle.api.internal.provider.provenance.PropertyProvenanceRegistry$BindingRecords","instances":1,"shallowBytes":24}],"properties":[{"name":"org.gradle.api.internal.provider.DefaultProperty","instances":100253,"shallowBytes":4010120},{"name":"org.gradle.api.internal.provider.DefaultMapProperty","instances":52044,"shallowBytes":2498112},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultDirectoryVar","instances":19287,"shallowBytes":925776},{"name":"org.gradle.api.internal.provider.DefaultSetProperty","instances":7867,"shallowBytes":314680},{"name":"org.gradle.api.internal.provider.DefaultListProperty","instances":4489,"shallowBytes":179560},{"name":"org.gradle.api.internal.file.DefaultFilePropertyFactory$DefaultRegularFileVar","instances":2761,"shallowBytes":110440}],"valueStates":[{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValue","instances":184514,"shallowBytes":4428336},{"name":"org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier","instances":16013,"shallowBytes":512416},{"name":"org.gradle.api.internal.provider.ValueState$FinalizedValue","instances":1,"shallowBytes":16}]}
+  ]
+}

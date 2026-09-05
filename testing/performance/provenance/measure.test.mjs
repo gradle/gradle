@@ -36,3 +36,19 @@ Total 18 976
     assert.equal(result.properties[0].shallowBytes / result.properties[0].instances, 56);
     assert.equal(result.provenance.length, 0);
 });
+
+test('inline enabled states are measured separately from standalone metadata and disabled states', () => {
+    const result = parseHistogram(`
+ 1: 10 240 org.gradle.api.internal.provider.ValueState$NonFinalizedValue
+ 2: 20 640 org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithProvenance
+ 3: 2 64 org.gradle.api.internal.provider.ValueState$FinalizedValueWithProvenance
+ 4: 1 16 org.gradle.api.internal.provider.ValueState$FinalizedValue
+ 5: 1 32 org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithCopier
+ 6: 1 24 org.gradle.api.internal.provider.provenance.PropertyProvenanceState$Detached
+Total 35 1016
+`);
+    assert.equal(result.valueStates.length, 5);
+    assert.equal(result.valueStates[1].shallowBytes / result.valueStates[1].instances, 32);
+    assert.equal(result.provenance.length, 1);
+    assert.equal(result.properties.length, 0);
+});

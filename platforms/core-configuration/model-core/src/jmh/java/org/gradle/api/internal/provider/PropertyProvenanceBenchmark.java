@@ -31,6 +31,7 @@ import org.openjdk.jmh.annotations.BenchmarkMode;
 import org.openjdk.jmh.annotations.Fork;
 import org.openjdk.jmh.annotations.Measurement;
 import org.openjdk.jmh.annotations.Mode;
+import org.openjdk.jmh.annotations.OperationsPerInvocation;
 import org.openjdk.jmh.annotations.OutputTimeUnit;
 import org.openjdk.jmh.annotations.Param;
 import org.openjdk.jmh.annotations.Scope;
@@ -56,6 +57,7 @@ public class PropertyProvenanceBenchmark {
 
     private PropertyHost host;
     private DefaultProperty<Object> property;
+    private DefaultProperty<?>[] mixedProperties;
     private final DefaultUserCodeApplicationContext context = new DefaultUserCodeApplicationContext();
     private UserCodeApplicationContext.Application application;
     private final ProviderInternal<Object> supplier = Providers.of("value");
@@ -90,6 +92,43 @@ public class PropertyProvenanceBenchmark {
         };
         property = new DefaultProperty<>(host, Object.class);
         application.reapply(() -> property.set(supplier));
+        mixedProperties = new DefaultProperty<?>[4];
+        for (int i = 0; i < mixedProperties.length; i++) {
+            DefaultProperty<Object> mixed = new DefaultProperty<>(i < 2 ? host : PropertyHost.NO_OP, Object.class);
+            application.reapply(() -> mixed.set(supplier));
+            if (i % 2 == 0) {
+                mixed.finalizeValue();
+            }
+            mixedProperties[i] = mixed;
+        }
+    }
+
+    @Benchmark
+    public DefaultProperty<Object> createOnly() {
+        return new DefaultProperty<>(host, Object.class);
+    }
+
+    @Benchmark
+    public ProviderInternal<Object> shallowCopy() {
+        return property.shallowCopy();
+    }
+
+    @Benchmark
+    @OperationsPerInvocation(4)
+    public int mixedReads() {
+        int result = 0;
+        // Exercise mutable/finalized and tracked/untracked states at the same read call site.
+        for (DefaultProperty<?> mixed : mixedProperties) {
+            result += ((String) mixed.get()).length();
+        }
+        return result;
+    }
+
+    @Benchmark
+    public DefaultProperty<Object> bindAndFinalizeFixed() {
+        DefaultProperty<Object> created = createAndBind();
+        created.finalizeValue();
+        return created;
     }
 
     @Benchmark

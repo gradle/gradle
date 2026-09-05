@@ -155,7 +155,7 @@ introduced here.
 
 ## Performance plan
 
-The hot-path goals are shared origin records, lazy local state, no evaluation, no value
+The hot-path goals are shared origin records, enabled-only inline state, no evaluation, no value
 formatting, and no per-mutation location work in origin-only mode. Superseded explicit
 origins are released on unset. Record tables are interned per user-code source and
 published fully initialized for safe concurrent reads. A full history is not retained.
@@ -183,12 +183,26 @@ claim follows. No runtime optimization was made during that measurement.
 The subsequent [compact-registry change](testing/performance/provenance/COMPACT_REGISTRY_RESULTS_2026-09-04.md)
 replaces the eager nine-record table with two successful-binding records per origin.
 Two follow-up enabled heap checkpoints confirm 1.21 MiB fewer live provenance objects
-and containers on the same workload. The separate disabled property-layout tax remains;
-this targeted footprint check does not establish a whole-build timing improvement.
+and containers on the same workload. That change did not remove the disabled property-layout
+tax or establish a whole-build timing improvement.
+
+The [enabled-only state change](testing/performance/provenance/ENABLED_STATE_RESULTS_2026-09-05.md)
+now removes both fields from `AbstractProperty`. Disabled states retain their original
+24-byte layout and shared finalized singleton. Enabled mutable states hold provenance
+inline in 32 bytes; enabled finalized states retain the host and diagnostic data without
+the old supplier graph. All six measured property classes return to baseline size.
+A matched-count production checkpoint shows another 2.42 MiB reduction across properties,
+value states and provenance metadata versus the compact-registry version. Binding allocation
+falls, but fixed-value finalization allocates 8 more bytes per enabled create/bind/finalize
+operation. The report separates these structural/allocation results from whole-build timings.
+The repeated production run measured disabled configuration 2.99% above the no-provenance
+baseline, with positive differences in all three daemon repetitions. That signal still
+needs profiling; restored object layouts do not establish zero disabled timing overhead.
 
 `PropertyProvenanceBenchmark` compares disabled, origin-only, and optional-location modes
 for creation plus binding, repeated replacement, convention plus explicit binding, and
-binding/finalizing a three-property chain.
+binding/finalizing a three-property chain. It also covers unbound construction, fixed-value
+finalization, shallow copies, and mixed tracked/untracked mutable/finalized reads.
 It includes application-context restoration and the existing instrumented-call helper.
 Use JMH's GC profiler for allocated bytes per operation as well as time:
 
@@ -257,9 +271,9 @@ report is `platforms/core-configuration/model-core/build/reports/property-proven
 ## Next milestones
 
 1. Expand concrete project-scoped callback/property-operation and cross-project cases.
-2. The per-origin record table is now compact. Separately evaluate removing the disabled
-   property-layout tax. Re-run the matching baseline and use more controlled timing repetitions
-   before claiming a whole-build performance improvement.
+2. The record table is compact and the measured disabled property-layout tax is removed.
+   Profile the remaining disabled timing signal, whole-daemon costs and enabled finalization allocation separately;
+   use more controlled timing repetitions/builds before claiming a small overhead percentage.
 3. Add explicit source/target build identity and script roles when required by those cases.
 4. Treat collection contributions, causal provider tracing, and cache transport as separate workstreams.
 5. Defer settings-owned tracking and other new scopes until a concrete diagnostic needs them;

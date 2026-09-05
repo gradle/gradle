@@ -20,87 +20,75 @@ import org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace.Snaps
 import org.jspecify.annotations.Nullable;
 
 /**
- * Effective provenance retained by an ordinary property.
+ * Read-only view of effective provenance retained inline by an enabled property value state.
  *
  * <p>This deliberately is not mutation history. A replacing {@code set} replaces the explicit source,
  * and a convention is shown outside the source trace while an explicit source is selected.</p>
  */
-public final class PropertyProvenanceState {
-    // A PropertyProvenanceRecord while mutable, or a Snapshot after finalization. Reuse the slot
-    // so finalization support does not add a reference to every unfinalized property's metadata.
-    private @Nullable Object explicitSourceOrSnapshot;
-    private @Nullable PropertyProvenanceRecord convention;
-    private boolean explicitSelected;
-    private boolean conventionPromoted;
+public interface PropertyProvenanceState {
+    /**
+     * A binding record or a descriptor-only finalized snapshot, never a provider or host.
+     */
+    @Nullable Object getExplicitSourceOrSnapshot();
 
-    public void explicitSource(PropertyProvenanceRecord source) {
-        explicitSourceOrSnapshot = source;
-        explicitSelected = true;
-        conventionPromoted = false;
+    @Nullable PropertyProvenanceRecord getConvention();
+
+    boolean isExplicitSelected();
+
+    boolean isConventionPromoted();
+
+    default PropertyProvenanceState copy() {
+        return new Detached(this);
     }
 
-    public void convention(PropertyProvenanceRecord source) {
-        convention = source;
-        // Even an interned record from the same origin represents a new binding occurrence.
-        conventionPromoted = false;
+    default @Nullable Snapshot getFinalizedSnapshot() {
+        Object source = getExplicitSourceOrSnapshot();
+        return source instanceof Snapshot ? (Snapshot) source : null;
     }
 
-    public void selectExplicit() {
-        explicitSelected = true;
-        conventionPromoted = false;
+    default @Nullable PropertyProvenanceRecord getExplicitSource() {
+        Object source = getExplicitSourceOrSnapshot();
+        return source instanceof PropertyProvenanceRecord ? (PropertyProvenanceRecord) source : null;
     }
 
-    public void selectConvention() {
-        explicitSelected = false;
-        explicitSourceOrSnapshot = null;
-        conventionPromoted = false;
+    default boolean hasShadowedConvention() {
+        return isExplicitSelected() && getConvention() != null && !isConventionPromoted();
     }
 
     /**
-     * Promoting a convention freezes its binding, even if a different convention is supplied later.
+     * Shallow copies detach only diagnostic data; they must not retain the mutable value state.
      */
-    public void promoteConvention() {
-        explicitSourceOrSnapshot = convention;
-        explicitSelected = true;
-        conventionPromoted = true;
-    }
+    final class Detached implements PropertyProvenanceState {
+        private final @Nullable Object explicitSourceOrSnapshot;
+        private final @Nullable PropertyProvenanceRecord convention;
+        private final boolean explicitSelected;
+        private final boolean conventionPromoted;
 
-    public PropertyProvenanceState copy() {
-        PropertyProvenanceState copy = new PropertyProvenanceState();
-        copy.explicitSourceOrSnapshot = explicitSourceOrSnapshot;
-        copy.convention = convention;
-        copy.explicitSelected = explicitSelected;
-        copy.conventionPromoted = conventionPromoted;
-        return copy;
-    }
+        private Detached(PropertyProvenanceState source) {
+            explicitSourceOrSnapshot = source.getExplicitSourceOrSnapshot();
+            convention = source.getConvention();
+            explicitSelected = source.isExplicitSelected();
+            conventionPromoted = source.isConventionPromoted();
+        }
 
-    public void finalizeProvenance(PropertyProvenanceTrace.Snapshot snapshot) {
-        explicitSourceOrSnapshot = snapshot;
-        // The snapshot contains the local binding as well as the upstream bindings.
-        convention = null;
-    }
+        @Override
+        public @Nullable Object getExplicitSourceOrSnapshot() {
+            return explicitSourceOrSnapshot;
+        }
 
-    public @Nullable Snapshot getFinalizedSnapshot() {
-        return explicitSourceOrSnapshot instanceof Snapshot ? (Snapshot) explicitSourceOrSnapshot : null;
-    }
+        @Override
+        public @Nullable PropertyProvenanceRecord getConvention() {
+            return convention;
+        }
 
-    public void discardConvention() {
-        convention = null;
-    }
+        @Override
+        public boolean isExplicitSelected() {
+            return explicitSelected;
+        }
 
-    public @Nullable PropertyProvenanceRecord getExplicitSource() {
-        return explicitSourceOrSnapshot instanceof PropertyProvenanceRecord ? (PropertyProvenanceRecord) explicitSourceOrSnapshot : null;
-    }
-
-    public @Nullable PropertyProvenanceRecord getConvention() {
-        return convention;
-    }
-
-    public boolean isExplicitSelected() {
-        return explicitSelected;
-    }
-
-    public boolean hasShadowedConvention() {
-        return explicitSelected && convention != null && !conventionPromoted;
+        @Override
+        public boolean isConventionPromoted() {
+            return conventionPromoted;
+        }
     }
 }

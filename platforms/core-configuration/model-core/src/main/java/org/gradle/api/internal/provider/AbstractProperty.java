@@ -56,14 +56,9 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     private DisplayName displayName;
     private ValueState<S> state;
     private S value;
-    private final @Nullable PropertyHost provenanceHost;
-    private @Nullable PropertyProvenanceState provenance;
 
-    @SuppressWarnings("ConstantValue")
     public AbstractProperty(PropertyHost host) {
-        state = ValueState.newState(host);
-        // Some unit tests construct a property without a host.
-        provenanceHost = host != null && host.tracksPropertyProvenance() ? host : null;
+        state = ValueState.newPropertyState(host);
     }
 
     protected void init(S initialValue, S convention) {
@@ -82,6 +77,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public final boolean capturesPropertyCallSites() {
+        PropertyHost provenanceHost = state.getProvenanceHost();
         return provenanceHost != null && provenanceHost.capturesPropertyCallSites();
     }
 
@@ -299,9 +295,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     protected void setSupplier(S supplier) {
         assertCanMutate();
         this.value = state.explicitValue(supplier);
-        if (provenance != null) {
-            provenance.selectExplicit();
-        }
+        state.selectExplicitProvenance();
     }
 
     protected void setConvention(S convention) {
@@ -327,12 +321,12 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     private void finalizeNow(EvaluationScopeContext context, ValueConsumer consumer) {
         try {
             S finalizedValue = finalValue(context, value, state.forUpstream(consumer));
-            if (provenanceHost != null && value instanceof ProviderInternal<?> && !Providers.isFixedValue((ProviderInternal<?>) value)) {
+            if (state.getProvenanceHost() != null && value instanceof ProviderInternal<?> && !Providers.isFixedValue((ProviderInternal<?>) value)) {
                 // Snapshot after successful evaluation but before discarding the supplier graph.
                 // Upstream properties may themselves have finalized during that evaluation.
                 PropertyProvenanceTrace trace = new PropertyProvenanceTrace();
                 collectFailureProvenance(trace);
-                provenance().finalizeProvenance(trace.snapshot());
+                state.finalizeProvenance(trace.snapshot());
             }
             value = finalizedValue;
         } catch (Exception e) {
@@ -369,9 +363,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
             // otherwise, the convention will become the new value
             value = state.implicitValue(state.convention());
         }
-        if (provenance != null) {
-            provenance.selectConvention();
-        }
+        state.selectConventionProvenance();
     }
 
     /**
@@ -380,9 +372,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     protected void discardConvention() {
         assertCanMutate(PropertyProvenanceKind.UNSET_CONVENTION);
         value = state.applyConvention(value, getDefaultConvention());
-        if (provenance != null) {
-            provenance.discardConvention();
-        }
+        state.discardConventionProvenance();
     }
 
     @Override
@@ -406,9 +396,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     protected SupportsConvention setToConvention() {
         assertCanMutate(PropertyProvenanceKind.SET_TO_CONVENTION);
         this.value = state.setToConvention();
-        if (provenance != null) {
-            provenance.promoteConvention();
-        }
+        state.promoteConventionProvenance();
         return this;
     }
 
@@ -424,8 +412,8 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         if (!isDefaultConvention()) {
             boolean wasExplicit = state.isExplicit();
             this.value = state.setToConventionIfUnset(value);
-            if (!wasExplicit && provenance != null) {
-                provenance.promoteConvention();
+            if (!wasExplicit) {
+                state.promoteConventionProvenance();
             }
         }
         return this;
@@ -445,6 +433,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     }
 
     private void assertCanMutate(PropertyProvenanceKind operation) {
+        PropertyHost provenanceHost = state.getProvenanceHost();
         if (provenanceHost == null) {
             state.beforeMutate(this.getDisplayName());
             return;
@@ -466,7 +455,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     protected final void recordExplicitSource() {
         PropertyProvenanceRecord record = currentBinding(PropertyProvenanceKind.EXPLICIT_SOURCE);
         if (record != null) {
-            provenance().explicitSource(record);
+            state.recordExplicitProvenance(record);
         }
     }
 
@@ -476,23 +465,23 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     protected final void recordConvention() {
         PropertyProvenanceRecord record = currentBinding(PropertyProvenanceKind.CONVENTION);
         if (record != null) {
-            provenance().convention(record);
+            state.recordConventionProvenance(record);
         }
     }
 
     private @Nullable PropertyProvenanceRecord currentBinding(PropertyProvenanceKind kind) {
+        PropertyHost provenanceHost = state.getProvenanceHost();
         return provenanceHost == null ? null : provenanceHost.currentPropertyBinding(kind);
     }
 
-    private PropertyProvenanceState provenance() {
-        if (provenance == null) {
-            provenance = new PropertyProvenanceState();
-        }
-        return provenance;
+    private @Nullable PropertyProvenanceState copyProvenance() {
+        PropertyProvenanceState provenance = state.getProvenance();
+        return provenance == null ? null : provenance.copy();
     }
 
     @Override
     protected void describeFailureProvenance(TreeFormatter formatter) {
+        PropertyHost provenanceHost = state.getProvenanceHost();
         if (provenanceHost == null) {
             return;
         }
@@ -507,6 +496,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     protected void collectFailureProvenance(PropertyProvenanceTrace trace) {
+        PropertyHost provenanceHost = state.getProvenanceHost();
         if (provenanceHost == null) {
             trace.limitation(PropertyProvenanceTrace.Limitation.UNTRACKED);
             return;
@@ -515,7 +505,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         if (!trace.enter(this)) {
             return;
         }
-        collectSupplierProvenance(trace, provenance, value);
+        collectSupplierProvenance(trace, state.getProvenance(), value);
     }
 
     private void collectSupplierProvenance(PropertyProvenanceTrace trace, @Nullable PropertyProvenanceState source, S supplier) {
@@ -600,7 +590,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         // the value of "value" is immutable but the field is not, so copy it
         // (but use a different owner)
         private final S copiedValue = value;
-        private final @Nullable PropertyProvenanceState copiedProvenance = provenance == null ? null : provenance.copy();
+        private final @Nullable PropertyProvenanceState copiedProvenance = copyProvenance();
 
         @Override
         public ValueProducer getProducer() {
@@ -625,6 +615,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
         @Override
         protected void describeFailureProvenance(TreeFormatter formatter) {
+            PropertyHost provenanceHost = state.getProvenanceHost();
             if (provenanceHost == null) {
                 return;
             }
@@ -635,6 +626,7 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
         @Override
         protected void collectFailureProvenance(PropertyProvenanceTrace trace) {
+            PropertyHost provenanceHost = state.getProvenanceHost();
             if (provenanceHost == null) {
                 trace.limitation(PropertyProvenanceTrace.Limitation.UNTRACKED);
             } else if (trace.enter(this)) {

@@ -31,6 +31,26 @@ test('heap negative controls distinguish absent, disabled, and enabled provenanc
     assert.throws(() => validateHeap('origins', { provenance: [] }), /no provenance states/);
 });
 
+test('heap controls recognize inline provenance without standalone state objects', () => {
+    for (const name of ['NonFinalizedValueWithProvenance', 'FinalizedValueWithProvenance']) {
+        const heap = { provenance: [], valueStates: [{ name: `org.gradle.api.internal.provider.ValueState$${name}`, instances: 10 }] };
+        validateHeap('origins', heap);
+        assert.throws(() => validateHeap('disabled', heap), /retained/);
+        assert.throws(() => validateHeap('baseline', heap), /unexpectedly/);
+    }
+    assert.throws(() => validateHeap('disabled', { provenance: [
+        { name: 'org.gradle.api.internal.provider.provenance.PropertyProvenanceState$Detached', instances: 1 }
+    ] }), /retained/);
+});
+
+test('state layout summaries expose the disabled state as well as inline enabled storage', () => {
+    const name = 'org.gradle.api.internal.provider.ValueState$NonFinalizedValueWithProvenance';
+    const origins = report([{ mode: 'origins', phase: 'heap', liveBytes: 1000,
+        valueStates: [{ name, instances: 10, shallowBytes: 320 }] }])[2];
+    assert.equal(origins.valueStateLayouts[0].bytesPerInstance.median, 32);
+    assert.equal(origins.propertyLayouts.length, 0);
+});
+
 test('summaries keep independent daemon repetitions separate and exclude warmup and heap timing', () => {
     const samples = [
         { mode: 'baseline', fork: 0, phase: 'warmup', configurationMs: 999, wallMs: 999 },

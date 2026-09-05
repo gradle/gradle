@@ -1,5 +1,9 @@
 # Compact origin registry: 2026-09-04
 
+Historical results for the record-table optimization. The subsequent
+[enabled-only state change](ENABLED_STATE_RESULTS_2026-09-05.md) removes the remaining
+property-layout tax and measures its effects separately.
+
 The change removes **1,265,800 bytes (1.21 MiB)** of live provenance objects and
 containers in the same 253-project workload used for the matching-baseline experiment.
 

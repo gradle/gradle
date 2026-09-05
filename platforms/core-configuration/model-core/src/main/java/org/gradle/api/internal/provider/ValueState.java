@@ -18,6 +18,9 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.Action;
 import org.gradle.api.Describable;
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceRecord;
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceState;
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceTrace;
 import org.gradle.internal.Cast;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.logging.text.TreeFormatter;
@@ -45,6 +48,45 @@ public abstract class ValueState<S> {
      */
     public static <S> ValueState<S> newState(PropertyHost host) {
         return new ValueState.NonFinalizedValue<>(host);
+    }
+
+    /**
+     * Opts ordinary properties into enabled-only storage. The general-purpose factories, including
+     * the copier variant used by configurable file collections, keep their original state/layout.
+     */
+    @SuppressWarnings("ConstantValue")
+    public static <S> ValueState<S> newPropertyState(PropertyHost host) {
+        // Some tests construct properties without a host. Check the feature switch only at creation.
+        return host != null && host.tracksPropertyProvenance() ? new NonFinalizedValueWithProvenance<>(host) : newState(host);
+    }
+
+    public @Nullable PropertyHost getProvenanceHost() {
+        return null;
+    }
+
+    public @Nullable PropertyProvenanceState getProvenance() {
+        return null;
+    }
+
+    public void recordExplicitProvenance(PropertyProvenanceRecord source) {
+    }
+
+    public void recordConventionProvenance(PropertyProvenanceRecord source) {
+    }
+
+    public void selectExplicitProvenance() {
+    }
+
+    public void selectConventionProvenance() {
+    }
+
+    public void discardConventionProvenance() {
+    }
+
+    public void promoteConventionProvenance() {
+    }
+
+    public void finalizeProvenance(PropertyProvenanceTrace.Snapshot snapshot) {
     }
 
     /**
@@ -138,6 +180,12 @@ public abstract class ValueState<S> {
     public abstract boolean isFinalizing();
 
     public void finalizeOnReadIfNeeded(Describable displayName, @Nullable ModelObject effectiveProducer, ValueSupplier.ValueConsumer consumer, Action<ValueSupplier.ValueConsumer> finalizeNow) {
+        // Keep finalized variants out of the mutable read call site's type profile. With both
+        // tracked and untracked states, dispatching all four variants prevents this hot call
+        // from being inlined. Finalized values require neither a host check nor finalization.
+        if (this instanceof FinalizedValue) {
+            return;
+        }
         if (maybeFinalizeOnRead(displayName, effectiveProducer, consumer)) {
             finalizeNow.execute(forUpstream(consumer));
         }
@@ -198,7 +246,7 @@ public abstract class ValueState<S> {
         private static final byte IS_UPGRADED_PROPERTY_VALUE = 1 << 4;
         private static final byte WARN_ON_UPGRADED_PROPERTY_CHANGES = 1 << 5;
 
-        private final PropertyHost host;
+        protected final PropertyHost host;
         private byte flags;
         private S convention;
 
@@ -386,6 +434,112 @@ public abstract class ValueState<S> {
         }
     }
 
+    /**
+     * Reuses the mutable state's host and padding. The disabled state gets no additional fields,
+     * and enabled properties do not allocate a separate provenance holder on first binding.
+     */
+    private static class NonFinalizedValueWithProvenance<S> extends NonFinalizedValue<S> implements PropertyProvenanceState {
+        private @Nullable Object explicitSourceOrSnapshot;
+        private @Nullable PropertyProvenanceRecord provenanceConvention;
+        private boolean explicitSelected;
+        private boolean conventionPromoted;
+        private boolean hasProvenance;
+
+        NonFinalizedValueWithProvenance(PropertyHost host) {
+            super(host);
+        }
+
+        @Override
+        public PropertyHost getProvenanceHost() {
+            return host;
+        }
+
+        @Override
+        public @Nullable PropertyProvenanceState getProvenance() {
+            return hasProvenance ? this : null;
+        }
+
+        @Override
+        public ValueState<S> finalState() {
+            return new FinalizedValueWithProvenance<>(host, getProvenance());
+        }
+
+        @Override
+        public void recordExplicitProvenance(PropertyProvenanceRecord source) {
+            hasProvenance = true;
+            explicitSourceOrSnapshot = source;
+            explicitSelected = true;
+            conventionPromoted = false;
+        }
+
+        @Override
+        public void recordConventionProvenance(PropertyProvenanceRecord source) {
+            hasProvenance = true;
+            provenanceConvention = source;
+            // Even an interned record from the same origin represents a new occurrence.
+            conventionPromoted = false;
+        }
+
+        @Override
+        public void selectExplicitProvenance() {
+            if (hasProvenance) {
+                explicitSelected = true;
+                conventionPromoted = false;
+            }
+        }
+
+        @Override
+        public void selectConventionProvenance() {
+            if (hasProvenance) {
+                explicitSelected = false;
+                explicitSourceOrSnapshot = null;
+                conventionPromoted = false;
+            }
+        }
+
+        @Override
+        public void discardConventionProvenance() {
+            provenanceConvention = null;
+        }
+
+        @Override
+        public void promoteConventionProvenance() {
+            if (hasProvenance) {
+                explicitSourceOrSnapshot = provenanceConvention;
+                explicitSelected = true;
+                conventionPromoted = true;
+            }
+        }
+
+        @Override
+        public void finalizeProvenance(PropertyProvenanceTrace.Snapshot snapshot) {
+            hasProvenance = true;
+            explicitSourceOrSnapshot = snapshot;
+            // The snapshot includes local and upstream bindings, not the supplier graph.
+            provenanceConvention = null;
+        }
+
+        @Override
+        public @Nullable Object getExplicitSourceOrSnapshot() {
+            return explicitSourceOrSnapshot;
+        }
+
+        @Override
+        public @Nullable PropertyProvenanceRecord getConvention() {
+            return provenanceConvention;
+        }
+
+        @Override
+        public boolean isExplicitSelected() {
+            return explicitSelected;
+        }
+
+        @Override
+        public boolean isConventionPromoted() {
+            return conventionPromoted;
+        }
+    }
+
     private static class NonFinalizedValueWithCopier<S> extends NonFinalizedValue<S> {
         private final Function<S, S> copier;
 
@@ -397,6 +551,64 @@ public abstract class ValueState<S> {
         @Override
         protected S shallowCopy(S toCopy) {
             return copier.apply(toCopy);
+        }
+    }
+
+    /**
+     * Enabled finalization drops the mutable state and convention supplier, retaining only the
+     * host needed to report future failures and immutable diagnostic data. Disabled finalization
+     * still uses the shared singleton.
+     */
+    private static class FinalizedValueWithProvenance<S> extends FinalizedValue<S> implements PropertyProvenanceState {
+        private final PropertyHost host;
+        private final @Nullable Object explicitSourceOrSnapshot;
+        private final @Nullable PropertyProvenanceRecord provenanceConvention;
+        private final boolean explicitSelected;
+        private final boolean conventionPromoted;
+        private final boolean hasProvenance;
+
+        FinalizedValueWithProvenance(PropertyHost host, @Nullable PropertyProvenanceState provenance) {
+            this.host = host;
+            hasProvenance = provenance != null;
+            explicitSourceOrSnapshot = provenance == null ? null : provenance.getExplicitSourceOrSnapshot();
+            provenanceConvention = provenance == null ? null : provenance.getConvention();
+            explicitSelected = provenance != null && provenance.isExplicitSelected();
+            conventionPromoted = provenance != null && provenance.isConventionPromoted();
+        }
+
+        @Override
+        public boolean isFinalized() {
+            return true;
+        }
+
+        @Override
+        public PropertyHost getProvenanceHost() {
+            return host;
+        }
+
+        @Override
+        public @Nullable PropertyProvenanceState getProvenance() {
+            return hasProvenance ? this : null;
+        }
+
+        @Override
+        public @Nullable Object getExplicitSourceOrSnapshot() {
+            return explicitSourceOrSnapshot;
+        }
+
+        @Override
+        public @Nullable PropertyProvenanceRecord getConvention() {
+            return provenanceConvention;
+        }
+
+        @Override
+        public boolean isExplicitSelected() {
+            return explicitSelected;
+        }
+
+        @Override
+        public boolean isConventionPromoted() {
+            return conventionPromoted;
         }
     }
 

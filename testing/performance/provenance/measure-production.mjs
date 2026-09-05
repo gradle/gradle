@@ -31,8 +31,9 @@ export function validateConfig(config) {
 }
 
 export function validateHeap(mode, heap) {
-    const states = heap.provenance.find(entry => entry.name.endsWith('.PropertyProvenanceState'))?.instances ?? 0;
-    if (mode === 'baseline' && heap.provenance.length) throw new Error('Baseline unexpectedly contains provenance metadata');
+    const states = heap.provenance.filter(entry => /\.PropertyProvenanceState(?:\$Detached)?$/.test(entry.name)).reduce((sum, entry) => sum + entry.instances, 0)
+        + (heap.valueStates ?? []).filter(entry => entry.name.endsWith('WithProvenance')).reduce((sum, entry) => sum + entry.instances, 0);
+    if (mode === 'baseline' && (heap.provenance.length || states)) throw new Error('Baseline unexpectedly contains provenance metadata');
     if (mode === 'disabled' && states) throw new Error('Disabled run retained provenance states');
     if (mode === 'origins' && !states) throw new Error('Enabled run has no provenance states; verify distribution and workload');
 }
@@ -43,9 +44,8 @@ export function report(samples) {
         const timing = matching.filter(sample => sample.phase === 'timing');
         const heap = matching.filter(sample => sample.phase === 'heap');
         const forks = [...new Set(timing.map(sample => sample.fork))];
-        const propertyNames = [...new Set(heap.flatMap(sample => (sample.properties ?? []).map(entry => entry.name)))].sort();
-        const propertyLayouts = propertyNames.map(name => {
-            const entries = heap.map(sample => (sample.properties ?? []).filter(entry => entry.name === name))
+        const layouts = field => [...new Set(heap.flatMap(sample => (sample[field] ?? []).map(entry => entry.name)))].sort().map(name => {
+            const entries = heap.map(sample => (sample[field] ?? []).filter(entry => entry.name === name))
                 .filter(entries => entries.length).map(entries => ({
                     instances: entries.reduce((sum, entry) => sum + entry.instances, 0),
                     shallowBytes: entries.reduce((sum, entry) => sum + entry.shallowBytes, 0)
@@ -54,7 +54,7 @@ export function report(samples) {
                 bytesPerInstance: summarize(entries.map(entry => entry.shallowBytes / entry.instances)) };
         });
         return { mode, configurationMs: summarize(timing.map(s => s.configurationMs)), wallMs: summarize(timing.map(s => s.wallMs)),
-            liveBytes: summarize(heap.map(s => s.liveBytes)), propertyLayouts, forks: forks.map(fork => {
+            liveBytes: summarize(heap.map(s => s.liveBytes)), propertyLayouts: layouts('properties'), valueStateLayouts: layouts('valueStates'), forks: forks.map(fork => {
                 const timed = timing.filter(s => s.fork === fork), retained = heap.filter(s => s.fork === fork);
                 return { fork, configurationMs: summarize(timed.map(s => s.configurationMs)), wallMs: summarize(timed.map(s => s.wallMs)),
                     liveBytes: summarize(retained.map(s => s.liveBytes)) };

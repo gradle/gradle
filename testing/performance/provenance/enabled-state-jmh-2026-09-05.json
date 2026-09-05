@@ -1,0 +1,2886 @@
+{
+  "date": "2026-09-05",
+  "beforeRevision": "4d0c00f73a1ff691d0c467d03482202b1239d793",
+  "runtimeBlobs": {
+    "AbstractProperty": "52722c6290115ece80d40692f85c525b76c7db8b",
+    "ValueState": "816ea9b0b04cbc916f1aa68b8303b1c51bf50661",
+    "PropertyProvenanceState": "6c5332ae8a41b75b92006d65e1df42a28fa47fad"
+  },
+  "firstPassValueStateBlob": "21b05d752d585e6df735dab7081c69aeec669f4b",
+  "method": "ENABLED_STATE_RESULTS_2026-09-05.md",
+  "environment": {
+    "jmh": "1.36",
+    "jdk": "25.0.4+7-1-26.04-Ubuntu",
+    "arch": "aarch64",
+    "jvmArgs": [
+      "-Xms256m",
+      "-Xmx256m"
+    ],
+    "iterationSeconds": 1
+  },
+  "runs": {
+    "before": [
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.bindAndFinalizeChain",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 50.49472126279618,
+          "error": 4.359233706730169,
+          "rawData": [
+            [
+              53.58283629221257,
+              49.65462138283393,
+              49.449697727075375
+            ],
+            [
+              49.98344658599162,
+              49.7966467805644,
+              50.50107880809919
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 256.0000205787436,
+          "scoreError": 0.0000018086302201372645,
+          "rawData": [
+            [
+              256.0000218501192,
+              256.000020256691,
+              256.0000200845797
+            ],
+            [
+              256.00002037349407,
+              256.00002030836356,
+              256.00002059921394
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.bindAndFinalizeChain",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 162.12327521197832,
+          "error": 2.6456884508121976,
+          "rawData": [
+            [
+              163.39915110559028,
+              162.9278246932203,
+              160.9835660747382
+            ],
+            [
+              162.2970736436622,
+              161.2303244782802,
+              161.90171127637882
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 904.000066059748,
+          "scoreError": 0.000001250588665896909,
+          "rawData": [
+            [
+              904.0000666594017,
+              904.0000663764756,
+              904.0000654029157
+            ],
+            [
+              904.000066147002,
+              904.0000657533504,
+              904.0000660193427
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.bindAndFinalizeChain",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 208.89498619157726,
+          "error": 2.4249051523514966,
+          "rawData": [
+            [
+              207.70716084197804,
+              209.88688211213503,
+              209.50857855386627
+            ],
+            [
+              207.98899438737746,
+              209.25658084143697,
+              209.02172041266965
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 1144.0000850910571,
+          "scoreError": 0.0000012443862881010586,
+          "rawData": [
+            [
+              1144.0000847252606,
+              1144.000085556366,
+              1144.000085317131
+            ],
+            [
+              1144.0000843785695,
+              1144.0000853032352,
+              1144.0000852657806
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.bindAndFinalizeFixed",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 17.78179787427123,
+          "error": 0.5289804684717279,
+          "rawData": [
+            [
+              17.64571799569874,
+              17.64743498092458,
+              17.971755458403276
+            ],
+            [
+              17.687040937687005,
+              18.070585012759384,
+              17.66825286015441
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 72.00000724874957,
+          "scoreError": 2.2501248242632106e-7,
+          "rawData": [
+            [
+              72.00000718626434,
+              72.0000071910888,
+              72.00000732860245
+            ],
+            [
+              72.00000720754142,
+              72.00000737186706,
+              72.00000720713336
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.bindAndFinalizeFixed",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 23.145954455520137,
+          "error": 0.3320786874628936,
+          "rawData": [
+            [
+              22.974428581612102,
+              23.14002587074521,
+              23.29824717805208
+            ],
+            [
+              23.08079619916293,
+              23.258736926150004,
+              23.123491977398476
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 96.00000942689023,
+          "scoreError": 1.312734118476223e-7,
+          "rawData": [
+            [
+              96.0000093458098,
+              96.00000943107938,
+              96.00000947207792
+            ],
+            [
+              96.00000940897154,
+              96.00000947134416,
+              96.00000943205853
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.bindAndFinalizeFixed",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 39.77979565314576,
+          "error": 0.8386603793161727,
+          "rawData": [
+            [
+              39.47994523653274,
+              39.99623470036163,
+              39.65644623630484
+            ],
+            [
+              39.60769654068485,
+              39.657881206095794,
+              40.28056999889473
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 152.00001619792224,
+          "scoreError": 3.4336491100126525e-7,
+          "rawData": [
+            [
+              152.000016090663,
+              152.0000162994796,
+              152.00001613591886
+            ],
+            [
+              152.0000161175825,
+              152.00001614567003,
+              152.00001639821951
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.conventionAndExplicit",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 13.087747121751057,
+          "error": 0.39637641468630785,
+          "rawData": [
+            [
+              13.370808111146289,
+              13.025320214500331,
+              13.057594401609563
+            ],
+            [
+              13.068048339992421,
+              13.00201980513564,
+              13.00269185812209
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 72.0000053375681,
+          "scoreError": 1.6308934190236162e-7,
+          "rawData": [
+            [
+              72.00000545407208,
+              72.00000530910494,
+              72.0000053245618
+            ],
+            [
+              72.00000533049284,
+              72.00000530299741,
+              72.00000530417955
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.conventionAndExplicit",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 26.685434381180386,
+          "error": 1.0869477455613379,
+          "rawData": [
+            [
+              26.26263305956179,
+              26.633170187010016,
+              26.395956165112914
+            ],
+            [
+              26.974029110902467,
+              26.543020807926563,
+              27.30379695656855
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 96.000010883395,
+          "scoreError": 4.4797852839864867e-7,
+          "rawData": [
+            [
+              96.00001071382711,
+              96.000010859151,
+              96.00001075821812
+            ],
+            [
+              96.00001100358553,
+              96.00001082724764,
+              96.0000111383406
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.conventionAndExplicit",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 53.2830884808504,
+          "error": 0.8101071000549921,
+          "rawData": [
+            [
+              52.896641474743674,
+              53.269342316383685,
+              53.01950207295106
+            ],
+            [
+              53.586704435151724,
+              53.31956785538993,
+              53.60677273048233
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 208.00002171124538,
+          "scoreError": 3.256097052268535e-7,
+          "rawData": [
+            [
+              208.0000215769093,
+              208.00002168552209,
+              208.0000216288576
+            ],
+            [
+              208.0000218475896,
+              208.00002167022288,
+              208.00002185837084
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createAndBind",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 12.656906359895872,
+          "error": 0.313381376802211,
+          "rawData": [
+            [
+              12.567163633670711,
+              12.602873622343301,
+              12.524800896133861
+            ],
+            [
+              12.795369227719677,
+              12.777609245049405,
+              12.673621534458283
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 72.00000515735275,
+          "scoreError": 1.160139021935366e-7,
+          "rawData": [
+            [
+              72.00000512546491,
+              72.00000513945838,
+              72.00000510657523
+            ],
+            [
+              72.00000521499774,
+              72.00000519293272,
+              72.00000516468752
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createAndBind",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 69.8243476033677,
+          "error": 339.16102626274187,
+          "rawData": [
+            [
+              20.1698986024724,
+              20.175623948482098,
+              20.311344078601213
+            ],
+            [
+              316.70548780070516,
+              21.639736723569566,
+              19.943994466375734
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 96.00001340890368,
+          "scoreError": 0.00003486016961722441,
+          "rawData": [
+            [
+              96.00000822606384,
+              96.00000822171383,
+              96.00000828592013
+            ],
+            [
+              96.00003877981959,
+              96.0000088045678,
+              96.00000813533691
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createAndBind",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 32.01299319165776,
+          "error": 3.981333325061146,
+          "rawData": [
+            [
+              31.051173389992364,
+              30.559616607503703,
+              30.63723430753547
+            ],
+            [
+              32.93154439437321,
+              33.7489449712678,
+              33.149445479274036
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 152.00001305105354,
+          "scoreError": 0.0000016285342472779469,
+          "rawData": [
+            [
+              152.00001266095825,
+              152.00001246447206,
+              152.00001247863491
+            ],
+            [
+              152.00001341702577,
+              152.00001376223426,
+              152.000013522996
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createOnly",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 5.656891237940958,
+          "error": 0.25708384484535196,
+          "rawData": [
+            [
+              5.591804930436253,
+              5.575721079599565,
+              5.565949721124304
+            ],
+            [
+              5.752425431518862,
+              5.771131241645336,
+              5.68431502332143
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 72.00000230654194,
+          "scoreError": 1.0699589207676184e-7,
+          "rawData": [
+            [
+              72.00000227923273,
+              72.00000227406387,
+              72.00000226745378
+            ],
+            [
+              72.00000234563537,
+              72.00000235425948,
+              72.00000231860639
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createOnly",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 6.008402298845135,
+          "error": 0.2551398756377124,
+          "rawData": [
+            [
+              5.934348199599529,
+              5.9196698078252465,
+              5.923865627200278
+            ],
+            [
+              6.109065272930348,
+              6.081944984186879,
+              6.081519901328531
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 72.00000245000928,
+          "scoreError": 1.0519961800328825e-7,
+          "rawData": [
+            [
+              72.00000242075957,
+              72.0000024124113,
+              72.00000241483104
+            ],
+            [
+              72.00000249036988,
+              72.0000024807901,
+              72.00000248089377
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createOnly",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 6.13875999665639,
+          "error": 0.19991063949644838,
+          "rawData": [
+            [
+              6.152500902270518,
+              6.263350197244896,
+              6.059804718732234
+            ],
+            [
+              6.091581872254867,
+              6.1085185553981045,
+              6.156803734037718
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 72.00000250278067,
+          "scoreError": 8.282622244782653e-8,
+          "rawData": [
+            [
+              72.00000250720315,
+              72.00000255510332,
+              72.00000247016133
+            ],
+            [
+              72.00000248327811,
+              72.000002491815,
+              72.00000250912315
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.mixedReads",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 4.896991153921177,
+          "error": 1.5934462456739007,
+          "rawData": [
+            [
+              4.653703166484537,
+              6.053652580007288,
+              4.649525182529087
+            ],
+            [
+              4.7492059653968015,
+              4.6303866796156115,
+              4.645473349493736
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 0.0000019951804424168045,
+          "scoreError": 6.533986943271341e-7,
+          "rawData": [
+            [
+              0.0000018926718492227836,
+              0.000002469457890077747,
+              0.0000018939223382290916
+            ],
+            [
+              0.000001934703601701128,
+              0.0000018851943966256056,
+              0.0000018951325786444719
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.mixedReads",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 4.6435862821764635,
+          "error": 0.05012394562856035,
+          "rawData": [
+            [
+              4.631880098199698,
+              4.638860349435122,
+              4.628487378328727
+            ],
+            [
+              4.675177903967764,
+              4.633256885165523,
+              4.65385507796195
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 0.0000018905545007316906,
+          "scoreError": 1.9714828847658706e-8,
+          "rawData": [
+            [
+              0.0000018891395847085929,
+              0.000001888640322837511,
+              0.0000018878218150877422
+            ],
+            [
+              0.0000019001211737078295,
+              0.0000018805454658555445,
+              0.000001897058642192924
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.mixedReads",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 4.715110788937438,
+          "error": 0.18599043074897925,
+          "rawData": [
+            [
+              4.695464725908753,
+              4.669105664517063,
+              4.628500256043961
+            ],
+            [
+              4.813960011094827,
+              4.721889196292114,
+              4.76174487976791
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 0.0000019197215023658207,
+          "scoreError": 6.282045966689376e-8,
+          "rawData": [
+            [
+              0.000001914658490248982,
+              0.0000019032233681347677,
+              0.0000018877111668664495
+            ],
+            [
+              0.0000019468627852254187,
+              0.0000019258329992390693,
+              0.0000019400402044802374
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.replaceBinding",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 7.011114132541703,
+          "error": 0.13052293624267983,
+          "rawData": [
+            [
+              7.074439197448341,
+              6.999359642292495,
+              6.970155362853686
+            ],
+            [
+              6.978911844051952,
+              6.9786854612890785,
+              7.065133287314671
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 0.0000028564247240100646,
+          "scoreError": 5.0219619802456995e-8,
+          "rawData": [
+            [
+              0.0000028776385150417586,
+              0.000002847616264612564,
+              0.0000028432131634191053
+            ],
+            [
+              0.0000028460320715029287,
+              0.000002842909357625678,
+              0.000002881138971858355
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.replaceBinding",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 14.820374595749719,
+          "error": 3.711750454129976,
+          "rawData": [
+            [
+              14.232442019394814,
+              14.177501338576413,
+              14.160199267209574
+            ],
+            [
+              14.414087210699266,
+              14.426021473781947,
+              17.5119962648363
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 0.00000604071391549816,
+          "scoreError": 0.0000014980874165942192,
+          "rawData": [
+            [
+              0.000005800964555381446,
+              0.000005780473921788601,
+              0.000005774171065733517
+            ],
+            [
+              0.000005877197683001243,
+              0.00000588463467942717,
+              0.000007126841587656981
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.replaceBinding",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 27.774761661299237,
+          "error": 4.732946394898942,
+          "rawData": [
+            [
+              26.29882158800865,
+              26.13941631079317,
+              26.266821732366758
+            ],
+            [
+              29.28705967848806,
+              29.36948548951039,
+              29.286965168628388
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 56.00001132130338,
+          "scoreError": 0.000001917339805864123,
+          "rawData": [
+            [
+              56.000010725095585,
+              56.00001065485607,
+              56.00001071265631
+            ],
+            [
+              56.00001193445736,
+              56.000011953640964,
+              56.00001194711399
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.shallowCopy",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 3.1958848516402103,
+          "error": 0.07049998823835876,
+          "rawData": [
+            [
+              3.2352637361818624,
+              3.193951490791205,
+              3.216737493636139
+            ],
+            [
+              3.174016156384076,
+              3.181496537983029,
+              3.173843694864953
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 24.000001302694447,
+          "scoreError": 2.794729751005574e-8,
+          "rawData": [
+            [
+              24.00000131764593,
+              24.000001302967764,
+              24.000001311142395
+            ],
+            [
+              24.000001294259246,
+              24.00000129775897,
+              24.00000129239239
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.shallowCopy",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 3.4599546324103794,
+          "error": 0.07988022207180831,
+          "rawData": [
+            [
+              3.4473798201070798,
+              3.50461953634838,
+              3.4854823547292937
+            ],
+            [
+              3.4313683432565534,
+              3.4480791662286534,
+              3.442798573792316
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 48.00000141075685,
+          "scoreError": 3.334217904244083e-8,
+          "rawData": [
+            [
+              48.000001404700114,
+              48.00000142958736,
+              48.00000142137873
+            ],
+            [
+              48.00000139929834,
+              48.00000140513231,
+              48.000001404444305
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.shallowCopy",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 3.458122258489215,
+          "error": 0.04280147121532044,
+          "rawData": [
+            [
+              3.453446302318809,
+              3.47498536274266,
+              3.478296286996651
+            ],
+            [
+              3.4456526505385945,
+              3.4551875665581853,
+              3.4411653817803898
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 48.00000140987407,
+          "scoreError": 1.756726361838452e-8,
+          "rawData": [
+            [
+              48.000001406481225,
+              48.000001416491976,
+              48.00000141858992
+            ],
+            [
+              48.00000140561099,
+              48.00000140897687,
+              48.000001403093464
+            ]
+          ]
+        }
+      }
+    ],
+    "firstPass": [
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.bindAndFinalizeChain",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 50.548394255750075,
+          "error": 1.8748256345504273,
+          "rawData": [
+            [
+              51.54827441462441,
+              49.90624043712903,
+              49.7021776563026
+            ],
+            [
+              50.65690598799804,
+              50.84522674054266,
+              50.63154029790368
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 232.000020613308,
+          "scoreError": 7.682611913848362e-7,
+          "rawData": [
+            [
+              232.00002102659786,
+              232.00002035422943,
+              232.0000202675727
+            ],
+            [
+              232.0000206520218,
+              232.00002073797612,
+              232.00002064145028
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.bindAndFinalizeChain",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 170.30185345524117,
+          "error": 9.583946507515058,
+          "rawData": [
+            [
+              166.34271842126392,
+              168.67817338226234,
+              176.61536256129077
+            ],
+            [
+              170.05499981730006,
+              169.8943442208815,
+              170.22552232844828
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 864.0000694488981,
+          "scoreError": 0.000003916005156112968,
+          "rawData": [
+            [
+              864.0000678219786,
+              864.0000688095791,
+              864.0000720288879
+            ],
+            [
+              864.0000693409971,
+              864.0000692908304,
+              864.000069401116
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.bindAndFinalizeChain",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 223.12548747182913,
+          "error": 15.933262247022288,
+          "rawData": [
+            [
+              220.13009911381698,
+              222.16124300047116,
+              234.61386511038626
+            ],
+            [
+              220.2462072109493,
+              221.26931536707295,
+              220.33219502827814
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 1104.0000909650628,
+          "scoreError": 0.000006456829747823197,
+          "rawData": [
+            [
+              1104.0000896977515,
+              1104.000090549174,
+              1104.0000956191882
+            ],
+            [
+              1104.0000898105327,
+              1104.0000902649276,
+              1104.0000898488029
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.bindAndFinalizeFixed",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 17.56085482043405,
+          "error": 0.748228123123419,
+          "rawData": [
+            [
+              17.636750944274453,
+              17.432604204895238,
+              17.360033499815245
+            ],
+            [
+              17.394305627899314,
+              17.47270890349152,
+              18.068725742228505
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 64.00000716267756,
+          "scoreError": 3.031101862465391e-7,
+          "rawData": [
+            [
+              64.00000719511024,
+              64.00000711154927,
+              64.00000708197301
+            ],
+            [
+              64.00000709525335,
+              64.00000712406717,
+              64.00000736811228
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.bindAndFinalizeFixed",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 28.063462213661143,
+          "error": 6.706157750575631,
+          "rawData": [
+            [
+              31.150508393977596,
+              30.015756694953794,
+              29.376723293952104
+            ],
+            [
+              25.97782450560309,
+              26.12562735511578,
+              25.73433303836453
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 104.00001144000787,
+          "scoreError": 0.000002723153345947096,
+          "rawData": [
+            [
+              104.00001270743564,
+              104.0000122274324,
+              104.00001195851591
+            ],
+            [
+              104.00001059307897,
+              104.00001065543597,
+              104.0000104981482
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.bindAndFinalizeFixed",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 46.020291551899895,
+          "error": 1.9646874557028837,
+          "rawData": [
+            [
+              45.80956250968758,
+              45.57435038780764,
+              45.43753703055747
+            ],
+            [
+              46.03379670770821,
+              47.38154686785166,
+              45.884955807786795
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 160.0000187626808,
+          "scoreError": 7.685228866510925e-7,
+          "rawData": [
+            [
+              160.00001868810253,
+              160.00001858546736,
+              160.00001853515406
+            ],
+            [
+              160.00001877040245,
+              160.0000192947522,
+              160.00001870220623
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.conventionAndExplicit",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 12.647100332172172,
+          "error": 0.3856063668874133,
+          "rawData": [
+            [
+              12.570450969692919,
+              12.539366050767704,
+              12.614560344452153
+            ],
+            [
+              12.71614402105679,
+              12.547396444834892,
+              12.894684162228568
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 64.000005158278,
+          "scoreError": 1.5802198511499093e-7,
+          "rawData": [
+            [
+              64.00000512806345,
+              64.00000511182897,
+              64.00000514580559
+            ],
+            [
+              64.00000518494898,
+              64.00000511883674,
+              64.00000526018425
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.conventionAndExplicit",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 26.41877769299586,
+          "error": 0.7065832575809619,
+          "rawData": [
+            [
+              26.553875664889805,
+              26.08393186539642,
+              26.169196834162328
+            ],
+            [
+              26.492877554457987,
+              26.450023083513255,
+              26.762761155555374
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 72.00001077259103,
+          "scoreError": 2.81245538128833e-7,
+          "rawData": [
+            [
+              72.00001083064001,
+              72.00001063964281,
+              72.00001066882442
+            ],
+            [
+              72.00001080737702,
+              72.0000107857002,
+              72.00001090336168
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.conventionAndExplicit",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 55.309046339245405,
+          "error": 2.4713346278432127,
+          "rawData": [
+            [
+              57.0297755476007,
+              55.248637726972554,
+              55.27966638333807
+            ],
+            [
+              54.7946796029558,
+              54.62807978866202,
+              54.873438985943274
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 184.00002254942808,
+          "scoreError": 0.0000010291344222738912,
+          "rawData": [
+            [
+              184.00002326321564,
+              184.00002253356962,
+              184.00002254838785
+            ],
+            [
+              184.00002234499067,
+              184.00002228519975,
+              184.0000223212051
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createAndBind",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 12.067164745724973,
+          "error": 0.15048946978997477,
+          "rawData": [
+            [
+              12.049522008045622,
+              12.012281815320357,
+              12.077399215373982
+            ],
+            [
+              12.009928118636145,
+              12.143550425171032,
+              12.110306891802706
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 64.00000492078352,
+          "scoreError": 6.36384987656501e-8,
+          "rawData": [
+            [
+              64.00000490843513,
+              64.00000489899932,
+              64.00000492347681
+            ],
+            [
+              64.00000489943007,
+              64.00000495393695,
+              64.00000494042285
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createAndBind",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 19.584840065374205,
+          "error": 0.8072514296928668,
+          "rawData": [
+            [
+              19.34485216361553,
+              19.433064026431932,
+              19.467702064259335
+            ],
+            [
+              20.070669374792587,
+              19.39179340257975,
+              19.800959360566093
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 72.00000798728189,
+          "scoreError": 3.269010357692308e-7,
+          "rawData": [
+            [
+              72.00000789166324,
+              72.00000792766811,
+              72.00000794190713
+            ],
+            [
+              72.00000818560933,
+              72.00000790518138,
+              72.00000807166211
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createAndBind",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 34.15629393998946,
+          "error": 3.352638884005391,
+          "rawData": [
+            [
+              35.597070213744885,
+              34.67750552788566,
+              35.3540807552029
+            ],
+            [
+              33.043013195088406,
+              33.00766030423515,
+              33.258433643779746
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 128.00001392683532,
+          "scoreError": 0.0000013569277016595323,
+          "rawData": [
+            [
+              128.0000145125207,
+              128.0000141177262,
+              128.00001442241515
+            ],
+            [
+              128.00001347991775,
+              128.00001346199525,
+              128.00001356643708
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createOnly",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 4.910154357425713,
+          "error": 0.17623241556958735,
+          "rawData": [
+            [
+              4.963966234025958,
+              4.8616963794842745,
+              4.867305574521395
+            ],
+            [
+              4.883266646615582,
+              4.87208617267497,
+              5.012605137232104
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 64.00000200275987,
+          "scoreError": 7.19846097580302e-8,
+          "rawData": [
+            [
+              64.00000202478763,
+              64.00000198283897,
+              64.00000198561769
+            ],
+            [
+              64.00000199115088,
+              64.00000198754077,
+              64.00000204462322
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createOnly",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 5.618524738341676,
+          "error": 0.08269413354254868,
+          "rawData": [
+            [
+              5.644532331116067,
+              5.5906891417735185,
+              5.581992607972857
+            ],
+            [
+              5.6145913166904915,
+              5.657733966342142,
+              5.621609066154975
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 72.00000229170831,
+          "scoreError": 3.379089957159737e-8,
+          "rawData": [
+            [
+              72.00000230214906,
+              72.00000227986314,
+              72.0000022771489
+            ],
+            [
+              72.00000229041571,
+              72.00000230789215,
+              72.00000229278098
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createOnly",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 5.905412214881849,
+          "error": 1.063107445240006,
+          "rawData": [
+            [
+              5.639733142042998,
+              6.0577072063817505,
+              5.883754128025262
+            ],
+            [
+              5.621526719921524,
+              5.6373568845889785,
+              6.592395208330586
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 72.00000240819593,
+          "scoreError": 4.326463597401882e-7,
+          "rawData": [
+            [
+              72.00000230060851,
+              72.00000247015251,
+              72.00000239797298
+            ],
+            [
+              72.00000229255517,
+              72.00000229974675,
+              72.00000268813957
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.mixedReads",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 4.909127136107053,
+          "error": 0.1454844145250602,
+          "rawData": [
+            [
+              4.8968687440243235,
+              5.010443763339422,
+              4.902534677544907
+            ],
+            [
+              4.894280817635345,
+              4.859619174993745,
+              4.89101563910458
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 0.000002001536641207574,
+          "scoreError": 5.637204168952476e-8,
+          "rawData": [
+            [
+              0.0000019971542900959414,
+              0.0000020405809533974323,
+              0.0000019989655549230288
+            ],
+            [
+              0.000001995757762514492,
+              0.0000019816432228559464,
+              0.000001995118063458603
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.mixedReads",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 7.605410686457539,
+          "error": 0.12562283162905474,
+          "rawData": [
+            [
+              7.607959109864206,
+              7.60446058420013,
+              7.576481463600658
+            ],
+            [
+              7.57960631846379,
+              7.572343588136141,
+              7.691613054480303
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 0.000003101221862196153,
+          "scoreError": 4.862086176706163e-8,
+          "rawData": [
+            [
+              0.0000031005101494287826,
+              0.000003102018641672263,
+              0.0000030902911263290105
+            ],
+            [
+              0.000003090975874721172,
+              0.000003088799066746616,
+              0.000003134736314279074
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.mixedReads",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 7.779680890347817,
+          "error": 0.3272966966252348,
+          "rawData": [
+            [
+              7.725061069647976,
+              7.69212225602415,
+              7.8057796460114
+            ],
+            [
+              7.7819289010424715,
+              7.995183629950831,
+              7.678009839410071
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 0.000003171702597552141,
+          "scoreError": 1.297679072255687e-7,
+          "rawData": [
+            [
+              0.000003151184567351627,
+              0.000003136293057191134,
+              0.0000031844063492317215
+            ],
+            [
+              0.0000031690230113324263,
+              0.0000032571467547705705,
+              0.000003132161845435367
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.replaceBinding",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 7.1770205706309875,
+          "error": 0.12960129623897354,
+          "rawData": [
+            [
+              7.128503655338032,
+              7.25356035663211,
+              7.137441684048106
+            ],
+            [
+              7.165751740840445,
+              7.204462600938935,
+              7.172403385988298
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 0.0000029263103190879793,
+          "scoreError": 5.258453220820833e-8,
+          "rawData": [
+            [
+              0.000002907997046045197,
+              0.0000029586637688198754,
+              0.000002909793471203675
+            ],
+            [
+              0.0000029206690451030044,
+              0.000002934757534720232,
+              0.0000029259810486358938
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.replaceBinding",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 15.949240007095286,
+          "error": 1.798170460739424,
+          "rawData": [
+            [
+              16.350048752505764,
+              16.677362689241317,
+              16.4848247274133
+            ],
+            [
+              15.595456295186684,
+              15.51083139350015,
+              15.076916184724514
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 8.000006502157072,
+          "scoreError": 24.574661902344836,
+          "rawData": [
+            [
+              16.000006658751456,
+              16.00000679658302,
+              16.0000067196779
+            ],
+            [
+              0.000006361631429153598,
+              0.0000063272286329178905,
+              0.0000061490700051575325
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.replaceBinding",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 27.885264806625713,
+          "error": 5.530787803058063,
+          "rawData": [
+            [
+              26.14040155536284,
+              26.069203924386727,
+              26.075062620028834
+            ],
+            [
+              29.502713025827575,
+              29.470705091306616,
+              30.053502622841684
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 56.00001136859183,
+          "scoreError": 0.000002245205020909213,
+          "rawData": [
+            [
+              56.000010662621285,
+              56.00001063225651,
+              56.00001063288911
+            ],
+            [
+              56.000012034557585,
+              56.000011988955,
+              56.000012260271504
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.shallowCopy",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 1.6066286395260123,
+          "error": 0.040721486581078804,
+          "rawData": [
+            [
+              1.602947651659525,
+              1.5923713178135723,
+              1.5987481216354187
+            ],
+            [
+              1.6087938326644737,
+              1.6341244772263592,
+              1.6027864361567246
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 24.000000655196434,
+          "scoreError": 1.659363009405107e-8,
+          "rawData": [
+            [
+              24.000000653725326,
+              24.000000649420016,
+              24.000000651649803
+            ],
+            [
+              24.000000656312135,
+              24.000000666316197,
+              24.000000653755148
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.shallowCopy",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 3.509082310165455,
+          "error": 0.032306874093726214,
+          "rawData": [
+            [
+              3.509683208059115,
+              3.5048105353463344,
+              3.4895387441730503
+            ],
+            [
+              3.5108465112448113,
+              3.5159388635611015,
+              3.523675998608319
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 48.000001430806314,
+          "scoreError": 1.483362896092602e-8,
+          "rawData": [
+            [
+              48.00000143166859,
+              48.00000142899568,
+              48.000001421642764
+            ],
+            [
+              48.000001431711965,
+              48.000001433321344,
+              48.000001437497545
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.shallowCopy",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 2,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 3.515051069345082,
+          "error": 0.07179149292237741,
+          "rawData": [
+            [
+              3.5640284687675456,
+              3.5083886015598083,
+              3.51622520651962
+            ],
+            [
+              3.4890064283306352,
+              3.507368961574268,
+              3.505288749318613
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 48.0000014337239,
+          "scoreError": 2.9627770012010664e-8,
+          "rawData": [
+            [
+              48.00000145393903,
+              48.00000143109465,
+              48.00000143436361
+            ],
+            [
+              48.0000014230698,
+              48.00000142999827,
+              48.00000142987809
+            ]
+          ]
+        }
+      }
+    ],
+    "readGuard": [
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.mixedReads",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 3,
+        "measurementIterations": 5,
+        "ns": {
+          "mean": 4.835696739712089,
+          "error": 0.08288489533087606,
+          "rawData": [
+            [
+              4.961679145040797,
+              4.8157679333102426,
+              4.846460383544688,
+              4.852649685573343,
+              4.867673722951736
+            ],
+            [
+              4.776619151122491,
+              4.785175090371504,
+              4.792677625604093,
+              4.8553653246168595,
+              4.802899334985142
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 0.0000019712059489221913,
+          "scoreError": 3.481928652967513e-8,
+          "rawData": [
+            [
+              0.0000020239759797705584,
+              0.000001963950683966043,
+              0.0000019766988292361663,
+              0.0000019788439081717097,
+              0.000001984722462637405
+            ],
+            [
+              0.0000019480732667299817,
+              0.000001950866583543174,
+              0.0000019503154836062504,
+              0.0000019784775394210196,
+              0.000001956134752139604
+            ]
+          ]
+        }
+      }
+    ],
+    "final": [
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.bindAndFinalizeChain",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 49.97714966316233,
+          "error": 0.3815656545704954,
+          "rawData": [
+            [
+              49.99977633998961,
+              50.02462605241607,
+              49.81913616780699
+            ],
+            [
+              49.98715651391563,
+              50.19175216930512,
+              49.84045073554056
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 232.00002037370072,
+          "scoreError": 1.30909359512177e-7,
+          "rawData": [
+            [
+              232.00002039179537,
+              232.00002039461887,
+              232.00002031580925
+            ],
+            [
+              232.00002037515046,
+              232.0000204399755,
+              232.00002032485494
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.bindAndFinalizeChain",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 167.93708262627,
+          "error": 5.304172499751121,
+          "rawData": [
+            [
+              169.8178933440386,
+              169.4821247118636,
+              169.6231152397023
+            ],
+            [
+              165.80088847406586,
+              166.70537770080955,
+              166.19309628714024
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 864.0000684792059,
+          "scoreError": 0.000002118701841294114,
+          "rawData": [
+            [
+              864.0000692560155,
+              864.0000690511893,
+              864.0000691639602
+            ],
+            [
+              864.0000676149778,
+              864.000068004647,
+              864.0000677844455
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.bindAndFinalizeChain",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 218.2056359429961,
+          "error": 3.055132001816186,
+          "rawData": [
+            [
+              219.4946398238729,
+              219.08298589857094,
+              217.90103894141336
+            ],
+            [
+              218.7577622824843,
+              217.30903619126852,
+              216.68835252036692
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 1104.0000889428497,
+          "scoreError": 0.0000011309574803023533,
+          "rawData": [
+            [
+              1104.000089297967,
+              1104.0000893216024,
+              1104.0000888412167
+            ],
+            [
+              1104.0000892360931,
+              1104.0000885779782,
+              1104.000088382241
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.bindAndFinalizeFixed",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 17.47790685493301,
+          "error": 0.23223587656571548,
+          "rawData": [
+            [
+              17.609062286146838,
+              17.553099951938865,
+              17.43553169732904
+            ],
+            [
+              17.419093186485895,
+              17.407243841607517,
+              17.443410166089905
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 64.00000712204682,
+          "scoreError": 8.453542232465493e-8,
+          "rawData": [
+            [
+              64.00000717921083,
+              64.00000713026546,
+              64.00000710953667
+            ],
+            [
+              64.00000710444277,
+              64.00000709665558,
+              64.0000071121696
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.bindAndFinalizeFixed",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 27.909346693506308,
+          "error": 7.689892209810905,
+          "rawData": [
+            [
+              30.388674137389224,
+              30.402940255952554,
+              30.445402298500838
+            ],
+            [
+              25.47145830383257,
+              25.336098502163075,
+              25.411506663199592
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 104.00001138150373,
+          "scoreError": 0.0000031286873079240588,
+          "rawData": [
+            [
+              104.00001238902297,
+              104.0000123962976,
+              104.00001241419751
+            ],
+            [
+              104.00001039106043,
+              104.00001033177848,
+              104.00001036666539
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.bindAndFinalizeFixed",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 46.1133728989347,
+          "error": 1.5762870794931092,
+          "rawData": [
+            [
+              46.37208555506215,
+              46.69215474467498,
+              46.71659868086337
+            ],
+            [
+              45.9128876389128,
+              45.54225502826081,
+              45.44425574583409
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 160.00001879290343,
+          "scoreError": 6.539883051181954e-7,
+          "rawData": [
+            [
+              160.0000188983109,
+              160.00001903546107,
+              160.00001904203
+            ],
+            [
+              160.00001871172867,
+              160.00001854658422,
+              160.00001852330573
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.conventionAndExplicit",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 12.721220391473864,
+          "error": 0.16668377752408323,
+          "rawData": [
+            [
+              12.7210225168592,
+              12.837029865981116,
+              12.6884438712844
+            ],
+            [
+              12.71700069934121,
+              12.675911971694857,
+              12.687913423682406
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 64.00000518884173,
+          "scoreError": 6.773084011923547e-8,
+          "rawData": [
+            [
+              64.0000051895499,
+              64.00000523598494,
+              64.00000517615095
+            ],
+            [
+              64.00000518538897,
+              64.00000516996325,
+              64.0000051760124
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.conventionAndExplicit",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 26.489174778565133,
+          "error": 0.31584916048300626,
+          "rawData": [
+            [
+              26.303053310875725,
+              26.607583372556192,
+              26.479252396744375
+            ],
+            [
+              26.429419007169656,
+              26.58671385222938,
+              26.529026731815463
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 72.00001080327468,
+          "scoreError": 1.2863294132994579e-7,
+          "rawData": [
+            [
+              72.00001072748661,
+              72.00001084637768,
+              72.0000108021685
+            ],
+            [
+              72.00001077583902,
+              72.0000108459521,
+              72.00001082182418
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.conventionAndExplicit",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 55.26958858157195,
+          "error": 1.606766779091498,
+          "rawData": [
+            [
+              54.61835163506501,
+              54.49085391035064,
+              55.56809874561635
+            ],
+            [
+              55.87171625756656,
+              55.63243577094334,
+              55.43607516988984
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 184.00002251688952,
+          "scoreError": 6.207621464185818e-7,
+          "rawData": [
+            [
+              184.00002228122378,
+              184.00002222873587,
+              184.00002260669862
+            ],
+            [
+              184.00002277735575,
+              184.0000226916527,
+              184.00002251567034
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createAndBind",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 12.14111340111836,
+          "error": 0.23062351160655115,
+          "rawData": [
+            [
+              12.19932198380525,
+              12.068545437118336,
+              12.240432489481154
+            ],
+            [
+              12.047048800298779,
+              12.089048846543285,
+              12.202282849463346
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 64.00000495085676,
+          "scoreError": 9.357452583735247e-8,
+          "rawData": [
+            [
+              64.00000497622985,
+              64.0000049215271,
+              64.00000499077136
+            ],
+            [
+              64.00000491141842,
+              64.00000493127787,
+              64.00000497391602
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createAndBind",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 19.28455433614889,
+          "error": 0.11853078056858911,
+          "rawData": [
+            [
+              19.35220387088247,
+              19.300118160658386,
+              19.296203308971897
+            ],
+            [
+              19.228033546793146,
+              19.260413318639213,
+              19.270353810948233
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 72.000007860784,
+          "scoreError": 3.9381864404650156e-8,
+          "rawData": [
+            [
+              72.00000788390714,
+              72.000007867607,
+              72.00000785711936
+            ],
+            [
+              72.00000784227524,
+              72.00000785383837,
+              72.00000785995684
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createAndBind",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 34.807921834285985,
+          "error": 2.2746120898163307,
+          "rawData": [
+            [
+              34.95027426090328,
+              34.65265641616632,
+              35.67523913488484
+            ],
+            [
+              34.17632786370574,
+              35.713734951849055,
+              33.679298378206674
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 128.0000141935437,
+          "scoreError": 9.304693723241211e-7,
+          "rawData": [
+            [
+              128.00001425185616,
+              128.00001413518055,
+              128.00001455029945
+            ],
+            [
+              128.00001393512488,
+              128.00001455961865,
+              128.00001372918246
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createOnly",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 4.951300061592195,
+          "error": 0.04632329578444445,
+          "rawData": [
+            [
+              4.952442866888068,
+              4.921556935410567,
+              4.965981011864712
+            ],
+            [
+              4.964184166930086,
+              4.94487449679596,
+              4.958760891663776
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 64.00000201946263,
+          "scoreError": 1.916259717107373e-8,
+          "rawData": [
+            [
+              64.00000202030459,
+              64.00000200750874,
+              64.00000202586929
+            ],
+            [
+              64.00000202452478,
+              64.00000201588198,
+              64.0000020226863
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createOnly",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 5.729033166693221,
+          "error": 0.13552192227090382,
+          "rawData": [
+            [
+              5.696236191739606,
+              5.785862386696857,
+              5.739140694757186
+            ],
+            [
+              5.781117484882913,
+              5.706424111543116,
+              5.665418130539647
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 72.00000233589024,
+          "scoreError": 5.4606774436753515e-8,
+          "rawData": [
+            [
+              72.0000023211176,
+              72.00000235843791,
+              72.00000234125919
+            ],
+            [
+              72.00000235645642,
+              72.00000232767917,
+              72.00000231039114
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.createOnly",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 5.79811560606402,
+          "error": 0.1606315219032551,
+          "rawData": [
+            [
+              5.769860591914442,
+              5.834999409158183,
+              5.808263345718435
+            ],
+            [
+              5.888548657174786,
+              5.744800367244531,
+              5.742221265173744
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 72.00000236399772,
+          "scoreError": 6.36692448176377e-8,
+          "rawData": [
+            [
+              72.0000023538187,
+              72.00000237302221,
+              72.00000236941347
+            ],
+            [
+              72.00000240221286,
+              72.0000023433515,
+              72.00000234216763
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.mixedReads",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 4.70273451297499,
+          "error": 0.14137465532564433,
+          "rawData": [
+            [
+              4.686729484305103,
+              4.734453184179217,
+              4.789776512337961
+            ],
+            [
+              4.6774454369558525,
+              4.674725710664652,
+              4.6532767494071505
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 0.0000019163722909003567,
+          "scoreError": 5.948041250142529e-8,
+          "rawData": [
+            [
+              0.0000019112434649292537,
+              0.0000019291018018794294,
+              0.0000019534697299523443
+            ],
+            [
+              0.0000019018351385260356,
+              0.000001904362433179983,
+              0.0000018982211769350941
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.mixedReads",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 4.852793512905396,
+          "error": 0.10502680565734385,
+          "rawData": [
+            [
+              4.837716801310578,
+              4.9214784431237995,
+              4.851366408671619
+            ],
+            [
+              4.860776446217555,
+              4.832542631516456,
+              4.812880346592364
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 0.000001978760267384385,
+          "scoreError": 4.2666149438807944e-8,
+          "rawData": [
+            [
+              0.000001972643991987816,
+              0.0000020071185410703974,
+              0.000001976275739756338
+            ],
+            [
+              0.0000019821181847683935,
+              0.000001971158320653503,
+              0.0000019632468260698624
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.mixedReads",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 4.869876317686504,
+          "error": 0.18554647639654898,
+          "rawData": [
+            [
+              4.993920249666316,
+              4.85441388084822,
+              4.798118780626171
+            ],
+            [
+              4.871975472103941,
+              4.86371434399215,
+              4.837115178882226
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 0.000001985675605070818,
+          "scoreError": 7.560707537621603e-8,
+          "rawData": [
+            [
+              0.000002036573302492692,
+              0.000001979175196200294,
+              0.0000019571430945218376
+            ],
+            [
+              0.00000198723184059751,
+              0.000001981070059843465,
+              0.0000019728601367691093
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.replaceBinding",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 7.149515850314,
+          "error": 0.12915789431406893,
+          "rawData": [
+            [
+              7.079963638485527,
+              7.204172964560938,
+              7.110064865051167
+            ],
+            [
+              7.154957260474052,
+              7.174415991198957,
+              7.173520382113357
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 0.000002914935514905759,
+          "scoreError": 5.3574338409766385e-8,
+          "rawData": [
+            [
+              0.000002885071235661585,
+              0.0000029365482106542935,
+              0.0000028993937033767453
+            ],
+            [
+              0.000002918062145254296,
+              0.0000029245060272778997,
+              0.000002926031767209732
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.replaceBinding",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 15.231994681668658,
+          "error": 0.7655064325277233,
+          "rawData": [
+            [
+              15.338691437216072,
+              15.710641620600006,
+              15.270721712604406
+            ],
+            [
+              15.019510321547664,
+              15.045839211530955,
+              15.006563786512844
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 0.0000062094027134735204,
+          "scoreError": 3.1717070294377383e-7,
+          "rawData": [
+            [
+              0.000006253444950786155,
+              0.000006407544821207906,
+              0.000006226711165471385
+            ],
+            [
+              0.000006126104509991594,
+              0.000006122809879910089,
+              0.0000061198009534739884
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.replaceBinding",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 28.089257548444447,
+          "error": 5.009814390882245,
+          "rawData": [
+            [
+              30.016771731794762,
+              29.509337042195337,
+              29.588461505168038
+            ],
+            [
+              26.76962116102765,
+              26.418809733700147,
+              26.23254411678073
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 56.00001144765637,
+          "scoreError": 0.0000020552201070153804,
+          "rawData": [
+            [
+              56.00001224275327,
+              56.00001203818335,
+              56.00001205383776
+            ],
+            [
+              56.00001087411493,
+              56.00001077561788,
+              56.00001070143107
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.shallowCopy",
+        "mode": "disabled",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 1.581297138661511,
+          "error": 0.05924016274395413,
+          "rawData": [
+            [
+              1.5593391743306704,
+              1.566254450199386,
+              1.5612818944445392
+            ],
+            [
+              1.5952994457482632,
+              1.6035988619796901,
+              1.6020090052665166
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 24.00000064498248,
+          "scoreError": 2.4037947395462285e-8,
+          "rawData": [
+            [
+              24.000000636114912,
+              24.00000063881185,
+              24.000000636903604
+            ],
+            [
+              24.000000650503633,
+              24.000000654044978,
+              24.0000006535159
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.shallowCopy",
+        "mode": "origins",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 3.5199871045631617,
+          "error": 0.032409297962903004,
+          "rawData": [
+            [
+              3.5139715188350706,
+              3.5190717174008763,
+              3.5318345373294773
+            ],
+            [
+              3.5225299745030254,
+              3.5011544356582522,
+              3.5313604436522676
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 48.000001435519756,
+          "scoreError": 1.3830248870761717e-8,
+          "rawData": [
+            [
+              48.00000143351629,
+              48.00000143553578,
+              48.000001440437345
+            ],
+            [
+              48.00000143642548,
+              48.00000142707307,
+              48.00000144013056
+            ]
+          ]
+        }
+      },
+      {
+        "benchmark": "org.gradle.api.internal.provider.PropertyProvenanceBenchmark.shallowCopy",
+        "mode": "locations",
+        "forks": 2,
+        "warmupIterations": 5,
+        "measurementIterations": 3,
+        "ns": {
+          "mean": 3.5078947687240762,
+          "error": 0.05701977671064208,
+          "rawData": [
+            [
+              3.5028091290697194,
+              3.5235001492123175,
+              3.4877091596963
+            ],
+            [
+              3.519047536626159,
+              3.5323006462769535,
+              3.482001991463007
+            ]
+          ]
+        },
+        "allocatedBytes": {
+          "score": 48.00000143084241,
+          "scoreError": 2.3113117947191322e-8,
+          "rawData": [
+            [
+              48.000001428910295,
+              48.000001437138536,
+              48.00000142275337
+            ],
+            [
+              48.00000143504789,
+              48.00000144092386,
+              48.0000014202805
+            ]
+          ]
+        }
+      }
+    ]
+  }
+}

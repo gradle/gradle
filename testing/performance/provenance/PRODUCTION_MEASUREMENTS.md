@@ -7,6 +7,9 @@ repetitions. No location-mode or configuration-cache claim is made by this compa
 
 See the [2026-09-04 production results](PRODUCTION_RESULTS_2026-09-04.md) for measured
 memory costs, per-JVM timings, and the limits of the timing conclusion.
+The [enabled-only state results](ENABLED_STATE_RESULTS_2026-09-05.md) repeat the
+comparison after removing the property fields. The runner now records value-state
+layouts separately so inline metadata is not accidentally omitted from the analysis.
 
 ## Baseline selection
 
@@ -123,7 +126,7 @@ persistence. This is one production build/configuration workload, not a build co
 ## Interpreting optimization opportunities
 
 Keep the disabled object-layout tax separate from enabled state/record allocations.
-`AbstractProperty` has two added references even when tracking is disabled. Comparing
+The original prototype added two references to `AbstractProperty` even when tracking was disabled. Comparing
 the histogram bytes per instance for the six principal scalar/collection/file property
 classes exposes this cost without attributing every daemon heap difference to it.
 
@@ -134,4 +137,7 @@ records to origins exposed this eager-table cost. The subsequent
 [compact-registry follow-up](COMPACT_REGISTRY_RESULTS_2026-09-04.md) retains two binding
 records per source and measures the reduction separately; the original measurements
 remain unchanged.
-Changing the always-present property layout is a separate, more invasive design task.
+The subsequent enabled-only state change removes those property fields. Count the
+enabled `ValueState` variants as well as provenance-package objects: the former contain
+both ordinary state and inline metadata, so their entire size is not provenance-only
+overhead. Disabled states and the finalized singleton should retain baseline layouts.

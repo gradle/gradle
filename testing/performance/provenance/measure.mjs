@@ -15,13 +15,16 @@ export function parseHistogram(text) {
     if (!total) throw new Error('Missing live histogram total');
     const provenance = [];
     const properties = [];
+    const valueStates = [];
     for (const line of text.split('\n')) {
         const match = line.match(/^\s*\d+:\s+(\d+)\s+(\d+)\s+((?:\[L)?org\.gradle\.api\.internal\.provider\.provenance\.\S+)/);
         if (match) provenance.push({ name: match[3], instances: Number(match[1]), shallowBytes: Number(match[2]) });
         const property = line.match(/^\s*\d+:\s+(\d+)\s+(\d+)\s+(org\.gradle\.api\.internal\.(?:provider\.Default(?:Property|ListProperty|SetProperty|MapProperty)|file\.DefaultFilePropertyFactory\$Default(?:Directory|RegularFile)Var))(?:\s|$)/);
         if (property) properties.push({ name: property[3], instances: Number(property[1]), shallowBytes: Number(property[2]) });
+        const state = line.match(/^\s*\d+:\s+(\d+)\s+(\d+)\s+(org\.gradle\.api\.internal\.provider\.ValueState\$(?:NonFinalizedValue(?:WithCopier|WithProvenance)?|FinalizedValue(?:WithProvenance)?))(?:\s|$)/);
+        if (state) valueStates.push({ name: state[3], instances: Number(state[1]), shallowBytes: Number(state[2]) });
     }
-    return { liveInstances: Number(total[1]), liveBytes: Number(total[2]), provenance, properties };
+    return { liveInstances: Number(total[1]), liveBytes: Number(total[2]), provenance, properties, valueStates };
 }
 
 export function summarize(values) {
