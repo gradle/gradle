@@ -569,6 +569,41 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         assertInputPropValueNotSetProblem()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/38410")
+    def "required TaskInputs.files ignores an absent provider in a DomainObjectCollection with and without configuration cache"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        buildFile """
+            def sources = objects.domainObjectSet(Provider)
+            sources.add(objects.fileProperty())
+
+            tasks.register("myTask") {
+                inputs.files(sources).withPropertyName("inputProp")
+                doLast {}
+            }
+        """
+
+        when:
+        run "myTask"
+
+        then:
+        executedAndNotSkipped(":myTask")
+
+        when:
+        configurationCacheRun "myTask"
+
+        then:
+        configurationCache.assertStateStored()
+        executedAndNotSkipped(":myTask")
+
+        when:
+        configurationCacheRun "myTask"
+
+        then:
+        configurationCache.assertStateLoaded()
+        executedAndNotSkipped(":myTask")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/33318")
     def "can use DomainObjectCollection of Configuration as ad hoc task input"() {
         file("foo.txt").text = "foo"

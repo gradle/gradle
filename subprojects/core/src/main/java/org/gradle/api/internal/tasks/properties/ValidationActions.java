@@ -157,9 +157,6 @@ public enum ValidationActions implements ValidationAction {
     }
 
     private static boolean hasNestedAbsentProvider(@Nullable Object value) {
-        if (value instanceof InputFileValidationMetadata) {
-            return ((InputFileValidationMetadata) value).hasAbsentProvider();
-        }
         if (value instanceof DomainObjectCollection) {
             // DomainObjectCollection is live and can realize or mutate elements when iterated.
             return false;

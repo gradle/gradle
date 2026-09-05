@@ -16,6 +16,7 @@
 
 package org.gradle.internal.serialize.codecs.core
 
+import org.gradle.api.DomainObjectCollection
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.GeneratedSubclasses
@@ -24,6 +25,7 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.provider.MergeProvider
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal
@@ -371,8 +373,11 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
         writePropertyValue(kind, propertyName, propertyValue)
     }
 
-    suspend fun writeInputProperty(propertyName: String, propertyValue: Any?) =
-        writeProperty(propertyName, propertyValue, PropertyKind.InputProperty)
+    suspend fun writeInputProperty(propertyName: String, propertyValue: Any?, validationProviders: List<Provider<*>>) {
+        writeString(propertyName)
+        write(validationProviders)
+        writePropertyValue(PropertyKind.InputProperty, propertyName, propertyValue)
+    }
 
     suspend fun writeOutputProperty(propertyName: String, propertyValue: Any?) =
         writeProperty(propertyName, propertyValue, PropertyKind.OutputProperty)
@@ -383,8 +388,15 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
             when (this) {
                 is RegisteredProperty.InputFile -> {
                     val value = DeferredUtil.unpackNestableDeferred(propertyValue)
-                    val finalValue = adaptInputFileValueForSerialization(value, filePropertyType, !optional)
-                    writeInputProperty(propertyName, finalValue)
+                    val finalValue = adaptInputFileValueForSerialization(value, filePropertyType)
+                    // Keep nested provider presence available after the file value is serialized as a FileCollection.
+                    val validationProviders =
+                        if (filePropertyType == InputFilePropertyType.FILES && !optional) {
+                            collectNestedInputFileProviders(value)
+                        } else {
+                            emptyList()
+                        }
+                    writeInputProperty(propertyName, finalValue, validationProviders)
                     writeBoolean(optional)
                     writeBoolean(true)
                     writeEnum(filePropertyType)
@@ -396,7 +408,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
 
                 is RegisteredProperty.Input -> {
                     val finalValue = DeferredUtil.unpackNestableDeferred(propertyValue)
-                    writeInputProperty(propertyName, finalValue)
+                    writeInputProperty(propertyName, finalValue, emptyList())
                     writeBoolean(optional)
                     writeBoolean(false)
                 }
@@ -426,17 +438,21 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
  * mutable internals. This is semantically equivalent to what consumers of `TaskInputs` do at execution time
  * via `FileParameterUtils.resolveInputFileValue`.
  *
+ * Direct [Provider] values retain their shape because validation handles their presence specially. For required
+ * `inputs.files(...)`, nested providers are serialized separately so their presence can be checked again after restore
+ * without serializing the surrounding collection shape. [TaskProvider] values are omitted from that validation state
+ * and remain wrapped; they are always present and cannot be serialized directly.
+ *
  * Only applied to [InputFilePropertyType.FILES] — [InputFilePropertyType.FILE] and [InputFilePropertyType.DIRECTORY]
  * expect a single path-like value on read, so wrapping in a [FileCollection] would break `inputs.file(...)` /
  * `inputs.dir(...)`.
  */
 private
-fun WriteContext.adaptInputFileValueForSerialization(value: Any?, filePropertyType: InputFilePropertyType, required: Boolean): Any? {
+fun WriteContext.adaptInputFileValueForSerialization(value: Any?, filePropertyType: InputFilePropertyType): Any? {
     if (value == null || filePropertyType != InputFilePropertyType.FILES || !needsFileCollectionWrapper(value)) {
         return value
     }
-    val fileCollection = isolate.owner.serviceOf<FileCollectionFactory>().resolvingLeniently(value)
-    return if (required) fileCollection.withInputFileValidation() else fileCollection
+    return isolate.owner.serviceOf<FileCollectionFactory>().resolvingLeniently(value)
 }
 
 
@@ -556,6 +572,7 @@ private
 suspend fun ReadContext.readInputPropertiesOf(task: Task) =
     readCollection {
         val propertyName = readString()
+        val validationProviders = readNonNull<List<Provider<*>>>()
         readPropertyValue(PropertyKind.InputProperty, propertyName) { propertyValue ->
             val optional = readBoolean()
             val isFileInputProperty = readBoolean()
@@ -570,7 +587,14 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                         when (filePropertyType) {
                             InputFilePropertyType.FILE -> file(pack(propertyValue))
                             InputFilePropertyType.DIRECTORY -> dir(pack(propertyValue))
-                            InputFilePropertyType.FILES -> files(pack(propertyValue))
+                            InputFilePropertyType.FILES -> {
+                                val value = pack(propertyValue)
+                                if (validationProviders.isEmpty()) {
+                                    files(value)
+                                } else {
+                                    files(value, requiredInputFilesValidationProvider(validationProviders))
+                                }
+                            }
                         }
                     } as TaskInputFilePropertyBuilderInternal).run {
                         withPropertyName(propertyName)
@@ -590,6 +614,33 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
             }
         }
     }
+
+
+private
+fun collectNestedInputFileProviders(value: Any?): List<Provider<*>> {
+    val providers = mutableListOf<Provider<*>>()
+
+    fun collect(value: Any?, nested: Boolean) {
+        when {
+            nested && value is TaskProvider<*> -> Unit
+            nested && value is Provider<*> -> providers.add(value)
+            value is DomainObjectCollection<*> -> Unit
+            value is Collection<*> -> value.forEach { collect(it, true) }
+            value is Array<*> -> value.forEach { collect(it, true) }
+        }
+    }
+
+    collect(value, false)
+    return providers
+}
+
+
+private
+fun requiredInputFilesValidationProvider(providers: List<Provider<*>>): Provider<*> {
+    val merged = MergeProvider<Any>(providers.uncheckedCast<List<Provider<Any>>>())
+    val presence = Providers.internal(merged.map { emptyList<Any>() })
+    return Providers.memoizing(presence)
+}
 
 
 private
