@@ -18,13 +18,11 @@ package org.gradle.scala
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.ScalaCoverage
-import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.junit.Rule
 import spock.lang.Issue
 
 
-@Flaky(because = "https://github.com/gradle/gradle-private/issues/4636")
 class ScalaConcurrencyIntegrationTest extends AbstractIntegrationSpec {
     @Rule BlockingHttpServer httpServer = new BlockingHttpServer()
 
@@ -90,7 +88,17 @@ class ScalaConcurrencyIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
-        succeeds("build", "--parallel", "--max-workers", "4")
-        true
+        // Compile everything before the concurrency barrier below. Project 'a' depends on 'b', 'c'
+        // and 'd', so ':a:compileScala' cannot start until their jars exist. In the measured build,
+        // ':b:test', ':c:test' and ':d:test' block on the barrier holding 3 of the 4 worker leases,
+        // leaving ':a' a single lease on which to run two forked Scala compilations before ':a:test'
+        // can reach the barrier -- regularly longer than BlockingHttpServer's 120s timeout.
+        succeeds(":a:testClasses", ":b:testClasses", ":c:testClasses", ":d:testClasses")
+
+        and:
+        // 8 workers, not 4: all four ':test' tasks must be in flight at once, so demanding
+        // exactly max-workers leaves zero tolerance for any other lease holder (e.g. ':a:jar').
+        // Headroom removes that ceiling; expectConcurrent still asserts all four run concurrently.
+        succeeds("build", "--parallel", "--max-workers", "8")
     }
 }
