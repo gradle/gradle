@@ -174,6 +174,40 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         e.message == "A problem occurred starting process 'awesome'"
     }
 
+    void "does not deadlock when end state bookkeeping throws while start is failing"() {
+        given:
+        def execHandle = handle().setDisplayName("awesome").setExecutable("no_such_command").build()
+        buildCancellationToken.removeCallback(_) >> { throw new RuntimeException("boom") }
+
+        when:
+        execHandle.start()
+
+        then:
+        def e = thrown(ProcessExecutionException)
+        e.message == "A problem occurred starting process 'awesome'"
+        execHandle.state == ExecHandleState.FAILED
+    }
+
+    void "does not lose the failure when the error message cannot be built"() {
+        given:
+        System.setProperty("org.gradle.internal.cmdline.max.length", "1")
+        def streamsHandler = Stub(FinishNotifyingStreamsHandler) {
+            connectStreams(_, _, _) >> { throw new RuntimeException() }
+        }
+        def execHandle = handle().setDisplayName("awesome").streamsHandler(streamsHandler).build()
+
+        when:
+        execHandle.start()
+
+        then:
+        def e = thrown(ProcessExecutionException)
+        e.message == "A problem occurred starting process 'awesome'"
+        execHandle.state == ExecHandleState.FAILED
+
+        cleanup:
+        System.clearProperty("org.gradle.internal.cmdline.max.length")
+    }
+
     void "aborts process"() {
         def execHandle = handle().args(args(SlowApp.class)).build()
 
