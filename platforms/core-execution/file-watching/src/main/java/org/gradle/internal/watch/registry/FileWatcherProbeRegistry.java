@@ -48,6 +48,38 @@ public interface FileWatcherProbeRegistry {
 
     void armWatchProbe(File watchableHierarchy);
 
+    /**
+     * Arms the probe again, whatever state it is in, so a hierarchy proven once has to prove again that
+     * its events still arrive.
+     *
+     * <p>Each arming writes a file name no earlier arming used, and a probe accepts an event only for
+     * the name its current arming wrote, so an event still in flight from an earlier arming is
+     * ignored.</p>
+     */
+    void rearmWatchProbe(File watchableHierarchy);
+
+    /**
+     * Returns whether any hierarchy is still waiting for its probe event, without building the stream
+     * {@link #unprovenHierarchies()} returns.
+     */
+    boolean hasUnprovenHierarchies();
+
+    /**
+     * Returns whether the path is a probe file of any generation, live or superseded.
+     *
+     * <p>Answered by name rather than by the live path map, so an event still in flight for a
+     * generation that has already been replaced is recognized too.</p>
+     */
+    boolean isProbeFile(String path);
+
+    /**
+     * Returns whether the path is the probe directory of any registered hierarchy.
+     *
+     * <p>Answered across every probe, so a hierarchy nested inside another recognizes the outer one's
+     * directory and the other way round.</p>
+     */
+    boolean isProbeDirectory(String path);
+
     void disarmWatchProbe(File watchableHierarchy);
 
     void triggerWatchProbe(String path);
