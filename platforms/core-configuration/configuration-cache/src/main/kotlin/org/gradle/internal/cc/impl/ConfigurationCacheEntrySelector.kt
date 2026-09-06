@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.properties.GradlePropertiesController
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.serialize.HostServiceProvider
@@ -85,8 +84,7 @@ internal class ConfigurationCacheEntrySelector(
     private
     fun ConfigurationCacheRepository.Layout.checkFingerprint(candidateEntry: CandidateEntry, rootDirs: List<File>): CheckedFingerprint {
         if (rootDirs.isNotEmpty() && startParameter.buildTreeRootDirectory !in rootDirs) {
-            return CheckedFingerprint.Invalid(
-                buildPath(),
+            return invalidBuildTreeFingerprint(
                 StructuredMessage.build {
                     text("the location of the build has changed from ")
                     reference(rootDirs.first().path)
@@ -103,7 +101,7 @@ internal class ConfigurationCacheEntrySelector(
 
         val classLoaderScopesInvalidationReason = checkClassLoaderScopes()
         if (classLoaderScopesInvalidationReason != null) {
-            return CheckedFingerprint.Invalid(buildPath(), classLoaderScopesInvalidationReason)
+            return invalidBuildTreeFingerprint(classLoaderScopesInvalidationReason)
         }
 
         val systemPropertiesSnapshot = System.getProperties().clone()
@@ -139,11 +137,11 @@ internal class ConfigurationCacheEntrySelector(
                     )
                 }
 
-                else -> CheckedFingerprint.Invalid(buildPath(), invalidationReason)
+                else -> invalidBuildTreeFingerprint(invalidationReason)
             }
         } catch (e: FingerprintDeserializationException) {
             logger.info("Configuration cache entry discarded because a fingerprint value could not be loaded", e)
-            CheckedFingerprint.Invalid(buildPath(), e.reason)
+            invalidBuildTreeFingerprint(e.reason)
         }
 
     private
@@ -170,8 +168,8 @@ internal class ConfigurationCacheEntrySelector(
         cacheIO.readFingerprintFrom(fingerprintFile, host, action)
 
     private
-    fun buildPath(): Path =
-        host.service<GradleInternal>().identityPath
+    fun invalidBuildTreeFingerprint(invalidationReason: StructuredMessage) =
+        CheckedFingerprint.Invalid(Path.ROOT, invalidationReason)
 
     private
     fun registerWatchableBuildDirectories(buildDirs: Iterable<File>) {
