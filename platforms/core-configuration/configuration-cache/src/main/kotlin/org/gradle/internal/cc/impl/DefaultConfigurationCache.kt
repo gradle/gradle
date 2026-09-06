@@ -102,7 +102,8 @@ class DefaultConfigurationCache internal constructor(
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
     private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor,
     private val deferredRootBuildGradle: DeferredRootBuildGradle,
-    private val gradlePropertiesController: GradlePropertiesController
+    private val gradlePropertiesController: GradlePropertiesController,
+    private val entryCollector: ConfigurationCacheEntryCollector
 ) : BuildTreeConfigurationCache, Stoppable {
 
     private
@@ -145,7 +146,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     val candidateEntries by lazy {
-        ConfigurationCacheCandidateEntries(store, cacheIO, startParameter.entriesPerKey, host)
+        ConfigurationCacheCandidateEntries(store, cacheIO, startParameter.entriesPerKey, entryCollector)
     }
 
     private
