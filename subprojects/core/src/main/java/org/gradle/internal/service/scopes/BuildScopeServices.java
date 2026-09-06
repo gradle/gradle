@@ -428,7 +428,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         InstantiatorFactory instantiatorFactory,
         IsolatableFactory isolatableFactory,
         ServiceRegistry services,
-        GradleProperties gradleProperties,
         ExecFactory execFactory,
         CalculatedValueFactory calculatedValueFactory
     ) {
@@ -437,7 +436,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             computationListener,
             instantiatorFactory,
             isolatableFactory,
-            gradleProperties,
             calculatedValueFactory,
             new DefaultExecOperations(execFactory.forContext().withoutExternalProcessStartedListener().build()),
             services
