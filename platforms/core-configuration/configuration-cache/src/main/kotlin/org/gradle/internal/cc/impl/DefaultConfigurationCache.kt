@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.properties.GradlePropertiesController
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.logging.LogLevel
@@ -100,7 +101,8 @@ class DefaultConfigurationCache internal constructor(
     private val fileSystemAccess: FileSystemAccess,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
     private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor,
-    private val deferredRootBuildGradle: DeferredRootBuildGradle
+    private val deferredRootBuildGradle: DeferredRootBuildGradle,
+    private val gradlePropertiesController: GradlePropertiesController
 ) : BuildTreeConfigurationCache, Stoppable {
 
     private
@@ -157,6 +159,7 @@ class DefaultConfigurationCache internal constructor(
             classLoaderScopes,
             virtualFileSystem,
             buildOperationRunner,
+            gradlePropertiesController,
             host
         )
     }

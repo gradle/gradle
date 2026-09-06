@@ -19,7 +19,6 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.internal.properties.GradlePropertiesController
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.serialize.HostServiceProvider
-import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.InvalidationReason
@@ -50,6 +49,7 @@ internal class ConfigurationCacheEntrySelector(
     private val classLoaderScopes: ClassLoaderScopesFingerprintController,
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationRunner: BuildOperationRunner,
+    private val gradlePropertiesController: GradlePropertiesController,
     private val host: HostServiceProvider
 ) {
     fun selectEntry(): CheckedFingerprint = buildOperationRunner.withFingerprintCheckOperations {
@@ -175,10 +175,6 @@ internal class ConfigurationCacheEntrySelector(
     fun registerWatchableBuildDirectories(buildDirs: Iterable<File>) {
         buildDirs.forEach(virtualFileSystem::registerWatchableHierarchy)
     }
-
-    private
-    val gradlePropertiesController: GradlePropertiesController
-        get() = host.service()
 
     private
     fun rollbackProperties(systemPropertiesSnapshot: Properties) {
