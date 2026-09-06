@@ -161,7 +161,7 @@ class DefaultConfigurationCache internal constructor(
             virtualFileSystem,
             buildOperationRunner,
             gradlePropertiesController,
-            host
+            isolateOwnerHost
         )
     }
 
@@ -717,7 +717,7 @@ class DefaultConfigurationCache internal constructor(
     fun ConfigurationCacheRepository.Layout.writeConfigurationCacheFingerprint(reusedProjects: Set<Path>) {
         // Collect fingerprint entries for any projects whose state was reused from cache
         if (reusedProjects.isNotEmpty()) {
-            cacheIO.readFingerprintFrom(fileForRead(StateType.ProjectFingerprint), host) { fingerprintHost ->
+            cacheIO.readFingerprintFrom(fileForRead(StateType.ProjectFingerprint), isolateOwnerHost) { fingerprintHost ->
                 cacheFingerprintController.run {
                     collectFingerprintForReusedProjects(fingerprintHost, reusedProjects)
                 }

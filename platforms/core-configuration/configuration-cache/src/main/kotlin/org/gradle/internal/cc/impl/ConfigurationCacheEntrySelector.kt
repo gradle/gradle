@@ -18,7 +18,6 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.properties.GradlePropertiesController
 import org.gradle.internal.cc.base.logger
-import org.gradle.internal.cc.base.serialize.HostServiceProvider
 import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.InvalidationReason
@@ -30,6 +29,7 @@ import org.gradle.internal.cc.operations.withFingerprintCheckOperations
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.util.Path
@@ -50,7 +50,7 @@ internal class ConfigurationCacheEntrySelector(
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationRunner: BuildOperationRunner,
     private val gradlePropertiesController: GradlePropertiesController,
-    private val host: HostServiceProvider
+    private val isolateOwner: IsolateOwner
 ) {
     fun selectEntry(): CheckedFingerprint = buildOperationRunner.withFingerprintCheckOperations {
         val searchResult = candidateEntries.searchForValidEntry(::checkCandidate)
@@ -165,7 +165,7 @@ internal class ConfigurationCacheEntrySelector(
         fingerprintFile: ConfigurationCacheStateFile,
         action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T
     ): T =
-        cacheIO.readFingerprintFrom(fingerprintFile, host, action)
+        cacheIO.readFingerprintFrom(fingerprintFile, isolateOwner, action)
 
     private
     fun invalidBuildTreeFingerprint(invalidationReason: StructuredMessage) =

@@ -17,12 +17,11 @@
 package org.gradle.internal.cc.impl.fingerprint
 
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
-import org.gradle.internal.cc.base.serialize.HostServiceProvider
-import org.gradle.internal.cc.base.serialize.IsolateOwners
-import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.impl.ConfigurationCacheBuildTreeIO
 import org.gradle.internal.cc.impl.ConfigurationCacheStateFile
+import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
+import org.gradle.internal.serialize.graph.serviceOf
 import org.gradle.internal.serialize.graph.withIsolate
 
 
@@ -32,13 +31,13 @@ import org.gradle.internal.serialize.graph.withIsolate
 internal
 fun <T> ConfigurationCacheBuildTreeIO.readFingerprintFrom(
     stateFile: ConfigurationCacheStateFile,
-    host: HostServiceProvider,
+    isolateOwner: IsolateOwner,
     action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T
 ): T {
     val decoder = decoderFor(stateFile.stateType, stateFile::inputStream)
     return runReadOperation(stateFile.stateFile.name, decoder) { codecs ->
-        withIsolate(IsolateOwners.OwnerHost(host), codecs.fingerprintTypesCodec()) {
-            action(FingerprintControllerHost(host))
+        withIsolate(isolateOwner, codecs.fingerprintTypesCodec()) {
+            action(FingerprintControllerHost(isolateOwner))
         }
     }
 }
@@ -46,8 +45,8 @@ fun <T> ConfigurationCacheBuildTreeIO.readFingerprintFrom(
 
 private
 class FingerprintControllerHost(
-    private val host: HostServiceProvider
+    private val isolateOwner: IsolateOwner
 ) : ConfigurationCacheFingerprintController.Host {
     override val valueSourceProviderFactory: ValueSourceProviderFactory
-        get() = host.service()
+        get() = isolateOwner.serviceOf()
 }
