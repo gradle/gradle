@@ -469,7 +469,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         assertThat(jar.name, jar.manifest.mainAttributes.getValue('Implementation-Version'), equalTo(jarMetadataVersion))
         assertThat(jar.name, jar.manifest.mainAttributes.getValue('Implementation-Title'), equalTo('Gradle'))
         // Vendor evidence, so scanners reading only the manifest can identify the artifact.
-        assertThat(jar.name, jar.manifest.mainAttributes.getValue('Implementation-Vendor'), equalTo('Gradle Inc.'))
+        assertThat(jar.name, jar.manifest.mainAttributes.getValue('Implementation-Vendor'), equalTo('Gradle, Inc.'))
         assertThat(jar.name, jar.manifest.mainAttributes.getValue('Implementation-Vendor-Id'), equalTo(expectedGroupFor(artifactId)))
     }
 
