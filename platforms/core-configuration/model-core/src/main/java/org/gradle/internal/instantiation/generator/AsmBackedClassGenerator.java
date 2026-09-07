@@ -48,6 +48,7 @@ import org.gradle.internal.instantiation.ClassGenerationException;
 import org.gradle.internal.instantiation.InjectAnnotationHandler;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.metaobject.AbstractDynamicObject;
 import org.gradle.internal.metaobject.BeanDynamicObject;
@@ -937,6 +938,11 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 return;
             }
 
+            // Limited to upgraded properties: elsewhere a type declaring its own set<Name>(Object) alongside a lazy property fails to generate
+            if (property.hasAnnotationOnAnyGetter(ReplacesEagerProperty.class) && implementsSetterTakingObject(property)) {
+                return;
+            }
+
             // GENERATE public void set<Name>(Object p) {
             //    ((LazyGroovySupport)<getter>()).setFromAnyValue(p);
             // }
@@ -947,6 +953,27 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 _ALOAD(1);
                 _INVOKEINTERFACE(LAZY_GROOVY_SUPPORT_TYPE, "setFromAnyValue", ClassBuilderImpl.RETURN_VOID_FROM_OBJECT);
             }});
+        }
+
+        /**
+         * Does the type already implement a {@code set<Name>(Object)}? It may be an eager-style migration setter
+         * forwarding into the lazy container, or one synthesised by {@code @ReplacesEagerProperty} when the original
+         * type erases to Object. Either way our {@code setFromAnyValue}-backed overload would be a second method with
+         * the same signature, which the JVM rejects when the class is defined.
+         *
+         * <p>An abstract one is not an implementation: our overload is what implements it, so it must still be
+         * generated. Final ones count, which is why this looks at every setter rather than the overridable ones.
+         */
+        private static boolean implementsSetterTakingObject(PropertyMetadata property) {
+            for (Method setter : property.getSetters()) {
+                if (!Modifier.isAbstract(setter.getModifiers())
+                    && setter.getParameterCount() == 1
+                    && setter.getParameterTypes()[0].equals(Object.class)
+                    && setter.getReturnType().equals(Void.TYPE)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         /**
