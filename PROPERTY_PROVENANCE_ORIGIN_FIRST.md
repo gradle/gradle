@@ -291,11 +291,13 @@ to keep expanding this prototype or a claim that the milestones have been implem
 1. Complete shared S0–S3 milestones using the [shared contract](PROPERTY_PROVENANCE_SHARED_CONTRACT.md),
    then choose diagnostics, collaboration or both. See the
    [first map-update slice and its limits](PROPERTY_PROVENANCE_UPDATES.md) for current support.
-2. Diagnostics D1–D6 includes origin reports (D1), transport (D2), broader coverage
-   (D3), Java/Kotlin lines (D4) and initial rollout (D5), with Groovy lines last (D6).
-   It requires no collaboration milestones; Groovy remains origin-only until D6.
-3. Collaboration C1–C4 reuses D1 reporting and D2 transport, completing each prerequisite
-   first. It does not require line capture or the rest of the diagnostics path. Authority,
+2. Diagnostics D1–D7 includes scalar origin reports (D1), collection provenance (D2),
+   transport (D3), broader coverage (D4), Java/Kotlin lines (D5) and initial rollout
+   (D6), with Groovy lines last (D7).
+   It requires no collaboration milestones; Groovy remains origin-only until D7.
+3. Collaboration C1–C4 reuses D1 reporting and D3 transport, completing each prerequisite
+   first, including D3's D2 collection prerequisite. It does not require line capture
+   or the remaining broader diagnostics and rollout milestones. Authority,
    ordering and source rebinding remain separate from diagnostic provider traversal.
 4. Defer settings-owned tracking and other new scopes until a concrete use case warrants them;
    neither path expands ownership scope just by adding metadata or source locations.
