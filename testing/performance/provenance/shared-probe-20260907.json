@@ -1,0 +1,2155 @@
+{
+  "gradleHead": "d41e66c4e92e3a79dfeeb8e5f2c6912f61d5d036",
+  "baselineZipSha256": "37b6ddc14b9dcf089f8f2e7dc152a377a48a57bb99c6aaa8406aca4b346eed16",
+  "platform": "Linux-7.0.12-aarch64-with-glibc2.43",
+  "machine": "aarch64",
+  "java": "Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal\nopenjdk version \"25.0.4\" 2026-07-21\nOpenJDK Runtime Environment (build 25.0.4+7-1-26.04-Ubuntu)\nOpenJDK 64-Bit Server VM (build 25.0.4+7-1-26.04-Ubuntu, mixed mode, sharing)\n",
+  "jvmOptions": [
+    "-Xms256m",
+    "-Xmx256m",
+    "-XX:+UseSerialGC"
+  ],
+  "warmupBatches": 5,
+  "measurementBatches": 5,
+  "forks": 3,
+  "sourceHashes": {
+    "ProvenanceAllocationProbe.java": "11be8885f62fd632e3617e4d0f154cf6e7ae9ea8c69d5ae149f44992fa1931a2",
+    "SharedMetadataAllocationProbe.java": "4c94fd7d3855fb1a372b2361654c3213b7f6b37b3329885bbf63598b783cdd90"
+  },
+  "metadataSourceHashes": {
+    "Attribution.java": "7de2b2f5485df8d2fdb24b8351e26efe8a805991115dd8f542eb3c42caa2456c",
+    "ContributorKey.java": "e420a5a601d9e79d2994fa14580e0487ee2d222c4846e372f15a31908dd41740",
+    "DiagnosticOrigin.java": "565de8b460afd97fb827cd2628eca3c4ee33c29ad02e25a7b30b628612ac2e90",
+    "EffectiveProvenanceView.java": "c08d2d4805ea12b04150cb604c4c0d60d25d245ab9689d00291b6874ef370a35",
+    "MutationOccurrence.java": "a342bea79f6c83c31ff2c6ae5aa3ce39268fcd0790067339357ffaa6a8859a7a",
+    "ScopeIdentity.java": "2152852d885fb962842371adbbf902b42853ba6406d29a19c9ee10afb460afdc",
+    "SemanticOperation.java": "f6e26792eded2b2c518de9e5554bac4b572a678a39a3c2c39481f28ec98bf99d",
+    "TargetContext.java": "b50d0afb84f7ff74bb15dd8bd2215fe7c0f685631f0781ec0422d5d7414fbb5c",
+    "UpdateSequence.java": "a85983ac8985aa7e480c208e4e8b3133ee135826fb58deb09f839fd8464ead31",
+    "package-info.java": "043d905123ac684ce4e8b27586a68a2cd76621ccaf7cddc65d12f3eb86d2ad3e"
+  },
+  "runs": [
+    {
+      "variant": "baseline",
+      "fork": 0,
+      "samples": [
+        {
+          "layout": "DefaultProperty",
+          "shallowBytes": 40
+        },
+        {
+          "layout": "mutable state",
+          "shallowBytes": 24
+        },
+        {
+          "workload": "construct",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 924458
+        },
+        {
+          "workload": "construct",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 1853875
+        },
+        {
+          "workload": "construct",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 1772500
+        },
+        {
+          "workload": "construct",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 1800041
+        },
+        {
+          "workload": "construct",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 2890667
+        },
+        {
+          "workload": "bind",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1637375
+        },
+        {
+          "workload": "bind",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1639459
+        },
+        {
+          "workload": "bind",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1607000
+        },
+        {
+          "workload": "bind",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1665042
+        },
+        {
+          "workload": "bind",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1600958
+        },
+        {
+          "workload": "read",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 2196000
+        },
+        {
+          "workload": "read",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 1964083
+        },
+        {
+          "workload": "read",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 789792
+        },
+        {
+          "workload": "read",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 811583
+        },
+        {
+          "workload": "read",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 826167
+        },
+        {
+          "layout": "finalized state",
+          "shallowBytes": 16
+        },
+        {
+          "workload": "finalized read",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 666834
+        },
+        {
+          "workload": "finalized read",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 646958
+        },
+        {
+          "workload": "finalized read",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 651500
+        },
+        {
+          "workload": "finalized read",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 660167
+        },
+        {
+          "workload": "finalized read",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 649625
+        }
+      ]
+    },
+    {
+      "variant": "compiled-in",
+      "fork": 0,
+      "samples": [
+        {
+          "layout": "DefaultProperty",
+          "shallowBytes": 40
+        },
+        {
+          "layout": "mutable state",
+          "shallowBytes": 24
+        },
+        {
+          "workload": "construct",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 857042
+        },
+        {
+          "workload": "construct",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 1509500
+        },
+        {
+          "workload": "construct",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 952458
+        },
+        {
+          "workload": "construct",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 946417
+        },
+        {
+          "workload": "construct",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 3109292
+        },
+        {
+          "workload": "bind",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1697375
+        },
+        {
+          "workload": "bind",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1656833
+        },
+        {
+          "workload": "bind",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1592334
+        },
+        {
+          "workload": "bind",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1706041
+        },
+        {
+          "workload": "bind",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1653417
+        },
+        {
+          "workload": "read",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 1874541
+        },
+        {
+          "workload": "read",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 1821792
+        },
+        {
+          "workload": "read",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 857250
+        },
+        {
+          "workload": "read",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 545584
+        },
+        {
+          "workload": "read",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 559208
+        },
+        {
+          "layout": "finalized state",
+          "shallowBytes": 16
+        },
+        {
+          "workload": "finalized read",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 676334
+        },
+        {
+          "workload": "finalized read",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 657458
+        },
+        {
+          "workload": "finalized read",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 631333
+        },
+        {
+          "workload": "finalized read",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 653709
+        },
+        {
+          "workload": "finalized read",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 652042
+        }
+      ]
+    },
+    {
+      "variant": "metadata",
+      "fork": 0,
+      "samples": [
+        {
+          "layout": "ContributorKey",
+          "shallowBytes": 24
+        },
+        {
+          "layout": "DiagnosticOrigin",
+          "shallowBytes": 24
+        },
+        {
+          "layout": "ScopeIdentity",
+          "shallowBytes": 24
+        },
+        {
+          "layout": "Attribution",
+          "shallowBytes": 32
+        },
+        {
+          "layout": "SemanticOperation",
+          "shallowBytes": 24
+        },
+        {
+          "layout": "MutationOccurrence",
+          "shallowBytes": 32
+        },
+        {
+          "layout": "UpdateSequence node",
+          "shallowBytes": 24
+        },
+        {
+          "workload": "append 0",
+          "sample": 0,
+          "repetitions": 65536,
+          "allocatedBytes": 0,
+          "nanos": 227375
+        },
+        {
+          "workload": "append 0",
+          "sample": 1,
+          "repetitions": 65536,
+          "allocatedBytes": 0,
+          "nanos": 946667
+        },
+        {
+          "workload": "append 0",
+          "sample": 2,
+          "repetitions": 65536,
+          "allocatedBytes": 0,
+          "nanos": 929084
+        },
+        {
+          "workload": "append 0",
+          "sample": 3,
+          "repetitions": 65536,
+          "allocatedBytes": 0,
+          "nanos": 949500
+        },
+        {
+          "workload": "append 0",
+          "sample": 4,
+          "repetitions": 65536,
+          "allocatedBytes": 0,
+          "nanos": 920334
+        },
+        {
+          "workload": "checkpoint 0",
+          "sample": 0,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 2579792
+        },
+        {
+          "workload": "checkpoint 0",
+          "sample": 1,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 3388042
+        },
+        {
+          "workload": "checkpoint 0",
+          "sample": 2,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1894792
+        },
+        {
+          "workload": "checkpoint 0",
+          "sample": 3,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1458291
+        },
+        {
+          "workload": "checkpoint 0",
+          "sample": 4,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1441416
+        },
+        {
+          "workload": "append 1",
+          "sample": 0,
+          "repetitions": 65536,
+          "allocatedBytes": 3670016,
+          "nanos": 1215917
+        },
+        {
+          "workload": "append 1",
+          "sample": 1,
+          "repetitions": 65536,
+          "allocatedBytes": 3670016,
+          "nanos": 1271625
+        },
+        {
+          "workload": "append 1",
+          "sample": 2,
+          "repetitions": 65536,
+          "allocatedBytes": 3670016,
+          "nanos": 1257042
+        },
+        {
+          "workload": "append 1",
+          "sample": 3,
+          "repetitions": 65536,
+          "allocatedBytes": 3670016,
+          "nanos": 1208292
+        },
+        {
+          "workload": "append 1",
+          "sample": 4,
+          "repetitions": 65536,
+          "allocatedBytes": 3670016,
+          "nanos": 1239584
+        },
+        {
+          "workload": "checkpoint 1",
+          "sample": 0,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1429375
+        },
+        {
+          "workload": "checkpoint 1",
+          "sample": 1,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1453875
+        },
+        {
+          "workload": "checkpoint 1",
+          "sample": 2,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1463792
+        },
+        {
+          "workload": "checkpoint 1",
+          "sample": 3,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 2268291
+        },
+        {
+          "workload": "checkpoint 1",
+          "sample": 4,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1408084
+        },
+        {
+          "workload": "append 8",
+          "sample": 0,
+          "repetitions": 8192,
+          "allocatedBytes": 3670016,
+          "nanos": 254750
+        },
+        {
+          "workload": "append 8",
+          "sample": 1,
+          "repetitions": 8192,
+          "allocatedBytes": 3670016,
+          "nanos": 257583
+        },
+        {
+          "workload": "append 8",
+          "sample": 2,
+          "repetitions": 8192,
+          "allocatedBytes": 3670016,
+          "nanos": 259208
+        },
+        {
+          "workload": "append 8",
+          "sample": 3,
+          "repetitions": 8192,
+          "allocatedBytes": 3670016,
+          "nanos": 269750
+        },
+        {
+          "workload": "append 8",
+          "sample": 4,
+          "repetitions": 8192,
+          "allocatedBytes": 3670016,
+          "nanos": 255708
+        },
+        {
+          "workload": "checkpoint 8",
+          "sample": 0,
+          "repetitions": 8192,
+          "allocatedBytes": 1114112,
+          "nanos": 186083
+        },
+        {
+          "workload": "checkpoint 8",
+          "sample": 1,
+          "repetitions": 8192,
+          "allocatedBytes": 1114112,
+          "nanos": 180583
+        },
+        {
+          "workload": "checkpoint 8",
+          "sample": 2,
+          "repetitions": 8192,
+          "allocatedBytes": 1114112,
+          "nanos": 98208
+        },
+        {
+          "workload": "checkpoint 8",
+          "sample": 3,
+          "repetitions": 8192,
+          "allocatedBytes": 1114112,
+          "nanos": 97958
+        },
+        {
+          "workload": "checkpoint 8",
+          "sample": 4,
+          "repetitions": 8192,
+          "allocatedBytes": 1114112,
+          "nanos": 98542
+        },
+        {
+          "workload": "append 128",
+          "sample": 0,
+          "repetitions": 512,
+          "allocatedBytes": 3670016,
+          "nanos": 263334
+        },
+        {
+          "workload": "append 128",
+          "sample": 1,
+          "repetitions": 512,
+          "allocatedBytes": 3670016,
+          "nanos": 259750
+        },
+        {
+          "workload": "append 128",
+          "sample": 2,
+          "repetitions": 512,
+          "allocatedBytes": 3670016,
+          "nanos": 251000
+        },
+        {
+          "workload": "append 128",
+          "sample": 3,
+          "repetitions": 512,
+          "allocatedBytes": 3670016,
+          "nanos": 249209
+        },
+        {
+          "workload": "append 128",
+          "sample": 4,
+          "repetitions": 512,
+          "allocatedBytes": 3670016,
+          "nanos": 254834
+        },
+        {
+          "workload": "checkpoint 128",
+          "sample": 0,
+          "repetitions": 512,
+          "allocatedBytes": 69632,
+          "nanos": 18125
+        },
+        {
+          "workload": "checkpoint 128",
+          "sample": 1,
+          "repetitions": 512,
+          "allocatedBytes": 69632,
+          "nanos": 12959
+        },
+        {
+          "workload": "checkpoint 128",
+          "sample": 2,
+          "repetitions": 512,
+          "allocatedBytes": 69632,
+          "nanos": 7125
+        },
+        {
+          "workload": "checkpoint 128",
+          "sample": 3,
+          "repetitions": 512,
+          "allocatedBytes": 69632,
+          "nanos": 6500
+        },
+        {
+          "workload": "checkpoint 128",
+          "sample": 4,
+          "repetitions": 512,
+          "allocatedBytes": 69632,
+          "nanos": 6542
+        },
+        {
+          "workload": "append 4096",
+          "sample": 0,
+          "repetitions": 128,
+          "allocatedBytes": 29360128,
+          "nanos": 1965750
+        },
+        {
+          "workload": "append 4096",
+          "sample": 1,
+          "repetitions": 128,
+          "allocatedBytes": 29360128,
+          "nanos": 2881625
+        },
+        {
+          "workload": "append 4096",
+          "sample": 2,
+          "repetitions": 128,
+          "allocatedBytes": 29360128,
+          "nanos": 2015458
+        },
+        {
+          "workload": "append 4096",
+          "sample": 3,
+          "repetitions": 128,
+          "allocatedBytes": 29360128,
+          "nanos": 2895583
+        },
+        {
+          "workload": "append 4096",
+          "sample": 4,
+          "repetitions": 128,
+          "allocatedBytes": 29360128,
+          "nanos": 2004375
+        },
+        {
+          "workload": "checkpoint 4096",
+          "sample": 0,
+          "repetitions": 128,
+          "allocatedBytes": 17408,
+          "nanos": 2250
+        },
+        {
+          "workload": "checkpoint 4096",
+          "sample": 1,
+          "repetitions": 128,
+          "allocatedBytes": 17408,
+          "nanos": 2167
+        },
+        {
+          "workload": "checkpoint 4096",
+          "sample": 2,
+          "repetitions": 128,
+          "allocatedBytes": 17408,
+          "nanos": 2125
+        },
+        {
+          "workload": "checkpoint 4096",
+          "sample": 3,
+          "repetitions": 128,
+          "allocatedBytes": 17408,
+          "nanos": 2917
+        },
+        {
+          "workload": "checkpoint 4096",
+          "sample": 4,
+          "repetitions": 128,
+          "allocatedBytes": 17408,
+          "nanos": 2125
+        }
+      ]
+    },
+    {
+      "variant": "compiled-in",
+      "fork": 1,
+      "samples": [
+        {
+          "layout": "DefaultProperty",
+          "shallowBytes": 40
+        },
+        {
+          "layout": "mutable state",
+          "shallowBytes": 24
+        },
+        {
+          "workload": "construct",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 833500
+        },
+        {
+          "workload": "construct",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 1534208
+        },
+        {
+          "workload": "construct",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 1075166
+        },
+        {
+          "workload": "construct",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 932792
+        },
+        {
+          "workload": "construct",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 3267084
+        },
+        {
+          "workload": "bind",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1605917
+        },
+        {
+          "workload": "bind",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1653500
+        },
+        {
+          "workload": "bind",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1660792
+        },
+        {
+          "workload": "bind",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1647125
+        },
+        {
+          "workload": "bind",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1590333
+        },
+        {
+          "workload": "read",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 1627083
+        },
+        {
+          "workload": "read",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 971000
+        },
+        {
+          "workload": "read",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 989125
+        },
+        {
+          "workload": "read",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 919000
+        },
+        {
+          "workload": "read",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 861125
+        },
+        {
+          "layout": "finalized state",
+          "shallowBytes": 16
+        },
+        {
+          "workload": "finalized read",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 670584
+        },
+        {
+          "workload": "finalized read",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 626250
+        },
+        {
+          "workload": "finalized read",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 650416
+        },
+        {
+          "workload": "finalized read",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 776250
+        },
+        {
+          "workload": "finalized read",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 670083
+        }
+      ]
+    },
+    {
+      "variant": "metadata",
+      "fork": 1,
+      "samples": [
+        {
+          "layout": "ContributorKey",
+          "shallowBytes": 24
+        },
+        {
+          "layout": "DiagnosticOrigin",
+          "shallowBytes": 24
+        },
+        {
+          "layout": "ScopeIdentity",
+          "shallowBytes": 24
+        },
+        {
+          "layout": "Attribution",
+          "shallowBytes": 32
+        },
+        {
+          "layout": "SemanticOperation",
+          "shallowBytes": 24
+        },
+        {
+          "layout": "MutationOccurrence",
+          "shallowBytes": 32
+        },
+        {
+          "layout": "UpdateSequence node",
+          "shallowBytes": 24
+        },
+        {
+          "workload": "append 0",
+          "sample": 0,
+          "repetitions": 65536,
+          "allocatedBytes": 0,
+          "nanos": 218084
+        },
+        {
+          "workload": "append 0",
+          "sample": 1,
+          "repetitions": 65536,
+          "allocatedBytes": 0,
+          "nanos": 932958
+        },
+        {
+          "workload": "append 0",
+          "sample": 2,
+          "repetitions": 65536,
+          "allocatedBytes": 0,
+          "nanos": 934167
+        },
+        {
+          "workload": "append 0",
+          "sample": 3,
+          "repetitions": 65536,
+          "allocatedBytes": 0,
+          "nanos": 916041
+        },
+        {
+          "workload": "append 0",
+          "sample": 4,
+          "repetitions": 65536,
+          "allocatedBytes": 0,
+          "nanos": 748333
+        },
+        {
+          "workload": "checkpoint 0",
+          "sample": 0,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 2340333
+        },
+        {
+          "workload": "checkpoint 0",
+          "sample": 1,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 3166875
+        },
+        {
+          "workload": "checkpoint 0",
+          "sample": 2,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1563500
+        },
+        {
+          "workload": "checkpoint 0",
+          "sample": 3,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1425875
+        },
+        {
+          "workload": "checkpoint 0",
+          "sample": 4,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1018209
+        },
+        {
+          "workload": "append 1",
+          "sample": 0,
+          "repetitions": 65536,
+          "allocatedBytes": 3670016,
+          "nanos": 1224042
+        },
+        {
+          "workload": "append 1",
+          "sample": 1,
+          "repetitions": 65536,
+          "allocatedBytes": 3670016,
+          "nanos": 1192416
+        },
+        {
+          "workload": "append 1",
+          "sample": 2,
+          "repetitions": 65536,
+          "allocatedBytes": 3670016,
+          "nanos": 1218458
+        },
+        {
+          "workload": "append 1",
+          "sample": 3,
+          "repetitions": 65536,
+          "allocatedBytes": 3670016,
+          "nanos": 1225666
+        },
+        {
+          "workload": "append 1",
+          "sample": 4,
+          "repetitions": 65536,
+          "allocatedBytes": 3670016,
+          "nanos": 1215167
+        },
+        {
+          "workload": "checkpoint 1",
+          "sample": 0,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1422833
+        },
+        {
+          "workload": "checkpoint 1",
+          "sample": 1,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1409708
+        },
+        {
+          "workload": "checkpoint 1",
+          "sample": 2,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1434542
+        },
+        {
+          "workload": "checkpoint 1",
+          "sample": 3,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 2277875
+        },
+        {
+          "workload": "checkpoint 1",
+          "sample": 4,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1470667
+        },
+        {
+          "workload": "append 8",
+          "sample": 0,
+          "repetitions": 8192,
+          "allocatedBytes": 3670016,
+          "nanos": 341666
+        },
+        {
+          "workload": "append 8",
+          "sample": 1,
+          "repetitions": 8192,
+          "allocatedBytes": 3670016,
+          "nanos": 276167
+        },
+        {
+          "workload": "append 8",
+          "sample": 2,
+          "repetitions": 8192,
+          "allocatedBytes": 3670016,
+          "nanos": 277375
+        },
+        {
+          "workload": "append 8",
+          "sample": 3,
+          "repetitions": 8192,
+          "allocatedBytes": 3670016,
+          "nanos": 272959
+        },
+        {
+          "workload": "append 8",
+          "sample": 4,
+          "repetitions": 8192,
+          "allocatedBytes": 3670016,
+          "nanos": 274083
+        },
+        {
+          "workload": "checkpoint 8",
+          "sample": 0,
+          "repetitions": 8192,
+          "allocatedBytes": 1114112,
+          "nanos": 103000
+        },
+        {
+          "workload": "checkpoint 8",
+          "sample": 1,
+          "repetitions": 8192,
+          "allocatedBytes": 1114112,
+          "nanos": 108625
+        },
+        {
+          "workload": "checkpoint 8",
+          "sample": 2,
+          "repetitions": 8192,
+          "allocatedBytes": 1114112,
+          "nanos": 100709
+        },
+        {
+          "workload": "checkpoint 8",
+          "sample": 3,
+          "repetitions": 8192,
+          "allocatedBytes": 1114112,
+          "nanos": 100958
+        },
+        {
+          "workload": "checkpoint 8",
+          "sample": 4,
+          "repetitions": 8192,
+          "allocatedBytes": 1114112,
+          "nanos": 100750
+        },
+        {
+          "workload": "append 128",
+          "sample": 0,
+          "repetitions": 512,
+          "allocatedBytes": 3670016,
+          "nanos": 274625
+        },
+        {
+          "workload": "append 128",
+          "sample": 1,
+          "repetitions": 512,
+          "allocatedBytes": 3670016,
+          "nanos": 271000
+        },
+        {
+          "workload": "append 128",
+          "sample": 2,
+          "repetitions": 512,
+          "allocatedBytes": 3670016,
+          "nanos": 259625
+        },
+        {
+          "workload": "append 128",
+          "sample": 3,
+          "repetitions": 512,
+          "allocatedBytes": 3670016,
+          "nanos": 268917
+        },
+        {
+          "workload": "append 128",
+          "sample": 4,
+          "repetitions": 512,
+          "allocatedBytes": 3670016,
+          "nanos": 259250
+        },
+        {
+          "workload": "checkpoint 128",
+          "sample": 0,
+          "repetitions": 512,
+          "allocatedBytes": 69632,
+          "nanos": 6833
+        },
+        {
+          "workload": "checkpoint 128",
+          "sample": 1,
+          "repetitions": 512,
+          "allocatedBytes": 69632,
+          "nanos": 7000
+        },
+        {
+          "workload": "checkpoint 128",
+          "sample": 2,
+          "repetitions": 512,
+          "allocatedBytes": 69632,
+          "nanos": 6833
+        },
+        {
+          "workload": "checkpoint 128",
+          "sample": 3,
+          "repetitions": 512,
+          "allocatedBytes": 69632,
+          "nanos": 6750
+        },
+        {
+          "workload": "checkpoint 128",
+          "sample": 4,
+          "repetitions": 512,
+          "allocatedBytes": 69632,
+          "nanos": 6458
+        },
+        {
+          "workload": "append 4096",
+          "sample": 0,
+          "repetitions": 128,
+          "allocatedBytes": 29360128,
+          "nanos": 2022917
+        },
+        {
+          "workload": "append 4096",
+          "sample": 1,
+          "repetitions": 128,
+          "allocatedBytes": 29360128,
+          "nanos": 4646834
+        },
+        {
+          "workload": "append 4096",
+          "sample": 2,
+          "repetitions": 128,
+          "allocatedBytes": 29360128,
+          "nanos": 2881833
+        },
+        {
+          "workload": "append 4096",
+          "sample": 3,
+          "repetitions": 128,
+          "allocatedBytes": 29360128,
+          "nanos": 3245583
+        },
+        {
+          "workload": "append 4096",
+          "sample": 4,
+          "repetitions": 128,
+          "allocatedBytes": 29360128,
+          "nanos": 1915292
+        },
+        {
+          "workload": "checkpoint 4096",
+          "sample": 0,
+          "repetitions": 128,
+          "allocatedBytes": 17408,
+          "nanos": 2291
+        },
+        {
+          "workload": "checkpoint 4096",
+          "sample": 1,
+          "repetitions": 128,
+          "allocatedBytes": 17408,
+          "nanos": 2125
+        },
+        {
+          "workload": "checkpoint 4096",
+          "sample": 2,
+          "repetitions": 128,
+          "allocatedBytes": 17408,
+          "nanos": 1958
+        },
+        {
+          "workload": "checkpoint 4096",
+          "sample": 3,
+          "repetitions": 128,
+          "allocatedBytes": 17408,
+          "nanos": 1834
+        },
+        {
+          "workload": "checkpoint 4096",
+          "sample": 4,
+          "repetitions": 128,
+          "allocatedBytes": 17408,
+          "nanos": 1875
+        }
+      ]
+    },
+    {
+      "variant": "baseline",
+      "fork": 1,
+      "samples": [
+        {
+          "layout": "DefaultProperty",
+          "shallowBytes": 40
+        },
+        {
+          "layout": "mutable state",
+          "shallowBytes": 24
+        },
+        {
+          "workload": "construct",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 909458
+        },
+        {
+          "workload": "construct",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 1957958
+        },
+        {
+          "workload": "construct",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 2308208
+        },
+        {
+          "workload": "construct",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 2400833
+        },
+        {
+          "workload": "construct",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 2929833
+        },
+        {
+          "workload": "bind",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1725250
+        },
+        {
+          "workload": "bind",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1769750
+        },
+        {
+          "workload": "bind",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1644167
+        },
+        {
+          "workload": "bind",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1666333
+        },
+        {
+          "workload": "bind",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1677125
+        },
+        {
+          "workload": "read",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 2213375
+        },
+        {
+          "workload": "read",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 2048875
+        },
+        {
+          "workload": "read",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 826167
+        },
+        {
+          "workload": "read",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 847708
+        },
+        {
+          "workload": "read",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 857917
+        },
+        {
+          "layout": "finalized state",
+          "shallowBytes": 16
+        },
+        {
+          "workload": "finalized read",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 678333
+        },
+        {
+          "workload": "finalized read",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 650541
+        },
+        {
+          "workload": "finalized read",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 643792
+        },
+        {
+          "workload": "finalized read",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 652584
+        },
+        {
+          "workload": "finalized read",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 643625
+        }
+      ]
+    },
+    {
+      "variant": "metadata",
+      "fork": 2,
+      "samples": [
+        {
+          "layout": "ContributorKey",
+          "shallowBytes": 24
+        },
+        {
+          "layout": "DiagnosticOrigin",
+          "shallowBytes": 24
+        },
+        {
+          "layout": "ScopeIdentity",
+          "shallowBytes": 24
+        },
+        {
+          "layout": "Attribution",
+          "shallowBytes": 32
+        },
+        {
+          "layout": "SemanticOperation",
+          "shallowBytes": 24
+        },
+        {
+          "layout": "MutationOccurrence",
+          "shallowBytes": 32
+        },
+        {
+          "layout": "UpdateSequence node",
+          "shallowBytes": 24
+        },
+        {
+          "workload": "append 0",
+          "sample": 0,
+          "repetitions": 65536,
+          "allocatedBytes": 0,
+          "nanos": 227542
+        },
+        {
+          "workload": "append 0",
+          "sample": 1,
+          "repetitions": 65536,
+          "allocatedBytes": 0,
+          "nanos": 944833
+        },
+        {
+          "workload": "append 0",
+          "sample": 2,
+          "repetitions": 65536,
+          "allocatedBytes": 0,
+          "nanos": 939666
+        },
+        {
+          "workload": "append 0",
+          "sample": 3,
+          "repetitions": 65536,
+          "allocatedBytes": 0,
+          "nanos": 933667
+        },
+        {
+          "workload": "append 0",
+          "sample": 4,
+          "repetitions": 65536,
+          "allocatedBytes": 0,
+          "nanos": 863250
+        },
+        {
+          "workload": "checkpoint 0",
+          "sample": 0,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 2445375
+        },
+        {
+          "workload": "checkpoint 0",
+          "sample": 1,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 3469958
+        },
+        {
+          "workload": "checkpoint 0",
+          "sample": 2,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1634166
+        },
+        {
+          "workload": "checkpoint 0",
+          "sample": 3,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1503500
+        },
+        {
+          "workload": "checkpoint 0",
+          "sample": 4,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1477583
+        },
+        {
+          "workload": "append 1",
+          "sample": 0,
+          "repetitions": 65536,
+          "allocatedBytes": 3670016,
+          "nanos": 1240417
+        },
+        {
+          "workload": "append 1",
+          "sample": 1,
+          "repetitions": 65536,
+          "allocatedBytes": 3670016,
+          "nanos": 1168041
+        },
+        {
+          "workload": "append 1",
+          "sample": 2,
+          "repetitions": 65536,
+          "allocatedBytes": 3670016,
+          "nanos": 1180083
+        },
+        {
+          "workload": "append 1",
+          "sample": 3,
+          "repetitions": 65536,
+          "allocatedBytes": 3670016,
+          "nanos": 1205541
+        },
+        {
+          "workload": "append 1",
+          "sample": 4,
+          "repetitions": 65536,
+          "allocatedBytes": 3670016,
+          "nanos": 1247166
+        },
+        {
+          "workload": "checkpoint 1",
+          "sample": 0,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1570542
+        },
+        {
+          "workload": "checkpoint 1",
+          "sample": 1,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1549500
+        },
+        {
+          "workload": "checkpoint 1",
+          "sample": 2,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1431542
+        },
+        {
+          "workload": "checkpoint 1",
+          "sample": 3,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 2298084
+        },
+        {
+          "workload": "checkpoint 1",
+          "sample": 4,
+          "repetitions": 65536,
+          "allocatedBytes": 8912896,
+          "nanos": 1469000
+        },
+        {
+          "workload": "append 8",
+          "sample": 0,
+          "repetitions": 8192,
+          "allocatedBytes": 3670016,
+          "nanos": 274292
+        },
+        {
+          "workload": "append 8",
+          "sample": 1,
+          "repetitions": 8192,
+          "allocatedBytes": 3670016,
+          "nanos": 285916
+        },
+        {
+          "workload": "append 8",
+          "sample": 2,
+          "repetitions": 8192,
+          "allocatedBytes": 3670016,
+          "nanos": 286917
+        },
+        {
+          "workload": "append 8",
+          "sample": 3,
+          "repetitions": 8192,
+          "allocatedBytes": 3670016,
+          "nanos": 296708
+        },
+        {
+          "workload": "append 8",
+          "sample": 4,
+          "repetitions": 8192,
+          "allocatedBytes": 3670016,
+          "nanos": 263417
+        },
+        {
+          "workload": "checkpoint 8",
+          "sample": 0,
+          "repetitions": 8192,
+          "allocatedBytes": 1114112,
+          "nanos": 128333
+        },
+        {
+          "workload": "checkpoint 8",
+          "sample": 1,
+          "repetitions": 8192,
+          "allocatedBytes": 1114112,
+          "nanos": 92250
+        },
+        {
+          "workload": "checkpoint 8",
+          "sample": 2,
+          "repetitions": 8192,
+          "allocatedBytes": 1114112,
+          "nanos": 91459
+        },
+        {
+          "workload": "checkpoint 8",
+          "sample": 3,
+          "repetitions": 8192,
+          "allocatedBytes": 1114112,
+          "nanos": 92417
+        },
+        {
+          "workload": "checkpoint 8",
+          "sample": 4,
+          "repetitions": 8192,
+          "allocatedBytes": 1114112,
+          "nanos": 92458
+        },
+        {
+          "workload": "append 128",
+          "sample": 0,
+          "repetitions": 512,
+          "allocatedBytes": 3670016,
+          "nanos": 257542
+        },
+        {
+          "workload": "append 128",
+          "sample": 1,
+          "repetitions": 512,
+          "allocatedBytes": 3670016,
+          "nanos": 273417
+        },
+        {
+          "workload": "append 128",
+          "sample": 2,
+          "repetitions": 512,
+          "allocatedBytes": 3670016,
+          "nanos": 267667
+        },
+        {
+          "workload": "append 128",
+          "sample": 3,
+          "repetitions": 512,
+          "allocatedBytes": 3670016,
+          "nanos": 263584
+        },
+        {
+          "workload": "append 128",
+          "sample": 4,
+          "repetitions": 512,
+          "allocatedBytes": 3670016,
+          "nanos": 261583
+        },
+        {
+          "workload": "checkpoint 128",
+          "sample": 0,
+          "repetitions": 512,
+          "allocatedBytes": 69632,
+          "nanos": 18292
+        },
+        {
+          "workload": "checkpoint 128",
+          "sample": 1,
+          "repetitions": 512,
+          "allocatedBytes": 69632,
+          "nanos": 16458
+        },
+        {
+          "workload": "checkpoint 128",
+          "sample": 2,
+          "repetitions": 512,
+          "allocatedBytes": 69632,
+          "nanos": 8000
+        },
+        {
+          "workload": "checkpoint 128",
+          "sample": 3,
+          "repetitions": 512,
+          "allocatedBytes": 69632,
+          "nanos": 7791
+        },
+        {
+          "workload": "checkpoint 128",
+          "sample": 4,
+          "repetitions": 512,
+          "allocatedBytes": 69632,
+          "nanos": 8000
+        },
+        {
+          "workload": "append 4096",
+          "sample": 0,
+          "repetitions": 128,
+          "allocatedBytes": 29360128,
+          "nanos": 2046958
+        },
+        {
+          "workload": "append 4096",
+          "sample": 1,
+          "repetitions": 128,
+          "allocatedBytes": 29360128,
+          "nanos": 3047167
+        },
+        {
+          "workload": "append 4096",
+          "sample": 2,
+          "repetitions": 128,
+          "allocatedBytes": 29360128,
+          "nanos": 2033416
+        },
+        {
+          "workload": "append 4096",
+          "sample": 3,
+          "repetitions": 128,
+          "allocatedBytes": 29360128,
+          "nanos": 3069625
+        },
+        {
+          "workload": "append 4096",
+          "sample": 4,
+          "repetitions": 128,
+          "allocatedBytes": 29360128,
+          "nanos": 2011625
+        },
+        {
+          "workload": "checkpoint 4096",
+          "sample": 0,
+          "repetitions": 128,
+          "allocatedBytes": 17408,
+          "nanos": 1958
+        },
+        {
+          "workload": "checkpoint 4096",
+          "sample": 1,
+          "repetitions": 128,
+          "allocatedBytes": 17408,
+          "nanos": 2208
+        },
+        {
+          "workload": "checkpoint 4096",
+          "sample": 2,
+          "repetitions": 128,
+          "allocatedBytes": 17408,
+          "nanos": 2667
+        },
+        {
+          "workload": "checkpoint 4096",
+          "sample": 3,
+          "repetitions": 128,
+          "allocatedBytes": 17408,
+          "nanos": 2375
+        },
+        {
+          "workload": "checkpoint 4096",
+          "sample": 4,
+          "repetitions": 128,
+          "allocatedBytes": 17408,
+          "nanos": 2458
+        }
+      ]
+    },
+    {
+      "variant": "baseline",
+      "fork": 2,
+      "samples": [
+        {
+          "layout": "DefaultProperty",
+          "shallowBytes": 40
+        },
+        {
+          "layout": "mutable state",
+          "shallowBytes": 24
+        },
+        {
+          "workload": "construct",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 832334
+        },
+        {
+          "workload": "construct",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 1577375
+        },
+        {
+          "workload": "construct",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 958333
+        },
+        {
+          "workload": "construct",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 962917
+        },
+        {
+          "workload": "construct",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 3275542
+        },
+        {
+          "workload": "bind",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1665667
+        },
+        {
+          "workload": "bind",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1633292
+        },
+        {
+          "workload": "bind",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1638667
+        },
+        {
+          "workload": "bind",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1708708
+        },
+        {
+          "workload": "bind",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1675416
+        },
+        {
+          "workload": "read",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 1719000
+        },
+        {
+          "workload": "read",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 1011666
+        },
+        {
+          "workload": "read",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 1006208
+        },
+        {
+          "workload": "read",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 913542
+        },
+        {
+          "workload": "read",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 854625
+        },
+        {
+          "layout": "finalized state",
+          "shallowBytes": 16
+        },
+        {
+          "workload": "finalized read",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 738958
+        },
+        {
+          "workload": "finalized read",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 726333
+        },
+        {
+          "workload": "finalized read",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 680084
+        },
+        {
+          "workload": "finalized read",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 654875
+        },
+        {
+          "workload": "finalized read",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 675166
+        }
+      ]
+    },
+    {
+      "variant": "compiled-in",
+      "fork": 2,
+      "samples": [
+        {
+          "layout": "DefaultProperty",
+          "shallowBytes": 40
+        },
+        {
+          "layout": "mutable state",
+          "shallowBytes": 24
+        },
+        {
+          "workload": "construct",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 867791
+        },
+        {
+          "workload": "construct",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 1670333
+        },
+        {
+          "workload": "construct",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 1158209
+        },
+        {
+          "workload": "construct",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 1477792
+        },
+        {
+          "workload": "construct",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 6400000,
+          "nanos": 3536209
+        },
+        {
+          "workload": "bind",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1571875
+        },
+        {
+          "workload": "bind",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1625416
+        },
+        {
+          "workload": "bind",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1828916
+        },
+        {
+          "workload": "bind",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1658292
+        },
+        {
+          "workload": "bind",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 1600000,
+          "nanos": 1652625
+        },
+        {
+          "workload": "read",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 1748416
+        },
+        {
+          "workload": "read",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 1007917
+        },
+        {
+          "workload": "read",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 1049333
+        },
+        {
+          "workload": "read",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 946583
+        },
+        {
+          "workload": "read",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 2400000,
+          "nanos": 845417
+        },
+        {
+          "layout": "finalized state",
+          "shallowBytes": 16
+        },
+        {
+          "workload": "finalized read",
+          "sample": 0,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 657416
+        },
+        {
+          "workload": "finalized read",
+          "sample": 1,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 629708
+        },
+        {
+          "workload": "finalized read",
+          "sample": 2,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 628250
+        },
+        {
+          "workload": "finalized read",
+          "sample": 3,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 621000
+        },
+        {
+          "workload": "finalized read",
+          "sample": 4,
+          "repetitions": 100000,
+          "allocatedBytes": 0,
+          "nanos": 624042
+        }
+      ]
+    }
+  ],
+  "runtimeClassHashes": {
+    "DefaultProperty": {
+      "baseline": "f94d02cc9afa1f32317775f9d6d321a0aee0f8cbd6e78280f801e4c7018540bf",
+      "compiledIn": "f94d02cc9afa1f32317775f9d6d321a0aee0f8cbd6e78280f801e4c7018540bf"
+    },
+    "AbstractProperty": {
+      "baseline": "17e2f696b0ff4b384e5c83c7631b327846ba6556ffee8d5a1999cfa902b2d1ef",
+      "compiledIn": "17e2f696b0ff4b384e5c83c7631b327846ba6556ffee8d5a1999cfa902b2d1ef"
+    },
+    "ValueState": {
+      "baseline": "faa9eb87a6a7f6ad583fb090fbefedd3860ee921a9a0ede898372b6d89f87921",
+      "compiledIn": "faa9eb87a6a7f6ad583fb090fbefedd3860ee921a9a0ede898372b6d89f87921"
+    },
+    "ValueState$NonFinalizedValue": {
+      "baseline": "ad814c3628c340ef42503e39bc72335cffebfc38c57636152bc45fd33fc6cf3c",
+      "compiledIn": "ad814c3628c340ef42503e39bc72335cffebfc38c57636152bc45fd33fc6cf3c"
+    },
+    "ValueState$FinalizedValue": {
+      "baseline": "c4f06bc92cb0d9cebe6ea8e587b9300a226f4ad7010b2186e4060cfc104b3a33",
+      "compiledIn": "c4f06bc92cb0d9cebe6ea8e587b9300a226f4ad7010b2186e4060cfc104b3a33"
+    }
+  }
+}
