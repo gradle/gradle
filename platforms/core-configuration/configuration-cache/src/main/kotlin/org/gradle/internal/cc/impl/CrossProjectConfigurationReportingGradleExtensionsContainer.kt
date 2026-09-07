@@ -38,7 +38,8 @@ internal class CrossProjectConfigurationReportingGradleExtensionsContainer(
             problem {
                 text("Project ")
                 reference(referrer.buildTreePath)
-                text(" cannot access Gradle.extensions")
+                text(" cannot access ")
+                reference("Gradle.extensions")
             }
                 .exception { message -> message.capitalized() }
                 .build()
