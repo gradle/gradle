@@ -20,6 +20,8 @@ import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.test.fixtures.file.TestFile
 import spock.lang.Issue
 
+import static org.hamcrest.CoreMatchers.equalTo
+import static org.hamcrest.CoreMatchers.startsWith
 import static org.junit.Assume.assumeFalse
 
 @Issue("https://github.com/gradle/gradle/issues/26663")
@@ -141,6 +143,8 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
         assumeClassLoaderScopesAreFingerprinted(ipEnabled, corruptState)
         enableProblemsApiCheck()
         withIsolatedProjects(ipEnabled)
+        // to keep original stack traces
+        executer.requireDaemon().requireIsolatedDaemons().withBuildJvmOpts("-XX:-OmitStackTraceInFastThrow")
         buildFile """
             tasks.register("hello") {
                 doLast { println "Hello" }
@@ -162,15 +166,16 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
             fqid == UNREADABLE_PROBLEM_ID
             contextualLabel == expectedMessage
         }
+        failure.assertThatDescription(expectedFailure)
         outputDoesNotContain("Hello")
         hasCorruptedState()
 
         where:
-        corruptState               | expectedMessage
-        "corruptWorkState"         | UNREADABLE_ON_LOAD
-        "corruptMetadata"          | UNREADABLE_ON_CHECK
-        "corruptFingerprint"       | UNREADABLE_ON_CHECK
-        "corruptClassLoaderScopes" | UNREADABLE_ON_CHECK
+        corruptState               | expectedMessage     | expectedFailure
+        "corruptWorkState"         | UNREADABLE_ON_LOAD  | startsWith("reached end of stream after reading 7 bytes; 16 bytes expected")
+        "corruptMetadata"          | UNREADABLE_ON_CHECK | equalTo("Index 99 out of bounds for length 0")
+        "corruptFingerprint"       | UNREADABLE_ON_CHECK | equalTo("reached end of stream after reading 7 bytes; 16 bytes expected")
+        "corruptClassLoaderScopes" | UNREADABLE_ON_CHECK | equalTo("Index 114 out of bounds for length 0")
 
         combined:
         ipEnabled << [false, true]
