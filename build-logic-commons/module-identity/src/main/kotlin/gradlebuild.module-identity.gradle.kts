@@ -114,7 +114,7 @@ tasks.withType<Jar>().configureEach {
             // not read it: pom.properties takes precedence over the manifest for them.
             Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
             Attributes.Name.IMPLEMENTATION_VERSION.toString() to gradleModule.identity.reproducibleVersion,
-            Attributes.Name.IMPLEMENTATION_VENDOR.toString() to "Gradle Inc.",
+            Attributes.Name.IMPLEMENTATION_VENDOR.toString() to "Gradle, Inc.",
             // Not a Maven Archiver attribute. It is read first by scanners deriving a groupId
             // from the manifest (Trivy tries Implementation-Vendor-Id, then Bundle-SymbolicName,
             // then Implementation-Vendor), so without it they would take the vendor name above
