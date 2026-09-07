@@ -223,17 +223,6 @@ Gradle reads the system clock frequently while a build runs, to capture executio
 
 Gradle now detects a slow system clock at startup and switches to a faster time source for the rest of the build. No configuration is required, and builds on machines with a normal system clock are unaffected.
 
-## Promoted features
-
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
-See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecycle.html)" for more information.
-
-The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
-
 ## Documentation and training
 
 ### Documentation
