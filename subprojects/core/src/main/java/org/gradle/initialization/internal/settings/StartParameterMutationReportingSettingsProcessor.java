@@ -16,7 +16,6 @@
 
 package org.gradle.initialization.internal.settings;
 
-import kotlin.Unit;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -50,14 +49,10 @@ public class StartParameterMutationReportingSettingsProcessor implements Setting
         SettingsState state = delegate.process(gradle, settingsLocation, buildRootClassLoaderScope, startParameter);
         startParameter.setMutationListener(methodSignature ->
             problems.report(factory ->
-                factory.problem(null, messageBuilder -> {
-                    messageBuilder
-                        .text("The start parameter cannot be mutated after settings have been evaluated when Isolated Projects is enabled. ")
-                        .text("The mutation occurred via ")
-                        .reference(methodSignature)
-                        .text(" call.");
-                    return Unit.INSTANCE;
-                }).exception().build()
+                factory.problem(message -> message
+                    .text("The start parameter cannot be mutated after settings have been evaluated when Isolated Projects is enabled. ")
+                    .text("The mutation occurred via ").reference(methodSignature).text(" call.")
+                ).exception().build()
             )
         );
         return state;

@@ -18,7 +18,6 @@ package org.gradle.api.services.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import kotlin.Unit;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
@@ -462,14 +461,13 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         protected void onMethodCall(String signature) {
             if (buildModelParameters.isIsolatedProjects()) {
                 problems.report(factory ->
-                    factory.problem(null, messageBuilder -> {
-                        messageBuilder.text(
-                            "Cannot call '" + signature + "' on BuildServicesRegistry.getRegistrations() when Isolated Projects is enabled. " +
-                                "Only 'findByName(String)' is permitted. " +
-                                "Alternatively, use BuildServicesRegistry.registerIfAbsent(String, Class) if possible."
-                        );
-                        return Unit.INSTANCE;
-                    }).exception().build()
+                    factory.problem(message -> message
+                        .text("Cannot call ").reference(signature)
+                        .text(" on ").reference("BuildServicesRegistry.getRegistrations()")
+                        .text(" when Isolated Projects is enabled. Only ").reference("findByName(String)")
+                        .text(" is permitted. Alternatively, use ").reference("BuildServicesRegistry.registerIfAbsent(String, Class)")
+                        .text(" if possible.")
+                    ).exception().build()
                 );
             }
             super.onMethodCall(signature);
