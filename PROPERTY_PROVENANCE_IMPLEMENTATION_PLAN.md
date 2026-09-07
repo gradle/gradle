@@ -57,7 +57,7 @@ commit `28a6c007668`; the last runtime increment is `7260de1a7b5`.
 | Performance harnesses, raw samples and workload fixtures | Port independently from runtime changes; keep old measurements tied to their revisions |
 | Bounded provider traversal and finalized diagnostic snapshots | Optional diagnostic adapters only, never the complete contribution trace |
 | Internal replace/map classifier | A reference case for one mutation versus several transforms; not general self-reference handling or authorization |
-| Prototype line interception | Revisit in diagnostics D2/D6, with explicit language and cache-key tests; not part of shared milestones or a collaboration prerequisite |
+| Prototype line interception | Revisit in diagnostics D4/D6, with explicit language and cache-key tests; not part of shared milestones or a collaboration prerequisite |
 
 Do not cherry-pick the entire prototype as the new baseline. Port coherent tests and
 implementation ideas in reviewable increments. Do not erase the original evidence.
@@ -115,14 +115,14 @@ the common foundation; D and C milestones belong to independently deliverable pa
 | S2 | Attribution and opt-in runtime storage | S1 |
 | S3 | Effective source/update metadata and lifecycle integration | S2 |
 | D1 | Useful origin-only scalar failure and explanation reports | S3 |
-| D2 | Java/Kotlin and Kotlin DSL source line numbers | D1 |
-| D3 | Broader ordinary diagnostic operations and failure coverage | D1 |
-| D4 | Diagnostic provenance through isolation/configuration cache | D1 |
-| D5 | Diagnostics production validation and rollout | D3 + D4; D2 for advertised Java/Kotlin line coverage |
-| D6 | Groovy DSL and Groovy build-logic line numbers, last diagnostic extension | D2 + D5 |
+| D2 | Diagnostic provenance through isolation/configuration cache | D1 |
+| D3 | Broader ordinary diagnostic operations and failure coverage | D2 |
+| D4 | Java/Kotlin and Kotlin DSL source line numbers | D2 |
+| D5 | Diagnostics production validation and rollout | D2 + D3; D4 for advertised Java/Kotlin line coverage |
+| D6 | Groovy DSL and Groovy build-logic line numbers, last diagnostic extension | D4 + D5 |
 | C1 | Real scalar collaborative slice with authority and ordering | S3 + **D1** |
 | C2 | Collaborative operator and integration coverage | C1 |
-| C3 | Collaborative correctness through isolation/configuration cache | C1 + **D4** |
+| C3 | Collaborative correctness through isolation/configuration cache | C1 + **D2** |
 | C4 | Collaboration production validation and rollout | C2 + C3 |
 
 **The choice point is after S3.** S1 tests both mode projections, but completing S3
@@ -133,9 +133,9 @@ The cross-path dependencies are deliberate:
 
 - Before C1, implement D1's origin-only renderer and failure integration. Reuse its
   frames and effective view for collaboration errors, adding ordering-specific detail.
-- Before C3, implement D4's descriptor/occurrence transport. C3 extends it with the
+- Before C3, implement D2's descriptor/occurrence transport. C3 extends it with the
   complete correctness trace, constraints and validation handling.
-- C1–C4 do **not** depend on D2, D3, D5 or D6. D4 depends on D1, not the line milestones.
+- C1–C4 do **not** depend on D3, D4, D5 or D6. D2 depends on D1, not the line milestones.
   Collaboration can therefore ship without implementing general ordinary diagnostic
   coverage, line numbers or a diagnostics product rollout.
 - D1–D6 have **no C dependencies**. Diagnostics do not require collaborative activation,
@@ -146,10 +146,12 @@ The cross-path dependencies are deliberate:
 
 Example execution choices after S3:
 
-- **Diagnostics:** D1, D2, D3, D4, D5, D6. D3/D4 may be scheduled before D2;
-  origin-only diagnostics are already useful at D1. Groovy line capture is last,
-  after the initial diagnostics rollout; Groovy remains origin-only until D6.
-- **Collaboration:** D1, C1, C2, D4, C3, C4. This intentionally includes only the two
+- **Diagnostics:** D1, D2, D3, D4, D5, D6. Establish origin-only reporting and
+  persistence first, then broaden coverage and add Java/Kotlin locations. Each
+  extension includes transport tests; origin-only diagnostics are already useful at D1.
+  Groovy line capture is last, after the initial diagnostics rollout; Groovy remains
+  origin-only until D6.
+- **Collaboration:** D1, C1, C2, D2, C3, C4. This intentionally includes only the two
   diagnostic prerequisites. No line-number milestone is hidden in that sequence.
 - **Both:** complete each shared/prerequisite milestone once, then schedule either
   path's remaining work according to demand.
@@ -268,9 +270,54 @@ ordinary baseline/disabled/origins smoke build, profiling only a repeatable sign
 **Usable checkpoint:** origin-only scalar diagnostics, explicitly without cache or line
 coverage. This is the diagnostic prerequisite for C1, not a commitment to D2–D6.
 
-### D2 — Capture Java/Kotlin and Kotlin DSL line numbers
+### D2 — Persist diagnostic descriptors and effective provenance
 
-**Prerequisite:** D1. **Not required by collaboration.**
+**Prerequisite:** D1 only. D3/D4/D6 are **not** required.
+
+**Work.** Implement descriptor/occurrence and effective-view codecs through managed
+object recreation, isolation and configuration-cache store/hit. Start with the D1
+origin-only scope. Preserve copying/finalization identities; deserialization is not a
+new mutation. Establish reusable transport seams that C3 can extend.
+
+**Functional exit.** Diagnostic SC-10/13/14 pass on store and hit, including task
+execution failures and relocation within the supported identity scheme. No provider,
+host, plugin instance or class loader enters descriptor payloads. Diagnostic mode
+changes have explicit compatibility/invalidation behavior. Encode absent locations
+honestly in this origin-only milestone. D3's broader coverage and D4/D6's optional
+locations must extend transport tests alongside their implementation.
+
+**Performance exit.** Measure entry growth, encode/decode time/allocation, cache-hit
+live heap and retention. Test origin-only transport independently of any location
+payload. No cache-hit performance claim before the provenance actually survives.
+
+This is the diagnostic prerequisite for C3. It does not store ordering constraints,
+validate contributions or serialize authority tokens.
+
+### D3 — Expand ordinary diagnostic coverage
+
+**Prerequisite:** D2, including D1's reporting; no dependency on D4/D6 or any C milestone.
+
+**Work.** Extend managed extension/nested/task properties, Java/Kotlin/Groovy and
+precompiled/applied plugin fixtures, required task-input validation, unsafe reads and
+transform exceptions. Add collection contributions and supported provider-boundary
+explanations in explicit sub-increments. Define cross-build identity before claiming
+included-build coverage. This is diagnostic attribution, not permission to change
+ordinary self-reference semantics.
+
+**Functional exit.** Each advertised operation and failure path has positive/negative
+tests. Upstream/branching dependencies are not target contributions; unknown boundaries
+and causal limitations are explicit. Locations are asserted only when that language's
+D4/D6 support exists. Settings-owned properties and `ConfigurableFileCollection` remain
+separate scope decisions. Extend D2's store/hit and isolation tests for each newly
+supported case so broader coverage preserves provenance through transport.
+
+**Performance exit.** Check branching/fan-out, many origins, replacement retention and
+failure formatting. New failure hooks must not introduce eager provider evaluation
+or successful-operation formatting/capture.
+
+### D4 — Capture Java/Kotlin and Kotlin DSL line numbers
+
+**Prerequisite:** D2, including D1's reporting. **Not required by collaboration.**
 
 **Work.** Implement an optional location contract and eligible call-site instrumentation
 for Java/Kotlin build logic and Kotlin DSL. Cover successful source/convention mutations
@@ -297,56 +344,12 @@ classpath instrumentation/preparation separately from warm mutation and failure 
 No mandatory per-mutation stack walking. Check per-located-occurrence allocation and
 ensure any instrumentation helper cost when disabled is measured and reviewed.
 
-If D4 is already complete, extending its optional location payload and cache flag
-compatibility tests is part of D2; location capture must not silently disappear on hits.
-
-### D3 — Expand ordinary diagnostic coverage
-
-**Prerequisite:** D1; no dependency on D2/D6 or any C milestone.
-
-**Work.** Extend managed extension/nested/task properties, Java/Kotlin/Groovy and
-precompiled/applied plugin fixtures, required task-input validation, unsafe reads and
-transform exceptions. Add collection contributions and supported provider-boundary
-explanations in explicit sub-increments. Define cross-build identity before claiming
-included-build coverage. This is diagnostic attribution, not permission to change
-ordinary self-reference semantics.
-
-**Functional exit.** Each advertised operation and failure path has positive/negative
-tests. Upstream/branching dependencies are not target contributions; unknown boundaries
-and causal limitations are explicit. Locations are asserted only when that language's
-D2/D6 support exists. Settings-owned properties and `ConfigurableFileCollection` remain
-separate scope decisions.
-
-**Performance exit.** Check branching/fan-out, many origins, replacement retention and
-failure formatting. New failure hooks must not introduce eager provider evaluation
-or successful-operation formatting/capture.
-
-### D4 — Persist diagnostic descriptors and effective provenance
-
-**Prerequisite:** D1 only. D2/D3/D6 are **not** required.
-
-**Work.** Implement descriptor/occurrence and effective-view codecs through managed
-object recreation, isolation and configuration-cache store/hit. Start with the D1
-origin-only scope. Preserve copying/finalization identities; deserialization is not a
-new mutation. Establish reusable transport seams that C3 can extend.
-
-**Functional exit.** Diagnostic SC-10/13/14 pass on store and hit, including task
-execution failures and relocation within the supported identity scheme. No provider,
-host, plugin instance or class loader enters descriptor payloads. Diagnostic mode
-changes have explicit compatibility/invalidation behavior. If D2 exists, preserve
-its optional locations too; otherwise encode absence honestly. Later D3 coverage and
-D6 Groovy locations must extend transport tests alongside their implementation.
-
-**Performance exit.** Measure entry growth, encode/decode time/allocation, cache-hit
-live heap and retention. Test origin-only transport independently of any location
-payload. No cache-hit performance claim before the provenance actually survives.
-
-This is the diagnostic prerequisite for C3. It does not store ordering constraints,
-validate contributions or serialize authority tokens.
+Extend D2's transport with optional location payloads and cache flag compatibility
+tests as part of D4; location capture must not silently disappear on cache hits.
 
 ### D5 — Validate and roll out diagnostics
 
-**Prerequisites:** D3 + D4 for the declared release scope; D2 for advertised Java/Kotlin
+**Prerequisites:** D2 + D3 for the declared release scope; D4 for advertised Java/Kotlin
 line coverage. An explicitly origin-only release can omit line support. D6 is not a
 prerequisite: Groovy line capture follows this initial rollout.
 
@@ -364,14 +367,14 @@ default enablement is a separate decision.
 
 ### D6 — Capture Groovy DSL and Groovy build-logic line numbers
 
-**Prerequisites:** D2's location representation and lifecycle rules + D5's initial
+**Prerequisites:** D4's location representation and lifecycle rules + D5's initial
 diagnostics rollout. This is the **last diagnostics milestone**, not a prerequisite
 for the initial release or collaboration.
 
 **Work.** Add the Groovy dynamic-dispatch/interception path for property assignment,
 explicit `set`/`convention` and the other declared mutation/query forms. Cover build
 and applied scripts, Groovy plugins, delegated closures, task actions and indirect
-queries. Reuse D2's location format and shared renderer; JVM interception alone is
+queries. Reuse D4's location format and shared renderer; JVM interception alone is
 not evidence that Groovy assignment is covered.
 
 **Functional exit.** Dedicated Groovy fixtures assert the actual user operation line,
@@ -383,7 +386,7 @@ caller. Do not claim every Groovy call shape from one successful script test.
 
 **Performance exit.** Measure dynamic-dispatch overhead with provenance disabled,
 origins-only and locations enabled; check allocation/capture counts under many mutations.
-Keep successful Groovy execution free of provenance stack walks. Extend D4's location
+Keep successful Groovy execution free of provenance stack walks. Extend D2's location
 round-trip and mode-compatibility tests for Groovy; transport is already implemented.
 Repeat the relevant D5 release/regression checks for this extension and update the
 published language/operation coverage matrix before shipping Groovy line support.
@@ -438,7 +441,7 @@ for correctness, revise the design before extending the collaboration path.
 
 ### C2 — Expand collaborative operations and integration
 
-**Prerequisite:** C1. No dependency on D2, D3, D5 or D6.
+**Prerequisite:** C1. No dependency on D3, D4, D5 or D6.
 
 **Work.** Add flatMap/zip, then required append/remove and collection contributions in
 explicit sub-increments. Extend Declarative/callback and source/target scope coverage
@@ -456,10 +459,10 @@ to append metadata; measure unavoidable validation/substitution separately.
 
 ### C3 — Persist collaborative correctness state
 
-**Prerequisites:** C1 + D4. Complete D4 **first**, even if no other diagnostics work
+**Prerequisites:** C1 + D2. Complete D2 **first**, even if no other diagnostics work
 beyond D1 is selected.
 
-**Work.** Extend D4's descriptor/occurrence transport with the complete collaborative
+**Work.** Extend D2's descriptor/occurrence transport with the complete collaborative
 trace, effective source/update relationships, constraints and order identity. Restore
 or safely recompute validation. Do not serialize authority capabilities or attribute
 rehydration as a contribution; execution boundaries establish any required authority.
@@ -477,7 +480,7 @@ optional diagnostic/location payloads separately if present.
 
 ### C4 — Validate and roll out collaboration
 
-**Prerequisites:** C2 + C3. No dependency on D2, D3, D5 or D6.
+**Prerequisites:** C2 + C3. No dependency on D3, D4, D5 or D6.
 
 **Work and functional exit.** Run representative Declarative plugin/model builds and
 cache store/hit scenarios, including supported parallel execution without inventing
@@ -534,7 +537,7 @@ normal hot-path benchmarks; measure report formatting separately.
   focused allocation/scaling probes for the changed path. Do not run a whole production
   campaign after every small edit.
 - D1/C1: representative smoke builds and targeted profiles for repeatable signals.
-  D2/D6 add line-capture and instrumentation checks; D4/C3 add the respective cache
+  D4/D6 add line-capture and instrumentation checks; D2/C3 add the respective cache
   checks. D5/C4 perform independent release comparisons for the selected path; D6
   repeats relevant diagnostic release checks for the final Groovy extension.
 - After shared completion, run only the selected path's checks and its explicit
@@ -581,9 +584,9 @@ Review the shared contract and this dependency plan, then authorize a separate c
 Gradle worktree/branch and its baseline revision. Begin with S0/S1 and proceed through
 S2/S3. At shared completion, explicitly choose diagnostics, collaboration, or both.
 
-For diagnostics, proceed to D1 and the selected D milestones: D2 adds Java/Kotlin
+For diagnostics, proceed to D1 and the selected D milestones: D4 adds Java/Kotlin
 lines; D6 adds Groovy lines last, after the initial D5 rollout. For collaboration,
-complete D1 before C1 and D4 before C3; do not automatically schedule all diagnostic
+complete D1 before C1 and D2 before C3; do not automatically schedule all diagnostic
 work. Reuse each completed prerequisite once.
 
 Keep one reviewable change per milestone sub-increment, with tests and evidence
