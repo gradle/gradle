@@ -15,9 +15,11 @@
  */
 
 /**
- * Descriptor-only property provenance. Property implementations own selection and accepted mutation policy.
+ * Provider-independent provenance descriptors, read-only views and ordinary accepted-fact transitions.
+ * Provider integration lives in org.gradle.api.internal.provider; it owns evaluation, acceptance checks
+ * and supplying the selected plan. This package contains no providers, hosts, callbacks or value evaluators.
  */
 @NullMarked
-package org.gradle.api.internal.provider.provenance;
+package org.gradle.api.internal.provenance;
 
 import org.jspecify.annotations.NullMarked;

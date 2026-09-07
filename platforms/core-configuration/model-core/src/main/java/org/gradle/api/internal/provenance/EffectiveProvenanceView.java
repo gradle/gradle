@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider.provenance;
+package org.gradle.api.internal.provenance;
 
 import org.jspecify.annotations.Nullable;
 
@@ -142,7 +142,7 @@ public final class EffectiveProvenanceView {
         this.partialReasons = Collections.unmodifiableList(reasons);
     }
 
-    static EffectiveProvenanceView captured(TargetContext target, Source source, UpdateSequence updates, @Nullable MutationOccurrence convention) {
+    public static EffectiveProvenanceView captured(TargetContext target, Source source, UpdateSequence updates, @Nullable MutationOccurrence convention) {
         List<MutationOccurrence> shadowed = convention == null || convention.equals(source.getOccurrence())
             ? Collections.emptyList() : Collections.singletonList(convention);
         MutationOccurrence selected = source.getOccurrence();

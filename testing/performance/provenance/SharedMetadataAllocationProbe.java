@@ -14,15 +14,15 @@
  * limitations under the License.
  */
 
-import org.gradle.api.internal.provider.provenance.Attribution;
-import org.gradle.api.internal.provider.provenance.ContributorKey;
-import org.gradle.api.internal.provider.provenance.DiagnosticOrigin;
-import org.gradle.api.internal.provider.provenance.EffectiveProvenanceView;
-import org.gradle.api.internal.provider.provenance.MutationOccurrence;
-import org.gradle.api.internal.provider.provenance.ScopeIdentity;
-import org.gradle.api.internal.provider.provenance.SemanticOperation;
-import org.gradle.api.internal.provider.provenance.TargetContext;
-import org.gradle.api.internal.provider.provenance.UpdateSequence;
+import org.gradle.api.internal.provenance.Attribution;
+import org.gradle.api.internal.provenance.ContributorKey;
+import org.gradle.api.internal.provenance.DiagnosticOrigin;
+import org.gradle.api.internal.provenance.EffectiveProvenanceView;
+import org.gradle.api.internal.provenance.MutationOccurrence;
+import org.gradle.api.internal.provenance.ScopeIdentity;
+import org.gradle.api.internal.provenance.SemanticOperation;
+import org.gradle.api.internal.provenance.TargetContext;
+import org.gradle.api.internal.provenance.UpdateSequence;
 
 import java.util.Collections;
 

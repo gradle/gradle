@@ -17,10 +17,10 @@
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.DefaultPropertyFactory;
 import org.gradle.api.internal.provider.PropertyHost;
-import org.gradle.api.internal.provider.provenance.AttributedProperty;
-import org.gradle.api.internal.provider.provenance.Attribution;
-import org.gradle.api.internal.provider.provenance.PropertyProvenanceHost;
-import org.gradle.api.internal.provider.provenance.ScopeIdentity;
+import org.gradle.api.internal.provider.AttributedProperty;
+import org.gradle.api.internal.provenance.Attribution;
+import org.gradle.api.internal.provider.PropertyProvenanceHost;
+import org.gradle.api.internal.provenance.ScopeIdentity;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.configuration.PropertyProvenanceRegistry;
 import org.gradle.api.internal.project.ProjectIdentity;

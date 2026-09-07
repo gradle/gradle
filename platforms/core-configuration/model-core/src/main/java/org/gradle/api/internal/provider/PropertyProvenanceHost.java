@@ -14,9 +14,10 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider.provenance;
+package org.gradle.api.internal.provider;
 
-import org.gradle.api.internal.provider.PropertyHost;
+import org.gradle.api.internal.provenance.Attribution;
+import org.gradle.api.internal.provenance.ScopeIdentity;
 
 /** Enabled project-only attribution services. Ambient attribution is diagnostic information, never authority. */
 public interface PropertyProvenanceHost extends PropertyHost {

@@ -16,12 +16,10 @@
 
 package org.gradle.api.internal.provider
 
-import org.gradle.api.internal.provider.provenance.AttributedProperty
-import org.gradle.api.internal.provider.provenance.Attribution
-import org.gradle.api.internal.provider.provenance.ContributorKey
-import org.gradle.api.internal.provider.provenance.DiagnosticOrigin
-import org.gradle.api.internal.provider.provenance.PropertyProvenanceHost
-import org.gradle.api.internal.provider.provenance.ScopeIdentity
+import org.gradle.api.internal.provenance.Attribution
+import org.gradle.api.internal.provenance.ContributorKey
+import org.gradle.api.internal.provenance.DiagnosticOrigin
+import org.gradle.api.internal.provenance.ScopeIdentity
 import org.gradle.internal.state.ModelObject
 
 /** Runs the ordinary scalar contract, including producer and lifecycle checks, with provenance enabled. */

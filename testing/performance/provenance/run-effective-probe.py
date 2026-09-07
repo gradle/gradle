@@ -20,7 +20,7 @@ repo = Path(__file__).resolve().parents[3]
 source = Path(__file__).resolve().parent
 main = repo / 'platforms/core-configuration/model-core/build/classes/java/main'
 core = repo / 'subprojects/core/build/classes/java/main'
-if not (main / 'org/gradle/api/internal/provider/provenance/UpdateSequence.class').exists():
+if not (main / 'org/gradle/api/internal/provenance/UpdateSequence.class').exists():
     parser.error('Run ./gradlew :model-core:compileJava first.')
 
 
@@ -45,7 +45,9 @@ results = {
     'registrySourceSha256': hashlib.sha256((repo / 'subprojects/core/src/main/java/org/gradle/configuration/PropertyProvenanceRegistry.java').read_bytes()).hexdigest(),
     'sourceHashes': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted(source.glob('*.java'))},
     'classifierSha256': hashlib.sha256((repo / 'platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/PropertyUpdateClassifier.java').read_bytes()).hexdigest(),
-    'metadataSourceHashes': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted((repo / 'platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/provenance').glob('*.java'))},
+    'metadataSourceHashes': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted((repo / 'platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provenance').glob('*.java'))},
+    'integrationSourceHashes': {name: hashlib.sha256((repo / 'platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider' / (name + '.java')).read_bytes()).hexdigest()
+                                for name in ['AttributedProperty', 'ProvenanceSnapshot', 'PropertyProvenanceHost', 'PropertyUpdateClassifier']},
     'runs': [],
 }
 with tempfile.TemporaryDirectory(prefix='shared-provenance-probe-') as temporary:
@@ -56,6 +58,15 @@ with tempfile.TemporaryDirectory(prefix='shared-provenance-probe-') as temporary
                 archive.extract(member, work / 'distribution')
     # API compatibility stubs deliberately throw Error; they must not shadow runtime implementations.
     jars = sorted(p for p in (work / 'distribution').rglob('*.jar') if p.parent.name != 'api')
+    # Compile the whole provenance package without any Gradle implementation or API classes.
+    # This fails if the model/state acquires a Provider, Property, host or Gradle-service dependency.
+    standalone = work / 'standalone-provenance'
+    standalone.mkdir()
+    annotations = next(p for p in jars if p.name.startswith('jspecify-'))
+    metadata_sources = sorted((repo / 'platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provenance').glob('*.java'))
+    run(['javac', '-cp', annotations, '-d', standalone, *metadata_sources])
+    results['standaloneCompilation'] = {'passed': True, 'sourceCount': len(metadata_sources),
+                                        'classpath': [annotations.name], 'annotationJarSha256': hashlib.sha256(annotations.read_bytes()).hexdigest()}
     baseline_classpath = os.pathsep.join(str(p) for p in jars)
     model_core_jar = next(p for p in jars if p.name.startswith('gradle-model-core-'))
     results['runtimeClassHashes'] = {}

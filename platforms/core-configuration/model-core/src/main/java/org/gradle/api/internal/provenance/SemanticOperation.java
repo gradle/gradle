@@ -14,7 +14,7 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider.provenance;
+package org.gradle.api.internal.provenance;
 
 import java.util.Arrays;
 import java.util.Collections;

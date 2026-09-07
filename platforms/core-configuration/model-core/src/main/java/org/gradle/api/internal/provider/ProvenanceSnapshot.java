@@ -14,10 +14,13 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider.provenance;
+package org.gradle.api.internal.provider;
 
-import org.gradle.api.internal.provider.AbstractMinimalProvider;
-import org.gradle.api.internal.provider.ProviderInternal;
+import org.gradle.api.internal.provenance.EffectiveProvenanceView;
+import org.gradle.api.internal.provenance.MutationOccurrence;
+import org.gradle.api.internal.provenance.ScopeIdentity;
+import org.gradle.api.internal.provenance.TargetContext;
+import org.gradle.api.internal.provenance.UpdateSequence;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.Nullable;
 

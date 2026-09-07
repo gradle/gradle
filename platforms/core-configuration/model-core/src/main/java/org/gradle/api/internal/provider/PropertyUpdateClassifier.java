@@ -17,16 +17,36 @@
 package org.gradle.api.internal.provider;
 
 import org.gradle.api.provider.Provider;
+import org.gradle.api.internal.provenance.SemanticOperation;
+
+import java.util.Arrays;
 
 /** Structural recognition only: failure to recognize an update does not prove independence. */
 public final class PropertyUpdateClassifier {
     private static final int MAX_MAPS = 128;
+    private static final SemanticOperation MAP_UPDATE = SemanticOperation.update(SemanticOperation.Shape.MAP);
+    private static final SemanticOperation UNCLASSIFIED_REPLACE = SemanticOperation.unclassifiedBinding(
+        "The returned replace provider is not a recognized map of the captured previous plan."
+    );
 
     private PropertyUpdateClassifier() {
     }
 
+    public static SemanticOperation classifyReplace(Provider<?> candidate, Provider<?> previous) {
+        int count = mapCount(candidate, previous);
+        if (count == 0) {
+            return UNCLASSIFIED_REPLACE;
+        }
+        if (count == 1) {
+            return MAP_UPDATE;
+        }
+        SemanticOperation.Shape[] shapes = new SemanticOperation.Shape[count];
+        Arrays.fill(shapes, SemanticOperation.Shape.MAP);
+        return SemanticOperation.update(shapes);
+    }
+
     /** Returns zero for an unrecognized shape, including chains beyond the inspection budget. */
-    public static int mapCount(Provider<?> candidate, Provider<?> previous) {
+    private static int mapCount(Provider<?> candidate, Provider<?> previous) {
         Provider<?> cursor = candidate;
         for (int i = 0; i < MAX_MAPS && cursor.getClass() == TransformBackedProvider.class; i++) {
             cursor = ((TransformBackedProvider<?, ?>) cursor).provider;

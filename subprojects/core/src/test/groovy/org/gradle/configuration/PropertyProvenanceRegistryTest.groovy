@@ -16,9 +16,9 @@
 
 package org.gradle.configuration
 
-import org.gradle.api.internal.provider.provenance.ContributorKey
-import org.gradle.api.internal.provider.provenance.DiagnosticOrigin
-import org.gradle.api.internal.provider.provenance.PropertyProvenanceHost
+import org.gradle.api.internal.provenance.ContributorKey
+import org.gradle.api.internal.provenance.DiagnosticOrigin
+import org.gradle.api.internal.provider.PropertyProvenanceHost
 import org.gradle.api.internal.provider.DefaultPropertyFactory
 import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.internal.Describables

@@ -14,18 +14,18 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider.provenance
+package org.gradle.api.internal.provenance
 
 import org.gradle.api.internal.provider.DefaultProperty
 import org.gradle.api.internal.provider.DefaultProvider
 import org.gradle.api.internal.provider.PropertyHost
 import spock.lang.Specification
 
-import static org.gradle.api.internal.provider.provenance.EffectiveProvenanceView.RootKind.*
-import static org.gradle.api.internal.provider.provenance.EffectiveProvenanceView.Source
-import static org.gradle.api.internal.provider.provenance.EffectiveProvenanceView.SourceKnowledge.*
-import static org.gradle.api.internal.provider.provenance.EffectiveProvenanceView.SourceSelection.*
-import static org.gradle.api.internal.provider.provenance.SemanticOperation.*
+import static org.gradle.api.internal.provenance.EffectiveProvenanceView.RootKind.*
+import static org.gradle.api.internal.provenance.EffectiveProvenanceView.Source
+import static org.gradle.api.internal.provenance.EffectiveProvenanceView.SourceKnowledge.*
+import static org.gradle.api.internal.provenance.EffectiveProvenanceView.SourceSelection.*
+import static org.gradle.api.internal.provenance.SemanticOperation.*
 
 class SharedProvenanceContractTest extends Specification {
     private static final ScopeIdentity PROJECT = new ScopeIdentity('build-1', ':app')
@@ -494,7 +494,7 @@ class SharedProvenanceContractTest extends Specification {
         if (value instanceof Collection) {
             return value.every { descriptorGraphOnly(it) }
         }
-        assert value.class.package.name == 'org.gradle.api.internal.provider.provenance'
+        assert value.class.package.name == 'org.gradle.api.internal.provenance'
         value.class.declaredFields.findAll { !java.lang.reflect.Modifier.isStatic(it.modifiers) }.every {
             it.accessible = true
             descriptorGraphOnly(it.get(value))

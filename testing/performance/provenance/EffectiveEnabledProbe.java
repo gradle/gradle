@@ -16,15 +16,16 @@
 
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.DefaultProvider;
-import org.gradle.api.internal.provider.provenance.AttributedProperty;
-import org.gradle.api.internal.provider.provenance.Attribution;
-import org.gradle.api.internal.provider.provenance.ContributorKey;
-import org.gradle.api.internal.provider.provenance.DiagnosticOrigin;
-import org.gradle.api.internal.provider.provenance.PropertyProvenanceHost;
-import org.gradle.api.internal.provider.provenance.ScopeIdentity;
+import org.gradle.api.internal.provider.AttributedProperty;
+import org.gradle.api.internal.provenance.Attribution;
+import org.gradle.api.internal.provenance.ContributorKey;
+import org.gradle.api.internal.provenance.DiagnosticOrigin;
+import org.gradle.api.internal.provider.PropertyProvenanceHost;
+import org.gradle.api.internal.provenance.ScopeIdentity;
 import org.gradle.internal.state.ModelObject;
 
 import java.lang.ref.WeakReference;
+import java.lang.reflect.Field;
 import java.util.List;
 
 /** S3 metadata allocation and controlled retained-reference probes, with shared prebuilt attribution. */
@@ -50,6 +51,13 @@ public class EffectiveEnabledProbe extends EffectiveBaselineProbe {
     public static void main(String[] args) {
         EffectiveEnabledProbe probe = new EffectiveEnabledProbe();
         probe.run();
+        try {
+            Field state = AttributedProperty.class.getDeclaredField("provenance");
+            state.setAccessible(true);
+            ProvenanceAllocationProbe.layout("ordinary provenance state", state.get(probe.property()));
+        } catch (ReflectiveOperationException failure) {
+            throw new AssertionError(failure);
+        }
         for (String scenario : new String[]{"metadata", "copy", "finalization"}) {
             List<WeakReference<?>> references = retainedReferences(scenario);
             for (int i = 0; i < 5; i++) {

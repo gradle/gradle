@@ -17,9 +17,9 @@
 package org.gradle.internal.service.scopes;
 
 import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.provider.provenance.Attribution;
-import org.gradle.api.internal.provider.provenance.PropertyProvenanceHost;
-import org.gradle.api.internal.provider.provenance.ScopeIdentity;
+import org.gradle.api.internal.provenance.Attribution;
+import org.gradle.api.internal.provider.PropertyProvenanceHost;
+import org.gradle.api.internal.provenance.ScopeIdentity;
 import org.gradle.configuration.PropertyProvenanceRegistry;
 
 /** Project-owned opt-in services. Settings-origin callbacks retain their configuring source scope. */

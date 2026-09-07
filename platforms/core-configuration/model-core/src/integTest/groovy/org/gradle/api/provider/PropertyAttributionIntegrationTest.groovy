@@ -167,7 +167,7 @@ class PropertyAttributionIntegrationTest extends AbstractIntegrationSpec {
     def 'applied script named settings gradle is an applied contributor and Kotlin top level is build author'() {
         given:
         file('build.gradle.kts') << '''
-            import org.gradle.api.internal.provider.provenance.AttributedProperty
+            import org.gradle.api.internal.provider.AttributedProperty
             val value = objects.property(String::class.java) as AttributedProperty<String>
             extensions.add("tracked", value)
             value.set("kotlin")
@@ -324,8 +324,8 @@ class PropertyAttributionIntegrationTest extends AbstractIntegrationSpec {
         file("$directory/src/main/java/example/Inspect.java") << '''
             package example;
             import org.gradle.api.provider.Property;
-            import org.gradle.api.internal.provider.provenance.AttributedProperty;
-            import org.gradle.api.internal.provider.provenance.Attribution;
+            import org.gradle.api.internal.provider.AttributedProperty;
+            import org.gradle.api.internal.provenance.Attribution;
             public class Inspect {
                 public static void print(String label, Property<String> property) {
                     AttributedProperty<String> tracked = (AttributedProperty<String>) property;

@@ -17,10 +17,10 @@
 package org.gradle.configuration;
 
 import org.gradle.api.Describable;
-import org.gradle.api.internal.provider.provenance.Attribution;
-import org.gradle.api.internal.provider.provenance.ContributorKey;
-import org.gradle.api.internal.provider.provenance.DiagnosticOrigin;
-import org.gradle.api.internal.provider.provenance.ScopeIdentity;
+import org.gradle.api.internal.provenance.Attribution;
+import org.gradle.api.internal.provenance.ContributorKey;
+import org.gradle.api.internal.provenance.DiagnosticOrigin;
+import org.gradle.api.internal.provenance.ScopeIdentity;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationId;
 import org.gradle.internal.code.UserCodeSource;

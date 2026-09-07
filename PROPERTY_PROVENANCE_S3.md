@@ -22,6 +22,9 @@ No diagnostics renderer, collaboration pipeline, transport, line capture or new
 property scope is included. This checkpoint records the implementation prepared for
 shared-completion review.
 
+The subsequent package separation, performance delta and updated roadmap numbering
+are recorded in [the architecture and review guide](PROPERTY_PROVENANCE_ARCHITECTURE.md).
+
 ## Baseline and semantics
 
 The unmodified engine remains `d41e66c4e92e3a79dfeeb8e5f2c6912f61d5d036`.

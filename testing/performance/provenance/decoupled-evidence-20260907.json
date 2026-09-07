@@ -1,0 +1,81 @@
+{
+  "parentCommit": "af6f959a4f5202fefd6e6161a113e891bd907319",
+  "roadmapRevision": "1e13c84d1024dc6c69c538f8b62db3e61993fb6d",
+  "note": "Package/state extraction working-tree evidence before review/commit. Historical S3 measurements remain unchanged.",
+  "sourceHashes": {
+    "platforms/core-configuration/model-core/src/integTest/groovy/org/gradle/api/provider/PropertyAttributionIntegrationTest.groovy": "3ff78fbc60f5405c40e631ae84fad4a4568aeb578ed5706ebd40f1bbad995a31",
+    "platforms/core-configuration/model-core/src/jmh/java/org/gradle/api/internal/provider/PropertyAttributionBenchmark.java": "ce31b97c38a3b9432ad7f24ebb11a0598f3e89460c229e7d8820a302ef5ab3a6",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provenance/Attribution.java": "20ac33a64d3ce2dec5481ba270787e95fb713b89d5175f1045b1fb3581610ac9",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provenance/ContributorKey.java": "cf2f8b29575d281a92cb5385612da549c9fc422fde2a16ae992375c4975db6e2",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provenance/DiagnosticOrigin.java": "a844a5b2c5e4d1b5f81ccdb112fcaea6bb2dff534f12291b04fd4a3831212435",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provenance/EffectiveProvenanceView.java": "1ab2f2a91996c3308e52ddd358f080d26b935e4be467419ad3fd7150ae267088",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provenance/MutationOccurrence.java": "c8abf5e8837a5a62b6fcc1b589361e919a14b16e725b8769b504733b91fc835e",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provenance/OrdinaryProvenanceState.java": "8dac5dc020e063ee7a63da576f0a280be2ddbd024c5579c030097bec20e7a9f1",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provenance/ScopeIdentity.java": "02069dc3562c605c3863f1ed735da2dd718a5b72a6eb118b5dfc42642baf5d16",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provenance/SemanticOperation.java": "73e442b7db85642f435eb29b1acedd587a9cd4cfb0a1c149bc065316d3dcce23",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provenance/TargetContext.java": "960c438e99065386c39a24312bc2c2f3442b87d8d66a93bf0e9a952a84d3bdfd",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provenance/UpdateSequence.java": "b9f616b6ed76f134efd4a57b4a0682322f3ad82c67b0a0d744c029d21a9357aa",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provenance/package-info.java": "8f7cf1fcf8408ecade61407bbc439ff15e5fdca30ce13dc7a50490eb91466495",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/AttributedProperty.java": "7b5565214189d420cc36d0ab4d5f6b03827c43cf78c7c1f32c813087743efd9d",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/DefaultPropertyFactory.java": "156b02b354e9b047a0f6d22d63cdc6c039ef9fbb1407f0511fd7cdacff494163",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/PropertyProvenanceHost.java": "63da2db69e6db89721d1b13fff4bc90d66f6786803f9e9eabd222485f4957cc4",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/PropertyUpdateClassifier.java": "854b242d9c325574f63721487a476a50128ba6e59f631556f6fdba21020aefa5",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/ProvenanceSnapshot.java": "41e3d55179f5a09e81e326b00517f787a034a0f538b5eca279b7335ff5832dfb",
+    "platforms/core-configuration/model-core/src/test/groovy/org/gradle/api/internal/provenance/OrdinaryProvenanceStateTest.groovy": "15d8cad5952252a93ba5059c256912faadef7284e75b5d2202c8ff83514894d2",
+    "platforms/core-configuration/model-core/src/test/groovy/org/gradle/api/internal/provenance/SharedProvenanceContractTest.groovy": "ce1cc844b968bb7d3b6769872f060e85f0634016273270c306664a43cfc538e8",
+    "platforms/core-configuration/model-core/src/test/groovy/org/gradle/api/internal/provider/AttributedDefaultPropertyTest.groovy": "3262983ee7f6e1b6ab412b4e912c773bbd5befdcbe6549c3293370327b4f701c",
+    "platforms/core-configuration/model-core/src/test/groovy/org/gradle/api/internal/provider/AttributedPropertyTest.groovy": "1870a5e87db5e9ec00e4a9e06e1ad37ed2a9396f5d95c6f4bb75e45bbd2499b1",
+    "platforms/core-configuration/model-core/src/test/groovy/org/gradle/api/internal/provider/EffectivePropertyProvenanceTest.groovy": "0e00d6d63b45bd36b38f814cc301d8f16634e906cada1d5167c17d7f6b419fde",
+    "subprojects/core/src/main/java/org/gradle/configuration/PropertyProvenanceRegistry.java": "0a34850fd67b7f2ad253492c025d0bf952a3ac041d0821207b8deb7387da7611",
+    "subprojects/core/src/main/java/org/gradle/internal/service/scopes/AttributedProjectPropertyHost.java": "80925aa4d35abb2b57637c47514a5d4ca6a4af71e693393f2a4629cdc317497f",
+    "subprojects/core/src/test/groovy/org/gradle/configuration/PropertyProvenanceRegistryTest.groovy": "3aa5b06da5d3180be993de65e68c8d07c2bd4136bbc54a9a1748cd5a479afbf4",
+    "testing/performance/provenance/AttributionEnabledProbe.java": "dec27a8127e37ea0740e08a14b4f7b861fccff32338cda10ba71978bf122d066",
+    "testing/performance/provenance/EffectiveEnabledProbe.java": "6352e4cbcc124bdde9d739419e56e42e4d1a2d5abda0d44c9c6733ac737d3d37",
+    "testing/performance/provenance/SharedMetadataAllocationProbe.java": "69941e340f180fd73a18469fe2e28c08a4b7ad5e28f4d7fbe33f073b7bc55288",
+    "testing/performance/provenance/run-attribution-probe.py": "4eee4126caaf1deeb5a3c87fbe249b47aa7842f8daa1f0b2462a40e55692a514",
+    "testing/performance/provenance/run-effective-probe.py": "2bc4402bcf8c34d32dd8283f5f78b5ea26946f61b08465706ee022f67bd2eb3f",
+    "testing/performance/provenance/run-shared-probe.py": "46ecb58426fa2b011cdcd1f7c1760fd2790ec2b4b3efe2a6afcdba28c1fd19c9"
+  },
+  "compiledClassHashes": {
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provider/DefaultPropertyFactory.class": "698ff565991a92dac2bd5e34c82168141c1465638a4ce20b38c96caeb5692d18",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provider/PropertyUpdateClassifier.class": "6aedf7a0b72989020bdba54fea27f562590e98ef54924a47783867d7434c2e13",
+    "subprojects/core/build/classes/java/main/org/gradle/configuration/PropertyProvenanceRegistry.class": "edb3075a0b7964f65f4414c39a13c3364875768ec2d187aaf79dfe905c7fca8a",
+    "subprojects/core/build/classes/java/main/org/gradle/internal/service/scopes/AttributedProjectPropertyHost.class": "5a81cd5138d5a84524dc1492e986e0ac95d017d3395432e08caf5684cd14e4f7",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provenance/Attribution.class": "695c4039f9c0d053b85cc6dedcd6207a1d30dce3b99b3a21256e0ddfe1cb4dae",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provenance/ContributorKey.class": "7456b7cf5b57eef0d6cb7e7d3a27b4b83cdafa3c35a157e61af5e9ee4fad61a3",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provenance/DiagnosticOrigin.class": "04b2edc526367b6fefceb1ae85bec1a04e92a3b54e7c9bc19491de9ba10b25bc",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provenance/EffectiveProvenanceView.class": "9ff85bdfd9f611634a4f93d19ce6e4a86d912d2afa10f0b31fa2f66ca33978f8",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provenance/MutationOccurrence.class": "ac1a403a6d7b4bb18fc746ad32f2a79882faaf19a4008a59815a27e4c0050c79",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provenance/OrdinaryProvenanceState.class": "dac9e8d29ced75b84bc9d278432749dfa8ff3a8e350a7f39b87d4a5c924c2022",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provenance/ScopeIdentity.class": "0df889a09f0c3a0953a47bb01535121fc4d58ddb3eca0b3dc6ad63a40de9bb80",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provenance/SemanticOperation.class": "0015825aafaedd8d091fe659b0c9318b7416aed5fe1f18204ae8bc1399552cc1",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provenance/TargetContext.class": "0ed2f96e1e3833c12c2f669ab199bfd9fb1c39f2948a9c6d0d8bb8e82afec91f",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provenance/UpdateSequence.class": "eb6b9ab208ea9b20cab0796d5052846cf5415177f84d29258f26391ddd7ba9c0",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provenance/package-info.class": "12ddb075688d905e881862b30d8a051ffcc6ba11afc3c1f615c221a39b418375",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provider/AttributedProperty.class": "4c0656476ade2ba83079870ea9a06d4842a8da73163d71364dc9ad26259e24ff",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provider/PropertyProvenanceHost.class": "8a18b00a4f384218cd71f04f50035e663b3246c1cb8ccf526bd16a08a488bca4",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provider/ProvenanceSnapshot.class": "80949507f8d7e2f91bee4d05d5091ec34fdb7d33b7a9a805ff8563443eee44af"
+  },
+  "artifactHashes": {
+    "testing/performance/provenance/decoupled-probe-20260907.json": "855e4286ff5cbc8943b0afc8c613d0f765780274208bac44ec20f23c6a0a608f",
+    "testing/performance/provenance/decoupled-dispatch-jmh-20260907.json": "f7fbc00d9d6155a83c4d9c2878d58ffc9ecd81047966115b66f4b902f597130f"
+  },
+  "jmhJarSha256": "4786a94e5ab6218568d8d1879ccfd145fe44016a1137e895c96e1f3704f8e3f4",
+  "tests": {
+    "platforms/core-configuration/model-core/build/test-results/test": {
+      "tests": 529,
+      "failures": 0,
+      "errors": 0
+    },
+    "platforms/core-configuration/model-core/build/test-results/embeddedIntegTest": {
+      "tests": 11,
+      "failures": 0,
+      "errors": 0
+    },
+    "subprojects/core/build/test-results/test": {
+      "tests": 58,
+      "failures": 0,
+      "errors": 0
+    }
+  }
+}

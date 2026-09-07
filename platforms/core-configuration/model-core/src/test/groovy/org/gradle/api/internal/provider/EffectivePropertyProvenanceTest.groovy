@@ -14,15 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider.provenance
+package org.gradle.api.internal.provider
 
-import org.gradle.api.internal.provider.DefaultProvider
-import org.gradle.api.internal.provider.Providers
+import org.gradle.api.internal.provenance.Attribution
+import org.gradle.api.internal.provenance.ContributorKey
+import org.gradle.api.internal.provenance.DiagnosticOrigin
+import org.gradle.api.internal.provenance.EffectiveProvenanceView
+import org.gradle.api.internal.provenance.ScopeIdentity
+import org.gradle.api.internal.provenance.SemanticOperation
 import org.gradle.api.provider.Provider
 import spock.lang.Specification
 
-import static org.gradle.api.internal.provider.provenance.EffectiveProvenanceView.SourceSelection.*
-import static org.gradle.api.internal.provider.provenance.SemanticOperation.Kind.*
+import static org.gradle.api.internal.provenance.EffectiveProvenanceView.SourceSelection.*
+import static org.gradle.api.internal.provenance.SemanticOperation.Kind.*
 
 class EffectivePropertyProvenanceTest extends Specification {
     def scope = new ScopeIdentity('build', ':project')
@@ -216,7 +220,7 @@ class EffectivePropertyProvenanceTest extends Specification {
         then:
         def failure = thrown(IllegalStateException)
         failure.message == 'original failure'
-        property.@finalizedProvenance == null
+        !property.@provenance.finalized
         property.@provenanceHost.is(host)
         property.effectiveProvenance.updates.is(before.updates)
 
@@ -241,7 +245,7 @@ class EffectivePropertyProvenanceTest extends Specification {
         property.finalizeValueOnRead()
 
         expect:
-        property.@finalizedProvenance == null
+        !property.@provenance.finalized
         property.get() == 'root-updated'
         property.@provenanceHost == null
         property.effectiveProvenance.updates.is(before.updates)
@@ -402,7 +406,7 @@ class EffectivePropertyProvenanceTest extends Specification {
             return object.every { descriptorsOnly(it) }
         }
         assert !(object instanceof Provider)
-        assert object.class.package.name == 'org.gradle.api.internal.provider.provenance'
+        assert object.class.package.name == 'org.gradle.api.internal.provenance'
         object.class.declaredFields.findAll { !java.lang.reflect.Modifier.isStatic(it.modifiers) }.every {
             it.accessible = true
             descriptorsOnly(it.get(object))

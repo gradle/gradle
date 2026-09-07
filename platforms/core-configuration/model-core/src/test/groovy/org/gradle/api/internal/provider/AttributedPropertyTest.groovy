@@ -14,17 +14,17 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.provider.provenance
+package org.gradle.api.internal.provider
 
-import org.gradle.api.internal.provider.DefaultProperty
-import org.gradle.api.internal.provider.DefaultPropertyFactory
-import org.gradle.api.internal.provider.DefaultProvider
-import org.gradle.api.internal.provider.PropertyHost
+import org.gradle.api.internal.provenance.Attribution
+import org.gradle.api.internal.provenance.ContributorKey
+import org.gradle.api.internal.provenance.DiagnosticOrigin
+import org.gradle.api.internal.provenance.ScopeIdentity
 import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
 import spock.lang.Specification
 
-import static org.gradle.api.internal.provider.provenance.SemanticOperation.Kind.*
+import static org.gradle.api.internal.provenance.SemanticOperation.Kind.*
 
 class AttributedPropertyTest extends Specification {
     def attribution = new Attribution(new ContributorKey('domain', ContributorKey.Kind.PLUGIN_ID, 'binder'),
