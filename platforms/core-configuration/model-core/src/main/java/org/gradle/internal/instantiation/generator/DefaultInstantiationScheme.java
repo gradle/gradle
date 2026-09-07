@@ -20,11 +20,13 @@ import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.cache.Cache;
 import org.gradle.cache.internal.ClassCacheFactory;
 import org.gradle.internal.instantiation.DeserializationInstantiator;
+import org.gradle.internal.instantiation.InjectedServicesPolicy;
 import org.gradle.internal.instantiation.InstanceFactory;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.generator.ClassGenerator.SerializationConstructor;
 import org.gradle.internal.service.ServiceLookup;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
@@ -37,30 +39,48 @@ class DefaultInstantiationScheme implements InstantiationScheme {
     private final Cache<Class<?>, SerializationConstructor<?>> deserializationConstructorCache;
     private final DeserializationInstantiator deserializationInstantiator;
     private final ClassGenerator classGenerator;
+    private final ServiceLookup services;
+    private final InjectedServicesInspector injectedServicesInspector;
+    @Nullable
+    private final InjectedServicesPolicy injectedServicesPolicy;
 
     public DefaultInstantiationScheme(
         ConstructorSelector constructorSelector,
         ClassGenerator classGenerator,
-        ServiceLookup defaultServices,
+        ServiceLookup services,
         Set<Class<? extends Annotation>> injectionAnnotations,
         ClassCacheFactory cacheFactory
     ) {
-        this(constructorSelector, classGenerator, defaultServices, injectionAnnotations, cacheFactory.newClassCache());
+        this(constructorSelector, classGenerator, services, injectionAnnotations, cacheFactory.newClassCache());
     }
 
     public DefaultInstantiationScheme(
         ConstructorSelector constructorSelector,
         ClassGenerator classGenerator,
-        ServiceLookup defaultServices,
+        ServiceLookup services,
         Set<Class<? extends Annotation>> injectionAnnotations,
         Cache<Class<?>, SerializationConstructor<?>> deserializationConstructorCache
     ) {
+        this(constructorSelector, classGenerator, services, injectionAnnotations, deserializationConstructorCache, null);
+    }
+
+    private DefaultInstantiationScheme(
+        ConstructorSelector constructorSelector,
+        ClassGenerator classGenerator,
+        ServiceLookup services,
+        Set<Class<? extends Annotation>> injectionAnnotations,
+        Cache<Class<?>, SerializationConstructor<?>> deserializationConstructorCache,
+        @Nullable InjectedServicesPolicy injectedServicesPolicy
+    ) {
         this.classGenerator = classGenerator;
-        this.instantiator = new DependencyInjectingInstantiator(constructorSelector, defaultServices);
+        this.services = services;
+        this.instantiator = new DependencyInjectingInstantiator(constructorSelector, services);
         this.constructorSelector = constructorSelector;
         this.injectionAnnotations = injectionAnnotations;
         this.deserializationConstructorCache = deserializationConstructorCache;
-        this.deserializationInstantiator = new DefaultDeserializationInstantiator(classGenerator, defaultServices, instantiator, deserializationConstructorCache);
+        this.deserializationInstantiator = new DefaultDeserializationInstantiator(classGenerator, services, instantiator, deserializationConstructorCache);
+        this.injectedServicesInspector = new InjectedServicesInspector(constructorSelector);
+        this.injectedServicesPolicy = injectedServicesPolicy;
     }
 
     @Override
@@ -70,12 +90,21 @@ class DefaultInstantiationScheme implements InstantiationScheme {
 
     @Override
     public <T> InstanceFactory<T> forType(Class<T> type) {
-        return instantiator.factoryFor(type);
+        InstanceFactory<T> factory = instantiator.factoryFor(type);
+        if (injectedServicesPolicy != null) {
+            injectedServicesPolicy.declaredInjectedServices(type, injectedServicesInspector.declaredInjectedServices(type, classGenerator.generate(type)));
+        }
+        return factory;
     }
 
     @Override
     public InstantiationScheme withServices(ServiceLookup services) {
-        return new DefaultInstantiationScheme(constructorSelector, classGenerator, services, injectionAnnotations, deserializationConstructorCache);
+        return new DefaultInstantiationScheme(constructorSelector, classGenerator, services, injectionAnnotations, deserializationConstructorCache, injectedServicesPolicy);
+    }
+
+    @Override
+    public InstantiationScheme withInjectedServicesPolicy(InjectedServicesPolicy policy) {
+        return new DefaultInstantiationScheme(constructorSelector, classGenerator, services, injectionAnnotations, deserializationConstructorCache, policy);
     }
 
     @Override
