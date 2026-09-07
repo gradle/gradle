@@ -63,7 +63,6 @@ run {
         task.name.startsWith("userguide") -> true
         task.name == "samplesMultiPage" -> true
         task.typeSimpleName() in listOf(
-            "JavaExecProjectGeneratorTask",
             "NativeProjectWithDepsGeneratorTask",
             "PerformanceTest",
             "DetermineBaselines",
