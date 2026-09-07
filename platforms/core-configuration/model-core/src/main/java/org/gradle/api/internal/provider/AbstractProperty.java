@@ -464,6 +464,11 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         return new ShallowCopyProvider();
     }
 
+    /** Captures the current supplier without reading it or entering an evaluation scope, as shallowCopy does. */
+    protected final S captureSupplier() {
+        return value;
+    }
+
     private class ShallowCopyProvider extends AbstractMinimalProvider<T> {
         // the value of "value" is immutable but the field is not, so copy it
         // (but use a different owner)

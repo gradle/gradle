@@ -142,6 +142,15 @@ public final class EffectiveProvenanceView {
         this.partialReasons = Collections.unmodifiableList(reasons);
     }
 
+    static EffectiveProvenanceView captured(TargetContext target, Source source, UpdateSequence updates, @Nullable MutationOccurrence convention) {
+        List<MutationOccurrence> shadowed = convention == null || convention.equals(source.getOccurrence())
+            ? Collections.emptyList() : Collections.singletonList(convention);
+        MutationOccurrence selected = source.getOccurrence();
+        List<String> reasons = selected != null && selected.getOperation().getKind() == SemanticOperation.Kind.UNCLASSIFIED_BINDING
+            ? Collections.singletonList(selected.getOperation().getReason()) : Collections.emptyList();
+        return new EffectiveProvenanceView(target, RootKind.CAPTURED, source, updates, shadowed, reasons);
+    }
+
     public TargetContext getTarget() {
         return target;
     }

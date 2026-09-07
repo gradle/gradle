@@ -1,0 +1,48 @@
+{
+  "parentCommit": "efdec13fe7e3a4975ae0943741774d95ef4ed4bc",
+  "note": "S3 working-tree evidence before review/commit. Runtime hashes and controls are also embedded in the allocation artifact.",
+  "sourceHashes": {
+    "platforms/core-configuration/model-core/src/integTest/groovy/org/gradle/api/provider/PropertyAttributionIntegrationTest.groovy": "6ae1515472327892088d7a3729b869fe17f99d2930bc3dddeeec30bc5da9fe48",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/AbstractProperty.java": "4cbbaa142fa70c74f055055a2953a56d7ffc8cb74a36deda234e81ef857d5117",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/DefaultProperty.java": "23a678c4791bb1db245a0347b2609cc35b5774d7646beec94b701d4680af9ae1",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/PropertyUpdateClassifier.java": "ede4eb3ee2e605ff296930daa3e2a01e5aa0fcef71498193a081459ec0bcde15",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/provenance/AttributedProperty.java": "656dc1a70906d9a9de46189fc43ea763be0a7225a47dfbf2e06b2cdc8cadba30",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/provenance/EffectiveProvenanceView.java": "a2749e2eeb0e36bb259bfe5d71e46b1834822f2af4ebc3423dc4d31341f89681",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/provenance/ProvenanceSnapshot.java": "a7d7964f06172d97cd00a04564f0ad8a941ec582a1593d02cea8a00e7f583a91",
+    "platforms/core-configuration/model-core/src/test/groovy/org/gradle/api/internal/provider/AttributedDefaultPropertyTest.groovy": "57392ddf717d3f0e768eacbacfa54d8caad4044db6bab1c1d3aedcd8c5f40815",
+    "platforms/core-configuration/model-core/src/test/groovy/org/gradle/api/internal/provider/provenance/EffectivePropertyProvenanceTest.groovy": "e21398189d3e51991e01f03d832e002ce23542162a9c996b74a936cfbea8fa38",
+    "testing/performance/provenance/EffectiveBaselineProbe.java": "c76e3011a3e82d0d433da7c59a97fa18736c95fdb624da6f7de723cbf172ae5d",
+    "testing/performance/provenance/EffectiveEnabledProbe.java": "99d357a7395dbb6774bc0f155dff306094ccd07f71eccc23a3187a3ced8e2917",
+    "testing/performance/provenance/run-effective-probe.py": "82652c377bca6780875b36db7428391f17adf2a12d6ee8d45923879449147360"
+  },
+  "compiledClassHashes": {
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provider/AbstractProperty.class": "d77729262d09900280f03c6bf2b305f3815284e6d933ce315ed0496753c12ca6",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provider/DefaultProperty.class": "b9baf1149261d136267eba885c70df666a180284cdc64ccfd1dae69ac4fa4147",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provider/provenance/AttributedProperty.class": "7bdc1bfa08f5437d9eb43e554d6c2da7667c21e0c57dc32dcbd489adbae9e51d",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provider/provenance/EffectiveProvenanceView.class": "f4eff77f9e60fbc8c8d05b084bd0f5b69ed2939761170297a0732f7416e73a73",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provider/PropertyUpdateClassifier.class": "c1907bfd0a39dc9706cdb265cb59bb931ab1bcda96b50833e3909615e5445ecd",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provider/provenance/ProvenanceSnapshot.class": "03c16a01790ae6e327adc41f278e711e2edc74a3eb960138dfff76da976295a8"
+  },
+  "artifactHashes": {
+    "testing/performance/provenance/effective-probe-20260907.json": "5e36bac69551814725440b9e2ec293ba45d08ab3761e4ce76de8590693541169",
+    "testing/performance/provenance/effective-dispatch-jmh-20260907.json": "1b486e6c3284653b5681f39b03a71e28316c106dd595524a96cac17d50df6f5e"
+  },
+  "jmhJarSha256": "e413463433c92f78ae6ccc6ed2708e31c7a1734bc40a496bfe9a444bebf270b6",
+  "tests": {
+    "platforms/core-configuration/model-core/build/test-results/test": {
+      "tests": 522,
+      "failures": 0,
+      "errors": 0
+    },
+    "platforms/core-configuration/model-core/build/test-results/embeddedIntegTest": {
+      "tests": 11,
+      "failures": 0,
+      "errors": 0
+    },
+    "subprojects/core/build/test-results/test": {
+      "tests": 58,
+      "failures": 0,
+      "errors": 0
+    }
+  }
+}

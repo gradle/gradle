@@ -22,6 +22,8 @@ The unmodified engine baseline and pinned semantics remain those recorded in
 [the S0/S1 checkpoint](PROPERTY_PROVENANCE_S0_S1.md). This checkpoint stops before S3;
 there is no runtime collaboration, effective-plan projection or user-facing renderer.
 
+The subsequent S3 implementation is recorded separately in [the S3 checkpoint](PROPERTY_PROVENANCE_S3.md).
+
 ## Changes and supported boundary
 
 The internal switch is `-Dorg.gradle.internal.property-provenance=true`, default false.

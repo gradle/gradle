@@ -27,6 +27,47 @@ class PropertyAttributionIntegrationTest extends AbstractIntegrationSpec {
         executer.withArgument('-Dorg.gradle.internal.property-provenance=true')
     }
 
+    def 'effective replace provenance retains plugin occurrences through copy and finalization'() {
+        given:
+        buildFile << """
+            class SourcePlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    def value = project.objects.property(String)
+                    project.extensions.add('tracked', value)
+                    value.convention('root')
+                }
+            }
+            class UpdatePlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    project.tracked.replace { previous -> previous.map { it + '-one' }.map { it + '-two' } }
+                    project.tracked.replace { previous -> previous.map { it + '-three' } }
+                }
+            }
+            apply plugin: SourcePlugin
+            apply plugin: UpdatePlugin
+            def copy = tracked.shallowCopy()
+            def before = tracked.effectiveProvenance
+            assert before.source.occurrence.attribution.contributor.identity == 'SourcePlugin'
+            assert before.updates.inApplicationOrder()*.attribution*.contributor*.identity == ['UpdatePlugin', 'UpdatePlugin']
+            assert before.updates.inApplicationOrder()[0] != before.updates.inApplicationOrder()[1]
+            assert before.updates.inApplicationOrder()[0].operation.shapes.size() == 2
+            tracked.convention('later')
+            tracked.finalizeValue()
+            assert tracked.get() == 'root-one-two-three'
+            assert copy.get() == tracked.get()
+            assert tracked.effectiveProvenance.source.occurrence.is(before.source.occurrence)
+            assert tracked.effectiveProvenance.updates.is(before.updates)
+            assert copy.effectiveProvenance.updates.is(before.updates)
+            println 'effective provenance verified'
+        """
+
+        when:
+        succeeds('help')
+
+        then:
+        outputContains('effective provenance verified')
+    }
+
     def 'plugin ID class fallback nested application and deferred registrants reach accepted mutations'() {
         given:
         pluginBuild('buildSrc')
