@@ -16,8 +16,6 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.internal.cc.base.serialize.HostServiceProvider
-import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.operations.EntrySearchResult
 
 
@@ -25,7 +23,7 @@ internal class ConfigurationCacheCandidateEntries(
     private val store: ConfigurationCacheStateStore,
     private val cacheIO: ConfigurationCacheBuildTreeIO,
     private val entriesPerKey: Int,
-    private val host: HostServiceProvider
+    private val entryCollector: ConfigurationCacheEntryCollector
 ) {
 
     fun searchForValidEntry(checkCandidate: (CandidateEntry) -> EntrySearchResult): EntrySearchResult {
@@ -101,12 +99,8 @@ internal class ConfigurationCacheCandidateEntries(
 
     private
     fun scheduleForCollection(evictedEntries: List<CandidateEntry>) {
-        if (evictedEntries.isNotEmpty()) {
-            host.service<ConfigurationCacheEntryCollector>().let { collector ->
-                evictedEntries.forEach { entry ->
-                    collector.scheduleForCollection(entry.id)
-                }
-            }
+        evictedEntries.forEach { entry ->
+            entryCollector.scheduleForCollection(entry.id)
         }
     }
 }

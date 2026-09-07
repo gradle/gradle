@@ -16,11 +16,8 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.properties.GradlePropertiesController
 import org.gradle.internal.cc.base.logger
-import org.gradle.internal.cc.base.serialize.HostServiceProvider
-import org.gradle.internal.cc.base.serialize.service
 import org.gradle.internal.cc.impl.fingerprint.ClassLoaderScopesFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintController
 import org.gradle.internal.cc.impl.fingerprint.InvalidationReason
@@ -32,6 +29,7 @@ import org.gradle.internal.cc.operations.withFingerprintCheckOperations
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.watch.vfs.BuildLifecycleAwareVirtualFileSystem
 import org.gradle.util.Path
@@ -51,7 +49,8 @@ internal class ConfigurationCacheEntrySelector(
     private val classLoaderScopes: ClassLoaderScopesFingerprintController,
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationRunner: BuildOperationRunner,
-    private val host: HostServiceProvider
+    private val gradlePropertiesController: GradlePropertiesController,
+    private val isolateOwner: IsolateOwner
 ) {
     fun selectEntry(): CheckedFingerprint = buildOperationRunner.withFingerprintCheckOperations {
         val searchResult = candidateEntries.searchForValidEntry(::checkCandidate)
@@ -85,8 +84,7 @@ internal class ConfigurationCacheEntrySelector(
     private
     fun ConfigurationCacheRepository.Layout.checkFingerprint(candidateEntry: CandidateEntry, rootDirs: List<File>): CheckedFingerprint {
         if (rootDirs.isNotEmpty() && startParameter.buildTreeRootDirectory !in rootDirs) {
-            return CheckedFingerprint.Invalid(
-                buildPath(),
+            return invalidBuildTreeFingerprint(
                 StructuredMessage.build {
                     text("the location of the build has changed from ")
                     reference(rootDirs.first().path)
@@ -103,7 +101,7 @@ internal class ConfigurationCacheEntrySelector(
 
         val classLoaderScopesInvalidationReason = checkClassLoaderScopes()
         if (classLoaderScopesInvalidationReason != null) {
-            return CheckedFingerprint.Invalid(buildPath(), classLoaderScopesInvalidationReason)
+            return invalidBuildTreeFingerprint(classLoaderScopesInvalidationReason)
         }
 
         val systemPropertiesSnapshot = System.getProperties().clone()
@@ -139,11 +137,11 @@ internal class ConfigurationCacheEntrySelector(
                     )
                 }
 
-                else -> CheckedFingerprint.Invalid(buildPath(), invalidationReason)
+                else -> invalidBuildTreeFingerprint(invalidationReason)
             }
         } catch (e: FingerprintDeserializationException) {
             logger.info("Configuration cache entry discarded because a fingerprint value could not be loaded", e)
-            CheckedFingerprint.Invalid(buildPath(), e.reason)
+            invalidBuildTreeFingerprint(e.reason)
         }
 
     private
@@ -167,20 +165,16 @@ internal class ConfigurationCacheEntrySelector(
         fingerprintFile: ConfigurationCacheStateFile,
         action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T
     ): T =
-        cacheIO.readFingerprintFrom(fingerprintFile, host, action)
+        cacheIO.readFingerprintFrom(fingerprintFile, isolateOwner, action)
 
     private
-    fun buildPath(): Path =
-        host.service<GradleInternal>().identityPath
+    fun invalidBuildTreeFingerprint(invalidationReason: StructuredMessage) =
+        CheckedFingerprint.Invalid(Path.ROOT, invalidationReason)
 
     private
     fun registerWatchableBuildDirectories(buildDirs: Iterable<File>) {
         buildDirs.forEach(virtualFileSystem::registerWatchableHierarchy)
     }
-
-    private
-    val gradlePropertiesController: GradlePropertiesController
-        get() = host.service()
 
     private
     fun rollbackProperties(systemPropertiesSnapshot: Properties) {

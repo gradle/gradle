@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.properties.GradlePropertiesController
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier
 import org.gradle.api.logging.LogLevel
@@ -100,7 +101,9 @@ class DefaultConfigurationCache internal constructor(
     private val fileSystemAccess: FileSystemAccess,
     private val calculatedValueContainerFactory: CalculatedValueContainerFactory,
     private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor,
-    private val deferredRootBuildGradle: DeferredRootBuildGradle
+    private val deferredRootBuildGradle: DeferredRootBuildGradle,
+    private val gradlePropertiesController: GradlePropertiesController,
+    private val entryCollector: ConfigurationCacheEntryCollector
 ) : BuildTreeConfigurationCache, Stoppable {
 
     private
@@ -143,7 +146,7 @@ class DefaultConfigurationCache internal constructor(
 
     private
     val candidateEntries by lazy {
-        ConfigurationCacheCandidateEntries(store, cacheIO, startParameter.entriesPerKey, host)
+        ConfigurationCacheCandidateEntries(store, cacheIO, startParameter.entriesPerKey, entryCollector)
     }
 
     private
@@ -157,7 +160,8 @@ class DefaultConfigurationCache internal constructor(
             classLoaderScopes,
             virtualFileSystem,
             buildOperationRunner,
-            host
+            gradlePropertiesController,
+            isolateOwnerHost
         )
     }
 
@@ -713,7 +717,7 @@ class DefaultConfigurationCache internal constructor(
     fun ConfigurationCacheRepository.Layout.writeConfigurationCacheFingerprint(reusedProjects: Set<Path>) {
         // Collect fingerprint entries for any projects whose state was reused from cache
         if (reusedProjects.isNotEmpty()) {
-            cacheIO.readFingerprintFrom(fileForRead(StateType.ProjectFingerprint), host) { fingerprintHost ->
+            cacheIO.readFingerprintFrom(fileForRead(StateType.ProjectFingerprint), isolateOwnerHost) { fingerprintHost ->
                 cacheFingerprintController.run {
                     collectFingerprintForReusedProjects(fingerprintHost, reusedProjects)
                 }
