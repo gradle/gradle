@@ -30,6 +30,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 class IdentityClassGenerator implements ClassGenerator {
@@ -49,6 +50,16 @@ class IdentityClassGenerator implements ClassGenerator {
                 } else {
                     return type.getEnclosingClass();
                 }
+            }
+
+            @Override
+            public List<Class<?>> getInjectedServices() {
+                return Collections.emptyList();
+            }
+
+            @Override
+            public List<GeneratedClass<?>> getNestedManagedClasses() {
+                return Collections.emptyList();
             }
 
             @Override

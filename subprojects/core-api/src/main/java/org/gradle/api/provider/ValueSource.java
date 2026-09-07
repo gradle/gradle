@@ -77,7 +77,8 @@ import javax.inject.Inject;
  * <p>
  * A value source implementation will most likely take parameters. To do this create a
  * subtype of {@link ValueSourceParameters} and declare this type as the type parameter
- * to the value source implementation.
+ * to the value source implementation. Parameters are data holders, isolated before
+ * {@link #obtain()} is called; they must not inject services.
  * </p>
  *
  * <p>
