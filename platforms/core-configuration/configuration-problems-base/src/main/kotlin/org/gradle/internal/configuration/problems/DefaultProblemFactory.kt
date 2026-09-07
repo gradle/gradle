@@ -17,6 +17,7 @@
 package org.gradle.internal.configuration.problems
 
 import com.google.common.base.Supplier
+import org.gradle.api.Action
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.code.UserCodeSource
@@ -49,8 +50,8 @@ class DefaultProblemFactory(
         return NoOpProblemDiagnosticsFactory.EMPTY_DIAGNOSTICS
     }
 
-    override fun problem(consumer: String?, messageBuilder: StructuredMessage.Builder.() -> Unit): ProblemFactory.Builder {
-        val message = StructuredMessage.build(messageBuilder)
+    override fun problem(consumer: String?, message: Action<StructuredMessage.Builder>): ProblemFactory.Builder {
+        val builtMessage = StructuredMessage.build { message.execute(this) }
         return object : ProblemFactory.Builder {
             var exceptionMessage: String? = null
             var documentationSection: DocumentationSection? = null
@@ -62,12 +63,12 @@ class DefaultProblemFactory(
             }
 
             override fun exception(): ProblemFactory.Builder {
-                exceptionMessage = message.toString().capitalized()
+                exceptionMessage = builtMessage.toString().capitalized()
                 return this
             }
 
             override fun exception(builder: (String) -> String): ProblemFactory.Builder {
-                exceptionMessage = builder(message.toString().capitalized())
+                exceptionMessage = builder(builtMessage.toString().capitalized())
                 return this
             }
 
@@ -89,7 +90,7 @@ class DefaultProblemFactory(
                     problemStream.forCurrentCaller(Supplier { InvalidUserCodeException(exceptionMessage) })
                 }
                 val location = locationMapper(locationForCaller(consumer, diagnostics))
-                return PropertyProblem(location, message, diagnostics.exception, diagnostics.failure, documentationSection)
+                return PropertyProblem(location, builtMessage, diagnostics.exception, diagnostics.failure, documentationSection)
             }
         }
     }

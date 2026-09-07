@@ -16,6 +16,7 @@
 
 package org.gradle.internal.configuration.problems
 
+import org.gradle.api.Action
 import org.gradle.internal.service.scopes.EventScope
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
@@ -41,7 +42,12 @@ interface ProblemFactory {
      *
      * By default, the problem has no exception or documentation, and a default location is inferred from the calling thread's state.
      */
-    fun problem(consumer: String? = null, messageBuilder: StructuredMessage.Builder.() -> Unit): Builder
+    fun problem(consumer: String?, message: Action<StructuredMessage.Builder>): Builder
+
+    /**
+     * Creates a problem with the given message, attributed to no particular consumer.
+     */
+    fun problem(message: Action<StructuredMessage.Builder>): Builder = problem(null, message)
 
     interface Builder {
         /**
