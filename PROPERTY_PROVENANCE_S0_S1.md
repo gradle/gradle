@@ -16,6 +16,8 @@
 
 # Property provenance: S0/S1 review checkpoint
 
+Subsequent work is recorded in the [S2 checkpoint](PROPERTY_PROVENANCE_S2.md).
+
 S0 and S1 are implemented on `asodja/provenance-prototype-20260907`. Stop here for
 review before S2; nothing has been pushed. This is an internal metadata foundation,
 not an enabled property feature or a collaborative runtime.

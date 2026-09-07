@@ -31,7 +31,7 @@ class ScriptPluginFactorySelectorTest extends Specification {
     def providerInstantiator = Mock(ScriptPluginFactorySelector.ProviderInstantiator)
     def defaultScriptPluginFactory = Mock(ScriptPluginFactory)
     def remoteScriptListener = Mock(ScriptSourceListener)
-    def selector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, providerInstantiator, new TestBuildOperationRunner(), new DefaultUserCodeApplicationContext(), remoteScriptListener)
+    def selector = new ScriptPluginFactorySelector(defaultScriptPluginFactory, providerInstantiator, new TestBuildOperationRunner(), new DefaultUserCodeApplicationContext(), remoteScriptListener, new PropertyProvenanceRegistry(false, new DefaultUserCodeApplicationContext()))
 
     def scriptHandler = Mock(ScriptHandler)
     def targetScope = Mock(ClassLoaderScope)

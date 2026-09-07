@@ -29,6 +29,7 @@ import org.gradle.api.plugins.PluginInstantiationException;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.reflect.ObjectInstantiationException;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.configuration.PropertyProvenanceRegistry;
 import org.gradle.internal.Cast;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeApplicationId;
@@ -43,11 +44,11 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.jspecify.annotations.Nullable;
 
-import javax.annotation.concurrent.NotThreadSafe;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.Map;
 import java.util.Optional;
+import javax.annotation.concurrent.NotThreadSafe;
 
 @NotThreadSafe
 public class DefaultPluginManager implements PluginManagerInternal {
@@ -65,10 +66,12 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
     private final BuildOperationRunner buildOperationRunner;
     private final UserCodeApplicationContext userCodeApplicationContext;
+    private final PropertyProvenanceRegistry provenanceRegistry;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
 
     @SuppressWarnings("this-escape")
-    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator callbackDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory) {
+    public DefaultPluginManager(final PluginRegistry pluginRegistry, Instantiator instantiator, final PluginTarget target, BuildOperationRunner buildOperationRunner, UserCodeApplicationContext userCodeApplicationContext, CollectionCallbackActionDecorator callbackDecorator, DomainObjectCollectionFactory domainObjectCollectionFactory, PropertyProvenanceRegistry provenanceRegistry) {
+        this.provenanceRegistry = provenanceRegistry;
         this.instantiator = instantiator;
         this.target = target;
         this.pluginRegistry = pluginRegistry;
@@ -165,7 +168,9 @@ public class DefaultPluginManager implements PluginManagerInternal {
             } else {
                 final Runnable adder = addPluginInternal(plugin);
                 if (adder != null) {
-                    UserCodeSource source = new UserCodeSource.Binary(plugin.getDisplayName(), pluginClass.getName(), pluginIdStr);
+                    UserCodeSource source = provenanceRegistry.isEnabled()
+                        ? provenanceRegistry.binarySource(plugin.getDisplayName(), pluginClass.getName(), pluginIdStr, target.getConfigurationTargetIdentifier())
+                        : new UserCodeSource.Binary(plugin.getDisplayName(), pluginClass.getName(), pluginIdStr);
                     userCodeApplicationContext.apply(source, userCodeApplicationId ->
                         buildOperationRunner.run(new AddPluginBuildOperation(adder, plugin, pluginIdStr, pluginClass, userCodeApplicationId))
                     );

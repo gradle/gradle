@@ -1,0 +1,38 @@
+{
+  "baselineGradleRevision": "d41e66c4e92e3a79dfeeb8e5f2c6912f61d5d036",
+  "implementationParent": "2356d6a65b082889f5dd39fd80fa55e56ccc0a3f",
+  "semanticsRevision": "0a695690ac2a4852b7d455a31b1adf830345076c",
+  "platform": "Linux-7.0.12-aarch64-with-glibc2.43",
+  "sourcesSha256": {
+    "platforms/core-configuration/model-core/src/integTest/groovy/org/gradle/api/provider/PropertyAttributionIntegrationTest.groovy": "c2c35937be5b79fd3beaf80c7de8a21b79a0520ddc8de2c6a5b6a50d31ce2183",
+    "platforms/core-configuration/model-core/src/jmh/java/org/gradle/api/internal/provider/PropertyAttributionBenchmark.java": "59435e4988aa6c9c5362869e66eb1aae9512f08a574d88e73858623a4ebc0944",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/DefaultPropertyFactory.java": "f32a3ff2de404b26c47f56ed4b117011122d67cd5dfdd82b0fdfb597c6c84e54",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/provenance/AttributedProperty.java": "396aae6961d4364ad4db7a24ee2f0767bf170b04cc96321d2c937be0fd5d5adc",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/provenance/PropertyProvenanceHost.java": "45640960cfbd8320722e628eddad6299b3ace9e36845eb7622f9d38574160c32",
+    "platforms/core-configuration/model-core/src/test/groovy/org/gradle/api/internal/provider/provenance/AttributedPropertyTest.groovy": "4e74c7c89a9604667ced48a35d6e62d66ef946f7e88ecd530cde5bd095a4c359",
+    "subprojects/core/src/main/java/org/gradle/api/internal/plugins/DefaultPluginManager.java": "3d0fbab6205380371ab5e3809b82b56bcda6ee4e0aa26faa4ad52d7ec9869880",
+    "subprojects/core/src/main/java/org/gradle/configuration/BuildOperationScriptPlugin.java": "e9b5419404227dca2d343d6279972052b0ca6534b4746b1aa6a9516fe56d8b8e",
+    "subprojects/core/src/main/java/org/gradle/configuration/PropertyProvenanceRegistry.java": "36823ada4c7aca2f6d5e23a71d02957a0f15d878ff5fa136c7f2761651a07bd9",
+    "subprojects/core/src/main/java/org/gradle/configuration/ScriptPluginFactorySelector.java": "4a3a7d6a23caad4d00355e9607d4805cd447603ce878e9e222e3ed5cb0fbe310",
+    "subprojects/core/src/main/java/org/gradle/internal/service/scopes/AttributedProjectPropertyHost.java": "f085a34eca0f6c3ee88eac7cccfaf71fc9803eb2e81230c063b54f4e9f17137a",
+    "subprojects/core/src/main/java/org/gradle/internal/service/scopes/BuildScopeServices.java": "e8598879525f0a03dd662d9528ae88e314700a84f3c20015e70e5029858cdaf6",
+    "subprojects/core/src/main/java/org/gradle/internal/service/scopes/ProjectScopeServices.java": "b619a394510a0df935db71b428913635aa59e3f2c98eff0ca74f39e08e132d8b",
+    "subprojects/core/src/main/java/org/gradle/internal/service/scopes/SettingsScopeServices.java": "8975b74229707b17ddc8a9069f8954123055cbae2aa7d1ed7cae219d26cdd6af",
+    "subprojects/core/src/test/groovy/org/gradle/api/internal/plugins/DefaultPluginContainerTest.groovy": "bf208a33a77be0549f6a739bce099e4aefd24ec58106a1e0edd55e6865a8d96f",
+    "subprojects/core/src/test/groovy/org/gradle/api/internal/plugins/DefaultPluginManagerTest.groovy": "fcba1d3df04e1ecc8408f5b1bd062fd07fdc19f9dd585e6abefe976867c1d117",
+    "subprojects/core/src/test/groovy/org/gradle/configuration/BuildOperationScriptPluginTest.groovy": "5a21b575e7b56e142d4cd1c3f3b617931299c630fa32012ee7b6e5dcedc473f1",
+    "subprojects/core/src/test/groovy/org/gradle/configuration/PropertyProvenanceRegistryTest.groovy": "59bb4ab8d2fbaf06eefd4af83779a0bb123fffa8ba9739a955bded5b9f6a3847",
+    "subprojects/core/src/test/groovy/org/gradle/configuration/ScriptPluginFactorySelectorTest.groovy": "97534707a8810327f48daf6f75a2a23b017c468fb736e229d95e345214e9b0cb",
+    "testing/performance/provenance/AttributionBaselineProbe.java": "d2557b01a405955a9204f78a008dc1e9f3920c21bc8d5418a309507790d29f47",
+    "testing/performance/provenance/AttributionEnabledProbe.java": "37b9d175065beee362a3ec36aaf0ac6845968a86ce46b6254ecb98dc1c078973",
+    "testing/performance/provenance/run-attribution-probe.py": "8dbf118bc3c0be22b67955c0866157b087ece7d0609cfecbebee449f52f35ebe"
+  },
+  "rawSha256": {
+    "attribution-probe-20260907.json": "7799f1990f2519d48c8afceede48f4012af91d0b1c8e3eb6814e2600daabef94",
+    "attribution-dispatch-jmh-20260907.json": "d6b976bd7457275faff6ea261813fc3a81f0b80fdd4fe8280b882d574fa8a905"
+  },
+  "jmhJarSha256": {
+    "gradle-model-core-9.9.0-jmh.jar": "7e9d19efff3dee8ee72fd9293bf0e2af16eee5e2d29897d7cb8b5cd6761ea884"
+  },
+  "note": "Working-tree S2 sources are pinned by hashes. The JMH follow-up covers compiled-in dispatch only; the allocation probe uses the preserved S0 distribution for the clean control."
+}

@@ -20,6 +20,8 @@ import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.artifacts.ExternalModuleDependencyBundle;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.provider.provenance.AttributedProperty;
+import org.gradle.api.internal.provider.provenance.PropertyProvenanceHost;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
 
 import java.util.List;
@@ -64,6 +66,9 @@ public class DefaultPropertyFactory implements PropertyFactory {
             throw new InvalidUserCodeException(invalidPropertyCreationError("RegularFile", "RegularFileProperty"));
         }
 
+        if (propertyHost instanceof PropertyProvenanceHost) {
+            return new AttributedProperty<>((PropertyProvenanceHost) propertyHost, maybeAsWrapperType(type));
+        }
         return new DefaultProperty<>(propertyHost, maybeAsWrapperType(type));
     }
 

@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.plugins
 
+import org.gradle.configuration.PropertyProvenanceRegistry
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.internal.CollectionCallbackActionDecorator
@@ -37,7 +38,7 @@ class DefaultPluginContainerTest extends Specification {
     def pluginRegistry = new DefaultPluginRegistry(pluginInspector, scope(classLoader))
     def target = Mock(PluginTarget)
     def instantiator = TestUtil.instantiatorFactory().inject()
-    def pluginManager = new DefaultPluginManager(pluginRegistry, instantiator, target, new TestBuildOperationRunner(), new DefaultUserCodeApplicationContext(), CollectionCallbackActionDecorator.NOOP, TestUtil.domainObjectCollectionFactory())
+    def pluginManager = new DefaultPluginManager(pluginRegistry, instantiator, target, new TestBuildOperationRunner(), new DefaultUserCodeApplicationContext(), CollectionCallbackActionDecorator.NOOP, TestUtil.domainObjectCollectionFactory(), new PropertyProvenanceRegistry(false, new DefaultUserCodeApplicationContext()))
 
     @Subject
     def container = pluginManager.pluginContainer

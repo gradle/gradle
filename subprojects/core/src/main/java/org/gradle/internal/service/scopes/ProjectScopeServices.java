@@ -73,6 +73,7 @@ import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.configuration.PropertyProvenanceRegistry;
 import org.gradle.configuration.project.DefaultProjectConfigurationActionContainer;
 import org.gradle.configuration.project.ProjectConfigurationActionContainer;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
@@ -223,7 +224,8 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
-        ProblemsInternal problems
+        ProblemsInternal problems,
+        PropertyProvenanceRegistry provenanceRegistry
     ) {
 
         PluginTarget ruleBasedTarget = new RuleBasedPluginTarget(
@@ -243,7 +245,8 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             buildOperationRunner,
             userCodeApplicationContext,
             decorator,
-            domainObjectCollectionFactory
+            domainObjectCollectionFactory,
+            provenanceRegistry
         );
     }
 
@@ -321,8 +324,8 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected PropertyHost createPropertyHost() {
-        return new ProjectBackedPropertyHost(project);
+    protected PropertyHost createPropertyHost(PropertyProvenanceRegistry provenanceRegistry) {
+        return provenanceRegistry.isEnabled() ? new AttributedProjectPropertyHost(project, provenanceRegistry) : new ProjectBackedPropertyHost(project);
     }
 
     @Provides

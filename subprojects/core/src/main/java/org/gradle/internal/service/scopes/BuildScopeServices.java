@@ -112,6 +112,7 @@ import org.gradle.configuration.DefaultProjectsPreparer;
 import org.gradle.configuration.DefaultScriptPluginFactory;
 import org.gradle.configuration.ImportsReader;
 import org.gradle.configuration.ProjectsPreparer;
+import org.gradle.configuration.PropertyProvenanceRegistry;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.ScriptPluginFactorySelector;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
@@ -193,6 +194,7 @@ import org.gradle.internal.build.DefaultPublicBuildPath;
 import org.gradle.internal.build.PublicBuildPath;
 import org.gradle.internal.buildevents.BuildStartedTime;
 import org.gradle.internal.buildoption.FeatureFlags;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.IntermediateBuildActionRunner;
@@ -544,6 +546,11 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
+    PropertyProvenanceRegistry createPropertyProvenanceRegistry(InternalOptions options, UserCodeApplicationContext context) {
+        return new PropertyProvenanceRegistry(options.getBoolean(InternalOptions.ofBoolean("org.gradle.internal.property-provenance", false)), context);
+    }
+
+    @Provides
     protected ScriptPluginFactory createScriptPluginFactory(
         InstantiatorFactory instantiatorFactory,
         ServiceRegistry buildScopedServices,
@@ -554,7 +561,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         CompileOperationFactory compileOperationFactory,
         BuildOperationRunner buildOperationRunner,
         UserCodeApplicationContext userCodeApplicationContext,
-        ScriptSourceListener scriptSourceListener
+        ScriptSourceListener scriptSourceListener,
+        PropertyProvenanceRegistry provenanceRegistry
     ) {
         ScriptPluginFactorySelector.ProviderInstantiator instantiator = ScriptPluginFactorySelector.defaultProviderInstantiatorFor(instantiatorFactory.inject(buildScopedServices));
         DefaultScriptPluginFactory defaultScriptPluginFactory = new DefaultScriptPluginFactory(
@@ -570,7 +578,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             instantiator,
             buildOperationRunner,
             userCodeApplicationContext,
-            scriptSourceListener
+            scriptSourceListener,
+            provenanceRegistry
         );
         defaultScriptPluginFactory.setScriptPluginFactory(scriptPluginFactorySelector);
         return scriptPluginFactorySelector;
@@ -702,10 +711,11 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         UserCodeApplicationContext userCodeApplicationContext,
         CollectionCallbackActionDecorator decorator,
         DomainObjectCollectionFactory domainObjectCollectionFactory,
-        ProblemsInternal problems
+        ProblemsInternal problems,
+        PropertyProvenanceRegistry provenanceRegistry
     ) {
         PluginTarget target = new ImperativeOnlyPluginTarget<>(PluginTargetType.GRADLE, gradleInternal, problems);
-        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(buildScopeServices), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(buildScopeServices), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory, provenanceRegistry);
     }
 
     @Provides

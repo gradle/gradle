@@ -37,6 +37,8 @@ import org.gradle.api.internal.plugins.ProjectFeatureDeclarationPluginTarget;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
+import org.gradle.configuration.PropertyProvenanceRegistry;
+import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 import org.gradle.initialization.DefaultProjectDescriptorRegistry;
 import org.gradle.initialization.ProjectDescriptorRegistry;
 import org.gradle.internal.code.UserCodeApplicationContext;
@@ -50,7 +52,6 @@ import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.plugin.internal.PluginScheme;
-import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
 
 import java.util.List;
 
@@ -106,7 +107,8 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
         DomainObjectCollectionFactory domainObjectCollectionFactory,
         PluginScheme pluginScheme,
         ProjectFeatureDeclarations projectFeatureRegistry,
-        ProblemsInternal problems
+        ProblemsInternal problems,
+        PropertyProvenanceRegistry provenanceRegistry
     ) {
         PluginTarget target = new ProjectFeatureDeclarationPluginTarget(
             new ImperativeOnlyPluginTarget<>(PluginTargetType.SETTINGS, settings, problems),
@@ -114,7 +116,7 @@ public class SettingsScopeServices implements ServiceRegistrationProvider {
             pluginScheme.getInspectionScheme(),
             problems
         );
-        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(settingsScopeServiceRegistry), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory);
+        return instantiator.newInstance(DefaultPluginManager.class, pluginRegistry, instantiatorFactory.inject(settingsScopeServiceRegistry), target, buildOperationRunner, userCodeApplicationContext, decorator, domainObjectCollectionFactory, provenanceRegistry);
     }
 
     @Provides
