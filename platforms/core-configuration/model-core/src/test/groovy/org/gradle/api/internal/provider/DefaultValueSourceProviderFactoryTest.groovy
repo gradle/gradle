@@ -17,21 +17,45 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Describable
+import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.ValueSource
 import org.gradle.api.provider.ValueSourceParameters
 import org.gradle.api.reflect.ObjectInstantiationException
+import org.gradle.api.tasks.Nested
+import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.featurelifecycle.DefaultDeprecatedUsageProgressDetails
+import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.state.Managed
+import org.gradle.problems.buildtree.ProblemStream
 import org.gradle.process.ExecOperations
 import org.gradle.process.ExecResult
+import org.gradle.util.TestUtil
+import org.gradle.util.internal.RedirectStdOutAndErr
 import org.gradle.util.internal.TextUtil
+import org.junit.Rule
+import spock.lang.Issue
 
 import javax.inject.Inject
 
 import static org.gradle.api.internal.provider.ValueSourceProviderFactory.ValueListener.ObtainedValue
 
 class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
+
+    @Rule
+    RedirectStdOutAndErr outputs = new RedirectStdOutAndErr()
+    def progressEventEmitter = Mock(BuildOperationProgressEventEmitter)
+
+    def setup() {
+        DeprecationLogger.reset()
+        DeprecationLogger.init(WarningMode.All, progressEventEmitter, TestUtil.problemsService(), Stub(ProblemStream))
+    }
+
+    def cleanup() {
+        DeprecationLogger.reset()
+    }
 
     def "parameters are configured eagerly"() {
 
@@ -227,6 +251,66 @@ class DefaultValueSourceProviderFactoryTest extends ValueSourceBasedSpec {
         0 * valueListener.valueObtained(_, _)
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39090")
+    def "parameters injecting a service are deprecated"() {
+        when:
+        createProviderOf(InjectingParametersValueSource) {}
+
+        then:
+        1 * progressEventEmitter.emitNowIfCurrent({ DefaultDeprecatedUsageProgressDetails details ->
+            details.summary == "Injecting services into value source parameters has been deprecated." &&
+                details.removalDetails == "This will fail with an error in Gradle 10." &&
+                details.contextualAdvice == "Type '${InjectingParametersValueSource.Parameters.name}' injects 'org.gradle.api.model.ObjectFactory'." &&
+                details.advice == "Value source parameters must only hold data. Compute the value that needs the service when creating the provider and pass it as a parameter, or inject the service into the ValueSource implementation instead." &&
+                details.documentationUrl.endsWith("/userguide/upgrading_version_9.html#value_source_parameters_service_injection")
+        })
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39090")
+    def "deprecation is emitted once per parameters type"() {
+        when:
+        createProviderOf(InjectingParametersValueSource) {}
+        createProviderOf(InjectingParametersValueSource) {}
+
+        then:
+        1 * progressEventEmitter.emitNowIfCurrent(_ as DefaultDeprecatedUsageProgressDetails)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39090")
+    def "parameters that only hold data are not deprecated"() {
+        when:
+        createProviderOf(EchoValueSource) {
+            it.parameters.value.set("42")
+        }
+        createProviderOf(NoParameters) {}
+        createProviderOf(ExecValueSource) {}
+
+        then:
+        0 * progressEventEmitter._
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39090")
+    def "parameters nesting a type that injects a service are deprecated naming the nested type"() {
+        when:
+        createProviderOf(NestedInjectingParametersValueSource) {}
+
+        then:
+        1 * progressEventEmitter.emitNowIfCurrent({ DefaultDeprecatedUsageProgressDetails details ->
+            details.contextualAdvice == "Type '${NestedInjectingParametersValueSource.Parameters.name}' injects 'org.gradle.api.model.ObjectFactory' through '${NestedInjectingParametersValueSource.Inner.name}'."
+        })
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39090")
+    def "nested types that nest themselves are inspected once"() {
+        when:
+        createProviderOf(SelfNestingInjectingParametersValueSource) {}
+
+        then:
+        1 * progressEventEmitter.emitNowIfCurrent({ DefaultDeprecatedUsageProgressDetails details ->
+            details.contextualAdvice == "Type '${SelfNestingInjectingParametersValueSource.Parameters.name}' injects 'org.gradle.api.model.ObjectFactory' through '${SelfNestingInjectingParametersValueSource.Inner.name}'."
+        })
+    }
+
     def "describable value source provides source information of missing value"() {
         given:
         def provider = createProviderOf(NullValueSourceWithDisplayName) {}
@@ -258,6 +342,58 @@ The value of this provider is derived from: nullValueSource""")
         @Override
         String getDisplayName() {
             "echo(${getParameters().value.orElse('?').get()})"
+        }
+    }
+
+    static abstract class InjectingParametersValueSource implements ValueSource<String, Parameters> {
+
+        interface Parameters extends ValueSourceParameters {
+            @Inject
+            ObjectFactory getObjects()
+        }
+
+        @Override
+        String obtain() {
+            return getParameters().getObjects().getClass().name
+        }
+    }
+
+    static abstract class NestedInjectingParametersValueSource implements ValueSource<String, Parameters> {
+
+        interface Inner {
+            @Inject
+            ObjectFactory getObjects()
+        }
+
+        interface Parameters extends ValueSourceParameters {
+            @Nested
+            Inner getInner()
+        }
+
+        @Override
+        String obtain() {
+            return getParameters().getInner().getObjects().getClass().name
+        }
+    }
+
+    static abstract class SelfNestingInjectingParametersValueSource implements ValueSource<String, Parameters> {
+
+        interface Inner {
+            @Nested
+            Inner getInner()
+
+            @Inject
+            ObjectFactory getObjects()
+        }
+
+        interface Parameters extends ValueSourceParameters {
+            @Nested
+            Inner getInner()
+        }
+
+        @Override
+        String obtain() {
+            return getParameters().getInner().getObjects().getClass().name
         }
     }
 

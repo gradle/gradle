@@ -43,6 +43,12 @@ public interface InstantiationScheme {
     InstantiationScheme withServices(ServiceLookup services);
 
     /**
+     * Creates a new {@link InstantiationScheme} which consults the given policy on every
+     * {@link #forType(Class)}, based on this scheme.
+     */
+    InstantiationScheme withInjectedServicesPolicy(InjectedServicesPolicy policy);
+
+    /**
      * Returns the instantiator which creates instances using a default set of services, based on the configuration of this scheme.
      */
     InstanceGenerator instantiator();
