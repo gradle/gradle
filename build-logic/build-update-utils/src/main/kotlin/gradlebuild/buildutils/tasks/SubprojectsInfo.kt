@@ -83,7 +83,8 @@ abstract class SubprojectsInfo : DefaultTask() {
             rootPath.relativize(subprojectDir.toPath()).invariantSeparatorsPathString,
             subprojectDir.hasDescendantDirWithFiles("src/test"),
             subprojectDir.hasDescendantDirWithFiles("src/integTest"),
-            subprojectDir.hasDescendantDirWithFiles("src/crossVersionTest")
+            subprojectDir.hasDescendantDirWithFiles("src/crossVersionTest"),
+            FlakyCrossVersionTestDetector.hasFlakyCrossVersionTest(subprojectDir)
         )
     }
 

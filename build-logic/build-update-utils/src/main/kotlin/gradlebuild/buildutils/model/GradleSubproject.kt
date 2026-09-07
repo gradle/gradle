@@ -17,4 +17,14 @@
 package gradlebuild.buildutils.model
 
 
-data class GradleSubproject(val name: String, val path: String, val unitTests: Boolean, val functionalTests: Boolean, val crossVersionTests: Boolean)
+data class GradleSubproject(
+    val name: String,
+    val path: String,
+    val unitTests: Boolean,
+    val functionalTests: Boolean,
+    val crossVersionTests: Boolean,
+    /**
+     * Whether this subproject has a cross-version test that `-PflakyTests=ONLY` could select.
+     */
+    val flakyCrossVersionTests: Boolean,
+)

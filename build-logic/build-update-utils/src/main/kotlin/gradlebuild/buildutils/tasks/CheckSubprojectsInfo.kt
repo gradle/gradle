@@ -28,7 +28,8 @@ abstract class CheckSubprojectsInfo : SubprojectsInfo() {
     fun checkSubprojectsInfo() {
         if (subprojectsJson.asFile.readText() != generateSubprojectsJson()) {
             throw GradleException(
-                "New project(s) added without updating subproject JSON. Please run `:${GenerateSubprojectsInfo.TASK_NAME}` task."
+                "subprojects.json is out of date (new project or stale flakyCrossVersionTests). " +
+                    "Please run `:${GenerateSubprojectsInfo.TASK_NAME}` task."
             )
         }
     }

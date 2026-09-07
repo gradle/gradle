@@ -3,6 +3,8 @@ import common.JvmVersion
 import common.Os
 import common.VersionedSettingsBranch
 import configurations.BaseGradleBuildType
+import configurations.FlakyTestQuarantine
+import configurations.FlakyTestQuarantineProject
 import configurations.StageTrigger
 import configurations.stageWithOsTriggers
 import jetbrains.buildServer.configs.kotlin.DslContext
@@ -233,6 +235,11 @@ class CIConfigIntegrationTests {
                     File(dir, "src/crossVersionTest").isDirectory,
                     "${it.name}'s crossVersionTests is wrong!",
                 )
+                assertEquals(
+                    it.flakyCrossVersionTests,
+                    hasFlakyCrossVersionTest(dir),
+                    "${it.name}'s flakyCrossVersionTests is wrong!",
+                )
             }
     }
 
@@ -252,6 +259,57 @@ class CIConfigIntegrationTests {
         assertFalse(projectFoldersWithUnitTests.isEmpty())
         projectFoldersWithUnitTests.forEach {
             assertTrue(projectDirsWithUnitTests.contains(it), "Contains unit tests: $it")
+        }
+    }
+
+    private fun hasFlakyCrossVersionTest(projectDir: File): Boolean {
+        val dir = File(projectDir, "src/crossVersionTest")
+        if (!dir.isDirectory) {
+            return false
+        }
+        return dir.walk().filter { it.isFile && it.extension in setOf("groovy", "java", "kt") }.any { file ->
+            file.useLines { lines -> lines.any { "@Flaky" in it || "org.gradle.test.fixtures.Flaky" in it } }
+        }
+    }
+
+    @Test
+    fun flakyQuarantineCrossVersionBuildsOnlyScheduleSubprojectsWithFlakyTests() {
+        val quarantineProjects =
+            rootProject.subProjects
+                .filterIsInstance<StageProject>()
+                .flatMap { it.subProjects }
+                .filterIsInstance<FlakyTestQuarantineProject>()
+        assertFalse(quarantineProjects.isEmpty())
+
+        val expectedAllVersions =
+            model.subprojects.subprojects
+                .filter { it.flakyCrossVersionTests }
+                .joinToString(" ") { ":${it.name}:allVersionsCrossVersionTest" }
+        val expectedQuickFeedback =
+            model.subprojects.subprojects
+                .filter { it.flakyCrossVersionTests }
+                .joinToString(" ") { ":${it.name}:quickFeedbackCrossVersionTest" }
+        assertTrue(expectedAllVersions.isNotEmpty(), "Expected at least one subproject with flaky cross-version tests")
+
+        quarantineProjects.forEach { project ->
+            project.buildTypes.filterIsInstance<FlakyTestQuarantine>().forEach { buildType ->
+                val step =
+                    buildType.steps.items
+                        .filterIsInstance<GradleBuildStep>()
+                        .first { it.name.startsWith("FLAKY_TEST_QUARANTINE_") }
+                when {
+                    step.name.contains("ALL_VERSIONS_CROSS_VERSION") ->
+                        assertTrue(
+                            step.tasks!!.contains(expectedAllVersions),
+                            "${buildType.name} tasks: ${step.tasks}",
+                        )
+                    step.name.contains("QUICK_FEEDBACK_CROSS_VERSION") ->
+                        assertTrue(
+                            step.tasks!!.contains(expectedQuickFeedback),
+                            "${buildType.name} tasks: ${step.tasks}",
+                        )
+                }
+            }
         }
     }
 
