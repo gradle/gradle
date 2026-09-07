@@ -1,0 +1,173 @@
+{
+  "gradleHead": "080019473b916e9dc0ca413071f836a4fc867bd3",
+  "baselineZipSha256": "37b6ddc14b9dcf089f8f2e7dc152a377a48a57bb99c6aaa8406aca4b346eed16",
+  "candidateZipSha256": "1f4329585aa4e7409446e2de133bcab0f399c639b38d9e52ce4359a350017a44",
+  "workloadHashes": {
+    "build.gradle": "e56de751fa37a5105f06f59e378323e1cc9f1a7fcbb95339ba7a3681e10f8244",
+    "settings.gradle": "7a446c2314df8ed4aac7d5eac63b84294e0d1ac8fdfe9e06550bde93992d1c6e"
+  },
+  "runnerSha256": "a79c8aa4dc4d13503e0ad9bc2ef304520eee9471e8d82152f42457ed442f5d3d",
+  "java": "Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal\nopenjdk version \"25.0.4\" 2026-07-21\nOpenJDK Runtime Environment (build 25.0.4+7-1-26.04-Ubuntu)\nOpenJDK 64-Bit Server VM (build 25.0.4+7-1-26.04-Ubuntu, mixed mode, sharing)\n",
+  "platform": "Linux-7.0.12-aarch64-with-glibc2.43",
+  "daemonJvmArgs": "-Xms256m -Xmx256m -XX:+UseSerialGC",
+  "forks": 2,
+  "warmupsPerDaemon": 3,
+  "measurementsPerDaemon": 3,
+  "tasks": [
+    "help",
+    "verifyProvenanceSmoke"
+  ],
+  "note": "Client wall time, including startup/communication. Per-daemon summaries only; not a production regression threshold test.",
+  "runs": [
+    {
+      "variant": "baseline",
+      "fork": 0,
+      "warmupSeconds": [
+        2.4521135429968126,
+        0.38634799999999814,
+        0.34963945898925886
+      ],
+      "measurementSeconds": [
+        0.33925016698776744,
+        0.32671920899883844,
+        0.3296812909829896
+      ],
+      "outputSha256": [
+        "6ff52ab0cd60c99af0ab77b3afc616a81fbe25a6a6e36dbdc7409847b0438760",
+        "c205c8c4dddb5c9293d306e6d510527c00035e838b0853b03c0a767a511ff7a9",
+        "090f29dbb66576a71cc084fd59af98e3a6f858f9cc87e3b58aa6ff7f79a61bc9",
+        "710e6c9e9b613beaf44e45e631b39e231c0ab292edbf7b1161932c1e864cfb68",
+        "2f91117aa79568f21c7b63e048933f6b9ec719f2ae4c49a9b376a670c864fb4b",
+        "8e06410179a56cc51f865bd99c6ae620ddc4347398594563e71f5e0010a90ebc"
+      ],
+      "daemonLogs": [
+        "daemon-527231.out.log"
+      ]
+    },
+    {
+      "variant": "disabled",
+      "fork": 0,
+      "warmupSeconds": [
+        2.4463041679991875,
+        0.41088241699617356,
+        0.34687024998129345
+      ],
+      "measurementSeconds": [
+        0.324272750003729,
+        0.3264777500007767,
+        0.3262232079869136
+      ],
+      "outputSha256": [
+        "6ff52ab0cd60c99af0ab77b3afc616a81fbe25a6a6e36dbdc7409847b0438760",
+        "b92f7999eba27683128c9cac2e50d9d8f181aeaa24035c6c31b499b4b9a7c8aa",
+        "0118357fcc489d97959b4c9f06736e3935482f44d94e21fd73f058d679d66686",
+        "70467f2af9a0561078481a9b6681c9057ac79671400ceaf36681c07776b1547e",
+        "8e06410179a56cc51f865bd99c6ae620ddc4347398594563e71f5e0010a90ebc",
+        "6e75623517d8e2cc2e60afc19ec11d86ffe8f0cb7d13c7e9e774037760209c54"
+      ],
+      "daemonLogs": [
+        "daemon-527646.out.log"
+      ]
+    },
+    {
+      "variant": "origins",
+      "fork": 0,
+      "warmupSeconds": [
+        2.4153991259809118,
+        0.3831754589919001,
+        0.3453507499943953
+      ],
+      "measurementSeconds": [
+        0.33852437502355315,
+        0.32420129200909287,
+        0.33096654200926423
+      ],
+      "outputSha256": [
+        "6ff52ab0cd60c99af0ab77b3afc616a81fbe25a6a6e36dbdc7409847b0438760",
+        "78ca5ae220e686d7ae6ac4af91a80c60ebb74ee2026daf885e5bc0eef601d103",
+        "6ebd374960c24a83450663cdd5920ffe8026027c2b6e69bb557033c5b88e3c12",
+        "710e6c9e9b613beaf44e45e631b39e231c0ab292edbf7b1161932c1e864cfb68",
+        "8a3da0e48d3a30423f3206e39ada740b9db30489918e6cc5d7166400274e0deb",
+        "69b9fd81824c503284a3a23c9738bd30e7d562cb4bd3c8c5804543a9d1ca9509"
+      ],
+      "daemonLogs": [
+        "daemon-528075.out.log"
+      ]
+    },
+    {
+      "variant": "disabled",
+      "fork": 1,
+      "warmupSeconds": [
+        2.4308130009740125,
+        0.41375566701753996,
+        0.3449849169992376
+      ],
+      "measurementSeconds": [
+        0.3637372509983834,
+        0.3477584579959512,
+        0.3277423749968875
+      ],
+      "outputSha256": [
+        "6ff52ab0cd60c99af0ab77b3afc616a81fbe25a6a6e36dbdc7409847b0438760",
+        "6700e1a48c64f448b4802f31749a9e311993dedd33ddd13ff591282aac8f54ae",
+        "d1f85d7cbc0e4cfc73c087027da734ead8f0299d8220bf682f5ec65c95b354be",
+        "90797a89f5dd8e5870de2c1ebc49eb884a0db412ba0d17c4a716dafb3bccce0f",
+        "8b1846d012b9c7d7d333fb9aaf265d13fa1c9f52ea939a22f8c083f91ffc2b24",
+        "8e06410179a56cc51f865bd99c6ae620ddc4347398594563e71f5e0010a90ebc"
+      ],
+      "daemonLogs": [
+        "daemon-528492.out.log"
+      ]
+    },
+    {
+      "variant": "origins",
+      "fork": 1,
+      "warmupSeconds": [
+        2.4812557930126786,
+        0.41044733399758115,
+        0.3453704160056077
+      ],
+      "measurementSeconds": [
+        0.3323383759998251,
+        0.32487804102129303,
+        0.3423310839862097
+      ],
+      "outputSha256": [
+        "6ff52ab0cd60c99af0ab77b3afc616a81fbe25a6a6e36dbdc7409847b0438760",
+        "b92f7999eba27683128c9cac2e50d9d8f181aeaa24035c6c31b499b4b9a7c8aa",
+        "090f29dbb66576a71cc084fd59af98e3a6f858f9cc87e3b58aa6ff7f79a61bc9",
+        "391cf3fc26ad66b04a3c19c87372557a0e2fe913f0317a6a0ae4d3efa92f6da5",
+        "349deda8734fcd4b816e2499e5dcb8dc6a9486e99204d4d3ffa942929a951ae8",
+        "80fe5b9e4d321920fa02197424a658ab9a578d5c6fefb5009a4258a3d13fd0ab"
+      ],
+      "daemonLogs": [
+        "daemon-528909.out.log"
+      ]
+    },
+    {
+      "variant": "baseline",
+      "fork": 1,
+      "warmupSeconds": [
+        2.514376418024767,
+        0.42516308298218064,
+        0.34985883400077
+      ],
+      "measurementSeconds": [
+        0.3523437499825377,
+        0.3600234590121545,
+        0.3515324580075685
+      ],
+      "outputSha256": [
+        "6ff52ab0cd60c99af0ab77b3afc616a81fbe25a6a6e36dbdc7409847b0438760",
+        "b8a56c38394278d625c1702bcdcee63f86c96cc31e64138e5257fdb3795ce7e9",
+        "8b1846d012b9c7d7d333fb9aaf265d13fa1c9f52ea939a22f8c083f91ffc2b24",
+        "0c02d0599c044d7392e6a040be93391536e225e77b9bf19f01ddec5cfbe28385",
+        "a6d86a59080b6083b724bc70caf499f457f575a5ecdde9bdc82d368f587420f5",
+        "63f1e99c42a0be2e4da0ef87f19488b49958fdc474c6e6282d6ce6c505cc5793"
+      ],
+      "daemonLogs": [
+        "daemon-529327.out.log"
+      ]
+    }
+  ]
+}

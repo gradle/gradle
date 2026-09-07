@@ -1,0 +1,3 @@
+// Copyright 2026 Gradle and contributors.
+// Licensed under the Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0).
+rootProject.name = 'provenance-smoke'

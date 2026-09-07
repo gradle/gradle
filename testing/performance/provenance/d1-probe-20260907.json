@@ -1,0 +1,3999 @@
+{
+  "gradleHead": "080019473b916e9dc0ca413071f836a4fc867bd3",
+  "baselineZipSha256": "37b6ddc14b9dcf089f8f2e7dc152a377a48a57bb99c6aaa8406aca4b346eed16",
+  "platform": "Linux-7.0.12-aarch64-with-glibc2.43",
+  "machine": "aarch64",
+  "java": "Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal\nopenjdk version \"25.0.4\" 2026-07-21\nOpenJDK Runtime Environment (build 25.0.4+7-1-26.04-Ubuntu)\nOpenJDK 64-Bit Server VM (build 25.0.4+7-1-26.04-Ubuntu, mixed mode, sharing)\n",
+  "jvmOptions": [
+    "-Xms256m",
+    "-Xmx256m",
+    "-XX:+UseSerialGC"
+  ],
+  "warmupBatches": 5,
+  "measurementBatches": 5,
+  "forks": 3,
+  "registrySourceSha256": "0a34850fd67b7f2ad253492c025d0bf952a3ac041d0821207b8deb7387da7611",
+  "sourceHashes": {
+    "AttributionBaselineProbe.java": "d2557b01a405955a9204f78a008dc1e9f3920c21bc8d5418a309507790d29f47",
+    "AttributionEnabledProbe.java": "dec27a8127e37ea0740e08a14b4f7b861fccff32338cda10ba71978bf122d066",
+    "EffectiveBaselineProbe.java": "5ea8529ec3bb55ea38f56d1082529c02b52275967543f691c4d456d3653dbdfb",
+    "EffectiveEnabledProbe.java": "57dce938dddbc323a75c4774e629f1415ac3bf67124c9d3ee10612bdf9a96fa3",
+    "ProvenanceAllocationProbe.java": "11be8885f62fd632e3617e4d0f154cf6e7ae9ea8c69d5ae149f44992fa1931a2",
+    "SharedMetadataAllocationProbe.java": "69941e340f180fd73a18469fe2e28c08a4b7ad5e28f4d7fbe33f073b7bc55288"
+  },
+  "classifierSha256": "854b242d9c325574f63721487a476a50128ba6e59f631556f6fdba21020aefa5",
+  "metadataSourceHashes": {
+    "Attribution.java": "20ac33a64d3ce2dec5481ba270787e95fb713b89d5175f1045b1fb3581610ac9",
+    "ContributorKey.java": "cf2f8b29575d281a92cb5385612da549c9fc422fde2a16ae992375c4975db6e2",
+    "DiagnosticOrigin.java": "a844a5b2c5e4d1b5f81ccdb112fcaea6bb2dff534f12291b04fd4a3831212435",
+    "EffectiveProvenanceView.java": "1ab2f2a91996c3308e52ddd358f080d26b935e4be467419ad3fd7150ae267088",
+    "FailedOperation.java": "305d98e1f306863618c23f1626446128a7c8ca83d958c25d2988fe563ec2a415",
+    "MutationOccurrence.java": "c8abf5e8837a5a62b6fcc1b589361e919a14b16e725b8769b504733b91fc835e",
+    "OrdinaryProvenanceState.java": "8dac5dc020e063ee7a63da576f0a280be2ddbd024c5579c030097bec20e7a9f1",
+    "ProvenanceRenderer.java": "587341e3376bc72a7cec0cc5618c94744fae13eceacd48ebf6ae24ff05623db0",
+    "ScopeIdentity.java": "02069dc3562c605c3863f1ed735da2dd718a5b72a6eb118b5dfc42642baf5d16",
+    "SemanticOperation.java": "73e442b7db85642f435eb29b1acedd587a9cd4cfb0a1c149bc065316d3dcce23",
+    "TargetContext.java": "960c438e99065386c39a24312bc2c2f3442b87d8d66a93bf0e9a952a84d3bdfd",
+    "UpdateSequence.java": "b9f616b6ed76f134efd4a57b4a0682322f3ad82c67b0a0d744c029d21a9357aa",
+    "package-info.java": "8f7cf1fcf8408ecade61407bbc439ff15e5fdca30ce13dc7a50490eb91466495"
+  },
+  "integrationSourceHashes": {
+    "AttributedProperty": "b3f685cb284f005c52176ba71b48ab878f8634a7759c2a589820caaed180c191",
+    "ProvenanceSnapshot": "ab609d063be9d8cb6c34cd03f0867e27eff55ee1f57126cb41bea7695bdc94fc",
+    "PropertyProvenanceHost": "63da2db69e6db89721d1b13fff4bc90d66f6786803f9e9eabd222485f4957cc4",
+    "PropertyUpdateClassifier": "854b242d9c325574f63721487a476a50128ba6e59f631556f6fdba21020aefa5",
+    "DiagnosticProperty": "c7f66f5a64efd870c02283b93ff6a5eb0397e7cb0aef9ef11dcd30efe5515804",
+    "DiagnosticProvenanceSnapshot": "e78a420843f05d771e5dd910a9bbccbdc8b99f35a973d6b77bd71bab5bf3e5d1",
+    "PropertyProvenanceDiagnostics": "f12610732b8b1c1eb990741583dabe48a109567ad14e1404e31fb6488d5fc345"
+  },
+  "runs": [
+    {
+      "variant": "baseline",
+      "fork": 0,
+      "samples": [
+        {
+          "layout": "property",
+          "shallowBytes": 40
+        },
+        {
+          "workload": "binding",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 236209
+        },
+        {
+          "workload": "binding",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 184459
+        },
+        {
+          "workload": "binding",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 171208
+        },
+        {
+          "workload": "binding",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 178458
+        },
+        {
+          "workload": "binding",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 175041
+        },
+        {
+          "workload": "copy",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 65375
+        },
+        {
+          "workload": "copy",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 245072,
+          "nanos": 713084
+        },
+        {
+          "workload": "copy",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 75500
+        },
+        {
+          "workload": "copy",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 74834
+        },
+        {
+          "workload": "copy",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 70000
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 1016292
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 879500
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 652709
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 431417
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 442917
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 320500
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 277625
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 272958
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 274042
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 278000
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 298500
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 134041
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 146792
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 121333
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 118917
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 560792
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 256625
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 265125
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 264041
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 273625
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 0,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 159000
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 1,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 142042
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 2,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 171334
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 3,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 178292
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 4,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 143916
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 0,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 144208
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 1,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 64833
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 2,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 65500
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 3,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 76125
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 4,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 71750
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 0,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 304292
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 1,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 277833
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 2,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 255917
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 3,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 244917
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 4,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 253750
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 668625
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 682458
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 634458
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 618625
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 600000
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 737125
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 1296056,
+          "nanos": 754584
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 731333
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 702625
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 707000
+        }
+      ]
+    },
+    {
+      "variant": "compiled-in",
+      "fork": 0,
+      "samples": [
+        {
+          "layout": "property",
+          "shallowBytes": 40
+        },
+        {
+          "workload": "binding",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 228542
+        },
+        {
+          "workload": "binding",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 178084
+        },
+        {
+          "workload": "binding",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 218916
+        },
+        {
+          "workload": "binding",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 187333
+        },
+        {
+          "workload": "binding",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 201583
+        },
+        {
+          "workload": "copy",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 78000
+        },
+        {
+          "workload": "copy",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 91083
+        },
+        {
+          "workload": "copy",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 91000
+        },
+        {
+          "workload": "copy",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 85792
+        },
+        {
+          "workload": "copy",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 77625
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 489542
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 300208
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 152834
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 152417
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 152792
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 201167
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 183333
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 196500
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 179500
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 242208
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 135209
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 161542
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 130709
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 133333
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 134542
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 590208
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 286041
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 260625
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 269250
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 261875
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 0,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 146583
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 1,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 140875
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 2,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 136375
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 3,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 168000
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 4,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 133916
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 0,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 102167
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 1,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 80750
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 2,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 84833
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 3,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 86000
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 4,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 86625
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 0,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 254084
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 1,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 247417
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 2,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 257083
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 3,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 265583
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 4,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 251709
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 632208
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 665125
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 619417
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 608459
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 576000
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 842584
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 871500
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 870291
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 1296056,
+          "nanos": 886083
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 837333
+        }
+      ]
+    },
+    {
+      "variant": "enabled",
+      "fork": 0,
+      "samples": [
+        {
+          "layout": "property",
+          "shallowBytes": 48
+        },
+        {
+          "workload": "binding",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 263875
+        },
+        {
+          "workload": "binding",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 261584
+        },
+        {
+          "workload": "binding",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 241667
+        },
+        {
+          "workload": "binding",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 239041
+        },
+        {
+          "workload": "binding",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 241125
+        },
+        {
+          "workload": "copy",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 400000,
+          "nanos": 72666
+        },
+        {
+          "workload": "copy",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 400000,
+          "nanos": 70250
+        },
+        {
+          "workload": "copy",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 400000,
+          "nanos": 74167
+        },
+        {
+          "workload": "copy",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 400000,
+          "nanos": 71709
+        },
+        {
+          "workload": "copy",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 400376,
+          "nanos": 94625
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 4966912,
+          "nanos": 1629083
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 4480000,
+          "nanos": 1213834
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 4480000,
+          "nanos": 1300166
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 4480000,
+          "nanos": 1112167
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 4480000,
+          "nanos": 2794458
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 2480000,
+          "nanos": 1121791
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 2480000,
+          "nanos": 1086334
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 2480000,
+          "nanos": 1113958
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 2480000,
+          "nanos": 1095333
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 2480000,
+          "nanos": 1035750
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 2880000,
+          "nanos": 288875
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 2880000,
+          "nanos": 287834
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 2880000,
+          "nanos": 298583
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 2880000,
+          "nanos": 284792
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 2880000,
+          "nanos": 303500
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 4560000,
+          "nanos": 1212791
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 4560000,
+          "nanos": 1201334
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 4560000,
+          "nanos": 837583
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 4560000,
+          "nanos": 327291
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 4560000,
+          "nanos": 329625
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 0,
+          "repetitions": 1250,
+          "allocatedBytes": 2040000,
+          "nanos": 175583
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 1,
+          "repetitions": 1250,
+          "allocatedBytes": 2040000,
+          "nanos": 169083
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 2,
+          "repetitions": 1250,
+          "allocatedBytes": 2040000,
+          "nanos": 178333
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 3,
+          "repetitions": 1250,
+          "allocatedBytes": 2040000,
+          "nanos": 165042
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 4,
+          "repetitions": 1250,
+          "allocatedBytes": 2040000,
+          "nanos": 167375
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 0,
+          "repetitions": 78,
+          "allocatedBytes": 1699776,
+          "nanos": 149875
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 1,
+          "repetitions": 78,
+          "allocatedBytes": 1699776,
+          "nanos": 180042
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 2,
+          "repetitions": 78,
+          "allocatedBytes": 1699776,
+          "nanos": 200917
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 3,
+          "repetitions": 78,
+          "allocatedBytes": 1699776,
+          "nanos": 167458
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 4,
+          "repetitions": 78,
+          "allocatedBytes": 1699776,
+          "nanos": 155000
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 0,
+          "repetitions": 10,
+          "allocatedBytes": 6884160,
+          "nanos": 508708
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 1,
+          "repetitions": 10,
+          "allocatedBytes": 6884160,
+          "nanos": 514125
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 2,
+          "repetitions": 10,
+          "allocatedBytes": 6884160,
+          "nanos": 548542
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 3,
+          "repetitions": 10,
+          "allocatedBytes": 6884160,
+          "nanos": 588208
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 4,
+          "repetitions": 10,
+          "allocatedBytes": 6884160,
+          "nanos": 640750
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 4840000,
+          "nanos": 1377125
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 4840000,
+          "nanos": 1368125
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 4809344,
+          "nanos": 1312625
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 4776000,
+          "nanos": 1333084
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 4776000,
+          "nanos": 1334458
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 4848000,
+          "nanos": 1984667
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 4848000,
+          "nanos": 2269042
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 4848000,
+          "nanos": 1931041
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 4848056,
+          "nanos": 2019834
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 4848000,
+          "nanos": 1984833
+        },
+        {
+          "layout": "ordinary provenance state",
+          "shallowBytes": 48
+        },
+        {
+          "workload": "requested formatting 0 updates",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 1480000,
+          "nanos": 321333
+        },
+        {
+          "workload": "requested formatting 0 updates",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 1480000,
+          "nanos": 314459
+        },
+        {
+          "workload": "requested formatting 0 updates",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 1480000,
+          "nanos": 334834
+        },
+        {
+          "workload": "requested formatting 0 updates",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 1480000,
+          "nanos": 341416
+        },
+        {
+          "workload": "requested formatting 0 updates",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 1480000,
+          "nanos": 331083
+        },
+        {
+          "workload": "requested formatting 8 updates",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 6592000,
+          "nanos": 2293417
+        },
+        {
+          "workload": "requested formatting 8 updates",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 6592000,
+          "nanos": 1864958
+        },
+        {
+          "workload": "requested formatting 8 updates",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 6592000,
+          "nanos": 1895084
+        },
+        {
+          "workload": "requested formatting 8 updates",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 6592000,
+          "nanos": 1874000
+        },
+        {
+          "workload": "requested formatting 8 updates",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 6592000,
+          "nanos": 1871917
+        },
+        {
+          "workload": "requested formatting 4096 updates",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 44792000,
+          "nanos": 9666125
+        },
+        {
+          "workload": "requested formatting 4096 updates",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 50969600,
+          "nanos": 12055042
+        },
+        {
+          "workload": "requested formatting 4096 updates",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 52712000,
+          "nanos": 11423917
+        },
+        {
+          "workload": "requested formatting 4096 updates",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 52712000,
+          "nanos": 12301208
+        },
+        {
+          "workload": "requested formatting 4096 updates",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 52712000,
+          "nanos": 12372000
+        },
+        {
+          "retention": "metadata",
+          "unwantedReferences": 0
+        },
+        {
+          "retention": "copy",
+          "unwantedReferences": 0
+        },
+        {
+          "retention": "finalization",
+          "unwantedReferences": 0
+        }
+      ]
+    },
+    {
+      "variant": "compiled-in",
+      "fork": 1,
+      "samples": [
+        {
+          "layout": "property",
+          "shallowBytes": 40
+        },
+        {
+          "workload": "binding",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 277416
+        },
+        {
+          "workload": "binding",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 192958
+        },
+        {
+          "workload": "binding",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 230417
+        },
+        {
+          "workload": "binding",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 206625
+        },
+        {
+          "workload": "binding",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 205541
+        },
+        {
+          "workload": "copy",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 98375
+        },
+        {
+          "workload": "copy",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 95833
+        },
+        {
+          "workload": "copy",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 90042
+        },
+        {
+          "workload": "copy",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 96458
+        },
+        {
+          "workload": "copy",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 92750
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 449833
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 385958
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 228000
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 228334
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 229750
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 270750
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 265625
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 255791
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 273667
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 273333
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 302125
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 122875
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 122250
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 126000
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 122042
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 461834
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 428958
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 436875
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 427792
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 445542
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 0,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 248125
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 1,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 271167
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 2,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 247917
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 3,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 261834
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 4,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 252916
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 0,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 123917
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 1,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 78917
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 2,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 80500
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 3,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 93042
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 4,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 79292
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 0,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 304666
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 1,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 310417
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 2,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 325209
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 3,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 306250
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 4,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 300000
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 710167
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 724792
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 695166
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 703625
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 684084
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 1063208
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 1052000
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 1296056,
+          "nanos": 1302584
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 1134917
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 1100750
+        }
+      ]
+    },
+    {
+      "variant": "enabled",
+      "fork": 1,
+      "samples": [
+        {
+          "layout": "property",
+          "shallowBytes": 48
+        },
+        {
+          "workload": "binding",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 358708
+        },
+        {
+          "workload": "binding",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 356042
+        },
+        {
+          "workload": "binding",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 318833
+        },
+        {
+          "workload": "binding",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 316375
+        },
+        {
+          "workload": "binding",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 283167
+        },
+        {
+          "workload": "copy",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 400000,
+          "nanos": 112917
+        },
+        {
+          "workload": "copy",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 400000,
+          "nanos": 112750
+        },
+        {
+          "workload": "copy",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 400000,
+          "nanos": 78167
+        },
+        {
+          "workload": "copy",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 400000,
+          "nanos": 82416
+        },
+        {
+          "workload": "copy",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 400000,
+          "nanos": 77041
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 5120000,
+          "nanos": 2055375
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 4752320,
+          "nanos": 1483916
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 4480000,
+          "nanos": 1128875
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 4480000,
+          "nanos": 1075125
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 4480000,
+          "nanos": 3327083
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 2480000,
+          "nanos": 1099667
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 2480000,
+          "nanos": 1067875
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 2480000,
+          "nanos": 1105416
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 2480000,
+          "nanos": 1054708
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 2480000,
+          "nanos": 572500
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 2880000,
+          "nanos": 281000
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 2880000,
+          "nanos": 279000
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 2880000,
+          "nanos": 280167
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 2880000,
+          "nanos": 281291
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 2880000,
+          "nanos": 279375
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 4560000,
+          "nanos": 410667
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 4560000,
+          "nanos": 418666
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 4560000,
+          "nanos": 406917
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 4560000,
+          "nanos": 399000
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 4560000,
+          "nanos": 400292
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 0,
+          "repetitions": 1250,
+          "allocatedBytes": 2040000,
+          "nanos": 173291
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 1,
+          "repetitions": 1250,
+          "allocatedBytes": 2040000,
+          "nanos": 166708
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 2,
+          "repetitions": 1250,
+          "allocatedBytes": 2040000,
+          "nanos": 157458
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 3,
+          "repetitions": 1250,
+          "allocatedBytes": 2040000,
+          "nanos": 158042
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 4,
+          "repetitions": 1250,
+          "allocatedBytes": 2040000,
+          "nanos": 158459
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 0,
+          "repetitions": 78,
+          "allocatedBytes": 1699776,
+          "nanos": 158708
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 1,
+          "repetitions": 78,
+          "allocatedBytes": 1699776,
+          "nanos": 159625
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 2,
+          "repetitions": 78,
+          "allocatedBytes": 1699776,
+          "nanos": 160583
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 3,
+          "repetitions": 78,
+          "allocatedBytes": 1699776,
+          "nanos": 139500
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 4,
+          "repetitions": 78,
+          "allocatedBytes": 1699776,
+          "nanos": 153083
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 0,
+          "repetitions": 10,
+          "allocatedBytes": 6884160,
+          "nanos": 535792
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 1,
+          "repetitions": 10,
+          "allocatedBytes": 6884160,
+          "nanos": 519291
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 2,
+          "repetitions": 10,
+          "allocatedBytes": 6884160,
+          "nanos": 522084
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 3,
+          "repetitions": 10,
+          "allocatedBytes": 6884160,
+          "nanos": 524208
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 4,
+          "repetitions": 10,
+          "allocatedBytes": 6884160,
+          "nanos": 528500
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 4844224,
+          "nanos": 1778125
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 4840000,
+          "nanos": 1357375
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 4840000,
+          "nanos": 1578583
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 4785344,
+          "nanos": 1289792
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 4776000,
+          "nanos": 1267500
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 4848000,
+          "nanos": 1762750
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 4848000,
+          "nanos": 2236875
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 4848000,
+          "nanos": 1739917
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 4848056,
+          "nanos": 1730625
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 4848000,
+          "nanos": 1681625
+        },
+        {
+          "layout": "ordinary provenance state",
+          "shallowBytes": 48
+        },
+        {
+          "workload": "requested formatting 0 updates",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 1480000,
+          "nanos": 318292
+        },
+        {
+          "workload": "requested formatting 0 updates",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 1480000,
+          "nanos": 333958
+        },
+        {
+          "workload": "requested formatting 0 updates",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 1480000,
+          "nanos": 323083
+        },
+        {
+          "workload": "requested formatting 0 updates",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 1480000,
+          "nanos": 333000
+        },
+        {
+          "workload": "requested formatting 0 updates",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 1480000,
+          "nanos": 312250
+        },
+        {
+          "workload": "requested formatting 8 updates",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 6592000,
+          "nanos": 2281625
+        },
+        {
+          "workload": "requested formatting 8 updates",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 6592000,
+          "nanos": 1912500
+        },
+        {
+          "workload": "requested formatting 8 updates",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 6592000,
+          "nanos": 1896958
+        },
+        {
+          "workload": "requested formatting 8 updates",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 6592000,
+          "nanos": 1902833
+        },
+        {
+          "workload": "requested formatting 8 updates",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 6592000,
+          "nanos": 1906542
+        },
+        {
+          "workload": "requested formatting 4096 updates",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 44840000,
+          "nanos": 9826334
+        },
+        {
+          "workload": "requested formatting 4096 updates",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 44840000,
+          "nanos": 9826792
+        },
+        {
+          "workload": "requested formatting 4096 updates",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 52507400,
+          "nanos": 11868959
+        },
+        {
+          "workload": "requested formatting 4096 updates",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 52640000,
+          "nanos": 12106750
+        },
+        {
+          "workload": "requested formatting 4096 updates",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 52640000,
+          "nanos": 12690208
+        },
+        {
+          "retention": "metadata",
+          "unwantedReferences": 0
+        },
+        {
+          "retention": "copy",
+          "unwantedReferences": 0
+        },
+        {
+          "retention": "finalization",
+          "unwantedReferences": 0
+        }
+      ]
+    },
+    {
+      "variant": "baseline",
+      "fork": 1,
+      "samples": [
+        {
+          "layout": "property",
+          "shallowBytes": 40
+        },
+        {
+          "workload": "binding",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 230667
+        },
+        {
+          "workload": "binding",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 201792
+        },
+        {
+          "workload": "binding",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 172917
+        },
+        {
+          "workload": "binding",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 173709
+        },
+        {
+          "workload": "binding",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 173209
+        },
+        {
+          "workload": "copy",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 92291
+        },
+        {
+          "workload": "copy",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 73000
+        },
+        {
+          "workload": "copy",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 72833
+        },
+        {
+          "workload": "copy",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 79958
+        },
+        {
+          "workload": "copy",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 73042
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 765708
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 737583
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 809625
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 349917
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 298541
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 185167
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 183667
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 178125
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 174375
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 178625
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 141792
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 135875
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 130667
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 134583
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 129958
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 564041
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 282291
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 266292
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 256500
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 332917
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 0,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 151208
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 1,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 155917
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 2,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 185417
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 3,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 147625
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 4,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 140708
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 0,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 97167
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 1,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 76250
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 2,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 65167
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 3,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 71167
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 4,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 63375
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 0,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 269625
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 1,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 260417
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 2,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 293958
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 3,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 258583
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 4,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 268875
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 623667
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 632417
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 615916
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 597750
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 596792
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 930792
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 923875
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 1024542
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 1296056,
+          "nanos": 936709
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 906209
+        }
+      ]
+    },
+    {
+      "variant": "enabled",
+      "fork": 2,
+      "samples": [
+        {
+          "layout": "property",
+          "shallowBytes": 48
+        },
+        {
+          "workload": "binding",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 270291
+        },
+        {
+          "workload": "binding",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 267125
+        },
+        {
+          "workload": "binding",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 282209
+        },
+        {
+          "workload": "binding",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 252042
+        },
+        {
+          "workload": "binding",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 245666
+        },
+        {
+          "workload": "copy",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 400000,
+          "nanos": 77292
+        },
+        {
+          "workload": "copy",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 400000,
+          "nanos": 78500
+        },
+        {
+          "workload": "copy",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 400000,
+          "nanos": 89917
+        },
+        {
+          "workload": "copy",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 400000,
+          "nanos": 75042
+        },
+        {
+          "workload": "copy",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 400000,
+          "nanos": 96625
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 5120000,
+          "nanos": 1645791
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 5120000,
+          "nanos": 1687959
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 5120000,
+          "nanos": 1615500
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 4581760,
+          "nanos": 848542
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 4480000,
+          "nanos": 2408875
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 2480000,
+          "nanos": 1078458
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 2480000,
+          "nanos": 1098834
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 2480000,
+          "nanos": 1076833
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 2480000,
+          "nanos": 1089709
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 2480000,
+          "nanos": 1076958
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 2880000,
+          "nanos": 282791
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 2880000,
+          "nanos": 278000
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 2880000,
+          "nanos": 281667
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 2880000,
+          "nanos": 281500
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 2880000,
+          "nanos": 282000
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 4560000,
+          "nanos": 327292
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 4560000,
+          "nanos": 334375
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 4560000,
+          "nanos": 321542
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 4560000,
+          "nanos": 322792
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 4560000,
+          "nanos": 349750
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 0,
+          "repetitions": 1250,
+          "allocatedBytes": 2040000,
+          "nanos": 148666
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 1,
+          "repetitions": 1250,
+          "allocatedBytes": 2040000,
+          "nanos": 149666
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 2,
+          "repetitions": 1250,
+          "allocatedBytes": 2040000,
+          "nanos": 148750
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 3,
+          "repetitions": 1250,
+          "allocatedBytes": 2040000,
+          "nanos": 148166
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 4,
+          "repetitions": 1250,
+          "allocatedBytes": 2040000,
+          "nanos": 146875
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 0,
+          "repetitions": 78,
+          "allocatedBytes": 1699776,
+          "nanos": 130125
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 1,
+          "repetitions": 78,
+          "allocatedBytes": 1699776,
+          "nanos": 136792
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 2,
+          "repetitions": 78,
+          "allocatedBytes": 1699776,
+          "nanos": 143958
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 3,
+          "repetitions": 78,
+          "allocatedBytes": 1699776,
+          "nanos": 151791
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 4,
+          "repetitions": 78,
+          "allocatedBytes": 1699776,
+          "nanos": 144833
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 0,
+          "repetitions": 10,
+          "allocatedBytes": 6884160,
+          "nanos": 542041
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 1,
+          "repetitions": 10,
+          "allocatedBytes": 6884160,
+          "nanos": 605208
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 2,
+          "repetitions": 10,
+          "allocatedBytes": 6884160,
+          "nanos": 595709
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 3,
+          "repetitions": 10,
+          "allocatedBytes": 6884160,
+          "nanos": 598417
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 4,
+          "repetitions": 10,
+          "allocatedBytes": 6884160,
+          "nanos": 579417
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 4840000,
+          "nanos": 1401917
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 4840000,
+          "nanos": 1355333
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 4820864,
+          "nanos": 1339375
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 4776000,
+          "nanos": 1341834
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 4776000,
+          "nanos": 1300917
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 4848000,
+          "nanos": 1990875
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 4848000,
+          "nanos": 2384083
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 4848000,
+          "nanos": 1938166
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 4848000,
+          "nanos": 1944250
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 4848056,
+          "nanos": 1978917
+        },
+        {
+          "layout": "ordinary provenance state",
+          "shallowBytes": 48
+        },
+        {
+          "workload": "requested formatting 0 updates",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 1480000,
+          "nanos": 337750
+        },
+        {
+          "workload": "requested formatting 0 updates",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 1480000,
+          "nanos": 319500
+        },
+        {
+          "workload": "requested formatting 0 updates",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 1480000,
+          "nanos": 317750
+        },
+        {
+          "workload": "requested formatting 0 updates",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 1480000,
+          "nanos": 314000
+        },
+        {
+          "workload": "requested formatting 0 updates",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 1480000,
+          "nanos": 315125
+        },
+        {
+          "workload": "requested formatting 8 updates",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 6592000,
+          "nanos": 2308333
+        },
+        {
+          "workload": "requested formatting 8 updates",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 6592000,
+          "nanos": 1920958
+        },
+        {
+          "workload": "requested formatting 8 updates",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 6592000,
+          "nanos": 1913417
+        },
+        {
+          "workload": "requested formatting 8 updates",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 6592000,
+          "nanos": 1881000
+        },
+        {
+          "workload": "requested formatting 8 updates",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 6592000,
+          "nanos": 2064625
+        },
+        {
+          "workload": "requested formatting 4096 updates",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 44792000,
+          "nanos": 9705875
+        },
+        {
+          "workload": "requested formatting 4096 updates",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 50684480,
+          "nanos": 12289292
+        },
+        {
+          "workload": "requested formatting 4096 updates",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 52712000,
+          "nanos": 11718792
+        },
+        {
+          "workload": "requested formatting 4096 updates",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 52712000,
+          "nanos": 12809083
+        },
+        {
+          "workload": "requested formatting 4096 updates",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 52712000,
+          "nanos": 12903959
+        },
+        {
+          "retention": "metadata",
+          "unwantedReferences": 0
+        },
+        {
+          "retention": "copy",
+          "unwantedReferences": 0
+        },
+        {
+          "retention": "finalization",
+          "unwantedReferences": 0
+        }
+      ]
+    },
+    {
+      "variant": "baseline",
+      "fork": 2,
+      "samples": [
+        {
+          "layout": "property",
+          "shallowBytes": 40
+        },
+        {
+          "workload": "binding",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 222500
+        },
+        {
+          "workload": "binding",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 214584
+        },
+        {
+          "workload": "binding",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 175417
+        },
+        {
+          "workload": "binding",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 177792
+        },
+        {
+          "workload": "binding",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 170333
+        },
+        {
+          "workload": "copy",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 70959
+        },
+        {
+          "workload": "copy",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 62125
+        },
+        {
+          "workload": "copy",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 69417
+        },
+        {
+          "workload": "copy",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 57042
+        },
+        {
+          "workload": "copy",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 60834
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 772709
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 761958
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 489708
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 327583
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 350750
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 189667
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 182625
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 161833
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 161666
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 162583
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 255709
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 199334
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 217125
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 195500
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 194833
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 385000
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 485209
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 404083
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 404959
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 470458
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 0,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 260875
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 1,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 281542
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 2,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 280209
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 3,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 265459
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 4,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 292833
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 0,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 149125
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 1,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 72708
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 2,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 65459
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 3,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 76417
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 4,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 82917
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 0,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 254333
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 1,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 261041
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 2,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 291125
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 3,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 326459
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 4,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 281375
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 622750
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 669833
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 624541
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 606250
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 571625
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 690583
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 685833
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 1296056,
+          "nanos": 691417
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 627583
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 603167
+        }
+      ]
+    },
+    {
+      "variant": "compiled-in",
+      "fork": 2,
+      "samples": [
+        {
+          "layout": "property",
+          "shallowBytes": 40
+        },
+        {
+          "workload": "binding",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 247791
+        },
+        {
+          "workload": "binding",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 196792
+        },
+        {
+          "workload": "binding",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 172792
+        },
+        {
+          "workload": "binding",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 182292
+        },
+        {
+          "workload": "binding",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 160000,
+          "nanos": 169125
+        },
+        {
+          "workload": "copy",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 75875
+        },
+        {
+          "workload": "copy",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 68583
+        },
+        {
+          "workload": "copy",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 68000
+        },
+        {
+          "workload": "copy",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 67833
+        },
+        {
+          "workload": "copy",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 240000,
+          "nanos": 97208
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 324750
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 326625
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 312666
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 179416
+        },
+        {
+          "workload": "construct bind finalize",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 176167
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 224666
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 181459
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 162916
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 183000
+        },
+        {
+          "workload": "replace and discard",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 1120000,
+          "nanos": 163333
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 134333
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 125459
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 124625
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 119458
+        },
+        {
+          "workload": "construct chain 0",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 800000,
+          "nanos": 129375
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 0,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 266666
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 1,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 271375
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 2,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 257125
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 3,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 252625
+        },
+        {
+          "workload": "construct chain 1",
+          "sample": 4,
+          "repetitions": 10000,
+          "allocatedBytes": 1760000,
+          "nanos": 246792
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 0,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 151958
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 1,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 161834
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 2,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 141084
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 3,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 137459
+        },
+        {
+          "workload": "construct chain 8",
+          "sample": 4,
+          "repetitions": 1250,
+          "allocatedBytes": 1060000,
+          "nanos": 146375
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 0,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 90292
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 1,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 77833
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 2,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 68625
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 3,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 72208
+        },
+        {
+          "workload": "construct chain 128",
+          "sample": 4,
+          "repetitions": 78,
+          "allocatedBytes": 964704,
+          "nanos": 65000
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 0,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 297834
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 1,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 269625
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 2,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 267584
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 3,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 246041
+        },
+        {
+          "workload": "construct chain 4096",
+          "sample": 4,
+          "repetitions": 10,
+          "allocatedBytes": 3932960,
+          "nanos": 272459
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 706625
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 708167
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 604959
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 600042
+        },
+        {
+          "workload": "missing query failure",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 1648000,
+          "nanos": 559875
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 0,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 842583
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 1,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 867167
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 2,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 879208
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 3,
+          "repetitions": 1000,
+          "allocatedBytes": 1296056,
+          "nanos": 961583
+        },
+        {
+          "workload": "rejected mutation failure",
+          "sample": 4,
+          "repetitions": 1000,
+          "allocatedBytes": 1296000,
+          "nanos": 825625
+        }
+      ]
+    }
+  ],
+  "standaloneCompilation": {
+    "passed": true,
+    "sourceCount": 13,
+    "classpath": [
+      "jspecify-1.0.0-no-module-annotation.jar"
+    ],
+    "annotationJarSha256": "cc00ad27e14f16a551c11014105bd0647d157f8f07ca0a6b6994ae76b67ed47d"
+  },
+  "runtimeClassHashes": {
+    "DefaultProperty": {
+      "baseline": "f94d02cc9afa1f32317775f9d6d321a0aee0f8cbd6e78280f801e4c7018540bf",
+      "compiledIn": "b9baf1149261d136267eba885c70df666a180284cdc64ccfd1dae69ac4fa4147"
+    },
+    "AbstractProperty": {
+      "baseline": "17e2f696b0ff4b384e5c83c7631b327846ba6556ffee8d5a1999cfa902b2d1ef",
+      "compiledIn": "d77729262d09900280f03c6bf2b305f3815284e6d933ce315ed0496753c12ca6"
+    },
+    "ValueState": {
+      "baseline": "faa9eb87a6a7f6ad583fb090fbefedd3860ee921a9a0ede898372b6d89f87921",
+      "compiledIn": "faa9eb87a6a7f6ad583fb090fbefedd3860ee921a9a0ede898372b6d89f87921"
+    },
+    "ValueState$NonFinalizedValue": {
+      "baseline": "ad814c3628c340ef42503e39bc72335cffebfc38c57636152bc45fd33fc6cf3c",
+      "compiledIn": "ad814c3628c340ef42503e39bc72335cffebfc38c57636152bc45fd33fc6cf3c"
+    },
+    "ValueState$FinalizedValue": {
+      "baseline": "c4f06bc92cb0d9cebe6ea8e587b9300a226f4ad7010b2186e4060cfc104b3a33",
+      "compiledIn": "c4f06bc92cb0d9cebe6ea8e587b9300a226f4ad7010b2186e4060cfc104b3a33"
+    }
+  }
+}

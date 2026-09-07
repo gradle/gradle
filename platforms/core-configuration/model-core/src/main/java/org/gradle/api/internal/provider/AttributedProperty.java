@@ -64,8 +64,11 @@ public class AttributedProperty<T> extends DefaultProperty<T> {
 
     @Override
     public ProvenanceSnapshot<T> shallowCopy() {
-        return new ProvenanceSnapshot<>(getType(), captureSupplier(), provenance.getOwnerScope(), provenance.getModelPath(modelPath()),
-            provenance.getSource(), provenance.getUpdates(), provenance.getConvention());
+        return newSnapshot(captureSupplier(), provenance, modelPath());
+    }
+
+    protected ProvenanceSnapshot<T> newSnapshot(ProviderInternal<? extends T> supplier, OrdinaryProvenanceState state, String modelPath) {
+        return new ProvenanceSnapshot<>(getType(), supplier, state, modelPath);
     }
 
     @Override
@@ -73,7 +76,7 @@ public class AttributedProperty<T> extends DefaultProperty<T> {
         ProvenanceSnapshot<T> previous = shallowCopy();
         Provider<? extends T> candidate = transformation.transform(previous);
         if (candidate == null) {
-            set((T) null);
+            super.set((T) null);
             return;
         }
         SemanticOperation operation = PropertyUpdateClassifier.classifyReplace(candidate, previous);
@@ -134,6 +137,12 @@ public class AttributedProperty<T> extends DefaultProperty<T> {
         provenance.freeze(checkpoint);
         provenanceHost = null;
         return result;
+    }
+
+    /** Finalized properties deliberately no longer retain a runtime attribution service. */
+    @Nullable
+    protected Attribution failureAttribution() {
+        return provenanceHost == null ? null : provenanceHost.currentAttribution();
     }
 
     private Attribution currentAttribution() {

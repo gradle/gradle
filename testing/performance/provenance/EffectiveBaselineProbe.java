@@ -53,5 +53,25 @@ public class EffectiveBaselineProbe {
                 ProvenanceAllocationProbe.consume(next);
             });
         }
+        DefaultProperty<String> missing = property();
+        ProvenanceAllocationProbe.measure("missing query failure", 1000, () -> {
+            try {
+                missing.get();
+                throw new AssertionError("Expected a missing value");
+            } catch (IllegalStateException failure) {
+                ProvenanceAllocationProbe.consume(failure);
+            }
+        });
+        DefaultProperty<String> locked = property();
+        locked.set("root");
+        locked.finalizeValue();
+        ProvenanceAllocationProbe.measure("rejected mutation failure", 1000, () -> {
+            try {
+                locked.set("rejected");
+                throw new AssertionError("Expected a rejected mutation");
+            } catch (IllegalStateException failure) {
+                ProvenanceAllocationProbe.consume(failure);
+            }
+        });
     }
 }

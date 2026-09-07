@@ -1,0 +1,60 @@
+{
+  "parentCommit": "080019473b916e9dc0ca413071f836a4fc867bd3",
+  "roadmapRevision": "1e13c84d1024dc6c69c538f8b62db3e61993fb6d",
+  "note": "D1 origin-only reporting evidence before review/commit. Historical shared/refactor artifacts remain unchanged.",
+  "sourceHashes": {
+    "platforms/core-configuration/model-core/src/integTest/groovy/org/gradle/api/provider/PropertyProvenanceDiagnosticsIntegrationTest.groovy": "eec7e2c3dd66d233ba33eb7f0bb7c4cdcd8d362e5548590bb36e25961cf2bc5f",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provenance/FailedOperation.java": "305d98e1f306863618c23f1626446128a7c8ca83d958c25d2988fe563ec2a415",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provenance/ProvenanceRenderer.java": "587341e3376bc72a7cec0cc5618c94744fae13eceacd48ebf6ae24ff05623db0",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/AttributedProperty.java": "b3f685cb284f005c52176ba71b48ab878f8634a7759c2a589820caaed180c191",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/DefaultPropertyFactory.java": "61cf55bcbd9a8336583627014403c1a8c583f97b207a8b4cd85c82dea5bfd066",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/DiagnosticProperty.java": "c7f66f5a64efd870c02283b93ff6a5eb0397e7cb0aef9ef11dcd30efe5515804",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/DiagnosticProvenanceSnapshot.java": "e78a420843f05d771e5dd910a9bbccbdc8b99f35a973d6b77bd71bab5bf3e5d1",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/PropertyProvenanceDiagnostics.java": "f12610732b8b1c1eb990741583dabe48a109567ad14e1404e31fb6488d5fc345",
+    "platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/ProvenanceSnapshot.java": "ab609d063be9d8cb6c34cd03f0867e27eff55ee1f57126cb41bea7695bdc94fc",
+    "platforms/core-configuration/model-core/src/test/groovy/org/gradle/api/internal/provenance/ProvenanceRendererTest.groovy": "9627292d77fe4f3b72bfe4a5b936c0e5172b100cb80bc746a27e01cb42ff8e62",
+    "platforms/core-configuration/model-core/src/test/groovy/org/gradle/api/internal/provider/AttributedPropertyTest.groovy": "61035b76d03c07a12b75b5452e50c5603a8aeb0a4d8326505f3eff45c73e429f",
+    "platforms/core-configuration/model-core/src/test/groovy/org/gradle/api/internal/provider/DiagnosticPropertyTest.groovy": "735f947d8d75438d58ed4227819ff6620804c8d550859279fd1820a8a51ba7c0",
+    "testing/performance/provenance/EffectiveBaselineProbe.java": "5ea8529ec3bb55ea38f56d1082529c02b52275967543f691c4d456d3653dbdfb",
+    "testing/performance/provenance/EffectiveEnabledProbe.java": "57dce938dddbc323a75c4774e629f1415ac3bf67124c9d3ee10612bdf9a96fa3",
+    "testing/performance/provenance/run-diagnostic-smoke.py": "a79c8aa4dc4d13503e0ad9bc2ef304520eee9471e8d82152f42457ed442f5d3d",
+    "testing/performance/provenance/run-effective-probe.py": "bba9f0879e400654af37f3f3f186e5ad8d43c4687ce49dd178cd1d91eaeadc39",
+    "testing/performance/provenance/smoke/build.gradle": "e56de751fa37a5105f06f59e378323e1cc9f1a7fcbb95339ba7a3681e10f8244",
+    "testing/performance/provenance/smoke/settings.gradle": "7a446c2314df8ed4aac7d5eac63b84294e0d1ac8fdfe9e06550bde93992d1c6e"
+  },
+  "compiledClassHashes": {
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provider/AttributedProperty.class": "5f90266a244edbfed9cb275fd81d6a54eabd2b26d87919a40b2d62139e83f250",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provider/DefaultPropertyFactory.class": "d6996e42f594a4a156d643929fd31406fae9f78eec38055929872a03bb972218",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provider/ProvenanceSnapshot.class": "54439cbd480bfa13e782f8e0aa857ca385cc5a7785099694baa91bd730cb2240",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provenance/FailedOperation.class": "0caa7d907c9210100020d6b64d0ba8478e5d4f19e3e5a476067a7e4beb0005b3",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provenance/ProvenanceRenderer.class": "a1404919c1ccfc9624a607a1c7d34523741139f559b0c89474f263b3e993ca54",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provider/DiagnosticProperty.class": "c7f06d31e4b98acb688b81ebfd1ea96a4f5051e859c5ce18587ccba0f4340df1",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provider/DiagnosticProvenanceSnapshot.class": "6e08806d95a18c6fa908a9696b4591950fde7d006de9d2f7841e6a916a2cb9aa",
+    "platforms/core-configuration/model-core/build/classes/java/main/org/gradle/api/internal/provider/PropertyProvenanceDiagnostics.class": "1ba5b1df096d6e226cecdc0c9d260b370bd5f6c7e844fb0a15f1cbfe19693ec4"
+  },
+  "artifactHashes": {
+    "testing/performance/provenance/d1-probe-20260907.json": "4e93a281775254c8634ee31e3e09e700155064644e6a552a4cac24e984705c1b",
+    "testing/performance/provenance/d1-dispatch-jmh-20260907.json": "04e8bec7a2d63c7d17bd6b60d6426da7a1a8903115c9343001440e5e75540c3b",
+    "testing/performance/provenance/d1-smoke-20260907.json": "d02e57032b5bfd4a7b426f6a732f3575abc678229a3371942d0f55102de7482b"
+  },
+  "jmhJarSha256": "b08d73fa474734b71d818d9f6139a209a2f7b5d1b7134e8a1e759b9d07872d53",
+  "candidateZipSha256": "1f4329585aa4e7409446e2de133bcab0f399c639b38d9e52ce4359a350017a44",
+  "smokeImplementationMatchesCompiledClasses": true,
+  "tests": {
+    "platforms/core-configuration/model-core/build/test-results/test": {
+      "tests": 560,
+      "failures": 0,
+      "errors": 0
+    },
+    "platforms/core-configuration/model-core/build/test-results/embeddedIntegTest": {
+      "tests": 18,
+      "failures": 0,
+      "errors": 0
+    },
+    "subprojects/core/build/test-results/test": {
+      "tests": 58,
+      "failures": 0,
+      "errors": 0
+    }
+  }
+}

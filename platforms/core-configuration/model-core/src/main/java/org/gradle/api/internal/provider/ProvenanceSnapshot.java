@@ -18,6 +18,7 @@ package org.gradle.api.internal.provider;
 
 import org.gradle.api.internal.provenance.EffectiveProvenanceView;
 import org.gradle.api.internal.provenance.MutationOccurrence;
+import org.gradle.api.internal.provenance.OrdinaryProvenanceState;
 import org.gradle.api.internal.provenance.ScopeIdentity;
 import org.gradle.api.internal.provenance.TargetContext;
 import org.gradle.api.internal.provenance.UpdateSequence;
@@ -25,7 +26,7 @@ import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.Nullable;
 
 /** A captured supplier and descriptor checkpoint, with no reference to its former property owner. */
-public final class ProvenanceSnapshot<T> extends AbstractMinimalProvider<T> {
+public class ProvenanceSnapshot<T> extends AbstractMinimalProvider<T> {
     private final Class<T> type;
     private final ProviderInternal<? extends T> supplier;
     private final ScopeIdentity ownerScope;
@@ -34,6 +35,10 @@ public final class ProvenanceSnapshot<T> extends AbstractMinimalProvider<T> {
     private final UpdateSequence updates;
     @Nullable
     private final MutationOccurrence convention;
+
+    ProvenanceSnapshot(Class<T> type, ProviderInternal<? extends T> supplier, OrdinaryProvenanceState state, String modelPath) {
+        this(type, supplier, state.getOwnerScope(), state.getModelPath(modelPath), state.getSource(), state.getUpdates(), state.getConvention());
+    }
 
     ProvenanceSnapshot(
         Class<T> type,

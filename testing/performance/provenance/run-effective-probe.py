@@ -47,7 +47,7 @@ results = {
     'classifierSha256': hashlib.sha256((repo / 'platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider/PropertyUpdateClassifier.java').read_bytes()).hexdigest(),
     'metadataSourceHashes': {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in sorted((repo / 'platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provenance').glob('*.java'))},
     'integrationSourceHashes': {name: hashlib.sha256((repo / 'platforms/core-configuration/model-core/src/main/java/org/gradle/api/internal/provider' / (name + '.java')).read_bytes()).hexdigest()
-                                for name in ['AttributedProperty', 'ProvenanceSnapshot', 'PropertyProvenanceHost', 'PropertyUpdateClassifier']},
+                                for name in ['AttributedProperty', 'ProvenanceSnapshot', 'PropertyProvenanceHost', 'PropertyUpdateClassifier', 'DiagnosticProperty', 'DiagnosticProvenanceSnapshot', 'PropertyProvenanceDiagnostics']},
     'runs': [],
 }
 with tempfile.TemporaryDirectory(prefix='shared-provenance-probe-') as temporary:

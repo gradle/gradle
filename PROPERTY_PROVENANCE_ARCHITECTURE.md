@@ -20,6 +20,8 @@ This refactor follows S3 commit `af6f959a4f5`. It separates the provider-indepen
 provenance model and ordinary state transitions from the property/provider adapter.
 It does not implement D1 or change ordinary property semantics.
 
+D1 reporting is documented separately in [the D1 checkpoint](PROPERTY_PROVENANCE_D1.md).
+
 ## Where to start reading
 
 | Responsibility | Package / entry point |

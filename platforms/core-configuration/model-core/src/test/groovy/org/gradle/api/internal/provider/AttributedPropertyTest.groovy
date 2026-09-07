@@ -33,11 +33,12 @@ class AttributedPropertyTest extends Specification {
         newOccurrenceScope() >> 'property-1'
         getOwnerScope() >> new ScopeIdentity('build', ':target')
     }
-    def property = new DefaultPropertyFactory(host).property(String)
+    def property = new AttributedProperty<String>(host, String)
 
     def 'only the enabled scalar factory creates attributed properties'() {
         expect:
         property instanceof AttributedProperty
+        new DefaultPropertyFactory(host).property(String) instanceof DiagnosticProperty
         new DefaultPropertyFactory(PropertyHost.NO_OP).property(String).class == DefaultProperty
         !(new DefaultPropertyFactory(host).listProperty(String) instanceof AttributedProperty)
         !(new DefaultPropertyFactory(host).setProperty(String) instanceof AttributedProperty)
@@ -88,7 +89,7 @@ class AttributedPropertyTest extends Specification {
 
     def 'type rejection preserves the accepted fact and original exception'() {
         given:
-        def property = new DefaultPropertyFactory(host).property(Boolean)
+        def property = new AttributedProperty<Boolean>(host, Boolean)
         host.currentAttribution() >> attribution
         property.set(true)
         def accepted = property.lastAcceptedMutation
@@ -155,7 +156,7 @@ class AttributedPropertyTest extends Specification {
 
     def 'binding is lazy and lazy type failures do not erase accepted binding facts'() {
         given:
-        def property = new DefaultPropertyFactory(host).property(Boolean)
+        def property = new AttributedProperty<Boolean>(host, Boolean)
         def calls = 0
 
         when:

@@ -1,0 +1,21 @@
+// Copyright 2026 Gradle and contributors.
+// Licensed under the Apache License, Version 2.0 (https://www.apache.org/licenses/LICENSE-2.0).
+// Identical ordinary APIs on S0, diagnostics-disabled and origins-enabled distributions.
+def values = (0..<1000).collect { index ->
+    def value = objects.property(String)
+    value.convention('fallback')
+    value.set('value')
+    8.times {
+        value.replace { previous -> previous.map { input -> input + 'x' } }
+    }
+    if (index % 2 == 0) {
+        value.finalizeValue()
+    }
+    value
+}
+
+tasks.register('verifyProvenanceSmoke') {
+    doLast {
+        println "provenance-smoke=${values.sum { it.get().length() }}"
+    }
+}

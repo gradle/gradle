@@ -65,7 +65,7 @@ public class DefaultPropertyFactory implements PropertyFactory {
         }
 
         if (propertyHost instanceof PropertyProvenanceHost) {
-            return new AttributedProperty<>((PropertyProvenanceHost) propertyHost, maybeAsWrapperType(type));
+            return new DiagnosticProperty<>((PropertyProvenanceHost) propertyHost, maybeAsWrapperType(type));
         }
         return new DefaultProperty<>(propertyHost, maybeAsWrapperType(type));
     }

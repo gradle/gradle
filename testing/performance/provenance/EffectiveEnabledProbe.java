@@ -16,6 +16,9 @@
 
 import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.api.internal.provider.DefaultProvider;
+import org.gradle.api.internal.provider.DiagnosticProperty;
+import org.gradle.api.internal.provenance.EffectiveProvenanceView;
+import org.gradle.api.internal.provenance.ProvenanceRenderer;
 import org.gradle.api.internal.provider.AttributedProperty;
 import org.gradle.api.internal.provenance.Attribution;
 import org.gradle.api.internal.provenance.ContributorKey;
@@ -45,7 +48,7 @@ public class EffectiveEnabledProbe extends EffectiveBaselineProbe {
 
     @Override
     protected DefaultProperty<String> property() {
-        return new AttributedProperty<>(host, String.class);
+        return new DiagnosticProperty<>(host, String.class);
     }
 
     public static void main(String[] args) {
@@ -57,6 +60,16 @@ public class EffectiveEnabledProbe extends EffectiveBaselineProbe {
             ProvenanceAllocationProbe.layout("ordinary provenance state", state.get(probe.property()));
         } catch (ReflectiveOperationException failure) {
             throw new AssertionError(failure);
+        }
+        for (int count : new int[]{0, 8, 4096}) {
+            AttributedProperty<String> value = (AttributedProperty<String>) probe.property();
+            value.set("root");
+            for (int i = 0; i < count; i++) {
+                value.replace(previous -> previous.map(input -> input));
+            }
+            EffectiveProvenanceView view = value.getEffectiveProvenance();
+            ProvenanceAllocationProbe.measure("requested formatting " + count + " updates", 1000,
+                () -> ProvenanceAllocationProbe.consume(ProvenanceRenderer.configuration(view)));
         }
         for (String scenario : new String[]{"metadata", "copy", "finalization"}) {
             List<WeakReference<?>> references = retainedReferences(scenario);
@@ -73,7 +86,7 @@ public class EffectiveEnabledProbe extends EffectiveBaselineProbe {
 
     private static List<WeakReference<?>> retainedReferences(String scenario) {
         Host host = new Host();
-        AttributedProperty<String> property = new AttributedProperty<>(host, String.class);
+        AttributedProperty<String> property = new DiagnosticProperty<>(host, String.class);
         DefaultProvider<String> supplier = new DefaultProvider<>(() -> "root");
         property.set(supplier);
         property.replace(previous -> previous.map(input -> input));
