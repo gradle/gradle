@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableCollection;
+import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
 
@@ -29,7 +30,7 @@ import java.util.Map;
  */
 public interface MapCollector<K, V> extends ValueSupplier {
 
-    Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest);
+    Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, ImmutableMap.Builder<K, V> dest);
 
     Value<Void> collectKeys(ValueConsumer consumer, ValueCollector<K> collector, ImmutableCollection.Builder<K> dest);
 

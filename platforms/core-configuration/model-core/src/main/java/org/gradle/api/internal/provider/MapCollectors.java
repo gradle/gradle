@@ -41,7 +41,7 @@ public class MapCollectors {
         }
 
         @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, ImmutableMap.Builder<K, V> dest) {
             collector.add(key, value, dest);
             return Value.present();
         }
@@ -100,7 +100,7 @@ public class MapCollectors {
         }
 
         @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, ImmutableMap.Builder<K, V> dest) {
             Value<? extends V> value = providerOfValue.calculateValue(consumer);
             if (value.isMissing()) {
                 return value.asType();
@@ -158,7 +158,7 @@ public class MapCollectors {
         }
 
         @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, ImmutableMap.Builder<K, V> dest) {
             collector.addAll(entries.entrySet(), dest);
             return Value.present();
         }
@@ -199,7 +199,7 @@ public class MapCollectors {
         }
 
         @Override
-        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, Map<K, V> dest) {
+        public Value<Void> collectEntries(ValueConsumer consumer, MapEntryCollector<K, V> collector, ImmutableMap.Builder<K, V> dest) {
             Value<? extends Map<? extends K, ? extends V>> value = providerOfEntries.calculateValue(consumer);
             if (value.isMissing()) {
                 return value.asType();

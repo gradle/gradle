@@ -18,7 +18,7 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableSupplier;
+import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableIntFunction;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.internal.Cast;
@@ -26,12 +26,12 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Set;
-import java.util.function.Supplier;
+import java.util.function.IntFunction;
 
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>> implements SetProperty<T> {
-    private static final SerializableSupplier<ImmutableCollection.Builder<Object>> FACTORY = ImmutableSet::builder;
+    private static final SerializableIntFunction<ImmutableCollection.Builder<Object>> FACTORY = ImmutableSet::builderWithExpectedSize;
 
     /**
      * Convenience method to add a possibly-missing provider to a set property without clearing the set.
@@ -55,7 +55,7 @@ public class DefaultSetProperty<T> extends AbstractCollectionProperty<T, Set<T>>
     }
 
     @Override
-    protected final Supplier<ImmutableCollection.Builder<T>> getCollectionFactory() {
+    protected final IntFunction<ImmutableCollection.Builder<T>> getCollectionFactory() {
         return Cast.uncheckedNonnullCast(FACTORY);
     }
 

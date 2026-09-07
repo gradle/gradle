@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Action;
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.Task;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.NonNull;
@@ -48,6 +50,13 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
     public ValueProducer getProducer() {
         try (EvaluationScopeContext ignored = openScope()) {
             return provider.getProducer();
+        }
+    }
+
+    @Override
+    public void visitContentProducerTasks(Action<? super Task> visitor) {
+        try (EvaluationScopeContext ignored = openScope()) {
+            provider.visitContentProducerTasks(visitor);
         }
     }
 
@@ -91,13 +100,12 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
     }
 
     protected void beforeRead(EvaluationScopeContext ignored) {
-        provider.getProducer().visitContentProducerTasks(producer -> {
-            if (!producer.getState().getExecuted()) {
-                throw new InvalidUserCodeException(
-                    String.format("Querying the filtered value of %s before %s has completed is not supported", provider, producer)
-                );
-            }
-        });
+        Task producer = ContentProducerCheck.findUnexecutedContentProducer(provider);
+        if (producer != null) {
+            throw new InvalidUserCodeException(
+                String.format("Querying the filtered value of %s before %s has completed is not supported", provider, producer)
+            );
+        }
     }
 
     @Override
