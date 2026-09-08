@@ -16,9 +16,11 @@
 
 package org.gradle.api.internal.plugins;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.util.internal.GUtil;
 
 import java.net.URL;
+import java.util.List;
 import java.util.Properties;
 
 public class PluginDescriptor {
@@ -32,6 +34,31 @@ public class PluginDescriptor {
     public String getImplementationClassName() {
         Properties properties = GUtil.loadProperties(propertiesFileUrl);
         return properties.getProperty("implementation-class");
+    }
+
+    /**
+     * Module coordinates ({@code group:name}, comma-separated) of distribution components that must
+     * join the script classpath when this plugin is applied, resolved at the running distribution's
+     * version. Only meaningful for plugins shipped in the Gradle distribution: a distribution
+     * plugin's own classes bypass artifact resolution, so a companion library it needs on the
+     * consuming build's classpath (e.g. a built-in XDCL ecosystem's published schema library, served
+     * by the distribution-embedded Maven repository) is declared here and injected by core plugin
+     * resolution. Empty when the descriptor declares none.
+     */
+    public List<String> getDistributionCompanionModules() {
+        Properties properties = GUtil.loadProperties(propertiesFileUrl);
+        String declared = properties.getProperty("distribution-companion-modules");
+        if (declared == null || declared.trim().isEmpty()) {
+            return ImmutableList.of();
+        }
+        ImmutableList.Builder<String> modules = ImmutableList.builder();
+        for (String module : declared.split(",")) {
+            String trimmed = module.trim();
+            if (!trimmed.isEmpty()) {
+                modules.add(trimmed);
+            }
+        }
+        return modules.build();
     }
 
     public URL getPropertiesFileUrl() {
