@@ -99,6 +99,7 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
                 repositories {
                     ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
                     ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.extraRepositoriesDefinition(GradleDsl.KOTLIN)}
                 }
             }
         """
@@ -111,6 +112,7 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
             repositories {
                 ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
                 ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                ${RepoScriptBlockUtil.extraRepositoriesDefinition(GradleDsl.KOTLIN)}
             }
         """
 
