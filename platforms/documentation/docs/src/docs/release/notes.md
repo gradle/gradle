@@ -92,9 +92,12 @@ Gradle provides an intuitive [command-line interface](userguide/command_line_int
 
 #### Easier to read problem reports
 
-Three improvements make [problem reports](userguide/reporting_problems.html#sec:generated_html_report) easier to scan and act on.
+Two improvements make [reported problems](userguide/reporting_problems.html#command_line_interface_problems) easier to scan and act on.
 
-Printed problem locations (`demo-convention.gradle.kts:8`) are now clickable in terminals that support hyperlinks, so you can jump straight to the source line in most modern IDEs and editors. Problems in the CLI failure output now appear in the order they occurred, which preserves the causal sequence when you scroll through a failing build. The copy button in the HTML report also stays visible while you scroll long stack traces, so capturing a full trace no longer means hunting for the button.
+Printed problem locations (`demo-convention.gradle.kts:8`) are now clickable in terminals that support hyperlinks, so you can jump straight to the source line in most modern IDEs and editors.
+Problems in the CLI failure output now appear in the order they occurred, which preserves the causal sequence when you scroll through a failing build.
+
+In [the HTML problem report](userguide/reporting_problems.html#sec:generated_html_report), the copy button stays visible while you scroll long stack traces, so capturing a full trace no longer means hunting for the button.
 
 ![Problem Report Screenshot](release-notes-assets/problem-report.png)
 
@@ -102,7 +105,8 @@ Printed problem locations (`demo-convention.gradle.kts:8`) are now clickable in 
 
 Consumers of the [Problems API](userguide/reporting_problems.html) now receive data from more parts of Gradle.
 
-Dependency management failures are reported through the API with [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) details. Unresolved dependencies and configuration conflicts now surface as structured problems, and the RFC 9457 format has been extended to make field naming more consistent across problem types.
+Dependency management failures are reported through the API with [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) details.
+Unresolved dependencies and configuration conflicts now surface as structured problems.
 
 Configuration Cache warn-mode messages are also reported through the API, matching how Configuration Cache errors are already surfaced.
 
@@ -222,17 +226,6 @@ Builds on affected Windows machines are up to 45% faster in this release.
 Gradle reads the system clock frequently while a build runs, to capture execution traces, progress events, and log messages. On most machines, this is inexpensive, but on some Windows systems, particularly virtualized ones, reading the clock is much slower, and the cost accumulates over the many readings taken during a single build.
 
 Gradle now detects a slow system clock at startup and switches to a faster time source for the rest of the build. No configuration is required, and builds on machines with a normal system clock are unaffected.
-
-## Promoted features
-
-Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
-See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecycle.html)" for more information.
-
-The following are the features that have been promoted in this Gradle release.
-
-<!--
-### Example promoted
--->
 
 ## Documentation and training
 
