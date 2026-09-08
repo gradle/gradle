@@ -184,7 +184,6 @@ val minifyPatterns = mapOf(
             "org.jetbrains.kotlin.ir.backend.js",
             "org.jetbrains.kotlin.ir.inline.konan",
             "org.jetbrains.kotlin.js",
-            "org.jetbrains.kotlin.metadata.js",
             "org.jetbrains.kotlin.native",
             "org.jetbrains.kotlin.resolve.konan",
             "org.jetbrains.kotlin.serialization.js",
