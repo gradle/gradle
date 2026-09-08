@@ -15,6 +15,8 @@
  */
 
 import java.time.Year
+import org.gradle.api.credentials.HttpHeaderCredentials
+import org.gradle.authentication.http.HttpHeaderAuthentication
 
 plugins {
     id("gradlebuild.module-identity")
@@ -27,11 +29,8 @@ configureJavadocVariant()
 val artifactoryUrl
     get() = System.getenv("GRADLE_INTERNAL_REPO_URL") ?: ""
 
-val artifactoryUserName
-    get() = findProperty("artifactoryUserName") as String?
-
-val artifactoryUserPassword
-    get() = findProperty("artifactoryUserPassword") as String?
+val artifactoryToken
+    get() = findProperty("artifactoryToken") as String?
 
 publishing {
     publications {
@@ -44,9 +43,12 @@ publishing {
             name = "remote"
             val libsType = moduleIdentity.snapshot.map { if (it) "snapshots" else "releases" }
             url = uri("$artifactoryUrl/libs-${libsType.get()}-local")
-            credentials {
-                username = artifactoryUserName
-                password = artifactoryUserPassword
+            credentials(HttpHeaderCredentials::class) {
+                name = "Authorization"
+                value = "Bearer $artifactoryToken"
+            }
+            authentication {
+                create<HttpHeaderAuthentication>("header")
             }
         }
     }
@@ -140,11 +142,8 @@ fun Project.failEarlyIfUrlOrCredentialsAreNotSet(publish: Task) {
             if (artifactoryUrl.isEmpty()) {
                 throw GradleException("artifactoryUrl is not set!")
             }
-            if (artifactoryUserName.isNullOrEmpty()) {
-                throw GradleException("artifactoryUserName is not set!")
-            }
-            if (artifactoryUserPassword.isNullOrEmpty()) {
-                throw GradleException("artifactoryUserPassword is not set!")
+            if (artifactoryToken.isNullOrEmpty()) {
+                throw GradleException("artifactoryToken is not set!")
             }
         }
     }
