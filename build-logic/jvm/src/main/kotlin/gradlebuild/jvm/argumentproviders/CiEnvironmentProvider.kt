@@ -63,7 +63,7 @@ class CiEnvironmentProvider(private val test: Test) : CommandLineArgumentProvide
         // Publishing no -Dorg.gradle.integtest.mirrors.* properties makes the whole test fixture layer
         // (RepoScriptBlockUtil, the mirror init script, the plugin portal override AbstractGradleExecuter
         // passes to nested builds) fall back to the upstream URLs.
-        if (System.getenv("IGNORE_MIRROR")?.toBoolean() == true) {
+        if (System.getenv("IGNORE_REPO_MIRROR")?.toBoolean() == true) {
             emptyMap()
         } else {
             // expected env var format: repo1_id:repo1_url,repo2_id:repo2_url,...

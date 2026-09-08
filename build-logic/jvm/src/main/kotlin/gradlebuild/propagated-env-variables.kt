@@ -70,7 +70,7 @@ val propagatedEnvironmentVariables = listOf(
     "JPROFILER_HOME",
 
     // Used by mirror init script, see RepoScriptBlockUtil
-    "IGNORE_MIRROR",
+    "IGNORE_REPO_MIRROR",
 
     "LANG",
     "LANGUAGE",

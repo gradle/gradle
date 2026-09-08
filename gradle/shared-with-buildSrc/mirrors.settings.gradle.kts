@@ -19,11 +19,11 @@
  *
  * EMERGENCY BYPASS (repo.grdev.net / Artifactory outage)
  * -----------------------------------------------------
- * Set the TeamCity parameter `env.IGNORE_MIRROR` = `true` on the root `Gradle` project. It takes effect on the
+ * Set the TeamCity parameter `env.IGNORE_REPO_MIRROR` = `true` on the root `Gradle` project. It takes effect on the
  * next build; no code change and no `.teamcity` configuration regeneration is needed. Remove the parameter once
  * the mirror is healthy again.
  *
- * `env.IGNORE_MIRROR` is deliberately NOT declared in the `.teamcity` Kotlin DSL: a build-configuration-level
+ * `env.IGNORE_REPO_MIRROR` is deliberately NOT declared in the `.teamcity` Kotlin DSL: a build-configuration-level
  * parameter would take precedence over the project-level one and would therefore block the emergency flip.
  *
  * `env.REPO_MIRROR_URLS` must stay set while the bypass is on. The bypass works by mapping mirror URLs back to
@@ -34,6 +34,26 @@
  * Still pinned to repo.grdev.net and needing their own TeamCity parameter edits if those builds matter:
  *   - `env.YARNPKG_MIRROR_URL`       - JS/docs builds
  *   - `gradle.internal.repository.url` - publishing only, irrelevant to `check`
+ *
+ * TESTING THE BYPASS WHILE THE MIRROR IS HEALTHY
+ * ----------------------------------------------
+ * Do not wait for the next outage to find out whether this still works. Simulate one on a single build by
+ * pointing the mirror at a host that cannot resolve, using per-run TeamCity parameter overrides so nothing
+ * shared is touched and no other branch is affected:
+ *
+ *   teamcity run start <buildTypeId> --branch <branch> \
+ *     -P env.REPO_MIRROR_URLS="<the real value, with repo.grdev.net replaced by repo-mirror-outage-test.invalid>" \
+ *     -P gradle.plugins.portal.url="https://repo-mirror-outage-test.invalid/artifactory/gradle-plugin-portal-prod/" \
+ *     -P env.IGNORE_REPO_MIRROR=true
+ *
+ * `.invalid` is reserved by RFC 6761 and never resolves, so any request that still goes to the "mirror" fails
+ * fast and loudly instead of silently succeeding against the real one. Overriding `gradle.plugins.portal.url`
+ * matters as much as the mirror list: it is what TeamCity injects as
+ * `-Dorg.gradle.internal.plugins.portal.url.override`, and it is the case this whole script exists to undo.
+ *
+ * Run it BOTH ways. Without `env.IGNORE_REPO_MIRROR` the build must FAIL on a
+ * `repo-mirror-outage-test.invalid` URL - that is what proves the simulation is faithful. With it, the build
+ * must pass and no `repo-mirror-outage-test.invalid` URL may appear anywhere in the log.
  *
  * Expect some flakiness while the bypass is on. Every agent then fetches from the upstream
  * repositories directly, with no caching proxy in front of them, so sporadic
@@ -65,7 +85,7 @@ class Helper(private val providers: ProviderFactory) {
             }
             ?: emptyMap()
 
-    val ignoreMirrors: Boolean = providers.environmentVariable("IGNORE_MIRROR").orNull?.toBoolean() == true
+    val ignoreMirrors: Boolean = providers.environmentVariable("IGNORE_REPO_MIRROR").orNull?.toBoolean() == true
 
     /**
      * Normalized mirror URL -> upstream URL, for the mirrors this build actually declares repositories for.
