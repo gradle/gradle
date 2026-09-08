@@ -28,6 +28,7 @@ import org.gradle.api.internal.project.ProjectStateLookup;
 import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.api.invocation.Gradle;
 import org.gradle.api.tasks.TaskDependency;
+import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.composite.IncludedBuildInternal;
@@ -51,6 +52,9 @@ import org.gradle.plugins.ide.eclipse.model.Output;
 import org.gradle.plugins.ide.eclipse.model.ProjectDependency;
 import org.gradle.plugins.ide.eclipse.model.SourceFolder;
 import org.gradle.plugins.ide.eclipse.model.UnresolvedLibrary;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultProjectModulePathResolver;
+import org.gradle.plugins.ide.eclipse.model.internal.EclipseClasspathResolver;
+import org.gradle.plugins.ide.eclipse.model.internal.ProjectModulePathResolver;
 import org.gradle.plugins.ide.internal.configurer.EclipseModelAwareUniqueProjectNameProvider;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultAccessRule;
 import org.gradle.plugins.ide.internal.tooling.eclipse.DefaultClasspathAttribute;
@@ -76,6 +80,8 @@ import org.gradle.tooling.model.eclipse.EclipseWorkspace;
 import org.gradle.tooling.model.eclipse.EclipseWorkspaceProject;
 import org.gradle.tooling.model.eclipse.HierarchicalEclipseProject;
 import org.gradle.tooling.provider.model.ParameterizedToolingModelBuilder;
+import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider;
+import org.jspecify.annotations.Nullable;
 import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GUtil;
@@ -100,6 +106,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
 
     private final GradleProjectBuilderInternal gradleProjectBuilder;
     private final EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider;
+    private final @Nullable IntermediateToolingModelProvider intermediateToolingModelProvider;
 
     private boolean projectDependenciesOnly;
     private DefaultEclipseProject result;
@@ -109,15 +116,34 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
     private ProjectIdentity currentProjectId;
     private EclipseRuntime eclipseRuntime;
     private Map<String, Boolean> projectOpenStatus = new HashMap<>();
+    private ProjectModulePathResolver modulePathResolver = new DefaultProjectModulePathResolver();
 
     @VisibleForTesting
     public EclipseModelBuilder(GradleProjectBuilderInternal gradleProjectBuilder, EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider) {
-        this.gradleProjectBuilder = gradleProjectBuilder;
-        this.uniqueProjectNameProvider = uniqueProjectNameProvider;
+        this(gradleProjectBuilder, uniqueProjectNameProvider, null);
     }
 
-    public EclipseModelBuilder(GradleProjectBuilderInternal gradleProjectBuilder, ProjectStateLookup projectStateLookup) {
-        this(gradleProjectBuilder, new EclipseModelAwareUniqueProjectNameProvider(projectStateLookup));
+    public EclipseModelBuilder(
+        GradleProjectBuilderInternal gradleProjectBuilder,
+        EclipseModelAwareUniqueProjectNameProvider uniqueProjectNameProvider,
+        @Nullable IntermediateToolingModelProvider intermediateToolingModelProvider
+    ) {
+        this.gradleProjectBuilder = gradleProjectBuilder;
+        this.uniqueProjectNameProvider = uniqueProjectNameProvider;
+        this.intermediateToolingModelProvider = intermediateToolingModelProvider;
+    }
+
+    /**
+     * @param intermediateToolingModelProvider used to gather per-project data without reaching across
+     * project boundaries. Pass {@code null} when Isolated Projects is disabled, so that the data is
+     * read directly, as it always has been, and no intermediate models are built.
+     */
+    public EclipseModelBuilder(
+        GradleProjectBuilderInternal gradleProjectBuilder,
+        ProjectStateLookup projectStateLookup,
+        @Nullable IntermediateToolingModelProvider intermediateToolingModelProvider
+    ) {
+        this(gradleProjectBuilder, new EclipseModelAwareUniqueProjectNameProvider(projectStateLookup), intermediateToolingModelProvider);
     }
 
     @Override
@@ -163,6 +189,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         rootGradleProject = gradleProjectBuilder.buildForRoot(project);
         tasksFactory.collectTasks(root);
         applyEclipsePlugin(rootProjectState, new HashSet<>());
+        modulePathResolver = EclipseModulePathGatherer.resolverFor(rootProjectState, intermediateToolingModelProvider);
         deduplicateProjectNames(root);
         buildHierarchy(rootProjectState);
         populate(rootProjectState);
@@ -171,19 +198,30 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
 
     private void deduplicateProjectNames(ProjectInternal root) {
         uniqueProjectNameProvider.setReservedProjectNames(calculateReservedProjectNames(root, eclipseRuntime));
-        for (Project project : root.getAllprojects()) {
-            EclipseModel eclipseModel = project.getExtensions().findByType(EclipseModel.class);
-            if (eclipseModel != null) {
-                eclipseModel.getProject().setName(uniqueProjectNameProvider.getUniqueName(((ProjectInternal) project).getProjectIdentity()));
+        // Every project's Eclipse extension has to be renamed. Iterating Project.getAllprojects()
+        // would be reported as a cross-project access with Isolated Projects enabled, so the state
+        // of each project is taken under the lock that covers all of them instead.
+        BuildProjectRegistry projects = root.getOwner().getOwner().getProjects();
+        projects.applyToMutableStateOfAllProjects(access -> {
+            for (ProjectState projectState : projects.getAllProjects()) {
+                ProjectInternal project = access.getMutableModel(projectState);
+                EclipseModel eclipseModel = project.getExtensions().findByType(EclipseModel.class);
+                if (eclipseModel != null) {
+                    eclipseModel.getProject().setName(uniqueProjectNameProvider.getUniqueName(project.getProjectIdentity()));
+                }
             }
-        }
+        });
     }
 
     private static void applyEclipsePlugin(ProjectState rootState, Set<Path> alreadyProcessed) {
         BuildState build = rootState.getOwner();
-        build.getProjects().applyToMutableStateOfAllProjects(access -> {
-            for (Project p : access.getMutableModel(rootState).getAllprojects()) {
-                p.getPluginManager().apply(EclipsePlugin.class);
+        BuildProjectRegistry projects = build.getProjects();
+        // Resolving the projects through the root project would hand out decorated instances, so
+        // applying the plugin to them is reported as a cross-project access with Isolated Projects
+        // enabled. Take the state of each project through the all-projects lock instead.
+        projects.applyToMutableStateOfAllProjects(access -> {
+            for (ProjectState projectState : projects.getAllProjects()) {
+                access.getMutableModel(projectState).getPluginManager().apply(EclipsePlugin.class);
             }
         });
         for (IncludedBuildInternal reference : build.getMutableModel().includedBuilds()) {
@@ -237,7 +275,7 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
 
             boolean projectDependenciesOnly = this.projectDependenciesOnly;
 
-            ClasspathElements classpathElements = gatherClasspathElements(projectOpenStatus, eclipseModel.getClasspath(), projectDependenciesOnly);
+            ClasspathElements classpathElements = gatherClasspathElements(projectOpenStatus, eclipseModel.getClasspath(), projectDependenciesOnly, modulePathResolver);
 
             DefaultEclipseProject eclipseProject = findEclipseProject(project);
 
@@ -267,16 +305,16 @@ public class EclipseModelBuilder implements ParameterizedToolingModelBuilder<Ecl
         }
     }
 
-    public static ClasspathElements gatherClasspathElements(Map<String, Boolean> projectOpenStatus, EclipseClasspath eclipseClasspath, boolean projectDependenciesOnly) {
+    public static ClasspathElements gatherClasspathElements(Map<String, Boolean> projectOpenStatus, EclipseClasspath eclipseClasspath, boolean projectDependenciesOnly, ProjectModulePathResolver modulePathResolver) {
         ClasspathElements classpathElements = new ClasspathElements();
         eclipseClasspath.setProjectDependenciesOnly(projectDependenciesOnly);
 
         List<ClasspathEntry> classpathEntries;
         if (eclipseClasspath.getFile() == null) {
-            classpathEntries = eclipseClasspath.resolveDependencies();
+            classpathEntries = EclipseClasspathResolver.resolveEntries(eclipseClasspath, modulePathResolver);
         } else {
             Classpath classpath = new Classpath(eclipseClasspath.getFileReferenceFactory());
-            eclipseClasspath.mergeXmlClasspath(classpath);
+            EclipseClasspathResolver.mergeXmlClasspath(eclipseClasspath, classpath, modulePathResolver);
             classpathEntries = classpath.getEntries();
         }
 

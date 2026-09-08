@@ -19,9 +19,12 @@ package org.gradle.plugins.ide.internal.tooling;
 import org.gradle.StartParameter;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyUtil;
+import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.plugins.ide.eclipse.model.EclipseModel;
 import org.gradle.tooling.provider.model.ToolingModelBuilder;
 
@@ -45,21 +48,30 @@ public class RunEclipseTasksBuilder implements ToolingModelBuilder {
         boolean isAutoBuildModel = isAutoBuildModel(modelName);
 
         CachingTaskDependencyResolveContext<Task> taskResolver = TaskDependencyUtil.newTaskResolver();
-        for (Project p : project.getAllprojects()) {
-            EclipseModel model = p.getExtensions().findByType(EclipseModel.class);
-            if (model != null) {
-                if (isSyncModel) {
-                    for (Task t : taskResolver.getDependencies(null, (TaskDependencyContainer) model.getSynchronizationTasks())) {
-                        taskPaths.add(t.getPath());
+        // The Eclipse extension of every project has to be read to collect the registered tasks.
+        // Going through Project.getAllprojects() would be reported as a cross-project access with
+        // Isolated Projects enabled, so the state of each project is taken under the lock that
+        // covers all of them instead. The build is reached through the target project's own state
+        // rather than through getRootProject(), which hands out a project that reports every
+        // mutable state access made on it.
+        BuildProjectRegistry projects = ((ProjectInternal) project).getOwner().getOwner().getProjects();
+        projects.applyToMutableStateOfAllProjects(access -> {
+            for (ProjectState projectState : projects.getAllProjects()) {
+                EclipseModel model = access.getMutableModel(projectState).getExtensions().findByType(EclipseModel.class);
+                if (model != null) {
+                    if (isSyncModel) {
+                        for (Task t : taskResolver.getDependencies(null, (TaskDependencyContainer) model.getSynchronizationTasks())) {
+                            taskPaths.add(t.getPath());
+                        }
                     }
-                }
-                if (isAutoBuildModel) {
-                    for (Task t : taskResolver.getDependencies(null, (TaskDependencyContainer) model.getAutoBuildTasks())) {
-                        taskPaths.add(t.getPath());
+                    if (isAutoBuildModel) {
+                        for (Task t : taskResolver.getDependencies(null, (TaskDependencyContainer) model.getAutoBuildTasks())) {
+                            taskPaths.add(t.getPath());
+                        }
                     }
                 }
             }
-        }
+        });
 
         if (taskPaths.isEmpty()) {
             // If no tasks is specified then the default tasks will be executed.
