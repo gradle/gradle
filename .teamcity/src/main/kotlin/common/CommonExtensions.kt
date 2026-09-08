@@ -98,15 +98,6 @@ fun Requirements.requiresNotEc2Agent() {
 }
 
 /**
- * We have some "shared" host where a Linux build agent and a Windows build agent
- * both run on the same bare metal. Some builds require exclusive access to the
- * hardware resources (e.g. performance test).
- */
-fun Requirements.requiresNotSharedHost() {
-    doesNotContain("agent.host.type", "shared")
-}
-
-/**
  * This is an undocumented location that forbids anonymous access.
  * We put artifacts here to avoid accidentally exposing sensitive information publicly.
  */
