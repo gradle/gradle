@@ -43,6 +43,7 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.gradle.util.Path
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -280,6 +281,61 @@ empty=
 org:foo:1.0=otherConf
 empty=
 """
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/39081')
+    def 'retains current build resolutions when lock file is deleted (delete: #deleteLockFile, custom: #customLocation)'() {
+        given:
+        startParameter.isWriteDependencyLocks() >> true
+        provider = newProvider()
+        def target = customLocation ? tmpDir.file('custom/gradle.lockfile') : uniqueLockFile
+        provider.lockFile.set(target)
+        target.parentFile.mkdirs()
+        target.text = '''org:foo:1.0=early,obsolete
+empty=earlyEmpty,obsoleteEmpty
+'''
+        provider.loadLockState('early', owner)
+        provider.persistResolvedDependencies('early', owner, [module('org', 'foo', '2.0')] as Set, emptySet())
+        provider.loadLockState('earlyEmpty', owner)
+        provider.persistResolvedDependencies('earlyEmpty', owner, emptySet(), emptySet())
+
+        when:
+        if (deleteLockFile) {
+            target.delete()
+        }
+        provider.loadLockState('late', owner)
+        provider.persistResolvedDependencies('late', owner, [module('org', 'bar', '1.0')] as Set, emptySet())
+        provider.buildFinished()
+
+        then:
+        target.text == """${expectedHeader()}
+org:bar:1.0=late
+${deleteLockFile ? '' : 'org:foo:1.0=obsolete\n'}org:foo:2.0=early
+empty=earlyEmpty${deleteLockFile ? '' : ',obsoleteEmpty'}
+"""
+
+        where:
+        deleteLockFile | customLocation
+        true           | false
+        true           | true
+        false          | false
+        false          | true
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/39081')
+    def 'does not restore deleted lock file when only unlocked configurations resolve'() {
+        given:
+        uniqueLockFile.text = 'org:foo:1.0=obsolete\nempty=obsoleteEmpty\n'
+        startParameter.isWriteDependencyLocks() >> true
+        provider = newProvider()
+        provider.confirmNotLocked('unlocked')
+
+        when:
+        uniqueLockFile.delete()
+        provider.buildFinished()
+
+        then:
+        !uniqueLockFile.exists()
     }
 
     private String expectedHeader() {

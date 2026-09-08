@@ -113,6 +113,10 @@ $ ./gradlew dependencies --write-locks
 This will create or update the lock state for each resolved configuration during that build execution.
 If a lock state already exists, it will be overwritten.
 
+Lock state for configurations that are not resolved is retained if the lock file still exists when Gradle writes the updated state.
+To remove obsolete configurations, delete the lock file and resolve all configurations that should remain locked with `--write-locks`.
+The file can also be deleted during the build: if it remains absent until Gradle writes the lock state, only configurations resolved with locking enabled in that build are included, even if they were resolved before the deletion.
+
 [source,text]
 .gradle.lockfile
 ----
