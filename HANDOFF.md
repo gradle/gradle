@@ -165,10 +165,26 @@ nothing shared is touched and no other branch is affected:
 
 ```bash
 teamcity run start <buildTypeId> --branch <branch> \
-  -P env.REPO_MIRROR_URLS="<real value, repo.grdev.net replaced by repo-mirror-outage-test.invalid>" \
-  -P gradle.plugins.portal.url="https://repo-mirror-outage-test.invalid/artifactory/gradle-plugin-portal-prod/" \
-  -P env.IGNORE_REPO_MIRROR=true
+  -P reverse.dep.'*'.env.REPO_MIRROR_URLS="<real value, repo.grdev.net replaced by repo-mirror-outage-test.invalid>" \
+  -P reverse.dep.'*'.gradle.plugins.portal.url="https://repo-mirror-outage-test.invalid/artifactory/gradle-plugin-portal-prod/" \
+  -P reverse.dep.'*'.env.IGNORE_REPO_MIRROR=true
 ```
+
+**The `reverse.dep.*.` prefix is not optional on a composite/trigger build.** TeamCity does not propagate
+plain `-P` parameters to snapshot dependencies. Without the prefix the overrides sit on the trigger build
+while every build that actually resolves anything runs against the real mirror — and the run comes back
+green having tested nothing. This bit me on build 117128838: 77,000 tests passed and the run was worthless
+as bypass verification. On a *leaf* build (e.g. `..._Check_CompileAllBuild`) plain `-P` is fine, since there
+are no dependencies to propagate to.
+
+Always confirm before trusting a green result:
+
+```bash
+teamcity api "/app/rest/builds/id:<a dependency build id>/resulting-properties" \
+  | grep -E 'IGNORE_REPO_MIRROR|REPO_MIRROR_URLS|plugins.portal.url'
+```
+
+It must show `env.IGNORE_REPO_MIRROR` present and the `.invalid` URLs — not `repo.grdev.net`.
 
 `.invalid` is reserved by RFC 6761 and never resolves, so anything still pointed at the "mirror" fails
 fast instead of silently succeeding against the real one. Overriding `gradle.plugins.portal.url` matters

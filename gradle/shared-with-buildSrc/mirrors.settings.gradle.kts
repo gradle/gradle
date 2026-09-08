@@ -42,9 +42,17 @@
  * shared is touched and no other branch is affected:
  *
  *   teamcity run start <buildTypeId> --branch <branch> \
- *     -P env.REPO_MIRROR_URLS="<the real value, with repo.grdev.net replaced by repo-mirror-outage-test.invalid>" \
- *     -P gradle.plugins.portal.url="https://repo-mirror-outage-test.invalid/artifactory/gradle-plugin-portal-prod/" \
- *     -P env.IGNORE_REPO_MIRROR=true
+ *     -P reverse.dep.*.env.REPO_MIRROR_URLS="<real value, repo.grdev.net replaced by repo-mirror-outage-test.invalid>" \
+ *     -P reverse.dep.*.gradle.plugins.portal.url="https://repo-mirror-outage-test.invalid/artifactory/gradle-plugin-portal-prod/" \
+ *     -P reverse.dep.*.env.IGNORE_REPO_MIRROR=true
+ *
+ * The `reverse.dep.*.` prefix is NOT optional on a composite/trigger build. TeamCity does not propagate plain
+ * `-P` parameters to snapshot dependencies, so without it the overrides land only on the trigger build while
+ * every build that actually resolves anything runs against the real mirror - and the run comes back green
+ * having tested nothing. On a leaf build (e.g. `..._Check_CompileAllBuild`) plain `-P` is fine, because there
+ * are no dependencies to propagate to. Verify before trusting a green result:
+ *   teamcity api "/app/rest/builds/id:<a dependency build id>/resulting-properties"
+ * must show env.IGNORE_REPO_MIRROR and the .invalid URLs.
  *
  * `.invalid` is reserved by RFC 6761 and never resolves, so any request that still goes to the "mirror" fails
  * fast and loudly instead of silently succeeding against the real one. Overriding `gradle.plugins.portal.url`
