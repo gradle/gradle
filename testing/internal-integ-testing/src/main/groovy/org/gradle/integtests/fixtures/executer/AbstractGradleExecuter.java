@@ -1089,6 +1089,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             allArgs.add("--init-script");
             allArgs.add(initScript.getAbsolutePath());
         }
+        File extraRepositoriesInitScript = RepoScriptBlockUtil.extraRepositoriesInitScriptFile();
+        if (extraRepositoriesInitScript != null) {
+            allArgs.add("--init-script");
+            allArgs.add(extraRepositoriesInitScript.getAbsolutePath());
+        }
         if (quiet) {
             allArgs.add("--quiet");
         }
