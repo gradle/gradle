@@ -492,7 +492,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
     @Override
     public GradleExecuter usingInitScript(File initScript) {
-        // Must not be gated on IGNORE_MIRROR: this is the public API for every fixture
+        // Must not be gated on IGNORE_REPO_MIRROR: this is the public API for every fixture
         // init script, not just the repository-mirror one. Skip mirrors in withRepositoryMirrors().
         initScripts.add(initScript);
         return this;

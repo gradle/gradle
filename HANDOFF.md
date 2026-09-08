@@ -99,15 +99,35 @@ Sampling 400 failures:
 
 **Zero grdev references against a dead Artifactory with 81k tests passing — the switch works.**
 
-### The 459 failures are not from this branch
+### The 459 failures WERE from this branch — corrected 2026-09-03
 
-- **266/400 are `Cannot create a NativeToolChain named 'gcc'`** — pre-existing on master. Every
-  commit touching `CommonToolchainCustomizationIntegTest` is already on `origin/master` (newest
-  `4b3213e43bb`, 2026-08-12). This branch does not touch `platforms/native`. **Someone should look at
-  this separately — it is failing a lot of tests on master.**
-- Others sampled: local `127.0.0.1` Ivy fixtures, progress-logger assertions, `FinalizeBuildCache…`
-  expecting `"after 5 days"` vs actual `"after 7 days"`, a changed exception message in
-  `MultiProducerSingleConsumerProcessorTest`. All assertion/default drift, unrelated to mirrors.
+**This section originally claimed the failures were pre-existing on master. That was wrong.** The real
+cause was found by Bo in commit `58895e7809a`:
+
+`AbstractGradleExecuter.usingInitScript()` was gated on `RepoScriptBlockUtil.isMirrorEnabled()`, so with
+the switch on it silently dropped **every** fixture init script — not just the repository-mirror one.
+Toolchain, lifecycle and progress-logging fixtures all vanished. That is why the failures clustered
+where they did:
+
+- `Cannot create a NativeToolChain named 'gcc'` — the toolchain init script was never applied
+- `progressLogger.downloadProgressLogged(...)` assertions in the Ivy HTTP tests — progress-logging init
+  script never applied
+- `BinaryNativePlatformIntegrationTest` toolchain assertions — same cause
+
+The fix moves the guard to `withRepositoryMirrors()`, where it belongs, and leaves `usingInitScript()`
+unconditional.
+
+**Why the original conclusion was wrong, so the mistake is not repeated:** the reasoning was "every
+commit touching `CommonToolchainCustomizationIntegTest` is already on master, and this branch does not
+touch `platforms/native`". Both facts were true and the conclusion still did not follow — the *test* was
+unchanged while its *environment* changed, because the init scripts it depended on were being discarded.
+When failures cluster in unrelated-looking areas (toolchains, progress logging) right after a change to
+test-fixture plumbing, suspect the plumbing, not the tests.
+
+**Consequence for the evidence below:** build 116950940 predates `58895e7809a`. Its 459 failures are
+explained by that bug and should not be read as either a master problem or a defect in the switch. The
+switch's own correctness evidence — 0 grdev references — is unaffected. **A full PR-feedback chain has
+not been re-run since the fix; that is the outstanding verification.**
 
 ### Known limitation — upstream load
 
