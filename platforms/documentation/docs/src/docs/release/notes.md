@@ -92,7 +92,7 @@ Gradle provides an intuitive [command-line interface](userguide/command_line_int
 
 #### Easier to read problem reports
 
-Two improvements make [reported problems in the terminal](userguide/reporting_problems.html#command_line_interface_problems) easier to scan and act on.
+Two improvements make [reported problems](userguide/reporting_problems.html#command_line_interface_problems) easier to scan and act on:
 
 - Printed problem locations (`demo-convention.gradle.kts:8`) are now clickable in terminals that support hyperlinks, so you can jump straight to the source line in most modern IDEs and editors.
 - Problems in the CLI failure output now appear in the order they occurred, which preserves the causal sequence when you scroll through a failing build.
@@ -101,7 +101,7 @@ Two improvements make [reported problems in the terminal](userguide/reporting_pr
 
 #### Interactive HTML problem report
 
-In [the HTML problem report](userguide/reporting_problems.html#sec:generated_html_report), the copy button stays visible while you scroll long stack traces, so capturing a full trace no longer means hunting for the button.
+In [the HTML problem report](userguide/reporting_problems.html#sec:generated_html_report), the copy button stays visible while you scroll long stack traces, so capturing a full trace no longer means hunting for the button:
 
 ![Problem Report Gif](release-notes-assets/problem-report.gif)
 
