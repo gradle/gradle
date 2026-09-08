@@ -20,12 +20,15 @@ import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemOperations;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.Checkstyle;
 import org.gradle.api.plugins.quality.CheckstyleExtension;
+import org.gradle.api.tasks.Copy;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskProvider;
@@ -35,6 +38,7 @@ import gradlebuild.basics.BuildEnvironment;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.net.URI;
 
 /**
  * Generates Javadocs in a particular way.
@@ -64,13 +68,27 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
         // TODO: This breaks if version is changed later
         Object version = project.getVersion();
 
+        Javadocs javadocs = extension.getJavadocs();
+
+        Configuration groovyPackageListConf = project.getConfigurations().create("groovyPackageList", conf -> {
+            conf.setTransitive(false);
+            conf.setCanBeConsumed(false);
+            conf.setCanBeResolved(true);
+        });
+        project.getDependencies().addProvider(groovyPackageListConf.getName(), javadocs.getGroovyPackageListSrc());
+
+        TaskProvider<Copy> extractGroovyPackageListTask = tasks.register("extractGroovyPackageList", Copy.class, task -> {
+            task.from(project.zipTree(project.provider(groovyPackageListConf::getSingleFile)));
+            // See https://docs.oracle.com/en/java/javase/21/docs/specs/man/javadoc.html#option-linkoffline
+            task.include("package-list", "element-list");
+            task.into(layout.getBuildDirectory().dir("groovyPackageList"));
+        });
+
         TaskProvider<Javadoc> javadocAll = tasks.register("javadocAll", Javadoc.class, task -> {
             task.setGroup("documentation");
             task.setDescription("Generate Javadocs for all API classes");
 
             task.setTitle("Gradle API " + version);
-
-            Javadocs javadocs = extension.getJavadocs();
 
             // TODO: This should be part of Javadoc task
             task.getInputs().file(javadocs.getJavadocCss())
@@ -88,7 +106,16 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             options.addStringOption("stylesheetfile", javadocs.getJavadocCss().get().getAsFile().getAbsolutePath());
             options.addStringOption("source", "8");
             // TODO: This breaks the provider
-            options.links(javadocs.getJavaApi().get().toString(), javadocs.getGroovyApi().get().toString());
+            task.getInputs().dir(javadocs.getJavaPackageListLoc())
+                    .withPropertyName("javaPackageList")
+                    .withPathSensitivity(PathSensitivity.NONE);
+            String javaApiLink = javadocs.getJavaApi().map(URI::toString).map(v -> v.endsWith("/") ? v.substring(0, v.length() - 1) : v).get();
+            options.linksOffline(javaApiLink, javadocs.getJavaPackageListLoc().map(Directory::getAsFile).get().getAbsolutePath());
+            // TODO: This breaks the provider
+            task.getInputs().dir(extractGroovyPackageListTask.map(Copy::getDestinationDir))
+                    .withPropertyName("groovyPackageList")
+                    .withPathSensitivity(PathSensitivity.NONE);
+            options.linksOffline(javadocs.getGroovyApi().get().toString(), extractGroovyPackageListTask.map(Copy::getDestinationDir).get().getAbsolutePath());
 
             task.source(extension.getDocumentedSource());
 
@@ -125,11 +152,11 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             }
         });
 
-        extension.javadocs(javadocs -> {
-            javadocs.getJavadocCss().convention(extension.getSourceRoot().file("css/javadoc.css"));
+        extension.javadocs(javadocsExt -> {
+            javadocsExt.getJavadocCss().convention(extension.getSourceRoot().file("css/javadoc.css"));
 
             // TODO: destinationDirectory should be part of Javadoc
-            javadocs.getRenderedDocumentation().from(javadocAll.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
+            javadocsExt.getRenderedDocumentation().from(javadocAll.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
         });
 
         CheckstyleExtension checkstyle = project.getExtensions().getByType(CheckstyleExtension.class);
