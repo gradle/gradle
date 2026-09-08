@@ -23,7 +23,8 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
  * The Maven repository EMBEDDED in the distribution image ({@code <gradleHome>/repo}): it serves
  * the published XDCL ecosystem libraries at the running distribution's exact (timestamped) version,
  * with real POM + Gradle Module Metadata, plus the {@code org.xdcl:xdcl-gradle-api} module their
- * published metadata STRICTLY requires — the complete closure, so a consumer build's settings
+ * published API depends on — at that SAME version, republished by gradle/gradle's
+ * {@code :xdcl-gradle-api-publication} module — the complete closure, so a consumer build's settings
  * classpath can resolve a built-in ecosystem library offline, with no external repository in play.
  * This is the packaging half of resolving built-in ecosystems through ordinary dependency
  * resolution; the provider-side injection is exercised separately.
@@ -47,25 +48,35 @@ class XdclDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec 
     private static final String NEWER_OFFERED_VERSION = "9999.0.0-newer-test-fixture"
 
     def "a consumer build resolves an ecosystem library and its full closure from the embedded repository, offline"() {
-        given: 'a build whose only repository is the distribution-embedded one'
+        given: 'a build whose only repository is the distribution-embedded one, probing both the runtime and the API closure'
         buildFile << '''
             def distributionRepository = new File(gradle.gradleHomeDir, "repo")
             def distributionVersion = org.gradle.util.GradleVersion.current().version
 
             configurations {
-                probe
+                // What a settings classpath asks for: the runtime variant.
+                runtimeProbe {
+                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_RUNTIME))
+                }
+                // What an authoring build compiling against the library asks for: the API variant.
+                apiProbe {
+                    attributes.attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, Usage.JAVA_API))
+                }
             }
             repositories {
                 maven { url = distributionRepository.toURI() }
             }
             dependencies {
-                probe "org.gradle:gradle-xdcl-plugin-development:${distributionVersion}"
+                runtimeProbe "org.gradle:gradle-xdcl-plugin-development:${distributionVersion}"
+                apiProbe "org.gradle:gradle-xdcl-plugin-development:${distributionVersion}"
             }
 
             tasks.register("resolveProbe") {
-                def probe = configurations.probe
+                def runtimeProbe = configurations.runtimeProbe
+                def apiProbe = configurations.apiProbe
                 doLast {
-                    probe.files.name.sort().each { println("xdcl-repo-resolved=" + it) }
+                    runtimeProbe.files.name.sort().each { println("xdcl-repo-runtime-resolved=" + it) }
+                    apiProbe.files.name.sort().each { println("xdcl-repo-api-resolved=" + it) }
                 }
             }
         '''
@@ -74,12 +85,48 @@ class XdclDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec 
         executer.withArgument("--offline")
         succeeds("resolveProbe")
 
-        then: 'the requested library, its ecosystem dependency, and the strictly-pinned org.xdcl API all resolve'
-        outputContains("xdcl-repo-resolved=gradle-xdcl-plugin-development-")
-        outputContains("xdcl-repo-resolved=gradle-xdcl-common-ecosystem-")
-        // Version-agnostic on purpose: WHICH org.xdcl version the closure needs is the published
-        // metadata's strict constraint, served by the same repo — not this test's business.
-        outputContains("xdcl-repo-resolved=xdcl-gradle-api-")
+        then: 'the runtime closure is the requested library and its ecosystem dependency — the API module is not requested at runtime'
+        outputContains("xdcl-repo-runtime-resolved=gradle-xdcl-plugin-development-")
+        outputContains("xdcl-repo-runtime-resolved=gradle-xdcl-common-ecosystem-")
+        outputDoesNotContain("xdcl-repo-runtime-resolved=xdcl-gradle-api-")
+
+        and: 'the API closure adds the org.xdcl API module, at exactly the distribution version'
+        outputContains("xdcl-repo-api-resolved=gradle-xdcl-plugin-development-")
+        outputContains("xdcl-repo-api-resolved=gradle-xdcl-common-ecosystem-")
+        output.contains("xdcl-repo-api-resolved=xdcl-gradle-api-" + distribution.version.version + ".jar")
+    }
+
+    def "the embedded metadata of an ecosystem library names the org.xdcl API at the distribution version, in the API variant only"() {
+        given: 'the module metadata the embedded repository serves for the common ecosystem library'
+        def version = distribution.version.version
+        def moduleFile = new File(distribution.gradleHomeDir, "repo/org/gradle/gradle-xdcl-common-ecosystem/$version/gradle-xdcl-common-ecosystem-${version}.module")
+        def pomFile = new File(distribution.gradleHomeDir, "repo/org/gradle/gradle-xdcl-common-ecosystem/$version/gradle-xdcl-common-ecosystem-${version}.pom")
+
+        expect: 'the metadata files exist alongside the jar'
+        moduleFile.file
+        pomFile.file
+
+        when:
+        def module = new groovy.json.JsonSlurper().parse(moduleFile)
+        def dependenciesOf = { String variantName ->
+            module.variants.find { it.name == variantName }.dependencies?.collect { "${it.group}:${it.module}:${it.version.requires}".toString() } ?: []
+        }
+
+        then: 'the API variant depends on the org.xdcl API module at the distribution version — not the included build\'s own version'
+        dependenciesOf("apiElements") == ["org.xdcl:xdcl-gradle-api:$version".toString()]
+
+        and: 'the runtime variant does not depend on it at all — the running distribution\'s lib/ copy is what loads'
+        dependenciesOf("runtimeElements") == []
+
+        and: 'the POM (for POM-only consumers) names it at compile scope, at the same version'
+        def pom = new groovy.xml.XmlSlurper().parse(pomFile)
+        def apiDependency = pom.dependencies.dependency.find { it.groupId.text() == "org.xdcl" && it.artifactId.text() == "xdcl-gradle-api" }
+        apiDependency.version.text() == version
+        apiDependency.scope.text() == "compile"
+
+        and: 'the embedded repository serves that exact org.xdcl version, jar and POM'
+        new File(distribution.gradleHomeDir, "repo/org/xdcl/xdcl-gradle-api/$version/xdcl-gradle-api-${version}.jar").file
+        new File(distribution.gradleHomeDir, "repo/org/xdcl/xdcl-gradle-api/$version/xdcl-gradle-api-${version}.pom").file
     }
 
     def "the embedded repository pins the running distribution's version against a stale published request"() {

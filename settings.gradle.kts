@@ -328,6 +328,7 @@ packaging {
     subproject("core-platform")              // platform for Gradle distribution core
     subproject("distributions-full")
     subproject("public-api")                 // Public API publishing
+    subproject("xdcl-gradle-api-publication") // Republishes the composite-sourced XDCL Gradle API as org.xdcl:xdcl-gradle-api at the distribution version
     subproject("internal-build-reports")     // Internal utility and verification projects
 }
 

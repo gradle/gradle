@@ -1771,6 +1771,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "xdcl-gradle-api-publication",
+    "path": "packaging/xdcl-gradle-api-publication",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "xdcl-integ-tests",
     "path": "platforms/core-configuration/xdcl-integ-tests",
     "unitTests": false,

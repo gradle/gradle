@@ -48,16 +48,25 @@ plugins {
 
 val distributionRepository: Provider<Directory> = layout.buildDirectory.dir("distribution-repository")
 
-// Identity values resolved once at configuration time (the same eager reads
-// gradlebuild.publish-public-libraries makes). The renames below use the STRING overload, not a
-// lambda: a lambda here would capture the script instance, which the configuration cache rejects.
-val artifactId = gradleModule.identity.baseName.get()
-val fullVersion = gradleModule.identity.version.get().version
+// The project's, not a task's — inside the task configuration block below, `the<...>()` would
+// resolve against the (ExtensionAware) Sync task.
+val publishing = the<PublishingExtension>()
 
 val assembleDistributionRepository = tasks.register<Sync>("assembleDistributionRepository") {
     description = "Assembles this module's slice of the distribution's embedded Maven repository (repo/)"
+    // The slice is keyed by the PUBLICATION's coordinates, not by the project's module identity: a
+    // module may publish under other coordinates than `org.gradle:<baseName>` (the
+    // `:xdcl-gradle-api-publication` module publishes `org.xdcl:xdcl-gradle-api`), and the slice
+    // must match what the published metadata of its dependents names. Read here — at task
+    // configuration time, i.e. after the applying build script has set any override — as plain
+    // values. The renames below use the STRING overload, not a lambda: a lambda would capture the
+    // script instance, which the configuration cache rejects.
+    val publication = publishing.publications.getByName<MavenPublication>("gradleDistribution")
+    val groupPath = publication.groupId.replace('.', '/')
+    val artifactId = publication.artifactId
+    val fullVersion = publication.version
     into(distributionRepository)
-    into("${project.group.toString().replace('.', '/')}/$artifactId/$fullVersion") {
+    into("$groupPath/$artifactId/$fullVersion") {
         from(tasks.named<GenerateMavenPom>("generatePomFileForGradleDistributionPublication")) {
             rename(".*", "$artifactId-$fullVersion.pom")
         }
