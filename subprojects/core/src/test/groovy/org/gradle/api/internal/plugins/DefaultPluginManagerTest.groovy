@@ -351,6 +351,20 @@ class DefaultPluginManagerTest extends Specification {
         called
     }
 
+    def "hasPlugin is true for actively applying plugin even when withPlugin was registered for it first"() {
+        given:
+        addPluginId("foo", imperativeClass)
+        manager.withPlugin("foo") {}
+
+        when:
+        manager.apply(imperativeClass)
+
+        then:
+        1 * target.applyImperative(null, { imperativeClass.isInstance(it) }) >> {
+            assert manager.hasPlugin("foo")
+        }
+    }
+
     def "imperative plugin applied via plugins container is visible via plugins manager"() {
         given:
         addPluginId("foo", imperativeClass)
