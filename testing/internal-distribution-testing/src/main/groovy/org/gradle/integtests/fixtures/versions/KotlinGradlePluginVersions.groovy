@@ -103,6 +103,13 @@ class KotlinGradlePluginVersions {
         return LANGUAGE_VERSIONS.findAll { VersionNumber.parse(it) >= LATEST_STABLE_OR_RC_MINIMUM_LANGUAGE_VERSION }
     }
 
+    /**
+     * Dev builds carry a trailing build number, e.g. {@code 2.4.20-RC-197}, and are only published to the Kotlin dev repository.
+     */
+    static boolean isKotlinDevVersion(String version) {
+        version ==~ /.+-\d+$/
+    }
+
     static final VersionNumber KOTLIN_2_0_0 = VersionNumber.parse('2.0.0')
     static final VersionNumber KOTLIN_2_0_20 = VersionNumber.parse('2.0.20')
     static final VersionNumber KOTLIN_2_1_0 = VersionNumber.parse('2.1.0')
