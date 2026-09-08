@@ -158,7 +158,18 @@ as much as the mirror list — it is what TeamCity injects as
 **Run it both ways.** Without `env.IGNORE_REPO_MIRROR` the build must FAIL on a
 `repo-mirror-outage-test.invalid` URL — that is what proves the simulation is faithful.
 
-Verified locally on 2026-09-08 with a cold `GRADLE_USER_HOME`:
+**Verified on CI, 2026-09-08** — controlled A/B on `Gradle_Master_Check_CompileAllBuild`, same branch and
+agent pool, `env.IGNORE_REPO_MIRROR` the only variable:
+
+| Build | `env.IGNORE_REPO_MIRROR` | Result |
+|---|---|---|
+| https://builds.gradle.org/build/117128279 | unset | **FAILURE** — `Gradle Central Plugin Repository(https://repo-mirror-outage-test.invalid/artifactory/gradle-plugin-portal-prod/)` |
+| https://builds.gradle.org/build/117128278 | `true` | **SUCCESS** · https://ge.gradle.org/s/y5vw4guq54rsu |
+
+The control failing is what makes the pass meaningful: it rules out the success coming from warm agent
+caches, because the same resolution demonstrably needed the network on the same pool.
+
+Also verified locally with a cold `GRADLE_USER_HOME`:
 
 | Scenario | Result |
 |---|---|
