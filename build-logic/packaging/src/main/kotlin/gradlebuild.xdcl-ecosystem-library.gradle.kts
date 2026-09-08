@@ -17,8 +17,8 @@
 /**
  * Shared contract for a published built-in XDCL ecosystem schema library (the `:xdcl-*` lib half
  * of each ecosystem). The generated facades extend `org.gradle.api.xdcl.*`, so every such library
- * needs the external `xdclGradleApi` facade base types as `api` (exposed transitively to
- * consumers) — declared here once instead of in every lib build script. Every such library is also
+ * compiles against the XDCL Gradle API module — declared here once instead of in every lib build
+ * script, and `compileOnly` on purpose (see the dependencies block). Every such library is also
  * served by the distribution's embedded Maven repository (that is what makes it a BUILT-IN
  * ecosystem library), so `gradlebuild.distribution-repository` — and through it
  * `gradlebuild.publish-public-libraries` — is applied here rather than by each module.
@@ -36,10 +36,15 @@ plugins {
 excludeGeneratedXdclSourcesFromChecks()
 publishGeneratedXdclSources()
 
-// External (org.xdcl) facade base types the generated facades extend; `api` so consumers of the
-// published library get them transitively.
+// The facade base types the generated facades extend (org.gradle.api.xdcl.*) are GRADLE API: the
+// :xdcl-api module ships them in the distribution, every derivative API artifact (the public API
+// jar, gradleApi(), the Kotlin DSL extensions, the docs) carries them, and any consumer of a
+// published ecosystem library — a plugin author's build, or the settings classpath of a build
+// applying the ecosystem — runs on a Gradle that already has them. So the dependency is
+// `compileOnly`: it appears in NO published metadata, in no variant and at no scope, exactly like
+// the rest of the Gradle API these libraries reference.
 dependencies {
-    "api"(project.versionCatalogs.named("libs").findLibrary("xdclGradleApi").get())
+    "compileOnly"(project(":xdcl-api"))
 }
 
 // Opt this library's jar out of the generated Gradle API Kotlin DSL extensions: the generated

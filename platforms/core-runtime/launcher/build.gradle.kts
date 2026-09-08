@@ -69,7 +69,13 @@ dependencies {
 
     runtimeOnly(projects.gradleCliMain)
     runtimeOnly(projects.declarativeDslProvider)
-    runtimeOnly(libs.xdclProvider)
+    runtimeOnly(libs.xdclProvider) {
+        // The XDCL Gradle API (org.gradle.api.xdcl) is a Gradle module here — :xdcl-api repackages
+        // the org.xdcl build's jar and core-api depends on it — so the org.xdcl build's own copy, which
+        // the provider depends on through the composite, must not enter the distribution as a second
+        // copy of the same classes. Composite project edges are excluded by the target's group:name.
+        exclude(group = "org.xdcl", module = "xdcl-gradle-api")
+    }
     runtimeOnly(projects.problems)
 
     runtimeOnly(libs.commonsIo)

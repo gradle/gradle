@@ -22,11 +22,12 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 /**
  * The Maven repository EMBEDDED in the distribution image ({@code <gradleHome>/repo}): it serves
  * the published XDCL ecosystem libraries at the running distribution's exact (timestamped) version,
- * with real POM + Gradle Module Metadata, plus the {@code org.xdcl:xdcl-gradle-api} module their
- * published metadata STRICTLY requires — the complete closure, so a consumer build's settings
+ * with real POM + Gradle Module Metadata — the complete closure, so a consumer build's settings
  * classpath can resolve a built-in ecosystem library offline, with no external repository in play.
- * This is the packaging half of resolving built-in ecosystems through ordinary dependency
- * resolution; the provider-side injection is exercised separately.
+ * The XDCL Gradle API the libraries extend ({@code org.gradle.api.xdcl}) is NOT part of that
+ * closure: it is Gradle API, shipped in {@code lib/} and in every derivative API artifact, and no
+ * published metadata references it. This is the packaging half of resolving built-in ecosystems
+ * through ordinary dependency resolution; the provider-side injection is exercised separately.
  */
 class XdclDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec {
 
@@ -74,12 +75,53 @@ class XdclDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec 
         executer.withArgument("--offline")
         succeeds("resolveProbe")
 
-        then: 'the requested library, its ecosystem dependency, and the strictly-pinned org.xdcl API all resolve'
+        then: 'the requested library and its ecosystem dependency resolve — and nothing else: the API they extend is Gradle API, not a dependency'
         outputContains("xdcl-repo-resolved=gradle-xdcl-plugin-development-")
         outputContains("xdcl-repo-resolved=gradle-xdcl-common-ecosystem-")
-        // Version-agnostic on purpose: WHICH org.xdcl version the closure needs is the published
-        // metadata's strict constraint, served by the same repo — not this test's business.
-        outputContains("xdcl-repo-resolved=xdcl-gradle-api-")
+        outputDoesNotContain("xdcl-repo-resolved=xdcl-gradle-api-")
+        outputDoesNotContain("xdcl-repo-resolved=gradle-xdcl-api-")
+    }
+
+    def "the published metadata of an ecosystem library carries no dependency on the XDCL Gradle API, and the API ships as Gradle API"() {
+        given: 'the metadata the embedded repository serves for the common ecosystem library, whose facades extend the API'
+        def version = distribution.version.version
+        def libraryDir = new File(distribution.gradleHomeDir, "repo/org/gradle/gradle-xdcl-common-ecosystem/$version")
+        def moduleFile = new File(libraryDir, "gradle-xdcl-common-ecosystem-${version}.module")
+        def pomFile = new File(libraryDir, "gradle-xdcl-common-ecosystem-${version}.pom")
+
+        expect: 'the metadata files exist alongside the jar'
+        moduleFile.file
+        pomFile.file
+
+        when:
+        def module = new groovy.json.JsonSlurper().parse(moduleFile)
+        def allDependencies = module.variants.collectMany { variant ->
+            (variant.dependencies ?: []).collect { "${it.group}:${it.module}".toString() }
+        }
+        def pom = new groovy.xml.XmlSlurper().parse(pomFile)
+        def pomDependencies = pom.dependencies.dependency.collect { "${it.groupId.text()}:${it.artifactId.text()}".toString() }
+
+        then: 'no variant of the module metadata depends on the API, under either its Gradle-module or its org.xdcl identity'
+        allDependencies.every { !it.startsWith("org.xdcl:") && it != "org.gradle:gradle-xdcl-api" }
+
+        and: 'nor does the POM, at any scope'
+        pomDependencies.every { !it.startsWith("org.xdcl:") && it != "org.gradle:gradle-xdcl-api" }
+
+        and: 'the embedded repository serves nothing under org.xdcl — there is no API module to resolve'
+        !new File(distribution.gradleHomeDir, "repo/org/xdcl").exists()
+
+        and: 'the API is a Gradle module in lib/, and the org.xdcl build\'s own copy of it is not shipped'
+        def lib = new File(distribution.gradleHomeDir, "lib")
+        lib.listFiles().any { it.name.startsWith("gradle-xdcl-api-") && it.name.endsWith(".jar") }
+        !lib.listFiles().any { it.name.startsWith("xdcl-gradle-api-") }
+
+        and: 'the public API ABI jar — the compile-time face of the Gradle API outside the distribution — carries the API types'
+        def abiJar = new File(lib, "api").listFiles().find { it.name.startsWith("gradle-public-api-legacy-") && it.name.endsWith(".jar") }
+        abiJar != null
+        new java.util.jar.JarFile(abiJar).withCloseable { jar ->
+            jar.getJarEntry("org/gradle/api/xdcl/Reaction.class") != null &&
+                jar.getJarEntry("org/gradle/api/xdcl/ConfigurationNode.class") != null
+        }
     }
 
     def "the embedded repository pins the running distribution's version against a stale published request"() {

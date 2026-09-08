@@ -18,6 +18,7 @@ dependencies {
     api(projects.credentialsApi)
     api(projects.declarativeDslApi)
     api(projects.files)
+    api(projects.xdclApi)
     api(projects.internalInstrumentationApi)
     api(projects.loggingApi)
     api(projects.persistentCache)

@@ -34,7 +34,11 @@ dependencies {
     pluginsRuntimeOnly(projects.enterprise)
     pluginsRuntimeOnly(projects.unitTestFixtures)
 
-    pluginsRuntimeOnly(libs.xdclGradlePlugin)
+    pluginsRuntimeOnly(libs.xdclGradlePlugin) {
+        // The XDCL Gradle API is a Gradle module (:xdcl-api repackages the org.xdcl build's jar);
+        // the org.xdcl build's own copy must not ride into the image as a second copy of the classes.
+        exclude(group = "org.xdcl", module = "xdcl-gradle-api")
+    }
 
     // The shared schema foundation the built-in ecosystems import. Also PUBLISHED as
     // org.gradle:gradle-xdcl-common-ecosystem and served by the embedded repo (repo/); bundled so its
@@ -46,12 +50,12 @@ dependencies {
     pluginsRuntimeOnly(projects.xdclPluginDevelopmentPlugin)
 
     // The embedded Maven repository (repo/ in the image): the published ecosystem libraries at the
-    // distribution version, plus the org.xdcl API module their published metadata strictly
-    // requires — the full offline-resolution closure a consumer build's settings classpath needs
-    // when the XDCL provider injects built-in ecosystems into dependency resolution.
+    // distribution version — the full offline-resolution closure a consumer build's settings
+    // classpath needs when the XDCL provider injects built-in ecosystems into dependency resolution.
+    // (The XDCL Gradle API they extend is Gradle API, shipped in lib/ by :xdcl-api and referenced by
+    // no published metadata, so the repository has nothing to serve for it.)
     distributionRepositoryOnly(projects.xdclCommonEcosystem)
     distributionRepositoryOnly(projects.xdclPluginDevelopment)
-    distributionRepositoryOnly(libs.xdclGradleApi)
 }
 
 // The manifest auto-derives module names from `gradle-<name>-<version>.jar` file names, which

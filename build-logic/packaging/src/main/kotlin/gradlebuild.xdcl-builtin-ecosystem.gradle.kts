@@ -42,11 +42,11 @@ excludeGeneratedXdclSourcesFromChecks()
 publishGeneratedXdclSources()
 
 // Every built-in ecosystem carrier's generated carrier + its reactions reference org.gradle.api.xdcl.*
-// (Reaction/ReactionScope/BindReaction/PluginDefaults). It is Gradle API in the distribution at runtime,
-// so add it compile-only here — once, instead of in every carrier build script — and the plugin jar
-// does not bundle a second copy (classloader identity).
+// (Reaction/ReactionScope/BindReaction/PluginDefaults). It is Gradle API — the :xdcl-api module in
+// the distribution — so add it compile-only here, once, instead of in every carrier build script;
+// the runtime edge comes through core, and the plugin jar bundles no copy (classloader identity).
 dependencies {
-    "compileOnly"(project.versionCatalogs.named("libs").findLibrary("xdclGradleApi").get())
+    "compileOnly"(project(":xdcl-api"))
 }
 
 val xdclBuiltinEcosystem = extensions.create<XdclBuiltinEcosystemExtension>("xdclBuiltinEcosystem")

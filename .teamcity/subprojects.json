@@ -1764,6 +1764,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "xdcl-api",
+    "path": "platforms/core-configuration/xdcl-api",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "xdcl-common-ecosystem",
     "path": "platforms/core-configuration/xdcl-common-ecosystem",
     "unitTests": false,
