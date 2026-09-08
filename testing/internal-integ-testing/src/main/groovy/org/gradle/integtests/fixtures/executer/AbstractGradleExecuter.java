@@ -178,6 +178,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean disableToolchainDownload = true;
     private boolean disableToolchainDetection = true;
     private boolean disablePluginRepositoryMirror = false;
+    private boolean extraRepositories = false;
 
     private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings = new ArrayList<>();
     private boolean eagerClassLoaderCreationChecksOn = true;
@@ -479,6 +480,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         if (disablePluginRepositoryMirror) {
             executer.withPluginRepositoryMirrorDisabled();
+        }
+        if (extraRepositories) {
+            executer.withExtraRepositories();
         }
 
         return executer;
@@ -977,6 +981,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
+    public GradleExecuter withExtraRepositories() {
+        extraRepositories = true;
+        return this;
+    }
+
+    @Override
     public GradleExecuter ignoreCleanupAssertions() {
         this.ignoreCleanupAssertions = true;
         return this;
@@ -1092,6 +1102,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         for (File initScript : initScripts) {
             allArgs.add("--init-script");
             allArgs.add(initScript.getAbsolutePath());
+        }
+        File extraRepositoriesInitScript = extraRepositories ? RepoScriptBlockUtil.extraRepositoriesInitScriptFile() : null;
+        if (extraRepositoriesInitScript != null) {
+            allArgs.add("--init-script");
+            allArgs.add(extraRepositoriesInitScript.getAbsolutePath());
         }
         if (quiet) {
             allArgs.add("--quiet");
