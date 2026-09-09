@@ -80,8 +80,9 @@ public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
             }
         }
 
-        boolean hasWork() {
-            return !queue.isEmpty();
+        @Override
+        public boolean isEmpty() {
+            return queue.isEmpty();
         }
 
         @Nullable
@@ -209,7 +210,7 @@ public final class WorkerLeaseQueueProcessor implements WorkerThreadPool {
             }
             // `currentQueue` is not set while waiting for a lease, so no need to check it.
             for (SubmissionQueueImpl queue : activeQueues) {
-                if (queue.hasWork()) {
+                if (!queue.isEmpty()) {
                     return true;
                 }
             }

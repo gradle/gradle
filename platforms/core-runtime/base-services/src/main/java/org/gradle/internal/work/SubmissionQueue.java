@@ -37,15 +37,14 @@ public interface SubmissionQueue {
      * Process work from this queue on the current thread until the queue is empty.
      *
      * <p>
-     * The caller must stop submitting to this queue before draining it, otherwise concurrent
-     * {@link #add(Runnable)} calls can keep the current thread here indefinitely. Work already
-     * submitted may still be running on other threads when this returns; this only guarantees
-     * that nothing is left queued.
-     *
-     * <p>
      * Shutting the owning processor down does not stop this. A caller that counts its outstanding
      * work can therefore drain and then wait for that count without the shutdown leaving it
      * waiting on work nobody will run.
      */
     void processWorkUsingCurrentThreadUntilEmpty();
+
+    /**
+     * {@return whether this queue has no pending work to run}
+     */
+    boolean isEmpty();
 }
