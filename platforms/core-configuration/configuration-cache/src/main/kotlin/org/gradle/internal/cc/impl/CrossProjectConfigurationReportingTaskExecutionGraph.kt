@@ -30,7 +30,6 @@ import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
-import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.util.Path
 import java.util.Objects
 
@@ -151,7 +150,7 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
                 text(" cannot access the tasks in the task graph that were created by other projects")
             }.exception { message ->
                 // As the exception message is not used for grouping, we can safely add the exact task name to it:
-                message.capitalized() + if (requestPath != null) "; tried to access '$requestPath'" else ""
+                message + if (requestPath != null) "; tried to access '$requestPath'" else ""
             }.build()
         }
     }
