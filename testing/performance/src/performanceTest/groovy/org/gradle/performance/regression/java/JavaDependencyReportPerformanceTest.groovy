@@ -21,7 +21,6 @@ import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_JAVA_MULTI_PROJECT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
@@ -31,7 +30,7 @@ class JavaDependencyReportPerformanceTest extends AbstractCrossVersionPerformanc
 
     def "generate dependency report"() {
         given:
-        def subProject = (runner.testProject == LARGE_JAVA_MULTI_PROJECT.projectName) ? 'project363:' : ''
+        def subProject = (runner.testProject == 'largeJavaMultiProject') ? 'project363:' : ''
         runner.tasksToRun = ["${subProject}dependencyReport"]
 
         when:

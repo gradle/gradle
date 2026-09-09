@@ -42,7 +42,7 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
 
     def setup() {
         testProject = JavaTestProject.findProjectFor(runner.testProject)
-        isGroovyProject = testProject?.name()?.contains("GROOVY")
+        isGroovyProject = testProject?.groovy
         if (isGroovyProject) {
             runner.minimumBaseVersion = '5.0'
         }
@@ -57,7 +57,7 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
         given:
         runner.tasksToRun = ['assemble']
         runner.addBuildMutator {
-            def fileToChange = new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])
+            def fileToChange = new File(it.projectDir, testProject.fileToChangeFor('assemble'))
             return isGroovyProject ? new ApplyNonAbiChangeToGroovySourceFileMutator(fileToChange) : new ApplyNonAbiChangeToJavaSourceFileMutator(fileToChange)
         }
         enableConfigurationCaching(configurationCachingEnabled)
@@ -86,7 +86,7 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
         def testProject = JavaTestProject.projectFor(runner.testProject)
         runner.tasksToRun = ['assemble']
         runner.addBuildMutator {
-            def fileToChange = new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])
+            def fileToChange = new File(it.projectDir, testProject.fileToChangeFor('assemble'))
             return isGroovyProject ? new ApplyAbiChangeToGroovySourceFileMutator(fileToChange) : new ApplyAbiChangeToJavaSourceFileMutator(fileToChange)
         }
         enableConfigurationCaching(configurationCachingEnabled)
@@ -113,7 +113,7 @@ class JavaIncrementalExecutionPerformanceTest extends AbstractIncrementalExecuti
         runner.tasksToRun = ['test']
         // Pre-4.0 versions run into memory problems with this test
         runner.minimumBaseVersion = "4.0"
-        runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['test'])) }
+        runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.fileToChangeFor('test'))) }
 
         when:
         def result = runner.run()

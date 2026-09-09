@@ -24,7 +24,6 @@ import org.gradle.tooling.model.eclipse.EclipseProject
 import org.gradle.tooling.model.idea.IdeaProject
 
 import static org.gradle.performance.annotations.ScenarioType.PER_COMMIT
-import static org.gradle.performance.generator.JavaTestProjectGenerator.LARGE_MONOLITHIC_JAVA_PROJECT
 import static org.gradle.performance.results.OperatingSystem.LINUX
 
 @RunFor(
@@ -143,7 +142,7 @@ class JavaIDEModelPerformanceTest extends AbstractCrossVersionPerformanceTest {
     }
 
     private determineIterations() {
-        return runner.testProject == LARGE_MONOLITHIC_JAVA_PROJECT.projectName ? 200 : 40
+        return runner.testProject == 'largeMonolithicJavaProject' ? 200 : 40
     }
 
     private static void forEachEclipseProject(def elm, @DelegatesTo(value = EclipseProject) Closure<?> action) {
