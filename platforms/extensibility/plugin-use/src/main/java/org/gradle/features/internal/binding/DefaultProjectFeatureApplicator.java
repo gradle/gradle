@@ -64,7 +64,6 @@ import org.gradle.internal.service.UnknownServiceException;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.util.List;
@@ -452,11 +451,6 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
                 return notFound(serviceType);
             }
             return result;
-        }
-
-        @Override
-        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
-            return notFound(serviceType);
         }
 
         protected abstract Object notFound(Type serviceType);
