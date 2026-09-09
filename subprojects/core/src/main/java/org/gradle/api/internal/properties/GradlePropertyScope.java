@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.properties;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.project.ProjectIdentity;
+import org.gradle.internal.build.BuildIdentity;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -37,7 +37,7 @@ import org.jspecify.annotations.Nullable;
     String toString();
 
     interface Build extends GradlePropertyScope {
-        BuildIdentifier getBuildIdentifier();
+        BuildIdentity getBuildIdentity();
     }
 
     interface Project extends GradlePropertyScope {

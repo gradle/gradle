@@ -181,6 +181,16 @@ tasks.named<Test>("docsTest") {
     }
     jvmArgumentProviders.add(installationEnvProvider)
 
+    // IntegrationTestSamplesExecutor gives each docsTest worker its own Gradle user home next to the shared one, so
+    // that the sample daemons of parallel workers never share - and deadlock on - a cache. Delete those homes before
+    // the run: they live in intTestHomeDir, which is not wiped by `clean`, so leftovers of an earlier (possibly
+    // crashed) build would otherwise pile up on long-lived CI checkouts.
+    val intTestHomeDir = repoRoot().dir("intTestHomeDir").asFile
+    doFirst {
+        intTestHomeDir.listFiles(FileFilter { it.isDirectory && it.name.contains("-sample-worker-") })
+            ?.forEach { it.deleteRecursively() }
+    }
+
     // For unknown reason, this is set to 'sourceSet.getRuntimeClasspath()' in the 'org.gradle.samples' plugin
     testClassesDirs = sourceSets.docsTest.get().output.classesDirs
     // 'integTest.samplesdir' is set to an absolute path by the 'org.gradle.samples' plugin

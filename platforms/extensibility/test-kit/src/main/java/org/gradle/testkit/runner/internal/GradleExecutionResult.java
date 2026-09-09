@@ -18,7 +18,6 @@ package org.gradle.testkit.runner.internal;
 
 import com.google.common.io.ByteSource;
 import org.gradle.testkit.runner.BuildTask;
-import org.gradle.testkit.runner.ConfigurationCacheOutcome;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -30,8 +29,6 @@ public class GradleExecutionResult {
     private final BuildOperationParameters buildOperationParameters;
     private final ByteSource outputSource;
     private final List<BuildTask> tasks;
-    @Nullable
-    private final ConfigurationCacheOutcome configurationCacheOutcome;
     @Nullable
     private final Throwable throwable;
 
@@ -45,24 +42,22 @@ public class GradleExecutionResult {
         List<BuildTask> tasks,
         @Nullable Throwable throwable
     ) {
-        this(buildOperationParameters, ByteSource.wrap(standardOutput.getBytes(Charset.defaultCharset())), tasks, null, throwable);
+        this(buildOperationParameters, ByteSource.wrap(standardOutput.getBytes(Charset.defaultCharset())), tasks, throwable);
     }
 
     public GradleExecutionResult(BuildOperationParameters buildOperationParameters, ByteSource outputSource, List<BuildTask> tasks) {
-        this(buildOperationParameters, outputSource, tasks, null, null);
+        this(buildOperationParameters, outputSource, tasks, null);
     }
 
     public GradleExecutionResult(
         BuildOperationParameters buildOperationParameters,
         ByteSource outputSource,
         List<BuildTask> tasks,
-        @Nullable ConfigurationCacheOutcome configurationCacheOutcome,
         @Nullable Throwable throwable
     ) {
         this.buildOperationParameters = buildOperationParameters;
         this.outputSource = outputSource;
         this.tasks = tasks;
-        this.configurationCacheOutcome = configurationCacheOutcome;
         this.throwable = throwable;
     }
 
@@ -77,15 +72,6 @@ public class GradleExecutionResult {
 
     public List<BuildTask> getTasks() {
         return tasks;
-    }
-
-    /**
-     * The outcome reported by the build's configuration cache entry outcome event,
-     * or {@code null} if no such event was received.
-     */
-    @Nullable
-    public ConfigurationCacheOutcome getConfigurationCacheOutcome() {
-        return configurationCacheOutcome;
     }
 
     @Nullable

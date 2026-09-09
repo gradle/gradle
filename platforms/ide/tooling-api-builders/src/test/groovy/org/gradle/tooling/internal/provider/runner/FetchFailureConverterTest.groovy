@@ -41,8 +41,8 @@ class FetchFailureConverterTest extends Specification {
 
     def "converts failures with distinct originals into distinct instances"() {
         when:
-        def first = converter.convert(failureOf(new RuntimeException("one")))
-        def second = converter.convert(failureOf(new RuntimeException("two")))
+        def first = converter.convert(failureOf(new EqualThrowable("one")))
+        def second = converter.convert(failureOf(new EqualThrowable("two")))
 
         then:
         !first.is(second)
@@ -70,6 +70,20 @@ class FetchFailureConverterTest extends Specification {
         def b = converter.convert(failureOf(topB))
 
         then: "the per-project wrappers differ but the shared deep cause is converted once"
+        !a.is(b)
+        a.causes[0].is(b.causes[0])
+    }
+
+    def "reuses a shared deep cause when converting thrown failures"() {
+        def sharedCause = new RuntimeException("shared included build failure")
+        def topA = new RuntimeException("project :a failed", sharedCause)
+        def topB = new RuntimeException("project :b failed", sharedCause)
+
+        when:
+        def a = converter.convert(topA)
+        def b = converter.convert(topB)
+
+        then:
         !a.is(b)
         a.causes[0].is(b.causes[0])
     }
@@ -105,5 +119,21 @@ class FetchFailureConverterTest extends Specification {
         Throwable t = new RuntimeException("leaf")
         (1..(depth - 1)).each { t = new RuntimeException("level-$it", t) }
         t
+    }
+
+    private static class EqualThrowable extends RuntimeException {
+        EqualThrowable(String message) {
+            super(message)
+        }
+
+        @Override
+        boolean equals(Object other) {
+            return other instanceof EqualThrowable
+        }
+
+        @Override
+        int hashCode() {
+            return 1
+        }
     }
 }

@@ -64,7 +64,9 @@ class CrossBuildConfigurationReportingGradle(
             problem {
                 text("Build ")
                 reference(referrer.identityPath.asString())
-                text(" cannot access Gradle.$what on build ")
+                text(" cannot access ")
+                reference("Gradle.$what")
+                text(" on build ")
                 reference(identityPath.asString())
             }
                 .exception { message -> message.capitalized() }

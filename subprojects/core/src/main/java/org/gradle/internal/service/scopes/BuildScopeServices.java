@@ -418,7 +418,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         BuildIdentity buildIdentity,
         GradlePropertiesController gradlePropertiesController
     ) {
-        return gradlePropertiesController.getGradleProperties(buildIdentity.getBuildIdentifier());
+        return gradlePropertiesController.getGradleProperties(buildIdentity);
     }
 
     @Provides
@@ -428,7 +428,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         InstantiatorFactory instantiatorFactory,
         IsolatableFactory isolatableFactory,
         ServiceRegistry services,
-        GradleProperties gradleProperties,
         ExecFactory execFactory,
         CalculatedValueFactory calculatedValueFactory
     ) {
@@ -437,7 +436,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             computationListener,
             instantiatorFactory,
             isolatableFactory,
-            gradleProperties,
             calculatedValueFactory,
             new DefaultExecOperations(execFactory.forContext().withoutExternalProcessStartedListener().build()),
             services
@@ -808,7 +806,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         // Instantiate via `instantiator` for the DSL decorations to the `BuildServiceRegistry` API
         return instantiator.newInstance(
             DefaultBuildServicesRegistry.class,
-            buildIdentity.getBuildIdentifier(),
+            buildIdentity,
             factory,
             instantiatorFactory,
             services,

@@ -17,6 +17,7 @@
 import gradlebuild.basics.PublicApiVariants
 import gradlebuild.configureAsApiElements
 import gradlebuild.configureAsRuntimeJarClasspath
+import gradlebuild.identity.registerPomPropertiesTask
 import gradlebuild.packaging.support.ArtifactViewHelper.lenientProjectArtifactReselection
 import gradlebuild.packaging.support.FileLinesValueSource
 import gradlebuild.packaging.support.includePublicApiAbiStubs
@@ -72,10 +73,15 @@ val legacyBaseName = gradleModule.identity.baseName.map { "$it${PublicApiVariant
 // Stub source produced by gradlebuild.public-api-jar; reused for the internal jar and the sources jar.
 val distributionClasspath = configurations.named<ResolvableConfiguration>("distributionClasspath")
 
+// Identify the jar by its published coordinates (org.gradle.experimental:gradle-public-api),
+// not the -internal capability name it carries in Gradle module metadata.
+val apiPomProperties = registerPomPropertiesTask("generateGradleApiPomProperties", gradleModule.identity.baseName.get())
+
 val apiJarTask = tasks.register<Jar>("jarGradleApi") {
     includePublicApiAbiStubs(publicApiAbiStubs(distributionClasspath))
     archiveBaseName = internalBaseName
     destinationDirectory = layout.buildDirectory.dir("public-api/gradle-api")
+    from(apiPomProperties)
 }
 
 // The consumable configuration containing the public Gradle API artifact and its external dependencies.

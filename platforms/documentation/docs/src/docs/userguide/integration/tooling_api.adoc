@@ -163,6 +163,37 @@ Resilient sync requires Tooling API 9.3.0 or later and a target Gradle version t
 * Gradle 9.3.0: The `fetch(...)` methods and `FetchModelResult` are available.
 * Gradle 9.4.0: Partial build models, returned when a settings script or a settings plugin fails.
 * Gradle 9.7.0: Reporting a resilient sync that partially failed as a failed operation. In earlier versions, such an operation could complete successfully, with the failures reported only through `FetchModelResult.getFailures()`.
+* Gradle 9.8.0: link:{javadocPath}/org/gradle/tooling/Failure.html#getOwnDescription()[`Failure.getOwnDescription()`] is available on failures returned by `FetchModelResult.getFailures()`, providing the per-node description without the cause subtree. Returns `null` when the target Gradle version is earlier than 9.7.0.
+
+[[sec:embedding_failure_traversal]]
+==== Traversing failure trees efficiently
+
+When a build failure is shared across multiple fetch results, for example, a single configuration error that affects several projects, Gradle reuses the same link:{javadocPath}/org/gradle/tooling/Failure.html[`Failure`] instance for each occurrence.
+Clients can exploit this with an `IdentityHashMap` to visit each unique failure node exactly once:
+
+[source,java]
+----
+IdentityHashMap<Failure, Void> visited = new IdentityHashMap<>();
+
+void visit(Failure failure) {
+    if (visited.putIfAbsent(failure, null) != null) {
+        return; // already processed this node
+    }
+    String ownText = failure.getOwnDescription(); // null for daemons older than 9.7
+    if (ownText != null) {
+        process(ownText);
+    } else {
+        process(failure.getDescription());
+        return; // causes already included in the full description
+    }
+    for (Failure cause : failure.getCauses()) {
+        visit(cause);
+    }
+}
+----
+
+link:{javadocPath}/org/gradle/tooling/Failure.html#getOwnDescription()[`Failure.getOwnDescription()`] is available when the Tooling API and target Gradle version are both 9.8.0 or later.
+When the target Gradle version is earlier than 9.7.0, it returns `null`, and you should fall back to link:{javadocPath}/org/gradle/tooling/Failure.html#getDescription()[`Failure.getDescription()`] on the root node.
 
 [[sec:embedding_phased_action_example]]
 === Reading intermediate models with a phased build action

@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.BuildCancelledException;
 import org.gradle.initialization.BuildCancellationToken;
 import org.gradle.initialization.BuildEventConsumer;
-import org.gradle.internal.build.event.types.DefaultFailure;
 import org.gradle.internal.buildtree.BuildTreeModelController;
 import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor;
 import org.gradle.internal.buildtree.BuildTreeModelTarget;
@@ -179,7 +178,7 @@ class DefaultBuildController implements
             List<InternalFailure> failures = toInternalFailures(resultInternal.getFailures());
             return new DefaultInternalFetchModelResult<>(uncheckedNonnullCast(resultInternal.getModel()), failures);
         } catch (Exception e) {
-            List<InternalFailure> failures = ImmutableList.of(DefaultFailure.fromThrowable(e));
+            List<InternalFailure> failures = ImmutableList.of(failureConverter.convert(e));
             return new DefaultInternalFetchModelResult<>(null, failures);
         }
     }

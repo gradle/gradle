@@ -41,7 +41,7 @@ public class DefaultFailure implements Failure {
     }
 
     public DefaultFailure(String message, String description, List<? extends Failure> causes, List<Problem> problems) {
-        this(message, description, description, causes, problems);
+        this(message, description, null, causes, problems);
     }
 
     private DefaultFailure(String message, @Nullable String fullDescription, @Nullable String ownDescription, List<? extends Failure> causes, List<Problem> problems) {
@@ -68,15 +68,14 @@ public class DefaultFailure implements Failure {
         }
         String reconstructed = reconstructedDescription;
         if (reconstructed == null) {
-            // Walk the concrete node type rather than the Failure interface: own text is an internal detail used only
-            // to reassemble the full description, and is not part of the public Failure API.
             reconstructed = FailureDescriptionReconstructor.reconstruct(this, DefaultFailure::getOwnDescription, DefaultFailure::ownCauses);
             reconstructedDescription = reconstructed;
         }
         return reconstructed;
     }
 
-    private @Nullable String getOwnDescription() {
+    @Override
+    public @Nullable String getOwnDescription() {
         return ownDescription;
     }
 

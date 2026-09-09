@@ -18,14 +18,12 @@ package org.gradle.api.services.internal;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import kotlin.Unit;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.BuildAdapter;
 import org.gradle.BuildResult;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.NonExtensible;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.DelegatingNamedDomainObjectSet;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.project.HoldsProjectState;
@@ -34,6 +32,7 @@ import org.gradle.api.services.BuildService;
 import org.gradle.api.services.BuildServiceParameters;
 import org.gradle.api.services.BuildServiceRegistration;
 import org.gradle.api.services.BuildServiceSpec;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.Cast;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.buildtree.BuildModelParameters;
@@ -65,7 +64,7 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
 
 public class DefaultBuildServicesRegistry implements BuildServiceRegistryInternal, HoldsProjectState {
 
-    private final BuildIdentifier buildIdentifier;
+    private final BuildIdentity buildIdentity;
     private final Lock registrationsLock = new ReentrantLock();
     private NamedDomainObjectSet<BuildServiceRegistration<?, ?>> internalRegistrations;
     private IsolatedProjectsReportingRegistrationsContainer publicRegistrations;
@@ -83,7 +82,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     private final BuildModelParameters buildModelParameters;
 
     public DefaultBuildServicesRegistry(
-        BuildIdentifier buildIdentifier,
+        BuildIdentity buildIdentity,
         DomainObjectCollectionFactory collectionFactory,
         InstantiatorFactory instantiatorFactory,
         ServiceRegistry services,
@@ -94,7 +93,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         IsolatedProjectsProblemsReporter problems,
         BuildModelParameters buildModelParameters
     ) {
-        this.buildIdentifier = buildIdentifier;
+        this.buildIdentity = buildIdentity;
         this.internalRegistrations = uncheckedCast(collectionFactory.newNamedDomainObjectSet(BuildServiceRegistration.class));
         this.problems = problems;
         this.buildModelParameters = buildModelParameters;
@@ -286,7 +285,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     private <T extends BuildService<BuildServiceParameters>> BuildServiceProvider<T, BuildServiceParameters> doConsume(String name, Class<T> implementationType) {
-        return new ConsumedBuildServiceProvider<>(buildIdentifier, name, implementationType, services);
+        return new ConsumedBuildServiceProvider<>(buildIdentity, name, implementationType, services);
     }
 
     private <T extends BuildService<P>, P extends BuildServiceParameters> BuildServiceProvider<T, P> doRegister(
@@ -297,7 +296,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         NamedDomainObjectSet<BuildServiceRegistration<?, ?>> registrations
     ) {
         RegisteredBuildServiceProvider<T, P> provider = new RegisteredBuildServiceProvider<>(
-            buildIdentifier,
+            buildIdentity,
             name,
             implementationType,
             parameters,
@@ -462,14 +461,13 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         protected void onMethodCall(String signature) {
             if (buildModelParameters.isIsolatedProjects()) {
                 problems.report(factory ->
-                    factory.problem(null, messageBuilder -> {
-                        messageBuilder.text(
-                            "Cannot call '" + signature + "' on BuildServicesRegistry.getRegistrations() when Isolated Projects is enabled. " +
-                                "Only 'findByName(String)' is permitted. " +
-                                "Alternatively, use BuildServicesRegistry.registerIfAbsent(String, Class) if possible."
-                        );
-                        return Unit.INSTANCE;
-                    }).exception().build()
+                    factory.problem(message -> message
+                        .text("Cannot call ").reference(signature)
+                        .text(" on ").reference("BuildServicesRegistry.getRegistrations()")
+                        .text(" when Isolated Projects is enabled. Only ").reference("findByName(String)")
+                        .text(" is permitted. Alternatively, use ").reference("BuildServicesRegistry.registerIfAbsent(String, Class)")
+                        .text(" if possible.")
+                    ).exception().build()
                 );
             }
             super.onMethodCall(signature);

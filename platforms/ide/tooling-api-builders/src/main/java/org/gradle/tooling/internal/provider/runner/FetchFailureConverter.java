@@ -40,10 +40,14 @@ import java.util.concurrent.ConcurrentMap;
 @NullMarked
 public class FetchFailureConverter implements FailureCache {
 
-    private final ConcurrentMap<Throwable, InternalFailure> cache = new ConcurrentHashMap<>();
+    private final ConcurrentMap<IdentityKey, InternalFailure> cache = new ConcurrentHashMap<>();
 
     InternalFailure convert(Failure failure) {
         return DefaultFailure.fromFailure(failure, FetchFailureConverter::noProblemDetails, this);
+    }
+
+    InternalFailure convert(Throwable failure) {
+        return DefaultFailure.fromThrowable(failure, FetchFailureConverter::noProblemDetails, this);
     }
 
     @Nullable
@@ -54,12 +58,32 @@ public class FetchFailureConverter implements FailureCache {
     @Override
     @Nullable
     public InternalFailure get(Throwable original) {
-        return cache.get(original);
+        return cache.get(new IdentityKey(original));
     }
 
     @Override
     public InternalFailure intern(Throwable original, InternalFailure converted) {
-        InternalFailure previous = cache.putIfAbsent(original, converted);
+        InternalFailure previous = cache.putIfAbsent(new IdentityKey(original), converted);
         return previous != null ? previous : converted;
+    }
+
+    private static final class IdentityKey {
+        private final Throwable throwable;
+        private final int hashCode;
+
+        private IdentityKey(Throwable throwable) {
+            this.throwable = throwable;
+            this.hashCode = System.identityHashCode(throwable);
+        }
+
+        @Override
+        public boolean equals(Object other) {
+            return other instanceof IdentityKey && throwable == ((IdentityKey) other).throwable;
+        }
+
+        @Override
+        public int hashCode() {
+            return hashCode;
+        }
     }
 }

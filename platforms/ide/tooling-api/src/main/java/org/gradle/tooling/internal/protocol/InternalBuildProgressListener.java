@@ -78,11 +78,6 @@ public interface InternalBuildProgressListener {
     String PROBLEMS = "PROBLEMS";
 
     /**
-     * The constant for configuration cache operations.
-     */
-    String CONFIGURATION_CACHE = "CONFIGURATION_CACHE";
-
-    /**
      * The constant for build finished events that may contain problems.
      */
     String ROOT = "ROOT";
