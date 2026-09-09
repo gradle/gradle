@@ -116,21 +116,22 @@ class IsolatedProjectsProblemReportingIntegrationTest extends AbstractIsolatedPr
         }
 
         when:
-        // Three full captures for six accesses, so the full budget is spent partway through.
+        // Three full captures and two bounded ones for six accesses, so both budgets are spent.
         executer.withArgument("-Dorg.gradle.internal.problem.diagnostics.stacktrace-count.max=3")
-        // TODO The bounded budget buys nothing here: a problem that carries an exception has no bounded
-        //      fallback, so the last three accesses lose their line instead of keeping it more cheaply.
         executer.withArgument("-Dorg.gradle.internal.problem.diagnostics.bounded-captures.max=2")
         isolatedProjectsDiagnosticsFails "help"
 
         then:
         outputContains("Configuration cache entry discarded with 6 problems.")
         problems.assertFailureHasProblems(failure) {
+            // The access past both budgets keeps the build file, but no longer the line.
             withProblem("Build file 'build.gradle': Project ':' cannot access 'Project.version' functionality on another project ':a'")
-            (1..3).each {
+            (1..5).each {
                 withProblem("Build file 'build.gradle': line $it: Project ':' cannot access 'Project.version' functionality on another project ':a'")
             }
             totalProblemsCount = 6
+            // Only a full capture keeps a stack worth reporting; a bounded one locates the problem
+            // without one, and past both budgets there is neither.
             problemsWithStackTraceCount = 3
         }
     }
