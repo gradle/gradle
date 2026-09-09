@@ -129,19 +129,38 @@ explained by that bug and should not be read as either a master problem or a def
 switch's own correctness evidence — 0 grdev references — is unaffected. **A full PR-feedback chain has
 not been re-run since the fix; that is the outstanding verification.**
 
-### Known limitation — upstream load
+### Known limitation — upstream capacity is the real ceiling
 
-The single non-test build failure (`Quick_2_bucket3_virtual_Batch_4_1`, scan
-https://ge.gradle.org/s/gs6zvv2w5phkq):
+This is the most important operational finding, and it is a capacity limit, not a correctness one.
+
+With the bypass on there is no caching proxy in front of anything: every agent fetches straight from
+`repo.maven.apache.org`, `plugins.gradle.org` and `repo.gradle.org`. At full-stage scale that gets the
+fleet throttled.
+
+Measured on build 117129908 (Quick Feedback - Linux Only, Xperimental, ~166 agents, simulated outage with
+overrides correctly propagated):
 
 ```
-> Could not GET 'https://repo.gradle.org/gradle/public/org/gradle/fileevents/gradle-fileevents/0.2.8/gradle-fileevents-0.2.8.pom'
-    > Read timed out
+CompileAllBuild (117129884):
+  HttpErrorStatusCodeException: Received status code 429 from server: Too Many Requests
+  repo-mirror-outage-test.invalid refs: 0    grdev refs: 0
 ```
 
-Note the URL is **upstream** — the reverse map worked; the GET timed out. With the bypass on, ~166
-agents fetch from upstream directly with no caching proxy. **Sporadic `Read timed out` resolution
-failures are expected and do not mean the switch is broken.** Documented in the runbook comment.
+That single failure cascaded into **24 failed builds** (the rest all `Snapshot dependency failed`). A
+lone artifact fetch can also simply time out — `Could not GET ... > Read timed out`, seen on build
+116950940 against `repo.gradle.org/gradle/public`.
+
+**In both cases the URLs had already been correctly rewritten to upstream, with zero grdev requests.** The
+switch worked; upstream could not absorb what the mirror normally absorbs.
+
+Plan for this during a real outage:
+
+- **Do not expect a full `check` to pass.** Run reduced scope. Retry before concluding there is a regression.
+- **Builds that never touched the mirror can fail too.** `.teamcity`'s `./mvnw clean verify` resolves
+  directly from Maven Central at all times (hardcoded in `.teamcity/pom.xml` and the Maven wrapper — no
+  mirror reference anywhere). It passed with the mirror healthy (117129934) and failed inside the bypass
+  run (117129887), purely as collateral damage from the same throttling. This is *not* a gap in the
+  switch's coverage; that build never used the mirror to begin with.
 
 ### Local runs (cold isolated `GRADLE_USER_HOME`, grdev returning HTTP 522)
 

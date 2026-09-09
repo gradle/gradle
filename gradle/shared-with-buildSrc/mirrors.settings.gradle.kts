@@ -63,11 +63,25 @@
  * `repo-mirror-outage-test.invalid` URL - that is what proves the simulation is faithful. With it, the build
  * must pass and no `repo-mirror-outage-test.invalid` URL may appear anywhere in the log.
  *
- * Expect some flakiness while the bypass is on. Every agent then fetches from the upstream
- * repositories directly, with no caching proxy in front of them, so sporadic
- * "Could not GET ... > Read timed out" resolution failures are normal under full CI load and do
- * not mean the switch is broken. Retry; if a whole stage is failing this way, the upstream
- * repository is the bottleneck, not this script.
+ * THE REAL LIMIT IS UPSTREAM CAPACITY, NOT CORRECTNESS
+ * ----------------------------------------------------
+ * With the bypass on there is no caching proxy in front of anything: every agent fetches straight from
+ * repo.maven.apache.org, plugins.gradle.org and repo.gradle.org. At full-stage scale that is enough to get
+ * the whole fleet throttled. Measured on build 117129908 (Quick Feedback - Linux Only, ~166 agents):
+ *
+ *   CompileAllBuild: HttpErrorStatusCodeException: Received status code 429 from server: Too Many Requests
+ *
+ * which cascaded into 24 failed builds. A single artifact fetch can also just time out
+ * ("Could not GET ... > Read timed out", seen on build 116950940).
+ *
+ * Neither means the switch is broken - in both cases the URLs were already correctly rewritten to upstream,
+ * with zero repo.grdev.net requests. It means upstream cannot absorb what the mirror normally absorbs.
+ *
+ * Consequences to plan for during a real outage:
+ *   - Do not expect a full `check` to pass. Run reduced scope, and retry rather than assuming a regression.
+ *   - Builds that never used the mirror can fail too. `.teamcity`'s `./mvnw clean verify` resolves directly
+ *     from Maven Central at all times; it passed with the mirror healthy (117129934) and failed inside the
+ *     bypass run (117129887), purely as collateral damage from the same throttling.
  */
 
 class Helper(private val providers: ProviderFactory) {
