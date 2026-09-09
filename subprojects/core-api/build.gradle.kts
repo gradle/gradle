@@ -59,6 +59,7 @@ dependencies {
     javadocReferences(projects.testingJvm)
     javadocReferences(projects.kotlinDsl)
     javadocReferences(projects.coreFlowServicesApi)
+    javadocReferences(projects.workerShared) // for DefaultLegacyTypesSupport
     javadocReferences(libs.groovyTemplates) // for groovy.text.SimpleTemplateEngine references in ContentFilterable / ExpandDetails
 }
 
