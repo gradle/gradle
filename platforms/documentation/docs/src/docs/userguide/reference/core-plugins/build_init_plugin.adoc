@@ -178,6 +178,57 @@ All build types also set up <<gradle_wrapper.adoc#gradle_wrapper, Gradle Wrapper
 |`./my-project`
 |===
 
+[[sec:test_frameworks]]
+=== Test frameworks
+
+Each build type supports a fixed set of test frameworks and uses one of them by default.
+Select a different one with the `--test-framework` option.
+Requesting a framework the build type does not support fails the build and lists the supported values.
+
+.Test framework support by build type
+[cols="2,1,2",options="header"]
+|===
+|Build type |Default |Other supported values
+
+|`java-application`, `java-library`
+|`junit-jupiter`
+|`junit`, `testng`, `spock`
+
+|`java-gradle-plugin`
+|`junit-jupiter`
+|None
+
+|`kotlin-application`, `kotlin-library`
+|`kotlintest`
+|`junit-jupiter`
+
+|`kotlin-gradle-plugin`
+|`kotlintest`
+|None
+
+|`groovy-application`, `groovy-library`, `groovy-gradle-plugin`
+|`spock`
+|None
+
+|`scala-application`, `scala-library`
+|`scalatest`
+|None
+
+|`cpp-application`, `cpp-library`
+|`cpptest`
+|None
+
+|`swift-application`, `swift-library`
+|`xctest`
+|None
+
+|`basic`, `pom`
+|None
+|None
+|===
+
+NOTE: `junit` selects https://junit.org/junit4/[JUnit 4] and `junit-jupiter` selects https://junit.org[JUnit Jupiter] (JUnit 5). For JVM build types generated with `--split-project`, `junit-jupiter` is the only supported framework.
+
 [[sec:build_init_types]]
 == Build init types
 
@@ -309,6 +360,10 @@ It has the following features:
 * Has directories in the conventional locations for source code
 * Contains a sample Kotlin class and an associated Kotlin test class, if there are no existing source or test files
 
+An alternative test framework can be specified by supplying a `--test-framework` argument value:
+
+* `gradle init --type kotlin-application --test-framework junit-jupiter`: Uses https://junit.org[JUnit Jupiter] for testing instead of the Kotlin test library
+
 [[sec:kotlin_library]]
 === `kotlin-library` build type
 
@@ -322,6 +377,10 @@ It has the following features:
 * Uses https://kotlinlang.org/api/latest/kotlin.test/index.html[Kotlin test library] for testing
 * Has directories in the conventional locations for source code
 * Contains a sample Kotlin class and an associated Kotlin test class, if there are no existing source or test files
+
+An alternative test framework can be specified by supplying a `--test-framework` argument value:
+
+* `gradle init --type kotlin-library --test-framework junit-jupiter`: Uses https://junit.org[JUnit Jupiter] for testing instead of the Kotlin test library
 
 [[sec:kotlin_gradle_plugin]]
 === `kotlin-gradle-plugin` build type
