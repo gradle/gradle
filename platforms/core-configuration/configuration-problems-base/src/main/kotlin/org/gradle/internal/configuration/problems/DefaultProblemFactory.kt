@@ -21,7 +21,6 @@ import org.gradle.api.Action
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.code.UserCodeSource
-import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.problems.ProblemDiagnostics
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
@@ -63,12 +62,12 @@ class DefaultProblemFactory(
             }
 
             override fun exception(): ProblemFactory.Builder {
-                exceptionMessage = builtMessage.toString().capitalized()
+                exceptionMessage = builtMessage.renderCapitalized()
                 return this
             }
 
             override fun exception(builder: (String) -> String): ProblemFactory.Builder {
-                exceptionMessage = builder(builtMessage.toString().capitalized())
+                exceptionMessage = builder(builtMessage.renderCapitalized())
                 return this
             }
 
