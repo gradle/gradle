@@ -22,13 +22,13 @@ import static org.gradle.integtests.fixtures.configurationcache.ConfigurationCac
 
 class IsolatedProjectsProblemReportingIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
-    def "stops reporting problems at certain limits collecting all stacktraces"() {
+    def "reports reduced problem details at certain limits"() {
         settingsFile """
             include(":a")
         """
         createDir("a")
 
-        for (i in 1..530) {
+        for (i in 1..150) {
             buildFile << 'project(":a").version\n'
         }
 
@@ -36,7 +36,7 @@ class IsolatedProjectsProblemReportingIntegrationTest extends AbstractIsolatedPr
         isolatedProjectsDiagnosticsFails("help")
 
         then:
-        outputContains("Configuration cache entry discarded with 530 problems.")
+        outputContains("Configuration cache entry discarded with 150 problems.")
 
         problems.assertFailureHasProblems(failure) {
             withProblem("Build file 'build.gradle': line 1: Project ':' cannot access 'Project.version' functionality on another project ':a'")
@@ -54,8 +54,9 @@ class IsolatedProjectsProblemReportingIntegrationTest extends AbstractIsolatedPr
             withProblem("Build file 'build.gradle': line 11: Project ':' cannot access 'Project.version' functionality on another project ':a'")
             withProblem("Build file 'build.gradle': line 110: Project ':' cannot access 'Project.version' functionality on another project ':a'")
             withProblem("Build file 'build.gradle': line 111: Project ':' cannot access 'Project.version' functionality on another project ':a'")
-            totalProblemsCount = 530
-            problemsWithStackTraceCount = 530
+            totalProblemsCount = 150
+            // Only the first 50 carry the full stack
+            problemsWithStackTraceCount = 50
         }
 
         failure.assertHasFailure("Configuration cache problems found in this build.") { failure ->
