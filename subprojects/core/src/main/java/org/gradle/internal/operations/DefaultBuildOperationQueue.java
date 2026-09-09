@@ -22,68 +22,18 @@ import org.gradle.internal.work.SubmissionQueue;
 import org.gradle.internal.work.WorkerLeaseService;
 import org.jspecify.annotations.Nullable;
 
+import javax.annotation.concurrent.GuardedBy;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
-import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.Executor;
-import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.locks.Condition;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 
 class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOperationQueue<T> {
     private enum QueueStatus {
         WORKING, CANCELED, WAITING_TO_COMPLETE
-    }
-
-    private static final class QueueState {
-        private final QueueStatus status;
-        /**
-         * Operations waiting for a thread to pick them up.
-         */
-        private final int pendingOperations;
-        /**
-         * Operations a thread has picked up and not yet finished.
-         */
-        private final int inFlightOperations;
-
-        private QueueState(QueueStatus status, int pendingOperations, int inFlightOperations) {
-            if (pendingOperations < 0) {
-                throw new IllegalArgumentException("pendingOperations cannot be negative");
-            }
-            if (inFlightOperations < 0) {
-                throw new IllegalArgumentException("inFlightOperations cannot be negative");
-            }
-            this.status = status;
-            this.pendingOperations = pendingOperations;
-            this.inFlightOperations = inFlightOperations;
-        }
-
-        QueueState addOperation() {
-            return new QueueState(status, pendingOperations + 1, inFlightOperations);
-        }
-
-        QueueState startOperation() {
-            return new QueueState(status, pendingOperations - 1, inFlightOperations + 1);
-        }
-
-        QueueState removeOperation() {
-            return new QueueState(status, pendingOperations - 1, inFlightOperations);
-        }
-
-        QueueState finishOperation() {
-            return new QueueState(status, pendingOperations, inFlightOperations - 1);
-        }
-
-        QueueState cancelQueue() {
-            return new QueueState(QueueStatus.CANCELED, pendingOperations, inFlightOperations);
-        }
-
-        QueueState waitToComplete() {
-            return new QueueState(QueueStatus.WAITING_TO_COMPLETE, pendingOperations, inFlightOperations);
-        }
-
-        boolean isComplete() {
-            return pendingOperations == 0 && inFlightOperations == 0;
-        }
     }
 
     private final boolean allowAccessToProjectState;
@@ -95,8 +45,19 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
     private volatile String logLocation;
 
-    private final CountDownLatch allOperationsComplete = new CountDownLatch(1);
-    private final AtomicReference<QueueState> state = new AtomicReference<>(new QueueState(QueueStatus.WORKING, 0, 0));
+    private final Lock lock = new ReentrantLock();
+    /**
+     * Signaled when the waiting thread may have something to do: constrained work was added, or the last outstanding operation finished.
+     */
+    @GuardedBy("lock")
+    private final Condition waiterWorkStateChanged = lock.newCondition();
+    @GuardedBy("lock")
+    private QueueStatus status = QueueStatus.WORKING;
+    /**
+     * Operations that have been submitted and have not yet finished.
+     */
+    @GuardedBy("lock")
+    private int outstandingOperations;
     private final List<Throwable> failures = new CopyOnWriteArrayList<>();
 
     DefaultBuildOperationQueue(
@@ -125,110 +86,127 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         submit(operation, unconstrainedExecutor::execute);
     }
 
-    /**
-     * Accounts for a newly submitted operation and then hands it off to run.
-     *
-     * <p>If the hand-off fails the operation is unregistered again, so that a queue which is
-     * subsequently cancelled can still complete instead of waiting forever on work that was never
-     * scheduled. This relies on the hand-off either accepting the operation or throwing, never both.
-     *
-     * @param operation the operation to run
-     * @param handOff passes the wrapped operation to whatever will run it
-     * @throws IllegalStateException if this queue has already been cancelled or completed
-     */
-    private void submit(T operation, Consumer<Runnable> handOff) {
-        OperationRunnable runnable = registerOperation(operation);
+    private void submit(T operation, Consumer<Runnable> enqueue) {
+        lock.lock();
         try {
-            handOff.accept(runnable);
-        } catch (Throwable t) {
-            unregisterOperation();
-            throw t;
-        }
-    }
-
-    /**
-     * Accounts for a newly submitted operation and wraps it for execution.
-     *
-     * @throws IllegalStateException if this queue has already been cancelled or completed
-     */
-    private OperationRunnable registerOperation(T operation) {
-        state.updateAndGet(s -> {
-            switch (s.status) {
+            switch (status) {
                 case WORKING:
-                    return s.addOperation();
+                    break;
                 case CANCELED:
                     throw new IllegalStateException("BuildOperationQueue cannot be reused once it has cancelled.");
                 case WAITING_TO_COMPLETE:
-                    throw new IllegalStateException("BuildOperationQueue cannot be reused once it has completed.");
+                    // Only allow additions while a waiting thread is still there to see them.
+                    if (outstandingOperations == 0) {
+                        throw new IllegalStateException("BuildOperationQueue cannot be reused once it has completed.");
+                    }
+                    break;
                 default:
-                    throw new AssertionError("Unknown queue status: " + s.status);
+                    throw new AssertionError("Unknown queue status: " + status);
             }
-        });
-        return new OperationRunnable(operation);
+            outstandingOperations++;
+            try {
+                enqueue.accept(new OperationRunnable(operation));
+            } catch (Throwable t) {
+                // Restore the count so that operation tracking is accurate.
+                operationFinished();
+                throw t;
+            }
+            waiterWorkStateChanged.signalAll();
+        } finally {
+            lock.unlock();
+        }
     }
 
-    /**
-     * Reverses {@link #registerOperation}, completing the queue if this was the last operation
-     * outstanding and no more can be submitted.
-     */
-    private void unregisterOperation() {
-        QueueState newState = state.updateAndGet(QueueState::removeOperation);
-        if (newState.isComplete() && newState.status != QueueStatus.WORKING) {
-            allOperationsComplete.countDown();
+    private void operationFinished() {
+        lock.lock();
+        try {
+            if (outstandingOperations == 0) {
+                // This might happen if the queue does accept the runnable but also throws an exception.
+                // Just in case, we don't want to go negative and break the waitForCompletion() logic.
+                return;
+            }
+            outstandingOperations--;
+            if (outstandingOperations == 0) {
+                waiterWorkStateChanged.signalAll();
+            }
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private boolean isComplete() {
+        lock.lock();
+        try {
+            return outstandingOperations == 0;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private boolean isCancelled() {
+        lock.lock();
+        try {
+            return status == QueueStatus.CANCELED;
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
     public void cancel() {
-        QueueState newState = state.updateAndGet(s -> {
-            switch (s.status) {
+        lock.lock();
+        try {
+            switch (status) {
                 case WORKING:
-                    return s.cancelQueue();
+                    status = QueueStatus.CANCELED;
+                    break;
                 case CANCELED:
-                    return s;
+                    break;
                 case WAITING_TO_COMPLETE:
                     throw new IllegalStateException("Cannot cancel a BuildOperationQueue that has already completed.");
                 default:
-                    throw new AssertionError("Unknown queue status: " + s.status);
+                    throw new AssertionError("Unknown queue status: " + status);
             }
-        });
-        if (newState.isComplete()) {
-            allOperationsComplete.countDown();
+        } finally {
+            lock.unlock();
         }
     }
 
     @Override
     public void waitForCompletion() throws MultipleBuildOperationFailures {
-        QueueState prev = state.getAndUpdate(s -> {
-            if (s.status == QueueStatus.WAITING_TO_COMPLETE) {
+        if (!workerLeases.isWorkerThread()) {
+            throw new IllegalStateException("waitForCompletion() must be called from a thread that holds a worker lease.");
+        }
+
+        lock.lock();
+        try {
+            if (status == QueueStatus.WAITING_TO_COMPLETE) {
                 throw new IllegalStateException("Cannot wait for completion more than once.");
             }
-            if (s.status == QueueStatus.CANCELED) {
-                return s;
+            if (status == QueueStatus.WORKING) {
+                status = QueueStatus.WAITING_TO_COMPLETE;
             }
-            return s.waitToComplete();
-        });
+        } finally {
+            lock.unlock();
+        }
 
-        if (!prev.isComplete()) {
+        while (true) {
             // Only the constrained queue is drained: it can stall when every lease is held elsewhere,
             // and this thread has one to lend. See https://github.com/gradle/gradle/issues/37613
             // Unconstrained work cannot stall that way, and running it here would put it back under a lease.
-            //
-            // The drain terminates because add() throws in both WAITING_TO_COMPLETE and CANCELED, so
-            // nothing more can be submitted. Operations polled by other threads may still be running
-            // afterwards; allOperationsComplete below is what waits for those.
-            if (prev.pendingOperations > 0) {
-                constrainedQueue.processWorkUsingCurrentThreadUntilEmpty();
+            constrainedQueue.processWorkUsingCurrentThreadUntilEmpty();
+            if (isComplete()) {
+                break;
             }
 
             // Release the worker lease while blocked, but only drop the project lock if the work
             // might need it (allowAccessToProjectState); otherwise hold it to avoid deadlocks when a
             // resource lock is held above. See https://github.com/gradle/gradle/issues/38154
             if (allowAccessToProjectState) {
-                awaitAllOperationsComplete();
+                awaitCompletionOrPendingWork();
             } else {
                 workerLeases.whileDisallowingProjectLockChanges(() -> {
-                    awaitAllOperationsComplete();
+                    awaitCompletionOrPendingWork();
                     return null;
                 });
             }
@@ -237,12 +215,26 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
         rethrowFailures();
     }
 
-    private void awaitAllOperationsComplete() {
+    /**
+     * Await either completion of the queue or the presence of pending constrained work which should be run by this thread.
+     *
+     * <p>
+     * Despite the fact that normally most constrained work will have been processed before this method is called,
+     * it is possible that running work submits constrained work to this queue. In that case, we need this thread
+     * to run that work, otherwise we would run into <a href="https://github.com/gradle/gradle/issues/37613">
+     * https://github.com/gradle/gradle/issues/37613</a> again.
+     */
+    private void awaitCompletionOrPendingWork() {
         workerLeases.blocking(() -> {
+            lock.lock();
             try {
-                allOperationsComplete.await();
+                while (outstandingOperations > 0 && constrainedQueue.isEmpty()) {
+                    waiterWorkStateChanged.await();
+                }
             } catch (InterruptedException e) {
                 throw UncheckedException.throwAsUncheckedException(e);
+            } finally {
+                lock.unlock();
             }
         });
     }
@@ -268,10 +260,9 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
 
         @Override
         public void run() {
-            QueueState currentState = state.updateAndGet(QueueState::startOperation);
             try {
                 // A cancelled queue still has to account for this operation, so skip the work rather than return
-                if (currentState.status != QueueStatus.CANCELED) {
+                if (!isCancelled()) {
                     CurrentBuildOperationRef.instance().with(parent, () -> {
                         if (allowAccessToProjectState) {
                             runOperation();
@@ -289,12 +280,10 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                         }
                     });
                 }
+            } catch (Throwable t) {
+                failures.add(t);
             } finally {
-                QueueState newState = state.updateAndGet(QueueState::finishOperation);
-                // In WORKING state more work may still be scheduled, so we're not done yet
-                if (newState.isComplete() && newState.status != QueueStatus.WORKING) {
-                    allOperationsComplete.countDown();
-                }
+                operationFinished();
             }
         }
 
