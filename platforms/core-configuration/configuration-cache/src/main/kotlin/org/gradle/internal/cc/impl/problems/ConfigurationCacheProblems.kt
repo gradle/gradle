@@ -278,6 +278,7 @@ class ConfigurationCacheProblems(
             .mapLocation {
                 trace
             }
+            .informational()
             .documentationSection(DocumentationSection.TaskOptOut).build()
         report.onIncompatibleTask(problem)
         summarizer.onIncompatibleTask()

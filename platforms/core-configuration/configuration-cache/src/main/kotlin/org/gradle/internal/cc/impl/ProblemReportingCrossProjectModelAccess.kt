@@ -581,9 +581,7 @@ class ProblemReportingCrossProjectModelAccess(
                     text(" $accessRefKind on ")
                     describeCrossProjectAccess()
                     buildAdditionalMessage()
-                }
-                    .exception()
-                    .build()
+                }.build()
             }
         }
 

@@ -84,9 +84,7 @@ class CrossProjectConfigurationReportingGradle(
                 reference(referrerProject.buildTreePath)
                 text(" cannot access ")
                 reference("Gradle.$what")
-            }
-                .exception()
-                .build()
+            }.build()
         }
     }
 

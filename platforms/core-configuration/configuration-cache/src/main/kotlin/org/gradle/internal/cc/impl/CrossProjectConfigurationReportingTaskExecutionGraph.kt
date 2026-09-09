@@ -148,8 +148,8 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
                 text("Project ")
                 reference(referrerProject.buildTreePath)
                 text(" cannot access the tasks in the task graph that were created by other projects")
-            }.exception { message ->
-                // As the exception message is not used for grouping, we can safely add the exact task name to it:
+            }.exceptionMessage { message ->
+                // The exception message is not used for grouping, so it can name the exact task:
                 message + if (requestPath != null) "; tried to access '$requestPath'" else ""
             }.build()
         }

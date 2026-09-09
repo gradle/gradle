@@ -67,9 +67,7 @@ class CrossBuildConfigurationReportingGradle(
                 reference("Gradle.$what")
                 text(" on build ")
                 reference(identityPath.asString())
-            }
-                .exception()
-                .build()
+            }.build()
         }
     }
 

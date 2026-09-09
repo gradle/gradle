@@ -39,9 +39,7 @@ internal class CrossProjectConfigurationReportingGradleExtensionsContainer(
                 reference(referrer.buildTreePath)
                 text(" cannot access ")
                 reference("Gradle.extensions")
-            }
-                .exception()
-                .build()
+            }.build()
         }
     }
 

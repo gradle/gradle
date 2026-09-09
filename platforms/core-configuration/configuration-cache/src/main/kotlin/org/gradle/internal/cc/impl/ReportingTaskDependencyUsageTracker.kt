@@ -43,9 +43,7 @@ class ReportingTaskDependencyUsageTracker(
                 text("Project ")
                 reference(referrer.buildTreePath)
                 text(" cannot access task dependencies directly")
-            }
-                .exception()
-                .build()
+            }.build()
         }
     }
 

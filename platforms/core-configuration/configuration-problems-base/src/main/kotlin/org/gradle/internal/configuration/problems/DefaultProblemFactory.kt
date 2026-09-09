@@ -52,22 +52,18 @@ class DefaultProblemFactory(
     override fun problem(consumer: String?, message: Action<StructuredMessage.Builder>): ProblemFactory.Builder {
         val builtMessage = StructuredMessage.build { message.execute(this) }
         return object : ProblemFactory.Builder {
-            var exceptionMessage: String? = null
+            var failure = true
+            var exceptionMessageBuilder: ((String) -> String)? = null
             var documentationSection: DocumentationSection? = null
             var locationMapper: (PropertyTrace) -> PropertyTrace = { it }
 
-            override fun exception(message: String): ProblemFactory.Builder {
-                exceptionMessage = message
+            override fun informational(): ProblemFactory.Builder {
+                failure = false
                 return this
             }
 
-            override fun exception(): ProblemFactory.Builder {
-                exceptionMessage = builtMessage.renderCapitalized()
-                return this
-            }
-
-            override fun exception(builder: (String) -> String): ProblemFactory.Builder {
-                exceptionMessage = builder(builtMessage.renderCapitalized())
+            override fun exceptionMessage(message: (String) -> String): ProblemFactory.Builder {
+                exceptionMessageBuilder = message
                 return this
             }
 
@@ -82,14 +78,18 @@ class DefaultProblemFactory(
             }
 
             override fun build(): PropertyProblem {
-                val exceptionMessage = exceptionMessage
-                val diagnostics = if (exceptionMessage == null) {
-                    problemStream.forCurrentCaller()
+                val diagnostics = if (failure) {
+                    problemStream.forCurrentCaller(Supplier { InvalidUserCodeException(exceptionMessage()) })
                 } else {
-                    problemStream.forCurrentCaller(Supplier { InvalidUserCodeException(exceptionMessage) })
+                    problemStream.forCurrentCaller()
                 }
                 val location = locationMapper(locationForCaller(consumer, diagnostics))
                 return PropertyProblem(location, builtMessage, diagnostics.exception, diagnostics.failure, documentationSection)
+            }
+
+            private fun exceptionMessage(): String {
+                val message = builtMessage.renderCapitalized()
+                return exceptionMessageBuilder?.invoke(message) ?: message
             }
         }
     }
