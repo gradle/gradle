@@ -123,12 +123,10 @@ public abstract class Wrapper extends DefaultTask {
     private PathBase distributionBase = WrapperDefaults.DISTRIBUTION_BASE;
     private String distributionUrl;
     private String distributionSha256Sum;
-    private String wrapperJarUrl;
     private DistributionType distributionType = WrapperDefaults.DISTRIBUTION_TYPE;
     private String archivePath = WrapperDefaults.ARCHIVE_PATH;
     private PathBase archiveBase = WrapperDefaults.ARCHIVE_BASE;
     private boolean distributionUrlConfigured = false;
-    private boolean wrapperJarUrlConfigured = false;
     private final boolean isOffline = getProject().getGradle().getStartParameter().isOffline();
 
     /**
@@ -141,6 +139,10 @@ public abstract class Wrapper extends DefaultTask {
         getValidateDistributionUrl().convention(WrapperDefaults.VALIDATE_DISTRIBUTION_URL);
 
         gradleVersionResolver = new GradleVersionResolver(getProject().getResources().getText());
+
+        getWrapperJarUrl().convention(getProject().provider(() ->
+            WrapperGenerator.getWrapperJarUrl(getResolvedGradleVersion(), getDistributionUrl(), null)
+        ));
     }
 
     @TaskAction
@@ -164,7 +166,7 @@ public abstract class Wrapper extends DefaultTask {
             jarFileDestination, jarFileRelativePath,
             unixScript, getBatchScript(),
             getDistributionUrl(),
-            getWrapperJarUrl(),
+            getWrapperJarUrl().get(),
             getValidateDistributionUrl().get(),
             getNetworkTimeout().getOrNull(),
             getRetries().getOrNull(),
@@ -206,8 +208,8 @@ public abstract class Wrapper extends DefaultTask {
     }
 
     private void validateWrapperJarUrl(File uriRoot) {
-        if (wrapperJarUrlConfigured && getValidateDistributionUrl().get()) {
-            String url = getWrapperJarUrl();
+        if (getValidateDistributionUrl().get()) {
+            String url = getWrapperJarUrl().get();
             URI uri = getDistributionUri(uriRoot, url);
             if (uri.getScheme().equals("file")) {
                 if (!Files.exists(Paths.get(uri).toAbsolutePath())) {
@@ -477,24 +479,9 @@ public abstract class Wrapper extends DefaultTask {
      * @since 9.9.0
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getWrapperJarUrl() {
-        return WrapperGenerator.getWrapperJarUrl(getResolvedGradleVersion(), getDistributionUrl(), wrapperJarUrl);
-    }
-
-    /**
-     * The URL to download the wrapper JAR from.
-     *
-     * <p>If not set, the download URL is derived from the distribution URL or defaults to the official location.
-     * The URL is validated before it is written to the gradle-wrapper.properties file.
-     *
-     * @since 9.9.0
-     */
+    @Incubating
     @Option(option = "gradle-wrapper-jar-url", description = "The URL to download the wrapper JAR from.")
-    public void setWrapperJarUrl(@Nullable String url) {
-        wrapperJarUrlConfigured = true;
-        this.wrapperJarUrl = url;
-    }
+    public abstract Property<String> getWrapperJarUrl();
 
     /**
      * The SHA-256 hash sum of the gradle distribution.
