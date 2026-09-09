@@ -62,11 +62,11 @@ class RootBuildLifecycleBuildActionExecutorTest extends Specification {
         executor.execute(buildAction)
 
         then:
-        1 * listener.afterStart()
+        1 * listener.afterBuildTreeStart()
         then:
         1 * buildActionRunner.run(buildAction, _)
         then:
-        1 * listener.beforeStop()
+        1 * listener.beforeBuildTreeStop()
         0 * listener._
     }
 
