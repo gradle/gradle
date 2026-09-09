@@ -16,7 +16,6 @@
 
 package org.gradle.internal.configuration.problems
 
-import com.google.common.base.Supplier
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.internal.code.UserCodeApplicationContext
@@ -43,10 +42,14 @@ class DefaultProblemFactory(
     }
 
     private fun getProblemDiagnostics(exception: Throwable?, getStackTrace: Boolean): ProblemDiagnostics {
-        if (getStackTrace) {
-            return problemStream.forCurrentCaller(exception)
+        if (!getStackTrace) {
+            return NoOpProblemDiagnosticsFactory.EMPTY_DIAGNOSTICS
         }
-        return NoOpProblemDiagnosticsFactory.EMPTY_DIAGNOSTICS
+        return if (exception != null) {
+            problemStream.forThrownException(exception)
+        } else {
+            problemStream.forCurrentCaller()
+        }
     }
 
     override fun problem(consumer: String?, message: Action<StructuredMessage.Builder>): ProblemFactory.Builder {
@@ -79,7 +82,7 @@ class DefaultProblemFactory(
 
             override fun build(): PropertyProblem {
                 val diagnostics = if (failure) {
-                    problemStream.forCurrentCaller(Supplier { InvalidUserCodeException(exceptionMessage()) })
+                    problemStream.forCurrentCallerWithException { InvalidUserCodeException(exceptionMessage()) }
                 } else {
                     problemStream.forCurrentCaller()
                 }

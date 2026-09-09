@@ -1248,21 +1248,22 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
         }
 
         when:
-        // Three full captures for six problems, so the full budget is spent partway through.
+        // Three full captures and two bounded ones for six problems, so both budgets are spent.
         executer.withArgument("-Dorg.gradle.internal.problem.diagnostics.stacktrace-count.max=3")
-        // TODO The bounded budget buys nothing here: a problem that carries an exception has no bounded
-        //      fallback, so the last three problems lose their line instead of keeping it more cheaply.
         executer.withArgument("-Dorg.gradle.internal.problem.diagnostics.bounded-captures.max=2")
         configurationCacheFails "help"
 
         then:
         outputContains("Configuration cache entry discarded with 6 problems.")
         problems.assertFailureHasProblems(failure) {
+            // The problem past both budgets keeps the build file, but no longer the line.
             withProblem("Build file 'build.gradle': external process started")
-            (1..3).each {
+            (1..5).each {
                 withProblem("Build file 'build.gradle': line $it: external process started")
             }
             totalProblemsCount = 6
+            // Only a full capture keeps a stack worth reporting; a bounded one locates the problem
+            // without one, and past both budgets there is neither.
             problemsWithStackTraceCount = 3
         }
     }
