@@ -471,6 +471,7 @@
          <trusted-key id="DED5A0BEA2A8CC381CE986CEAA89D120A76C41E8" group="org.scijava" name="native-lib-loader"/>
          <trusted-key id="DFD60A08EC2B0CECED24A01F36A22209606109DC" group="com.typesafe" name="config"/>
          <trusted-key id="E0D98C5FD55A8AF232290E58DEE12B9896F97E34" group="org.pcollections" name="pcollections"/>
+         <trusted-key id="E2879931BCA1A42E55F2D64DD9B2DFBD9F3298BA" group="com.gradle"/>
          <trusted-key id="E3A9F95079E84CE201F7CF60BEDE11EAF1164480" group="org.hamcrest"/>
          <trusted-key id="E5B8247AF8A619A28F90FDFC9FF25980F5BA7E4F" group="xalan"/>
          <trusted-key id="E5C3B1929191DF06136CCB2B164779204E106A76" group="org.javassist" name="javassist"/>
