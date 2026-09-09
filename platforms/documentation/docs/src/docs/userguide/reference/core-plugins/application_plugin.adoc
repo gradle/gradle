@@ -111,7 +111,9 @@ include::sample[dir="snippets/reference/platforms/jvm/application/groovy",files=
 
 By specifying that the distribution should include the task's output files (see <<incremental_build.adoc#sec:task_inputs_outputs, incremental builds>>), Gradle knows that the task that produces the files must be invoked before the distribution can be assembled and will take care of this for you.
 
-You can run `gradle installDist` to create an image of the application in `build/install/__projectName__`. You can run `gradle distZip` to create a ZIP containing the distribution, `gradle distTar` to create an application TAR or `gradle assemble` to build both.
+You can run `gradle installDist` to create an image of the application in `build/install/__projectName__`.
+You can run `gradle distZip` to create a ZIP containing the distribution, `gradle distTar` to create an application TAR or `gradle assembleDist` to build both.
+Because the distribution archives are wired into the build-wide `assemble` task, running `assemble` (and therefore `build`) also produces them; see <<distribution_plugin.adoc#sec:distribution_tasks,the Distribution plugin reference>>.
 
 [[sec:customizing_start_script_generation]]
 === Customizing start script generation

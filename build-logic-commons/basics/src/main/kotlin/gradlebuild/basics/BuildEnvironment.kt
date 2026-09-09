@@ -130,8 +130,7 @@ object BuildEnvironment {
     val isTeamCityParallelTestsEnabled
         get() = "TEAMCITY_PARALLEL_TESTS_ENABLED" in System.getenv()
     val isCodeQl: Boolean by lazy {
-        // This logic is kept here instead of `codeql-analysis.init.gradle` because that file will hopefully be removed in the future.
-        // Removing that file is waiting on the GitHub team fixing an issue in Autobuilder logic.
+        // Tag Build Scans when a CodeQL-instrumented compile is running.
         CODEQL_ENVIRONMENT_VARIABLES.any { it in System.getenv() }
     }
     val jvm = org.gradle.internal.jvm.Jvm.current()

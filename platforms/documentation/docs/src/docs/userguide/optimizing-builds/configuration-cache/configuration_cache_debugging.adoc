@@ -373,8 +373,6 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/testKit/groo
 <2> Second run reuses the Configuration Cache.
 <3> Assert that the Configuration Cache gets reused.
 
-See <<test_kit.adoc#sub:test-kit-configuration-cache, Testing with the Configuration Cache>> for the full list of outcomes exposed by link:{javadocPath}/org/gradle/testkit/runner/BuildResult.html#getConfigurationCacheOutcome--[`BuildResult.getConfigurationCacheOutcome()`].
-
 If Gradle encounters problems with the Configuration Cache, it will fail the build and report the issues, causing the test to fail.
 
 [NOTE]

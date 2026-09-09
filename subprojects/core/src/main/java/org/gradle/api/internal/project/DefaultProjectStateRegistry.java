@@ -17,10 +17,10 @@ package org.gradle.api.internal.project;
 
 import com.google.errorprone.annotations.concurrent.GuardedBy;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.initialization.ProjectDescriptorRegistry;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.build.AllProjectsAccess;
 import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
@@ -55,7 +55,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
     private final Object lock = new Object();
     private final Map<Path, ProjectState> projectsByPath = new LinkedHashMap<>();
     private final Map<ProjectComponentIdentifier, ProjectState> projectsById = new HashMap<>();
-    private final Map<BuildIdentifier, DefaultBuildProjectRegistry> projectsByBuild = new HashMap<>();
+    private final Map<BuildIdentity, DefaultBuildProjectRegistry> projectsByBuild = new HashMap<>();
 
     public DefaultProjectStateRegistry(WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;
@@ -117,10 +117,10 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
     }
 
     private DefaultBuildProjectRegistry getBuildProjectRegistry(BuildState owner) {
-        DefaultBuildProjectRegistry buildProjectRegistry = projectsByBuild.get(owner.getBuildIdentifier());
+        DefaultBuildProjectRegistry buildProjectRegistry = projectsByBuild.get(owner.getBuildIdentity());
         if (buildProjectRegistry == null) {
             buildProjectRegistry = new DefaultBuildProjectRegistry(owner, workerLeaseService);
-            projectsByBuild.put(owner.getBuildIdentifier(), buildProjectRegistry);
+            projectsByBuild.put(owner.getBuildIdentity(), buildProjectRegistry);
         }
         return buildProjectRegistry;
     }
@@ -135,7 +135,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
     @Override
     public void discardProjectsFor(BuildState build) {
-        DefaultBuildProjectRegistry registry = projectsByBuild.get(build.getBuildIdentifier());
+        DefaultBuildProjectRegistry registry = projectsByBuild.get(build.getBuildIdentity());
         if (registry != null) {
             for (ProjectState project : registry.projectsByPath.values()) {
                 projectsById.remove(project.getComponentIdentifier());
@@ -201,11 +201,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
     }
 
     @Override
-    public BuildProjectRegistry projectsFor(BuildIdentifier buildIdentifier) throws IllegalArgumentException {
+    public BuildProjectRegistry projectsFor(BuildIdentity buildIdentity) throws IllegalArgumentException {
         synchronized (lock) {
-            BuildProjectRegistry registry = projectsByBuild.get(buildIdentifier);
+            BuildProjectRegistry registry = projectsByBuild.get(buildIdentity);
             if (registry == null) {
-                throw new IllegalArgumentException("Projects for " + buildIdentifier + " have not been registered yet.");
+                throw new IllegalArgumentException("Projects for " + buildIdentity + " have not been registered yet.");
             }
             return registry;
         }
@@ -213,9 +213,9 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
     @Nullable
     @Override
-    public BuildProjectRegistry findProjectsFor(BuildIdentifier buildIdentifier) {
+    public BuildProjectRegistry findProjectsFor(BuildIdentity buildIdentity) {
         synchronized (lock) {
-            return projectsByBuild.get(buildIdentifier);
+            return projectsByBuild.get(buildIdentity);
         }
     }
 

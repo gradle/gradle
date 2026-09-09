@@ -16,9 +16,9 @@
 
 package org.gradle.composite.internal
 
-import org.gradle.api.artifacts.component.BuildIdentifier
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.execution.plan.PlanExecutor
+import org.gradle.internal.build.BuildIdentity
+import org.gradle.util.Path
 import org.gradle.internal.build.BuildWorkGraph
 import org.gradle.internal.build.BuildWorkGraphController
 import org.gradle.internal.build.ExecutionResult
@@ -46,7 +46,7 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
     def "finalizes graph for a build when something scheduled"() {
         given:
-        def id = Stub(BuildIdentifier)
+        def id = new BuildIdentity(Path.path(":b1"))
         def workGraphController = Mock(BuildWorkGraphController)
         def workGraph = Mock(BuildWorkGraph)
         def build = build(id, workGraphController)
@@ -69,7 +69,7 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
     def "cannot schedule tasks when graph has not been created"() {
         when:
-        graph.locateTask(taskIdentifier(DefaultBuildIdentifier.ROOT, ":task")).queueForExecution()
+        graph.locateTask(taskIdentifier(new BuildIdentity(Path.ROOT), ":task")).queueForExecution()
 
         then:
         def e = thrown(IllegalStateException)
@@ -79,7 +79,7 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
     def "cannot schedule tasks when after graph has finished execution"() {
         when:
         graph.withNewWorkGraph { 12 }
-        graph.locateTask(taskIdentifier(DefaultBuildIdentifier.ROOT, ":task")).queueForExecution()
+        graph.locateTask(taskIdentifier(new BuildIdentity(Path.ROOT), ":task")).queueForExecution()
 
         then:
         def e = thrown(IllegalStateException)
@@ -88,7 +88,7 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
     def "cannot schedule tasks when graph is not yet being prepared for execution"() {
         given:
-        def id = Stub(BuildIdentifier)
+        def id = new BuildIdentity(Path.path(":b2"))
         build(id)
 
         when:
@@ -103,7 +103,7 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
     def "cannot schedule tasks when graph has been prepared for execution"() {
         given:
-        def id = Stub(BuildIdentifier)
+        def id = new BuildIdentity(Path.path(":b3"))
         build(id)
 
         when:
@@ -120,14 +120,14 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
     def "cannot schedule tasks when graph has started task execution"() {
         given:
-        def id = Stub(BuildIdentifier)
+        def id = new BuildIdentity(Path.path(":b4"))
         def workGraphController = Mock(BuildWorkGraphController)
         def workGraph = Mock(BuildWorkGraph)
         def build = build(id, workGraphController)
 
         workGraphController.newWorkGraph() >> workGraph
         workGraph.runWork() >> {
-            graph.locateTask(taskIdentifier(DefaultBuildIdentifier.ROOT, ":task")).queueForExecution()
+            graph.locateTask(taskIdentifier(new BuildIdentity(Path.ROOT), ":task")).queueForExecution()
         }
 
         when:
@@ -145,7 +145,7 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
 
     def "cannot schedule tasks when graph has completed task execution"() {
         given:
-        def id = Stub(BuildIdentifier)
+        def id = new BuildIdentity(Path.path(":b5"))
         build(id)
 
         when:

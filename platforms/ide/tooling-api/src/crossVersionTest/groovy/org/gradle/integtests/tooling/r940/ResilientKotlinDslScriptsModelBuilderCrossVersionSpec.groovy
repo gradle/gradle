@@ -44,8 +44,9 @@ import static org.gradle.integtests.tooling.r940.KotlinModelAction.QueryStrategy
 class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPluginRelatedToolingApiSpecification {
 
     private static final List<String> NO_EXTRA_PROPERTIES = []
+    // skipIfIpNotSupported() guarantees these flags only reach 9.7+ targets, which understand the current name
     private static final List<String> IP_FLAGS = [
-        "-Dorg.gradle.unsafe.isolated-projects=true",
+        "-Dorg.gradle.isolated-projects=true",
     ]
 
     private static final List<String> BUILD_SCRIPT_COMPILE_ERROR = ["Build file", "build.gradle.kts", "Script compilation error"]
