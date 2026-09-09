@@ -19,6 +19,7 @@ package org.gradle.internal.problems;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
+import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeSource;
@@ -47,12 +48,23 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
 
     private static final ProblemStream.StackTraceTransformer NO_OP = new CopyStackTraceTransFormer();
 
-    private static final int MAX_STACKTRACE_COUNT = 50;
-    private static final int ISOLATED_PROJECTS_MAX_STACKTRACE_COUNT = 5000;
+    /// Caps the full stack traces captured per stream, since capturing one is expensive.
+    ///
+    /// Isolated Projects only raises the default, since it reports far more problems. An
+    /// explicit value applies to either kind of build.
+    public static final String MAX_STACKTRACE_COUNT_PROPERTY = "org.gradle.internal.problem.diagnostics.stacktrace-count.max";
 
-    // Budget for bounded location captures past the cap: capping the count keeps the stack walk cost
-    // bounded and negligible at scale. Builds with more distinct call sites lose locations past it.
-    private static final int MAX_BOUNDED_CAPTURES = 2000;
+    private static final int DEFAULT_MAX_STACKTRACE_COUNT = 50;
+
+    private static final int DEFAULT_ISOLATED_PROJECTS_MAX_STACKTRACE_COUNT = 5000;
+
+    /// Caps the cheap bounded captures past the full cap, keeping the stack walk cost negligible.
+    ///
+    /// Past this cap a problem is located by its user code source, such as the script that
+    /// reported it, rather than by a line within it.
+    public static final String MAX_BOUNDED_CAPTURES_PROPERTY = "org.gradle.internal.problem.diagnostics.bounded-captures.max";
+
+    private static final int DEFAULT_MAX_BOUNDED_CAPTURES = 2000;
 
     private final FailureFactory failureFactory;
     private final ProblemLocationAnalyzer locationAnalyzer;
@@ -67,13 +79,24 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         ProblemLocationAnalyzer locationAnalyzer,
         UserCodeApplicationContext userCodeContext,
         BuildModelParameters buildModelParameters,
+        InternalOptions internalOptions,
         BoundedCallerStackCapturer boundedCallerStackCapturer
     ) {
-        this(failureFactory, locationAnalyzer, userCodeContext, getMaxStackTraces(buildModelParameters), MAX_BOUNDED_CAPTURES, boundedCallerStackCapturer);
+        this(
+            failureFactory,
+            locationAnalyzer,
+            userCodeContext,
+            maxStackTraces(buildModelParameters, internalOptions),
+            internalOptions.getInt(MAX_BOUNDED_CAPTURES_PROPERTY, DEFAULT_MAX_BOUNDED_CAPTURES),
+            boundedCallerStackCapturer
+        );
     }
 
-    private static int getMaxStackTraces(BuildModelParameters buildModelParameters) {
-        return buildModelParameters.isIsolatedProjects() ? ISOLATED_PROJECTS_MAX_STACKTRACE_COUNT : MAX_STACKTRACE_COUNT;
+    private static int maxStackTraces(BuildModelParameters buildModelParameters, InternalOptions internalOptions) {
+        int defaultValue = buildModelParameters.isIsolatedProjects()
+            ? DEFAULT_ISOLATED_PROJECTS_MAX_STACKTRACE_COUNT
+            : DEFAULT_MAX_STACKTRACE_COUNT;
+        return internalOptions.getInt(MAX_STACKTRACE_COUNT_PROPERTY, defaultValue);
     }
 
     @VisibleForTesting
