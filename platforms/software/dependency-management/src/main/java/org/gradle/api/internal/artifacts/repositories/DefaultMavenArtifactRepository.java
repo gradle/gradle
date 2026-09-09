@@ -289,11 +289,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     }
 
     private MavenResolver createResolver(URI rootUri) {
-        String scheme = rootUri.getScheme();
-        if (scheme == null) {
-            throw new InvalidUserDataException("Repository URL must have a scheme: '" + rootUri + "'. If you are using a local repository, please use 'file()' or derive it from project.layout.");
-        }
-        RepositoryTransport transport = getTransportForResolution(scheme);
+        RepositoryTransport transport = getTransportForResolution(rootUri.getScheme());
         MavenMetadataLoader mavenMetadataLoader = new MavenMetadataLoader(transport.getResourceAccessor(), resourcesFileStore);
         ImmutableMetadataSources metadataSources = createMetadataSources(mavenMetadataLoader);
         Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl().get(), resourcesFileStore);
