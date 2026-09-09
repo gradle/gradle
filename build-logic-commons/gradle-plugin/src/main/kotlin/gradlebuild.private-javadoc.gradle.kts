@@ -71,8 +71,12 @@ tasks.withType<Javadoc>().configureEach {
 
         // Enable all javadoc warnings, except for:
         // - missing: Classes and methods are not required to have javadoc
-        // - reference: We allow references to classes that are not part of the compilation
-        addBooleanOption("Xdoclint:all,-missing,-reference", true)
+        addBooleanOption("Xdoclint:all,-missing", true)
+
+        // Fail the build on any javadoc warning. Cross-module `{@link}` targets are made
+        // resolvable via the `javadocReferences` configuration above, so an unresolvable
+        // reference now means the doc is wrong, not that the classpath is incomplete.
+        addBooleanOption("Werror", true)
 
         // Add support for custom tags
         tags("apiNote:a:API Note:", "implSpec:a:Implementation Requirements:", "implNote:a:Implementation Note:")
