@@ -60,4 +60,12 @@ public abstract class MachineArchitecture implements Named {
      */
     @Incubating
     public static final String ARM64 = "aarch64";
+
+    /**
+     * The mcst e2k 64-bit architecture
+     *
+     * @since 9.8
+     */
+    @Incubating
+    public static final String E2K = "e2k";
 }
