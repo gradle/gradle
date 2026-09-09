@@ -38,6 +38,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -67,8 +69,11 @@ public class WrapperGenerator {
         }
         String path;
         try {
-            path = new URL(distributionUrl).getPath();
-        } catch (Exception ignored) {
+            path = new URI(distributionUrl).getPath();
+        } catch (URISyntaxException ignored) {
+            return null;
+        }
+        if (path == null) {
             return null;
         }
         String fileName = path.substring(path.lastIndexOf('/') + 1);

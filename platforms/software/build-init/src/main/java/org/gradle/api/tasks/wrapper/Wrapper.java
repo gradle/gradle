@@ -41,7 +41,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.util.GradleVersion;
-import org.gradle.util.internal.GUtil;
 import org.gradle.util.internal.WrapperDistributionUrlConverter;
 import org.gradle.work.DisableCachingByDefault;
 import org.gradle.wrapper.Download;
@@ -144,7 +143,10 @@ public abstract class Wrapper extends DefaultTask {
      */
     @SuppressWarnings("this-escape")
     public Wrapper() {
-        existingProperties = getProviders().of(ExistingWrapperProperties.class, SerializableLambdas.action(spec -> spec.getParameters().getPropertiesFile().fileProvider(getProviders().provider(SerializableLambdas.callable(this::getPropertiesFile)))));
+        Provider<File> propertiesFile = getProviders().provider(SerializableLambdas.callable(this::getPropertiesFile));
+        existingProperties = getProviders().of(ExistingWrapperProperties.class, spec ->
+            spec.getParameters().getPropertiesFile().fileProvider(propertiesFile)
+        );
         getNetworkTimeout().convention(existingProperty(WrapperExecutor.NETWORK_TIMEOUT_PROPERTY, Integer::valueOf)
             .orElse(WrapperDefaults.NETWORK_TIMEOUT));
         getValidateDistributionUrl().convention(existingProperty(WrapperExecutor.VALIDATE_DISTRIBUTION_URL, Wrapper::parseBoolean)
@@ -164,8 +166,7 @@ public abstract class Wrapper extends DefaultTask {
         FileResolver resolver = getFileLookup().getFileResolver(unixScript.getParentFile());
         String jarFileRelativePath = resolver.resolveAsRelativePath(jarFileDestination);
         File propertiesFile = getPropertiesFile();
-        // Read the output properties file at execution time so changes made after configuration are included.
-        Properties existingWrapperProperties = propertiesFile.exists() ? GUtil.loadProperties(propertiesFile) : null;
+        Properties existingWrapperProperties = existingProperties.getOrNull();
 
         checkProperties(existingWrapperProperties);
         validateDistributionUrl(propertiesFile.getParentFile());
@@ -200,6 +201,7 @@ public abstract class Wrapper extends DefaultTask {
     }
 
     private static Boolean parseBoolean(String value) {
+        // Keep this strict so malformed values are reported instead of being silently treated as false by the wrapper.
         if ("true".equalsIgnoreCase(value)) {
             return true;
         }
@@ -209,28 +211,28 @@ public abstract class Wrapper extends DefaultTask {
         throw new IllegalArgumentException("Expected 'true' or 'false'.");
     }
 
-    private PathBase resolveDistributionBase(@Nullable Properties existingProperties) {
-        return distributionBaseConfigured || existingProperties == null
+    private PathBase resolveDistributionBase(@Nullable Properties properties) {
+        return properties == null
             ? distributionBase
-            : resolvePathBase(existingProperties, WrapperExecutor.DISTRIBUTION_BASE_PROPERTY, distributionBase);
+            : resolvePathBase(properties, WrapperExecutor.DISTRIBUTION_BASE_PROPERTY, distributionBase);
     }
 
-    private String resolveDistributionPath(@Nullable Properties existingProperties) {
-        return distributionPathConfigured || existingProperties == null
+    private String resolveDistributionPath(@Nullable Properties properties) {
+        return properties == null
             ? distributionPath
-            : existingProperties.getProperty(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY, distributionPath);
+            : properties.getProperty(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY, distributionPath);
     }
 
-    private PathBase resolveArchiveBase(@Nullable Properties existingProperties) {
-        return archiveBaseConfigured || existingProperties == null
+    private PathBase resolveArchiveBase(@Nullable Properties properties) {
+        return properties == null
             ? archiveBase
-            : resolvePathBase(existingProperties, WrapperExecutor.ZIP_STORE_BASE_PROPERTY, archiveBase);
+            : resolvePathBase(properties, WrapperExecutor.ZIP_STORE_BASE_PROPERTY, archiveBase);
     }
 
-    private String resolveArchivePath(@Nullable Properties existingProperties) {
-        return archivePathConfigured || existingProperties == null
+    private String resolveArchivePath(@Nullable Properties properties) {
+        return properties == null
             ? archivePath
-            : existingProperties.getProperty(WrapperExecutor.ZIP_STORE_PATH_PROPERTY, archivePath);
+            : properties.getProperty(WrapperExecutor.ZIP_STORE_PATH_PROPERTY, archivePath);
     }
 
     private PathBase resolvePathBase(Properties properties, String propertyName, PathBase defaultValue) {
@@ -245,9 +247,9 @@ public abstract class Wrapper extends DefaultTask {
         }
     }
 
-    private void checkProperties(Properties existingProperties) {
-        String checksumProperty = existingProperties != null
-            ? existingProperties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, null)
+    private void checkProperties(@Nullable Properties properties) {
+        String checksumProperty = properties != null
+            ? properties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, null)
             : null;
 
         if (!isCurrentVersion() &&
@@ -285,11 +287,11 @@ public abstract class Wrapper extends DefaultTask {
         }
     }
 
-    private String getDistributionSha256Sum(Properties existingProperties) {
+    private String getDistributionSha256Sum(Properties properties) {
         if (distributionSha256Sum != null) {
             return distributionSha256Sum;
-        } else if (isCurrentVersion() && existingProperties != null) {
-            return existingProperties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, null);
+        } else if (isCurrentVersion() && properties != null) {
+            return properties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM, null);
         } else {
             return null;
         }
@@ -426,6 +428,7 @@ public abstract class Wrapper extends DefaultTask {
 
     /**
      * Returns the type of the Gradle distribution to be used by the wrapper.
+     * Existing values in {@code gradle-wrapper.properties} are preserved when this property is not configured.
      *
      * @see #setDistributionType(DistributionType)
      * @since 3.1
@@ -433,7 +436,7 @@ public abstract class Wrapper extends DefaultTask {
     @Input
     @ToBeReplacedByLazyProperty
     public DistributionType getDistributionType() {
-        if (distributionTypeConfigured) {
+        if (distributionTypeConfigured || distributionUrl != null) {
             return distributionType;
         }
         Properties properties = existingProperties.getOrNull();
@@ -447,8 +450,9 @@ public abstract class Wrapper extends DefaultTask {
     }
 
     /**
-     * The type of the Gradle distribution to be used by the wrapper. By default, this is {@link DistributionType#BIN},
-     * which is the binary-only Gradle distribution without documentation.
+     * The type of the Gradle distribution to be used by the wrapper. By default, this is {@link DistributionType#BIN}
+     * when no existing distribution URL is present, which is the binary-only Gradle distribution without documentation.
+     * An existing distribution type is preserved when this property is not configured.
      *
      * @see DistributionType
      * @since 3.1

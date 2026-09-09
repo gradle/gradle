@@ -145,6 +145,27 @@ class WrapperTest extends AbstractTaskTest {
         "http://some-url" == wrapper.getDistributionUrl()
     }
 
+    def "preserves distribution type from a relative existing distribution url"() {
+        given:
+        wrapper = createTask(Wrapper.class)
+        wrapper.setGradleVersion("8.0")
+        expectedTargetWrapperProperties.parentFile.mkdirs()
+        GUtil.saveProperties([(WrapperExecutor.DISTRIBUTION_URL_PROPERTY): "dists/gradle-8.0-all.zip"] as Properties, expectedTargetWrapperProperties)
+
+        expect:
+        wrapper.getDistributionType() == Wrapper.DistributionType.ALL
+    }
+
+    def "does not infer distribution type from existing properties when distribution url is explicitly configured"() {
+        given:
+        expectedTargetWrapperProperties.parentFile.mkdirs()
+        GUtil.saveProperties([(WrapperExecutor.DISTRIBUTION_URL_PROPERTY): "dists/gradle-8.0-all.zip"] as Properties, expectedTargetWrapperProperties)
+        wrapper.setDistributionUrl("https://example.org/custom.zip")
+
+        expect:
+        wrapper.getDistributionType() == Wrapper.DistributionType.BIN
+    }
+
     def "uses explicitly defined distribution sha256 sum"() {
         given:
         wrapper.setDistributionSha256Sum("somehash")
