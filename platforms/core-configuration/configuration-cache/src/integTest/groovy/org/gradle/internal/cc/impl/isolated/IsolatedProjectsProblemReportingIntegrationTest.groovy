@@ -106,4 +106,32 @@ class IsolatedProjectsProblemReportingIntegrationTest extends AbstractIsolatedPr
         }
         resolveConfigurationCacheReportDirectory(testDirectory.file(customBuildDir), failure.error)?.isDirectory()
     }
+
+    def "location detail decreases as the stack capturing budgets are spent"() {
+        given:
+        settingsFile "include(':a')"
+        createDir("a")
+        6.times {
+            buildFile "project(':a').version\n"
+        }
+
+        when:
+        // Three full captures for six accesses, so the full budget is spent partway through.
+        executer.withArgument("-Dorg.gradle.internal.problem.diagnostics.stacktrace-count.max=3")
+        // TODO The bounded budget buys nothing here: a problem that carries an exception has no bounded
+        //      fallback, so the last three accesses lose their line instead of keeping it more cheaply.
+        executer.withArgument("-Dorg.gradle.internal.problem.diagnostics.bounded-captures.max=2")
+        isolatedProjectsDiagnosticsFails "help"
+
+        then:
+        outputContains("Configuration cache entry discarded with 6 problems.")
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Build file 'build.gradle': Project ':' cannot access 'Project.version' functionality on another project ':a'")
+            (1..3).each {
+                withProblem("Build file 'build.gradle': line $it: Project ':' cannot access 'Project.version' functionality on another project ':a'")
+            }
+            totalProblemsCount = 6
+            problemsWithStackTraceCount = 3
+        }
+    }
 }
