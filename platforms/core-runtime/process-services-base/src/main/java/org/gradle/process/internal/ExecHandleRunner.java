@@ -32,6 +32,7 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.Iterator;
 import java.util.concurrent.Executor;
+import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.stream.Stream;
@@ -40,6 +41,7 @@ import static java.nio.charset.StandardCharsets.UTF_8;
 
 public class ExecHandleRunner implements Runnable {
     private static final Logger LOGGER = Logging.getLogger(ExecHandleRunner.class);
+    private static final long DESTROY_TIMEOUT_MILLIS = 10_000;
 
     private final ProcessBuilderFactory processBuilderFactory;
     private final DefaultExecHandle execHandle;
@@ -203,8 +205,22 @@ public class ExecHandleRunner implements Runnable {
             }
             ProcessBuilder processBuilder = processBuilderFactory.createProcessBuilder(execHandle);
             Process process = processLauncher.start(processBuilder);
-            streamsHandler.connectStreams(process, execHandle.getDisplayName(), executor);
             this.process = process;
+            try {
+                streamsHandler.connectStreams(process, execHandle.getDisplayName(), executor);
+            } catch (Throwable t) {
+                try {
+                    destroyProcessTree();
+                    if (!process.waitFor(DESTROY_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS)) {
+                        process.destroyForcibly().waitFor(DESTROY_TIMEOUT_MILLIS, TimeUnit.MILLISECONDS);
+                    }
+                } catch (Throwable cleanupFailure) {
+                    t.addSuppressed(cleanupFailure);
+                } finally {
+                    this.process = null;
+                }
+                throw t;
+            }
         } finally {
             lock.unlock();
         }

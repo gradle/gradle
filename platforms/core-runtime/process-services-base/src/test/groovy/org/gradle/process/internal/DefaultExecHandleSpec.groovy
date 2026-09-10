@@ -40,6 +40,7 @@ import spock.lang.Timeout
 import java.util.concurrent.Callable
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
+import java.util.concurrent.atomic.AtomicReference
 
 @UsesNativeServices
 @Timeout(60)
@@ -206,6 +207,26 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
 
         cleanup:
         System.clearProperty("org.gradle.internal.cmdline.max.length")
+    }
+
+    void "destroys started process when streams cannot be connected"() {
+        given:
+        def startedProcess = new AtomicReference<Process>()
+        def streamsHandler = Stub(FinishNotifyingStreamsHandler) {
+            connectStreams(_, _, _) >> { Process process, String displayName, Executor executor ->
+                startedProcess.set(process)
+                throw new RuntimeException()
+            }
+        }
+        def execHandle = handle().args(args(SlowApp.class)).streamsHandler(streamsHandler).build()
+
+        when:
+        execHandle.start()
+
+        then:
+        thrown(ProcessExecutionException)
+        startedProcess.get() != null
+        !startedProcess.get().isAlive()
     }
 
     void "aborts process"() {
