@@ -26,7 +26,7 @@ class DaemonClientConnectionTest extends Specification {
     final delegate = Mock(RemoteConnection)
     final daemon = Mock(DaemonConnectDetails)
     final staleAddressDetector = Mock(DaemonClientConnection.StaleAddressDetector)
-    final connection = new DaemonClientConnection(delegate, daemon, staleAddressDetector)
+    final connection = new DaemonClientConnection(delegate, daemon, staleAddressDetector, null)
 
     def "stops"() {
         when:

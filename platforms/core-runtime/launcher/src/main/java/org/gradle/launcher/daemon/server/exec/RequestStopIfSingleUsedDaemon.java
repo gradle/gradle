@@ -30,7 +30,7 @@ public class RequestStopIfSingleUsedDaemon implements DaemonCommandAction {
         if (execution.isSingleUseDaemon()) {
             LOGGER.debug("Requesting daemon stop after processing {}", execution.getCommand());
             // Does not take effect until after execution has completed
-            execution.getDaemonStateControl().requestStop("");
+            execution.getDaemonStateControl().requestQuietStop();
         }
         execution.proceed();
     }

@@ -21,19 +21,19 @@ plugins {
 description = "Implementation of the Gradle daemon server"
 
 dependencies {
+    api(projects.daemonMessaging)
     api(projects.launcher)
     api(projects.logging)
-    api(projects.messaging)
+    api(projects.serviceLookup)
 
     implementation(libs.guava)
 
     implementation(projects.concurrent)
     implementation(projects.instrumentationAgentServices)
     implementation(projects.loggingApi)
+    implementation(projects.messaging)
     implementation(projects.native)
-    implementation(projects.serviceLookup)
     implementation(projects.processServicesBase)
-    implementation(projects.daemonMessaging)
     implementation(projects.daemonProtocol)
     implementation(projects.daemonLogging)
 }

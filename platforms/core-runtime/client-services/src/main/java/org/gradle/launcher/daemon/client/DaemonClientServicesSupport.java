@@ -15,6 +15,7 @@
  */
 package org.gradle.launcher.daemon.client;
 
+import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.provider.DefaultPropertyFactory;
 import org.gradle.api.internal.provider.PropertyFactory;
@@ -72,13 +73,15 @@ import java.util.UUID;
  */
 public abstract class DaemonClientServicesSupport implements ServiceRegistrationProvider {
     private final InputStream buildStandardInput;
+    private final boolean embedded;
 
     public void configure(ServiceRegistration registration) {
         registration.add(GlobalCacheDir.class);
     }
 
-    public DaemonClientServicesSupport(InputStream buildStandardInput) {
+    public DaemonClientServicesSupport(InputStream buildStandardInput, boolean embedded) {
         this.buildStandardInput = buildStandardInput;
+        this.embedded = embedded;
     }
 
     protected InputStream getBuildStandardInput() {
@@ -142,6 +145,9 @@ public abstract class DaemonClientServicesSupport implements ServiceRegistration
 
     @Provides
     DaemonStarter createDaemonStarter(DaemonDir daemonDir, DaemonParameters daemonParameters, JvmVersionDetector jvmVersionDetector, DaemonRequestContext daemonRequestContext, PropertyFactory propertyFactory, ServiceRegistry serviceRegistry) {
+        if (embedded) {
+            return new EmbeddedDaemonStarter(daemonDir, daemonParameters, serviceRegistry.get(FileCollectionFactory.class));
+        }
         // The creation of this service is deemed expensive enough in the context of the launcher.
         // We defer it, because it is only needed if daemon toolchains are active and there is no compatible running daemon.
         // The service registry does not currently support lazy service injection out-of-the-box.

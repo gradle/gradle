@@ -56,10 +56,12 @@ public class DaemonClientFactory {
 
     /**
      * Creates the services for a {@link DaemonClient} that can be used to run a build in a single-use daemon.
+     *
+     * @param embedded when true, the daemon is started embedded in this process instead of being forked
      */
-    public ServiceRegistry createSingleUseDaemonClientServices(ServiceLookup clientLoggingServices, DaemonParameters daemonParameters, DaemonRequestContext requestContext, BuildLayoutConfiguration buildLayoutConfiguration, InputStream stdin) {
+    public ServiceRegistry createSingleUseDaemonClientServices(ServiceLookup clientLoggingServices, DaemonParameters daemonParameters, DaemonRequestContext requestContext, BuildLayoutConfiguration buildLayoutConfiguration, InputStream stdin, boolean embedded) {
         return clientServicesBuilder(clientLoggingServices, daemonParameters, requestContext, buildLayoutConfiguration, Optional.empty())
-            .provider(new SingleUseDaemonClientServices(stdin))
+            .provider(new SingleUseDaemonClientServices(stdin, embedded))
             .build();
     }
 
