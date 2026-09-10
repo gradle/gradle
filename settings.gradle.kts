@@ -218,6 +218,7 @@ val software = platform("software") {
     subproject("credentials")
     subproject("credentials-impl")
     subproject("dependency-management")
+    subproject("dependency-management-resources")
     subproject("plugins-distribution")
     subproject("distributions-publishing")
     subproject("isolated-ant-builder")

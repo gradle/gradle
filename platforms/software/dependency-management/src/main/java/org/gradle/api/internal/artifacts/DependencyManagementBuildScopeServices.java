@@ -56,8 +56,6 @@ import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleM
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.DefaultExternalResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.artifacts.transform.TransformExecutionListener;
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeDependencyResolver;
 import org.gradle.api.internal.artifacts.verification.signatures.DefaultSignatureVerificationServiceFactory;
@@ -111,6 +109,8 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
+import org.gradle.internal.resource.transport.RepositoryTransport;
+import org.gradle.internal.resource.transport.RepositoryTransportFactory;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -293,7 +293,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         ProducerGuard<ExternalResourceName> producerGuard,
         FileResourceRepository fileResourceRepository,
         ChecksumService checksumService,
-        StartParameterResolutionOverride startParameterResolutionOverride
+        StartParameter startParameter
     ) {
         return artifactCachesProvider.withWritableCache((md, manager) -> new RepositoryTransportFactory(
             resourceConnectorFactories,
@@ -302,7 +302,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
             buildCommencedTimeProvider,
             manager,
             buildOperationRunner,
-            startParameterResolutionOverride,
+            startParameter,
             producerGuard,
             fileResourceRepository,
             checksumService

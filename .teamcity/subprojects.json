@@ -490,6 +490,13 @@
     "crossVersionTests": true
   },
   {
+    "name": "dependency-management-resources",
+    "path": "platforms/software/dependency-management-resources",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "dependency-management-serialization-codecs",
     "path": "platforms/core-configuration/dependency-management-serialization-codecs",
     "unitTests": false,

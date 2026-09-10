@@ -32,6 +32,7 @@ import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoa
 import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
+import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 public class DaemonServices extends AbstractGradleModuleServices {
     @Override
@@ -43,6 +44,11 @@ public class DaemonServices extends AbstractGradleModuleServices {
     @Override
     public void registerGradleUserHomeServices(ServiceRegistration registration) {
         registration.addProvider(new DaemonGradleUserHomeServices());
+    }
+
+    @Override
+    public void registerBuildSessionServices(ServiceRegistration registration) {
+        registration.add(BuildCommencedTimeProvider.class);
     }
 
     private static class DaemonGradleUserHomeServices implements ServiceRegistrationProvider {

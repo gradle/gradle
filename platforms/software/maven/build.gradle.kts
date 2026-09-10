@@ -13,6 +13,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.domainObjectCollections)
     api(projects.dependencyManagement)
+    api(projects.dependencyManagementResources)
     api(projects.fileCollections)
     api(projects.logging)
     api(projects.messaging)
