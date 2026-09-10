@@ -46,12 +46,12 @@ dependencies {
     pluginsRuntimeOnly(projects.xdclPluginDevelopmentPlugin)
 
     // The embedded Maven repository (repo/ in the image): the published ecosystem libraries at the
-    // distribution version, plus the org.xdcl API module their published metadata strictly
-    // requires — the full offline-resolution closure a consumer build's settings classpath needs
-    // when the XDCL provider injects built-in ecosystems into dependency resolution.
+    // distribution version — the full offline-resolution closure a consumer build's settings
+    // classpath needs when the XDCL provider injects built-in ecosystems into dependency resolution.
+    // (The org.xdcl API the libraries' facades extend is a compileOnly dependency of theirs, named
+    // by no published metadata, and present in lib/ — so the repository has nothing to serve for it.)
     distributionRepositoryOnly(projects.xdclCommonEcosystem)
     distributionRepositoryOnly(projects.xdclPluginDevelopment)
-    distributionRepositoryOnly(libs.xdclGradleApi)
 }
 
 // The manifest auto-derives module names from `gradle-<name>-<version>.jar` file names, which

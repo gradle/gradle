@@ -24,9 +24,9 @@ description = "Shared XDCL schema common to the built-in ecosystems: dependency 
 // A schema-only ecosystem foundation: common.xdsl (packed under META-INF/xdcl/ by xdcl-gradle-plugin)
 // and the Java facades generated from it. The built-in ecosystems (plugin-development today; JVM,
 // Native etc. later) `import` this schema and `with` its capability traits, so the shared dependency
-// surface is declared once. Publishable because it carries no internal-Gradle dependency — only the
-// external org.xdcl facade API.
-// No dependencies block: the facade base types (org.gradle.api.xdcl.*) come as `api` from the
+// surface is declared once. Publishable because it carries no internal-Gradle dependency — the facade
+// base types it extends are the distribution's org.xdcl API, a compileOnly dependency.
+// No dependencies block: the facade base types (org.gradle.api.xdcl.*) come as `compileOnly` from the
 // gradlebuild.xdcl-ecosystem-library convention, and this foundational schema imports nothing else.
 
 gradleModule {
