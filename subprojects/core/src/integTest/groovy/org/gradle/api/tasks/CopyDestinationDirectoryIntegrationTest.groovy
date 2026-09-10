@@ -246,6 +246,38 @@ class CopyDestinationDirectoryIntegrationTest extends AbstractIntegrationSpec {
         task << ['Copy', 'Sync']
     }
 
+    def "#task subclass can continue to provide its destination by overriding destinationDir"() {
+        buildFile """
+            abstract class CustomCopy extends $task {
+                @Internal abstract DirectoryProperty getDefaultDestinationDirectory()
+
+                @Override
+                File getDestinationDir() {
+                    return defaultDestinationDirectory.get().asFile
+                }
+            }
+            tasks.register("copy", CustomCopy) {
+                from 'src'
+                defaultDestinationDirectory = layout.buildDirectory.dir("sandbox")
+            }
+        """
+
+        when:
+        run 'copy'
+
+        then:
+        file('build/sandbox/a.txt').text == 'a'
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTaskSkipped(':copy')
+
+        where:
+        task << ['Copy', 'Sync']
+    }
+
     def "#task subclass action can read destinationDir when the destination derives from its own output property"() {
         buildFile """
             abstract class CustomCopy extends $task {
