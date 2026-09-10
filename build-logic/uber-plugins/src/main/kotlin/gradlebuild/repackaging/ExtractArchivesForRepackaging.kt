@@ -43,7 +43,7 @@ import javax.inject.Inject
  * would carry the mapping lambda (and with it the build script) into the configuration cache.
  */
 @CacheableTask
-abstract class ExtractRepackagedArchives : DefaultTask() {
+abstract class ExtractArchivesForRepackaging : DefaultTask() {
 
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.NONE)

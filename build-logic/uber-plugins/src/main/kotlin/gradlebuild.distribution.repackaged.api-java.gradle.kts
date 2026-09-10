@@ -16,8 +16,7 @@
 
 import gradlebuild.incubation.tasks.IncubatingApiReportTask
 import gradlebuild.removal.tasks.NextMajorRemovalReportTask
-import gradlebuild.repackaging.ExtractRepackagedArchives
-import org.gradle.api.artifacts.component.ComponentIdentifier
+import gradlebuild.repackaging.ExtractArchivesForRepackaging
 import org.gradle.api.artifacts.result.ResolvedArtifactResult
 
 /**
@@ -40,7 +39,7 @@ import org.gradle.api.artifacts.result.ResolvedArtifactResult
  * Every repackaged module must expose a sources jar (`withSourcesJar()` in its build): the
  * derivative API artifacts above are only complete with the sources, so a module without them is
  * reported by name instead of silently shipping undocumented, `@since`-less API. Two modules
- * contributing the same class or resource path is reported too ([ExtractRepackagedArchives]).
+ * contributing the same class or resource path is reported too ([ExtractArchivesForRepackaging]).
  *
  * What repackaging does not give a module: the compile-time checks of this build (error-prone,
  * NullAway, checkstyle) never see its sources — the owning build's conventions apply there. The
@@ -57,12 +56,14 @@ plugins {
     id("gradlebuild.distribution.uninstrumented.api-java")
 }
 
+@Suppress("UnstableApiUsage")
 val repackaged = configurations.dependencyScope("repackaged") {
     description = "The modules whose compiled classes and sources this project repackages as its own"
 }
 
 // Non-transitive on purpose: only the declared jars are repackaged, never their dependencies (the
 // module declares those itself, like any other module).
+@Suppress("UnstableApiUsage")
 val repackagedClasspath = configurations.resolvable("repackagedClasspath") {
     description = "Resolves the jars this project repackages"
     extendsFrom(repackaged.get())
@@ -81,6 +82,7 @@ val repackagedJars: Provider<Set<ResolvedArtifactResult>> = repackagedClasspath.
 // that a module WITHOUT a sources variant surfaces in the check below, by name, rather than as a
 // variant-matching failure.
 val repackagedSourcesJars: Provider<Set<ResolvedArtifactResult>> = repackagedClasspath.get().incoming.artifactView {
+    @Suppress("UnstableApiUsage")
     withVariantReselection()
     lenient(true)
     attributes {
@@ -111,7 +113,7 @@ val repackagedJarFiles: Provider<List<File>> = run {
 val repackagedSourcesJarFiles: Provider<List<File>> = run {
     val path = project.path
     repackagedSourcesJars.zip(repackagedJars) { sources, jars ->
-        val components = { artifacts: Set<ResolvedArtifactResult> -> artifacts.mapTo(linkedSetOf<ComponentIdentifier>()) { it.id.componentIdentifier } }
+        val components = { artifacts: Set<ResolvedArtifactResult> -> artifacts.mapTo(linkedSetOf()) { it.id.componentIdentifier } }
         val withoutSources = components(jars) - components(sources)
         if (withoutSources.isNotEmpty()) {
             throw GradleException(
@@ -125,20 +127,19 @@ val repackagedSourcesJarFiles: Provider<List<File>> = run {
     }
 }
 
-val extractRepackagedClasses = tasks.register<ExtractRepackagedArchives>("extractRepackagedClasses") {
+val extractRepackagedClasses = tasks.register<ExtractArchivesForRepackaging>("extractRepackagedClasses") {
     description = "Unpacks the classes of the jars this project repackages"
     archives.from(repackagedJarFiles)
     outputDirectory = layout.buildDirectory.dir("repackaged/classes")
 }
 
-val extractRepackagedSources = tasks.register<ExtractRepackagedArchives>("extractRepackagedSources") {
+val extractRepackagedSources = tasks.register<ExtractArchivesForRepackaging>("extractRepackagedSources") {
     description = "Unpacks the sources jars of the modules this project repackages"
     archives.from(repackagedSourcesJarFiles)
     outputDirectory = layout.buildDirectory.dir("repackaged/sources")
 }
 
-// `classesDirs` is documented as safely castable to a configurable collection; the task provider
-// carries the build dependency.
+// `classesDirs` is documented as safely castable to a configurable collection;
 (sourceSets.main.get().output.classesDirs as ConfigurableFileCollection).from(extractRepackagedClasses)
 
 configurations.named("transitiveSourcesElements") {
