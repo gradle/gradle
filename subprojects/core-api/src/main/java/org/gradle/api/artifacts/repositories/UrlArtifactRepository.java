@@ -74,7 +74,7 @@ public interface UrlArtifactRepository {
     /**
      * Specifies whether it is acceptable to communicate with a repository over an insecure HTTP connection.
      *
-     * @see #isAllowInsecureProtocol()
+     * @see #getAllowInsecureProtocol()
      * @since 6.0
      */
     void setAllowInsecureProtocol(boolean allowInsecureProtocol);

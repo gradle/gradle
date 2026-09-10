@@ -55,7 +55,7 @@ import java.util.zip.ZipEntry;
 import static org.gradle.process.internal.util.LongCommandLineDetectionUtil.hasCommandLineExceedMaxLength;
 
 /**
- * Low level JavaExecHandle Builder API. Normally you should use {@link JavaExecAction} or {@link JavaExecSpec} instead.
+ * Low level JavaExecHandle Builder API. Normally you should use {@link JavaExecAction} or {@link org.gradle.process.JavaExecSpec} instead.
  */
 @NullMarked
 public class JavaExecHandleBuilder implements BaseExecHandleBuilder {

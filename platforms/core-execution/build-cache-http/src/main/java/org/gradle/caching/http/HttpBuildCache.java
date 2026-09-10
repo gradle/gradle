@@ -139,7 +139,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
     /**
      * Specifies whether it is acceptable to communicate with an HTTP build cache backend with an untrusted SSL certificate.
      *
-     * @see #isAllowUntrustedServer()
+     * @see #getAllowUntrustedServer()
      * @since 4.2
      */
     public void setAllowUntrustedServer(boolean allowUntrustedServer) {
@@ -176,7 +176,7 @@ public abstract class HttpBuildCache extends AbstractBuildCache {
     /**
      * Specifies whether it is acceptable to communicate with a build cache over an insecure HTTP connection.
      *
-     * @see #isAllowInsecureProtocol()
+     * @see #getAllowInsecureProtocol()
      * @since 6.0
      */
     public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {

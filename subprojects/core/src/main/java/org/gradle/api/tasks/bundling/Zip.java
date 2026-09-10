@@ -130,7 +130,7 @@ public abstract class Zip extends AbstractArchiveTask {
     /**
      * Enables building zips with more than 65535 files or bigger than 4GB.
      *
-     * @see #isZip64()
+     * @see #getZip64()
      * @since 1.12
      */
     public void setZip64(boolean zip64) {
