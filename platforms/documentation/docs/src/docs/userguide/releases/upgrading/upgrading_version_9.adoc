@@ -39,6 +39,21 @@ The previous step will help you identify potential problems by issuing deprecati
 [[changes_9.9.0]]
 == Upgrading from 9.8.0 and earlier
 
+=== Potential breaking changes
+
+[[configuration_cache_recovers_from_corrupted_entries]]
+==== The Configuration Cache recovers from corrupted entries
+
+When a Configuration Cache entry cannot be loaded (for example because it is corrupted), Gradle now discards the broken entry so the requested work is recomputed as a cache miss, instead of failing repeatedly.
+
+If you rely on the previous behavior — for example to surface corruption as a build failure rather than silently recomputing — you can restore it by setting:
+
+[source,properties]
+----
+org.gradle.internal.configuration-cache.recover-from-corruption=false
+----
+
+
 === Deprecations
 
 [[kotlin_dsl_scripts_model_explicit_scripts]]

@@ -161,7 +161,8 @@ class DefaultConfigurationCache internal constructor(
             virtualFileSystem,
             buildOperationRunner,
             gradlePropertiesController,
-            isolateOwnerHost
+            isolateOwnerHost,
+            problems
         )
     }
 
@@ -268,8 +269,18 @@ class DefaultConfigurationCache internal constructor(
         if (cacheAction !is Load) {
             return BuildTreeConfigurationCache.LoadOutcome.Missed
         }
-        val finalizedGraph = loadWorkGraph(graph, graphBuilder, false).graph
-        return BuildTreeConfigurationCache.LoadOutcome.Reused(finalizedGraph)
+        return try {
+            val finalizedGraph = loadWorkGraph(graph, graphBuilder, false).graph
+            BuildTreeConfigurationCache.LoadOutcome.Reused(finalizedGraph)
+        } catch (failure: Throwable) {
+            if (!isRecoveryEnabled) {
+                problems.onEntryUnreadable("The configuration cache entry could not be loaded.", failure)
+                throw failure
+            }
+            problems.onEntryDiscarded("The configuration cache entry could not be loaded and has been discarded.", failure)
+            rollbackFromFailedLoad()
+            BuildTreeConfigurationCache.LoadOutcome.Discarded(failure)
+        }
     }
 
     override fun scheduleRequestedTasks(
@@ -310,6 +321,29 @@ class DefaultConfigurationCache internal constructor(
         return loadWorkGraph(graph, graphBuilder, true)
     }
 
+    /**
+     * Whether a corrupted entry may be discarded and stored again instead of failing the build.
+     */
+    private val isRecoveryEnabled: Boolean
+        get() = startParameter.isRecoverFromCacheCorruption && !startParameter.isIntegrityCheckEnabled
+
+    private fun rollbackFromFailedLoad() {
+        loadedSideEffects.clear()
+        cacheEntryRequiresCommit = false
+        entryDiscardRequested = false
+        entrySelector.unloadProperties()
+        scopeRegistryListener.reattach()
+        // The same entry id is kept, so the unreadable files are overwritten when the new entry is stored.
+        beginEntry(
+            Store,
+            entryId,
+            formatBootstrapSummary(
+                "%s as configuration cache cannot be reused because the cached state could not be loaded.",
+                buildActionModelRequirements.actionDisplayName.capitalizedDisplayName
+            )
+        )
+    }
+
     override fun maybePrepareModel(action: () -> BuildTreeModelCreatorResult<Void>): BuildTreeModelCreatorResult<Void> {
         if (isLoaded) {
             return BuildTreeModelCreatorResult.of(null)
@@ -342,7 +376,14 @@ class DefaultConfigurationCache internal constructor(
 
     private
     fun <T : Any> runAndDiscardEntryOnFailures(action: () -> BuildTreeModelCreatorResult<T>): BuildTreeModelCreatorResult<T> {
-        val result = action()
+        val result = try {
+            action()
+        } catch (e: Throwable) {
+            if (isRecoveryEnabled) {
+                entryDiscardRequested = true
+            }
+            throw e
+        }
         if (result.hasFailures()) {
             // Model building produced failures, so the resulting partial configuration must not be reused:
             // discard the entry so the next build re-runs and re-reports the failures.

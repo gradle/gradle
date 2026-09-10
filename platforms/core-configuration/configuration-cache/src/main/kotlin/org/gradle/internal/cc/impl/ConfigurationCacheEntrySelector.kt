@@ -23,6 +23,7 @@ import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintCont
 import org.gradle.internal.cc.impl.fingerprint.InvalidationReason
 import org.gradle.internal.cc.impl.fingerprint.readFingerprintFrom
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.impl.problems.ConfigurationCacheProblems
 import org.gradle.internal.cc.impl.serialize.FingerprintDeserializationException
 import org.gradle.internal.cc.operations.EntrySearchResult
 import org.gradle.internal.cc.operations.withFingerprintCheckOperations
@@ -50,8 +51,17 @@ internal class ConfigurationCacheEntrySelector(
     private val virtualFileSystem: BuildLifecycleAwareVirtualFileSystem,
     private val buildOperationRunner: BuildOperationRunner,
     private val gradlePropertiesController: GradlePropertiesController,
-    private val isolateOwner: IsolateOwner
+    private val isolateOwner: IsolateOwner,
+    private val problems: ConfigurationCacheProblems
 ) {
+    private
+    val isRecoveryEnabled: Boolean
+        get() = startParameter.isRecoverFromCacheCorruption && !startParameter.isIntegrityCheckEnabled
+
+    private
+    val isIntegrityCheckEnabled: Boolean
+        get() = startParameter.isIntegrityCheckEnabled
+
     fun selectEntry(): CheckedFingerprint = buildOperationRunner.withFingerprintCheckOperations {
         val searchResult = candidateEntries.searchForValidEntry(::checkCandidate)
         val checkedFingerprint = searchResult.checkedFingerprint
@@ -65,15 +75,29 @@ internal class ConfigurationCacheEntrySelector(
     fun checkCandidate(candidateEntry: CandidateEntry): EntrySearchResult {
         // checking a single fingerprint
         val entryStore = cacheRepository.forKey(candidateEntry.id)
-        return entryStore.useForStateLoad {
-            checkedFingerprint(candidateEntry)
-        }.value
+        return try {
+            entryStore.useForStateLoad {
+                checkedFingerprint(candidateEntry)
+            }.value
+        } catch (failure: ConfigurationCacheEntryReadException) {
+            if (!isRecoveryEnabled) {
+                problems.onEntryUnreadable("The configuration cache entry could not be checked because it was corrupted.", failure)
+                throw failure.cause ?: failure
+            }
+            problems.onEntryDiscarded(
+                "The configuration cache entry could not be checked because it was corrupted and will be discarded.",
+                failure
+            )
+            candidateEntries.remove(candidateEntry)
+            EntrySearchResult(null, CheckedFingerprint.NotFound)
+        }
     }
 
     private
     fun ConfigurationCacheRepository.Layout.checkedFingerprint(candidateEntry: CandidateEntry): EntrySearchResult {
-        val entryDetails = cacheIO.readCacheEntryDetailsFrom(fileFor(StateType.Entry))
-            ?: return EntrySearchResult(null, CheckedFingerprint.NotFound)
+        val entryDetails = readStoredState(isIntegrityCheckEnabled) {
+            cacheIO.readCacheEntryDetailsFrom(fileFor(StateType.Entry))
+        } ?: return EntrySearchResult(null, CheckedFingerprint.NotFound)
         // TODO:configuration-cache read only rootDirs at this point
         return EntrySearchResult(
             entryDetails.buildInvocationScopeId,
@@ -118,8 +142,12 @@ internal class ConfigurationCacheEntrySelector(
     private
     fun ConfigurationCacheRepository.Layout.checkClassLoaderScopes(): InvalidationReason? =
         fileFor(StateType.ClassLoaderScopes).let { stateFile ->
-            classLoaderScopes.checkClassLoaderScopes {
-                cacheIO.decoderFor(stateFile.stateType, stateFile::inputStream)
+            // Decoding the stored scopes and hashing their class paths involves no build logic,
+            // so any failure here means the stored state itself cannot be read.
+            readStoredState(isIntegrityCheckEnabled) {
+                classLoaderScopes.checkClassLoaderScopes {
+                    cacheIO.decoderFor(stateFile.stateType, stateFile::inputStream)
+                }
             }
         }
 
@@ -164,8 +192,13 @@ internal class ConfigurationCacheEntrySelector(
     fun <T> readFingerprintFile(
         fingerprintFile: ConfigurationCacheStateFile,
         action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T
-    ): T =
-        cacheIO.readFingerprintFrom(fingerprintFile, isolateOwner, action)
+    ): T {
+        // Opening the decoder eagerly reads (and decrypts) the file header
+        val decoder = readStoredState(isIntegrityCheckEnabled) {
+            cacheIO.decoderFor(fingerprintFile.stateType, fingerprintFile::inputStream)
+        }
+        return cacheIO.readFingerprintFrom(fingerprintFile.stateFile.name, decoder, isolateOwner, action)
+    }
 
     private
     fun invalidBuildTreeFingerprint(invalidationReason: StructuredMessage) =
@@ -176,9 +209,13 @@ internal class ConfigurationCacheEntrySelector(
         buildDirs.forEach(virtualFileSystem::registerWatchableHierarchy)
     }
 
+    fun unloadProperties() {
+        gradlePropertiesController.unloadAll()
+    }
+
     private
     fun rollbackProperties(systemPropertiesSnapshot: Properties) {
-        gradlePropertiesController.unloadAll()
+        unloadProperties()
         System.setProperties(systemPropertiesSnapshot)
     }
 }

@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl.fingerprint
 import org.gradle.api.internal.provider.ValueSourceProviderFactory
 import org.gradle.internal.cc.impl.ConfigurationCacheBuildTreeIO
 import org.gradle.internal.cc.impl.ConfigurationCacheStateFile
+import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.graph.IsolateOwner
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.serviceOf
@@ -33,14 +34,30 @@ fun <T> ConfigurationCacheBuildTreeIO.readFingerprintFrom(
     stateFile: ConfigurationCacheStateFile,
     isolateOwner: IsolateOwner,
     action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T
-): T {
-    val decoder = decoderFor(stateFile.stateType, stateFile::inputStream)
-    return runReadOperation(stateFile.stateFile.name, decoder) { codecs ->
+): T =
+    readFingerprintFrom(
+        stateFile.stateFile.name,
+        decoderFor(stateFile.stateType, stateFile::inputStream),
+        isolateOwner,
+        action
+    )
+
+
+/**
+ * Reads a fingerprint from an already opened [decoder]
+ */
+internal
+fun <T> ConfigurationCacheBuildTreeIO.readFingerprintFrom(
+    stateFileName: String,
+    decoder: Decoder,
+    isolateOwner: IsolateOwner,
+    action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T
+): T =
+    runReadOperation(stateFileName, decoder) { codecs ->
         withIsolate(isolateOwner, codecs.fingerprintTypesCodec()) {
             action(FingerprintControllerHost(isolateOwner))
         }
     }
-}
 
 
 private

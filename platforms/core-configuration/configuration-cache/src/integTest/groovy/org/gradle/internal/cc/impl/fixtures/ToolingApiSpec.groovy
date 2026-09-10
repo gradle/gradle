@@ -327,14 +327,17 @@ trait ToolingApiSpec {
         return model
     }
 
-    void runBuildActionFails(BuildAction buildAction) {
+    void runBuildActionFails(BuildAction buildAction, @DelegatesTo(BuildActionExecuter) Closure config = {}) {
         failure = toolingApiExecutor.runFailingBuildWithToolingConnection { connection ->
             def output = new ByteArrayOutputStream()
             def error = new ByteArrayOutputStream()
             def args = executer.allArgs.tap { remove("--no-daemon") }
             def failure
             try {
-                connection.action(buildAction)
+                def actionExecuter = connection.action(buildAction)
+                config.delegate = actionExecuter
+                config.call()
+                actionExecuter
                     .withArguments(args)
                     .addJvmArguments(executer.implicitBuildJvmArgs)
                     .setStandardOutput(new TeeOutputStream(output, System.out))
