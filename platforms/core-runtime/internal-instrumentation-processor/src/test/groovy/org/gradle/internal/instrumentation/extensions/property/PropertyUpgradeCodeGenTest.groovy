@@ -244,8 +244,8 @@ class PropertyUpgradeCodeGenTest extends InstrumentationCodeGenTest {
         upgradedType                    | originalType | setOriginalType | hasSuppressWarnings | getterBody
         "Provider<Integer>"             | "Integer"    | false           | false               | "self.getProperty().getOrElse(null)"
         "Provider<Integer>"             | "int"        | true            | false               | "self.getProperty().getOrElse(0)"
-        "Provider<RegularFile>"         | "File"       | false           | false               | "self.getProperty().map(FileSystemLocation::getAsFile).getOrNull()"
-        "Provider<Directory>"           | "File"       | false           | false               | "self.getProperty().map(FileSystemLocation::getAsFile).getOrNull()"
+        "Provider<RegularFile>"         | "File"       | false           | false               | "Optional.ofNullable(self.getProperty().getOrNull()).map(FileSystemLocation::getAsFile).orElse(null)"
+        "Provider<Directory>"           | "File"       | false           | false               | "Optional.ofNullable(self.getProperty().getOrNull()).map(FileSystemLocation::getAsFile).orElse(null)"
         "Provider<File>"                | "File"       | false           | false               | "self.getProperty().getOrElse(null)"
         "Provider<List<String>>"        | "Iterable"   | true            | true                | "self.getProperty().getOrElse(null)"
         "Provider<List<String>>"        | "List"       | false           | true                | "self.getProperty().getOrElse(null)"
