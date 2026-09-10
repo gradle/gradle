@@ -31,6 +31,7 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.process.ExecOperations
+import org.gradle.kotlin.dsl.assign
 import java.io.ByteArrayOutputStream
 import java.io.File
 import java.net.URI
