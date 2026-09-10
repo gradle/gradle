@@ -16,7 +16,6 @@
 
 package org.gradle.process.internal;
 
-import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
@@ -27,7 +26,6 @@ import javax.inject.Inject;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.util.Arrays;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
@@ -119,10 +117,7 @@ public abstract class DefaultExecSpec extends DefaultProcessForkOptions implemen
 
     @Override
     public Provider<List<String>> getCommandLine() {
-        return getExecutable().zip(getArgs(), (SerializableLambdas.SerializableBiFunction<String, List<String>, List<String>>) (executable, args) -> {
-            List<String> allArgs = ExecHandleCommandLineCombiner.getAllArgs(Collections.emptyList(), args, getArgumentProviders().get());
-            return ExecHandleCommandLineCombiner.getCommandLine(executable, allArgs);
-        });
+        return ExecHandleCommandLineCombiner.commandLineProvider(getExecutable(), getArgs(), getArgumentProviders());
     }
 
     @Override

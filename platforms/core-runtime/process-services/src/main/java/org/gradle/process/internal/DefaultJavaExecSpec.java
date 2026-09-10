@@ -130,10 +130,7 @@ public abstract class DefaultJavaExecSpec extends DefaultJavaForkOptions impleme
 
     @Override
     public Provider<List<String>> getCommandLine() {
-        return getExecutable().zip(getAllJvmArgs(), (SerializableLambdas.SerializableBiFunction<String, List<String>, List<String>>) (executable, allJvmArgs) -> {
-            List<String> allArgs = ExecHandleCommandLineCombiner.getAllArgs(allJvmArgs, getArgs().get(), getArgumentProviders().get());
-            return ExecHandleCommandLineCombiner.getCommandLine(executable, allArgs);
-        });
+        return ExecHandleCommandLineCombiner.commandLineProvider(getExecutable(), getAllJvmArgs(), getArgs(), getArgumentProviders());
     }
 
     @Override

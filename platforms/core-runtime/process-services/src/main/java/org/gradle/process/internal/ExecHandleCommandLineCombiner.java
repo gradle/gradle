@@ -19,7 +19,9 @@ package org.gradle.process.internal;
 import com.google.common.base.Preconditions;
 import com.google.common.collect.Iterables;
 import org.gradle.api.file.FileCollection;
+import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.CollectionPropertyInternal;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.jvm.ModularitySpec;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Provider;
@@ -31,6 +33,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 @NullMarked
@@ -62,6 +65,42 @@ public class ExecHandleCommandLineCombiner {
             Iterables.addAll(allArgs, CollectionUtils.toStringList(argumentProvider.asArguments()));
         }
         return allArgs;
+    }
+
+    /**
+     * Builds the command line lazily from its parts.
+     *
+     * The combiners are static methods so that the provider captures no spec. {@code providers.exec} keeps
+     * this provider in its value source parameters, and the configuration cache would otherwise serialize
+     * the whole spec and fail on its stream properties.
+     */
+    public static Provider<List<String>> commandLineProvider(
+        Provider<String> executable,
+        Provider<List<String>> args,
+        Provider<List<CommandLineArgumentProvider>> argumentProviders
+    ) {
+        return commandLineProvider(executable, Providers.of(Collections.<String>emptyList()), args, argumentProviders);
+    }
+
+    public static Provider<List<String>> commandLineProvider(
+        Provider<String> executable,
+        Provider<List<String>> allJvmArgs,
+        Provider<List<String>> args,
+        Provider<List<CommandLineArgumentProvider>> argumentProviders
+    ) {
+        Provider<List<String>> programArgs = args.zip(argumentProviders, SerializableLambdas.bifunction(ExecHandleCommandLineCombiner::getProgramArgs));
+        Provider<List<String>> allArgs = allJvmArgs.zip(programArgs, SerializableLambdas.bifunction(ExecHandleCommandLineCombiner::concat));
+        return executable.zip(allArgs, SerializableLambdas.bifunction(ExecHandleCommandLineCombiner::getCommandLine));
+    }
+
+    private static List<String> getProgramArgs(List<String> args, List<CommandLineArgumentProvider> argumentProviders) {
+        return getAllArgs(Collections.emptyList(), args, argumentProviders);
+    }
+
+    private static List<String> concat(List<String> first, List<String> second) {
+        List<String> result = new ArrayList<>(first);
+        result.addAll(second);
+        return result;
     }
 
     public static List<String> getAllJvmArgs(
