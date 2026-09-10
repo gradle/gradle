@@ -22,11 +22,12 @@ import org.gradle.test.fixtures.plugin.PluginBuilder
 /**
  * The Maven repository EMBEDDED in the distribution image ({@code <gradleHome>/repo}): it serves
  * the published XDCL ecosystem libraries at the running distribution's exact (timestamped) version,
- * with real POM + Gradle Module Metadata, plus the {@code org.xdcl:xdcl-gradle-api} module their
- * published metadata STRICTLY requires — the complete closure, so a consumer build's settings
+ * with real POM + Gradle Module Metadata — the complete closure, so a consumer build's settings
  * classpath can resolve a built-in ecosystem library offline, with no external repository in play.
- * This is the packaging half of resolving built-in ecosystems through ordinary dependency
- * resolution; the provider-side injection is exercised separately.
+ * The org.xdcl API the libraries' facades extend is NOT part of that closure: it is a compileOnly
+ * dependency of theirs, named by no published metadata, and present in the distribution's
+ * {@code lib/}. This is the packaging half of resolving built-in ecosystems through ordinary
+ * dependency resolution; the provider-side injection is exercised separately.
  */
 class XdclDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec {
 
@@ -74,12 +75,42 @@ class XdclDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec 
         executer.withArgument("--offline")
         succeeds("resolveProbe")
 
-        then: 'the requested library, its ecosystem dependency, and the strictly-pinned org.xdcl API all resolve'
+        then: 'the requested library and its ecosystem dependency resolve — and nothing else: the API their facades extend is not a dependency'
         outputContains("xdcl-repo-resolved=gradle-xdcl-plugin-development-")
         outputContains("xdcl-repo-resolved=gradle-xdcl-common-ecosystem-")
-        // Version-agnostic on purpose: WHICH org.xdcl version the closure needs is the published
-        // metadata's strict constraint, served by the same repo — not this test's business.
-        outputContains("xdcl-repo-resolved=xdcl-gradle-api-")
+        outputDoesNotContain("xdcl-repo-resolved=xdcl-gradle-api-")
+    }
+
+    def "the published metadata of an ecosystem library carries no dependency on the org.xdcl API, at any scope"() {
+        given: 'the metadata the embedded repository serves for the common ecosystem library, whose facades extend the API'
+        def version = distribution.version.version
+        def libraryDir = new File(distribution.gradleHomeDir, "repo/org/gradle/gradle-xdcl-common-ecosystem/$version")
+        def moduleFile = new File(libraryDir, "gradle-xdcl-common-ecosystem-${version}.module")
+        def pomFile = new File(libraryDir, "gradle-xdcl-common-ecosystem-${version}.pom")
+
+        expect: 'the metadata files exist alongside the jar'
+        moduleFile.file
+        pomFile.file
+
+        when:
+        def module = new groovy.json.JsonSlurper().parse(moduleFile)
+        def moduleDependencies = module.variants.collectMany { variant ->
+            (variant.dependencies ?: []).collect { "${it.group}:${it.module}".toString() }
+        }
+        def pom = new groovy.xml.XmlSlurper().parse(pomFile)
+        def pomDependencies = pom.dependencies.dependency.collect { "${it.groupId.text()}:${it.artifactId.text()}".toString() }
+
+        then: 'no variant of the module metadata depends on anything under org.xdcl'
+        moduleDependencies.every { !it.startsWith("org.xdcl:") }
+
+        and: 'nor does the POM, at any scope'
+        pomDependencies.every { !it.startsWith("org.xdcl:") }
+
+        and: 'the embedded repository serves nothing under org.xdcl — there is no API module to resolve'
+        !new File(distribution.gradleHomeDir, "repo/org/xdcl").exists()
+
+        and: 'the API classes are in the distribution itself'
+        new File(distribution.gradleHomeDir, "lib").listFiles().any { it.name.startsWith("xdcl-gradle-api-") && it.name.endsWith(".jar") }
     }
 
     def "the embedded repository pins the running distribution's version against a stale published request"() {
