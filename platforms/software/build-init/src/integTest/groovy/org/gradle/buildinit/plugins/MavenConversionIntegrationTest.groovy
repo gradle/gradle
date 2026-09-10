@@ -985,6 +985,129 @@ Root project 'webinar-parent'
         succeeds 'clean', 'build'
     }
 
+    def "singleModule with custom maven repository"() {
+        def dsl = dslFixtureFor(scriptDsl)
+        def customRepoUrl = "https://my-corporate-repo.company.com/maven2"
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String, '--maven-repo', customRepoUrl
+
+        then:
+        gradlePropertiesGenerated {
+            assertConfigurationCacheEnabled()
+        }
+        dsl.assertGradleFilesGenerated()
+        dsl.getSettingsFile().text.contains("rootProject.name = 'util'") || dsl.getSettingsFile().text.contains('rootProject.name = "util"')
+
+        // Verify custom repository is added to the build file
+        def buildFileText = dsl.getBuildFile().text
+        buildFileText.contains(customRepoUrl)
+        buildFileText.contains("Custom Maven repository") || buildFileText.contains("custom-maven-repo")
+
+        // Verify mavenLocal is also present as fallback
+        buildFileText.contains("mavenLocal()")
+    }
+
+    def "multiModule with custom maven repository"() {
+        def dsl = dslFixtureFor(scriptDsl)
+        def customRepoUrl = "https://my-corporate-repo.company.com/maven2"
+        def conventionPluginScript = targetDir.file("buildSrc/src/main/${scriptDsl.name().toLowerCase()}/${scriptDsl.fileNameFor("buildlogic.java-conventions")}")
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String, '--maven-repo', customRepoUrl
+
+        then:
+        gradlePropertiesGenerated {
+            assertConfigurationCacheEnabled()
+        }
+        conventionPluginScript.exists()
+
+        // Verify custom repository is added to the convention plugin
+        def conventionPluginText = conventionPluginScript.text
+        conventionPluginText.contains(customRepoUrl)
+        conventionPluginText.contains("Custom Maven repository") || conventionPluginText.contains("custom-maven-repo")
+
+        // Verify mavenLocal is also present as fallback
+        conventionPluginText.contains("mavenLocal()")
+    }
+
+    def "singleModule with repository from Maven settings.xml mirror"() {
+        def dsl = dslFixtureFor(scriptDsl)
+        def mirrorUrl = "https://corporate-mirror.company.com/maven2"
+
+        given:
+        // Create Maven settings.xml with a mirror
+        def settingsXml = m2.userSettingsFile
+        settingsXml.text = """<settings>
+  <mirrors>
+    <mirror>
+      <id>corporate-mirror</id>
+      <url>${mirrorUrl}</url>
+      <mirrorOf>central</mirrorOf>
+    </mirror>
+  </mirrors>
+</settings>"""
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        gradlePropertiesGenerated {
+            assertConfigurationCacheEnabled()
+        }
+        dsl.assertGradleFilesGenerated()
+
+        // Verify mirror repository is added to the build file
+        def buildFileText = dsl.getBuildFile().text
+        buildFileText.contains(mirrorUrl)
+        buildFileText.contains("Repository from Maven settings.xml") || buildFileText.contains("settings.xml")
+
+        // Verify mavenLocal is also present
+        buildFileText.contains("mavenLocal()")
+    }
+
+    def "singleModule with repository from Maven settings.xml profile"() {
+        def dsl = dslFixtureFor(scriptDsl)
+        def profileRepoUrl = "https://corporate-profile-repo.company.com/maven2"
+
+        given:
+        // Create Maven settings.xml with an active profile containing a repository
+        def settingsXml = m2.userSettingsFile
+        settingsXml.text = """<settings>
+  <activeProfiles>
+    <activeProfile>corporate</activeProfile>
+  </activeProfiles>
+  <profiles>
+    <profile>
+      <id>corporate</id>
+      <repositories>
+        <repository>
+          <id>corporate-repo</id>
+          <url>${profileRepoUrl}</url>
+        </repository>
+      </repositories>
+    </profile>
+  </profiles>
+</settings>"""
+
+        when:
+        run 'init', '--dsl', scriptDsl.id as String
+
+        then:
+        gradlePropertiesGenerated {
+            assertConfigurationCacheEnabled()
+        }
+        dsl.assertGradleFilesGenerated()
+
+        // Verify profile repository is added to the build file
+        def buildFileText = dsl.getBuildFile().text
+        buildFileText.contains(profileRepoUrl)
+        buildFileText.contains("Repository from Maven settings.xml") || buildFileText.contains("settings.xml")
+
+        // Verify mavenLocal is also present
+        buildFileText.contains("mavenLocal()")
+    }
+
     static libRequest(MavenHttpRepository repo, String group, String name, Object version) {
         MavenHttpModule module = repo.module(group, name, version as String)
         module.allowAll()
