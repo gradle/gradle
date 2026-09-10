@@ -134,13 +134,13 @@ See <<toolchains.adoc#sec:custom_loc, Custom Toolchain Locations>> in the Gradle
 link:{javadocPath}/org/gradle/api/tasks/Copy.html[`Copy`] and link:{javadocPath}/org/gradle/api/tasks/Sync.html[`Sync`] now expose the destination as an incubating `DirectoryProperty destinationDirectory`, which is the registered output directory of the task.
 The existing `into(...)`, `setDestinationDir(File)` and `getDestinationDir()` methods keep working and read from and write to the same property.
 
-This may affect task types extending `Copy` or `Sync` that override `getDestinationDir()` or `setDestinationDir(File)`:
+For backwards compatibility during Gradle 9.x, the legacy `destinationDir` remains a registered output alongside the new property.
+This allows task types compiled against an earlier Gradle version that override `getDestinationDir()` to continue working when `destinationDirectory` has no value.
 
-* An overridden `getDestinationDir()` is no longer consulted for the task output.
-  If the override was the only way the destination was supplied, the property has no value and the task fails validation with `Type '...' property 'destinationDirectory' doesn't have a configured value`.
-* An overridden `setDestinationDir(File)` is not invoked when the destination is configured through `destinationDirectory`.
+An overridden `setDestinationDir(File)` is not invoked when the destination is configured through `destinationDirectory`.
+Also, an overridden `getDestinationDir()` takes precedence when the task executes, even if `destinationDirectory` is configured separately.
+To avoid the two destinations getting out of sync, task authors should migrate away from overriding either method.
 
-In general, avoid overriding these methods.
 Configure the destination through `into(...)` or `destinationDirectory` instead, and derive anything else you need from `destinationDirectory`.
 For a default that build scripts can still override, set a convention on the property, or call `into(...)` from the constructor if the task type also has to run on Gradle versions before 9.8:
 

@@ -23,7 +23,6 @@ import org.gradle.api.internal.file.copy.CopyAction;
 import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
 import org.gradle.api.internal.file.copy.FileCopyAction;
-import org.gradle.api.model.ReplacedBy;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.work.DisableCachingByDefault;
 
@@ -105,6 +104,7 @@ public abstract class Copy extends AbstractCopyTask {
      */
     @Incubating
     @OutputDirectory
+    @Optional
     public DirectoryProperty getDestinationDirectory() {
         return getRootSpec().getDestinationDirectory();
     }
@@ -115,7 +115,7 @@ public abstract class Copy extends AbstractCopyTask {
      * @return The destination dir.
      * @since 0.7
      */
-    @ReplacedBy("destinationDirectory")
+    @OutputDirectory
     @NotToBeReplacedByLazyProperty(because = "Superseded by the lazy getDestinationDirectory() property", willBeDeprecated = true)
     public File getDestinationDir() {
         return getRootSpec().getDestinationDir();

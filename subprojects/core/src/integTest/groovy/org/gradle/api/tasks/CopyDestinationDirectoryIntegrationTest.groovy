@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import spock.lang.Issue
@@ -121,6 +122,25 @@ class CopyDestinationDirectoryIntegrationTest extends AbstractIntegrationSpec {
                 from 'src'
             }
             copy.rootSpec.conventionMapping.map('destinationDir') { file("\$buildDir/mapped") }
+        """
+
+        when:
+        run 'copy'
+
+        then:
+        file('build/mapped/a.txt').text == 'a'
+
+        where:
+        task << ['Copy', 'Sync']
+    }
+
+    @UnsupportedWithConfigurationCache(because = "configuration cache only supports convention mapping for task fields with matching names")
+    def "#task legacy convention mapping on task destinationDir remains supported"() {
+        buildFile """
+            task copy(type: $task) {
+                from 'src'
+            }
+            copy.conventionMapping.map('destinationDir') { file("\$buildDir/mapped") }
         """
 
         when:
@@ -241,6 +261,38 @@ class CopyDestinationDirectoryIntegrationTest extends AbstractIntegrationSpec {
         file('build/sandbox/plugins/a.txt').text == 'a'
         outputContains("destinationDirectory: " + file('build/sandbox/plugins'))
         outputContains("destinationDir: " + file('build/sandbox/plugins'))
+
+        where:
+        task << ['Copy', 'Sync']
+    }
+
+    def "#task subclass can continue to provide its destination by overriding destinationDir"() {
+        buildFile """
+            abstract class CustomCopy extends $task {
+                @Internal abstract DirectoryProperty getDefaultDestinationDirectory()
+
+                @Override
+                File getDestinationDir() {
+                    return defaultDestinationDirectory.get().asFile
+                }
+            }
+            tasks.register("copy", CustomCopy) {
+                from 'src'
+                defaultDestinationDirectory = layout.buildDirectory.dir("sandbox")
+            }
+        """
+
+        when:
+        run 'copy'
+
+        then:
+        file('build/sandbox/a.txt').text == 'a'
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTaskSkipped(':copy')
 
         where:
         task << ['Copy', 'Sync']
