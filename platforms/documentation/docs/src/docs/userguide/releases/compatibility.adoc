@@ -120,6 +120,47 @@ Gradle is tested with Groovy 1.5.8 through 6.0.0-alpha-2.
 
 Gradle plugins written in Groovy must use Groovy 4.x for compatibility with Gradle and Groovy DSL build scripts.
 
+.Embedded Groovy version
+|===
+| Embedded Groovy version | Minimum Gradle version
+
+| 1.6.3  | 0.7
+| 1.6.4  | 0.8
+| 1.7.6  | 0.9
+| 1.8.6  | 1.0
+| 2.3.3  | 2.0
+| 2.3.6  | 2.1
+| 2.3.9  | 2.3
+| 2.3.10 | 2.4
+| 2.4.4  | 2.8
+| 2.4.7  | 3.0
+| 2.4.10 | 3.5
+| 2.4.11 | 4.0
+| 2.4.12 | 4.2.1
+| 2.4.15 | 4.10
+| 2.5.4  | 5.0
+| 2.5.8  | 6.0
+| 2.5.10 | 6.3
+| 2.5.11 | 6.5
+| 2.5.12 | 6.6
+| 3.0.7  | 7.0
+| 3.0.8  | 7.2
+| 3.0.9  | 7.3
+| 3.0.10 | 7.5
+| 3.0.13 | 7.6
+| 3.0.15 | 8.1
+| 3.0.17 | 8.2
+| 3.0.21 | 8.8
+| 3.0.22 | 8.10
+| 3.0.24 | 8.14
+| 3.0.25 | 8.14.4
+| 4.0.27 | 9.0.0
+| 4.0.28 | 9.1.0
+| 4.0.29 | 9.3.0
+| 4.0.32 | 9.6.0
+| 4.0.33 | 9.8.0
+|===
+
 [[android_compatibility]]
 == Android
 
