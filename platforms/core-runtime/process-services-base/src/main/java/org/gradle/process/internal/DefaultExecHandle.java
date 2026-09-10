@@ -17,6 +17,7 @@
 package org.gradle.process.internal;
 
 import com.google.common.base.Joiner;
+import com.google.common.collect.ImmutableList;
 import jnr.constants.platform.Signal;
 import net.rubygrapefruit.platform.ProcessLauncher;
 import org.gradle.api.logging.Logger;
@@ -87,7 +88,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     /**
      * Arguments to pass to the executable.
      */
-    private final List<String> arguments;
+    private final ImmutableList<String> arguments;
 
     /**
      * The variables to set in the environment the executable is run in.
@@ -130,10 +131,14 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
                       Map<String, String> environment, StreamsHandler outputHandler, StreamsHandler inputHandler,
                       List<ExecHandleListener> listeners, boolean redirectErrorStream, int timeoutMillis, boolean daemon,
                       Executor executor, BuildCancellationToken buildCancellationToken) {
+        if (command == null) {
+            throw new IllegalArgumentException("Cannot start a process with a null command.");
+        }
         this.displayName = displayName;
         this.directory = directory;
         this.command = command;
-        this.arguments = arguments;
+        // Defensive copy and null-check arguments.
+        this.arguments = ImmutableList.copyOf(arguments);
         this.environment = environment;
         this.outputHandler = outputHandler;
         this.inputHandler = inputHandler;
@@ -172,7 +177,7 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
 
     @Override
     public List<String> getArguments() {
-        return Collections.unmodifiableList(arguments);
+        return arguments;
     }
 
     @Override
@@ -211,31 +216,39 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     }
 
     private void setEndStateInfo(ExecHandleState newState, int exitValue, Throwable failureCause) {
-        ShutdownHooks.removeShutdownHook(shutdownHookAction);
-        buildCancellationToken.removeCallback(shutdownHookAction);
-        ExecHandleState currentState;
-        lock.lock();
+        ExecHandleState currentState = getState();
+        ExecResultImpl newResult = null;
         try {
-            currentState = this.state;
-        } finally {
-            lock.unlock();
-        }
+            newResult = new ExecResultImpl(exitValue, execExceptionFor(failureCause, currentState), displayName);
 
-        ExecResultImpl newResult = new ExecResultImpl(exitValue, execExceptionFor(failureCause, currentState), displayName);
-        if (!currentState.isTerminal() && newState != ExecHandleState.DETACHED) {
-            try {
-                broadcast.getSource().executionFinished(this, newResult);
-            } catch (Exception e) {
-                newResult = new ExecResultImpl(exitValue, execExceptionFor(e, currentState), displayName);
+            ShutdownHooks.removeShutdownHook(shutdownHookAction);
+            buildCancellationToken.removeCallback(shutdownHookAction);
+
+            if (!currentState.isTerminal() && newState != ExecHandleState.DETACHED) {
+                try {
+                    broadcast.getSource().executionFinished(this, newResult);
+                } catch (Exception e) {
+                    newResult = new ExecResultImpl(exitValue, execExceptionFor(e, currentState), displayName);
+                }
             }
-        }
-
-        lock.lock();
-        try {
-            setState(newState);
-            this.execResult = newResult;
+        } catch (Throwable t) {
+            LOGGER.debug("Failed to finalize state for process '{}'; recording terminal state anyway.", displayName, t);
+            if (newResult == null) {
+                if (failureCause != null) {
+                    failureCause.addSuppressed(t);
+                } else {
+                    failureCause = t;
+                }
+                newResult = new ExecResultImpl(exitValue, new ProcessExecutionException(basicFailureMessageFor(currentState), failureCause), displayName);
+            }
         } finally {
-            lock.unlock();
+            lock.lock();
+            try {
+                setState(newState);
+                this.execResult = newResult;
+            } finally {
+                lock.unlock();
+            }
         }
 
         LOGGER.debug("Process '{}' finished with exit value {} (state: {})", displayName, exitValue, newState);
@@ -249,10 +262,21 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
     }
 
     private String failureMessageFor(Throwable failureCause, ExecHandleState currentState) {
+        if (currentState == ExecHandleState.STARTING
+            && hasCommandLineExceedMaxLength(command, arguments)
+            && hasCommandLineExceedMaxLengthException(failureCause)) {
+            return format("Process '%s' could not be started because the command line exceed operating system limits.", displayName);
+        }
+        return basicFailureMessageFor(currentState);
+    }
+
+    /**
+     * Builds a failure message without inspecting the command line or the failure cause.
+     * <p>
+     * This is used as the last resort when {@link #failureMessageFor} itself throws, so it must stay simple and not throw.
+     */
+    private String basicFailureMessageFor(ExecHandleState currentState) {
         if (currentState == ExecHandleState.STARTING) {
-            if (hasCommandLineExceedMaxLength(command, arguments) && hasCommandLineExceedMaxLengthException(failureCause)) {
-                return format("Process '%s' could not be started because the command line exceed operating system limits.", displayName);
-            }
             return format("A problem occurred starting process '%s'", displayName);
         }
         return format("A problem occurred waiting for process '%s' to complete.", displayName);

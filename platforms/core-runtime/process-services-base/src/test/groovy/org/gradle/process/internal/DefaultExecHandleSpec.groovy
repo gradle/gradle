@@ -40,6 +40,7 @@ import spock.lang.Timeout
 import java.util.concurrent.Callable
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
+import java.util.concurrent.atomic.AtomicReference
 
 @UsesNativeServices
 @Timeout(60)
@@ -172,6 +173,60 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         then:
         def e = thrown(ProcessExecutionException)
         e.message == "A problem occurred starting process 'awesome'"
+    }
+
+    void "does not deadlock when end state bookkeeping throws while start is failing"() {
+        given:
+        def execHandle = handle().setDisplayName("awesome").setExecutable("no_such_command").build()
+        buildCancellationToken.removeCallback(_) >> { throw new RuntimeException("boom") }
+
+        when:
+        execHandle.start()
+
+        then:
+        def e = thrown(ProcessExecutionException)
+        e.message == "A problem occurred starting process 'awesome'"
+        execHandle.state == ExecHandleState.FAILED
+    }
+
+    void "does not lose the failure when the error message cannot be built"() {
+        given:
+        System.setProperty("org.gradle.internal.cmdline.max.length", "1")
+        def streamsHandler = Stub(FinishNotifyingStreamsHandler) {
+            connectStreams(_, _, _) >> { throw new RuntimeException() }
+        }
+        def execHandle = handle().setDisplayName("awesome").streamsHandler(streamsHandler).build()
+
+        when:
+        execHandle.start()
+
+        then:
+        def e = thrown(ProcessExecutionException)
+        e.message == "A problem occurred starting process 'awesome'"
+        execHandle.state == ExecHandleState.FAILED
+
+        cleanup:
+        System.clearProperty("org.gradle.internal.cmdline.max.length")
+    }
+
+    void "destroys started process when streams cannot be connected"() {
+        given:
+        def startedProcess = new AtomicReference<Process>()
+        def streamsHandler = Stub(FinishNotifyingStreamsHandler) {
+            connectStreams(_, _, _) >> { Process process, String displayName, Executor executor ->
+                startedProcess.set(process)
+                throw new RuntimeException()
+            }
+        }
+        def execHandle = handle().args(args(SlowApp.class)).streamsHandler(streamsHandler).build()
+
+        when:
+        execHandle.start()
+
+        then:
+        thrown(ProcessExecutionException)
+        startedProcess.get() != null
+        !startedProcess.get().isAlive()
     }
 
     void "aborts process"() {
