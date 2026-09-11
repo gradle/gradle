@@ -93,7 +93,20 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.5.6</version>
+                <version>3.6.0</version>
+                <configuration>
+                    <!--
+                        mockk attaches the byte-buddy agent dynamically. Without this flag the JVM
+                        prints the "agent has been loaded dynamically" warning from inside the
+                        InstrumentationImpl constructor; on some agents that print fails under the
+                        surefire fork, the constructor throws, and every mockk-based test errors.
+                        See https://github.com/gradle/gradle/pull/39126.
+
+                        -XX:+EnableDynamicAgentLoading only exists on JDK 21+ (all CI agents run 21),
+                        so it is guarded for anyone building this module with an older local JDK.
+                    -->
+                    <argLine>-XX:+IgnoreUnrecognizedVMOptions -XX:+EnableDynamicAgentLoading</argLine>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>com.github.gantsign.maven</groupId>
