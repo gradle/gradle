@@ -16,7 +16,6 @@
 
 package org.gradle.api.problems.internal;
 
-import com.google.common.base.Objects;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.util.internal.TextUtil;
@@ -24,13 +23,13 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
 
-import static com.google.common.base.Objects.equal;
 
 @Incubating
-public class DefaultProblemGroup extends ProblemGroup implements Serializable {
+public class DefaultProblemGroup extends ProblemGroup implements ProblemGroupInternal, Serializable {
 
     private final String name;
     private final String displayName;
+    @Nullable
     private final ProblemGroup parent;
 
     public DefaultProblemGroup(String groupId, String displayName) {
@@ -69,20 +68,19 @@ public class DefaultProblemGroup extends ProblemGroup implements Serializable {
         return parent;
     }
 
+    @Nullable
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || o.getClass().isAssignableFrom(ProblemGroup.class)) {
-            return false;
-        }
-        ProblemGroup that = (ProblemGroup) o;
-        return equal(parent, that.getParent()) && equal(name, that.getName());
+    public String getDescription() {
+        return null;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object o) {
+        return ProblemGroupSupport.equals(this, o);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name, parent);
+        return ProblemGroupSupport.hashCode(this);
     }
 }
