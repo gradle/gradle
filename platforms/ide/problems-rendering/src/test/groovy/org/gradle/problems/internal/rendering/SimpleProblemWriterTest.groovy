@@ -55,7 +55,48 @@ class SimpleProblemWriterTest extends Specification {
         problemWriter.write(problem, writer)
 
         then:
-        renderedProblem == 'Problem found: Project is a prototype (id: sample-problems:prototype-project)'
+        renderedProblem == 'Problem found: Project is a prototype (id: prototype-project, in sample-problems)'
+    }
+
+    def "render problem whose id name equals its display name"() {
+        given:
+        def problem = createProblem { ProblemBuilderInternal spec ->
+            spec.id(createId("Compilation", "Compilation", "Unused import", "Unused import"))
+        }
+
+        when:
+        problemWriter.write(problem, writer)
+
+        then:
+        renderedProblem == 'Problem found: Unused import (in Compilation)'
+    }
+
+    def "render problem whose group chain needs quoting"() {
+        given:
+        def root = ProblemGroup.create("Root", "Root")
+        def tricky = ProblemGroup.create("Java > Kotlin", "Java > Kotlin", root)
+        def problem = createProblem { ProblemBuilderInternal spec ->
+            spec.id(ProblemId.create('Class "Foo" is bad', 'Class "Foo" is bad', tricky))
+        }
+
+        when:
+        problemWriter.write(problem, writer)
+
+        then:
+        renderedProblem == 'Problem found: Class "Foo" is bad (in Root > "Java > Kotlin")'
+    }
+
+    def "render problem whose id name contains the separator"() {
+        given:
+        def problem = createProblem { ProblemBuilderInternal spec ->
+            spec.id(createId("Compilation", "Compilation", "a > b", "A greater than B"))
+        }
+
+        when:
+        problemWriter.write(problem, writer)
+
+        then:
+        renderedProblem == 'Problem found: A greater than B (id: "a > b", in Compilation)'
     }
 
     def "render problem with multiline id displayNames"() {
@@ -75,7 +116,7 @@ class SimpleProblemWriterTest extends Specification {
         problemWriter.write(problem, writer)
 
         then:
-        renderedProblem == 'Problem found: Project is a prototype (id: sample-problems:prototype-project)'
+        renderedProblem == 'Problem found: Project is a prototype (id: prototype-project, in sample-problems)'
     }
 
     def "render problem with contextual message"() {
@@ -90,7 +131,7 @@ class SimpleProblemWriterTest extends Specification {
 
         then:
         renderedProblem == denormalizeAndStrip('''
-Problem found: Project is a prototype (id: sample-problems:prototype-project)
+Problem found: Project is a prototype (id: prototype-project, in sample-problems)
   This is a prototype and not a guideline for modeling real-life projects
         ''')
     }
@@ -107,7 +148,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 
         then:
         renderedProblem == denormalizeAndStrip('''
-Problem found: Project is a prototype (id: sample-problems:prototype-project)
+Problem found: Project is a prototype (id: prototype-project, in sample-problems)
   This is a prototype and not a guideline for modeling real-life projects
         ''')
     }
@@ -125,7 +166,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 
         then:
         renderedProblem == denormalizeAndStrip('''
-Problem found: Project is a prototype (id: sample-problems:prototype-project)
+Problem found: Project is a prototype (id: prototype-project, in sample-problems)
   This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API usage should integrated into plugins
         ''')
@@ -144,7 +185,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 
         then:
         renderedProblem == denormalizeAndStrip('''
-Problem found: Project is a prototype (id: sample-problems:prototype-project)
+Problem found: Project is a prototype (id: prototype-project, in sample-problems)
   Complex build logic like the Problems API usage should integrated into plugins
         ''')
     }
@@ -165,7 +206,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 
         then:
         renderedProblem == denormalizeAndStrip('''
-Problem found: Project is a prototype (id: sample-problems:prototype-project)
+Problem found: Project is a prototype (id: prototype-project, in sample-problems)
   This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API usage should integrated into plugins
     Location: /path/to/script:20
@@ -191,7 +232,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 
         then:
         renderedProblem == denormalizeAndStrip('''
-Problem found: Project is a prototype (id: sample-problems:prototype-project)
+Problem found: Project is a prototype (id: prototype-project, in sample-problems)
     Location: /path/to/script:20
         ''')
     }
@@ -214,7 +255,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 
         then:
         renderedProblem == denormalizeAndStrip('''
-Problem found: Project is a prototype (id: sample-problems:prototype-project)
+Problem found: Project is a prototype (id: prototype-project, in sample-problems)
   This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API usage should integrated into plugins
     Location: /path/to/script:20
@@ -238,7 +279,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 
         then:
         renderedProblem == denormalizeAndStrip('''
-Problem found: Project is a prototype (id: sample-problems:prototype-project)
+Problem found: Project is a prototype (id: prototype-project, in sample-problems)
   This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API
     usage should integrated into plugins
@@ -269,7 +310,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 
         then:
         renderedProblem == denormalizeAndStrip('''
-Problem found: Project is a prototype (id: sample-problems:prototype-project)
+Problem found: Project is a prototype (id: prototype-project, in sample-problems)
   This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API
     usage should integrated into plugins

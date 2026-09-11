@@ -204,6 +204,7 @@ class PredefinedProblemGroupsTest extends Specification {
         lombok.parent.is(groups.compilation.java)
         lombok == groups.compilation.java.group("Lombok")
         id.group.is(lombok)
+        id.toString() == "Annotation processing failed (in Compilation > Java > Lombok)"
         roundTrip(lombok) == lombok
         roundTrip(lombok).parent.is(groups.compilation.java)
     }
@@ -235,6 +236,9 @@ class PredefinedProblemGroupsTest extends Specification {
         id.name == "Unused import"
         id.displayName == "Unused import"
         id.group.is(groups.compilation.java)
+        id.toString() == "Unused import (in Compilation > Java)"
+        leafId.toString() == "Something failed (in Transformation > KMP > JavaScript)"
+        undefinedId.toString() == "Whatever (in Others > Undefined)"
         gradleId.group.is(groups.gradle.deprecation)
         leafId.group == groups.transformation.group("KMP").group("JavaScript")
         undefinedId.group.is(groups.others.undefined)

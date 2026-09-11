@@ -497,7 +497,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains """
-Problem found: Project is a prototype (id: sample-problems:prototype-project)
+Problem found: Project is a prototype (id: prototype-project, in sample-problems)
   This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API usage should be integrated into plugins
     For more information, please refer to https://example.com/some-problem.
