@@ -341,6 +341,8 @@ abstract class PerformanceTest extends DistributionTest {
 
             if (profiler.isPresent() && profiler.get() != "none") {
                 addSystemPropertyIfExist(result, "org.gradle.performance.profiler", profiler.get())
+                // TODO(humanize) PROBE SUPPORT, NOT FOR MERGE. See AbstractBuildExperimentRunner.profilerOptions.
+                addSystemPropertyIfExist(result, "org.gradle.performance.profiler.options", System.getProperty("org.gradle.performance.profiler.options"))
             }
         }
 

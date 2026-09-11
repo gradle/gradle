@@ -54,6 +54,8 @@ import static java.util.Collections.emptyMap;
 @CompileStatic
 public abstract class AbstractBuildExperimentRunner implements BuildExperimentRunner {
     private static final String PROFILER_KEY = "org.gradle.performance.profiler";
+    private static final String PROFILER_OPTIONS_KEY = "org.gradle.performance.profiler.options";
+    private static final String DEFAULT_ASYNC_PROFILER_INTERVAL_NANOS = "1000000";
 
     private final GradleProfilerReporter gradleProfilerReporter;
     private final Profiler profiler;
@@ -76,10 +78,42 @@ public abstract class AbstractBuildExperimentRunner implements BuildExperimentRu
         optionParser.accepts("profiler");
         ProfilerFactory.configureParser(optionParser);
         ProfilerFactory profilerFactory = ProfilerFactory.of(Collections.singletonList(profilerName));
-        String[] options = profilerName.equals("jprofiler")
-            ? new String[] {"--profile", "jprofiler", "--jprofiler-home", System.getenv("JPROFILER_HOME")}
-            : new String[] {};
-        return profilerFactory.createFromOptions(optionParser.parse(options));
+        return profilerFactory.createFromOptions(optionParser.parse(profilerOptions(profilerName)));
+    }
+
+    /* TODO(humanize) PROBE SUPPORT, NOT FOR MERGE. This method used to hand gradle-profiler an empty
+       option array for everything except jprofiler, so async-profiler always ran at its defaults and
+       the TeamCity profiler parameter could select a profiler but never tune one. The wall-clock
+       default is a 10ms sampling interval, which gave ~29k samples over a bigCppMulti run — too
+       coarse to resolve which threads are concurrently inside the compiler, which is the question
+       the DefaultBuildOperationQueue worker-lease investigation actually needs answered.
+
+       Options can now be set with -Dorg.gradle.performance.profiler.options, whitespace separated,
+       forwarded to the test JVM by PerformanceTest.addExecutionParameters. async-profiler defaults to
+       1ms here rather than to gradle-profiler's 10ms, so that forgetting the property costs a coarse
+       profile rather than a wasted CI run. Note the finer interval is itself overhead, and overhead
+       on a concurrency measurement can move the thing being measured. */
+    static String[] profilerOptions(String profilerName) {
+        if (profilerName.equals("jprofiler")) {
+            return new String[] {"--profile", "jprofiler", "--jprofiler-home", System.getenv("JPROFILER_HOME")};
+        }
+        String configured = System.getProperty(PROFILER_OPTIONS_KEY);
+        if (configured != null && !configured.trim().isEmpty()) {
+            return configured.trim().split("\\s+");
+        }
+        if (profilerName.startsWith("async-profiler")) {
+            // Every async-profiler option is registered availableIf("profile"), so --profile has to be
+            // passed alongside them or joptsimple rejects the whole command line.
+            return new String[] {
+                "--profile",
+                profilerName,
+                "--async-profiler-interval",
+                DEFAULT_ASYNC_PROFILER_INTERVAL_NANOS,
+                "--async-profiler-wall-interval",
+                DEFAULT_ASYNC_PROFILER_INTERVAL_NANOS
+            };
+        }
+        return new String[] {};
     }
 
     protected BenchmarkResultCollector getResultCollector() {
