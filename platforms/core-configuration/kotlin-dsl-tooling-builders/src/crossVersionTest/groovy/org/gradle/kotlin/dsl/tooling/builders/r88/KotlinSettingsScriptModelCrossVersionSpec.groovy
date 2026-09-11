@@ -18,8 +18,10 @@ package org.gradle.kotlin.dsl.tooling.builders.r88
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
+import org.gradle.test.fixtures.Flaky
 
 @TargetGradleVersion(">=8.8")
+@Flaky(because = "https://github.com/gradle/gradle-private/issues/3714")
 class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "settings script has type-safe accessors on the classpath"() {
