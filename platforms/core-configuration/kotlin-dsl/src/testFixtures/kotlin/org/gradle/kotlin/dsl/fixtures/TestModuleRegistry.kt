@@ -23,7 +23,7 @@ import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
 import java.io.File
 
-class TestModuleRegistry : ModuleRegistry {
+object TestModuleRegistry : ModuleRegistry {
     override fun findModule(name: String): Module? {
         return findPathToJar(name)?.let { TestModule(it) }
     }

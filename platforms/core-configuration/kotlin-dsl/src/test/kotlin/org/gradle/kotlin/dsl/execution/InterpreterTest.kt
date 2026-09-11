@@ -129,7 +129,7 @@ class InterpreterTest : TestWithTempFiles() {
         }
 
         val buildOperationRunner = TestBuildOperationRunner()
-        val testModuleRegistry = TestModuleRegistry()
+        val testModuleRegistry = TestModuleRegistry
         val testFileSystemAccess = TestFiles.fileSystemAccess()
         val testClasspathSnapshotCache = sharedTestClasspathSnapshotCache
         val testIncrementalCompilationCache = sharedTestIncrementalCompilationCache
@@ -431,7 +431,7 @@ class InterpreterTest : TestWithTempFiles() {
             }
         }
 
-        val testModuleRegistry = TestModuleRegistry()
+        val testModuleRegistry = TestModuleRegistry
         val testFileSystemAccess = TestFiles.fileSystemAccess()
         val testClasspathSnapshotCache = sharedTestClasspathSnapshotCache
         val testIncrementalCompilationCache = sharedTestIncrementalCompilationCache

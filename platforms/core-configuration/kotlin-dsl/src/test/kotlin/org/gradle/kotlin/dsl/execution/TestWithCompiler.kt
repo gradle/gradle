@@ -87,7 +87,7 @@ abstract class TestWithCompiler : TestWithTempFiles() {
             programTarget = programTarget,
             implicitImports = emptyList(),
             logger = loggerFor<TestWithCompiler>(),
-            moduleRegistry = TestModuleRegistry(),
+            moduleRegistry = TestModuleRegistry,
             metadataCompatibilityChecker = object : KotlinMetadataCompatibilityChecker {
                 override fun incompatibleClasspathElements(classPath: ClassPath): List<File> = listOf()
             },

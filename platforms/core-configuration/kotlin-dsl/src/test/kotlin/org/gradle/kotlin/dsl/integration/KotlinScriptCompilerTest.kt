@@ -55,7 +55,7 @@ open class TheKotlinScriptTemplate(
 
 class KotlinScriptCompilerTest : TestWithTempFiles() {
 
-    private val moduleRegistry = TestModuleRegistry()
+    private val moduleRegistry = TestModuleRegistry
 
     @Test
     fun canInjectImplicitReceiver() {

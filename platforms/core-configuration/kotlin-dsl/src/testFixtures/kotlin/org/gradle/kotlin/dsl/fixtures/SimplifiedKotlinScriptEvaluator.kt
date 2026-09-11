@@ -187,7 +187,7 @@ class SimplifiedKotlinScriptEvaluator(
         override val buildTreeRootDir: Path
             get() = buildTreeRootDirFile.toPath()
 
-        override val moduleRegistry = TestModuleRegistry()
+        override val moduleRegistry = TestModuleRegistry
 
         override val fileSystemAccess = TestFiles.fileSystemAccess()
 

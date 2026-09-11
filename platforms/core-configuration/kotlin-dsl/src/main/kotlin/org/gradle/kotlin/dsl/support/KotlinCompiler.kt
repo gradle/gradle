@@ -95,7 +95,9 @@ import kotlin.script.experimental.util.PropertiesCollection
 private val compilerInstances: MutableMap<ModuleRegistry, KotlinCompilerImpl> = ConcurrentHashMap()
 
 internal fun kotlinCompiler(moduleRegistry: ModuleRegistry): KotlinCompiler {
-    return compilerInstances.computeIfAbsent(moduleRegistry, { KotlinCompilerImpl(moduleRegistry) })
+    val compiler = compilerInstances.computeIfAbsent(moduleRegistry, { KotlinCompilerImpl(moduleRegistry) })
+    if (compilerInstances.size > 1) throw RuntimeException("Boooooom!")
+    return compiler
 }
 
 internal fun cleanupKotlinCompilers() {
