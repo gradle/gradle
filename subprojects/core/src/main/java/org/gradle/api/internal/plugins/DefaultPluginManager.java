@@ -246,6 +246,12 @@ public class DefaultPluginManager implements PluginManagerInternal {
         if (!pluginWithIds.isEmpty()) {
             return pluginWithIds.iterator().next().asAppliedPlugin();
         }
+        PluginId pluginId = DefaultPluginId.unvalidated(id);
+        for (PluginImplementation<?> plugin : plugins.values()) {
+            if (plugin.isAlsoKnownAs(pluginId)) {
+                return new PluginWithId(pluginId, plugin.asClass()).asAppliedPlugin();
+            }
+        }
         return null;
     }
 
