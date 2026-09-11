@@ -103,8 +103,17 @@ abstract class AbstractHttpsRepoResolveIntegrationTest extends AbstractHttpDepen
 
         then:
         failure.assertHasCause("Could not GET '${server.uri}/repo1/my-group/my-module/1.0/")
-        // exact error might vary depending on JVM version and OS
-        failure.assertThatCause(matchesRegexp("Got (socket|SSL handshake) exception during request. It might be caused by SSL misconfiguration"))
+        // The server rejects the client certificate by hanging up. How far the TLS 1.3 handshake
+        // got before that decides which exception the JDK raises - a SocketException, an
+        // SSLException mentioning readHandshakeRecord, or an SSLHandshakeException reading
+        // "Remote host terminated the handshake" - and those map onto three different
+        // explanations. The last one is indistinguishable from a server that only speaks
+        // deprecated TLS versions (see DeprecatedTLSVersionTest), so it cannot be narrowed down
+        // here. Assert that the failure surfaces as an SSL/TLS problem, not which explanation won.
+        failure.assertThatCause(matchesRegexp(
+            /Got (socket|SSL handshake) exception during request\. It might be caused by SSL misconfiguration/ +
+                /|The server (may|does) not support the client's requested TLS protocol versions.*/
+        ))
     }
 
     def "build fails when client has invalid ssl configuration and has underlying cause in output"() {
