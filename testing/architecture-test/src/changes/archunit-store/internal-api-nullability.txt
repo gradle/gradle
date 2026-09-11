@@ -586,7 +586,6 @@ Class <org.gradle.api.internal.tasks.testing.FailFastTestListenerInternal> is no
 Class <org.gradle.api.internal.tasks.testing.GroupTestEventReporterInternal> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (GroupTestEventReporterInternal.java:0)
 Class <org.gradle.api.internal.tasks.testing.JvmTestExecutionSpec> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (JvmTestExecutionSpec.java:0)
 Class <org.gradle.api.internal.tasks.testing.SuiteTestDefinitionProcessor> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (SuiteTestDefinitionProcessor.java:0)
-Class <org.gradle.api.internal.tasks.testing.TestClassLoaderFactory> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (TestClassLoaderFactory.java:0)
 Class <org.gradle.api.internal.tasks.testing.TestCompleteEvent> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (TestCompleteEvent.java:0)
 Class <org.gradle.api.internal.tasks.testing.TestDefinition> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (TestDefinition.java:0)
 Class <org.gradle.api.internal.tasks.testing.TestDefinitionProcessor> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (TestDefinitionProcessor.java:0)
