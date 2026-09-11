@@ -18,8 +18,6 @@ package org.gradle.api.publish.maven.internal.publisher;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.api.publish.internal.PublicationArtifactInternal;
-import org.gradle.api.publish.maven.MavenArtifact;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 
 import java.util.Set;
@@ -30,17 +28,17 @@ public class MavenNormalizedPublication {
     private final String name;
     private final ModuleComponentIdentifier coordinates;
     private final String packaging;
-    private final MavenArtifact pomArtifact;
-    private final MavenArtifact mainArtifact;
-    private final Set<MavenArtifact> allArtifacts;
+    private final NormalizedMavenArtifact pomArtifact;
+    private final NormalizedMavenArtifact mainArtifact;
+    private final Set<NormalizedMavenArtifact> allArtifacts;
 
     public MavenNormalizedPublication(
         String name,
         MavenPublicationCoordinates projectIdentity,
         String packaging,
-        MavenArtifact pomArtifact,
-        MavenArtifact mainArtifact,
-        Set<MavenArtifact> allArtifacts
+        NormalizedMavenArtifact pomArtifact,
+        NormalizedMavenArtifact mainArtifact,
+        Set<NormalizedMavenArtifact> allArtifacts
     ) {
         this.name = name;
         this.coordinates = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(projectIdentity.getGroupId().get(), projectIdentity.getArtifactId().get()), projectIdentity.getVersion().get());
@@ -74,24 +72,24 @@ public class MavenNormalizedPublication {
         return packaging;
     }
 
-    public MavenArtifact getPomArtifact() {
+    public NormalizedMavenArtifact getPomArtifact() {
         return pomArtifact;
     }
 
-    public MavenArtifact getMainArtifact() {
-        if (mainArtifact != null && !((PublicationArtifactInternal) mainArtifact).shouldBePublished()) {
+    public NormalizedMavenArtifact getMainArtifact() {
+        if (mainArtifact != null && !mainArtifact.shouldBePublished()) {
             throw new IllegalStateException("Artifact " + mainArtifact.getFile().getName() + " wasn't produced by this build.");
         }
         return mainArtifact;
     }
 
-    public Set<MavenArtifact> getAdditionalArtifacts() {
+    public Set<NormalizedMavenArtifact> getAdditionalArtifacts() {
         return allArtifacts.stream()
                 .filter(artifact -> artifact != pomArtifact && artifact != mainArtifact)
                 .collect(Collectors.toSet());
     }
 
-    public Set<MavenArtifact> getAllArtifacts() {
+    public Set<NormalizedMavenArtifact> getAllArtifacts() {
         return allArtifacts;
     }
 }

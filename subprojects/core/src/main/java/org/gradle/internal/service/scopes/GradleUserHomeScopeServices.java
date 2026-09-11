@@ -25,7 +25,6 @@ import org.gradle.api.internal.changedetection.state.DefaultFileAccessTimeJourna
 import org.gradle.api.internal.changedetection.state.GradleUserHomeScopeFileTimeStampInspector;
 import org.gradle.api.internal.classpath.ModuleRegistry;
 import org.gradle.api.internal.file.FileCollectionFactory;
-
 import org.gradle.api.internal.file.temp.GradleUserHomeTemporaryFileProvider;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderCache;
@@ -58,6 +57,7 @@ import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.ClassLoaderScopeRegistry;
 import org.gradle.initialization.ClassLoaderScopeRegistryListenerManager;
 import org.gradle.initialization.DefaultClassLoaderScopeRegistry;
+import org.gradle.internal.Factory;
 import org.gradle.internal.classloader.ClasspathHasher;
 import org.gradle.internal.classloader.DefaultHashingClassLoaderFactory;
 import org.gradle.internal.classloader.HashingClassLoaderFactory;
@@ -87,7 +87,6 @@ import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JvmVersionDetector;
 import org.gradle.internal.jvm.inspection.ReportingJvmMetadataDetector;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
-
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -216,6 +215,11 @@ public class GradleUserHomeScopeServices extends WorkerSharedUserHomeScopeServic
     @Provides
     JavaModuleDetector createJavaModuleDetector(FileContentCacheFactory cacheFactory, FileCollectionFactory fileCollectionFactory) {
         return new DefaultJavaModuleDetector(cacheFactory, fileCollectionFactory);
+    }
+
+    @Provides
+    Factory<JavaModuleDetector> createJavaModuleDetectorFactory(JavaModuleDetector javaModuleDetector) {
+        return () -> javaModuleDetector;
     }
 
     @Provides({GeneratedGradleJarCache.class, GlobalCache.class})

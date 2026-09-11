@@ -56,6 +56,7 @@ import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.credentials.HttpHeaderCredentials;
 import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.Cast;
@@ -118,6 +119,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     private final ObjectFactory objectFactory;
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultMavenArtifactRepository(Transformer<String, MavenArtifactRepository> describer,
                                           FileResolver fileResolver,
                                           RepositoryTransportFactory transportFactory,
@@ -164,7 +166,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     }
 
     @Override
-    public URI getUrl() {
+    public Property<URI> getUrl() {
         return urlArtifactRepository.getUrl();
     }
 
@@ -181,14 +183,14 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     }
 
     @Override
-    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
-        invalidateDescriptor();
-        urlArtifactRepository.setAllowInsecureProtocol(allowInsecureProtocol);
+    public Property<Boolean> getAllowInsecureProtocol() {
+        return urlArtifactRepository.getAllowInsecureProtocol();
     }
 
     @Override
-    public boolean isAllowInsecureProtocol() {
-        return urlArtifactRepository.isAllowInsecureProtocol();
+    public void setAllowInsecureProtocol(boolean allowInsecureProtocol) {
+        invalidateDescriptor();
+        urlArtifactRepository.getAllowInsecureProtocol().set(allowInsecureProtocol);
     }
 
     @Override
@@ -256,7 +258,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     protected Collection<URI> getRepositoryUrls() {
         // In a similar way to Ivy, Maven may use other hosts for additional artifacts, but not POMs
         ImmutableList.Builder<URI> builder = ImmutableList.builder();
-        URI root = getUrl();
+        URI root = getUrl().getOrNull();
         if (root != null) {
             builder.add(root);
         }
@@ -290,7 +292,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
         RepositoryTransport transport = getTransportForResolution(rootUri.getScheme());
         MavenMetadataLoader mavenMetadataLoader = new MavenMetadataLoader(transport.getResourceAccessor(), resourcesFileStore);
         ImmutableMetadataSources metadataSources = createMetadataSources(mavenMetadataLoader);
-        Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl(), resourcesFileStore);
+        Instantiator injector = createInjectorForMetadataSuppliers(transport, instantiatorFactory, getUrl().get(), resourcesFileStore);
         InstantiatingAction<ComponentMetadataSupplierDetails> supplier = createComponentMetadataSupplierFactory(injector, isolatableFactory);
         InstantiatingAction<ComponentMetadataListerDetails> lister = createComponentMetadataVersionLister(injector, isolatableFactory);
         return new MavenResolver(getDescriptor(), rootUri, transport, locallyAvailableResourceFinder, artifactFileStore, metadataSources, MavenMetadataArtifactProvider.INSTANCE, mavenMetadataLoader, supplier, lister, injector, checksumService, getAllowInsecureContinueWhenDisabled().get());
@@ -298,7 +300,6 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
 
     @Override
     public void metadataSources(Action<? super MetadataSources> configureAction) {
-        invalidateDescriptor();
         metadataSources.reset();
         configureAction.execute(metadataSources);
     }
@@ -383,7 +384,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
      * {@code http} mirror of an {@code https} repository through with no opt-in.
      */
     private HttpRedirectVerifier createRedirectVerifierForUrlInUse() {
-        URI originalUrl = urlArtifactRepository.getUrl();
+        URI originalUrl = urlArtifactRepository.getUrl().getOrNull();
         if (originalUrl == null) {
             return urlArtifactRepository.createRedirectVerifier();
         }
@@ -402,7 +403,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
      * settings.xml {@code <server>} entry matching the mirror id.
      */
     private Collection<Authentication> getAuthenticationsForUrlInUse() {
-        URI originalUrl = urlArtifactRepository.getUrl();
+        URI originalUrl = urlArtifactRepository.getUrl().getOrNull();
         if (originalUrl == null) {
             return getConfiguredAuthentication();
         }
@@ -468,7 +469,7 @@ public abstract class DefaultMavenArtifactRepository extends AbstractAuthenticat
     static class DefaultDescriber implements Transformer<String, MavenArtifactRepository> {
         @Override
         public String transform(MavenArtifactRepository repository) {
-            URI url = repository.getUrl();
+            URI url = repository.getUrl().getOrNull();
             if (url == null) {
                 return repository.getName();
             }

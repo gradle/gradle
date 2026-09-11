@@ -47,7 +47,7 @@ public abstract class AbstractLocator {
                 if (developerDir != null) {
                     execAction.environment("DEVELOPER_DIR", developerDir);
                 }
-                execAction.setStandardOutput(outputStream);
+                execAction.getStandardOutput().set(outputStream);
                 execAction.execute().assertNormalExitValue();
 
                 cachedLocation = new File(outputStream.toString().replace("\n", ""));

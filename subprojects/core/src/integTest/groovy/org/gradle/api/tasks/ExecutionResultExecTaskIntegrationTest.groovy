@@ -29,7 +29,7 @@ class ExecutionResultExecTaskIntegrationTest extends AbstractExecutionResultExec
 
             def run = tasks.register("run", Exec) {
                 dependsOn(compileJava)
-                executable = ${Jvm.canonicalName}.current().javaExecutable
+                executable = ${Jvm.canonicalName}.current().javaExecutable.absolutePath
                 args '-cp', project.layout.files(compileJava).asPath, 'driver.Driver', "1"
             }
         """

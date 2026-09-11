@@ -27,6 +27,7 @@ import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.api.plugins.JavaLibraryPlugin
 import org.gradle.api.plugins.JavaPlugin
 import org.gradle.api.plugins.JavaPluginExtension
+import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.logging.events.LogEvent
@@ -148,7 +149,9 @@ class JavaGradlePluginPluginTest extends AbstractProjectBuilderSpec {
         if (id) {
             declarations << Stub(PluginDeclaration) {
                 getName() >> id
-                getId() >> id
+                getId() >> Stub(Property) {
+                    get() >> id
+                }
             }
         }
         Provider<Collection<PluginDeclaration>> declarationsProvider = Mock(Provider) {

@@ -29,6 +29,7 @@ import org.gradle.api.internal.tasks.userinput.UserInputHandler;
 import org.gradle.api.internal.tasks.userinput.UserQuestions;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Internal;
@@ -58,7 +59,7 @@ import org.gradle.buildinit.specs.BuildInitParameter;
 import org.gradle.buildinit.specs.BuildInitSpec;
 import org.gradle.buildinit.specs.internal.BuildInitSpecRegistry;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.util.GradleVersion;
@@ -90,11 +91,12 @@ public abstract class InitBuild extends DefaultTask {
     private static final int MINIMUM_VERSION_SUPPORTED_BY_FOOJAY_API = 7;
     private static final int DEFAULT_JAVA_VERSION = 21;
 
-    private String type;
-    private String dsl;
-    private String testFramework;
-    private String projectName;
-    private String packageName;
+    @SuppressWarnings("this-escape")
+    private final Provider<List<String>> availableBuildTypes = getProviderFactory().provider(getProjectLayoutRegistry()::getAllTypes);
+    @SuppressWarnings("this-escape")
+    private final Provider<List<String>> availableDSLs = getProviderFactory().provider(BuildInitDsl::listSupported);
+    @SuppressWarnings("this-escape")
+    private final Provider<List<String>> availableTestFrameworks = getProviderFactory().provider(BuildInitTestFramework::listSupported);
 
     @Internal
     private ProjectLayoutSetupRegistry projectLayoutRegistry;
@@ -130,8 +132,6 @@ public abstract class InitBuild extends DefaultTask {
     /**
      * The desired type of project to generate, such as 'java-application' or 'kotlin-library'.
      * <p>
-     * This property can be set via command-line option '--type'.
-     * <p>
      * Defaults to 'basic' - a minimal scaffolding, following Gradle best practices.
      * If a `pom.xml` is found in the project root directory, the type defaults to 'pom'
      * and the existing project is converted to Gradle.
@@ -140,9 +140,17 @@ public abstract class InitBuild extends DefaultTask {
      * @since 1.9
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getType() {
-        return isNullOrEmpty(type) ? detectType() : type;
+    @Optional
+    @ReplacesEagerProperty
+    @Option(option = "type", description = "Set the type of project to generate.")
+    public abstract Property<String> getType();
+
+    /**
+     * Set the type of project to generate.
+     * @since 1.9
+     */
+    public void setType(String type) {
+        getType().set(type);
     }
 
     /**
@@ -161,15 +169,21 @@ public abstract class InitBuild extends DefaultTask {
     /**
      * The desired DSL of build scripts to create, defaults to 'kotlin'.
      *
-     * This property can be set via command-line option '--dsl'.
-     *
      * @since 4.5
      */
     @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getDsl() {
-        return isNullOrEmpty(dsl) ? BuildInitDsl.KOTLIN.getId() : dsl;
+    @ReplacesEagerProperty
+    @Option(option = "dsl", description = "Set the build script DSL to be used in generated scripts.")
+    public abstract Property<String> getDsl();
+
+    /**
+     * Set the build script DSL to be used.
+     *
+     * @since 4.5
+     */
+    public void setDsl(String dsl) {
+        getDsl().set(dsl);
     }
 
     /**
@@ -217,41 +231,59 @@ public abstract class InitBuild extends DefaultTask {
     /**
      * The name of the generated project, defaults to the name of the directory the project is generated in.
      *
-     * This property can be set via command-line option '--project-name'.
-     *
      * @since 5.0
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getProjectName() {
-        return projectName == null ? getProjectDirectory().get().getAsFile().getName() : projectName;
+    @Optional
+    @Option(option = "project-name", description = "Set the project name.")
+    @ReplacesEagerProperty
+    public abstract Property<String> getProjectName();
+
+    /**
+     * Set the project name.
+     *
+     * @since 5.0
+     */
+    public void setProjectName(String projectName) {
+        getProjectName().set(projectName);
     }
 
     /**
      * The name of the package to use for generated source.
      *
-     * This property can be set via command-line option '--package'.
-     *
      * @since 5.0
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getPackageName() {
-        return packageName == null ? "" : packageName;
+    @Optional
+    @ReplacesEagerProperty
+    @Option(option = "package", description = "Set the package for source files.")
+    public abstract Property<String> getPackageName();
+
+    /**
+     * Set the package name.
+     *
+     * @since 5.0
+     */
+    public void setPackageName(String packageName) {
+        getPackageName().set(packageName);
     }
 
     /**
      * The test framework to be used in the generated project.
-     *
-     * This property can be set via command-line option '--test-framework'
      * @since 2.11
      */
-    @Nullable
-    @Optional
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getTestFramework() {
-        return testFramework;
+    @Optional
+    @ReplacesEagerProperty
+    @Option(option = "test-framework", description = "Set the test framework to be used.")
+    public abstract Property<String> getTestFramework();
+
+    /**
+     * Set the test framework to be used.
+     * @since 2.11
+     */
+    public void setTestFramework(@Nullable String testFramework) {
+        getTestFramework().set(testFramework);
     }
 
     /**
@@ -329,12 +361,12 @@ public abstract class InitBuild extends DefaultTask {
         BuildInitSpecRegistry registry = getBuildInitSpecRegistry();
 
         BuildInitSpec spec;
-        if (type == null) {
+        if (!getType().isPresent()) {
             spec = userQuestions.choice("Select project type", registry.getAllSpecs())
                 .renderUsing(BuildInitSpec::getDisplayName)
                 .ask();
         } else {
-            spec = registry.getSpecByType(type);
+            spec = registry.getSpecByType(getType().get());
         }
 
         // TODO: Ask questions for each parameter, and return a configuration object with populated arguments
@@ -477,7 +509,7 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private boolean isPomConversion() {
-        return Objects.equals(getType(), "pom");
+        return Objects.equals(detectType(), "pom");
     }
 
     private static void abortBuildDueToExistingFiles(File projectDirFile) {
@@ -516,12 +548,12 @@ public abstract class InitBuild extends DefaultTask {
 
     private BuildInitDsl getBuildInitDsl(UserQuestions userQuestions, BuildInitializer initializer) {
         BuildInitDsl dsl;
-        if (isNullOrEmpty(this.dsl)) {
+        if (!getDsl().isPresent()) {
             dsl = userQuestions.selectOption("Select build script DSL", initializer.getDsls(), initializer.getDefaultDsl());
         } else {
-            dsl = BuildInitDsl.fromName(getDsl());
+            dsl = BuildInitDsl.fromName(getDsl().get());
             if (!initializer.getDsls().contains(dsl)) {
-                throw new GradleException("The requested DSL '" + getDsl() + "' is not supported for '" + initializer.getId() + "' build type");
+                throw new GradleException("The requested DSL '" + getDsl().get() + "' is not supported for '" + initializer.getId() + "' build type");
             }
         }
         return dsl;
@@ -537,16 +569,17 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private boolean shouldUseIncubatingAPIs(UserQuestions userQuestions) {
-        if (this.getUseIncubating().isPresent()) {
-            return this.getUseIncubating().get();
+        if (getUseIncubating().isPresent()) {
+            return getUseIncubating().get();
         }
         return userQuestions.askBooleanQuestion("Generate build using new APIs and behavior (some features may change in the next minor release)?", false);
     }
 
     private BuildInitTestFramework getBuildInitTestFramework(UserQuestions userQuestions, BuildInitializer initializer, ModularizationOption modularizationOption) {
-        if (!isNullOrEmpty(this.testFramework)) {
+        if (getTestFramework().isPresent()) {
+            String testFramework = getTestFramework().get();
             return initializer.getTestFrameworks(modularizationOption).stream()
-                .filter(candidate -> this.testFramework.equals(candidate.getId()))
+                .filter(candidate -> testFramework.equals(candidate.getId()))
                 .findFirst()
                 .orElseThrow(() -> createNotSupportedTestFrameWorkException(initializer, modularizationOption));
         }
@@ -557,7 +590,7 @@ public abstract class InitBuild extends DefaultTask {
 
     private GradleException createNotSupportedTestFrameWorkException(BuildInitializer initDescriptor, ModularizationOption modularizationOption) {
         TreeFormatter formatter = new TreeFormatter();
-        formatter.node("The requested test framework '" + getTestFramework() + "' is not supported for '" + initDescriptor.getId() + "' build type. Supported frameworks");
+        formatter.node("The requested test framework '" + getTestFramework().get() + "' is not supported for '" + initDescriptor.getId() + "' build type. Supported frameworks");
         formatter.startChildren();
         for (BuildInitTestFramework framework : initDescriptor.getTestFrameworks(modularizationOption)) {
             formatter.node("'" + framework.getId() + "'");
@@ -568,33 +601,33 @@ public abstract class InitBuild extends DefaultTask {
 
     @VisibleForTesting
     String getEffectiveProjectName(UserQuestions userQuestions, BuildInitializer initializer) {
-        String projectName = this.projectName;
         if (initializer.supportsProjectName()) {
-            if (isNullOrEmpty(projectName)) {
-                return userQuestions.askQuestion("Project name", getProjectName());
+            if (getProjectName().isPresent()) {
+                return getProjectName().get();
+            } else {
+                return userQuestions.askQuestion("Project name", getProjectDirectory().getAsFile().get().getName());
             }
-        } else if (!isNullOrEmpty(projectName)) {
+        } else if (getProjectName().isPresent()) {
             throw new GradleException("Project name is not supported for '" + initializer.getId() + "' build type.");
         }
-        return projectName;
+        return "";
     }
 
     @VisibleForTesting
     String getEffectivePackageName(BuildInitializer initializer) {
-        String packageName = this.packageName;
         if (initializer.supportsPackage()) {
-            if (packageName == null) {
-                return getProviderFactory().gradleProperty(SOURCE_PACKAGE_PROPERTY).getOrElse(SOURCE_PACKAGE_DEFAULT);
-            }
-        } else if (!isNullOrEmpty(packageName)) {
+            return getPackageName().getOrElse(
+                getProviderFactory().gradleProperty(SOURCE_PACKAGE_PROPERTY).getOrElse(SOURCE_PACKAGE_DEFAULT)
+            );
+        } else if (getPackageName().isPresent()) {
             throw new GradleException("Package name is not supported for '" + initializer.getId() + "' build type.");
         }
-        return packageName;
+        return "";
     }
 
     private BuildInitializer getBuildInitializer(UserQuestions userQuestions, ProjectLayoutSetupRegistry projectLayoutRegistry) {
-        if (!isNullOrEmpty(type)) {
-            return projectLayoutRegistry.get(type);
+        if (getType().isPresent()) {
+            return projectLayoutRegistry.get(getType().get());
         }
 
         BuildConverter converter = projectLayoutRegistry.getBuildConverter();
@@ -634,34 +667,14 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     /**
-     * Sets the type.
-     *
-     * @since 1.9
-     */
-    @Option(option = "type", description = "Set the type of project to generate.")
-    public void setType(String type) {
-        this.type = type;
-    }
-
-    /**
      * Returns the available build types.
      *
      * @since 1.10
      */
     @OptionValues("type")
-    @ToBeReplacedByLazyProperty(comment = "Not yet supported", issue = "https://github.com/gradle/gradle/issues/29341")
-    public List<String> getAvailableBuildTypes() {
-        return getProjectLayoutRegistry().getAllTypes();
-    }
-
-    /**
-     * Set the build script DSL to be used.
-     *
-     * @since 4.5
-     */
-    @Option(option = "dsl", description = "Set the build script DSL to be used in generated scripts.")
-    public void setDsl(String dsl) {
-        this.dsl = dsl;
+    @ReplacesEagerProperty
+    public Provider<List<String>> getAvailableBuildTypes() {
+        return availableBuildTypes;
     }
 
     /**
@@ -670,18 +683,9 @@ public abstract class InitBuild extends DefaultTask {
      * @since 4.5
      */
     @OptionValues("dsl")
-    @ToBeReplacedByLazyProperty(comment = "Not yet supported", issue = "https://github.com/gradle/gradle/issues/29341")
-    public List<String> getAvailableDSLs() {
-        return BuildInitDsl.listSupported();
-    }
-
-    /**
-     * Set the test framework to be used.
-     * @since 2.11
-     */
-    @Option(option = "test-framework", description = "Set the test framework to be used.")
-    public void setTestFramework(@Nullable String testFramework) {
-        this.testFramework = testFramework;
+    @ReplacesEagerProperty
+    public Provider<List<String>> getAvailableDSLs() {
+        return availableDSLs;
     }
 
     /**
@@ -689,29 +693,9 @@ public abstract class InitBuild extends DefaultTask {
      * @since 2.11
      */
     @OptionValues("test-framework")
-    @ToBeReplacedByLazyProperty(comment = "Not yet supported", issue = "https://github.com/gradle/gradle/issues/29341")
-    public List<String> getAvailableTestFrameworks() {
-        return BuildInitTestFramework.listSupported();
-    }
-
-    /**
-     * Set the project name.
-     *
-     * @since 5.0
-     */
-    @Option(option = "project-name", description = "Set the project name.")
-    public void setProjectName(String projectName) {
-        this.projectName = projectName;
-    }
-
-    /**
-     * Set the package name.
-     *
-     * @since 5.0
-     */
-    @Option(option = "package", description = "Set the package for source files.")
-    public void setPackageName(String packageName) {
-        this.packageName = packageName;
+    @ReplacesEagerProperty
+    public Provider<List<String>> getAvailableTestFrameworks() {
+        return availableTestFrameworks;
     }
 
     /**
@@ -724,6 +708,9 @@ public abstract class InitBuild extends DefaultTask {
     }
 
     private String detectType() {
+        if (getType().isPresent()) {
+            return getType().get();
+        }
         ProjectLayoutSetupRegistry projectLayoutRegistry = getProjectLayoutRegistry();
         BuildConverter buildConverter = projectLayoutRegistry.getBuildConverter();
         if (buildConverter.canApplyToCurrentDirectory(getProjectDirectory().get())) {

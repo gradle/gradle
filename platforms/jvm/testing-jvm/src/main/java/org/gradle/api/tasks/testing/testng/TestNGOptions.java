@@ -20,9 +20,14 @@ import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
 import groovy.xml.MarkupBuilder;
 import org.gradle.api.Incubating;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.tasks.testing.testng.TestNGTestRunner;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -33,9 +38,12 @@ import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.testing.TestFrameworkOptions;
 import org.gradle.internal.ErroringAction;
 import org.gradle.internal.IoActions;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty.BinaryCompatibility;
 import org.gradle.internal.serialization.Cached;
-import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.BufferedWriter;
@@ -43,11 +51,10 @@ import java.io.File;
 import java.io.StringWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Collection;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
-import java.util.concurrent.Callable;
+
+import org.jspecify.annotations.Nullable;
 
 /**
  * The TestNG specific test options.
@@ -60,56 +67,31 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 2.3
      */
     public static final String DEFAULT_CONFIG_FAILURE_POLICY = TestNGTestRunner.DEFAULT_CONFIG_FAILURE_POLICY;
-    private static final String DEFAULT_PARALLEL_MODE = null;
     private static final int DEFAULT_THREAD_COUNT = -1;
     private static final int DEFAULT_SUITE_THREAD_POOL_SIZE_DEFAULT = 1;
 
-    private File outputDirectory;
+    private transient Property<StringWriter> suiteXmlWriter;
 
-    private Set<String> includeGroups = new LinkedHashSet<String>();
+    private transient Property<MarkupBuilder> suiteXmlBuilder;
 
-    private Set<String> excludeGroups = new LinkedHashSet<String>();
-
-    private String configFailurePolicy = DEFAULT_CONFIG_FAILURE_POLICY;
-
-    private Set<String> listeners = new LinkedHashSet<String>();
-
-    private String parallel = DEFAULT_PARALLEL_MODE;
-
-    private int threadCount = DEFAULT_THREAD_COUNT;
-
-    private boolean useDefaultListeners;
-
-    private String threadPoolFactoryClass;
-
-    private String suiteName = "Gradle suite";
-
-    private String testName = "Gradle test";
-
-    private List<File> suiteXmlFiles = new ArrayList<File>();
-
-    private boolean preserveOrder;
-
-    private boolean groupByInstances;
-
-    private transient StringWriter suiteXmlWriter;
-
-    private transient MarkupBuilder suiteXmlBuilder;
-
-    private final Cached<String> cachedSuiteXml = Cached.of(new Callable<String>() {
-        @Override
-        public String call() {
-            return suiteXmlWriter != null ? suiteXmlWriter.toString() : null;
-        }
-    });
+    private final Cached<Provider<String>> cachedSuiteXml = Cached.of(() -> getSuiteXmlWriter().map(StringWriter::toString));
 
     private final File projectDir;
 
-    @SuppressWarnings("this-escape")
     @Inject
-    public TestNGOptions(ProjectLayout projectLayout) {
+    @SuppressWarnings("this-escape")
+    public TestNGOptions(ProjectLayout projectLayout, ObjectFactory objects) {
         this.projectDir = projectLayout.getProjectDirectory().getAsFile();
+        this.suiteXmlWriter = objects.property(StringWriter.class);
+        this.suiteXmlBuilder = objects.property(MarkupBuilder.class);
         this.getSuiteThreadPoolSize().convention(DEFAULT_SUITE_THREAD_POOL_SIZE_DEFAULT);
+        this.getTestName().convention("Gradle test");
+        this.getSuiteName().convention("Gradle suite");
+        this.getUseDefaultListeners().convention(false);
+        this.getThreadCount().convention(DEFAULT_THREAD_COUNT);
+        this.getConfigFailurePolicy().convention(DEFAULT_CONFIG_FAILURE_POLICY);
+        this.getPreserveOrder().convention(false);
+        this.getGroupByInstances().convention(false);
     }
 
     /**
@@ -117,28 +99,23 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 8.0
      */
     public void copyFrom(TestNGOptions other) {
-        this.outputDirectory = other.outputDirectory;
-        replace(this.includeGroups, other.includeGroups);
-        replace(this.excludeGroups, other.excludeGroups);
-        this.configFailurePolicy = other.configFailurePolicy;
-        replace(this.listeners, other.listeners);
-        this.parallel = other.parallel;
-        this.threadCount = other.threadCount;
-        this.getSuiteThreadPoolSize().set(other.getSuiteThreadPoolSize());
-        this.useDefaultListeners = other.useDefaultListeners;
-        this.threadPoolFactoryClass = other.threadPoolFactoryClass;
-        this.suiteName = other.suiteName;
-        this.testName = other.testName;
-        replace(this.suiteXmlFiles, other.suiteXmlFiles);
-        this.preserveOrder = other.preserveOrder;
-        this.groupByInstances = other.groupByInstances;
+        getOutputDirectory().set(other.getOutputDirectory());
+        getIncludeGroups().set(other.getIncludeGroups());
+        getExcludeGroups().set(other.getExcludeGroups());
+        getConfigFailurePolicy().set(other.getConfigFailurePolicy());
+        getListeners().set(other.getListeners());
+        getParallel().set(other.getParallel());
+        getThreadCount().set(other.getThreadCount());
+        getSuiteThreadPoolSize().set(other.getSuiteThreadPoolSize());
+        getUseDefaultListeners().set(other.getUseDefaultListeners());
+        getThreadPoolFactoryClass().set(other.getThreadPoolFactoryClass());
+        getSuiteName().set(other.getSuiteName());
+        getTestName().set(other.getTestName());
+        getSuiteXmlFiles().setFrom(other.getSuiteXmlFiles());
+        getPreserveOrder().set(other.getPreserveOrder());
+        getGroupByInstances().set(other.getGroupByInstances());
         // not copying suiteXmlWriter as it is transient
         // not copying suiteXmlBuilder as it is transient
-    }
-
-    private static <T> void replace(Collection<T> target, Collection<T> source) {
-        target.clear();
-        target.addAll(source);
     }
 
     /**
@@ -147,9 +124,11 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public MarkupBuilder suiteXmlBuilder() {
-        suiteXmlWriter = new StringWriter();
-        suiteXmlBuilder = new MarkupBuilder(suiteXmlWriter);
-        return suiteXmlBuilder;
+        StringWriter suiteXmlWriter = new StringWriter();
+        MarkupBuilder markupBuilder = new MarkupBuilder(suiteXmlWriter);
+        getSuiteXmlWriter().set(suiteXmlWriter);
+        getSuiteXmlBuilder().set(new MarkupBuilder(suiteXmlWriter));
+        return markupBuilder;
     }
 
     /**
@@ -158,7 +137,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     public void suites(String... suiteFiles) {
         for (String suiteFile : suiteFiles) {
-            suiteXmlFiles.add(new File(TestNGOptions.this.getProjectDir(), suiteFile));
+            getSuiteXmlFiles().from(new File(TestNGOptions.this.getProjectDir(), suiteFile));
         }
     }
 
@@ -177,7 +156,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public void suites(File... suiteFiles) {
-        suiteXmlFiles.addAll(Arrays.asList(suiteFiles));
+        getSuiteXmlFiles().from(Arrays.asList(suiteFiles));
     }
 
     /**
@@ -185,13 +164,12 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      *
      * @since 0.7
      */
-    @ToBeReplacedByLazyProperty
     public List<File> getSuites(File testSuitesDir) {
         List<File> suites = new ArrayList<File>();
 
-        suites.addAll(suiteXmlFiles);
+        suites.addAll(getSuiteXmlFiles().getFiles());
 
-        String suiteXmlMarkup = getSuiteXml();
+        String suiteXmlMarkup = getSuiteXml().getOrNull();
         if (suiteXmlMarkup != null) {
             File buildSuiteXml = new File(testSuitesDir.getAbsolutePath(), "build-suite.xml");
 
@@ -222,7 +200,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public TestNGOptions includeGroups(String... includeGroups) {
-        this.includeGroups.addAll(Arrays.asList(includeGroups));
+        getIncludeGroups().addAll(includeGroups);
         return this;
     }
 
@@ -232,7 +210,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public TestNGOptions excludeGroups(String... excludeGroups) {
-        this.excludeGroups.addAll(Arrays.asList(excludeGroups));
+        getExcludeGroups().addAll(excludeGroups);
         return this;
     }
 
@@ -242,8 +220,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.8
      */
     public TestNGOptions useDefaultListeners() {
-        useDefaultListeners = true;
-        return this;
+        return useDefaultListeners(true);
     }
 
     /**
@@ -252,7 +229,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.8
      */
     public TestNGOptions useDefaultListeners(boolean useDefaultListeners) {
-        this.useDefaultListeners = useDefaultListeners;
+        getUseDefaultListeners().set(useDefaultListeners);
         return this;
     }
 
@@ -262,6 +239,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public Object propertyMissing(final String name) {
+        MarkupBuilder suiteXmlBuilder = this.suiteXmlBuilder.getOrNull();
         if (suiteXmlBuilder != null) {
             return suiteXmlBuilder.getMetaClass().getProperty(suiteXmlBuilder, name);
         }
@@ -275,6 +253,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public Object methodMissing(String name, Object args) {
+        MarkupBuilder suiteXmlBuilder = this.suiteXmlBuilder.getOrNull();
         if (suiteXmlBuilder != null) {
             return suiteXmlBuilder.getMetaClass().invokeMethod(suiteXmlBuilder, name, args);
         }
@@ -288,10 +267,8 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 1.11
      */
     @OutputDirectory
-    @ToBeReplacedByLazyProperty
-    public File getOutputDirectory() {
-        return outputDirectory;
-    }
+    @ReplacesEagerProperty
+    public abstract DirectoryProperty getOutputDirectory();
 
     /**
      * Sets the output directory.
@@ -299,7 +276,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 1.11
      */
     public void setOutputDirectory(File outputDirectory) {
-        this.outputDirectory = outputDirectory;
+        getOutputDirectory().set(outputDirectory);
     }
 
     /**
@@ -307,10 +284,8 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public Set<String> getIncludeGroups() {
-        return includeGroups;
-    }
+    @ReplacesEagerProperty
+    public abstract SetProperty<String> getIncludeGroups();
 
     /**
      * Sets the include groups.
@@ -318,7 +293,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.9
      */
     public void setIncludeGroups(Set<String> includeGroups) {
-        this.includeGroups = includeGroups;
+        getIncludeGroups().set(includeGroups);
     }
 
     /**
@@ -326,10 +301,8 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public Set<String> getExcludeGroups() {
-        return excludeGroups;
-    }
+    @ReplacesEagerProperty
+    public abstract SetProperty<String> getExcludeGroups();
 
     /**
      * Sets the exclude groups.
@@ -337,7 +310,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.9
      */
     public void setExcludeGroups(Set<String> excludeGroups) {
-        this.excludeGroups = excludeGroups;
+        getExcludeGroups().set(excludeGroups);
     }
 
     /**
@@ -345,10 +318,8 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 2.3
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public String getConfigFailurePolicy() {
-        return configFailurePolicy;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getConfigFailurePolicy();
 
     /**
      * Sets the config failure policy.
@@ -356,7 +327,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 2.3
      */
     public void setConfigFailurePolicy(String configFailurePolicy) {
-        this.configFailurePolicy = configFailurePolicy;
+        getConfigFailurePolicy().set(configFailurePolicy);
     }
 
     /**
@@ -372,17 +343,15 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      *     useTestNG() {
      *         // creates emailable HTML file
      *         // this reporter typically ships with TestNG library
-     *         listeners &lt;&lt; 'org.testng.reporters.EmailableReporter'
+     *         listeners.add('org.testng.reporters.EmailableReporter')
      *     }
      * }
      * </pre>
      * @since 0.7
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public Set<String> getListeners() {
-        return listeners;
-    }
+    @ReplacesEagerProperty
+    public abstract SetProperty<String> getListeners();
 
     /**
      * Sets the listeners.
@@ -390,7 +359,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.9
      */
     public void setListeners(Set<String> listeners) {
-        this.listeners = listeners;
+        getListeners().set(listeners);
     }
 
     /**
@@ -401,12 +370,9 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * If not present, parallel mode will not be selected
      * @since 0.7
      */
-    @Nullable
     @Internal
-    @ToBeReplacedByLazyProperty
-    public String getParallel() {
-        return parallel;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getParallel();
 
     /**
      * Sets the parallel.
@@ -414,7 +380,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public void setParallel(@Nullable String parallel) {
-        this.parallel = parallel;
+        getParallel().set(parallel);
     }
 
     /**
@@ -422,10 +388,8 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public int getThreadCount() {
-        return threadCount;
-    }
+    @ReplacesEagerProperty(originalType = int.class)
+    public abstract Property<Integer> getThreadCount();
 
     /**
      * Sets the thread count.
@@ -433,7 +397,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public void setThreadCount(int threadCount) {
-        this.threadCount = threadCount;
+        getThreadCount().set(threadCount);
     }
 
     /**
@@ -445,30 +409,32 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
     public abstract Property<Integer> getSuiteThreadPoolSize();
 
     /**
-     * Returns the use default listeners.
-     *
-     * @since 0.8
-     */
-    @Internal
-    @ToBeReplacedByLazyProperty
-    public boolean getUseDefaultListeners() {
-        return useDefaultListeners;
-    }
-
-    /**
      * ThreadPoolExecutorFactory class used by TestNG
      * @since 8.7
      */
     @Internal
     @Incubating
-    @ToBeReplacedByLazyProperty
-    public String getThreadPoolFactoryClass() {
-        return threadPoolFactoryClass;
+    @ReplacesEagerProperty(
+        // Property is marked as incubating, so a change is not reported as a breaking change
+        binaryCompatibility = BinaryCompatibility.ACCESSORS_KEPT
+    )
+    public abstract Property<String> getThreadPoolFactoryClass();
+
+    /**
+     * Sets a custom threadPoolExecutorFactory class.
+     * This should be a fully qualified class name and the class should implement org.testng.IExecutorFactory
+     * More details in https://github.com/testng-team/testng/pull/2042
+     * Requires TestNG 7.0 or higher
+     * @since 8.7
+     */
+    @Incubating
+    public void setThreadPoolFactoryClass(String threadPoolFactoryClass) {
+        getThreadPoolFactoryClass().set(threadPoolFactoryClass);
     }
 
     /**
      * Whether the default listeners and reporters should be used. Since Gradle 1.4 it defaults to 'false' so that Gradle can own the reports generation and provide various improvements. This option
-     * might be useful for advanced TestNG users who prefer the reports generated by the TestNG library. If you cannot live without some specific TestNG reporter please use {@link #listeners}
+     * might be useful for advanced TestNG users who prefer the reports generated by the TestNG library. If you cannot live without some specific TestNG reporter please use {@link #getListeners()}
      * property. If you really want to use all default TestNG reporters (e.g. generate the old reports):
      *
      * <pre class='autoTested'>
@@ -493,9 +459,17 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.8
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public boolean isUseDefaultListeners() {
-        return useDefaultListeners;
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "getUseDefaultListeners", originalType = boolean.class),
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isUseDefaultListeners", originalType = boolean.class)
+        }
+    )
+    public abstract Property<Boolean> getUseDefaultListeners();
+
+    @Internal
+    public Property<Boolean> getIsUseDefaultListeners() {
+        return getUseDefaultListeners();
     }
 
     /**
@@ -504,22 +478,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.8
      */
     public void setUseDefaultListeners(boolean useDefaultListeners) {
-        this.useDefaultListeners = useDefaultListeners;
-    }
-
-    /**
-     * Sets a custom threadPoolExecutorFactory class.
-     * This should be a fully qualified class name of a class with a public no-arg constructor.
-     * For TestNG 7.10 and above, the class should implement {@code org.testng.IExecutorServiceFactory}.
-     * For TestNG 7.0 through 7.9, the class should implement {@code org.testng.thread.IExecutorFactory}.
-     * More details in <a href="https://github.com/testng-team/testng/pull/2042">testng#2042</a>
-     * and <a href="https://github.com/testng-team/testng/pull/3095">testng#3095</a>.
-     * Requires TestNG 7.0 or higher.
-     * @since 8.7
-     */
-    @Incubating
-    public void setThreadPoolFactoryClass(String threadPoolFactoryClass) {
-        this.threadPoolFactoryClass = threadPoolFactoryClass;
+        getUseDefaultListeners().set(useDefaultListeners);
     }
 
     /**
@@ -527,10 +486,8 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public String getSuiteName() {
-        return suiteName;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getSuiteName();
 
     /**
      * Sets the suite name.
@@ -538,7 +495,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public void setSuiteName(String suiteName) {
-        this.suiteName = suiteName;
+        getSuiteName().set(suiteName);
     }
 
     /**
@@ -546,10 +503,8 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public String getTestName() {
-        return testName;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getTestName();
 
     /**
      * Sets the test name.
@@ -557,7 +512,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public void setTestName(String testName) {
-        this.testName = testName;
+        getTestName().set(testName);
     }
 
     /**
@@ -568,10 +523,8 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
-    @ToBeReplacedByLazyProperty
-    public List<File> getSuiteXmlFiles() {
-        return suiteXmlFiles;
-    }
+    @ReplacesEagerProperty(adapter = SuiteXmlFilesAdapter.class)
+    public abstract ConfigurableFileCollection getSuiteXmlFiles();
 
     /**
      * Sets the suite xml files.
@@ -579,18 +532,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public void setSuiteXmlFiles(List<File> suiteXmlFiles) {
-        this.suiteXmlFiles = suiteXmlFiles;
-    }
-
-    /**
-     * Returns the preserve order.
-     *
-     * @since 2.11
-     */
-    @Internal
-    @ToBeReplacedByLazyProperty
-    public boolean getPreserveOrder() {
-        return preserveOrder;
+        getSuiteXmlFiles().setFrom(suiteXmlFiles);
     }
 
     /**
@@ -603,9 +545,17 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 2.11
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public boolean isPreserveOrder() {
-        return preserveOrder;
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "getPreserveOrder", originalType = boolean.class),
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isPreserveOrder", originalType = boolean.class)
+        }
+    )
+    public abstract Property<Boolean> getPreserveOrder();
+
+    @Internal
+    public Property<Boolean> getIsPreserveOrder() {
+        return getPreserveOrder();
     }
 
     /**
@@ -614,18 +564,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 2.11
      */
     public void setPreserveOrder(boolean preserveOrder) {
-        this.preserveOrder = preserveOrder;
-    }
-
-    /**
-     * Returns the group by instances.
-     *
-     * @since 2.11
-     */
-    @Internal
-    @ToBeReplacedByLazyProperty
-    public boolean getGroupByInstances() {
-        return groupByInstances;
+        getPreserveOrder().set(preserveOrder);
     }
 
     /**
@@ -638,9 +577,17 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 2.11
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public boolean isGroupByInstances() {
-        return groupByInstances;
+    @ReplacesEagerProperty(
+        replacedAccessors = {
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "getGroupByInstances", originalType = boolean.class),
+            @ReplacedAccessor(value = AccessorType.GETTER, name = "isGroupByInstances", originalType = boolean.class)
+        }
+    )
+    public abstract Property<Boolean> getGroupByInstances();
+
+    @Internal
+    public Property<Boolean> getIsGroupByInstances() {
+        return getGroupByInstances();
     }
 
     /**
@@ -649,7 +596,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 2.11
      */
     public void setGroupByInstances(boolean groupByInstances) {
-        this.groupByInstances = groupByInstances;
+        getGroupByInstances().set(groupByInstances);
     }
 
     /**
@@ -660,7 +607,8 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      */
     @Input
     @Optional
-    protected String getSuiteXml() {
+    @ReplacesEagerProperty(adapter = SuiteXmlAdapter.class)
+    protected Provider<String> getSuiteXml() {
         return cachedSuiteXml.get();
     }
 
@@ -670,8 +618,8 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public StringWriter getSuiteXmlWriter() {
+    @ReplacesEagerProperty
+    public Property<StringWriter> getSuiteXmlWriter() {
         return suiteXmlWriter;
     }
 
@@ -681,7 +629,7 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public void setSuiteXmlWriter(StringWriter suiteXmlWriter) {
-        this.suiteXmlWriter = suiteXmlWriter;
+        getSuiteXmlWriter().set(suiteXmlWriter);
     }
 
     /**
@@ -690,8 +638,8 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    public MarkupBuilder getSuiteXmlBuilder() {
+    @ReplacesEagerProperty
+    public Property<MarkupBuilder> getSuiteXmlBuilder() {
         return suiteXmlBuilder;
     }
 
@@ -701,7 +649,20 @@ public abstract class TestNGOptions extends TestFrameworkOptions {
      * @since 0.7
      */
     public void setSuiteXmlBuilder(MarkupBuilder suiteXmlBuilder) {
-        this.suiteXmlBuilder = suiteXmlBuilder;
+        getSuiteXmlBuilder().set(suiteXmlBuilder);
     }
 
+    static class SuiteXmlFilesAdapter {
+        @BytecodeUpgrade
+        static List<File> getSuiteXmlFiles(TestNGOptions options) {
+            return new ArrayList<>(options.getSuiteXmlFiles().getFiles());
+        }
+    }
+
+    static class SuiteXmlAdapter {
+        @BytecodeUpgrade
+        static String getSuiteXml(TestNGOptions options) {
+            return options.getSuiteXml().getOrNull();
+        }
+    }
 }

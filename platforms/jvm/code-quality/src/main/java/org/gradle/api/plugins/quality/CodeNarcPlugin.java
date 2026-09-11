@@ -18,13 +18,13 @@ package org.gradle.api.plugins.quality;
 import org.gradle.api.Plugin;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.Directory;
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.internal.ConventionMapping;
 import org.gradle.api.plugins.GroovyBasePlugin;
 import org.gradle.api.plugins.JvmEcosystemPlugin;
 import org.gradle.api.plugins.quality.internal.AbstractCodeQualityPlugin;
 import org.gradle.api.provider.Provider;
-import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.tasks.GroovySourceDirectorySet;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.jvm.toolchain.JavaLauncher;
@@ -33,6 +33,7 @@ import org.gradle.jvm.toolchain.JavaToolchainSpec;
 import org.gradle.jvm.toolchain.internal.CurrentJvmToolchainSpec;
 
 import javax.inject.Inject;
+import java.util.concurrent.Callable;
 
 import static org.gradle.api.internal.lambdas.SerializableLambdas.action;
 
@@ -75,12 +76,12 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
     @Override
     protected CodeQualityExtension createExtension() {
         extension = project.getExtensions().create("codenarc", CodeNarcExtension.class, project);
-        extension.setToolVersion(DEFAULT_CODENARC_VERSION);
+        extension.getToolVersion().convention(DEFAULT_CODENARC_VERSION);
         extension.setConfig(project.getResources().getText().fromFile(getRootProjectDirectory().file(DEFAULT_CONFIG_FILE_PATH)));
-        extension.setMaxPriority1Violations(0);
-        extension.setMaxPriority2Violations(0);
-        extension.setMaxPriority3Violations(0);
-        extension.setReportFormat("html");
+        extension.getMaxPriority1Violations().convention(0);
+        extension.getMaxPriority2Violations().convention(0);
+        extension.getMaxPriority3Violations().convention(0);
+        extension.getReportFormat().convention("html");
         return extension;
     }
 
@@ -105,29 +106,28 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
 
     private void configureDefaultDependencies(Configuration configuration) {
         configuration.defaultDependencies(dependencies ->
-            dependencies.add(project.getDependencies().create("org.codenarc:CodeNarc:" + extension.getToolVersion()))
+            dependencies.addLater(extension.getToolVersion().map(version -> project.getDependencies().create("org.codenarc:CodeNarc:" + version)))
         );
     }
 
     private void configureTaskConventionMapping(Configuration configuration, CodeNarc task) {
         ConventionMapping taskMapping = task.getConventionMapping();
-        taskMapping.map("codenarcClasspath", () -> configuration);
         taskMapping.map("config", () -> extension.getConfig());
-        taskMapping.map("maxPriority1Violations", () -> extension.getMaxPriority1Violations());
-        taskMapping.map("maxPriority2Violations", () -> extension.getMaxPriority2Violations());
-        taskMapping.map("maxPriority3Violations", () -> extension.getMaxPriority3Violations());
-        task.getIgnoreFailuresProperty().convention(project.provider(() -> extension.isIgnoreFailures()));
+        task.getCodenarcClasspath().convention(configuration);
+        task.getMaxPriority1Violations().convention(extension.getMaxPriority1Violations());
+        task.getMaxPriority2Violations().convention(extension.getMaxPriority2Violations());
+        task.getMaxPriority3Violations().convention(extension.getMaxPriority3Violations());
+        task.getIgnoreFailuresProperty().convention(extension.getIgnoreFailures());
     }
 
     private void configureReportsConventionMapping(CodeNarc task, final String baseName) {
-        ProviderFactory providers = project.getProviders();
-        Provider<String> reportFormat = providers.provider(() -> extension.getReportFormat());
+        Provider<String> reportFormat = extension.getReportFormat();
         Provider<Directory> reportsDir = extension.getReportsDirectory();
         task.getReports().all(action(report -> {
-            report.getRequired().convention(providers.provider(() -> report.getName().equals(reportFormat.get())));
-            report.getOutputLocation().convention(reportsDir.map(dir -> {
+            report.getRequired().convention(reportFormat.map(format -> report.getName().equals(format)));
+            report.getOutputLocation().convention(reportsDir.map(directory -> {
                 String fileSuffix = report.getName().equals("text") ? "txt" : report.getName();
-                return dir.file(baseName + "." + fileSuffix);
+                return directory.file(baseName + "." + fileSuffix);
             }));
         }));
     }
@@ -146,6 +146,6 @@ public abstract class CodeNarcPlugin extends AbstractCodeQualityPlugin<CodeNarc>
         task.setDescription("Run CodeNarc analysis for " + sourceSet.getName() + " classes");
         SourceDirectorySet groovySourceSet =  sourceSet.getExtensions().getByType(GroovySourceDirectorySet.class);
         task.setSource(groovySourceSet.matching(filter -> filter.include("**/*.groovy")));
-        task.getConventionMapping().map("compilationClasspath", sourceSet::getCompileClasspath);
+        task.getCompilationClasspath().convention((Callable<FileCollection>) sourceSet::getCompileClasspath);
     }
 }

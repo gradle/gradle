@@ -19,6 +19,10 @@ import groovy.lang.Closure;
 import groovy.lang.DelegatesTo;
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.SetProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 
 import java.io.Reader;
@@ -50,8 +54,8 @@ public interface DeploymentDescriptor {
      * The version of application.xml. Required. Valid versions are "1.3", "1.4", "5", "6", "7", "8", "9", "10" and "11". Defaults to "6".
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    String getVersion();
+    @ReplacesEagerProperty
+    Property<String> getVersion();
 
     /**
      * Sets the version.
@@ -64,8 +68,8 @@ public interface DeploymentDescriptor {
      * The application name. Optional. Only valid with version 6.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    String getApplicationName();
+    @ReplacesEagerProperty
+    Property<String> getApplicationName();
 
     /**
      * Sets the application name.
@@ -79,8 +83,8 @@ public interface DeploymentDescriptor {
      * Optional. Only valid with version 6.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    Boolean getInitializeInOrder();
+    @ReplacesEagerProperty
+    Property<Boolean> getInitializeInOrder();
 
     /**
      * Sets the initialize in order.
@@ -93,8 +97,8 @@ public interface DeploymentDescriptor {
      * The application description. Optional.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    String getDescription();
+    @ReplacesEagerProperty
+    Property<String> getDescription();
 
     /**
      * Sets the description.
@@ -107,8 +111,8 @@ public interface DeploymentDescriptor {
      * The application display name. Optional.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    String getDisplayName();
+    @ReplacesEagerProperty
+    Property<String> getDisplayName();
 
     /**
      * Sets the display name.
@@ -121,8 +125,8 @@ public interface DeploymentDescriptor {
      * The name of the directory to look for libraries in. Optional. If not specified, {@link org.gradle.plugins.ear.Ear#getLibDirName()} is used.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    String getLibraryDirectory();
+    @ReplacesEagerProperty
+    Property<String> getLibraryDirectory();
 
     /**
      * Sets the library directory.
@@ -136,8 +140,8 @@ public interface DeploymentDescriptor {
      * initializeInOrder is <code>true</code>.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    Set<EarModule> getModules();
+    @ReplacesEagerProperty
+    SetProperty<EarModule> getModules();
 
     /**
      * Sets the modules.
@@ -186,8 +190,8 @@ public interface DeploymentDescriptor {
      * List of security roles. Optional. Non-null and order-maintaining by default.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    Set<EarSecurityRole> getSecurityRoles();
+    @ReplacesEagerProperty
+    SetProperty<EarSecurityRole> getSecurityRoles();
 
     /**
      * Sets the security roles.
@@ -230,8 +234,8 @@ public interface DeploymentDescriptor {
      * module, set <code>moduleTypeMappings["myJavaModule.jar"] = "java"</code>.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    Map<String, String> getModuleTypeMappings();
+    @ReplacesEagerProperty
+    MapProperty<String, String> getModuleTypeMappings();
 
     /**
      * Sets the module type mappings.

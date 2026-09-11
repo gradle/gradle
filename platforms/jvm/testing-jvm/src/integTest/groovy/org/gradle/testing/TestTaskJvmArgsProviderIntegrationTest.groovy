@@ -59,9 +59,9 @@ class TestTaskJvmArgsProviderIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            test.jvmArgumentProviders << new MyTestSystemProperties(
+            test.jvmArgumentProviders.add(new MyTestSystemProperties(
                 inputFile: file(providers.gradleProperty('inputFile').get())
-            )
+            ))
         """
         file('inputFile.txt').text = "Test"
 

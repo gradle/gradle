@@ -192,7 +192,7 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec impleme
                     execOperations.javaexec {
                         classpath = this.getClasspath()
                         mainClass = "Hello"
-                        executable = this.getJavaLauncher().get().getExecutablePath().asFile
+                        executable = this.getJavaLauncher().get().getExecutablePath().asFile.absolutePath
                     }
                 }
 
@@ -230,7 +230,7 @@ class JavaExecJavaVersionIntegrationSpec extends AbstractIntegrationSpec impleme
                 text = providers.javaexec {
                     classpath = sourceSets.main.runtimeClasspath
                     mainClass = "Hello"
-                    executable = launcher.get().getExecutablePath().asFile
+                    executable = launcher.get().getExecutablePath().asFile.absolutePath
                 }.standardOutput.asText
             }
 

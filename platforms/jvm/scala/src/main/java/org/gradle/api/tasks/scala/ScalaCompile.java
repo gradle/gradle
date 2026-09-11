@@ -17,6 +17,7 @@ package org.gradle.api.tasks.scala;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ClassPathRegistry;
 import org.gradle.api.internal.tasks.compile.daemon.ProcessIsolatedCompilerWorkerExecutor;
@@ -29,7 +30,7 @@ import org.gradle.api.tasks.scala.internal.ScalaCompileOptionsConfigurer;
 import org.gradle.initialization.ClassLoaderRegistry;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.classloader.ClasspathHasher;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.language.scala.tasks.AbstractScalaCompile;
 import org.gradle.process.internal.JavaForkOptionsFactory;
 import org.gradle.process.internal.worker.child.WorkerDirectoryProvider;
@@ -43,9 +44,6 @@ import org.gradle.workers.internal.WorkerDaemonFactory;
 @CacheableTask
 public abstract class ScalaCompile extends AbstractScalaCompile {
 
-    private FileCollection scalaClasspath;
-    private FileCollection zincClasspath;
-    private FileCollection scalaCompilerPlugins;
     private org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> compiler;
 
     @Nested
@@ -59,10 +57,8 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
      * @since 0.9
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getScalaClasspath() {
-        return scalaClasspath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getScalaClasspath();
 
     /**
      * Sets the scala classpath.
@@ -70,7 +66,7 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
      * @since 0.9
      */
     public void setScalaClasspath(FileCollection scalaClasspath) {
-        this.scalaClasspath = scalaClasspath;
+        getScalaClasspath().setFrom(scalaClasspath);
     }
 
     /**
@@ -79,10 +75,8 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
      * @since 6.4
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getScalaCompilerPlugins() {
-        return scalaCompilerPlugins;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getScalaCompilerPlugins();
 
     /**
      * Sets the Scala compiler plugins to use.
@@ -91,13 +85,18 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
      * @since 6.4
      */
     public void setScalaCompilerPlugins(FileCollection scalaCompilerPlugins) {
-        this.scalaCompilerPlugins = scalaCompilerPlugins;
+        getScalaCompilerPlugins().setFrom(scalaCompilerPlugins);
     }
 
     @Override
     protected ScalaJavaJointCompileSpec createSpec() {
-        ScalaCompileOptionsConfigurer.configure(getScalaCompileOptions(), getToolchain(), getScalaClasspath().getFiles());
         ScalaJavaJointCompileSpec spec = super.createSpec();
+        ScalaCompileOptionsConfigurer.configure(
+            spec.getScalaCompileOptions(),
+            getScalaCompileOptions(),
+            getToolchain(),
+            getScalaClasspath().getFiles()
+        );
         if (getScalaCompilerPlugins() != null) {
             spec.setScalaCompilerPlugins(ImmutableList.copyOf(getScalaCompilerPlugins()));
         }
@@ -109,10 +108,8 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
      * @since 1.3
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    public FileCollection getZincClasspath() {
-        return zincClasspath;
-    }
+    @ReplacesEagerProperty
+    public abstract ConfigurableFileCollection getZincClasspath();
 
     /**
      * Sets the zinc classpath.
@@ -120,7 +117,7 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
      * @since 1.3
      */
     public void setZincClasspath(FileCollection zincClasspath) {
-        this.zincClasspath = zincClasspath;
+        getZincClasspath().setFrom(zincClasspath);
     }
 
     /**

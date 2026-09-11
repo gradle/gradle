@@ -19,11 +19,16 @@ package org.gradle.api.internal.tasks.testing.logging
 import org.gradle.api.tasks.testing.logging.TestLogging
 import org.gradle.api.tasks.testing.logging.TestStackTraceFilter
 import org.gradle.internal.serialize.PlaceholderException
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class FullExceptionFormatterTest extends Specification {
     def testDescriptor = new SimpleTestDescriptor()
-    def testLogging = Mock(TestLogging)
+    def testLogging = Mock(TestLogging) {
+        getShowStackTraces() >> TestUtil.objectFactory().property(Boolean).convention(false)
+        getShowCauses() >> TestUtil.objectFactory().property(Boolean).convention(false)
+        getStackTraceFilters() >> TestUtil.objectFactory().setProperty(TestStackTraceFilter).convention(EnumSet.noneOf(TestStackTraceFilter))
+    }
     def formatter = new FullExceptionFormatter(testLogging)
 
     def "shows all exceptions that have occurred for a test"() {
@@ -36,7 +41,7 @@ class FullExceptionFormatterTest extends Specification {
     }
 
     def "optionally shows causes"() {
-        testLogging.getShowCauses() >> true
+        testLogging.getShowCauses().set(true)
         def cause = new RuntimeException("oops")
         def exception = new Exception("ouch", cause)
 
@@ -50,8 +55,8 @@ class FullExceptionFormatterTest extends Specification {
     }
 
     def "optionally shows stack traces"() {
-        testLogging.getShowStackTraces() >> true
-        testLogging.getStackTraceFilters() >> EnumSet.noneOf(TestStackTraceFilter)
+        testLogging.getShowStackTraces().set(true)
+        testLogging.getStackTraceFilters().set(EnumSet.noneOf(TestStackTraceFilter))
         def exception = new Exception("ouch")
         exception.stackTrace = createStackTrace()
 
@@ -65,9 +70,9 @@ class FullExceptionFormatterTest extends Specification {
     }
 
     def "doesn't show common stack trace elements of parent trace and cause"() {
-        testLogging.getShowCauses() >> true
-        testLogging.getShowStackTraces() >> true
-        testLogging.getStackTraceFilters() >> EnumSet.noneOf(TestStackTraceFilter)
+        testLogging.getShowCauses().set(true)
+        testLogging.getShowStackTraces().set(true)
+        testLogging.getStackTraceFilters().set(EnumSet.noneOf(TestStackTraceFilter))
 
         def cause = new RuntimeException("oops")
         cause.stackTrace = createCauseTrace()
@@ -90,9 +95,9 @@ class FullExceptionFormatterTest extends Specification {
     }
 
     def "always shows at least one stack trace element of cause"() {
-        testLogging.getShowCauses() >> true
-        testLogging.getShowStackTraces() >> true
-        testLogging.getStackTraceFilters() >> EnumSet.noneOf(TestStackTraceFilter)
+        testLogging.getShowCauses().set(true)
+        testLogging.getShowStackTraces().set(true)
+        testLogging.getStackTraceFilters().set(EnumSet.noneOf(TestStackTraceFilter))
 
         def cause = new RuntimeException("oops")
         cause.stackTrace = createStackTrace()
@@ -114,9 +119,9 @@ class FullExceptionFormatterTest extends Specification {
     }
 
     def "can cope with a cause that has fewer stack trace elements than parent exception"() {
-        testLogging.getShowCauses() >> true
-        testLogging.getShowStackTraces() >> true
-        testLogging.getStackTraceFilters() >> EnumSet.noneOf(TestStackTraceFilter)
+        testLogging.getShowCauses().set(true)
+        testLogging.getShowStackTraces().set(true)
+        testLogging.getStackTraceFilters().set(EnumSet.noneOf(TestStackTraceFilter))
 
         def cause = new RuntimeException("oops")
         cause.stackTrace = createStackTrace()[1..2]
@@ -138,9 +143,9 @@ class FullExceptionFormatterTest extends Specification {
     }
 
     def "shows all stack trace elements of cause if overlap doesn't start from bottom of trace"() {
-        testLogging.getShowCauses() >> true
-        testLogging.getShowStackTraces() >> true
-        testLogging.getStackTraceFilters() >> EnumSet.noneOf(TestStackTraceFilter)
+        testLogging.getShowCauses().set(true)
+        testLogging.getShowStackTraces().set(true)
+        testLogging.getStackTraceFilters().set(EnumSet.noneOf(TestStackTraceFilter))
 
         def cause = new RuntimeException("oops")
         cause.stackTrace = createStackTrace()[0..1]
@@ -162,8 +167,8 @@ class FullExceptionFormatterTest extends Specification {
     }
 
     def "supports any combination of stack trace filters"() {
-        testLogging.getShowStackTraces() >> true
-        testLogging.getStackTraceFilters() >> EnumSet.of(TestStackTraceFilter.TRUNCATE, TestStackTraceFilter.GROOVY)
+        testLogging.getShowStackTraces().set(true)
+        testLogging.getStackTraceFilters().set(EnumSet.of(TestStackTraceFilter.TRUNCATE, TestStackTraceFilter.GROOVY))
 
         def exception = new Exception("ouch")
         exception.stackTrace = createGroovyTrace()
@@ -178,8 +183,8 @@ class FullExceptionFormatterTest extends Specification {
     }
 
     def "retains stacktrace for inherited test classes"() {
-        testLogging.getShowStackTraces() >> true
-        testLogging.getStackTraceFilters() >> EnumSet.of(TestStackTraceFilter.TRUNCATE, TestStackTraceFilter.GROOVY)
+        testLogging.getShowStackTraces().set(true)
+        testLogging.getStackTraceFilters().set(EnumSet.of(TestStackTraceFilter.TRUNCATE, TestStackTraceFilter.GROOVY))
         testDescriptor.className = "foo"
 
         def exception = new Exception("ouch")
@@ -198,9 +203,9 @@ class FullExceptionFormatterTest extends Specification {
     }
 
     def "treat anonymous class and its enclosing class equally"() {
-        testLogging.getShowCauses() >> true
-        testLogging.getShowStackTraces() >> true
-        testLogging.getStackTraceFilters() >> EnumSet.of(TestStackTraceFilter.TRUNCATE, TestStackTraceFilter.GROOVY)
+        testLogging.getShowCauses().set(true)
+        testLogging.getShowStackTraces().set(true)
+        testLogging.getStackTraceFilters().set(EnumSet.of(TestStackTraceFilter.TRUNCATE, TestStackTraceFilter.GROOVY))
 
         def exception = new PlaceholderException(Exception.name, "ouch", null, "java.lang.Exception: ouch", null, null)
         def stacktrace = createGroovyTrace()
@@ -217,9 +222,9 @@ class FullExceptionFormatterTest extends Specification {
     }
 
     def "also filters stack traces of causes"() {
-        testLogging.getShowCauses() >> true
-        testLogging.getShowStackTraces() >> true
-        testLogging.getStackTraceFilters() >> EnumSet.of(TestStackTraceFilter.ENTRY_POINT)
+        testLogging.getShowCauses().set(true)
+        testLogging.getShowStackTraces().set(true)
+        testLogging.getStackTraceFilters().set(EnumSet.of(TestStackTraceFilter.ENTRY_POINT))
 
         def cause = new RuntimeException("oops")
         cause.stackTrace = createGroovyTrace()
@@ -239,9 +244,9 @@ class FullExceptionFormatterTest extends Specification {
     }
 
     def "formats PlaceholderException correctly"() {
-        testLogging.getShowCauses() >> true
-        testLogging.getShowStackTraces() >> true
-        testLogging.getStackTraceFilters() >> EnumSet.of(TestStackTraceFilter.ENTRY_POINT)
+        testLogging.getShowCauses().set(true)
+        testLogging.getShowStackTraces().set(true)
+        testLogging.getStackTraceFilters().set(EnumSet.of(TestStackTraceFilter.ENTRY_POINT))
 
         def cause = new PlaceholderException(RuntimeException.name, "oops", null, "java.lang.RuntimeException: oops", null, null)
         cause.stackTrace = createGroovyTrace()

@@ -52,14 +52,14 @@ class WrapperTest extends AbstractTaskTest {
         keyStore.getTrustStoreSettings().forEach { key, value -> System.setProperty(key, value)}
 
         wrapper = createTask(Wrapper.class)
-        wrapper.setGradleVersion("8.0")
+        wrapper.getGradleVersion().set("8.0")
         expectedTargetWrapperJar = new TestFile(getProject().getProjectDir(),
                 TARGET_WRAPPER_FINAL + "/gradle-wrapper.jar")
         expectedTargetWrapperProperties = new File(getProject().getProjectDir(),
                 TARGET_WRAPPER_FINAL + "/gradle-wrapper.properties")
         new File(getProject().getProjectDir(), TARGET_WRAPPER_FINAL).mkdirs()
-        wrapper.setDistributionPath("somepath")
-        wrapper.setDistributionSha256Sum("somehash")
+        wrapper.getDistributionPath().set("somepath")
+        wrapper.getDistributionSha256Sum().set("somehash")
     }
 
     def cleanup() {
@@ -75,16 +75,16 @@ class WrapperTest extends AbstractTaskTest {
         wrapper = createTask(Wrapper.class)
 
         expect:
-        new File(getProject().getProjectDir(), TARGET_WRAPPER_FINAL + "/gradle-wrapper.jar") == wrapper.getJarFile()
-        new File(getProject().getProjectDir(), "gradlew") == wrapper.getScriptFile()
-        new File(getProject().getProjectDir(), "gradlew.bat") == wrapper.getBatchScript()
-        GradleVersion.current().getVersion() == wrapper.getGradleVersion()
-        Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME == wrapper.getDistributionPath()
-        Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME == wrapper.getArchivePath()
-        Wrapper.PathBase.GRADLE_USER_HOME == wrapper.getDistributionBase()
-        Wrapper.PathBase.GRADLE_USER_HOME == wrapper.getArchiveBase()
-        wrapper.getDistributionUrl() != null
-        wrapper.getDistributionSha256Sum() == null
+        new File(getProject().getProjectDir(), TARGET_WRAPPER_FINAL + "/gradle-wrapper.jar") == wrapper.getJarFile().getAsFile().get()
+        new File(getProject().getProjectDir(), "gradlew") == wrapper.getScriptFile().getAsFile().get()
+        new File(getProject().getProjectDir(), "gradlew.bat") == wrapper.getBatchScript().getAsFile().get();
+        GradleVersion.current().getVersion() == wrapper.getGradleVersion().get()
+        Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME == wrapper.getDistributionPath().get()
+        Wrapper.DEFAULT_DISTRIBUTION_PARENT_NAME == wrapper.getArchivePath().get()
+        Wrapper.PathBase.GRADLE_USER_HOME == wrapper.getDistributionBase().get()
+        Wrapper.PathBase.GRADLE_USER_HOME == wrapper.getArchiveBase().get()
+        wrapper.getDistributionUrl().isPresent()
+        wrapper.getDistributionSha256Sum().orNull == null
         !wrapper.getNetworkTimeout().isPresent()
         wrapper.getValidateDistributionUrl()
         !wrapper.getRetries().isPresent()
@@ -93,10 +93,10 @@ class WrapperTest extends AbstractTaskTest {
 
     def "determines Windows script path from unix script path with #inName"() {
         when:
-        wrapper.setScriptFile("build/$inName")
+        wrapper.setScriptFile(getProject().file("build/$inName"))
 
         then:
-        getProject().file("build/$outName") == wrapper.getBatchScript()
+        getProject().file("build/$outName") == wrapper.getBatchScript().get().getAsFile()
 
         where:
         inName           | outName
@@ -106,10 +106,10 @@ class WrapperTest extends AbstractTaskTest {
 
     def "determines properties file path from jar path"() {
         given:
-        wrapper.setJarFile("build/gradle-wrapper.jar")
+        wrapper.setJarFile(getProject().file("build/gradle-wrapper.jar"))
 
         expect:
-        getProject().file("build/gradle-wrapper.properties") == wrapper.getPropertiesFile()
+        getProject().file("build/gradle-wrapper.properties") == wrapper.getPropertiesFile().get().getAsFile()
     }
 
     def "downloads for '#version' from repository "() {
@@ -120,9 +120,10 @@ class WrapperTest extends AbstractTaskTest {
 
         when:
         wrapper.setGradleVersion(version)
+        wrapper.getValidateDistributionUrl().set(false)
 
         then:
-        wrapper.getDistributionUrl() == getBaseUrl() + downloadUrlSuffix
+        wrapper.getDistributionUrl().get() == getBaseUrl() + downloadUrlSuffix
 
         where:
         version                     | request                       | reply                                              | downloadUrlSuffix
@@ -142,7 +143,7 @@ class WrapperTest extends AbstractTaskTest {
         wrapper.setDistributionUrl("http://some-url")
 
         expect:
-        "http://some-url" == wrapper.getDistributionUrl()
+        "http://some-url" == wrapper.getDistributionUrl().get()
     }
 
     def "uses explicitly defined distribution sha256 sum"() {
@@ -150,7 +151,7 @@ class WrapperTest extends AbstractTaskTest {
         wrapper.setDistributionSha256Sum("somehash")
 
         expect:
-        "somehash" == wrapper.getDistributionSha256Sum()
+        "somehash" == wrapper.getDistributionSha256Sum().get()
     }
 
     def "uses defined network timeout"() {
@@ -197,12 +198,12 @@ class WrapperTest extends AbstractTaskTest {
 
         then:
         decompressDir.file(GradleWrapperMain.class.getName().replace(".", "/") + ".class").assertIsFile()
-        properties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY) == wrapper.getDistributionUrl()
-        properties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM) == wrapper.getDistributionSha256Sum()
-        properties.getProperty(WrapperExecutor.DISTRIBUTION_BASE_PROPERTY) == wrapper.getDistributionBase().toString()
-        properties.getProperty(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY) == wrapper.getDistributionPath()
-        properties.getProperty(WrapperExecutor.ZIP_STORE_BASE_PROPERTY) == wrapper.getArchiveBase().toString()
-        properties.getProperty(WrapperExecutor.ZIP_STORE_PATH_PROPERTY) == wrapper.getArchivePath()
+        properties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY) == wrapper.getDistributionUrl().get()
+        properties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM) == wrapper.getDistributionSha256Sum().get()
+        properties.getProperty(WrapperExecutor.DISTRIBUTION_BASE_PROPERTY) == wrapper.getDistributionBase().get().toString()
+        properties.getProperty(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY) == wrapper.getDistributionPath().get()
+        properties.getProperty(WrapperExecutor.ZIP_STORE_BASE_PROPERTY) == wrapper.getArchiveBase().get().toString()
+        properties.getProperty(WrapperExecutor.ZIP_STORE_PATH_PROPERTY) == wrapper.getArchivePath().get()
     }
 
     def "execute with networkTimeout set"() {
@@ -270,12 +271,12 @@ class WrapperTest extends AbstractTaskTest {
 
         then:
         unjarDir.file(GradleWrapperMain.class.getName().replace(".", "/") + ".class").assertIsFile()
-        properties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY) == wrapper.getDistributionUrl()
-        properties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM) == wrapper.getDistributionSha256Sum()
-        properties.getProperty(WrapperExecutor.DISTRIBUTION_BASE_PROPERTY) == wrapper.getDistributionBase().toString()
-        properties.getProperty(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY) == wrapper.getDistributionPath()
-        properties.getProperty(WrapperExecutor.ZIP_STORE_BASE_PROPERTY) == wrapper.getArchiveBase().toString()
-        properties.getProperty(WrapperExecutor.ZIP_STORE_PATH_PROPERTY) == wrapper.getArchivePath()
+        properties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY) == getBaseUrl() + "/distributions/gradle-8.0-bin.zip"
+        properties.getProperty(WrapperExecutor.DISTRIBUTION_SHA_256_SUM) == wrapper.getDistributionSha256Sum().get()
+        properties.getProperty(WrapperExecutor.DISTRIBUTION_BASE_PROPERTY) == wrapper.getDistributionBase().get().toString()
+        properties.getProperty(WrapperExecutor.DISTRIBUTION_PATH_PROPERTY) == wrapper.getDistributionPath().get()
+        properties.getProperty(WrapperExecutor.ZIP_STORE_BASE_PROPERTY) == wrapper.getArchiveBase().get().toString()
+        properties.getProperty(WrapperExecutor.ZIP_STORE_PATH_PROPERTY) == wrapper.getArchivePath().get()
     }
 
     def "distributionUrl should not contain small dotless I letter when locale has small dotless I letter"() {

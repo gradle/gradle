@@ -129,6 +129,9 @@ public interface ArchUnitFixture {
     DescribedPredicate<JavaMethod> getters = new DescribedPredicate<JavaMethod>("getters") {
         @Override
         public boolean test(JavaMethod input) {
+            if (!input.getParameters().isEmpty()) {
+                return false;
+            }
             PropertyAccessorType accessorType = PropertyAccessorType.fromName(input.getName());
             if (accessorType == PropertyAccessorType.IS_GETTER) {
                 // PropertyAccessorType.IS_GETTER doesn't handle names that start with is

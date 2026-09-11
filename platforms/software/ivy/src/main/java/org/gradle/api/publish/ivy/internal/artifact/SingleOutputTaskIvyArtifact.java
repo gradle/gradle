@@ -17,14 +17,15 @@
 package org.gradle.api.publish.ivy.internal.artifact;
 
 import org.gradle.api.file.RegularFile;
+import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.publish.ivy.internal.publisher.IvyPublicationCoordinates;
 import org.gradle.api.tasks.TaskDependency;
 import org.jspecify.annotations.Nullable;
-
-import java.io.File;
 
 public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
 
@@ -36,6 +37,7 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
     private final String classifier;
     private final TaskDependencyInternal buildDependencies;
 
+    @SuppressWarnings("this-escape")
     public SingleOutputTaskIvyArtifact(
         Provider<RegularFile> file,
         Provider<Boolean> enabled,
@@ -43,9 +45,11 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
         String extension,
         String type,
         @Nullable String classifier,
-        TaskDependencyFactory taskDependencyFactory
+        TaskDependencyFactory taskDependencyFactory,
+        ProviderFactory providerFactory,
+        ObjectFactory objectFactory
     ) {
-        super(taskDependencyFactory);
+        super(taskDependencyFactory, providerFactory, objectFactory);
         this.file = file;
         this.enabled = enabled;
         this.coordinates = coordinates;
@@ -58,28 +62,28 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
     }
 
     @Override
-    protected String getDefaultName() {
-        return coordinates.getModule().get();
+    protected Provider<String> getDefaultName() {
+        return coordinates.getModule();
     }
 
     @Override
-    protected String getDefaultType() {
-        return type;
+    protected Provider<String> getDefaultType() {
+        return Providers.of(type);
     }
 
     @Override
-    protected String getDefaultExtension() {
-        return extension;
+    protected Provider<String> getDefaultExtension() {
+        return Providers.of(extension);
     }
 
     @Override
-    protected String getDefaultClassifier() {
-        return classifier;
+    protected Provider<String> getDefaultClassifier() {
+        return Providers.ofNullable(classifier);
     }
 
     @Override
-    protected String getDefaultConf() {
-        return null;
+    protected Provider<String> getDefaultConf() {
+        return Providers.notDefined();
     }
 
     @Override
@@ -88,8 +92,8 @@ public class SingleOutputTaskIvyArtifact extends AbstractIvyArtifact {
     }
 
     @Override
-    public File getFile() {
-        return file.get().getAsFile();
+    public Provider<RegularFile> getFile() {
+        return file;
     }
 
     public boolean isEnabled() {

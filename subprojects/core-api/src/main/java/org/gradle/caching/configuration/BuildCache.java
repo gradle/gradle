@@ -16,7 +16,10 @@
 
 package org.gradle.caching.configuration;
 
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.Property;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
+
 
 /**
  * Configuration object for a build cache.
@@ -26,11 +29,12 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 public interface BuildCache {
 
     /**
-     * Returns whether the build cache is enabled.
-     * @since 3.5
+     * Controls whether the build cache is enabled.
+     *
+     * Added for Kotlin source compatibility.
      */
-    @ToBeReplacedByLazyProperty
-    boolean isEnabled();
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Property<Boolean> getEnabled();
 
     /**
      * Sets whether the build cache is enabled.
@@ -39,15 +43,32 @@ public interface BuildCache {
     void setEnabled(boolean enabled);
 
     /**
-     * Returns whether a given build can store outputs in the build cache.
-     * @since 3.5
+     * Controls whether the build cache is enabled.
      */
-    @ToBeReplacedByLazyProperty
-    boolean isPush();
+    @ReplacedBy("getEnabled()")
+    default Property<Boolean> getIsEnabled() {
+        return getEnabled();
+    }
+
+    /**
+     * Controls whether a given build can store outputs in the build cache.
+     */
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Property<Boolean> getPush();
 
     /**
      * Sets whether a given build can store outputs in the build cache.
      * @since 3.5
      */
-    void setPush(boolean enabled);
+    void setPush(boolean push);
+
+    /**
+     * Controls whether a given build can store outputs in the build cache.
+     *
+     * Added for Kotlin source compatibility.
+     */
+    @ReplacedBy("getPush()")
+    default Property<Boolean> getIsPush() {
+        return getPush();
+    }
 }

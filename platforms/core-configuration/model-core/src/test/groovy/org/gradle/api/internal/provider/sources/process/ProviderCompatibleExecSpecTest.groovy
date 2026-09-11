@@ -27,7 +27,7 @@ class ProviderCompatibleExecSpecTest extends ProviderCompatibleBaseExecSpecTestB
         def command = ["some", "command", "with", "arguments"]
 
         when:
-        specUnderTest.commandLine = command
+        specUnderTest.commandLine(command)
         specUnderTest.copyToParameters(parameters)
 
         then:
@@ -36,6 +36,9 @@ class ProviderCompatibleExecSpecTest extends ProviderCompatibleBaseExecSpecTestB
 
     @Override
     protected ProviderCompatibleExecSpec createSpecUnderTest() {
-        return new ProviderCompatibleExecSpec(new DefaultExecSpec(TestUtil.objectFactory(tmpDir.testDirectory), TestFiles.pathToFileResolver(tmpDir.testDirectory)))
+        def execSpec = TestUtil.newInstance(DefaultExecSpec, TestUtil.objectFactory(tmpDir.testDirectory), TestFiles.pathToFileResolver(tmpDir.testDirectory))
+        return TestUtil.newInstance(ProviderCompatibleExecSpec, execSpec).tap {
+            commandLine("echo", "hello")
+        }
     }
 }
