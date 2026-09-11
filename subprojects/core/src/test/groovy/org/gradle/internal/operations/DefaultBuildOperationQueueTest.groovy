@@ -38,6 +38,7 @@ import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.AtomicReference
 import java.util.function.BooleanSupplier
 
 @Timeout(value = 30, unit = TimeUnit.SECONDS)
@@ -569,6 +570,206 @@ class DefaultBuildOperationQueueTest extends Specification {
         false                     | true
         true                      | false
         policyDesc = lockChangesDisallowed ? "disallows" : "allows"
+    }
+
+    def "in-flight operation can add further operations after waitForCompletion has started"() {
+        given:
+        def mainThread = Thread.currentThread()
+        def startedLatch = new CountDownLatch(1)
+        def releaseLatch = new CountDownLatch(1)
+        def childRuns = new AtomicInteger()
+        def grandchildRuns = new AtomicInteger()
+
+        coordinationService = new DefaultResourceLockCoordinationService()
+        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(2), ResourceLockStatistics.NO_OP) {
+            @Override
+            void blocking(Runnable action) {
+                if (Thread.currentThread() === mainThread) {
+                    releaseLatch.countDown()
+                }
+                super.blocking(action)
+            }
+        }
+        workerRegistry.startProjectExecution(true)
+        lease = workerRegistry.startWorker()
+        backingExecutor = Executors.newCachedThreadPool()
+        workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 2, 4)
+        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), newUnconstrainedExecutor(), new SimpleWorker(), null)
+
+        when:
+        operationQueue.add(operation {
+            startedLatch.countDown()
+            releaseLatch.await()
+            operationQueue.add(operation {
+                childRuns.incrementAndGet()
+                operationQueue.add(operation {
+                    grandchildRuns.incrementAndGet()
+                })
+            })
+        })
+        assert startedLatch.await(10, TimeUnit.SECONDS)
+        operationQueue.waitForCompletion()
+
+        then:
+        childRuns.get() == 1
+        grandchildRuns.get() == 1
+    }
+
+    def "waiting thread runs operations added by in-flight operations when the backing pool is exhausted"() {
+        given:
+        def mainThread = Thread.currentThread()
+        def startedLatch = new CountDownLatch(1)
+        def releaseLatch = new CountDownLatch(1)
+        def childDone = new CountDownLatch(1)
+        def childThread = new AtomicReference<Thread>()
+
+        coordinationService = new DefaultResourceLockCoordinationService()
+        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(2), ResourceLockStatistics.NO_OP) {
+            @Override
+            void blocking(Runnable action) {
+                if (Thread.currentThread() === mainThread) {
+                    releaseLatch.countDown()
+                }
+                super.blocking(action)
+            }
+        }
+        workerRegistry.startProjectExecution(true)
+        lease = workerRegistry.startWorker()
+        backingExecutor = Executors.newFixedThreadPool(1)
+        workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 1, 2)
+        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), newUnconstrainedExecutor(), new SimpleWorker(), null)
+
+        when:
+        operationQueue.add(operation {
+            startedLatch.countDown()
+            releaseLatch.await()
+            operationQueue.add(operation {
+                childThread.set(Thread.currentThread())
+                childDone.countDown()
+            })
+            childDone.await()
+        })
+        assert startedLatch.await(10, TimeUnit.SECONDS)
+        operationQueue.waitForCompletion()
+
+        then:
+        childThread.get() === mainThread
+    }
+
+    def "waiting thread runs constrained operations added by in-flight unconstrained operations when it holds the only worker lease"() {
+        given:
+        def mainThread = Thread.currentThread()
+        def startedLatch = new CountDownLatch(1)
+        def releaseLatch = new CountDownLatch(1)
+        def childThread = new AtomicReference<Thread>()
+
+        coordinationService = new DefaultResourceLockCoordinationService()
+        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(1), ResourceLockStatistics.NO_OP) {
+            @Override
+            void blocking(Runnable action) {
+                if (Thread.currentThread() === mainThread) {
+                    releaseLatch.countDown()
+                }
+                super.blocking(action)
+            }
+        }
+        workerRegistry.startProjectExecution(true)
+        lease = workerRegistry.startWorker()
+        backingExecutor = Executors.newCachedThreadPool()
+        workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 0, 0)
+        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), newUnconstrainedExecutor(), new SimpleWorker(), null)
+
+        when:
+        operationQueue.addUnconstrained(operation {
+            startedLatch.countDown()
+            releaseLatch.await()
+            operationQueue.add(operation {
+                childThread.set(Thread.currentThread())
+            })
+        })
+        assert startedLatch.await(10, TimeUnit.SECONDS)
+        operationQueue.waitForCompletion()
+
+        then:
+        childThread.get() === mainThread
+    }
+
+    def "a thread that is not running an operation can add operations while work is still outstanding after waitForCompletion has started"() {
+        given:
+        def mainThread = Thread.currentThread()
+        def startedLatch = new CountDownLatch(1)
+        def releaseLatch = new CountDownLatch(1)
+        def outsiderDone = new CountDownLatch(1)
+        def outsiderFailure = new AtomicReference<Throwable>()
+        def childRuns = new AtomicInteger()
+
+        coordinationService = new DefaultResourceLockCoordinationService()
+        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(2), ResourceLockStatistics.NO_OP) {
+            @Override
+            void blocking(Runnable action) {
+                if (Thread.currentThread() === mainThread) {
+                    releaseLatch.countDown()
+                }
+                super.blocking(action)
+            }
+        }
+        workerRegistry.startProjectExecution(true)
+        lease = workerRegistry.startWorker()
+        backingExecutor = Executors.newCachedThreadPool()
+        workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 2, 4)
+        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), newUnconstrainedExecutor(), new SimpleWorker(), null)
+
+        when:
+        operationQueue.add(operation {
+            startedLatch.countDown()
+            releaseLatch.await()
+            def outsider = new Thread({
+                try {
+                    operationQueue.add(operation {
+                        childRuns.incrementAndGet()
+                    })
+                } catch (Throwable t) {
+                    outsiderFailure.set(t)
+                } finally {
+                    outsiderDone.countDown()
+                }
+            })
+            outsider.start()
+            outsiderDone.await()
+        })
+        assert startedLatch.await(10, TimeUnit.SECONDS)
+        operationQueue.waitForCompletion()
+
+        then:
+        outsiderFailure.get() == null
+        childRuns.get() == 1
+    }
+
+    def "in-flight operation cannot add operations once the queue is cancelled"() {
+        given:
+        setupQueue(2)
+        def parentDone = new CountDownLatch(1)
+        def childRuns = new AtomicInteger()
+
+        when:
+        operationQueue.add(operation {
+            try {
+                operationQueue.cancel()
+                operationQueue.add(operation {
+                    childRuns.incrementAndGet()
+                })
+            } finally {
+                parentDone.countDown()
+            }
+        })
+        assert parentDone.await(10, TimeUnit.SECONDS)
+        operationQueue.waitForCompletion()
+
+        then:
+        def e = thrown(MultipleBuildOperationFailures)
+        e.causes.size() == 1
+        e.causes[0] instanceof IllegalStateException
+        childRuns.get() == 0
     }
 
     private static TestBuildOperation operation(Closure<?> body) {
