@@ -65,13 +65,15 @@ public class EclipseDependenciesCreator {
     private final ProjectComponentIdentifier currentProjectId;
     private final GradleApiSourcesResolver gradleApiSourcesResolver;
     private final boolean inferModulePath;
+    private final ProjectModulePathResolver modulePathResolver;
 
-    public EclipseDependenciesCreator(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry, GradleApiSourcesResolver gradleApiSourcesResolver, boolean inferModulePath) {
+    public EclipseDependenciesCreator(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry, GradleApiSourcesResolver gradleApiSourcesResolver, boolean inferModulePath, ProjectModulePathResolver modulePathResolver) {
         this.classpath = classpath;
         this.projectDependencyBuilder = new ProjectDependencyBuilder(ideArtifactRegistry);
         this.currentProjectId = ((ProjectInternal) classpath.getProject()).getOwner().getComponentIdentifier();
         this.gradleApiSourcesResolver = gradleApiSourcesResolver;
         this.inferModulePath = inferModulePath;
+        this.modulePathResolver = modulePathResolver;
     }
 
     public List<AbstractClasspathEntry> createDependencyEntries() {
@@ -126,7 +128,7 @@ public class EclipseDependenciesCreator {
             if (!asJavaModule) {
                 Project artifactProject = project.findProject(componentIdentifier.getProjectPath());
                 if (artifactProject != null) {
-                    asJavaModule = EclipseClassPathUtil.isInferModulePath(artifactProject);
+                    asJavaModule = modulePathResolver.isInferModulePath(artifactProject);
                 }
             }
             projects.add(projectDependencyBuilder.build(componentIdentifier, classpath.getFileReferenceFactory().fromFile(artifact.getFile()), buildDependencies, testDependency, asJavaModule));

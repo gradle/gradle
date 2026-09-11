@@ -36,7 +36,8 @@ class EclipseDependenciesCreatorTest extends AbstractProjectBuilderSpec {
             eclipseClasspath,
             project.services.get(IdeArtifactRegistry),
             NullGradleApiSourcesResolver.INSTANCE,
-            false
+            false,
+            new DefaultProjectModulePathResolver()
         )
     }
 

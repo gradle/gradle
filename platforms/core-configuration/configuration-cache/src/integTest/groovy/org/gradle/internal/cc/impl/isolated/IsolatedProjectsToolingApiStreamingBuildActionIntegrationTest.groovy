@@ -43,7 +43,7 @@ class IsolatedProjectsToolingApiStreamingBuildActionIntegrationTest extends Abst
         then:
         fixture.assertModelStored {
             projectConfigured(":")
-            modelsCreated(":", 3)
+            modelsCreated(":", 4)
         }
 
         and:
@@ -87,7 +87,7 @@ class IsolatedProjectsToolingApiStreamingBuildActionIntegrationTest extends Abst
         then:
         fixture.assertModelStored {
             projectConfigured(":")
-            modelsCreated(":", 3)
+            modelsCreated(":", 4)
         }
 
         and:
