@@ -49,8 +49,8 @@ class PerformanceTestsPass(
                     allowEmpty = true,
                     description = "The baselines you want to run performance tests against. Empty means default baseline.",
                 )
-                param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
-                param("performance.db.username", "tcagent")
+                param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%security.performance.db.password%")
+                param("security.performance.db.username", "tcagent")
                 param("env.PERFORMANCE_CHANNEL", performanceTestSpec.channel())
                 text(
                     "performance.baselines",
@@ -96,8 +96,8 @@ testing/$performanceProjectName/build/performance-test-results.zip
                     extraParameters =
                         listOf(
                             "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
-                            "-Porg.gradle.performance.db.url" to "%performance.db.url%",
-                            "-Porg.gradle.performance.db.username" to "%performance.db.username%",
+                            "-Porg.gradle.performance.db.url" to "%security.performance.db.url%",
+                            "-Porg.gradle.performance.db.username" to "%security.performance.db.username%",
                             "-Porg.gradle.performance.dependencyBuildIds" to dependencyBuildIds,
                             "-Porg.gradle.performance.expectedBuckets" to bucketedPerformanceTests.size.toString(),
                             "-PperformanceBaselines" to "%performance.baselines%",

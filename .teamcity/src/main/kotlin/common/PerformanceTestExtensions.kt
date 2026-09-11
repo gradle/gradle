@@ -40,7 +40,7 @@ fun BuildType.applyPerformanceTestSettings(
     }
     params {
         param("env.JPROFILER_HOME", os.jprofilerHome)
-        param("performance.db.username", "tcagent")
+        param("security.performance.db.username", "tcagent")
     }
 }
 
@@ -64,8 +64,8 @@ fun performanceTestCommandLine(
 ) + os.javaInstallationLocations(arch) +
     listOf(
         "-Porg.gradle.performance.branchName" to "%teamcity.build.branch%",
-        "-Porg.gradle.performance.db.url" to "%performance.db.url%",
-        "-Porg.gradle.performance.db.username" to "%performance.db.username%",
+        "-Porg.gradle.performance.db.url" to "%security.performance.db.url%",
+        "-Porg.gradle.performance.db.username" to "%security.performance.db.username%",
     ).map { (key, value) -> os.escapeKeyValuePair(key, value) }
 
 const val INDIVIDUAL_PERFORAMCE_TEST_ARTIFACT_RULES = """

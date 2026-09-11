@@ -94,7 +94,7 @@ abstract class AdHocPerformanceScenario(
                 }
             }
 
-            param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%performance.db.password.tcagent%")
+            param("env.PERFORMANCE_DB_PASSWORD_TCAGENT", "%security.performance.db.password%")
             param("additional.gradle.parameters", "")
         }
 
