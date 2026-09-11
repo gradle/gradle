@@ -21,6 +21,10 @@ import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemGroups
 import org.gradle.api.problems.RootProblemGroup
 import org.gradle.api.problems.SubProblemGroup
+import org.gradle.internal.isolation.IsolatableFactory
+import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
+import org.gradle.internal.reflect.Instantiator
+import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
 import spock.lang.Specification
 
 import java.lang.reflect.Modifier
@@ -353,6 +357,19 @@ class PredefinedProblemGroupsTest extends Specification {
         then:
         copy == id
         copy.group.is(groups.compilation.java)
+    }
+
+    def "problem builder keeps predefined groups, so descriptions reach the reported problem"() {
+        def infrastructure = new ProblemsInfrastructure(new AdditionalDataBuilderFactory(), Mock(Instantiator), Mock(PayloadSerializer), Mock(IsolatableFactory), Mock(IsolatableToBytesSerializer), NoOpProblemDiagnosticsFactory.EMPTY_STREAM)
+
+        when:
+        def fromNameAndGroup = new DefaultProblemBuilder(infrastructure).id("Unused import", "Unused import", groups.compilation.java).build()
+        def fromId = new DefaultProblemBuilder(infrastructure).id(groups.compilation.java.problem("Unused import")).build()
+
+        then:
+        fromNameAndGroup.definition.id.group.is(groups.compilation.java)
+        fromNameAndGroup.definition.id.group.description == PredefinedProblemGroupDescriptions.COMPILATION_JAVA
+        fromId.definition.id.group.is(groups.compilation.java)
     }
 
     /**
