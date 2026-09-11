@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.provider
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
@@ -68,6 +67,7 @@ import org.gradle.kotlin.dsl.execution.Interpreter
 import org.gradle.kotlin.dsl.execution.ProgramId
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
+import org.gradle.kotlin.dsl.support.KotlinCompiler
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
@@ -110,7 +110,7 @@ class StandardKotlinScriptEvaluator(
     private val implicitImports: ImplicitImports,
     private val progressLoggerFactory: ProgressLoggerFactory,
     private val buildOperationRunner: BuildOperationRunner,
-    private val moduleRegistry: ModuleRegistry,
+    private val kotlinCompiler: KotlinCompiler,
     private val cachedClasspathTransformer: CachedClasspathTransformer,
     private val scriptExecutionListener: ScriptExecutionListener,
     private val executionEngine: ExecutionEngine,
@@ -172,7 +172,7 @@ class StandardKotlinScriptEvaluator(
         val interpreterHost = InterpreterHost(
             gradleProperties,
             buildTreeRootDir,
-            moduleRegistry,
+            kotlinCompiler,
             fileSystemAccess,
             classpathSnapshotCache,
             incrementalCompilationCache
@@ -197,7 +197,7 @@ class StandardKotlinScriptEvaluator(
     inner class InterpreterHost(
         gradleProperties: GradleProperties,
         override val buildTreeRootDir: Path,
-        override val moduleRegistry: ModuleRegistry,
+        override val kotlinCompiler: KotlinCompiler,
         override val fileSystemAccess: FileSystemAccess,
         override val classpathEntrySnapshotCache: KotlinDslClasspathEntrySnapshotCache,
         override val incrementalCompilationCache: KotlinDslIncrementalCompilationCache,

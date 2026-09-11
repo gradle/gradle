@@ -21,7 +21,6 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.internal.plugins.ExtensionContainerInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
-import org.junit.After
 import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doReturn
@@ -30,13 +29,6 @@ import org.mockito.kotlin.verify
 
 
 class SimplifiedKotlinScriptEvaluatorTest : TestWithTempFiles() {
-
-    @After
-    fun disposeCompiler() {
-        // Compiles against the test module registry; drop that compiler so in-process builds
-        // later in the same JVM don't see a second registry.
-        disposeKotlinCompilerContext()
-    }
 
     @Test
     fun `can eval script against Project mock`() {

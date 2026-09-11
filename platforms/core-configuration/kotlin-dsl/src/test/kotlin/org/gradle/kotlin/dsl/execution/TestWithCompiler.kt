@@ -26,7 +26,7 @@ import org.gradle.internal.classloader.DefaultClassLoaderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
-import org.gradle.kotlin.dsl.fixtures.TestModuleRegistry
+import org.gradle.kotlin.dsl.fixtures.sharedTestKotlinCompiler
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.sharedTestClasspathSnapshotCache
 import org.gradle.kotlin.dsl.fixtures.sharedTestIncrementalCompilationCache
@@ -87,7 +87,7 @@ abstract class TestWithCompiler : TestWithTempFiles() {
             programTarget = programTarget,
             implicitImports = emptyList(),
             logger = loggerFor<TestWithCompiler>(),
-            moduleRegistry = TestModuleRegistry,
+            kotlinCompiler = sharedTestKotlinCompiler,
             metadataCompatibilityChecker = object : KotlinMetadataCompatibilityChecker {
                 override fun incompatibleClasspathElements(classPath: ClassPath): List<File> = listOf()
             },

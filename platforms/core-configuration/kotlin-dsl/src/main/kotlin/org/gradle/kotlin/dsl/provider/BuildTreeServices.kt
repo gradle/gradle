@@ -16,14 +16,15 @@
 
 package org.gradle.kotlin.dsl.provider
 
-import org.gradle.internal.event.ListenerManager
+import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.internal.service.Provides
 import org.gradle.internal.service.ServiceRegistrationProvider
+import org.gradle.kotlin.dsl.support.DefaultKotlinCompiler
 
 
 internal object BuildTreeServices : ServiceRegistrationProvider {
 
     @Provides
-    fun createKotlinCompilerContextDisposer(listenerManager: ListenerManager) =
-        KotlinCompilerContextDisposer(listenerManager)
+    fun createKotlinCompiler(moduleRegistry: ModuleRegistry) =
+        DefaultKotlinCompiler(moduleRegistry)
 }

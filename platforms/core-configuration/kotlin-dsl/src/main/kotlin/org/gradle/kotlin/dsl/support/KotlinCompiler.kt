@@ -21,8 +21,14 @@ import org.gradle.api.HasImplicitReceiver
 import org.gradle.api.JavaVersion
 import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.api.internal.classpath.ModuleRegistry
+import org.gradle.api.invocation.Gradle
+import org.gradle.internal.InternalBuildAdapter
+import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.io.NullOutputStream
 import org.gradle.internal.logging.ConsoleRenderer
+import org.gradle.internal.service.scopes.ListenerService
+import org.gradle.internal.service.scopes.Scope
+import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
 import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
@@ -91,20 +97,7 @@ import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.experimental.util.PropertiesCollection
 
-// concurrent: under Isolated Projects, projects' scripts are compiled concurrently
-private val compilerInstances: MutableMap<ModuleRegistry, KotlinCompilerImpl> = ConcurrentHashMap()
-
-internal fun kotlinCompiler(moduleRegistry: ModuleRegistry): KotlinCompiler {
-    val compiler = compilerInstances.computeIfAbsent(moduleRegistry, { KotlinCompilerImpl(moduleRegistry) })
-    if (compilerInstances.size > 1) throw RuntimeException("Boooooom!")
-    return compiler
-}
-
-internal fun cleanupKotlinCompilers() {
-    compilerInstances.values.forEach { kotlinCompiler -> kotlinCompiler.clean() }
-    compilerInstances.clear()
-}
-
+@ServiceScope(Scope.BuildTree::class)
 internal interface KotlinCompiler {
     fun compileKotlinScriptToDirectory(
         outputDirectory: File,
@@ -124,11 +117,36 @@ internal interface KotlinCompiler {
     fun implicitReceiverOf(template: KClass<*>): KClass<*>?
 }
 
-private
-class KotlinCompilerImpl(val moduleRegistry: ModuleRegistry) : KotlinCompiler {
+@ListenerService
+@ServiceScope(Scope.BuildTree::class)
+internal
+class DefaultKotlinCompiler(private val moduleRegistry: ModuleRegistry) : InternalBuildAdapter(), KotlinCompiler, Stoppable {
 
-    private val lazyBTACompiler = lazy { BTACompiler(moduleRegistry) }
-    private val btaCompiler by lazyBTACompiler
+    private var btaCompiler: BTACompiler? = null
+
+    override fun projectsEvaluated(gradle: Gradle) {
+        // Reclaim the compiler before task execution on the happy path. This listener receives every
+        // build's event; act only on the root build's, when the whole tree is configured.
+        if (gradle.parent == null) {
+            stop()
+        }
+    }
+
+    // Also runs at build tree close: covers config failure, config-cache hits and tooling-api paths
+    // that never reach projectsEvaluated. A later compile opens a new session.
+    @Synchronized
+    override fun stop() {
+        btaCompiler?.close()
+        btaCompiler = null
+        receiverCache.clear()
+        BtaClasspathSnapshotter.closeSession()
+    }
+
+    // Under Isolated Projects, projects' scripts are compiled concurrently; only session access is
+    // synchronized, compilation runs outside the lock.
+    @Synchronized
+    private fun btaCompiler(): BTACompiler =
+        btaCompiler ?: BTACompiler(moduleRegistry).also { btaCompiler = it }
 
     override fun compileKotlinScriptToDirectory(
         outputDirectory: File,
@@ -189,7 +207,7 @@ class KotlinCompilerImpl(val moduleRegistry: ModuleRegistry) : KotlinCompiler {
         scriptIdentity: String
     ) {
         Output.withRedirecting(messageRenderer.log) {
-            btaCompiler.compile(
+            btaCompiler().compile(
                 listOf(Path(scriptFile.path)),
                 outputDirectory.toPath(),
                 compilerOptions,
@@ -206,13 +224,6 @@ class KotlinCompilerImpl(val moduleRegistry: ModuleRegistry) : KotlinCompiler {
                 throw ScriptCompilationException(messageRenderer.errors)
             }
         }
-    }
-
-    fun clean() {
-        if (lazyBTACompiler.isInitialized()) {
-            btaCompiler.clean()
-        }
-        receiverCache.clear()
     }
 
 }
@@ -575,7 +586,7 @@ private class BTACompiler(val moduleRegistry: ModuleRegistry) {
         }
     }
 
-    fun clean() {
+    fun close() {
         session.close()
     }
 

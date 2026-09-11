@@ -48,7 +48,7 @@ internal object BtaClasspathSnapshotter {
     /**
      * Snapshots [classpathEntry] with [session], shared by all compile-avoidance fingerprinting in
      * the process; created on demand, closed at the end of the build alongside the compilers' (see
-     * `KotlinCompilerContextDisposer`).
+     * `DefaultKotlinCompiler`).
      */
     fun snapshot(classpathEntry: Path, snapshotOutput: Path): HashCode =
         snapshot(kotlinToolchains.jvm, getOrCreateSession(), classpathEntry, snapshotOutput)

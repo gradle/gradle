@@ -62,7 +62,6 @@ dependencies {
     implementation(projects.hashingServices)
     implementation(projects.io)
     implementation(projects.logging)
-    implementation(projects.messaging)
     implementation(projects.projectFeaturesApi)
     implementation(projects.resources)
     implementation(projects.scopedPersistentCache)

@@ -49,6 +49,7 @@ import org.gradle.kotlin.dsl.cache.KotlinDslWorkspaceProvider
 import org.gradle.kotlin.dsl.normalization.KotlinCompileClasspathFingerprinter
 import org.gradle.kotlin.dsl.support.EmbeddedKotlinProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
+import org.gradle.kotlin.dsl.support.KotlinCompiler
 import org.gradle.plugin.management.internal.PluginHandler
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import java.nio.file.Path
@@ -107,12 +108,11 @@ object BuildServices : ServiceRegistrationProvider {
         implicitImports: ImplicitImports,
         progressLoggerFactory: ProgressLoggerFactory,
         buildOperationRunner: BuildOperationRunner,
-        moduleRegistry: ModuleRegistry,
+        kotlinCompiler: KotlinCompiler,
         cachedClasspathTransformer: CachedClasspathTransformer,
         scriptExecutionListener: ScriptExecutionListener,
         executionEngine: ExecutionEngine,
         workspaceProvider: KotlinDslWorkspaceProvider,
-        @Suppress("UNUSED_PARAMETER") kotlinCompilerContextDisposer: KotlinCompilerContextDisposer,
         fileCollectionFactory: FileCollectionFactory,
         inputFingerprinter: InputFingerprinter,
         internalOptions: InternalOptions,
@@ -139,7 +139,7 @@ object BuildServices : ServiceRegistrationProvider {
             implicitImports,
             progressLoggerFactory,
             buildOperationRunner,
-            moduleRegistry,
+            kotlinCompiler,
             cachedClasspathTransformer,
             scriptExecutionListener,
             executionEngine,

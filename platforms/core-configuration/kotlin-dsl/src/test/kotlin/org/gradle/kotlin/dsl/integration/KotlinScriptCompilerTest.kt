@@ -17,8 +17,7 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.internal.classloader.DefaultClassLoaderFactory
-import org.gradle.kotlin.dsl.fixtures.TestModuleRegistry
+import org.gradle.kotlin.dsl.fixtures.sharedTestKotlinCompiler
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.sharedTestClasspathSnapshotCache
 import org.gradle.kotlin.dsl.fixtures.sharedTestIncrementalCompilationCache
@@ -26,7 +25,6 @@ import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 import org.gradle.kotlin.dsl.integration.KotlinScriptCompilerTest.TheImplicitReceiver
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
-import org.gradle.kotlin.dsl.support.kotlinCompiler
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
 import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
@@ -54,8 +52,6 @@ open class TheKotlinScriptTemplate(
 
 
 class KotlinScriptCompilerTest : TestWithTempFiles() {
-
-    private val moduleRegistry = TestModuleRegistry
 
     @Test
     fun canInjectImplicitReceiver() {
@@ -102,7 +98,7 @@ class KotlinScriptCompilerTest : TestWithTempFiles() {
         script: String,
         template: KClass<out Any>,
     ) {
-        kotlinCompiler(moduleRegistry).compileKotlinScriptToDirectory(
+        sharedTestKotlinCompiler.compileKotlinScriptToDirectory(
             outputDir,
             KotlinCompilerOptions(),
             file("script.kts").apply {

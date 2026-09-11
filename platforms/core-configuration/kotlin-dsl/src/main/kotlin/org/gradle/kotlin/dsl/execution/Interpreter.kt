@@ -21,13 +21,11 @@ import org.gradle.api.GradleScriptException
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.classpath.ModuleRegistry
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.initialization.ClassLoaderScopeOrigin
-import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.internal.hash.HashCode
@@ -39,6 +37,7 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.internal.vfs.FileSystemAccess
 import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
 import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
+import org.gradle.kotlin.dsl.support.KotlinCompiler
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
@@ -153,7 +152,7 @@ class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner
 
         val buildTreeRootDir: Path
 
-        val moduleRegistry: ModuleRegistry
+        val kotlinCompiler: KotlinCompiler
 
         val fileSystemAccess: FileSystemAccess
 
@@ -350,7 +349,7 @@ class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner
                     programKind = programKind,
                     programTarget = programTarget,
                     implicitImports = host.implicitImports,
-                    moduleRegistry = host.moduleRegistry,
+                    kotlinCompiler = host.kotlinCompiler,
                     metadataCompatibilityChecker = metadataCompatibilityChecker,
                     fileSystemAccess = host.fileSystemAccess,
                     classpathEntrySnapshotCache = host.classpathEntrySnapshotCache,
@@ -511,7 +510,7 @@ class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner
                                 programKind = programKind,
                                 programTarget = programTarget,
                                 implicitImports = host.implicitImports,
-                                moduleRegistry = host.moduleRegistry,
+                                kotlinCompiler = host.kotlinCompiler,
                                 metadataCompatibilityChecker = scriptHost.metadataCompatibilityChecker,
                                 fileSystemAccess = host.fileSystemAccess,
                                 classpathEntrySnapshotCache = host.classpathEntrySnapshotCache,

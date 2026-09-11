@@ -18,8 +18,6 @@ package org.gradle.kotlin.dsl.execution
 
 import checkAllMetadataInClasspath
 import org.gradle.api.Project
-import org.gradle.api.internal.classpath.ModuleRegistry
-import org.gradle.internal.classloader.ClassLoaderFactory
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -38,6 +36,7 @@ import org.gradle.kotlin.dsl.support.CompiledKotlinPluginsBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsBuildscriptBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsPluginManagementBlock
 import org.gradle.kotlin.dsl.support.CompiledKotlinSettingsScript
+import org.gradle.kotlin.dsl.support.KotlinCompiler
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.bytecode.ALOAD
@@ -62,7 +61,6 @@ import org.gradle.kotlin.dsl.support.bytecode.loadByteArray
 import org.gradle.kotlin.dsl.support.bytecode.publicClass
 import org.gradle.kotlin.dsl.support.bytecode.publicDefaultConstructor
 import org.gradle.kotlin.dsl.support.bytecode.publicMethod
-import org.gradle.kotlin.dsl.support.kotlinCompiler
 import org.gradle.plugin.management.internal.MultiPluginRequests
 import org.gradle.plugin.use.internal.PluginRequestCollector
 import org.jetbrains.kotlin.buildtools.api.arguments.ExperimentalCompilerArgument
@@ -96,7 +94,7 @@ class ResidualProgramCompiler(
     private val programTarget: ProgramTarget,
     private val implicitImports: List<String>,
     private val logger: Logger,
-    private val moduleRegistry: ModuleRegistry,
+    private val kotlinCompiler: KotlinCompiler,
     private val metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker,
     private val fileSystemAccess: FileSystemAccess,
     private val classpathEntrySnapshotCache: KotlinDslClasspathEntrySnapshotCache,
@@ -261,7 +259,7 @@ class ResidualProgramCompiler(
                 stage1BlocksClassPath
             )
 
-        val implicitReceiverType = kotlinCompiler(moduleRegistry).implicitReceiverOf(scriptTemplate)!!
+        val implicitReceiverType = kotlinCompiler.implicitReceiverOf(scriptTemplate)!!
         compiledScriptClassInstantiation(compiledBuildscriptWithPluginsBlock) {
 
             emitPluginRequestCollectorInstantiation()
@@ -587,7 +585,7 @@ class ResidualProgramCompiler(
         scriptTemplate: KClass<out Any>
     ) {
 
-        val implicitReceiverType = kotlinCompiler(moduleRegistry).implicitReceiverOf(scriptTemplate)
+        val implicitReceiverType = kotlinCompiler.implicitReceiverOf(scriptTemplate)
         compiledScriptClassInstantiation(compiledScriptClass) {
 
             // ${compiledScriptClass}(scriptHost)
@@ -715,7 +713,7 @@ class ResidualProgramCompiler(
             InternalName.from(
                 compileBuildOperationRunner(originalPath, stage) {
                     checkAllMetadataInClasspath(compilerOptions, compileClassPath, metadataCompatibilityChecker)
-                    kotlinCompiler(moduleRegistry).compileKotlinScriptToDirectory(
+                    kotlinCompiler.compileKotlinScriptToDirectory(
                         outputDir,
                         compilerOptions,
                         scriptFile,

@@ -31,7 +31,7 @@ import org.gradle.internal.resource.ResourceLocation
 import org.gradle.internal.resource.TextResource
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.kotlin.dsl.fixtures.DummyCompiledScript
-import org.gradle.kotlin.dsl.fixtures.TestModuleRegistry
+import org.gradle.kotlin.dsl.fixtures.sharedTestKotlinCompiler
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 import org.gradle.kotlin.dsl.fixtures.assertStandardOutputOf
 import org.gradle.kotlin.dsl.fixtures.classLoaderFor
@@ -129,7 +129,6 @@ class InterpreterTest : TestWithTempFiles() {
         }
 
         val buildOperationRunner = TestBuildOperationRunner()
-        val testModuleRegistry = TestModuleRegistry
         val testFileSystemAccess = TestFiles.fileSystemAccess()
         val testClasspathSnapshotCache = sharedTestClasspathSnapshotCache
         val testIncrementalCompilationCache = sharedTestIncrementalCompilationCache
@@ -191,7 +190,7 @@ class InterpreterTest : TestWithTempFiles() {
 
             on { compilerOptions } doReturn KotlinCompilerOptions()
             on { buildTreeRootDir } doReturn root.toPath()
-            on { moduleRegistry } doReturn testModuleRegistry
+            on { kotlinCompiler } doReturn sharedTestKotlinCompiler
             on { fileSystemAccess } doReturn testFileSystemAccess
             on { classpathEntrySnapshotCache } doReturn testClasspathSnapshotCache
             on { incrementalCompilationCache } doReturn testIncrementalCompilationCache
@@ -431,7 +430,6 @@ class InterpreterTest : TestWithTempFiles() {
             }
         }
 
-        val testModuleRegistry = TestModuleRegistry
         val testFileSystemAccess = TestFiles.fileSystemAccess()
         val testClasspathSnapshotCache = sharedTestClasspathSnapshotCache
         val testIncrementalCompilationCache = sharedTestIncrementalCompilationCache
@@ -473,7 +471,7 @@ class InterpreterTest : TestWithTempFiles() {
                 it.getArgument<() -> String>(2)()
             }
             on { buildTreeRootDir } doReturn root.toPath()
-            on { moduleRegistry } doReturn testModuleRegistry
+            on { kotlinCompiler } doReturn sharedTestKotlinCompiler
             on { fileSystemAccess } doReturn testFileSystemAccess
             on { classpathEntrySnapshotCache } doReturn testClasspathSnapshotCache
             on { incrementalCompilationCache } doReturn testIncrementalCompilationCache
