@@ -79,6 +79,20 @@ Gradle provides a [set of features and abstractions](userguide/java_testing.html
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 
+#### Predefined problem groups in the Problems API
+
+The incubating [Problems API](userguide/reporting_problems.html#sec:predefined_problem_groups) now provides a predefined hierarchy of problem groups, available from the `Problems` service as `problems.groups`.
+Plugins place their problems into the matching predefined group, or create their own sub-group below one, and the types of the hierarchy enforce where problems and sub-groups may be added:
+
+```kotlin
+problems.reporter.report(problems.groups.compilation.java.problem("Unused import")) {}
+problems.reporter.report(problems.groups.transformation.group("KMP").problem("Bundle failed")) {}
+```
+
+Predefined groups are documented with a description of what belongs in them, and consumers of problem reports can rely on a stable, documented set of group names to navigate, filter, and aggregate problems.
+On the console, problems now show the chain of groups they belong to, for example `Unused import (in Compilation > Java)`.
+The existing `ProblemGroup.create()` and `ProblemId.create()` methods keep working; migrating to the predefined groups is recommended.
+
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
