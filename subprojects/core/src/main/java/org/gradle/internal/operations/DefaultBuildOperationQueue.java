@@ -178,6 +178,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             throw new IllegalStateException("waitForCompletion() must be called from a thread that holds a worker lease.");
         }
 
+        boolean hadWork;
         lock.lock();
         try {
             if (status == QueueStatus.WAITING_TO_COMPLETE) {
@@ -186,6 +187,7 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             if (status == QueueStatus.WORKING) {
                 status = QueueStatus.WAITING_TO_COMPLETE;
             }
+            hadWork = outstandingOperations > 0;
         } finally {
             lock.unlock();
         }
@@ -207,6 +209,37 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             } else {
                 workerLeases.whileDisallowingProjectLockChanges(() -> {
                     awaitCompletionOrPendingWork();
+                    return null;
+                });
+            }
+        }
+
+        /* TODO(humanize) PROBE, NOT FOR MERGE. Isolates the one behavioural delta 8b1260954c4
+           introduced: the loop above can exit through isComplete() having never yielded this thread's
+           worker lease, whereas the old code always finished with an unconditional blocking() call.
+           While the old waiter was parked, a peer DefaultPlanExecutor worker could take that lease and
+           start another project's task; now the waiter holds the lease and compiles its own sources
+           instead, which costs graph-level parallelism. That matches the measurements: the branch is
+           deterministically slow (CV ~0.8% against the baseline's ~2.2%) with its interquartile range
+           entirely above the baseline's, so the baseline is sometimes fast and the branch never is.
+
+           Placed after the drain and gated on hadWork to reproduce the old drain-then-yield sequencing
+           exactly; yielding before the drain would instead force this thread to re-win a contended
+           lease before running its own work, which would muddle a null result with a fresh slowdown.
+
+           Note this is NOT the task-pool compensation story from the previous commit message. That was
+           wrong: setOwningThreadPool is only ever called by DefaultConditionalExecutionQueue (the
+           Worker API pool) and WorkerLeaseQueueProcessor, never by DefaultPlanExecutor, so on this path
+           OWNING_WORKER_THREAD_POOL is null and notifyBlockingWorkStarting() is never reached. The
+           lease yield is all that blocking() actually contributes here. */
+        if (hadWork) {
+            if (allowAccessToProjectState) {
+                workerLeases.blocking(() -> {
+                });
+            } else {
+                workerLeases.whileDisallowingProjectLockChanges(() -> {
+                    workerLeases.blocking(() -> {
+                    });
                     return null;
                 });
             }
