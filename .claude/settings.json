@@ -21,7 +21,10 @@
       "Bash(.claude/skills/gradle-code-review/gradle-code-review.sh:*)"
     ],
     "deny": [
-      "Bash(git push *)"
+      "Bash(git push * master*)",
+      "Bash(git push * release*)",
+      "Bash(git push *:master*)",
+      "Bash(git push *:release*)"
     ]
   }
 }
