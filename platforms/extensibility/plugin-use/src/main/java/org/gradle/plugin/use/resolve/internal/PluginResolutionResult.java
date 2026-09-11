@@ -18,11 +18,13 @@ package org.gradle.plugin.use.resolve.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.plugins.UnknownPluginException;
+import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Formatter;
 import java.util.List;
 
@@ -66,6 +68,23 @@ public class PluginResolutionResult {
     public static PluginResolutionResult notFound(String sourceDescription, String notFoundMessage, String notFoundDetail) {
         return new PluginResolutionResult(null, ImmutableList.of(new NotFound(sourceDescription, notFoundMessage, notFoundDetail)));
     }
+
+    /**
+     * Record that the plugin was not found in some source of plugins, carrying the failures
+     * that occurred while searching it.
+     */
+    public static PluginResolutionResult notFound(
+        String sourceDescription,
+        String notFoundMessage,
+        String notFoundDetail,
+        Iterable<? extends Throwable> failures
+    ) {
+        NotFound notFound = new NotFound(
+            sourceDescription, notFoundMessage, notFoundDetail, failures
+        );
+        return new PluginResolutionResult(null, ImmutableList.of(notFound));
+    }
+
     /**
      * Record that the plugin was not found in multiple sources of plugins
      */
@@ -108,9 +127,32 @@ public class PluginResolutionResult {
             }
         }
 
-        String message = sb.toString();
-        Exception exception = new UnknownPluginException(message, request.getId().getId());
+        Exception exception = new UnknownPluginException(sb.toString(), request.getId().getId());
+        Throwable cause = collectFailures();
+        if (cause != null) {
+            exception.initCause(cause);
+        }
+
         throw new LocationAwareException(exception, request.getScriptDisplayName(), request.getLineNumber());
+    }
+
+    /**
+     * Folds the failures from every source into one cause, or {@code null} when there are none.
+     */
+    private @Nullable Throwable collectFailures() {
+        List<Throwable> failures = new ArrayList<>();
+        for (NotFound notFound : notFoundList) {
+            failures.addAll(notFound.failures);
+        }
+        if (failures.isEmpty()) {
+            return null;
+        }
+        if (failures.size() == 1) {
+            return failures.get(0);
+        }
+        return new DefaultMultiCauseException(
+            "Plugin resolution failed in more than one source", failures
+        );
     }
 
     public List<NotFound> getNotFound() {
@@ -122,11 +164,22 @@ public class PluginResolutionResult {
         private final String source;
         private final String message;
         private final String detail;
+        private final ImmutableList<Throwable> failures;
 
         private NotFound(String source, String message, @Nullable String detail) {
+            this(source, message, detail, ImmutableList.of());
+        }
+
+        private NotFound(
+            String source,
+            String message,
+            @Nullable String detail,
+            Iterable<? extends Throwable> failures
+        ) {
             this.source = source;
             this.message = message;
             this.detail = detail;
+            this.failures = ImmutableList.copyOf(failures);
         }
     }
 }
