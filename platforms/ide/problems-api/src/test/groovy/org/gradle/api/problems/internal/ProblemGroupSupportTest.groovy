@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal
 
 import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.ProblemId
 import spock.lang.Specification
 
 class ProblemGroupSupportTest extends Specification {
@@ -126,7 +127,7 @@ class ProblemGroupSupportTest extends Specification {
         !root.equals("Root")
     }
 
-    def "renders the group chain from the root"() {
+    def "renders the group chain from the root, and the id as name followed by its chain"() {
         def root = ProblemGroup.create("Root", "Root")
         def child = ProblemGroup.create("Child", "Child", root)
         def leaf = ProblemGroup.create("Leaf", "Leaf", child)
@@ -135,6 +136,7 @@ class ProblemGroupSupportTest extends Specification {
         ProblemGroupSupport.render(root) == "Root"
         ProblemGroupSupport.render(child) == "Root > Child"
         ProblemGroupSupport.render(leaf) == "Root > Child > Leaf"
+        ProblemGroupSupport.render(ProblemId.create("Unused import", "Unused import", child)) == "Unused import (in Root > Child)"
     }
 
     def "quotes group names that contain the separator or a quote so the rendering cannot be misread"() {
@@ -145,6 +147,16 @@ class ProblemGroupSupportTest extends Specification {
         expect:
         ProblemGroupSupport.render(tricky) == 'Root > "Java > Kotlin"'
         ProblemGroupSupport.render(quoted) == 'Root > "Say \\"hi\\""'
+        ProblemGroupSupport.render(ProblemId.create("a > b", "a > b", tricky)) == '"a > b" (in Root > "Java > Kotlin")'
+    }
+
+    def "problem names are quoted only when they contain the separator, since sentences legitimately contain quotes"() {
+        def root = ProblemGroup.create("Root", "Root")
+
+        expect:
+        ProblemGroupSupport.render(ProblemId.create('Class "Foo" is bad', 'Class "Foo" is bad', root)) == 'Class "Foo" is bad (in Root)'
+        ProblemGroupSupport.render(ProblemId.create("a > b (in c)", "a > b (in c)", root)) == '"a > b (in c)" (in Root)'
+        ProblemGroupSupport.render(ProblemId.create('Say "hi" > there', 'Say "hi" > there', root)) == '"Say \\"hi\\" > there" (in Root)'
     }
 
     def "quoteIfNeeded('#name') renders as #expected"() {
