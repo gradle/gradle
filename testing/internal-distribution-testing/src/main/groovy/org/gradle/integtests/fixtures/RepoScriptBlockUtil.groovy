@@ -27,7 +27,7 @@ import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 @CompileStatic
 class RepoScriptBlockUtil {
     static boolean isMirrorEnabled() {
-        return !Boolean.parseBoolean(System.getenv("IGNORE_MIRROR"))
+        return !Boolean.parseBoolean(System.getenv("IGNORE_REPO_MIRROR"))
     }
 
     static String repositoryDefinition(GradleDsl dsl = GROOVY, String type, String name, String url) {
@@ -69,7 +69,10 @@ class RepoScriptBlockUtil {
 
         private MirroredRepository(String originalUrl, String mirrorUrl, String type) {
             this.originalUrl = originalUrl
-            this.mirrorUrl = mirrorUrl ?: originalUrl
+            // Belt and braces for the emergency mirror bypass: a stale system property leaking in via
+            // Test Distribution or a cached executer must not be able to defeat IGNORE_REPO_MIRROR.
+            // See gradle/shared-with-buildSrc/mirrors.settings.gradle.kts.
+            this.mirrorUrl = isMirrorEnabled() ? (mirrorUrl ?: originalUrl) : originalUrl
             this.type = type
         }
 
