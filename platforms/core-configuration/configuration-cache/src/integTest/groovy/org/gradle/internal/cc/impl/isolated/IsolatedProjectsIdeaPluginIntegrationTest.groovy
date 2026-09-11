@@ -16,7 +16,7 @@
 
 package org.gradle.internal.cc.impl.isolated
 
-import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
 
 class IsolatedProjectsIdeaPluginIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
@@ -46,7 +46,6 @@ class IsolatedProjectsIdeaPluginIntegrationTest extends AbstractIsolatedProjects
         fixture.assertStateLoaded()
     }
 
-    @ToBeImplemented
     def "can apply idea plugin and scala plugin"() {
         settingsFile << """
             include("sub")
@@ -62,10 +61,55 @@ class IsolatedProjectsIdeaPluginIntegrationTest extends AbstractIsolatedProjects
         """
 
         when:
-        withIsolatedProjects()
-        fails("help")
+        isolatedProjectsRun("help")
 
         then:
-        failureHasCause("Applying 'idea' plugin to Scala projects is not supported with Isolated Projects. Disable Isolated Projects to use this integration.")
+        fixture.assertStateStored {
+            projectsConfigured(":", ":sub")
+        }
+
+        when:
+        isolatedProjectsRun("help")
+
+        then:
+        fixture.assertStateLoaded()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/27363")
+    def "generating idea files for Scala projects fails with Isolated Projects"() {
+        settingsFile << """
+            include("sub")
+        """
+        buildFile """
+            plugins { id("idea") }
+        """
+        buildFile "sub/build.gradle", """
+            plugins {
+                id("idea")
+                id("scala")
+            }
+        """
+
+        when:
+        isolatedProjectsFails(":sub:ideaModule")
+
+        then:
+        failureHasCause("Generating IDEA project files for Scala projects is not supported with Isolated Projects. Disable Isolated Projects to generate them.")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/27363")
+    def "generating the idea project file for a Scala project fails with Isolated Projects"() {
+        buildFile """
+            plugins {
+                id("idea")
+                id("scala")
+            }
+        """
+
+        when:
+        isolatedProjectsFails("ideaProject")
+
+        then:
+        failureHasCause("Generating IDEA project files for Scala projects is not supported with Isolated Projects. Disable Isolated Projects to generate them.")
     }
 }
