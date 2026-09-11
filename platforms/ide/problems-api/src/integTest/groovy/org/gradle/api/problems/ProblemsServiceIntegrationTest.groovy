@@ -87,6 +87,27 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/38147")
+    def "identical problems reported by different tasks are all reported"() {
+        given:
+        // Both tasks are instances of the same task type reporting from the same source location, so the
+        // reported problems only differ by their task location. They must not be deduplicated against each other.
+        buildFile getProblemReportingScript("""
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {}
+        """)
+        buildFile """
+            tasks.register("reportProblem2", ProblemReportingTask)
+        """
+
+        when:
+        run('reportProblem', 'reportProblem2')
+
+        then:
+        def taskPaths = [receivedProblem(0), receivedProblem(1)]*.oneLocation(TaskLocation)*.buildTreePath
+        taskPaths.toSet() == [':reportProblem', ':reportProblem2'].toSet()
+    }
+
     // This test will fail when the deprecated space-assignment syntax is removed.
     // Once this happens we need to find another test to validate the behavior.
     @Issue("https://github.com/gradle/gradle/issues/31980")
