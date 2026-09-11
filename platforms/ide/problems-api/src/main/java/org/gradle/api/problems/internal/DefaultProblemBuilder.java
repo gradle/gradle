@@ -122,15 +122,19 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         if (problemStream == null || (!collectStackLocation && areLocationsProvided())) {
             return null;
         }
-        return problemStream.forCurrentCaller(exceptionForStackLocation(this.severity == Severity.ERROR));
+        Throwable exception = getException();
+        if (exception != null) {
+            return problemStream.forThrownException(exception);
+        }
+        if (this.severity == Severity.ERROR) {
+            // Errors must always have location
+            return problemStream.forThrownException(new RuntimeException());
+        }
+        return problemStream.forCurrentCaller();
     }
 
     private boolean areLocationsProvided() {
         return !(contextLocations.isEmpty() && originLocations.isEmpty());
-    }
-
-    private Throwable exceptionForStackLocation(boolean overruleStacktraceLimit) {
-        return getException() == null && overruleStacktraceLimit ? new RuntimeException() : getException();
     }
 
     private void addLocationsFromDiagnostics(List<ProblemLocation> locations, ProblemDiagnostics diagnostics) {

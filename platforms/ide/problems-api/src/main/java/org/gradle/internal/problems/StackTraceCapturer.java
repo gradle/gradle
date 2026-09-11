@@ -16,14 +16,12 @@
 
 package org.gradle.internal.problems;
 
-import com.google.common.base.Supplier;
+import org.gradle.problems.buildtree.ProblemStream;
 import org.jspecify.annotations.Nullable;
 
 import java.util.concurrent.atomic.AtomicInteger;
 
-/**
- * Captures the stack trace that locates a problem, within per-stream budgets.
- */
+/// Captures the stack trace that locates a problem, within per-stream budgets.
 final class StackTraceCapturer {
 
     private final AtomicInteger remainingFull;
@@ -36,21 +34,32 @@ final class StackTraceCapturer {
         this.boundedCallerStackCapturer = boundedCallerStackCapturer;
     }
 
+    /// Captures a throwable that locates the calling thread, never one to retain as an exception.
     @Nullable
-    Throwable captureCaller() {
+    Throwable captureLocation() {
         if (remainingFull.getAndDecrement() > 0) {
             return new Exception();
         }
-        if (remainingBounded.getAndDecrement() > 0) {
-            return boundedCallerStackCapturer.captureCallerStack();
+        return captureBoundedLocation();
+    }
+
+    /// Captures an exception for the caller to retain, while the full budget lasts.
+    ///
+    /// There is no bounded fallback: a bounded capture locates the call without being an exception anyone
+    /// can surface. Use [#captureLocation()] for a problem that could not afford one.
+    @Nullable
+    Throwable captureRetainableException(ProblemStream.ExceptionCreator exceptionCreator) {
+        if (remainingFull.getAndDecrement() > 0) {
+            return exceptionCreator.create();
         }
         return null;
     }
 
+    /// Captures a cheap partial stack, enough to locate the caller.
     @Nullable
-    Throwable captureSupplied(Supplier<? extends Throwable> factory) {
-        if (remainingFull.getAndDecrement() > 0) {
-            return factory.get();
+    private Throwable captureBoundedLocation() {
+        if (remainingBounded.getAndDecrement() > 0) {
+            return boundedCallerStackCapturer.captureCallerStack();
         }
         return null;
     }

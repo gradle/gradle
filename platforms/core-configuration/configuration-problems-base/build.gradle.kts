@@ -34,7 +34,6 @@ dependencies {
 
     api(libs.kotlinStdlib)
 
-    implementation(libs.guava)
     implementation(libs.jacksonCore)
 
     implementation(projects.hashing)

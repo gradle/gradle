@@ -17,10 +17,8 @@
 package org.gradle.internal.problems;
 
 import com.google.common.annotations.VisibleForTesting;
-import com.google.common.base.Supplier;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.buildoption.InternalOptions;
-import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.problems.failure.Failure;
@@ -49,14 +47,9 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
     private static final ProblemStream.StackTraceTransformer NO_OP = new CopyStackTraceTransFormer();
 
     /// Caps the full stack traces captured per stream, since capturing one is expensive.
-    ///
-    /// Isolated Projects only raises the default, since it reports far more problems. An
-    /// explicit value applies to either kind of build.
     public static final String MAX_STACKTRACE_COUNT_PROPERTY = "org.gradle.internal.problem.diagnostics.stacktrace-count.max";
 
     private static final int DEFAULT_MAX_STACKTRACE_COUNT = 50;
-
-    private static final int DEFAULT_ISOLATED_PROJECTS_MAX_STACKTRACE_COUNT = 5000;
 
     /// Caps the cheap bounded captures past the full cap, keeping the stack walk cost negligible.
     ///
@@ -78,7 +71,6 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         FailureFactory failureFactory,
         ProblemLocationAnalyzer locationAnalyzer,
         UserCodeApplicationContext userCodeContext,
-        BuildModelParameters buildModelParameters,
         InternalOptions internalOptions,
         BoundedCallerStackCapturer boundedCallerStackCapturer
     ) {
@@ -86,17 +78,10 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
             failureFactory,
             locationAnalyzer,
             userCodeContext,
-            maxStackTraces(buildModelParameters, internalOptions),
+            internalOptions.getInt(MAX_STACKTRACE_COUNT_PROPERTY, DEFAULT_MAX_STACKTRACE_COUNT),
             internalOptions.getInt(MAX_BOUNDED_CAPTURES_PROPERTY, DEFAULT_MAX_BOUNDED_CAPTURES),
             boundedCallerStackCapturer
         );
-    }
-
-    private static int maxStackTraces(BuildModelParameters buildModelParameters, InternalOptions internalOptions) {
-        int defaultValue = buildModelParameters.isIsolatedProjects()
-            ? DEFAULT_ISOLATED_PROJECTS_MAX_STACKTRACE_COUNT
-            : DEFAULT_MAX_STACKTRACE_COUNT;
-        return internalOptions.getInt(MAX_STACKTRACE_COUNT_PROPERTY, defaultValue);
     }
 
     @VisibleForTesting
@@ -128,10 +113,30 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
 
     @Override
     public ProblemDiagnostics forException(Throwable exception) {
-        return locationFromStackTrace(exception, true, true, NO_OP);
+        return diagnosticsForThrownException(exception);
     }
 
-    private ProblemDiagnostics locationFromStackTrace(@Nullable Throwable throwable, boolean fromException, boolean keepException, ProblemStream.StackTraceTransformer transformer) {
+    /// Diagnostics for a problem described by a thrown exception, blaming the first user code in it.
+    private ProblemDiagnostics diagnosticsForThrownException(Throwable exception) {
+        return diagnostics(exception, true, exception, NO_OP);
+    }
+
+    /// Diagnostics for a problem reported with an exception, blaming the deepest user code in it.
+    private ProblemDiagnostics diagnosticsForReportedProblem(Throwable exception) {
+        return diagnostics(exception, false, exception, NO_OP);
+    }
+
+    /// Diagnostics for a problem located from a captured stack, which is then discarded.
+    private ProblemDiagnostics diagnosticsForCapturedStack(@Nullable Throwable capture, ProblemStream.StackTraceTransformer transformer) {
+        return diagnostics(capture, false, null, transformer);
+    }
+
+    private ProblemDiagnostics diagnostics(
+        @Nullable Throwable throwable,
+        boolean fromException,
+        @Nullable Throwable exceptionToReport,
+        ProblemStream.StackTraceTransformer transformer
+    ) {
         UserCodeApplicationContext.Application applicationContext = userCodeContext.current();
 
         if (applicationContext == null && throwable == null) {
@@ -139,16 +144,19 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         }
 
         List<StackTraceElement> stackTrace = Collections.emptyList();
-        Failure stackTracingFailure = null;
+        Failure failure = null;
         Location location = null;
         if (throwable != null) {
             stackTrace = transformer.transform(throwable.getStackTrace());
-            stackTracingFailure = failureFactory.create(throwable);
-            location = locationAnalyzer.locationForUsage(stackTracingFailure, fromException);
+            failure = failureFactory.create(throwable);
+            location = locationAnalyzer.locationForUsage(failure, fromException);
         }
 
         UserCodeSource source = applicationContext != null ? applicationContext.getSource() : null;
-        return new DefaultProblemDiagnostics(stackTracingFailure, keepException ? throwable : null, stackTrace, location, source);
+        // A throwable that is not reported was created only to hold a stack, so its type describes
+        // nothing about the problem and must not reach the report as the problem's failure.
+        Failure reportedFailure = exceptionToReport == null ? null : failure;
+        return new DefaultProblemDiagnostics(reportedFailure, exceptionToReport, stackTrace, location, source);
     }
 
     @NullMarked
@@ -160,38 +168,31 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         }
 
         @Override
-        public ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
-            if (exception == null) {
-                return locationFromStackTrace(getImplicitCallerThrowable(), false, false, NO_OP);
-            } else {
-                return locationFromStackTrace(exception, true, true, NO_OP);
-            }
+        public ProblemDiagnostics forThrownException(Throwable exception) {
+            return diagnosticsForThrownException(exception);
         }
 
         @Override
         public ProblemDiagnostics forCurrentCaller() {
-            return locationFromStackTrace(getImplicitCallerThrowable(), false, false, NO_OP);
+            return diagnosticsForCapturedStack(capturer.captureLocation(), NO_OP);
         }
 
         @Override
-        public ProblemDiagnostics forCurrentCaller(Supplier<? extends Throwable> exceptionFactory) {
-            return locationFromStackTrace(getImplicitThrowable(exceptionFactory), false, true, NO_OP);
+        public ProblemDiagnostics forCurrentCallerWithException(ExceptionCreator exceptionCreator) {
+            Throwable retained = capturer.captureRetainableException(exceptionCreator);
+            if (retained != null) {
+                return diagnosticsForReportedProblem(retained);
+            }
+            // Not affordable within the budget, so locate the problem without an exception.
+            return diagnosticsForCapturedStack(capturer.captureLocation(), NO_OP);
         }
 
         @Override
         public ProblemDiagnostics forCurrentCaller(StackTraceTransformer transformer) {
-            return locationFromStackTrace(getImplicitCallerThrowable(), false, false, transformer);
+            return diagnosticsForCapturedStack(capturer.captureLocation(), transformer);
         }
 
-        @Nullable
-        private Throwable getImplicitCallerThrowable() {
-            return capturer.captureCaller();
-        }
 
-        @Nullable
-        private Throwable getImplicitThrowable(Supplier<? extends Throwable> factory) {
-            return capturer.captureSupplied(factory);
-        }
     }
 
     private static class DefaultProblemDiagnostics implements ProblemDiagnostics {
