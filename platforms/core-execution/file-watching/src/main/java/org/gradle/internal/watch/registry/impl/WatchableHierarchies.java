@@ -37,6 +37,7 @@ import java.util.Deque;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.function.Predicate;
 import java.util.stream.Stream;
 
@@ -220,17 +221,19 @@ public class WatchableHierarchies {
     }
 
     @CheckReturnValue
-    public SnapshotHierarchy removeUnwatchableContentOnBuildStart(SnapshotHierarchy root, Invalidator invalidator, WatchMode watchMode, List<File> unsupportedFileSystems) {
+    public SnapshotHierarchy removeUnwatchableContentOnBuildStart(SnapshotHierarchy root, Invalidator invalidator, WatchMode watchMode, List<File> unsupportedFileSystems, Set<File> verifiedHierarchies) {
         SnapshotHierarchy newRoot = root;
-        newRoot = removeUnprovenHierarchies(newRoot, invalidator, watchMode);
+        newRoot = removeUnprovenHierarchies(newRoot, invalidator, watchMode, verifiedHierarchies);
         newRoot = updateUnwatchableFilesOnBuildStart(newRoot, invalidator, unsupportedFileSystems);
         return newRoot;
     }
 
     @CheckReturnValue
-    private SnapshotHierarchy removeUnprovenHierarchies(SnapshotHierarchy root, Invalidator invalidator, WatchMode watchMode) {
-        // Remove hierarchies that did not respond to a watch probe
+    private SnapshotHierarchy removeUnprovenHierarchies(SnapshotHierarchy root, Invalidator invalidator, WatchMode watchMode, Set<File> verifiedHierarchies) {
+        // Remove hierarchies that neither responded to a watch probe nor were verified against the
+        // file system by a completed scan.
         return probeRegistry.unprovenHierarchies()
+            .filter(unprovenHierarchy -> !verifiedHierarchies.contains(unprovenHierarchy))
             .reduce(root, (currentRoot, unprovenHierarchy) -> {
                 if (hierarchies.remove(unprovenHierarchy)) {
                     watchMode.loggerForWarnings(LOGGER).warn(INVALIDATING_HIERARCHY_MESSAGE + " {}", unprovenHierarchy);

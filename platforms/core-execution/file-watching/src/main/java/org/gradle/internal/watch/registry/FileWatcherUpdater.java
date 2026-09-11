@@ -93,10 +93,28 @@ public interface FileWatcherUpdater {
     /**
      * Remove watched hierarchies that have been moved.
      *
-     * @see FileWatcherRegistry#updateVfsOnBuildStarted(SnapshotHierarchy, WatchMode, java.util.List)
+     * @see FileWatcherRegistry#updateVfsOnBuildStarted(SnapshotHierarchy, WatchMode, java.util.List, WatcherVerificationResult)
      */
     @CheckReturnValue
-    SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems);
+    SnapshotHierarchy updateVfsOnBuildStarted(SnapshotHierarchy root, WatchMode watchMode, List<File> unsupportedFileSystems, WatcherVerificationResult verification);
+
+    /**
+     * Checks whether the watcher is still delivering, without holding the virtual file system lock.
+     *
+     * <p>Re-arms every probe and walks the retained state of the probed hierarchies, abandoning the walk
+     * as soon as a probe event arrives. The caller applies the result under the lock.</p>
+     */
+    WatcherVerificationResult verifyWatcherIsCurrent(SnapshotHierarchy root);
+
+    /**
+     * Returns whether the path is a watch probe file, of any generation.
+     */
+    boolean isProbeFile(String path);
+
+    /**
+     * Returns whether the path is the probe directory of any watched hierarchy.
+     */
+    boolean isProbeDirectory(String path);
 
     /**
      * Remove everything from the root which can't be kept after the current build finished.
