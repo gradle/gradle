@@ -42,4 +42,15 @@ public interface Problems {
      * @since 8.11
      */
     ProblemReporter getReporter();
+
+    /**
+     * Returns the problem groups.
+     * <p>
+     * Problem ids should be created from these groups, for example
+     * {@code getGroups().getCompilation().getJava().problem("Unused import")}.
+     *
+     * @return The predefined problem groups.
+     * @since 9.9.0
+     */
+    ProblemGroups getGroups();
 }
