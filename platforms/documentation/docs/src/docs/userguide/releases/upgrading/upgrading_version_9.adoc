@@ -106,6 +106,50 @@ abstract class UnpackTask @Inject constructor(
 
 See <<working_with_files.adoc#sec:unpacking_archives_example, Unpacking archives>> in the Gradle User Manual for more details.
 
+[[value_source_parameters_service_injection]]
+==== Deprecation of service injection into value source parameters
+
+The link:{javadocPath}/org/gradle/api/provider/ValueSourceParameters.html[`ValueSourceParameters`] of a link:{javadocPath}/org/gradle/api/provider/ValueSource.html[`ValueSource`] are data holders: they carry the inputs of the value source as properties and other serializable values, and Gradle isolates them before the value is obtained.
+Declaring an `@Inject` getter or constructor that takes a Gradle service on a parameters type, or on a type nested in it, is now deprecated.
+It still works and emits a deprecation warning in Gradle 9.x, and it will fail with an error in Gradle 10.
+
+Such an injection was never supported, and it did not work reliably: the injected service was lost as soon as the parameters declared a property, and anything read through it was not tracked as a build configuration input.
+
+[source,kotlin]
+.Deprecated: a service injected into the parameters
+----
+interface GreetingParameters : ValueSourceParameters {
+    @get:Inject
+    val providers: ProviderFactory
+}
+
+abstract class Greeting : ValueSource<String, GreetingParameters> {
+    override fun obtain(): String = parameters.providers.gradleProperty("greeting").get()
+}
+
+val greeting = providers.of(Greeting::class) {}
+----
+
+The supported way is to compute the value that needs the service where the provider is created, and to pass it in as a parameter:
+
+[source,kotlin]
+.Instead: pass the value as a parameter
+----
+interface GreetingParameters : ValueSourceParameters {
+    val greeting: Property<String>
+}
+
+abstract class Greeting : ValueSource<String, GreetingParameters> {
+    override fun obtain(): String = parameters.greeting.get()
+}
+
+val greeting = providers.of(Greeting::class) {
+    parameters.greeting = providers.gradleProperty("greeting")
+}
+----
+
+A value source that needs to run an external process injects link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] into the `ValueSource` implementation itself, as described in <<configuration_cache_requirements.adoc#config_cache:requirements:value_source,Using External Information Sources>>.
+
 [[changes_9.8.0]]
 == Upgrading from 9.7.0 and earlier
 
