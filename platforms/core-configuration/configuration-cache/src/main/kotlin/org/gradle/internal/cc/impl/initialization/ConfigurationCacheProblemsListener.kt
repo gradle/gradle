@@ -66,7 +66,6 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             text(" caused by invocation ")
             reference(getterName)
         }
-            .exception("Accessing non-serializable type '$injectedServiceType' during execution time is unsupported.")
             .documentationSection(DocumentationSection.RequirementsDisallowedTypes)
             .build()
         problems.onExecutionTimeProblem(problem)
@@ -95,7 +94,6 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
             text("external process started ")
             reference(command)
         }
-            .exception("Starting an external process '$command' during configuration time is unsupported.")
             .documentationSection(RequirementsExternalProcess)
             .build()
         problems.onProblem(problem)
@@ -134,13 +132,14 @@ class DefaultConfigurationCacheProblemsListener internal constructor(
                     text(" at execution time is unsupported with the configuration cache.")
                 }
             }
-                .exception(
+                .exceptionMessage {
+                    // The exception message is not used for grouping, so it can name the accessing task:
                     if (isExecutingOtherTask) {
                         "Execution of $runningTask caused invocation of '$invocationDescription' by $task at execution time which is unsupported with the configuration cache."
                     } else {
                         "Invocation of '$invocationDescription' by $task at execution time is unsupported with the configuration cache."
                     }
-                )
+                }
                 .documentationSection(RequirementsUseProjectDuringExecution)
                 .mapLocation { locationForTask(it, contextTask) }
                 .build()

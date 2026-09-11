@@ -25,7 +25,6 @@ import org.gradle.api.plugins.ExtraPropertiesExtension
 import org.gradle.api.reflect.TypeOf
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.extensibility.DefaultExtensionsSchema
-import org.gradle.internal.extensions.stdlib.capitalized
 
 internal class CrossProjectConfigurationReportingGradleExtensionsContainer(
     private val delegate: ExtensionContainerInternal,
@@ -40,9 +39,7 @@ internal class CrossProjectConfigurationReportingGradleExtensionsContainer(
                 reference(referrer.buildTreePath)
                 text(" cannot access ")
                 reference("Gradle.extensions")
-            }
-                .exception { message -> message.capitalized() }
-                .build()
+            }.build()
         }
     }
 

@@ -21,6 +21,7 @@ import org.gradle.internal.cc.impl.problems.JsonWriter
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.configuration.problems.StructuredMessage.Fragment.Reference
 import org.gradle.internal.configuration.problems.StructuredMessage.Fragment.Text
+import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.internal.problems.failure.Failure
 import org.gradle.problems.Location
 import org.gradle.util.Path
@@ -89,6 +90,13 @@ data class StructuredMessage(val fragments: List<Fragment>) {
             is Reference -> "$quote${fragment.name}$quote"
         }
     }
+
+    /**
+     * Renders a message to stand on its own, such as in an exception message.
+     *
+     * Messages are typically not capitalized, so that they can be part of a longer sentence.
+     */
+    fun renderCapitalized() = render().capitalized()
 
     override fun toString(): String = render()
 

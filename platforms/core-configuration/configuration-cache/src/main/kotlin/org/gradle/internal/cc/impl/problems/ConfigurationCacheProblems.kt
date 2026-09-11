@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl.problems
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Sets.newConcurrentHashSet
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
@@ -277,6 +278,7 @@ class ConfigurationCacheProblems(
             .mapLocation {
                 trace
             }
+            .informational()
             .documentationSection(DocumentationSection.TaskOptOut).build()
         report.onIncompatibleTask(problem)
         summarizer.onIncompatibleTask()
@@ -308,7 +310,9 @@ class ConfigurationCacheProblems(
         }
 
         if (severity == ProblemSeverity.Interrupting) {
-            val exception = problem.exception ?: error("Interrupting problems must have an associated exception. Got: $problem")
+            // The exception is missing once the full stack-capture budget is spent, which is unlikely
+            // for an interrupting problem, since the build stops at the first one.
+            val exception = problem.exception ?: InvalidUserCodeException(problem.message.renderCapitalized())
             throw exception
         }
     }
