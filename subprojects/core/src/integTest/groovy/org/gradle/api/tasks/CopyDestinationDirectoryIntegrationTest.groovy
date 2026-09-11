@@ -183,7 +183,7 @@ class CopyDestinationDirectoryIntegrationTest extends AbstractIntegrationSpec {
         task << ['Copy', 'Sync']
     }
 
-    def "task action can #operation into a directory derived from the task's own output directory"() {
+    def "task action can #operation into a directory derived with #locationMethod from the task's own output directory"() {
         buildFile """
             abstract class CustomTask extends DefaultTask {
                 @InputDirectory abstract DirectoryProperty getSource()
@@ -192,7 +192,7 @@ class CopyDestinationDirectoryIntegrationTest extends AbstractIntegrationSpec {
                 @TaskAction void go() {
                     fs.$operation {
                         from(source)
-                        into(outputDirectory.dir("nested"))
+                        into(outputDirectory.$locationMethod("nested"))
                     }
                 }
             }
@@ -209,7 +209,11 @@ class CopyDestinationDirectoryIntegrationTest extends AbstractIntegrationSpec {
         file('build/out/nested/a.txt').text == 'a'
 
         where:
-        operation << ['copy', 'sync']
+        operation | locationMethod
+        'copy'    | 'dir'
+        'copy'    | 'file'
+        'sync'    | 'dir'
+        'sync'    | 'file'
     }
 
     def "#task subclass can wire its own directory property through into() in its constructor"() {
