@@ -44,6 +44,47 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
         fixture.only("Configure project :")
     }
 
+    def "trace stays readable when a problem in a predefined group is reported"() {
+        // Predefined problem groups expose their children, and children expose their parent. The trace
+        // serializes progress details by walking getters, so groups need explicit serialization to avoid a cycle.
+        given:
+        buildFile """
+            import org.gradle.api.problems.Problems
+
+            abstract class ReportProblem extends DefaultTask {
+                @Inject
+                abstract Problems getProblems()
+
+                @TaskAction
+                void run() {
+                    problems.reporter.report(problems.groups.compilation.java.problem("Unused import")) {}
+                }
+            }
+
+            tasks.register("reportProblem", ReportProblem)
+        """
+
+        when:
+        run "reportProblem", "-D${BuildOperationTrace.SYSPROP}=trace"
+
+        then:
+        def tree = BuildOperationTrace.readTree(file("trace").path)
+        def problemEvents = new BuildOperationTreeFixture(tree).records.collectMany { it.progress }
+            .findAll { it.detailsClassName == "org.gradle.api.problems.internal.DefaultProblemProgressDetails" }
+            .collect { it.details.problem }
+        def problem = problemEvents.find { it.definition.id.name == "Unused import" }
+        problem != null
+        def group = problem.definition.id.group
+        group.name == "Java"
+        group.displayName == "Java"
+        group.description == "Java code compilation, including the compiler's configuration, compiler invocation, or compiler plugins."
+        group.parent.name == "Compilation"
+        group.parent.displayName == "Compilation"
+        group.parent.description == "Code compilation, including the compiler's configuration, compiler invocation, or compiler plugins."
+        group.parent.parent == null
+        group.keySet() == ["name", "displayName", "description", "parent"] as Set
+    }
+
     def "produces operations trace when no path is provided"() {
         when:
         run "help", "-D${BuildOperationTrace.SYSPROP}="
