@@ -27,6 +27,9 @@ class CheckProject(
 
         params {
             if (model.branch.isMaster || model.branch.isExperimental) {
+                // The advanced launch mode runs Gradle as a plain command line instead of going through the
+                // Tooling API, which is what makes the runner support Isolated Projects. See TW-98463.
+                param("teamcity.internal.gradle.runner.launch.mode", "gradle_v2")
                 param("env.GRADLE_OPTS", "-Dorg.gradle.isolated-projects=%enableIsolatedProjects%")
             }
             param("credentialsStorageType", "credentialsJSON")
