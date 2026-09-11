@@ -21,8 +21,10 @@ import com.google.common.collect.Iterables;
 import com.google.common.collect.Lists;
 import com.google.common.collect.Sets;
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -530,7 +532,15 @@ public abstract class IdeaPlugin extends IdePlugin {
     @SuppressWarnings("deprecation")
     private void configureForScalaPlugin() {
         if (getBuildFeatures().getIsolatedProjects().getActive().get()) {
-            // IdeaScalaConfigurer requires cross-project access, only used by the deprecated `gradle idea` task
+            project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
+                @Override
+                public void execute(ScalaBasePlugin scalaBasePlugin) {
+                    failGenerationTaskOnExecution(IDEA_MODULE_TASK_NAME);
+                    if (isRoot()) {
+                        failGenerationTaskOnExecution(IDEA_PROJECT_TASK_NAME);
+                    }
+                }
+            });
             return;
         }
         project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
@@ -544,9 +554,22 @@ public abstract class IdeaPlugin extends IdePlugin {
         }
     }
 
+    private void failGenerationTaskOnExecution(String taskName) {
+        project.getTasks().named(taskName, generationTask -> generationTask.doFirst(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                failOnIncompatibleWithIsolatedProjects();
+            }
+        }));
+    }
+
     private void ideaModuleDependsOnRoot() {
         // see IdeaScalaConfigurer which requires the ipr to be generated first
         project.getTasks().named(IDEA_MODULE_TASK_NAME, dependsOn(project.getRootProject().getTasks().named(IDEA_PROJECT_TASK_NAME)));
+    }
+
+    private static void failOnIncompatibleWithIsolatedProjects() {
+        throw new GradleException("Generating IDEA project files for Scala projects is not supported with Isolated Projects. Disable Isolated Projects to generate them.");
     }
 
     private void linkCompositeBuildDependencies(final ProjectInternal project) {
