@@ -25,7 +25,6 @@ import org.gradle.api.internal.file.copy.CopySpecInternal;
 import org.gradle.api.internal.file.copy.DestinationRootCopySpec;
 import org.gradle.api.internal.file.copy.FileCopyAction;
 import org.gradle.api.internal.file.copy.SyncCopyActionDecorator;
-import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.internal.file.Deleter;
@@ -108,8 +107,9 @@ public abstract class Sync extends AbstractCopyTask {
      *
      * @return the destination directory property
      * @since 9.8.0
-     */
+    */
     @Incubating
+    @Optional
     @OutputDirectory
     public DirectoryProperty getDestinationDirectory() {
         return getRootSpec().getDestinationDirectory();
@@ -121,7 +121,7 @@ public abstract class Sync extends AbstractCopyTask {
      * @return The destination dir.
      * @since 0.9
      */
-    @ReplacedBy("destinationDirectory")
+    @OutputDirectory
     @NotToBeReplacedByLazyProperty(because = "Superseded by the lazy getDestinationDirectory() property", willBeDeprecated = true)
     public File getDestinationDir() {
         return getRootSpec().getDestinationDir();

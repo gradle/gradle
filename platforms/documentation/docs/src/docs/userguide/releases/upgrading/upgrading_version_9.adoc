@@ -128,6 +128,23 @@ Builds that relied on the previous failure to surface misconfiguration should va
 
 See <<toolchains.adoc#sec:custom_loc, Custom Toolchain Locations>> in the Gradle User Manual for details.
 
+[[copy_sync_destination_directory_property]]
+==== `Copy` and `Sync` destination is now a lazy `destinationDirectory` property
+
+link:{javadocPath}/org/gradle/api/tasks/Copy.html[`Copy`] and link:{javadocPath}/org/gradle/api/tasks/Sync.html[`Sync`] now expose the destination as an incubating `DirectoryProperty destinationDirectory`.
+For standard `Copy` and `Sync` tasks, `into(...)`, `setDestinationDir(File)`, `getDestinationDir()`, and `destinationDirectory` all configure or expose the same destination.
+
+During Gradle 9.x, both `destinationDir` and `destinationDirectory` are registered as task outputs for binary compatibility.
+The new `destinationDirectory` output is optional, allowing task types compiled against an earlier Gradle version that override `getDestinationDir()` to continue supplying the destination through the legacy output.
+In Gradle 10, `destinationDirectory` will become the sole registered output.
+
+Task types overriding the legacy accessors require special care during this transition:
+
+* An overridden `getDestinationDir()` takes precedence when the task executes, even if `destinationDirectory` is configured separately.
+* An overridden `setDestinationDir(File)` is not invoked when the destination is configured through `destinationDirectory`.
+
+Either override can cause the legacy and lazy destinations to get out of sync, so task authors should migrate away from overriding these methods.
+
 === Deprecations
 
 [[deprecate_implicit_parallel_model_building]]
