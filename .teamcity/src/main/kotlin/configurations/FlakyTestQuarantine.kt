@@ -130,12 +130,16 @@ class FlakyTestQuarantine(
                 name =
                     "FLAKY_TEST_QUARANTINE_${testCoverage.testType.name.uppercase()}_${testCoverage.testJvmVersion.name.uppercase()}"
                 val testTaskName =
-                    if (testCoverage.testType ==
-                        TestType.ISOLATED_PROJECTS
-                    ) {
-                        "isolatedProjectsIntegTest"
-                    } else {
-                        "${testCoverage.testType.asCamelCase()}Test"
+                    when (testCoverage.testType) {
+                        TestType.ISOLATED_PROJECTS -> "isolatedProjectsIntegTest"
+                        // One task per tested Gradle version, and on Windows each costs about five
+                        // minutes to start a JVM and unpack a distribution before it runs roughly
+                        // forty seconds of tests. allVersionsCrossVersionTest pays that 58 times,
+                        // once per major.minor. Whether a test still flakes does not depend on which
+                        // patch release of Gradle 5 it runs against, so the quarantine takes the one
+                        // task per major that quickFeedbackCrossVersionTest covers.
+                        TestType.ALL_VERSIONS_CROSS_VERSION -> "quickFeedbackCrossVersionTest"
+                        else -> "${testCoverage.testType.asCamelCase()}Test"
                     }
                 tasks = "clean $testTaskName"
                 gradleParams = parameters
