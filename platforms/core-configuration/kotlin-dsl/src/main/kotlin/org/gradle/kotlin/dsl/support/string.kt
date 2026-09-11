@@ -26,3 +26,9 @@ fun String.normaliseLineSeparators(): String =
 
 fun String.uppercaseFirstChar(): String =
     replaceFirstChar { it.uppercase(Locale.US) }
+
+
+fun resolverEnvironmentStringFor(properties: Iterable<Pair<String, List<String>>>): String =
+    properties.joinToString(separator = ",") { (key, values) ->
+        "$key=\"${values.joinToString(":")}\""
+    }

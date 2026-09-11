@@ -74,6 +74,8 @@ class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
             """
             tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
                 compilerOptions.freeCompilerArgs.add("-Xskip-metadata-version-check")
+                // this version's Kotlin cannot compile scripts with K2 in LightTree mode
+                compilerOptions.freeCompilerArgs.add("-Xuse-fir-lt=false")
             }
             """
         )

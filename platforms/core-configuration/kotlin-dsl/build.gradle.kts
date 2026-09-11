@@ -44,6 +44,7 @@ dependencies {
 
     implementation(projects.baseAsm)
     implementation(projects.credentialsApi)
+    implementation(projects.files)
     implementation(projects.instrumentationReporting)
     implementation(projects.buildOperations)
     implementation(projects.buildDiscoveryImpl)
@@ -57,12 +58,10 @@ dependencies {
     implementation(projects.execution)
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)
-    implementation(projects.files)
     implementation(projects.functional)
     implementation(projects.hashingServices)
     implementation(projects.io)
     implementation(projects.logging)
-    implementation(projects.messaging)
     implementation(projects.projectFeaturesApi)
     implementation(projects.resources)
     implementation(projects.scopedPersistentCache)
@@ -88,16 +87,10 @@ dependencies {
     api(libs.kotlinScriptingCommon) {
         isTransitive = false
     }
-    implementation(libs.kotlinScriptingJvm) {
-        isTransitive = false
-    }
-    implementation(libs.kotlinScriptingJvmHost) {
-        isTransitive = false
-    }
     implementation(libs.kotlinScriptingCompilerEmbeddable) {
         isTransitive = false
     }
-    api(libs.kotlinScriptingCompilerImplEmbeddable) {
+    implementation(libs.kotlinScriptingCompilerImplEmbeddable) {
         isTransitive = false
     }
     implementation(libs.kotlinSamWithReceiverCompilerPlugin) {
@@ -111,6 +104,15 @@ dependencies {
     }
 
     runtimeOnly(libs.kotlinBuildToolsImpl) {
+        isTransitive = false
+    }
+    runtimeOnly(libs.kotlinToolingCore) {
+        isTransitive = false
+    }
+    runtimeOnly(libs.kotlinScriptingJvm) {
+        isTransitive = false
+    }
+    runtimeOnly(libs.kotlinCompilerRunner) {
         isTransitive = false
     }
 
@@ -154,8 +156,10 @@ dependencies {
     testFixturesImplementation(projects.unitTestFixtures)
     testFixturesImplementation(projects.serviceRegistryImpl)
 
+    testFixturesImplementation(testFixtures(projects.core))
     testFixturesImplementation(testFixtures(projects.hashing))
     testFixturesImplementation(testFixtures(projects.buildOperations))
+    testFixturesImplementation(testFixtures(projects.persistentCache))
 
     testFixturesImplementation(libs.kotlinCompilerEmbeddable)
 

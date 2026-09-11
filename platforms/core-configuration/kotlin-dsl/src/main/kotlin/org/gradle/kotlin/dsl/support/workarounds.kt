@@ -1,5 +1,5 @@
 /*
- * Copyright 2023 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,17 +14,19 @@
  * limitations under the License.
  */
 
-package org.gradle.kotlin.dsl.normalization
+package org.gradle.kotlin.dsl.support
 
-import org.gradle.cache.IndexedCache
-import org.gradle.internal.hash.HashCode
-import org.gradle.internal.service.scopes.Scope
-import org.gradle.internal.service.scopes.ServiceScope
+import kotlin.script.experimental.api.SourceCode
+import kotlin.script.experimental.host.FileBasedScriptSource
 
 
-@ServiceScope(Scope.UserHome::class)
-class KotlinDslCompileAvoidanceClasspathHashCache(val cache: IndexedCache<HashCode, HashCode>) {
-
-
-    fun getHash(checksum: HashCode, supplier: () -> HashCode) = cache.get(checksum, supplier)
-}
+/**
+ * [SourceCode.text] on file-based sources opens a stream it never closes (KT-88453),
+ * holding a file handle in the compiler process until GC; read the file directly instead.
+ */
+internal
+fun textOf(script: SourceCode): String =
+    when (script) {
+        is FileBasedScriptSource -> script.file.readText().removePrefix("\uFEFF")
+        else -> script.text
+    }

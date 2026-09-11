@@ -121,7 +121,7 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
 
         where:
         typeOfFailure | error                                    | expectedReportedError
-        "compilation" | "broken !!!"                             | /Script compilation error:\s+Line 1: broken !!!/
+        "compilation" | "broken !!!"                             | /Script compilation errors?:\s+Line 1: broken !!!/
         "runtime"     | "throw RuntimeException(\"broken !!!\")" | /Settings file '.*?' line: 1\s+broken !!!/
     }
 
@@ -144,7 +144,7 @@ class GradleDslBaseScriptModelCrossVersionSpec extends AbstractKotlinScriptModel
 
         where:
         typeOfFailure | error                                    | expectedReportedError
-        "compilation" | "broken !!!"                             | /Script compilation error:\s+Line 1: broken !!!/
+        "compilation" | "broken !!!"                             | /Script compilation errors?:\s+Line 1: broken !!!/
         "runtime"     | "throw RuntimeException(\"broken !!!\")" | /Settings file '.*?' line: 1\s+broken !!!/
     }
 
