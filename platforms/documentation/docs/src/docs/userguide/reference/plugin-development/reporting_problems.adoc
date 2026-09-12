@@ -47,7 +47,7 @@ include::sample[dir="snippets/reference/plugin-development/reportingProblems/gro
 How it works:
 
 1. **Injects the `Problems` service** into the task.
-2. **Picks a `ProblemGroup`** from the <<sec:predefined_problem_groups,predefined hierarchy>>, creating its own sub-group for the plugin's problems.
+2. **Picks a `ProblemGroup`** from the <<sec:predefined_problem_groups,predefined hierarchy>>, creating its own subgroup for the plugin's problems.
 3. **Creates a `ProblemId`** in that group for each distinct issue.
 4. **Reports warnings** with the `ProblemReporter.report()` when the build can continue.
 5. **Throws structured failures** with `ProblemReporter.throwing()` when the build must stop.
@@ -70,7 +70,7 @@ Every problem belongs to a link:{javadocPath}/org/gradle/api/problems/ProblemGro
 Groups and IDs let Gradle deduplicate and summarize problems, and let consumers such as IDEs navigate and filter them.
 
 Gradle provides a <<sec:predefined_problem_groups,predefined hierarchy of groups>>, available from the `Problems` service as `problems.groups`.
-Pick the group matching what the problem is about, or create a sub-group for your plugin below the closest predefined group, then create the problem ID from the group:
+Pick the group matching what the problem is about, or create a subgroup for your plugin below the closest predefined group, then create the problem ID from the group:
 
 ====
 include::sample[dir="snippets/reference/plugin-development/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[tags=problems-id]"]
@@ -139,21 +139,22 @@ A shared set of groups keeps problem reports consistent across plugins, so that 
 The hierarchy has three levels:
 
 - *Root groups* only structure the hierarchy. Problems cannot be reported directly into a root group.
-- *Sub-groups*, either predefined or created by a plugin, hold problems and can have one further level of sub-groups.
+- *Subgroups*, either predefined or created by a plugin, hold problems and can have one further level of subgroups.
 - *Terminal groups* hold problems and cannot be extended.
 
-Every root group and every extensible sub-group also has a synthetic `Undefined` sub-group, for problems that do not fit any of its other sub-groups.
+Every root group and every extensible subgroup also has a synthetic `Undefined` subgroup, for problems that do not fit any of its other subgroups.
 
-Group names are the ones shown below; they identify a group together with its parent, are what `group(name)` matches on, and are rendered as a chain such as `Gradle > Build Cache` in console output.
+The names shown below identify a group together with its parent.
+`group(name)` matches on the name, and console output renders groups as a chain such as `Gradle > Build Cache`.
 Each group is reachable through a property of the same name in lower camel case, for example `problems.groups.gradle.buildCache` for `Gradle > Build Cache`; the property name is shown in parentheses where it differs from the lower-cased group name.
 
 [cols="1,2,3", options="header"]
 |===
-|Root group |Predefined sub-groups |What it covers
+|Root group |Predefined subgroups |What it covers
 
 |Gradle (`gradle`)
 |Build Cache, Build Definition, Build Logic, Configuration Cache, Deprecation, DSL Evaluation, Invocation, Isolated Projects, Plugin Validation
-|Initialization, configuration, and execution of the Gradle runtime, and the integration of built-in and third-party plugins with Gradle. This group is closed: plugins can report into its sub-groups but cannot add sub-groups.
+|Initialization, configuration, and execution of the Gradle runtime, and the integration of built-in and third-party plugins with Gradle. This group is closed: plugins can report into its subgroups but cannot add subgroups.
 
 |Dependencies (`dependencies`)
 |Declaration, Locking, Graph Resolution, Artifact Resolution, Verification
@@ -204,21 +205,21 @@ Each predefined group carries a description, documented in the Javadoc of link:{
 To decide where a problem belongs, consider what the code reporting it is doing and what the problem communicates, then:
 
 1. Find the root group matching that activity. For example, a problem found while compiling Java code belongs under `compilation`.
-2. If a predefined sub-group matches, report the problem there: `problems.groups.compilation.java.problem("Unused import")`.
-3. If no predefined sub-group matches, create a sub-group for your plugin below the root group, or use the root group's `undefined` sub-group: `problems.groups.transformation.group("KMP").problem("Bundle failed")`.
-4. If no root group matches, create a sub-group below `others`, or use `problems.groups.others.undefined`.
+2. If a predefined subgroup matches, report the problem there: `problems.groups.compilation.java.problem("Unused import")`.
+3. If no predefined subgroup matches, create a subgroup for your plugin below the root group, or use the root group's `undefined` subgroup: `problems.groups.transformation.group("KMP").problem("Bundle failed")`.
+4. If no root group matches, create a subgroup below `others`, or use `problems.groups.others.undefined`.
 
 When several groups match, pick the one closest to the context of your plugin.
 For example, a task that processes files for documentation reports under `documentation` rather than `transformation`, and a problem about a task's input annotations reports under `gradle.pluginValidation` even though it surfaces at execution time.
 
 [[sec:creating_problem_sub_groups]]
-=== Creating sub-groups
+=== Creating subgroups
 
-Sub-groups are created from an existing group with `group(name)`, and problem IDs from a group with `problem(name)`.
-The types of the hierarchy enforce the placement rules: a root group only offers `group(name)`, a sub-group offers both, and a terminal group only offers `problem(name)`.
+Subgroups are created from an existing group with `group(name)`, and problem IDs from a group with `problem(name)`.
+The types of the hierarchy enforce the placement rules: a root group only offers `group(name)`, a subgroup offers both, and a terminal group only offers `problem(name)`.
 
 Names are case-sensitive.
-Calling `group(name)` with the exact name of a predefined sub-group returns that predefined group, so a plugin keeps working when Gradle later adds a predefined group with the name it uses; any other name creates a new group, even if it differs from a predefined sub-group only by case.
+Calling `group(name)` with the exact name of a predefined subgroup returns that predefined group, so a plugin keeps working when Gradle later adds a predefined group with the name it uses; any other name creates a new group, even if it differs from a predefined subgroup only by case.
 The name `Undefined` is reserved in any letter case; use the `undefined` property instead.
 Group names must not be blank, must not have leading or trailing whitespace, must not contain control or format characters, and are limited to 50 characters.
 Problem names follow the same rules with a limit of 2000 characters.
