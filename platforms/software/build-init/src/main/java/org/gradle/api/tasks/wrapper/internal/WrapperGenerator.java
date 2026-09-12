@@ -38,6 +38,8 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -59,6 +61,29 @@ public class WrapperGenerator {
     public static String getDistributionUrl(GradleVersion gradleVersion, Wrapper.DistributionType distributionType) {
         String distType = distributionType.name().toLowerCase(Locale.ENGLISH);
         return new DistributionLocator().getDistributionFor(gradleVersion, distType).toASCIIString();
+    }
+
+    public static Wrapper.@Nullable DistributionType getDistributionType(@Nullable String distributionUrl) {
+        if (distributionUrl == null) {
+            return null;
+        }
+        String path;
+        try {
+            path = new URI(distributionUrl).getPath();
+        } catch (URISyntaxException ignored) {
+            return null;
+        }
+        if (path == null) {
+            return null;
+        }
+        String fileName = path.substring(path.lastIndexOf('/') + 1);
+        for (Wrapper.DistributionType distributionType : Wrapper.DistributionType.values()) {
+            String suffix = "-" + distributionType.name().toLowerCase(Locale.ENGLISH) + ".zip";
+            if (fileName.endsWith(suffix)) {
+                return distributionType;
+            }
+        }
+        return null;
     }
 
     public static void generate(
