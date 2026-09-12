@@ -58,7 +58,7 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
         BuildTreeServices buildTreeServices,
         ListenerManager listenerManager
     ) {
-        super(buildTreeServices, buildDefinition, null);
+        super(buildTreeServices, buildDefinition, Path.ROOT, null);
         this.listenerManager = listenerManager;
 
         CloseableServiceRegistry buildScopeServices = getBuildServices();
@@ -76,11 +76,6 @@ class DefaultRootBuildState extends AbstractCompositeParticipantBuildState imple
             CompositeStoppable.stoppable().addFailure(t).add(buildScopeServices).stop();
             throw UncheckedException.throwAsUncheckedException(t);
         }
-    }
-
-    @Override
-    public Path getIdentityPath() {
-        return Path.ROOT;
     }
 
     @Override

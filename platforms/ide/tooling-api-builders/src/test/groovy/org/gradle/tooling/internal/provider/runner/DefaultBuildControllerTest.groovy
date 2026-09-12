@@ -186,6 +186,21 @@ class DefaultBuildControllerTest extends Specification {
         result.getModel() == model.model
     }
 
+    def "reuses a thrown failure across resilient fetches"() {
+        def failure = new RuntimeException("broken model")
+
+        given:
+        _ * workerThreadRegistry.workerThread >> true
+        2 * modelController.getModel(_, _) >> { throw failure }
+
+        when:
+        def first = controller.fetch(null, modelId, null)
+        def second = controller.fetch(null, modelId, null)
+
+        then:
+        first.failures.first().is(second.failures.first())
+    }
+
     def "runs supplied actions"() {
         def action1 = Mock(Supplier)
         def action2 = Mock(Supplier)

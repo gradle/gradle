@@ -92,7 +92,7 @@ This is an incubating feature and is disabled by default.
 Organizations that already build with Maven often use an internal
 repository manager by declaring a `<mirror>` in `~/.m2/settings.xml`. Gradle can read those same mirrors instead of requiring the configuration to be duplicated in your build. This is meant for teams with a working Maven mirror setup to reuse those mirrors in Gradle. This is not a general-purpose way to redirect repositories.
 
-Gradle will only replace HTTP/HTTPS Maven repositories that match mirror declarations in Maven settings. Local file, S3, GCS and Ivy repositories are unaffected. Maven repositories can be used for build script dependencies as well as project dependencies, so the Gradle Plugin Portal is also affected by Maven mirrors.
+Gradle will only replace HTTP/HTTPS Maven repositories that match mirror declarations in Maven settings. Local file, S3, GCS and Ivy repositories are unaffected. Maven repositories can be used for build script dependencies as well as project dependencies, so the Gradle Plugin Portal is also affected by Maven mirrors; see <<sec:maven-mirror-ids,which id a repository is matched by>> to mirror it or leave it alone.
 
 If you are not already using mirrors defined in
 Maven's `settings.xml`, prefer configuring repositories directly in your build or setting up a mirror init script, as described in
@@ -131,6 +131,50 @@ include::sample[dir="snippets/reference/dependency-management/declaring-reposito
 See link:https://maven.apache.org/guides/mini/guide-encryption.html[Maven's Password Encryption
 guide] for how to set up the Maven master password and produce encrypted server passwords, and
 link:https://maven.apache.org/settings.html[the Settings Reference] for the file as a whole.
+
+[[sec:maven-mirror-ids]]
+=== Which id a repository is matched by
+
+A `mirrorOf` pattern matches repository *ids*. Gradle repositories do not have Maven ids, so Gradle matches each repository by name. This is the name set with `name =` in the repository block or the default name Gradle assigns.
+
+Maven Central is treated special. Maven uses the id `central` for Maven Central, so Gradle will match a repository with Maven Central's URL as if its name is `central`.
+
+The Gradle Plugin Portal is matched by the name `Gradle Central
+Plugin Repository`. Spaces are part of the name, and the match must be exact:
+
+.Mirroring only the Gradle Plugin Portal
+[source,xml]
+----
+<mirror>
+    <id>portal-mirror</id>
+    <mirrorOf>Gradle Central Plugin Repository</mirrorOf>
+    <url>https://repo.example.com/gradle-plugins</url>
+</mirror>
+----
+
+.Mirroring everything except the Gradle Plugin Portal
+[source,xml]
+----
+<mirror>
+    <id>corp-mirror</id>
+    <mirrorOf>*,!Gradle Central Plugin Repository</mirrorOf>
+    <url>https://repo.example.com/maven</url>
+</mirror>
+----
+
+A `!` token excludes a repository whatever its position in the pattern, so
+`!Gradle Central Plugin Repository,*` behaves the same way.
+
+[NOTE]
+====
+`external:*` matches the Gradle Plugin Portal, because the portal is neither `localhost` nor a
+`file` URL. An `external:*` mirror needs the same `!` exclusion as `*` if the portal should not be
+mirrored.
+====
+
+Maven's `mirrorOf` grammar has no partial globs, so a repository cannot be matched by part of its
+name or by its host: `*Plugin*` and `plugins.gradle.org` match nothing. A pattern is split on
+commas and each token is trimmed, so a name containing a comma cannot be matched at all.
 
 [[sec:maven-mirrors-and-publishing]]
 === Publishing is not affected

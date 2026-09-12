@@ -94,7 +94,7 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
             if (targetBuild == currentBuild) {
                 throw new InvalidUserDataException("Script classpath dependencies must reside in a separate build from the script itself.");
             }
-            tasksToBuild.add(new TaskIdentifier(targetBuild.getBuildIdentifier(), (TaskInternal) task));
+            tasksToBuild.add(new TaskIdentifier(targetBuild.getBuildIdentity(), (TaskInternal) task));
         }
         return tasksToBuild;
     }

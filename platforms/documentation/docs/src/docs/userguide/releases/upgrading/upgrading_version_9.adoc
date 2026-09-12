@@ -41,6 +41,11 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+[[kotlin_2_4_10]]
+==== Upgrade to Kotlin 2.4.20
+
+The embedded Kotlin has been upgraded from 2.4.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.20[Kotlin 2.4.20].
+
 [[shared_transformed_variant_cache]]
 ==== Transformed external artifact variants are now shared across resolution scopes
 
@@ -75,6 +80,59 @@ Setting the property still works and emits a deprecation warning, so the behavio
 With <<isolated_projects.adoc#isolated_projects,Isolated Projects>> enabled, setting the property fails the model request, as it always has.
 
 In Gradle 10, the property will be ignored, and the model will always be built for all the Kotlin DSL scripts of the build.
+
+[[kotlin_dsl_zip_functions]]
+==== Deprecation of the Kotlin DSL `zipTo` and `unzipTo` functions
+
+The `zipTo` and `unzipTo` functions in the `org.gradle.kotlin.dsl.support` package have been deprecated and will be removed in Gradle 10.
+
+To create an archive, use the link:{javadocPath}/org/gradle/api/tasks/bundling/Zip.html[`Zip`] task type:
+
+[source,kotlin]
+.build.gradle.kts
+----
+tasks.register<Zip>("packageDistribution") {
+    archiveFileName = "my-distribution.zip"
+    destinationDirectory = layout.buildDirectory.dir("dist")
+
+    from(layout.buildDirectory.dir("toArchive"))
+}
+----
+
+To unpack an archive in a build script, call `zipTree` inside a link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[`Copy`] task:
+
+[source,kotlin]
+.build.gradle.kts
+----
+tasks.register<Copy>("unpackFiles") {
+    from(zipTree("src/resources/thirdPartyResources.zip"))
+    into(layout.buildDirectory.dir("resources"))
+}
+----
+
+If you need to unpack imperatively from within a task action, inject link:{javadocPath}/org/gradle/api/file/ArchiveOperations.html[`ArchiveOperations`] and link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[`FileSystemOperations`]:
+
+[source,kotlin]
+.build.gradle.kts
+----
+abstract class UnpackTask @Inject constructor(
+    private val archives: ArchiveOperations,
+    private val fs: FileSystemOperations
+) : DefaultTask() {
+    @get:InputFile abstract val zipFile: RegularFileProperty
+    @get:OutputDirectory abstract val destinationDir: DirectoryProperty
+
+    @TaskAction
+    fun unpack() {
+        fs.copy {
+            from(archives.zipTree(zipFile))
+            into(destinationDir)
+        }
+    }
+}
+----
+
+See <<working_with_files.adoc#sec:unpacking_archives_example, Unpacking archives>> in the Gradle User Manual for more details.
 
 [[changes_9.8.0]]
 == Upgrading from 9.7.0 and earlier

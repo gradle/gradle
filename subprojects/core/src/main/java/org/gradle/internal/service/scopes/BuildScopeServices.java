@@ -177,6 +177,7 @@ import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.initialization.layout.ResolvedBuildLayout;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.actor.internal.DefaultActorFactory;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildLifecycleController;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
@@ -271,7 +272,10 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     void configure(ServiceRegistration registration, ServiceRegistry buildScopeServices, List<GradleModuleServices> serviceProviders) {
         registration.add(BuildDefinition.class, buildDefinition);
         registration.add(BuildState.class, buildState);
-        registration.add(DomainObjectContext.class, new BuildDomainObjectContext(buildState));
+
+        BuildIdentity buildIdentity = buildState.getBuildIdentity();
+        registration.add(BuildIdentity.class, buildIdentity);
+        registration.add(DomainObjectContext.class, new BuildDomainObjectContext(buildIdentity));
 
         registration.addProvider(new BuildCacheServices());
 
@@ -325,7 +329,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     ExecutionPlanFactory createExecutionPlanFactory(
-        BuildState build,
+        BuildIdentity build,
         TaskNodeFactory taskNodeFactory,
         OrdinalGroupFactory ordinalGroupFactory,
         TaskDependencyResolver dependencyResolver,
@@ -333,7 +337,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         ResourceLockCoordinationService lockCoordinationService
     ) {
         return new ExecutionPlanFactory(
-            build.getDisplayName().getDisplayName(),
+            build.getDisplayName(),
             taskNodeFactory,
             ordinalGroupFactory,
             dependencyResolver,
@@ -376,8 +380,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected PublicBuildPath createPublicBuildPath(BuildState buildState) {
-        return new DefaultPublicBuildPath(buildState.getIdentityPath());
+    protected PublicBuildPath createPublicBuildPath(BuildIdentity buildIdentity) {
+        return new DefaultPublicBuildPath(buildIdentity.getBuildPath());
     }
 
     @Provides
@@ -411,10 +415,10 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected GradleProperties createGradleProperties(
-        BuildState buildState,
+        BuildIdentity buildIdentity,
         GradlePropertiesController gradlePropertiesController
     ) {
-        return gradlePropertiesController.getGradleProperties(buildState.getBuildIdentifier());
+        return gradlePropertiesController.getGradleProperties(buildIdentity);
     }
 
     @Provides
@@ -424,7 +428,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         InstantiatorFactory instantiatorFactory,
         IsolatableFactory isolatableFactory,
         ServiceRegistry services,
-        GradleProperties gradleProperties,
         ExecFactory execFactory,
         CalculatedValueFactory calculatedValueFactory
     ) {
@@ -433,7 +436,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             computationListener,
             instantiatorFactory,
             isolatableFactory,
-            gradleProperties,
             calculatedValueFactory,
             new DefaultExecOperations(execFactory.forContext().withoutExternalProcessStartedListener().build()),
             services
@@ -785,7 +787,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
 
     @Provides({BuildServiceRegistryInternal.class, HoldsProjectState.class})
     protected DefaultBuildServicesRegistry createSharedServiceRegistry(
-        BuildState buildState,
+        BuildIdentity buildIdentity,
         Instantiator instantiator,
         DomainObjectCollectionFactory factory,
         InstantiatorFactory instantiatorFactory,
@@ -804,7 +806,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         // Instantiate via `instantiator` for the DSL decorations to the `BuildServiceRegistry` API
         return instantiator.newInstance(
             DefaultBuildServicesRegistry.class,
-            buildState.getBuildIdentifier(),
+            buildIdentity,
             factory,
             instantiatorFactory,
             services,

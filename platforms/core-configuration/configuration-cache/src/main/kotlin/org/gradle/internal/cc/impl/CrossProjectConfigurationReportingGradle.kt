@@ -83,7 +83,8 @@ class CrossProjectConfigurationReportingGradle(
             problem {
                 text("Project ")
                 reference(referrerProject.buildTreePath)
-                text(" cannot access Gradle.$what")
+                text(" cannot access ")
+                reference("Gradle.$what")
             }
                 .exception { message -> message.capitalized() }
                 .build()

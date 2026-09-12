@@ -100,16 +100,6 @@ class ConfigurationCacheBuildOperationsFixture {
         assertNoModelOperations()
     }
 
-    void assertEntryOutcome(String expectedOutcome) {
-        def entryOutcome = entryOutcomeOperation()
-        assert entryOutcome != null
-        assert entryOutcome.result.outcome == expectedOutcome
-    }
-
-    void assertNoEntryOutcome() {
-        assert entryOutcomeOperation() == null
-    }
-
     void assertNoWorkGraphOperations() {
         assert workGraphStoreOperation() == null
         assert workGraphLoadOperation() == null
@@ -150,11 +140,6 @@ class ConfigurationCacheBuildOperationsFixture {
 
     void assertLoadPhaseSkipped() {
         assert workGraphLoadOperation() == null
-    }
-
-    @Nullable
-    private BuildOperationRecord entryOutcomeOperation() {
-        operations.singleOrNone("Configuration cache entry outcome")
     }
 
     @Nullable

@@ -60,6 +60,7 @@ class FileCollectionCodec(
 
     override suspend fun WriteContext.encode(value: FileCollectionInternal) {
         encodePreservingIdentityOf(value) {
+            writeNullableString(value.displayName.takeIf { it != FileCollectionInternal.DEFAULT_COLLECTION_DISPLAY_NAME })
             encodeContents(value)
         }
     }
@@ -84,16 +85,20 @@ class FileCollectionCodec(
 
     override suspend fun ReadContext.decode(): FileCollectionInternal {
         return decodePreservingIdentity { id ->
-            val fileCollection = decodeContents()
+            val displayName = readNullableString() ?: FileCollectionInternal.DEFAULT_COLLECTION_DISPLAY_NAME
+            val fileCollection = decodeContents(displayName)
             isolate.identities.putInstance(id, fileCollection)
             fileCollection
         }
     }
 
-    suspend fun ReadContext.decodeContents(): FileCollectionInternal = if (readBoolean()) {
+    suspend fun ReadContext.decodeContents(
+        displayName: String = FileCollectionInternal.DEFAULT_COLLECTION_DISPLAY_NAME
+    ): FileCollectionInternal = if (readBoolean()) {
         readNonNull<FileCollectionExecutionTimeValue>().toFileCollection(fileCollectionFactory)
     } else {
         fileCollectionFactory.resolving(
+            displayName,
             readList().map { element ->
                 when (element) {
                     is File -> element

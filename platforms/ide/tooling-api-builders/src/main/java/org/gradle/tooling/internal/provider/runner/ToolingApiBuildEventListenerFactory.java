@@ -90,7 +90,6 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
 
         List<BuildOperationMapper<?, ?>> mappers = ImmutableList.of(
             new FileDownloadOperationMapper(),
-            new ConfigurationCacheOperationMapper(),
             new TestOperationMapper(testTaskTracker),
             new ProjectConfigurationOperationMapper(projectConfigurationTracker),
             taskOperationMapper,

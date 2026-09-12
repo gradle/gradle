@@ -45,7 +45,6 @@ import kotlin.script.dependencies.ScriptContents.Position
 import kotlin.script.dependencies.ScriptDependenciesResolver.ReportSeverity
 
 
-@Category(Flaky::class) // https://github.com/gradle/gradle-private/issues/3717
 class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
     @Before

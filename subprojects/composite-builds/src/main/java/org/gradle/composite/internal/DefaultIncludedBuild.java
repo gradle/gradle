@@ -36,7 +36,6 @@ import java.io.File;
 
 public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState implements IncludedBuildState {
 
-    private final Path identityPath;
     private final BuildDefinition buildDefinition;
     private final boolean isImplicit;
 
@@ -48,10 +47,9 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
         BuildTreeServices buildTreeServices
     ) {
         // Use a defensive copy of the build definition, as it may be mutated during build execution
-        super(buildTreeServices, buildDefinition.newInstance(), owner);
+        super(buildTreeServices, buildDefinition.newInstance(), identityPath, owner);
         assert !identityPath.equals(Path.ROOT) : "An included build must not be located at the root path";
 
-        this.identityPath = identityPath;
         this.buildDefinition = buildDefinition;
         this.isImplicit = isImplicit;
     }
@@ -64,11 +62,6 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
     @Override
     public File getRootDirectory() {
         return buildDefinition.getBuildRootDir();
-    }
-
-    @Override
-    public Path getIdentityPath() {
-        return identityPath;
     }
 
     @Override
@@ -98,7 +91,7 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
 
     @Override
     public String getName() {
-        return identityPath.getName();
+        return getIdentityPath().getName();
     }
 
     @Override

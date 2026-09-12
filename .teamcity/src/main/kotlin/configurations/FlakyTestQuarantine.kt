@@ -86,6 +86,11 @@ class FlakyTestQuarantine(
         val timeout = if (testCoverage.testType == TestType.ALL_VERSIONS_CROSS_VERSION) 240 else 120
         applyDefaultSettings(os = os, arch = arch, buildJvm = BuildToolBuildJvm, timeout = timeout)
 
+        if (testCoverage.testType == TestType.ALL_VERSIONS_CROSS_VERSION) {
+            // Split the biggest quarantine coverage across agents to get it away from the timeout.
+            tcParallelTests(4)
+        }
+
         if (os == Os.LINUX) {
             steps {
                 script {

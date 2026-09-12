@@ -29,6 +29,7 @@ import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
 import org.gradle.internal.buildtree.BuildTreeServices;
+import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -42,8 +43,8 @@ public abstract class AbstractCompositeParticipantBuildState extends AbstractBui
 
     private @Nullable Set<Pair<ModuleVersionIdentifier, ProjectComponentIdentifier>> availableModules;
 
-    public AbstractCompositeParticipantBuildState(BuildTreeServices buildTreeServices, BuildDefinition buildDefinition, @Nullable BuildState parent) {
-        super(buildTreeServices, buildDefinition, parent);
+    public AbstractCompositeParticipantBuildState(BuildTreeServices buildTreeServices, BuildDefinition buildDefinition, Path identityPath, @Nullable BuildState parent) {
+        super(buildTreeServices, buildDefinition, identityPath, parent);
     }
 
     @Override

@@ -23,17 +23,14 @@ import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.xml.XmlTransformer;
 import org.gradle.plugins.ide.api.XmlFileContentMerger;
-import org.gradle.plugins.ide.eclipse.model.internal.ClasspathFactory;
-import org.gradle.plugins.ide.eclipse.model.internal.EclipseClassPathUtil;
+import org.gradle.plugins.ide.eclipse.model.internal.DefaultProjectModulePathResolver;
+import org.gradle.plugins.ide.eclipse.model.internal.EclipseClasspathResolver;
 import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
-import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
-import org.gradle.plugins.ide.internal.resolver.DefaultGradleApiSourcesResolver;
 import org.gradle.util.internal.ConfigureUtil;
 
 import javax.inject.Inject;
@@ -437,10 +434,7 @@ public abstract class EclipseClasspath {
      * @since 1.0
      */
     public List<ClasspathEntry> resolveDependencies() {
-        ProjectInternal projectInternal = (ProjectInternal) this.project;
-        IdeArtifactRegistry ideArtifactRegistry = projectInternal.getServices().get(IdeArtifactRegistry.class);
-        ClasspathFactory classpathFactory = new ClasspathFactory(this, ideArtifactRegistry, new DefaultGradleApiSourcesResolver(projectInternal.newDetachedResolver()), EclipseClassPathUtil.isInferModulePath(this.project));
-        return classpathFactory.createEntries();
+        return EclipseClasspathResolver.resolveEntries(this, new DefaultProjectModulePathResolver());
     }
 
 
@@ -449,12 +443,8 @@ public abstract class EclipseClasspath {
      *
      * @since 1.0
      */
-    @SuppressWarnings("unchecked")
     public void mergeXmlClasspath(Classpath xmlClasspath) {
-        file.getBeforeMerged().execute(xmlClasspath);
-        List<ClasspathEntry> entries = resolveDependencies();
-        xmlClasspath.configure(entries);
-        file.getWhenMerged().execute(xmlClasspath);
+        EclipseClasspathResolver.mergeXmlClasspath(this, xmlClasspath, new DefaultProjectModulePathResolver());
     }
 
     /**

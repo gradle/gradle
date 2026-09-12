@@ -10,7 +10,6 @@ import common.customGradle
 import common.functionalTestParameters
 import common.getBuildScanCustomValueParam
 import common.gradleWrapper
-import common.requiresNotSharedHost
 import common.skipConditionally
 import jetbrains.buildServer.configs.kotlin.BuildSteps
 import jetbrains.buildServer.configs.kotlin.buildSteps.GradleBuildStep
@@ -61,10 +60,6 @@ class Gradleception(
             }
         description =
             "Builds Gradle with the version of Gradle which is currently under development (twice)$descriptionSuffix"
-
-        requirements {
-            requiresNotSharedHost()
-        }
 
     /*
      To avoid unnecessary rerun, what we do here is a bit complicated:

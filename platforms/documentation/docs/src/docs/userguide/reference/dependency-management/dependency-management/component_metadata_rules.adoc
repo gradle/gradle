@@ -361,6 +361,7 @@ To modify another attribute for all variants of a component `withAllVariants { a
 A module's status is taken into consideration when a <<dependency_versions.adoc#sec:single-version-declarations,_latest_ version selector>> is resolved.
 Specifically, `latest.someStatus` will resolve to the highest module version that has status `someStatus` or a more mature status.
 For example, `latest.integration` will select the highest module version regardless of its status (because `integration` is the least mature status as explained below), whereas `latest.release` will select the highest module version with status `release`.
+A status can also be requested as an attribute on the consumer, which <<dependency_versions.adoc#sec:dynamic-version-status,constrains dynamic versions>>.
 
 The interpretation of the status can be influenced by changing a module's _status scheme_ through the `setStatusScheme(valueList)` API.
 This concept models the different levels of maturity that a module transitions through over time with different publications.

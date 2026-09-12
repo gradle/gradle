@@ -192,7 +192,7 @@ public class ProjectBuilderImpl {
         gradle.setIncludedBuilds(Collections.emptyList());
 
         GradlePropertiesController gradlePropertiesController = buildServices.get(GradlePropertiesController.class);
-        gradlePropertiesController.loadGradleProperties(build.getBuildIdentifier(), build.getBuildRootDir(), false);
+        gradlePropertiesController.loadGradleProperties(build.getBuildIdentity(), build.getBuildRootDir(), false);
 
         ClassLoaderScope baseScope = gradle.getClassLoaderScope();
         ClassLoaderScope rootProjectScope = baseScope.createChild("root-project", null);
@@ -305,7 +305,7 @@ public class ProjectBuilderImpl {
     private static class TestRootBuild extends AbstractBuildState implements RootBuildState {
 
         public TestRootBuild(File rootProjectDir, StartParameterInternal startParameter, BuildTreeServices buildTreeServices) {
-            super(buildTreeServices, BuildDefinition.fromStartParameter(startParameter, rootProjectDir, null), null);
+            super(buildTreeServices, BuildDefinition.fromStartParameter(startParameter, rootProjectDir, null), Path.ROOT, null);
         }
 
         @Override
@@ -319,11 +319,6 @@ public class ProjectBuilderImpl {
 
         @Override
         public void ensureProjectsConfigured() {
-        }
-
-        @Override
-        public Path getIdentityPath() {
-            return Path.ROOT;
         }
 
         @Override

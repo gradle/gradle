@@ -25,7 +25,7 @@ jobs:
         uses: actions/setup-java@v6.0.0
         with:
           distribution: temurin
-          java-version: 17
+          java-version: 25
       - name: Update Kotlin versions
         run: ./gradlew updateKotlinVersions
       - name: Open bot PR

@@ -78,10 +78,7 @@ class ToolingApiDistributionResolver {
         }
 
         TestFile destination = buildContext.tmpDir.file("gradle-tooling-api-${version}.jar")
-        if (!destination.exists()) {
-            def url = repoUrl + "/" + relativePath
-            download(url, destination)
-        }
+        download(repoUrl + "/" + relativePath, destination)
         return destination
     }
 
@@ -95,6 +92,15 @@ class ToolingApiDistributionResolver {
         location
     }
 
+    /**
+     * Downloads the jar, unless an earlier download of it already ran to completion.
+     *
+     * <p>Whether the download can be skipped is decided by the marker file, and only while holding
+     * the lock. The jar itself is not a safe signal: it is written in place, so it exists on disk
+     * while still incomplete, and a concurrent test worker that checked for its existence would
+     * hand a truncated archive to the tooling API ClassLoader. That surfaces much later as a
+     * {@code NoClassDefFoundError} for a class the jar does contain.
+     */
     private void download(String url, TestFile destination) {
         def markerFile = destination.withExtension("ok")
         fileAccessManager.access(destination) {

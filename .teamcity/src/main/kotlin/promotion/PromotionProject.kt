@@ -45,7 +45,7 @@ class PromotionProject(
         params {
             password("env.ORG_GRADLE_PROJECT_gradleS3AccessKey", "%gradleS3AccessKey%")
             password("env.ORG_GRADLE_PROJECT_gradleS3SecretKey", "%gradleS3SecretKey%")
-            password("env.ORG_GRADLE_PROJECT_artifactoryUserPassword", "%gradle.internal.repository.build-tool.publish.password%")
+            password("env.ORG_GRADLE_PROJECT_artifactoryToken", "%gradle.internal.repository.build-tool.publish.token%")
             password("env.DOTCOM_DEV_DOCS_AWS_ACCESS_KEY", "%dotcomDevDocsAwsAccessKey%")
             password("env.DOTCOM_DEV_DOCS_AWS_SECRET_KEY", "%dotcomDevDocsAwsSecretKey%")
             password("env.ORG_GRADLE_PROJECT_sdkmanToken", "%sdkmanToken%")
@@ -57,12 +57,14 @@ class PromotionProject(
             // Keep 21 and 25 for tests requiring it specifically: https://github.com/gradle/gradle/pull/35410#discussion_r2460835304
             param("env.JDK21", javaHome(OpenJdk21, Os.LINUX))
             param("env.JDK25", javaHome(OpenJdk25, Os.LINUX))
-            param("env.ORG_GRADLE_PROJECT_artifactoryUserName", "%gradle.internal.repository.build-tool.publish.username%")
             password("env.ORG_GRADLE_PROJECT_infrastructureEmailPwd", "%infrastructureEmailPwd%")
             param("env.ORG_GRADLE_PROJECT_sdkmanKey", "8ed1a771bc236c287ad93c699bfdd2d7")
             param("env.PGP_SIGNING_KEY_ID", "%pgpSigningKeyId%")
             param("env.PGP_SIGNING_KEY", "%pgpSigningKey%")
             param("env.PGP_SIGNING_KEY_PASSPHRASE", "%pgpSigningPassphrase%")
+            // bot-gradle's git commit signing key, see https://github.com/gradle/gradle-private/issues/4730
+            param("env.GPG_KEY", "%github.bot-gradle.gpg.key.id%")
+            password("env.GPG_PRIVATE_KEY", "%github.bot-gradle.gpg.private.key%")
             param("env.DEVELOCITY_SERVER_URL", "%gbt.internal.develocity.server.url%")
             // https://github.com/gradle/gradle-private/issues/5256
             param("env.PROMOTED_GBT_BUILD_DEVELOCITY_SERVER_URL", "%gbt.public.develocity.server.url%")
