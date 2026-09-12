@@ -18,11 +18,15 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.fact
 
 import groovy.json.JsonSlurper
 import org.codehaus.groovy.control.CompilerConfiguration
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.simple.DefaultExcludeFactory
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import spock.lang.Ignore
+import spock.lang.Issue
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Unroll
+
+import static org.gradle.api.internal.artifacts.DefaultModuleIdentifier.newId
 
 class NormalizingExcludeFactoryTest extends Specification implements ExcludeTestSupport {
 
@@ -82,6 +86,55 @@ class NormalizingExcludeFactoryTest extends Specification implements ExcludeTest
         moduleIdSet(["g1", "m1"], ["g2", "m2"], ["g3", "m3"], ["g4", "m4"]) | groupSet("g1", "g2")                                          | anyOf(moduleIdSet(["g3", "m3"], ["g4", "m4"]), groupSet("g1", "g2"))
         anyOf(moduleId("g1", "m1"), group("g2"), moduleSet("mod1", "mod2")) | anyOf(group("g3"), moduleIdSet(["g4", "m4"], ["g5", "mod2"])) | anyOf(moduleIdSet(["g4", "m4"], ["g1", "m1"]), moduleSet("mod1", "mod2"), groupSet("g2", "g3"))
 
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/28962")
+    def "mixed exclusion union reaches a fixed point for operand order #order"() {
+        given:
+        def raw = new DefaultExcludeFactory()
+        def ids = raw.moduleIdSet(psetOf([newId("g", "a"), newId("h", "b"), newId("k", "c")]))
+        def excludedGroup = raw.group("g")
+        def excludedModule = raw.module("c")
+        def operands = [ids, excludedGroup, excludedModule]
+        def ordered = order.collect { operands[it] }
+        def expected = raw.anyOf(psetOf([raw.moduleId(newId("h", "b")), excludedGroup, excludedModule]))
+
+        when:
+        def normalized = factory.anyOf(psetOf(ordered))
+
+        then: "module IDs absorbed by group or module exclusions are removed"
+        normalized == expected
+
+        and: "flattening and regrouping produce the same structure"
+        factory.anyOf(raw.anyOf(psetOf(ordered.take(2))), ordered[2]) == expected
+        factory.anyOf(factory.anyOf(ordered[0], ordered[1]), ordered[2]) == expected
+
+        and: "propagating the same exclusions again does not change the filter"
+        factory.anyOf(normalized, normalized) == normalized
+        ordered.each { operand ->
+            assert factory.anyOf(normalized, operand) == normalized
+        }
+
+        and: "normalization preserves exclusion membership"
+        ["g", "h", "k", "other"].each { group ->
+            ["a", "b", "c", "other"].each { module ->
+                def id = newId(group, module)
+                assert normalized.excludes(id) == operands.any { it.excludes(id) }
+            }
+        }
+
+        when: "a genuinely new exclusion arrives"
+        def additionalId = newId("other", "other")
+        def expanded = factory.anyOf(normalized, raw.moduleId(additionalId))
+
+        then:
+        !normalized.excludes(additionalId)
+        expanded != normalized
+        expanded.excludes(additionalId)
+        factory.anyOf(expanded, normalized) == expanded
+
+        where:
+        order << [[0, 1, 2], [0, 2, 1], [1, 0, 2], [1, 2, 0], [2, 0, 1], [2, 1, 0]]
     }
 
     @Unroll("#one ∪ #two ∪ #three = #expected")
