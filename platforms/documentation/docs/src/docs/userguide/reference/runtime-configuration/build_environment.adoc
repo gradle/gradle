@@ -525,7 +525,7 @@ _Default is `false`._
 `org.gradle.isolated-projects.diagnostics=(true,false)` since-gradle-label:9.7.0[]::
 
 Enables <<isolated_projects.adoc#sec:diagnostics_mode,Diagnostics mode>> for Isolated Projects, which runs project configuration sequentially to surface violations across all projects in a deterministic manner.
-Requires <<isolated_projects.adoc#sec:enable,Isolated Projects>> to be enabled.
+Requires <<isolated_projects.adoc#sec:enable_ip,Isolated Projects>> to be enabled.
 +
 _Default is `false`._
 
@@ -534,7 +534,7 @@ _Default is `false`._
 Ignores <<isolated_projects.adoc#sec:dangerously_ignore_problems,Isolated Projects violations>> so that a parallel build or sync can be timed to estimate the speedup before violations are fixed.
 Violations are still reported but do not fail the build.
 Build outputs may be incorrect.
-Requires <<isolated_projects.adoc#sec:enable,Isolated Projects>> to be enabled.
+Requires <<isolated_projects.adoc#sec:enable_ip,Isolated Projects>> to be enabled.
 +
 _Default is `false`._
 
