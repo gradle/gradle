@@ -74,9 +74,9 @@ class DefaultIsolatedProjectEvaluationListenerProvider(
         userCodeApplicationContext.current()?.let { context ->
             IsolatedProjectAction {
                 val target = this
-                context.reapply {
+                context.reapply({
                     action.execute(target)
-                }
+                }, UserCodeApplicationContext.CodeType.LISTENER)
             }
         } ?: action
 

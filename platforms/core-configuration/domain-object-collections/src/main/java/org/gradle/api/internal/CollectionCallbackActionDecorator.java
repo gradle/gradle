@@ -20,17 +20,17 @@ import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.CrossBuildSession.class)
 public interface CollectionCallbackActionDecorator {
-    <T> Action<T> decorate(@Nullable Action<T> action);
+
+    <T> Action<T> decorate(Action<T> action);
 
     <T> Spec<T> decorateSpec(Spec<T> spec);
 
     CollectionCallbackActionDecorator NOOP = new CollectionCallbackActionDecorator() {
         @Override
-        public <T> Action<T> decorate(@Nullable Action<T> action) {
+        public <T> Action<T> decorate(Action<T> action) {
             return action;
         }
 
@@ -39,4 +39,5 @@ public interface CollectionCallbackActionDecorator {
             return spec;
         }
     };
+
 }

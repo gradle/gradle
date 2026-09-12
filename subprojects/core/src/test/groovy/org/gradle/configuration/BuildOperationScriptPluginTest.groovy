@@ -18,7 +18,7 @@ package org.gradle.configuration
 
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.Describables
-import org.gradle.internal.code.DefaultUserCodeApplicationContext
+import org.gradle.internal.code.TestUserCodeApplicationContext
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.resource.ResourceLocation
 import org.gradle.internal.resource.TextResource
@@ -27,7 +27,7 @@ import spock.lang.Specification
 class BuildOperationScriptPluginTest extends Specification {
 
     def buildOperationRunner = new TestBuildOperationRunner()
-    def userCodeApplicationContext = new DefaultUserCodeApplicationContext()
+    def userCodeApplicationContext = new TestUserCodeApplicationContext()
     def scriptSource = Mock(ScriptSource)
     def scriptSourceResource = Mock(TextResource)
     def scriptSourceResourceLocation = Mock(ResourceLocation)

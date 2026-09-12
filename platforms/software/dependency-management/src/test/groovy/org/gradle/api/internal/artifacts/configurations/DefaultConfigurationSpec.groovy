@@ -115,7 +115,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new AnonymousListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener, Stub(Dispatch)) }
         _ * resolver.getAllRepositories() >> []
         _ * domainObjectCollectionCallbackActionDecorator.decorate(_) >> { args -> args[0] }
-        _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
+        _ * userCodeApplicationContext.current() >> null
     }
 
     void defaultValues() {
