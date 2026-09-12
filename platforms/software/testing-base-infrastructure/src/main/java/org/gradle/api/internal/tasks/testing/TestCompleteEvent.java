@@ -24,6 +24,8 @@ import org.jspecify.annotations.Nullable;
 public class TestCompleteEvent {
     private final long endTime;
     private final TestResult.ResultType resultType;
+    @Nullable
+    private final String skipReason;
 
     @UsedByScanPlugin("test-distribution")
     public TestCompleteEvent(long endTime) {
@@ -32,8 +34,13 @@ public class TestCompleteEvent {
 
     @UsedByScanPlugin("test-distribution")
     public TestCompleteEvent(long endTime, TestResult.ResultType resultType) {
+        this(endTime, resultType, null);
+    }
+
+    public TestCompleteEvent(long endTime, TestResult.ResultType resultType, @Nullable String skipReason) {
         this.endTime = endTime;
         this.resultType = resultType;
+        this.skipReason = skipReason;
     }
 
     public long getEndTime() {
@@ -42,6 +49,16 @@ public class TestCompleteEvent {
 
     public TestResult.@Nullable ResultType getResultType() {
         return resultType;
+    }
+
+    /**
+     * The reason the test was skipped, if reported by the test framework.
+     *
+     * @return the skip reason, or {@code null} if none was reported
+     */
+    @Nullable
+    public String getSkipReason() {
+        return skipReason;
     }
 
     @Override
