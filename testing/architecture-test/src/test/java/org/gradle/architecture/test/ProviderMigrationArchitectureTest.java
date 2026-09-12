@@ -96,6 +96,11 @@ public class ProviderMigrationArchitectureTest {
         .and(not(declaredIn(assignableTo(Exception.class)))) // exceptions are not migrated to lazy properties
         .and(are(declaredIn(class_with_any_mutable_property)))
         .and(are(ArchUnitFixture.getters))
+        // Skip Nested properties that are not Iterables
+        .and(not(and(
+            annotatedMaybeInSupertypeWith(Nested.class),
+            not(have(rawReturnType(List.class)))
+        )))
         .and(not(annotatedWith(Inject.class)))
         .as("mutable public API properties");
 
