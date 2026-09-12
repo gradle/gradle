@@ -17,19 +17,14 @@
 package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.DependencyResolutionListener;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
-import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.internal.Factory;
-import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
 import org.gradle.internal.event.ListenerManager;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.annotation.concurrent.ThreadSafe;
 import javax.inject.Inject;
@@ -43,24 +38,16 @@ public class DefaultConfigurationFactory {
     private final ConfigurationServicesBundle configurationServices;
     private final ListenerManager listenerManager;
     private final DomainObjectContext domainObjectContext;
-    private final PublishArtifactNotationParser artifactNotationParser;
-    private final NotationParser<Object, Capability> capabilityNotationParser;
-    private final UserCodeApplicationContext userCodeApplicationContext;
 
     @Inject
     public DefaultConfigurationFactory(
         ConfigurationServicesBundle configurationServices,
         ListenerManager listenerManager,
-        DomainObjectContext domainObjectContext,
-        PublishArtifactNotationParser artifactNotationParserFactory,
-        UserCodeApplicationContext userCodeApplicationContext
+        DomainObjectContext domainObjectContext
     ) {
         this.configurationServices = configurationServices;
         this.listenerManager = listenerManager;
         this.domainObjectContext = domainObjectContext;
-        this.artifactNotationParser = artifactNotationParserFactory;
-        this.capabilityNotationParser = new CapabilityNotationParserFactory(true).create();
-        this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
     /**
@@ -84,9 +71,6 @@ public class DefaultConfigurationFactory {
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
-            artifactNotationParser,
-            capabilityNotationParser,
-            userCodeApplicationContext,
             this,
             role
         );
@@ -110,9 +94,6 @@ public class DefaultConfigurationFactory {
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
-            artifactNotationParser,
-            capabilityNotationParser,
-            userCodeApplicationContext,
             this
         );
     }
@@ -135,9 +116,6 @@ public class DefaultConfigurationFactory {
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
-            artifactNotationParser,
-            capabilityNotationParser,
-            userCodeApplicationContext,
             this
         );
     }
@@ -160,9 +138,6 @@ public class DefaultConfigurationFactory {
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
-            artifactNotationParser,
-            capabilityNotationParser,
-            userCodeApplicationContext,
             this
         );
     }

@@ -520,6 +520,56 @@ class DefaultConfigurationSpec extends Specification {
         configuration.artifacts.size() == 2
     }
 
+    def "outgoing publications are not realized until accessed"() {
+        given:
+        def configuration = conf()
+
+        expect:
+        configuration.outgoingIfInitialized == null
+
+        when:
+        def outgoing = configuration.outgoing
+
+        then:
+        configuration.outgoingIfInitialized.is(outgoing)
+    }
+
+    def "collecting capabilities does not realize outgoing publications"() {
+        given:
+        def configuration = conf()
+
+        when:
+        def capabilities = Configurations.collectCapabilities(configuration, new HashSet<>(), new HashSet<>())
+
+        then:
+        capabilities.empty
+        configuration.outgoingIfInitialized == null
+    }
+
+    def "collecting capabilities includes capabilities declared on outgoing publications"() {
+        given:
+        def configuration = conf()
+        configuration.outgoing.capability("group:capability:1.0")
+
+        when:
+        def capabilities = Configurations.collectCapabilities(configuration, new HashSet<>(), new HashSet<>())
+
+        then:
+        capabilities*.name == ["capability"]
+    }
+
+    def "observation forbids mutation of publications realized after observation"() {
+        given:
+        def configuration = conf()
+        configuration.markAsObserved("observed")
+
+        when:
+        configuration.outgoing.capability("group:capability:1.0")
+
+        then:
+        thrown(InvalidUserCodeException)
+    }
+
     def "build dependencies are calculated from the artifacts visited during graph resolution"() {
         def configuration = conf()
         def targetTask = Mock(Task)
@@ -1920,15 +1970,15 @@ This method is only meant to be called on configurations which allow the (non-de
             new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry()),
             TestUtil.providerFactory(),
             new TestWorkerLeaseService(),
-            instanceIdentity
+            instanceIdentity,
+            publishArtifactNotationParser,
+            userCodeApplicationContext
         )
 
         new DefaultConfigurationFactory(
             configurationServices,
             listenerManager,
-            domainObjectContext,
-            publishArtifactNotationParser,
-            userCodeApplicationContext
+            domainObjectContext
         )
     }
 
