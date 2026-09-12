@@ -55,6 +55,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -76,6 +77,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
     private final ListProperty<String> ignoredDependencies;
     private boolean uniqueLockStateLoaded;
     private Map<String, List<String>> allLockState;
+    private final Set<String> resolvedLockIds = new HashSet<>();
     private LockEntryFilter compoundLockEntryFilter;
     private LockEntryFilter ignoredEntryFilter;
 
@@ -215,12 +217,18 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
                     lockOwner, changingModulesOrdered, DOC_REG.getDocumentationRecommendationFor("details", "dependency_locking"));
             }
             allLockState.put(lockId, modulesOrdered);
+            resolvedLockIds.add(lockId);
         }
     }
 
     @Override
     public void buildFinished() {
         if (uniqueLockStateLoaded && lockFileReaderWriter.canWrite()) {
+            if (!lockFile.get().getAsFile().exists()) {
+                // Deleting the lock file discards the imported state, but resolutions from this build
+                // must survive, including those performed before deletion whose graphs are cached.
+                allLockState.keySet().retainAll(resolvedLockIds);
+            }
             lockFileReaderWriter.writeUniqueLockfile(allLockState);
             LOGGER.lifecycle("Persisted dependency lock state for {}", instanceIdentity.getDisplayName());
         }
@@ -257,6 +265,7 @@ public class DefaultDependencyLockingProvider implements DependencyLockingProvid
         if (writeLocks) {
             loadLockState();
             allLockState.remove(lockId);
+            resolvedLockIds.remove(lockId);
         }
     }
 
