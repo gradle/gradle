@@ -6,6 +6,7 @@ import gradlebuild.integrationtests.ide.androidStudioSystemProperties
 import gradlebuild.integrationtests.ide.ideaSystemProperties
 import gradlebuild.integrationtests.tasks.SmokeIdeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
+import gradlebuild.testing.skipWhenNoFlakyTests
 
 plugins {
     id("gradlebuild.internal.java")
@@ -79,6 +80,7 @@ tasks {
         environment("JAVA_HOME", javaLauncher.get().metadata.installationPath.asFile.absolutePath)
         testClassesDirs = smokeIdeTestSourceSet.output.classesDirs
         classpath = smokeIdeTestSourceSet.runtimeClasspath
+        skipWhenNoFlakyTests(smokeIdeTestSourceSet)
         jvmArgumentProviders.add(ideaSystemProperties())
         jvmArgumentProviders.add(androidStudioSystemProperties())
     }

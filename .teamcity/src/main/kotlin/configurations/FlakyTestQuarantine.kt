@@ -77,19 +77,12 @@ class FlakyTestQuarantine(
         name = "Flaky Test Quarantine - ${testCoverage.asName()}"
         description = "Run all flaky tests skipped multiple times"
 
-        // Unlike the regular functional test builds, a quarantine build is not split into buckets and does not use
-        // test distribution, so it runs every test task of its coverage on a single agent. For AllVersionsCrossVersion
-        // that is one task per tested Gradle version per subproject - over a thousand of them - and how long they take
-        // depends entirely on how much of that the build cache can serve. The runs that do pass land between 60 and
-        // 119 minutes, i.e. right at the 120 minute limit, and on Windows 20 of the last 25 runs were killed by it,
-        // so that coverage gets double the headroom until the amount of work itself is reduced.
+        // A quarantine build is not split into buckets and does not use test distribution, so it runs every test
+        // task of its coverage on a single agent. For AllVersionsCrossVersion that is one task per tested Gradle
+        // version per subproject - over a thousand of them - and how long they take depends on how many the build
+        // has to fork at all, so that coverage keeps double the headroom of the others.
         val timeout = if (testCoverage.testType == TestType.ALL_VERSIONS_CROSS_VERSION) 240 else 120
         applyDefaultSettings(os = os, arch = arch, buildJvm = BuildToolBuildJvm, timeout = timeout)
-
-        if (testCoverage.testType == TestType.ALL_VERSIONS_CROSS_VERSION) {
-            // Split the biggest quarantine coverage across agents to get it away from the timeout.
-            tcParallelTests(4)
-        }
 
         if (os == Os.LINUX) {
             steps {
@@ -137,12 +130,16 @@ class FlakyTestQuarantine(
                 name =
                     "FLAKY_TEST_QUARANTINE_${testCoverage.testType.name.uppercase()}_${testCoverage.testJvmVersion.name.uppercase()}"
                 val testTaskName =
-                    if (testCoverage.testType ==
-                        TestType.ISOLATED_PROJECTS
-                    ) {
-                        "isolatedProjectsIntegTest"
-                    } else {
-                        "${testCoverage.testType.asCamelCase()}Test"
+                    when (testCoverage.testType) {
+                        TestType.ISOLATED_PROJECTS -> "isolatedProjectsIntegTest"
+                        // One task per tested Gradle version, and on Windows each costs about five
+                        // minutes to start a JVM and unpack a distribution before it runs roughly
+                        // forty seconds of tests. allVersionsCrossVersionTest pays that 58 times,
+                        // once per major.minor. Whether a test still flakes does not depend on which
+                        // patch release of Gradle 5 it runs against, so the quarantine takes the one
+                        // task per major that quickFeedbackCrossVersionTest covers.
+                        TestType.ALL_VERSIONS_CROSS_VERSION -> "quickFeedbackCrossVersionTest"
+                        else -> "${testCoverage.testType.asCamelCase()}Test"
                     }
                 tasks = "clean $testTaskName"
                 gradleParams = parameters
