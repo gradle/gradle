@@ -197,12 +197,25 @@ public class TestTreeModel {
                         existingRootInfos.add(rootInfo);
                     }
                 } else {
-                    // Merge into the one that is also not a leaf if possible, otherwise just merge into the first one.
-                    PerRootInfo.Builder toMerge = existingRootInfos.stream()
+                    // Merge into the one that is also not a leaf if possible.
+                    PerRootInfo.Builder existingNonLeaf = existingRootInfos.stream()
                         .filter(info -> !info.isLeaf())
                         .findFirst()
-                        .orElseGet(() -> existingRootInfos.get(0));
-                    toMerge.merge(rootInfo);
+                        .orElse(null);
+                    if (existingNonLeaf != null) {
+                        existingNonLeaf.merge(rootInfo);
+                    } else {
+                        // Every existing entry is a leaf, but this one has children, so none of them were ever
+                        // a genuine test method retry -- they're earlier runs of this same node that happened to
+                        // report no children (e.g. a class rescheduled onto a worker that was lost before any
+                        // test method could report). Fold them all into the first entry along with this one,
+                        // rather than stranding the rest, which would leave more than one entry for this node.
+                        PerRootInfo.Builder first = existingRootInfos.get(0);
+                        for (int i = existingRootInfos.size() - 1; i > 0; i--) {
+                            first.merge(existingRootInfos.remove(i));
+                        }
+                        first.merge(rootInfo);
+                    }
                 }
             } else {
                 existingRootInfos.add(rootInfo);
