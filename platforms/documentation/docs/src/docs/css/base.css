@@ -11,6 +11,43 @@
          url("https://assets.gradle.com/lato/fonts/lato-semibold/lato-semibold.woff") format("woff");
 }
 
+/* Variables */
+:root {
+    --bg-color: #fff;
+    --fg-color: #000;
+    --text-color: #02303A;
+    --title-color: #02303A;
+    --border-color: #e5e5e5;
+    --various-border-color: #e7e7e9;
+    --code-color: #f7f7f8;
+    --top-header-color: #fff;
+    --nav-color: #f8f8f7;
+    --table-color: #f9f9f9;
+    --footer-color: rgba(0, 0, 0, 0.8);
+    --footer-text-color: #fff;
+    --footer-other-text-color: #02303A;
+    --box-shadow-color: rgba(0, 0, 0, .15);
+    --right-menu-gray: hsl(224, 6%, 56%);
+}
+
+[data-theme="dark"] {
+    --bg-color: #121212;
+    --fg-color: #fff;
+    --text-color: #aaa;
+    --title-color: #fff;
+    --border-color: #444;
+    --various-border-color: #242526;
+    --code-color: #1f1f1f;
+    --top-header-color: #242526;
+    --nav-color: #121212;
+    --table-color: #1a1a1a;
+    --footer-color: #121212;
+    --footer-text-color: #aaa;
+    --footer-other-text-color: #ddd;
+    --box-shadow-color: rgba(255, 255, 255, .15);
+    --right-menu-gray: hsl(224, 6%, 70%);
+}
+
 * {
     -webkit-box-sizing: border-box;
     -moz-box-sizing: border-box;
@@ -31,8 +68,8 @@ html {
 }
 
 body {
-    color: #02303A;
-    background-color: #fff;
+    color: var(--text-color);
+    background-color: var(--bg-color);
     -webkit-text-size-adjust: 100%;
     -ms-text-size-adjust: 100%;
     -webkit-font-smoothing: antialiased;
@@ -68,7 +105,7 @@ img {
 table {
     width: 100%;
     font-size: 85%;
-    border: 1px solid #e5e5e5;
+    border: 1px solid var(--border-color);
     border-collapse: collapse;
 }
 
@@ -81,7 +118,7 @@ table {
 td,
 th {
     padding: .25rem .5rem;
-    border: 1px solid #e5e5e5;
+    border: 1px solid var(--border-color);
 }
 
 th {
@@ -90,7 +127,7 @@ th {
 
 .content tbody tr:nth-child(odd) td,
 .content tbody tr:nth-child(odd) th {
-    background-color: #f9f9f9;
+    background-color: var(--table-color);
 }
 
 /* typography */
@@ -102,7 +139,7 @@ h1, h2, h3, h4, h5, h6 {
     margin-top: 0;
     margin-bottom: 1rem;
     font-weight: 500;
-    color: #02303A;
+    color: var(--title-color);
     text-rendering: optimizeLegibility;
 }
 
@@ -153,8 +190,8 @@ dd p {
 hr {
     position: relative;
     border: 0;
-    border-top: 1px solid #eee;
-    border-bottom: 1px solid #fff;
+    border-top: 1px solid var(--border-color);
+    border-bottom: 1px solid var(--bg-color);
     margin: 0;
 }
 
@@ -194,7 +231,7 @@ abbr, acronym {
 
 abbr[title], acronym[title] {
     cursor: help;
-    border-bottom: 1px dotted #e5e5e5;
+    border-bottom: 1px dotted var(--border-color);
 }
 
 b, strong, dfn {
@@ -222,7 +259,7 @@ blockquote {
     padding: .5rem 1rem;
     margin: .8rem 0;
     color: #7a7a7a;
-    border-left: .25rem solid #e5e5e5;
+    border-left: .25rem solid var(--border-color);
 }
 
 blockquote p:first-child {
@@ -242,7 +279,7 @@ blockquote p:last-child {
 
 /* layout */
 .container, .appendix, .book, .chapter, .footer {
-    background-color: white;
+    background-color: var(--bg-color);
     border-radius: 5px;
     padding: 1.5rem;
 }
@@ -295,7 +332,7 @@ blockquote p:last-child {
 /* code */
 code {
     font-size: 90%;
-    background-color: #f7f7f8;
+    background-color: var(--code-color);
     border-radius: 4px;
 }
 
@@ -305,7 +342,7 @@ code {
 }
 
 .hljs {
-    background: #f7f7f8 !important;
+    background: var(--code-color) !important;
 }
 
 /* util classes */
@@ -409,293 +446,14 @@ h3.releaseinfo {
 }
 
 /* Site header specific styles */
-.hamburger {
-    background-color: transparent;
-    background-image: none;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    margin-left: auto;
-    padding: 11px 10px;
-}
-
-.hamburger:focus {
-    outline: 0;
-}
-
-.hamburger__bar {
-    display: block;
-    width: 22px;
-    height: 2px;
-    background-color: black;
-    border-radius: 1px;
-}
-
-.hamburger__bar + .hamburger__bar {
-    margin-top: 4px;
-}
-
-.site-header {
-    background-color: white;
-}
 
 /* Override javadoc styles */
-.site-header div {
-    font-family: 'Lato', Arial, sans-serif;
-}
-
-.site-header__navigation-header a {
-    align-self: center;
-    border-bottom: 0 none;
-    height: 36px;
-}
-
-.site-header .site-header-version {
-    align-self: center;
-    color: #1da2bd;
-    font-size: 20px;
-    padding-left: 1px;
-    margin-top: 22px;
-}
-
-.site-header__navigation {
-    display: flex;
-    flex-direction: column;
-}
-
-.site-header__navigation-header {
-    display: flex;
-    flex: 0 0 auto;
-    margin-left: 12px;
-}
-
-.site-header__navigation-collapsible {
-    flex: 1 1 auto;
-    height: 210px;
-    overflow: visible;
-    transition: height 0.3s ease;
-}
-
-.site-header__navigation-items {
-    display: flex;
-    flex-direction: column;
-    flex-wrap: wrap;
-    align-items: flex-start;
-    max-height: 210px; /* This matches the collapsible height above */
-    margin: 0 20px;
-    padding-top: 12px;
-    padding-left: 0;
-    list-style-type: none;
-}
-
-.site-header__navigation-item {
-    flex: 0 1 auto;
-    font-size: 16px;
-    width: 250px;
-}
-
-.site-header__navigation-item .site-header__navigation-link {
-    position: relative;
-    display: inline-block;
-    cursor: pointer;
-    width: 100%;
-    padding: 5px;
-    line-height: 20px;
-    border: 0 none;
-    color: #02303A;
-    text-decoration: none;
-    transition: none;
-    -o-transition: none;
-    -moz-transition: none;
-    -webkit-transition: none;
-}
-
-.site-header__navigation-item .site-header__navigation-link:hover {
-    color: #1DA2BD;
-}
-
-.site-header__navigation-item .site-header__navigation-link.active {
-    font-weight: 500;
-}
 
 /* Navigation submenu styles */
-.site-header__navigation-submenu-section {
-    position: relative;
-}
-
-.site-header__navigation-submenu-section .site-header__down-arrow {
-    width: 8px;
-    height: 8px;
-    margin-left: 2px;
-    margin-top: 0;
-}
-
-.site-header__navigation-submenu-section .site-header__navigation-link:hover path {
-    fill: none;
-}
-
-.site-header__navigation-submenu-section .site-header__navigation-submenu .site-header__navigation-submenu-item-link:hover {
-    color: #1DA2BD;
-}
-
-.site-header__navigation-submenu-section .site-header__navigation-submenu {
-    display: none;
-    width: 170px;
-    background-color: white;
-    top: 100%;
-    left: 7px; /* NOTE: This must match the padding of .site-header__navigation-link */
-    padding: 3px 10px 6px 10px;
-    z-index: 100;
-}
-
-.site-header__navigation-submenu-section .site-header__navigation-submenu .site-header__navigation-submenu-item-link {
-    width: 100%;
-    color: #02303A;
-    white-space: nowrap;
-    display: inline-block;
-    padding-top: 3px;
-    border: 0 none;
-    transition: none;
-    -o-transition: none;
-    -moz-transition: none;
-    -webkit-transition: none;
-}
-
-.site-header__navigation-submenu-section .site-header__navigation-submenu .site-header__navigation-submenu-item-link .site-header__navigation-submenu-item-link-text {
-    display: inline-block;
-    font-size: 16px;
-}
-
-.site-header__navigation-submenu-section.open .site-header__navigation-submenu {
-    display: block;
-}
 
 /* Top navigation mobile styles */
-@media (max-width: 1023px) {
-    .site-header__navigation-collapsible--collapse {
-        height: 0;
-        overflow-y: hidden;
-    }
-
-    .site-header__navigation-submenu-section .site-header__navigation-submenu {
-        padding: 0 1rem 0.5rem 1.5rem;
-        display: block;
-        top: 30px !important;
-        left: 0 !important;
-    }
-
-    .site-header__navigation-item,
-    .site-header__navigation-submenu-section .site-header__navigation-submenu .site-header__navigation-submenu-item-link .site-header__navigation-submenu-item-link-text {
-        font-size: 18px;
-    }
-
-    .site-header {
-        padding: 5px 12px;
-    }
-
-    .site-header-version {
-        display: none;
-    }
-
-    .site-footer__navigation {
-        flex-direction: column;
-    }
-
-    .site-footer__links {
-        flex-wrap: wrap;
-    }
-
-    .site-footer__link-group {
-        margin-bottom: 1rem;
-    }
-}
 
 /* Top navigation desktop styles */
-@media (min-width: 1024px) {
-    .site-header {
-        -webkit-box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
-        -moz-box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
-        box-shadow: 0 2px 4px 0 rgba(0, 0, 0, .15);
-        z-index: 1;
-    }
-
-    /*
-      Pushes the section headings to just below the top nav bar when a user
-      navigates directly to section anchors.
-     */
-    #content h2[id], #content h3[id], #content h4[id] {
-        padding-top: 60px;
-    }
-
-    #content h2[id] {
-        /* Little extra room above h2s */
-        margin-top: -1em;
-    }
-
-    #content h3[id], #content h4[id] {
-        margin-top: -60px;
-    }
-
-    .site-header__navigation {
-        flex-direction: row;
-    }
-
-    .site-header__navigation-button {
-        display: none;
-    }
-
-    .site-header__navigation-items {
-        flex-direction: row;
-        align-items: center;
-        float: right;
-        width: auto;
-        padding-top: 0;
-    }
-
-    .site-header__navigation-item {
-        width: auto;
-    }
-
-    .site-header__navigation-item .site-header__navigation-link {
-        padding: 15px 18px;
-    }
-
-    .site-header__navigation-item:last-of-type .site-header__navigation-link {
-        padding-right: 0;
-    }
-
-    .site-header__navigation-link--button {
-        padding: 6px 12px;
-    }
-
-    .site-header__navigation-collapsible {
-        height: auto;
-    }
-
-    .site-header__navigation-submenu-section .site-header__navigation-submenu {
-        position: absolute;
-        border: 1px solid #9a9a9a;
-        border-radius: 3px;
-    }
-
-    .site-header__navigation-submenu-section:hover .site-header__navigation-submenu {
-        display: block;
-    }
-
-    /*
-      Pushes the section headings to just below the top nav bar when a user
-      navigates directly to section anchors. It doesn't work if you try
-      to apply the padding and margin to the `h` elements directly.
-     */
-    .chapter a[name],
-    .chapter .anchor {
-        padding-top: 60px;
-        margin-top: -60px;
-        text-decoration: none;
-        border: none;
-        display: inline-block;
-    }
-}
 
 /* Side Navigation styles */
 /* Docs Navigation */
@@ -708,13 +466,13 @@ h3.releaseinfo {
     display: none;
     padding-left: 5px;
     padding: 20px 20px 20px 26px;
-    background: #f8f8f7;
-    border-right: 1px solid #e7e7e9;
+    background: var(--nav-color);
+    border-right: 1px solid var(--various-border-color);
     overflow: auto;
 }
 
 .docs-navigation a {
-    color: #02303A;
+    color: var(--text-color);
     display: block;
     font-size: .80rem;
     position: relative;
@@ -730,7 +488,7 @@ h3.releaseinfo {
 }
 
 .docs-navigation a code {
-    color: #02303A;
+    color: var(--text-color);
     overflow-wrap: break-word;
     padding: 0;
     word-break: break-all;
@@ -761,7 +519,7 @@ h3.releaseinfo {
 
 .docs-navigation li > ul > li a {
     font-size: 14px;
-    color: #7d7d7d;
+    color: var(--right-menu-gray);
 }
 
 .docs-navigation ul:last-of-type {
@@ -865,7 +623,7 @@ h3.releaseinfo {
 }
 
 .chapter-meta .edit-link {
-    color: #999;
+    color: var(--right-menu-gray);
     font-size: 0.9em;
     padding-right: 3px;
 }
@@ -887,198 +645,6 @@ h3.releaseinfo {
 .rating > .star.selected > svg > g,
 .rating > .star.selected ~ .star > svg > g {
     fill: #999;
-}
-
-/* Footer styles */
-.site-footer {
-}
-
-.site-footer__navigation {
-    display: flex;
-    padding: 30px 12px;
-    max-width: 62.5rem;
-    margin: 0 auto;
-    padding-left: 5rem
-}
-
-.site-footer__links {
-    display: flex;
-    flex: 1 1 auto;
-}
-
-.site-footer__links .site-footer__links-list {
-    list-style-type: none;
-    margin: 0;
-}
-
-.site-footer__links .site-footer__links-list a {
-    color: #ddd;
-}
-
-.site-footer__link-group {
-    flex: 1 1 auto;
-    flex-basis: 175px;
-}
-
-.site-footer__link-group header {
-    color: #fff;
-}
-
-.site-footer__subscribe-newsletter .newsletter-form__header h5 {
-    color: #fff;
-    margin-top: 0;
-}
-
-.site-footer__subscribe-newsletter p {
-    font-size: 0.875rem;
-    margin: 2px 0 0 2px;
-    opacity: 0.7;
-}
-.site-footer__subscribe-newsletter .disclaimer {
-    color: #ddd;
-    font-size: 0.75rem;
-    opacity: 0.55;
-}
-.site-footer__subscribe-newsletter .newsletter-form {
-    padding-top: 6px;
-    display: flex;
-    justify-content: flex-start;
-}
-
-.site-footer__subscribe-newsletter .email,
-.site-footer__subscribe-newsletter .submit {
-    height: 40px;
-}
-
-.site-footer__subscribe-newsletter .email {
-    line-height: 40px;
-    width: 250px;
-    color: #1DA2BD;
-    font-size: 16px;
-    padding-left: 20px;
-    border-top-left-radius: 4px;
-    border-bottom-left-radius: 4px;
-    border-style: none;
-}
-
-.site-footer__subscribe-newsletter .submit {
-    font-family: inherit;
-    font-size: inherit;
-    line-height: inherit;
-    width: 100px;
-    background-color: #1BA8CB;
-    color: white;
-    font-weight: 500;
-    border-top-right-radius: 4px;
-    border-bottom-right-radius: 4px;
-    border-style: none;
-    cursor: pointer;
-    transition: all .3s ease;
-}
-
-/* Secondary footer (below) */
-.site-footer-secondary {
-    background-color: white;
-    border-top: 1px solid #e7e7e9;
-    width: 100%;
-    z-index: 1;
-}
-
-.site-footer-secondary__contents {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    max-width: 75rem;
-    margin-left: auto;
-    margin-right: auto;
-    font-size: 0.875rem;
-    padding: 0.5rem 0.75rem;
-}
-
-/*
- * 1. Value is the largest computed width among 'site-footer__copy' and 'site-footer__links'.
- */
-.site-footer__copy,
-.site-footer__secondary-links {
-    flex-grow: 0;
-    /* 1. */
-}
-
-/*
- * 1. 'flex-shrink: 1' is applied to the element with the smallest computed width among
- *    'site-footer__copy' and 'site-footer__links'.
- */
-.site-footer__copy {
-    flex-shrink: 1;
-    /* 1. */
-}
-
-.site-footer__logo {
-    flex: 0 0 auto;
-    margin-right: 10px;
-    margin-left: 10px;
-}
-
-.site-footer__logo svg {
-    width: 35px;
-    height: 35px;
-}
-
-/*
- * 1. 'flex-shrink: 0' is applied to the element with the largest computed width among
- *    'site-footer__copy' and 'site-footer__links'.
- */
-.site-footer__secondary-links {
-    flex-shrink: 0;
-    /* 1 */
-    text-align: right;
-    white-space: nowrap;
-}
-
-.site-footer-secondary a {
-    color: #999;
-}
-
-.site-footer-secondary__links a:not(:last-child) {
-    padding-right: 10px;
-}
-
-.site-footer-secondary__links a:not(:first-child) {
-    padding-left: 10px;
-}
-
-@media all and (max-width: 29.99rem) {
-    .site-footer__navigation {
-        margin: 0.5rem auto;
-    }
-
-    .site-footer__rights,
-    .site-footer-secondary__links {
-        display: none;
-    }
-
-    .site-footer__link-group {
-        margin-bottom: 1rem;
-    }
-
-    .site-footer__logo {
-        order: 1;
-        text-align: left;
-    }
-
-    .site-footer__copy {
-        order: 2;
-        text-align: right;
-    }
-}
-
-/* Avoid the footer taking up much of the screen on short displays */
-@media all and (max-height: 56.25rem) {
-    .site-footer__navigation {
-        margin: 1rem auto 1rem auto;
-        padding-top: 0;
-        padding-bottom: 0;
-    }
 }
 
 @media screen and (min-width: 84.375rem) {
@@ -1185,8 +751,8 @@ h3.releaseinfo {
 }
 
 .note, .tip, .exampleLocation {
-    border-left: 1px solid #ddddd8;
-    color: rgba(0,0,0,0.6);
+    border-left: 1px solid var(--border-color);
+    color: var(--text-color);
     margin: 0 0 1.5em 1.25em;
     padding-left: 1.125em;
     padding-right: 1.25em;
@@ -1244,9 +810,9 @@ table .caution {
 }
 
 .signature {
-    background-color: #f5f5f5;
+    background-color: var(--code-color);
     border: solid #e7e7e7 1px;
-    color: #666666;
+    color: var(--text-color);
     width: auto;
     margin-right: -0.8em;
     margin-left: -0.8em;
@@ -1316,12 +882,11 @@ div.example code.filename {
     opacity: 1;
 }
 
-
 .docs-navigation {
     width: 18rem;
     padding: 20px 20px 20px 26px;
-    background: #f8f8f7;
-    border-right: 1px solid #e7e7e9;
+    background: var(--nav-color);
+    border-right: 1px solid var(--various-border-color);
     overflow: auto;
 }
 
@@ -1353,19 +918,6 @@ div.example code.filename {
     font-weight: 500;
 }
 
-.site-header  {
-    margin-bottom: 1rem;
-}
-
-.site-header__navigation-submenu-item {
-    padding: 2px 0;
-}
-
-.site-footer {
-    background-color: rgba(0, 0, 0, 0.8);
-    padding: 20px 0 40px 0;
-}
-
 #header {
     margin-left: 0;
 }
@@ -1374,196 +926,5 @@ div.example code.filename {
     margin-bottom: 40px;
 }
 
-@media screen and (min-width: 64rem) {
-    #header {
-        margin-bottom: 20px;
-    }
+/* Dark mode overrides */
 
-    .site-header  {
-        margin-bottom: 0;
-        z-index: 2;
-    }
-
-    .site-header__navigation-header {
-        margin-top: -7px;
-    }
-
-    .site-header__navigation-submenu-section:after {
-        content: '\2023';
-        font-size: 28px;
-        position: absolute;
-        transform: rotate(90deg);
-        margin-right: 10px;
-        top: 5px;
-        right: -7px;
-    }
-
-    .site-footer__navigation {
-        flex-wrap: wrap;
-    }
-
-    .site-footer__link-group {
-        flex: 1 1 auto;
-    }
-
-    .site-footer__links {
-        margin-bottom: 1rem;
-    }
-}
-
-@media screen and (min-width: 75rem) {
-    .content .chapter,
-    .content .book {
-        box-sizing: content-box;
-    }
-
-    #content {
-        padding-right: 260px;
-        margin: 0;
-    }
-
-    .appendix .toc,
-    .book .home .toc,
-    .chapter .toc {
-        position: fixed;
-        margin: 0 auto;
-        padding-bottom: 0;
-        right: 0;
-        top: 65px;
-        width: 260px;
-        z-index: 1;
-        overflow: auto;
-        border-radius: 0 0 5px 0;
-        max-height: calc(100% - 123px);
-        margin-right: 15px;
-    }
-
-    .appendix .toctitle,
-    .book .home .toctitle,
-    .chapter .toctitle {
-        margin-top: 1.3em;
-    }
-
-    .appendix .toc > dl,
-    .book .home .toc > dl,
-    .chapter .toc > dl {
-        /* margin-left have to increase if you change border thickness of active toc item */
-        margin-left: 1px;
-        border-left: 1px solid #666;
-        margin-bottom: 0;
-        padding-right: 10px;
-        padding-bottom: 0.5rem;
-        background-color: #fff;
-    }
-
-    .appendix .toc > dl > dt,
-    .appendix .toc > dl > dt:last-of-type
-    .book .home .toc > dl > dt,
-    .book .home .toc > dl > dt:last-of-type
-    .chapter .toc > dl > dt,
-    .chapter .toc > dl > dt:last-of-type {
-        padding: 0.5rem 0;
-        margin: 0;
-    }
-
-    .appendix .toc a,
-    .book .home .toc a,
-    .chapter .toc a {
-        padding-left: 10px;
-        font-weight: 400;
-        color: #02303A;
-        font-size: .95rem;
-        display: inline-block;
-    }
-
-    .appendix .toc a.active,
-    .book .home .toc a.active,
-    .chapter .toc a.active {
-        font-weight: 500;
-        border-left: 3px solid #01303a;
-        margin-left: -2px;
-        padding-left: 9px;
-    }
-
-    .site-footer__navigation {
-        flex-wrap: wrap;
-        margin-left: auto;
-        padding-left: 3rem;
-    }
-
-    .site-footer__link-group {
-        flex: 0.15 1 auto;
-    }
-
-    .site-footer__subscribe-newsletter {
-        /* A fix so subscribe disclaimer does not go under long ToC */
-        max-width: calc(100% - 17rem);
-    }
-}
-
-@media screen and (min-width: 80rem) {
-    .site-footer__subscribe-newsletter {
-        max-height: none;
-    }
-}
-
-@media screen and (min-width: 100rem) {
-    .content .chapter,
-    .content .book {
-        max-width: 60.5rem;
-    }
-
-    #header {
-        margin: 0 auto;
-    }
-
-    #content {
-        padding-right: 0;
-        margin: 0 auto;
-    }
-
-    .appendix .toc,
-    .book .home .toc,
-    .chapter .toc {
-        right: initial;
-        margin-left: 62.5rem;
-    }
-
-    .site-footer__navigation {
-        padding-left: 0;
-    }
-
-    .site-footer__link-group {
-        flex: 0.2 1 auto;
-    }
-}
-
-@media screen and (min-width: 112rem) {
-    .content .chapter,
-    .content .book {
-        max-width: 62.5rem;
-        margin: 0 auto;
-        position: relative;
-        padding-right: 3.5rem;
-        left: -130px;
-    }
-
-    .appendix .toc,
-    .book .home .toc,
-    .chapter .toc {
-        right: initial;
-        margin-left: 64.5rem;
-    }
-
-    .site-footer__link-group {
-        flex: 0.2 1 auto;
-    }
-}
-
-@supports (-moz-appearance:meterbar) and (background-blend-mode:difference,normal) {
-    /* Firefox only */
-    .site-header__navigation-submenu-section:after {
-        top: 2px;
-        right: -4px;
-    }
-}

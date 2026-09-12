@@ -54,8 +54,8 @@ Such changes are highlighted in the release notes for each release.
 
 * Gradle 9.7.0
 ** Isolated Projects is promoted from experimental to <<feature_lifecycle.adoc#sec:incubating_state,incubating>>.
-** The stable `org.gradle.isolated-projects` property names are now preferred, and the earlier `.unsafe` names are <<sec:enable,deprecated>>.
-** The build now <<sec:enable,fails immediately>> on the first violation by default. Use the <<sec:diagnostics_mode,Diagnostics mode>> to discover as many violations as possible in a single run.
+** The stable `org.gradle.isolated-projects` property names are now preferred, and the earlier `.unsafe` names are <<sec:enable_ip,deprecated>>.
+** The build now <<sec:enable_ip,fails immediately>> on the first violation by default. Use the <<sec:diagnostics_mode,Diagnostics mode>> to discover as many violations as possible in a single run.
 ** Many `Gradle` APIs are now treated as incompatible when accessed during project configuration, protecting the <<sec:project_to_build_access,mutable build-scoped state>>.
 ** The new <<sec:dangerously_ignore_problems,temporarily ignore violations>> mode reports violations without failing the build, so you can evaluate performance before fixing them.
 ** The Configuration Cache `--configuration-cache-problems=warn` flag no longer downgrades Isolated Projects violations to warnings.
@@ -564,7 +564,7 @@ The Isolated Projects feature builds on top of the Configuration Cache feature a
 +
 Follow the guidance for each behavior change to ensure expected build results when gradually migrating workflows to run with Isolated Projects.
 
-[[sec:enable]]
+[[sec:enable_ip]]
 === Enabling Isolated Projects
 
 Isolated Projects can be enabled by setting the `org.gradle.isolated-projects` Gradle option to `true`, or by passing the `--isolated-projects` flag on the command line:
@@ -745,7 +745,7 @@ This is expected, since incompatible build logic can hide behind lazy task confi
 This section collects the strategies for resolving Isolated Projects violations in your own build logic.
 They are ordered by preference: prefer refactoring cross-project configuration into convention plugins or state-isolating callbacks, and reach for guarding only as a last resort.
 
-[[sec:convention_plugins]]
+[[sec:convention_plugins_ip]]
 === Use convention plugins
 
 <<plugins.adoc#sec:convention_plugins,Convention plugins>> package shared build logic so that it is defined once and then explicitly applied in each project that needs it.
@@ -761,7 +761,7 @@ This allows for more elaborate reuse of build logic without compromising Isolate
 [[sec:isolating_lifecycle_callbacks]]
 === Use state-isolating lifecycle callbacks
 
-<<sec:convention_plugins,Convention plugins>> cover most cases, but sometimes it is still desirable to apply configuration to many projects at once, from a single place.
+<<sec:convention_plugins_ip,Convention plugins>> cover most cases, but sometimes it is still desirable to apply configuration to many projects at once, from a single place.
 This is usually done with a callback such as `allprojects {}` called from a project or registered in the build scope via `gradle`.
 
 One problem with these callbacks is that the owner of the callback ends up touching state of another scope.

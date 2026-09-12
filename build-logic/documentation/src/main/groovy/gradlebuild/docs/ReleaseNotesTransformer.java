@@ -150,9 +150,26 @@ public class ReleaseNotesTransformer extends FilterReader {
         String base = "https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1";
         Element head = document.head();
 
+        // id="hljs-theme" lets portal's /theme.js swap this href between light/dark stylesheets
+        // when the user toggles the theme. Matches the same id used in head.html for other doc types.
         head.appendElement("link")
+            .attr("id", "hljs-theme")
             .attr("rel", "stylesheet")
             .attr("href", base + "/styles/stackoverflow-light.min.css");
+
+        // Pre-hydration theme init: on initial load, honor stored/system dark-mode preference and
+        // swap the hljs stylesheet href before it starts rendering. Prevents flash of light theme.
+        head.appendElement("script").append(
+            "(function(){"
+            + "var t;try{t=localStorage.getItem('theme');}catch(e){}"
+            + "if(!t){t=window.matchMedia('(prefers-color-scheme: dark)').matches?'dark':'light';}"
+            + "document.documentElement.setAttribute('data-theme',t);"
+            + "if(t==='dark'){"
+            + "document.getElementById('hljs-theme').href='" + base + "/styles/stackoverflow-dark.min.css';"
+            + "}"
+            + "})();"
+        );
+
         head.appendElement("script").attr("src", base + "/highlight.min.js");
         head.appendElement("script").attr("src", base + "/languages/groovy.min.js");
         head.appendElement("script").append("hljs.highlightAll();");
