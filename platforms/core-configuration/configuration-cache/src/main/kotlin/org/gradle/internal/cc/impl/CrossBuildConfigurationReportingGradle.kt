@@ -160,6 +160,10 @@ class CrossBuildConfigurationReportingGradle(
         return delegate.getBuildListenerBroadcaster()
     }
 
+    override fun notifySettingsEvaluated(settings: SettingsInternal) {
+        shouldNotBeUsed()
+    }
+
     override fun getServices(): ServiceRegistry {
         onBuildMutableStateAccess("getServices")
         return delegate.services

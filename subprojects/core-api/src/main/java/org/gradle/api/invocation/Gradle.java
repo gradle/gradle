@@ -235,6 +235,9 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * The settings object is fully configured and is ready to use to load the build projects. The
      * {@link org.gradle.api.initialization.Settings} object is passed to the closure as a parameter.
      *
+     * <p>If you call this method within a <code>settingsEvaluated</code> closure, the passed closure executes after
+     * all previously added <code>settingsEvaluated</code> closures finish executing.</p>
+     *
      * @param closure The closure to execute.
      * @since 0.9
      */
@@ -244,6 +247,9 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * Adds an action to be called when the build settings have been loaded and evaluated.
      *
      * The settings object is fully configured and is ready to use to load the build projects.
+     *
+     * <p>If you call this method within a <code>settingsEvaluated</code> action, the passed action executes after
+     * all previously added <code>settingsEvaluated</code> actions finish executing.</p>
      *
      * @param action The action to execute.
      * @since 3.4
