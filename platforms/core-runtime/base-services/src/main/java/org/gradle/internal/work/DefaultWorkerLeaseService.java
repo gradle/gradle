@@ -582,7 +582,22 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
 
     @SuppressWarnings("this-escape")
     private class WorkerLeaseLockRegistry extends SingleLockRegistry<String, DefaultWorkerLease> {
-        private final LeaseHolder root = new LeaseHolder(getMaxWorkerCount());
+        /* TODO(humanize) PROBE, NOT FOR MERGE. This grants one worker lease more than --max-workers,
+           on purpose. The pre-8b1260954c4 baseline was doing exactly this by accident: every
+           waitForCompletion() call went through workerLeases.blocking(), and withoutLocksBlocking
+           marks the lease dormant, releases it (a parked QueueConsumer immediately wins the freed
+           slot), then force-reacquires it past the cap via LeaseHolder.forceGrantLease(). The
+           bigCppMulti trace shows the baseline sitting at 7 concurrent file compiles for 1282ms of
+           an 11s build; the current branch never exceeds 6. So the "regression" is the loss of an
+           accidental over-subscription, and this probe asks what that over-subscription was worth
+           when it is permanent rather than transient.
+
+           Note DefaultPlanExecutor.maybeStartWorkers still sizes its execution workers from
+           workerLimits.getMaxWorkerCount(), not from the lease count, so the extra lease goes to a
+           WorkerLeaseQueueProcessor QueueConsumer rather than to a seventh execution worker.
+           Permanent N+1 is more aggressive than what the baseline had, so this run may come out
+           faster than the baseline rather than merely matching it. */
+        private final LeaseHolder root = new LeaseHolder(getMaxWorkerCount() + 1);
 
         WorkerLeaseLockRegistry(ResourceLockCoordinationService coordinationService) {
             super(coordinationService);
