@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.artifacts.repositories.resolver
 
+import org.apache.commons.lang3.StringUtils
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata
@@ -84,34 +86,40 @@ class IvyResourcePatternTest extends Specification {
 
     def "computes module version path"() {
         def ivyPattern = new IvyResourcePattern(pattern)
-        def moduleId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, module), version)
+        def moduleId = newModuleComponentIdentifier(id)
 
         expect:
         ivyPattern.toModuleVersionPath(moduleId).path == expectedPath
 
         where:
-        group        | module | version | pattern                                                                                  | expectedPath
-        'org.gradle' | 'test' | '1.0'   | 'prefix/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])' | 'prefix/org.gradle/test/1.0'
-        'org.gradle' | 'test' | '1.1'   | 'prefix/[organisation]/[module]/[revision]/[artifact]-[revision]-artifact.bin'           | 'prefix/org.gradle/test/1.1'
-        'org.gradle' | 'test' | '1.2'   | 'repo/[organisation]-[module]-[revision]/[artifact]-[revision]-artifact.bin'             | 'repo/org.gradle-test-1.2'
+        id                    | pattern                                                                                  | expectedPath
+        'org.gradle:test:1.0' | 'prefix/[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])' | 'prefix/org.gradle/test/1.0'
+        'org.gradle:test:1.1' | 'prefix/[organisation]/[module]/[revision]/[artifact]-[revision]-artifact.bin'           | 'prefix/org.gradle/test/1.1'
+        'org.gradle:test:1.2' | 'repo/[organisation]-[module]-[revision]/[artifact]-[revision]-artifact.bin'             | 'repo/org.gradle-test-1.2'
+        'org.gradle:test:1.0' | 'prefix/[organisation]/[module]/[artifact]/[revision]'                                   | 'prefix/org.gradle/test/test'
+        'org.gradle:test:9.9' | 'xxx/a-[organisation]-a/b-[module]-b/c-[artifact]-c/d-[revision]-d/xxx'                  | 'xxx/a-org.gradle-a/b-test-b/c-test-c/d-9.9-d'
     }
 
-    def "cannot compute module version path if pattern doesn't end with /[artifact]"() {
+    def "cannot compute module version path if pattern is missing required attributes"() {
         def ivyPattern = new IvyResourcePattern(pattern)
-        def moduleId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(group, module), version)
+        def moduleId = newModuleComponentIdentifier("org.gradle:test:1.0")
 
         when:
-        ivyPattern.toModuleVersionPath(moduleId).path
+        ivyPattern.toModuleVersionPath(moduleId)
 
         then:
         UnsupportedOperationException e = thrown()
-        e.message == 'Cannot locate module version for non standard Ivy layout.'
+        e.message == "Ivy layout pattern $pattern is missing required tokens: $missingTokens"
 
         where:
-        group        | module | version | pattern
-        'org.gradle' | 'test' | '1.0'   | 'prefix/[organisation]/[module]/[revision]/foo'
-        'org.gradle' | 'test' | '1.0'   | 'prefix/[organisation]/[module]/[revision]/[revision]'
-        'org.gradle' | 'test' | '1.0'   | 'prefix/[organisation]/[module]/[artifact]/[revision]'
+        pattern                        | missingTokens
+        "/non/ivy/pattern"             | "[artifact]"
+        "blah-(optional-[artifact])-x" | "[artifact]"
+    }
+
+    private static ModuleComponentIdentifier newModuleComponentIdentifier(String groupArtifactVersion) {
+        def gav = StringUtils.split(groupArtifactVersion, ':')
+        return DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId(gav[0], gav[1]), gav[2])
     }
 
     private static ModuleComponentArtifactMetadata artifact(String group, String name, String version) {
