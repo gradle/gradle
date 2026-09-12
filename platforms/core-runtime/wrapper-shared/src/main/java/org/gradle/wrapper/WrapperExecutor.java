@@ -27,6 +27,7 @@ import java.util.Properties;
 
 public class WrapperExecutor {
     public static final String DISTRIBUTION_URL_PROPERTY = "distributionUrl";
+    public static final String WRAPPER_JAR_URL_PROPERTY = "wrapperJarUrl";
     public static final String DISTRIBUTION_BASE_PROPERTY = "distributionBase";
     public static final String DISTRIBUTION_PATH_PROPERTY = "distributionPath";
     public static final String DISTRIBUTION_SHA_256_SUM = "distributionSha256Sum";

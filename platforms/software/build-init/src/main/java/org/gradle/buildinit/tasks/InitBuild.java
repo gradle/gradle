@@ -420,6 +420,7 @@ public abstract class InitBuild extends DefaultTask {
         String jarFileRelativePath = getRelativePath(projectDirectory.getAsFile(), jarFile);
         File propertiesFile = WrapperGenerator.getPropertiesFile(jarFile);
         String distributionUrl = WrapperGenerator.getDistributionUrl(GradleVersion.current(), WrapperDefaults.DISTRIBUTION_TYPE);
+        String wrapperJarUrl = WrapperGenerator.getWrapperJarUrl(GradleVersion.current(), distributionUrl, null);
         WrapperGenerator.generate(
             WrapperDefaults.ARCHIVE_BASE, WrapperDefaults.ARCHIVE_PATH,
             WrapperDefaults.DISTRIBUTION_BASE, WrapperDefaults.DISTRIBUTION_PATH,
@@ -428,6 +429,7 @@ public abstract class InitBuild extends DefaultTask {
             jarFile, jarFileRelativePath,
             unixScript, WrapperGenerator.getBatchScript(unixScript),
             distributionUrl,
+            wrapperJarUrl,
             true,
             WrapperDefaults.NETWORK_TIMEOUT,
             WrapperDefaults.RETRIES,

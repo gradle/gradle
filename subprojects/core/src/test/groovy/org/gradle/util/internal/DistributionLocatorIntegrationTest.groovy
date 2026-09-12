@@ -44,6 +44,17 @@ class DistributionLocatorIntegrationTest extends Specification {
         locator.getDistributionFor(GradleVersion.version("8.5"), "src").toString() == "https://services.gradle.org/distributions/gradle-8.5-src.zip"
     }
 
+    def "generates correct wrapper jar URI for release versions"() {
+        expect:
+        locator.getWrapperFor(GradleVersion.version("8.5")).toString() == "https://services.gradle.org/distributions/gradle-8.5-wrapper.jar"
+        locator.getWrapperFor(GradleVersion.version("1.12")).toString() == "https://services.gradle.org/distributions/gradle-1.12-wrapper.jar"
+    }
+
+    def "generates correct wrapper jar URI for snapshot versions"() {
+        expect:
+        locator.getWrapperFor(GradleVersion.version("8.5-20240101120000+0000")).toString() == "https://services.gradle.org/distributions-snapshots/gradle-8.5-20240101120000+0000-wrapper.jar"
+    }
+
     def "uses custom base URL from system property"() {
         given:
         def originalBaseUrl = System.getProperty("org.gradle.internal.services.base.url")
