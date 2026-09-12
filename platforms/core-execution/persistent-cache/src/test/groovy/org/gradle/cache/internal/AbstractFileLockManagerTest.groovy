@@ -141,6 +141,32 @@ abstract class AbstractFileLockManagerTest extends Specification {
         lockMode << [Exclusive, Shared]
     }
 
+    @Requires(FileSystemTestPreconditions.Symlinks)
+    def "isLockFile recognizes the lock file via a different path that resolves to the same canonical file"() {
+        // Simulates the Windows `subst` aliased-drive scenario: the same physical
+        // lock file is reachable via two distinct File paths (e.g. C:\... vs P:\...).
+        // On POSIX we approximate via a symlinked alias directory.
+        given:
+        def aliasDir = tmpDir.file("aliased").createDir()
+        def aliasParent = aliasDir.file(tmpDir.testDirectory.name).createLink(tmpDir.testDirectory)
+        def aliasedLockFile = new File(aliasParent, testFile.name + ".lock")
+        def unrelatedLockFile = tmpDir.file("unrelated.lock")
+
+        when:
+        def lock = createLock(lockMode)
+
+        then:
+        lock.isLockFile(testFileLock)
+        lock.isLockFile(aliasedLockFile)
+        !lock.isLockFile(unrelatedLockFile)
+
+        cleanup:
+        lock?.close()
+
+        where:
+        lockMode << [Exclusive, Shared]
+    }
+
     def "can lock a file after it has been closed"() {
         given:
         def fileLock = createLock(Exclusive)
