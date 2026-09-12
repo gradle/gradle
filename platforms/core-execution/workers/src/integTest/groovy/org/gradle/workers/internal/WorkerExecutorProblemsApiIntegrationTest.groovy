@@ -227,6 +227,67 @@ class WorkerExecutorProblemsApiIntegrationTest extends AbstractIntegrationSpec {
         isolationMode << WorkerExecutorFixture.ISOLATION_MODES
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/38670")
+    def "problems reported into predefined groups survive the worker boundary with #isolationMode"() {
+        setupBuild()
+        enableProblemsApiCheck()
+        file('buildSrc/src/main/java/org/someorg/test/PredefinedGroupProblemWorkerTask.java') << """
+            package org.someorg.test;
+
+            import org.gradle.api.problems.Problems;
+            import org.gradle.workers.WorkAction;
+
+            import javax.inject.Inject;
+
+            public abstract class PredefinedGroupProblemWorkerTask implements WorkAction<ProblemsWorkerTaskParameter> {
+
+                @Inject
+                public abstract Problems getProblems();
+
+                @Override
+                public void execute() {
+                    getProblems().getReporter().report(getProblems().getGroups().getCompilation().getJava().problem("Unused import"), problem -> {});
+                    getProblems().getReporter().report(getProblems().getGroups().getTransformation().group("KMP").problem("Compilation failed"), problem -> {});
+                }
+            }
+        """
+
+        given:
+        buildFile """
+            import javax.inject.Inject
+            import org.someorg.test.PredefinedGroupProblemWorkerTask
+
+            abstract class ProblemTask extends DefaultTask {
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor();
+
+                @TaskAction
+                void executeTask() {
+                    getWorkerExecutor().${isolationMode}().submit(PredefinedGroupProblemWorkerTask.class) {}
+                }
+            }
+
+            tasks.register("reportProblem", ProblemTask)
+        """
+
+        when:
+        run("reportProblem")
+
+        then:
+        findReceivedProblem { it.definition.id.fqid == "Transformation:KMP:Compilation failed" }
+        with(findReceivedProblem { it.definition.id.fqid == "Compilation:Java:Unused import" }.definition.id) {
+            displayName == "Unused import"
+            group.name == "Java"
+            group.displayName == "Java"
+            group.description == "Java code compilation, including the compiler's configuration, compiler invocation, or compiler plugins."
+            group.parent.name == "Compilation"
+            group.parent.parent == null
+        }
+
+        where:
+        isolationMode << WorkerExecutorFixture.ISOLATION_MODES
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/35885")
     def "problem reported from a user-spawned thread in a worker is not lost with #isolationMode"() {
         enableProblemsApiCheck()

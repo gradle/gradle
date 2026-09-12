@@ -300,10 +300,11 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
 
     @Override
     public ProblemBuilderInternal id(ProblemId problemId) {
-        if (problemId instanceof DefaultProblemId) {
+        ProblemGroup group = cloneGroup(problemId.getGroup());
+        if (problemId instanceof DefaultProblemId && group == problemId.getGroup()) {
             this.id = problemId;
         } else {
-            this.id = cloneId(problemId);
+            this.id = ProblemId.create(problemId.getName(), problemId.getDisplayName(), group);
         }
         return this;
     }
@@ -314,12 +315,17 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         return this;
     }
 
-    private static ProblemId cloneId(ProblemId original) {
-        return ProblemId.create(original.getName(), original.getDisplayName(), cloneGroup(original.getGroup()));
-    }
-
+    /**
+     * Groups owned by Gradle (including the predefined hierarchy) are kept as they are, so that descriptions and identity survive.
+     * Foreign implementations are copied into a Gradle-owned group, so that reported problems only carry known, serializable types.
+     */
     private static ProblemGroup cloneGroup(ProblemGroup original) {
-        return ProblemGroup.create(original.getName(), original.getDisplayName(), original.getParent() == null ? null : cloneGroup(original.getParent()));
+        ProblemGroup parent = original.getParent();
+        ProblemGroup clonedParent = parent == null ? null : cloneGroup(parent);
+        if (original instanceof ProblemGroupInternal && clonedParent == parent) {
+            return original;
+        }
+        return ProblemGroup.create(original.getName(), original.getDisplayName(), clonedParent);
     }
 
     @Override

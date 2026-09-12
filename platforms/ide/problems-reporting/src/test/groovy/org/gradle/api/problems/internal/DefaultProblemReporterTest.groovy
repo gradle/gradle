@@ -59,7 +59,7 @@ class DefaultProblemReporterTest extends Specification {
         with(DefaultProblemReporter.discardedProblemMessage(createTestProblem())) {
             it.startsWith("Discarding problem, no build operation is available to attribute it to on this thread:")
             it.contains("displayName")
-            it.contains("generic:message")
+            it.contains("(id: message, in generic)")
         }
     }
 

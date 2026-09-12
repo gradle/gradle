@@ -37,6 +37,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.problems.internal.ProblemGroupInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
@@ -238,6 +239,7 @@ public class BuildOperationTrace implements Stoppable {
                     .addSerializer(Throwable.class, new JsonThrowableSerializer())
                     .addSerializer(AttributeContainer.class, new JsonAttributeContainerSerializer())
                     .addSerializer(ComponentArtifactIdentifier.class, new JsonComponentArtifactIdentifierSerializer())
+                    .addSerializer(ProblemGroupInternal.class, new JsonProblemGroupSerializer())
                     .setSerializerModifier(new SkipDeprecatedBeanSerializerModifier())
                 )
                 .registerModule(new JavaTimeModule())
@@ -533,6 +535,27 @@ public class BuildOperationTrace implements Stoppable {
             return ((CustomOperationTraceSerialization) object).getCustomOperationTraceSerializableModel();
         } else {
             return object;
+        }
+    }
+
+    /**
+     * Problem groups form a tree: a group knows its parent, and predefined groups also expose their children through getters.
+     * Serializing them as beans would recurse forever, so only write the identity of a group and its parent chain. Applies to
+     * Gradle-owned groups; a foreign {@code ProblemGroup} subclass has no child getters and is serialized as a plain bean.
+     */
+    private static class JsonProblemGroupSerializer extends JsonSerializer<ProblemGroupInternal> {
+        @Override
+        public void serialize(ProblemGroupInternal group, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+            jsonGenerator.writeStartObject();
+            jsonGenerator.writeStringField("name", group.getName());
+            jsonGenerator.writeStringField("displayName", group.getDisplayName());
+            String description = group.getDescription();
+            if (description != null) {
+                jsonGenerator.writeStringField("description", description);
+            }
+            jsonGenerator.writeFieldName("parent");
+            serializerProvider.defaultSerializeValue(group.getParent(), jsonGenerator);
+            jsonGenerator.writeEndObject();
         }
     }
 
