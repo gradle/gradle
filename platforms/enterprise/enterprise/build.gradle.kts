@@ -8,7 +8,6 @@ dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
     api(projects.enterpriseOperations)
-    api(projects.configurationCache)
     api(projects.core)
     api(projects.coreApi)
     api(projects.daemonServices)
@@ -37,12 +36,15 @@ dependencies {
     implementation(projects.serialization)
     implementation(projects.testingBase)
 
+    runtimeOnly(projects.configurationCache)
+
     implementation(libs.guava)
 
     compileOnly(libs.groovy) {
         because("some used APIs (e.g. FileTree.visit) provide methods taking Groovy closures which causes compile errors")
     }
 
+    testImplementation(projects.configurationCache)
     testImplementation(projects.resources)
     testImplementation(testFixtures(projects.core))
 

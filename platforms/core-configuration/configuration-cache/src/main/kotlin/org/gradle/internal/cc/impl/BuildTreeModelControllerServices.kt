@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.configuration.ConfigurationCacheInputTracking
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.FileStoreAndIndexProvider
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentCache
@@ -95,6 +96,7 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
         // This was originally only for the configuration cache, but now used for configuration cache and problems reporting
         add(ProblemFactory::class.java, DefaultProblemFactory::class.java)
         add(InputTrackingState::class.java)
+        add(ConfigurationCacheInputTracking::class.java, DefaultConfigurationCacheInputTracking::class.java)
         add(InstrumentedExecutionAccessListener::class.java)
         add(ConfigurationCacheProblemsListener::class.java, DefaultConfigurationCacheProblemsListener::class.java)
         if (modelParameters.isIsolatedProjects) {
