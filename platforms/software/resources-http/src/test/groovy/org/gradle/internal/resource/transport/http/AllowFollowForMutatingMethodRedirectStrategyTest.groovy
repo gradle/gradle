@@ -16,7 +16,10 @@
 
 package org.gradle.internal.resource.transport.http
 
+import org.apache.http.HttpHeaders
 import org.apache.http.HttpRequest
+import org.apache.http.HttpStatus
+import org.apache.http.HttpVersion
 import org.apache.http.ProtocolVersion
 import org.apache.http.RequestLine
 import org.apache.http.client.methods.CloseableHttpResponse
@@ -50,7 +53,8 @@ class AllowFollowForMutatingMethodRedirectStrategyTest extends Specification {
         HttpRequest request = Mock()
         CloseableHttpResponse response = Mock()
         HttpContext context = Mock()
-        response.getFirstHeader("location") >> new BasicHeader('location', 'http://redirectTo')
+        response.getFirstHeader(HttpHeaders.LOCATION) >>
+            new BasicHeader(HttpHeaders.LOCATION, 'http://redirectTo')
         response.getStatusLine() >> new BasicStatusLine(new ProtocolVersion("HTTP", 1, 1), redirect, "ignored")
         request.getRequestLine() >> Mock(RequestLine) {
             getMethod() >> httpMethod
@@ -66,6 +70,29 @@ class AllowFollowForMutatingMethodRedirectStrategyTest extends Specification {
 
         where:
         [httpMethod, redirect] << [HTTP_METHODS, REDIRECTS].combinations()
+    }
+
+    def "should keep the escaping of the location"() {
+        setup:
+        def location = 'http://redirectTo/module/1.0%2Bdev/module.pom'
+        HttpRequest request = Mock()
+        CloseableHttpResponse response = Mock()
+        HttpContext context = Mock()
+        response.getFirstHeader(HttpHeaders.LOCATION) >>
+            new BasicHeader(HttpHeaders.LOCATION, location)
+        response.getStatusLine() >> new BasicStatusLine(
+            HttpVersion.HTTP_1_1, HttpStatus.SC_MOVED_TEMPORARILY, "ignored"
+        )
+        request.getRequestLine() >> Mock(RequestLine) {
+            getMethod() >> "GET"
+            getUri() >> "http://original.com"
+        }
+
+        when:
+        def redirectRequest = strategy.getRedirect(request, response, context)
+
+        then:
+        redirectRequest.URI.toASCIIString() == location
     }
 
 }

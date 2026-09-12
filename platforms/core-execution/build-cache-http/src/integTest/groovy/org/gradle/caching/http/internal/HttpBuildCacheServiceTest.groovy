@@ -33,12 +33,14 @@ import org.gradle.internal.resource.transport.http.DefaultSslContextFactory
 import org.gradle.internal.resource.transport.http.HttpClientFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.fixtures.server.http.AuthScheme
+import org.gradle.test.fixtures.server.http.HttpResourceHandler
 import org.gradle.test.fixtures.server.http.HttpResourceInteraction
 import org.gradle.test.fixtures.server.http.HttpServer
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.concurrent.CopyOnWriteArrayList
 
 class HttpBuildCacheServiceTest extends Specification {
     public static final List<Integer> FATAL_HTTP_ERROR_CODES = [
@@ -154,6 +156,27 @@ class HttpBuildCacheServiceTest extends Specification {
 
         then:
         receivedInput == "Data"
+    }
+
+    def "loading from cache keeps the escaping of a redirect location"() {
+        def srcFile = tempDir.file("cached.zip")
+        srcFile.text = "Data"
+        def requested = new CopyOnWriteArrayList<String>()
+        server.addHandler({ target, request, response ->
+            requested.add(request.rawPath)
+        } as HttpResourceHandler)
+        server.expectGetRedirected("/cache/${key.hashCode}", "/redirect%2Bed/cache/${key.hashCode}")
+        server.expectGet("/redirect+ed/cache/${key.hashCode}", srcFile)
+
+        when:
+        def receivedInput = null
+        cache.load(key) { input ->
+            receivedInput = input.text
+        }
+
+        then:
+        receivedInput == "Data"
+        requested.contains("/redirect%2Bed/cache/${key.hashCode}".toString())
     }
 
     def "reports cache miss on 404"() {
