@@ -249,7 +249,7 @@ class DefaultAttributeMatcherTest extends Specification {
         expect:
         matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested) == [candidate5]
         matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4, candidate6], requested) == [candidate1, candidate3, candidate4, candidate6]
-        matcher.matchMultipleCandidates([candidate1, candidate2, candidate4, candidate6], requested) == [candidate1, candidate4, candidate6]
+        matcher.matchMultipleCandidates([candidate1, candidate2, candidate4, candidate6], requested) == [candidate1, candidate6]
         matcher.matchMultipleCandidates([candidate2, candidate3, candidate4], requested) == [candidate3]
     }
 
@@ -509,6 +509,29 @@ class DefaultAttributeMatcherTest extends Specification {
         expect:
         def matches = matcher.matchMultipleCandidates([candidate1, candidate2], requested)
         matches == [candidate1]
+    }
+
+    def "prefers a match with least number of unmatched attributes"() {
+        given:
+        def matcher = newMatcher {
+            def usage = Attribute.of("usage", String)
+            attribute(usage)
+            attribute(Attribute.of("other1", String))
+            attribute(Attribute.of("other2", String))
+            accept(usage, 'java-api', 'java-runtime')
+        }
+
+        def candidate1 = candidate(usage: 'java-api', other2: 'foo')
+        def candidate2 = candidate(usage: 'java-runtime', other2: 'foo')
+        def candidate3 = candidate(usage: 'java-api', other1: 'foo', other2: 'foo')
+        def candidate4 = candidate(usage: 'java-runtime', other1: 'foo', other2: 'foo')
+        def requested = attributes(usage: 'java-api', other1: 'foo')
+
+        expect:
+        def matches = matcher.matchMultipleCandidates(
+            [candidate1, candidate2, candidate3, candidate4],
+            requested)
+        matches == [candidate3] // variants lacking a requested attribute will be filtered out when disambiguating
     }
 
     def "prefers a shorter match with compatible requested values and more than one extra attribute (type: #type)"() {
