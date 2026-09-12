@@ -18,6 +18,8 @@ package org.gradle.plugin.use.internal;
 
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.base.Strings;
+import org.gradle.api.artifacts.VersionConstraint;
+import org.gradle.api.provider.Provider;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.exceptions.LocationAwareException;
 import org.gradle.plugin.internal.InvalidPluginIdException;
@@ -28,8 +30,10 @@ import org.gradle.plugin.management.internal.InvalidPluginRequestException;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.PluginDependenciesSpec;
+import org.gradle.plugin.use.PluginDependency;
 import org.gradle.plugin.use.PluginDependencySpec;
 import org.gradle.plugin.use.PluginId;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Iterator;
@@ -71,7 +75,11 @@ public class PluginRequestCollector {
     @VisibleForTesting
     List<PluginRequestInternal> listPluginRequests() {
         List<PluginRequestInternal> pluginRequests = collect(specs, original ->
-            new DefaultPluginRequest(original.id, original.apply, PluginRequestInternal.Origin.OTHER, scriptSource.getDisplayName(), original.lineNumber, original.version, null, null, null)
+            new DefaultPluginRequest(
+                original.id, original.apply, PluginRequestInternal.Origin.OTHER,
+                scriptSource.getDisplayName(), original.lineNumber, original.version,
+                null, null, null, original.versionConstraint
+            )
         );
 
         Map<PluginId, List<PluginRequestInternal>> groupedById = pluginRequests.stream().collect(groupingBy(PluginRequest::getId, Collectors.toList()));
@@ -99,14 +107,20 @@ public class PluginRequestCollector {
         }
 
         @Override
-        public PluginDependencySpec id(String id) {
+        public PluginDependencySpecImpl id(String id) {
             return id(id, blockLineNumber);
         }
 
-        public PluginDependencySpec id(String id, int requestLineNumber) {
+        public PluginDependencySpecImpl id(String id, int requestLineNumber) {
             PluginDependencySpecImpl spec = new PluginDependencySpecImpl(id, requestLineNumber);
             specs.add(spec);
             return spec;
+        }
+
+        @Override
+        public PluginDependencySpec alias(Provider<PluginDependency> notation) {
+            PluginDependency dependency = notation.get();
+            return id(dependency.getPluginId()).fromCatalog(dependency.getVersion());
         }
     }
 
@@ -115,6 +129,7 @@ public class PluginRequestCollector {
         private String version;
         private boolean apply;
         private final int lineNumber;
+        private @Nullable VersionConstraint versionConstraint;
 
         private PluginDependencySpecImpl(String id, int lineNumber) {
             if (Strings.isNullOrEmpty(id)) {
@@ -131,6 +146,7 @@ public class PluginRequestCollector {
                 throw new InvalidPluginVersionException(version, EMPTY_VALUE);
             }
             this.version = version;
+            this.versionConstraint = null;
             return this;
         }
 
@@ -139,6 +155,14 @@ public class PluginRequestCollector {
             this.apply = apply;
             return this;
         }
-    }
 
+        PluginDependencySpecImpl fromCatalog(VersionConstraint constraint) {
+            this.versionConstraint = constraint;
+            // A preferred version stays out of here: everything downstream reads this field as
+            // a version the user asked for, and a preference is not one.
+            String required = constraint.getRequiredVersion();
+            this.version = required.isEmpty() ? null : required;
+            return this;
+        }
+    }
 }

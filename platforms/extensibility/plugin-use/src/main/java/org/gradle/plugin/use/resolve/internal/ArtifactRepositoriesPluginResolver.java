@@ -24,6 +24,8 @@ import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.ModuleIdentifier;
+import org.gradle.api.artifacts.MutableVersionConstraint;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.dsl.DependencyFactory;
@@ -120,15 +122,21 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         }
 
         private void visitDependency(PluginResolutionVisitor visitor, ModuleIdentifier module) {
-            ExternalModuleDependency dependency = dependencyFactory.create(module.getGroup(), module.getName(), null);
-            dependency.version(version -> {
-                if (useWeakVersion) {
-                    version.prefer(getPluginVersion());
-                } else {
-                    version.require(getPluginVersion());
-                }
-            });
+            ExternalModuleDependency dependency =
+                dependencyFactory.create(module.getGroup(), module.getName(), null);
+            dependency.version(this::applyRequestedVersion);
             visitor.visitDependency(dependency);
+        }
+
+        private void applyRequestedVersion(MutableVersionConstraint version) {
+            VersionConstraint requested = pluginRequest.getVersionConstraint();
+            if (useWeakVersion) {
+                version.prefer(getPluginVersion());
+            } else if (requested != null) {
+                copyInto(requested, version);
+            } else {
+                version.require(getPluginVersion());
+            }
         }
 
         private static void visitModuleReplacements(PluginResolutionVisitor visitor, PluginCoordinates altCoords, String id, ModuleIdentifier module) {
@@ -188,12 +196,34 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
 
     private ModuleDependency getMarkerDependency(PluginRequestInternal pluginRequest) {
         ComponentSelector selector = pluginRequest.getSelector();
-        if (!(selector instanceof ModuleComponentSelector)) {
-            String id = pluginRequest.getId().getId();
-            return getDependencyFactory().create(id, id + PLUGIN_MARKER_SUFFIX, pluginRequest.getVersion());
-        } else {
+        if (selector instanceof ModuleComponentSelector) {
             ModuleComponentSelector moduleSelector = (ModuleComponentSelector) selector;
             return getDependencyFactory().create(moduleSelector.getGroup(), moduleSelector.getModule(), moduleSelector.getVersion());
+        }
+        String id = pluginRequest.getId().getId();
+        VersionConstraint versionConstraint = pluginRequest.getVersionConstraint();
+        ExternalModuleDependency marker = getDependencyFactory().create(
+            id, id + PLUGIN_MARKER_SUFFIX, versionConstraint == null ? pluginRequest.getVersion() : null
+        );
+        if (versionConstraint != null) {
+            marker.version(version -> copyInto(versionConstraint, version));
+        }
+        return marker;
+    }
+
+    private static void copyInto(VersionConstraint source, MutableVersionConstraint target) {
+        if (!source.getStrictVersion().isEmpty()) {
+            target.strictly(source.getStrictVersion());
+        } else if (!source.getRequiredVersion().isEmpty()) {
+            target.require(source.getRequiredVersion());
+        }
+        if (!source.getPreferredVersion().isEmpty()) {
+            target.prefer(source.getPreferredVersion());
+        }
+        target.setBranch(source.getBranch());
+        // Every version setter clears the rejects, so this one has to come last.
+        if (!source.getRejectedVersions().isEmpty()) {
+            target.reject(source.getRejectedVersions().toArray(new String[0]));
         }
     }
 

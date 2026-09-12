@@ -87,7 +87,8 @@ public class GradleEnterpriseAutoAppliedPluginRegistry implements AutoAppliedPlu
             versionToApply,
             selector,
             null,
-            gradleEnterprisePluginCoordinates(versionToApply)
+            gradleEnterprisePluginCoordinates(versionToApply),
+            null
         );
     }
 

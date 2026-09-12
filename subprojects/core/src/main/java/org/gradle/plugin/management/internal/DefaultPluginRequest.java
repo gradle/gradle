@@ -17,6 +17,7 @@
 package org.gradle.plugin.management.internal;
 
 import org.gradle.api.artifacts.ModuleVersionSelector;
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionSelector;
@@ -37,6 +38,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     private final @Nullable PluginRequest originalRequest;
     private final Origin origin;
     private final @Nullable PluginCoordinates alternativeCoordinates;
+    private final @Nullable VersionConstraint versionConstraint;
 
     public DefaultPluginRequest(
         PluginId id,
@@ -47,7 +49,8 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         @Nullable String version,
         @Nullable ComponentSelector selector,
         @Nullable PluginRequest originalRequest,
-        @Nullable PluginCoordinates alternativeCoordinates
+        @Nullable PluginCoordinates alternativeCoordinates,
+        @Nullable VersionConstraint versionConstraint
     ) {
         this.id = id;
         this.version = version;
@@ -58,6 +61,7 @@ public class DefaultPluginRequest implements PluginRequestInternal {
         this.originalRequest = originalRequest;
         this.origin = origin;
         this.alternativeCoordinates = alternativeCoordinates;
+        this.versionConstraint = versionConstraint;
     }
 
     @Override
@@ -111,8 +115,9 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     public String getDisplayName() {
         StringBuilder b = new StringBuilder();
         b.append("[id: '").append(id).append("'");
-        if (version != null) {
-            b.append(", version: '").append(version).append("'");
+        String requestedVersion = versionConstraint == null ? version : versionConstraint.getDisplayName();
+        if (requestedVersion != null && !requestedVersion.isEmpty()) {
+            b.append(", version: '").append(requestedVersion).append("'");
         }
         if (selector != null) {
             b.append(", artifact: '").append(selector).append("'");
@@ -139,5 +144,11 @@ public class DefaultPluginRequest implements PluginRequestInternal {
     @Override
     public Optional<PluginCoordinates> getAlternativeCoordinates() {
         return Optional.ofNullable(alternativeCoordinates);
+    }
+
+    @Nullable
+    @Override
+    public VersionConstraint getVersionConstraint() {
+        return versionConstraint;
     }
 }
