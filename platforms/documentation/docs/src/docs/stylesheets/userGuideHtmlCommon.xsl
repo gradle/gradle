@@ -46,13 +46,16 @@
         <link href="base.css" rel="stylesheet" type="text/css"/>
         <link id="hljs-theme" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-light.min.css"/>
         <script>(function() {
-            var theme;
-            try { theme = localStorage.getItem('theme'); } catch (err) {}
-            if (!theme) { theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'; }
-            document.documentElement.setAttribute('data-theme', theme);
-            if (theme === 'dark') {
-                document.getElementById('hljs-theme').href = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-dark.min.css';
+            var LIGHT = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-light.min.css';
+            var DARK = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-dark.min.css';
+            var mql = window.matchMedia('(prefers-color-scheme: dark)');
+            var hljsEl = document.getElementById('hljs-theme');
+            function apply(dark) {
+                document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
+                if (hljsEl) { hljsEl.href = dark ? DARK : LIGHT; }
             }
+            apply(mql.matches);
+            mql.addEventListener('change', function(e) { apply(e.matches); });
         })();</script>
     </xsl:template>
 

@@ -926,5 +926,21 @@ div.example code.filename {
     margin-bottom: 40px;
 }
 
+/* DSL syntax highlighting (xslthl-emitted spans in DocBook output).
+   Palette matches highlight.js stackoverflow-light/dark. */
+.hl-keyword    { color: #a626a4; }
+.hl-string     { color: #50a14f; }
+.hl-number     { color: #986801; }
+.hl-comment    { color: #a0a1a7; font-style: italic; }
+.hl-doccomment { color: #a0a1a7; font-style: italic; }
+.hl-annotation { color: #4078f2; }
+
+[data-theme="dark"] .hl-keyword    { color: #c678dd; }
+[data-theme="dark"] .hl-string     { color: #98c379; }
+[data-theme="dark"] .hl-number     { color: #d19a66; }
+[data-theme="dark"] .hl-comment    { color: #7f848e; }
+[data-theme="dark"] .hl-doccomment { color: #7f848e; }
+[data-theme="dark"] .hl-annotation { color: #61aeee; }
+
 /* Dark mode overrides */
 
