@@ -46,6 +46,27 @@ The previous step will help you identify potential problems by issuing deprecati
 
 The embedded Kotlin has been upgraded from 2.4.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.20[Kotlin 2.4.20].
 
+[[configuration_cache_and_problems_report_data_format]]
+==== Configuration Cache and Problems report data format changes
+
+The format of the data embedded in the HTML files of the <<configuration_cache_debugging.adoc#config_cache:troubleshooting,Configuration Cache report>> (including when <<isolated_projects.adoc#isolated_projects,Isolated Projects>> is enabled) and the <<reporting_problems.adoc#sec:generated_html_report,Problems report>> has changed in Gradle 9.9.0.
+The reports themselves are not affected and look the same when opened in a browser.
+
+This change only matters to tools and scripts that extract the embedded data from the report HTML files.
+This data is an internal implementation detail of Gradle: it has never been a public API, and its format may change again in any future release, including patch releases, without notice.
+If you have to extract this data, parse it defensively and expect to adjust your tooling when upgrading Gradle.
+
+To consume problem data in a supported way, use the Problems API bindings of the Tooling API, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
+
+There is no supported way to programmatically inspect Configuration Cache problems yet.
+The following issues track the development of TestKit APIs for this purpose:
+
+- link:https://github.com/gradle/gradle/issues/35595[gradle/gradle#35595]: an API for verifying Configuration Cache compatibility and the inputs used by a build.
+- link:https://github.com/gradle/gradle/issues/38223[gradle/gradle#38223]: an API for verifying whether a Configuration Cache entry was reused, missed, or discarded.
+
+These APIs are intentionally focused on testing use cases.
+If you extract the report data for other purposes, please comment on these issues and describe your use case.
+
 === Deprecations
 
 [[kotlin_dsl_scripts_model_explicit_scripts]]
@@ -369,7 +390,7 @@ Attribute value types are limited to: `String`, `Boolean`, any subtype of `Numbe
 Passing any other type to link:{javadocPath}/org/gradle/api/attributes/Attribute.html#of(java.lang.String,java.lang.Class)[`Attribute.of(String, Class)`] — or declaring an unsupported type as the type parameter of an `AttributeCompatibilityRule` or `AttributeDisambiguationRule` — now emits a deprecation warning and will become an error in Gradle 10.
 
 The most common case is a plain Java `Enum` that does not implement `Named`.
-Such types often work at first but fail later during dependency resolution, publishing, or configuration cache serialization — where the machinery assumes an attribute value can be reconstructed by name.
+Such types often work at first but fail later during dependency resolution, publishing, or Configuration Cache serialization — where the machinery assumes an attribute value can be reconstructed by name.
 
 To fix a build affected by this deprecation, change the attribute value type to one of the supported types.
 For enums, the simplest fix is to make the enum implement `Named` and return the constant's name from `getName()`.
@@ -534,7 +555,7 @@ Replace software-model-based builds with the current component model:
 - For Swift, use the link:{userManualPath}/swift_application_plugin.html[`swift-application`] and link:{userManualPath}/swift_library_plugin.html[`swift-library`] plugins.
 - For native testing, use the link:{userManualPath}/cpp_unit_test_plugin.html[`cpp-unit-test`] and link:{userManualPath}/xctest_plugin.html[`xctest`] plugins.
 
-The new plugins configure components through ordinary Gradle extensions (`application { }`, `library { }`, `unitTest { }`) without the `model { }` block, integrate with the configuration cache, and support Gradle's standard dependency-management features.
+The new plugins configure components through ordinary Gradle extensions (`application { }`, `library { }`, `unitTest { }`) without the `model { }` block, integrate with the Configuration Cache, and support Gradle's standard dependency-management features.
 
 [[deprecated_unsafe_isolated_projects_properties]]
 ==== Deprecation of `org.gradle.unsafe.isolated-projects*` property names
@@ -564,9 +585,9 @@ This guarantees that tooling which still opts out via a legacy property name kee
 See the <<isolated_projects.adoc#sec:enable_ip, Enabling Isolated Projects>> section in the Gradle User Manual for the recommended setup.
 
 [[deprecated_custom_collection_types_with_cc]]
-==== Deprecation of serializing custom collection and map types with the configuration cache
+==== Deprecation of serializing custom collection and map types with the Configuration Cache
 
-The configuration cache serializes a fixed set of standard collection, set, map, and queue types (such as `ArrayList`, `LinkedHashSet`, `LinkedHashMap`, and `ArrayDeque`) directly.
+The Configuration Cache serializes a fixed set of standard collection, set, map, and queue types (such as `ArrayList`, `LinkedHashSet`, `LinkedHashMap`, and `ArrayDeque`) directly.
 A _custom_ subtype of one of these types — for example, `class MyList extends ArrayList<String> {}` — cannot be restored as its own type and is instead restored as the nearest standard type, losing any state or behavior the custom type adds.
 
 Referencing such a custom subtype from a task field or task action is now deprecated and will become an error in Gradle 10.
@@ -1050,7 +1071,7 @@ tasks.register("greet") {
 }
 ----
 
-Please refer to the <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, Configuration Cache documentation>> for alternatives that are compatible with the configuration cache.
+Please refer to the <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, Configuration Cache documentation>> for alternatives that are compatible with the Configuration Cache.
 
 [[injected_service_types_at_execution]]
 ==== Deprecation of accessing injected `Project` or `Gradle` services from a task action
