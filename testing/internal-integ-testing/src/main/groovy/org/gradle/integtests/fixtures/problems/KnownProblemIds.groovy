@@ -55,7 +55,6 @@ class KnownProblemIds {
         'problems-api': 'Problems API',
         'validation': 'Validation',
         'configuration-usage': 'Configuration usage',
-        'compilation': 'Compilation',
         'daemon-toolchain' : 'Daemon toolchain',
         'jvm-toolchain': 'JVM Toolchain',
         'dependency-version-catalog': 'Version catalog',
