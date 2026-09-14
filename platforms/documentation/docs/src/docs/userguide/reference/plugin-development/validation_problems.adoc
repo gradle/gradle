@@ -66,12 +66,10 @@ For example, <<#implicit_dependency,implicit dependencies between tasks in diffe
 
 Apply the <<java_gradle_plugin.adoc#java_gradle_plugin,`java-gradle-plugin`>> and the task is registered automatically and wired into `check`:
 
-[source,kotlin]
-----
-plugins {
-    `java-gradle-plugin`
-}
-----
+====
+include::sample[dir="snippets/reference/plugin-development/validatePluginsConfig/kotlin",files="build.gradle.kts[tags=apply]"]
+include::sample[dir="snippets/reference/plugin-development/validatePluginsConfig/groovy",files="build.gradle[tags=apply]"]
+====
 
 If you do not use `java-gradle-plugin`, register a `ValidatePlugins` task manually with `classes` and `classpath` pointing at the code under validation.
 
@@ -110,13 +108,10 @@ If you do not use `java-gradle-plugin`, register a `ValidatePlugins` task manual
 |Where the JSON report is written.
 |===
 
-[source,kotlin]
-----
-tasks.validatePlugins {
-    failOnWarning = true
-    enableStricterValidation = true
-}
-----
+====
+include::sample[dir="snippets/reference/plugin-development/validatePluginsConfig/kotlin",files="build.gradle.kts[tags=config]"]
+include::sample[dir="snippets/reference/plugin-development/validatePluginsConfig/groovy",files="build.gradle[tags=config]"]
+====
 
 [[stricter_validation]]
 == Stricter validation
@@ -124,14 +119,7 @@ tasks.validatePlugins {
 Stricter validation is the mode Gradle uses for plugins that are about to be shared with others.
 It turns on rules that catch subtle correctness and caching bugs before your plugin reaches the Plugin Portal.
 
-Enable it explicitly:
-
-[source,kotlin]
-----
-tasks.validatePlugins {
-    enableStricterValidation = true
-}
-----
+Enable it explicitly by setting `enableStricterValidation = true` on the `validatePlugins` task (see <<#the_validate_plugins_task,the configuration example above>>).
 
 Stricter validation is enabled automatically when the `java-gradle-plugin` is applied together with any of:
 
@@ -268,34 +256,19 @@ class MyTask extends DefaultTask {
 }
 ----
 
-Remove the setter and make the property final:
+Let Gradle inject the property using an abstract getter, which is the recommended shape:
 
-[source,groovy]
-----
-class MyTask extends DefaultTask {
-    @Input
-    final Property<Integer> getX() = ...
-}
-----
-
-Or let Gradle inject the property using an abstract getter, which is the recommended shape:
-
-[source,groovy]
-----
-abstract class MyTask extends DefaultTask {
-    @Input
-    abstract Property<Integer> getX()
-}
-----
+====
+include::sample[dir="snippets/reference/plugin-development/mutableTypeAbstractGetter/kotlin",files="build.gradle.kts[tags=task-class]"]
+include::sample[dir="snippets/reference/plugin-development/mutableTypeAbstractGetter/groovy",files="build.gradle[tags=task-class]"]
+====
 
 Configure the value through the mutation methods (`set`, `convention`, `value`, ...):
 
-[source,groovy]
-----
-myTask {
-    x.set(123)
-}
-----
+====
+include::sample[dir="snippets/reference/plugin-development/mutableTypeAbstractGetter/kotlin",files="build.gradle.kts[tags=usage]"]
+include::sample[dir="snippets/reference/plugin-development/mutableTypeAbstractGetter/groovy",files="build.gradle[tags=usage]"]
+====
 
 [[redundant_getters]]
 === Redundant getters
@@ -418,31 +391,24 @@ someTask {
 
 Prefer the lazy `Provider`-typed accessor, which carries the dependency:
 
-[source,kotlin]
-----
-someTask {
-    inputFile.from(jar.archiveFile)   // Provider<RegularFile> — carries the dependency
-}
-----
+====
+include::sample[dir="snippets/reference/plugin-development/implicitDependencyFix/kotlin",files="build.gradle.kts[tags=from-archive-file]"]
+include::sample[dir="snippets/reference/plugin-development/implicitDependencyFix/groovy",files="build.gradle[tags=from-archive-file]"]
+====
 
 Or add the task itself as an input, which is cleaner still:
 
-[source,kotlin]
-----
-someTask {
-    inputFile.from(jar)
-}
-----
+====
+include::sample[dir="snippets/reference/plugin-development/implicitDependencyFix/kotlin",files="build.gradle.kts[tags=from-task]"]
+include::sample[dir="snippets/reference/plugin-development/implicitDependencyFix/groovy",files="build.gradle[tags=from-task]"]
+====
 
 For producing tasks that do not use the <<lazy_configuration.adoc#lazy_configuration,configuration-avoidance APIs>>, add an explicit dependency:
 
-[source,kotlin]
-----
-someTask {
-    dependsOn(producer)
-    inputFile.from(producer.someFile)
-}
-----
+====
+include::sample[dir="snippets/reference/plugin-development/implicitDependencyFix/kotlin",files="build.gradle.kts[tags=depends-on]"]
+include::sample[dir="snippets/reference/plugin-development/implicitDependencyFix/groovy",files="build.gradle[tags=depends-on]"]
+====
 
 If adding a producer dependency is genuinely wrong (for example, a report task that aggregates from many optional producers), declare an <<controlling_task_execution.adoc#sec:ordering_tasks,ordering constraint>> with link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:mustRunAfter(java.lang.Object++[]++)[`Task.mustRunAfter()`] instead.
 
