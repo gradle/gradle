@@ -61,8 +61,8 @@ public class InitScriptErrorIntegrationTest extends AbstractIntegrationSpec {
                 .assertHasLineNumber(3)
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'compilation:groovy-dsl:compilation-failed'
-            definition.id.displayName == 'Groovy DSL script compilation problem'
+            fqid == 'Gradle:DSL Evaluation:Script compilation failed'
+            definition.id.displayName == 'Script compilation failed'
             contextualLabel == "Could not compile initialization script '$initScript'."
             details == null
             definition.documentationLink == null
