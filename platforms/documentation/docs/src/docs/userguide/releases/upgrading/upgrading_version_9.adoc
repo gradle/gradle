@@ -46,6 +46,27 @@ The previous step will help you identify potential problems by issuing deprecati
 
 The embedded Kotlin has been upgraded from 2.4.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.20[Kotlin 2.4.20].
 
+[[configuration_cache_and_problems_report_data_format]]
+==== Configuration Cache and Problems report data format changes
+
+The format of the data embedded in the HTML files of the <<configuration_cache_debugging.adoc#config_cache:troubleshooting,Configuration Cache report>> (including when <<isolated_projects.adoc#isolated_projects,Isolated Projects>> is enabled) and the <<reporting_problems.adoc#sec:generated_html_report,Problems report>> has changed in Gradle 9.9.0.
+The reports themselves are not affected and look the same when opened in a browser.
+
+This change only matters to tools and scripts that extract the embedded data from the report HTML files.
+This data is an internal implementation detail of Gradle: it has never been a public API, and its format may change again in any future release, including patch releases, without notice.
+If you have to extract this data, parse it defensively and expect to adjust your tooling when upgrading Gradle.
+
+To consume problem data in a supported way, use the Problems API bindings of the Tooling API, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
+
+There is no supported way to programmatically inspect Configuration Cache problems yet.
+The following issues track the development of TestKit APIs for this purpose:
+
+- link:https://github.com/gradle/gradle/issues/35595[gradle/gradle#35595]: an API for verifying Configuration Cache compatibility and the inputs used by a build.
+- link:https://github.com/gradle/gradle/issues/38223[gradle/gradle#38223]: an API for verifying whether a Configuration Cache entry was reused, missed, or discarded.
+
+These APIs are intentionally focused on testing use cases.
+If you extract the report data for other purposes, please comment on these issues and describe your use case.
+
 === Deprecations
 
 [[kotlin_dsl_scripts_model_explicit_scripts]]
