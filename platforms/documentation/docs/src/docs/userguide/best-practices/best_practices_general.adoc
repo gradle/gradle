@@ -829,8 +829,6 @@ This creates subtle bugs that are extremely difficult to diagnose.
 * *It defeats task configuration avoidance.*
 Tasks registered or configured inside `afterEvaluate` are touched eagerly during configuration, even if they will never execute.
 This may cause unnecessary work and slow down the configuration phase of the build.
-* *It is incompatible with the <<configuration_cache.adoc#config_cache,Configuration Cache>>.*
-`afterEvaluate` callbacks capture mutable project state that cannot be serialized reliably.
 
 Gradle's lazy `Property` and `Provider` types solve the same underlying problem — deferring value resolution — without any of these drawbacks.
 A `Property<T>` can be wired at configuration time but its value is resolved only when needed, typically during task execution.
