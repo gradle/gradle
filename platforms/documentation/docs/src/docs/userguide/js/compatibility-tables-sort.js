@@ -15,11 +15,12 @@
 (function () {
   'use strict';
 
-  // Tables to enhance and the column (0-indexed) to sort by on load, descending.
+  // Tables to enhance and the single column (0-indexed) that is sortable.
+  // That column is sorted descending on load and can be toggled by clicking its header.
   const TARGETS = [
-    { id: 'java-compatibility-table', defaultSortColumn: 0 },
-    { id: 'kotlin-compatibility-table', defaultSortColumn: 1 },
-    { id: 'groovy-compatibility-table', defaultSortColumn: 1 },
+    { id: 'java-compatibility-table', sortColumn: 2 },
+    { id: 'kotlin-compatibility-table', sortColumn: 1 },
+    { id: 'groovy-compatibility-table', sortColumn: 1 },
   ];
 
   class Version {
@@ -57,10 +58,23 @@
     const thead = table.querySelector('thead');
     if (!tbody || !thead) return;
 
-    const headerCells = Array.from(thead.querySelectorAll('th'));
-    const state = { column: -1, ascending: true };
+    const header = thead.querySelectorAll('th')[target.sortColumn];
+    if (!header) return;
 
-    function sort(columnIndex, ascending) {
+    const columnIndex = target.sortColumn;
+    let ascending = false;
+
+    const indicator = document.createElement('span');
+    indicator.className = 'sort-indicator';
+    indicator.style.fontSize = '0.8em';
+    indicator.style.opacity = '0.7';
+    header.appendChild(indicator);
+
+    header.style.cursor = 'pointer';
+    header.style.userSelect = 'none';
+    header.title = 'Click to sort';
+
+    function sort() {
       const rows = Array.from(tbody.querySelectorAll('tr'));
       rows.sort((a, b) => {
         const aCell = a.querySelectorAll('td')[columnIndex];
@@ -70,44 +84,16 @@
         return ascending ? cmp : -cmp;
       });
       rows.forEach(row => tbody.appendChild(row));
-
-      state.column = columnIndex;
-      state.ascending = ascending;
-      updateIndicators();
+      indicator.textContent = ascending ? ' ▲' : ' ▼';
     }
 
-    function updateIndicators() {
-      headerCells.forEach((header, index) => {
-        const indicator = header.querySelector('.sort-indicator');
-        if (!indicator) return;
-        if (index === state.column) {
-          indicator.textContent = state.ascending ? ' ▲' : ' ▼';
-        } else {
-          indicator.textContent = ' ⇅';
-        }
-      });
-    }
-
-    headerCells.forEach((header, index) => {
-      header.style.cursor = 'pointer';
-      header.style.userSelect = 'none';
-      header.title = 'Click to sort';
-
-      const indicator = document.createElement('span');
-      indicator.className = 'sort-indicator';
-      indicator.style.fontSize = '0.8em';
-      indicator.style.opacity = '0.7';
-      indicator.textContent = ' ⇅';
-      header.appendChild(indicator);
-
-      header.addEventListener('click', () => {
-        const ascending = state.column === index ? !state.ascending : false;
-        sort(index, ascending);
-      });
+    header.addEventListener('click', () => {
+      ascending = !ascending;
+      sort();
     });
 
-    // Default: sort by the configured column, descending (newest at top).
-    sort(target.defaultSortColumn, false);
+    // Default: descending (newest at top).
+    sort();
   }
 
   function init() {
