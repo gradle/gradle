@@ -233,10 +233,6 @@ class PerformanceTestPlugin : Plugin<Project> {
 
             outputs.cacheIf { false }
             outputs.file(outputJson)
-
-            extensions.findByType<DevelocityTestConfiguration>()?.predictiveTestSelection {
-                enabled.set(false)
-            }
         }
 
     private
