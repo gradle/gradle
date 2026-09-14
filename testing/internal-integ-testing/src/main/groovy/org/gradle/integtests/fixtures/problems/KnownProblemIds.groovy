@@ -61,7 +61,6 @@ class KnownProblemIds {
 
         // Sub-groups
         'packaging:signing': 'Signing',
-        'compilation:groovy-dsl': 'Groovy DSL script compilation',
         'daemon-toolchain:configuration-generation' : 'Gradle configuration generation',
         'validation:property-validation': 'Property validation problems',
         'validation:type-validation': 'Gradle type validation',
@@ -76,6 +75,7 @@ class KnownProblemIds {
         // predefined groups (org.gradle.api.problems.ProblemGroups) used from integration tests
         'Gradle': 'Gradle',
         'Gradle:Build Definition': 'Build Definition',
+        'Gradle:DSL Evaluation': 'DSL Evaluation',
         'Compilation': 'Compilation',
         'Compilation:Groovy': 'Groovy',
         'Compilation:Java': 'Java',
@@ -110,13 +110,13 @@ class KnownProblemIds {
         'Compilation:Undefined:Unknown compiler': ['Unknown compiler'],
         'Compilation:Java:Undefined:Unknown compiler': ['Unknown compiler'],
         'Gradle:Build Definition:Deprecated plugin applied': ['Deprecated plugin applied'],
+        'Gradle:DSL Evaluation:Script compilation failed': ['Script compilation failed'],
         'Transformation:KMP:JavaScript:Bundle failed': ['Bundle failed'],
         'Transformation:KMP:Compilation failed': ['Compilation failed'],
         'Others:Undefined:Something odd': ['Something odd'],
         'problems-api:missing-id': ['Problem id must be specified'],
         'problems-api:unsupported-additional-data': ['Unsupported additional data type'],
         'configuration-usage:name-not-allowed': ['Configuration name not allowed'],
-        'compilation:groovy-dsl:compilation-failed': ['Groovy DSL script compilation problem'],
         'Compilation:Java:Compiler initialization failed': ['Compiler initialization failed'],
         'Compilation:Groovy:tools.jar is missing': ['tools.jar is missing'],
         // Java compiler diagnostics are named after javac's message templates, an open set that changes with the JDK
