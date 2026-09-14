@@ -202,7 +202,7 @@ jdks:
     version: "jdk-21.0.12.1+1"
     sha256: "3623232f33a9c3baadf304480b2535f9a3cba8a58d42ecbb438ba267315d9998"
   - params:
-      - "macos.java24.openjdk.amd64"
+      - "macos.java24.openjdk.64bit"
     os: "macos"
     arch: "amd64"
     vendor: "temurin"
