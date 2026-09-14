@@ -63,7 +63,7 @@ public interface PluginManager {
     void apply(Class<?> type);
 
     /**
-     * Returns the information about the plugin that has been applied with the given ID, or null if no plugin has been applied with the given ID.
+     * Returns information about the plugin with the given ID that has been applied or is currently being applied, or null if there is no such plugin.
      * <p>
      * Plugins in the {@code "org.gradle"} namespace (that is, core Gradle plugins) can be specified by either name (e.g. {@code "java"}) or ID {@code "org.gradle.java"}.
      * All other plugins must be queried for by their full ID (e.g. {@code "org.company.some-plugin"}).
@@ -81,10 +81,10 @@ public interface PluginManager {
     /**
      * Returns {@code true} if a plugin with the given ID has already been applied or is currently being applied, otherwise {@code false}.
      * <p>
-     * In contrast, {@link #withPlugin(String, Action)} only considers a plugin once its application has completed.
+     * In contrast, {@link #withPlugin(String, Action)} and {@link PluginContainer#hasPlugin(String)} only consider a plugin once its application has completed.
      *
      * @param id the plugin ID. See {@link #findPlugin(String)} for details about this parameter.
-     * @return {@code true} if the plugin has been applied
+     * @return {@code true} if the plugin has been applied or is being applied
      * @since 2.3
      */
     boolean hasPlugin(String id);
