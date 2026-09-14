@@ -145,6 +145,41 @@ class WrapperTest extends AbstractTaskTest {
         "http://some-url" == wrapper.getDistributionUrl()
     }
 
+    def "uses explicitly defined wrapper jar url"() {
+        given:
+        wrapper.setValidateDistributionUrl(false)
+        wrapper.getWrapperJarUrl().set("http://some-url/gradle-wrapper.jar")
+
+        expect:
+        "http://some-url/gradle-wrapper.jar" == wrapper.getWrapperJarUrl().get()
+    }
+
+    def "derives wrapper jar url from distribution url preserving host"() {
+        given:
+        wrapper.setValidateDistributionUrl(false)
+        wrapper.setDistributionUrl("https://mirror.example.com/distributions/gradle-8.0-bin.zip")
+
+        expect:
+        "https://mirror.example.com/distributions/gradle-8.0-wrapper.jar" == wrapper.getWrapperJarUrl().get()
+    }
+
+    def "derives wrapper jar url from all distribution url"() {
+        given:
+        wrapper.setValidateDistributionUrl(false)
+        wrapper.setDistributionUrl("https://services.gradle.org/distributions/gradle-8.0-all.zip")
+
+        expect:
+        "https://services.gradle.org/distributions/gradle-8.0-wrapper.jar" == wrapper.getWrapperJarUrl().get()
+    }
+
+    def "defaults wrapper jar url to official location"() {
+        given:
+        wrapper.setGradleVersion("8.0")
+
+        expect:
+        wrapper.getWrapperJarUrl().get() == getBaseUrl() + "/distributions/gradle-8.0-wrapper.jar"
+    }
+
     def "uses explicitly defined distribution sha256 sum"() {
         given:
         wrapper.setDistributionSha256Sum("somehash")
@@ -188,6 +223,7 @@ class WrapperTest extends AbstractTaskTest {
     def "execute with non-existent wrapper jar parent directory"() {
         given:
         server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
+        server.expect(server.head("/distributions/gradle-8.0-wrapper.jar"))
 
         when:
         def decompressDir = temporaryFolder.createDir("decompress")
@@ -208,6 +244,7 @@ class WrapperTest extends AbstractTaskTest {
     def "execute with networkTimeout set"() {
         given:
         server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
+        server.expect(server.head("/distributions/gradle-8.0-wrapper.jar"))
         wrapper.setNetworkTimeout(6000)
 
         when:
@@ -221,6 +258,7 @@ class WrapperTest extends AbstractTaskTest {
     def "execute without networkTimeout does not write it to properties file"() {
         given:
         server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
+        server.expect(server.head("/distributions/gradle-8.0-wrapper.jar"))
 
         when:
         execute(wrapper)
@@ -242,10 +280,50 @@ class WrapperTest extends AbstractTaskTest {
         properties.getProperty(WrapperExecutor.VALIDATE_DISTRIBUTION_URL) == "false"
     }
 
+    def "execute writes wrapperJarUrl to properties file"() {
+        given:
+        server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
+        server.expect(server.head("/distributions/gradle-8.0-wrapper.jar"))
+
+        when:
+        execute(wrapper)
+        def properties = GUtil.loadProperties(expectedTargetWrapperProperties)
+
+        then:
+        properties.getProperty(WrapperExecutor.WRAPPER_JAR_URL_PROPERTY) == wrapper.getWrapperJarUrl().get()
+        properties.getProperty(WrapperExecutor.WRAPPER_JAR_URL_PROPERTY).endsWith("-wrapper.jar")
+    }
+
+    def "generated scripts download missing wrapper jar (issue 11816)"() {
+        given:
+        server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
+        server.expect(server.head("/distributions/gradle-8.0-wrapper.jar"))
+
+        when:
+        execute(wrapper)
+        def unixScript = new File(getProject().getProjectDir(), "gradlew").text
+        def windowsScript = new File(getProject().getProjectDir(), "gradlew.bat").text
+
+        then: "unix script checks for missing jar and downloads it"
+        unixScript.contains('WRAPPER_JAR="$APP_HOME/gradle/wrapper/gradle-wrapper.jar"')
+        unixScript.contains("wrapperJarUrl=")
+        unixScript.contains("Downloading Gradle wrapper jar")
+        unixScript.contains("curl -fL")
+        unixScript.contains("https://github.com/gradle/gradle/issues/11816")
+
+        and: "windows script checks for missing jar and downloads it"
+        windowsScript.contains('if exist "%APP_HOME%\\gradle\\wrapper\\gradle-wrapper.jar" goto execute')
+        windowsScript.contains("wrapperJarUrl=")
+        windowsScript.contains("Downloading Gradle wrapper jar")
+        windowsScript.contains("Invoke-WebRequest")
+        windowsScript.contains("https://github.com/gradle/gradle/issues/11816")
+    }
+
     def "check inputs"() {
         expect:
         TaskPropertyTestUtils.getProperties(wrapper).keySet() == WrapUtil.toSet(
             "distributionBase", "distributionPath", "distributionUrl", "distributionSha256Sum",
+            "wrapperJarUrl",
             "distributionType", "archiveBase", "archivePath", "gradleVersion", "networkTimeout",
             "validateDistributionUrl", "retries", "retryBackOffMs")
     }
@@ -253,6 +331,7 @@ class WrapperTest extends AbstractTaskTest {
     def "execute with extant wrapper jar parent directory and extant wrapper jar"() {
         given:
         server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
+        server.expect(server.head("/distributions/gradle-8.0-wrapper.jar"))
 
         def jarDir = new File(getProject().getProjectDir(), "lib")
         jarDir.mkdirs()
@@ -281,6 +360,7 @@ class WrapperTest extends AbstractTaskTest {
     def "distributionUrl should not contain small dotless I letter when locale has small dotless I letter"() {
         given:
         server.expect(server.head("/distributions/gradle-8.0-bin.zip"))
+        server.expect(server.head("/distributions/gradle-8.0-wrapper.jar"))
 
         Locale originalLocale = Locale.getDefault()
         Locale.setDefault(new Locale("tr","TR"))
