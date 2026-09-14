@@ -78,4 +78,18 @@ class AnyDaemonExpirationStrategyTest extends Specification {
         result.status == DO_NOT_EXPIRE
         result.reason == null
     }
+
+    def "continues checking strategies when one fails"() {
+        given:
+        AnyDaemonExpirationStrategy agg = new AnyDaemonExpirationStrategy([c1, c2])
+
+        when:
+        1 * c1.checkExpiration() >> { throw new IllegalStateException("broken strategy") }
+        1 * c2.checkExpiration() >> new DaemonExpirationResult(GRACEFUL_EXPIRE, "r2")
+
+        then:
+        DaemonExpirationResult result = agg.checkExpiration()
+        result.status == GRACEFUL_EXPIRE
+        result.reason == "r2"
+    }
 }
