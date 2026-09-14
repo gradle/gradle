@@ -180,4 +180,77 @@ class PluginDetectionIntegrationTest extends AbstractIntegrationSpec {
         succeeds "help"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/38884")
+    def "plugin being applied is detectable by plugin manager from plugin it applies - #scenario"() {
+        given:
+        def pluginBuilder = new PluginBuilder(file("buildSrc"))
+        pluginBuilder.addPlugin("""
+            project.pluginManager.apply("y")
+        """, "x", "PluginX")
+        pluginBuilder.addPlugin("""
+            println("y sees x applied: " + project.pluginManager.hasPlugin("x"))
+        """, "y", "PluginY")
+        pluginBuilder.addPlugin("""
+            $registration
+        """, "z", "PluginZ")
+        pluginBuilder.generateForBuildSrc()
+
+        buildFile """
+            plugins {
+                id 'z'
+                id 'x'
+            }
+        """
+
+        when:
+        succeeds "help"
+
+        then:
+        outputContains("y sees x applied: true")
+
+        where:
+        scenario                        | registration
+        "nothing waiting for x"         | ""
+        "withPlugin registered first"   | 'project.pluginManager.withPlugin("x") {}'
+        "withId registered first"       | 'project.plugins.withId("x") {}'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38884")
+    def "plugin manager with id registered during application fires after the plugin is applied - #scenario"() {
+        given:
+        def pluginBuilder = new PluginBuilder(file("buildSrc"))
+        pluginBuilder.addPlugin("""
+            project.pluginManager.apply("y")
+            println("x applied")
+        """, "x", "PluginX")
+        pluginBuilder.addPlugin("""
+            project.pluginManager.withPlugin("x") {
+                println("withPlugin x fired")
+            }
+        """, "y", "PluginY")
+        pluginBuilder.addPlugin("""
+            $registration
+        """, "z", "PluginZ")
+        pluginBuilder.generateForBuildSrc()
+
+        buildFile """
+            plugins {
+                id 'z'
+                id 'x'
+            }
+        """
+
+        when:
+        succeeds "help"
+
+        then:
+        output.indexOf("withPlugin x fired") > output.indexOf("x applied")
+
+        where:
+        scenario                        | registration
+        "nothing waiting for x"         | ""
+        "withPlugin registered first"   | 'project.pluginManager.withPlugin("x") {}'
+        "withId registered first"       | 'project.plugins.withId("x") {}'
+    }
+
 }

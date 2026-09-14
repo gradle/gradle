@@ -44,8 +44,10 @@ import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.NotThreadSafe;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
@@ -59,7 +61,10 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private final PluginTarget target;
     private final PluginRegistry pluginRegistry;
     private final DefaultPluginContainer pluginContainer;
-    private final Map<Class<?>, PluginImplementation<?>> plugins = new HashMap<>();
+    // Plugins whose application has started, including those still being applied
+    private final Map<Class<?>, PluginImplementation<?>> plugins = new LinkedHashMap<>();
+    // Plugins whose application has completed; withPlugin() callbacks only see these
+    private final List<PluginImplementation<?>> appliedPlugins = new ArrayList<>();
     private final Map<Class<?>, Plugin> instances = new LinkedHashMap<>();
     private final Map<PluginId, DomainObjectSet<PluginWithId>> idMappings = new HashMap<>();
 
@@ -109,6 +114,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         return new Runnable() {
             @Override
             public void run() {
+                appliedPlugins.add(plugin);
                 // Take a copy because adding to an idMappings value may result in new mappings being added (i.e. ConcurrentModificationException)
                 Iterable<PluginId> pluginIds = Lists.newArrayList(idMappings.keySet());
                 for (PluginId id : pluginIds) {
@@ -230,7 +236,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         if (pluginsForId == null) {
             pluginsForId = domainObjectCollectionFactory.newDomainObjectSet(PluginWithId.class);
             idMappings.put(pluginId, pluginsForId);
-            for (PluginImplementation<?> plugin : plugins.values()) {
+            for (PluginImplementation<?> plugin : appliedPlugins) {
                 if (plugin.isAlsoKnownAs(pluginId)) {
                     pluginsForId.add(new PluginWithId(pluginId, plugin.asClass()));
                 }
@@ -242,10 +248,6 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
     @Override
     public AppliedPlugin findPlugin(final String id) {
-        DomainObjectSet<PluginWithId> pluginWithIds = pluginsForId(id);
-        if (!pluginWithIds.isEmpty()) {
-            return pluginWithIds.iterator().next().asAppliedPlugin();
-        }
         PluginId pluginId = DefaultPluginId.unvalidated(id);
         for (PluginImplementation<?> plugin : plugins.values()) {
             if (plugin.isAlsoKnownAs(pluginId)) {

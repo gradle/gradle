@@ -72,14 +72,16 @@ public interface PluginManager {
      * Such plugins can be detected with this method by simply using the unqualified ID (e.g. {@code "some-third-party-plugin"}.
      *
      * @param id the plugin ID
-     * @return information about the applied plugin, or {@code null} if no plugin has been applied with the given ID
+     * @return information about the applied plugin, or {@code null} if no plugin with the given ID has been applied or is being applied
      * @since 2.3
      */
     @Nullable
     AppliedPlugin findPlugin(String id);
 
     /**
-     * Returns {@code true} if a plugin with the given ID has already been applied, otherwise {@code false}.
+     * Returns {@code true} if a plugin with the given ID has already been applied or is currently being applied, otherwise {@code false}.
+     * <p>
+     * In contrast, {@link #withPlugin(String, Action)} only considers a plugin once its application has completed.
      *
      * @param id the plugin ID. See {@link #findPlugin(String)} for details about this parameter.
      * @return {@code true} if the plugin has been applied
