@@ -24,11 +24,13 @@ import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueFactory;
+import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.resolver.ArtifactResolver;
 import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactFileResolveResult;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.LinkedHashMap;
@@ -60,19 +62,35 @@ class RepositoryChainArtifactResolver implements ArtifactResolver {
     public void resolveArtifact(ComponentArtifactResolveMetadata component, ComponentArtifactMetadata artifact, BuildableArtifactResolveResult result) {
         ModuleComponentRepository<?> sourceRepository = findSourceRepository(component.getSources());
         ResolvableArtifact resolvableArtifact = sourceRepository.getArtifactCache().computeIfAbsent(artifact.getId(), id -> {
-            CalculatedValue<File> artifactSource = calculatedValueFactory.create(Describables.of(artifact.getId()), () -> resolveArtifactLater(artifact, component.getSources(), sourceRepository));
+            CalculatedValue<@Nullable File> artifactSource = calculatedValueFactory.create(Describables.of(artifact.getId()), () -> resolveArtifactLater(artifact, component.getSources(), sourceRepository));
             return new DefaultResolvableArtifact(component.getModuleVersionId(), artifact.getName(), artifact.getId(), artifact.getBuildDependencies(), artifactSource, calculatedValueFactory);
         });
 
         result.resolved(resolvableArtifact);
     }
 
-    private File resolveArtifactLater(ComponentArtifactMetadata artifact, ModuleSources sources, ModuleComponentRepository<?> sourceRepository) {
+    /**
+     * Resolves the file of the given artifact. Returns null when the artifact is
+     * optional and does not exist in the repository.
+     *
+     * @throws ArtifactNotFoundException when a required artifact does not exist in the repository.
+     */
+    private static @Nullable File resolveArtifactLater(
+        ComponentArtifactMetadata artifact,
+        ModuleSources sources,
+        ModuleComponentRepository<?> sourceRepository
+    ) {
         // First try to resolve the artifacts locally before going remote
         BuildableArtifactFileResolveResult artifactFile = new DefaultBuildableArtifactFileResolveResult();
         sourceRepository.getLocalAccess().resolveArtifact(artifact, sources, artifactFile);
         if (!artifactFile.hasResult()) {
             sourceRepository.getRemoteAccess().resolveArtifact(artifact, sources, artifactFile);
+        }
+        if (artifactFile.isNotFound()) {
+            if (artifact.isOptionalArtifact()) {
+                return null;
+            }
+            throw artifactFile.getNotFoundFailure();
         }
         return artifactFile.getResult();
     }

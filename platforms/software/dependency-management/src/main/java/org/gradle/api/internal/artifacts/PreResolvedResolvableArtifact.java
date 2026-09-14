@@ -36,13 +36,13 @@ public class PreResolvedResolvableArtifact implements ResolvableArtifact {
     private final ModuleVersionIdentifier owner;
     private final IvyArtifactName artifact;
     private final ComponentArtifactIdentifier artifactId;
-    private final File file;
-    private final CalculatedValue<File> fileSource;
+    private final @Nullable File file;
+    private final CalculatedValue<@Nullable File> fileSource;
     private final TaskDependencyContainer builtBy;
     private final CalculatedValueFactory calculatedValueFactory;
     private final DefaultResolvedArtifact publicView;
 
-    public PreResolvedResolvableArtifact(@Nullable ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, File file, TaskDependencyContainer builtBy, CalculatedValueFactory calculatedValueFactory) {
+    public PreResolvedResolvableArtifact(@Nullable ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, @Nullable File file, TaskDependencyContainer builtBy, CalculatedValueFactory calculatedValueFactory) {
         this.owner = owner;
         this.artifact = artifact;
         this.artifactId = artifactId;
@@ -82,6 +82,9 @@ public class PreResolvedResolvableArtifact implements ResolvableArtifact {
 
     @Override
     public File getFile() {
+        if (file == null) {
+            throw new IllegalStateException(String.format("Optional artifact %s does not exist and has no file.", artifactId.getDisplayName()));
+        }
         return file;
     }
 
@@ -108,7 +111,7 @@ public class PreResolvedResolvableArtifact implements ResolvableArtifact {
         if (artifactId instanceof TransformedComponentFileArtifactIdentifier) {
             originalFileName = ((TransformedComponentFileArtifactIdentifier) artifactId).getOriginalFileName();
         } else {
-            originalFileName = this.file.getName();
+            originalFileName = getFile().getName();
         }
 
         ComponentArtifactIdentifier newId = new TransformedComponentFileArtifactIdentifier(artifactId.getComponentIdentifier(), file.getName(), originalFileName);

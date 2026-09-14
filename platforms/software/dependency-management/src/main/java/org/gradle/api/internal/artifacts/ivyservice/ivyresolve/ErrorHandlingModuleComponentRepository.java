@@ -34,7 +34,6 @@ import org.gradle.internal.component.model.ComponentArtifactMetadata;
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.ModuleSources;
-import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult;
@@ -42,6 +41,7 @@ import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
 import org.gradle.internal.resolve.result.ErroringResolveResult;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 import java.util.concurrent.Callable;
@@ -179,13 +179,8 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
             performOperationWithRetries(result,
                 () -> {
                     delegate.resolveArtifact(artifact, moduleSources, result);
-                    if (result.hasResult()) {
-                        ArtifactResolveException failure = result.getFailure();
-                        if (!(failure instanceof ArtifactNotFoundException)) {
-                            return failure;
-                        }
-                    }
-                    return null;
+                    // An artifact that is not found is considered successful. getFailure() is null when an artifact is not found.
+                    return result.hasResult() ? result.getFailure() : null;
                 },
                 cause -> new ArtifactResolveException(artifact.getId(), buildDisabledRepositoryErrorMessage(repositoryName), cause),
                 cause -> new ArtifactResolveException(artifact.getId(), cause));
@@ -195,27 +190,31 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
             return String.format("Repository %s is disabled due to earlier error below:", repositoryName);
         }
 
-        private <E extends Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(R result,
-                                                                                                           Callable<E> operation,
-                                                                                                           Transformer<E, Throwable> onDisabled,
-                                                                                                           Transformer<E, Throwable> onError) {
+        private <E extends @Nullable Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(
+            R result,
+            Callable<E> operation,
+            Transformer<E, Throwable> onDisabled,
+            Transformer<E, Throwable> onError
+        ) {
             if (checkToHandleDisabledRepository(result, onDisabled)) {
                 return;
             }
             tryResolveAndMaybeDisable(result, operation, onError);
         }
 
-        private <E extends Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(R result,
-                                                                                                           Runnable operation,
-                                                                                                           Transformer<E, Throwable> onDisabled,
-                                                                                                           Transformer<E, Throwable> onError) {
+        private <E extends @Nullable Throwable, R extends ErroringResolveResult<E>> void performOperationWithRetries(
+            R result,
+            Runnable operation,
+            Transformer<E, Throwable> onDisabled,
+            Transformer<E, Throwable> onError
+        ) {
             if (checkToHandleDisabledRepository(result, onDisabled)) {
                 return;
             }
             tryResolveAndMaybeDisable(result, operation, onError);
         }
 
-        private <E extends Throwable, R extends ErroringResolveResult<E>> boolean checkToHandleDisabledRepository(R result, Transformer<E, Throwable> onDisabled) {
+        private <E extends @Nullable Throwable, R extends ErroringResolveResult<E>> boolean checkToHandleDisabledRepository(R result, Transformer<E, Throwable> onDisabled) {
             // Artifact can only be resolved from the same repository as the metadata
             // So continue does not make sense here
             boolean disabledIsFatal = !continueOnConnectionFailure || result instanceof BuildableArtifactFileResolveResult;
@@ -229,18 +228,22 @@ public class ErrorHandlingModuleComponentRepository implements ModuleComponentRe
             return false;
         }
 
-        private <E extends Throwable, R extends ErroringResolveResult<E>> void tryResolveAndMaybeDisable(R result,
-                                                                                                         Runnable operation,
-                                                                                                         Transformer<E, Throwable> onError) {
+        private <E extends @Nullable Throwable, R extends ErroringResolveResult<E>> void tryResolveAndMaybeDisable(
+            R result,
+            Runnable operation,
+            Transformer<E, Throwable> onError
+        ) {
             tryResolveAndMaybeDisable(result, () -> {
                 operation.run();
                 return null;
             }, onError);
         }
 
-        private <E extends Throwable, R extends ErroringResolveResult<E>> void tryResolveAndMaybeDisable(R result,
-                                                                                                         Callable<E> operation,
-                                                                                                         Transformer<E, Throwable> onError) {
+        private <E extends @Nullable Throwable, R extends ErroringResolveResult<E>> void tryResolveAndMaybeDisable(
+            R result,
+            Callable<E> operation,
+            Transformer<E, Throwable> onError
+        ) {
             int retries = 0;
             int backoff = initialBackOff;
 

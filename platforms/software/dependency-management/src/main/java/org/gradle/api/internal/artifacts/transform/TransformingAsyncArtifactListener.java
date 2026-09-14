@@ -181,6 +181,13 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                     return false;
                 }
             }
+            if (artifact.getFileSource().get() == null) {
+                synchronized (this) {
+                    // Optional input artifact does not exist, nothing to transform
+                    transformedSubject = noInput();
+                    return false;
+                }
+            }
 
             Deferrable<Try<TransformStepSubject>> invocation = createInvocation();
             synchronized (this) {
@@ -210,6 +217,13 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                     return transformedSubject;
                 }
             }
+            if (artifact.getFileSource().get() == null) {
+                synchronized (this) {
+                    // Optional input artifact does not exist, nothing to transform
+                    transformedSubject = noInput();
+                    return transformedSubject;
+                }
+            }
 
             Deferrable<Try<TransformStepSubject>> invocation;
             synchronized (this) {
@@ -224,6 +238,13 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                 transformedSubject = result;
                 return result;
             }
+        }
+
+        /**
+         * Transforming an optional input artifact that does not exist results in no output files.
+         */
+        private Try<TransformStepSubject> noInput() {
+            return Try.successful(TransformStepSubject.initial(artifact).createSubjectFromResult(ImmutableList.of()));
         }
 
         private Deferrable<Try<TransformStepSubject>> createInvocation() {

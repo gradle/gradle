@@ -40,12 +40,12 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
     private final IvyArtifactName artifact;
     private final ComponentArtifactIdentifier artifactId;
     private final TaskDependencyContainer buildDependencies;
-    private final CalculatedValue<File> fileSource;
+    private final CalculatedValue<@Nullable File> fileSource;
     private final WorkNodeAction resolvedArtifactDependency;
     private final CalculatedValueFactory calculatedValueFactory;
     private final ResolvedArtifact publicView;
 
-    public DefaultResolvableArtifact(@Nullable ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependencyContainer builtBy, CalculatedValue<File> fileSource, CalculatedValueFactory calculatedValueFactory) {
+    public DefaultResolvableArtifact(@Nullable ModuleVersionIdentifier owner, IvyArtifactName artifact, ComponentArtifactIdentifier artifactId, TaskDependencyContainer builtBy, CalculatedValue<@Nullable File> fileSource, CalculatedValueFactory calculatedValueFactory) {
         this.owner = owner;
         this.artifact = artifact;
         this.artifactId = artifactId;
@@ -65,7 +65,7 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         context.add(buildDependencies);
-        if (resolvedArtifactDependency != null) {
+        if (resolvedArtifactDependency != null && !fileSource.isFinalized()) {
             context.add(resolvedArtifactDependency);
         }
     }
@@ -110,7 +110,11 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
         if (artifactId instanceof TransformedComponentFileArtifactIdentifier) {
             originalFileName = ((TransformedComponentFileArtifactIdentifier) artifactId).getOriginalFileName();
         } else {
-            originalFileName = fileSource.get().getName();
+            File originalFile = fileSource.get();
+            if (originalFile == null) {
+                throw new IllegalStateException(String.format("Optional artifact %s does not exist and has no file.", artifactId.getDisplayName()));
+            }
+            originalFileName = originalFile.getName();
         }
 
         ComponentArtifactIdentifier newId = new TransformedComponentFileArtifactIdentifier(artifactId.getComponentIdentifier(), file.getName(), originalFileName);
@@ -131,14 +135,18 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
     }
 
     @Override
-    public CalculatedValue<File> getFileSource() {
+    public CalculatedValue<@Nullable File> getFileSource() {
         return fileSource;
     }
 
     @Override
     public File getFile() {
         fileSource.finalizeIfNotAlready();
-        return fileSource.get();
+        File file = fileSource.get();
+        if (file == null) {
+            throw new IllegalStateException(String.format("Optional artifact %s does not exist and has no file.", artifactId.getDisplayName()));
+        }
+        return file;
     }
 
     public static class ResolveAction implements WorkNodeAction {
