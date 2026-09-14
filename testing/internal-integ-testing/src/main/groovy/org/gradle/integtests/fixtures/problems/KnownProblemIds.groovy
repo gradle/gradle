@@ -82,6 +82,7 @@ class KnownProblemIds {
         'Gradle': 'Gradle',
         'Gradle:Deprecation': 'Deprecation',
         'Compilation': 'Compilation',
+        'Compilation:Groovy': 'Groovy',
         'Compilation:Java': 'Java',
         'Compilation:Java:Undefined': 'Undefined',
         'Compilation:java': 'java',
@@ -126,6 +127,7 @@ class KnownProblemIds {
         // See compiler.java for the full list of diagnostic codes we use as categories (we replace the dots with dashes)
         'Compilation:Java:compiler.*' : ['.*'],
         'Compilation:Java:Compiler initialization failed': ['Compiler initialization failed'],
+        'Compilation:Groovy:tools.jar is missing': ['tools.jar is missing'],
         'daemon-toolchain:configuration-generation:task-configuration' : ['Invalid task configuration'],
         'dependency-version-catalog:accessor-name-clash': [VersionCatalogProblemId.ACCESSOR_NAME_CLASH.displayName],
         'jvm-toolchain:invalid-jvm-installation': ['Invalid JVM installation'],
