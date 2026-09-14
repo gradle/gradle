@@ -219,14 +219,12 @@ fun Test.runWithJavaVersion(testJvmVersion: JavaLanguageVersion) {
         }
     }
 
-    if (testJvmVersion.canCompileOrRun(9)) {
-        val argProvider = objects.newInstance(AddOpensArgumentProvider::class.java).apply {
-            jvmVersion = testJvmVersion.asInt()
-            unitTest = provider { isUnitTest() }
-            embedded = provider { usesEmbeddedExecuter() }
-        }
-        jvmArgumentProviders.add(argProvider)
+    val argProvider = objects.newInstance(AddOpensArgumentProvider::class.java).apply {
+        jvmVersion = javaLauncher.map { it.metadata.languageVersion.asInt() }
+        unitTest = provider { isUnitTest() }
+        embedded = provider { usesEmbeddedExecuter() }
     }
+    jvmArgumentProviders.add(argProvider)
 }
 
 internal
