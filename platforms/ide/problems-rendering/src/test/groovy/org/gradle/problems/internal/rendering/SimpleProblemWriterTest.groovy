@@ -191,6 +191,42 @@ Problem found: Project is a prototype (id: prototype-project, in sample-problems
         ''')
     }
 
+    def "details-only writer renders the details and nothing else"() {
+        given:
+        def problem = createProblem { ProblemBuilderInternal spec ->
+            spec.id(createId())
+                .contextualLabel("cannot find symbol")
+                .details("Foo.java:3: error: cannot find symbol")
+                .solution("Check the import.")
+        }
+
+        when:
+        ProblemWriter.detailsOnly().write(problem, writer)
+
+        then:
+        renderedProblem == "Foo.java:3: error: cannot find symbol"
+    }
+
+    def "details-only writer falls back to the contextual label and then the display name"() {
+        given:
+        def labelled = createProblem { ProblemBuilderInternal spec ->
+            spec.id(createId())
+                .contextualLabel("';' expected")
+        }
+        def bare = createProblem { ProblemBuilderInternal spec ->
+            spec.id(createId())
+        }
+
+        when:
+        ProblemWriter.detailsOnly().write([labelled, bare], writer)
+
+        then:
+        renderedProblem == denormalizeAndStrip('''
+';' expected
+Project is a prototype
+        ''')
+    }
+
     def "render solution and location"() {
         given:
         def problem = createProblem { ProblemBuilderInternal spec ->
@@ -222,10 +258,7 @@ Problem found: Project is a prototype (id: prototype-project, in sample-problems
             null,
             [],
             [new DefaultStackTraceLocation(DefaultLineInFileLocation.from("/path/to/script", 20), [])],
-            [],
-            null,
-            null,
-            null
+            []
         )
 
         when:

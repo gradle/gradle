@@ -17,6 +17,7 @@
 package org.gradle.problems.internal.services;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.StartParameterInternal;
@@ -95,9 +96,14 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         WorkExecutionTracker workExecutionTracker,
         StartParameterInternal startParameter
     ) {
+        ImmutableList.Builder<ProblemEmitter> emitters = ImmutableList.builder();
+        emitters.add(new BuildOperationBasedProblemEmitter(eventEmitter));
+        if (startParameter.getWarningMode() == WarningMode.All) {
+            emitters.add(new ConsoleProblemEmitter());
+        }
         return new DefaultProblemSummarizer(eventEmitter,
             currentBuildOperationRef,
-            ImmutableList.of(new BuildOperationBasedProblemEmitter(eventEmitter), new ConsoleProblemEmitter(startParameter.getWarningMode())),
+            emitters.build(),
             internalOptions,
             problemReportCreator,
             id -> {
