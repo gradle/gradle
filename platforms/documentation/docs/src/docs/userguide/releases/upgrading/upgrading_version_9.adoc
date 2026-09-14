@@ -585,7 +585,7 @@ This guarantees that tooling which still opts out via a legacy property name kee
 See the <<isolated_projects.adoc#sec:enable_ip, Enabling Isolated Projects>> section in the Gradle User Manual for the recommended setup.
 
 [[deprecated_custom_collection_types_with_cc]]
-==== Deprecation of serializing custom collection and map types with the configuration cache
+==== Deprecation of serializing custom collection and map types with the Configuration Cache
 
 The configuration cache serializes a fixed set of standard collection, set, map, and queue types (such as `ArrayList`, `LinkedHashSet`, `LinkedHashMap`, and `ArrayDeque`) directly.
 A _custom_ subtype of one of these types — for example, `class MyList extends ArrayList<String> {}` — cannot be restored as its own type and is instead restored as the nearest standard type, losing any state or behavior the custom type adds.
