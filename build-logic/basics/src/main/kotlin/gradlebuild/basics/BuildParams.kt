@@ -45,7 +45,6 @@ import gradlebuild.basics.BuildParams.PERFORMANCE_DB_USERNAME
 import gradlebuild.basics.BuildParams.PERFORMANCE_DEPENDENCY_BUILD_IDS
 import gradlebuild.basics.BuildParams.PERFORMANCE_MAX_PROJECTS
 import gradlebuild.basics.BuildParams.PERFORMANCE_TEST_VERBOSE
-import gradlebuild.basics.BuildParams.PREDICTIVE_TEST_SELECTION_ENABLED
 import gradlebuild.basics.BuildParams.RERUN_ALL_TESTS
 import gradlebuild.basics.BuildParams.RUN_ANDROID_STUDIO_IN_HEADLESS_MODE
 import gradlebuild.basics.BuildParams.STUDIO_HOME
@@ -111,7 +110,6 @@ object BuildParams {
     const val PERFORMANCE_DEPENDENCY_BUILD_IDS = "org.gradle.performance.dependencyBuildIds"
     const val PERFORMANCE_MAX_PROJECTS = "maxProjects"
     const val RERUN_ALL_TESTS = "rerunAllTests"
-    const val PREDICTIVE_TEST_SELECTION_ENABLED = "enablePredictiveTestSelection"
     const val TEST_DISTRIBUTION_ENABLED = "enableTestDistribution"
     const val TEST_DISTRIBUTION_PARTITION_SIZE = "testDistributionPartitionSizeInSeconds"
     const val TEST_SPLIT_INCLUDE_TEST_CLASSES = "includeTestClasses"
@@ -323,18 +321,6 @@ val Project.testSplitOnlyTestGradleVersion: String
 
 val Project.toolchainInstallationPaths: String?
     get() = gradleProperty("org.gradle.java.installations.paths").orNull
-
-
-val Project.predictiveTestSelectionEnabled: Provider<Boolean>
-    get() = systemProperty(PREDICTIVE_TEST_SELECTION_ENABLED)
-        .map { it.toBoolean() }
-        .orElse(
-            buildBranch.zip(buildRunningOnCi) { branch, ci ->
-                ci && !listOf("master", "release", "gh-readonly-queue/").any { branch.startsWith(it) }
-            }
-        ).zip(project.rerunAllTests) { enabled, rerunAllTests ->
-            enabled && !rerunAllTests
-        }
 
 
 val Project.testDistributionEnabled: Boolean

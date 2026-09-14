@@ -287,8 +287,6 @@ fun removeTeamcityTempProperty() {
 
 fun Project.isPerformanceProject() = setOf("build-scan-performance", "performance").contains(name)
 
-fun Project.supportsPredictiveTestSelection() = !setOf("build-scan-performance", "configuration-cache", "kotlin-dsl", "performance", "smoke-test", "soak").contains(name)
-
 fun Project.isNativeProject() = name.contains("native")
 
 /**

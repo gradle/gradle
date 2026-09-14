@@ -25,7 +25,6 @@ import gradlebuild.basics.environmentVariable
 import gradlebuild.basics.isPromotionBuild
 import gradlebuild.basics.kotlindsl.execAndGetStdout
 import gradlebuild.basics.logicalBranch
-import gradlebuild.basics.predictiveTestSelectionEnabled
 import gradlebuild.basics.testDistributionEnabled
 import org.gradle.api.internal.BuildType
 import org.gradle.api.internal.GradleInternal
@@ -64,10 +63,6 @@ extractCiData()
 
 if (project.testDistributionEnabled) {
     buildScan?.tag("TEST_DISTRIBUTION")
-}
-
-if (project.predictiveTestSelectionEnabled.orNull == true) {
-    buildScan?.tag("PTS")
 }
 
 extractWatchFsData()
