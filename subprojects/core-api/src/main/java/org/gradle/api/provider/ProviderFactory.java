@@ -79,7 +79,7 @@ public interface ProviderFactory extends GradleService, ProjectService, Settings
     <T> Provider<T> provider(Callable<? extends @Nullable T> value);
 
     /**
-     * Returns a {@link Provider} that has no value.
+     * Returns a {@link Provider} that is always absent, that is, one that never has a value.
      *
      * <p>The returned provider is never {@link Provider#isPresent() present}: querying its value with {@link Provider#get()} always fails
      * and {@link Provider#getOrNull()} always returns {@code null}.
@@ -94,7 +94,7 @@ public interface ProviderFactory extends GradleService, ProjectService, Settings
     <T> Provider<T> absent();
 
     /**
-     * Returns a {@link PresentProvider} that always has the given value.
+     * Returns a {@link PresentProvider} that is always present, providing the given value.
      *
      * <p>Unlike {@link #provider(Callable)}, the value is not computed on demand: querying the returned provider simply returns the given value.
      * Prefer this method over {@link #provider(Callable)} when the value is already known.
@@ -110,7 +110,7 @@ public interface ProviderFactory extends GradleService, ProjectService, Settings
     <T> PresentProvider<T> present(T value);
 
     /**
-     * Returns a {@link Provider} that always has the given value when it is non-null, or a provider that has no value otherwise,
+     * Returns a {@link Provider} that is always present when the given value is non-null, or always absent otherwise,
      * as if created by {@link #present(Object)} or {@link #absent()} respectively.
      *
      * @param value The value of the provider. May be null.

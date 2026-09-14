@@ -21,14 +21,14 @@ import org.gradle.api.NonExtensible;
 import org.gradle.internal.HasInternalProtocol;
 
 /**
- * A {@link Provider} that always has a value present.
+ * A {@link Provider} that is always present, that is, one that always has a value.
  *
  * <p>Querying the value of this provider never fails: {@link #get()} always returns the value,
  * {@link #getOrNull()} never returns {@code null} and {@link #isPresent()} always returns {@code true}.
  * Only the presence of the value is guaranteed; the value itself is not necessarily constant.
  *
  * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.
- * A provider that always has the given value can be created via {@link ProviderFactory#present(Object)}.
+ * A provider that is always present can be created via {@link ProviderFactory#present(Object)}.
  *
  * @param <T> Type of value represented by the provider
  * @since 9.8.0
