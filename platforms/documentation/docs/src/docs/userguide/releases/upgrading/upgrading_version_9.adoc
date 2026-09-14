@@ -313,6 +313,16 @@ Like the general case, this deprecation will become an error in Gradle 10.
 
 See the <<variant_attributes.adoc#sec:creating-attributes, variant attributes documentation>> for the full set of supported attribute value types.
 
+[[deprecated_macos_amd64]]
+==== Deprecation of macOS on `AMD64`
+
+macOS `AMD64` (Intel) is deprecated as a supported platform and will be removed from the <<compatibility.adoc#target_platforms, supported platforms>> in Gradle 10.
+
+macOS 27 runs on Apple Silicon only, and the OpenJDK macOS/x64 port is link:https://openjdk.org/jeps/541[deprecated for removal], so JDK 27 and newer are not available for the platform.
+Gradle is therefore no longer tested on macOS `AMD64` with Java 27 or newer.
+
+To prepare for Gradle 10, move your builds to macOS `AArch64` (Apple Silicon).
+
 [[changes_9.7.0]]
 == Upgrading from 9.6.0 and earlier
 
