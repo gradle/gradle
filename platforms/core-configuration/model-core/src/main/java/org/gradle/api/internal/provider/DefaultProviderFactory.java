@@ -94,17 +94,17 @@ public class DefaultProviderFactory implements ProviderFactory {
     }
 
     @Override
-    public <T> Provider<T> none() {
+    public <T> Provider<T> absent() {
         return Providers.notDefined();
     }
 
     @Override
-    public <T> PresentProvider<T> some(T value) {
+    public <T> PresentProvider<T> present(T value) {
         return Providers.of(value);
     }
 
     @Override
-    public <T> Provider<T> maybe(@Nullable T value) {
+    public <T> Provider<T> presentIfNotNull(@Nullable T value) {
         return Providers.ofNullable(value);
     }
 

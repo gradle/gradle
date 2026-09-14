@@ -63,9 +63,9 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
         File      | TEST_FILE
     }
 
-    def "none() returns a provider that has no value"() {
+    def "absent() returns a provider that has no value"() {
         given:
-        def provider = providerFactory.none()
+        def provider = providerFactory.absent()
 
         expect:
         !provider.present
@@ -78,9 +78,9 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
         thrown(MissingValueException)
     }
 
-    def "some() returns a fixed value provider for #value"() {
+    def "present() returns a fixed value provider for #value"() {
         when:
-        def provider = providerFactory.some(value)
+        def provider = providerFactory.present(value)
 
         then:
         provider instanceof Providers.FixedValueProvider
@@ -93,36 +93,36 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
         value << [true, 4L, 'hello', TEST_FILE]
     }
 
-    def "some() provider ignores orElse"() {
+    def "present() provider ignores orElse"() {
         given:
-        def provider = providerFactory.some('value')
+        def provider = providerFactory.present('value')
 
         expect:
         provider.orElse('other').is(provider)
-        provider.orElse(providerFactory.none()).is(provider)
+        provider.orElse(providerFactory.absent()).is(provider)
     }
 
-    def "cannot create some() provider for null value"() {
+    def "cannot create present() provider for null value"() {
         when:
-        providerFactory.some(null)
+        providerFactory.present(null)
 
         then:
         def t = thrown(IllegalArgumentException)
         t.message == 'Value cannot be null'
     }
 
-    def "maybe() returns a provider with the given value when non-null"() {
+    def "presentIfNotNull() returns a provider with the given value when non-null"() {
         given:
-        def provider = providerFactory.maybe('hello')
+        def provider = providerFactory.presentIfNotNull('hello')
 
         expect:
         provider.present
         provider.get() == 'hello'
     }
 
-    def "maybe() returns a provider that has no value for null"() {
+    def "presentIfNotNull() returns a provider that has no value for null"() {
         given:
-        def provider = providerFactory.maybe(null)
+        def provider = providerFactory.presentIfNotNull(null)
 
         expect:
         !provider.present

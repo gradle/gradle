@@ -86,12 +86,12 @@ public interface ProviderFactory extends GradleService, ProjectService, Settings
      *
      * @param <T> the type of the value of the provider
      * @return The provider. Never returns null.
-     * @see #some(Object)
-     * @see #maybe(Object)
+     * @see #present(Object)
+     * @see #presentIfNotNull(Object)
      * @since 9.8.0
      */
     @Incubating
-    <T> Provider<T> none();
+    <T> Provider<T> absent();
 
     /**
      * Returns a {@link PresentProvider} that always has the given value.
@@ -102,26 +102,26 @@ public interface ProviderFactory extends GradleService, ProjectService, Settings
      * @param value The value of the provider. Cannot be null.
      * @param <T> the type of the value of the provider
      * @return The provider. Never returns null.
-     * @see #none()
-     * @see #maybe(Object)
+     * @see #absent()
+     * @see #presentIfNotNull(Object)
      * @since 9.8.0
      */
     @Incubating
-    <T> PresentProvider<T> some(T value);
+    <T> PresentProvider<T> present(T value);
 
     /**
      * Returns a {@link Provider} that always has the given value when it is non-null, or a provider that has no value otherwise,
-     * as if created by {@link #some(Object)} or {@link #none()} respectively.
+     * as if created by {@link #present(Object)} or {@link #absent()} respectively.
      *
      * @param value The value of the provider. May be null.
      * @param <T> the type of the value of the provider
      * @return The provider. Never returns null.
-     * @see #none()
-     * @see #some(Object)
+     * @see #absent()
+     * @see #present(Object)
      * @since 9.8.0
      */
     @Incubating
-    <T> Provider<T> maybe(@Nullable T value);
+    <T> Provider<T> presentIfNotNull(@Nullable T value);
 
     /**
      * Creates a {@link Provider} whose value is fetched from the environment variable with the given name.

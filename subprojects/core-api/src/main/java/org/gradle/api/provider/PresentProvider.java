@@ -28,7 +28,7 @@ import org.gradle.internal.HasInternalProtocol;
  * Only the presence of the value is guaranteed; the value itself is not necessarily constant.
  *
  * <p><b>Note:</b> This interface is not intended for implementation by build script or plugin authors.
- * A provider that always has the given value can be created via {@link ProviderFactory#some(Object)}.
+ * A provider that always has the given value can be created via {@link ProviderFactory#present(Object)}.
  *
  * @param <T> Type of value represented by the provider
  * @since 9.8.0

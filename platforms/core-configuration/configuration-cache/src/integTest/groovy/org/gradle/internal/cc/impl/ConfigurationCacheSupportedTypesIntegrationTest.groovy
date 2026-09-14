@@ -440,10 +440,10 @@ class ConfigurationCacheSupportedTypesIntegrationTest extends AbstractConfigurat
         type                      | reference                                 | output
         "Provider<String>"        | "providers.provider { 'value' }"          | "value"
         "Provider<String>"        | "providers.provider { null }"             | "null"
-        "PresentProvider<String>" | "providers.some('value')"                 | "value"
-        "Provider<String>"        | "providers.none()"                        | "null"
-        "Provider<String>"        | "providers.maybe('value')"                | "value"
-        "Provider<String>"        | "providers.maybe(null)"                   | "null"
+        "PresentProvider<String>" | "providers.present('value')"              | "value"
+        "Provider<String>"        | "providers.absent()"                      | "null"
+        "Provider<String>"        | "providers.presentIfNotNull('value')"     | "value"
+        "Provider<String>"        | "providers.presentIfNotNull(null)"        | "null"
         "Provider<String>"        | "objects.property(String).value('value')" | "value"
         "Provider<String>"        | "objects.property(String)"                | "null"
     }
