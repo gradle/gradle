@@ -17,9 +17,9 @@
 /**
  * Shared contract for a published built-in XDCL ecosystem schema library (the `:xdcl-*` lib half
  * of each ecosystem). The generated facades extend `org.gradle.api.xdcl.*`, so every such library
- * needs the external `xdclGradleApi` facade base types as `api` (exposed transitively to
- * consumers) — declared here once instead of in every lib build script. Every such library is also
- * served by the distribution's embedded Maven repository (that is what makes it a BUILT-IN
+ * compiles against the `xdclGradleApi` facade base types — declared here once instead of in every
+ * lib build script, and `compileOnly` on purpose (see the dependencies block). Every such library is
+ * also served by the distribution's embedded Maven repository (that is what makes it a BUILT-IN
  * ecosystem library), so `gradlebuild.distribution-repository` — and through it
  * `gradlebuild.publish-public-libraries` — is applied here rather than by each module.
  */
@@ -36,10 +36,17 @@ plugins {
 excludeGeneratedXdclSourcesFromChecks()
 publishGeneratedXdclSources()
 
-// External (org.xdcl) facade base types the generated facades extend; `api` so consumers of the
-// published library get them transitively.
+// The facade base types the generated facades extend (org.gradle.api.xdcl.*). `compileOnly`, so the
+// dependency appears in NO published metadata — not in the module metadata, in any variant, not in
+// the POM, at any scope: the API is part of the Gradle distribution (lib/, on gradleApi()), which is
+// where every consumer of a published ecosystem library gets it. A plugin author's build compiles
+// against it through gradleApi() — the plugin-development ecosystem's reactions apply
+// `java-gradle-plugin`, which adds gradleApi() as `api`, and `xdcl-gradle-plugin`, which adds it
+// `compileOnly` — and a build applying such a plugin runs on a Gradle that already has the classes.
+// Nothing under org.xdcl is published, so a dependency on it would be unresolvable for anyone
+// outside this build.
 dependencies {
-    "api"(project.versionCatalogs.named("libs").findLibrary("xdclGradleApi").get())
+    "compileOnly"(project.versionCatalogs.named("libs").findLibrary("xdclGradleApi").get())
 }
 
 // Opt this library's jar out of the generated Gradle API Kotlin DSL extensions: the generated
