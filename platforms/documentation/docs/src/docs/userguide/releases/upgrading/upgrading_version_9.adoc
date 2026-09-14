@@ -390,7 +390,7 @@ Attribute value types are limited to: `String`, `Boolean`, any subtype of `Numbe
 Passing any other type to link:{javadocPath}/org/gradle/api/attributes/Attribute.html#of(java.lang.String,java.lang.Class)[`Attribute.of(String, Class)`] — or declaring an unsupported type as the type parameter of an `AttributeCompatibilityRule` or `AttributeDisambiguationRule` — now emits a deprecation warning and will become an error in Gradle 10.
 
 The most common case is a plain Java `Enum` that does not implement `Named`.
-Such types often work at first but fail later during dependency resolution, publishing, or configuration cache serialization — where the machinery assumes an attribute value can be reconstructed by name.
+Such types often work at first but fail later during dependency resolution, publishing, or Configuration Cache serialization — where the machinery assumes an attribute value can be reconstructed by name.
 
 To fix a build affected by this deprecation, change the attribute value type to one of the supported types.
 For enums, the simplest fix is to make the enum implement `Named` and return the constant's name from `getName()`.
@@ -555,7 +555,7 @@ Replace software-model-based builds with the current component model:
 - For Swift, use the link:{userManualPath}/swift_application_plugin.html[`swift-application`] and link:{userManualPath}/swift_library_plugin.html[`swift-library`] plugins.
 - For native testing, use the link:{userManualPath}/cpp_unit_test_plugin.html[`cpp-unit-test`] and link:{userManualPath}/xctest_plugin.html[`xctest`] plugins.
 
-The new plugins configure components through ordinary Gradle extensions (`application { }`, `library { }`, `unitTest { }`) without the `model { }` block, integrate with the configuration cache, and support Gradle's standard dependency-management features.
+The new plugins configure components through ordinary Gradle extensions (`application { }`, `library { }`, `unitTest { }`) without the `model { }` block, integrate with the Configuration Cache, and support Gradle's standard dependency-management features.
 
 [[deprecated_unsafe_isolated_projects_properties]]
 ==== Deprecation of `org.gradle.unsafe.isolated-projects*` property names
@@ -587,7 +587,7 @@ See the <<isolated_projects.adoc#sec:enable_ip, Enabling Isolated Projects>> sec
 [[deprecated_custom_collection_types_with_cc]]
 ==== Deprecation of serializing custom collection and map types with the Configuration Cache
 
-The configuration cache serializes a fixed set of standard collection, set, map, and queue types (such as `ArrayList`, `LinkedHashSet`, `LinkedHashMap`, and `ArrayDeque`) directly.
+The Configuration Cache serializes a fixed set of standard collection, set, map, and queue types (such as `ArrayList`, `LinkedHashSet`, `LinkedHashMap`, and `ArrayDeque`) directly.
 A _custom_ subtype of one of these types — for example, `class MyList extends ArrayList<String> {}` — cannot be restored as its own type and is instead restored as the nearest standard type, losing any state or behavior the custom type adds.
 
 Referencing such a custom subtype from a task field or task action is now deprecated and will become an error in Gradle 10.
@@ -1071,7 +1071,7 @@ tasks.register("greet") {
 }
 ----
 
-Please refer to the <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, Configuration Cache documentation>> for alternatives that are compatible with the configuration cache.
+Please refer to the <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution, Configuration Cache documentation>> for alternatives that are compatible with the Configuration Cache.
 
 [[injected_service_types_at_execution]]
 ==== Deprecation of accessing injected `Project` or `Gradle` services from a task action
