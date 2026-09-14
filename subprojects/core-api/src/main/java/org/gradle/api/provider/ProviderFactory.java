@@ -88,7 +88,7 @@ public interface ProviderFactory extends GradleService, ProjectService, Settings
      * @return The provider. Never returns null.
      * @see #present(Object)
      * @see #presentIfNotNull(Object)
-     * @since 9.8.0
+     * @since 9.9.0
      */
     @Incubating
     <T> Provider<T> absent();
@@ -104,7 +104,7 @@ public interface ProviderFactory extends GradleService, ProjectService, Settings
      * @return The provider. Never returns null.
      * @see #absent()
      * @see #presentIfNotNull(Object)
-     * @since 9.8.0
+     * @since 9.9.0
      */
     @Incubating
     <T> PresentProvider<T> present(T value);
@@ -118,7 +118,7 @@ public interface ProviderFactory extends GradleService, ProjectService, Settings
      * @return The provider. Never returns null.
      * @see #absent()
      * @see #present(Object)
-     * @since 9.8.0
+     * @since 9.9.0
      */
     @Incubating
     <T> Provider<T> presentIfNotNull(@Nullable T value);

@@ -31,7 +31,7 @@ import org.gradle.internal.HasInternalProtocol;
  * A provider that is always present can be created via {@link ProviderFactory#present(Object)}.
  *
  * @param <T> Type of value represented by the provider
- * @since 9.8.0
+ * @since 9.9.0
  */
 @HasInternalProtocol
 @NonExtensible
@@ -42,7 +42,7 @@ public interface PresentProvider<T> extends Provider<T> {
      * Returns the value of this provider. Unlike {@link Provider#get()}, never fails, as the value is always present.
      *
      * @return the current value of this provider.
-     * @since 9.8.0
+     * @since 9.9.0
      */
     @Override
     T get();
@@ -51,7 +51,7 @@ public interface PresentProvider<T> extends Provider<T> {
      * Returns the value of this provider. Unlike {@link Provider#getOrNull()}, never returns {@code null}, as the value is always present.
      *
      * @return the current value of this provider.
-     * @since 9.8.0
+     * @since 9.9.0
      */
     @Override
     T getOrNull();
@@ -61,7 +61,7 @@ public interface PresentProvider<T> extends Provider<T> {
      *
      * @param defaultValue The default value to use when this provider has no value. Never used.
      * @return the current value of this provider.
-     * @since 9.8.0
+     * @since 9.9.0
      */
     @Override
     T getOrElse(T defaultValue);
@@ -70,7 +70,7 @@ public interface PresentProvider<T> extends Provider<T> {
      * Returns whether the provider has a value present. Always {@code true}.
      *
      * @return {@code true}
-     * @since 9.8.0
+     * @since 9.9.0
      */
     @Override
     boolean isPresent();
@@ -80,7 +80,7 @@ public interface PresentProvider<T> extends Provider<T> {
      *
      * @param value The default value to use when this provider has no value. Never used.
      * @return this provider.
-     * @since 9.8.0
+     * @since 9.9.0
      */
     @Override
     PresentProvider<T> orElse(T value);
@@ -90,7 +90,7 @@ public interface PresentProvider<T> extends Provider<T> {
      *
      * @param provider The default provider to use when this provider has no value. Never used.
      * @return this provider.
-     * @since 9.8.0
+     * @since 9.9.0
      */
     @Override
     PresentProvider<T> orElse(Provider<? extends T> provider);
