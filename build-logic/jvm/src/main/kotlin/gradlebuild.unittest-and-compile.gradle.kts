@@ -40,6 +40,7 @@ import gradlebuild.identity.extension.GradleModuleExtension
 import gradlebuild.identity.extension.DEFAULT_TARGET_JVM_VERSION
 import gradlebuild.jvm.JvmCompileExtension
 import gradlebuild.jvm.argumentproviders.CiEnvironmentProvider
+import gradlebuild.testing.configureFlakyTestSelection
 import org.gradle.internal.jvm.JpmsConfiguration
 import org.gradle.internal.os.OperatingSystem
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
@@ -78,6 +79,7 @@ configureCompileDefaults()
 addCompileAllTasks()
 configureSourcesVariant()
 configureTests()
+configureFlakyTestSelection()
 
 tasks.registerCITestDistributionLifecycleTasks()
 

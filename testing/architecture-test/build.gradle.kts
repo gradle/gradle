@@ -3,10 +3,8 @@
 import com.gradle.develocity.agent.gradle.test.DevelocityTestConfiguration
 import gradlebuild.basics.ArchitectureDataType
 import gradlebuild.basics.DistributionArtifactScope
-import gradlebuild.basics.FlakyTestStrategy
 import gradlebuild.basics.PublicApi
 import gradlebuild.basics.PublicKotlinDslApi
-import gradlebuild.basics.flakyTestStrategy
 
 plugins {
     id("gradlebuild.internal.java")
@@ -131,7 +129,6 @@ tasks {
         )
 
         dependsOn(verifyAcceptedApiChangesOrdering)
-        enabled = flakyTestStrategy != FlakyTestStrategy.ONLY
 
         extensions.findByType<DevelocityTestConfiguration>()?.apply {
             // PTS doesn't work well with architecture tests which scan all classes
