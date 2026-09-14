@@ -1238,4 +1238,32 @@ class ConfigurationCacheProblemReportingIntegrationTest extends AbstractConfigur
             totalProblemsCount = 6
         }
     }
+
+    def "location detail decreases as the stack capturing budgets are spent"() {
+        given:
+        // The problem is reported before the process is spawned, so an empty command reports it without
+        // starting anything. The failed start has to be caught, or evaluation stops at the first line.
+        6.times {
+            buildFile "try { new ProcessBuilder([]).start() } catch (Exception e) {}\n"
+        }
+
+        when:
+        // Three full captures for six problems, so the full budget is spent partway through.
+        executer.withArgument("-Dorg.gradle.internal.problem.diagnostics.stacktrace-count.max=3")
+        // TODO The bounded budget buys nothing here: a problem that carries an exception has no bounded
+        //      fallback, so the last three problems lose their line instead of keeping it more cheaply.
+        executer.withArgument("-Dorg.gradle.internal.problem.diagnostics.bounded-captures.max=2")
+        configurationCacheFails "help"
+
+        then:
+        outputContains("Configuration cache entry discarded with 6 problems.")
+        problems.assertFailureHasProblems(failure) {
+            withProblem("Build file 'build.gradle': external process started")
+            (1..3).each {
+                withProblem("Build file 'build.gradle': line $it: external process started")
+            }
+            totalProblemsCount = 6
+            problemsWithStackTraceCount = 3
+        }
+    }
 }

@@ -50,20 +50,22 @@ interface ProblemFactory {
     fun problem(message: Action<StructuredMessage.Builder>): Builder = problem(null, message)
 
     interface Builder {
-        /**
-         * Creates an InvalidUserCodeException for this problem, with the given message.
-         */
-        fun exception(message: String): Builder
 
         /**
-         * Creates an InvalidUserCodeException for this problem, with a message derived from the problem message.
+         * Marks this problem as reporting a state rather than blaming user code, so it carries no exception.
+         *
+         * Such a problem can still appear in the report and the summary, but it shouldn't fail the build.
          */
-        fun exception(builder: (String) -> String): Builder
+        fun informational(): Builder
 
         /**
-         * Creates an InvalidUserCodeException for this problem, using the problem message to create the exception message.
+         * Replaces the exception message, which by default repeats the problem message.
+         *
+         * Use it only for detail too specific to put in the problem message, which we keep generic because
+         * we group problems by it. Treat the exception as a deeper level of detail: expect to lose this
+         * detail once the stack-capture budget runs out.
          */
-        fun exception(): Builder
+        fun exceptionMessage(message: (String) -> String): Builder
 
         fun documentationSection(documentationSection: DocumentationSection): Builder
 

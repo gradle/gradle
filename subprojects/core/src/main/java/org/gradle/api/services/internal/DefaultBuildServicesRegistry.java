@@ -467,7 +467,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
                         .text(" when Isolated Projects is enabled. Only ").reference("findByName(String)")
                         .text(" is permitted. Alternatively, use ").reference("BuildServicesRegistry.registerIfAbsent(String, Class)")
                         .text(" if possible.")
-                    ).exception().build()
+                    ).build()
                 );
             }
             super.onMethodCall(signature);

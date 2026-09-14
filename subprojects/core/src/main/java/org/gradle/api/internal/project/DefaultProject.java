@@ -1185,7 +1185,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             factory.problem(message -> message
                 .text("use of ").reference("Project.getProperties()")
                 .text(" is not allowed with Isolated Projects")
-            ).exception().build()
+            ).build()
         );
     }
 

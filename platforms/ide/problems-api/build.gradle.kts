@@ -30,6 +30,7 @@ at https://github.com/melix/jdoctor/
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
+    api(projects.buildOption)
     api(projects.enterpriseOperations)
     api(projects.serialization)
     api(projects.snapshots)

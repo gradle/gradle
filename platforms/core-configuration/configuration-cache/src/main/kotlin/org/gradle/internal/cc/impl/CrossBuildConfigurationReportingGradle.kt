@@ -46,7 +46,6 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
-import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
 import java.io.File
@@ -68,9 +67,7 @@ class CrossBuildConfigurationReportingGradle(
                 reference("Gradle.$what")
                 text(" on build ")
                 reference(identityPath.asString())
-            }
-                .exception { message -> message.capitalized() }
-                .build()
+            }.build()
         }
     }
 
