@@ -341,7 +341,7 @@ fun promotionBuildParameters(
         "\"-PgitUserName=$gitUserName\"",
         "\"-PgitUserEmail=$gitUserEmail\"",
         PLUGINS_PORTAL_URL_OVERRIDE,
-        "-DenablePredictiveTestSelection=false",
+        "-PenablePredictiveTestSelection=false",
         "%additional.gradle.parameters%",
     ).joinToString(" ")
 
