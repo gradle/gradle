@@ -17,7 +17,6 @@
 package org.gradle.internal.serialize.codecs.dm.transform
 
 import com.google.common.collect.ImmutableList
-import org.gradle.api.Action
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
@@ -176,12 +175,6 @@ class CalculateArtifactsCodec(
 
         override fun visitTransformSources(visitor: ResolvedArtifactSet.TransformSourceVisitor) {
             throw UnsupportedOperationException("should not be called")
-        }
-
-        override fun visitExternalArtifacts(visitor: Action<ResolvableArtifact>) {
-            for (artifact in artifacts) {
-                visitor.execute(artifact)
-            }
         }
 
         private
