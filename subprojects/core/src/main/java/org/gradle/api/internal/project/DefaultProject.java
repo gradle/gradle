@@ -1555,7 +1555,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         DependencyResolutionServices resolver = dms.newDetachedResolver(
             services.get(FileResolver.class),
             services.get(FileCollectionFactory.class),
-            new DependencyManagementParameters(Describables.of("detached context for", owner.getDisplayName()), null, true, true, true)
+            DependencyManagementParameters.forDetachedJvmEnvironment(Describables.of("detached context for", owner.getDisplayName()))
         );
 
         return new LocalDetachedResolver(resolver);

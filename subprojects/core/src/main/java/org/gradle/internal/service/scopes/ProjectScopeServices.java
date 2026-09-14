@@ -316,7 +316,7 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
             project.getClassLoaderScope(),
             fileResolver,
             fileCollectionFactory,
-            new DependencyManagementParameters(Describables.of("buildscript of", project.getOwner().getDisplayName()), "buildscript-", true, true, true)
+            DependencyManagementParameters.forDetachedJvmEnvironment(Describables.of("buildscript of", project.getOwner().getDisplayName()), "buildscript-")
         );
     }
 

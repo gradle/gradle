@@ -38,10 +38,11 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     @Override
     public ScriptHandlerInternal create(
         ScriptSource scriptSource,
-        ClassLoaderScope classLoaderScope,
-        DependencyManagementParameters params
+        ClassLoaderScope classLoaderScope
     ) {
-        DependencyResolutionServices services = dependencyManagementServices.newDetachedResolver(params);
+        DependencyResolutionServices services = dependencyManagementServices.newDetachedResolver(
+            DependencyManagementParameters.forDetachedJvmEnvironment(scriptSource.getShortDisplayName(), "settings-")
+        );
         return getDefaultScriptHandler(scriptSource, classLoaderScope, services);
     }
 

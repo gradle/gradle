@@ -45,6 +45,28 @@ public class DependencyManagementParameters {
     }
 
     /**
+     * Returns parameters for a dependency management instance that is running in
+     * a detached JVM environment, with dependency locking disabled.
+     */
+    public static DependencyManagementParameters forDetachedJvmEnvironment(DisplayName displayName) {
+        return forDetachedJvmEnvironment(displayName, null);
+    }
+
+    /**
+     * Returns parameters for a dependency management instance that is running in
+     * a detached JVM environment.
+     *
+     * @param dependencyLockingPrefix the prefix to prepend to all dependency lock
+     * files, or null to disable dependency locking.
+     */
+    public static DependencyManagementParameters forDetachedJvmEnvironment(
+        DisplayName displayName,
+        @Nullable String dependencyLockingPrefix
+    ) {
+        return new DependencyManagementParameters(displayName, dependencyLockingPrefix, true, true, true);
+    }
+
+    /**
      * Returns a human-readable description of the owner of the dependency
      * management instance, for use in error messages and logging.
      */
