@@ -16,11 +16,9 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType;
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.project.UnknownProjectStateException;
@@ -28,6 +26,7 @@ import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -178,13 +177,6 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
         public void visitTransformSources(TransformSourceVisitor visitor) {
             if (artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier) {
                 visitor.visitArtifact(artifact);
-            }
-        }
-
-        @Override
-        public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
-            if (!(artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier)) {
-                visitor.execute(artifact);
             }
         }
 
