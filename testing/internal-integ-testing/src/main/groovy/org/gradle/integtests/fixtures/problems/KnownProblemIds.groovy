@@ -77,6 +77,7 @@ class KnownProblemIds {
         'Gradle': 'Gradle',
         'Gradle:Build Definition': 'Build Definition',
         'Compilation': 'Compilation',
+        'Compilation:Groovy': 'Groovy',
         'Compilation:Java': 'Java',
         'Compilation:Java:Undefined': 'Undefined',
         'Compilation:java': 'java',
@@ -117,6 +118,7 @@ class KnownProblemIds {
         'configuration-usage:name-not-allowed': ['Configuration name not allowed'],
         'compilation:groovy-dsl:compilation-failed': ['Groovy DSL script compilation problem'],
         'Compilation:Java:Compiler initialization failed': ['Compiler initialization failed'],
+        'Compilation:Groovy:tools.jar is missing': ['tools.jar is missing'],
         // Java compiler diagnostics are named after javac's message templates, an open set that changes with the JDK
         // version; see JavacDiagnosticNames in java-compiler-worker.
         'Compilation:Java:.+' : ['.*'],
