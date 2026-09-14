@@ -67,6 +67,34 @@ The following issues track the development of TestKit APIs for this purpose:
 These APIs are intentionally focused on testing use cases.
 If you extract the report data for other purposes, please comment on these issues and describe your use case.
 
+[[compilation_problem_ids_moved_to_predefined_groups]]
+==== Compilation problem ids moved to the predefined problem groups
+
+Gradle's own compilation problems now report into the <<reporting_problems.adoc#sec:predefined_problem_groups,predefined problem groups>> instead of the legacy `compilation` groups.
+Both the group and the name of these problem ids changed:
+
+[cols="1,1"]
+|===
+|Before |After
+
+|`compilation:java:<javac code>`
+|`Compilation:Java:<javac code>`
+
+|`compilation:java:initialization-failed`
+|`Compilation:Java:Compiler initialization failed`
+
+|`compilation:groovy:missing-tools-jar`
+|`Compilation:Groovy:tools.jar is missing`
+
+|`compilation:groovy-dsl:compilation-failed`
+|`Gradle:DSL Evaluation:Script compilation failed`
+|===
+
+This affects Tooling API clients, Build Scans, and any tooling that matches problems by id.
+Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
+
+The console heading for a failed compiler start changes accordingly, from `Java compilation initialization error` to `Compiler initialization failed`.
+
 [[relocated_root_project_settings_kept]]
 ==== Builds that move the root project directory now load their settings file
 
