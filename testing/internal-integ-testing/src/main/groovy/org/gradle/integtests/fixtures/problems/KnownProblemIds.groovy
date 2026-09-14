@@ -67,7 +67,6 @@ class KnownProblemIds {
         // Sub-groups
         'packaging:signing': 'Signing',
         'compilation:groovy-dsl': 'Groovy DSL script compilation',
-        'compilation:java': 'Java compilation',
         'daemon-toolchain:configuration-generation' : 'Gradle configuration generation',
         'validation:property-validation': 'Property validation problems',
         'validation:type-validation': 'Gradle type validation',
@@ -125,8 +124,8 @@ class KnownProblemIds {
         // Flexible java compilation categories
         // The end of the category is matched with a regex, as there are many possible endings (and also changes with JDK versions)
         // See compiler.java for the full list of diagnostic codes we use as categories (we replace the dots with dashes)
-        'compilation:java:compiler.*' : ['.*'],
-        'compilation:java:initialization-failed': ['Java compilation initialization error'],
+        'Compilation:Java:compiler.*' : ['.*'],
+        'Compilation:Java:Compiler initialization failed': ['Compiler initialization failed'],
         'daemon-toolchain:configuration-generation:task-configuration' : ['Invalid task configuration'],
         'dependency-version-catalog:accessor-name-clash': [VersionCatalogProblemId.ACCESSOR_NAME_CLASH.displayName],
         'jvm-toolchain:invalid-jvm-installation': ['Invalid JVM installation'],

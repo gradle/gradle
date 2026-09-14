@@ -16,12 +16,13 @@
 
 package org.gradle.problems.internal.emitters;
 
-import org.gradle.api.logging.configuration.WarningMode;
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.problems.ProblemUtils;
+import org.gradle.problems.internal.rendering.JavaCompilationProblems;
 import org.gradle.problems.internal.rendering.ProblemWriter;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -30,14 +31,13 @@ import org.slf4j.LoggerFactory;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+/**
+ * Writes problems to the console as warnings. Only registered when all warnings are requested
+ * ({@link org.gradle.api.logging.configuration.WarningMode#All}).
+ */
 public class ConsoleProblemEmitter implements ProblemEmitter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConsoleProblemEmitter.class);
-    private final WarningMode warningMode;
-
-    public ConsoleProblemEmitter(WarningMode warningMode) {
-        this.warningMode = warningMode;
-    }
 
     @Override
     public void emit(ProblemInternal problem, @Nullable OperationIdentifier id) {
@@ -46,18 +46,11 @@ public class ConsoleProblemEmitter implements ProblemEmitter {
         }
     }
 
-    private boolean shouldRender(ProblemInternal problem) {
-        // only write problem reports if warning mode is set to 'all'
-        if (warningMode != WarningMode.All) {
-            return false;
-        }
-
-        // For now, don't write deprecation and java compilation warnings
-        if (ProblemUtils.isInGroup(problem, GradleCoreProblemGroup.deprecation()) ||
-            ProblemUtils.isInGroup(problem, GradleCoreProblemGroup.compilation().java())) {
-            return false;
-        }
-        return true;
+    @VisibleForTesting
+    static boolean shouldRender(ProblemInternal problem) {
+        // Deprecations have their own console output, and the Java compiler already prints its diagnostics.
+        return !ProblemUtils.isInGroup(problem, GradleCoreProblemGroup.deprecation())
+            && !JavaCompilationProblems.isInJavaCompilationGroup(problem.getDefinition().getId().getGroup());
     }
 
     private static void render(ProblemInternal problem) {
