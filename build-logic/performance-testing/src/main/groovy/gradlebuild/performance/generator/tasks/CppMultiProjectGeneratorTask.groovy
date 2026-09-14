@@ -27,7 +27,17 @@ abstract class CppMultiProjectGeneratorTask extends AbstractProjectGeneratorTask
     gradlebuild.performance.generator.DependencyGenerator.DependencyInfo depInfo
 
     CppMultiProjectGeneratorTask() {
-        maxWorkers = 6
+        /* TODO(humanize) PROBE, NOT FOR MERGE. Was 6, which setMaxWorkers writes into the generated
+           project as org.gradle.workers.max=6. That 6 is a fixture constant, not a tuned default,
+           and the Linux perf agents report teamcity.agent.hardware.cpuCount=12 — so every Cpp multi
+           scenario has been measuring a build that leaves about half the logical CPUs idle.
+
+           That matters for the 8b1260954c4 regression: at 6 workers a single worker is 16.7% of
+           total capacity, so intermittently losing access to one is amplified. Raising this to 12
+           asks whether the ~3.3% regression survives once the worker count is not the binding
+           constraint. Both the current and baseline arms share one generated project, so the
+           comparison stays fair. */
+        maxWorkers = 12
     }
 
     @Override
