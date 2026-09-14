@@ -44,15 +44,6 @@ public class DefaultComponentArtifactResolver implements ComponentArtifactResolv
         for (ComponentArtifactMetadata artifact : artifacts) {
             DefaultBuildableArtifactResolveResult result = new DefaultBuildableArtifactResolveResult();
             artifactResolver.resolveArtifact(component, artifact, result);
-            if (artifact.isOptionalArtifact()) {
-                try {
-                    // probe if the artifact exists
-                    result.getResult().getFile();
-                } catch (Exception e) {
-                    // Optional artifact is not available
-                    continue;
-                }
-            }
             resolvedArtifacts.add(result.getResult());
         }
         return resolvedArtifacts.build();
