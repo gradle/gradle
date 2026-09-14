@@ -17,6 +17,7 @@
 package org.gradle.internal.model;
 
 import org.gradle.internal.Try;
+import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.ThreadSafe;
 
@@ -26,8 +27,7 @@ import javax.annotation.concurrent.ThreadSafe;
  * This class can hold a null value.
  */
 @ThreadSafe
-public interface CalculatedValue<T> {
-    // TODO(https://github.com/gradle/gradle/issues/24767): with JSpecify, the nullable nature of the type argument <T> should be expressed as <T extends @Nullable Object>.
+public interface CalculatedValue<T extends @Nullable Object> {
 
     /**
      * Returns the value, failing if it has not been calculated.
