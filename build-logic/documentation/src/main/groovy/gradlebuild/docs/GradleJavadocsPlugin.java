@@ -102,7 +102,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             options.setCharSet("utf-8");
 
             options.addBooleanOption("-allow-script-in-comments", true);
-            options.setHeader(loadJavadocHeader());
+            options.addStringOption("top", loadJavadocHeader());
 
             // TODO: This would be better to model as separate options
             options.addStringOption("Xdoclint:syntax,html", "-quiet");

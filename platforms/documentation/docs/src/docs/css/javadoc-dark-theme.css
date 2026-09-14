@@ -60,3 +60,28 @@
     --invalid-tag-background-color: #4d0000;
     --invalid-tag-text-color: #ffcccc;
 }
+
+/* Site header — light mode variables */
+
+/* Site header — dark mode variables */
+
+/* Site header structure */
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); border: 0; }
+
+/*
+ * JDK-shipped javadoc icons in resource-files/ (left.svg, right.svg, x.svg, link.svg, copy.svg, glass.svg)
+ * have hardcoded fills baked into the SVG source — fill:#000 for most, fill:#1a73a8 for glass.svg.
+ * As <img> tags their inner paint can't be reached from external CSS, so on dark mode they render
+ * invisible (black on dark bg) or wrong-color. filter: invert(1) flips brightness so black → white,
+ * making them visible against the dark chrome. Applied broadly to any <img> in interactive javadoc UI.
+ */
+[data-theme="dark"] .hide-sidebar img,
+[data-theme="dark"] .show-sidebar img,
+[data-theme="dark"] button > img,
+[data-theme="dark"] .snippet-container img,
+[data-theme="dark"] a.copy-link > img,
+[data-theme="dark"] .search-input ~ img {
+    filter: invert(1);
+}
+
