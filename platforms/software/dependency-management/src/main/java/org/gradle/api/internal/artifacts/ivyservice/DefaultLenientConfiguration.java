@@ -37,6 +37,7 @@ import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.VariantIdentifier;
+import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.jspecify.annotations.Nullable;
 
@@ -173,20 +174,7 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
 
         @Override
         public void visitArtifact(DisplayName artifactSetName, VariantIdentifier sourceVariantId, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
-            try {
-                ResolvedArtifact resolvedArtifact = artifact.toPublicView();
-
-                // Attempt to download the file
-                resolvedArtifact.getFile();
-
-                // Only record the artifact if the file is accessible
-                artifacts.add(resolvedArtifact);
-            } catch (org.gradle.internal.resolve.ArtifactResolveException e) {
-                // Ignore
-                // TODO: Would be nice to not use exceptions for control flow
-            } catch (Exception e) {
-                visitFailure(e);
-            }
+            artifacts.add(artifact.toPublicView());
         }
 
         @Override
@@ -199,12 +187,16 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
 
         @Override
         public boolean requireArtifactFiles() {
-            // This is false so that we can download the artifact in `visitArtifact` and ignore missing files
-            return false;
+            return true;
         }
 
         @Override
         public void visitFailure(Throwable failure) {
+            if (failure instanceof ArtifactResolveException) {
+                // Ignore artifacts that cannot be resolved. Unexpected non-artifact
+                // failures should still be elevated to the user.
+                return;
+            }
             if (failures == null) {
                 failures = new ArrayList<>();
             }
