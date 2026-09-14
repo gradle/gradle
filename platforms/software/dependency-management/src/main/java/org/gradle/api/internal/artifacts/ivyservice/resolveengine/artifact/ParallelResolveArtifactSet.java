@@ -16,94 +16,57 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.operations.BuildOperationExecutor;
-import org.gradle.internal.operations.BuildOperationQueue;
-import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
- * A wrapper that prepares artifacts in parallel when visiting the delegate.
- * This is done by collecting all artifacts to prepare and/or visit in a first step.
- * The collected artifacts are prepared in parallel and subsequently visited in sequence.
+ * Traverses a {@link ResolvedArtifactSet} and visits the result.
  */
-public abstract class ParallelResolveArtifactSet {
-    private static final EmptySet EMPTY = new EmptySet();
+public final class ParallelResolveArtifactSet {
 
-    public abstract void visit(ArtifactVisitor visitor);
+    private ParallelResolveArtifactSet() {
+        // Private to prevent instantiation.
+    }
 
-    public static ParallelResolveArtifactSet wrap(ResolvedArtifactSet artifacts, BuildOperationExecutor buildOperationProcessor) {
+    /**
+     * Finalizes the given artifact set in parallel, then visits the artifacts serially.
+     */
+    public static void visitInParallel(
+        ResolvedArtifactSet artifacts,
+        BuildOperationExecutor buildOperationExecutor,
+        ArtifactVisitor visitor
+    ) {
         if (artifacts == ResolvedArtifactSet.EMPTY) {
-            return EMPTY;
-        }
-        return new VisitingSet(artifacts, buildOperationProcessor);
-    }
-
-    private static class EmptySet extends ParallelResolveArtifactSet {
-        @Override
-        public void visit(ArtifactVisitor visitor) {
-        }
-    }
-
-    private static class VisitingSet extends ParallelResolveArtifactSet {
-        private final ResolvedArtifactSet artifacts;
-        private final BuildOperationExecutor buildOperationProcessor;
-
-        VisitingSet(ResolvedArtifactSet artifacts, BuildOperationExecutor buildOperationProcessor) {
-            this.artifacts = artifacts;
-            this.buildOperationProcessor = buildOperationProcessor;
+            return;
         }
 
-        @Override
-        public void visit(ArtifactVisitor visitor) {
-            // Start preparing the result
-            StartVisitAction visitAction = new StartVisitAction(visitor);
-
-            // TODO: Downloads here should use `BuildOperationQueue#addUnconstrained`, so that we can fetch
-            // more artifacts in parallel than there are worker leases. This is blocked on classifying the
-            // work submitted by `Artifact#startFinalization`: artifact transforms in this set that have not
-            // yet executed run here on-demand, and being CPU-bound they must stay lease-constrained.
-            buildOperationProcessor.runAll(visitAction);
-
-            // Now visit the result in order
-            visitAction.visitResults();
-        }
-
-        private class StartVisitAction implements Action<BuildOperationQueue<RunnableBuildOperation>>, ResolvedArtifactSet.Visitor {
-            private final ArtifactVisitor visitor;
-            private final List<ResolvedArtifactSet.Artifacts> results = new ArrayList<>();
-            private BuildOperationQueue<RunnableBuildOperation> queue;
-
-            StartVisitAction(ArtifactVisitor visitor) {
-                this.visitor = visitor;
-            }
-
-            @Override
-            public FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
-                return visitor.prepareForVisit(source);
-            }
-
-            @Override
-            public void visitArtifacts(ResolvedArtifactSet.Artifacts artifacts) {
-                artifacts.startFinalization(queue, visitor.requireArtifactFiles());
-                results.add(artifacts);
-            }
-
-            @Override
-            public void execute(BuildOperationQueue<RunnableBuildOperation> buildOperationQueue) {
-                this.queue = buildOperationQueue;
-                artifacts.visit(this);
-            }
-
-            public void visitResults() {
-                for (ResolvedArtifactSet.Artifacts result : results) {
-                    result.visit(visitor);
+        List<ResolvedArtifactSet.Artifacts> results = new ArrayList<>();
+        buildOperationExecutor.runAll(queue ->
+            artifacts.visit(new ResolvedArtifactSet.Visitor() {
+                @Override
+                public FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
+                    return visitor.prepareForVisit(source);
                 }
-            }
+
+                @Override
+                public void visitArtifacts(ResolvedArtifactSet.Artifacts artifacts) {
+                    // TODO: Downloads here should use `BuildOperationQueue#addUnconstrained`, so that we can fetch
+                    // more artifacts in parallel than there are worker leases. This is blocked on classifying the
+                    // work submitted by `Artifact#startFinalization`: artifact transforms in this set that have not
+                    // yet executed run here on-demand, and being CPU-bound they must stay lease-constrained.
+                    artifacts.startFinalization(queue, visitor.requireArtifactFiles());
+                    results.add(artifacts);
+                }
+            })
+        );
+
+        for (ResolvedArtifactSet.Artifacts result : results) {
+            result.visit(visitor);
         }
     }
+
 }

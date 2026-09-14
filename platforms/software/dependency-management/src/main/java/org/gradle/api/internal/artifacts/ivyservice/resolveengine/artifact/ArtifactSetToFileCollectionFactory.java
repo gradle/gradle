@@ -258,7 +258,7 @@ public class ArtifactSetToFileCollectionFactory {
                     throw new UnsupportedOperationException();
                 }
             }
-            ParallelResolveArtifactSet.wrap(CompositeResolvedArtifactSet.of(artifactSets), buildOperationExecutor).visit(visitor);
+            ParallelResolveArtifactSet.visitInParallel(CompositeResolvedArtifactSet.of(artifactSets), buildOperationExecutor, visitor);
         }
 
         @Override
@@ -272,7 +272,7 @@ public class ArtifactSetToFileCollectionFactory {
                     artifactSets.add(new FileBackedArtifactSet(file));
                 }
             }
-            ParallelResolveArtifactSet.wrap(CompositeResolvedArtifactSet.of(artifactSets), buildOperationExecutor).visit(new ArtifactVisitorToResolvedFileVisitorAdapter(visitor));
+            ParallelResolveArtifactSet.visitInParallel(CompositeResolvedArtifactSet.of(artifactSets), buildOperationExecutor, new ArtifactVisitorToResolvedFileVisitorAdapter(visitor));
         }
 
         @Override
