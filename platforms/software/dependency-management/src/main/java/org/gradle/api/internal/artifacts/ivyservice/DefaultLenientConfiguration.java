@@ -51,6 +51,7 @@ import java.util.Set;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
+import org.gradle.internal.resolve.ArtifactResolveException;
 
 public class DefaultLenientConfiguration implements LenientConfigurationInternal {
 
@@ -200,20 +201,7 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
 
         @Override
         public void visitArtifact(DisplayName artifactSetName, VariantIdentifier sourceVariantId, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
-            try {
-                ResolvedArtifact resolvedArtifact = artifact.toPublicView();
-
-                // Attempt to download the file
-                resolvedArtifact.getFile();
-
-                // Only record the artifact if the file is accessible
-                artifacts.add(resolvedArtifact);
-            } catch (org.gradle.internal.resolve.ArtifactResolveException e) {
-                // Ignore
-                // TODO: Would be nice to not use exceptions for control flow
-            } catch (Exception e) {
-                visitFailure(e);
-            }
+            artifacts.add(artifact.toPublicView());
         }
 
         @Override
@@ -226,12 +214,16 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
 
         @Override
         public boolean requireArtifactFiles() {
-            // This is false so that we can download the artifact in `visitArtifact` and ignore missing files
-            return false;
+            return true;
         }
 
         @Override
         public void visitFailure(Throwable failure) {
+            if (failure instanceof ArtifactResolveException) {
+                // Ignore artifacts that cannot be resolved. Unexpected non-artifact
+                // failures should still be elevated to the user.
+                return;
+            }
             if (failures == null) {
                 failures = new ArrayList<>();
             }
