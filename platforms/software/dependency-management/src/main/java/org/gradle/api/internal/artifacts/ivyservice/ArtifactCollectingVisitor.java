@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import org.gradle.api.artifacts.ResolvedArtifact;
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalDependencyFiles;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
@@ -26,6 +25,8 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.component.model.VariantIdentifier;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -33,20 +34,25 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Visitor that collects legacy {@link ResolvedArtifact} instances, intended to be exposed
+ * on legacy dependency resolution APIs.
+ * <p>
+ * Avoid new usages of this visitor.
+ */
 public class ArtifactCollectingVisitor implements ArtifactVisitor {
-    private final Set<ResolvedArtifact> artifacts;
-    private List<Throwable> failures;
 
-    public ArtifactCollectingVisitor() {
-        this(new LinkedHashSet<>());
-    }
-
-    public ArtifactCollectingVisitor(Set<ResolvedArtifact> artifacts) {
-        this.artifacts = artifacts;
-    }
+    private final Set<ResolvedArtifact> artifacts = new LinkedHashSet<>();
+    private @Nullable List<Throwable> failures;
 
     @Override
-    public void visitArtifact(DisplayName artifactSetName, VariantIdentifier sourceVariantId, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
+    public void visitArtifact(
+        DisplayName artifactSetName,
+        VariantIdentifier sourceVariantId,
+        ImmutableAttributes attributes,
+        ImmutableCapabilities capabilities,
+        ResolvableArtifact artifact
+    ) {
         this.artifacts.add(artifact.toPublicView());
     }
 
@@ -68,7 +74,7 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
 
     @Override
     public boolean requireArtifactFiles() {
-        return false;
+        return true;
     }
 
     public Set<ResolvedArtifact> getArtifacts() {
@@ -78,4 +84,5 @@ public class ArtifactCollectingVisitor implements ArtifactVisitor {
     public List<Throwable> getFailures() {
         return failures != null ? failures : Collections.emptyList();
     }
+
 }

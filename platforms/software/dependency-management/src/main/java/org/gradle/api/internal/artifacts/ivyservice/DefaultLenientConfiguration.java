@@ -22,27 +22,18 @@ import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalDependencyFiles;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionStructureVisitor;
-import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.internal.component.model.VariantIdentifier;
-import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.operations.BuildOperationExecutor;
+import org.gradle.internal.resolve.ArtifactResolveException;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
@@ -161,52 +152,20 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
 
     @Override
     public Set<ResolvedArtifact> getArtifacts() {
-        LenientArtifactCollectingVisitor visitor = new LenientArtifactCollectingVisitor();
+        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
         artifactSetResolver.visitArtifacts(getSelectedArtifacts().getArtifacts(), visitor, resolutionHost);
-        resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());
-        return visitor.artifacts;
-    }
-
-    private static class LenientArtifactCollectingVisitor implements ArtifactVisitor {
-
-        private final Set<ResolvedArtifact> artifacts = new LinkedHashSet<>();
-        private @Nullable List<Throwable> failures;
-
-        @Override
-        public void visitArtifact(DisplayName artifactSetName, VariantIdentifier sourceVariantId, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
-            artifacts.add(artifact.toPublicView());
-        }
-
-        @Override
-        public FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
-            if (source instanceof LocalDependencyFiles) {
-                return FileCollectionStructureVisitor.VisitType.NoContents;
-            }
-            return FileCollectionStructureVisitor.VisitType.Visit;
-        }
-
-        @Override
-        public boolean requireArtifactFiles() {
-            return true;
-        }
-
-        @Override
-        public void visitFailure(Throwable failure) {
-            if (failure instanceof ArtifactResolveException) {
+        List<Throwable> allFailures = visitor.getFailures();
+        if (!allFailures.isEmpty()) {
+            Collection<Throwable> lenientFailures = allFailures.stream()
                 // Ignore artifacts that cannot be resolved. Unexpected non-artifact
                 // failures should still be elevated to the user.
-                return;
+                .filter(failure -> !(failure instanceof ArtifactResolveException))
+                .toList();
+            if (!lenientFailures.isEmpty()) {
+                resolutionHost.rethrowFailuresAndReportProblems("artifacts", lenientFailures);
             }
-            if (failures == null) {
-                failures = new ArrayList<>();
-            }
-            failures.add(failure);
         }
-
-        public List<Throwable> getFailures() {
-            return failures != null ? failures : Collections.emptyList();
-        }
-
+        return visitor.getArtifacts();
     }
 
 }
