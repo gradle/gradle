@@ -49,8 +49,10 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.model.CalculatedValueContainerFactory
+import org.gradle.internal.operations.BuildOperationExecutor
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.BaseSerializerFactory.HASHCODE_SERIALIZER
 import org.gradle.internal.serialize.codecs.core.BooleanValueSnapshotCodec
 import org.gradle.internal.serialize.codecs.core.BuildServiceParameterCodec
@@ -111,7 +113,6 @@ import org.gradle.internal.serialize.codecs.core.defaultCodecForProviderWithChan
 import org.gradle.internal.serialize.codecs.core.groovyCodecs
 import org.gradle.internal.serialize.codecs.core.jos.ExternalizableCodec
 import org.gradle.internal.serialize.codecs.core.jos.JavaObjectSerializationCodec
-import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLookup
 import org.gradle.internal.serialize.codecs.core.unsupportedTypes
 import org.gradle.internal.serialize.codecs.dm.ArtifactCollectionCodec
@@ -189,6 +190,7 @@ class DefaultConfigurationCacheCodecs(
     fileSystemOperations: FileSystemOperations,
     inputFingerprinter: InputFingerprinter,
     buildOperationRunner: BuildOperationRunner,
+    buildOperationExecutor: BuildOperationExecutor,
     classLoaderHierarchyHasher: ClassLoaderHierarchyHasher,
     isolatableFactory: IsolatableFactory,
     managedFactoryRegistry: ManagedFactoryRegistry,
@@ -270,7 +272,7 @@ class DefaultConfigurationCacheCodecs(
             bind(PublishArtifactLocalArtifactMetadataCodec)
             bind(TransformedProjectArtifactSetCodec())
             bind(TransformedExternalArtifactSetCodec())
-            bind(CalculateArtifactsCodec(calculatedValueContainerFactory))
+            bind(CalculateArtifactsCodec(calculatedValueContainerFactory, buildOperationExecutor))
             bind(TransformedArtifactCodec(calculatedValueContainerFactory))
             bind(LocalFileDependencyBackedArtifactSetCodec(attributesFactory, calculatedValueContainerFactory))
             bind(CalculatedValueContainerCodec(calculatedValueContainerFactory))
