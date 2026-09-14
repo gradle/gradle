@@ -416,7 +416,8 @@ public abstract class Wrapper extends DefaultTask {
      * This is usually the same version of Gradle you use for building your project.
      * The following labels are allowed to specify a version: {@code latest}, {@code release-candidate}, {@code release-milestone}, {@code release-nightly}, and {@code nightly}
      *
-     * <p>The resulting distribution url is validated before it is written to the gradle-wrapper.properties file.
+     * <p>The resulting distribution url is validated before it is written to the gradle-wrapper.properties file,
+     * unless {@link #getValidateDistributionUrl()} is {@code false}.
      * @since 0.7
      */
     @Option(option = "gradle-version", description = "The version of the Gradle distribution required by the wrapper. " +
@@ -526,7 +527,8 @@ public abstract class Wrapper extends DefaultTask {
      * all. This might be in particular interesting, if you provide a custom gradle snapshot to the wrapper, because you
      * don't need to provide a download server then.
      *
-     * <p>The distribution url is validated before it is written to the gradle-wrapper.properties file.
+     * <p>The distribution url is validated before it is written to the gradle-wrapper.properties file,
+     * unless {@link #getValidateDistributionUrl()} is {@code false}.
      * @since 0.9.1
      */
     @Option(option = "gradle-distribution-url", description = "The URL to download the Gradle distribution from.")
