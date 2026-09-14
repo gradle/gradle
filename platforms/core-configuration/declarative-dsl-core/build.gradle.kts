@@ -25,6 +25,8 @@ dependencies {
     api(libs.kotlinCompilerEmbeddable)
 
     implementation(projects.declarativeDslApi)
+
+    implementation(libs.jetbrainsAnnotations)
     implementation(libs.kotlinReflect)
     implementation(libs.kotlinxSerializationCore)
     implementation(libs.kotlinxSerializationJson)

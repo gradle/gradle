@@ -33,3 +33,11 @@ dependencies {
         because("IDE tests use the Tooling API.")
     }
 }
+
+dependencyAnalysis {
+    issues {
+        onUnusedDependencies {
+            exclude(libs.junitJupiter)
+        }
+    }
+}
