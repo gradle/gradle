@@ -187,7 +187,9 @@ retryBackOffMs=1500
 """
 
         when:
-        run "wrapper", "--gradle-version", "2.13", "--no-validate-url"
+        // --offline skips URL validation (see "respects --offline" below) without setting validateDistributionUrl,
+        // so the asserted value must come from the existing file
+        run "wrapper", "--gradle-version", "2.13", "--offline"
 
         then:
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=https\\://services.gradle.org/distributions/gradle-2.13-all.zip")
