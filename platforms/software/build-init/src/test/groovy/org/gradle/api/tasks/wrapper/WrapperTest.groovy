@@ -28,6 +28,7 @@ import org.gradle.util.internal.WrapUtil
 import org.gradle.wrapper.GradleWrapperMain
 import org.gradle.wrapper.WrapperExecutor
 import org.junit.Rule
+import spock.lang.Issue
 import spock.util.environment.RestoreSystemProperties
 
 @RestoreSystemProperties
@@ -145,6 +146,7 @@ class WrapperTest extends AbstractTaskTest {
         "http://some-url" == wrapper.getDistributionUrl()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/36172")
     def "preserves distribution type from a relative existing distribution url"() {
         given:
         wrapper = createTask(Wrapper.class)
@@ -156,6 +158,7 @@ class WrapperTest extends AbstractTaskTest {
         wrapper.getDistributionType() == Wrapper.DistributionType.ALL
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/36172")
     def "does not infer distribution type from existing properties when distribution url is explicitly configured"() {
         given:
         expectedTargetWrapperProperties.parentFile.mkdirs()
@@ -263,6 +266,7 @@ class WrapperTest extends AbstractTaskTest {
         properties.getProperty(WrapperExecutor.VALIDATE_DISTRIBUTION_URL) == "false"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/36172")
     def "execute preserves existing wrapper properties when task properties are not explicitly configured"() {
         given:
         def existingProperties = new Properties()
@@ -286,6 +290,7 @@ class WrapperTest extends AbstractTaskTest {
         properties.getProperty(WrapperExecutor.DISTRIBUTION_URL_PROPERTY) == wrapper.getDistributionUrl()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/36172")
     def "execute preserves existing wrapper paths and bases when task properties are not explicitly configured"() {
         given:
         wrapper = createTask(Wrapper.class)
