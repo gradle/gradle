@@ -17,20 +17,31 @@
 package org.gradle.problems.internal.rendering;
 
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemInternal;
 
 import java.io.PrintWriter;
 
+/**
+ * Renders Java compilation problems as their details only: for javac diagnostics the details already carry the
+ * formatted compiler output, including the location, so the usual header and body would duplicate it. A problem in the
+ * group without details, such as a failure to start the compiler, gets the default rendering.
+ */
 class JavaCompilationWriter implements SelectiveProblemWriter {
+
+    private final DefaultProblemWriter fallback = new DefaultProblemWriter();
 
     @Override
     public void write(ProblemInternal problem, RenderOptions options, PrintWriter output) {
-        output.print(problem.getDetails());
+        String details = problem.getDetails();
+        if (details == null) {
+            fallback.write(problem, options, output);
+        } else {
+            output.print(details);
+        }
     }
 
     @Override
     public boolean accepts(ProblemId problemId) {
-        return problemId.getGroup().equals(GradleCoreProblemGroup.compilation().java()) && !problemId.getName().equals("initialization-failed");
+        return JavaCompilationProblems.isJavaCompilationGroup(problemId.getGroup());
     }
 }
