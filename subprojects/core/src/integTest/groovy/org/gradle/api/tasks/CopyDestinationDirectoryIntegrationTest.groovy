@@ -182,4 +182,141 @@ class CopyDestinationDirectoryIntegrationTest extends AbstractIntegrationSpec {
         where:
         task << ['Copy', 'Sync']
     }
+
+    def "task action can #operation into a directory derived with #locationMethod from the task's own output directory"() {
+        buildFile """
+            abstract class CustomTask extends DefaultTask {
+                @InputDirectory abstract DirectoryProperty getSource()
+                @OutputDirectory abstract DirectoryProperty getOutputDirectory()
+                @Inject abstract FileSystemOperations getFs()
+                @TaskAction void go() {
+                    fs.$operation {
+                        from(source)
+                        into(outputDirectory.$locationMethod("nested"))
+                    }
+                }
+            }
+            tasks.register("custom", CustomTask) {
+                source = layout.projectDirectory.dir("src")
+                outputDirectory = layout.buildDirectory.dir("out")
+            }
+        """
+
+        when:
+        run 'custom'
+
+        then:
+        file('build/out/nested/a.txt').text == 'a'
+
+        where:
+        operation | locationMethod
+        'copy'    | 'dir'
+        'copy'    | 'file'
+        'sync'    | 'dir'
+        'sync'    | 'file'
+    }
+
+    def "#task subclass can wire its own directory property through into() in its constructor"() {
+        buildFile """
+            abstract class CustomCopy extends $task {
+                @Internal abstract DirectoryProperty getDefaultDestinationDirectory()
+                CustomCopy() {
+                    into(defaultDestinationDirectory.dir("plugins"))
+                }
+            }
+            def copy = tasks.register("copy", CustomCopy) {
+                from 'src'
+                defaultDestinationDirectory = layout.buildDirectory.dir("sandbox")
+            }
+            tasks.register("checkDestination") {
+                def actual = copy.flatMap { it.destinationDirectory.locationOnly }
+                def legacy = copy.map { it.destinationDir }
+                doLast {
+                    println "destinationDirectory: " + actual.get().asFile
+                    println "destinationDir: " + legacy.get()
+                }
+            }
+        """
+
+        when:
+        run 'copy', 'checkDestination'
+
+        then:
+        file('build/sandbox/plugins/a.txt').text == 'a'
+        outputContains("destinationDirectory: " + file('build/sandbox/plugins'))
+        outputContains("destinationDir: " + file('build/sandbox/plugins'))
+
+        where:
+        task << ['Copy', 'Sync']
+    }
+
+    def "#task subclass can continue to provide its destination by overriding destinationDir"() {
+        buildFile """
+            abstract class CustomCopy extends $task {
+                @Internal abstract DirectoryProperty getDefaultDestinationDirectory()
+
+                @Override
+                File getDestinationDir() {
+                    return defaultDestinationDirectory.get().asFile
+                }
+            }
+            tasks.register("copy", CustomCopy) {
+                from 'src'
+                defaultDestinationDirectory = layout.buildDirectory.dir("sandbox")
+            }
+        """
+
+        when:
+        run 'copy'
+
+        then:
+        file('build/sandbox/a.txt').text == 'a'
+
+        when:
+        run 'copy'
+
+        then:
+        result.assertTaskSkipped(':copy')
+
+        where:
+        task << ['Copy', 'Sync']
+    }
+
+    def "#task subclass action can read destinationDir when the destination derives from its own output property"() {
+        buildFile """
+            abstract class CustomCopy extends $task {
+                @OutputDirectory abstract DirectoryProperty getSandboxDirectory()
+                @Inject abstract FileSystemOperations getFs()
+                CustomCopy() {
+                    into(sandboxDirectory.dir("plugins"))
+                }
+                @Override
+                protected void copy() {
+                    super.copy()
+                    println "destinationDir: " + destinationDir
+                    println "destinationDirectory: " + destinationDirectory.get().asFile
+                    fs.copy {
+                        from(destinationDir)
+                        into(sandboxDirectory.dir("plugins-copy"))
+                    }
+                }
+            }
+            tasks.register("copy", CustomCopy) {
+                from 'src'
+                sandboxDirectory = layout.buildDirectory.dir("sandbox")
+            }
+        """
+
+        when:
+        run 'copy'
+
+        then:
+        file('build/sandbox/plugins/a.txt').text == 'a'
+        file('build/sandbox/plugins-copy/a.txt').text == 'a'
+        outputContains("destinationDir: " + file('build/sandbox/plugins'))
+        outputContains("destinationDirectory: " + file('build/sandbox/plugins'))
+
+        where:
+        task << ['Copy', 'Sync']
+    }
 }
