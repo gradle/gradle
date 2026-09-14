@@ -199,6 +199,18 @@ retryBackOffMs=1500
         file("gradle/wrapper/gradle-wrapper.properties").text.contains("retryBackOffMs=1500")
     }
 
+    def "wrapper preserves distribution type from a relative existing distribution URL"() {
+        given:
+        file("gradle/wrapper").mkdirs()
+        file("gradle/wrapper/gradle-wrapper.properties").text = "distributionUrl=dists/gradle-2.12-all.zip\n"
+
+        when:
+        run "wrapper", "--gradle-version", "2.13", "--offline"
+
+        then:
+        file("gradle/wrapper/gradle-wrapper.properties").text.contains("distributionUrl=https\\://services.gradle.org/distributions/gradle-2.13-all.zip")
+    }
+
     def "wrapper preserves existing properties next to a relocated wrapper jar"() {
         given:
         buildFile << """
