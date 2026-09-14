@@ -396,7 +396,7 @@ public class TaskExecution implements MutableUnitOfWork {
                 DocumentedFailure.builder().withUserManual("incremental_build", "sec:disable-state-tracking"),
                 propertyType,
                 propertyName,
-                propertyName.equals("destinationDirectory"))
+                propertyName.equals("destinationDirectory") || propertyName.equals("destinationDir"))
             .build(cause);
     }
 

@@ -205,6 +205,23 @@ Builds that relied on the previous failure to surface misconfiguration should va
 
 See <<toolchains.adoc#sec:custom_loc, Custom Toolchain Locations>> in the Gradle User Manual for details.
 
+[[copy_sync_destination_directory_property]]
+==== `Copy` and `Sync` destination is now a lazy `destinationDirectory` property
+
+link:{javadocPath}/org/gradle/api/tasks/Copy.html[`Copy`] and link:{javadocPath}/org/gradle/api/tasks/Sync.html[`Sync`] now expose the destination as an incubating `DirectoryProperty destinationDirectory`.
+For standard `Copy` and `Sync` tasks, `into(...)`, `setDestinationDir(File)`, `getDestinationDir()`, and `destinationDirectory` all configure or expose the same destination.
+
+During Gradle 9.x, both `destinationDir` and `destinationDirectory` are registered as task outputs for binary compatibility.
+The new `destinationDirectory` output is optional, allowing task types compiled against an earlier Gradle version that override `getDestinationDir()` to continue supplying the destination through the legacy output.
+In Gradle 10, `destinationDirectory` will become the sole registered output.
+
+Task types overriding the legacy accessors require special care during this transition:
+
+* An overridden `getDestinationDir()` takes precedence when the task executes, even if `destinationDirectory` is configured separately.
+* An overridden `setDestinationDir(File)` is not invoked when the destination is configured through `destinationDirectory`.
+
+Either override can cause the legacy and lazy destinations to get out of sync, so task authors should migrate away from overriding these methods.
+
 === Deprecations
 
 [[deprecate_implicit_parallel_model_building]]
@@ -544,7 +561,7 @@ Update your `gradle.properties` and command-line invocations to the new names.
 When both the legacy and the new name of a property are set — for example, the new name in `gradle.properties` and the legacy name injected by a plugin or CI script on the command line — an explicit `false` from either one disables the feature.
 This guarantees that tooling which still opts out via a legacy property name keeps working after a build migrates to the new names.
 
-See the <<isolated_projects.adoc#sec:enable, Enabling Isolated Projects>> section in the Gradle User Manual for the recommended setup.
+See the <<isolated_projects.adoc#sec:enable_ip, Enabling Isolated Projects>> section in the Gradle User Manual for the recommended setup.
 
 [[deprecated_custom_collection_types_with_cc]]
 ==== Deprecation of serializing custom collection and map types with the configuration cache

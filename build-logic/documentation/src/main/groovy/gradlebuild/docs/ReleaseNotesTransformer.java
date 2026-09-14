@@ -151,8 +151,27 @@ public class ReleaseNotesTransformer extends FilterReader {
         Element head = document.head();
 
         head.appendElement("link")
+            .attr("id", "hljs-theme")
             .attr("rel", "stylesheet")
             .attr("href", base + "/styles/stackoverflow-light.min.css");
+
+        // Pre-hydration theme init from OS/browser preference; swaps hljs stylesheet
+        // before render to prevent FOUC, and listens for live OS-theme changes.
+        head.appendElement("script").append(
+            "(function(){"
+            + "var LIGHT='" + base + "/styles/stackoverflow-light.min.css';"
+            + "var DARK='" + base + "/styles/stackoverflow-dark.min.css';"
+            + "var mql=window.matchMedia('(prefers-color-scheme: dark)');"
+            + "var hljsEl=document.getElementById('hljs-theme');"
+            + "function apply(dark){"
+            + "document.documentElement.setAttribute('data-theme',dark?'dark':'light');"
+            + "if(hljsEl){hljsEl.href=dark?DARK:LIGHT;}"
+            + "}"
+            + "apply(mql.matches);"
+            + "mql.addEventListener('change',function(e){apply(e.matches);});"
+            + "})();"
+        );
+
         head.appendElement("script").attr("src", base + "/highlight.min.js");
         head.appendElement("script").attr("src", base + "/languages/groovy.min.js");
         head.appendElement("script").append("hljs.highlightAll();");
