@@ -229,10 +229,19 @@ class ProblemProgressEventCrossVersionSpec extends ToolingApiSpecification {
         ]
     }
 
-    static void validateCompilationProblem(List<SingleProblemEvent> problems, TestFile buildFile) {
-        problems.size() == 1
-        problems[0].definition.id.displayName == "Could not compile build file '$buildFile.absolutePath'."
-        problems[0].definition.id.group.name == 'compilation'
+    void validateCompilationProblem(List<SingleProblemEvent> problems, TestFile buildFile) {
+        assert problems.size() == 1
+        def problem = problems[0]
+        assert problem.contextualLabel.contextualLabel == "Could not compile build file '$buildFile.absolutePath'."
+        if (targetVersion >= GradleVersion.version("9.9")) {
+            assert problem.definition.id.displayName == 'Script compilation failed'
+            assert problem.definition.id.group.name == 'DSL Evaluation'
+            assert problem.definition.id.group.parent.name == 'Gradle'
+        } else {
+            assert problem.definition.id.displayName == 'Groovy DSL script compilation problem'
+            assert problem.definition.id.group.name == 'groovy-dsl'
+            assert problem.definition.id.group.parent.name == 'compilation'
+        }
     }
 
     def "Property validation failure should produce problem report with domain-specific additional data"() {
