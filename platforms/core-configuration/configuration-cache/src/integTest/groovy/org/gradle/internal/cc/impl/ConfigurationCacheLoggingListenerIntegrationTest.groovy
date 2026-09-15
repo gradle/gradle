@@ -17,9 +17,10 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.internal.cc.impl.fixtures.ConfigurationCacheOptOutDeprecations
 import spock.lang.Issue
 
-class ConfigurationCacheLoggingListenerIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheLoggingListenerIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements ConfigurationCacheOptOutDeprecations {
 
     @Issue("https://github.com/gradle/gradle/issues/30771")
     def "standard error listener added to task logging at configuration time is invoked on configuration cache hit"() {
@@ -143,6 +144,7 @@ class ConfigurationCacheLoggingListenerIntegrationTest extends AbstractConfigura
         def listenerOutput = file("listener-output.txt")
 
         when: "configuration is stored with the opt-out enabled"
+        expectDeprecatedOptOutWarning(StartParameterBuildOptions.ConfigurationCacheSkipTaskLoggingListenersSerialization.PROPERTY_NAME)
         configurationCacheRun("logError", skipSerialization)
 
         then: "the unsupported listener is dropped instead of being reported as a problem, so the entry is stored"
@@ -150,6 +152,7 @@ class ConfigurationCacheLoggingListenerIntegrationTest extends AbstractConfigura
 
         when: "configuration is loaded from the cache after clearing any output from the store run"
         listenerOutput.delete()
+        expectDeprecatedOptOutWarning(StartParameterBuildOptions.ConfigurationCacheSkipTaskLoggingListenersSerialization.PROPERTY_NAME)
         configurationCacheRun("logError", skipSerialization)
 
         then: "the task still runs, but the dropped listener receives no output (pre-9.7.0 behavior)"

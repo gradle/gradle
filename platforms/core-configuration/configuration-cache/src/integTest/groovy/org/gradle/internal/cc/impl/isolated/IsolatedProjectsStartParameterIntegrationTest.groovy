@@ -288,10 +288,9 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
         ["setExportKeys(false)", "setExportKeys(boolean)"],
     ]
 
-    // Every notifying mutator of StartParameterInternal. The Option.Value-typed setters
-    // (setConfigurationCache, setIsolatedProjects, setParallelToolingModelBuilding) are omitted: the
-    // option type is awkward to construct in a script and flipping the enablement flags mid-build is
-    // meaningless. Values match the current/default state, as above.
+    // Every notifying mutator of StartParameterInternal. The Option.Value-typed feature enablement setters
+    // (setConfigurationCache, setIsolatedProjects, setParallelToolingModelBuilding) are omitted: flipping
+    // the enablement flags mid-build is meaningless. Values match the current/default state, as above.
     private static final List<List<String>> INTERNAL_MUTATORS = [
         ["setGradleHomeDir(gradle.gradleHomeDir)", "setGradleHomeDir(File)"],
         ["doNotSearchUpwards()", "doNotSearchUpwards()"],
@@ -300,8 +299,8 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
         ["setVfsVerboseLogging(false)", "setVfsVerboseLogging(boolean)"],
         ["setConfigurationCacheProblems(org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheProblemsOption.Value.FAIL)", "setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value)"],
         ["setConfigurationCacheDebug(false)", "setConfigurationCacheDebug(boolean)"],
-        ["setConfigurationCacheIgnoreInputsDuringStore(false)", "setConfigurationCacheIgnoreInputsDuringStore(boolean)"],
-        ["setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(false)", "setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(boolean)"],
+        ["setConfigurationCacheIgnoreInputsDuringStore(org.gradle.internal.buildoption.Option.Value.defaultValue(false))", "setConfigurationCacheIgnoreInputsDuringStore(Option.Value)"],
+        ["setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(org.gradle.internal.buildoption.Option.Value.defaultValue(false))", "setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(Option.Value)"],
         ["setConfigurationCacheParallel(gradle.startParameter.configurationCacheParallel)", "setConfigurationCacheParallel(boolean)"],
         ["setConfigurationCacheReadOnly(false)", "setConfigurationCacheReadOnly(boolean)"],
         ["setConfigurationCacheEntriesPerKey(1)", "setConfigurationCacheEntriesPerKey(int)"],
@@ -312,7 +311,7 @@ class IsolatedProjectsStartParameterIntegrationTest extends AbstractIsolatedProj
         ["setConfigurationCacheIntegrityCheckEnabled(false)", "setConfigurationCacheIntegrityCheckEnabled(boolean)"],
         ["setConfigurationCacheHeapDumpDir(null)", "setConfigurationCacheHeapDumpDir(String)"],
         ["setConfigurationCacheFineGrainedPropertyTracking(true)", "setConfigurationCacheFineGrainedPropertyTracking(boolean)"],
-        ["setConfigurationCacheSkipTaskLoggingListenersSerialization(false)", "setConfigurationCacheSkipTaskLoggingListenersSerialization(boolean)"],
+        ["setConfigurationCacheSkipTaskLoggingListenersSerialization(org.gradle.internal.buildoption.Option.Value.defaultValue(false))", "setConfigurationCacheSkipTaskLoggingListenersSerialization(Option.Value)"],
         ["setIsolatedProjectsDiagnostics(true)", "setIsolatedProjectsDiagnostics(boolean)"],
         ["setContinuousBuildQuietPeriod(java.time.Duration.ofMillis(250))", "setContinuousBuildQuietPeriod(Duration)"],
         ["setPropertyUpgradeReportEnabled(false)", "setPropertyUpgradeReportEnabled(boolean)"],
