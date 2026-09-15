@@ -30,5 +30,16 @@ public interface Collector<T> extends ValueSupplier {
 
     int size();
 
+    /**
+     * A lower bound on {@link #size()} that is cheap to compute.
+     * <p>
+     * Unlike {@code size()}, this never evaluates a provider - {@code ElementsFromCollectionProvider.size()}
+     * realises the whole upstream value, which would defeat the point of asking. Used only to presize the
+     * builder, so an underestimate costs a resize and nothing else.
+     */
+    default int sizeHint() {
+        return 0;
+    }
+
     ExecutionTimeValue<? extends Iterable<? extends T>> calculateExecutionTimeValue();
 }
