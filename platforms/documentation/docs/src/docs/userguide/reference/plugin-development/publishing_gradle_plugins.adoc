@@ -113,6 +113,34 @@ From version 1.0.0, applying the <<signing_plugin.adoc#signing_plugin,`signing`>
 
 From version 1.0.0, applying https://github.com/GradleUp/shadow[`com.gradleup.shadow`] automatically creates fat JARs for plugins.
 
+[[declaring_feature_compatibility]]
+== Declaring compatibility with Gradle features
+
+The {portal} highlights plugins that declare support for opt-in Gradle features with compatibility badges.
+Users are often hesitant to enable a feature like <<configuration_cache.adoc#config_cache,Configuration Cache>> or <<isolated_projects.adoc#isolated_projects,Isolated Projects>> when they can't tell whether their plugins support it.
+Declaring compatibility removes that uncertainty, making your plugin more discoverable and boosting its ranking in Portal search results.
+
+NOTE: Declaring compatibility with Isolated Projects requires {publishplugin} v2.2.1 or later.
+
+Add a `compatibility` block to each plugin declaration inside `gradlePlugin { plugins { ... } }`:
+
+====
+include::sample[dir="snippets/reference/plugin-development/pluginFeaturesCompatibility/kotlin",files="build.gradle.kts[tags=compatibility]"]
+include::sample[dir="snippets/reference/plugin-development/pluginFeaturesCompatibility/groovy",files="build.gradle[tags=compatibility]"]
+====
+
+Set each feature to `true` to declare support or `false` to declare that the plugin does not support the feature.
+Declaring a feature as unsupported is useful information for your users; there is no penalty for doing so.
+
+[WARNING]
+====
+Publishing a plugin without a compatibility declaration is deprecated as of {publishplugin} v2.1.0 and produces a deprecation warning during publish.
+The {portal} plans to reject undeclared submissions in a future version, so declaring compatibility now future-proofs your publish pipeline.
+====
+
+Once a feature is declared for a plugin, subsequent versions of that plugin must continue to declare it.
+Attempting to remove a compatibility declaration in a later version causes the publish request to fail.
+
 [[sec:publishing_your_plugin]]
 == Publishing the plugin
 
