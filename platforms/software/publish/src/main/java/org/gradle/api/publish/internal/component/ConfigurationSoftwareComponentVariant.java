@@ -78,7 +78,7 @@ public class ConfigurationSoftwareComponentVariant extends AbstractSoftwareCompo
     @Override
     public Set<? extends Capability> getCapabilities() {
         if (capabilities == null) {
-            this.capabilities = ImmutableSet.copyOf(Configurations.collectCapabilities(configuration,
+            this.capabilities = ImmutableSet.copyOf(Configurations.collectCapabilities((ConfigurationInternal) configuration,
                 new HashSet<>(),
                 new HashSet<>()));
         }

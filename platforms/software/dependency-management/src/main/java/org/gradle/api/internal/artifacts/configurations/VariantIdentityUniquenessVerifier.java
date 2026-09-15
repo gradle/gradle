@@ -20,6 +20,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.artifacts.ConfigurationPublications;
 import org.gradle.api.artifacts.Dependency;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -147,7 +148,14 @@ public class VariantIdentityUniquenessVerifier {
         }
 
         public static VariantIdentity from(ConfigurationInternal configuration, ImmutableCapabilities defaultCapabilities) {
-            Collection<? extends Capability> declaredCapabilities = configuration.getOutgoing().getCapabilities();
+            ConfigurationPublications outgoing = configuration.getOutgoingIfInitialized();
+            if (outgoing == null) {
+                return new VariantIdentity(
+                    configuration.getAttributes().asImmutable(),
+                    defaultCapabilities
+                );
+            }
+            Collection<? extends Capability> declaredCapabilities = outgoing.getCapabilities();
             ImmutableCapabilities capabilities = !declaredCapabilities.isEmpty()
                 ? ImmutableCapabilities.of(declaredCapabilities)
                 : defaultCapabilities;
