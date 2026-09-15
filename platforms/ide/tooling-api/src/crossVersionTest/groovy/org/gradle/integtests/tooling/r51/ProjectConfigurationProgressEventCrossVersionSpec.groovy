@@ -36,6 +36,7 @@ import java.time.Duration
 import java.util.concurrent.TimeUnit
 
 import static org.gradle.integtests.tooling.fixture.TextUtil.escapeString
+import static org.junit.Assume.assumeTrue
 
 @TargetGradleVersion('>=5.1')
 class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecification {
@@ -410,7 +411,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
 
     def "only counts execution time of container callbacks once"() {
         given:
-        def sleepDurationMillis = 500
+        def sleepDurationMillis = 250
         file("build.gradle") << """
             configurations {
                 foo
@@ -437,6 +438,168 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         def result = pluginResults.find { it.plugin.displayName.contains("MyPlugin") }
         result.totalConfigurationTime >= Duration.ofMillis(sleepDurationMillis)
         result.totalConfigurationTime < Duration.ofMillis(2 * sleepDurationMillis)
+    }
+
+    def "attributes plugins applied from a settings #callback callback to the project they are applied to"() {
+        given:
+        assumeTrue(minVersion == null || targetVersion >= GradleVersion.version(minVersion))
+        def sleepMillis = 250
+        settingsFile << """
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    ${simulateWork(sleepMillis)}
+                }
+            }
+
+            $callback {
+                it.apply(plugin: MyPlugin)
+            }
+        """
+
+        when:
+        runBuild("tasks")
+
+        then:
+        def expectedApplications = targetVersion >= GradleVersion.version("9.9") ? currentApplications : legacyApplications
+        assertReportedApplications(expectedApplications)
+        assertReportedDurationCoversWork(expectedApplications, "MyPlugin", sleepMillis)
+
+        where:
+        // rootProject and allprojects callbacks run before the project they configure starts being
+        // configured, so before 9.9 the plugins they applied were not reported at all. beforeProject
+        // callbacks run during project configuration, so they were always reported.
+        callback                         | minVersion | currentApplications                     | legacyApplications
+        "gradle.rootProject"             | null       | [":": ["MyPlugin"], ":b": []]           | [":": [], ":b": []]
+        "gradle.allprojects"             | null       | [":": ["MyPlugin"], ":b": ["MyPlugin"]] | [":": [], ":b": []]
+        "gradle.lifecycle.beforeProject" | "8.8"      | [":": ["MyPlugin"], ":b": ["MyPlugin"]] | [":": ["MyPlugin"], ":b": ["MyPlugin"]]
+    }
+
+    def "does not attribute code run directly in a settings #callback callback to any project"() {
+        given:
+        assumeTrue(minVersion == null || targetVersion >= GradleVersion.version(minVersion))
+        settingsFile << """
+            $callback {
+                ${simulateWork(250)}
+            }
+        """
+
+        when:
+        runBuild("tasks")
+
+        then:
+        // The callback belongs to the settings script, which is not applied to a project, so no
+        // application from the build's own code is reported for any project.
+        assertReportedApplications([":": [], ":b": []])
+
+        where:
+        callback                         | minVersion
+        "gradle.rootProject"             | null
+        "gradle.allprojects"             | null
+        "gradle.lifecycle.beforeProject" | "8.8"
+    }
+
+    def "attributes plugins applied from a root build script #callback block to the project they are applied to"() {
+        given:
+        def sleepMillis = 250
+        buildFile << """
+            class MyPlugin implements Plugin<Project> {
+                void apply(Project project) {
+                    ${simulateWork(sleepMillis)}
+                }
+            }
+
+            $callback {
+                apply plugin: MyPlugin
+            }
+        """
+
+        when:
+        runBuild("tasks")
+
+        then:
+        def expectedApplications = targetVersion >= GradleVersion.version("9.9") ? currentApplications : legacyApplications
+        assertReportedApplications(expectedApplications)
+        assertReportedDurationCoversWork(expectedApplications, "MyPlugin", sleepMillis)
+
+        where:
+        // These blocks all run while the root project is being configured, so before 9.9 the plugin
+        // was reported under the root project even when it was applied to :b.
+        callback        | currentApplications                                     | legacyApplications
+        "allprojects"   | [":": ["build.gradle", "MyPlugin"], ":b": ["MyPlugin"]] | [":": ["build.gradle", "MyPlugin"], ":b": []]
+        "subprojects"   | [":": ["build.gradle"], ":b": ["MyPlugin"]]             | [":": ["build.gradle", "MyPlugin"], ":b": []]
+        'project(":b")' | [":": ["build.gradle"], ":b": ["MyPlugin"]]             | [":": ["build.gradle", "MyPlugin"], ":b": []]
+    }
+
+    def "attributes code run directly in a root build script #callback block to the root build script"() {
+        given:
+        def sleepMillis = 250
+        buildFile << """
+            $callback {
+                ${simulateWork(sleepMillis)}
+            }
+        """
+
+        when:
+        runBuild("tasks")
+
+        then:
+        // The code belongs to the root build script, which is applied to the root project even
+        // while it is configuring another project, so this is the same in every version.
+        def expectedApplications = [":": ["build.gradle"], ":b": []]
+        assertReportedApplications(expectedApplications)
+        assertReportedDurationCoversWork(expectedApplications, "build.gradle", sleepMillis)
+
+        where:
+        callback << ["allprojects", "subprojects", 'project(":b")']
+    }
+
+    /**
+     * Assert each project reports exactly the given applications from the build's own code.
+     */
+    private void assertReportedApplications(Map<String, List<String>> expectedApplications) {
+        expectedApplications.each { projectPath, applications ->
+            assert userCodeApplicationsFor(projectPath) == applications
+        }
+    }
+
+    /**
+     * Assert the given application's reported duration covers the work it did, in every project
+     * that is expected to report it. Only this application is checked, since the others reported
+     * for a project do not necessarily do any work of their own.
+     */
+    private void assertReportedDurationCoversWork(Map<String, List<String>> expectedApplications, String pluginDisplayName, long workMillis) {
+        expectedApplications.each { projectPath, applications ->
+            if (pluginDisplayName in applications) {
+                assertPluginDurationAtLeast(pluginDisplayName, projectPath, workMillis)
+            }
+        }
+    }
+
+    /**
+     * Assert the plugin was reported as applied to the given project,
+     * and that its reported duration is at least the given amount of time.
+     */
+    private void assertPluginDurationAtLeast(String pluginDisplayName, String projectPath, long workMillis) {
+        def result = pluginApplicationResult(projectPath, pluginDisplayName)
+        assert result != null, "No plugin application result for $pluginDisplayName in project $projectPath"
+        assert result.totalConfigurationTime >= Duration.ofMillis(workMillis)
+    }
+
+    /**
+     * The applications reported for the given project that come from the build's own code, in the
+     * order they were applied. The plugins that Gradle applies to every project are left out, since
+     * which of those exist varies by version.
+     */
+    List<String> userCodeApplicationsFor(String projectPath) {
+        getPluginConfigurationOperationResult(projectPath).pluginApplicationResults
+            .collect { it.plugin.displayName }
+            .findAll { !it.startsWith("org.gradle.") }
+    }
+
+    def pluginApplicationResult(String projectPath, String pluginDisplayName) {
+        getPluginConfigurationOperationResult(projectPath).pluginApplicationResults.find {
+            it.plugin.displayName == pluginDisplayName
+        }
     }
 
     def simulateWork(long durationMillis) {
