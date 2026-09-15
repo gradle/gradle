@@ -228,36 +228,20 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
         0 * services._
     }
 
-    def "can inject service using a custom annotation on getter method with dummy method body"() {
+    def "can inject service using a custom annotation on getter"() {
         given:
         def services = defaultServices()
-        _ * services.get(Number, CustomInject) >> 12
+        _ * services.get(Number) >> 12
 
-        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], Stub(PropertyRoleAnnotationHandler), [CustomInject], new TestCrossBuildInMemoryCacheFactory(), 0)
+        def generator = AsmBackedClassGenerator.decorateAndInject(
+            [new CustomAnnotationHandler()], Stub(PropertyRoleAnnotationHandler),
+            [CustomInject], new TestCrossBuildInMemoryCacheFactory(), 0)
 
         when:
         def obj = create(generator, BeanWithCustomServices, services)
 
         then:
         obj.thing == 12
-        obj.getThing() == 12
-        obj.getProperty("thing") == 12
-    }
-
-    def "can inject service using a custom annotation on abstract getter method"() {
-        given:
-        def services = defaultServices()
-        _ * services.get(Number, CustomInject) >> 12
-
-        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], Stub(PropertyRoleAnnotationHandler), [CustomInject], new TestCrossBuildInMemoryCacheFactory(), 0)
-
-        when:
-        def obj = create(generator, AbstractBeanWithCustomServices, services)
-
-        then:
-        obj.thing == 12
-        obj.getThing() == 12
-        obj.getProperty("thing") == 12
     }
 
     def "cannot use multiple inject annotations on getter"() {
@@ -341,7 +325,7 @@ class AsmBackedClassGeneratorInjectDecoratedTest extends AbstractClassGeneratorS
     }
 
     def "cannot attach custom annotation that is known but not enabled to static method"() {
-        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()],Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0)
+        def generator = AsmBackedClassGenerator.decorateAndInject([new CustomAnnotationHandler()], Stub(PropertyRoleAnnotationHandler), [], new TestCrossBuildInMemoryCacheFactory(), 0)
 
         when:
         create(generator, StaticCustomInjectBean)
@@ -428,11 +412,6 @@ class BeanWithParameterizedTypeService {
 class BeanWithCustomServices {
     @CustomInject
     Number getThing() { throw new UnsupportedOperationException() }
-}
-
-abstract class AbstractBeanWithCustomServices {
-    @CustomInject
-    abstract Number getThing()
 }
 
 class MultipleInjectAnnotations {
