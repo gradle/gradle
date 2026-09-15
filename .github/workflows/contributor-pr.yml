@@ -151,4 +151,4 @@ jobs:
         run: |
           Set-Content -Path gradle/gradle-daemon-jvm.properties -Value "toolchainVersion=21"
      
-      - run: ./gradlew :native:test --% -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}
+      - run: ./gradlew :native:test --stacktrace --% -DdisableLocalCache=true -PflakyTests=exclude ${{ needs.build.outputs.sys-prop-args }}
