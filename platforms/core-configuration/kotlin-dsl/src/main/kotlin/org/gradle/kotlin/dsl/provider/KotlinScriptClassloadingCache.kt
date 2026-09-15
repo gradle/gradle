@@ -33,10 +33,12 @@ class KotlinScriptClassloadingCache @Inject constructor(
 ) {
 
     private
-    val cache: CrossBuildInMemoryCache<ProgramId, CompiledScript> = cacheFactory.newCache { reused -> reused.onReuse() }
+    val cache: CrossBuildInMemoryCache<ProgramId, CompiledScript> = cacheFactory.newCache()
 
+    // Notify classloader scope listeners on every hit (including continuous rebuilds in the same session).
+    // See https://github.com/gradle/gradle/issues/34013 and https://github.com/gradle/gradle/issues/38482
     fun get(key: ProgramId): CompiledScript? =
-        cache.getIfPresent(key)
+        cache.getIfPresent(key)?.also { it.onReuse() }
 
     fun put(key: ProgramId, loadedScriptClass: CompiledScript) {
         cache.put(key, loadedScriptClass)
