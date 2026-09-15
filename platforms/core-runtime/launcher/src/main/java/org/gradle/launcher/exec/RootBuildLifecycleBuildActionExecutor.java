@@ -190,7 +190,7 @@ public class RootBuildLifecycleBuildActionExecutor {
         if (startParameter.getConfigurationCacheSkipTaskLoggingListenersSerialization().isExplicit()) {
             nagOnDeprecatedConfigurationCacheOptOutProperty(
                 StartParameterBuildOptions.ConfigurationCacheSkipTaskLoggingListenersSerialization.PROPERTY_NAME,
-                "Remove the property and fix the serialization issues of the task output listeners registered during configuration."
+                "Remove the property and fix the serialization issues of the task output listeners registered during configuration, or register them at execution time instead."
             );
         }
     }

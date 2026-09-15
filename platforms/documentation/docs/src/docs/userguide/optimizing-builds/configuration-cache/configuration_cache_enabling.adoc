@@ -279,6 +279,7 @@ link:{javadocPath}/org/gradle/api/logging/LoggingOutput.html#addStandardOutputLi
 link:{javadocPath}/org/gradle/api/logging/LoggingOutput.html#addStandardErrorListener(org.gradle.api.logging.StandardOutputListener)[`LoggingOutput.addStandardErrorListener`]) are stored in the Configuration Cache and re-registered on a cache hit, so a listener that cannot be serialized is now reported as a problem.
 Prior to Gradle 9.8.0, these listeners were silently discarded and never received output during cache-hit builds.
 When set to `true`, Gradle reverts to the previous behavior.
+Instead of opting out, fix the serialization issues of the listener, or register it at execution time, for example in a task action.
 +
 _Default is `false`._
 +

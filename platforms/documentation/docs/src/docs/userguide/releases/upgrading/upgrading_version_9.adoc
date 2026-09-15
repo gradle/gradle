@@ -161,7 +161,7 @@ Setting any of them, to any value, emits a deprecation warning.
 
 | `org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization`
 | Gradle 9.8
-| Fix the serialization issues of the task output listeners registered during configuration.
+| Fix the serialization issues of the task output listeners registered during configuration, or register them at execution time instead, for example in a task action.
 |===
 
 Use the <<configuration_cache_debugging.adoc#config_cache:troubleshooting, Configuration Cache report>> to identify the offending build logic.

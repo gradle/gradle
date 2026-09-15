@@ -48,7 +48,7 @@ trait ConfigurationCacheOptOutDeprecations {
             case StartParameterBuildOptions.ConfigurationCacheIgnoreUnsupportedBuildEventsListeners.PROPERTY_NAME:
                 return "Remove the property and convert the build event listeners into build services."
             case StartParameterBuildOptions.ConfigurationCacheSkipTaskLoggingListenersSerialization.PROPERTY_NAME:
-                return "Remove the property and fix the serialization issues of the task output listeners registered during configuration."
+                return "Remove the property and fix the serialization issues of the task output listeners registered during configuration, or register them at execution time instead."
             default:
                 throw new IllegalArgumentException("Unknown Configuration Cache opt-out property: $propertyName")
         }
