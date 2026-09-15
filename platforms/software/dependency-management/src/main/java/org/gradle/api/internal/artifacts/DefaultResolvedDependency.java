@@ -124,12 +124,14 @@ public class DefaultResolvedDependency implements ResolvedDependency {
     }
 
     private Set<ResolvedArtifact> sort(ResolvedArtifactSet artifacts) {
-        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor(new TreeSet<>(new ResolvedArtifactComparator()));
-        ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor).visit(visitor);
+        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
+        ParallelResolveArtifactSet.visitInParallel(artifacts, buildOperationExecutor, visitor);
         if (!visitor.getFailures().isEmpty()) {
             resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());
         }
-        return visitor.getArtifacts();
+        TreeSet<ResolvedArtifact> result = new TreeSet<>(new ResolvedArtifactComparator());
+        result.addAll(visitor.getArtifacts());
+        return result;
     }
 
     private ResolvedArtifactSet getArtifactsForIncomingEdge(ResolvedDependency parent) {

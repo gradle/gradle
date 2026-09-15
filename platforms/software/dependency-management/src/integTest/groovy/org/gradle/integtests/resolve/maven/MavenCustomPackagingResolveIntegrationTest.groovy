@@ -77,7 +77,6 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
 
         when:
         remote.pom.expectGet()
-        remote.artifact.expectHead()
         remote.artifact.expectGet()
 
         run("remote")
@@ -117,7 +116,6 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
 
         when:
         remote.pom.expectGet()
-        remote.artifact.expectHead()
         remote.artifact.expectGet()
 
         run("remote")
@@ -158,7 +156,7 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
 
         when:
         remote.pom.expectGet()
-        remote.getArtifact("remote-1.0.hk2-jar").expectHeadMissing()
+        remote.getArtifact("remote-1.0.hk2-jar").expectGetMissing()
         remote.artifact.expectGet()
 
         run("remote")
@@ -257,7 +255,6 @@ class MavenCustomPackagingResolveIntegrationTest extends AbstractHttpDependencyR
         consumer.pom.expectGet()
         consumer.artifact.expectGet()
         customPackaging.pom.expectGet()
-        customPackaging.artifact.expectHead()
         customPackaging.artifact.expectGet()
 
         run("remote")
