@@ -521,7 +521,7 @@ abstract class GeneratePrecompiledScriptPluginAccessors @Inject internal constru
         // that would add some complexity when wiring GeneratePrecompiledScriptPluginAccessors task.
         val dependencyManagementServices = gradle.serviceOf<DependencyManagementServices>()
         val dependencyResolutionServices = dependencyManagementServices.newDetachedResolver(
-            DependencyManagementParameters(Describables.of("script plugin accessors"), null, true, true, true)
+            DependencyManagementParameters.forDetachedJvmEnvironment(Describables.of("script plugin accessors"))
         )
 
         val dependencies = dependencyResolutionServices.dependencyHandler

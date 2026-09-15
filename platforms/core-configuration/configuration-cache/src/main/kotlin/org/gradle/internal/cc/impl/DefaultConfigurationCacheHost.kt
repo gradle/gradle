@@ -16,11 +16,9 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.artifacts.DependencyManagementParameters
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.project.ProjectState
@@ -173,7 +171,7 @@ class DefaultConfigurationCacheHost internal constructor(
                 gradle,
                 classLoaderScope,
                 baseClassLoaderScope,
-                service<ScriptHandlerFactory>().create(settingsSource, classLoaderScope, DependencyManagementParameters(settingsSource.shortDisplayName, "settings-", true, true, true)),
+                service<ScriptHandlerFactory>().create(settingsSource, classLoaderScope),
                 settingsDir(),
                 settingsSource,
                 gradle.startParameter
