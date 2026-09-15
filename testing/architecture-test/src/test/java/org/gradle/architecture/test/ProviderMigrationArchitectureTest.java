@@ -96,7 +96,7 @@ public class ProviderMigrationArchitectureTest {
         .and(not(declaredIn(assignableTo(Exception.class)))) // exceptions are not migrated to lazy properties
         .and(are(declaredIn(class_with_any_mutable_property)))
         .and(are(ArchUnitFixture.getters))
-        // Skip Nested properties that are not Iterables
+        // Skip Nested properties that are not Lists
         .and(not(and(
             annotatedMaybeInSupertypeWith(Nested.class),
             not(have(rawReturnType(List.class)))
@@ -159,7 +159,7 @@ public class ProviderMigrationArchitectureTest {
         .and(not(annotatedWith(OptionValues.class)))
         // Skip types that are not to be migrated
         .and(not(declaredIn(annotatedWith(NotToBeMigratedToLazy.class))))
-        // Skip Nested properties that are not Iterables
+        // Skip Nested properties that are not Lists
         .and(not(and(
             annotatedMaybeInSupertypeWith(Nested.class),
             not(have(rawReturnType(List.class)))
