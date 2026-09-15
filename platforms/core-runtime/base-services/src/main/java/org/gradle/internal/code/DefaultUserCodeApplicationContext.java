@@ -30,6 +30,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
+import java.util.function.Function;
 import java.util.function.Supplier;
 
 public class DefaultUserCodeApplicationContext implements UserCodeApplicationContext {
@@ -84,7 +85,7 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
     }
 
     @Override
-    public ImmutableMap<Target, ImmutableList<Application>> stopTrackingApplications() {
+    public ImmutableMap<Target, ImmutableList<ApplicationSnapshot>> stopTrackingApplications() {
         RecordingState localRecording;
 
         recordingLock.lock();
@@ -156,7 +157,7 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
     }
 
     @Override
-    public ImmutableList<Application> getApplicationsFor(Target target) {
+    public ImmutableList<ApplicationSnapshot> getApplicationsFor(Target target) {
         RecordingState recording = this.recording;
         if (recording == null) {
             throw new IllegalStateException("Cannot get user code applications while recording is not in progress.");
@@ -252,19 +253,17 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
             }
         }
 
-        @Override
-        public long getTotalDurationNs() {
-            return generalDurationNs.get() + callbackDurationNs.get() + listenerDurationNs.get();
-        }
-
-        @Override
-        public long getDurationNsForType(CodeType codeType) {
-            switch (codeType) {
-                case GENERAL: return generalDurationNs.get();
-                case COLLECTION_CALLBACK: return callbackDurationNs.get();
-                case LISTENER: return listenerDurationNs.get();
-                default: throw new IllegalArgumentException("Unknown code type: " + codeType);
-            }
+        /**
+         * Create an immutable snapshot of the current state of this application.
+         */
+        ApplicationSnapshot snapshot() {
+            return new DefaultApplicationSnapshot(
+                id,
+                source,
+                generalDurationNs.get(),
+                callbackDurationNs.get(),
+                listenerDurationNs.get()
+            );
         }
 
         /**
@@ -327,6 +326,55 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
 
     }
 
+    private static class DefaultApplicationSnapshot implements ApplicationSnapshot {
+
+        private final UserCodeApplicationId id;
+        private final UserCodeSource source;
+        private final long generalDurationNs;
+        private final long callbackDurationNs;
+        private final long listenerDurationNs;
+
+        public DefaultApplicationSnapshot(
+            UserCodeApplicationId id,
+            UserCodeSource source,
+            long generalDurationNs,
+            long callbackDurationNs,
+            long listenerDurationNs
+        ) {
+            this.id = id;
+            this.source = source;
+            this.generalDurationNs = generalDurationNs;
+            this.callbackDurationNs = callbackDurationNs;
+            this.listenerDurationNs = listenerDurationNs;
+        }
+
+        @Override
+        public UserCodeApplicationId getId() {
+            return id;
+        }
+
+        @Override
+        public UserCodeSource getSource() {
+            return source;
+        }
+
+        @Override
+        public long getTotalDurationNs() {
+            return generalDurationNs + callbackDurationNs + listenerDurationNs;
+        }
+
+        @Override
+        public long getDurationNsForType(CodeType codeType) {
+            switch (codeType) {
+                case GENERAL: return generalDurationNs;
+                case COLLECTION_CALLBACK: return callbackDurationNs;
+                case LISTENER: return listenerDurationNs;
+                default: throw new IllegalArgumentException("Unknown code type: " + codeType);
+            }
+        }
+
+    }
+
     /**
      * Tracks all user code applications that have been applied while a recording is in progress.
      */
@@ -340,7 +388,7 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
         /**
          * All known user code applications, mapped by the target they were applied to.
          */
-        private final ConcurrentHashMap<Target, CopyOnReadArrayList<Application>> applications = new ConcurrentHashMap<>();
+        private final ConcurrentHashMap<Target, CopyOnReadArrayList<DefaultApplication>> applications = new ConcurrentHashMap<>();
 
         /**
          * Return an ID, unique to this recording, to identify a new user code application.
@@ -352,7 +400,7 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
         /**
          * Register a new user code application applied to the given target.
          */
-        public void registerApplication(Target target, Application application) {
+        public void registerApplication(Target target, DefaultApplication application) {
             // Applications are generally only applied to a given target from a single thread.
             // Application timings are generally only read after the application has been applied.
             // We use a CopyOnReadArrayList rather than a CopyOnWriteArrayList to avoid the overhead
@@ -368,9 +416,9 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
          * user code applications are being registered or executed. However, applications registered
          * while this method is executing may or may not be included in the returned list.
          */
-        public ImmutableList<Application> getApplicationsFor(Target target) {
-            CopyOnReadArrayList<Application> list = applications.get(target);
-            return list != null ? list.copy() : ImmutableList.of();
+        public ImmutableList<ApplicationSnapshot> getApplicationsFor(Target target) {
+            CopyOnReadArrayList<DefaultApplication> list = applications.get(target);
+            return list != null ? list.map(DefaultApplication::snapshot) : ImmutableList.of();
         }
 
         /**
@@ -380,10 +428,10 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
          * user code applications are being registered or executed. However, applications registered
          * while this method is executing may or may not be included in the returned map.
          */
-        private ImmutableMap<Target, ImmutableList<Application>> getAllApplications() {
-            ImmutableMap.Builder<Target, ImmutableList<Application>> result = ImmutableMap.builderWithExpectedSize(this.applications.size());
-            for (Map.Entry<Target, CopyOnReadArrayList<Application>> entry : this.applications.entrySet()) {
-                result.put(entry.getKey(), entry.getValue().copy());
+        private ImmutableMap<Target, ImmutableList<ApplicationSnapshot>> getAllApplications() {
+            ImmutableMap.Builder<Target, ImmutableList<ApplicationSnapshot>> result = ImmutableMap.builderWithExpectedSize(this.applications.size());
+            for (Map.Entry<Target, CopyOnReadArrayList<DefaultApplication>> entry : this.applications.entrySet()) {
+                result.put(entry.getKey(), entry.getValue().map(DefaultApplication::snapshot));
             }
             return result.build();
         }
@@ -404,10 +452,17 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
             }
         }
 
-        ImmutableList<T> copy() {
+        <E> ImmutableList<E> map(Function<T, E> mapper) {
+            List<T> copy;
             synchronized (values) {
-                return ImmutableList.copyOf(values);
+                copy = new ArrayList<>(values);
             }
+
+            ImmutableList.Builder<E> mapped = ImmutableList.builderWithExpectedSize(copy.size());
+            for (T value : copy) {
+                mapped.add(mapper.apply(value));
+            }
+            return mapped.build();
         }
 
     }

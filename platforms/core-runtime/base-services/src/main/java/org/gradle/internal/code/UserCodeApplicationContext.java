@@ -49,7 +49,7 @@ public interface UserCodeApplicationContext {
      *
      * @throws IllegalStateException If no recording is in progress.
      */
-    ImmutableMap<Target, ImmutableList<Application>> stopTrackingApplications();
+    ImmutableMap<Target, ImmutableList<ApplicationSnapshot>> stopTrackingApplications();
 
     /**
      * Applies some user code from the given source to the given target, tracking the time spent
@@ -84,7 +84,7 @@ public interface UserCodeApplicationContext {
      *
      * @throws IllegalStateException If recording is not in progress.
      */
-    ImmutableList<Application> getApplicationsFor(Target target);
+    ImmutableList<ApplicationSnapshot> getApplicationsFor(Target target);
 
     /**
      * Representation of the application of some user code. Tracks the amount of time spent
@@ -108,7 +108,7 @@ public interface UserCodeApplicationContext {
          * and any time spent executing the application will be tracked.
          * <p>
          * All code executed with the same {@link CodeType} will be tracked together,
-         * with the accumulated time accessible via {@link #getDurationNsForType(CodeType)}.
+         * with the accumulated time accessible via {@link ApplicationSnapshot#getDurationNsForType(CodeType)}.
          */
         void reapply(Runnable runnable, CodeType type);
 
@@ -126,6 +126,23 @@ public interface UserCodeApplicationContext {
          * {@link #reapply(Runnable, CodeType)}, but accepts an {@link Action}.
          */
         <T> void reapplyAction(Action<T> action, T param, CodeType type);
+
+    }
+
+    /**
+     * An immutable snapshot of the time spent executing code for a given application.
+     */
+    interface ApplicationSnapshot {
+
+        /**
+         * The ID of the application.
+         */
+        UserCodeApplicationId getId();
+
+        /**
+         * Returns details describing the source of the user code.
+         */
+        UserCodeSource getSource();
 
         /**
          * Get a snapshot of the total time spent executing this application, in nanoseconds.

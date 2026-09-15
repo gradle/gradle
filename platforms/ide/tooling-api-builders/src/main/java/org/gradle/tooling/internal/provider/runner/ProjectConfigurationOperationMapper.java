@@ -88,7 +88,7 @@ class ProjectConfigurationOperationMapper implements BuildOperationMapper<Config
         );
 
         UserCodeApplicationContext.Target.Project target = new UserCodeApplicationContext.Target.Project(projectIdentityPath);
-        ImmutableList<UserCodeApplicationContext.Application> applications = userCodeApplicationContext.getApplicationsFor(target);
+        ImmutableList<UserCodeApplicationContext.ApplicationSnapshot> applications = userCodeApplicationContext.getApplicationsFor(target);
         AbstractProjectConfigurationResult result = toProjectConfigurationOperationResult(finishEvent, toPluginApplicationResults(applications));
         return new DefaultOperationFinishedProgressEvent(finishEvent.getEndTime(), descriptor, result);
     }
@@ -98,7 +98,7 @@ class ProjectConfigurationOperationMapper implements BuildOperationMapper<Config
      * into a single result with a summed duration, as required by the contract of
      * {@link org.gradle.tooling.events.configuration.ProjectConfigurationOperationResult#getPluginApplicationResults()}.
      */
-    private static List<InternalPluginApplicationResult> toPluginApplicationResults(List<UserCodeApplicationContext.Application> applications) {
+    private static List<InternalPluginApplicationResult> toPluginApplicationResults(List<UserCodeApplicationContext.ApplicationSnapshot> applications) {
         Map<InternalPluginIdentifier, Long> durationsByPlugin = new LinkedHashMap<>();
         applications.stream()
             .sorted(Comparator.comparingLong(x -> x.getId().longValue()))

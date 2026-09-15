@@ -230,19 +230,17 @@ class DefaultUserCodeApplicationContextTest extends Specification {
     }
 
     def "accumulates time for a single application"() {
-        UserCodeApplicationContext.Application captured
-
         when:
         context.apply(Stub(UserCodeSource), target) { id ->
-            captured = context.current()
             timeSource.increment(10)
         }
 
         then:
-        captured.getTotalDurationNs() == ms(10)
-        captured.getDurationNsForType(UserCodeApplicationContext.CodeType.GENERAL) == ms(10)
-        captured.getDurationNsForType(UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK) == 0
-        captured.getDurationNsForType(UserCodeApplicationContext.CodeType.LISTENER) == 0
+        def snapshot = context.stopTrackingApplications().get(target).first()
+        snapshot.getTotalDurationNs() == ms(10)
+        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.GENERAL) == ms(10)
+        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK) == 0
+        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.LISTENER) == 0
     }
 
     def "duration snapshots exclude the currently executing slice"() {
@@ -252,7 +250,7 @@ class DefaultUserCodeApplicationContextTest extends Specification {
         context.apply(Stub(UserCodeSource), target) { id ->
             timeSource.increment(10)
             // Time is only committed when the application code completes
-            observedDuringExecution = context.current().getTotalDurationNs()
+            observedDuringExecution = context.getApplicationsFor(target).first().getTotalDurationNs()
         }
 
         then:
@@ -272,10 +270,11 @@ class DefaultUserCodeApplicationContextTest extends Specification {
         captured.reapply({ timeSource.increment(15) }, UserCodeApplicationContext.CodeType.LISTENER)
 
         then:
-        captured.getDurationNsForType(UserCodeApplicationContext.CodeType.GENERAL) == ms(5)
-        captured.getDurationNsForType(UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK) == ms(10)
-        captured.getDurationNsForType(UserCodeApplicationContext.CodeType.LISTENER) == ms(15)
-        captured.getTotalDurationNs() == ms(30)
+        def snapshot = context.stopTrackingApplications().get(target).first()
+        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.GENERAL) == ms(5)
+        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK) == ms(10)
+        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.LISTENER) == ms(15)
+        snapshot.getTotalDurationNs() == ms(30)
     }
 
     def "nested applications accumulate exclusive time"() {
@@ -287,7 +286,6 @@ class DefaultUserCodeApplicationContextTest extends Specification {
             appA = context.current()
             timeSource.increment(10)  // A runs 0-10
 
-            appB = null
             context.apply(Stub(UserCodeSource), target) { id2 ->
                 appB = context.current()
                 timeSource.increment(10)  // B runs 10-20
@@ -303,8 +301,13 @@ class DefaultUserCodeApplicationContextTest extends Specification {
         }
 
         then:
-        appA.getTotalDurationNs() == ms(30)
-        appB.getTotalDurationNs() == ms(20)
+        def snapshots = context.stopTrackingApplications().get(target)
+        snapshots[0].id.longValue() == appA.id.longValue()
+        snapshots[0].source == appA.source
+        snapshots[0].getTotalDurationNs() == ms(30)
+        snapshots[1].id.longValue() == appB.id.longValue()
+        snapshots[1].source == appB.source
+        snapshots[1].getTotalDurationNs() == ms(20)
     }
 
     def "time accumulates correctly when exception is thrown"() {
@@ -327,16 +330,14 @@ class DefaultUserCodeApplicationContextTest extends Specification {
 
         then:
         thrown(RuntimeException)
-        captured.getDurationNsForType(UserCodeApplicationContext.CodeType.GENERAL) == ms(5)
-        captured.getDurationNsForType(UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK) == ms(10)
+        def snapshot = context.stopTrackingApplications().get(target).first()
+        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.GENERAL) == ms(5)
+        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK) == ms(10)
     }
 
     def "gradleRuntime does not accumulate time on user applications"() {
-        UserCodeApplicationContext.Application captured
-
         when:
         context.apply(Stub(UserCodeSource), target) { id ->
-            captured = context.current()
             timeSource.increment(5)
 
             context.gradleRuntime {
@@ -347,7 +348,34 @@ class DefaultUserCodeApplicationContextTest extends Specification {
         }
 
         then:
-        captured.getTotalDurationNs() == ms(10)
+        def snapshot = context.stopTrackingApplications().get(target).first()
+        snapshot.getTotalDurationNs() == ms(10)
+    }
+
+    def "snapshots are immutable and expose the application source"() {
+        def source = Stub(UserCodeSource)
+        UserCodeApplicationContext.Application captured
+
+        when:
+        context.apply(source, target) { id ->
+            captured = context.current()
+            timeSource.increment(5)
+        }
+
+        // Snapshot before more code is executed for this application
+        def snapshot = context.getApplicationsFor(target).first()
+        captured.reapply({ timeSource.increment(10) }, UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK)
+
+        then:
+        snapshot.id.longValue() == captured.id.longValue()
+        snapshot.source == source
+        snapshot.getTotalDurationNs() == ms(5)
+        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK) == 0
+
+        and:
+        def newSnapshot = context.stopTrackingApplications().get(target).first()
+        newSnapshot.getTotalDurationNs() == ms(15)
+        newSnapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK) == ms(10)
     }
 
     def "groups applications by the target they are applied to"() {
@@ -443,7 +471,8 @@ class DefaultUserCodeApplicationContextTest extends Specification {
         captured.reapply({ timeSource.increment(5) }, UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK)
 
         then:
-        captured.getDurationNsForType(UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK) == ms(15)
+        def snapshot = context.stopTrackingApplications().get(target).first()
+        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK) == ms(15)
     }
 
     def "reapply supplier tracks time and returns value"() {
@@ -460,7 +489,8 @@ class DefaultUserCodeApplicationContextTest extends Specification {
 
         then:
         result == "hello"
-        captured.getDurationNsForType(UserCodeApplicationContext.CodeType.LISTENER) == ms(8)
+        def snapshot = context.stopTrackingApplications().get(target).first()
+        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.LISTENER) == ms(8)
     }
 
     def "reapplySpec restores application and tracks time"() {
@@ -484,7 +514,8 @@ class DefaultUserCodeApplicationContextTest extends Specification {
 
         and:
         context.current() == null
-        captured.getDurationNsForType(UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK) == ms(5)
+        def snapshot = context.stopTrackingApplications().get(target).first()
+        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK) == ms(5)
     }
 
     private static long ms(long millis) {

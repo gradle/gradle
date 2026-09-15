@@ -27,7 +27,7 @@ class TestUserCodeApplicationContext implements UserCodeApplicationContext {
     }
 
     @Override
-    ImmutableMap<Target, ImmutableList<Application>> stopTrackingApplications() {
+    ImmutableMap<Target, ImmutableList<ApplicationSnapshot>> stopTrackingApplications() {
         return ImmutableMap.of()
     }
 
@@ -47,7 +47,7 @@ class TestUserCodeApplicationContext implements UserCodeApplicationContext {
     }
 
     @Override
-    ImmutableList<Application> getApplicationsFor(Target target) {
+    ImmutableList<ApplicationSnapshot> getApplicationsFor(Target target) {
         return ImmutableList.of()
     }
 
