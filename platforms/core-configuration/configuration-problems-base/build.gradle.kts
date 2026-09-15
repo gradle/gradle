@@ -35,8 +35,6 @@ dependencies {
     api(libs.configurationCacheReport)
     api(libs.kotlinStdlib)
 
-    implementation(libs.guava)
-
     implementation(projects.hashing)
     implementation(projects.stdlibKotlinExtensions)
 }
