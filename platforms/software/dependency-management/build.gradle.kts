@@ -23,6 +23,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.credentialsApi)
     api(projects.credentials)
+    api(projects.daemonServices)
     api(projects.domainObjectCollections)
     api(projects.enterpriseLogging)
     api(projects.enterpriseOperations)
@@ -49,6 +50,7 @@ dependencies {
     api(projects.startParameter)
     api(projects.stdlibJavaExtensions)
     api(projects.versionedCache)
+    api(projects.dependencyManagementResources)
 
     api(libs.bouncycastlePgp)
     api(libs.fastutil)
@@ -60,7 +62,6 @@ dependencies {
     api(libs.jsr305)
     api(libs.maven3Settings)
     api(libs.maven3SettingsBuilder)
-    api(libs.slf4jApi)
 
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.credentialsImpl)
@@ -80,6 +81,7 @@ dependencies {
     implementation(libs.plexusCipher)
     implementation(libs.plexusSecDispatcher)
     implementation(libs.plexusUtils)
+    implementation(libs.slf4jApi)
 
     testImplementation(projects.buildCachePackaging)
     testImplementation(projects.softwareDiagnostics)
@@ -94,6 +96,7 @@ dependencies {
     testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.coreApi))
+    testImplementation(testFixtures(projects.dependencyManagementResources))
     testImplementation(testFixtures(projects.execution))
     testImplementation(testFixtures(projects.logging))
     testImplementation(testFixtures(projects.messaging))

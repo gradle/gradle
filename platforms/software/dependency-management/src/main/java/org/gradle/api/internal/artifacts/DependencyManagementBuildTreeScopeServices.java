@@ -20,12 +20,6 @@ import com.google.common.collect.ImmutableMap;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
-import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
-import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenMirrorResolver;
-import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider;
-import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations;
-import org.gradle.api.internal.artifacts.mvnsettings.MavenMirrorResolver;
-import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheMetadata;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCachesProvider;
@@ -66,6 +60,12 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Varia
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ThisBuildTreeOnlyGraphElementStore;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
+import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
+import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenMirrorResolver;
+import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenMirrorResolver;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMetadataFileSourceCodec;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
@@ -128,11 +128,6 @@ class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationP
     @Provides
     SimpleMapInterner createStringInterner() {
         return SimpleMapInterner.threadSafe();
-    }
-
-    @Provides
-    BuildCommencedTimeProvider createBuildTimeProvider(StartParameter startParameter) {
-        return new BuildCommencedTimeProvider(startParameter);
     }
 
     @Provides

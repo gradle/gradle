@@ -16,10 +16,10 @@
 
 package org.gradle.jvm.toolchain.internal;
 
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.resource.ExternalResourceFactory;
 import org.gradle.internal.resource.ExternalResourceRepository;
+import org.gradle.internal.resource.transport.RepositoryTransportFactory;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
 import org.gradle.jvm.toolchain.internal.install.JavaToolchainHttpRedirectVerifierFactory;
 
