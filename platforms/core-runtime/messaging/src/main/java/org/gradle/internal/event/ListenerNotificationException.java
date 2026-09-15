@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
  */
 @Contextual
 public class ListenerNotificationException extends DefaultMultiCauseException {
+    @Nullable
     private final MethodInvocation event;
 
     public ListenerNotificationException(@Nullable MethodInvocation event, String message, Iterable<? extends Throwable> causes) {

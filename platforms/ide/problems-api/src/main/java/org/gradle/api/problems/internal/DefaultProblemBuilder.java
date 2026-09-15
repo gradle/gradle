@@ -39,21 +39,23 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.List;
 
+import static java.util.Objects.requireNonNull;
+
 public class DefaultProblemBuilder implements ProblemBuilderInternal {
     private final ProblemsInfrastructure problemsInfrastructure;
 
-    private ProblemId id;
-    private String contextualLabel;
-    private Severity severity;
+    private @Nullable ProblemId id;
+    private @Nullable String contextualLabel;
+    private @Nullable Severity severity;
     private final List<ProblemLocation> originLocations = new ArrayList<ProblemLocation>();
     private final List<ProblemLocation> contextLocations = new ArrayList<ProblemLocation>();
-    private String details;
-    private DocLink docLink;
+    private @Nullable String details;
+    private @Nullable DocLink docLink;
     private List<String> solutions;
-    private Throwable exception;
-    private AdditionalData additionalData;
+    private @Nullable Throwable exception;
+    private @Nullable AdditionalData additionalData;
     private boolean collectStackLocation = false;
-    private ProblemDiagnostics diagnostics;
+    private @Nullable ProblemDiagnostics diagnostics;
 
     public DefaultProblemBuilder(
         ProblemsInfrastructure infrastructure
@@ -83,9 +85,10 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
     @Override
     public ProblemInternal build() {
         // id is mandatory
-        if (getId() == null) {
+        ProblemId id = this.id;
+        if (id == null) {
             return invalidProblem("missing-id", "Problem id must be specified", null);
-        } else if (getId().getGroup() == null) {
+        } else if (id.getGroup() == null) {
             return invalidProblem("missing-parent", "Problem id must have a parent", null);
         }
 
@@ -100,7 +103,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             addLocationsFromDiagnostics(collectStackLocation ? this.originLocations : this.contextLocations, diagnostics);
         }
 
-        ProblemDefinition problemDefinition = new DefaultProblemDefinition(getId(), getSeverity(), docLink);
+        ProblemDefinition problemDefinition = new DefaultProblemDefinition(id, getSeverity(), docLink);
         return new DefaultProblem(
             problemDefinition,
             contextualLabel,
@@ -129,6 +132,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         return !(contextLocations.isEmpty() && originLocations.isEmpty());
     }
 
+    @Nullable
     private Throwable exceptionForStackLocation(boolean overruleStacktraceLimit) {
         return getException() == null && overruleStacktraceLimit ? new RuntimeException() : getException();
     }
@@ -176,7 +180,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             "problems-api",
             "Problems API")
         ).stackLocation();
-        ProblemDefinition problemDefinition = new DefaultProblemDefinition(this.getId(), Severity.WARNING, null);
+        ProblemDefinition problemDefinition = new DefaultProblemDefinition(requireNonNull(this.id), Severity.WARNING, null);
         List<ProblemLocation> problemLocations = new ArrayList<ProblemLocation>();
         ProblemDiagnostics diagnostics = determineDiagnostics();
         if (diagnostics != null) {
@@ -381,6 +385,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         return exception;
     }
 
+    @Nullable
     public ProblemId getId() {
         return id;
     }

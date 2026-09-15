@@ -64,11 +64,11 @@ public class CurrentBuildOperationRef implements BuildOperationIdRef {
     /**
      * Callable with generic exception.
      */
-    public interface Callable<T, E extends Throwable> {
+    public interface Callable<T extends @Nullable Object, E extends Throwable> {
         T call() throws E;
     }
 
-    public <T, E extends Throwable> T with(@Nullable BuildOperationRef state, Callable<T, E> block) throws E {
+    public <T extends @Nullable Object, E extends Throwable> T with(@Nullable BuildOperationRef state, Callable<T, E> block) throws E {
         BuildOperationRef oldState = get();
         try {
             set(state);

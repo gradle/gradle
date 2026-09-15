@@ -19,7 +19,7 @@ package org.gradle.internal.buildoption;
 import org.gradle.internal.Cast;
 import org.jspecify.annotations.Nullable;
 
-class StringInternalOption<T extends @Nullable String> extends InternalOption<String> {
+class StringInternalOption<T extends @Nullable String> extends InternalOption<T> {
     private final T defaultValue;
 
     private StringInternalOption(String propertyName, T defaultValue) {

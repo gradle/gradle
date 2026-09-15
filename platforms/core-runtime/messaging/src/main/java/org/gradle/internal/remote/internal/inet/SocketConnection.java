@@ -28,6 +28,7 @@ import org.gradle.internal.serialize.FlushableEncoder;
 import org.gradle.internal.serialize.ObjectReader;
 import org.gradle.internal.serialize.ObjectWriter;
 import org.gradle.internal.serialize.StatefulSerializer;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -78,6 +79,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
     }
 
     @Override
+    @Nullable
     public T receive() throws MessageIOException {
         try {
             return objectReader.read();
@@ -224,6 +226,7 @@ public class SocketConnection<T> implements RemoteConnection<T> {
 
     private static class SocketOutputStream extends OutputStream {
         private static final int RETRIES_WHEN_BUFFER_FULL = 2;
+        @Nullable
         private Selector selector;
         private final SocketChannel socket;
         private final ByteBuffer buffer;

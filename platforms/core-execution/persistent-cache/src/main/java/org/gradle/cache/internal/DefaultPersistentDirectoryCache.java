@@ -23,6 +23,7 @@ import org.gradle.cache.LockOptions;
 import org.gradle.cache.PersistentCache;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.ExecutorFactory;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -44,7 +45,7 @@ public class DefaultPersistentDirectoryCache extends DefaultPersistentDirectoryS
 
     public DefaultPersistentDirectoryCache(
         File dir,
-        String displayName,
+        @Nullable String displayName,
         Map<String, ?> properties,
         LockOptions lockOptions,
         Consumer<? super PersistentCache> initAction,

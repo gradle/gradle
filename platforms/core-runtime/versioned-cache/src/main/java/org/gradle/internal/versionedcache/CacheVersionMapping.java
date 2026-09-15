@@ -35,7 +35,7 @@ public class CacheVersionMapping {
     }
 
     public CacheVersion getLatestVersion() {
-        return versions.get(versions.lastKey());
+        return versions.lastEntry().getValue();
     }
 
     public Optional<CacheVersion> getVersionUsedBy(GradleVersion gradleVersion) {
@@ -55,7 +55,7 @@ public class CacheVersionMapping {
         }
 
         public Builder incrementedIn(String minGradleVersion) {
-            return changedTo(versions.get(versions.lastKey()) + 1, minGradleVersion);
+            return changedTo(versions.lastEntry().getValue() + 1, minGradleVersion);
         }
 
         /**
@@ -75,7 +75,7 @@ public class CacheVersionMapping {
                 GradleVersion currentBaseVersion = GradleVersion.current().getBaseVersion();
                 Preconditions.checkArgument(parsedGradleVersion.getBaseVersion().compareTo(currentBaseVersion) <= 0,
                     "Base version of Gradle version (%s) must not be greater than base version of current Gradle version: %s", parsedGradleVersion.getVersion(), currentBaseVersion);
-                Preconditions.checkArgument(cacheVersion > versions.get(versions.lastKey()),
+                Preconditions.checkArgument(cacheVersion > versions.lastEntry().getValue(),
                     "cache version (%s) must be greater than all previous versions: %s", cacheVersion, versions.values());
             }
             versions.put(parsedGradleVersion, cacheVersion);

@@ -32,6 +32,8 @@ import org.slf4j.LoggerFactory;
 import java.io.StringWriter;
 import java.util.Collection;
 
+import static java.util.Objects.requireNonNull;
+
 public class DefaultProblemReporter implements ProblemReporterInternal {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(DefaultProblemReporter.class);
@@ -199,7 +201,7 @@ public class DefaultProblemReporter implements ProblemReporterInternal {
             return failure;
         }
         try {
-            return exceptionAnalyser.transform(failure).getCause();
+            return requireNonNull(exceptionAnalyser.transform(failure).getCause());
         } catch (Throwable e) {
             throw new RuntimeException(e);
         }

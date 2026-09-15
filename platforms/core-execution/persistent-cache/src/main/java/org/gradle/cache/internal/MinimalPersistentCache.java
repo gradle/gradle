@@ -18,6 +18,7 @@ package org.gradle.cache.internal;
 
 import org.gradle.cache.Cache;
 import org.gradle.cache.IndexedCache;
+import org.jspecify.annotations.Nullable;
 
 import java.util.function.Function;
 
@@ -42,6 +43,7 @@ public class MinimalPersistentCache<K, V> implements Cache<K, V> {
         return value;
     }
 
+    @Nullable
     @Override
     public V getIfPresent(K value) {
         return cache.getIfPresent(value);

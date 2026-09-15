@@ -195,11 +195,11 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
     }
 
     private static class DefaultProblemDiagnostics implements ProblemDiagnostics {
-        private final Failure failure;
-        private final Throwable exception;
+        private final @Nullable Failure failure;
+        private final @Nullable Throwable exception;
         private final List<StackTraceElement> stackTrace;
-        private final Location location;
-        private final UserCodeSource source;
+        private final @Nullable Location location;
+        private final @Nullable UserCodeSource source;
 
         public DefaultProblemDiagnostics(
             @Nullable Failure stackTracingFailure,

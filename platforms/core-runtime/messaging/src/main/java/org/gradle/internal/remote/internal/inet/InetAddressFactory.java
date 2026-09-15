@@ -28,6 +28,8 @@ import java.net.SocketException;
 import java.net.UnknownHostException;
 import java.util.Set;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Provides information on how two processes on this machine can communicate via IP addresses
  */
@@ -35,9 +37,9 @@ import java.util.Set;
 public class InetAddressFactory {
     private final Logger logger = LoggerFactory.getLogger(getClass());
     private final Object lock = new Object();
-    private InetAddress localBindingAddress;
-    private InetAddress wildcardBindingAddress;
-    private InetAddresses inetAddresses;
+    private @Nullable InetAddress localBindingAddress;
+    private @Nullable InetAddress wildcardBindingAddress;
+    private @Nullable InetAddresses inetAddresses;
     private boolean initialized;
 
     public InetAddressFactory() {
@@ -62,7 +64,7 @@ public class InetAddressFactory {
         try {
             synchronized (lock) {
                 init();
-                return localBindingAddress;
+                return requireNonNull(localBindingAddress);
             }
         } catch (Exception e) {
             throw new RuntimeException("Could not determine a usable local IP for this machine.", e);
@@ -76,7 +78,7 @@ public class InetAddressFactory {
         try {
             synchronized (lock) {
                 init();
-                return wildcardBindingAddress;
+                return requireNonNull(wildcardBindingAddress);
             }
         } catch (Exception e) {
             throw new RuntimeException("Could not determine a usable wildcard IP for this machine.", e);

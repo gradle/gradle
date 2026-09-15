@@ -32,6 +32,7 @@ import java.util.Collection;
 import java.util.function.Supplier;
 
 import static org.gradle.cache.internal.CacheInitializationAction.NO_INIT_REQUIRED;
+import static java.util.Objects.requireNonNull;
 
 public class DefaultPersistentDirectoryStore implements ReferencablePersistentCache {
 
@@ -47,7 +48,7 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
     private final File gcFile;
 
     private final DefaultCacheCleanupExecutor cleanupExecutor;
-    private DefaultCacheCoordinator cacheAccess;
+    private @Nullable DefaultCacheCoordinator cacheAccess;
 
     @SuppressWarnings("this-escape")
     public DefaultPersistentDirectoryStore(
@@ -104,6 +105,10 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
         }
     }
 
+    private DefaultCacheCoordinator getCacheAccess() {
+        return requireNonNull(cacheAccess, "Cache has not been opened or has already been closed.");
+    }
+
     @Override
     public File getBaseDir() {
         return dir;
@@ -130,42 +135,42 @@ public class DefaultPersistentDirectoryStore implements ReferencablePersistentCa
 
     @Override
     public <K, V> IndexedCache<K, V> createIndexedCache(IndexedCacheParameters<K, V> parameters) {
-        return cacheAccess.newCache(parameters);
+        return getCacheAccess().newCache(parameters);
     }
 
     @Override
     public <K, V> IndexedCache<K, V> createIndexedCache(String name, Class<K> keyType, Serializer<V> valueSerializer) {
-        return cacheAccess.newCache(IndexedCacheParameters.of(name, keyType, valueSerializer));
+        return getCacheAccess().newCache(IndexedCacheParameters.of(name, keyType, valueSerializer));
     }
 
     @Override
     public <K, V> boolean indexedCacheExists(IndexedCacheParameters<K, V> parameters) {
-        return cacheAccess.cacheExists(parameters);
+        return getCacheAccess().cacheExists(parameters);
     }
 
     @Override
     public <T> T withFileLock(Supplier<? extends T> action) {
-        return cacheAccess.withFileLock(action);
+        return getCacheAccess().withFileLock(action);
     }
 
     @Override
     public void withFileLock(Runnable action) {
-        cacheAccess.withFileLock(action);
+        getCacheAccess().withFileLock(action);
     }
 
     @Override
     public <T> T useCache(Supplier<? extends T> action) {
-        return cacheAccess.useCache(action);
+        return getCacheAccess().useCache(action);
     }
 
     @Override
     public void useCache(Runnable action) {
-        cacheAccess.useCache(action);
+        getCacheAccess().useCache(action);
     }
 
     @Override
     public void cleanup() {
-        cacheAccess.cleanup();
+        getCacheAccess().cleanup();
     }
 
 }
