@@ -223,6 +223,40 @@ class HtmlDependencyReportTaskIntegrationTest extends AbstractIntegrationSpec {
         jsonB.project.name == "b"
     }
 
+    @ToBeFixedForIsolatedProjects(because = "configure subprojects from root")
+    def "html report respects configured configurations across projects"() {
+        given:
+        createDirs("submodule-a", "submodule-b")
+
+        settingsFile """
+        include "submodule-a", "submodule-b"
+    """
+
+        buildFile """
+        apply plugin: 'project-report'
+
+        subprojects {
+            apply plugin: 'java'
+        }
+
+        htmlDependencyReport {
+            projects = project.subprojects
+
+            configurations = [
+                project(":submodule-a").configurations.runtimeClasspath,
+                project(":submodule-b").configurations.runtimeClasspath
+            ] as Set
+        }
+    """
+
+        when:
+        run "htmlDependencyReport"
+
+        then:
+        readGeneratedJson("root.submodule-a").project.configurations*.name == ["runtimeClasspath"]
+        readGeneratedJson("root.submodule-b").project.configurations*.name == ["runtimeClasspath"]
+    }
+
     def "copies necessary css, images and js files"() {
         given:
         buildFile << """
