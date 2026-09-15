@@ -33,7 +33,7 @@ class InProcessJavaCompilerIntegrationTest extends AbstractJavaCompilerIntegrati
 
     @Override
     void releaseFlagAssertions() {
-        failureHasCause("Java compilation initialization error")
+        failureHasCause("Compiler initialization failed")
         failureCauseContains('Cannot specify --release via `CompileOptions.compilerArgs` when using `CompileOptions.release`.')
     }
 }

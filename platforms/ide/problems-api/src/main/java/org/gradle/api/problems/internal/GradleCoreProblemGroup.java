@@ -20,7 +20,6 @@ import org.gradle.api.problems.ProblemGroup;
 
 public abstract class GradleCoreProblemGroup {
 
-    private static final DefaultCompilationProblemGroup COMPILATION_PROBLEM_GROUP = new DefaultCompilationProblemGroup();
     private static final ProblemGroup DEPRECATION_PROBLEM_GROUP = ProblemGroup.create("deprecation", "Deprecation");
     private static final DefaultValidationProblemGroup VALIDATION_PROBLEM_GROUP = new DefaultValidationProblemGroup();
     private static final ProblemGroup PLUGIN_APPLICATION_PROBLEM_GROUP = ProblemGroup.create("plugin-application", "Plugin application");
@@ -31,10 +30,6 @@ public abstract class GradleCoreProblemGroup {
     private static final DaemonToolchainProblemGroup DAEMON_TOOLCHAIN_PROBLEM_GROUP = new DefaultDaemonToolchainProblemGroup();
     private static final ProblemGroup SCRIPTS_PROBLEM_GROUP = ProblemGroup.create("scripts", "Scripts");
     private static final DefaultPackagingProblemGroup PACKAGING_PROBLEM_GROUP = new DefaultPackagingProblemGroup();
-
-    public static CompilationProblemGroup compilation() {
-        return COMPILATION_PROBLEM_GROUP;
-    }
 
     public static ProblemGroup deprecation() {
         return DEPRECATION_PROBLEM_GROUP;
@@ -76,13 +71,6 @@ public abstract class GradleCoreProblemGroup {
         return PACKAGING_PROBLEM_GROUP;
     }
 
-    public interface CompilationProblemGroup {
-        ProblemGroup thisGroup();
-        ProblemGroup java();
-        ProblemGroup groovy();
-        ProblemGroup groovyDsl();
-    }
-
     public interface ValidationProblemGroup {
         ProblemGroup thisGroup();
         ProblemGroup property();
@@ -97,37 +85,6 @@ public abstract class GradleCoreProblemGroup {
     public interface PackagingProblemGroup {
         ProblemGroup thisGroup();
         ProblemGroup signing();
-    }
-
-    private static class DefaultCompilationProblemGroup implements CompilationProblemGroup {
-
-        private final ProblemGroup thisGroup = ProblemGroup.create("compilation", "Compilation");
-        private final ProblemGroup java = ProblemGroup.create("java", "Java compilation", thisGroup);
-        private final ProblemGroup groovy = ProblemGroup.create("groovy", "Groovy compilation", thisGroup);
-        public ProblemGroup groovyDsl = ProblemGroup.create("groovy-dsl", "Groovy DSL script compilation", thisGroup);
-
-        private DefaultCompilationProblemGroup() {
-        }
-
-        @Override
-        public ProblemGroup thisGroup() {
-            return thisGroup;
-        }
-
-        @Override
-        public ProblemGroup java() {
-            return this.java;
-        }
-
-        @Override
-        public ProblemGroup groovy() {
-            return this.groovy;
-        }
-
-        @Override
-        public ProblemGroup groovyDsl() {
-            return this.groovyDsl;
-        }
     }
 
     private static class DefaultValidationProblemGroup implements ValidationProblemGroup {

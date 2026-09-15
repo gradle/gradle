@@ -18,8 +18,8 @@ package org.gradle.api.internal.tasks.compile
 
 
 import org.gradle.api.problems.ProblemDefinition
+import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
-import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.ProblemInternal
 import spock.lang.Issue
 import spock.lang.Specification
@@ -46,10 +46,17 @@ Unknown symbol: foo
                 getId() >> Mock(ProblemId) {
                     getName() >> ''
                     getDisplayName() >> ''
-                    getGroup() >> GradleCoreProblemGroup.compilation().java()
+                    getGroup() >> javaCompilationGroup()
                 }
             }
             getDetails() >> 'Unknown symbol: foo'
         }
+    }
+
+    /**
+     * Structurally equal to the predefined {@code Compilation > Java} group, which is not reachable from this module.
+     */
+    static ProblemGroup javaCompilationGroup() {
+        ProblemGroup.create("Java", "Java", ProblemGroup.create("Compilation", "Compilation"))
     }
 }

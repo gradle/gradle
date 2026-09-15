@@ -190,6 +190,39 @@ Problem found: Project is a prototype (id: prototype-project, in sample-problems
         ''')
     }
 
+    def "Java compilation problem is rendered as its details only"() {
+        given:
+        def problem = createProblem { ProblemBuilderInternal spec ->
+            spec.id(ProblemId.create("compiler.err.expected", "';' expected", javaCompilationGroup()))
+                .contextualLabel("';' expected")
+                .details("Foo.java:3: error: ';' expected")
+                .solution("Add the semicolon.")
+        }
+
+        when:
+        problemWriter.write(problem, writer)
+
+        then:
+        renderedProblem == "Foo.java:3: error: ';' expected"
+    }
+
+    def "Java compilation problem without details gets the default rendering"() {
+        given:
+        def problem = createProblem { ProblemBuilderInternal spec ->
+            spec.id(ProblemId.create("Compiler initialization failed", "Compiler initialization failed", javaCompilationGroup()))
+                .contextualLabel("invalid flag: -invalid-flag")
+        }
+
+        when:
+        problemWriter.write(problem, writer)
+
+        then:
+        renderedProblem == denormalizeAndStrip('''
+Problem found: Compiler initialization failed (in Compilation > Java)
+  invalid flag: -invalid-flag
+        ''')
+    }
+
     def "render solution and location"() {
         given:
         def problem = createProblem { ProblemBuilderInternal spec ->
@@ -329,6 +362,13 @@ Problem found: Project is a prototype (id: prototype-project, in sample-problems
       10. 10th solution
           with some content.
         ''')
+    }
+
+    /**
+     * Structurally equal to the predefined {@code Compilation > Java} group, which is not reachable from this module.
+     */
+    static ProblemGroup javaCompilationGroup() {
+        ProblemGroup.create("Java", "Java", ProblemGroup.create("Compilation", "Compilation"))
     }
 
     ProblemId createId(String groupName = "sample-problems", String groupDisplayName = "Sample Problems", String idName = "prototype-project", String idDisplayName = "Project is a prototype") {

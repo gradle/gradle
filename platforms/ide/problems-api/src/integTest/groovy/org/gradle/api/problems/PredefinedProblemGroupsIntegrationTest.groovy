@@ -127,7 +127,7 @@ class PredefinedProblemGroupsIntegrationTest extends AbstractIntegrationSpec {
     def "problems from predefined groups are rendered on the console with their group chain"() {
         given:
         withReportProblemTask """
-            problems.reporter.report(problems.groups.compilation.java.problem("Unused import")) {
+            problems.reporter.report(problems.groups.compilation.kotlin.problem("Unused import")) {
                 it.contextualLabel("Import of java.util.List is not used")
             }
         """
@@ -137,8 +137,8 @@ class PredefinedProblemGroupsIntegrationTest extends AbstractIntegrationSpec {
         run("reportProblem")
 
         then:
-        outputContains("Problem found: Unused import (in Compilation > Java)")
-        receivedProblem.definition.id.fqid == "Compilation:Java:Unused import"
+        outputContains("Problem found: Unused import (in Compilation > Kotlin)")
+        receivedProblem.definition.id.fqid == "Compilation:Kotlin:Unused import"
     }
 
     def "creating a group whose name differs only by case from a predefined group creates a distinct user group"() {

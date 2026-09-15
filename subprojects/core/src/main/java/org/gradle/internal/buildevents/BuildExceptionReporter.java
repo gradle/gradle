@@ -23,7 +23,6 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.problems.ProblemGroup;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
@@ -41,6 +40,7 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.logging.text.StyledTextOutputFactory;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.internal.problems.failure.FailureFactory;
+import org.gradle.problems.internal.rendering.JavaCompilationProblems;
 import org.gradle.problems.internal.rendering.ProblemWriter;
 import org.gradle.util.internal.GUtil;
 import org.jspecify.annotations.NullMarked;
@@ -427,7 +427,7 @@ public class BuildExceptionReporter implements Action<Throwable> {
             // so their solutions still need to reach the user via the resolution section.
             // All other problem writers render solutions and doc links inline.
             ProblemGroup group = problem.getDefinition().getId().getGroup();
-            if (GradleCoreProblemGroup.compilation().java().equals(group)) {
+            if (JavaCompilationProblems.isJavaCompilationGroup(group)) {
                 resolutions.addAll(problem.getSolutions());
             }
         }

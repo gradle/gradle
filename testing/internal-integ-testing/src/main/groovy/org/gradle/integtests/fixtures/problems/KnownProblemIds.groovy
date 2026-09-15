@@ -55,7 +55,6 @@ class KnownProblemIds {
         'problems-api': 'Problems API',
         'validation': 'Validation',
         'configuration-usage': 'Configuration usage',
-        'compilation': 'Compilation',
         'daemon-toolchain' : 'Daemon toolchain',
         'jvm-toolchain': 'JVM Toolchain',
         'dependency-version-catalog': 'Version catalog',
@@ -66,8 +65,6 @@ class KnownProblemIds {
 
         // Sub-groups
         'packaging:signing': 'Signing',
-        'compilation:groovy-dsl': 'Groovy DSL script compilation',
-        'compilation:java': 'Java compilation',
         'daemon-toolchain:configuration-generation' : 'Gradle configuration generation',
         'validation:property-validation': 'Property validation problems',
         'validation:type-validation': 'Gradle type validation',
@@ -82,7 +79,9 @@ class KnownProblemIds {
         // predefined groups (org.gradle.api.problems.ProblemGroups) used from integration tests
         'Gradle': 'Gradle',
         'Gradle:Deprecation': 'Deprecation',
+        'Gradle:DSL Evaluation': 'DSL Evaluation',
         'Compilation': 'Compilation',
+        'Compilation:Groovy': 'Groovy',
         'Compilation:Java': 'Java',
         'Compilation:Java:Undefined': 'Undefined',
         'Compilation:java': 'java',
@@ -115,18 +114,19 @@ class KnownProblemIds {
         'Compilation:Undefined:Unknown compiler': ['Unknown compiler'],
         'Compilation:Java:Undefined:Unknown compiler': ['Unknown compiler'],
         'Gradle:Deprecation:Deprecated feature used': ['Deprecated feature used'],
+        'Gradle:DSL Evaluation:Script compilation failed': ['Script compilation failed'],
         'Transformation:KMP:JavaScript:Bundle failed': ['Bundle failed'],
         'Transformation:KMP:Compilation failed': ['Compilation failed'],
         'Others:Undefined:Something odd': ['Something odd'],
         'problems-api:missing-id': ['Problem id must be specified'],
         'problems-api:unsupported-additional-data': ['Unsupported additional data type'],
         'configuration-usage:name-not-allowed': ['Configuration name not allowed'],
-        'compilation:groovy-dsl:compilation-failed': ['Groovy DSL script compilation problem'],
         // Flexible java compilation categories
         // The end of the category is matched with a regex, as there are many possible endings (and also changes with JDK versions)
         // See compiler.java for the full list of diagnostic codes we use as categories (we replace the dots with dashes)
-        'compilation:java:compiler.*' : ['.*'],
-        'compilation:java:initialization-failed': ['Java compilation initialization error'],
+        'Compilation:Java:compiler.*' : ['.*'],
+        'Compilation:Java:Compiler initialization failed': ['Compiler initialization failed'],
+        'Compilation:Groovy:tools.jar is missing': ['tools.jar is missing'],
         'daemon-toolchain:configuration-generation:task-configuration' : ['Invalid task configuration'],
         'dependency-version-catalog:accessor-name-clash': [VersionCatalogProblemId.ACCESSOR_NAME_CLASH.displayName],
         'jvm-toolchain:invalid-jvm-installation': ['Invalid JVM installation'],
