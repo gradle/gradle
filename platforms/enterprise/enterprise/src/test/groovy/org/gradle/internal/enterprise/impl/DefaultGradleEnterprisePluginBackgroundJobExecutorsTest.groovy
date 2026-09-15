@@ -16,6 +16,7 @@
 
 package org.gradle.internal.enterprise.impl
 
+import org.gradle.internal.cc.impl.DefaultConfigurationCacheInputTracking
 import org.gradle.internal.cc.impl.InputTrackingState
 import spock.lang.Specification
 
@@ -26,7 +27,8 @@ class DefaultGradleEnterprisePluginBackgroundJobExecutorsTest extends Specificat
     DefaultGradleEnterprisePluginBackgroundJobExecutors jobExecutors
 
     void setup() {
-        jobExecutors = new DefaultGradleEnterprisePluginBackgroundJobExecutors(new DefaultDevelocityPluginUnsafeConfigurationService(new InputTrackingState()))
+        def inputTracking = new DefaultConfigurationCacheInputTracking(new InputTrackingState())
+        jobExecutors = new DefaultGradleEnterprisePluginBackgroundJobExecutors(new DefaultDevelocityPluginUnsafeConfigurationService(inputTracking))
     }
 
     void cleanup() {
