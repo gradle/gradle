@@ -18,7 +18,9 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.internal.tasks.properties.DefaultFinalizingValidatingProperty
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue
+import org.gradle.api.internal.tasks.properties.PropertyValidationContext
 import org.gradle.api.internal.tasks.properties.ValidationActions
+import org.gradle.api.provider.Provider
 import org.gradle.internal.properties.PropertyValue
 import spock.lang.Specification
 
@@ -74,5 +76,18 @@ class DefaultFinalizingValidatingPropertyTest extends Specification {
 
         then:
         noExceptionThrown()
+    }
+
+    def "required files validation does not query present provider value"() {
+        def provider = Mock(Provider)
+        def valueWrapper = Stub(PropertyValue) { call() >> provider }
+        def property = new DefaultFinalizingValidatingProperty("name", valueWrapper, false, ValidationActions.REQUIRED_INPUT_FILES)
+
+        when:
+        property.validate(Stub(PropertyValidationContext))
+
+        then:
+        1 * provider.isPresent() >> true
+        0 * provider._
     }
 }

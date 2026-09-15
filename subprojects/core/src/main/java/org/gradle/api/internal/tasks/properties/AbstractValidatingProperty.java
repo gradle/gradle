@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import com.google.common.base.Suppliers;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.provider.HasConfigurableValue;
@@ -28,7 +27,6 @@ import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Locale;
-import java.util.function.Supplier;
 
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
@@ -69,8 +67,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
         Object unnested = DeferredUtil.unpackNestableDeferred(value.call());
         if (isPresent(unnested)) {
             // only resolve deferred values if actually required by some action
-            Supplier<Object> valueSupplier = Suppliers.memoize(() -> DeferredUtil.unpack(unnested));
-            validationAction.validate(propertyName, valueSupplier, context);
+            validationAction.validate(propertyName, () -> unnested, context);
         } else {
             if (!optional) {
                 reportValueNotSet(propertyName, context, hasConfigurableValue(unnested));

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.problems.Severity
 
 import spock.lang.Issue
 
@@ -539,6 +540,70 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         outputContains("inputs = [task1.txt, task2.txt]")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/38410")
+    def "required TaskInputs.files with an absent provider in a list fails after configuration cache reload"() {
+        def configurationCache = newConfigurationCacheFixture()
+        enableProblemsApiCheck()
+
+        buildFile """
+            tasks.register("myTask") {
+                inputs.files([objects.fileProperty()]).withPropertyName("inputProp")
+                doLast {}
+            }
+        """
+
+        when:
+        configurationCacheFails "myTask"
+
+        then:
+        configurationCache.assertStateStored()
+        failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'DefaultTask').")
+        assertInputPropValueNotSetProblem()
+
+        when:
+        configurationCacheFails "myTask"
+
+        then:
+        configurationCache.assertStateLoaded()
+        failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'DefaultTask').")
+        assertInputPropValueNotSetProblem()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38410")
+    def "required TaskInputs.files ignores an absent provider in a DomainObjectCollection with and without configuration cache"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        buildFile """
+            def sources = objects.domainObjectSet(Provider)
+            sources.add(objects.fileProperty())
+
+            tasks.register("myTask") {
+                inputs.files(sources).withPropertyName("inputProp")
+                doLast {}
+            }
+        """
+
+        when:
+        run "myTask"
+
+        then:
+        executedAndNotSkipped(":myTask")
+
+        when:
+        configurationCacheRun "myTask"
+
+        then:
+        configurationCache.assertStateStored()
+        executedAndNotSkipped(":myTask")
+
+        when:
+        configurationCacheRun "myTask"
+
+        then:
+        configurationCache.assertStateLoaded()
+        executedAndNotSkipped(":myTask")
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/33318")
     def "can use DomainObjectCollection of Configuration as ad hoc task input"() {
         file("foo.txt").text = "foo"
@@ -700,6 +765,15 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
             withProblem("cannot serialize Gradle script object references as these are not supported with the configuration cache.") {
                 at(":myTask").at("actions")
             }
+        }
+    }
+
+    private void assertInputPropValueNotSetProblem() {
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:value-not-set'
+            definition.id.displayName == 'Value not set'
+            contextualLabel == "Property 'inputProp' doesn't have a configured value"
         }
     }
 }
