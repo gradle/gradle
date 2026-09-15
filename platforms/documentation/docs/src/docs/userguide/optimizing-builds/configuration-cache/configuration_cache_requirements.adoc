@@ -662,9 +662,15 @@ To do this, create a subtype of link:{javadocPath}/org/gradle/api/provider/Value
 The parameters are configured in the `Action` passed to `providers.of()`.
 If no parameters are needed, use `ValueSourceParameters.None`.
 
+Parameters are data holders: an interface declaring `Property`-like getters for the inputs of the value source.
+Gradle isolates them before the value is obtained, so `obtain()` sees a snapshot of the configured values, and changes made to the parameters afterwards have no effect.
+Compute anything that needs a Gradle service in the configuring `Action`, which has access to the services of the build script or plugin, and pass the result in as a parameter.
+Parameters must not inject services themselves; an `@Inject` getter or constructor on a parameters type is <<upgrading_version_9.adoc#value_source_parameters_service_injection,deprecated>>.
+
 === Injecting Services
 
 Gradle <<service_injection.adoc#service_injection, services can be injected>> into a `ValueSource` implementation by adding a parameter to the constructor and annotating it with `@Inject`.
+Services are injected into the implementation only, never into its parameters.
 Currently, the following service is supported:
 
 * link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] — provides means to execute external processes.
