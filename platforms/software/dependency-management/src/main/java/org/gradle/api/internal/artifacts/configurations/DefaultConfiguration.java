@@ -51,13 +51,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet;
-import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
+import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.ResolverResults;
@@ -77,6 +76,7 @@ import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.initialization.ResettableConfiguration;
+import org.gradle.api.internal.project.ProjectDomainObjectContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -100,10 +100,10 @@ import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.DefaultCalculatedModelValue;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.CallableBuildOperation;
-import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.gradle.internal.typeconversion.NotationParser;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.gradle.util.Path;
@@ -301,7 +301,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private static Path getIdentityPath(DomainObjectContext domainObjectContext, String name) {
         if (domainObjectContext instanceof ProjectDomainObjectContext pdoc) {
-            return pdoc.getModel().getIdentity().getBuildTreePath().child(name);
+            return pdoc.getIdentity().getBuildTreePath().child(name);
         }
         return Path.path(name);
     }
@@ -716,7 +716,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             public BuildOperationDescriptor.Builder description() {
                 String displayName = "Resolve dependencies of " + identityPath;
                 String projectPathString = domainObjectContext instanceof ProjectDomainObjectContext pdoc
-                    ? pdoc.getModel().getIdentity().getProjectPath().asString()
+                    ? pdoc.getIdentity().getProjectPath().asString()
                     : null;
                 return BuildOperationDescriptor.displayName(displayName)
                     .progressDisplayName(displayName)
@@ -1270,7 +1270,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     public ConfigurationIdentity getConfigurationIdentity() {
         String name = getName();
         String projectPath = domainObjectContext instanceof ProjectDomainObjectContext pdoc
-            ? pdoc.getModel().getIdentity().getProjectPath().asString()
+            ? pdoc.getIdentity().getProjectPath().asString()
             : null;
         String buildPath = domainObjectContext.getBuildPath().asString();
         return new DefaultConfigurationIdentity(buildPath, projectPath, name);
