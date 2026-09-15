@@ -398,8 +398,8 @@ val Project.predictiveTestSelectionEnabled: Provider<Boolean>
     get() = provider {
         if (rerunAllTests.orElse(false).get()) {
             return@provider false
-        } else if (systemProperty(PREDICTIVE_TEST_SELECTION_ENABLED).isPresent) {
-            return@provider systemProperty(PREDICTIVE_TEST_SELECTION_ENABLED).get().toBoolean()
+        } else if (propertyFromAnySource(PREDICTIVE_TEST_SELECTION_ENABLED).isPresent) {
+            return@provider propertyFromAnySource(PREDICTIVE_TEST_SELECTION_ENABLED).get().toBoolean()
         } else {
             val isOnCi = buildRunningOnCi.getOrElse(false)
             val isMasterReleaseOrMergeQueueBranch = buildBranch.getOrElse("").let { branch ->
