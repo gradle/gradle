@@ -803,7 +803,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setConfigurationCacheIgnoreInputsDuringStore(value);
+            settings.setConfigurationCacheIgnoreInputsDuringStore(Option.Value.value(value));
         }
     }
 
@@ -822,7 +822,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(value);
+            settings.setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(Option.Value.value(value));
         }
     }
 
@@ -843,7 +843,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setConfigurationCacheSkipTaskLoggingListenersSerialization(value);
+            settings.setConfigurationCacheSkipTaskLoggingListenersSerialization(Option.Value.value(value));
         }
     }
 

@@ -215,7 +215,7 @@ class DefaultConfigurationCacheCodecs(
 ) : ConfigurationCacheCodecs {
 
     private
-    val serializeTaskLoggingListeners = !startParameter.isConfigurationCacheSkipTaskLoggingListenersSerialization
+    val serializeTaskLoggingListeners = !startParameter.configurationCacheSkipTaskLoggingListenersSerialization.get()
 
 
     private
