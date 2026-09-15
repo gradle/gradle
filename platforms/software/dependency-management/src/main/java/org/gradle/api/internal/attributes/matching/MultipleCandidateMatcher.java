@@ -299,12 +299,12 @@ class MultipleCandidateMatcher {
 
     private void disambiguateRequestedAttribute(int a) {
         Set<Object> candidateValues = getCandidateValues(compatible, c -> getCandidateValue(c, a));
-        if (candidateValues.size() <= 1) {
+        if (candidateValues.isEmpty()) {
             return;
         }
 
         Set<Object> matches = unsafeDisambiguate(requestedAttributes.get(a), requestedAttributeValues[a], candidateValues);
-        if (matches != null && matches.size() < candidateValues.size()) {
+        if (matches != null && !matches.isEmpty()) {
             // Remove any candidates which do not satisfy the disambiguation rule.
             for (int c = remaining.nextSetBit(0); c >= 0; c = remaining.nextSetBit(c + 1)) {
                 if (!matches.contains(getCandidateValue(c, a))) {
