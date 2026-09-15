@@ -793,6 +793,13 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
+    /**
+     * Restores the pre-8.4 behavior where configuration inputs read while the task graph is being serialized
+     * are not tracked.
+     *
+     * <p>Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11, see
+     * <a href="https://github.com/gradle/gradle/issues/39168">gradle/gradle#39168</a>.
+     */
     public static class ConfigurationCacheIgnoreInputsDuringStore extends BooleanBuildOption<StartParameterInternal> {
 
         public static final String PROPERTY_NAME = "org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization";
@@ -809,6 +816,9 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
     /**
      * Suppresses Configuration Cache problems for unsupported listeners registered in {@code BuildEventsListenersRegistry}.
+     *
+     * <p>Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11, see
+     * <a href="https://github.com/gradle/gradle/issues/39169">gradle/gradle#39169</a>.
      *
      * @since 9.0.0
      */
@@ -830,6 +840,9 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
      * Skips serialization of the standard output/error listeners registered on a task's logging manager during
      * configuration. When enabled, these listeners are not stored in the Configuration Cache, restoring the previous
      * behavior where they were silently dropped on a cache hit, so unsupported listeners no longer cause problems.
+     *
+     * <p>Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11, see
+     * <a href="https://github.com/gradle/gradle/issues/39170">gradle/gradle#39170</a>.
      *
      * @since 9.8.0
      */
@@ -864,6 +877,12 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
     }
 
+    /**
+     * Excludes file system checks such as {@code File.exists()} on the listed paths from configuration input tracking.
+     *
+     * <p>Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11, see
+     * <a href="https://github.com/gradle/gradle/issues/39167">gradle/gradle#39167</a>.
+     */
     public static class ConfigurationCacheIgnoredFileSystemCheckInputs extends StringBuildOption<StartParameterInternal> {
 
         public static final String PROPERTY_NAME = "org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks";
