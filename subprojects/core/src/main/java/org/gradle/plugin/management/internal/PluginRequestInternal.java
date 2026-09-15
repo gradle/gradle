@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.management.internal;
 
+import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.plugin.management.PluginRequest;
 import org.jspecify.annotations.Nullable;
 
@@ -43,5 +44,15 @@ public interface PluginRequestInternal extends PluginRequest {
     enum Origin {
         AUTO_APPLIED,
         OTHER
+    }
+
+    /**
+     * The whole constraint when the request came from a version catalog, otherwise null.
+     * {@link #getVersion()} then carries only its required version, which a constraint
+     * built from {@code prefer} alone does not have.
+     */
+    @Nullable
+    default VersionConstraint getVersionConstraint() {
+        return null;
     }
 }

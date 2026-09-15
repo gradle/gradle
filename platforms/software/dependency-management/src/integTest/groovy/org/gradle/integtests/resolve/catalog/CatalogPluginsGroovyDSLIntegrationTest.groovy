@@ -21,9 +21,44 @@ import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
 
 class CatalogPluginsGroovyDSLIntegrationTest extends AbstractVersionCatalogIntegrationTest {
+
+    private static final String PLUGIN_ID = 'com.acme.greeter'
+    private static final String PLUGIN_VERSION = '1.5'
+    private static final String TASK_NAME = 'greet'
+    private static final String MESSAGE = 'Hello from plugin!'
+
     @Rule
     final MavenHttpPluginRepository pluginPortal = MavenHttpPluginRepository.asGradlePluginPortal(executer, mavenRepo)
 
+    private publishGreeter(String version = PLUGIN_VERSION, String message = MESSAGE) {
+        new PluginBuilder(file("greeter-$version"))
+            .addPluginWithPrintlnTask(TASK_NAME, message, PLUGIN_ID)
+            .publishAs("some", "artifact$version", version, pluginPortal, executer)
+    }
+
+    private void publishGreeterVersions(Map<String, String> messagesByVersion) {
+        messagesByVersion.each { version, message -> publishGreeter(version, message).allowAll() }
+        pluginPortal.getModuleMetaData(PLUGIN_ID, PLUGIN_ID + ".gradle.plugin").allowGetOrHead()
+    }
+
+    private void catalogWith(String declaration) {
+        file("settings.gradle") << """
+        dependencyResolutionManagement {
+            versionCatalogs {
+                libs {
+                    plugin('greeter', '$PLUGIN_ID').$declaration
+                }
+            }
+        }"""
+    }
+
+    private void applyGreeter(String path = "build.gradle") {
+        file(path) << """
+            plugins {
+                alias(libs.plugins.greeter)
+            }
+        """
+    }
 
     def "can apply a plugin declared in a catalog"() {
         String taskName = 'greet'
@@ -242,4 +277,88 @@ dependencyResolutionManagement {
         alias << ['greeter', 'some.greeter', 'some-greeter']
     }
 
+    def "resolves a plugin declared with a rich version [#declaration]"() {
+
+        given:
+        def plugin = publishGreeter()
+        catalogWith(declaration)
+        applyGreeter()
+
+        when:
+        plugin.allowAll()
+        succeeds(TASK_NAME)
+
+        then:
+        outputContains MESSAGE
+
+        where:
+        declaration << [
+            "version { prefer '$PLUGIN_VERSION' }",
+            "version { strictly '$PLUGIN_VERSION' }",
+            "version { require '$PLUGIN_VERSION'; prefer '$PLUGIN_VERSION' }",
+            "version { require '$PLUGIN_VERSION'; reject '1.4' }",
+            "version { require '$PLUGIN_VERSION'; branch = 'main' }",
+        ]
+    }
+
+    def "a preferred version does not clash with a plugin already on the classpath"() {
+        given:
+        def plugin = publishGreeter()
+        catalogWith("version { prefer '1.4' }")
+        file("settings.gradle") << "\ninclude 'sub'"
+        buildFile << """
+            plugins {
+                id '$PLUGIN_ID' version '$PLUGIN_VERSION' apply false
+            }
+        """
+        applyGreeter("sub/build.gradle")
+
+        when:
+        plugin.allowAll()
+        succeeds(":sub:$TASK_NAME")
+
+        then:
+        outputContains MESSAGE
+    }
+
+    def "a plugin alias without a version is not reported with an empty version"() {
+        given:
+        file("gradle/libs.versions.toml") << """
+            [plugins]
+            greeter = { id = "$PLUGIN_ID" }
+        """
+        applyGreeter()
+
+        when:
+        fails 'help'
+
+        then:
+        failure.assertHasDescription("Plugin [id: '$PLUGIN_ID'] was not found")
+    }
+
+    def "a preferred version is honoured inside the range the catalog requires"() {
+        given:
+        publishGreeterVersions(['1.4': 'Greetings from 1.4', '1.5': 'Greetings from 1.5', '1.6': 'Greetings from 1.6'])
+        catalogWith("version { require '[1.0,2.0)'; prefer '1.5' }")
+        applyGreeter()
+
+        when:
+        succeeds(TASK_NAME)
+
+        then:
+        outputContains 'Greetings from 1.5'
+    }
+
+    def "a rejected version is not selected from the range the catalog requires"() {
+        given:
+        publishGreeterVersions(['1.4': 'Greetings from 1.4', '1.5': 'Greetings from 1.5', '1.6': 'Greetings from 1.6'])
+        catalogWith("version { require '[1.0,2.0)'; reject '1.6' }")
+        applyGreeter()
+
+        when:
+        succeeds(TASK_NAME)
+
+        then:
+        outputContains 'Greetings from 1.5'
+    }
 }
