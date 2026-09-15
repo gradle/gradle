@@ -15,8 +15,19 @@
  */
 package org.gradle.cache;
 
+import java.util.function.Predicate;
+
 /**
  * A {@link IndexedCache} implementation that is aware of file locking.
  */
 public interface MultiProcessSafeIndexedCache<K, V> extends IndexedCache<K, V>, UnitOfWorkParticipant {
+    /**
+     * Replaces the value for {@code key} when the current value matches the supplied condition.
+     *
+     * The comparison and update are performed synchronously while holding the cache's cross-process lock.
+     * The condition receives {@code null} when the key is not currently present.
+     *
+     * @return {@code true} when the value was stored, {@code false} when the condition did not match.
+     */
+    boolean putIf(K key, V value, Predicate<? super V> condition);
 }
