@@ -116,13 +116,13 @@ From version 1.0.0, applying https://github.com/GradleUp/shadow[`com.gradleup.sh
 [[declaring_feature_compatibility]]
 == Declaring compatibility with Gradle features
 
-The {portal} highlights plugins that declare support for opt-in Gradle features with compatibility badges.
+The {portal} highlights plugins that declare support for opt-in Gradle features with compatibility badges and more.
 Users are often hesitant to enable a feature like <<configuration_cache.adoc#config_cache,Configuration Cache>> or <<isolated_projects.adoc#isolated_projects,Isolated Projects>> when they can't tell whether their plugins support it.
 Declaring compatibility removes that uncertainty, making your plugin more discoverable and boosting its ranking in Portal search results.
 
 image::plugin-portal-example.png[]
 
-NOTE: Declaring compatibility with Isolated Projects requires {publishplugin} v2.2.1 or later.
+NOTE: Declaring compatibility with Isolated Projects requires {publishplugin} v2.2.1 or later. There is currently no IP-compatible badge available.
 
 Add a `compatibility` block to each plugin declaration inside `gradlePlugin { plugins { ... } }`:
 
