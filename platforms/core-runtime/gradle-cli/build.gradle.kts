@@ -43,8 +43,6 @@ dependencies {
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildOption)
     implementation(projects.processServices)
-    implementation(projects.buildProcessServices)
-    implementation(projects.buildState)
     implementation(projects.classloaders)
     implementation(projects.daemonServices)
     implementation(projects.enterpriseLogging)
