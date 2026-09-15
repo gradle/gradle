@@ -79,6 +79,21 @@ class KnownProblemIds {
         // DCL
         'scripts:dcl-schema': 'DCL Schema issues',
 
+        // predefined groups (org.gradle.api.problems.ProblemGroups) used from integration tests
+        'Gradle': 'Gradle',
+        'Gradle:Deprecation': 'Deprecation',
+        'Compilation': 'Compilation',
+        'Compilation:Java': 'Java',
+        'Compilation:Java:Undefined': 'Undefined',
+        'Compilation:java': 'java',
+        'Compilation:Kotlin': 'Kotlin',
+        'Compilation:Undefined': 'Undefined',
+        'Transformation': 'Transformation',
+        'Transformation:KMP': 'KMP',
+        'Transformation:KMP:JavaScript': 'JavaScript',
+        'Others': 'Others',
+        'Others:Undefined': 'Undefined',
+
         // groups from integration tests
         'generic': 'Generic',
         'issues': 'issues',
@@ -93,6 +108,16 @@ class KnownProblemIds {
      * Both the key and value is handled as a regular expression if the value is too dynamic.
      */
     private static final HashMap<String, List<String>> KNOWN_DEFINITIONS = [
+        // predefined groups (org.gradle.api.problems.ProblemGroups) used from integration tests
+        'Compilation:Java:Unused import': ['Unused import'],
+        'Compilation:java:Unused import': ['Unused import'],
+        'Compilation:Kotlin:Unused import': ['Unused import'],
+        'Compilation:Undefined:Unknown compiler': ['Unknown compiler'],
+        'Compilation:Java:Undefined:Unknown compiler': ['Unknown compiler'],
+        'Gradle:Deprecation:Deprecated feature used': ['Deprecated feature used'],
+        'Transformation:KMP:JavaScript:Bundle failed': ['Bundle failed'],
+        'Transformation:KMP:Compilation failed': ['Compilation failed'],
+        'Others:Undefined:Something odd': ['Something odd'],
         'problems-api:missing-id': ['Problem id must be specified'],
         'problems-api:unsupported-additional-data': ['Unsupported additional data type'],
         'configuration-usage:name-not-allowed': ['Configuration name not allowed'],

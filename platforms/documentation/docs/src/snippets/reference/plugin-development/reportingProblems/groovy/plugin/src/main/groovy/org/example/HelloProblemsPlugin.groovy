@@ -45,17 +45,13 @@ abstract class GreetTask extends DefaultTask {
     abstract Problems getProblems()
 // end::problems-service[]
 
-// tag::problems-id[]
-    private static final ProblemGroup GROUP =
-        ProblemGroup.create("org.example.hello-problems", "Hello Problems")
-    private static final ProblemId WARN_ID =
-        ProblemId.create("missing-recipient", "Recipient not set", GROUP)
-    private static final ProblemId FAIL_ID =
-        ProblemId.create("forbidden-recipient", "Forbidden recipient 'fail'", GROUP)
-// end::problems-id[]
-
     @TaskAction
     void run() {
+// tag::problems-id[]
+        def problemGroup = problems.groups.others.group("Hello Problems")
+        def warnId = problemGroup.problem("Recipient not set")
+        def failId = problemGroup.problem("Forbidden recipient 'fail'")
+// end::problems-id[]
 // tag::problems-reporter[]
         def reporter = problems.reporter
 // end::problems-reporter[]
@@ -64,7 +60,7 @@ abstract class GreetTask extends DefaultTask {
         // Warning: missing recipient -> provide a helpful suggestion
         if (name.isEmpty()) {
 // tag::problems-report[]
-            reporter.report(WARN_ID) { spec ->
+            reporter.report(warnId) { spec ->
 // tag::problems-spec[]
                 spec.details("No recipient configured")
                     .solution('Set the recipient: tasks.greet { recipient = "World" }')
@@ -79,7 +75,7 @@ abstract class GreetTask extends DefaultTask {
         // Fatal: a specific value is disallowed to show throwing()
         else if (name.equalsIgnoreCase("fail")) {
 // tag::problems-throw[]
-            throw reporter.throwing(new GradleException("forbidden value"), FAIL_ID) { spec ->
+            throw reporter.throwing(new GradleException("forbidden value"), failId) { spec ->
                 spec.details("Recipient 'fail' is not allowed")
                     .solution('Choose another value, e.g. recipient = "World".')
                     .documentedAt("https://gradle.org/hello-problems#forbidden")

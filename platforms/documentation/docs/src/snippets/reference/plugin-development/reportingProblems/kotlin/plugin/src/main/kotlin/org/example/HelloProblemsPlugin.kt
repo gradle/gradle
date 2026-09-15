@@ -43,17 +43,13 @@ abstract class GreetTask : DefaultTask() {
     abstract val problems: Problems
 // end::problems-service[]
 
-// tag::problems-id[]
-    private val GROUP: ProblemGroup =
-        ProblemGroup.create("org.example.hello-problems", "Hello Problems")
-    private val WARN_ID: ProblemId =
-        ProblemId.create("missing-recipient", "Recipient not set", GROUP)
-    private val FAIL_ID: ProblemId =
-        ProblemId.create("forbidden-recipient", "Forbidden recipient 'fail'", GROUP)
-// end::problems-id[]
-
     @TaskAction
     fun run() {
+// tag::problems-id[]
+        val problemGroup = problems.groups.others.group("Hello Problems")
+        val warnId = problemGroup.problem("Recipient not set")
+        val failId = problemGroup.problem("Forbidden recipient 'fail'")
+// end::problems-id[]
 // tag::problems-reporter[]
         val reporter = problems.reporter
 // end::problems-reporter[]
@@ -62,7 +58,7 @@ abstract class GreetTask : DefaultTask() {
         // Warning: missing recipient -> provide a helpful suggestion
         if (name.isEmpty()) {
 // tag::problems-report[]
-            reporter.report(WARN_ID) {
+            reporter.report(warnId) {
 // tag::problems-spec[]
                 details("No recipient configured")
                 severity(Severity.WARNING)
@@ -79,7 +75,7 @@ abstract class GreetTask : DefaultTask() {
         // Fatal: a specific value is disallowed to show throwing()
         else if (name.equals("fail", ignoreCase = true)) {
 // tag::problems-throw[]
-            throw reporter.throwing(GradleException("forbidden value"), FAIL_ID) {
+            throw reporter.throwing(GradleException("forbidden value"), failId) {
                 details("Recipient 'fail' is not allowed")
                 severity(Severity.ERROR)
                 solution("""Choose another value, e.g. recipient = "World".""")
