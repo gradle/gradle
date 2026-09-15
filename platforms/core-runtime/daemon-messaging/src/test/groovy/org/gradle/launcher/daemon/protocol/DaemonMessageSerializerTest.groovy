@@ -32,6 +32,7 @@ import org.gradle.internal.logging.events.UserInputRequestEvent
 import org.gradle.internal.logging.events.UserInputResumeEvent
 import org.gradle.internal.logging.events.YesNoQuestionPromptEvent
 import org.gradle.internal.serialize.DefaultSerializer
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.serialize.PlaceholderException
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
@@ -312,16 +313,42 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         result2.diagnostics.pid == null
     }
 
-    def "can serialize other messages"() {
+    def "can serialize command messages, preserving identifier and token"() {
         expect:
-        def messageResult = serialize(message, serializer)
-        messageResult.class == message.class
+        def result = serialize(message, serializer)
+        result.class == message.class
+        result.identifier == message.identifier
+        result.token == message.token
 
         where:
-        message                                                  | _
-        new Stop(UUID.randomUUID(), [1, 2, 3] as byte[])         | _
-        new StopWhenIdle(UUID.randomUUID(), [1, 2, 3] as byte[]) | _
-        new ReportStatus(UUID.randomUUID(), [1, 2, 3] as byte[]) | _
+        message << [
+            new Stop(UUID.randomUUID(), [1, 2, 3] as byte[]),
+            new StopWhenIdle(UUID.randomUUID(), [1, 2, 3] as byte[]),
+            new ReportStatus(UUID.randomUUID(), [1, 2, 3] as byte[]),
+            new InvalidateVirtualFileSystemAfterChange(["a", "b"], UUID.randomUUID(), [1, 2, 3] as byte[]),
+        ]
+    }
+
+    def "can serialize InvalidateVirtualFileSystemAfterChange paths"() {
+        expect:
+        def result = serialize(new InvalidateVirtualFileSystemAfterChange(["x", "y", "z"], UUID.randomUUID(), [9] as byte[]), serializer)
+        result instanceof InvalidateVirtualFileSystemAfterChange
+        result.changedPaths == ["x", "y", "z"]
+    }
+
+    def "refuses to read a Java-serialized message"() {
+        given:
+        def bytes = new ByteArrayOutputStream()
+        def encoder = new KryoBackedEncoder(bytes)
+        encoder.writeSmallInt(1)
+        encoder.flush()
+
+        when:
+        fromBytes(bytes.toByteArray(), serializer)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.contains("Unexpected type tag 1")
     }
 
     OutputEvent serialize(OutputEvent event, Serializer<Object> serializer) {
