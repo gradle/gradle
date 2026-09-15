@@ -820,19 +820,12 @@ Use <<properties_providers.adoc#properties_and_providers,lazy properties>> and l
 `afterEvaluate` registers a callback that runs after Gradle finishes evaluating and configuring a project.
 It was historically used to "delay" reading a value until configuration was complete — for example, reading an extension property that users set at the bottom of their build script, or checking whether another plugin was applied.
 
-This pattern is outdated, and problematic for several reasons:
-
-* *Ordering is fragile.*
+This pattern is outdated, and problematic because callback ordering is fragile.
 Multiple `afterEvaluate` callbacks execute in registration order.
 If two plugins or scripts both use `afterEvaluate`, one may see stale or incomplete configuration depending on which was registered first.
 This creates subtle bugs that are extremely difficult to diagnose.
-* *It defeats task configuration avoidance.*
-Tasks registered or configured inside `afterEvaluate` are touched eagerly during configuration, even if they will never execute.
-This may cause unnecessary work and slow down the configuration phase of the build.
-* *It is incompatible with the <<configuration_cache.adoc#config_cache,Configuration Cache>>.*
-`afterEvaluate` callbacks capture mutable project state that cannot be serialized reliably.
 
-Gradle's lazy `Property` and `Provider` types solve the same underlying problem — deferring value resolution — without any of these drawbacks.
+Gradle's lazy `Property` and `Provider` types solve the same underlying problem — deferring value resolution — without this drawback.
 A `Property<T>` can be wired at configuration time but its value is resolved only when needed, typically during task execution.
 This makes configuration order-independent and fully compatible with the configuration cache.
 
@@ -895,7 +888,7 @@ include::sample[dir="snippets/best-practices/avoidAfterEvaluate-avoid/groovy",fi
 
 <1> The plugin's `afterEvaluate` runs before any `afterEvaluate` registered later in the build script — ordering depends on registration order.
 <2> `getOrElse` reads the property's current value immediately. If the value is set in a later `afterEvaluate`, this will never see it.
-<3> Registering a task inside `afterEvaluate` defeats <<task_configuration_avoidance.adoc#task_configuration_avoidance,task configuration avoidance>>.
+<3> The task is registered only when the callback fires, at the end of evaluation — the rest of the build script cannot look it up or configure it during normal evaluation.
 <4> Checking plugin presence inside `afterEvaluate` assumes all plugins have been applied before this callback runs.
 
 The build script applies the plugin and sets the extension value in its own `afterEvaluate`:
@@ -960,12 +953,11 @@ include::{snippetsPath}/best-practices/avoidAfterEvaluate-do/tests/avoidAfterEva
 
 - <<properties_providers.adoc#properties_and_providers,Properties and Providers>>
 - <<lazy_configuration.adoc#lazy_configuration,Lazy Configuration>>
-- <<task_configuration_avoidance.adoc#task_configuration_avoidance,Task Configuration Avoidance>>
 - <<best_practices_general.adoc#dont_assume_plugin_order,Don't Assume your Plugin is Applied after Another>>
 
 === Tags
 
-<<tags_reference.adoc#tag:task-configuration-avoidance,`#task-configuration-avoidance`>>, <<tags_reference.adoc#tag:plugins,`#plugins`>>, <<tags_reference.adoc#tag:structuring-builds,`#structuring-builds`>>
+<<tags_reference.adoc#tag:plugins,`#plugins`>>, <<tags_reference.adoc#tag:structuring-builds,`#structuring-builds`>>
 
 [[consider_use_of_incubating_apis_carefully]]
 == Consider use of `@Incubating` APIs carefully
