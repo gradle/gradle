@@ -28,8 +28,7 @@ class DefaultUserCodeApplicationContextTest extends Specification {
 
     MockNanoTimeProvider timeSource = new MockNanoTimeProvider()
     def target = UserCodeApplicationContext.Target.Other.INSTANCE
-    def context = new DefaultUserCodeApplicationContext(timeSource)
-    def recording = context.startRecording()
+    def context = new DefaultUserCodeApplicationContext(timeSource).tap { it.startTrackingApplications() }
 
     def "assigns id and associates with current thread"() {
         def source = Stub(UserCodeSource)
@@ -368,7 +367,7 @@ class DefaultUserCodeApplicationContextTest extends Specification {
         context.getApplicationsFor(new UserCodeApplicationContext.Target.Project(Path.path(":unknown"))).empty
 
         when:
-        def applications = recording.stop()
+        def applications = context.stopTrackingApplications()
 
         then:
         applications.keySet() == [projectA, projectB, target] as Set
@@ -398,7 +397,7 @@ class DefaultUserCodeApplicationContextTest extends Specification {
 
     def "cannot apply or query applications when no recording is in progress"() {
         given:
-        recording.stop()
+        context.stopTrackingApplications()
 
         when:
         context.apply(Stub(UserCodeSource), target, {})
@@ -415,28 +414,21 @@ class DefaultUserCodeApplicationContextTest extends Specification {
 
     def "cannot start a recording while one is in progress"() {
         when:
-        context.startRecording()
+        context.startTrackingApplications()
 
         then:
         thrown(IllegalStateException)
     }
 
-    def "cannot stop a recording that is not in progress"() {
+    def "cannot stop a recording when no recording is in progress"() {
         given:
-        recording.stop()
-        def newRecording = context.startRecording()
+        context.stopTrackingApplications()
 
         when:
-        recording.stop()
+        context.stopTrackingApplications()
 
         then:
         thrown(IllegalStateException)
-
-        when:
-        def applications = newRecording.stop()
-
-        then:
-        applications.isEmpty()
     }
 
     def "multiple reapply calls accumulate time"() {

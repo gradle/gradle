@@ -136,7 +136,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         runBuild("tasks")
 
         then:
-        if (targetVersion >= GradleVersion.version("9.8")) {
+        if (targetVersion >= GradleVersion.version("9.9")) {
             // Plugin applications are attributed to the project the plugin is applied to,
             // rather than the project being configured when the application happens.
             // The buildSrc root project has the java plugin applied by class (without a plugin id)
@@ -183,7 +183,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         runBuild("tasks")
 
         then:
-        if (targetVersion >= GradleVersion.version("9.8")) {
+        if (targetVersion >= GradleVersion.version("9.9")) {
             // Plugin applications are attributed to the project the plugin is applied to,
             // rather than the project being configured when the application happens.
             // Subprojects have no build script of their own, so they only contain results

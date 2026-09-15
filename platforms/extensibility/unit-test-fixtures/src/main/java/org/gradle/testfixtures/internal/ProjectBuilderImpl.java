@@ -165,11 +165,6 @@ public class ProjectBuilderImpl {
         BuildRequestMetaData buildRequestMetaData = new DefaultBuildRequestMetaData(Time.currentTimeMillis());
         File userActionRootDir = globalServices.get(BuildLayoutFactory.class).getLayoutFor(startParameter.toBuildLayoutConfiguration()).getRootDirectory();
         CrossBuildSessionState crossBuildSessionState = new CrossBuildSessionState(globalServices, startParameter, userActionRootDir);
-
-        // User code applications require a recording to be in progress. ProjectBuilder has no
-        // lifecycle, so the recording is started here and never stopped.
-        crossBuildSessionState.getServices().get(UserCodeApplicationContext.class).startRecording();
-
         GradleUserHomeScopeServiceRegistry userHomeServices = userHomeServicesOf(globalServices);
         BuildSessionState buildSessionState = new BuildSessionState(userHomeServices, crossBuildSessionState, startParameter, buildRequestMetaData, ClassPath.EMPTY, new DefaultBuildCancellationToken(), buildRequestMetaData.getClient(), new NoOpBuildEventConsumer());
         RunTasksRequirements buildActionRequirements = new RunTasksRequirements(startParameter);
@@ -177,6 +172,8 @@ public class ProjectBuilderImpl {
         ServiceRegistry buildSessionServices = buildSessionState.getServices();
         BuildModelParameters buildModelParameters = buildSessionServices.get(BuildModelParametersFactory.class).parametersForRootBuildTree(buildActionRequirements, internalOptions);
         BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
+        UserCodeApplicationContext userCodeApplicationContext = crossBuildSessionState.getServices().get(UserCodeApplicationContext.class);
+        userCodeApplicationContext.startTrackingApplications();
         BuildTreeState buildTreeState = new BuildTreeState(buildSessionServices, buildActionRequirements, buildModelParameters, buildInvocationScopeId);
         BuildTreeServices buildTreeServices = buildTreeState.getServices().get(BuildTreeServices.class);
         TestRootBuild build = new TestRootBuild(projectDir, startParameter, buildTreeServices);
@@ -219,6 +216,7 @@ public class ProjectBuilderImpl {
             (Stoppable) workerLease::leaseFinish,
             buildServices,
             buildTreeState,
+            (Stoppable) userCodeApplicationContext::stopTrackingApplications,
             buildSessionState,
             crossBuildSessionState
         );

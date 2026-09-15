@@ -104,7 +104,7 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
                 @Override
                 public BuildActionRunner.Result call(BuildOperationContext buildOperationContext) {
                     BuildActionRunner.Result result;
-                    UserCodeApplicationContext.Recording recording = userCodeApplicationContext.startRecording();
+                    userCodeApplicationContext.startTrackingApplications();
                     try {
                         result = runBuildTreeLifecycle(action, buildSessionServices);
                     } finally {
@@ -113,7 +113,7 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
                         //  from the build operation hierarchy. Then, once DV reads these timings, we can
                         //  stop emitting collection callback build operations, leading to a massive
                         //  performance improvement.
-                        recording.stop();
+                        userCodeApplicationContext.stopTrackingApplications();
                     }
                     buildOperationContext.setResult(new DefaultRunBuildResult(result));
                     if (result.getBuildFailure() != null) {

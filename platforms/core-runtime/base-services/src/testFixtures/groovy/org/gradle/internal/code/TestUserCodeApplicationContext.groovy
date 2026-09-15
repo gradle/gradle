@@ -23,13 +23,12 @@ import org.gradle.api.Action
 class TestUserCodeApplicationContext implements UserCodeApplicationContext {
 
     @Override
-    Recording startRecording() {
-        return new Recording() {
-            @Override
-            ImmutableMap<Target, ImmutableList<Application>> stop() {
-                return ImmutableMap.of()
-            }
-        }
+    void startTrackingApplications() {
+    }
+
+    @Override
+    ImmutableMap<Target, ImmutableList<Application>> stopTrackingApplications() {
+        return ImmutableMap.of()
     }
 
     @Override

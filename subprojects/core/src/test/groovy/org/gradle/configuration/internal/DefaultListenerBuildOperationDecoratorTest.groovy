@@ -54,7 +54,7 @@ class DefaultListenerBuildOperationDecoratorTest extends Specification {
 
     def buildOperationRunner = new TestBuildOperationRunner()
     def target = UserCodeApplicationContext.Target.Other.INSTANCE
-    def context = new DefaultUserCodeApplicationContext(System::nanoTime).tap { it.startRecording() }
+    def context = new DefaultUserCodeApplicationContext(System::nanoTime).tap { it.startTrackingApplications() }
     def decorator = new DefaultListenerBuildOperationDecorator(buildOperationRunner, context)
 
     def 'ignores implementers of InternalListener'() {

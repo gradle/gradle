@@ -83,7 +83,12 @@ public class ToolingApiBuildEventListenerFactory implements BuildEventListenerFa
         return listeners.build();
     }
 
-    private ClientBuildEventGenerator createClientBuildEventGenerator(BuildEventSubscriptions subscriptions, BuildEventConsumer consumer, ProgressEventConsumer progressEventConsumer, UserCodeApplicationContext userCodeApplicationContext) {
+    private ClientBuildEventGenerator createClientBuildEventGenerator(
+        BuildEventSubscriptions subscriptions,
+        BuildEventConsumer consumer,
+        ProgressEventConsumer progressEventConsumer,
+        UserCodeApplicationContext userCodeApplicationContext
+    ) {
         BuildOperationListener buildListener = createBuildOperationListener(subscriptions, progressEventConsumer);
 
         OperationDependenciesResolver operationDependenciesResolver = new OperationDependenciesResolver();

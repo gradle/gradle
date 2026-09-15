@@ -47,7 +47,7 @@ import static org.junit.Assume.assumeTrue
 abstract class AbstractDomainObjectCollectionSpec<T> extends Specification {
 
     TestBuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
-    UserCodeApplicationContext userCodeApplicationContext = new DefaultUserCodeApplicationContext(System::nanoTime).tap { it.startRecording() }
+    UserCodeApplicationContext userCodeApplicationContext = new DefaultUserCodeApplicationContext(System::nanoTime).tap { it.startTrackingApplications() }
     CollectionCallbackActionDecorator callbackActionDecorator = new DefaultCollectionCallbackActionDecorator(buildOperationRunner, userCodeApplicationContext)
 
     abstract boolean isSupportsBuildOperations()

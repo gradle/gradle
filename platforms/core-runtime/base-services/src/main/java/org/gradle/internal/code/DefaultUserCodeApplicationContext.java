@@ -23,12 +23,13 @@ import org.gradle.api.specs.Spec;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.atomic.AtomicLong;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 public class DefaultUserCodeApplicationContext implements UserCodeApplicationContext {
@@ -42,7 +43,7 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
      * another. In production, this scenario is not expected to occur, but this is likely more
      * correct in testing scenarios involving multiple {@code ProjectBuilder} instances.
      * <p>
-     * This intentioanlly does not use {@link ThreadLocal#withInitial}. Threads that only ever
+     * This intentionally does not use {@link ThreadLocal#withInitial}. Threads that only ever
      * query {@link #current()} must not pay the cost of materializing a thread local map entry.
      * The supplier indirection behind {@code withInitial} is a megamorphic call site shared by
      * every such thread local in the JVM. State is created lazily by {@link #threadState()} only
@@ -58,19 +59,46 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
      */
     private volatile @Nullable RecordingState recording;
 
+    /**
+     * Must be held when starting or stopping a recording to ensure that only one recording
+     * is in progress at a time.
+     */
+    private final Lock recordingLock = new ReentrantLock();
+
     public DefaultUserCodeApplicationContext(NanoTimeProvider timeProvider) {
         this.timeProvider = timeProvider;
     }
 
     @Override
-    public Recording startRecording() {
-        if (this.recording != null) {
-            throw new IllegalStateException("Cannot record multiple user code application timings simultaneously");
+    public void startTrackingApplications() {
+        recordingLock.lock();
+        try {
+            if (this.recording != null) {
+                throw new IllegalStateException("Cannot record multiple user code application timings simultaneously");
+            }
+
+            this.recording = new RecordingState();
+        } finally {
+            recordingLock.unlock();
+        }
+    }
+
+    @Override
+    public ImmutableMap<Target, ImmutableList<Application>> stopTrackingApplications() {
+        RecordingState localRecording;
+
+        recordingLock.lock();
+        try {
+            localRecording = this.recording;
+            if (localRecording == null) {
+                throw new IllegalStateException("No recording in progress to stop.");
+            }
+            this.recording = null;
+        } finally {
+            recordingLock.unlock();
         }
 
-        RecordingState recording = new RecordingState();
-        this.recording = recording;
-        return recording;
+        return localRecording.getAllApplications();
     }
 
     @Override
@@ -302,26 +330,17 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
     /**
      * Tracks all user code applications that have been applied while a recording is in progress.
      */
-    private class RecordingState implements Recording {
+    private static class RecordingState {
 
         /**
          * Monotonic counter for generating unique application IDs.
          */
         private final AtomicLong counter = new AtomicLong();
 
-        @Override
-        public ImmutableMap<Target, ImmutableList<Application>> stop() {
-            if (DefaultUserCodeApplicationContext.this.recording != this) {
-                throw new IllegalStateException("This recording is not the recording in progress");
-            }
-            DefaultUserCodeApplicationContext.this.recording = null;
-            return getAllApplications();
-        }
-
         /**
-         * All known user code applications, mapped by the identity path of the project that they were applied to.
+         * All known user code applications, mapped by the target they were applied to.
          */
-        private final ConcurrentHashMap<Target, List<Application>> applications = new ConcurrentHashMap<>();
+        private final ConcurrentHashMap<Target, CopyOnReadArrayList<Application>> applications = new ConcurrentHashMap<>();
 
         /**
          * Return an ID, unique to this recording, to identify a new user code application.
@@ -336,10 +355,10 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
         public void registerApplication(Target target, Application application) {
             // Applications are generally only applied to a given target from a single thread.
             // Application timings are generally only read after the application has been applied.
-            // We use a synchronized list rather than a CopyOnWriteArrayList to avoid the overhead
+            // We use a CopyOnReadArrayList rather than a CopyOnWriteArrayList to avoid the overhead
             // of copying the list upon registration, as we do not expect concurrent access to the
             // list to be common.
-            applications.computeIfAbsent(target, k -> Collections.synchronizedList(new ArrayList<>())).add(application);
+            applications.computeIfAbsent(target, k -> new CopyOnReadArrayList<>()).add(application);
         }
 
         /**
@@ -350,7 +369,8 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
          * while this method is executing may or may not be included in the returned list.
          */
         public ImmutableList<Application> getApplicationsFor(Target target) {
-            return ImmutableList.copyOf(applications.getOrDefault(target, Collections.emptyList()));
+            CopyOnReadArrayList<Application> list = applications.get(target);
+            return list != null ? list.copy() : ImmutableList.of();
         }
 
         /**
@@ -360,12 +380,34 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
          * user code applications are being registered or executed. However, applications registered
          * while this method is executing may or may not be included in the returned map.
          */
-        public ImmutableMap<Target, ImmutableList<Application>> getAllApplications() {
+        private ImmutableMap<Target, ImmutableList<Application>> getAllApplications() {
             ImmutableMap.Builder<Target, ImmutableList<Application>> result = ImmutableMap.builderWithExpectedSize(this.applications.size());
-            for (Map.Entry<Target, List<Application>> entry : this.applications.entrySet()) {
-                result.put(entry.getKey(), ImmutableList.copyOf(entry.getValue()));
+            for (Map.Entry<Target, CopyOnReadArrayList<Application>> entry : this.applications.entrySet()) {
+                result.put(entry.getKey(), entry.getValue().copy());
             }
             return result.build();
+        }
+
+    }
+
+    /**
+     * A thread-safe list of values optimized for cases where writes are
+     * frequent and reads are infrequent.
+     */
+    private static class CopyOnReadArrayList<T> {
+
+        private final List<T> values = new ArrayList<>();
+
+        void add(T value) {
+            synchronized (values) {
+                values.add(value);
+            }
+        }
+
+        ImmutableList<T> copy() {
+            synchronized (values) {
+                return ImmutableList.copyOf(values);
+            }
         }
 
     }

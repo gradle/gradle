@@ -41,7 +41,15 @@ public interface UserCodeApplicationContext {
      *
      * @throws IllegalStateException If a recording is already in progress.
      */
-    Recording startRecording();
+    void startTrackingApplications();
+
+    /**
+     * Stops the recording started by {@link #startTrackingApplications()} and returns all applications that
+     * occurred while recording was in progress, mapped by the target they were applied to.
+     *
+     * @throws IllegalStateException If no recording is in progress.
+     */
+    ImmutableMap<Target, ImmutableList<Application>> stopTrackingApplications();
 
     /**
      * Applies some user code from the given source to the given target, tracking the time spent
@@ -154,21 +162,6 @@ public interface UserCodeApplicationContext {
     }
 
     /**
-     * A recording of user code applications, started by {@link #startRecording()}.
-     */
-    interface Recording {
-
-        /**
-         * Stops this recording and returns all applications that occurred while it
-         * was in progress, mapped by the target they were applied to.
-         *
-         * @throws IllegalStateException If this recording is not the recording in progress.
-         */
-        ImmutableMap<Target, ImmutableList<Application>> stop();
-
-    }
-
-    /**
      * A target of some user code application.
      */
     interface Target {
@@ -204,12 +197,9 @@ public interface UserCodeApplicationContext {
         /**
          * A target modeling some non-project gradle domain.
          */
-        class Other implements Target {
+        enum Other implements Target {
 
-            public static final Other INSTANCE = new Other();
-
-            private Other() {
-            }
+            INSTANCE
 
         }
 
