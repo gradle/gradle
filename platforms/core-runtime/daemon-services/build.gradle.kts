@@ -29,7 +29,6 @@ dependencies {
     api(projects.logging)
     api(projects.serialization)
     api(projects.serviceProvider)
-    api(projects.startParameter)
     api(projects.stdlibJavaExtensions)
     api(projects.time)
 
@@ -40,6 +39,7 @@ dependencies {
     implementation(projects.functional)
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
+    implementation(projects.startParameter)
 
     testImplementation(testFixtures(projects.time))
 }
