@@ -797,7 +797,7 @@ If your build was previously working with the configuration cache (e.g., the lis
 org.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners=true
 ----
 
-This property will be removed in Gradle 10.
+This property is deprecated since Gradle 9.9 and will be removed in Gradle 11, see <<upgrading_version_9.adoc#deprecated_configuration_cache_opt_out_properties, the Gradle 9.x upgrade guide>>.
 
 [[configuration_cache_entry_is_now_always_discarded_for_incompatible_tasks_in_warning_mode]]
 === Configuration Cache entry is now always discarded for incompatible tasks in warning mode

@@ -228,7 +228,7 @@ If your build registers such a listener and the listener is nonessential, you ca
 org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization=true
 ----
 
-This property is a temporary opt-out and will be removed in a future Gradle release.
+This property is a temporary opt-out, <<deprecated_configuration_cache_opt_out_properties, deprecated since Gradle 9.9>> and scheduled for removal in Gradle 11.
 
 [[kotlin_object_singletons_in_configuration_cache]]
 ==== Kotlin `object` singletons keep their identity in the Configuration Cache
