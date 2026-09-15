@@ -72,6 +72,10 @@ public interface ModelContainer<T> {
      * <p>
      * Acquires the {@link #getAccessLock() access lock} if present and not already held
      * by the current thread, executes the given action, then releases the lock if acquired.
+     * <p>
+     * If the access lock is present and not held by the current thread, this method will yield
+     * all locks held by the current thread and reacquire them atomically along with the access
+     * lock before executing the given function.
      */
     <S extends @Nullable Object> S fromMutableState(Function<? super T, ? extends S> factory);
 
@@ -81,6 +85,10 @@ public interface ModelContainer<T> {
      * <p>
      * Acquires the {@link #getAccessLock() access lock} if present and not already held
      * by the current thread, executes the given action, then releases the lock if acquired.
+     * <p>
+     * If the access lock is present and not held by the current thread, this method will yield
+     * all locks held by the current thread and reacquire them atomically along with the access
+     * lock before executing the given supplier.
      */
     <S extends @Nullable Object> S runWithModelLock(Supplier<S> action);
 
