@@ -107,9 +107,11 @@ class RepoScriptBlockUtil {
     }
 
     /**
-     * Active extra repositories are injected into every build run through a {@code GradleExecuter} or a smoke test runner
-     * (see {@link #extraRepositoriesInitScript}), and into the repository blocks produced by this class
-     * (see {@link #extraRepositoriesDefinition}) for builds driven through the Tooling API.
+     * Register extra repositories here, no test needs a repository declaration of its own. See contributing/Testing.md.
+     *
+     * Active ones are included in the repository blocks produced by this class (see {@link #extraRepositoriesDefinition}),
+     * and injected by an init script (see {@link #extraRepositoriesInitScript}) into every smoke test build and into
+     * the builds of a {@code GradleExecuter} that asks for them with {@code withExtraRepositories()}.
      */
     private static final List<ExtraRepository> EXTRA_REPOSITORIES = [
         new ExtraRepository(MirroredRepository.KOTLIN_DEV.name, MirroredRepository.KOTLIN_DEV.mirrorUrl, [/org\.jetbrains\.kotlin(\..+)?/], {
