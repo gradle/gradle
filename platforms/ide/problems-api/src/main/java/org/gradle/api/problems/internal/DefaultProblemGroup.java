@@ -16,7 +16,6 @@
 
 package org.gradle.api.problems.internal;
 
-import com.google.common.base.Objects;
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.util.internal.TextUtil;
@@ -24,14 +23,14 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
 
-import static com.google.common.base.Objects.equal;
 
 @Incubating
-public class DefaultProblemGroup extends ProblemGroup implements Serializable {
+public class DefaultProblemGroup extends ProblemGroup implements ProblemGroupInternal, Serializable {
 
     private final String name;
     private final String displayName;
-    private final ProblemGroup parent;
+    @Nullable
+    private final ProblemGroupInternal parent;
 
     public DefaultProblemGroup(String groupId, String displayName) {
         this(groupId, displayName, null);
@@ -41,7 +40,9 @@ public class DefaultProblemGroup extends ProblemGroup implements Serializable {
         validateFields(name, displayName);
         this.name = TextUtil.replaceLineSeparatorsOf(name, "");
         this.displayName = TextUtil.replaceLineSeparatorsOf(displayName, "");
-        this.parent = parent;
+        // a foreign parent chain is copied here, so that every Gradle-owned group has a Gradle-owned parent chain
+        ProblemGroup owned = ProblemGroupSupport.owned(parent);
+        this.parent = owned == null ? null : ProblemGroupSupport.asInternal(owned);
     }
 
     private static void validateFields(String name, String displayName) {
@@ -66,23 +67,29 @@ public class DefaultProblemGroup extends ProblemGroup implements Serializable {
     @Nullable
     @Override
     public ProblemGroup getParent() {
+        // every Gradle-owned implementation extends ProblemGroup
+        return (ProblemGroup) parent;
+    }
+
+    @Nullable
+    @Override
+    public ProblemGroupInternal getParentInternal() {
         return parent;
     }
 
+    @Nullable
     @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || o.getClass().isAssignableFrom(ProblemGroup.class)) {
-            return false;
-        }
-        ProblemGroup that = (ProblemGroup) o;
-        return equal(parent, that.getParent()) && equal(name, that.getName());
+    public String getDescription() {
+        return null;
+    }
+
+    @Override
+    public boolean equals(@Nullable Object o) {
+        return ProblemGroupSupport.equals(this, o);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(name, parent);
+        return ProblemGroupSupport.hashCode(this);
     }
 }
