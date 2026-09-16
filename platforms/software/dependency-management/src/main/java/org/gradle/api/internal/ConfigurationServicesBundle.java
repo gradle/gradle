@@ -17,8 +17,10 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.artifacts.Configuration;
+import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
+import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -28,11 +30,13 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.ProviderFactory;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.gradle.internal.typeconversion.NotationParser;
 
 /**
  * A bundle of services used by {@link Configuration}.
@@ -59,4 +63,7 @@ public interface ConfigurationServicesBundle {
     ProviderFactory getProviderFactory();
     ProjectLeaseRegistry getProjectLeaseRegistry();
     DependencyManagementInstanceIdentity getInstanceIdentity();
+    PublishArtifactNotationParser getArtifactNotationParser();
+    NotationParser<Object, Capability> getCapabilityNotationParser();
+    UserCodeApplicationContext getUserCodeApplicationContext();
 }

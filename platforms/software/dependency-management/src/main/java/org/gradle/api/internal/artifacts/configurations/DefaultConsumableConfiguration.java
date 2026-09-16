@@ -18,15 +18,11 @@ package org.gradle.api.internal.artifacts.configurations;
 
 import org.gradle.api.artifacts.ConsumableConfiguration;
 import org.gradle.api.artifacts.DependencyResolutionListener;
-import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
-import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.internal.Factory;
-import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.inject.Inject;
 
@@ -43,9 +39,6 @@ public class DefaultConsumableConfiguration extends DefaultConfiguration impleme
         ConfigurationResolver resolver,
         ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners,
         Factory<ResolutionStrategyInternal> resolutionStrategyFactory,
-        PublishArtifactNotationParser artifactNotationParser,
-        NotationParser<Object, Capability> capabilityNotationParser,
-        UserCodeApplicationContext userCodeApplicationContext,
         DefaultConfigurationFactory defaultConfigurationFactory
     ) {
         super(
@@ -56,9 +49,6 @@ public class DefaultConsumableConfiguration extends DefaultConfiguration impleme
             resolver,
             dependencyResolutionListeners,
             resolutionStrategyFactory,
-            artifactNotationParser,
-            capabilityNotationParser,
-            userCodeApplicationContext,
             defaultConfigurationFactory,
             ConfigurationRoles.CONSUMABLE,
             true

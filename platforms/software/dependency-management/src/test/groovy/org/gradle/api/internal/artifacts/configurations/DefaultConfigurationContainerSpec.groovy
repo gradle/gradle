@@ -91,15 +91,15 @@ class DefaultConfigurationContainerSpec extends Specification {
         new ResolveExceptionMapper(domainObjectContext, new DocumentationRegistry()),
         TestUtil.providerFactory(),
         new TestWorkerLeaseService(),
-        instanceIdentity
+        instanceIdentity,
+        Stub(PublishArtifactNotationParser),
+        userCodeApplicationContext
     )
 
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         configurationServices,
         listenerManager,
-        domainObjectContext,
-        Stub(PublishArtifactNotationParser),
-        userCodeApplicationContext
+        domainObjectContext
     )
 
     private DefaultConfigurationContainer configurationContainer = new DefaultConfigurationContainer(
