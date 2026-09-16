@@ -148,7 +148,7 @@ The authoritative reference is the link:https://github.com/gradle/gradle/blob/ma
 
 The most reliable place to run this check is CI, on every pull request that touches the Wrapper files.
 A CI job that fails when `gradle-wrapper.jar` doesn't match a known-good checksum turns an easily-missed diff into a hard block.
-GitHub Actions users can use the https://github.com/marketplace/actions/setup-gradle[`setup-gradle`] action (v4+), which runs Wrapper validation automatically on every workflow run.
+GitHub Actions users can use the link:https://github.com/marketplace/actions/build-with-gradle[`setup-gradle`] action (v4+), which runs Wrapper validation automatically on every workflow run.
 
 [[sec:generate_wrapper_from_trusted_gradle]]
 === Generate the Wrapper From a Trusted Gradle
