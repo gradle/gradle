@@ -241,17 +241,19 @@ org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks=\
 +
 _Default is empty; no file system checks are ignored._
 +
-Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11, see <<upgrading_version_9.adoc#deprecated_configuration_cache_opt_out_properties, the upgrade guide>>.
+Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11.
+See <<upgrading_version_9.adoc#deprecated_configuration_cache_opt_out_properties, the upgrade guide>>.
 
 `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization=(true,false)` deprecated-label:[]::
 Prior to Gradle 8.4, some configuration inputs that were never used during configuration could still be read when the Configuration Cache serialized the task graph.
-However, their changes did not invalidate the cache.
+However, changes to those inputs did not invalidate the cache.
 Starting in Gradle 8.4, these inputs are correctly tracked and now cause cache invalidation.
 When set to `true`, Gradle reverts to the previous behavior.
 +
 _Default is `false`._
 +
-Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11, see <<upgrading_version_9.adoc#deprecated_configuration_cache_opt_out_properties, the upgrade guide>>.
+Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11.
+See <<upgrading_version_9.adoc#deprecated_configuration_cache_opt_out_properties, the upgrade guide>>.
 
 [[config_cache:usage:input_opt_outs:serialization_behavior]]
 === Serialization-behavior opt-outs
@@ -271,7 +273,8 @@ When set to `true`, Gradle reverts to the previous behavior.
 +
 _Default is `false`._
 +
-Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11, see <<upgrading_version_9.adoc#deprecated_configuration_cache_opt_out_properties, the upgrade guide>>.
+Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11.
+See <<upgrading_version_9.adoc#deprecated_configuration_cache_opt_out_properties, the upgrade guide>>.
 
 `org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization=(true,false)` deprecated-label:[]::
 Starting with Gradle 9.8.0, standard output and error listeners registered on a task's logging manager during configuration (for example via
@@ -283,7 +286,8 @@ Instead of opting out, fix the serialization issues of the listener, or register
 +
 _Default is `false`._
 +
-Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11, see <<upgrading_version_9.adoc#deprecated_configuration_cache_opt_out_properties, the upgrade guide>>.
+Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11.
+See <<upgrading_version_9.adoc#deprecated_configuration_cache_opt_out_properties, the upgrade guide>>.
 
 Use these opt-out options sparingly and only when they do not impact task execution results.
 These options are intended as temporary workarounds and will be removed in future Gradle releases.
