@@ -58,6 +58,7 @@ import org.gradle.internal.buildtree.BuildTreeServices;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.RunTasksRequirements;
 import org.gradle.internal.classpath.ClassPath;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -171,6 +172,8 @@ public class ProjectBuilderImpl {
         ServiceRegistry buildSessionServices = buildSessionState.getServices();
         BuildModelParameters buildModelParameters = buildSessionServices.get(BuildModelParametersFactory.class).parametersForRootBuildTree(buildActionRequirements, internalOptions);
         BuildInvocationScopeId buildInvocationScopeId = new BuildInvocationScopeId(UniqueId.generate());
+        UserCodeApplicationContext userCodeApplicationContext = crossBuildSessionState.getServices().get(UserCodeApplicationContext.class);
+        userCodeApplicationContext.startTrackingApplications();
         BuildTreeState buildTreeState = new BuildTreeState(buildSessionServices, buildActionRequirements, buildModelParameters, buildInvocationScopeId);
         BuildTreeServices buildTreeServices = buildTreeState.getServices().get(BuildTreeServices.class);
         TestRootBuild build = new TestRootBuild(projectDir, startParameter, buildTreeServices);
@@ -213,6 +216,7 @@ public class ProjectBuilderImpl {
             (Stoppable) workerLease::leaseFinish,
             buildServices,
             buildTreeState,
+            (Stoppable) userCodeApplicationContext::stopTrackingApplications,
             buildSessionState,
             crossBuildSessionState
         );

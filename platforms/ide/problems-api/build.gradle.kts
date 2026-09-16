@@ -43,8 +43,11 @@ dependencies {
     implementation(libs.jsr305)
 
     testImplementation(projects.logging)
+    testImplementation(testFixtures(projects.time))
+
     integTestImplementation(projects.internalTesting)
     integTestImplementation(testFixtures(projects.logging))
+
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 
     testFixturesImplementation(projects.internalDistributionTesting)
