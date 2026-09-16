@@ -16,6 +16,7 @@
 
 package gradlebuild
 
+import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.tasks.compile.AbstractCompile
 import java.util.concurrent.atomic.AtomicBoolean
 
@@ -23,7 +24,7 @@ import java.util.concurrent.atomic.AtomicBoolean
  * Monitors the compile tasks of the whole build tree. If such a task is executed instead of being loaded from the
  * build cache, we consider it a "CACHE_MISS".
  */
-abstract class CacheMissMonitorBuildService : AbstractBuildScanInfoCollectingService() {
+abstract class CacheMissMonitorBuildService : AbstractBuildScanInfoCollectingService<BuildServiceParameters.None>() {
     val cacheMiss: AtomicBoolean = AtomicBoolean(false)
 
     override fun isMonitoredTask(taskClass: Class<*>) =

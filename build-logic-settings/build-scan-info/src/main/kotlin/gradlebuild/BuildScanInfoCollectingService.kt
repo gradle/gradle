@@ -49,7 +49,17 @@ enum class TaskOutcome {
     FAILED,
 
     /**
-     * The task did not run its actions: it was up-to-date, loaded from the build cache, skipped or had no source.
+     * The task did not run its actions because it was up-to-date.
+     */
+    UP_TO_DATE,
+
+    /**
+     * The task did not run its actions because its outputs were loaded from the build cache.
+     */
+    FROM_CACHE,
+
+    /**
+     * The task did not run its actions because it was skipped or had no source.
      */
     SKIPPED
 }
@@ -67,7 +77,7 @@ enum class TaskOutcome {
  * looked up during configuration. This keeps the collectors compatible with Isolated Projects, which does not allow
  * a project to observe the tasks of other projects.
  */
-abstract class AbstractBuildScanInfoCollectingService : BuildService<BuildServiceParameters.None>, BuildOperationListener {
+abstract class AbstractBuildScanInfoCollectingService<T : BuildServiceParameters> : BuildService<T>, BuildOperationListener {
 
     /**
      * Which tasks do we need to monitor? For example, cache-miss-monitor monitors `AbstractCompile` tasks.
@@ -110,8 +120,14 @@ val OperationFinishEvent.taskOutcome: TaskOutcome
         }
         val result = result as? ExecuteTaskBuildOperationType.Result ?: return TaskOutcome.SKIPPED
         // The skip message is `null` if and only if the task actually ran its actions,
-        // i.e. it was not UP-TO-DATE, FROM-CACHE, SKIPPED or NO-SOURCE.
-        return if (result.skipMessage == null) TaskOutcome.EXECUTED else TaskOutcome.SKIPPED
+        // i.e. it was not UP-TO-DATE, FROM-CACHE, SKIPPED or NO-SOURCE. Otherwise it is the message of the
+        // corresponding `TaskExecutionOutcome`, which is what the console and the Tooling API report.
+        return when (result.skipMessage) {
+            null -> TaskOutcome.EXECUTED
+            "UP-TO-DATE" -> TaskOutcome.UP_TO_DATE
+            "FROM-CACHE" -> TaskOutcome.FROM_CACHE
+            else -> TaskOutcome.SKIPPED
+        }
     }
 
 /**
@@ -123,20 +139,35 @@ val OperationFinishEvent.taskOutcome: TaskOutcome
 fun Class<*>.isSubtypeOf(className: String): Boolean = generateSequence(this) { it.superclass }.any { it.name == className }
 
 /**
+ * Registers a build service that observes the execution of every task in the build tree.
+ *
+ * Returns `null` when not running on TeamCity, where none of the collected information is consumed.
+ */
+fun <P : BuildServiceParameters, T : AbstractBuildScanInfoCollectingService<P>> Settings.registerTaskExecutionObserver(
+    /* the implementation class to collect information from task execution results */
+    klass: Class<T>,
+    /* configures the parameters of the service */
+    configureParameters: P.() -> Unit = {}
+): Provider<T>? {
+    if (System.getenv("TEAMCITY_VERSION") == null) {
+        return null
+    }
+    val service: Provider<T> = gradle.sharedServices.registerIfAbsent(klass.simpleName, klass) { parameters.configureParameters() }
+    gradle.serviceOf<BuildEventListenerRegistryInternal>().onOperationCompletion(service)
+    return service
+}
+
+/**
  * Registers a build service that collects information about the tasks of the whole build tree and hands it to the
  * Build Scan. Only does anything on TeamCity, where the collected information is consumed.
  */
-fun <T : AbstractBuildScanInfoCollectingService> Settings.registerBuildScanInfoCollectingService(
+fun <T : AbstractBuildScanInfoCollectingService<BuildServiceParameters.None>> Settings.registerBuildScanInfoCollectingService(
     /* the implementation class to collect information from task execution results */
     klass: Class<T>,
     /* pass the collected information to the Build Scan */
     buildScanAction: BuildScanConfiguration.(collectedInfo: Provider<T>) -> Unit
 ) {
-    if (System.getenv("TEAMCITY_VERSION") == null) {
-        return
-    }
     val buildScan = extensions.findByType<DevelocityConfiguration>()?.buildScan ?: return
-    val service: Provider<T> = gradle.sharedServices.registerIfAbsent(klass.simpleName, klass) {}
-    gradle.serviceOf<BuildEventListenerRegistryInternal>().onOperationCompletion(service)
+    val service = registerTaskExecutionObserver(klass) ?: return
     buildScan.buildScanAction(service)
 }

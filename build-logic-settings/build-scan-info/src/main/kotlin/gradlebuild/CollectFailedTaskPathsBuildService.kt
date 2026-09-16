@@ -16,6 +16,7 @@
 
 package gradlebuild
 
+import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.plugins.quality.Checkstyle
 import org.gradle.api.plugins.quality.CodeNarc
 import org.gradle.api.tasks.compile.AbstractCompile
@@ -25,7 +26,7 @@ import java.util.concurrent.CopyOnWriteArrayList
  * Monitors the compilation tasks and code quality tasks (Checkstyle/CodeNarc/detekt) of the whole build tree
  * and collects the paths of the ones that failed.
  */
-abstract class CollectFailedTaskPathsBuildService : AbstractBuildScanInfoCollectingService() {
+abstract class CollectFailedTaskPathsBuildService : AbstractBuildScanInfoCollectingService<BuildServiceParameters.None>() {
     val failedTaskPaths: MutableList<String> = CopyOnWriteArrayList()
 
     override fun isMonitoredTask(taskClass: Class<*>) =
