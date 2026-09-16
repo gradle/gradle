@@ -107,7 +107,9 @@ class RepoScriptBlockUtil {
     }
 
     /**
-     * Active extra repositories are injected into every build run through a {@code GradleExecuter} or a smoke test runner
+     * Register extra repositories here, no test needs a repository declaration of its own. See contributing/Testing.md.
+     *
+     * Active ones are injected into every build run through a {@code GradleExecuter} or a smoke test runner
      * (see {@link #extraRepositoriesInitScript}), and into the repository blocks produced by this class
      * (see {@link #extraRepositoriesDefinition}) for builds driven through the Tooling API.
      */
