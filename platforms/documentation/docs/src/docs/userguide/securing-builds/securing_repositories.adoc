@@ -1,0 +1,358 @@
+// Copyright (C) 2026 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[securing_repositories]]
+= Securing Repositories
+
+Every JAR, POM, and plugin your project uses is fetched from a repository, and every repository you declare is an implicit statement of trust.
+If an attacker can influence what a repository serves, or trick your build into asking a repository it shouldn't, they can inject arbitrary code into your build.
+
+This page covers two practices that protect the repository layer:
+
+1. *Use trusted repositories:* declare only repositories you control or explicitly vet, over HTTPS, in one central place.
+2. *Filter repository content:* restrict which coordinates each repository is allowed to serve, and route sensitive artifacts to exclusive sources.
+
+image::securing-builds/securing-builds-2.png[]
+
+[[sec:trusted_repositories]]
+== Use Trusted Repositories
+
+A trusted repository is one whose contents you can vouch for.
+That trust usually comes from one of three places:
+
+1. You run the repository yourself (an internal Artifactory, Nexus, or similar).
+2. The repository is operated by an organization with a strong integrity record (for example, Maven Central).
+3. The repository serves artifacts you have already verified out-of-band, typically through checksums or signatures recorded in your build.
+
+Every other repository is untrusted by default, even if it appears to work.
+An untrusted repository can serve a legitimate artifact today and a compromised one tomorrow; your build has no way to tell the difference unless verification is in place.
+
+[[sec:centralize_repository_declarations]]
+=== Centralize Repository Declarations
+
+Repositories declared inside individual subprojects are hard to audit.
+A reviewer looking at `settings.gradle.kts` cannot tell whether a subproject three levels deep has silently added a repository that the rest of the build knows nothing about.
+
+Since Gradle 6.8, `dependencyResolutionManagement` in `settings.gradle(.kts)` provides a central place to declare project repositories:
+
+====
+include::sample[dir="snippets/securing-builds/dependencyResolutionManagement-centralized/kotlin",files="settings.gradle.kts[tags=centralized]"]
+include::sample[dir="snippets/securing-builds/dependencyResolutionManagement-centralized/groovy",files="settings.gradle[tags=centralized]"]
+====
+
+`repositoriesMode` has three values:
+
+[cols="1,3"]
+|===
+|Mode |Behavior
+
+|`PREFER_PROJECT` (default)
+|Any repository declared in a subproject's `build.gradle(.kts)` overrides the repositories declared in settings. Convenient, but subproject declarations bypass central control.
+
+|`PREFER_SETTINGS`
+|Repositories declared in subprojects are ignored, and Gradle logs a warning for each. The settings repositories always win.
+
+|`FAIL_ON_PROJECT_REPOS`
+|Any repository declaration in a subproject causes the build to fail. Nothing outside `settings.gradle(.kts)` can add a repository.
+|===
+
+For security-sensitive builds, use `FAIL_ON_PROJECT_REPOS`.
+It guarantees that the only repositories your build will ever contact are the ones listed in `settings.gradle(.kts)`, where they are visible to every reviewer and every audit.
+
+WARNING: The default is `PREFER_PROJECT`. Setting `dependencyResolutionManagement.repositories { ... }` without also setting `repositoriesMode` still lets subprojects override the central list. Set the mode explicitly.
+
+Plugin repositories follow a separate rule.
+Declare them once in `settings.gradle(.kts)` under `pluginManagement`:
+
+====
+include::sample[dir="snippets/securing-builds/dependencyResolutionManagement-pluginManagement/kotlin",files="settings.gradle.kts[tags=plugin-management]"]
+include::sample[dir="snippets/securing-builds/dependencyResolutionManagement-pluginManagement/groovy",files="settings.gradle[tags=plugin-management]"]
+====
+
+NOTE: `pluginManagement` does not have a `repositoriesMode` equivalent. Plugin repositories are always resolved from `settings.gradle(.kts)`, so the concern that motivates `FAIL_ON_PROJECT_REPOS` does not apply, no subproject can add a plugin repository.
+
+[[sec:prefer_internal_mirrors]]
+=== Prefer an Internal Mirror
+
+Consuming public repositories directly means your build depends on the availability and integrity of an upstream service you do not control.
+An internal mirror sits between your build and the public internet and gives you three properties that a direct dependency on Maven Central cannot:
+
+1. *Auditability:* every artifact your build has ever downloaded is recorded in one place you own.
+2. *Reproducibility:* artifacts remain available even if they are yanked or deleted upstream.
+3. *Containment:* you can block or quarantine a compromised artifact for every project at once, without touching every build file in the organization.
+
+A mirror doesn't remove trust from the equation.
+It relocates it.
+Whatever you used to trust in the upstream now lives in the mirror, and any weakness in how you run the mirror becomes a weakness in every build that depends on it.
+Before adopting one:
+
+* *Serve the mirror over HTTPS*. An HTTP-only mirror is a downgrade, not an upgrade, over talking to Maven Central directly.
+* *Verify artifacts on ingest.* When the mirror pulls an artifact from an upstream repository for the first time, check the artifact against the upstream's published checksum (or signature) before it becomes available to downstream builds. Otherwise, the mirror will faithfully cache a compromised artifact and serve it to every project.
+* *Do not skip dependency verification because "it's internal."* `verification-metadata.xml` should cover artifacts served from the mirror the same way it covers anything else. The mirror is a distribution mechanism, not a trust decision.
+* *Restrict who can publish to the mirror.* The mirror's write ACL determines who can inject artifacts into every build in the organization. Treat it as production infrastructure.
+
+There are three ways to point Gradle at a mirror, in order of preference.
+
+[[sec:mirror_via_settings]]
+==== 1. Declare the Mirror in `settings.gradle(.kts)`
+
+The direct approach. Every build in the repository sees the mirror; nothing else can add a public repository if `FAIL_ON_PROJECT_REPOS` is set:
+
+====
+include::sample[dir="snippets/securing-builds/dependencyResolutionManagement-mirror/kotlin",files="settings.gradle.kts[tags=mirror]"]
+include::sample[dir="snippets/securing-builds/dependencyResolutionManagement-mirror/groovy",files="settings.gradle[tags=mirror]"]
+====
+
+This is the pattern to prefer for any repository you control.
+The routing decision lives in `settings.gradle(.kts)` where every reviewer sees it, and content filtering applies to the mirror the same way it applies to any other repository.
+
+[[sec:mirror_via_init_script]]
+==== 2. Redirect Existing Builds via an Init Script
+
+When you cannot or don't want to modify every project's `settings.gradle(.kts)`, for example, because you're rolling out a mirror across an organization with many existing repositories, an init script in `~/.gradle/init.d/` can rewrite repositories at initialization time.
+
+[source,kotlin]
+.~/.gradle/init.d/mirror.init.gradle.kts
+----
+val mirrorUrl = "https://repo.internal.acme.com/maven-public"
+
+settingsEvaluated {
+    pluginManagement.repositories {
+        clear()
+        maven {
+            name = "internalMirror"
+            url = uri(mirrorUrl)
+        }
+    }
+    dependencyResolutionManagement.repositories {
+        clear()
+        maven {
+            name = "internalMirror"
+            url = uri(mirrorUrl)
+        }
+    }
+}
+
+allprojects {
+    repositories {
+        // Replace project-declared repositories with the mirror
+        val allRepos = toList()
+        clear()
+        allRepos.forEach { repo ->
+            if (repo is MavenArtifactRepository) {
+                maven {
+                    name = repo.name
+                    url = uri(mirrorUrl)
+                }
+            } else {
+                add(repo)
+            }
+        }
+    }
+}
+----
+
+This pattern has security costs:
+
+* *The init script is an implicit trust anchor.* Every build on a machine that has this file runs it, see the guidance on init script trust in <<securing_build_tool.adoc#sec:init_scripts,Securing the Build Tool>>.
+Deploy the init script through your existing configuration management, not by asking developers to `curl` it into `~/.gradle/init.d`.
+* *The script silently overrides what build scripts declare.* A developer reading `build.gradle.kts` will not see the mirror; a Build Scan will.
+Communicate the rewrite clearly, or expect confusion when local behavior diverges from CI.
+
+Prefer this pattern only when option 1 is not feasible, and revisit whenever you can move projects to explicit settings-level declarations.
+
+[[sec:mirror_via_maven_settings]]
+==== 3. Reuse Maven `settings.xml` Mirrors
+
+Organizations already invested in Maven often maintain their mirror configuration in `~/.m2/settings.xml`.
+Since 8.13, Gradle can read those same mirrors instead of requiring the configuration to be duplicated:
+
+[source,properties]
+.gradle.properties
+----
+org.gradle.mirror.maven.settings=true
+----
+
+WARNING: This is an incubating feature and is disabled by default.
+
+With the property set, Gradle reads mirrors from the user and global `settings.xml`, matches each declared Maven repository against them using Maven's `mirrorOf` grammar, and resolves from the mirror instead.
+Credentials come from the `<server>` entry whose id matches the *mirror* id.
+
+This is the right choice only if you already have a working Maven mirror setup and want Gradle to honor the same routing.
+It is not a general-purpose redirection mechanism, and it applies to Maven repositories only.
+S3, GCS, local file, and Ivy repositories pass through unchanged.
+
+Two properties matter for the security posture of a `settings.xml`-driven setup:
+
+* *`settings.xml` becomes part of your trust chain.* Anyone who can write to `~/.m2/settings.xml` can silently redirect every Gradle build on the machine.
+Treat the file with the same care as `~/.gradle/gradle.properties`.
+* *Publishing is not affected.* Mirrors apply to resolution only. Publishing always uploads to the URL declared in the build.
+This is the safe default, since you want publishes to hit the real destination, not the mirror. Confirm it anyway when auditing the flow.
+
+[[sec:require_https]]
+=== Require HTTPS
+
+Since Gradle 7, plaintext HTTP repositories are rejected by default.
+When Gradle encounters a repository whose URL is not HTTPS (or an equivalent secure scheme), it throws `InsecureProtocolException` and refuses to resolve dependencies from it.
+
+The relevant flag is `allowInsecureProtocol` on any `MavenArtifactRepository` or `IvyArtifactRepository`.
+Its default is `false`.
+
+.settings.gradle.kts (do NOT do this)
+====
+include::sample[dir="snippets/securing-builds/dependencyResolutionManagement-insecure/kotlin",files="settings.gradle.kts[tags=insecure]"]
+include::sample[dir="snippets/securing-builds/dependencyResolutionManagement-insecure/groovy",files="settings.gradle[tags=insecure]"]
+====
+
+Setting `isAllowInsecureProtocol = true` is a security downgrade, anyone on the network path between your build and the repository can intercept the artifacts you download and substitute their own.
+Use HTTPS.
+
+If a legacy internal repository is HTTP-only, put a TLS-terminating proxy in front of it and update `distributionUrl` to the HTTPS endpoint.
+Enabling `allowInsecureProtocol` is not a solution; it is a permanent widening of your attack surface.
+
+[[sec:avoid_dynamic_versions_at_repos]]
+=== Avoid Dynamic Versions
+
+Two patterns weaken repository trust even when the repository itself is legitimate:
+
+* *Dynamic versions* (`1.+`, `latest.release`) let the repository decide what your build compiles against.
+A malicious or mistaken publish upstream reaches your build on the next resolution. Pin to exact versions.
+* *Anonymous repositories that require credentials* accept whatever the network delivers. Always use HTTPS.
+If a repository requires credentials, provide them through Gradle credentials, not by embedding them in build scripts.
+
+====
+include::sample[dir="snippets/securing-builds/dependencyResolutionManagement-credentials/kotlin",files="settings.gradle.kts[tags=credentials]"]
+include::sample[dir="snippets/securing-builds/dependencyResolutionManagement-credentials/groovy",files="settings.gradle[tags=credentials]"]
+====
+
+With this declaration, Gradle reads the credentials from `gradle.properties` (or Gradle-managed credential storage) as `internalUsername` and `internalPassword`, matching the repository's `name`.
+No secrets appear in the build script.
+
+Three credential types are supported on `AuthenticationSupported` repositories:
+
+1. `PasswordCredentials`: reads `<repoName>Username` / `<repoName>Password`.
+2. `HttpHeaderCredentials`: reads `<repoName>AuthHeaderName` / `<repoName>AuthHeaderValue`. Useful for repositories that authenticate via a header (for example, a bearer token).
+3. `AwsCredentials`: reads `<repoName>AccessKey` / `<repoName>SecretKey` / `<repoName>SessionToken`. Useful for S3-backed Maven repositories.
+
+[[sec:metadata_sources]]
+=== Configure `metadataSources` Deliberately
+
+A repository declaration exposes a `metadataSources` block that controls how Gradle resolves module metadata:
+
+====
+include::sample[dir="snippets/securing-builds/dependencyResolutionManagement-metadataSources/kotlin",files="settings.gradle.kts[tags=metadata-sources]"]
+include::sample[dir="snippets/securing-builds/dependencyResolutionManagement-metadataSources/groovy",files="settings.gradle[tags=metadata-sources]"]
+====
+
+The important security lever here is the `artifact()` source:
+
+* `mavenPom()` / `ivyDescriptor()` / `gradleMetadata()` all require a metadata descriptor that pins the artifact to its coordinates, its dependencies, and (with Gradle Module Metadata) additional integrity data.
+* `artifact()` tells Gradle it may resolve a coordinate by asking the repository whether a matching file exists, with no metadata descriptor.
+There is no POM, no `.module`, and no validation that the file at that path is actually the artifact those coordinates describe.
+
+Do not enable `artifact()` on repositories that host third-party or public content.
+Reserve it for tightly controlled internal locations where you accept the risk of coordinate-only resolution.
+
+[[sec:content_filtering]]
+== Filter Repository Content
+
+By default, when a build resolves a dependency, Gradle asks every declared repository in order until one answers.
+That default is convenient but it has two security consequences worth understanding.
+
+First, every repository you declare sees the full list of coordinates your build asks for.
+If you declare a public repository alongside a private one, the public repository learns the names of your private artifacts every time it is queried.
+This is called *dependency name leakage,* and it is a real vector for *dependency confusion* attacks.
+An attacker who knows the name of your internal `com.acme.secret-tool` package can publish a package of the same name to a public repository and wait for a misconfigured build to pick it up.
+
+Second, an artifact you expected to come from a trusted repository can silently come from a less trusted one if the trusted repository is briefly unavailable or if resolution order changes.
+
+Content filtering solves both problems by declaring, up front, which coordinates each repository is allowed to serve.
+The full API lives on link:{javadocPath}/org/gradle/api/artifacts/repositories/RepositoryContentDescriptor.html[`RepositoryContentDescriptor`] and link:{javadocPath}/org/gradle/api/artifacts/repositories/InclusiveRepositoryContentDescriptor.html[`InclusiveRepositoryContentDescriptor`].
+
+[[sec:content_filtering_basics]]
+=== Restrict Groups to Repositories
+
+Every `ArtifactRepository` exposes a `content { ... }` block.
+Inside that block you declare which groups, modules, versions, or configurations the repository is allowed to serve.
+Filters apply *before* Gradle contacts the repository, so the repository never sees requests for coordinates it isn't allowed to serve.
+
+The available filters are:
+
+[cols="2,3"]
+|===
+|Filter |Effect
+
+|`includeGroup(String)` / `excludeGroup(String)`
+|Match a single exact group.
+
+|`includeGroupByRegex(String)` / `excludeGroupByRegex(String)`
+|Match groups by regular expression.
+
+|`includeGroupAndSubgroups(String)` / `excludeGroupAndSubgroups(String)`
+|Match a group and its dot-delimited subgroups. `com.acme` matches `com.acme`, `com.acme.foo`, and `com.acme.foo.bar`, but *not* `com.acmefoo`. Introduced in Gradle 8.1.
+
+|`includeModule(String, String)` / `excludeModule(String, String)`
+|Match `group:name` pairs.
+
+|`includeModuleByRegex(String, String)` / `excludeModuleByRegex(String, String)`
+|Match `group:name` by regular expression.
+
+|`includeVersion(String, String, String)` / `excludeVersion(String, String, String)`
+|Match a specific `group:name:version`.
+
+|`includeVersionByRegex(String, String, String)` / `excludeVersionByRegex(String, String, String)`
+|Match `group:name:version` by regular expression.
+
+|`onlyForConfigurations(String...)` / `notForConfigurations(String...)`
+|Restrict which configurations can resolve from this repository.
+|===
+
+A typical routing configuration:
+
+====
+include::sample[dir="snippets/securing-builds/dependencyResolutionManagement-contentFilter/kotlin",files="settings.gradle.kts[tags=content-filter]"]
+include::sample[dir="snippets/securing-builds/dependencyResolutionManagement-contentFilter/groovy",files="settings.gradle[tags=content-filter]"]
+====
+
+With this configuration:
+
+* Any request for a `com.acme*` artifact is sent *only* to the internal repository.
+* Any request for anything else is sent *only* to Maven Central.
+* Neither repository is ever asked about coordinates it isn't allowed to serve, so neither repository can learn the names of coordinates it shouldn't see.
+
+TIP: Prefer `includeGroupAndSubgroups` and `excludeGroupAndSubgroups` over `includeGroup` / `excludeGroup` when your organization owns a group and its subgroups (e.g. `com.acme`, `com.acme.web`, `com.acme.mobile`). Filtering by exact group only would leave subgroups uncovered.
+
+[[sec:content_filtering_exclusive]]
+=== Make a Repository Exclusive for a Set of Coordinates
+
+When an artifact must come from one specific repository and nowhere else, declare that repository as exclusive for those coordinates using link:{javadocPath}/org/gradle/api/artifacts/repositories/ExclusiveContentRepository.html[`ExclusiveContentRepository`]:
+
+====
+include::sample[dir="snippets/securing-builds/dependencyResolutionManagement-exclusiveContent/kotlin",files="settings.gradle.kts[tags=exclusive-content]"]
+include::sample[dir="snippets/securing-builds/dependencyResolutionManagement-exclusiveContent/groovy",files="settings.gradle[tags=exclusive-content]"]
+====
+
+`exclusiveContent` is stronger than a plain include filter:
+
+* Coordinates matched by the filter are resolved *only* from the exclusive repository.
+* No other repository (even one that would normally match the same coordinates) is ever asked.
+* The `filter { }` block accepts only *inclusive* rules (`includeGroup`, `includeGroupAndSubgroups`, `includeModule`, etc.). Exclusions are implicit: everything not included is excluded.
+
+Use `exclusiveContent` for internal artifacts, mirrors that host a specific project, or any coordinate that must never be sourced from a public mirror under any circumstances.
+
+[NOTE]
+====
+If you use `exclusiveContent` inside `pluginManagement`, it becomes illegal to add more repositories through project-level `buildscript.repositories`; the build will fail at configuration time.
+Either declare all plugin repositories in settings or use non-exclusive content filters.
+====
