@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.ProblemId;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Objects;
@@ -167,6 +168,23 @@ public final class ProblemGroupSupport {
         ProblemGroup parent = group.getParent();
         String name = quoteIfNeeded(group.getName());
         return parent == null ? name : render(parent) + SEPARATOR + name;
+    }
+
+    /**
+     * Renders a problem id for humans as the problem name followed by its group chain, for example
+     * {@code Unused import (in Compilation > Java)}.
+     */
+    public static String render(ProblemId id) {
+        return renderProblemName(id.getName()) + " (in " + render(id.getGroup()) + ")";
+    }
+
+    /**
+     * Renders a problem name for humans. A problem name is a sentence rather than a path segment, and sentences legitimately
+     * contain quotes, for example {@code Class "Foo" is not serializable}, so quotes alone do not trigger quoting. A name that
+     * contains the separator is quoted, so that it cannot be misread as part of the group chain.
+     */
+    public static String renderProblemName(String name) {
+        return name.contains(SEPARATOR.trim()) ? quote(name) : name;
     }
 
     /**
