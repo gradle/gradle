@@ -44,7 +44,7 @@ An untrusted repository can serve a legitimate artifact today and a compromised 
 Repositories declared inside individual subprojects are hard to audit.
 A reviewer looking at `settings.gradle.kts` cannot tell whether a subproject three levels deep has silently added a repository that the rest of the build knows nothing about.
 
-Since Gradle 6.8, `dependencyResolutionManagement` in `settings.gradle(.kts)` provides a central place to declare project repositories:
+Since Gradle 6.8, `dependencyResolutionManagement` in `settings.gradle(.kts)` provides a central place to declare project repositories (see <<centralizing_repositories.adoc#centralized-repository-declaration,Centralizing Repository Declarations>> for the full reference):
 
 ====
 include::sample[dir="snippets/securing-builds/dependencyResolutionManagement-centralized/kotlin",files="settings.gradle.kts[tags=centralized]"]
@@ -176,7 +176,7 @@ Prefer this pattern only when option 1 is not feasible, and revisit whenever you
 ==== 3. Reuse Maven `settings.xml` Mirrors
 
 Organizations already invested in Maven often maintain their mirror configuration in `~/.m2/settings.xml`.
-Since 8.13, Gradle can read those same mirrors instead of requiring the configuration to be duplicated:
+Since 8.13, Gradle can read those same mirrors instead of requiring the configuration to be duplicated (see <<centralizing_repositories.adoc#sec:reusing-maven-mirror-settings,Reusing mirror settings from Maven>> for the full behavior, including `mirrorOf` matching rules and unsupported features):
 
 [source,properties]
 .gradle.properties
@@ -278,7 +278,7 @@ An attacker who knows the name of your internal `com.acme.secret-tool` package c
 Second, an artifact you expected to come from a trusted repository can silently come from a less trusted one if the trusted repository is briefly unavailable or if resolution order changes.
 
 Content filtering solves both problems by declaring, up front, which coordinates each repository is allowed to serve.
-The full API lives on link:{javadocPath}/org/gradle/api/artifacts/repositories/RepositoryContentDescriptor.html[`RepositoryContentDescriptor`] and link:{javadocPath}/org/gradle/api/artifacts/repositories/InclusiveRepositoryContentDescriptor.html[`InclusiveRepositoryContentDescriptor`].
+See <<filtering_repository_content.adoc#repository-content-filtering,Filtering Repository Content>> for the full reference including Maven-repository-specific filters and Ivy dynamic resolve mode.
 
 [[sec:content_filtering_basics]]
 === Restrict Groups to Repositories

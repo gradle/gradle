@@ -53,11 +53,18 @@ There are two natural places to run a vulnerability screen against a Gradle buil
 
 *As a build task.* A vulnerability-scanner plugin is applied to your build.
 When you run its check task, the plugin resolves the dependency graph, matches every artifact against a vulnerability database, and fails the build (or produces a report) when it finds a match.
-Multiple community and vendor plugins provide this capability. Choose one that fits your organization's tolerance for false positives and its policy on database freshness.
+Multiple community and vendor plugins provide this capability; the link:https://plugins.gradle.org/search?term=vulnerability[Gradle Plugin Portal] lists current options.
+Choose one that fits your organization's tolerance for false positives and its policy on database freshness.
 
-*As part of your build platform.* If your organization uses Develocity, dependency scanning is available as a feature of the platform.
-Scans run against every build without the individual project having to apply a plugin, results are aggregated centrally, and findings are correlated across every project in the organization.
-This is the recommended approach for organizations that already run Develocity: it removes the burden of keeping a plugin and its database current in every build and gives security teams a single vantage point over the whole codebase.
+*As part of a centralized platform.* Several options move scanning out of the project's build script and onto infrastructure the organization already runs. Two common ones:
+
+* *GitHub* — if your code is hosted on GitHub, Dependabot scans committed dependency manifests and opens alerts (and optionally pull requests) for known vulnerabilities.
+The `dependency-review` GitHub Action extends this to pull requests, failing a PR that introduces a new vulnerable dependency.
+For richer coverage of transitive dependencies, the Gradle Dependency Submission action publishes the resolved dependency graph to GitHub so Dependabot sees the full picture, not just what appears in build scripts.
+* *Develocity* — dependency scanning is a first-class feature of the platform. Scans run against every build without the individual project having to apply a plugin, results are aggregated centrally, and findings are correlated across every project in the organization.
+This is the strongest option for organizations that already run Develocity: it removes the burden of keeping a plugin and its database current in every build and gives security teams a single vantage point over the whole codebase.
+
+Other SCM providers, CI platforms, and security vendors offer comparable capabilities. The pattern to look for is centralized scanning that runs on every build or every change, without requiring per-project plugin upkeep.
 
 [[sec:vulnerability_baseline]]
 === Establish a Baseline

@@ -37,6 +37,9 @@ image::securing-builds/securing-build-tool-1.png[]
 [[sec:verify_wrapper]]
 == Verify the Wrapper and Gradle Distribution
 
+See the <<gradle_wrapper.adoc#gradle_wrapper,Gradle Wrapper reference>> for the full Wrapper documentation.
+This section focuses on the security-relevant subset.
+
 The Wrapper has three moving parts, and each is a place tampering can occur:
 
 * `gradlew` and `gradlew.bat`: small scripts that launch the Wrapper JAR.
@@ -49,7 +52,7 @@ The Wrapper is convenient precisely because it runs Gradle automatically; that s
 [[sec:wrapper_properties]]
 === What the Wrapper Reads From `gradle-wrapper.properties`
 
-The Wrapper reads the following properties from `gradle/wrapper/gradle-wrapper.properties`:
+The Wrapper reads the following properties from `gradle/wrapper/gradle-wrapper.properties` that are security-critical:
 
 [cols="1,1,3"]
 |===
@@ -57,17 +60,8 @@ The Wrapper reads the following properties from `gradle/wrapper/gradle-wrapper.p
 
 |`distributionUrl` |(required) |Where to download the Gradle distribution ZIP from.
 |`distributionSha256Sum` |(unset) |SHA-256 of the expected distribution ZIP. When set, the Wrapper aborts if the downloaded ZIP does not match.
-|`distributionBase` |`GRADLE_USER_HOME` |Where the unpacked distribution lives. `GRADLE_USER_HOME` or `PROJECT`.
-|`distributionPath` |`wrapper/dists` |Relative path under `distributionBase`.
-|`zipStoreBase` |`GRADLE_USER_HOME` |Where the downloaded ZIP is stored. `GRADLE_USER_HOME` or `PROJECT`.
-|`zipStorePath` |`wrapper/dists` |Relative path under `zipStoreBase`.
-|`networkTimeout` |`10000` (ms) |Connect and read timeout for the distribution download.
-|`validateDistributionUrl` |`true` |Whether the `wrapper` task validates `distributionUrl` (HEAD request) when regenerating wrapper files.
-|`retries` |`0` |Number of download retry attempts on network failure. `0` disables retries.
-|`retryBackOffMs` |`500` (ms) |Initial back-off before the first retry. Doubles on each subsequent failure.
 |===
 
-The first two properties are the security-critical ones.
 The rest control download mechanics.
 
 [[sec:pin_distribution_url]]
@@ -131,7 +125,9 @@ Your Gradle distribution may have been tampered with.
 Confirm that the 'distributionSha256Sum' property in your gradle-wrapper.properties file is correct...
 ----
 
-WARNING: `distributionSha256Sum` is *not set by default* when you run `gradle wrapper`. If you want the check, you must obtain the checksum from `gradle.org/release-checksums` and set it explicitly.
+WARNING: `distributionSha256Sum` is *not set by default* when you run `gradle wrapper`.
+If you want the check, you must obtain the checksum from `gradle.org/release-checksums` and set it explicitly.
+See <<best_practices_security.adoc#validate_gradle_checksum,Validate the Gradle Distribution SHA-256 Checksum>> for the best-practice rationale, and <<gradle_wrapper.adoc#configuring_checksum_verification,Configuring Checksum Verification>> in the Wrapper reference for additional detail.
 
 [[sec:verify_wrapper_jar]]
 === Verify the Wrapper JAR
@@ -142,19 +138,22 @@ The Wrapper JAR is a static resource embedded in the Gradle distribution and cop
 
 That means every time the JAR changes in your repository, you have to treat the change as security-sensitive and check it externally:
 
-* *SHA-256 comparison:* every published Wrapper JAR has a matching checksum at `https://gradle.org/release-checksums/`. Compare the checksum of the JAR in your repository to the published value on that page.
-* *PGP verification:* Gradle publishes PGP signatures for the Wrapper JAR. For higher assurance, verify the JAR against its detached signature using the Gradle release-signing key.
+* *SHA-256 comparison:* every published Wrapper JAR has a matching checksum at `https://gradle.org/release-checksums/`.
+Compare the checksum of the JAR in your repository to the published value on that page.
+See <<gradle_wrapper.adoc#wrapper_checksum_verification,Wrapper checksum verification>> in the Wrapper reference for the setup.
+* *PGP verification:* Gradle publishes PGP signatures for the Wrapper JAR.
+For higher assurance, verify the JAR against its detached signature using the Gradle release-signing key. See <<gradle_wrapper.adoc#verifying_the_gradle_wrapper_jar_with_pgp,Verifying the Gradle Wrapper JAR with PGP>>.
 
-The authoritative reference is the link:https://github.com/gradle/gradle/blob/master/KEYS.md[`KEYS.md`] file in the Gradle repository.
+The authoritative reference is the link:https://github.com/gradle/gradle/blob/master/KEYS.md[`KEYS.md`] file in the Gradle repository, and <<best_practices_security.adoc#validate_wrapper_checksum,Validate the Gradle Wrapper on every Upgrade>> covers the recommended verification cadence.
 
 The most reliable place to run this check is CI, on every pull request that touches the Wrapper files.
 A CI job that fails when `gradle-wrapper.jar` doesn't match a known-good checksum turns an easily-missed diff into a hard block.
-GitHub Actions users can use the `setup-gradle` action (v4+), which runs Wrapper validation automatically on every workflow run.
+GitHub Actions users can use the https://github.com/marketplace/actions/setup-gradle[`setup-gradle`] action (v4+), which runs Wrapper validation automatically on every workflow run.
 
 [[sec:generate_wrapper_from_trusted_gradle]]
 === Generate the Wrapper From a Trusted Gradle
 
-The safest way to obtain a Wrapper is to generate it yourself with a trusted, previously-verified Gradle installation:
+Run `gradle wrapper` from a Gradle you have already vetted (checked its distribution SHA-256 against the published value, or <<installation.adoc#installation,installed it via a package manager you trust>>):
 
 [source,bash]
 ----
@@ -163,23 +162,6 @@ gradle wrapper --gradle-version 9.6.0 \
                --gradle-distribution-sha256-sum <sha256-of-gradle-9.6.0-bin.zip>
 ----
 
-The `gradle wrapper` task supports the following command-line flags:
-
-[cols="2,3"]
-|===
-|Flag |Purpose
-
-|`--gradle-version` |Version to pin. Also accepts labels: `latest`, `release-candidate`, `release-milestone`, `release-nightly`, `nightly`.
-|`--distribution-type` |`bin` (JVM binaries only) or `all` (includes sources and Javadoc).
-|`--gradle-distribution-url` |Explicit URL override.
-|`--gradle-distribution-sha256-sum` |SHA-256 of the distribution ZIP. Written to `gradle-wrapper.properties` as `distributionSha256Sum`.
-|`--network-timeout` |Overrides `networkTimeout`.
-|`--validate-url` |Whether to HEAD-check `distributionUrl` before writing it.
-|`--retries` |Sets `retries`.
-|`--retry-back-off-ms` |Sets `retryBackOffMs`.
-|===
-
-Run `gradle wrapper` from a Gradle you have already vetted (checked its distribution SHA-256 against the published value, or installed it via a package manager you trust).
 The resulting `gradle-wrapper.jar` and `gradle-wrapper.properties` are byte-for-byte the ones Gradle publishes for that version, and you can compare them to the published checksums to confirm.
 
 Do not run `./gradlew wrapper` on an unfamiliar checkout to "regenerate" the Wrapper.
@@ -189,13 +171,15 @@ That command is executed by the very Wrapper you don't yet trust.
 === Untrusted Checkouts
 
 When you check out a repository you did not create, the Wrapper is not yet trustworthy.
+See <<best_practices_security.adoc#run_gradle_on_external_projects,Do not Run `./gradlew` on Untrusted Projects>> for the best-practice guidance; the steps below are the short version.
+
 Before you run `./gradlew` for the first time:
 
-* Inspect `gradle-wrapper.properties`. The `distributionUrl` should point at `https://services.gradle.org/` (or your own mirror), over HTTPS, at a pinned version.
-* Confirm `distributionSha256Sum` is set and matches a value from `https://gradle.org/release-checksums/`.
-* Inspect `gradle/wrapper/gradle-wrapper.jar`. Its checksum should match a Gradle-published value.
-* Inspect `settings.gradle(.kts)`, `build.gradle(.kts)`, and every file under `buildSrc/` for suspicious code, unexpected plugins, or `exec` tasks.
-* If any check fails, do not run the project's Wrapper.
+1. Inspect `gradle-wrapper.properties`. The `distributionUrl` should point at `https://services.gradle.org/` (or your own mirror), over HTTPS, at a pinned version.
+2. Confirm `distributionSha256Sum` is set and matches a value from `https://gradle.org/release-checksums/`.
+3. Inspect `gradle/wrapper/gradle-wrapper.jar`. Its checksum should match a Gradle-published value.
+4. Inspect `settings.gradle(.kts)`, `build.gradle(.kts)`, and every file under `buildSrc/` for suspicious code, unexpected plugins, or `exec` tasks.
+5. If any check fails, do not run the project's Wrapper.
 Generate a fresh Wrapper from a trusted Gradle installation, or open the project inside an isolated environment (a container or VM) where a compromised build script cannot reach your credentials.
 
 IDEs typically trigger a Gradle sync as soon as a project is opened, and that sync executes build logic.
@@ -256,6 +240,7 @@ None of them is sandboxed.
 
 Init scripts run for *every build* the current user invokes.
 An attacker who can write to `~/.gradle/init.d/` owns every subsequent build on the machine. No per-project `build.gradle` change is required.
+See the <<init_scripts.adoc#init_scripts,Init Scripts>> reference for the discovery mechanism, syntax, and full API.
 
 The discovery order is fixed:
 
@@ -278,6 +263,7 @@ Guidelines:
 `buildSrc/` is compiled and applied to your build automatically.
 Any code committed under `buildSrc/src/main/` runs during initialization of every subproject.
 There is no opt-in.
+See <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc,Using buildSrc>> for the mechanics.
 
 Because `buildSrc` code runs before your normal build scripts, a compromised `buildSrc` cannot be detected by anything you declare in `build.gradle(.kts)`.
 Review changes to `buildSrc/` with the same rigor as changes to CI configuration.
@@ -290,6 +276,7 @@ Included builds still run their own build logic, but the trust boundary is more 
 
 `includeBuild(...)` in `settings.gradle(.kts)` composes another Gradle build into the current one.
 The included build runs its own initialization, its own `buildSrc`, and its own tasks, all inside the same JVM as the outer build.
+See <<composite_builds.adoc#composite_builds,Composite Builds>> for the full model.
 
 Verification metadata is *not* shared across builds.
 The outer build's `gradle/verification-metadata.xml` is what applies; an included build's own verification file is ignored.
@@ -323,6 +310,7 @@ Guidelines:
 
 The Gradle remote Build Cache stores task outputs keyed by task inputs.
 When a task's inputs match a previous run, Gradle downloads and reuses the cached outputs instead of executing the task.
+See the <<build_cache.adoc#build_cache,Build Cache>> reference and <<build_cache.adoc#sec:build_cache_configure_remote,Configure the Remote Build Cache>> for the full setup.
 
 A compromised remote cache is a code-injection vector: an attacker who can write to the cache can inject arbitrary bytes as the "output" of a compile, package, or test task on every build that requests it.
 
@@ -342,6 +330,7 @@ Trust in the cache is entirely trust in the write-side ACL.
 
 The configuration cache serializes the entire task graph, including any values it captured at configuration time, to disk.
 Gradle encrypts the on-disk configuration cache file, but selective exclusion of specific sensitive values from the cache is not yet implemented.
+See <<configuration_cache_requirements.adoc#config_cache:secrets,Handling of Credentials and Secrets>> for the current story.
 
 Guidelines:
 
@@ -391,6 +380,7 @@ The security posture of your build depends on the security posture of the Gradle
 Gradle publishes security fixes only for the current major line and, in some cases, the immediately preceding one.
 Older majors do not receive backported patches.
 A build running on an unsupported major is one where a public vulnerability in the tool itself has no upstream remedy.
+For the release cadence, what counts as the "current" line, and when a line falls out of support, see <<feature_lifecycle.adoc#eol_support,Release end-of-life Policy>>.
 
 For any long-lived project:
 
@@ -409,16 +399,15 @@ It gives every checkout the same Gradle without a per-machine install step.
 * *Package managers* (Homebrew, SDKMAN, apt, chocolatey) are convenient for developer workstations.
 Trust the packager's own signing and checksum practices, and confirm that the version they ship is a Gradle-published release, not a fork.
 * *Container images* are the practical choice for CI.
-Prefer images published by Gradle itself, pin them by digest rather than by tag, and re-verify the digest against Gradle's published release checksums when you first ingest a version into your mirror.
+Gradle publishes official images on Docker Hub at https://hub.docker.com/_/gradle[`docker.io/library/gradle`], curated under Docker's Official Images program.
+Prefer these over third-party rebuilds, pin them by digest rather than by tag, and re-verify the digest against Gradle's published release checksums when you first ingest a version into your mirror.
 
 Combining these gives one straightforward workflow that fits most projects: a Wrapper with a pinned distribution URL and a `distributionSha256Sum`, running against a container image pinned by digest, on a Gradle version that is still in support.
 
 [[sec:extended_support]]
 === Extended Security Support
 
-Some organizations need to stay on a Gradle major line beyond its community support window, either because a migration is genuinely infeasible on the required timeline, or because a customer contract locks the toolchain.
-For those situations, Gradle Inc. offers a paid extended-support program that provides security-patched builds of older Gradle majors after community support has ended.
-
-Running an unsupported Gradle is a security risk.
-If your organization cannot upgrade in time and cannot accept that risk, the extended-support program is the sanctioned way to keep receiving fixes.
-Details are published at `https://gradle.org/` and through Gradle Inc.'s enterprise sales channels.
+Some organizations need to stay on a Gradle major line beyond its community support window, either because a migration is genuinely infeasible on the required timeline or because a customer contract locks the toolchain.
+Running an unsupported Gradle is a security risk in its own right.
+For those situations, Gradle Inc. offers a paid https://gradle.org/security-subscription/[Security Subscription] that delivers security-patched builds of older Gradle majors after community support has ended.
+It is the sanctioned way to keep receiving fixes when upgrading is not possible in time.
