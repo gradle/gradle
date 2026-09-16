@@ -53,6 +53,7 @@ dependencies {
     implementation(projects.stdlibJavaExtensions)
     implementation(projects.workerShared)
 
+    testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.core))
     testImplementation(projects.testingBase)
 

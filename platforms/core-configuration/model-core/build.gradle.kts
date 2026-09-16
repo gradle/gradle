@@ -55,6 +55,7 @@ dependencies {
     testImplementation(projects.fileCollections)
     testImplementation(projects.native)
     testImplementation(projects.resources)
+    testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.coreApi))
     testImplementation(testFixtures(projects.languageGroovy))
     testImplementation(testFixtures(projects.logging))

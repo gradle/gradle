@@ -199,6 +199,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
             List<BuildActionRunner> buildActionRunners,
             StyledTextOutputFactory styledTextOutputFactory,
             BuildStateRegistry buildStateRegistry,
+            UserCodeApplicationContext userCodeApplicationContext,
             BuildOperationProgressEventEmitter eventEmitter,
             ListenerManager listenerManager,
             BuildStartedTime buildStartedTime,
@@ -228,6 +229,7 @@ public class LauncherServices extends AbstractGradleModuleServices {
                 eventEmitter,
                 problemStream,
                 buildStateRegistry,
+                userCodeApplicationContext,
                 new BuildCompletionNotifyingBuildActionRunner(
                     gradleEnterprisePluginManager,
                     failureFactory,

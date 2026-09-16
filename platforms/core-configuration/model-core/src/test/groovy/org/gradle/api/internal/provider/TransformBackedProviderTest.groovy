@@ -26,6 +26,7 @@ import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.provider.Property
 import org.gradle.api.tasks.TaskState
 import org.gradle.internal.Describables
+import org.gradle.internal.code.TestUserCodeApplicationContext
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.state.ModelObject
@@ -44,7 +45,7 @@ class TransformBackedProviderTest extends Specification {
 
     def setup() {
         DeprecationLogger.reset()
-        DeprecationLogger.init(WarningMode.All, progressEventEmitter, TestUtil.problemsService(), Stub(ProblemStream))
+        DeprecationLogger.init(WarningMode.All, progressEventEmitter, TestUtil.problemsService(), Stub(ProblemStream), new TestUserCodeApplicationContext())
     }
 
     def cleanup() {

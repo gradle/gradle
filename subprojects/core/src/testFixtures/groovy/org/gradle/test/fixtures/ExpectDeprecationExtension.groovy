@@ -17,6 +17,7 @@
 package org.gradle.test.fixtures
 
 import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.internal.code.TestUserCodeApplicationContext
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.util.TestUtil
@@ -49,7 +50,7 @@ class ExpectDeprecationExtension implements IAnnotationDrivenExtension<ExpectDep
 
     static void intercept(String expectedMessage, ThrowingRunnable proceed) {
         def problems = TestUtil.problemsService()
-        DeprecationLogger.init(WarningMode.All, null, problems, NoOpProblemDiagnosticsFactory.EMPTY_STREAM)
+        DeprecationLogger.init(WarningMode.All, null, problems, NoOpProblemDiagnosticsFactory.EMPTY_STREAM, new TestUserCodeApplicationContext())
 
         try {
             proceed()

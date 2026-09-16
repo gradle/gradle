@@ -27,6 +27,7 @@ import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildActionRunner;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.BuildTreeLifecycleListener;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler;
 import org.gradle.internal.invocation.BuildAction;
@@ -51,6 +52,7 @@ public class RootBuildLifecycleBuildActionExecutor {
     private final ProblemsInternal problemsService;
     private final BuildOperationProgressEventEmitter eventEmitter;
     private final ProblemStream problemsStream;
+    private final UserCodeApplicationContext userCodeApplicationContext;
     private final BuildActionRunner buildActionRunner;
     private final BuildStateRegistry buildStateRegistry;
 
@@ -64,6 +66,7 @@ public class RootBuildLifecycleBuildActionExecutor {
         BuildOperationProgressEventEmitter eventEmitter,
         ProblemStream problemsStream,
         BuildStateRegistry buildStateRegistry,
+        UserCodeApplicationContext userCodeApplicationContext,
         BuildActionRunner buildActionRunner
     ) {
         this.buildModelParameters = buildModelParameters;
@@ -72,6 +75,7 @@ public class RootBuildLifecycleBuildActionExecutor {
         this.problemsService = problemsService;
         this.eventEmitter = eventEmitter;
         this.problemsStream = problemsStream;
+        this.userCodeApplicationContext = userCodeApplicationContext;
         this.buildActionRunner = buildActionRunner;
         this.buildStateRegistry = buildStateRegistry;
     }
@@ -111,7 +115,7 @@ public class RootBuildLifecycleBuildActionExecutor {
     private void initDeprecationLogging(StartParameterInternal startParameter) {
         ShowStacktrace showStacktrace = startParameter.getShowStacktrace();
         LoggingDeprecatedFeatureHandler.setTraceLoggingEnabled(showStacktrace.equals(ShowStacktrace.ALWAYS) || showStacktrace.equals(ShowStacktrace.ALWAYS_FULL));
-        DeprecationLogger.init(startParameter.getWarningMode(), eventEmitter, problemsService, problemsStream);
+        DeprecationLogger.init(startParameter.getWarningMode(), eventEmitter, problemsService, problemsStream, userCodeApplicationContext);
     }
 
     /**

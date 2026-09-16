@@ -28,6 +28,7 @@ import org.gradle.api.problems.internal.ProblemReporterInternal;
 import org.gradle.api.problems.internal.ProblemSpecInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.SystemProperties;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -63,15 +64,24 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
     private ProblemStream problemStream = NoOpProblemDiagnosticsFactory.EMPTY_STREAM;
 
     private WarningMode warningMode = WarningMode.Summary;
-    private BuildOperationProgressEventEmitter progressEventEmitter;
-    private Problems problemsService;
-    private GradleException error;
+    private @Nullable BuildOperationProgressEventEmitter progressEventEmitter;
+    private @Nullable Problems problemsService;
+    private @Nullable UserCodeApplicationContext userCodeApplicationContext;
 
-    public void init(WarningMode warningMode, BuildOperationProgressEventEmitter progressEventEmitter, Problems problemsService, ProblemStream problemStream) {
+    private @Nullable GradleException error;
+
+    public void init(
+        WarningMode warningMode,
+        BuildOperationProgressEventEmitter progressEventEmitter,
+        Problems problemsService,
+        ProblemStream problemStream,
+        UserCodeApplicationContext userCodeApplicationContext
+    ) {
         this.warningMode = warningMode;
         this.problemStream = problemStream;
         this.progressEventEmitter = progressEventEmitter;
         this.problemsService = problemsService;
+        this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
     @Override
@@ -166,13 +176,21 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
 
     private void fireDeprecatedUsageBuildOperationProgress(DeprecatedFeatureUsage usage, ProblemDiagnostics diagnostics) {
         if (progressEventEmitter != null) {
-            progressEventEmitter.emitNowIfCurrent(new DefaultDeprecatedUsageProgressDetails(usage, diagnostics));
+            Long currentCodeApplicationId = null;
+            if (userCodeApplicationContext != null) {
+                UserCodeApplicationContext.Application current = userCodeApplicationContext.current();
+                if (current != null) {
+                    currentCodeApplicationId = current.getId().longValue();
+                }
+            }
+            progressEventEmitter.emitNowIfCurrent(new DefaultDeprecatedUsageProgressDetails(usage, diagnostics, currentCodeApplicationId));
         }
     }
 
     public void reset() {
         problemStream = NoOpProblemDiagnosticsFactory.EMPTY_STREAM;
         progressEventEmitter = null;
+        userCodeApplicationContext = null;
         loggedMessages.clear();
         loggedUsages.clear();
         deprecationsFound = false;

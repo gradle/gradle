@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
+import org.gradle.internal.operations.trace.BuildOperationRecord
 
 import static org.gradle.problems.internal.services.DefaultProblemSummarizer.THRESHOLD_DEFAULT_VALUE
 
@@ -219,6 +220,75 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
             }
         }
         // The second one of this deprecation is not reported as it is dropped by the hash based deduplication
+    }
+
+    def "deprecation progress events carry the id of the user code application they occurred in"() {
+        given:
+        disableProblemsApiCheck()
+        settingsFile("""
+            rootProject.name = 'root'
+        """)
+
+        file("script.gradle") << """
+            org.gradle.internal.deprecation.DeprecationLogger.deprecate("Script plugin configuration").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
+
+            tasks.register("scriptPluginTask") {
+                doLast {
+                    org.gradle.internal.deprecation.DeprecationLogger.deprecate("Script plugin task action").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
+                }
+            }
+        """
+
+        buildFile("""
+            apply from: "script.gradle"
+            apply plugin: SomePlugin
+
+            org.gradle.internal.deprecation.DeprecationLogger.deprecate("Build script configuration").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
+
+            tasks.register("buildScriptTask") {
+                doLast {
+                    org.gradle.internal.deprecation.DeprecationLogger.deprecate("Build script task action").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
+                }
+            }
+
+            class SomePlugin implements Plugin<Project> {
+                void apply(Project p) {
+                    org.gradle.internal.deprecation.DeprecationLogger.deprecate("Plugin configuration").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
+
+                    p.tasks.register("pluginTask") {
+                        doLast {
+                            org.gradle.internal.deprecation.DeprecationLogger.deprecate("Plugin task action").willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
+                        }
+                    }
+                }
+            }
+        """)
+
+        when:
+        executer.noDeprecationChecks()
+        succeeds("buildScriptTask", "scriptPluginTask", "pluginTask")
+
+        then:
+        def applyBuildFile = operations.only("Apply build file 'build.gradle' to root project 'root'")
+        def applyScript = operations.only("Apply script 'script.gradle' to root project 'root'")
+        def applyPlugin = operations.only("Apply plugin SomePlugin to root project 'root'")
+
+        // The three applications must distinct for the assertions below to be meaningful.
+        [applyBuildFile, applyScript, applyPlugin].collect { it.details.applicationId }.toSet().size() == 3
+
+        firstDeprecationApplicationIdOf(applyBuildFile) == applyBuildFile.details.applicationId
+        firstDeprecationApplicationIdOf(operations.only("Execute doLast {} action for :buildScriptTask")) == applyBuildFile.details.applicationId
+
+        firstDeprecationApplicationIdOf(applyScript) == applyScript.details.applicationId
+        firstDeprecationApplicationIdOf(operations.only("Execute doLast {} action for :scriptPluginTask")) == applyScript.details.applicationId
+
+        firstDeprecationApplicationIdOf(applyPlugin) == applyPlugin.details.applicationId
+        firstDeprecationApplicationIdOf(operations.only("Execute doLast {} action for :pluginTask")) == applyPlugin.details.applicationId
+    }
+
+    private static Long firstDeprecationApplicationIdOf(BuildOperationRecord operation) {
+        def deprecation = operation.progress.find { it.hasDetailsOfType(DeprecatedUsageProgressDetails) }
+        return (deprecation.details["deprecation"] as Map<String, Object>).currentCodeApplicationId
     }
 
     def "emits deprecation warnings as build operation progress events for buildSrc builds"() {

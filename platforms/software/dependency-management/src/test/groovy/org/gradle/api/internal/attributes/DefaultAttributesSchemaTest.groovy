@@ -20,6 +20,7 @@ import org.gradle.api.Named
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.internal.code.TestUserCodeApplicationContext
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
@@ -46,7 +47,7 @@ class DefaultAttributesSchemaTest extends Specification {
     def setup() {
         def diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
         DeprecationLogger.reset()
-        DeprecationLogger.init(WarningMode.All, Mock(BuildOperationProgressEventEmitter), TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
+        DeprecationLogger.init(WarningMode.All, Mock(BuildOperationProgressEventEmitter), TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream(), new TestUserCodeApplicationContext())
     }
 
     def "can create an attribute of scalar type #type"() {

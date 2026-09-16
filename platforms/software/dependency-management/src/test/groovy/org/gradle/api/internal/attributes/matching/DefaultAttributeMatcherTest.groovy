@@ -27,6 +27,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
+import org.gradle.internal.code.TestUserCodeApplicationContext
 import org.gradle.internal.deprecation.DeprecationLogger
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
@@ -56,7 +57,7 @@ class DefaultAttributeMatcherTest extends Specification {
     def setup() {
         def diagnosticsFactory = new NoOpProblemDiagnosticsFactory()
         DeprecationLogger.reset()
-        DeprecationLogger.init(WarningMode.All, Mock(BuildOperationProgressEventEmitter), TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream())
+        DeprecationLogger.init(WarningMode.All, Mock(BuildOperationProgressEventEmitter), TestUtil.problemsService(), diagnosticsFactory.newUnlimitedStream(), new TestUserCodeApplicationContext())
     }
 
     def "selects candidate with same set of attributes and whose values match"() {
