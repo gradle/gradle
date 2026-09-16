@@ -40,6 +40,9 @@ import org.gradle.api.Incubating;
  * any other name creates a new group. The name {@code Undefined} is reserved for the synthetic {@code Undefined} groups.
  * <p>
  * Not intended for implementation outside of Gradle. New members may be added in future versions.
+ * <p>
+ * The hierarchy and the descriptions below are also listed in the "Predefined problem groups" section of the user guide
+ * ({@code reporting_problems.adoc}); update that table whenever a predefined group or a description changes.
  *
  * @see Problems#getGroups()
  * @since 9.9.0
