@@ -17,17 +17,19 @@
 package org.gradle.internal.problems;
 
 import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.internal.ProblemGroupInternal;
+import org.gradle.api.problems.internal.ProblemGroupSupport;
 import org.gradle.api.problems.internal.ProblemInternal;
 
 public class ProblemUtils {
 
     public static boolean isInGroup(ProblemInternal problem, ProblemGroup targetGroup) {
-        ProblemGroup group = problem.getDefinition().getId().getGroup();
+        ProblemGroupInternal group = ProblemGroupSupport.asInternal(problem.getDefinition().getId().getGroup());
         while (group != null) {
             if (group.equals(targetGroup)) {
                 return true;
             }
-            group = group.getParent();
+            group = group.getParentInternal();
         }
         return false;
     }
