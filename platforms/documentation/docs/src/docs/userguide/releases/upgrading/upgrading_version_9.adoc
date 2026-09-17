@@ -167,6 +167,18 @@ Setting any of them, to any value, emits a deprecation warning.
 Use the <<configuration_cache_debugging.adoc#config_cache:troubleshooting, Configuration Cache report>> to identify the offending build logic.
 See <<configuration_cache_enabling.adoc#config_cache:usage:input_opt_outs, Temporary Opt-Outs for Configuration Cache Behavior>> in the Gradle User Manual for the details of each property.
 
+[[required_input_files_absent_nested_providers]]
+==== Required input file collections reject absent providers nested in collections
+
+Required task input file properties now fail validation when a provider nested in an ordinary collection or object array has no value.
+This applies to `TaskInputs.files(...)` declarations and to required `@InputFiles` properties returning those values.
+
+Previously, `inputs.files([provider])` silently ignored an absent provider, while `inputs.files(provider)` failed.
+Both now fail in the same way.
+Provide a value for every required provider, pass an explicitly empty collection when that represents a valid input, or declare the input optional with `optional()` or `@Optional`.
+
+Existing handling of `FileCollection` and `DomainObjectCollection` values is preserved.
+
 [[changes_9.8.0]]
 == Upgrading from 9.7.0 and earlier
 
