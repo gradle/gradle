@@ -23,10 +23,10 @@ import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
+import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.Path
 import java.nio.file.StandardCopyOption.ATOMIC_MOVE
-import java.nio.file.StandardCopyOption.REPLACE_EXISTING
 
 
 /**
@@ -47,7 +47,8 @@ import java.nio.file.StandardCopyOption.REPLACE_EXISTING
  *
  * Both files are immutable and content-addressed, so this cache needs no per-key locking: they
  * publish via atomic rename, producing identical bytes from any writer with no half-written file
- * ever seen. The store's LRU cleanup reclaims the two files independently, matching their access
+ * ever seen, and a writer that loses the race simply keeps the file already published (see
+ * [publish]). The store's LRU cleanup reclaims the two files independently, matching their access
  * frequencies — the abi file stays hot (avoidance reads it every build) while an untouched snapshot
  * ages out. Each lookup marks its file accessed and regenerates it if cleanup already removed it. If
  * a snapshot is reclaimed between [snapshotFileFor] returning and BTA reading it, incremental
@@ -114,7 +115,7 @@ internal class KotlinDslClasspathEntrySnapshotCache(
         val tmp = Files.createTempFile(snapshotsCacheDirectory, "$contentHash.", ".snapshot.tmp")
         return try {
             val abiHash = generate(tmp)
-            Files.move(tmp, snapshotFile(contentHash), REPLACE_EXISTING, ATOMIC_MOVE)
+            publish(tmp, snapshotFile(contentHash))
             abiHash
         } finally {
             Files.deleteIfExists(tmp)
@@ -125,9 +126,22 @@ internal class KotlinDslClasspathEntrySnapshotCache(
         val tmp = Files.createTempFile(snapshotsCacheDirectory, "$contentHash.", ".abi.tmp")
         try {
             Files.write(tmp, abiHash.toByteArray())
-            Files.move(tmp, abiFile(contentHash), REPLACE_EXISTING, ATOMIC_MOVE)
+            publish(tmp, abiFile(contentHash))
         } finally {
             Files.deleteIfExists(tmp)
+        }
+    }
+
+    private fun publish(tmp: Path, target: Path) {
+        try {
+            Files.move(tmp, target, ATOMIC_MOVE)
+        } catch (e: IOException) {
+            // Windows refuses to rename over a file another thread or process has open. The target is named
+            // after the classpath entry's content hash and only appears via atomic rename, so an existing one
+            // is complete and holds the same bytes we tried to publish.
+            if (!Files.exists(target)) {
+                throw e
+            }
         }
     }
 
