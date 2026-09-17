@@ -2398,7 +2398,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
             assert !finalizedPlan.allExecutionComplete()
             def nextNode = selection.item
             if (nextNode instanceof LocalTaskNode && nextNode.task instanceof Async) {
-                nextNode.projectToLock.unlock()
+                nextNode.resourceToLock.unlock()
             }
             result = nextNode
         }
