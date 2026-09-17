@@ -16,7 +16,6 @@
 
 package org.gradle.internal.problems
 
-import com.google.common.base.Supplier
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.problems.failure.DefaultFailureFactory
@@ -52,18 +51,16 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
 
     def "uses caller provided exception factory to calculate problem location"() {
         given:
-        def exception = new Exception()
-        def supplier = Stub(Supplier) {
-            get() >> exception
-        }
         def location = Stub(Location)
+        def exception = new Exception()
+        def exceptionCreator = { exception } as ProblemStream.ExceptionCreator
         def stream = factory.newStream()
 
         when:
-        def diagnostics = stream.forCurrentCaller(supplier)
+        def diagnostics = stream.forCurrentCallerWithException(exceptionCreator)
 
         then:
-        diagnostics.exception == exception
+        diagnostics.exception.is(exception)
         diagnostics.stack == exception.stackTrace.toList()
         diagnostics.location == location
 
@@ -76,9 +73,6 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
     def "does not populate stack traces after limit has been reached"() {
         def transformer = Stub(ProblemStream.StackTraceTransformer) {
             transform(_) >> { StackTraceElement[] original -> original.toList() }
-        }
-        def supplier = Stub(Supplier) {
-            get() >> { throw new Exception() }
         }
         def stream = factory.newStream()
 
@@ -99,7 +93,7 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         diagnostics4.exception == null
         diagnostics4.stack.empty
 
-        def diagnostics5 = stream.forCurrentCaller(supplier)
+        def diagnostics5 = stream.forCurrentCallerWithException({ new Exception() } as ProblemStream.ExceptionCreator)
         diagnostics5.exception == null
         diagnostics5.stack.empty
     }
@@ -158,7 +152,7 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         stream.forCurrentCaller().stack.empty
 
         def failure1 = new Exception("broken")
-        def diagnostics1 = stream.forCurrentCaller(failure1)
+        def diagnostics1 = stream.forThrownException(failure1)
         diagnostics1.exception == failure1
         !diagnostics1.stack.empty
 
