@@ -61,22 +61,22 @@ Use this as a quick reference to track newly added recommendations, check adopti
 | <<best_practices_structuring_builds.adoc#avoid_empty_projects,Avoid Unintentionally Creating Empty Projects>> | Structuring Builds | 9.1.0
 | <<best_practices_structuring_builds.adoc#use_convention_plugins,Use Convention Plugins for Common Build Logic>> | Structuring Builds | 9.3.0
 
-| <<best_practices_dependencies.adoc#single-gav-string,Declare Dependencies using a single GAV (`group:artifact:version`) String>> | Dependencies | 8.14
 | <<best_practices_dependencies.adoc#use_version_catalogs,Use Version Catalogs to Centralize Dependency Versions>> | Dependencies | 9.0.0
 | <<best_practices_dependencies.adoc#name_version_catalog_entries,Name Version Catalog Entries Appropriately>> | Dependencies | 9.0.0
 | <<best_practices_dependencies.adoc#set_up_repositories_in_settings,Set up your Dependency Repositories in the Settings file>> | Dependencies | 9.0.0
 | <<best_practices_dependencies.adoc#dont_depend_on_kotlin_stdlib,Don't Explicitly Depend on the Kotlin Standard Library>> | Dependencies | 9.0.0
 | <<best_practices_dependencies.adoc#avoid_duplicate_dependencies,Avoid Redundant Dependency Declarations>> | Dependencies | 9.0.0
+| <<best_practices_dependencies.adoc#single-gav-string,Declare Dependencies using a single GAV (`group:artifact:version`) String>> | Dependencies | 8.14
 | <<best_practices_dependencies.adoc#use_content_filtering,Use Content Filtering with multiple Repositories>> | Dependencies | 9.1.0
 | <<best_practices_dependencies.adoc#apply_exclusions_narrowly,Apply Exclusions Narrowly>> | Dependencies | 9.2.0
 | <<best_practices_dependencies.adoc#use_attributes_on_configurations,Always Declare Attributes on Consumable and Resolvable Configurations>> | Dependencies | 9.7.0
 
 | <<best_practices_tasks.adoc#avoid_depends_on,Avoid DependsOn>> | Task | 8.14
 | <<best_practices_tasks.adoc#use_cacheability_annotations,Favor `@CacheableTask` and `@DisableCachingByDefault` over `cacheIf(Spec)` and `doNotCacheIf(String, Spec)`>> | Task | 8.14
-| <<best_practices_tasks.adoc#group_describe_tasks,Group and Describe custom Tasks>> | Task | 9.0.0
 | <<best_practices_tasks.adoc#avoid_provider_get_outside_task_action,Do not call `get()` on a Provider outside a Task action>> | Task | 9.1.0
-| <<best_practices_tasks.adoc#dont_resolve_configurations_before_task_execution,Don't resolve Configurations before Task Execution>> | Task | 9.1.0
+| <<best_practices_tasks.adoc#group_describe_tasks,Group and Describe custom Tasks>> | Task | 9.0.0
 | <<best_practices_tasks.adoc#avoid_eager_file_collection_apis,Avoid using eager APIs on File Collections>> | Task | 9.1.0
+| <<best_practices_tasks.adoc#dont_resolve_configurations_before_task_execution,Don't resolve Configurations before Task Execution>> | Task | 9.1.0
 | <<best_practices_tasks.adoc#default_path_sensitivities,Use `@PathSensitivity.NONE` for file inputs and `@PathSensitivity.RELATIVE` for directories>> | Task | 9.2.0
 | <<best_practices_tasks.adoc#use_unique_output_files_and_directories,Use unique output files and directories>> | Task | 9.3.0
 | <<best_practices_tasks.adoc#dont_hardcode_task_names,Don't hardcode Task names unless they are documented as Public API>> | Task | 9.7.0
@@ -84,11 +84,11 @@ Use this as a quick reference to track newly added recommendations, check adopti
 | <<best_practices_tasks.adoc#map_versus_flatmap,Wire lazy task outputs using `map` and `flatMap`>> | Task | 9.7.0
 | <<best_practices_tasks.adoc#favor_collection_properties,Favor collection property types over a `Property` holding a collection>> | Task | 9.8.0
 
+| <<best_practices_performance.adoc#prefer_bin_distribution,Prefer the `-bin` Gradle Distribution>> | Performance | 9.4.0
 | <<best_practices_performance.adoc#use_utf8_encoding,Use UTF-8 File Encoding>> | Performance | 9.0.0
 | <<best_practices_performance.adoc#use_build_cache,Use the Build Cache>> | Performance | 9.1.0
 | <<best_practices_performance.adoc#use_configuration_cache,Use the Configuration Cache>> | Performance | 9.1.0
 | <<best_practices_performance.adoc#avoid_computations_in_configuration_phase,Avoid Expensive Computations in Configuration Phase>> | Performance | 9.0.0
-| <<best_practices_performance.adoc#prefer_bin_distribution,Prefer the `-bin` Gradle Distribution>> | Performance | 9.4.0
 
 | <<best_practices_security.adoc#validate_gradle_checksum,Validate the Gradle Distribution SHA-256 Checksum>> | Security | 9.1.0
 | <<best_practices_security.adoc#validate_wrapper_checksum,Validate the Gradle Wrapper on every Upgrade>> | Security | 9.3.0
