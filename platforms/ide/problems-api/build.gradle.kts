@@ -74,3 +74,7 @@ jvmCompile {
         }
     }
 }
+
+errorprone {
+    nullawayEnabled = true
+}

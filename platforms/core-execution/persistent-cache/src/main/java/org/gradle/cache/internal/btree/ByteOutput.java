@@ -18,6 +18,7 @@ package org.gradle.cache.internal.btree;
 
 import com.google.common.io.CountingOutputStream;
 import org.gradle.internal.file.RandomAccessFileOutputStream;
+import org.jspecify.annotations.Nullable;
 
 import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
@@ -25,13 +26,15 @@ import java.io.IOException;
 import java.io.OutputStream;
 import java.io.RandomAccessFile;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * Allows a stream of bytes to be written to a particular location of some backing byte stream.
  */
 class ByteOutput {
     private final RandomAccessFile file;
     private final ResettableBufferedOutputStream bufferedOutputStream;
-    private CountingOutputStream countingOutputStream;
+    private @Nullable CountingOutputStream countingOutputStream;
 
     public ByteOutput(RandomAccessFile file) {
         this.file = file;
@@ -52,14 +55,14 @@ class ByteOutput {
      * Returns the number of byte written since {@link #start(long)} was called.
      */
     public long getBytesWritten() {
-        return countingOutputStream.getCount();
+        return requireNonNull(countingOutputStream, "Writing has not been started").getCount();
     }
 
     /**
      * Finishes writing, flushing and resetting any buffered state
      */
     public void done() throws IOException {
-        countingOutputStream.flush();
+        requireNonNull(countingOutputStream, "Writing has not been started").flush();
         countingOutputStream = null;
     }
 

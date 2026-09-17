@@ -17,10 +17,12 @@
 package org.gradle.internal.dispatch;
 
 import org.gradle.internal.concurrent.Stoppable;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 
 public class ExceptionTrackingFailureHandler implements DispatchFailureHandler<Object>, Stoppable {
     private final Logger logger;
+    @Nullable
     private DispatchException failure;
 
     public ExceptionTrackingFailureHandler(Logger logger) {

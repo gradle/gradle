@@ -21,6 +21,8 @@ import org.gradle.cli.ParsedCommandLine;
 
 import java.util.Map;
 
+import static java.util.Objects.requireNonNull;
+
 /**
  * A build option that takes a string value e.g. {@code "--max-workers=4"}.
  *
@@ -41,7 +43,7 @@ public abstract class StringBuildOption<T> extends AbstractBuildOption<T, Comman
         String value = properties.get(property);
 
         if (value != null) {
-            applyTo(value, settings, Origin.forGradleProperty(property));
+            applyTo(value, settings, Origin.forGradleProperty(requireNonNull(property)));
         }
     }
 
