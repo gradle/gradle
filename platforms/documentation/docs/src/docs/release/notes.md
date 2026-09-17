@@ -120,32 +120,6 @@ Problems raised from threads without a current build operation are now captured 
 
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
-#### Look up Gradle services from scripts and task actions
-
-Build, settings, and init scripts, as well as task actions, can now [look up commonly used Gradle services](userguide/service_injection.html#looking_up_services) directly, without declaring an `@Inject` point or going through the `objects.newInstance(...)` ceremony:
-
-```kotlin
-tasks.register("cleanReports") {
-    val fs = service<FileSystemOperations>()
-    doLast {
-        fs.delete { delete("build/reports") }
-    }
-}
-```
-
-Use `service(Class)` in the Groovy DSL or `service<Type>()` in the Kotlin DSL. It is compatible with the Configuration Cache and Isolated Projects.
-
-Available services by scope:
-
-| Service                                                                         | Available in       |
-|---------------------------------------------------------------------------------|--------------------|
-| `ObjectFactory`, `ProviderFactory`, `FileSystemOperations`, `ArchiveOperations` | Every scope        |
-| `ProjectLayout`                                                                 | Projects and tasks |
-| `BuildLayout`                                                                   | Settings           |
-| `ExecOperations`                                                                | Task actions       |
-
-See the [Looking up services in scripts](userguide/service_injection.html#looking_up_services) section in the Gradle User Manual for more details.
-
 #### Lazy destination directory for `Copy` and `Sync`
 
 The [`Copy`](dsl/org.gradle.api.tasks.Copy.html) and [`Sync`](dsl/org.gradle.api.tasks.Sync.html) tasks only exposed the destination as `destinationDir`, a plain `File` property, so a destination derived from a provider had to be resolved eagerly at [configuration time](userguide/build_lifecycle.html). Both tasks now expose a `destinationDirectory` [`DirectoryProperty`](javadoc/org/gradle/api/file/DirectoryProperty.html):
