@@ -17,7 +17,6 @@
 package org.gradle.api.internal.tasks.properties;
 
 import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.problems.ProblemSpec;
@@ -50,8 +49,9 @@ public enum ValidationActions implements ValidationAction {
     REQUIRED_INPUT_FILES("file collection") {
         @Override
         public void doValidate(String propertyName, Object value, PropertyValidationContext context) {
-            if (hasNestedAbsentProvider(value)) {
-                AbstractValidatingProperty.reportValueNotSet(propertyName, context, true);
+            Provider<?> absentProvider = findNestedAbsentProvider(value);
+            if (absentProvider != null) {
+                AbstractValidatingProperty.reportValueNotSet(propertyName, context, AbstractValidatingProperty.hasConfigurableValue(absentProvider));
             }
         }
 
@@ -156,33 +156,13 @@ public enum ValidationActions implements ValidationAction {
         }
     }
 
-    private static boolean hasNestedAbsentProvider(@Nullable Object value) {
-        if (value instanceof DomainObjectCollection) {
-            // DomainObjectCollection is live and can realize or mutate elements when iterated.
-            return false;
-        }
-        if (value instanceof Collection) {
-            for (Object element : (Collection<?>) value) {
-                if (hasAbsentProvider(element)) {
-                    return true;
-                }
-            }
-        } else if (value instanceof Object[]) {
-            for (Object element : (Object[]) value) {
-                if (hasAbsentProvider(element)) {
-                    return true;
-                }
+    private static @Nullable Provider<?> findNestedAbsentProvider(@Nullable Object value) {
+        for (Provider<?> provider : FileParameterUtils.findNestedProviders(value)) {
+            if (!provider.isPresent()) {
+                return provider;
             }
         }
-        return false;
-    }
-
-    private static boolean hasAbsentProvider(@Nullable Object value) {
-        if (value instanceof Provider) {
-            return !((Provider<?>) value).isPresent();
-        }
-        // Leave arbitrary Iterable and deferred values to normal file resolution so they are not consumed here.
-        return hasNestedAbsentProvider(value);
+        return null;
     }
 
     public static ValidationAction outputValidationActionFor(OutputFilePropertySpec spec) {
@@ -318,8 +298,9 @@ public enum ValidationActions implements ValidationAction {
 
     @Override
     public void validate(String propertyName, Supplier<Object> value, PropertyValidationContext context) {
-        Object resolvedValue = DeferredUtil.unpack(value.get());
+        Object resolvedValue = value.get();
         try {
+            resolvedValue = DeferredUtil.unpack(resolvedValue);
             doValidate(propertyName, resolvedValue, context);
         } catch (UnsupportedNotationException unsupportedNotationException) {
             reportUnsupportedValue(propertyName, context, targetType, resolvedValue, unsupportedNotationException.getCandidates());

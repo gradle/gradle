@@ -16,7 +16,6 @@
 
 package org.gradle.internal.serialize.codecs.core
 
-import org.gradle.api.DomainObjectCollection
 import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
 import org.gradle.api.internal.GeneratedSubclasses
@@ -25,11 +24,13 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.provider.MergeProvider
+import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
+import org.gradle.api.internal.tasks.properties.FileParameterUtils
+import org.gradle.api.provider.HasConfigurableValue
 import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.TaskProvider
@@ -392,7 +393,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
                     // Keep nested provider presence available after the file value is serialized as a FileCollection.
                     val validationProviders =
                         if (filePropertyType == InputFilePropertyType.FILES && !optional) {
-                            collectNestedInputFileProviders(value)
+                            FileParameterUtils.findNestedProviders(value)
                         } else {
                             emptyList()
                         }
@@ -592,7 +593,7 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                                 if (validationProviders.isEmpty()) {
                                     files(value)
                                 } else {
-                                    files(value, requiredInputFilesValidationProvider(validationProviders))
+                                    files(value, requiredInputFilesValidationProviders(validationProviders))
                                 }
                             }
                         }
@@ -617,30 +618,16 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
 
 
 private
-fun collectNestedInputFileProviders(value: Any?): List<Provider<*>> {
-    val providers = mutableListOf<Provider<*>>()
-
-    fun collect(value: Any?, nested: Boolean) {
-        when {
-            nested && value is TaskProvider<*> -> Unit
-            nested && value is Provider<*> -> providers.add(value)
-            value is DomainObjectCollection<*> -> Unit
-            value is Collection<*> -> value.forEach { collect(it, true) }
-            value is Array<*> -> value.forEach { collect(it, true) }
+fun ReadContext.requiredInputFilesValidationProviders(providers: List<Provider<*>>): List<Provider<*>> =
+    providers.map { provider ->
+        // Keep the presence check of each provider, and preserve whether its solution can be configured directly.
+        val presence = Providers.memoizing(Providers.internal(provider.map { emptyList<Any>() }))
+        if (provider is HasConfigurableValue) {
+            isolate.owner.serviceOf<PropertyFactory>().property(Any::class.java).apply { set(presence) }
+        } else {
+            presence
         }
     }
-
-    collect(value, false)
-    return providers
-}
-
-
-private
-fun requiredInputFilesValidationProvider(providers: List<Provider<*>>): Provider<*> {
-    val merged = MergeProvider<Any>(providers.uncheckedCast<List<Provider<Any>>>())
-    val presence = Providers.internal(merged.map { emptyList<Any>() })
-    return Providers.memoizing(presence)
-}
 
 
 private

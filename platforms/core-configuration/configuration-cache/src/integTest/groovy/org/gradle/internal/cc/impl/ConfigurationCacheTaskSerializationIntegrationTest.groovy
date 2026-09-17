@@ -547,7 +547,7 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
 
         buildFile """
             tasks.register("myTask") {
-                inputs.files([objects.fileProperty()]).withPropertyName("inputProp")
+                inputs.files($sources).withPropertyName("inputProp")
                 doLast {}
             }
         """
@@ -558,7 +558,7 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         then:
         configurationCache.assertStateStored()
         failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'DefaultTask').")
-        assertInputPropValueNotSetProblem()
+        assertInputPropValueNotSetProblem(configurable)
 
         when:
         configurationCacheFails "myTask"
@@ -566,7 +566,14 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         then:
         configurationCache.assertStateLoaded()
         failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'DefaultTask').")
-        assertInputPropValueNotSetProblem()
+        assertInputPropValueNotSetProblem(configurable)
+
+        where:
+        sources                                                 | configurable
+        '[objects.fileProperty()]'                              | true
+        '[providers.provider { null }]'                         | false
+        '[providers.provider { null }, objects.fileProperty()]' | false
+        '[objects.fileProperty(), providers.provider { null }]' | true
     }
 
     @Issue("https://github.com/gradle/gradle/issues/38410")
@@ -578,7 +585,7 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
             sources.add(objects.fileProperty())
 
             tasks.register("myTask") {
-                inputs.files(sources).withPropertyName("inputProp")
+                inputs.files($input).withPropertyName("inputProp")
                 doLast {}
             }
         """
@@ -602,6 +609,9 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         then:
         configurationCache.assertStateLoaded()
         executedAndNotSkipped(":myTask")
+
+        where:
+        input << ['sources', '[sources]']
     }
 
     @Issue("https://github.com/gradle/gradle/issues/33318")
@@ -768,12 +778,18 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         }
     }
 
-    private void assertInputPropValueNotSetProblem() {
+    private void assertInputPropValueNotSetProblem(boolean configurable) {
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
             fqid == 'validation:property-validation:value-not-set'
             definition.id.displayName == 'Value not set'
             contextualLabel == "Property 'inputProp' doesn't have a configured value"
+            solutions == [
+                configurable
+                    ? "Assign a value to 'inputProp'"
+                    : "The value of 'inputProp' is calculated, make sure a valid value can be calculated",
+                "Mark property 'inputProp' as optional"
+            ]
         }
     }
 }
