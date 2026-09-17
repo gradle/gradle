@@ -193,6 +193,33 @@ When a `withXml` action is registered, task input tracking remains disabled, as 
 
 See the [Generate POM task](userguide/publishing_maven.html#publishing_maven:generate-pom) section in the Gradle User Manual for more details.
 
+#### Declaring plugin compatibility with Isolated Projects on the Plugin Portal
+
+The [Plugin Publish Plugin](https://plugins.gradle.org/plugin/com.gradle.plugin-publish) now allows plugin authors to declare support for [Isolated Projects](userguide/isolated_projects.html) using the `compatibility { features { ... } }` block:
+
+```kotlin
+gradlePlugin {
+    plugins {
+        create("myPlugin") {
+            id = "io.github.my.plugin"
+            // ...
+            compatibility {
+                features {
+                    isolatedProjects = true
+                    configurationCache = true
+                }
+            }
+        }
+    }
+}
+```
+
+Declaring compatibility with Gradle features can surface badges on the [Plugin Portal](https://plugins.gradle.org/) and improve your plugin's search ranking.
+
+Publishing a plugin without a compatibility declaration is deprecated as of `com.gradle.plugin-publish` 2.2.1 and produces a warning.
+
+See the [Declaring compatibility with Gradle features](userguide/publishing_gradle_plugins.html#declaring_feature_compatibility) section in the Gradle User Manual for more details.
+
 ### Performance improvements
 
 Gradle continues to reduce build times and memory usage across the daemon, configuration, and execution phases.
