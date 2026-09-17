@@ -180,4 +180,4 @@ You can find more information in the <<test_kit.adoc#test_kit,Gradle TestKit doc
 
 === Tags
 
-<<tags_reference.adoc#tag:plugins,`#plugins`>>, <<tags_reference.adoc#tag:testing,`#testing`>>
+`<<tags_reference.adoc#tag:plugins,#plugins>>`, `<<tags_reference.adoc#tag:testing,#testing>>`

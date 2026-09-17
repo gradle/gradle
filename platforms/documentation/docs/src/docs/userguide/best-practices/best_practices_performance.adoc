@@ -71,7 +71,7 @@ distributionUrl=https\://services.gradle.org/distributions/gradle-<version>-bin.
 
 === Tags
 
-<<tags_reference.adoc#tag:upgrades,`#upgrades`>>, <<tags_reference.adoc#tag:wrapper,`#wrapper`>>
+`<<tags_reference.adoc#tag:upgrades,#upgrades>>`, `<<tags_reference.adoc#tag:wrapper,#wrapper>>`
 
 [[use_utf8_encoding]]
 == Use UTF-8 File Encoding
