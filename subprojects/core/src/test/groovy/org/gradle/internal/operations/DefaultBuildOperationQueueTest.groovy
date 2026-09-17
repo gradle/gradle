@@ -96,6 +96,31 @@ class DefaultBuildOperationQueueTest extends Specification {
         operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), newUnconstrainedExecutor(unconstrainedPool), new SimpleWorker(), null)
     }
 
+    void setupQueueThatUnblocksWorkersOnceMainThreadBlocks(
+        CountDownLatch releaseLatch,
+        int threads,
+        int maxWorkers = threads,
+        int maxUnconstrainedWorkers = threads * 2,
+        ExecutorService backingPool = Executors.newCachedThreadPool()
+    ) {
+        def mainThread = Thread.currentThread()
+        coordinationService = new DefaultResourceLockCoordinationService()
+        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(threads), ResourceLockStatistics.NO_OP) {
+            @Override
+            void blocking(Runnable action) {
+                if (Thread.currentThread() === mainThread) {
+                    releaseLatch.countDown()
+                }
+                super.blocking(action)
+            }
+        }
+        workerRegistry.startProjectExecution(true)
+        lease = workerRegistry.startWorker()
+        backingExecutor = backingPool
+        workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, maxWorkers, maxUnconstrainedWorkers)
+        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), newUnconstrainedExecutor(), new SimpleWorker(), null)
+    }
+
     /**
      * A pool for unconstrained work, mirroring how DefaultBuildOperationExecutor wires one up.
      * Deliberately independent of the worker leases.
@@ -574,27 +599,11 @@ class DefaultBuildOperationQueueTest extends Specification {
 
     def "in-flight operation can add further operations after waitForCompletion has started"() {
         given:
-        def mainThread = Thread.currentThread()
         def startedLatch = new CountDownLatch(1)
         def releaseLatch = new CountDownLatch(1)
         def childRuns = new AtomicInteger()
         def grandchildRuns = new AtomicInteger()
-
-        coordinationService = new DefaultResourceLockCoordinationService()
-        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(2), ResourceLockStatistics.NO_OP) {
-            @Override
-            void blocking(Runnable action) {
-                if (Thread.currentThread() === mainThread) {
-                    releaseLatch.countDown()
-                }
-                super.blocking(action)
-            }
-        }
-        workerRegistry.startProjectExecution(true)
-        lease = workerRegistry.startWorker()
-        backingExecutor = Executors.newCachedThreadPool()
-        workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 2, 4)
-        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), newUnconstrainedExecutor(), new SimpleWorker(), null)
+        setupQueueThatUnblocksWorkersOnceMainThreadBlocks(releaseLatch, 2)
 
         when:
         operationQueue.add(operation {
@@ -622,22 +631,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         def releaseLatch = new CountDownLatch(1)
         def childDone = new CountDownLatch(1)
         def childThread = new AtomicReference<Thread>()
-
-        coordinationService = new DefaultResourceLockCoordinationService()
-        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(2), ResourceLockStatistics.NO_OP) {
-            @Override
-            void blocking(Runnable action) {
-                if (Thread.currentThread() === mainThread) {
-                    releaseLatch.countDown()
-                }
-                super.blocking(action)
-            }
-        }
-        workerRegistry.startProjectExecution(true)
-        lease = workerRegistry.startWorker()
-        backingExecutor = Executors.newFixedThreadPool(1)
-        workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 1, 2)
-        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), newUnconstrainedExecutor(), new SimpleWorker(), null)
+        setupQueueThatUnblocksWorkersOnceMainThreadBlocks(releaseLatch, 2, 1, 2, Executors.newFixedThreadPool(1))
 
         when:
         operationQueue.add(operation {
@@ -662,22 +656,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         def startedLatch = new CountDownLatch(1)
         def releaseLatch = new CountDownLatch(1)
         def childThread = new AtomicReference<Thread>()
-
-        coordinationService = new DefaultResourceLockCoordinationService()
-        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(1), ResourceLockStatistics.NO_OP) {
-            @Override
-            void blocking(Runnable action) {
-                if (Thread.currentThread() === mainThread) {
-                    releaseLatch.countDown()
-                }
-                super.blocking(action)
-            }
-        }
-        workerRegistry.startProjectExecution(true)
-        lease = workerRegistry.startWorker()
-        backingExecutor = Executors.newCachedThreadPool()
-        workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 0, 0)
-        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), newUnconstrainedExecutor(), new SimpleWorker(), null)
+        setupQueueThatUnblocksWorkersOnceMainThreadBlocks(releaseLatch, 1, 0, 0)
 
         when:
         operationQueue.addUnconstrained(operation {
@@ -696,28 +675,12 @@ class DefaultBuildOperationQueueTest extends Specification {
 
     def "a thread that is not running an operation can add operations while work is still outstanding after waitForCompletion has started"() {
         given:
-        def mainThread = Thread.currentThread()
         def startedLatch = new CountDownLatch(1)
         def releaseLatch = new CountDownLatch(1)
         def outsiderDone = new CountDownLatch(1)
         def outsiderFailure = new AtomicReference<Throwable>()
         def childRuns = new AtomicInteger()
-
-        coordinationService = new DefaultResourceLockCoordinationService()
-        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(2), ResourceLockStatistics.NO_OP) {
-            @Override
-            void blocking(Runnable action) {
-                if (Thread.currentThread() === mainThread) {
-                    releaseLatch.countDown()
-                }
-                super.blocking(action)
-            }
-        }
-        workerRegistry.startProjectExecution(true)
-        lease = workerRegistry.startWorker()
-        backingExecutor = Executors.newCachedThreadPool()
-        workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 2, 4)
-        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), newUnconstrainedExecutor(), new SimpleWorker(), null)
+        setupQueueThatUnblocksWorkersOnceMainThreadBlocks(releaseLatch, 2)
 
         when:
         operationQueue.add(operation {

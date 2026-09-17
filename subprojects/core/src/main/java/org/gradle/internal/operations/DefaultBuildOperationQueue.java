@@ -87,6 +87,28 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     }
 
     private void submit(T operation, Consumer<Runnable> enqueue) {
+        registerOperation();
+        try {
+            enqueue.accept(new OperationRunnable(operation));
+        } catch (Throwable t) {
+            // In the rare case that the operation is not accepted, unregister it so that waitForCompletion() does not wait forever.
+            lock.lock();
+            try {
+                outstandingOperations--;
+            } finally {
+                lock.unlock();
+            }
+            throw t;
+        }
+        lock.lock();
+        try {
+            waiterWorkStateChanged.signalAll();
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    private void registerOperation() {
         lock.lock();
         try {
             switch (status) {
@@ -104,14 +126,6 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
                     throw new AssertionError("Unknown queue status: " + status);
             }
             outstandingOperations++;
-            try {
-                enqueue.accept(new OperationRunnable(operation));
-            } catch (Throwable t) {
-                // Restore the count so that operation tracking is accurate.
-                operationFinished();
-                throw t;
-            }
-            waiterWorkStateChanged.signalAll();
         } finally {
             lock.unlock();
         }
@@ -120,10 +134,8 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
     private void operationFinished() {
         lock.lock();
         try {
-            if (outstandingOperations == 0) {
-                // This might happen if the queue does accept the runnable but also throws an exception.
-                // Just in case, we don't want to go negative and break the waitForCompletion() logic.
-                return;
+            if (outstandingOperations <= 0) {
+                throw new IllegalStateException("Some operation was unregistered more than once, or never registered.");
             }
             outstandingOperations--;
             if (outstandingOperations == 0) {
@@ -194,7 +206,9 @@ class DefaultBuildOperationQueue<T extends BuildOperation> implements BuildOpera
             // Only the constrained queue is drained: it can stall when every lease is held elsewhere,
             // and this thread has one to lend. See https://github.com/gradle/gradle/issues/37613
             // Unconstrained work cannot stall that way, and running it here would put it back under a lease.
-            constrainedQueue.processWorkUsingCurrentThreadUntilEmpty();
+            if (!constrainedQueue.isEmpty()) {
+                constrainedQueue.processWorkUsingCurrentThreadUntilEmpty();
+            }
             if (isComplete()) {
                 break;
             }

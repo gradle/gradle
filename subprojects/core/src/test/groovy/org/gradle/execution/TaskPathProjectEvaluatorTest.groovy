@@ -16,37 +16,16 @@
 
 package org.gradle.execution
 
-import org.gradle.api.Action
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.initialization.BuildCancellationToken
 import org.gradle.internal.buildoption.DefaultInternalOptions
-import org.gradle.internal.operations.BuildOperationExecutor
-import org.gradle.internal.operations.BuildOperationQueue
-import org.gradle.internal.operations.MultipleBuildOperationFailures
-import org.gradle.internal.operations.RunnableBuildOperation
+import org.gradle.internal.operations.TestBuildOperationExecutor
 import org.gradle.internal.work.WorkerLimits
 import spock.lang.Specification
 
 class TaskPathProjectEvaluatorTest extends Specification {
 
-    def buildOperationExecutor = Stub(BuildOperationExecutor) {
-        runAllWithAccessToProjectState(_) >> { Action<BuildOperationQueue<RunnableBuildOperation>> action ->
-            def failures = []
-            def queue = Stub(BuildOperationQueue) {
-                add(_) >> { RunnableBuildOperation operation ->
-                    try {
-                        operation.run(null)
-                    } catch (Throwable t) {
-                        failures.add(t)
-                    }
-                }
-            }
-            action.execute(queue)
-            if (!failures.empty) {
-                throw new MultipleBuildOperationFailures(failures, null)
-            }
-        }
-    }
+    def buildOperationExecutor = new TestBuildOperationExecutor()
     def workerLimits = Stub(WorkerLimits) {
         getMaxWorkerCount() >> 2
     }

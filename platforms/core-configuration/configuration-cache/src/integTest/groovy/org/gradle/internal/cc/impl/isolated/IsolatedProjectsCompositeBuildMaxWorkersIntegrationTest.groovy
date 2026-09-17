@@ -21,7 +21,7 @@ import spock.lang.Issue
 
 @Issue("https://github.com/gradle/gradle/issues/39040")
 @IntegrationTestTimeout(120)
-class IsolatedProjectsCompositeBuildConfigurationFreezeIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements CompositeBuildFixture {
+class IsolatedProjectsCompositeBuildMaxWorkersIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements CompositeBuildFixture {
 
     def "configuring a plugin build with subprojects from the root project does not freeze with two workers using the #scheduler scheduler"() {
         given:
