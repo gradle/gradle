@@ -259,7 +259,7 @@ $ gradlew :app:tasks --all
 include::{snippetsPath}/best-practices/groupTasks-avoid/tests/groupTasks.bad.out[]
 ----
 
-==== Do this Instead
+==== Do This Instead
 
 When defining custom tasks, always assign a clear `group` and `description`:
 
@@ -453,7 +453,7 @@ include::sample[dir="snippets/best-practices/preferPathSensitivityNone-avoid/gro
 <2> The `copy` task will move the _exact same_ `candidates.txt` to different destination directories, depending on if the `useAlternateInput` project property is set.
 <3> The `search` task is wired to use as input whatever the file the `copy` task moved to its `destinationDir`. Despite the contents of the file being the same, when enabling the `-PuseAlternateInput` after a successful build, the `search` task will be out-of-date due to its different directory, and the search will be rerun.
 
-==== Do this Instead
+==== Do This Instead
 
 ++++
 <div style="text-align: right;">

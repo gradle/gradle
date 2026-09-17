@@ -68,7 +68,7 @@ You should verify that:
 
 Running an unverified Wrapper risks executing untrusted code before any of your build’s safeguards run.
 
-==== Do this
+==== Do This
 
 If you use the link:https://github.com/marketplace/actions/build-with-gradle#the-setup-gradle-action[`setup-gradle` action] (version v4 or newer) for link:https://github.com/features/actions[GitHub Actions], Wrapper validation will be performed automatically.
 The action validates the checksum of every `gradle-wrapper.jar` in your repository and fails the build if it finds any unknown Wrapper JAR.
@@ -104,7 +104,7 @@ An unreviewed wrapper or build script could potentially access or modify files o
 NOTE: Opening an untrusted project in an IDE such as IntelliJ IDEA or Android Studio will typically trigger a Gradle sync automatically, which executes build logic.
 Review the project's wrapper and build scripts _before_ opening it in your IDE.
 
-==== Do this
+==== Do This
 
 ===== 1. Review the Build Scripts
 
