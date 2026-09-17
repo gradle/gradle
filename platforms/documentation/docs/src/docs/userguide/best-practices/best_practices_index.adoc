@@ -46,6 +46,7 @@ Use this as a quick reference to track newly added recommendations, check adopti
 | <<best_practices_general.adoc#use_kotlin_dsl,Use Kotlin DSL>> | General | 8.14
 | <<best_practices_general.adoc#use_latest_minor_versions,Use the Latest Minor Version of Gradle>> | General | 8.14
 | <<best_practices_general.adoc#use_the_plugins_block,Apply Plugins Using the plugins Block>> | General | 8.14
+| <<best_practices_general.adoc#dont_assume_plugin_order,Don’t Assume your Plugin is Applied after Another>> | General | 9.4.0
 | <<best_practices_general.adoc#do_not_use_internal_apis,Do Not Use Internal APIs>> | General | 8.14
 | <<best_practices_general.adoc#use_the_gradle_properties_file,Set build flags in gradle.properties>> | General | 9.0.0
 | <<best_practices_general.adoc#name_your_root_project,Name Your Root Project>> | General | 9.2.0
