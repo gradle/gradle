@@ -189,10 +189,12 @@ The following table lists the officially supported platforms for Gradle:
 | link:https://en.wikipedia.org/wiki/Windows_10[Windows 10] | `AMD64`
 | link:https://en.wikipedia.org/wiki/Windows_11[Windows 11] | `AMD64`, `AArch64`
 | link:https://ubuntu.com/[Ubuntu 22] | `AMD64`, `AArch64`
-| link:https://en.wikipedia.org/wiki/MacOS_version_history#Overview[macOS 13+] | `AMD64`, `AArch64`
+| link:https://en.wikipedia.org/wiki/MacOS_version_history#Overview[macOS 13+] | `AMD64`*, `AArch64`
 | link:https://alpinelinux.org/releases/[Alpine 3.20] | `AMD64`
 | link:https://en.wikipedia.org/wiki/CentOS_Stream[CentOS Stream 9] | `AMD64`
 |===
+
+{empty}* Gradle is not tested on macOS `AMD64` with Java 27 or newer.
 
 NOTE: Currently, all Gradle tests run with the default file-systems of the platform, i.e. `ext4` for Ubuntu, Amazon Linux and CentOS, `NTFS` for Windows, and `APFS` for macOS.
 
