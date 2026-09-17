@@ -77,7 +77,7 @@ If you use a different GitHub Actions setup, you can use the dedicated link:http
 
 === References
 
-- <</gradle_wrapper.adoc#configuring_checksum_verification,Gradle Wrapper checksum verification>>
+- <<gradle_wrapper.adoc#configuring_checksum_verification,Gradle Wrapper checksum verification>>
 - link:https://gradle.org/release-checksums[Gradle release checksums]
 
 === Tags

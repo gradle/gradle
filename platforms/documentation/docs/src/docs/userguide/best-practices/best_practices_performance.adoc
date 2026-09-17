@@ -67,7 +67,7 @@ distributionUrl=https\://services.gradle.org/distributions/gradle-<version>-bin.
 
 === References
 
-- <</gradle_wrapper.adoc#configuring_checksum_verification,Gradle Wrapper checksum verification>>
+- <<gradle_wrapper.adoc#configuring_checksum_verification,Gradle Wrapper checksum verification>>
 
 === Tags
 
