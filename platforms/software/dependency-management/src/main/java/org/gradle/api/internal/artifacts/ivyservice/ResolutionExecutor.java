@@ -38,6 +38,7 @@ import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingProvi
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyLockingState;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalModuleComponentResolverFactory;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverEnvironment;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactories;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ResolverProviderFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.LocalComponentRegistry;
@@ -451,10 +452,9 @@ public class ResolutionExecutor {
         }
         resolvers.add(projectDependencyResolver);
 
-        // TODO: We should reuse these resolvers for all resolutions instead of creating
-        // a new one each time we resolve a graph. This means we should not pass any
-        // state to `createResolvers` that is specific to this resolution.
-        resolvers.add(externalResolverFactory.createResolvers(
+        // The external resolvers are expensive to create, so the factory caches and reuses
+        // them across resolutions as long as the environment they were created for is equal.
+        resolvers.add(externalResolverFactory.createResolvers(new ResolverEnvironment(
             repositories,
             params.getComponentMetadataRules(),
             params.getVariantDerivationStrategy(),
@@ -462,7 +462,7 @@ public class ResolutionExecutor {
             params.isDependencyVerificationEnabled(),
             params.getCacheExpirationControl(),
             params.getRootComponent().getMetadata().getAttributesSchema()
-        ));
+        )));
 
         return new ComponentResolversChain(resolvers);
     }
