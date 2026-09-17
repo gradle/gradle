@@ -546,6 +546,9 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         enableProblemsApiCheck()
 
         buildFile """
+            def presentProvider = objects.fileProperty()
+            presentProvider.set(file("input.txt"))
+
             tasks.register("myTask") {
                 inputs.files($sources).withPropertyName("inputProp")
                 doLast {}
@@ -574,6 +577,46 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         '[providers.provider { null }]'                         | false
         '[providers.provider { null }, objects.fileProperty()]' | false
         '[objects.fileProperty(), providers.provider { null }]' | true
+        '[presentProvider, providers.provider { null }]'        | false
+        '[presentProvider, objects.fileProperty()]'             | true
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38410")
+    def "required TaskInputs.files keeps present providers in a list with and without configuration cache"() {
+        def configurationCache = newConfigurationCacheFixture()
+        file("input.txt").text = "input"
+
+        buildFile """
+            def presentProvider = objects.fileProperty()
+            presentProvider.set(file("input.txt"))
+
+            tasks.register("myTask") {
+                inputs.files([presentProvider]).withPropertyName("inputProp")
+                doLast {
+                    println("inputs = \${inputs.files.files*.name}")
+                }
+            }
+        """
+
+        when:
+        run "myTask"
+
+        then:
+        outputContains("inputs = [input.txt]")
+
+        when:
+        configurationCacheRun "myTask"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("inputs = [input.txt]")
+
+        when:
+        configurationCacheRun "myTask"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("inputs = [input.txt]")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/38410")
