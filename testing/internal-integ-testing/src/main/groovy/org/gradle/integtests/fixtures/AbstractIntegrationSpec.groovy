@@ -55,6 +55,7 @@ import org.opentest4j.AssertionFailedError
 import spock.lang.Specification
 
 import java.nio.file.Files
+import java.util.function.Predicate
 import java.util.regex.Pattern
 
 import static org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout.DEFAULT_TIMEOUT_SECONDS
@@ -856,6 +857,19 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         assert result != null: "Problem already validated"
         problems.set(index, null)
         return result
+    }
+
+    /**
+     * Returns the first received problem that matches the given criteria and marks it as validated.
+     * The validation should only verify the contextual attributes of the received problem, as the problem definition is checked at the end of each test (see {@see KnownProblemIds}).
+     * Fails if no problem matches the condition.
+     *
+     * @see #receivedProblem(int)
+     */
+    protected ReceivedProblem findReceivedProblem(Predicate<ReceivedProblem> criteria) {
+        def index = getReceivedProblems().findIndexOf { it && criteria.test(it) }
+        assert index >= 0: "No received problem matches the given criteria"
+        return receivedProblem(index)
     }
 
     /**

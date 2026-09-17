@@ -59,6 +59,7 @@ public interface ArtifactResolutionQuery {
      * Specifies the set of components to include in the result.
      *
      * @param componentIds The identifiers of the components to be queried.
+     * @since 2.0
      */
     ArtifactResolutionQuery forComponents(Iterable<? extends ComponentIdentifier> componentIds);
 
@@ -66,6 +67,7 @@ public interface ArtifactResolutionQuery {
      * Specifies the set of components to include in the result.
      *
      * @param componentIds The identifiers of the components to be queried.
+     * @since 2.0
      */
     ArtifactResolutionQuery forComponents(ComponentIdentifier... componentIds);
 
@@ -86,6 +88,7 @@ public interface ArtifactResolutionQuery {
      *
      * @param componentType The expected type of the component.
      * @param artifactTypes The artifacts to retrieve for the queried components.
+     * @since 2.0
      */
     @SuppressWarnings("unchecked")
     ArtifactResolutionQuery withArtifacts(Class<? extends Component> componentType, Class<? extends Artifact>... artifactTypes);
@@ -104,6 +107,7 @@ public interface ArtifactResolutionQuery {
     /**
      * Actually execute the query, returning a query result.
      * Note that {@link #withArtifacts(Class, Class[])} must be called before executing the query.
+     * @since 2.0
      */
     ArtifactResolutionResult execute();
 }

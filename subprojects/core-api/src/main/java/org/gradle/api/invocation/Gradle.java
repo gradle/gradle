@@ -45,6 +45,7 @@ import java.util.Collection;
  * Represents an invocation of Gradle.
  *
  * <p>You can obtain a {@code Gradle} instance by calling {@link Project#getGradle()}.</p>
+ * @since 0.8
  */
 @HasInternalProtocol
 // Public `Gradle` service shadowed at the project scope by the IP reporting wrapper
@@ -62,6 +63,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * Returns the current Gradle version.
      *
      * @return The Gradle version. Never returns null.
+     * @since 0.8
      */
     String getGradleVersion();
 
@@ -71,6 +73,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * This directory is used to cache downloaded resources, compiled build scripts and so on.
      *
      * @return The user home directory. Never returns null.
+     * @since 0.8
      */
     File getGradleUserHomeDir();
 
@@ -86,6 +89,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * <a href="https://docs.gradle.org/current/userguide/gradle_daemon.html" target="_top">User Manual</a>.
      *
      * @return The home directory. May return null.
+     * @since 0.8
      */
     @Nullable
     File getGradleHomeDir();
@@ -94,6 +98,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * Returns the parent build of this build, if any.
      *
      * @return The parent build. May return null.
+     * @since 0.9
      */
     @Nullable
     Gradle getParent();
@@ -103,6 +108,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      *
      * @return The root project. Never returns null.
      * @throws IllegalStateException When called before the root project is available.
+     * @since 0.8
      */
     @ForExternalUse
     Project getRootProject() throws IllegalStateException;
@@ -114,6 +120,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * is executed immediately. Otherwise, the action is executed when the root project becomes available.
      *
      * @param action The action to execute.
+     * @since 1.0
      */
     void rootProject(Action<? super Project> action);
 
@@ -124,6 +131,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * already available. It is also executed as subsequent projects are added to this build.
      *
      * @param action The action to execute.
+     * @since 1.0
      */
     void allprojects(Action<? super Project> action);
 
@@ -131,6 +139,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * Returns the {@link TaskExecutionGraph} for this build.
      *
      * @return The task graph. Never returns null.
+     * @since 0.8
      */
     TaskExecutionGraph getTaskGraph();
 
@@ -138,6 +147,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * Returns the {@link StartParameter} used to start this build.
      *
      * @return The start parameter. Never returns null.
+     * @since 0.8
      */
     StartParameter getStartParameter();
 
@@ -146,6 +156,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      *
      * @param listener The listener to add. Does nothing if this listener has already been added.
      * @return The added listener.
+     * @since 0.8
      */
     ProjectEvaluationListener addProjectEvaluationListener(ProjectEvaluationListener listener);
 
@@ -153,6 +164,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * Removes the given listener from this build.
      *
      * @param listener The listener to remove. Does nothing if this listener has not been added.
+     * @since 0.8
      */
     void removeProjectEvaluationListener(ProjectEvaluationListener listener);
 
@@ -169,6 +181,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * parameter.
      *
      * @param closure The closure to execute.
+     * @since 0.8
      */
     void beforeProject(Closure closure);
 
@@ -187,6 +200,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * is passed as the second parameter. Both parameters are optional.
      *
      * @param closure The closure to execute.
+     * @since 0.8
      */
     void afterProject(Closure closure);
 
@@ -221,6 +235,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * {@link org.gradle.api.initialization.Settings} object is passed to the closure as a parameter.
      *
      * @param closure The closure to execute.
+     * @since 0.9
      */
     void settingsEvaluated(Closure closure);
 
@@ -255,6 +270,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * </pre>
      *
      * @param closure The closure to execute.
+     * @since 0.9
      */
     void projectsLoaded(Closure closure);
 
@@ -275,6 +291,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * This {@code Gradle} instance is passed to the closure as a parameter.
      *
      * @param closure The closure to execute.
+     * @since 0.9
      */
     void projectsEvaluated(Closure closure);
 
@@ -297,6 +314,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * @param closure The closure to execute.
      * @see org.gradle.api.flow.FlowProviders#getBuildWorkResult()
      * @deprecated This method is not supported when configuration caching is enabled.
+     * @since 0.9
      */
     @Deprecated
     void buildFinished(Closure closure);
@@ -324,6 +342,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * methods of {@link BuildListener} for compatible replacements.
      *
      * @param buildListener The listener to add.
+     * @since 0.8
      */
     void addBuildListener(BuildListener buildListener);
 
@@ -348,6 +367,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * </ul>
      *
      * @param listener The listener to add. Does nothing if this listener has already been added.
+     * @since 0.8
      */
     void addListener(Object listener);
 
@@ -355,6 +375,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * Removes the given listener from this build.
      *
      * @param listener The listener to remove. Does nothing if this listener has not been added.
+     * @since 0.8
      */
     void removeListener(Object listener);
 
@@ -371,6 +392,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      *
      * @param logger The logger to use.
      * @deprecated Will be removed in Gradle 10. Logging customization through listeners is no longer supported.
+     * @since 0.9
      */
     @Deprecated
     void useLogger(Object logger);
@@ -384,6 +406,7 @@ public interface Gradle extends PluginAware, ExtensionAware {
      * may be hidden, such as, for example, from a method or closure.
      *
      * @return this. Never returns null.
+     * @since 0.8
      */
     Gradle getGradle();
 

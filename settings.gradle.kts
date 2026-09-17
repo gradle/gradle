@@ -57,6 +57,7 @@ val core = platform("core") {
         subproject("client-services")
         subproject("collections")
         subproject("concurrent")
+        subproject("daemon-main")
         subproject("daemon-messaging")
         subproject("daemon-protocol")
         subproject("daemon-services")
@@ -168,11 +169,12 @@ val core = platform("core") {
         subproject("normalization-api")
         subproject("normalization-java")
         subproject("persistent-cache")
-        subproject("worker-process-services")
         subproject("request-handler-worker")
         subproject("scoped-persistent-cache")
         subproject("snapshots")
         subproject("worker-main")
+        subproject("worker-process-services")
+        subproject("worker-shared")
         subproject("workers")
     }
 }
@@ -196,6 +198,7 @@ module("ide") {
     subproject("problems-api")
     subproject("problems-impl")
     subproject("problems-rendering")
+    subproject("problems-reporting")
     subproject("tooling-api")
     subproject("tooling-api-builders")
 }
@@ -215,8 +218,10 @@ val software = platform("software") {
     subproject("credentials")
     subproject("credentials-impl")
     subproject("dependency-management")
+    subproject("dependency-management-resources")
     subproject("plugins-distribution")
     subproject("distributions-publishing")
+    subproject("isolated-ant-builder")
     subproject("ivy")
     subproject("maven")
     subproject("platform-base")
@@ -325,7 +330,6 @@ testing {
     subproject("distributions-core")
     subproject("distributions-integ-tests")
     subproject("integ-test")
-    subproject("internal-architecture-testing")
     subproject("internal-distribution-testing")
     subproject("internal-integ-testing")
     subproject("internal-performance-testing")
@@ -345,4 +349,3 @@ FeaturePreviews.Feature.entries.forEach { feature ->
         enableFeaturePreview(feature.name)
     }
 }
-

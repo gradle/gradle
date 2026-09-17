@@ -21,6 +21,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Assembles a JAR archive.
+ * @since 0.7
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class Jar extends org.gradle.jvm.tasks.Jar {

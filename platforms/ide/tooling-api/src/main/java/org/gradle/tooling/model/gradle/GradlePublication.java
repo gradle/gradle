@@ -39,6 +39,7 @@ public interface GradlePublication extends ProjectModel {
      * Returns the unique identifier of the publication.
      *
      * @return the unique identifier of the publication
+     * @since 1.12
      */
     GradleModuleVersion getId();
 }

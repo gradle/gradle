@@ -38,9 +38,15 @@ import java.util.concurrent.Callable;
  *
  * @see ScalaBasePlugin
  * @see <a href="https://docs.gradle.org/current/userguide/scala_plugin.html">Scala plugin reference</a>
+ * @since 0.8
  */
 public abstract class ScalaPlugin implements Plugin<Project> {
 
+    /**
+     * The scala doc task name.
+     *
+     * @since 0.8
+     */
     public static final String SCALA_DOC_TASK_NAME = "scaladoc";
 
     @Override

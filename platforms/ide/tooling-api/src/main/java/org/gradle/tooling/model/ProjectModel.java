@@ -24,6 +24,7 @@ package org.gradle.tooling.model;
 public interface ProjectModel {
     /**
      * Returns the identifier for the project that this model is associated with.
+     * @since 3.0
      */
     ProjectIdentifier getProjectIdentifier();
 }

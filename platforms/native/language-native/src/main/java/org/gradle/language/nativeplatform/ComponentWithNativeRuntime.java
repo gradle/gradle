@@ -29,16 +29,19 @@ import org.gradle.nativeplatform.toolchain.NativeToolChain;
 public interface ComponentWithNativeRuntime extends SoftwareComponent {
     /**
      * Returns the base name of this component. This is used to calculate output file names.
+     * @since 4.5
      */
     Provider<String> getBaseName();
 
     /**
      * Returns true if this component has debugging enabled.
+     * @since 4.5
      */
     boolean isDebuggable();
 
     /**
      * Returns true if this component is optimized.
+     * @since 4.5
      */
     boolean isOptimized();
 
@@ -51,6 +54,7 @@ public interface ComponentWithNativeRuntime extends SoftwareComponent {
 
     /**
      * Returns the tool chain for this component.
+     * @since 4.5
      */
     NativeToolChain getToolChain();
 }

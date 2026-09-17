@@ -49,6 +49,7 @@ import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccess
 
 /**
  * Generates an HTML test report from the results of one or more {@link Test} tasks.
+ * @since 1.4
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class TestReport extends DefaultTask {
@@ -69,6 +70,11 @@ public abstract class TestReport extends DefaultTask {
     protected abstract BuildOperationExecutor getBuildOperationExecutor();
 
     // Method kept for binary compatibility remove in Gradle 10
+    /**
+     * Returns the metadata renderer registry.
+     *
+     * @since 8.13
+     */
     @SuppressWarnings("unused")
     @Deprecated
     @Internal

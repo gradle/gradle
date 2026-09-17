@@ -17,15 +17,15 @@
 package org.gradle.ide.xcode.internal;
 
 import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.plugins.ide.internal.IdeProjectMetadata;
 
 import java.io.File;
-import java.util.Collections;
-import java.util.Set;
 
 public class XcodeProjectMetadata implements IdeProjectMetadata {
+
     private final DefaultXcodeProject xcodeProject;
     private final Task projectTask;
 
@@ -40,12 +40,13 @@ public class XcodeProjectMetadata implements IdeProjectMetadata {
     }
 
     @Override
-    public Set<? extends Task> getGeneratorTasks() {
-        return Collections.singleton(projectTask);
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        context.add(projectTask);
     }
 
     @Override
     public File getFile() {
         return xcodeProject.getLocationDir();
     }
+
 }

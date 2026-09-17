@@ -36,11 +36,13 @@ public interface MarkingStrategy {
      * Marking strategy that marks the cache directory with a {@code CACHEDIR.TAG} file.
      *
      * @see <a href="https://bford.info/cachedir/">Cache Directory Tagging Specification</a>
+     * @since 8.1
      */
     MarkingStrategy CACHEDIR_TAG = MarkingStrategyImpl.CACHEDIR_TAG;
 
     /**
      * Marking strategy that does not mark the cache directory.
+     * @since 8.1
      */
     MarkingStrategy NONE = MarkingStrategyImpl.NONE;
 
@@ -49,6 +51,7 @@ public interface MarkingStrategy {
      * but instead log the error at an appropriate level, and return.
      *
      * @param file the cache directory to mark
+     * @since 8.1
      */
     void tryMarkCacheDirectory(File file);
 }

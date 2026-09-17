@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.project;
 
 import org.gradle.api.internal.GradleInternal;
@@ -22,6 +21,7 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.TextResourceScriptSource;
 import org.gradle.initialization.DefaultProjectDescriptor;
 import org.gradle.initialization.DependenciesAccessors;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.project.ImmutableProjectDescriptor;
 import org.gradle.internal.reflect.Instantiator;
@@ -30,7 +30,6 @@ import org.gradle.internal.resource.TextResource;
 import org.gradle.internal.scripts.ProjectScopedScriptResolution;
 import org.gradle.internal.service.scopes.ServiceRegistryFactory;
 import org.gradle.util.internal.NameValidator;
-import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
@@ -47,10 +46,9 @@ public class ProjectFactory implements IProjectFactory {
 
     @Override
     public ProjectInternal createProject(
-        GradleInternal gradle,
+        BuildState build,
         ImmutableProjectDescriptor projectDescriptor,
         ProjectState owner,
-        @Nullable ProjectInternal parent,
         ServiceRegistryFactory serviceRegistryFactory,
         ClassLoaderScope selfClassLoaderScope,
         ClassLoaderScope baseClassLoaderScope
@@ -60,17 +58,14 @@ public class ProjectFactory implements IProjectFactory {
         TextResource resource = textFileResourceLoader.loadFile("build file", buildFile);
         ScriptSource source = new TextResourceScriptSource(resource);
         DefaultProject project = instantiator.newInstance(DefaultProject.class,
-            projectDescriptor.getIdentity().getProjectName(),
-            parent,
-            projectDescriptor.getProjectDir(),
             buildFile,
             source,
-            gradle,
             owner,
             serviceRegistryFactory,
             selfClassLoaderScope,
             baseClassLoaderScope
         );
+        GradleInternal gradle = build.getMutableModel();
         gradle.getServices().get(DependencyResolutionManagementInternal.class).configureProject(project);
         project.beforeEvaluate(p -> {
             NameValidator.validate(project.getName(), "project name", DefaultProjectDescriptor.INVALID_NAME_IN_INCLUDE_HINT);

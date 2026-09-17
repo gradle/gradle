@@ -32,6 +32,7 @@ import java.util.List;
  * Configuration options for the PMD plugin.
  *
  * @see PmdPlugin
+ * @since 1.0
  */
 @SuppressWarnings("deprecation") // The targetJdk property and TargetJdk type are themselves deprecated.
 public abstract class PmdExtension extends CodeQualityExtension {
@@ -43,6 +44,11 @@ public abstract class PmdExtension extends CodeQualityExtension {
     private ConfigurableFileCollection ruleSetFiles;
     private boolean consoleOutput;
 
+    /**
+     * Creates a new {@code PmdExtension}.
+     *
+     * @since 1.0
+     */
     public PmdExtension(Project project) {
         this.project = project;
     }
@@ -58,6 +64,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      * <pre>
      *     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
      * </pre>
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty
     public List<String> getRuleSets() {
@@ -70,6 +77,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      * <pre>
      *     ruleSets = ["category/java/errorprone.xml", "category/java/bestpractices.xml"]
      * </pre>
+     * @since 1.0
      */
     public void setRuleSets(List<String> ruleSets) {
         this.getRuleSetsProperty().set(ruleSets);
@@ -83,6 +91,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      * </pre>
      *
      * @param ruleSets the rule sets to be added
+     * @since 1.0
      */
     public void ruleSets(String... ruleSets) {
         this.getRuleSetsProperty().addAll(Arrays.asList(ruleSets));
@@ -93,6 +102,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      *
      * @deprecated This property has no effect for PMD 5.0 and later, which infer the language version from the rule sets.
      *     Scheduled to be removed in Gradle 10.
+     * @since 1.5
      */
     @Deprecated
     public TargetJdk getTargetJdk() {
@@ -137,6 +147,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      * @param value The value for the target jdk as defined by {@link TargetJdk#toVersion(Object)}
      * @deprecated This property has no effect for PMD 5.0 and later, which infer the language version from the rule sets.
      *     Scheduled to be removed in Gradle 10.
+     * @since 1.5
      */
     @Deprecated
     public void setTargetJdk(Object value) {
@@ -197,6 +208,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      * <pre>
      *     ruleSetFiles = files("config/pmd/myRuleSet.xml")
      * </pre>
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty
     public FileCollection getRuleSetFiles() {
@@ -210,6 +222,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      * <pre>
      *     ruleSetFiles = files("config/pmd/myRuleSets.xml")
      * </pre>
+     * @since 1.0
      */
     public void setRuleSetFiles(FileCollection ruleSetFiles) {
         this.ruleSetFiles = project.getObjects().fileCollection().from(ruleSetFiles);
@@ -223,6 +236,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
      * </pre>
      *
      * @param ruleSetFiles the rule set files to be added
+     * @since 1.0
      */
     public void ruleSetFiles(@Nullable Object... ruleSetFiles) {
         this.ruleSetFiles.from(ruleSetFiles);
@@ -230,6 +244,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
 
     /**
      * Whether or not to write PMD results to {@code System.out}.
+     * @since 2.1
      */
     @ToBeReplacedByLazyProperty
     public boolean isConsoleOutput() {
@@ -238,6 +253,7 @@ public abstract class PmdExtension extends CodeQualityExtension {
 
     /**
      * Whether or not to write PMD results to {@code System.out}.
+     * @since 2.1
      */
     public void setConsoleOutput(boolean consoleOutput) {
         this.consoleOutput = consoleOutput;

@@ -20,7 +20,13 @@ import groovy.util.Node;
 
 /**
  * Represents an entry in <code>wb-module</code>.
+ * @since 2.14
  */
 public interface WbModuleEntry {
+    /**
+     * Append node.
+     *
+     * @since 2.14
+     */
     void appendNode(Node node);
 }

@@ -1,0 +1,1 @@
+rootProject.name = "testKit-addOpens"

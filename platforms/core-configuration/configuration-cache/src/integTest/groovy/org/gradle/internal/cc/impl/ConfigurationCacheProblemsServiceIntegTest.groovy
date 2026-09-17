@@ -49,8 +49,7 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
         }
 
         and:
-        verifyAll(receivedProblem(0)) {
-            fqid == REGISTRATION_UNSUPPORTED
+        verifyAll(findReceivedProblem { it.fqid == REGISTRATION_UNSUPPORTED }) {
             contextualLabel == "registration of listener on 'Gradle.buildFinished' is unsupported"
             definition.severity == Severity.WARNING
             definition.documentationLink.url.endsWith("/userguide/configuration_cache_requirements.html#config_cache:requirements:build_listeners")
@@ -65,7 +64,7 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
         configurationCacheRunLenient 'run', "-D${StartParameterBuildOptions.ConfigurationCacheRecreateOption.PROPERTY_NAME}=true"
 
         then:
-        verifyAll(receivedProblem) {
+        verifyAll(findReceivedProblem { it.fqid == REGISTRATION_UNSUPPORTED }) {
             fqid == REGISTRATION_UNSUPPORTED
             contextualLabel == "registration of listener on 'Gradle.buildFinished' is unsupported"
             definition.severity == Severity.WARNING
@@ -88,10 +87,10 @@ class ConfigurationCacheProblemsServiceIntegTest extends AbstractConfigurationCa
 
         when:
         configurationCacheFails WARN_PROBLEMS_CLI_OPT, "-D$MAX_PROBLEMS_GRADLE_PROP=0", 'run'
+        consumeWarnModeProblem()
 
         then:
-        verifyAll(receivedProblem) {
-            fqid == REGISTRATION_UNSUPPORTED
+        verifyAll(findReceivedProblem { it.fqid == REGISTRATION_UNSUPPORTED }) {
             contextualLabel == "registration of listener on 'Gradle.buildFinished' is unsupported"
             definition.severity == Severity.WARNING
         }

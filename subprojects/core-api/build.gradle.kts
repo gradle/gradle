@@ -50,6 +50,17 @@ dependencies {
     testFixturesImplementation(projects.baseServices)
 
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.core)
+    javadocReferences(projects.modelCore)
+    javadocReferences(projects.dependencyManagement)
+    javadocReferences(projects.testingBase)
+    javadocReferences(projects.testingJvm)
+    javadocReferences(projects.kotlinDsl)
+    javadocReferences(projects.coreFlowServicesApi)
+    javadocReferences(projects.workerShared) // for DefaultLegacyTypesSupport
+    javadocReferences(libs.groovyTemplates) // for groovy.text.SimpleTemplateEngine references in ContentFilterable / ExpandDetails
 }
 
 gradleModule {
@@ -61,10 +72,6 @@ gradleModule {
     }
 }
 
-packageCycles {
-    excludePatterns.add("org/gradle/**")
-}
-
 strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
@@ -72,4 +79,3 @@ strictCompile {
 // AutoTestedSamplesCoreApiIntegrationTest includes customized test logic, so automatic auto testing samples generation is not needed (and would fail) in this project
 integTest.generateDefaultAutoTestedSamplesTest = false
 testFilesCleanup.reportOnly = true
-

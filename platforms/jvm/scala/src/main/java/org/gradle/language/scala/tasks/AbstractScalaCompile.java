@@ -69,9 +69,15 @@ import java.util.Map;
 
 /**
  * An abstract Scala compile task sharing common functionality for compiling scala.
+ * @since 2.3
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractScalaCompile extends AbstractCompile implements HasCompileOptions {
+    /**
+     * Returns the logger.
+     *
+     * @since 2.3
+     */
     protected static final Logger LOGGER = Logging.getLogger(AbstractScalaCompile.class);
     private final BaseScalaCompileOptions scalaCompileOptions;
 
@@ -94,6 +100,7 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
 
     /**
      * Returns the Scala compilation options.
+     * @since 2.3
      */
     @Nested
     public BaseScalaCompileOptions getScalaCompileOptions() {
@@ -107,8 +114,18 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
     @Override
     public abstract CompileOptions getOptions();
 
+    /**
+     * Returns the compiler.
+     *
+     * @since 2.3
+     */
     abstract protected Compiler<ScalaJavaJointCompileSpec> getCompiler(ScalaJavaJointCompileSpec spec);
 
+    /**
+     * Compile.
+     *
+     * @since 2.3
+     */
     @TaskAction
     public void compile() {
         ScalaJavaJointCompileSpec spec = createSpec();
@@ -138,11 +155,21 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         return false;
     }
 
+    /**
+     * Returns the toolchain.
+     *
+     * @since 7.3
+     */
     @Internal
     protected JavaInstallationMetadata getToolchain() {
         return getJavaLauncher().map(JavaLauncher::getMetadata).get();
     }
 
+    /**
+     * Create spec.
+     *
+     * @since 2.3
+     */
     protected ScalaJavaJointCompileSpec createSpec() {
         File javaExecutable = getJavaLauncher().get().getExecutablePath().getAsFile();
         DefaultScalaJavaJointCompileSpec spec = new DefaultScalaJavaJointCompileSpec(javaExecutable);
@@ -182,6 +209,11 @@ public abstract class AbstractScalaCompile extends AbstractCompile implements Ha
         spec.setTargetCompatibility(targetCompatibility);
     }
 
+    /**
+     * Configure incremental compilation.
+     *
+     * @since 2.3
+     */
     private void configureIncrementalCompilation(ScalaCompileSpec spec) {
         IncrementalCompileOptions incrementalOptions = scalaCompileOptions.getIncrementalOptions();
 

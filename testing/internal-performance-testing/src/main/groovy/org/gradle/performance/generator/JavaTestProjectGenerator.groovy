@@ -19,7 +19,6 @@ package org.gradle.performance.generator
 import groovy.transform.CompileStatic
 import org.gradle.test.fixtures.language.Language
 
-import static org.gradle.test.fixtures.dsl.GradleDsl.DECLARATIVE
 import static org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 
 @CompileStatic
@@ -67,7 +66,8 @@ enum JavaTestProjectGenerator {
         .withSourceFiles(50000)
         .withSubProjects(0)
         .withDaemonMemory('3g')
-        .withCompilerMemory('6g')
+        // The Groovy 4 compiler needs more heap than Groovy 2.x to compile the 50k-file monolith
+        .withCompilerMemory('12g')
         .withSystemProperties(['org.gradle.groovy.compilation.avoidance': 'true'])
         .withFeaturePreviews('GROOVY_COMPILATION_AVOIDANCE')
         .assembleChangeFile(-1)
@@ -100,13 +100,6 @@ enum JavaTestProjectGenerator {
         .assembleChangeFile()
         .testChangeFile(450, 2250, 45000)
         .withDsl(KOTLIN)
-        .create()),
-
-    LARGE_EMPTY_MULTI_PROJECT_DECLARATIVE_DSL(new TestProjectGeneratorConfigurationBuilder("largeEmptyMultiProjectDeclarativeDsl", "largeEmptyMultiProject")
-        .withSubProjects(500)
-        .withDsl(DECLARATIVE)
-        .withDaemonMemory('512m')
-        .withCompilerMemory('1g')
         .create()),
 
     MEDIUM_MONOLITHIC_JAVA_PROJECT(new TestProjectGeneratorConfigurationBuilder("mediumMonolithicJavaProject")
@@ -162,17 +155,17 @@ enum JavaTestProjectGenerator {
         .withCompilerMemory('512m')
         .assembleChangeFile()
         .withExternalApiDependencies([
-            "spring": "org.springframework.boot:spring-boot:2.7.9",
-            "aws": "com.amazonaws:aws-java-sdk-bundle:1.12.680",
-            "jooq": "org.jooq:jooq:3.19.6",
-            "grpc": "io.grpc:grpc-netty:1.62.2",
-            "otel" : "io.opentelemetry:opentelemetry-sdk:1.33.0",
-            "jackson" : "com.fasterxml.jackson.core:jackson-databind:2.10.0",
-            "junit5" : "org.junit.jupiter:junit-jupiter-engine:5.10.0",
-            "kotlin": "org.jetbrains.kotlin:kotlin-stdlib:2.4.0",
-            "testcontainers": "org.testcontainers:mysql:1.15.3",
-            "vertx": "io.vertx:vertx-web:4.4.2",
-            "keycloak": "org.keycloak:keycloak-core:24.0.1"
+            "spring": "org.springframework.boot:spring-boot:4.1.0",
+            "aws": "com.amazonaws:aws-java-sdk-bundle:1.12.797",
+            "jooq": "org.jooq:jooq:3.21.6",
+            "grpc": "io.grpc:grpc-netty:1.83.0",
+            "otel" : "io.opentelemetry:opentelemetry-sdk:1.64.0",
+            "jackson" : "com.fasterxml.jackson.core:jackson-databind:2.22.1",
+            "junitJupiter" : "org.junit.jupiter:junit-jupiter-engine:6.1.2",
+            "kotlin": "org.jetbrains.kotlin:kotlin-stdlib:2.4.20",
+            "testcontainers": "org.testcontainers:mysql:1.21.4",
+            "vertx": "io.vertx:vertx-web:5.1.5",
+            "keycloak": "org.keycloak:keycloak-core:26.7.0"
         ])
         .create()),
     SMALL_JAVA_MULTI_PROJECT_NO_BUILD_SRC(new TestProjectGeneratorConfigurationBuilder('smallJavaMultiProjectNoBuildSrc')

@@ -30,6 +30,7 @@ import java.util.Map;
  * The {@link #getPluginManager() plugin manager} can be used for applying and detecting whether plugins have been applied.
  * <p>
  * For more on writing and applying plugins, see {@link org.gradle.api.Plugin}.
+ * @since 1.6
  */
 @HasInternalProtocol
 public interface PluginAware {
@@ -46,6 +47,7 @@ public interface PluginAware {
      * @return the plugin container
      * @see #apply
      * @see PluginManager#hasPlugin(String)
+     * @since 1.6
      */
     @HiddenInDefinition
     PluginContainer getPlugins();
@@ -59,6 +61,7 @@ public interface PluginAware {
      *
      * @param closure the closure to configure an {@link ObjectConfigurationAction} with before "executing" it
      * @see #apply(java.util.Map)
+     * @since 1.6
      */
     @HiddenInDefinition
     void apply(@DelegatesTo(ObjectConfigurationAction.class) Closure closure);
@@ -72,6 +75,7 @@ public interface PluginAware {
      *
      * @param action the action to configure an {@link ObjectConfigurationAction} with before "executing" it
      * @see #apply(java.util.Map)
+     * @since 2.3
      */
     @HiddenInDefinition
     void apply(Action<? super ObjectConfigurationAction> action);
@@ -91,6 +95,7 @@ public interface PluginAware {
      * <li>{@code to}: The target delegate object or objects. The default is this plugin aware object. Use this to configure objects other than this object.</li></ul>
      *
      * @param options the options to use to configure and {@link ObjectConfigurationAction} before "executing" it
+     * @since 1.6
      */
     @HiddenInDefinition
     void apply(Map<String, ?> options);

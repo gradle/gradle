@@ -44,9 +44,9 @@ abstract class FileContentGenerator {
     String generateVersionCatalog() {
         return """
         [libraries]
-        groovy = "org.codehaus.groovy:groovy:2.5.22"
-        testng = "org.testng:testng:6.4"
-        junit = "junit:junit:4.13"
+        groovy = "org.apache.groovy:groovy:4.0.32"
+        testng = "org.testng:testng:7.12.0"
+        junit = "junit:junit:4.13.2"
 
         ${config.externalApiDependencies
             .collect { "${it.key} = \"${it.value}\"" }
@@ -175,7 +175,7 @@ abstract class FileContentGenerator {
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-compiler-plugin</artifactId>
-                        <version>3.8.0</version>
+                        <version>3.15.0</version>
                         <configuration>
                             <source>1.8</source>
                             <target>1.8</target>
@@ -187,7 +187,7 @@ abstract class FileContentGenerator {
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-plugin</artifactId>
-                        <version>2.19.1</version>
+                        <version>3.5.6</version>
                         <configuration>
                             <forkCount>${config.maxParallelForks}</forkCount>
                             <reuseForks>true</reuseForks>
@@ -197,7 +197,7 @@ abstract class FileContentGenerator {
                     <plugin>
                         <groupId>org.apache.maven.plugins</groupId>
                         <artifactId>maven-surefire-report-plugin</artifactId>
-                        <version>2.19.1</version>
+                        <version>3.5.6</version>
                         <executions>
                             <execution>
                                 <id>test-report</id>
@@ -230,7 +230,7 @@ abstract class FileContentGenerator {
             <dependencies>
                 ${config.externalApiDependencies.values().collect { convertToPomDependency(it) }.join("")}
                 ${config.externalImplementationDependencies.values().collect { convertToPomDependency(it) }.join("")}
-                ${convertToPomDependency('junit:junit:4.13', 'test')}
+                ${convertToPomDependency('junit:junit:4.13.2', 'test')}
                 ${subProjectDependencies}
             </dependencies>
             """

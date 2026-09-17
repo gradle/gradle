@@ -1,0 +1,117 @@
+// Copyright (C) 2026 Gradle, Inc.
+//
+// Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
+// you may not use this file except in compliance with the License.
+// You may obtain a copy of the License at
+//
+//      https://creativecommons.org/licenses/by-nc-sa/4.0/
+//
+// Unless required by applicable law or agreed to in writing, software
+// distributed under the License is distributed on an "AS IS" BASIS,
+// WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+// See the License for the specific language governing permissions and
+// limitations under the License.
+
+[[java_test_fixtures_plugin]]
+= The Java Test Fixtures Plugin
+
+The Java Test Fixtures plugin (plugin id: `java-test-fixtures`) adds support for producing and consuming _test fixtures_ — shared test helper code such as fake implementations, test data builders, or base classes that are used by the project's own tests and can also be consumed by other projects.
+
+Despite the name, fixtures may be written in any supported JVM language, not only Java.
+
+For a task-oriented guide — producing, consuming, and publishing fixtures — see <<java_testing.adoc#sec:java_test_fixtures,Test fixtures>> in _Testing in Java & JVM projects_.
+
+[[sec:java_test_fixtures_usage]]
+== Usage
+
+Apply the plugin alongside a JVM library or application plugin:
+
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+plugins {
+    `java-library`
+    `java-test-fixtures`
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+plugins {
+    id 'java-library'
+    id 'java-test-fixtures'
+}
+----
+=====
+
+Applying the plugin (it applies the <<java_plugin.adoc#java_plugin,Java (base) plugin>> automatically):
+
+* creates a `testFixtures` source set and a corresponding feature exposing a `<group>:<name>-test-fixtures` capability;
+* makes the fixtures depend on the main component, and the project's own `test` suite depend on the fixtures — both by convention, so no wiring is required;
+* when the <<java_plugin.adoc#java_plugin,Java Plugin>> is applied, exposes the fixtures to consumers as additional variants of the project's component.
+
+[[sec:java_test_fixtures_layout]]
+== Project layout
+
+`src/testFixtures/java`::
+Test fixture source files.
+
+`src/testFixtures/resources`::
+Test fixture resources.
+
+[[sec:java_test_fixtures_configurations]]
+== Dependency configurations
+
+The plugin adds a set of configurations for the `testFixtures` source set, mirroring those of a normal <<java_library_plugin.adoc#java_library_plugin,Java library>>:
+
+`testFixturesApi`::
+Declarable. Dependencies exported to consumers of the fixtures (and to the fixtures' own compilation).
+
+`testFixturesImplementation`::
+Declarable. Dependencies used internally by the fixtures and not exposed to consumers.
+
+`testFixturesCompileOnly` / `testFixturesCompileOnlyApi`::
+Declarable. Compile-time-only dependencies of the fixtures (the `Api` variant is also visible to consumers at compile time).
+
+`testFixturesRuntimeOnly`::
+Declarable. Runtime-only dependencies of the fixtures.
+
+`testFixturesApiElements` / `testFixturesRuntimeElements`::
+Consumable. The variants exposed to consumers for compiling against, and running against, the fixtures.
+
+`testFixturesCompileClasspath` / `testFixturesRuntimeClasspath`::
+Resolvable. The compile and runtime classpaths used to build the fixtures.
+
+[[sec:java_test_fixtures_consuming]]
+== Consuming test fixtures
+
+Reference the fixtures of another project (or an external module) with the link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html#testFixtures-java.lang.Object-[DependencyHandler.testFixtures(Object)] method:
+
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    testImplementation(testFixtures(project(":lib")))
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    testImplementation(testFixtures(project(":lib")))
+}
+----
+=====
+
+The same method accepts standard module notation — `testFixtures("com.example:lib:1.0")` — for fixtures published to a repository.
+See <<java_testing.adoc#sec:consuming_test_fixtures_of_another_project,Consuming test fixtures>> and <<java_testing.adoc#sec:publishing_test_fixtures,Publishing test fixtures>> for details.

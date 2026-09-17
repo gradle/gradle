@@ -25,6 +25,7 @@ import java.io.Serializable;
 
 /**
  * Debug options for Java compilation.
+ * @since 0.7
  */
 public class DebugOptions implements Serializable {
     private static final long serialVersionUID = 0;
@@ -47,6 +48,7 @@ public class DebugOptions implements Serializable {
      * <p>Alternatively, a value of {@code none} means debug information will not be generated.</p>
      *
      * <p>When the value is null, only source and line debugging information will be generated.</p>
+     * @since 0.7
      */
     @Nullable
     @Optional
@@ -75,6 +77,7 @@ public class DebugOptions implements Serializable {
      *
      * <p>Setting this value to null will reset the property to its default value of only
      * generating line and source debug information.</p>
+     * @since 0.7
      */
     public void setDebugLevel(@Nullable String debugLevel) {
         this.debugLevel = debugLevel;

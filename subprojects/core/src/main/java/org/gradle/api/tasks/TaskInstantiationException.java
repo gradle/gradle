@@ -20,13 +20,24 @@ import org.gradle.internal.exceptions.Contextual;
 
 /**
  * A {@code TaskInstantiationException} is thrown when a task cannot be instantiated for some reason.
+ * @since 0.9
  */
 @Contextual
 public class TaskInstantiationException extends GradleException {
+    /**
+     * Creates a new {@code TaskInstantiationException}.
+     *
+     * @since 1.0
+     */
     public TaskInstantiationException(String message) {
         this(message, null);
     }
 
+    /**
+     * Creates a new {@code TaskInstantiationException}.
+     *
+     * @since 0.9
+     */
     public TaskInstantiationException(String message, Throwable cause) {
         super(message, cause);
     }

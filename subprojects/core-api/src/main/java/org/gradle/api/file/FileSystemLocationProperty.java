@@ -38,12 +38,14 @@ import java.io.File;
 public interface FileSystemLocationProperty<T extends FileSystemLocation> extends Property<T> {
     /**
      * Views the location of this file as a {@link File}.
+     * @since 5.6
      */
     Provider<File> getAsFile();
 
     /**
      * Sets the location of this file, using a {@link File} instance. {@link File} instances with relative paths are resolved relative to the project directory of the project
      * that owns this property instance.
+     * @since 5.6
      */
     void set(@Nullable File file);
 

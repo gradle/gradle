@@ -52,8 +52,8 @@ class StartParameterInternalMutationInstrumentationTest extends Specification {
         "setConfigurationCacheEntriesPerKey(int)",
         "setConfigurationCacheFineGrainedPropertyTracking(boolean)",
         "setConfigurationCacheHeapDumpDir(String)",
-        "setConfigurationCacheIgnoreInputsDuringStore(boolean)",
-        "setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(boolean)",
+        "setConfigurationCacheIgnoreInputsDuringStore(Value)",
+        "setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(Value)",
         "setConfigurationCacheIgnoredFileSystemCheckInputs(String)",
         "setConfigurationCacheIntegrityCheckEnabled(boolean)",
         "setConfigurationCacheMaxProblems(int)",
@@ -62,6 +62,7 @@ class StartParameterInternalMutationInstrumentationTest extends Specification {
         "setConfigurationCacheQuiet(boolean)",
         "setConfigurationCacheReadOnly(boolean)",
         "setConfigurationCacheRecreateCache(boolean)",
+        "setConfigurationCacheSkipTaskLoggingListenersSerialization(Value)",
         "setConfigureOnDemand(boolean)",
         "setConsoleOutput(ConsoleOutput)",
         "setConsoleUnicodeSupport(ConsoleUnicodeSupport)",
@@ -99,6 +100,7 @@ class StartParameterInternalMutationInstrumentationTest extends Specification {
         "setRefreshDependencies(boolean)",
         "setRefreshKeys(boolean)",
         "setRerunTasks(boolean)",
+        "setSharedMavenMirrorSettings(boolean)",
         "setShowStacktrace(ShowStacktrace)",
         "setSystemPropertiesArgs(Map)",
         "setTaskGraph(boolean)",
@@ -111,15 +113,15 @@ class StartParameterInternalMutationInstrumentationTest extends Specification {
         "useEmptySettings()",
     ]
 
-    // Mutators that deliberately do not notify, plus the listener-wiring infrastructure.
-    private static final List<String> TASK_REQUEST_MODIFIER = [
+    // Mutators that deliberately do not notify
+    private static final List<String> EXEMPT_MUTATORS = [
         // Tooling model builders legitimately replace the requested tasks while the build runs.
         "setTaskNames(Iterable)",
         "setTaskRequests(Iterable)",
+        "setBuildCacheEnabledInternal(boolean, boolean)",
     ]
-    // Mutators that deliberately do not notify, plus the listener-wiring infrastructure.
 
-    private static final List<String> NOT_NOTIFYING = TASK_REQUEST_MODIFIER + [
+    private static final List<String> NOT_NOTIFYING = EXEMPT_MUTATORS + [
         // Listener wiring, not tracked state.
         "setMutationListener(Consumer)",
         "clearMutationListener()",
@@ -142,9 +144,12 @@ class StartParameterInternalMutationInstrumentationTest extends Specification {
         "getConfigurationCache()",
         "getConfigurationCacheEntriesPerKey()",
         "getConfigurationCacheHeapDumpDir()",
+        "getConfigurationCacheIgnoreInputsDuringStore()",
+        "getConfigurationCacheIgnoreUnsupportedBuildEventsListeners()",
         "getConfigurationCacheIgnoredFileSystemCheckInputs()",
         "getConfigurationCacheMaxProblems()",
         "getConfigurationCacheProblems()",
+        "getConfigurationCacheSkipTaskLoggingListenersSerialization()",
         "getConsoleOutput()",
         "getConsoleUnicodeSupport()",
         "getContinuousBuildQuietPeriod()",
@@ -171,12 +176,11 @@ class StartParameterInternalMutationInstrumentationTest extends Specification {
         "hashCode()",
         "isBuildCacheDebugLogging()",
         "isBuildCacheEnabled()",
+        "isBuildCacheEnabledConfiguredByBuildLogic()",
         "isBuildProjectDependencies()",
         "isBuildScan()",
         "isConfigurationCacheDebug()",
         "isConfigurationCacheFineGrainedPropertyTracking()",
-        "isConfigurationCacheIgnoreInputsDuringStore()",
-        "isConfigurationCacheIgnoreUnsupportedBuildEventsListeners()",
         "isConfigurationCacheIntegrityCheckEnabled()",
         "isConfigurationCacheParallel()",
         "isConfigurationCacheQuiet()",
@@ -202,12 +206,16 @@ class StartParameterInternalMutationInstrumentationTest extends Specification {
         "isRefreshKeys()",
         "isRerunTasks()",
         "isSearchUpwards()",
+        "isSharedMavenMirrorSettings()",
         "isTaskGraph()",
         "isUseEmptySettings()",
         "isVfsVerboseLogging()",
         "isWriteDependencyLocks()",
         "newBuild()",
+        "newBuildInternal()",
         "newInstance()",
+        "newInstanceInternal()",
+        "newNestedBuildInternal()",
         "toBuildLayoutConfiguration()",
         "toString()",
     ]
@@ -259,7 +267,7 @@ class StartParameterInternalMutationInstrumentationTest extends Specification {
         def bySignature = declaredMethods().collectEntries { [signature(it), it] }
 
         expect:
-        TASK_REQUEST_MODIFIER.each { sig ->
+        EXEMPT_MUTATORS.each { sig ->
             def method = bySignature[sig] as Method
             notified.clear()
             method.invoke(parameter, argumentsFor(method))

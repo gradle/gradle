@@ -24,6 +24,7 @@ package org.gradle.caching;
 public interface BuildCacheKey {
     /**
      * Returns the string representation of the cache key.
+     * @since 3.3
      */
     String getHashCode();
 

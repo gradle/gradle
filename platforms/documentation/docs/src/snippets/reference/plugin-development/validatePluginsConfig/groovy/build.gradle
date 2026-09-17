@@ -1,0 +1,23 @@
+// tag::apply[]
+plugins {
+    id 'java-gradle-plugin'
+}
+// end::apply[]
+
+group = 'org.example'
+
+// tag::config[]
+tasks.validatePlugins {
+    failOnWarning = true
+    enableStricterValidation = true
+}
+// end::config[]
+
+gradlePlugin {
+    plugins {
+        hello {
+            id = 'org.example.hello'
+            implementationClass = 'org.example.HelloPlugin'
+        }
+    }
+}

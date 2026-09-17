@@ -27,6 +27,7 @@ public interface FinishEvent extends ProgressEvent {
      * Returns the result of the finished operation.
      *
      * @return the result of the finished operation
+     * @since 2.4
      */
     OperationResult getResult();
 

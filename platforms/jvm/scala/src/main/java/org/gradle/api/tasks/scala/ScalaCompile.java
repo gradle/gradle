@@ -38,6 +38,7 @@ import org.gradle.workers.internal.WorkerDaemonFactory;
 
 /**
  * Compiles Scala source files, and optionally, Java source files.
+ * @since 0.8
  */
 @CacheableTask
 public abstract class ScalaCompile extends AbstractScalaCompile {
@@ -55,6 +56,7 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
 
     /**
      * Returns the classpath to use to load the Scala compiler.
+     * @since 0.9
      */
     @Classpath
     @ToBeReplacedByLazyProperty
@@ -62,6 +64,11 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
         return scalaClasspath;
     }
 
+    /**
+     * Sets the scala classpath.
+     *
+     * @since 0.9
+     */
     public void setScalaClasspath(FileCollection scalaClasspath) {
         this.scalaClasspath = scalaClasspath;
     }
@@ -99,6 +106,7 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
 
     /**
      * Returns the classpath to use to load the Zinc incremental compiler. This compiler in turn loads the Scala compiler.
+     * @since 1.3
      */
     @Classpath
     @ToBeReplacedByLazyProperty
@@ -106,12 +114,18 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
         return zincClasspath;
     }
 
+    /**
+     * Sets the zinc classpath.
+     *
+     * @since 1.3
+     */
     public void setZincClasspath(FileCollection zincClasspath) {
         this.zincClasspath = zincClasspath;
     }
 
     /**
      * For testing only.
+     * @since 1.0
      */
     public void setCompiler(org.gradle.language.base.internal.compile.Compiler<ScalaJavaJointCompileSpec> compiler) {
         this.compiler = compiler;
@@ -137,6 +151,11 @@ public abstract class ScalaCompile extends AbstractScalaCompile {
         return compiler;
     }
 
+    /**
+     * Assert scala classpath is non empty.
+     *
+     * @since 2.3
+     */
     protected void assertScalaClasspathIsNonEmpty() {
         if (getScalaClasspath().isEmpty()) {
             throw new InvalidUserDataException("'" + getName() + ".scalaClasspath' must not be empty. If a Scala compile dependency is provided, "

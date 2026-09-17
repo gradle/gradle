@@ -38,13 +38,12 @@ class PerformanceReportScenario {
 
     final boolean crossBuild
 
-    final boolean fromCache
-
     PerformanceReportScenario(
         List<PerformanceTestExecutionResult> teamCityExecutions,
         List<PerformanceReportScenarioHistoryExecution> historyExecutions,
         boolean crossBuild,
-        boolean fromCache
+        Set<String> pipelineBuildIds,
+        String currentCommit
     ) {
         if (teamCityExecutions.empty) {
             throw new IllegalArgumentException("teamCity executions must not be empty!")
@@ -52,14 +51,25 @@ class PerformanceReportScenario {
         this.performanceExperiment = teamCityExecutions[0].performanceExperiment
         this.teamCityExecutions = teamCityExecutions
         this.crossBuild = crossBuild
-        this.fromCache = fromCache
 
-        Set<String> teamCityBuildIds = teamCityExecutions.collect { it.teamCityBuildId }.toSet()
-        this.currentExecutions = historyExecutions.findAll {
-            teamCityBuildIds.contains(it.teamCityBuildId)
-        }
+        // "Current" executions are the ones this pipeline actually produced. On CI we identify them by matching each DB
+        // row's own teamCityBuildId (written accurately by the run that measured it) against the authoritative bucket
+        // build IDs of this pipeline; a build-cache hit produces no DB row at all, so cached results never appear here.
+        // The result JSON no longer carries a build id, so locally (authoritative set unknown) we match the commit.
+        this.currentExecutions = pipelineBuildIds.isEmpty()
+            ? historyExecutions.findAll { it.commitId == currentCommit }
+            : historyExecutions.findAll { pipelineBuildIds.contains(it.teamCityBuildId) }
         this.historyExecutions = historyExecutions
+        this.fromCache = !pipelineBuildIds.isEmpty() && currentExecutions.empty
     }
+
+    /**
+     * True when this pipeline is known (CI, authoritative bucket build IDs available) and none of its builds produced
+     * a measurement for this scenario - i.e. the bucket result was restored from the Gradle build cache instead of
+     * being executed. Any status/failure carried by the result JSON was recorded by the original producing build,
+     * not by this build chain, so the report must not present it as this chain's outcome.
+     */
+    final boolean fromCache
 
     String getName() {
         return "$scenarioName | $testProject | ${scenarioClass.substring(scenarioClass.lastIndexOf(".") + 1)}"
@@ -90,7 +100,23 @@ class PerformanceReportScenario {
     }
 
     boolean isImproved() {
-        return !crossBuild && currentExecutions.every { it.confidentToSayBetter() }
+        return !crossBuild && !currentExecutions.empty && currentExecutions.every { it.confidentToSayBetter() }
+    }
+
+    /**
+     * Whether this pipeline's own measurements (from the DB, not the possibly-stale result JSON status) show a
+     * regression by the same criterion the performance test itself fails on. This is the signal used to fail the
+     * build. Deliberately NOT {@code confidentToSayWorse()}: that is the weak >90%-confidence NEARLY-FAILED display
+     * heuristic, and gating on it fails scenarios whose own test assertion passed.
+     *
+     * Requires *every* current execution to regress, not just any: a flaky scenario is retried in-pipeline
+     * ({@code testRetry.maxRetries = 1} on CI), so both the failing attempt and its passing retry are recorded as
+     * current executions here. Gating on {@code any} would re-fail a scenario that regressed once and recovered on
+     * retry - exactly the flakiness the test-retry mechanism is meant to tolerate. Only a regression that holds
+     * across all of this pipeline's measurements fails the build.
+     */
+    boolean isRegressedByMeasurement() {
+        return !crossBuild && !currentExecutions.empty && currentExecutions.every { it.regressedSignificantly() }
     }
 
     boolean isBuildFailed() {

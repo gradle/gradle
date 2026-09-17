@@ -35,15 +35,41 @@ import java.net.URI;
  * </ol>
  * <p>
  * Repositories of this type are created by the {@link org.gradle.api.artifacts.dsl.RepositoryHandler#ivy(org.gradle.api.Action)} group of methods.
+ * @since 1.0
  */
 public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRepository, AuthenticationSupported, MetadataSupplierAware {
 
+    /**
+     * The ivy artifact pattern.
+     *
+     * @since 2.0
+     */
     String IVY_ARTIFACT_PATTERN = "[organisation]/[module]/[revision]/[type]s/[artifact](.[ext])";
 
+    /**
+     * The gradle artifact pattern.
+     *
+     * @since 1.0
+     */
     String GRADLE_ARTIFACT_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])";
+    /**
+     * The gradle ivy pattern.
+     *
+     * @since 1.0
+     */
     String GRADLE_IVY_PATTERN = "[organisation]/[module]/[revision]/ivy-[revision].xml";
 
+    /**
+     * The maven artifact pattern.
+     *
+     * @since 1.0
+     */
     String MAVEN_ARTIFACT_PATTERN = "[organisation]/[module]/[revision]/[artifact]-[revision](-[classifier])(.[ext])";
+    /**
+     * The maven ivy pattern.
+     *
+     * @since 1.0
+     */
     String MAVEN_IVY_PATTERN = "[organisation]/[module]/[revision]/ivy-[revision].xml";
 
     /**
@@ -85,6 +111,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl(Object)}.
      *
      * @param pattern The artifact pattern.
+     * @since 1.0
      */
     void artifactPattern(String pattern);
 
@@ -97,6 +124,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      * Patterns added in this way will be in addition to any layout-based patterns added via {@link #setUrl(Object)}.
      *
      * @param pattern The ivy pattern.
+     * @since 1.0
      */
     void ivyPattern(String pattern);
 
@@ -135,6 +163,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      *
      * @param layoutName The name of the layout to use.
      * @see #patternLayout(Action)
+     * @since 1.0
      */
     void layout(String layoutName);
 
@@ -164,6 +193,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
      * for the modules and artifacts contained in this repository. Using this provider, you can fine tune how this resolution happens.
      *
      * @return The meta-data provider for this repository.
+     * @since 1.5
      */
     @NotToBeReplacedByLazyProperty(because = "Not settable property")
     IvyArtifactRepositoryMetaDataProvider getResolve();
@@ -218,6 +248,7 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
     interface MetadataSources {
         /**
          * Indicates that this repository will contain Gradle metadata.
+         * @since 4.5
          */
         void gradleMetadata();
 
@@ -226,12 +257,14 @@ public interface IvyArtifactRepository extends ArtifactRepository, UrlArtifactRe
          * If the Ivy file contains a marker telling that Gradle metadata exists
          * for this component, Gradle will <i>also</i> look for the Gradle metadata
          * file. Gradle module metadata redirection will not happen if {@code ignoreGradleMetadataRedirection()} has been used.
+         * @since 4.5
          */
         void ivyDescriptor();
 
         /**
          * Indicates that this repository may not contain metadata files,
          * but we can infer it from the presence of an artifact file.
+         * @since 4.5
          */
         void artifact();
 

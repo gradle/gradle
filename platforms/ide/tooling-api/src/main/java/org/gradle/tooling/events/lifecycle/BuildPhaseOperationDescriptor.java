@@ -33,6 +33,7 @@ public interface BuildPhaseOperationDescriptor extends OperationDescriptor {
      * Returns the build phase name.
      *
      * Can be one of: CONFIGURE_ROOT_BUILD, CONFIGURE_BUILD, RUN_MAIN_TASKS, RUN_WORK.
+     * @since 7.6
      */
     String getBuildPhase();
 
@@ -40,6 +41,7 @@ public interface BuildPhaseOperationDescriptor extends OperationDescriptor {
      * Returns number of build items this phase will execute.
      *
      * For configuration phase this is a number of projects to configure, for build phase this is a number of tasks to run.
+     * @since 7.6
      */
     int getBuildItemsCount();
 }

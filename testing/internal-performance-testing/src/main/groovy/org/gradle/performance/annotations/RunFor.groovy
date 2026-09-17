@@ -94,6 +94,18 @@ class RunForExtension implements IAnnotationDrivenExtension<RunFor> {
         } as Runnable))
     }
 
+    /**
+     * Whether this test run only collects the scenario definitions instead of executing the scenarios.
+     *
+     * This is the case for {@code writeTmpPerformanceScenarioDefinitions} and
+     * {@code writePerformanceScenarioDefinitions}, which use the {@code Test} task infrastructure to
+     * visit all performance tests without running any build. Fixture methods still run in that mode,
+     * so they must not require anything from the environment that only a performance test agent has.
+     */
+    static boolean isCollectingScenarioDefinitionsOnly() {
+        return SCENARIO_DEFINITION_FILE != null
+    }
+
     @Override
     void visitSpecAnnotation(RunFor runFor, SpecInfo spec) {
         assert runFor.value().every { it.iterationMatcher().isEmpty() }: "No iterationMatchers allowed in class-level @Scenario!"

@@ -27,6 +27,7 @@ import org.gradle.tooling.model.ProjectIdentifier;
 public interface ProjectConfigurationOperationDescriptor extends OperationDescriptor {
     /**
      * Returns the project that is configured by the described operation.
+     * @since 5.1
      */
     ProjectIdentifier getProject();
 }

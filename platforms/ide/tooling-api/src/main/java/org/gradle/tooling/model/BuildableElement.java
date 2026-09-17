@@ -19,7 +19,7 @@ package org.gradle.tooling.model;
 /**
  * Represents an element which has Gradle tasks associated with it.
  *
- * @since 1.0-milestone-5
+ * @since 1.0
  */
 public interface BuildableElement extends Element {
 
@@ -27,7 +27,7 @@ public interface BuildableElement extends Element {
      * Returns the tasks of this project.
      *
      * @return The tasks of this project.
-     * @since 1.0-milestone-5
+     * @since 1.0
      */
     DomainObjectSet<? extends Task> getTasks();
 

@@ -22,10 +22,20 @@ import java.util.List;
 
 /**
  * Specifies the compression which should be applied to a TAR archive.
+ * @since 0.7
  */
 public enum Compression {
+    /**
+     * @since 0.7
+     */
     NONE("tar"),
+    /**
+     * @since 0.7
+     */
     GZIP("tgz", "gz"),
+    /**
+     * @since 0.7
+     */
     BZIP2("tbz2", "bz2");
 
     private final String defaultExtension;
@@ -41,10 +51,20 @@ public enum Compression {
         this.supportedExtensions = builder.build();
     }
 
+    /**
+     * Returns the default extension.
+     *
+     * @since 1.0
+     */
     public String getDefaultExtension(){
         return defaultExtension;
     }
 
+    /**
+     * Returns the supported extensions.
+     *
+     * @since 1.0
+     */
     public List<String> getSupportedExtensions(){
         return supportedExtensions;
     }

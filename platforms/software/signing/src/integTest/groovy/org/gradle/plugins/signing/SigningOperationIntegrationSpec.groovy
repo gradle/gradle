@@ -18,8 +18,72 @@ package org.gradle.plugins.signing
 
 class SigningOperationIntegrationSpec extends SigningIntegrationSpec {
 
-    def setup() {
-        enableProblemsApiCheck()
+    def "SignOperation.sign with classifier is deprecated"() {
+        given:
+        buildFile << """
+            ${keyInfo.addAsPropertiesScript()}
+            def dummyFile = file("dummy.txt")
+            dummyFile.text = "content"
+            signing {
+                ${signingConfiguration()}
+                sign {
+                    sign("ignored-classifier", dummyFile)
+                }
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("The SignOperation.sign(String, File...) method has been deprecated. This is scheduled to be removed in Gradle 10. Use sign(File...) instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_sign_classifier")
+        run "help"
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "SignOperation.getSignatures is deprecated"() {
+        given:
+        buildFile << """
+            ${keyInfo.addAsPropertiesScript()}
+            def dummyFile = file("dummy.txt")
+            dummyFile.text = "content"
+            signing {
+                ${signingConfiguration()}
+                sign {
+                    sign(dummyFile)
+                    getSignatures()
+                }
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("The SignOperation.getSignatures() method has been deprecated. This is scheduled to be removed in Gradle 10. Use getFilesToSign() or getSignatureFiles() instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_sign_operation_signatures")
+        run "help"
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "SignOperation.getSingleSignature is deprecated"() {
+        given:
+        buildFile << """
+            ${keyInfo.addAsPropertiesScript()}
+            def dummyFile = file("dummy.txt")
+            dummyFile.text = "content"
+            signing {
+                ${signingConfiguration()}
+                sign {
+                    sign(dummyFile)
+                    getSingleSignature()
+                }
+            }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning("The SignOperation.getSingleSignature() method has been deprecated. This is scheduled to be removed in Gradle 10. Use getFilesToSign() or getSignatureFiles() instead. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_sign_operation_signatures")
+        run "help"
+
+        then:
+        noExceptionThrown()
     }
 
     def "direct creation of SignOperation fails"() {
@@ -28,6 +92,7 @@ class SigningOperationIntegrationSpec extends SigningIntegrationSpec {
         """
 
         when:
+        enableProblemsApiCheck()
         fails()
 
         then:

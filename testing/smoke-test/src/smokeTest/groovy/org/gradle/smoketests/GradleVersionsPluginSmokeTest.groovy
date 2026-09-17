@@ -16,9 +16,7 @@
 
 package org.gradle.smoketests
 
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
-import org.gradle.util.GradleVersion
 
 import static org.gradle.testkit.runner.TaskOutcome.SUCCESS
 
@@ -29,7 +27,7 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         given:
         buildFile << """
             plugins {
-                id "com.github.ben-manes.versions" version "$TestedVersions.gradleVersions"
+                id "io.github.ben-manes.versions" version "$TestedVersions.gradleVersions"
             }
         """
         file("sub1/build.gradle") << """
@@ -59,21 +57,7 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         """
 
         when:
-        def runner = runner('dependencyUpdates', '-DoutputFormatter=txt')
-
-        runner
-
-        // with CC, these are reported as config cache problems only
-        runner.expectDeprecationWarningIf(
-            GradleContextualExecuter.isNotConfigCache(),
-            "Invocation of Task.project at execution time has been deprecated. " +
-                "This will fail with an error in Gradle 10. " +
-                "This API is incompatible with the configuration cache, which will become the only mode supported by Gradle in a future release. " +
-                "Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_7.html#task_project",
-            "https://github.com/ben-manes/gradle-versions-plugin/issues/910"
-        )
-
-        def result = runner.build()
+        def result = runner('dependencyUpdates', '-DoutputFormatter=txt').build()
 
         then:
         result.task(':dependencyUpdates').outcome == SUCCESS
@@ -86,7 +70,7 @@ class GradleVersionsPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
     @Override
     Map<String, Versions> getPluginsToValidate() {
         [
-            'com.github.ben-manes.versions': Versions.of(TestedVersions.gradleVersions)
+            'io.github.ben-manes.versions': Versions.of(TestedVersions.gradleVersions)
         ]
     }
 }

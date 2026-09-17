@@ -25,6 +25,11 @@ import org.gradle.api.Named;
  * @since 3.4
  */
 public interface Usage extends Named {
+    /**
+     * Of.
+     *
+     * @since 3.4
+     */
     Attribute<Usage> USAGE_ATTRIBUTE = Attribute.of("org.gradle.usage", Usage.class);
 
     /**

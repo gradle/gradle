@@ -23,6 +23,7 @@ import org.gradle.platform.base.BinarySpec;
  * A binary which runs a suite of tests.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.12
  */
 @Incubating
 @Deprecated
@@ -30,11 +31,13 @@ public interface TestSuiteBinarySpec extends BinarySpec {
 
     /**
      * Returns the test suite that this binary belongs to.
+     * @since 2.12
      */
     TestSuiteSpec getTestSuite();
 
     /**
      * Returns the binary tested by this test suite.
+     * @since 3.2
      */
     BinarySpec getTestedBinary();
 

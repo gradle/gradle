@@ -53,6 +53,7 @@ import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.ValueCalculator;
+import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.jspecify.annotations.Nullable;
 
@@ -119,8 +120,8 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
      * with dependencies, as the incomplete graph used to initially determine upstream transforms does
      * not represent the final dependency graph.
      * <p>
-     * See {@link org.gradle.integtests.resolve.transform.ArtifactTransformWithDependenciesParallelIntegrationTest}
-     * for the test that exercises the scenario that necessitates this behavior.
+     * See {@code ArtifactTransformWithDependenciesParallelIntegrationTest} in {@code :dependency-management}'s
+     * integration tests for the test that exercises the scenario that necessitates this behavior.
      */
     public DefaultTransformUpstreamDependenciesResolver(
         ResolutionHost resolutionHost,
@@ -332,12 +333,14 @@ public class DefaultTransformUpstreamDependenciesResolver implements TransformUp
 
         @Override
         public boolean usesMutableProjectState() {
-            return owner.getProject() != null;
+            return owner instanceof ProjectDomainObjectContext;
         }
 
         @Override
-        public ProjectInternal getOwningProject() {
-            return owner.getProject();
+        public @Nullable ProjectInternal getOwningProject() {
+            return owner instanceof ProjectDomainObjectContext pdoc
+                ? pdoc.getModel().getMutableModel()
+                : null;
         }
 
         @Nullable

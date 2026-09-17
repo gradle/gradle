@@ -23,7 +23,17 @@ import org.gradle.api.artifacts.VersionConstraint;
  * @since 7.2
  */
 public interface PluginDependency {
+    /**
+     * Returns the plugin id.
+     *
+     * @since 7.2
+     */
     String getPluginId();
 
+    /**
+     * Returns the version.
+     *
+     * @since 7.2
+     */
     VersionConstraint getVersion();
 }

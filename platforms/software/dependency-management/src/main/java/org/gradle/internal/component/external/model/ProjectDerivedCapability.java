@@ -16,7 +16,7 @@
 package org.gradle.internal.component.external.model;
 
 import com.google.common.base.Objects;
-import org.gradle.api.InvalidUserDataException;
+import org.gradle.api.Project;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.capabilities.CapabilityInternal;
 import org.gradle.api.internal.project.ProjectInternal;
@@ -25,15 +25,23 @@ import org.jspecify.annotations.Nullable;
 
 public class ProjectDerivedCapability implements CapabilityInternal {
 
-    private final ProjectInternal project;
-    private final String featureName;
+    private final Project project;
+    private final @Nullable String featureName;
 
-    private volatile String capabilityName;
+    private volatile @Nullable String capabilityName;
 
-    public ProjectDerivedCapability(ProjectInternal project) {
+    public ProjectDerivedCapability(Project project) {
         this(project, null);
     }
 
+    public ProjectDerivedCapability(Project project, @Nullable String featureName) {
+        this.project = project;
+        this.featureName = featureName;
+    }
+
+    // Used by third-party plugin:
+    // https://github.com/vanniktech/gradle-maven-publish-plugin/blob/b3054e792a5d20fcc92b9eeb595ae894e9223242/plugin/src/main/kotlin/com/vanniktech/maven/publish/workaround/TestFixtures.kt#L26
+    @Deprecated
     public ProjectDerivedCapability(ProjectInternal project, @Nullable String featureName) {
         this.project = project;
         this.featureName = featureName;
@@ -41,19 +49,22 @@ public class ProjectDerivedCapability implements CapabilityInternal {
 
     @Override
     public String getGroup() {
-        return notNull("group", project.getGroup());
+        return project.getGroup().toString();
     }
 
     @Override
     public String getName() {
-        if (capabilityName == null) {
-            capabilityName = computeCapabilityName(project, featureName);
+        String local = this.capabilityName;
+        if (local == null) {
+            String result = computeCapabilityName(project, featureName);
+            this.capabilityName = result;
+            return result;
         }
-        return capabilityName;
+        return local;
     }
 
-    private static String computeCapabilityName(ProjectInternal project, @Nullable String featureName) {
-        String projectName = project.getOwner().getIdentity().getProjectName();
+    private static String computeCapabilityName(Project project, @Nullable String featureName) {
+        String projectName = project.getName();
         if (featureName == null) {
             return projectName;
         }
@@ -62,7 +73,7 @@ public class ProjectDerivedCapability implements CapabilityInternal {
 
     @Override
     public String getVersion() {
-        return notNull("version", project.getVersion());
+        return project.getVersion().toString();
     }
 
     @Override
@@ -87,18 +98,11 @@ public class ProjectDerivedCapability implements CapabilityInternal {
         return Objects.equal(getGroup(), that.getGroup())
             && Objects.equal(getName(), that.getName())
             && Objects.equal(getVersion(), that.getVersion());
-
-    }
-
-    private static String notNull(String id, Object o) {
-        if (o == null) {
-            throw new InvalidUserDataException(id + " must not be null");
-        }
-        return o.toString();
     }
 
     @Override
     public String getCapabilityId() {
         return getGroup() + ":" + getName();
     }
+
 }

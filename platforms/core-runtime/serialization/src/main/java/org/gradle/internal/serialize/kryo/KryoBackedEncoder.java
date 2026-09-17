@@ -29,7 +29,7 @@ import java.io.OutputStream;
 
 public class KryoBackedEncoder extends AbstractEncoder implements PositionAwareEncoder, FlushableEncoder, Closeable {
     private final Output output;
-    private KryoBackedEncoder nested;
+    private @Nullable KryoBackedEncoder nested;
 
     public KryoBackedEncoder(OutputStream outputStream) {
         this(outputStream, 4096);

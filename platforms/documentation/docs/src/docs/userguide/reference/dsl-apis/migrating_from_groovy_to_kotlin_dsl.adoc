@@ -18,7 +18,7 @@
 :example-caption!:
 :plugin-portal: https://plugins.gradle.org/
 :kotlin-reference: https://kotlinlang.org/docs/reference/
-:kotlin-tutorials: https://kotlinlang.org/tutorials/
+:kotlin-tutorials: https://kotlinlang.org/education/
 :gradle-issues: https://github.com/gradle/gradle/issues/
 
 This section will walk you through converting your Groovy-based Gradle build scripts to Kotlin.

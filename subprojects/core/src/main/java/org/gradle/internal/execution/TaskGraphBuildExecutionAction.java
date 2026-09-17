@@ -15,17 +15,14 @@
  */
 package org.gradle.internal.execution;
 
+import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Streams;
 import org.gradle.TaskExecutionRequest;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.StartParameterInternal;
-import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
-import org.gradle.execution.BuildWorkExecutor;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskInAnotherBuild;
 import org.gradle.execution.plan.TaskNode;
-import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.graph.DirectedGraph;
 import org.gradle.internal.graph.DirectedGraphRenderer;
 import org.gradle.internal.graph.GraphNodeRenderer;
@@ -38,44 +35,16 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
- * A {@link BuildWorkExecutor} that does not execute any tasks, but prints the task graph instead.
+ * Prints a {@link FinalizedExecutionPlan} to a {@link StyledTextOutputFactory}.
  */
-public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
-    private final BuildWorkExecutor delegate;
-    private final StyledTextOutputFactory textOutputFactory;
-    private final ConfigurationTimeBarrier configurationTimeBarrier;
+public class TaskGraphBuildExecutionAction  {
 
-    public TaskGraphBuildExecutionAction(
-        BuildWorkExecutor delegate,
-        StyledTextOutputFactory textOutputFactory,
-        ConfigurationTimeBarrier configurationTimeBarrier
-    ) {
-        this.delegate = delegate;
-        this.textOutputFactory = textOutputFactory;
-        this.configurationTimeBarrier = configurationTimeBarrier;
-    }
-
-    @Override
-    public ExecutionResult<Void> execute(GradleInternal gradle, FinalizedExecutionPlan plan) {
-        if (configurationTimeBarrier.isAtConfigurationTime()) {
-            return delegate.execute(gradle, plan);
-        }
-
-        // The task sub-graph from an included build will be traversed and printed from the root build as well
-        if (gradle.isRootBuild()) {
-            renderTaskGraph(gradle, plan);
-        }
-
-        return ExecutionResult.succeeded();
-    }
-
-    private void renderTaskGraph(GradleInternal gradle, FinalizedExecutionPlan plan) {
-        plan.getContents().getScheduledNodes().visitNodes((nodes, entryNodes) -> {
-            String invocation = renderRequestedTasks(gradle.getStartParameter());
-            StyledTextOutput output = textOutputFactory.create(TaskGraphBuildExecutionAction.class);
-            DirectedGraphRenderer<TaskInfo> renderer = new DirectedGraphRenderer<>(new NodeRenderer(), new NodesGraph());
-            renderer.renderTo(new RootNode(entryNodes, invocation), output);
-        });
+    public static void renderTaskGraph(StyledTextOutputFactory textOutputFactory, FinalizedExecutionPlan plan, StartParameterInternal startParameter) {
+        ImmutableSet<Node> entryNodes = plan.getContents().getScheduledNodes().getEntryNodes();
+        String invocation = renderRequestedTasks(startParameter);
+        StyledTextOutput output = textOutputFactory.create(TaskGraphBuildExecutionAction.class);
+        DirectedGraphRenderer<TaskInfo> renderer = new DirectedGraphRenderer<>(new NodeRenderer(), new NodesGraph());
+        renderer.renderTo(new RootNode(entryNodes, invocation), output);
     }
 
     private static String renderRequestedTasks(StartParameterInternal startParameter) {
@@ -216,4 +185,5 @@ public class TaskGraphBuildExecutionAction implements BuildWorkExecutor {
             return node.equals(that.node);
         }
     }
+
 }

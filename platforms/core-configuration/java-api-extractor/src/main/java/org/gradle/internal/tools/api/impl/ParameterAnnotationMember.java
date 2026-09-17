@@ -30,7 +30,16 @@ public class ParameterAnnotationMember extends AnnotationMember {
     }
 
     @Override
+    protected int kindRank() {
+        return 1;
+    }
+
+    @Override
     public int compareTo(AnnotationMember o) {
+        if (!(o instanceof ParameterAnnotationMember)) {
+            // The rank of the kinds decides, and it never leaves them equal
+            return super.compare(o).result();
+        }
         return super.compare(o)
             .compare(parameter, ((ParameterAnnotationMember) o).parameter)
             .result();

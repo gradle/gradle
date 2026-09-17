@@ -69,50 +69,60 @@ import java.util.Collections;
  *
  * @see <a href="https://docs.gradle.org/current/userguide/java_plugin.html">Java plugin reference</a>
  * @see <a href="https://docs.gradle.org/current/userguide/jvm_test_suite_plugin.html">JVM test suite plugin reference</a>
+ * @since 0.7
  */
 public abstract class JavaPlugin implements Plugin<Project> {
     /**
      * The name of the task that processes resources.
+     * @since 0.7
      */
     public static final String PROCESS_RESOURCES_TASK_NAME = JvmConstants.PROCESS_RESOURCES_TASK_NAME;
 
     /**
      * The name of the lifecycle task which outcome is that all the classes of a component are generated.
+     * @since 0.8
      */
     public static final String CLASSES_TASK_NAME = JvmConstants.CLASSES_TASK_NAME;
 
     /**
      * The name of the task which compiles Java sources.
+     * @since 0.8
      */
     public static final String COMPILE_JAVA_TASK_NAME = JvmConstants.COMPILE_JAVA_TASK_NAME;
 
     /**
      * The name of the task which processes the test resources.
+     * @since 0.7
      */
     public static final String PROCESS_TEST_RESOURCES_TASK_NAME = JvmConstants.PROCESS_TEST_RESOURCES_TASK_NAME;
 
     /**
      * The name of the lifecycle task which outcome is that all test classes of a component are generated.
+     * @since 0.8
      */
     public static final String TEST_CLASSES_TASK_NAME = JvmConstants.TEST_CLASSES_TASK_NAME;
 
     /**
      * The name of the task which compiles the test Java sources.
+     * @since 0.8
      */
     public static final String COMPILE_TEST_JAVA_TASK_NAME = JvmConstants.COMPILE_TEST_JAVA_TASK_NAME;
 
     /**
      * The name of the task which triggers execution of tests.
+     * @since 0.7
      */
     public static final String TEST_TASK_NAME = JvmConstants.TEST_TASK_NAME;
 
     /**
      * The name of the task which generates the component main jar.
+     * @since 0.7
      */
     public static final String JAR_TASK_NAME = JvmConstants.JAR_TASK_NAME;
 
     /**
      * The name of the task which generates the component javadoc.
+     * @since 0.7
      */
     public static final String JAVADOC_TASK_NAME = JvmConstants.JAVADOC_TASK_NAME;
 
@@ -143,6 +153,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
     /**
      * The name of the configuration that is used to declare dependencies which are only required to compile a component,
      * but not at runtime.
+     * @since 2.12
      */
     public static final String COMPILE_ONLY_CONFIGURATION_NAME = JvmConstants.COMPILE_ONLY_CONFIGURATION_NAME;
 
@@ -194,7 +205,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
     /**
      * The name of the compile classpath configuration.
      *
-     * @since 3.4
+     * @since 2.12
      */
     public static final String COMPILE_CLASSPATH_CONFIGURATION_NAME = JvmConstants.COMPILE_CLASSPATH_CONFIGURATION_NAME;
 
@@ -215,6 +226,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
     /**
      * The name of the configuration that should be used to declare dependencies which are only required
      * to compile the tests, but not when running them.
+     * @since 2.12
      */
     public static final String TEST_COMPILE_ONLY_CONFIGURATION_NAME = JvmConstants.TEST_COMPILE_ONLY_CONFIGURATION_NAME;
 
@@ -228,7 +240,7 @@ public abstract class JavaPlugin implements Plugin<Project> {
     /**
      * The name of the test compile classpath configuration.
      *
-     * @since 3.4
+     * @since 2.12
      */
     public static final String TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME = JvmConstants.TEST_COMPILE_CLASSPATH_CONFIGURATION_NAME;
 

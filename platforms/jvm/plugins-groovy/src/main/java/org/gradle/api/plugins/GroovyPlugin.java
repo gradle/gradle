@@ -29,8 +29,14 @@ import org.gradle.api.tasks.javadoc.Groovydoc;
  * source files.</p>
  *
  * @see <a href="https://docs.gradle.org/current/userguide/groovy_plugin.html">Groovy plugin reference</a>
+ * @since 0.7
  */
 public abstract class GroovyPlugin implements Plugin<Project> {
+    /**
+     * The groovydoc task name.
+     *
+     * @since 0.7
+     */
     public static final String GROOVYDOC_TASK_NAME = "groovydoc";
 
     @Override

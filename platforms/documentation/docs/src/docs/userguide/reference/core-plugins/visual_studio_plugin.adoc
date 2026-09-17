@@ -1,4 +1,4 @@
-// Copyright (C) 2024 Gradle, Inc.
+// Copyright (C) 2026 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -15,7 +15,7 @@
 [[visual_studio_plugin]]
 = Visual Studio
 
-The Visual Studio Plugin generate files that are used by the https://visualstudio.microsoft.com/[Visual Studio IDE], thus making it possible to open the solution into Visual Studio (`File` - `Open` - `Project/Solution...`).
+The Visual Studio Plugin generates files that are used by the https://visualstudio.microsoft.com/[Visual Studio IDE], thus making it possible to open the solution into Visual Studio (`File` - `Open` - `Project/Solution...`).
 
 What exactly the `visual-studio` plugin generates depends on which other plugins are used:
 
@@ -84,7 +84,7 @@ Generates the `.sln` file. This task is only available on the root project.
 [[sec:visual_studio_cpp_application_tasks]]
 ==== {cpp} Application Plugin Tasks
 
-`__projectName__VisualStudioProject` — link:{groovyDslPath}/org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask.html[GenerateProjectFileTask]::
+`__projectName__VisualStudioProject` — link:{groovyDslPath}/org.gradle.ide.visualstudio.tasks.GenerateProjectFileTask.html[GenerateProjectFileTask]::
 +
 Generates the `.vcxproj` file for the application component.
 
@@ -100,7 +100,7 @@ Generates all Visual Studio project files for the application component.
 [[sec:visual_studio_cpp_library_tasks]]
 ==== {cpp} Library Plugin Tasks
 
-`__projectName__DllVisualStudioProject` — link:{groovyDslPath}/org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask.html[GenerateProjectFileTask]::
+`__projectName__DllVisualStudioProject` — link:{groovyDslPath}/org.gradle.ide.visualstudio.tasks.GenerateProjectFileTask.html[GenerateProjectFileTask]::
 +
 Generates the `.vcxproj` file for the shared linkage of the `main` component.
 
@@ -108,7 +108,7 @@ Generates the `.vcxproj` file for the shared linkage of the `main` component.
 +
 Generates the `.vcxproj.filters` file for the shared linkage of the `main` component.
 
-`__projectName__LibVisualStudioProject` — link:{groovyDslPath}/org.gradle.ide.visualstudio.tasks.GenerateFiltersFileTask.html[GenerateProjectFileTask]::
+`__projectName__LibVisualStudioProject` — link:{groovyDslPath}/org.gradle.ide.visualstudio.tasks.GenerateProjectFileTask.html[GenerateProjectFileTask]::
 +
 Generates the `.vcxproj` file for the static linkage of the `main` component.
 

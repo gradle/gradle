@@ -39,7 +39,6 @@ import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.DefaultCrossProjectModelAccess
 import org.gradle.api.internal.project.MutableStateAccessAwareProject
-import org.gradle.api.internal.project.ProjectIdentifier
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectOrderingUtil
@@ -71,7 +70,6 @@ import org.gradle.internal.logging.StandardOutputCapture
 import org.gradle.internal.metaobject.DynamicInvokeResult
 import org.gradle.internal.metaobject.DynamicObject
 import org.gradle.internal.metaobject.HierarchicalDynamicObject
-import org.gradle.internal.model.ModelContainer
 import org.gradle.internal.model.RuleBasedPluginListener
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.service.ServiceRegistry
@@ -399,34 +397,6 @@ class ProblemReportingCrossProjectModelAccess(
             return super.getGradle()
         }
 
-        override fun identityPath(name: String): Path {
-            shouldNotBeUsed()
-        }
-
-        override fun projectPath(name: String): Path {
-            shouldNotBeUsed()
-        }
-
-        override fun getModel(): ModelContainer<*> {
-            shouldNotBeUsed()
-        }
-
-        override fun getBuildPath(): Path {
-            shouldNotBeUsed()
-        }
-
-        override fun isScript(): Boolean {
-            shouldNotBeUsed()
-        }
-
-        override fun isRootScript(): Boolean {
-            shouldNotBeUsed()
-        }
-
-        override fun isPluginContext(): Boolean {
-            shouldNotBeUsed()
-        }
-
         override fun getFileOperations(): FileOperations {
             shouldNotBeUsed()
         }
@@ -436,10 +406,6 @@ class ProblemReportingCrossProjectModelAccess(
         }
 
         override fun getConfigurationTargetIdentifier(): ConfigurationTargetIdentifier {
-            shouldNotBeUsed()
-        }
-
-        override fun getParentIdentifier(): ProjectIdentifier {
             shouldNotBeUsed()
         }
 
@@ -609,9 +575,7 @@ class ProblemReportingCrossProjectModelAccess(
                     text(" $accessRefKind on ")
                     describeCrossProjectAccess()
                     buildAdditionalMessage()
-                }
-                    .exception()
-                    .build()
+                }.build()
             }
         }
 

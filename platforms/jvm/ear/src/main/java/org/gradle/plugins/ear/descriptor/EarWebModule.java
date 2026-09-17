@@ -19,14 +19,21 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 
 /**
  * A module element in a deployment descriptor like application.xml that has a web child element.
+ * @since 1.0
  */
 public interface EarWebModule extends EarModule {
 
     /**
      * The context-root element specifies the context root of a web application.
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty
     String getContextRoot();
 
+    /**
+     * Sets the context root.
+     *
+     * @since 1.0
+     */
     void setContextRoot(String contextRoot);
 }

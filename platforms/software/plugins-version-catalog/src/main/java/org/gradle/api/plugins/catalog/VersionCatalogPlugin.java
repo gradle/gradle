@@ -41,8 +41,23 @@ import javax.inject.Inject;
  * @since 7.0
  */
 public abstract class VersionCatalogPlugin implements Plugin<Project> {
+    /**
+     * The generate catalog file taskname.
+     *
+     * @since 7.0
+     */
     public static final String GENERATE_CATALOG_FILE_TASKNAME = "generateCatalogAsToml";
+    /**
+     * The gradle platform dependencies.
+     *
+     * @since 7.0
+     */
     public static final String GRADLE_PLATFORM_DEPENDENCIES = "versionCatalog";
+    /**
+     * The version catalog elements.
+     *
+     * @since 7.0
+     */
     public static final String VERSION_CATALOG_ELEMENTS = "versionCatalogElements";
 
     private final SoftwareComponentFactory softwareComponentFactory;

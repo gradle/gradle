@@ -24,6 +24,7 @@ import org.gradle.model.internal.core.ModelNode
 class RuleTaskExecutionIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             def tasksFile = file("tasks.txt")
             tasksFile.text = ''

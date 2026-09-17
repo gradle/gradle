@@ -27,6 +27,7 @@ import org.gradle.api.provider.Provider;
 public interface TestSuiteComponent extends SoftwareComponent {
     /**
      * Returns the binary to use as the default to run this test suite.
+     * @since 4.5
      */
     Provider<? extends TestComponent> getTestBinary();
 }

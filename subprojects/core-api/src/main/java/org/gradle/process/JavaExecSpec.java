@@ -37,6 +37,7 @@ import java.util.List;
 
 /**
  * Specifies the options for executing a Java application.
+ * @since 0.9
  */
 public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
 
@@ -78,6 +79,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
 
     /**
      * Returns the arguments passed to the main class to be executed.
+     * @since 0.9
      */
     @ToBeReplacedByLazyProperty
     @Optional @Input
@@ -89,6 +91,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * @param args Args for the main class.
      *
      * @return this
+     * @since 0.9
      */
     JavaExecSpec args(Object... args);
 
@@ -98,6 +101,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * @param args Args for the main class.
      *
      * @return this
+     * @since 0.9
      */
     JavaExecSpec args(Iterable<?> args);
 
@@ -117,6 +121,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * @param args Args for the main class.
      *
      * @return this
+     * @since 0.9
      */
     JavaExecSpec setArgs(Iterable<?> args);
 
@@ -135,11 +140,13 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * @param paths classpath elements
      *
      * @return this
+     * @since 0.9
      */
     JavaExecSpec classpath(@Nullable Object... paths);
 
     /**
      * Returns the classpath for executing the main class.
+     * @since 0.9
      */
     @Classpath
     @ToBeReplacedByLazyProperty
@@ -151,6 +158,7 @@ public interface JavaExecSpec extends JavaForkOptions, BaseExecSpec {
      * @param classpath the classpath
      *
      * @return this
+     * @since 0.9
      */
     JavaExecSpec setClasspath(FileCollection classpath);
 

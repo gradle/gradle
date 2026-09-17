@@ -578,6 +578,20 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
         expectedDeprecations << normalizeDeprecationWarning(message)
     }
 
+    /**
+     * Expects the deprecation for relying on {@code org.gradle.parallel} to implicitly enable parallel
+     * model building, emitted by Gradle 9.8.0 and later during model building. See gradle/gradle#36001.
+     */
+    void expectImplicitParallelModelBuildingDeprecation() {
+        expectDocumentedDeprecationWarning(
+            "Relying on the default value of the 'org.gradle.tooling.parallel' property while 'org.gradle.parallel' is enabled. " +
+                "This behavior has been deprecated. This will fail with an error in Gradle 10. " +
+                "Whether the Tooling API builds project models in parallel (for example, during IDE sync) should be controlled explicitly via 'org.gradle.tooling.parallel'. " +
+                "Set 'org.gradle.tooling.parallel' to 'true' or 'false' explicitly. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_implicit_parallel_model_building"
+        )
+    }
+
     private String normalizeDeprecationWarning(String message) {
         def normalizedLink = DocumentationUtils.normalizeDocumentationLink(message, targetDist.version)
 

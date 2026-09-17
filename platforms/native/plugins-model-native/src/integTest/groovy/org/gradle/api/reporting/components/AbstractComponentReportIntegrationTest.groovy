@@ -29,6 +29,7 @@ abstract class AbstractComponentReportIntegrationTest extends AbstractIntegratio
     String currentJdk = String.format("JDK %s (%s)", currentJvm.majorVersion, currentJvm);
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         settingsFile << "rootProject.name = 'test'"
     }
 

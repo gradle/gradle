@@ -39,6 +39,7 @@ class GoogleTestSamplesIntegrationTest extends AbstractInstalledToolChainIntegra
 
     @Requires(NativeTestPreconditions.NotWindowsOrVisualCpp2015)
     def "googleTest"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         sample googleTest
 

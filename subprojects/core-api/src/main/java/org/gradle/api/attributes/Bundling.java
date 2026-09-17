@@ -49,21 +49,29 @@ import org.gradle.api.Named;
  * @since 5.3
  */
 public interface Bundling extends Named {
+    /**
+     * Of.
+     *
+     * @since 5.3
+     */
     Attribute<Bundling> BUNDLING_ATTRIBUTE = Attribute.of("org.gradle.dependency.bundling", Bundling.class);
 
     /**
      * The most common case: dependencies are provided as individual components.
+     * @since 5.3
      */
     String EXTERNAL = "external";
 
     /**
      * Dependencies are packaged <i>within</i> the main component artifact.
+     * @since 5.3
      */
     String EMBEDDED = "embedded";
 
     /**
      * Dependencies are packaged <i>within</i> the main component artifact
      * but also in a different namespace to prevent conflicts.
+     * @since 5.3
      */
     String SHADOWED = "shadowed";
 

@@ -26,16 +26,19 @@ import org.gradle.tooling.model.DomainObjectSet;
 public interface CppComponent {
     /**
      * Returns the name of this component. This is used to disambiguate the component of a project. Each component has a unique name within its project. However, these names are not unique across multiple projects.
+     * @since 4.10
      */
     String getName();
 
     /**
      * All binaries buildable for this component. These will implement {@link CppExecutable}, {@link CppSharedLibrary} or {@link CppStaticLibrary}.
+     * @since 4.10
      */
     DomainObjectSet<? extends CppBinary> getBinaries();
 
     /**
      * Returns the base name of this component.
+     * @since 4.10
      */
     String getBaseName();
 }

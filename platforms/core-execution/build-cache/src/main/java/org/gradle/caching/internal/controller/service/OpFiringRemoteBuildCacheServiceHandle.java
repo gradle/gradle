@@ -34,6 +34,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 
 import java.io.IOException;
 import java.io.InputStream;
+import static java.util.Objects.requireNonNull;
 
 public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheServiceHandle {
 
@@ -159,7 +160,8 @@ public class OpFiringRemoteBuildCacheServiceHandle extends BaseRemoteBuildCacheS
         }
 
         IOException getIOException() {
-            return (IOException) getCause();
+            // The only constructor takes a non-null cause.
+            return (IOException) requireNonNull(getCause());
         }
     }
 

@@ -19,7 +19,7 @@ package org.gradle.performance.results.report;
 import org.gradle.performance.results.PerformanceExperiment;
 import org.gradle.performance.results.PerformanceFlakinessDataProvider;
 import org.gradle.performance.results.PerformanceReportScenario;
-import org.gradle.performance.results.PerformanceTestExecutionResult;
+import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
 
@@ -85,7 +85,10 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
 
             @Override
             protected String determineScenarioBackgroundColorCss(PerformanceReportScenario scenario) {
-                if (scenario.isUnknown()) {
+                if (scenario.isFromCache()) {
+                    // Not executed in this build chain; any carried-over status is not this chain's outcome.
+                    return "alert-success";
+                } else if (scenario.isUnknown()) {
                     return "alert-dark";
                 } else if (!scenario.isSuccessful()) {
                     return failsBuild(scenario) ? "alert-danger" : "alert-warning";
@@ -101,13 +104,14 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
             @Override
             protected Set<Tag> determineTags(PerformanceReportScenario scenario) {
                 Set<Tag> result = new HashSet<>();
-                if (scenario.isFromCache()) {
-                    result.add(FROM_CACHE);
-                }
 
                 markFlakyTestInfo(scenario, result);
 
-                if (scenario.isUnknown()) {
+                if (scenario.isFromCache()) {
+                    // The carried-over JSON may say FAILED, but that verdict belongs to the build that originally
+                    // produced the cached result - tag it FROM-CACHE instead of presenting it as this chain's failure.
+                    result.add(FROM_CACHE);
+                } else if (scenario.isUnknown()) {
                     result.add(UNKNOWN);
                 } else if (scenario.isBuildFailed()) {
                     result.add(FAILED);
@@ -137,7 +141,19 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
 
             @Override
             protected void renderScenarioButtons(int index, PerformanceReportScenario scenario) {
-                List<String> webUrls = scenario.getTeamCityExecutions().stream().map(PerformanceTestExecutionResult::getWebUrl).collect(toList());
+                // The result JSONs no longer carry per-scenario build URLs; link to the builds of this pipeline that
+                // actually executed this scenario, i.e. the scenario's current executions from the performance
+                // database (each DB row records the build that measured it). NOT the full dependencyBuildIds set -
+                // that is every bucket in the pipeline, almost none of which ran this particular scenario.
+                List<String> webUrls = scenario.getCurrentExecutions().stream()
+                    .map(PerformanceReportScenarioHistoryExecution::getTeamCityBuildId)
+                    .distinct()
+                    .map(AbstractTablePageGenerator::getTeamCityWebUrlFromBuildId)
+                    .collect(toList());
+                if (webUrls.isEmpty()) {
+                    // Nothing in this pipeline executed the scenario (e.g. the bucket result was a build-cache hit).
+                    return;
+                }
                 if (webUrls.size() == 1) {
                     a().target("_blank").classAttr("btn btn-primary btn-sm").href(webUrls.get(0)).text("Build").end();
                 } else {

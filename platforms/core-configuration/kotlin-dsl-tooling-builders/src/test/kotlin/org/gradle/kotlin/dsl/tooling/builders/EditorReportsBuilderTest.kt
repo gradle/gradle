@@ -25,7 +25,6 @@ import org.gradle.internal.exceptions.LocationAwareException
 import org.gradle.kotlin.dsl.fixtures.TestWithTempFiles
 
 import org.hamcrest.CoreMatchers.equalTo
-import org.hamcrest.CoreMatchers.notNullValue
 import org.hamcrest.CoreMatchers.nullValue
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
@@ -34,14 +33,13 @@ import org.junit.Test
 class EditorReportsBuilderTest : TestWithTempFiles() {
 
     @Test
-    fun `report file warning on runtime failure in currently edited script on out of range line number`() {
+    fun `report file warning on runtime failure in currently edited script`() {
 
         val script = withTwoLinesScript()
 
         val reports = buildEditorReportsFor(
             script,
-            listOf(LocationAwareException(Exception("BOOM"), script.canonicalPath, 3)),
-            true
+            listOf(LocationAwareException(Exception("BOOM"), script.canonicalPath, 2))
         )
 
         assertThat(reports.size, equalTo(1))
@@ -50,73 +48,6 @@ class EditorReportsBuilderTest : TestWithTempFiles() {
             assertThat(report.position, nullValue())
             assertThat(report.message, equalTo(EditorMessages.buildConfigurationFailedInCurrentScript))
         }
-    }
-
-    @Test
-    fun `report line warning on runtime failure in currently edited script last line without new line before eof`() {
-
-        val script = file("some.gradle.kts").also { it.writeText("\n\nno-new-line") }
-
-        val reports = buildEditorReportsFor(
-            script,
-            listOf(LocationAwareException(Exception("BOOM"), script.canonicalPath, 3)),
-            true
-        )
-
-        assertThat(reports.size, equalTo(1))
-        reports.single().let { report ->
-            assertThat(report.severity, equalTo(EditorReportSeverity.WARNING))
-            assertThat(report.position, notNullValue())
-            assertThat(report.position!!.line, equalTo(3))
-            assertThat(report.message, equalTo("BOOM"))
-        }
-    }
-
-    @Test
-    fun `report line warning on runtime failure in currently edited script with cause without message`() {
-
-        val script = withTwoLinesScript()
-
-        val reports = buildEditorReportsFor(
-            script,
-            listOf(
-                LocationAwareException(java.lang.Exception(null as String?), script.canonicalPath, 1),
-                LocationAwareException(java.lang.Exception(""), script.canonicalPath, 2)
-            ),
-            true
-        )
-
-        assertThat(reports.size, equalTo(2))
-        reports.forEachIndexed { idx, report ->
-            assertThat(report.severity, equalTo(EditorReportSeverity.WARNING))
-            assertThat(report.position, notNullValue())
-            assertThat(report.position!!.line, equalTo(idx + 1))
-            assertThat(report.message, equalTo(EditorMessages.defaultLocationAwareHintMessageFor(java.lang.Exception())))
-        }
-    }
-
-    @Test
-    fun `valid line number range for file`() {
-
-        val file = file("script.gradle.kts")
-
-        file.writeText("")
-        assertThat(file.readLinesRange(), equalTo(0..0L))
-
-        file.writeText("some")
-        assertThat(file.readLinesRange(), equalTo(1..1L))
-
-        file.writeText("some\n")
-        assertThat(file.readLinesRange(), equalTo(1..1L))
-
-        file.writeText("some\nmore")
-        assertThat(file.readLinesRange(), equalTo(1..2L))
-
-        file.writeText("some\nmore\n")
-        assertThat(file.readLinesRange(), equalTo(1..2L))
-
-        file.writeText("some\nmore\nthings")
-        assertThat(file.readLinesRange(), equalTo(1..3L))
     }
 
     private

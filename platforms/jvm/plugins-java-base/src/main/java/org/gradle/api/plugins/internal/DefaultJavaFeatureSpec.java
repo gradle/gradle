@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.internal;
 
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.Project;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.FeatureSpec;
@@ -80,7 +81,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpec {
         }
 
         if (capabilities.isEmpty()) {
-            capabilities.add(new ProjectDerivedCapability(project, name));
+            capabilities.add(new ProjectDerivedCapability((Project) project, name));
         }
 
         if (SourceSet.isMain(sourceSet)) {

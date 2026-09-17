@@ -25,7 +25,7 @@ import java.io.File;
 /**
  * Represents the basic information about an Eclipse project.
  *
- * @since 1.0-milestone-3
+ * @since 1.0
  */
 public interface HierarchicalEclipseProject extends HierarchicalElement, HasGradleProject {
 
@@ -45,7 +45,7 @@ public interface HierarchicalEclipseProject extends HierarchicalElement, HasGrad
      * Returns the project dependencies for this project.
      *
      * @return The project dependencies. Returns an empty set if the project has no project dependencies.
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     DomainObjectSet<? extends EclipseProjectDependency> getProjectDependencies();
 
@@ -53,7 +53,7 @@ public interface HierarchicalEclipseProject extends HierarchicalElement, HasGrad
      * Returns the source directories for this project.
      *
      * @return The source directories. Returns an empty set if the project has no source directories.
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     DomainObjectSet<? extends EclipseSourceDirectory> getSourceDirectories();
 
@@ -61,7 +61,7 @@ public interface HierarchicalEclipseProject extends HierarchicalElement, HasGrad
      * Returns the linked resources for this project.
      *
      * @return The linked resources.
-     * @since 1.0-milestone-4
+     * @since 1.0
      */
     DomainObjectSet<? extends EclipseLinkedResource> getLinkedResources();
 
@@ -69,7 +69,7 @@ public interface HierarchicalEclipseProject extends HierarchicalElement, HasGrad
      * Returns the project directory for this project.
      *
      * @return The project directory.
-     * @since 1.0-milestone-9
+     * @since 1.0
      * @throws UnsupportedMethodException For Gradle versions older than 1.0-milestone-9, where this method is not supported.
      */
     File getProjectDirectory() throws UnsupportedMethodException;

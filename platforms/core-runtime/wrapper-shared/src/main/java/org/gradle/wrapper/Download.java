@@ -35,6 +35,7 @@ import java.net.URLConnection;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
+import org.jspecify.annotations.Nullable;
 
 public class Download implements IDownload {
     public static final String UNKNOWN_VERSION = "0";
@@ -65,11 +66,11 @@ public class Download implements IDownload {
         return result;
     }
 
-    public Download(Logger logger, DownloadProgressListener progressListener, String appName, String appVersion, Map<String, String> systemProperties) {
+    public Download(Logger logger, @Nullable DownloadProgressListener progressListener, String appName, String appVersion, Map<String, String> systemProperties) {
         this(logger, progressListener, appName, appVersion, systemProperties, DEFAULT_NETWORK_TIMEOUT_MILLISECONDS);
     }
 
-    public Download(Logger logger, DownloadProgressListener progressListener, String appName, String appVersion, Map<String, String> systemProperties, int networkTimeout) {
+    public Download(Logger logger, @Nullable DownloadProgressListener progressListener, String appName, String appVersion, Map<String, String> systemProperties, int networkTimeout) {
         this.logger = logger;
         this.appName = appName;
         this.appVersion = appVersion;
@@ -239,10 +240,11 @@ public class Download implements IDownload {
 
     private static class DefaultDownloadProgressListener implements DownloadProgressListener {
         private final Logger logger;
+        @Nullable
         private final DownloadProgressListener delegate;
         private int previousDownloadPercent;
 
-        public DefaultDownloadProgressListener(Logger logger, DownloadProgressListener delegate) {
+        public DefaultDownloadProgressListener(Logger logger, @Nullable DownloadProgressListener delegate) {
             this.logger = logger;
             this.delegate = delegate;
             this.previousDownloadPercent = 0;

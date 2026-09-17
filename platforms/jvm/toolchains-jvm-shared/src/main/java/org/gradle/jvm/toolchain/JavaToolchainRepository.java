@@ -38,12 +38,14 @@ public interface JavaToolchainRepository extends AuthenticationSupported {
     /**
      * Name of the configuration, set by the build author, can be anything, as long
      * as it doesn't conflict with other repository names.
+     * @since 7.6
      */
     String getName();
 
     /**
      * Class implementing the {@link JavaToolchainResolver} being configured.
      * Mandatory property.
+     * @since 7.6
      */
     Property<Class<? extends JavaToolchainResolver>> getResolverClass();
 

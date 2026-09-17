@@ -68,6 +68,7 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue, Supports
      * </p>
      *
      * @param value The value, can be null.
+     * @since 4.3
      */
     void set(@Nullable T value);
 
@@ -88,6 +89,7 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue, Supports
      * </p>
      *
      * @param provider The provider of the property's value, can't be null.
+     * @since 4.3
      */
     void set(Provider<? extends T> provider);
 

@@ -23,6 +23,7 @@ import org.gradle.api.internal.artifacts.ivyservice.TypedResolveException;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.resolve.ModuleVersionNotFoundException;
+import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
@@ -111,11 +112,11 @@ public class ResolveExceptionMapper {
     }
 
     private boolean settingsRepositoriesIgnored() {
-        if (!(domainObjectContext instanceof ProjectInternal)) {
+        if (!(domainObjectContext instanceof ProjectDomainObjectContext pdoc)) {
             return false;
         }
 
-        ProjectInternal project = (ProjectInternal) domainObjectContext;
+        ProjectInternal project = pdoc.getModel().getMutableModel();
 
         boolean hasSettingsRepos;
         try {

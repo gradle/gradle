@@ -16,18 +16,11 @@
 
 package org.gradle.internal.resources;
 
-import com.google.common.collect.ImmutableList;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.concurrent.ConcurrentHashMap;
-import java.util.concurrent.ConcurrentMap;
-
 public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> implements ResourceLockRegistry, ResourceLockContainer {
+
     private final LockCache<K, T> resourceLocks;
-    private final ConcurrentMap<Long, ThreadLockDetails<T>> threadLocks = new ConcurrentHashMap<Long, ThreadLockDetails<T>>();
 
     @SuppressWarnings("this-escape")
     public AbstractResourceLockRegistry(final ResourceLockCoordinationService coordinationService) {
@@ -38,32 +31,10 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
         return resourceLocks.getOrRegisterResourceLock(key, producer);
     }
 
-    @Override
-    public List<T> getResourceLocksByCurrentThread() {
-        return ImmutableList.copyOf(detailsForCurrentThread().locks);
-    }
-
-    public <S> S whileDisallowingLockChanges(Factory<S> action) {
-        ThreadLockDetails<T> lockDetails = detailsForCurrentThread();
-        boolean previous = lockDetails.mayChange;
-        lockDetails.mayChange = false;
-        try {
-            return action.create();
-        } finally {
-            lockDetails.mayChange = previous;
-        }
-    }
-
-    public <S> S allowUncontrolledAccessToAnyResource(Factory<S> factory) {
-        ThreadLockDetails<T> lockDetails = detailsForCurrentThread();
-        boolean previous = lockDetails.canAccessAnything;
-        lockDetails.canAccessAnything = true;
-        try {
-            return factory.create();
-        } finally {
-            lockDetails.canAccessAnything = previous;
-        }
-    }
+    /**
+     * Runs the given action, during which the current thread may not acquire or release any lock of this registry.
+     */
+    public abstract <S> S whileDisallowingLockChanges(Factory<S> action);
 
     @Override
     public boolean hasOpenLocks() {
@@ -75,66 +46,31 @@ public abstract class AbstractResourceLockRegistry<K, T extends ResourceLock> im
         return false;
     }
 
-    @Override
-    public void lockAcquired(ResourceLock resourceLock) {
-        ThreadLockDetails<T> lockDetails = detailsForCurrentThread();
-        if (!lockDetails.mayChange) {
-            throw new IllegalStateException("This thread may not acquire more locks.");
-        }
-        lockDetails.locks.add(Cast.<T>uncheckedCast(resourceLock));
-    }
+    /**
+     * Return true if the current thread holds any lock of this registry.
+     */
+    public abstract boolean holdsLock();
 
     /**
-     * {@return all locks currently cached} Locks are removed from the cache when they are no longer referenced,
-     * so this can only be relied upon to return locks that are currently held, but it may also include locks that are not currently held.
+     * Return true if the current thread holds the given lock of this registry.
      */
-    protected Iterable<T> getCachedResourceLocks() {
-        return resourceLocks.values();
-    }
+    public abstract boolean holdsLock(ResourceLock lock);
 
-    public boolean holdsLock() {
-        ThreadLockDetails<T> details = detailsForCurrentThread();
-        return !details.locks.isEmpty();
-    }
+    /**
+     * Return true if the current thread is allowed to acquire or release locks of this registry.
+     */
+    public abstract boolean mayAttemptToChangeLocks();
 
-    private ThreadLockDetails<T> detailsForCurrentThread() {
-        @SuppressWarnings("deprecation") // Thread.getId() is deprecated since JDK 19, but the replacement Thread.threadId() does not exist on JDK 17 (production target).
-        long id = Thread.currentThread().getId();
-        ThreadLockDetails<T> lockDetails = threadLocks.get(id);
-        if (lockDetails == null) {
-            lockDetails = new ThreadLockDetails<T>();
-            threadLocks.put(id, lockDetails);
-        }
-        return lockDetails;
-    }
-
-    @Override
-    public void lockReleased(ResourceLock resourceLock) {
-        @SuppressWarnings("deprecation") // Thread.getId() is deprecated since JDK 19, but the replacement Thread.threadId() does not exist on JDK 17 (production target).
-        ThreadLockDetails<T> lockDetails = threadLocks.get(Thread.currentThread().getId());
-        if (lockDetails == null || !lockDetails.mayChange) {
-            throw new IllegalStateException("This thread may not release any locks.");
-        }
-        lockDetails.locks.remove(resourceLock);
-    }
-
-    public boolean mayAttemptToChangeLocks() {
-        ThreadLockDetails<T> details = detailsForCurrentThread();
-        return details.mayChange && !details.canAccessAnything;
-    }
-
-    public boolean isAllowedUncontrolledAccessToAnyResource() {
-        return detailsForCurrentThread().canAccessAnything;
+    // Thread.getId() is deprecated since JDK 19, but the replacement Thread.threadId()
+    // does not exist on JDK 17. The method is not deprecated for removal, so we should
+    // be fine for now.
+    @SuppressWarnings("deprecation")
+    protected static long currentThreadId() {
+        return Thread.currentThread().getId();
     }
 
     public interface ResourceLockProducer<K, T extends ResourceLock> {
         T create(K key, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner);
     }
 
-    private static class ThreadLockDetails<T extends ResourceLock> {
-        // Only accessed by the thread itself, so does not require synchronization
-        private boolean mayChange = true;
-        private boolean canAccessAnything = false;
-        private final List<T> locks = new ArrayList<T>();
-    }
 }

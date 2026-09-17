@@ -152,6 +152,7 @@ public interface Provider<T> {
      *
      * @return the current value of this provider.
      * @throws IllegalStateException if there is no value present
+     * @since 4.0
      */
     T get();
 
@@ -159,6 +160,7 @@ public interface Provider<T> {
      * Returns the value of this provider if it has a value present. Returns {@code null} a value is not available.
      *
      * @return the value or {@code null}
+     * @since 4.0
      */
     @Nullable
     T getOrNull();
@@ -268,6 +270,7 @@ public interface Provider<T> {
      * Returns {@code true} if there is a value present, otherwise {@code false}.
      *
      * @return {@code true} if there is a value present, otherwise {@code false}
+     * @since 4.0
      */
     boolean isPresent();
 

@@ -19,12 +19,23 @@ package org.gradle.api;
 /**
  * <p>A <code>CircularReferenceException</code> is thrown if circular references exists between tasks, the project
  * evaluation order or the project dependsOn order.</p>
+ * @since 0.7
  */
 public class CircularReferenceException extends GradleException {
+    /**
+     * Creates a new {@code CircularReferenceException}.
+     *
+     * @since 0.7
+     */
     public CircularReferenceException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code CircularReferenceException}.
+     *
+     * @since 0.7
+     */
     public CircularReferenceException(String message, Throwable cause) {
         super(message, cause);
     }

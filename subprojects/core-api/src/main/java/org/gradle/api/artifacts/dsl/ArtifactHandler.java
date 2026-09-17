@@ -76,6 +76,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  *   schema schemaJar
  * }
  * </pre>
+ * @since 0.7
  */
 @ServiceScope(Scope.Project.class)
 public interface ArtifactHandler {
@@ -85,6 +86,7 @@ public interface ArtifactHandler {
      * @param configurationName The name of the configuration.
      * @param artifactNotation The artifact notation, in one of the notations described above.
      * @return The artifact.
+     * @since 1.0
      */
     PublishArtifact add(String configurationName, Object artifactNotation);
 
@@ -95,6 +97,7 @@ public interface ArtifactHandler {
      * @param artifactNotation The artifact notation, in one of the notations described above.
      * @param configureClosure The closure to execute to configure the artifact.
      * @return The artifact.
+     * @since 1.0
      */
     PublishArtifact add(String configurationName, Object artifactNotation, @DelegatesTo(ConfigurablePublishArtifact.class) Closure configureClosure);
 

@@ -15,8 +15,10 @@
  */
 package org.gradle.integtests.fixtures.executer;
 
+import org.gradle.internal.jvm.Jvm;
 import org.gradle.test.fixtures.file.TestFile;
 import org.gradle.util.GradleVersion;
+import org.junit.Assume;
 
 public interface GradleDistribution {
     /**
@@ -43,6 +45,17 @@ public interface GradleDistribution {
      * Returns true if this distribution's daemon supports the given JVM version.
      */
     boolean daemonWorksWith(int jvmVersion);
+
+    /**
+     * Checks that this distribution's daemon supports the JVM running the tests, skipping the test when it does not.
+     */
+    default void assumeDaemonWorksWithCurrentJvm() {
+        int jvmVersion = Jvm.current().getJavaVersionMajor();
+        Assume.assumeTrue(
+            "Gradle " + getVersion().getVersion() + " cannot run its daemon on Java " + jvmVersion + ".",
+            daemonWorksWith(jvmVersion)
+        );
+    }
 
     /**
      * Returns true if this version handles the client provided standard input stream when running in embedded mode.

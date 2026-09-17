@@ -150,16 +150,24 @@ class DependencyHandlerApiResolveIntegrationTest extends AbstractIntegrationSpec
         def groovyVersion = GroovySystem.version
         def kotlinVersion = getGradleKotlinVersion()
         def groovyModules = ["groovy-${groovyVersion}.jar", "groovy-ant-${groovyVersion}.jar", "groovy-astbuilder-${groovyVersion}.jar", "groovy-datetime-${groovyVersion}.jar", "groovy-dateutil-${groovyVersion}.jar", "groovy-groovydoc-${groovyVersion}.jar", "groovy-json-${groovyVersion}.jar", "groovy-nio-${groovyVersion}.jar", "groovy-templates-${groovyVersion}.jar", "groovy-xml-${groovyVersion}.jar", "javaparser-core-3.27.1.jar"]
-        def expectedGradleApiFiles = "gradle-api-${gradleVersion}.jar, ${groovyModules.join(", ")}, kotlin-reflect-${kotlinVersion}.jar, kotlin-stdlib-${kotlinVersion}.jar, gradle-installation-beacon-${gradleBaseVersion}.jar"
-        def expectedGradleApiIds = { id ->
-            "gradle-api-${gradleVersion}.jar ($id), ${groovyModules.collect({ it + " ($id)" }).join(", ")}, kotlin-reflect-${kotlinVersion}.jar ($id), kotlin-stdlib-${kotlinVersion}.jar ($id), gradle-installation-beacon-${gradleBaseVersion}.jar ($id)"
-        }
-        outputContains("gradleApi() files: [$expectedGradleApiFiles]")
-        outputContains("gradleApi() ids: [${expectedGradleApiIds("Gradle API")}]")
-        outputContains("gradleTestKit() files: [gradle-test-kit-${gradleVersion}.jar, $expectedGradleApiFiles]")
-        outputContains("gradleTestKit() ids: [gradle-test-kit-${gradleVersion}.jar (Gradle TestKit), ${expectedGradleApiIds("Gradle TestKit")}]")
-        outputContains("localGroovy() files: [${groovyModules.join(", ")}]")
-        outputContains("localGroovy() ids: [${groovyModules.collect({ it + " (Local Groovy)" }).join(", ")}]")
+        def gradleApiArtifacts = ["gradle-api-${gradleVersion}.jar"] + groovyModules + ["kotlin-reflect-${kotlinVersion}.jar", "kotlin-stdlib-${kotlinVersion}.jar", "gradle-installation-beacon-${gradleBaseVersion}.jar"]
+
+        assertResolvedArtifacts("gradleApi() files: ", gradleApiArtifacts)
+        assertResolvedArtifacts("gradleApi() ids: ", gradleApiArtifacts.collect { "$it (Gradle API)" })
+        assertResolvedArtifacts("gradleTestKit() files: ", ["gradle-test-kit-${gradleVersion}.jar"] + gradleApiArtifacts)
+        assertResolvedArtifacts("gradleTestKit() ids: ", ["gradle-test-kit-${gradleVersion}.jar (Gradle TestKit)"] + gradleApiArtifacts.collect { "$it (Gradle TestKit)" })
+        assertResolvedArtifacts("localGroovy() files: ", groovyModules)
+        assertResolvedArtifacts("localGroovy() ids: ", groovyModules.collect { "$it (Local Groovy)" })
+    }
+
+    private void assertResolvedArtifacts(String prefix, Collection<?> expected) {
+        def line = output.readLines().find { it.startsWith(prefix) }
+        assert line != null: "No output line starting with '${prefix}'"
+        def list = line.substring(prefix.length()).trim()
+        assert list.startsWith("[") && list.endsWith("]"): "Unexpected list format: ${list}"
+        def actual = list[1..-2].split(", ").findAll { !it.isEmpty() }.toSet()
+        def expectedSet = expected*.toString().toSet()
+        assert actual == expectedSet: "Artifacts for '${prefix}' differ:\n  missing:    ${(expectedSet - actual).sort()}\n  unexpected: ${(actual - expectedSet).sort()}"
     }
 
     private static String getGradleKotlinVersion() {

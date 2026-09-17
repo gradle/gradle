@@ -1,0 +1,35 @@
+// tag::do[]
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
+import org.gradle.build.event.BuildEventsListenerRegistry
+import org.gradle.tooling.events.FinishEvent
+import org.gradle.tooling.events.OperationCompletionListener
+import org.gradle.tooling.events.task.TaskFinishEvent
+import org.gradle.tooling.events.task.TaskFailureResult
+
+abstract class FailureCollector implements
+    BuildService<BuildServiceParameters.None>,
+    OperationCompletionListener, // <1>
+    AutoCloseable {
+
+    private final List<String> failedTasks = [] // <3>
+
+    @Override
+    void onFinish(FinishEvent event) { // <1>
+        if (event instanceof TaskFinishEvent && event.result instanceof TaskFailureResult) {
+            failedTasks << event.descriptor.taskPath
+        }
+    }
+
+    @Override
+    void close() { // <2>
+        if (failedTasks) {
+            println "Failed tasks: ${failedTasks.join(', ')}"
+        }
+    }
+}
+
+def collector = gradle.sharedServices.registerIfAbsent('failureCollector', FailureCollector) {}
+def eventListenerRegistry = project.gradle.services.get(BuildEventsListenerRegistry)
+eventListenerRegistry.onTaskCompletion(collector) // <4>
+// end::do[]

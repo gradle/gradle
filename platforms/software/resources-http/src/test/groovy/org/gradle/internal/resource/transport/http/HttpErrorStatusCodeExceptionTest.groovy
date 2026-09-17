@@ -22,7 +22,7 @@ class HttpErrorStatusCodeExceptionTest extends Specification {
 
     def "can identify status code as 5xx error"() {
         when:
-        boolean serverError = new HttpErrorStatusCodeException('GET', 'http://localhost:8080/', statusCode, '')
+        boolean serverError = new HttpErrorStatusCodeException(statusCode, '')
 
         then:
         serverError
@@ -33,7 +33,7 @@ class HttpErrorStatusCodeExceptionTest extends Specification {
 
     def "can identify status code as non-server error"() {
         when:
-        boolean serverError = new HttpErrorStatusCodeException('GET', 'http://localhost:8080/', statusCode, '')
+        boolean serverError = new HttpErrorStatusCodeException(statusCode, '')
 
         then:
         serverError

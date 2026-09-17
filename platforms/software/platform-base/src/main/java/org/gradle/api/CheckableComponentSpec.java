@@ -20,6 +20,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link org.gradle.platform.base.ComponentSpec} that is directly checkable via a specified task.
+ * @since 3.2
  */
 @Incubating
 @Deprecated
@@ -27,18 +28,21 @@ public interface CheckableComponentSpec extends org.gradle.platform.base.Compone
 
     /**
      * Returns the task responsible for checking this component.
+     * @since 3.2
      */
     @Nullable
     Task getCheckTask();
 
     /**
      * Specifies the task responsible for checking this component.
+     * @since 3.2
      */
     void setCheckTask(@Nullable Task checkTask);
 
     /**
      * Adds tasks required to check this component. Tasks added this way are subsequently
      * added as dependencies of this component's {@link #getCheckTask() check task}.
+     * @since 3.2
      */
     void checkedBy(Object... tasks);
 

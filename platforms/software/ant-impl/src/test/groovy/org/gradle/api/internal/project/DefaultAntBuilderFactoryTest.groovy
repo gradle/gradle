@@ -19,13 +19,14 @@ import org.gradle.api.AntBuilder
 import org.gradle.api.internal.project.ant.AntLoggingAdapter
 import org.gradle.api.internal.project.ant.AntLoggingAdapterFactory
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.util.TestUtil
 
 public class DefaultAntBuilderFactoryTest extends AbstractProjectBuilderSpec {
     private AntLoggingAdapterFactory adapterFactory = Stub(AntLoggingAdapterFactory)
     private DefaultAntBuilderFactory factory
 
     def setup() {
-        factory = new DefaultAntBuilderFactory(project, adapterFactory)
+        factory = new DefaultAntBuilderFactory(project, adapterFactory, TestUtil.taskDependencyFactory())
         adapterFactory.create() >> Stub(AntLoggingAdapter)
     }
 

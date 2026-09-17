@@ -24,6 +24,7 @@ import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
 
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile """
             apply type: NativeBinariesTestPlugin
 
@@ -103,6 +104,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "test suite sources and binaries containers are visible in model report"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         run "model"
 
@@ -118,6 +120,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "can reference sources container for a test suite in a rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withMainSourceSet()
         buildFile << '''
@@ -141,6 +144,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "test suite sources container elements are visible in model report"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withMainSourceSet()
         buildFile << """
@@ -195,6 +199,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "can reference sources container elements in a rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withMainSourceSet()
         buildFile << '''
@@ -218,6 +223,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "can reference sources container elements using specialized type in a rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withMainSourceSet()
         buildFile << '''
@@ -243,6 +249,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "test suite binaries container elements and their tasks containers are visible in model report"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withTestBinaryFactory()
         buildFile << '''
@@ -285,6 +292,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "can reference binaries container for a test suite in a rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withTestBinaryFactory()
         buildFile << '''
@@ -316,6 +324,7 @@ class TestSuiteModelIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     def "can reference binaries container elements using specialized type in a rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withTestBinaryFactory()
         buildFile << '''

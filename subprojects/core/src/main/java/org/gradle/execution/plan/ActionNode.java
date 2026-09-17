@@ -27,7 +27,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 import java.util.function.Consumer;
 
-public class ActionNode extends Node implements SelfExecutingNode {
+public class ActionNode extends Node {
     private WorkNodeAction action;
     private List<Node> postExecutionNodes;
     private final ProjectInternal owningProject;

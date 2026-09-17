@@ -56,6 +56,7 @@ dependencies {
     implementation(projects.serviceProvider)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.stdlibJavaExtensions)
+    implementation(projects.workerShared)
 
     runtimeOnly(libs.groovy)
 

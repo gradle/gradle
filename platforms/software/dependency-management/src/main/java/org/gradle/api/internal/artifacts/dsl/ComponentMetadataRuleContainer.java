@@ -16,86 +16,69 @@
 
 package org.gradle.api.internal.artifacts.dsl;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ComponentMetadataDetails;
 import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.external.model.NoOpDerivationStrategy;
-import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.rules.SpecRuleAction;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
 import java.util.List;
 import java.util.function.Consumer;
 
 /**
- * Container for registered ComponentMetadataRules, either class based or closure / action based.
+ * Mutable builder for class-based and action-based registered ComponentMetadataRules. Rules are
+ * kept in registration order so that they are applied in that order, with adjacent class rules
+ * merged into a single wrapper.
  */
-class ComponentMetadataRuleContainer implements Iterable<MetadataRuleWrapper> {
+public class ComponentMetadataRuleContainer {
+
     private final List<MetadataRuleWrapper> rules = new ArrayList<>(10);
-    private MetadataRuleWrapper lastAdded;
-    private boolean classBasedRulesOnly = true;
-    private VariantDerivationStrategy variantDerivationStrategy = NoOpDerivationStrategy.getInstance();
-    private int rulesHash = 0;
-    private Consumer<DisplayName> onAdd;
+    private @Nullable Consumer<DisplayName> onAdd;
 
     void addRule(SpecRuleAction<? super ComponentMetadataDetails> ruleAction) {
-        lastAdded = new ActionBasedMetadataRuleWrapper(ruleAction);
-        addRule();
-        classBasedRulesOnly = false;
-        rulesHash = 31 * rulesHash + ruleAction.hashCode();
-    }
-
-    private void addRule() {
-        if (onAdd != null) {
-            onAdd.accept(lastAdded.getDisplayName());
-        }
-        rules.add(lastAdded);
+        addWrapper(new ActionBasedMetadataRuleWrapper(ruleAction));
     }
 
     void addClassRule(SpecConfigurableRule ruleAction) {
-        if (lastAdded != null && lastAdded.isClassBased()) {
-            lastAdded.addClassRule(ruleAction);
+        if (rules.isEmpty()) {
+            addWrapper(new ClassBasedMetadataRuleWrapper(ruleAction));
         } else {
-            lastAdded = new ClassBasedMetadataRuleWrapper(ruleAction);
-            addRule();
+            MetadataRuleWrapper last = rules.get(rules.size() - 1);
+            if (last.isClassBased()) {
+                // Merge consecutive class rules into a single wrapper so they can be batched into one cacheable action.
+                last.addClassRule(ruleAction);
+            } else {
+                addWrapper(new ClassBasedMetadataRuleWrapper(ruleAction));
+            }
         }
-        rulesHash = 31 * rulesHash + ruleAction.getConfigurableRule().hashCode();
     }
 
-    boolean isClassBasedRulesOnly() {
-        return classBasedRulesOnly;
-    }
-
-    boolean isEmpty() {
-        return rules.isEmpty();
-    }
-
-    @Override
-    public Iterator<MetadataRuleWrapper> iterator() {
-        return rules.iterator();
-    }
-
-    Collection<SpecConfigurableRule> getOnlyClassRules() {
-        if (!isClassBasedRulesOnly() || isEmpty()) {
-            throw new IllegalStateException("This method cannot be used unless there is at least one rule and they are all class based");
+    private void addWrapper(MetadataRuleWrapper wrapper) {
+        if (onAdd != null) {
+            onAdd.accept(wrapper.getDisplayName());
         }
-        return rules.get(0).getClassRules();
-    }
-
-    public VariantDerivationStrategy getVariantDerivationStrategy() {
-        return variantDerivationStrategy;
-    }
-
-    public void setVariantDerivationStrategy(VariantDerivationStrategy variantDerivationStrategy) {
-        this.variantDerivationStrategy = variantDerivationStrategy;
-    }
-
-    public int getRulesHash() {
-        return 31 * variantDerivationStrategy.hashCode() + rulesHash;
+        rules.add(wrapper);
     }
 
     void onAddRule(Consumer<DisplayName> consumer) {
         this.onAdd = consumer;
     }
+
+    public ImmutableComponentMetadataRules asImmutable() {
+        if (rules.isEmpty()) {
+            return ImmutableComponentMetadataRules.EMPTY;
+        }
+
+        ImmutableList.Builder<ImmutableComponentMetadataRules.ImmutableRule> immutableRules = ImmutableList.builderWithExpectedSize(rules.size());
+        for (MetadataRuleWrapper wrapper : rules) {
+            if (wrapper.isClassBased()) {
+                immutableRules.add(new ImmutableComponentMetadataRules.ImmutableRule.ClassBased(ImmutableList.copyOf(wrapper.getClassRules())));
+            } else {
+                immutableRules.add(new ImmutableComponentMetadataRules.ImmutableRule.ActionBased(wrapper.getRule()));
+            }
+        }
+        return new ImmutableComponentMetadataRules(immutableRules.build());
+    }
+
 }

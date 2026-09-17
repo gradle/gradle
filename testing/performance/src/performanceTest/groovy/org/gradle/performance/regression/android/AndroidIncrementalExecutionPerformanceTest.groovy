@@ -42,7 +42,10 @@ class AndroidIncrementalExecutionPerformanceTest extends AbstractIncrementalExec
         AndroidTestProject.useKotlinLatestStableOrRcVersion(runner)
         runner.args.add('-Dorg.gradle.parallel=true')
         runner.args.addAll(["--no-build-cache", "--no-scan"])
-        // use the deprecated property so it works with previous versions
+        // Pass the current property name too: it takes precedence over the deprecated one, so it cannot be
+        // shadowed by a value in the test project's gradle.properties. The deprecated property is kept for
+        // baseline versions older than 8.1.
+        runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheProblemsOption.PROPERTY_NAME}=warn")
         runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheProblemsOption.DEPRECATED_PROPERTY_NAME}=warn")
         runner.warmUpRuns = 20
         applyDevelocityPlugin()

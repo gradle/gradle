@@ -39,6 +39,7 @@ public interface GradleBuild extends Model, BuildModel {
      * Returns the root project for this build.
      *
      * @return The root project
+     * @since 1.8
      */
     BasicGradleProject getRootProject();
 
@@ -46,6 +47,7 @@ public interface GradleBuild extends Model, BuildModel {
      * Returns the set of all projects for this build.
      *
      * @return The set of all projects.
+     * @since 1.8
      */
     DomainObjectSet<? extends BasicGradleProject> getProjects();
 

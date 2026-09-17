@@ -2616,8 +2616,8 @@ org:bar: FAILED
    Failures:
       - Could not resolve org:bar:{reject all versions}.
           - Module 'org:bar' has been rejected:
-               Dependency path: 'root project 'insight-test'' (compileClasspath) --> 'org:bar:[1.0,)' because of the following reason: rejected versions 1.2, 1.1, 1.0
-               Constraint path: 'root project 'insight-test'' (compileClasspath) --> 'org:bar:{reject all versions}' because of the following reason: Nope, you won't use this
+               Dependency path: root project 'insight-test' (compileClasspath) --> 'org:bar:[1.0,)' because of the following reason: rejected versions 1.2, 1.1, 1.0
+               Constraint path: root project 'insight-test' (compileClasspath) --> 'org:bar:{reject all versions}' because of the following reason: Nope, you won't use this
 
 org:bar:{reject all versions} FAILED
 \\--- compileClasspath
@@ -2635,8 +2635,8 @@ org:foo: (by constraint) FAILED
    Failures:
       - Could not resolve org:foo:{reject 1.0 & 1.1 & 1.2}.
           - Cannot find a version of 'org:foo' that satisfies the version constraints:
-               Dependency path: 'root project 'insight-test'' (compileClasspath) --> 'org:foo:[1.0,)' because of the following reason: rejected versions 1.2, 1.1, 1.0
-               Constraint path: 'root project 'insight-test'' (compileClasspath) --> 'org:foo:{reject 1.0 & 1.1 & 1.2}'
+               Dependency path: root project 'insight-test' (compileClasspath) --> 'org:foo:[1.0,)' because of the following reason: rejected versions 1.2, 1.1, 1.0
+               Constraint path: root project 'insight-test' (compileClasspath) --> 'org:foo:{reject 1.0 & 1.1 & 1.2}'
 
 org:foo:{reject 1.0 & 1.1 & 1.2} FAILED
 \\--- compileClasspath

@@ -22,7 +22,16 @@ package org.gradle.work;
  * @since 5.4
  */
 public enum ChangeType {
+    /**
+     * @since 5.4
+     */
     ADDED,
+    /**
+     * @since 5.4
+     */
     MODIFIED,
+    /**
+     * @since 5.4
+     */
     REMOVED
 }

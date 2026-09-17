@@ -23,16 +23,26 @@ import java.util.List;
 /**
  * Thrown when there is some problem using a Gradle connection.
  *
- * @since 1.0-milestone-3
+ * @since 1.0
  */
 public class GradleConnectionException extends RuntimeException {
 
     private Supplier<List<Failure>> failures;
 
+    /**
+     * Creates a new {@code GradleConnectionException}.
+     *
+     * @since 0.9.2
+     */
     public GradleConnectionException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code GradleConnectionException}.
+     *
+     * @since 0.9.2
+     */
     public GradleConnectionException(String message, Throwable throwable) {
         super(message, throwable);
     }

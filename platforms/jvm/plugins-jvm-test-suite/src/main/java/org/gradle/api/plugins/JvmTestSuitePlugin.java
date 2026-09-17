@@ -40,6 +40,11 @@ import org.gradle.testing.base.plugins.TestSuiteBasePlugin;
  */
 @Incubating
 public abstract class JvmTestSuitePlugin implements Plugin<Project> {
+    /**
+     * The default test suite name.
+     *
+     * @since 7.3
+     */
     public static final String DEFAULT_TEST_SUITE_NAME = "test";
 
     @Override

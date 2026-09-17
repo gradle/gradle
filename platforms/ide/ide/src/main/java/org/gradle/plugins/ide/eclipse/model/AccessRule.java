@@ -21,28 +21,54 @@ import com.google.common.base.Preconditions;
 
 /**
  * Access rule associated to a classpath entry.
+ * @since 1.0
  */
 public class AccessRule {
     private String kind;
     private String pattern;
 
+    /**
+     * Creates a new {@code AccessRule}.
+     *
+     * @since 2.14
+     */
     public AccessRule(String kind, String pattern) {
         this.kind = Preconditions.checkNotNull(kind);
         this.pattern = Preconditions.checkNotNull(pattern);
     }
 
+    /**
+     * Returns the kind.
+     *
+     * @since 1.0
+     */
     public String getKind() {
         return kind;
     }
 
+    /**
+     * Sets the kind.
+     *
+     * @since 1.0
+     */
     public void setKind(String kind) {
         this.kind = kind;
     }
 
+    /**
+     * Returns the pattern.
+     *
+     * @since 1.0
+     */
     public String getPattern() {
         return pattern;
     }
 
+    /**
+     * Sets the pattern.
+     *
+     * @since 1.0
+     */
     public void setPattern(String pattern) {
         this.pattern = pattern;
     }

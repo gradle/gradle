@@ -27,6 +27,7 @@ import java.util.Set;
  *
  * @see ManagedType Create an instance of this as a managed property (preferred).
  * @see org.gradle.api.model.ObjectFactory#fileTree() Create an instance of this manually.
+ * @since 0.8
  */
 @ManagedType
 public interface ConfigurableFileTree extends FileTree, DirectoryTree, PatternFilterable, Buildable {
@@ -36,6 +37,7 @@ public interface ConfigurableFileTree extends FileTree, DirectoryTree, PatternFi
      *
      * @param dir The base directory.
      * @return this
+     * @since 0.8
      */
     ConfigurableFileTree from(Object dir);
 
@@ -53,6 +55,7 @@ public interface ConfigurableFileTree extends FileTree, DirectoryTree, PatternFi
      *
      * @param dir The base directory.
      * @return this
+     * @since 0.8
      */
     ConfigurableFileTree setDir(Object dir);
 
@@ -60,6 +63,7 @@ public interface ConfigurableFileTree extends FileTree, DirectoryTree, PatternFi
      * Returns the set of tasks which build the files of this collection.
      *
      * @return The set. Returns an empty set when there are no such tasks.
+     * @since 0.9
      */
     Set<Object> getBuiltBy();
 
@@ -68,6 +72,7 @@ public interface ConfigurableFileTree extends FileTree, DirectoryTree, PatternFi
      *
      * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
      * @return this
+     * @since 0.9
      */
     ConfigurableFileTree setBuiltBy(Iterable<?> tasks);
 
@@ -76,6 +81,7 @@ public interface ConfigurableFileTree extends FileTree, DirectoryTree, PatternFi
      *
      * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
      * @return this
+     * @since 0.9
      */
     ConfigurableFileTree builtBy(Object... tasks);
 }

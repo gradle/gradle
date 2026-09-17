@@ -39,6 +39,7 @@ import java.lang.annotation.Target;
  * <ul><li>{@link org.gradle.api.tasks.InputFiles}</li>
  *
  * <li>{@link org.gradle.api.tasks.InputDirectory}</li> </ul>
+ * @since 0.8
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

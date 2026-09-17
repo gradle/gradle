@@ -52,6 +52,11 @@ import java.nio.charset.Charset;
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class InstallXCTestBundle extends DefaultTask {
+    /**
+     * Creates a new {@code InstallXCTestBundle}.
+     *
+     * @since 4.4
+     */
     @SuppressWarnings("this-escape")
     public InstallXCTestBundle() {
         // A work around for not being able to skip the task when an input _file_ does not exist
@@ -67,6 +72,11 @@ public abstract class InstallXCTestBundle extends DefaultTask {
     @Inject
     protected abstract FileSystemOperations getFileSystemOperations();
 
+    /**
+     * Install.
+     *
+     * @since 6.0
+     */
     @TaskAction
     protected void install() throws IOException {
         File bundleFile = getBundleBinaryFile().get().getAsFile();
@@ -115,6 +125,7 @@ public abstract class InstallXCTestBundle extends DefaultTask {
 
     /**
      * Returns the script file that can be used to run the install image.
+     * @since 4.4
      */
     @Internal
     public Provider<RegularFile> getRunScriptFile() {
@@ -123,10 +134,16 @@ public abstract class InstallXCTestBundle extends DefaultTask {
 
     /**
      * Returns the bundle binary file property.
+     * @since 4.4
      */
     @Internal("covered by getBundleBinary()")
     public abstract RegularFileProperty getBundleBinaryFile();
 
+    /**
+     * Returns the bundle binary.
+     *
+     * @since 4.4
+     */
     @SkipWhenEmpty
     @Nullable
     @Optional
@@ -143,6 +160,7 @@ public abstract class InstallXCTestBundle extends DefaultTask {
 
     /**
      * Returns the install directory property.
+     * @since 4.4
      */
     @OutputDirectory
     public abstract DirectoryProperty getInstallDirectory();

@@ -35,13 +35,24 @@ import org.gradle.kotlin.dsl.support.delegates.DependencyHandlerDelegate
  * Receiver for `dependencies` block providing convenient utilities for configuring dependencies.
  *
  * @see [DependencyHandler]
+ *
+ * @since 4.1
  */
 open class DependencyHandlerScope
 private constructor(
+    /**
+     * @since 4.1
+     */
     val dependencies: DependencyHandler
 ) : DependencyHandlerDelegate() {
 
+    /**
+     * @since 5.0
+     */
     companion object {
+        /**
+         * @since 5.0
+         */
         fun of(dependencies: DependencyHandler): DependencyHandlerScope =
             DependencyHandlerScope(dependencies)
     }
@@ -76,6 +87,8 @@ private constructor(
      * @param dependencyNotation notation for the dependency to be added.
      * @return The dependency.
      * @see [DependencyHandler.add]
+     *
+     * @since 4.1
      */
     operator fun String.invoke(dependencyNotation: Any): Dependency? =
         dependencies.add(this, dependencyNotation)
@@ -87,6 +100,8 @@ private constructor(
      * @param dependencyConfiguration expression to use to configure the dependency.
      * @return The dependency.
      * @see [DependencyHandler.add]
+     *
+     * @since 4.1
      */
     inline operator fun String.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
         dependencies.add(this, dependencyNotation, dependencyConfiguration)
@@ -103,6 +118,8 @@ private constructor(
      * @return The dependency.
      *
      * @see [DependencyHandler.add]
+     *
+     * @since 4.3
      */
     @Suppress("DEPRECATION")
     @Deprecated("Use single-string notation or DependencyFactory instead")
@@ -130,6 +147,8 @@ private constructor(
      *
      * @see [DependencyHandler.create]
      * @see [DependencyHandler.add]
+     *
+     * @since 4.3
      */
     @Suppress("DEPRECATION")
     @Deprecated("Use single-string notation or DependencyFactory instead")
@@ -152,6 +171,8 @@ private constructor(
      * @return The dependency.
      *
      * @see [DependencyHandler.add]
+     *
+     * @since 4.1
      */
     inline operator fun <T : ModuleDependency> String.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
         dependencies.add(this, dependency, dependencyConfiguration)
@@ -162,6 +183,8 @@ private constructor(
      * @param dependencyNotation notation for the dependency to be added.
      * @return The dependency.
      * @see [DependencyHandler.add]
+     *
+     * @since 4.1
      */
     operator fun Configuration.invoke(dependencyNotation: Any): Dependency? =
         add(name, dependencyNotation)
@@ -197,6 +220,8 @@ private constructor(
      * @param dependencyConfiguration expression to use to configure the dependency.
      * @return The dependency.
      * @see [DependencyHandler.add]
+     *
+     * @since 4.1
      */
     inline operator fun Configuration.invoke(dependencyNotation: String, dependencyConfiguration: ExternalModuleDependency.() -> Unit): ExternalModuleDependency =
         add(name, dependencyNotation, dependencyConfiguration)
@@ -239,6 +264,8 @@ private constructor(
      * @return The dependency.
      *
      * @see [DependencyHandler.add]
+     *
+     * @since 4.3
      */
     @Suppress("DEPRECATION")
     @Deprecated("Use single-string notation or DependencyFactory instead")
@@ -320,6 +347,8 @@ private constructor(
      *
      * @see [DependencyHandler.create]
      * @see [DependencyHandler.add]
+     *
+     * @since 4.3
      */
     @Suppress("DEPRECATION")
     @Deprecated("Use single-string notation or DependencyFactory instead")
@@ -403,6 +432,8 @@ private constructor(
      * @return The dependency.
      *
      * @see [DependencyHandler.add]
+     *
+     * @since 4.1
      */
     inline operator fun <T : ModuleDependency> Configuration.invoke(dependency: T, dependencyConfiguration: T.() -> Unit): T =
         add(name, dependency, dependencyConfiguration)
@@ -629,6 +660,8 @@ private constructor(
 
     /**
      * Configures the dependencies.
+     *
+     * @since 4.1
      */
     inline operator fun invoke(configuration: DependencyHandlerScope.() -> Unit) =
         this.configuration()

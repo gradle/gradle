@@ -32,18 +32,19 @@ include::sample[dir="snippets/reference/core-plugins/javaGradlePlugin/kotlin",fi
 include::sample[dir="snippets/reference/core-plugins/javaGradlePlugin/groovy",files="build.gradle[tags=use-java-gradle-plugin-plugin]"]
 ====
 
-Applying the plugin automatically applies the <<java_library_plugin.adoc#java_library_plugin,Java Library(`java-library`)>> plugin and adds the `gradleApi()` dependency to the `api` configuration.
+Applying the plugin automatically applies the <<java_library_plugin.adoc#java_library_plugin,Java Library(`java-library`)>> plugin and adds the `gradleApi()` dependency to the `compileOnlyApi` configuration.
 It also adds some validations to the build.
 
-The following validations are performed:
+During `jar` task execution, the following plugin descriptor validations are performed, and any failure results in a warning message:
 
 * There is a plugin descriptor defined for the plugin.
 * The plugin descriptor contains an `implementation-class` property.
 * The `implementation-class` property references a valid class file in the jar.
+
+Separately, the `validatePlugins` task validates the public API of the plugin's task and artifact transform types:
+
 * Each property getter or the corresponding field must be annotated with a property annotation like `@InputFile` and `@OutputDirectory`.
 Properties that don't participate in up-to-date checks should be annotated with `@Internal`.
-
-Any failed validations will result in a warning message.
 
 For each plugin you are developing, register it into the `gradlePlugin {}` script block:
 
@@ -64,12 +65,29 @@ From this data about the plugins being developed, Gradle can automatically:
 * Configure the <<plugins_intermediate.adoc#sec:plugin_markers,Plugin Marker Artifact>> publications (Maven or Ivy) for each plugin.
 * Publish each plugin to the Gradle Plugin Portal (see <<publishing_gradle_plugins.adoc#publishing_portal,Publishing Plugins to Gradle Plugin Portal>> for details), but only if the link:https://plugins.gradle.org/docs/publish-plugin[Plugin Publishing Plugin] has also been applied.
 
+[[sec:gradle_plugin_dev_tasks]]
+== Tasks
+
+The plugin adds the following tasks to the project:
+
+`pluginUnderTestMetadata` — link:{groovyDslPath}/org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.html[PluginUnderTestMetadata]::
+Generates the metadata for plugin functional tests. The resulting plugin classpath manifest is consumed by a TestKit `GradleRunner` instance.
+
+`pluginDescriptors` — link:{groovyDslPath}/org.gradle.plugin.devel.tasks.GeneratePluginDescriptors.html[GeneratePluginDescriptors]::
+Generates plugin descriptors from the plugin declarations in the `gradlePlugin {}` block, written to the `jar` file's `META-INF/gradle-plugins` directory.
+
+`validatePlugins` — link:{groovyDslPath}/org.gradle.plugin.devel.tasks.ValidatePlugins.html[ValidatePlugins]::
+Validates the plugin by checking the property annotations on the plugin's task and artifact transform types.
+
 [[sec:gradle_plugin_dev_interactions]]
 == Interactions
 
 Some of the plugin's behaviour depends on other, related plugins also being applied in your build, namely the <<publishing_maven.adoc#publishing_maven,Maven Publish (`maven-publish`)>> and <<publishing_ivy.adoc#publishing_ivy,Ivy Publish (`ivy-publish`)>> plugins.
 
 Other plugins auto apply the Java Gradle Plugin, like the link:https://plugins.gradle.org/plugin/com.gradle.plugin-publish[Plugin Publishing Plugin].
+
+The automatic publication configuration described below is enabled by default.
+To opt out and define the publications yourself, set `automatedPublishing = false` in the `gradlePlugin {}` block; the plugin then creates no publications automatically.
 
 [[sec:gradle_plugin_dev_maven_publish]]
 === Maven Publish Plugin

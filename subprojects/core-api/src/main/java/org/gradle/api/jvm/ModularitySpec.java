@@ -49,6 +49,7 @@ public interface ModularitySpec {
      *   <li>It is a class folder that contains a 'module-info.class'.
      *   <li>It is a jar with a MANIFEST that contains an 'Automatic-Module-Name' entry.
      * </ul>
+     * @since 6.4
      */
     @Input
     Property<Boolean> getInferModulePath();

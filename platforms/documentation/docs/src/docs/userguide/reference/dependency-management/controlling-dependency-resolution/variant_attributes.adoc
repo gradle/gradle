@@ -14,6 +14,7 @@
 
 [[variant-attributes]]
 = Variants and Attributes
+:metadata-file-spec: https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md
 
 **Variants** represent different versions or aspects of a component, like `api` vs `implementation`.
 **Attributes** define which variant is selected based on the consumer's requirements.
@@ -280,8 +281,9 @@ include::sample[dir="snippets/reference/dependency-management/controlling-depend
 include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/groovy",files="build.gradle[tags=define_attribute]"]
 ====
 
-Attribute types support most Java primitive classes; such as `String` and `Integer`.
+Attribute types support most Java primitive classes; such as `String`, `Boolean`, and any subtype of `Number` (including `Integer`).
 Or anything extending `org.gradle.api.Named`.
+Plain Java `Enum` types (that do not implement `Named`) are **not** supported as attribute value types — resolution and publishing paths that desugar attributes require the value type to implement `Named`.
 
 Attributes should always be declared in the _attribute schema_ found on the `dependencies` handler:
 

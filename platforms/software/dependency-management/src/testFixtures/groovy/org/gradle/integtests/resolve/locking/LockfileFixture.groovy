@@ -37,11 +37,11 @@ class LockfileFixture {
 
     private void internalCreateLockfile(String configuration, List<String> modules, boolean unique, boolean buildScript) {
         if (unique) {
-            def fileName = buildScript ? LockFileReaderWriter.BUILD_SCRIPT_PREFIX + LockFileReaderWriter.UNIQUE_LOCKFILE_NAME : LockFileReaderWriter.UNIQUE_LOCKFILE_NAME
+            def fileName = buildScript ? "buildscript-" + LockFileReaderWriter.UNIQUE_LOCKFILE_NAME : LockFileReaderWriter.UNIQUE_LOCKFILE_NAME
             def lockFile = testDirectory.file(fileName)
             internalCreateLockfile(modules, configuration, lockFile)
         } else {
-            def fileName = buildScript ? LockFileReaderWriter.BUILD_SCRIPT_PREFIX + configuration : configuration
+            def fileName = buildScript ? "buildscript-" + configuration : configuration
             createLegacyLockfile(fileName, modules)
         }
     }
@@ -88,10 +88,10 @@ class LockfileFixture {
         def fileName
         switch(lockScope) {
             case LockScope.SETTINGS:
-                fileName = LockFileReaderWriter.SETTINGS_SCRIPT_PREFIX + LockFileReaderWriter.UNIQUE_LOCKFILE_NAME
+                fileName = "settings-" + LockFileReaderWriter.UNIQUE_LOCKFILE_NAME
                 break
             case LockScope.BUILDSCRIPT:
-                fileName = LockFileReaderWriter.BUILD_SCRIPT_PREFIX + LockFileReaderWriter.UNIQUE_LOCKFILE_NAME
+                fileName = "buildscript-" + LockFileReaderWriter.UNIQUE_LOCKFILE_NAME
                 break
             case LockScope.PROJECT:
                 fileName = LockFileReaderWriter.UNIQUE_LOCKFILE_NAME
@@ -150,11 +150,11 @@ class LockfileFixture {
     }
 
     void expectNoSettingsLockFile() {
-        expectMissingLockFile(LockFileReaderWriter.SETTINGS_SCRIPT_PREFIX + LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
+        expectMissingLockFile("settings-" + LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
     }
 
     void expectNoBuildscripLockFile() {
-        expectMissingLockFile(LockFileReaderWriter.BUILD_SCRIPT_PREFIX + LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
+        expectMissingLockFile("buildscript-" + LockFileReaderWriter.UNIQUE_LOCKFILE_NAME)
     }
 
     private void expectMissingLockFile(String fileName) {

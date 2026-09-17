@@ -38,6 +38,7 @@ public interface ExecOutput {
      * </p>
      *
      * @return provider of the execution result.
+     * @since 7.5
      */
     Provider<ExecResult> getResult();
 
@@ -45,6 +46,7 @@ public interface ExecOutput {
      * Gets a handle to the content of the process' standard output.
      *
      * @return handle of the standard output of the process.
+     * @since 7.5
      */
     StandardStreamContent getStandardOutput();
 
@@ -52,6 +54,7 @@ public interface ExecOutput {
      * Gets a handle to the content of the process' standard error output.
      *
      * @return handle of the standard error output of the process.
+     * @since 7.5
      */
     StandardStreamContent getStandardError();
 
@@ -75,6 +78,7 @@ public interface ExecOutput {
          * propagated to callers of {@link Provider#get}, {@link Provider#getOrElse},
          * {@link Provider#getOrNull} and {@link Provider#isPresent}.
          * </p>
+         * @since 7.5
          */
         Provider<String> getAsText();
 
@@ -90,6 +94,7 @@ public interface ExecOutput {
          * propagated to callers of {@link Provider#get}, {@link Provider#getOrElse},
          * {@link Provider#getOrNull} and {@link Provider#isPresent}.
          * </p>
+         * @since 7.5
          */
         Provider<byte[]> getAsBytes();
     }

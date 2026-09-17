@@ -53,8 +53,3 @@ gradleModule {
 strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
-
-packageCycles {
-    excludePatterns.add("org/gradle/plugins/ear/internal/*")
-}
-

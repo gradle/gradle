@@ -34,6 +34,7 @@ class VisualStudioSoftwareModelMultiProjectIntegrationTest extends AbstractVisua
     def app = new CppHelloWorldApp()
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         settingsFile << """
             rootProject.name = 'app'
         """

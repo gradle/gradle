@@ -43,7 +43,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * }
  * </pre>
  *
- * @since 4.4
+ * @since 4.3
  */
 @ServiceScope(Scope.Settings.class)
 public interface VcsMappings {
@@ -58,6 +58,7 @@ public interface VcsMappings {
      * Adds a mapping rule that may define VCS information for the given module. The supplied action is executed when the given module is required.
      *
      * @param module The module to apply the rule to, in the form "group:module".
+     * @since 4.3
      */
     VcsMappings withModule(String module, Action<? super VcsMapping> rule);
 }

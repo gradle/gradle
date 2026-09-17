@@ -17,9 +17,10 @@
 package org.gradle.internal.resources;
 
 public class TaskExecutionLock extends ExclusiveAccessResourceLock {
-    private final ProjectLock stateLock;
 
-    public TaskExecutionLock(String displayName, ProjectLock stateLock, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner) {
+    private final ResourceLock stateLock;
+
+    public TaskExecutionLock(String displayName, ResourceLock stateLock, ResourceLockCoordinationService coordinationService, ResourceLockContainer owner) {
         super(displayName, coordinationService, owner);
         this.stateLock = stateLock;
     }
@@ -34,4 +35,5 @@ public class TaskExecutionLock extends ExclusiveAccessResourceLock {
         super.releaseLock();
         stateLock.unlock();
     }
+
 }

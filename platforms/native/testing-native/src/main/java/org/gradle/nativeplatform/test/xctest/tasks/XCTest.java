@@ -55,6 +55,7 @@ public abstract class XCTest extends AbstractTestTask {
 
     /**
      * Sets the test suite bundle or executable location
+     * @since 4.5
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory
@@ -62,12 +63,14 @@ public abstract class XCTest extends AbstractTestTask {
 
     /**
      * Returns test suite bundle or executable location
+     * @since 4.5
      */
     @Internal("Covered by getRunScript")
     public abstract RegularFileProperty getRunScriptFile();
 
     /**
      * Returns the working directory property for this test.
+     * @since 4.5
      */
     @Internal
     public abstract DirectoryProperty getWorkingDirectory();
@@ -79,6 +82,7 @@ public abstract class XCTest extends AbstractTestTask {
 
     /**
      * Workaround for when the task is given an input file that doesn't exist
+     * @since 4.5
      */
     @SkipWhenEmpty
     @Nullable

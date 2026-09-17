@@ -59,7 +59,7 @@ public interface BuildTreeWorkGraph {
         /**
          * Adds the given tasks and their dependencies to the work graph.
          */
-        void scheduleTasks(Collection<TaskIdentifier.TaskBasedTaskIdentifier> tasksToBuild);
+        void scheduleTasks(Collection<TaskIdentifier> tasksToBuild);
 
         /**
          * Adds add task filter to the given build.

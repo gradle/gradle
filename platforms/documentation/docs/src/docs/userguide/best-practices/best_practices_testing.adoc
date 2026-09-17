@@ -40,13 +40,12 @@ The plugin adds multiple custom tasks that print a greeting using properties def
 This is a common pattern for prototyping new functionality, but it lacks tests to verify the behavior of the custom types.
 The only way to verify that the task and plugin work as intended is to run the build manually and inspect the output.
 
+There are several problems with the sample below:
+
 ====
 include::sample[dir="snippets/best-practices/useTestKit-avoid/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/best-practices/useTestKit-avoid/groovy",files="build.gradle[]"]
 ====
-
-In this case, there are several problems:
-
 <1> *The Task is declared as cacheable*: However, the task's output differs depending on when it is run, so it should not be cached.
 <2> *The current time is used as an undeclared input*: Inputs to a task must be explicitly declared using the appropriate annotations, otherwise Gradle cannot track changes to them.
 <3> *Error in task property wiring*: The `lastName` property is linked to the `firstName` property on the extension, which is likely a mistake.
@@ -159,12 +158,11 @@ To run them, you must explicitly invoke the tasks: `./gradlew :build-logic:check
 
 In the functional test class, we use TestKit to initialize a temporary Gradle project, apply our plugin, and verify that it behaves as expected.
 
+The example tests below show various techniques used to verify the plugin's behavior against actual, ad-hoc Gradle builds defined within the tests:
+
 ====
 include::sample[dir="snippets/best-practices/useTestKit-do/common/build-logic/src/functionalTest/java/org/example",files="MyPluginFunctionalTest.java"]
 ====
-
-Looking at the example tests here, you can see various techniques used to verify the plugin's behavior against actual, ad-hoc Gradle builds defined within the tests:
-
 <1> *testTaskRegistration*: This test runs the `tasks` report and verifies the output.
 <2> *testTaskExecution*: This test runs the custom task and verifies its output file.
 <3> *testTaskDeterminism*: This test runs the build twice - forcing tasks to rerun the second time - to ensure the output is identical, which is necessary for caching.

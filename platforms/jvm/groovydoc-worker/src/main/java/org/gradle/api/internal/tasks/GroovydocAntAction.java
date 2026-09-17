@@ -23,6 +23,7 @@ import org.gradle.api.plugins.internal.ant.AntWorkAction;
 import org.gradle.util.internal.VersionNumber;
 import org.jspecify.annotations.Nullable;
 
+import java.io.File;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.util.LinkedHashMap;
@@ -60,6 +61,24 @@ public abstract class GroovydocAntAction extends AntWorkAction<GroovydocParamete
         putIfNotNull(args, "doctitle", parameters.getDocTitle().getOrNull());
         putIfNotNull(args, "header", parameters.getHeader().getOrNull());
         putIfNotNull(args, "footer", parameters.getFooter().getOrNull());
+
+        // javaVersion (passed to JavaParser) was added to the Groovydoc Ant task in Groovy 4.0.27.
+        if (isAtLeast(version, "4.0.27")) {
+            putIfNotNull(args, "javaVersion", parameters.getJavaVersion().getOrNull());
+        }
+
+        // The following options were added to the Groovydoc Ant task in Groovy 6.0.0.
+        // Threshold is the first 6.0.0 pre-release so alphas/betas pick up the options while preserving "6.0.0" > "6.0.0-alpha-*".
+        if (isAtLeast(version, "6.0.0-alpha-1")) {
+            args.put("showInternal", parameters.getShowInternal().get());
+            args.put("noIndex", parameters.getNoIndex().get());
+            args.put("noDeprecatedList", parameters.getNoDeprecatedList().get());
+            args.put("noHelp", parameters.getNoHelp().get());
+            putIfNotNull(args, "syntaxHighlighter", parameters.getSyntaxHighlighter().getOrNull());
+            putIfNotNull(args, "theme", parameters.getTheme().getOrNull());
+            putIfNotNull(args, "preLanguage", parameters.getPreLanguage().getOrNull());
+        }
+
         putIfNotNull(args, "overview", parameters.getOverview().getOrNull());
 
         ant.taskdef("groovydoc", "org.codehaus.groovy.ant.Groovydoc");
@@ -72,6 +91,13 @@ public abstract class GroovydocAntAction extends AntWorkAction<GroovydocParamete
                         "href", link.getUrl()
                     )
                 );
+            }
+            // Additional stylesheets are configured via nested <addStylesheet file="..."/> elements,
+            // available in the Groovydoc Ant task since Groovy 6.0.0.
+            if (isAtLeast(version, "6.0.0-alpha-1")) {
+                for (File stylesheet : parameters.getAdditionalStylesheets().getFiles()) {
+                    ant.createNode("addStylesheet", ImmutableMap.of("file", stylesheet.getAbsolutePath()));
+                }
             }
         });
     }

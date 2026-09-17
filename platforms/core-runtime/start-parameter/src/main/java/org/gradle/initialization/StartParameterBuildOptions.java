@@ -27,6 +27,7 @@ import org.gradle.internal.buildoption.BooleanCommandLineOptionConfiguration;
 import org.gradle.internal.buildoption.BuildOption;
 import org.gradle.internal.buildoption.BuildOptionSet;
 import org.gradle.internal.buildoption.CommandLineOptionConfiguration;
+import org.gradle.internal.buildoption.DeprecatedAliasDisableWinsBooleanBuildOption;
 import org.gradle.internal.buildoption.EnabledOnlyBooleanBuildOption;
 import org.gradle.internal.buildoption.EnumBuildOption;
 import org.gradle.internal.buildoption.IntegerBuildOption;
@@ -63,6 +64,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigureOnDemandOption(),
         new BuildCacheOption(),
         new BuildCacheDebugLoggingOption(),
+        new SharedMavenMirrorSettingsOption(),
         new WatchFileSystemOption(),
         new VfsVerboseLoggingOption(),
         new BuildScanOption(),
@@ -78,6 +80,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ConfigurationCacheOption(),
         new ConfigurationCacheIgnoreInputsDuringStore(),
         new ConfigurationCacheIgnoreUnsupportedBuildEventsListeners(),
+        new ConfigurationCacheSkipTaskLoggingListenersSerialization(),
         new ConfigurationCacheMaxProblemsOption(),
         new ConfigurationCacheIgnoredFileSystemCheckInputs(),
         new ConfigurationCacheDebugOption(),
@@ -366,7 +369,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setBuildCacheEnabled(value);
+            settings.setBuildCacheEnabledInternal(value, false);
         }
 
         @Override
@@ -390,6 +393,27 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         protected OptionCategory getCategory() {
             return OptionCategory.LOGGING;
+        }
+    }
+
+    /**
+     * Opts the build in to the mirrors and server entries declared in the local Maven settings.xml.
+     */
+    public static class SharedMavenMirrorSettingsOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String GRADLE_PROPERTY = "org.gradle.mirror.maven.settings";
+
+        public SharedMavenMirrorSettingsOption() {
+            super(GRADLE_PROPERTY);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setSharedMavenMirrorSettings(value);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONFIGURATION;
         }
     }
 
@@ -679,7 +703,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
-    public static class IsolatedProjectsOption extends BooleanBuildOption<StartParameterInternal> {
+    public static class IsolatedProjectsOption extends DeprecatedAliasDisableWinsBooleanBuildOption<StartParameterInternal> {
         public static final String PROPERTY_NAME = "org.gradle.isolated-projects";
         public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.isolated-projects";
         public static final String LONG_OPTION = "isolated-projects";
@@ -707,7 +731,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
-    public static class IsolatedProjectsDiagnosticsOption extends BooleanBuildOption<StartParameterInternal> {
+    public static class IsolatedProjectsDiagnosticsOption extends DeprecatedAliasDisableWinsBooleanBuildOption<StartParameterInternal> {
         public static final String PROPERTY_NAME = "org.gradle.isolated-projects.diagnostics";
         public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.isolated-projects.diagnostics";
 
@@ -721,7 +745,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
-    public static class IsolatedProjectsDangerouslyIgnoreProblemsOption extends BooleanBuildOption<StartParameterInternal> {
+    public static class IsolatedProjectsDangerouslyIgnoreProblemsOption extends DeprecatedAliasDisableWinsBooleanBuildOption<StartParameterInternal> {
         public static final String PROPERTY_NAME = "org.gradle.isolated-projects.dangerously-ignore-problems";
         public static final String DEPRECATED_PROPERTY_NAME = "org.gradle.unsafe.isolated-projects.dangerously-ignore-problems";
 
@@ -769,6 +793,13 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         }
     }
 
+    /**
+     * Restores the pre-8.4 behavior where configuration inputs read while the task graph is being serialized
+     * are not tracked.
+     *
+     * <p>Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11, see
+     * <a href="https://github.com/gradle/gradle/issues/39168">gradle/gradle#39168</a>.
+     */
     public static class ConfigurationCacheIgnoreInputsDuringStore extends BooleanBuildOption<StartParameterInternal> {
 
         public static final String PROPERTY_NAME = "org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization";
@@ -779,12 +810,15 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setConfigurationCacheIgnoreInputsDuringStore(value);
+            settings.setConfigurationCacheIgnoreInputsDuringStore(Option.Value.value(value));
         }
     }
 
     /**
      * Suppresses Configuration Cache problems for unsupported listeners registered in {@code BuildEventsListenersRegistry}.
+     *
+     * <p>Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11, see
+     * <a href="https://github.com/gradle/gradle/issues/39169">gradle/gradle#39169</a>.
      *
      * @since 9.0.0
      */
@@ -798,7 +832,31 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
-            settings.setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(value);
+            settings.setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(Option.Value.value(value));
+        }
+    }
+
+    /**
+     * Skips serialization of the standard output/error listeners registered on a task's logging manager during
+     * configuration. When enabled, these listeners are not stored in the Configuration Cache, restoring the previous
+     * behavior where they were silently dropped on a cache hit, so unsupported listeners no longer cause problems.
+     *
+     * <p>Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11, see
+     * <a href="https://github.com/gradle/gradle/issues/39170">gradle/gradle#39170</a>.
+     *
+     * @since 9.8.0
+     */
+    public static class ConfigurationCacheSkipTaskLoggingListenersSerialization extends BooleanBuildOption<StartParameterInternal> {
+
+        public static final String PROPERTY_NAME = "org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization";
+
+        public ConfigurationCacheSkipTaskLoggingListenersSerialization() {
+            super(PROPERTY_NAME);
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, Origin origin) {
+            settings.setConfigurationCacheSkipTaskLoggingListenersSerialization(Option.Value.value(value));
         }
     }
 
@@ -819,6 +877,12 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
 
     }
 
+    /**
+     * Excludes file system checks such as {@code File.exists()} on the listed paths from configuration input tracking.
+     *
+     * <p>Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11, see
+     * <a href="https://github.com/gradle/gradle/issues/39167">gradle/gradle#39167</a>.
+     */
     public static class ConfigurationCacheIgnoredFileSystemCheckInputs extends StringBuildOption<StartParameterInternal> {
 
         public static final String PROPERTY_NAME = "org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks";

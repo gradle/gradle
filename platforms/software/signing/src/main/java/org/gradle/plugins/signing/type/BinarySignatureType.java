@@ -17,6 +17,7 @@ package org.gradle.plugins.signing.type;
 
 /**
  * Binary signature type.
+ * @since 1.0
  */
 public class BinarySignatureType extends AbstractSignatureType {
 

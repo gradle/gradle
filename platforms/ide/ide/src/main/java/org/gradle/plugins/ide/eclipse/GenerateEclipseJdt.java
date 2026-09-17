@@ -32,6 +32,7 @@ import javax.inject.Inject;
  * At this moment nearly all configuration is done via {@link EclipseJdt}.
  *
  * @deprecated Will be removed in Gradle 10.
+ * @since 1.0
  */
 @Deprecated
 @DisableCachingByDefault(because = "Not made cacheable, yet")
@@ -39,6 +40,11 @@ public abstract class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
 
     private EclipseJdt jdt;
 
+    /**
+     * Creates a new {@code GenerateEclipseJdt}.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings("this-escape")
     public GenerateEclipseJdt() {
         jdt = getInstantiator().newInstance(EclipseJdt.class, new PropertiesFileContentMerger(getTransformer()));
@@ -66,13 +72,11 @@ public abstract class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
     @Override
     @SuppressWarnings("unchecked")
     protected void configure(Jdt jdtContent) {
-        DeprecationLogger.whileDisabled(() -> {
-            EclipseJdt jdtModel = getJdt();
-            jdtModel.getFile().getBeforeMerged().execute(jdtContent);
-            jdtContent.setSourceCompatibility(jdtModel.getSourceCompatibility());
-            jdtContent.setTargetCompatibility(jdtModel.getTargetCompatibility());
-            jdtModel.getFile().getWhenMerged().execute(jdtContent);
-        });
+        EclipseJdt jdtModel = getJdt();
+        jdtModel.getFile().getBeforeMerged().execute(jdtContent);
+        jdtContent.setSourceCompatibility(jdtModel.getSourceCompatibility());
+        jdtContent.setTargetCompatibility(jdtModel.getTargetCompatibility());
+        jdtModel.getFile().getWhenMerged().execute(jdtContent);
     }
 
     @Override
@@ -80,17 +84,23 @@ public abstract class GenerateEclipseJdt extends PropertiesGeneratorTask<Jdt> {
         if (jdt == null) {
             return super.getTransformer();
         }
-        return DeprecationLogger.whileDisabled(() -> jdt.getFile().getTransformer());
+        return jdt.getFile().getTransformer();
     }
 
     /**
      * Eclipse JDT model that contains information needed to generate the JDT file.
+     * @since 1.0
      */
     @Internal
     public EclipseJdt getJdt() {
         return jdt;
     }
 
+    /**
+     * Sets the jdt.
+     *
+     * @since 1.0
+     */
     public void setJdt(EclipseJdt jdt) {
         this.jdt = jdt;
     }

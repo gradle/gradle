@@ -33,6 +33,7 @@ dependencies {
     api(projects.credentials)
     api(projects.credentialsApi)
     api(projects.dependencyManagement)
+    api(projects.dependencyManagementResources)
     api(projects.enterpriseOperations)
     api(projects.enterpriseLogging)
     api(projects.fileOperations)
@@ -85,10 +86,3 @@ gradleModule {
         daemon = true
     }
 }
-
-packageCycles {
-    // Needed for the factory methods in the interface
-    excludePatterns.add("org/gradle/jvm/toolchain/**")
-}
-
-

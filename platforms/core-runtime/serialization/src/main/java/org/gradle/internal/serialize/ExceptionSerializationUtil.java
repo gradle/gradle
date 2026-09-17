@@ -19,6 +19,7 @@ package org.gradle.internal.serialize;
 import org.gradle.internal.Cast;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.MultiCauseException;
+import org.jspecify.annotations.Nullable;
 
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
@@ -46,7 +47,7 @@ public final class ExceptionSerializationUtil {
             return ((MultiCauseException) throwable).getCauses();
         } else {
             List<? extends Throwable> causes = tryExtractMultiCauses(throwable);
-            if (causes != null) {
+            if (!causes.isEmpty()) {
                 return causes;
             }
             Throwable causeTmp;
@@ -74,26 +75,26 @@ public final class ExceptionSerializationUtil {
             try {
                 causes = Cast.uncheckedCast(causesMethod.invoke(throwable));
             } catch (IllegalAccessException | InvocationTargetException e) {
-                return null;
+                return Collections.emptyList();
             }
             if (causes == null || causes.isEmpty()) {
-                return null;
+                return Collections.emptyList();
             }
             for (Object cause : causes) {
                 if (!(cause instanceof Throwable)) {
-                    return null;
+                    return Collections.emptyList();
                 }
             }
             List<Throwable> result = new ArrayList<Throwable>(causes.size());
             for (Object cause : causes) {
                 result.add(Cast.<Throwable>uncheckedCast(cause));
             }
-            return result;
+            return Collections.unmodifiableList(result);
         }
-        return null;
+        return Collections.emptyList();
     }
 
-    private static Method findCandidateGetCausesMethod(Throwable throwable) {
+    private static @Nullable Method findCandidateGetCausesMethod(Throwable throwable) {
         Method[] declaredMethods = throwable.getClass().getDeclaredMethods();
         for (Method method : declaredMethods) {
             if (CANDIDATE_GET_CAUSES.contains(method.getName())) {

@@ -25,6 +25,7 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.capability.CapabilitySelectorSerializer;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParser;
 import org.gradle.api.internal.artifacts.dsl.CapabilityNotationParserFactory;
+import org.gradle.api.internal.artifacts.dsl.DefaultComponentMetadataProcessor;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyConstraintFactoryInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFactoryInternal;
 import org.gradle.api.internal.artifacts.dsl.dependencies.UnknownProjectFinder;
@@ -48,16 +49,13 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultLocalMavenRepositoryLocator;
-import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
-import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider;
 import org.gradle.api.internal.artifacts.mvnsettings.LocalMavenRepositoryLocator;
+import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations;
 import org.gradle.api.internal.artifacts.mvnsettings.MavenSettingsProvider;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.DefaultExternalResourceAccessor;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceAccessor;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.artifacts.transform.TransformExecutionListener;
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeDependencyResolver;
 import org.gradle.api.internal.artifacts.verification.signatures.DefaultSignatureVerificationServiceFactory;
@@ -93,6 +91,7 @@ import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.FileHasher;
+import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.management.DefaultDependencyResolutionManagement;
 import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.operations.BuildOperationExecutor;
@@ -110,6 +109,8 @@ import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
 import org.gradle.internal.resource.local.ivy.LocallyAvailableResourceFinderFactory;
 import org.gradle.internal.resource.transfer.CachingTextUriResourceLoader;
+import org.gradle.internal.resource.transport.RepositoryTransport;
+import org.gradle.internal.resource.transport.RepositoryTransportFactory;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -134,6 +135,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         registration.add(ResolverProviderFactories.class);
         registration.add(DependencyManagementManagedTypesFactory.class);
         registration.add(RuntimeShadedJarFactory.class);
+        registration.add(DefaultComponentMetadataProcessor.Factory.class);
     }
 
     @Provides
@@ -142,13 +144,17 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         UserCodeApplicationContext context,
         DependencyManagementServices dependencyManagementServices,
         ObjectFactory objects,
-        CollectionCallbackActionDecorator collectionCallbackActionDecorator
+        CollectionCallbackActionDecorator collectionCallbackActionDecorator,
+        ImmutableModuleIdentifierFactory moduleIdentifierFactory,
+        IsolatableFactory isolatableFactory
     ) {
         return instantiator.newInstance(DefaultDependencyResolutionManagement.class,
             context,
             dependencyManagementServices,
             objects,
-            collectionCallbackActionDecorator
+            collectionCallbackActionDecorator,
+            moduleIdentifierFactory,
+            isolatableFactory
         );
     }
 
@@ -258,13 +264,8 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
     }
 
     @Provides
-    MavenSettingsProvider createMavenSettingsProvider() {
-        return new DefaultMavenSettingsProvider(new DefaultMavenFileLocations());
-    }
-
-    @Provides
-    LocalMavenRepositoryLocator createLocalMavenRepositoryLocator(MavenSettingsProvider mavenSettingsProvider) {
-        return new DefaultLocalMavenRepositoryLocator(mavenSettingsProvider);
+    LocalMavenRepositoryLocator createLocalMavenRepositoryLocator(MavenSettingsProvider mavenSettingsProvider, MavenFileLocations mavenFileLocations) {
+        return new DefaultLocalMavenRepositoryLocator(mavenSettingsProvider, mavenFileLocations);
     }
 
     @Provides
@@ -292,7 +293,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
         ProducerGuard<ExternalResourceName> producerGuard,
         FileResourceRepository fileResourceRepository,
         ChecksumService checksumService,
-        StartParameterResolutionOverride startParameterResolutionOverride
+        StartParameter startParameter
     ) {
         return artifactCachesProvider.withWritableCache((md, manager) -> new RepositoryTransportFactory(
             resourceConnectorFactories,
@@ -301,7 +302,7 @@ class DependencyManagementBuildScopeServices implements ServiceRegistrationProvi
             buildCommencedTimeProvider,
             manager,
             buildOperationRunner,
-            startParameterResolutionOverride,
+            startParameter,
             producerGuard,
             fileResourceRepository,
             checksumService

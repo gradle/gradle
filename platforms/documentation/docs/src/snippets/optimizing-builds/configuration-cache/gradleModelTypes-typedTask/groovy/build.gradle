@@ -1,0 +1,22 @@
+group = 'org.gradle.samples'
+version = '1.0'
+
+// tag::typedTask[]
+abstract class WriteVersionStampTask extends DefaultTask {
+    @Input
+    abstract Property<String> getVersion() // <1>
+
+    @OutputFile
+    abstract RegularFileProperty getOutput() // <2>
+
+    @TaskAction
+    void run() {
+        output.get().asFile.text = version.get()
+    }
+}
+
+tasks.register('writeVersionStamp', WriteVersionStampTask) {
+    version = providers.provider { project.version.toString() } // <3>
+    output = layout.buildDirectory.file('version.txt')
+}
+// end::typedTask[]

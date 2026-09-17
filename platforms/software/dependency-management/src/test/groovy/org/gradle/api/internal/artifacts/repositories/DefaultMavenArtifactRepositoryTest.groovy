@@ -27,10 +27,9 @@ import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.GradleModuleMetadataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParser
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
+import org.gradle.api.internal.artifacts.mvnsettings.MavenMirrorResolver
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.filestore.DefaultArtifactIdentifierFileStore
 import org.gradle.api.provider.ProviderFactory
@@ -38,6 +37,8 @@ import org.gradle.internal.resource.ExternalResourceRepository
 import org.gradle.internal.resource.cached.DefaultExternalResourceFileStore
 import org.gradle.internal.resource.local.FileResourceRepository
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
+import org.gradle.internal.resource.transport.RepositoryTransport
+import org.gradle.internal.resource.transport.RepositoryTransportFactory
 import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.util.SnapshotTestUtil
 import org.gradle.util.TestUtil
@@ -409,7 +410,8 @@ class DefaultMavenArtifactRepositoryTest extends Specification {
             resolver, transportFactory, locallyAvailableResourceFinder, TestUtil.instantiatorFactory(),
             artifactIdentifierFileStore, pomParser, metadataParser, authenticationContainer, externalResourceFileStore,
             Mock(FileResourceRepository), mavenMetadataFactory, SnapshotTestUtil.isolatableFactory(),
-            TestUtil.objectFactory(), urlArtifactRepositoryFactory, TestUtil.checksumService, providerFactory, new VersionParser())
+            TestUtil.objectFactory(), urlArtifactRepositoryFactory, TestUtil.checksumService, providerFactory, new VersionParser(),
+            Mock(MavenMirrorResolver) { mirrorFor(_, _) >> Optional.empty() })
         repo.name = 'repo'
         repo.allowInsecureContinueWhenDisabled.convention(false)
         return repo

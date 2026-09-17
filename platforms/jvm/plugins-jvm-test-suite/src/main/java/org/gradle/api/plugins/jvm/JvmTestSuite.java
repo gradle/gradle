@@ -54,6 +54,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Source set associated with this test suite. The name of this source set is the same as the test suite.
      *
      * @return source set for this test suite.
+     * @since 7.3
      */
     SourceSet getSources();
 
@@ -61,6 +62,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Configure the sources for this test suite.
      *
      * @param configuration configuration applied against the SourceSet for this test suite
+     * @since 7.3
      */
     void sources(Action<? super SourceSet> configuration);
 
@@ -80,6 +82,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * <p>
      *     Gradle will provide the version of JUnit Jupiter to use. Defaults to version {@code 5.8.2}
      * </p>
+     * @since 7.3
      */
     void useJUnitJupiter();
 
@@ -87,6 +90,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://junit.org/junit5/docs/current/user-guide/">JUnit Jupiter</a> testing framework with a specific version.
      *
      * @param version version of JUnit Jupiter to use
+     * @since 7.3
      */
     void useJUnitJupiter(String version);
 
@@ -104,6 +108,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * <p>
      *     Gradle will provide the version of JUnit4 to use. Defaults to version {@code 4.13.2}
      * </p>
+     * @since 7.3
      */
     void useJUnit();
 
@@ -111,6 +116,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://junit.org/junit4/">JUnit4</a> testing framework with a specific version.
      *
      * @param version version of JUnit4 to use
+     * @since 7.3
      */
     void useJUnit(String version);
 
@@ -128,6 +134,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * <p>
      *     Gradle will provide the version of Spock to use. Defaults to version {@code 2.3-groovy-4.0}
      * </p>
+     * @since 7.3
      */
     void useSpock();
 
@@ -135,6 +142,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://spockframework.org/">Spock Framework</a> testing framework with a specific version.
      *
      * @param version the version of Spock to use
+     * @since 7.3
      */
     void useSpock(String version);
 
@@ -152,6 +160,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * <p>
      *     Gradle will provide the version of kotlin.test to use. Defaults to version {@code 1.6.20}
      * </p>
+     * @since 7.3
      */
     void useKotlinTest();
 
@@ -159,6 +168,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://kotlinlang.org/api/latest/kotlin.test/">kotlin.test</a> testing framework with a specific version.
      *
      * @param version the version of kotlin.test to use
+     * @since 7.3
      */
     void useKotlinTest(String version);
 
@@ -176,6 +186,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * <p>
      *     Gradle will provide the version of TestNG to use. Defaults to version {@code 7.4.0}
      * </p>
+     * @since 7.3
      */
     void useTestNG();
 
@@ -183,6 +194,7 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Use the <a href="https://testng.org/doc/">TestNG</a> testing framework with a specific version.
      *
      * @param version version of TestNG to use
+     * @since 7.3
      */
     void useTestNG(String version);
 
@@ -199,12 +211,14 @@ public interface JvmTestSuite extends TestSuite, Buildable {
      * Dependency handler for this component.
      *
      * @return dependency handler
+     * @since 7.3
      */
     @Nested
     JvmComponentDependencies getDependencies();
 
     /**
      * Configure dependencies for this component.
+     * @since 7.3
      */
     void dependencies(Action<? super JvmComponentDependencies> dependencies);
 }

@@ -60,6 +60,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         app = getHelloWorldApp()
         mainCompileTask = ":compileMainExecutableMain${sourceType}"
         libraryCompileTask = ":compileHelloSharedLibraryHello${sourceType}"
@@ -93,6 +94,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     def "does not re-execute build with no change"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         run "installMainExecutable"
 
@@ -105,6 +107,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
     @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "rebuilds executable with source file change"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         run "installMainExecutable"
 
@@ -131,6 +134,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     def "recompiles but does not relink executable with source comment change"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         run "installMainExecutable"
         maybeWait()
@@ -157,6 +161,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
     @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "recompiles library and relinks executable after library source file change"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         run "installMainExecutable"
         maybeWait()
@@ -183,6 +188,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     def "recompiles binary when header file changes"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         run "installMainExecutable"
         maybeWait()
@@ -208,6 +214,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     def "recompiles binary when system header file changes"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def systemHeader = file("src/main/system/${headerFile.name}")
         systemHeader.text = headerFile.text
@@ -261,6 +268,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     def "recompiles binary when header file changes in a way that does not affect the object files"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         run "installMainExecutable"
         maybeWait()
@@ -287,6 +295,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
     @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "rebuilds binary with compiler option change"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         run "installMainExecutable"
 
@@ -322,6 +331,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     @RequiresInstalledToolChain(SUPPORTS_32_AND_64)
     def "rebuilds binary with target platform change"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         Assume.assumeTrue(languageBuildsOnMultiplePlatforms())
         given:
         buildFile << """
@@ -358,6 +368,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     def "relinks binary when set of input libraries changes"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         run "mainExecutable", "helloStaticLibrary"
 
@@ -379,6 +390,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     def "relinks binary but does not recompile when linker option changed"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         run "mainExecutable"
 
@@ -425,6 +437,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     def "cleans up stale object files when executable source file renamed"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         run "installMainExecutable"
 
@@ -453,6 +466,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     }
 
     def "cleans up stale object files when library source file renamed"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         run "helloStaticLibrary"
 
@@ -493,6 +507,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
     @RequiresInstalledToolChain(GCC_COMPATIBLE)
     def "recompiles binary when imported header file changes"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         sourceFile.text = sourceFile.text.replaceFirst('#include "hello.h"', "#import \"hello.h\"")
         if (buildingCorCppWithGcc()) {
             buildFile << """
@@ -531,6 +546,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
     @RequiresInstalledToolChain(VISUALCPP)
     @ToBeFixedForConfigurationCache
     def "cleans up stale debug files when changing from debug to non-debug"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
 
         given:
         buildFile << """
@@ -568,6 +584,7 @@ abstract class AbstractNativeLanguageIncrementalBuildIntegrationTest extends Abs
 
     @Issue("GRADLE-3248")
     def "incremental compilation isn't considered up-to-date when compilation fails"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         expect:
         succeeds mainCompileTask
 

@@ -30,6 +30,7 @@ public interface EclipseClasspathEntry {
      *
      * @return The classpath attributes.
      * @throws UnsupportedMethodException For Gradle versions older than 2.14, where this method is not supported.
+     * @since 2.14
      */
     DomainObjectSet<? extends ClasspathAttribute> getClasspathAttributes() throws UnsupportedMethodException;
 

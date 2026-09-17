@@ -25,7 +25,7 @@ import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
  *
  * <p>A C source set contains a set of source files, together with an optional set of exported header files.</p>
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * plugins {
  *     id 'c'
  * }
@@ -50,6 +50,7 @@ import org.gradle.language.nativeplatform.HeaderExportingSourceSet;
  * </pre>
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 1.9
  */
 @Incubating
 @Deprecated

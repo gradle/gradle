@@ -25,7 +25,7 @@ import java.io.File;
 /**
  * Represents a Gradle project.
  *
- * @since 1.0-milestone-5
+ * @since 1.0
  */
 public interface GradleProject extends HierarchicalElement, BuildableElement, ProjectModel {
     /**
@@ -58,6 +58,7 @@ public interface GradleProject extends HierarchicalElement, BuildableElement, Pr
      * Returns the path of this project. This is a unique identifier for this project within the build.
      *
      * @return The path.
+     * @since 1.0
      */
     String getPath();
 
@@ -65,6 +66,7 @@ public interface GradleProject extends HierarchicalElement, BuildableElement, Pr
      * Searches all descendants (children, grand-children, etc.), including self, by given path.
      *
      * @return Gradle project with matching path or {@code null} if not found.
+     * @since 1.0
      */
     @Nullable
     GradleProject findByPath(String path);

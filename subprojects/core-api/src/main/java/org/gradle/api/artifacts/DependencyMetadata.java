@@ -31,11 +31,13 @@ public interface DependencyMetadata<SELF extends DependencyMetadata> {
     /**
      * Returns the group of the module that is targeted by this dependency or dependency constraint.
      * The group allows the definition of modules of the same name in different organizations or contexts.
+     * @since 4.4
      */
     String getGroup();
 
     /**
      * Returns the name of the module that is targeted by this dependency or dependency constraint.
+     * @since 4.4
      */
     String getName();
 

@@ -21,6 +21,8 @@ import org.gradle.api.logging.StandardOutputListener;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.util.List;
+
 /**
  * Provides access to and control over the logging system. Log manager represents some 'scope', and log managers can be nested in a stack.
  */
@@ -65,4 +67,24 @@ public interface LoggingManagerInternal extends LoggingManager, StandardOutputCa
      * <p>This should be used only when custom user listeners are required, i.e. only in the build JVM around the build execution.
      */
     LoggingManagerInternal enableUserStandardOutputListeners();
+
+    /**
+     * Returns the standard output listeners registered with this manager, in registration order.
+     *
+     * <p>Intended for serialization (e.g. by the configuration cache), so that listeners registered
+     * during configuration can be restored and re-registered on a later run.
+     *
+     * @return an immutable snapshot of the registered standard output listeners, in registration order; never {@code null}
+     */
+    List<StandardOutputListener> getStandardOutputListeners();
+
+    /**
+     * Returns the standard error listeners registered with this manager, in registration order.
+     *
+     * <p>Intended for serialization (e.g. by the configuration cache), so that listeners registered
+     * during configuration can be restored and re-registered on a later run.
+     *
+     * @return an immutable snapshot of the registered standard error listeners, in registration order; never {@code null}
+     */
+    List<StandardOutputListener> getStandardErrorListeners();
 }

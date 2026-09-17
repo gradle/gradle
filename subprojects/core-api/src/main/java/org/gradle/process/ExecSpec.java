@@ -21,6 +21,7 @@ import java.util.List;
 
 /**
  * Specified the options for executing some command.
+ * @since 0.9
  */
 public interface ExecSpec extends BaseExecSpec {
     /**
@@ -35,6 +36,7 @@ public interface ExecSpec extends BaseExecSpec {
      * Sets the full command line, including the executable to be executed plus its arguments.
      *
      * @param args the command plus the args to be executed
+     * @since 0.9
      */
     void setCommandLine(Object... args);
 
@@ -42,6 +44,7 @@ public interface ExecSpec extends BaseExecSpec {
      * Sets the full command line, including the executable to be executed plus its arguments.
      *
      * @param args the command plus the args to be executed
+     * @since 0.9
      */
     void setCommandLine(Iterable<?> args);
 
@@ -50,6 +53,7 @@ public interface ExecSpec extends BaseExecSpec {
      *
      * @param args the command plus the args to be executed
      * @return this
+     * @since 0.9
      */
     ExecSpec commandLine(Object... args);
 
@@ -58,6 +62,7 @@ public interface ExecSpec extends BaseExecSpec {
      *
      * @param args the command plus the args to be executed
      * @return this
+     * @since 0.9
      */
     ExecSpec commandLine(Iterable<?> args);
 
@@ -66,6 +71,7 @@ public interface ExecSpec extends BaseExecSpec {
      *
      * @param args args for the command
      * @return this
+     * @since 0.9
      */
     ExecSpec args(Object... args);
 
@@ -74,6 +80,7 @@ public interface ExecSpec extends BaseExecSpec {
      *
      * @param args args for the command
      * @return this
+     * @since 0.9
      */
     ExecSpec args(Iterable<?> args);
 
@@ -91,11 +98,13 @@ public interface ExecSpec extends BaseExecSpec {
      *
      * @param args args for the command
      * @return this
+     * @since 0.9
      */
     ExecSpec setArgs(Iterable<?> args);
 
     /**
      * Returns the arguments for the command to be executed. Defaults to an empty list.
+     * @since 0.9
      */
     @ToBeReplacedByLazyProperty
     List<String> getArgs();

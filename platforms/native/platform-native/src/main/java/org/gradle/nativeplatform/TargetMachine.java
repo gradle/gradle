@@ -26,12 +26,14 @@ import org.gradle.api.tasks.Nested;
 public interface TargetMachine {
     /**
      * Returns the target operating system
+     * @since 5.1
      */
     @Nested
     OperatingSystemFamily getOperatingSystemFamily();
 
     /**
      * Returns the target architecture
+     * @since 5.1
      */
     @Nested
     MachineArchitecture getArchitecture();

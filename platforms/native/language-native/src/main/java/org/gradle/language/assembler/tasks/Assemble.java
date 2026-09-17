@@ -52,6 +52,7 @@ import java.util.concurrent.Callable;
 
 /**
  * Translates Assembly language source files into object files.
+ * @since 2.2
  */
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
@@ -82,6 +83,11 @@ public abstract class Assemble extends DefaultTask {
     @Inject
     protected abstract Deleter getDeleter();
 
+    /**
+     * Assemble.
+     *
+     * @since 2.2
+     */
     @TaskAction
     public void assemble() {
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
@@ -108,6 +114,11 @@ public abstract class Assemble extends DefaultTask {
         setDidWork(result.getDidWork() || cleanedOutputs);
     }
 
+    /**
+     * Returns the source.
+     *
+     * @since 2.2
+     */
     @InputFiles
     @SkipWhenEmpty
     @IgnoreEmptyDirectories
@@ -118,6 +129,7 @@ public abstract class Assemble extends DefaultTask {
 
     /**
      * Adds a set of assembler sources files to be translated. The provided sourceFiles object is evaluated as per {@link Project#files(Object...)}.
+     * @since 2.2
      */
     public void source(Object sourceFiles) {
         source.from(sourceFiles);
@@ -125,12 +137,18 @@ public abstract class Assemble extends DefaultTask {
 
     /**
      * Additional arguments to provide to the assembler.
+     * @since 2.2
      */
     @Input
     public List<String> getAssemblerArgs() {
         return assemblerArgs;
     }
 
+    /**
+     * Sets the assembler args.
+     *
+     * @since 2.2
+     */
     public void setAssemblerArgs(List<String> assemblerArgs) {
         this.assemblerArgs = assemblerArgs;
     }
@@ -153,12 +171,18 @@ public abstract class Assemble extends DefaultTask {
 
     /**
      * The directory where object files will be generated.
+     * @since 2.2
      */
     @OutputDirectory
     public File getObjectFileDir() {
         return objectFileDir;
     }
 
+    /**
+     * Sets the object file dir.
+     *
+     * @since 2.2
+     */
     public void setObjectFileDir(File objectFileDir) {
         this.objectFileDir = objectFileDir;
     }

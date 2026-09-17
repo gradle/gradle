@@ -176,7 +176,10 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
                 buildDir.file("publications/" + publicationName + "/ivy.xml")
             );
         });
-        publication.setIvyDescriptorGenerator(generatorTask);
+        publication.setIvyDescriptorGenerator(
+            generatorTask.flatMap(GenerateIvyDescriptor::getDestinationFile),
+            generatorTask.map(task -> task.getOnlyIf().isSatisfiedBy(task))
+        );
     }
 
     private void createGenerateMetadataTask(final TaskContainer tasks, final IvyPublicationInternal publication, final Set<IvyPublicationInternal> publications, final DirectoryProperty buildDir, NamedDomainObjectList<IvyArtifactRepository> repositories) {

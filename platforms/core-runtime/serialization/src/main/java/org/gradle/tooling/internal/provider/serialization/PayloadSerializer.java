@@ -30,6 +30,7 @@ import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @ThreadSafe
@@ -66,14 +67,17 @@ public class PayloadSerializer {
     }
 
     public @Nullable Object deserialize(SerializedPayload payload) {
-        if (payload.getSerializedModel().isEmpty()) {
+        Object header = payload.getHeader();
+        List<byte[]> model = payload.getSerializedModel();
+
+        if (header == null || model.isEmpty()) {
             return null;
         }
 
         final DeserializeMap map = classLoaderRegistry.newDeserializeSession();
         try {
-            final Map<Short, ClassLoaderDetails> classLoaderDetails = Cast.uncheckedNonnullCast(payload.getHeader());
-            StreamByteBuffer buffer = StreamByteBuffer.of(payload.getSerializedModel());
+            final Map<Short, ClassLoaderDetails> classLoaderDetails = Cast.uncheckedNonnullCast(header);
+            StreamByteBuffer buffer = StreamByteBuffer.of(model);
             final ObjectInputStream objectStream = new PayloadSerializerObjectInputStream(buffer.getInputStream(), getClass().getClassLoader(), classLoaderDetails, map);
             return objectStream.readObject();
         } catch (Exception e) {

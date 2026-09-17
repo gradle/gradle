@@ -38,7 +38,6 @@ import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.FileSystemTestPreconditions
-
 import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.ToBeImplemented
@@ -57,8 +56,12 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationRunner(), accessHierarchies, TestUtil.problemsService())
 
     def setup() {
+        executionPlan = newExecutionPlan()
+    }
+
+    private DefaultExecutionPlan newExecutionPlan() {
         def dependencyResolver = new TaskDependencyResolver([new TaskNodeDependencyResolver(taskNodeFactory)])
-        executionPlan = new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, accessHierarchies.outputHierarchy, accessHierarchies.destroyableHierarchy, coordinator)
+        return new DefaultExecutionPlan(Path.ROOT.toString(), taskNodeFactory, new OrdinalGroupFactory(), dependencyResolver, accessHierarchies.outputHierarchy, accessHierarchies.destroyableHierarchy, coordinator)
     }
 
     Node priorityNode(Map<String, ?> options = [:]) {
@@ -1218,6 +1221,68 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         tasksAreNotExecutedInParallel(a, b)
     }
 
+    def "plan stays selectable while a node is blocked by a node in another plan"() {
+        given:
+        def sharedFile = file("output")
+
+        // A second plan, as if for another build of the same build tree. It shares the node access hierarchies, so
+        // its nodes are visible to the mutation conflict checks of the plan under test. The two tasks are in
+        // different projects, so only their outputs conflict, not their project locks.
+        def otherPlan = newExecutionPlan()
+        Task inOtherPlan = task("inOtherPlan", project: project(project, "a"), type: AsyncWithOutputFile)
+        _ * inOtherPlan.outputFile >> sharedFile
+        otherPlan.addEntryTask(inOtherPlan)
+        otherPlan.determineExecutionPlan()
+        WorkSource<?> otherFinalizedPlan = otherPlan.finalizePlan().asWorkSource()
+
+        Task inThisPlan = task("inThisPlan", project: project(project, "b"), type: AsyncWithOutputFile)
+        _ * inThisPlan.outputFile >> sharedFile
+        addToGraphAndPopulate(inThisPlan)
+
+        // Start the task of the other plan and leave it executing, so that its output location is recorded. The node
+        // that resolves its mutations is selected first, so run everything up to the task itself.
+        def nodeOfOtherPlan = null
+        coordinator.withStateLock {
+            while (nodeOfOtherPlan == null) {
+                def node = otherFinalizedPlan.selectNext().item
+                if (node instanceof LocalTaskNode) {
+                    nodeOfOtherPlan = node
+                } else {
+                    node.execute(null)
+                    otherFinalizedPlan.finishedExecuting(node, null)
+                }
+            }
+        }
+
+        expect:
+        // The task of this plan conflicts with the executing task of the other plan. Nothing this plan can observe
+        // happens when that task completes, so the plan has to stay selectable and re-attempt the blocked task on the
+        // next scan. Compare tasksAreNotExecutedInParallel(), where the same conflict within a single plan leaves the
+        // plan not selectable.
+        coordinator.withStateLock {
+            while (finalizedPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart) {
+                def selection = finalizedPlan.selectNext()
+                if (selection.noWorkReadyToStart) {
+                    break
+                }
+                def node = selection.item
+                assert !(node instanceof LocalTaskNode)
+                node.execute(null)
+                finalizedPlan.finishedExecuting(node, null)
+            }
+            assert finalizedPlan.selectNext().noWorkReadyToStart
+            assert finalizedPlan.executionState() == WorkSource.State.MaybeWorkReadyToStart
+        }
+
+        when:
+        coordinator.withStateLock {
+            otherFinalizedPlan.finishedExecuting(nodeOfOtherPlan, null)
+        }
+
+        then:
+        selectNextTask() == inThisPlan
+    }
+
     def "a task that destroys a directory that is an output of a currently running task is not started"() {
         given:
         def projectA = project(project, "a")
@@ -2310,9 +2375,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
             def node = selectNextNode()
             // ignore nodes that aren't tasks
             if (!(node instanceof LocalTaskNode)) {
-                if (node instanceof SelfExecutingNode) {
-                    node.execute(null)
-                }
+                node.execute(null)
                 finalizedPlan.finishedExecuting(node, null)
                 result = selectNextTaskNode()
                 return
@@ -2352,9 +2415,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
                 assert !selection.noMoreWorkToStart
                 def node = selection.item
                 assert !(node instanceof LocalTaskNode)
-                if (node instanceof SelfExecutingNode) {
-                    node.execute(null)
-                }
+                node.execute(null)
                 finalizedPlan.finishedExecuting(node, null)
             }
             assert finalizedPlan.executionState() == WorkSource.State.NoWorkReadyToStart
@@ -2413,12 +2474,10 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     }
 
     List<Node> getScheduledNodes() {
-        def result = []
-        executionPlan.scheduledNodes.visitNodes { nodes, entryNodes -> result.addAll(nodes) }
-        return result
+        return executionPlan.scheduledNodes.scheduledNodes
     }
 
-    private static class TestNode extends CreationOrderedNode implements SelfExecutingNode {
+    private static class TestNode extends CreationOrderedNode {
         final Throwable failure
         final String name
         final List<Node> preExecuteNodes
@@ -2473,7 +2532,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         }
     }
 
-    private static class TestPriorityNode extends TestNode implements SelfExecutingNode {
+    private static class TestPriorityNode extends TestNode {
         TestPriorityNode(@Nullable Throwable failure) {
             super("test node", [], [], [], failure)
         }

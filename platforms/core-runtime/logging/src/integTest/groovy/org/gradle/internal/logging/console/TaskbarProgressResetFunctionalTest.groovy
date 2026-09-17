@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.test.preconditions.OsTestPreconditions
 import org.gradle.test.precondition.Requires
+import org.junit.Assume
 import spock.lang.Issue
 
 /**
@@ -52,9 +53,19 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
         reason = "sends SIGINT to a forked process works only on Unix and with a separate process")
     def "sends OSC 9;4;0 reset sequence when build receives SIGINT"() {
         given:
+        // On background/service processes such as CI build agents, SIGINT is inherited
+        // as SIG_IGN — a disposition that survives exec and that the JVM leaves in place
+        // — so `kill -SIGINT` on the forked client is a no-op and the build can never be
+        // cancelled (https://github.com/gradle/gradle-private/issues/5153). Skip rather
+        // than fail where the signal is undeliverable; the test still runs wherever
+        // SIGINT works (locally, interactive shells, or any agent where it is delivered).
+        Assume.assumeTrue(
+            "SIGINT is ignored (SIG_IGN) in this process tree, so it cannot cancel the build; see gradle-private#5153",
+            sigintDeliverableToForkedChild())
+
         // The task creates a marker file once it's running, then sleeps.
-        // We wait for the marker before sending SIGINT to avoid racing
-        // against JVM signal-handler setup on slow CI machines.
+        // We wait for the marker so the build is actually executing (cancellable) when
+        // SIGINT arrives.
         def readyFile = file("ready.marker")
         buildFile << """
             task block {
@@ -88,6 +99,26 @@ class TaskbarProgressResetFunctionalTest extends AbstractIntegrationSpec {
 
         then:
         gradle.standardOutput.contains(OSC_RESET)
+    }
+
+    /**
+     * Whether SIGINT can be delivered to a child process forked by this test worker
+     * (and therefore to the forked gradle client). Detected by forking a child that
+     * signals itself: it survives if SIGINT is ignored, and is killed if it is deliverable.
+     */
+    private static boolean sigintDeliverableToForkedChild() {
+        try {
+            def probe = new ProcessBuilder("sh", "-c", 'kill -INT $$; echo SURVIVED-SIGINT')
+                .redirectErrorStream(true)
+                .start()
+            def out = probe.inputStream.text.trim()
+            probe.waitFor()
+            return !out.contains("SURVIVED-SIGINT")
+        } catch (Exception e) {
+            // If the probe itself fails, assume deliverable so the test still runs.
+            System.err.println("Could not determine SIGINT disposition: ${e}")
+            return true
+        }
     }
 
     @SuppressWarnings("IntegrationTestFixtures") // outputContains() strips ANSI escape characters; we need raw output to verify the OSC sequence

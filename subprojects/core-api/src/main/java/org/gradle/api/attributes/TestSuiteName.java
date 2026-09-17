@@ -28,5 +28,10 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface TestSuiteName extends Named {
+    /**
+     * Of.
+     *
+     * @since 7.4
+     */
     Attribute<TestSuiteName> TEST_SUITE_NAME_ATTRIBUTE = Attribute.of("org.gradle.testsuite.name", TestSuiteName.class);
 }

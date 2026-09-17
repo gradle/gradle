@@ -16,6 +16,10 @@
 
 package org.gradle.internal.watch.vfs.impl;
 
+import static java.util.Objects.requireNonNull;
+
+import org.jspecify.annotations.Nullable;
+
 import com.google.common.collect.ImmutableList;
 import net.rubygrapefruit.platform.NativeException;
 import org.gradle.fileevents.internal.InotifyInstanceLimitTooLowException;
@@ -72,7 +76,9 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
      */
     private final Set<File> watchableHierarchiesRegisteredEarly = new LinkedHashSet<>();
 
+    @Nullable
     private FileWatcherRegistry watchRegistry;
+    @Nullable
     private Exception reasonForNotWatchingFiles;
     private boolean stateInvalidatedAtStartOfBuild;
 
@@ -100,7 +106,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
             SnapshotCollectingDiffListener diffListener = new SnapshotCollectingDiffListener();
             SnapshotHierarchy newRoot = updateFunction.update(diffListener);
             return withWatcherChangeErrorHandling(newRoot, () -> diffListener.publishSnapshotDiff((removedSnapshots, addedSnapshots) ->
-                watchRegistry.virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, newRoot)
+                requireNonNull(watchRegistry).virtualFileSystemContentsChanged(removedSnapshots, addedSnapshots, newRoot)
             ));
         }
     }
@@ -174,6 +180,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                                           }
 
                                           @Override
+                                          @Nullable
                                           public FileSystemWatchingStatistics getStatistics() {
                                               return statisticsSinceLastBuild;
                                           }
@@ -204,7 +211,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
             }
             return withWatcherChangeErrorHandling(
                 currentRoot,
-                () -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, currentRoot)
+                () -> requireNonNull(watchRegistry).registerWatchableHierarchy(watchableHierarchy, currentRoot)
             );
         });
     }
@@ -238,7 +245,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                         } else {
                             // We'll clean this up further after the daemon has finished with the build, see afterBuildFinished()
                             newRoot = withWatcherChangeErrorHandling(currentRoot, () ->
-                                watchRegistry.updateVfsBeforeBuildFinished(currentRoot, maximumNumberOfWatchedHierarchies, unsupportedFileSystems));
+                                requireNonNull(watchRegistry).updateVfsBeforeBuildFinished(currentRoot, maximumNumberOfWatchedHierarchies, unsupportedFileSystems));
                         }
                         statisticsDuringBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
                         if (vfsLogging == VfsLogging.VERBOSE) {
@@ -275,6 +282,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                         }
 
                         @Override
+                        @Nullable
                         public FileSystemWatchingStatistics getStatistics() {
                             return statisticsDuringBuild;
                         }

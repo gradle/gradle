@@ -28,11 +28,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.Dependen
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ResolvableSelectorState;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons;
-import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.component.model.ComponentOverrideMetadata;
 import org.gradle.internal.component.model.DefaultComponentOverrideMetadata;
-import org.gradle.internal.component.model.DependencyMetadata;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
@@ -55,56 +53,62 @@ import java.util.function.Consumer;
 import static org.gradle.util.internal.TextUtil.getPluralEnding;
 
 /**
- * Resolution state for a given module version selector.
- *
+ * Resolution state for a given component selector.
+ * <p>
  * There are 3 possible states:
- * 1. The selector has been newly added to a `ModuleResolveState`. In this case {@link #resolved} will be `false`.
+ * 1. The selector has been newly added to a `ModuleResolveState`. In this case {@link #requiresSelection} will be `true`.
  * 2. The selector failed to resolve. In this case {@link #failure} will be `!= null`.
- * 3. The selector was part of resolution to a particular module version.
- * In this case {@link #resolved} will be `true` and {@link ModuleResolveState#getSelected()} will point to the selected component.
+ * 3. The selector was part of resolution to a particular component.
+ * <p>
+ * In this case {@link #requiresSelection} will be `false` and {@link ModuleResolveState#getSelected()} will point to the selected component.
  */
 class SelectorState implements DependencyGraphSelector, ResolvableSelectorState {
 
-    private final DependencyState dependencyState;
+    private final ComponentSelector componentSelector;
     private final DependencyToComponentIdResolver resolver;
     private final ResolveState resolveState;
     private final ResolvedVersionConstraint versionConstraint;
     private final boolean versionByAncestor;
     private final boolean isProjectSelector;
-    private final AttributeDesugaring attributeDesugaring;
 
     private @Nullable ComponentIdResolveResult preferResult;
     private @Nullable ComponentIdResolveResult requireResult;
     private @Nullable ModuleVersionResolveException failure;
     private ModuleResolveState targetModule;
-    private boolean resolved;
-    private boolean forced;
-    private boolean softForced;
-    private boolean fromLock;
+
+    /**
+     * When true, the target module's current selection does not yet account for this selector's
+     * state, and selection must run again before this selector's opinion is reflected in the graph.
+     */
+    private boolean requiresSelection = true;
+
     private boolean reusable;
     private boolean markedReusableAlready;
-    private boolean changing;
 
-    // An internal counter used to track the number of outgoing edges
-    // that use this selector. Since a module resolve state tracks all selectors
-    // for this module, when considering selectors that need to be used when
-    // choosing a version, we must only consider the ones which currently have
-    // outgoing edges pointing to them. If not, then it means the module was
-    // evicted, but it can still be reintegrated later in a different path.
+    // Counters used to track accumulated state of all outgoing edges that use this selector.
+    // Since a ModuleResolveState tracks all selectors targeting itself, when considering
+    // selectors that need to be used when choosing a version, a module must only consider
+    // the selectors that currently have outgoing edges pointing to it. If not, then it means
+    // the module was evicted, but it can still be reintegrated later in a different path.
     private int outgoingEdgeCount;
+    private int outgoingConstraintEdgeCount;
+    private int hardForcingEdgeCount;
+    private int softForcingEdgeCount;
+    private int lockingEdgeCount;
+    private int changingEdgeCount;
 
-    SelectorState(DependencyState dependencyState, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId, boolean versionByAncestor) {
+    private @Nullable IvyArtifactName firstDependencyArtifact;
+
+    SelectorState(ComponentSelector componentSelector, DependencyToComponentIdResolver resolver, ResolveState resolveState, ModuleIdentifier targetModuleId, boolean versionByAncestor) {
         this.resolver = resolver;
         this.resolveState = resolveState;
         this.targetModule = resolveState.getModule(targetModuleId);
         this.versionByAncestor = versionByAncestor;
-        update(dependencyState);
-        this.dependencyState = dependencyState;
+        this.componentSelector = componentSelector;
         this.versionConstraint = versionByAncestor ?
             resolveState.resolveVersionConstraint(DefaultImmutableVersionConstraint.of()) :
-            resolveState.resolveVersionConstraint(dependencyState.getDependency().getSelector());
-        this.isProjectSelector = getSelector() instanceof ProjectComponentSelector;
-        this.attributeDesugaring = resolveState.getAttributeDesugaring();
+            resolveState.resolveVersionConstraint(componentSelector);
+        this.isProjectSelector = componentSelector instanceof ProjectComponentSelector;
     }
 
     @Override
@@ -113,39 +117,131 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         return isProjectSelector;
     }
 
-    public void use(boolean deferSelection) {
+    /**
+     * Register an edge that uses this selector. Contributions are reference counted
+     * so that if the edge leaves the graph, their contributions to this selector can
+     * be reverted.
+     */
+    public void use(EdgeState edge, boolean deferSelection) {
+        if (edge.isConstraint()) {
+            outgoingConstraintEdgeCount++;
+            if (outgoingConstraintEdgeCount == 1) {
+                targetModule.invalidateMergedConstraintAttributes();
+            }
+        }
+
+        if (edge.isHardForcing()) {
+            hardForcingEdgeCount++;
+            if (hardForcingEdgeCount == 1) {
+                this.requiresSelection = true;
+            }
+        }
+
+        if (edge.isSoftForcing()) {
+            softForcingEdgeCount++;
+            if (softForcingEdgeCount == 1) {
+                targetModule.resolveOptimizations.declareForcedPlatformInUse();
+                this.requiresSelection = true;
+            }
+        }
+
+        if (edge.isFromLock()) {
+            lockingEdgeCount++;
+            if (lockingEdgeCount == 1) {
+                this.requiresSelection = true;
+            }
+        }
+
+        if (edge.getDependencyMetadata().isChanging()) {
+            changingEdgeCount++;
+        }
+
+        // TODO: The first dependency artifact is not reference counted, since it is arbitrary anyway.
+        // We should fix this at some point.
+        if (this.firstDependencyArtifact == null) {
+            List<IvyArtifactName> artifacts = edge.getDependencyArtifacts();
+            this.firstDependencyArtifact = artifacts.isEmpty() ? null : artifacts.get(0);
+        }
+
         outgoingEdgeCount++;
         if (outgoingEdgeCount == 1) {
+            // Register with the target module last, since the module orders its selectors
+            // based on the state contributed above, (locking and forcing).
             targetModule.addSelector(this, deferSelection);
         }
     }
 
     /**
-     * Decrease the count of edges using this selector, updating state on the target module if
-     * this selector is no longer used by any edges.
+     * Decrease the count of edges using this selector, subtracting the state the released
+     * edge contributed to this selector and updating the state on the target module if this
+     * selector is no longer used by any edges.
      *
      * @return True if releasing this selector requires the target module to be reselected.
      */
-    public boolean release() {
+    public boolean release(EdgeState edge) {
+        boolean needsSelection = false;
+
+        if (edge.isConstraint()) {
+            outgoingConstraintEdgeCount--;
+            assert outgoingConstraintEdgeCount >= 0 : "Inconsistent selector state detected for '" + this + "': outgoing constraint edge count cannot be negative";
+            if (outgoingConstraintEdgeCount == 0) {
+                targetModule.invalidateMergedConstraintAttributes();
+            }
+        }
+
+        if (edge.isHardForcing()) {
+            hardForcingEdgeCount--;
+            assert hardForcingEdgeCount >= 0 : "Inconsistent selector state detected for '" + this + "': hard forcing edge count cannot be negative";
+            if (hardForcingEdgeCount == 0) {
+                this.requiresSelection = true;
+                needsSelection = true;
+            }
+        }
+
+        if (edge.isSoftForcing()) {
+            softForcingEdgeCount--;
+            assert softForcingEdgeCount >= 0 : "Inconsistent selector state detected for '" + this + "': soft forcing edge count cannot be negative";
+            if (softForcingEdgeCount == 0) {
+                this.requiresSelection = true;
+                needsSelection = true;
+            }
+        }
+
+        if (edge.isFromLock()) {
+            lockingEdgeCount--;
+            assert lockingEdgeCount >= 0 : "Inconsistent selector state detected for '" + this + "': locking edge count cannot be negative";
+            if (lockingEdgeCount == 0) {
+                this.requiresSelection = true;
+                needsSelection = true;
+            }
+        }
+
+        if (edge.getDependencyMetadata().isChanging()) {
+            changingEdgeCount--;
+            assert changingEdgeCount >= 0 : "Inconsistent selector state detected for '" + this + "': changing edge count cannot be negative";
+        }
+
         outgoingEdgeCount--;
         assert outgoingEdgeCount >= 0 : "Inconsistent selector state detected for '" + this + "': outgoing edge count cannot be negative";
         if (outgoingEdgeCount == 0) {
             targetModule.removeSelector(this);
-            boolean needsSelection = markForReuse();
-            resolved = false;
-            return needsSelection;
+            needsSelection |= markForReuse();
+            this.requiresSelection = true;
         }
-        return false;
+
+        return needsSelection;
+    }
+
+    /**
+     * True if this selector is currently used by at least one constraint edge.
+     */
+    boolean isUsedByConstraint() {
+        return outgoingConstraintEdgeCount > 0;
     }
 
     @Override
     public String toString() {
-        return dependencyState.getDependency().toString();
-    }
-
-    @Override
-    public ComponentSelector getRequested() {
-        return attributeDesugaring.desugarSelector(dependencyState.getRequested());
+        return componentSelector.toString();
     }
 
     public ModuleResolveState getTargetModule() {
@@ -186,14 +282,9 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
             }
 
             BuildableComponentIdResolveResult idResolveResult = new DefaultBuildableComponentIdResolveResult();
-            if (dependencyState.getSubstitutionFailure() != null) {
-                idResolveResult.failed(dependencyState.getSubstitutionFailure());
-            } else {
-                IvyArtifactName firstArtifact = getFirstDependencyArtifact();
-                ComponentOverrideMetadata overrideMetadata = DefaultComponentOverrideMetadata.forDependency(changing, firstArtifact);
-                ImmutableAttributes requestAttributes = resolveState.getAttributesFactory().concat(resolveState.getConsumerAttributes(), targetModule.getMergedConstraintAttributes());
-                resolver.resolve(dependencyState.getDependency().getSelector(), overrideMetadata, selector, rejector, idResolveResult, requestAttributes);
-            }
+            ComponentOverrideMetadata overrideMetadata = DefaultComponentOverrideMetadata.forDependency(isChanging(), firstDependencyArtifact);
+            ImmutableAttributes requestAttributes = resolveState.getAttributesFactory().concat(resolveState.getConsumerAttributes(), targetModule.getMergedConstraintAttributes());
+            resolver.resolve(componentSelector, overrideMetadata, selector, rejector, idResolveResult, requestAttributes);
 
             if (idResolveResult.getFailure() != null) {
                 failure = idResolveResult.getFailure();
@@ -201,7 +292,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
 
             return idResolveResult;
         } finally {
-            this.resolved = true;
+            this.requiresSelection = false;
         }
     }
 
@@ -227,12 +318,12 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     @Override
-    public void markResolved() {
-        this.resolved = true;
+    public void markSelectionCompleted() {
+        this.requiresSelection = false;
     }
 
-    public boolean isResolved() {
-        return resolved;
+    public boolean requiresSelection() {
+        return requiresSelection;
     }
 
     /**
@@ -242,7 +333,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
      * @return true if marking this selector for reuse requires the target module to be reselected
      */
     boolean markForReuse() {
-        if (!resolved) {
+        if (requiresSelection) {
             // Selector was marked for deferred selection - let's not trigger selection now
             return false;
         }
@@ -267,7 +358,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         if (reusable) {
             return true;
         }
-        return !resolved;
+        return requiresSelection;
     }
 
     /**
@@ -275,7 +366,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
      * This happens when the `ModuleResolveState` is restarted, during conflict resolution or version range merging.
      */
     public void overrideSelection(ComponentState selected) {
-        this.resolved = true;
+        this.requiresSelection = false;
         this.reusable = false;
 
         // Target module can change, if this is called as the result of a module or capability replacement conflict.
@@ -342,19 +433,14 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         }
     }
 
-    public DependencyMetadata getDependencyMetadata() {
-        return dependencyState.getDependency();
-    }
-
     @Override
     public IvyArtifactName getFirstDependencyArtifact() {
-        List<IvyArtifactName> artifacts = dependencyState.getDependency().getArtifacts();
-        return artifacts.isEmpty() ? null : artifacts.get(0);
+        return firstDependencyArtifact;
     }
 
     @Override
     public boolean isChanging() {
-        return changing;
+        return changingEdgeCount > 0;
     }
 
     @Override
@@ -364,47 +450,28 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
     }
 
     @Override
-    public ComponentSelector getSelector() {
-        return dependencyState.getDependency().getSelector();
+    public ComponentSelector getComponentSelector() {
+        return componentSelector;
     }
 
     @Override
     public boolean isForce() {
-        return forced;
+        return hardForcingEdgeCount > 0 || softForcingEdgeCount > 0;
     }
 
     @Override
     public boolean isSoftForce() {
-        return softForced;
+        return softForcingEdgeCount > 0 && hardForcingEdgeCount == 0;
     }
 
     @Override
     public boolean isFromLock() {
-        return fromLock;
+        return lockingEdgeCount > 0;
     }
 
     @Override
     public boolean hasStrongOpinion() {
-        return forced || (versionConstraint != null && versionConstraint.isStrict());
-    }
-
-    public void update(DependencyState dependencyState) {
-        if (dependencyState != this.dependencyState) {
-            if (!forced && dependencyState.isForced()) {
-                forced = true;
-                if (dependencyState.getDependency() instanceof LenientPlatformDependencyMetadata) {
-                    softForced = true;
-                    targetModule.resolveOptimizations.declareForcedPlatformInUse();
-                }
-                resolved = false; // when a selector changes from non forced to forced, we must reselect
-            }
-            if (!fromLock && dependencyState.isFromLock()) {
-                fromLock = true;
-                resolved = false; // when a selector changes from non lock to lock, we must reselect
-            }
-
-            changing = changing || dependencyState.getDependency().isChanging();
-        }
+        return isForce() || (versionConstraint != null && versionConstraint.isStrict());
     }
 
     private static class UnmatchedVersionsReason implements Describable {

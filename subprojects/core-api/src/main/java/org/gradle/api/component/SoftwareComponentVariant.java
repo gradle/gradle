@@ -33,9 +33,34 @@ import java.util.Set;
  * @since 5.3
  */
 public interface SoftwareComponentVariant extends HasAttributes, Named {
+    /**
+     * Returns the artifacts.
+     *
+     * @since 5.3
+     */
     Set<? extends PublishArtifact> getArtifacts();
+    /**
+     * Returns the dependencies.
+     *
+     * @since 5.3
+     */
     Set<? extends ModuleDependency> getDependencies();
+    /**
+     * Returns the dependency constraints.
+     *
+     * @since 5.3
+     */
     Set<? extends DependencyConstraint> getDependencyConstraints();
+    /**
+     * Returns the capabilities.
+     *
+     * @since 5.3
+     */
     Set<? extends Capability> getCapabilities();
+    /**
+     * Returns the global excludes.
+     *
+     * @since 5.3
+     */
     Set<ExcludeRule> getGlobalExcludes();
 }

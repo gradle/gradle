@@ -27,6 +27,7 @@ public interface CancellationToken {
     /**
      * Gets whether cancellation has been requested for this token.
      * @return Cancellation status.
+     * @since 2.1
      */
     boolean isCancellationRequested();
 }

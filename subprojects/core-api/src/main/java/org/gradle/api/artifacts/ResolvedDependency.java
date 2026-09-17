@@ -19,30 +19,36 @@ import java.util.Set;
 
 /**
  * Information about a resolved dependency.
+ * @since 0.7
  */
 public interface ResolvedDependency {
     /**
      * Returns the name of the resolved dependency.
+     * @since 0.7
      */
     String getName();
 
     /**
      * Returns the module group of the resolved dependency.
+     * @since 0.9
      */
     String getModuleGroup();
 
     /**
      * Returns the module name of the resolved dependency.
+     * @since 0.9
      */
     String getModuleName();
 
     /**
      * Returns the module version of the resolved dependency.
+     * @since 0.9
      */
     String getModuleVersion();
 
     /**
      * Returns the configuration under which this instance was resolved.
+     * @since 0.7
      */
     String getConfiguration();
 
@@ -50,22 +56,26 @@ public interface ResolvedDependency {
      * Returns the module which this resolved dependency belongs to.
      *
      * @return The module.
+     * @since 1.0
      */
     ResolvedModuleVersion getModule();
 
     /**
      * Returns the transitive ResolvedDependency instances of this resolved dependency. Returns never null.
+     * @since 0.7
      */
     Set<ResolvedDependency> getChildren();
 
     /**
      * Returns the ResolvedDependency instances that have this instance as a transitive dependency. Returns never null.
+     * @since 0.7
      */
     Set<ResolvedDependency> getParents();
 
     /**
      * Returns the module artifacts belonging to this ResolvedDependency. A module artifact is an artifact that belongs
      * to a ResolvedDependency independent of a particular parent. Returns never null. 
+     * @since 0.8
      */
     Set<ResolvedArtifact> getModuleArtifacts();
 
@@ -73,6 +83,7 @@ public interface ResolvedDependency {
      * Returns the module artifacts belonging to this ResolvedDependency and recursively to its children. Returns never null.
      *
      * @see #getModuleArtifacts()
+     * @since 0.8
      */
     Set<ResolvedArtifact> getAllModuleArtifacts();
 
@@ -81,6 +92,7 @@ public interface ResolvedDependency {
      *
      * @param parent A parent of the ResolvedDependency. Must not be null.
      * @throws org.gradle.api.InvalidUserDataException If the parent is unknown or null
+     * @since 0.8
      */
     Set<ResolvedArtifact> getParentArtifacts(ResolvedDependency parent);
 
@@ -89,6 +101,7 @@ public interface ResolvedDependency {
      *
      * @param parent A parent of the ResolvedDependency. Must not be null.
      * @throws org.gradle.api.InvalidUserDataException If the parent is unknown or null
+     * @since 0.8
      */
     Set<ResolvedArtifact> getArtifacts(ResolvedDependency parent);
 
@@ -97,6 +110,7 @@ public interface ResolvedDependency {
      *
      * @param parent A parent of the ResolvedDependency. Must not be null.
      * @throws org.gradle.api.InvalidUserDataException If the parent is unknown or null
+     * @since 0.8
      */
     Set<ResolvedArtifact> getAllArtifacts(ResolvedDependency parent);
 }

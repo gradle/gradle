@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -130,7 +131,13 @@ public abstract class ProblemWriter {
         private void write(Collection<ProblemInternal> problems, PrintWriter output) {
             // Group problems by problem id
             // When generic rendering is addressed, maybe we also group by the whole problem group hierarchy
-            Map<ProblemId, List<ProblemInternal>> problemIdListMap = problems.stream().collect(Collectors.groupingBy(internalProblem -> internalProblem.getDefinition().getId()));
+            Map<ProblemId, List<ProblemInternal>> problemIdListMap = problems.stream().collect(
+                Collectors.groupingBy(
+                    p -> p.getDefinition().getId(),
+                    LinkedHashMap::new, // preserve ordering
+                    Collectors.toList()
+                )
+            );
             String separator = "";
             for (Map.Entry<ProblemId, List<ProblemInternal>> problemIdListEntry : problemIdListMap.entrySet()) {
                 renderProblemsById(output, problemIdListEntry.getKey(), problemIdListEntry.getValue(), separator);

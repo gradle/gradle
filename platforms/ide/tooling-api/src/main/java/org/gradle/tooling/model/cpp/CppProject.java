@@ -29,6 +29,7 @@ public interface CppProject extends ProjectModel {
      * Returns the main C++ component of this project, if any.
      *
      * @return the main component or {@code null} when the project does not have a main component. The component will implement either {@link CppApplication} or {@link CppLibrary}.
+     * @since 4.10
      */
     @Nullable
     CppComponent getMainComponent();
@@ -37,6 +38,7 @@ public interface CppProject extends ProjectModel {
      * Returns the C++ unit test suite of this project, if any.
      *
      * @return the test suite or {@code null} when the project does not have a unit test suite.
+     * @since 4.10
      */
     @Nullable
     CppTestSuite getTestComponent();

@@ -23,18 +23,20 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 /**
  * Captures user-provided information about a version control repository.
  *
- * @since 4.4
+ * @since 4.3
  */
 public interface VersionControlSpec extends Describable {
     /**
      * Returns a {@link String} identifier which will be unique to this version
      * control specification among other version control specifications.
+     * @since 4.3
      */
     @ToBeReplacedByLazyProperty
     String getUniqueId();
 
     /**
      * Returns the name of the repository.
+     * @since 4.3
      */
     @ToBeReplacedByLazyProperty
     String getRepoName();

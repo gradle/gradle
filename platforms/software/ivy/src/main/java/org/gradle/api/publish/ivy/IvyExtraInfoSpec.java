@@ -21,6 +21,7 @@ import org.gradle.api.artifacts.ivy.IvyExtraInfo;
 /**
  * Represents a modifiable form of IvyExtraInfo so that "extra" info elements
  * can be configured on an Ivy publication.
+ * @since 2.1
  */
 public interface IvyExtraInfoSpec extends IvyExtraInfo {
 
@@ -30,6 +31,7 @@ public interface IvyExtraInfoSpec extends IvyExtraInfo {
      * @param namespace The namespace of the element to add
      * @param name The name of the element to add
      * @param value The value of the element to add
+     * @since 2.1
      */
     void add(String namespace, String name, String value);
 }

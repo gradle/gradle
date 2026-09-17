@@ -58,6 +58,7 @@ import java.util.stream.Collectors;
  *
  * @see PmdPlugin
  * @see PmdExtension
+ * @since 1.0
  */
 @CacheableTask
 @SuppressWarnings("deprecation") // The targetJdk property and TargetJdk type are themselves deprecated.
@@ -72,6 +73,11 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
     private boolean consoleOutput;
     private FileCollection classpath;
 
+    /**
+     * Creates a new {@code Pmd}.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings("this-escape")
     public Pmd() {
         super();
@@ -79,6 +85,11 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
         reports = objects.newInstance(PmdReportsImpl.class, Describables.quoted("Task", getIdentityPath()));
     }
 
+    /**
+     * Run.
+     *
+     * @since 1.0
+     */
     @TaskAction
     public void run() {
         validate(getRulesMinimumPriority().get());
@@ -117,6 +128,11 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
         }).collect(Collectors.toList()));
     }
 
+    /**
+     * Std out is attached to terminal.
+     *
+     * @since 2.1
+     */
     public boolean stdOutIsAttachedToTerminal() {
         try {
             ConsoleDetector consoleDetector = NativeServices.getInstance().get(ConsoleDetector.class);
@@ -151,6 +167,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * Validates the value is a valid PMD rules minimum priority (1-5)
      *
      * @param value rules minimum priority threshold
+     * @since 2.8
      */
     public static void validate(int value) {
         if (value > 5 || value < 1) {
@@ -181,6 +198,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
 
     /**
      * The class path containing the PMD library to be used.
+     * @since 1.0
      */
     @Classpath
     @ToBeReplacedByLazyProperty
@@ -190,6 +208,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
 
     /**
      * The class path containing the PMD library to be used.
+     * @since 1.0
      */
     public void setPmdClasspath(FileCollection pmdClasspath) {
         this.pmdClasspath = pmdClasspath;
@@ -201,6 +220,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * <pre>
      *     ruleSets = ["basic", "braces"]
      * </pre>
+     * @since 1.0
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -214,6 +234,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * <pre>
      *     ruleSets = ["basic", "braces"]
      * </pre>
+     * @since 1.0
      */
     public void setRuleSets(List<String> ruleSets) {
         this.ruleSets = ruleSets;
@@ -224,6 +245,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      *
      * @deprecated This property has no effect for PMD 5.0 and later, which infer the language version from the rule sets.
      *     Scheduled to be removed in Gradle 10.
+     * @since 1.5
      */
     @Deprecated
     @Input
@@ -237,6 +259,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      *
      * @deprecated This property has no effect for PMD 5.0 and later, which infer the language version from the rule sets.
      *     Scheduled to be removed in Gradle 10.
+     * @since 1.5
      */
     @Deprecated
     public void setTargetJdk(TargetJdk targetJdk) {
@@ -292,6 +315,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * <pre>
      *     ruleSetFiles = files("config/pmd/myRuleSet.xml")
      * </pre>
+     * @since 1.0
      */
     @InputFiles
     @PathSensitive(PathSensitivity.NONE)
@@ -307,6 +331,7 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
      * <pre>
      *     ruleSetFiles = files("config/pmd/myRuleSets.xml")
      * </pre>
+     * @since 1.0
      */
     public void setRuleSetFiles(FileCollection ruleSetFiles) {
         this.ruleSetFiles = ruleSetFiles;

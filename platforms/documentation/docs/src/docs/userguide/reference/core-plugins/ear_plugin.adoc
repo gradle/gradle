@@ -15,7 +15,7 @@
 [[ear_plugin]]
 = The Ear Plugin
 
-The Ear plugin adds support for assembling web application EAR files.
+The Ear plugin adds support for assembling enterprise application EAR files.
 It adds a default EAR archive task.
 It doesn't require the <<java_plugin.adoc#java_plugin,Java plugin>>, but for projects that also use the Java plugin it disables the default JAR archive generation.
 
@@ -35,7 +35,7 @@ include::sample[dir="snippets/reference/core-plugins/earWithWar/groovy",files="b
 The Ear plugin adds the following tasks to the project.
 
 `ear` — link:{groovyDslPath}/org.gradle.plugins.ear.Ear.html[Ear]::
-_Depends on_: `compile` (only if the Java plugin is also applied)
+_Depends on_: `classes` (only if the Java plugin is also applied)
 +
 Assembles the application EAR file.
 
@@ -147,4 +147,4 @@ ear.ear
 [[sec:using_custom_app_xml]]
 == Using custom descriptor file
 
-You may already have appropriate settings in a `application.xml` file and want to use that instead of configuring the `ear.deploymentDescriptor` section of the build script. To accommodate that goal, place the `META-INF/application.xml` in the right place inside your source folders (see the `appDirName` property). The file contents will be used and the explicit configuration in the `ear.deploymentDescriptor` will be ignored.
+You may already have appropriate settings in a `application.xml` file and want to use that instead of configuring the `ear.deploymentDescriptor` section of the build script. To accommodate that goal, place the `META-INF/application.xml` in the right place inside your source folders (see the `appDirectory` property). The file contents will be used and the explicit configuration in the `ear.deploymentDescriptor` will be ignored.

@@ -46,12 +46,14 @@ dependencies {
     implementation(projects.messaging)
     implementation(projects.modelCore)
     implementation(projects.problemsRendering)
+    implementation(projects.problemsReporting)
     implementation(projects.serialization)
     implementation(projects.serviceLookup)
     implementation(projects.snapshots)
 
-    implementation(libs.guava)
+    implementation(libs.configurationCacheReport)
     implementation(libs.fastutil)
+    implementation(libs.guava)
     implementation(libs.slf4jApi)
 
     testImplementation(projects.stdlibKotlinExtensions)

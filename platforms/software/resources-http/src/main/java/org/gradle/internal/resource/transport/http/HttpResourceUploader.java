@@ -37,7 +37,8 @@ public class HttpResourceUploader implements ExternalResourceUploader {
         try (HttpClient.Response response = http.performRawPut(destination.getUri(), ImmutableMap.of(), resource)) {
             if (!response.isSuccessful()) {
                 URI effectiveUri = response.getEffectiveUri();
-                throw new HttpErrorStatusCodeException(response.getMethod(), effectiveUri.toString(), response.getStatusCode(), response.getStatusReason());
+                HttpErrorStatusCodeException statusCause = new HttpErrorStatusCodeException(response.getStatusCode(), response.getStatusReason());
+                throw new HttpRequestException(String.format("Could not %s '%s'.", response.getMethod(), effectiveUri), statusCause);
             }
         }
     }

@@ -28,6 +28,7 @@ class CLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
     HelloWorldApp helloWorldApp = new CHelloWorldApp()
 
     def "sources are compiled with C compiler"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         def app = new CCompilerDetectingTestApp()
 
         given:
@@ -48,6 +49,7 @@ class CLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
     }
 
     def "can manually define C source sets"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         helloWorldApp.library.headerFiles.each { it.writeToDir(file("src/shared")) }
 
@@ -95,6 +97,7 @@ class CLanguageIntegrationTest extends AbstractNativeLanguageIntegrationTest {
     }
 
     def "uses headers co-located with sources"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         // Write headers so they sit with sources
         helloWorldApp.files.each {
@@ -123,6 +126,7 @@ model {
 
     @Issue("GRADLE-2943")
     def "can define macro #output"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
         model {
@@ -156,6 +160,7 @@ model {
     }
 
     def "compiler and linker args can contain quotes and spaces"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << '''
         model {
@@ -189,6 +194,7 @@ model {
     }
 
     def "build fails when compilation fails"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             model {
@@ -212,6 +218,7 @@ model {
     }
 
     def "build fails when multiple compilations fail"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def brokenFileCount = 5
         buildFile << """

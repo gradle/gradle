@@ -30,6 +30,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.ide)
     api(projects.ideModelImpls)
+    api(projects.modelCore)
     api(projects.platformJvm)
     api(projects.serviceProvider)
     api(projects.stdlibJavaExtensions)
@@ -46,7 +47,6 @@ dependencies {
     implementation(projects.processServices)
     implementation(projects.languageJava)
     implementation(projects.logging)
-    implementation(projects.modelCore)
     implementation(projects.pluginsGroovy)
     implementation(projects.pluginsJava)
     implementation(projects.pluginsJavaBase)
@@ -97,10 +97,6 @@ gradleModule {
     }
 }
 
-packageCycles {
-    excludePatterns.add("org/gradle/plugins/ide/idea/**")
-}
-
 /*
  * This is needed to avoid CI failures like this:
  *
@@ -113,5 +109,3 @@ packageCycles {
      canHandleCi.cies/xinjd/.classpath
  */
 testFilesCleanup.reportOnly = true
-
-

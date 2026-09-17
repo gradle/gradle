@@ -8,7 +8,6 @@ import org.gradle.api.artifacts.Configuration;
 public class DataProcessingPlugin implements Plugin<Project> {
     public void apply(Project project) {
         Configuration dataFiles = project.getConfigurations().create("dataFiles", c -> {
-            c.setVisible(false);
             c.setCanBeConsumed(false);
             c.setCanBeResolved(true);
             c.setDescription("The data artifacts to be processed for this plugin.");

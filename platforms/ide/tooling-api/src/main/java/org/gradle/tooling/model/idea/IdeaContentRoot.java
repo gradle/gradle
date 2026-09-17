@@ -24,21 +24,25 @@ import java.util.Set;
 
 /**
  * Contains content root information.
+ * @since 1.0
  */
 public interface IdeaContentRoot {
 
     /**
      * The content root directory.
+     * @since 1.0
      */
     File getRootDirectory();
 
     /**
      * The set of source directories.
+     * @since 1.0
      */
     DomainObjectSet<? extends IdeaSourceDirectory> getSourceDirectories();
 
     /**
      * The set of test source directories.
+     * @since 1.0
      */
     DomainObjectSet<? extends IdeaSourceDirectory> getTestDirectories();
 
@@ -61,6 +65,7 @@ public interface IdeaContentRoot {
 
     /**
      * The set of excluded directories.
+     * @since 1.0
      */
     Set<File> getExcludeDirectories();
 }

@@ -205,7 +205,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
 
     private DependencyGraphEdge dep(DependencyGraphSelector selector, DependencyGraphNode selected) {
         def edge = Stub(DependencyGraphEdge)
-        _ * edge.requested >> selector.requested
+        _ * edge.requested >> selector.componentSelector
         _ * edge.selector >> selector
         _ * edge.failure >> null
         _ * edge.targetNodes >> [selected]
@@ -215,9 +215,9 @@ class StreamingResolutionResultBuilderTest extends Specification {
     private DependencyGraphEdge dep(DependencyGraphSelector selector, Throwable failure) {
         def edge = Stub(DependencyGraphEdge)
         _ * edge.selector >> selector
-        _ * edge.requested >> selector.requested
+        _ * edge.requested >> selector.componentSelector
         _ * edge.reason >> ComponentSelectionReasons.requested()
-        _ * edge.failure >> new ModuleVersionResolveException(selector.requested, failure)
+        _ * edge.failure >> new ModuleVersionResolveException(selector.componentSelector, failure)
         return edge
     }
 
@@ -249,7 +249,7 @@ class StreamingResolutionResultBuilderTest extends Specification {
 
     private DependencyGraphSelector selector(String org, String name, String ver) {
         def selector = Stub(DependencyGraphSelector)
-        selector.requested >> DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(org, name), new DefaultMutableVersionConstraint(ver))
+        selector.componentSelector >> DefaultModuleComponentSelector.newSelector(DefaultModuleIdentifier.newId(org, name), new DefaultMutableVersionConstraint(ver))
         return selector
     }
 }

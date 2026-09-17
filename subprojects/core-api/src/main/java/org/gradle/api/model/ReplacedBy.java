@@ -42,6 +42,7 @@ public @interface ReplacedBy {
      * <p>
      *     If the property has been replaced with a method named {@code getFooBar()}, then this should be {@code fooBar}.
      * </p>
+     * @since 5.4
      */
     String value();
 }

@@ -20,35 +20,42 @@ import org.gradle.api.Incubating;
 
 /**
  * Test events that can be logged.
+ * @since 1.1
  */
 public enum TestLogEvent {
     /**
      * A test has started. This event gets fired both for atomic and composite tests.
+     * @since 1.1
      */
     STARTED,
 
     /**
      * A test has completed successfully. This event gets fired both for atomic and composite tests.
+     * @since 1.1
      */
     PASSED,
 
     /**
      * A test has been skipped. This event gets fired both for atomic and composite tests.
+     * @since 1.1
      */
     SKIPPED,
 
     /**
      * A test has failed. This event gets fired both for atomic and composite tests.
+     * @since 1.1
      */
     FAILED,
 
     /**
      * A test has written a message to standard out.
+     * @since 1.1
      */
     STANDARD_OUT,
 
     /**
      * A test has written a message to standard error.
+     * @since 1.1
      */
     STANDARD_ERROR,
 

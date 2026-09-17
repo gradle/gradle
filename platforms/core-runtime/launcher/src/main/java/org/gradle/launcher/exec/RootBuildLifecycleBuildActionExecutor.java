@@ -21,6 +21,7 @@ import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.problems.internal.ProblemsInternal;
+import org.gradle.initialization.StartParameterBuildOptions;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.RootBuildState;
 import org.gradle.internal.buildtree.BuildActionRunner;
@@ -93,6 +94,8 @@ public class RootBuildLifecycleBuildActionExecutor {
             try {
                 initDeprecationLogging(startParameter);
                 maybeNagOnDeprecatedJavaRuntimeVersion();
+                maybeNagOnImplicitParallelModelBuildingOptIn(startParameter);
+                maybeNagOnDeprecatedConfigurationCacheOptOuts(startParameter);
                 RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(startParameter, null));
                 return rootBuild.run(buildController -> buildActionRunner.run(action, buildController));
             } finally {
@@ -111,6 +114,38 @@ public class RootBuildLifecycleBuildActionExecutor {
         DeprecationLogger.init(startParameter.getWarningMode(), eventEmitter, problemsService, problemsStream);
     }
 
+    /**
+     * Deprecates relying on the legacy default where parallel model building (used by the Tooling API,
+     * e.g. during IDE sync) is derived from the {@code org.gradle.parallel} property.
+     * <p>
+     * This applies only to Vintage model building, which is the only mode where the implicit
+     * {@code org.gradle.parallel} -> parallel model building link exists.
+     * <p>
+     * "Vintage" refers to the resolved {@link BuildModelParameters} mode, not the user-facing opt-in:
+     * model building with Configuration Cache enabled currently falls back to Vintage (models cannot be
+     * cached yet), so such builds are in scope of this deprecation. Isolated Projects model building is not.
+     * <p>
+     * The nag is intentionally emitted regardless of the {@code org.gradle.tooling.parallel.ignore-legacy-default}
+     * system property: in a future major, having {@code org.gradle.parallel} enabled without an explicit value
+     * for {@code org.gradle.tooling.parallel} during model building will be an error, so users relying on the
+     * default must make it explicit now to avoid breaking on upgrade.
+     */
+    private void maybeNagOnImplicitParallelModelBuildingOptIn(StartParameterInternal startParameter) {
+        boolean relyingOnLegacyDefault = buildModelParameters.isModelBuilding()
+            && buildModelParameters.isVintage()
+            && !startParameter.getParallelToolingModelBuilding().isExplicit()
+            && startParameter.isParallelProjectExecutionEnabled();
+        if (relyingOnLegacyDefault) {
+            String toolingParallelProperty = StartParameterBuildOptions.ParallelToolingModelBuildingOption.PROPERTY_NAME;
+            DeprecationLogger.deprecateBehaviour("Relying on the default value of the '" + toolingParallelProperty + "' property while 'org.gradle.parallel' is enabled.")
+                .withContext("Whether the Tooling API builds project models in parallel (for example, during IDE sync) should be controlled explicitly via '" + toolingParallelProperty + "'.")
+                .withAdvice("Set '" + toolingParallelProperty + "' to 'true' or 'false' explicitly.")
+                .willBecomeAnErrorInGradle10()
+                .withUpgradeGuideSection(9, "deprecate_implicit_parallel_model_building")
+                .nagUser();
+        }
+    }
+
     private static void maybeNagOnDeprecatedJavaRuntimeVersion() {
         int currentMajor = Integer.parseInt(JavaVersion.current().getMajorVersion());
         if (currentMajor < SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION) {
@@ -122,5 +157,49 @@ public class RootBuildLifecycleBuildActionExecutor {
                 .withUpgradeGuideSection(currentMajorGradleVersion, "minimum_daemon_jvm_version")
                 .nagUser();
         }
+    }
+
+    /**
+     * Nags about the temporary Configuration Cache opt-out properties, which are deprecated and scheduled for removal.
+     * <p>
+     * The nag is emitted whenever a property is explicitly set, regardless of its value and of whether the
+     * Configuration Cache is enabled: an opt-out that is present in the build should be cleaned up before it
+     * stops being honored.
+     */
+    private static void maybeNagOnDeprecatedConfigurationCacheOptOuts(StartParameterInternal startParameter) {
+        if (startParameter.getConfigurationCacheIgnoredFileSystemCheckInputs() != null) {
+            nagOnDeprecatedConfigurationCacheOptOutProperty(
+                StartParameterBuildOptions.ConfigurationCacheIgnoredFileSystemCheckInputs.PROPERTY_NAME,
+                "Remove the property and fix the build logic or plugins that perform file system checks during configuration, " +
+                    "so that they no longer cause unnecessary Configuration Cache invalidation."
+            );
+        }
+        if (startParameter.getConfigurationCacheIgnoreInputsDuringStore().isExplicit()) {
+            nagOnDeprecatedConfigurationCacheOptOutProperty(
+                StartParameterBuildOptions.ConfigurationCacheIgnoreInputsDuringStore.PROPERTY_NAME,
+                "Remove the property and fix the build logic or plugins that read the build environment while the task graph is being serialized, " +
+                    "so that they no longer cause unnecessary Configuration Cache invalidation."
+            );
+        }
+        if (startParameter.getConfigurationCacheIgnoreUnsupportedBuildEventsListeners().isExplicit()) {
+            nagOnDeprecatedConfigurationCacheOptOutProperty(
+                StartParameterBuildOptions.ConfigurationCacheIgnoreUnsupportedBuildEventsListeners.PROPERTY_NAME,
+                "Remove the property and convert the build event listeners into build services."
+            );
+        }
+        if (startParameter.getConfigurationCacheSkipTaskLoggingListenersSerialization().isExplicit()) {
+            nagOnDeprecatedConfigurationCacheOptOutProperty(
+                StartParameterBuildOptions.ConfigurationCacheSkipTaskLoggingListenersSerialization.PROPERTY_NAME,
+                "Remove the property and fix the serialization issues of the task output listeners registered during configuration, or register them at execution time instead."
+            );
+        }
+    }
+
+    private static void nagOnDeprecatedConfigurationCacheOptOutProperty(String propertyName, String advice) {
+        DeprecationLogger.deprecateBuildInvocationFeature("The '" + propertyName + "' Gradle property")
+            .withAdvice(advice)
+            .willBeRemovedInGradle11()
+            .withUpgradeGuideSection(9, "deprecated_configuration_cache_opt_out_properties")
+            .nagUser();
     }
 }

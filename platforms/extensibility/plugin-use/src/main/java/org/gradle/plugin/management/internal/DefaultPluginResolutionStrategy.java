@@ -31,7 +31,7 @@ public class DefaultPluginResolutionStrategy implements PluginResolutionStrategy
 
     private final MutableActionSet<PluginResolveDetails> resolutionRules = new MutableActionSet<PluginResolveDetails>();
     private final Map<PluginId, String> pluginVersions = new HashMap<>();
-    private boolean locked;
+    private volatile boolean locked;
 
     public DefaultPluginResolutionStrategy(ListenerManager listenerManager) {
         listenerManager.addListener(new InternalBuildAdapter(){
@@ -65,6 +65,9 @@ public class DefaultPluginResolutionStrategy implements PluginResolutionStrategy
 
     @Override
     public void setDefaultPluginVersion(PluginId id, String version) {
+        if (locked) {
+            throw new IllegalStateException("Cannot set a default plugin version for plugin '" + id + "' after projects have been loaded.");
+        }
         String existing = pluginVersions.get(id);
         if (existing != null && !existing.equals(version)) {
             throw new IllegalArgumentException("Cannot provide multiple default versions for the same plugin.");

@@ -46,16 +46,19 @@ import org.jspecify.annotations.Nullable;
  *   }
  * }
  * </pre>
+ * @since 0.8
  */
 @NotToBeMigratedToLazy
 public interface SourceSet extends ExtensionAware {
     /**
      * The name of the main source set.
+     * @since 0.8
      */
     String MAIN_SOURCE_SET_NAME = "main";
 
     /**
      * The name of the test source set.
+     * @since 0.8
      */
     String TEST_SOURCE_SET_NAME = "test";
 
@@ -63,6 +66,7 @@ public interface SourceSet extends ExtensionAware {
      * Returns the name of this source set.
      *
      * @return The name. Never returns null.
+     * @since 0.8
      */
     String getName();
 
@@ -70,6 +74,7 @@ public interface SourceSet extends ExtensionAware {
      * Returns the classpath used to compile this source.
      *
      * @return The classpath. Never returns null.
+     * @since 0.8
      */
     FileCollection getCompileClasspath();
 
@@ -77,6 +82,7 @@ public interface SourceSet extends ExtensionAware {
      * Sets the classpath used to compile this source.
      *
      * @param classpath The classpath. Should not be null.
+     * @since 0.8
      */
     void setCompileClasspath(FileCollection classpath);
 
@@ -106,6 +112,7 @@ public interface SourceSet extends ExtensionAware {
      * Returns the classpath used to execute this source.
      *
      * @return The classpath. Never returns null.
+     * @since 0.8
      */
     FileCollection getRuntimeClasspath();
 
@@ -113,6 +120,7 @@ public interface SourceSet extends ExtensionAware {
      * Sets the classpath used to execute this source.
      *
      * @param classpath The classpath. Should not be null.
+     * @since 0.8
      */
     void setRuntimeClasspath(FileCollection classpath);
 
@@ -121,6 +129,7 @@ public interface SourceSet extends ExtensionAware {
      * and it provides means to configure the default output dirs and register additional output dirs. See examples in {@link SourceSetOutput}
      *
      * @return The output dirs, as a {@link SourceSetOutput}.
+     * @since 1.0
      */
     SourceSetOutput getOutput();
 
@@ -130,6 +139,7 @@ public interface SourceSet extends ExtensionAware {
      *
      * @param taskPaths The tasks which compile this source set.
      * @return this
+     * @since 0.8
      */
     SourceSet compiledBy(Object... taskPaths);
 
@@ -137,6 +147,7 @@ public interface SourceSet extends ExtensionAware {
      * Returns the non-Java resources which are to be copied into the resources output directory.
      *
      * @return the resources. Never returns null.
+     * @since 0.8
      */
     SourceDirectorySet getResources();
 
@@ -147,6 +158,7 @@ public interface SourceSet extends ExtensionAware {
      *
      * @param configureClosure The closure to use to configure the resources.
      * @return this
+     * @since 0.8
      */
     @SuppressWarnings("rawtypes")
     SourceSet resources(@Nullable @DelegatesTo(SourceDirectorySet.class) Closure configureClosure);
@@ -158,6 +170,7 @@ public interface SourceSet extends ExtensionAware {
      *
      * @param configureAction The action to use to configure the resources.
      * @return this
+     * @since 3.3
      */
     SourceSet resources(Action<? super SourceDirectorySet> configureAction);
 
@@ -165,6 +178,7 @@ public interface SourceSet extends ExtensionAware {
      * Returns the Java source which is to be compiled by the Java compiler into the class output directory.
      *
      * @return the Java source. Never returns null.
+     * @since 0.8
      */
     SourceDirectorySet getJava();
 
@@ -175,6 +189,7 @@ public interface SourceSet extends ExtensionAware {
      *
      * @param configureClosure The closure to use to configure the Java source.
      * @return this
+     * @since 0.8
      */
     @SuppressWarnings("rawtypes")
     SourceSet java(@Nullable @DelegatesTo(SourceDirectorySet.class) Closure configureClosure);
@@ -186,6 +201,7 @@ public interface SourceSet extends ExtensionAware {
      *
      * @param configureAction The action to use to configure the Java source.
      * @return this
+     * @since 3.3
      */
     SourceSet java(Action<? super SourceDirectorySet> configureAction);
 
@@ -194,6 +210,7 @@ public interface SourceSet extends ExtensionAware {
      * source which is indirectly compiled through joint compilation.
      *
      * @return the Java source. Never returns null.
+     * @since 0.8
      */
     SourceDirectorySet getAllJava();
 
@@ -201,6 +218,7 @@ public interface SourceSet extends ExtensionAware {
      * All source files for this source set.
      *
      * @return the source. Never returns null.
+     * @since 0.8
      */
     SourceDirectorySet getAllSource();
 
@@ -208,6 +226,7 @@ public interface SourceSet extends ExtensionAware {
      * Returns the name of the classes task for this source set.
      *
      * @return The task name. Never returns null.
+     * @since 0.8
      */
     String getClassesTaskName();
 
@@ -215,6 +234,7 @@ public interface SourceSet extends ExtensionAware {
      * Returns the name of the resource process task for this source set.
      *
      * @return The task name. Never returns null.
+     * @since 0.8
      */
     String getProcessResourcesTaskName();
 
@@ -222,6 +242,7 @@ public interface SourceSet extends ExtensionAware {
      * Returns the name of the compile Java task for this source set.
      *
      * @return The task name. Never returns null.
+     * @since 0.9
      */
     String getCompileJavaTaskName();
 
@@ -230,6 +251,7 @@ public interface SourceSet extends ExtensionAware {
      *
      * @param language The language to be compiled.
      * @return The task name. Never returns null.
+     * @since 0.8
      */
     String getCompileTaskName(String language);
 
@@ -246,6 +268,7 @@ public interface SourceSet extends ExtensionAware {
      * Returns the name of the Jar task for this source set.
      *
      * @return The task name. Never returns null.
+     * @since 1.3
      */
     String getJarTaskName();
 
@@ -273,6 +296,7 @@ public interface SourceSet extends ExtensionAware {
      * @param verb The action, may be null.
      * @param target The target, may be null
      * @return The task name, generally of the form ${verb}${name}${target}
+     * @since 0.9
      */
     String getTaskName(@Nullable String verb, @Nullable String target);
 
@@ -320,7 +344,7 @@ public interface SourceSet extends ExtensionAware {
      *
      * @return The API configuration name
      *
-     * @since 3.3
+     * @since 3.4
      */
     String getApiConfigurationName();
 
@@ -341,7 +365,7 @@ public interface SourceSet extends ExtensionAware {
      *
      * @return The API compile configuration name
      *
-     * @since 3.3
+     * @since 3.4
      */
     String getApiElementsConfigurationName();
 

@@ -61,6 +61,9 @@ public class GitIgnoreGenerator implements BuildContentGenerator {
 
     @SuppressWarnings("DefaultCharset") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private static Set<String> getGitignoresToAppend(File gitignoreFile) {
+        // .gradle - project cache directory, see https://docs.gradle.org/current/userguide/directory_layout.html#dir:project_root
+        //  build  - build output directory
+        // .kotlin - Kotlin Gradle Plugin caches/metadata
         Set<String> result = Sets.newLinkedHashSet(Arrays.asList(".gradle", "build", ".kotlin"));
         if (gitignoreFile.exists()) {
             try (BufferedReader reader = new BufferedReader(new FileReader(gitignoreFile))){

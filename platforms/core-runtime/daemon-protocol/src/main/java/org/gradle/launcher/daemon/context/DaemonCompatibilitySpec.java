@@ -71,7 +71,8 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
             if (daemonJvmCriteria.isCompatibleWith(potentialContext.getJavaVersion(), potentialContext.getJavaVendor())) {
                 if (daemonJvmCriteria.isNativeImageCapable()) {
                     // Need to assess that $JAVA_HOME/bin/native-image exists
-                    return new File(new File(potentialContext.getJavaHome(), "bin"), OperatingSystem.current().getExecutableName("native-image")).exists();
+                    // GraalVM and Liberica distributions ship native-image as a .cmd script on Windows
+                    return hasNativeImageTool(potentialContext.getJavaHome());
                 } else {
                     return true;
                 }
@@ -96,6 +97,17 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
             }
         } catch (IOException e) {
             // ignore
+        }
+        return false;
+    }
+
+    private static boolean hasNativeImageTool(File javaHome) {
+        File binDir = new File(javaHome, "bin");
+        if (new File(binDir, OperatingSystem.current().getExecutableName("native-image")).exists()) {
+            return true;
+        }
+        if (OperatingSystem.current().isWindows()) {
+            return new File(binDir, "native-image.cmd").exists();
         }
         return false;
     }

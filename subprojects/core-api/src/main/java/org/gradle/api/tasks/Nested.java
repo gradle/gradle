@@ -42,6 +42,7 @@ import java.lang.annotation.Target;
  *
  * <p>This annotation supports {@link java.util.Map} values by treating each value of the map as a separate nested bean.
  * The keys of the map are used as property names.</p>
+ * @since 0.9
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})

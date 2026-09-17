@@ -24,26 +24,31 @@ package org.gradle.tooling.model.cpp;
 public interface CppBinary {
     /**
      * Returns the name of this binary. This is used to disambiguate the binaries of a project. Each binary has a unique name within its project. However, these names are not unique across multiple projects.
+     * @since 4.10
      */
     String getName();
 
     /**
      * Returns the variant name of this binary. This is used to disambiguate the binaries of a component. Each binary has a unique variant name within its component. However, these names are not unique across multiple projects or components.
+     * @since 4.10
      */
     String getVariantName();
 
     /**
      * Returns the base name of this binary. This is used to calculate output file names.
+     * @since 4.10
      */
     String getBaseName();
 
     /**
      * Returns the compilation details.
+     * @since 4.10
      */
     CompilationDetails getCompilationDetails();
 
     /**
      * Returns the linkage details.
+     * @since 4.10
      */
     LinkageDetails getLinkageDetails();
 }

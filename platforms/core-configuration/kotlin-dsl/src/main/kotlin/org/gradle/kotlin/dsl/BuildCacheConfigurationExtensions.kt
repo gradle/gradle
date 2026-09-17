@@ -29,6 +29,8 @@ import kotlin.reflect.KClass
  * @param buildCacheServiceFactoryType Implementation type of [BuildCacheServiceFactory] that is used to create a [org.gradle.caching.BuildCacheService]
  *
  * @see BuildCacheConfiguration.registerBuildCacheService
+ *
+ * @since 5.6
  */
 inline fun <reified T : BuildCache> BuildCacheConfiguration.registerBuildCacheService(buildCacheServiceFactoryType: KClass<out BuildCacheServiceFactory<in T>>) {
     registerBuildCacheService(T::class.java, buildCacheServiceFactoryType.java)
@@ -45,6 +47,8 @@ inline fun <reified T : BuildCache> BuildCacheConfiguration.registerBuildCacheSe
  * @param T the type of remote cache to configure.
  *
  * @see BuildCacheConfiguration.remote
+ *
+ * @since 5.6
  */
 inline fun <reified T : BuildCache> BuildCacheConfiguration.remote(): T =
     remote(T::class.java)
@@ -63,6 +67,8 @@ inline fun <reified T : BuildCache> BuildCacheConfiguration.remote(): T =
  * @param configuration the configuration to execute against the remote cache.
  *
  * @see BuildCacheConfiguration.remote
+ *
+ * @since 5.6
  */
 inline fun <reified T : BuildCache> BuildCacheConfiguration.remote(noinline configuration: T.() -> Unit): T =
     remote(T::class.java, configuration)

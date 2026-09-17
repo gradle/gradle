@@ -68,6 +68,8 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec imple
 
         when:
         expectTaskGetTaskDependenciesDeprecations()
+        expectSoftwareModelDeprecations("MySamplePlugin", "org.gradle.component-model-base", "org.gradle.language.base.plugins.LanguageBasePlugin", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
+        expectModelDslDeprecation(4)
         fails "assemble"
 
         then:
@@ -83,12 +85,16 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec imple
         withLibBinaries("buildableBinary1", "notBuildableBinary", "buildableBinary2")
 
         when:
+        expectSoftwareModelDeprecations("MySamplePlugin", "org.gradle.component-model-base", "org.gradle.language.base.plugins.LanguageBasePlugin", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
+        expectModelDslDeprecation(4)
         run "assemble"
 
         then:
         result.assertTasksScheduled(":libBuildableBinary1", ":libBuildableBinary2", ":assemble")
 
         when:
+        expectSoftwareModelDeprecations("MySamplePlugin", "org.gradle.component-model-base", "org.gradle.language.base.plugins.LanguageBasePlugin", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
+        expectModelDslDeprecation(4)
         run "build"
 
         then:
@@ -104,6 +110,8 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec imple
 
         when:
         expectTaskGetTaskDependenciesDeprecations()
+        expectSoftwareModelDeprecations("MySamplePlugin", "org.gradle.component-model-base", "org.gradle.language.base.plugins.LanguageBasePlugin", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
+        expectModelDslDeprecation(2)
         run "assemble"
 
         then:
@@ -112,6 +120,7 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec imple
 
     def "does not do anything when the project is empty" () {
         when:
+        expectSoftwareModelDeprecations("MySamplePlugin", "org.gradle.component-model-base", "org.gradle.language.base.plugins.LanguageBasePlugin", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
         run "assemble"
 
         then:
@@ -123,6 +132,8 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec imple
         withStandaloneBinaries("ignoreMe")
 
         when:
+        expectSoftwareModelDeprecations("MySamplePlugin", "org.gradle.component-model-base", "org.gradle.language.base.plugins.LanguageBasePlugin", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
+        expectModelDslDeprecation()
         run "assemble"
 
         then:
@@ -135,6 +146,8 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec imple
         withStandaloneBinaries("ignoreMe1", "ignoreMe2")
 
         when:
+        expectSoftwareModelDeprecations("MySamplePlugin", "org.gradle.component-model-base", "org.gradle.language.base.plugins.LanguageBasePlugin", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
+        expectModelDslDeprecation(5)
         run "assemble"
 
         then:
@@ -146,6 +159,8 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec imple
         withStandaloneBinaries("binary1", "binary2")
 
         when:
+        expectSoftwareModelDeprecations("MySamplePlugin", "org.gradle.component-model-base", "org.gradle.language.base.plugins.LanguageBasePlugin", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
+        expectModelDslDeprecation(6)
         run "check"
 
         then:
@@ -181,6 +196,18 @@ class BinariesLifecycleTaskIntegrationTest extends AbstractIntegrationSpec imple
                     }
                 }
             """
+        }
+    }
+
+    private void expectSoftwareModelDeprecations(String... pluginNames) {
+        for (String name : pluginNames) {
+            executer.expectDocumentedDeprecationWarning("The ${name} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+        }
+    }
+
+    private void expectModelDslDeprecation(int count = 1) {
+        count.times {
+            executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
         }
     }
 }

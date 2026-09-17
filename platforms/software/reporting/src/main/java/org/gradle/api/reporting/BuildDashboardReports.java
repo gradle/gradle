@@ -20,12 +20,14 @@ import org.gradle.api.tasks.Internal;
 
 /**
  * The reporting configuration for the {@link GenerateBuildDashboard} task.
+ * @since 1.5
  */
 public interface BuildDashboardReports extends ReportContainer<Report> {
     /**
      * The build dashboard HTML report
      *
      * @return The build dashboard HTML report
+     * @since 1.5
      */
     @Internal
     DirectoryReport getHtml();

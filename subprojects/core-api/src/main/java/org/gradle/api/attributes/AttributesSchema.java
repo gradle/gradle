@@ -37,6 +37,7 @@ public interface AttributesSchema {
      * @param <T> the type of the attribute
      * @return the matching strategy for this attribute.
      * @throws IllegalArgumentException When no strategy is available for the given attribute.
+     * @since 3.3
      */
     <T> AttributeMatchingStrategy<T> getMatchingStrategy(Attribute<T> attribute) throws IllegalArgumentException;
 
@@ -48,6 +49,7 @@ public interface AttributesSchema {
      * @param <T> the concrete type of the attribute
      *
      * @return the matching strategy for this attribute
+     * @since 3.3
      */
     <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute);
 
@@ -59,16 +61,19 @@ public interface AttributesSchema {
      * @param configureAction the strategy configuration
      * @param <T> the concrete type of the attribute
      * @return the configured strategy
+     * @since 3.3
      */
     <T> AttributeMatchingStrategy<T> attribute(Attribute<T> attribute, Action<? super AttributeMatchingStrategy<T>> configureAction);
 
     /**
      * Returns the set of attributes known to this schema.
+     * @since 3.3
      */
     Set<Attribute<?>> getAttributes();
 
     /**
      * Returns true when this schema contains the given attribute.
+     * @since 3.3
      */
     boolean hasAttribute(Attribute<?> key);
 
@@ -92,7 +97,7 @@ public interface AttributesSchema {
      * By default, there is no explicit precedence between attributes and all attributes must be considered when disambiguating.
      *
      * @param attributes the attributes in order, highest priority first
-     * @since 7.5
+     * @since 7.6
      */
     @Incubating
     void setAttributeDisambiguationPrecedence(List<Attribute<?>> attributes);

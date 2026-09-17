@@ -36,3 +36,8 @@ dependencies {
         because("RemovalReportWorkActionTest parses Kotlin sources via KotlinSourceParser")
     }
 }
+
+configurations.testRuntimeClasspath {
+    // https://youtrack.jetbrains.com/issue/KT-87492/KGP-jar-bundles-a-partial-and-unshaded-copy-of-org.jetbrains.kotlin.com.intellij.-classes-that-collide-with-kotlin-compiler
+    exclude(group = "org.jetbrains.kotlin", module = "kotlin-gradle-plugin")
+}

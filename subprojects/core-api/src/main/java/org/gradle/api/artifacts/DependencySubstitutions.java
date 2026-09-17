@@ -23,7 +23,7 @@ import org.gradle.internal.HasInternalProtocol;
 /**
  * Allows replacing dependencies with other dependencies.
  *
- * @since 2.5
+ * @since 2.4
  */
 @HasInternalProtocol
 public interface DependencySubstitutions {
@@ -58,16 +58,19 @@ public interface DependencySubstitutions {
      * The rules are evaluated in order they are declared. Rules are evaluated after forced modules are applied (see {@link ResolutionStrategy#force(Object...)}
      *
      * @return this
+     * @since 2.4
      */
     DependencySubstitutions all(Action<? super DependencySubstitution> rule);
 
     /**
      * Create a ModuleComponentSelector from the provided input string. Strings must be in the format "{group}:{module}:{version}".
+     * @since 2.5
      */
     ComponentSelector module(String notation);
 
     /**
      * Create a ProjectComponentSelector from the provided input string. Strings must be in the format ":path".
+     * @since 2.5
      */
     ComponentSelector project(String path);
 
@@ -103,11 +106,13 @@ public interface DependencySubstitutions {
      *   substitute module('org.gradle:api:2.0') using module('org.gradle:api:2.1')
      * }
      * </pre>
+     * @since 2.5
      */
     Substitution substitute(ComponentSelector substitutedDependency);
 
     /**
      * Provides a DSL-friendly mechanism for specifying the target of a substitution.
+     * @since 2.5
      */
     interface Substitution {
         /**

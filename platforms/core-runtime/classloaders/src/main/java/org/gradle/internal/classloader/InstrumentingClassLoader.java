@@ -48,6 +48,20 @@ public interface InstrumentingClassLoader {
     byte @Nullable [] instrumentClass(@Nullable String className, @Nullable ProtectionDomain protectionDomain, byte[] classfileBuffer);
 
     /**
+     * Reports whether this classloader re-instruments the bytecode the JVM supplies on every class load
+     * (the "compose" path used when a third-party agent is present), as opposed to substituting bytecode that
+     * was pre-instrumented earlier during the artifact transform.
+     * <p>
+     * This matters for debugger-initiated class redefinition (Hot Code Replace): only a classloader that
+     * re-instruments the supplied bytecode can honor a redefinition of an instrumented class. A substituting
+     * classloader ignores the redefined bytes and keeps serving the pre-instrumented definition, so the
+     * hot-swap silently has no effect.
+     *
+     * @return {@code true} if redefined (hot-swapped) bytecode of an instrumented class takes effect
+     */
+    boolean canReinstrumentClasses();
+
+    /**
      * This is called by the agent if a throwable is thrown while instrumenting a class during the call of the {@link #instrumentClass(String, ProtectionDomain, byte[])} method,
      * or anywhere else in the agent. Throwing an exception from this method has no effect on the class loading.
      * <p>

@@ -28,12 +28,18 @@ import java.util.Map;
 
 /**
  * Path Factory.
+ * @since 1.0
  */
 public class PathFactory {
 
     private final List<Variable> variables = new ArrayList<>();
     private final Map<String, File> varsByName = new HashMap<>();
 
+    /**
+     * Add path variable.
+     *
+     * @since 1.0
+     */
     public PathFactory addPathVariable(String name, File dir) {
         variables.add(new Variable('$' + name + '$', dir.getAbsolutePath() + File.separator, dir));
         varsByName.put(name, dir);
@@ -42,6 +48,7 @@ public class PathFactory {
 
     /**
      * Creates a path for the given file.
+     * @since 1.0
      */
     public FilePath path(File file) {
         return path(file, false);
@@ -52,6 +59,7 @@ public class PathFactory {
      *
      * @param file The file to generate a path for
      * @param useFileScheme Whether 'file://' prefixed URI should be used even for JAR files
+     * @since 2.12
      */
     public FilePath path(File file, boolean useFileScheme) {
         Variable match = null;
@@ -79,6 +87,7 @@ public class PathFactory {
 
     /**
      * Creates a path relative to the given path variable.
+     * @since 1.0
      */
     public FilePath relativePath(String pathVar, File file) {
         return resolvePath(varsByName.get(pathVar), "$" + pathVar + "$", file);
@@ -93,6 +102,7 @@ public class PathFactory {
 
     /**
      * Creates a path for the given URL.
+     * @since 1.0
      */
     public Path path(String url) {
         return path(url, null);
@@ -100,6 +110,7 @@ public class PathFactory {
 
     /**
      * Creates a path for the given URL.
+     * @since 1.0
      */
     public Path path(String url, String relPath) {
         try {

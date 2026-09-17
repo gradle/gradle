@@ -50,6 +50,11 @@ public abstract class AbstractProjectBasedReportTask<T> extends ConventionReport
         return new ProjectBasedReportModel<>(map);
     }
 
+    /**
+     * Calculate report model.
+     *
+     * @since 7.6
+     */
     protected abstract T calculateReportModelFor(Project project);
 
     /**
@@ -64,6 +69,11 @@ public abstract class AbstractProjectBasedReportTask<T> extends ConventionReport
     @Incubating
     protected void generateReportHeaderFor(Map<ProjectDetails, T> modelsByProjectDetails) { /* default is no header */ };
 
+    /**
+     * Generate report.
+     *
+     * @since 7.6
+     */
     protected abstract void generateReportFor(ProjectDetails project, T model);
 
     /**

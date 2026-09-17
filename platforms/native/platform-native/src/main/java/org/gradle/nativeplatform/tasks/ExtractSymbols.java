@@ -51,6 +51,7 @@ public abstract class ExtractSymbols extends DefaultTask {
 
     /**
      * The file to extract debug symbols from.
+     * @since 4.5
      */
     @InputFile
     @PathSensitive(PathSensitivity.NONE)
@@ -58,6 +59,7 @@ public abstract class ExtractSymbols extends DefaultTask {
 
     /**
      * The destination file to extract debug symbols into.
+     * @since 4.5
      */
     @OutputFile
     public abstract RegularFileProperty getSymbolFile();
@@ -80,6 +82,11 @@ public abstract class ExtractSymbols extends DefaultTask {
 
     // TODO: Need to track version/implementation of symbol extraction tool.
 
+    /**
+     * Extract symbols.
+     *
+     * @since 4.5
+     */
     @TaskAction
     protected void extractSymbols() {
         BuildOperationLogger operationLogger = getServices().get(BuildOperationLoggerFactory.class).newOperationLogger(getName(), getTemporaryDir());

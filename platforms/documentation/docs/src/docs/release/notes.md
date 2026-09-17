@@ -15,6 +15,7 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
+[devareddy05](https://github.com/devareddy05).
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
@@ -67,6 +68,9 @@ You can extract the URL from YouTube by clicking the "Share" button.
 ADD RELEASE FEATURES BELOW
 vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
+### Isolated Projects
+[Isolated Projects](userguide/isolated_projects.html) is an incubating performance feature that safely runs project configuration in parallel, significantly reducing configuration time in many scenarios, including IDE sync and CI builds.
+
 ### Configuration Cache improvements
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
@@ -79,17 +83,49 @@ Gradle provides an intuitive [command-line interface](userguide/command_line_int
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
+#### The `wrapper` task preserves customized properties
+
+The [`wrapper`](userguide/gradle_wrapper.html#gradle_wrapper) task now preserves values customized in an existing `gradle-wrapper.properties` file when they are not explicitly configured on the task. Preserved values include the network timeout, URL validation, retries, retry backoff, and the distribution and archive paths and bases. Explicit task configuration still takes precedence.
+
+For example, `validateDistributionUrl=false` (previously set by running `./gradlew :wrapper --no-validate-url`) now persists when the wrapper is regenerated.
+
+User-declared `Wrapper` tasks now also write the default network timeout, retry count, and retry backoff when those properties are not otherwise configured.
+
+See the [Preserving Existing Wrapper Properties](userguide/gradle_wrapper.html#sec:preserving_wrapper_properties) section in the Gradle User Manual for more details.
+
+### Dependency management enhancements
+Gradle provides a flexible [dependency management](userguide/getting_started_dep_man.html) engine for declaring, resolving, and verifying the dependencies your build needs.
+
 ### Platform and toolchain management
-Gradle provides comprehensive support for [Native development](userguide/building_cpp_projects.html) and [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
+Gradle provides comprehensive support for [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
 
 ### Core plugin and plugin authoring enhancements
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
+
+#### `Sync` can empty its destination when its source is empty
+
+A [`Sync`](dsl/org.gradle.api.tasks.Sync.html) task whose source contains no files and no directories, by default, does not run, so its destination directory is not synchronized. What is left in the destination then depends on whether it is a build-owned directory: if it is, the destination is cleaned up; otherwise it keeps the files the source no longer contains.
+
+Setting the new `skipWhenSourceIsEmpty` property to `false` makes the task run in that case as well, so that an empty source empties the destination directory:
+
+```kotlin
+tasks.named<Sync>("mySync") {
+    skipWhenSourceIsEmpty = false
+}
+```
+
+`Sync` always deletes the entire contents of its destination directory, not only the files it previously copied there. With `skipWhenSourceIsEmpty` disabled, that also happens when the source is empty - including when it is empty by mistake - so disable it only where nothing other than the task writes to the destination, and use `preserve { ... }` to retain anything the task does not manage.
+
+See [Synchronizing from an empty source](userguide/working_with_files.html#sec:sync_task_empty_source) in the user manual for more details.
 
 ### Security and infrastructure
 Gradle provides robust [security features and underlying infrastructure](userguide/security.html) to ensure that builds are secure, reproducible, and easy to maintain.
 
 ### Tooling and IDE integration
 Gradle provides [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.
+
+### Performance improvements
+Gradle continuously improves [build performance](userguide/performance.html) through caching, parallelism, and reduced overhead across all phases of the build.
 
 ### General improvements
 Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.

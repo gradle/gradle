@@ -26,6 +26,7 @@ import static org.gradle.util.internal.TextUtil.normaliseFileSeparators
 class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
 
     def "can not create a top level LSS for using an implementation class"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile.text = """
         ${registerCustomLanguageWithImpl()}
 
@@ -45,6 +46,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can create a top level LSS with a rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile """
         ${registerCustomLanguage()}
 
@@ -65,6 +67,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can create a top level LSS via the model DSL"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile.text = """
         ${registerCustomLanguage()}
 
@@ -83,6 +86,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can create a LSS as property of a managed type"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
         ${registerCustomLanguage()}
 
@@ -118,6 +122,7 @@ class LanguageSourceSetIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "An LSS can be an element of managed collections"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
         ${registerCustomLanguage()}
 

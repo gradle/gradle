@@ -20,7 +20,6 @@ import groovy.transform.CompileStatic
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
-import org.gradle.test.fixtures.Flaky
 import org.gradle.util.GradleVersion
 import org.hamcrest.Matcher
 
@@ -31,9 +30,9 @@ import static org.hamcrest.CoreMatchers.hasItems
 import static org.hamcrest.CoreMatchers.not
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.junit.Assert.assertTrue
+import static org.junit.Assume.assumeFalse
 
 @TargetGradleVersion(">=5.4")
-@Flaky(because = 'https://github.com/gradle/gradle-private/issues/3414')
 class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     def "can fetch buildSrc classpath in face of compilation errors"() {
@@ -431,6 +430,14 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
     }
 
     def "sourcePath includes Gradle sources"() {
+
+        given:
+        // Gradle distribution sources are resolved from the published `gradle-<version>-src.zip`,
+        // which only exists for released versions. When the build providing the model is an
+        // unreleased snapshot (e.g. the version under development in the "old TAPI -> Gradle
+        // current" cross-version direction), those sources cannot be resolved, so the source
+        // path legitimately omits them. Skip the assertion in that case. See gradle-private#3414.
+        assumeFalse("Gradle distribution sources are not published for snapshot builds", targetDist.version.snapshot)
 
         expect:
         assertSourcePathIncludesGradleSourcesGiven("", "")

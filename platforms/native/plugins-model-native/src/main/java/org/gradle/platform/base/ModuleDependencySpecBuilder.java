@@ -22,6 +22,7 @@ import org.gradle.api.Incubating;
  * A builder of a {@link ModuleDependencySpec}.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.10
  */
 @Incubating
 @Deprecated
@@ -33,6 +34,7 @@ public interface ModuleDependencySpecBuilder extends DependencySpecBuilder {
      * @param name the module name
      *
      * @return this instance
+     * @since 2.10
      */
     ModuleDependencySpecBuilder module(String name);
 
@@ -42,6 +44,7 @@ public interface ModuleDependencySpecBuilder extends DependencySpecBuilder {
      * @param name the group name
      *
      * @return this instance
+     * @since 2.10
      */
     ModuleDependencySpecBuilder group(String name);
 
@@ -51,6 +54,7 @@ public interface ModuleDependencySpecBuilder extends DependencySpecBuilder {
      * @param range the version range
      *
      * @return this instance
+     * @since 2.10
      */
     ModuleDependencySpecBuilder version(String range);
 }

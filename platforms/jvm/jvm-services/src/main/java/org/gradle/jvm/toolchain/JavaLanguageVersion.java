@@ -28,10 +28,20 @@ import org.gradle.jvm.toolchain.internal.DefaultJavaLanguageVersion;
 @HasInternalProtocol
 public interface JavaLanguageVersion extends Comparable<JavaLanguageVersion> {
 
+    /**
+     * Of.
+     *
+     * @since 6.7
+     */
     static JavaLanguageVersion of(int version) {
         return DefaultJavaLanguageVersion.of(version);
     }
 
+    /**
+     * Of.
+     *
+     * @since 6.7
+     */
     static JavaLanguageVersion of(String version) {
         try {
             return of(Integer.parseInt(version));
@@ -58,6 +68,7 @@ public interface JavaLanguageVersion extends Comparable<JavaLanguageVersion> {
      *
      * @return the version number
      * @see #toString()
+     * @since 6.7
      */
     int asInt();
 
@@ -80,6 +91,7 @@ public interface JavaLanguageVersion extends Comparable<JavaLanguageVersion> {
      * @param other the language version to check
      *
      * @return {@code true} if this version can compile or run code from the other version, {@code false} otherwise
+     * @since 6.7
      */
     boolean canCompileOrRun(JavaLanguageVersion other);
 
@@ -91,6 +103,7 @@ public interface JavaLanguageVersion extends Comparable<JavaLanguageVersion> {
      * @param otherVersion the language version to check, as an {@code int}
      *
      * @return {@code true} if this version can compile or run code from the other version, {@code false} otherwise
+     * @since 6.7
      */
     boolean canCompileOrRun(int otherVersion);
 

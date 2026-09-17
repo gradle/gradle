@@ -30,6 +30,7 @@ public interface ResolvedArtifactResult extends ArtifactResult {
 
     /**
      * The file for the artifact.
+     * @since 2.0
      */
     File getFile();
 
@@ -52,6 +53,7 @@ public interface ResolvedArtifactResult extends ArtifactResult {
      * <p>
      * Prefer {@link #getAttributes()} and {@link #getCapabilities()} instead.
      * This method will be deprecated for removal in a future release.
+     * @since 3.5
      */
     ResolvedVariantResult getVariant();
 

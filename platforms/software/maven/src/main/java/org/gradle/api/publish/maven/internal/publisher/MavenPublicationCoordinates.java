@@ -17,13 +17,17 @@
 package org.gradle.api.publish.maven.internal.publisher;
 
 import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.Input;
 
 public interface MavenPublicationCoordinates {
 
+    @Input
     Property<String> getGroupId();
 
+    @Input
     Property<String> getArtifactId();
 
+    @Input
     Property<String> getVersion();
 
 }

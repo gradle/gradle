@@ -64,10 +64,6 @@ strictCompile {
     ignoreRawTypes() // raw types used in public API
 }
 
-packageCycles {
-    excludePatterns.add("org/gradle/plugins/signing/**")
-}
-
 
 
 tasks.withType<Test>().configureEach {

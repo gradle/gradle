@@ -72,8 +72,10 @@ dependencies {
     implementation(projects.instrumentationAgentServices)
     implementation(projects.io)
     implementation(projects.loggingApi)
+    implementation(projects.problemsApi)
     implementation(projects.processServicesApi)
     implementation(projects.serviceRegistryBuilder)
+    implementation(projects.workerShared)
 
     implementation(libs.asm)
     implementation(libs.guava)

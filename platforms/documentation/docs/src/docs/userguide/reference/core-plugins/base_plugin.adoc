@@ -28,9 +28,9 @@ include::sample[dir="snippets/reference/core-plugins/basePlugin/groovy",files="b
 ====
 
 [[sec:base_tasks]]
-== Task
+== Tasks
 
-`clean` — `Delete`::
+`clean` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
 Deletes the build directory and everything in it, i.e. the path specified by the link:{groovyDslPath}/org.gradle.api.file.ProjectLayout.html#org.gradle.api.file.ProjectLayout:buildDirectory[layout.buildDirectory] project property.
 
 `check` — _lifecycle task_::
@@ -74,7 +74,7 @@ Instead, task dependencies should be declared directly on the `assemble` task.
 == Contributed extensions
 
 The Base Plugin adds the link:{groovyDslPath}/org.gradle.api.plugins.BasePluginExtension.html[`base` extension] to the project.
-This allows to configure the following properties inside a dedicated DSL block.
+This allows you to configure the following properties inside a dedicated DSL block.
 
 ====
 include::sample[dir="snippets/reference/core-plugins/archivesChangedBaseName/kotlin",files="build.gradle.kts[tags=base-plugin-config]"]
@@ -93,10 +93,10 @@ Default name of the directory in which library archives, i.e. JARs, are created.
 The plugin also provides default values for the following properties on any task that extends link:{groovyDslPath}/org.gradle.api.tasks.bundling.AbstractArchiveTask.html[AbstractArchiveTask]:
 
 `destinationDirectory`::
-Defaults to `distsDirectory` for non-JAR archives and `libsDirectory` for JARs and derivatives of JAR, such as WARs.
+The Base Plugin defaults this to `distsDirectory` for all archive tasks. When the <<java_plugin.adoc#java_plugin,Java>> (or related JVM) plugin is applied, JARs and derivatives of JAR, such as WARs, are instead defaulted to `libsDirectory`.
 
 `archiveVersion`::
-Defaults to `$project.version` or 'unspecified' if the project has no version.
+Defaults to `$project.version`. If the project has no version, the version is omitted from the archive name.
 
 `archiveBaseName`::
 Defaults to `archivesName`.

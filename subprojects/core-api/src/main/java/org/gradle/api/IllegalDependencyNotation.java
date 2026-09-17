@@ -17,15 +17,31 @@ package org.gradle.api;
 
 /**
  * This exceptions is thrown, if a dependency is declared with a illegal notation.
+ * @since 0.7
  */
 public class IllegalDependencyNotation extends GradleException {
+    /**
+     * Creates a new {@code IllegalDependencyNotation}.
+     *
+     * @since 0.7
+     */
     public IllegalDependencyNotation() {
     }
 
+    /**
+     * Creates a new {@code IllegalDependencyNotation}.
+     *
+     * @since 0.7
+     */
     public IllegalDependencyNotation(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code IllegalDependencyNotation}.
+     *
+     * @since 0.7
+     */
     public IllegalDependencyNotation(String message, Throwable cause) {
         super(message, cause);
     }

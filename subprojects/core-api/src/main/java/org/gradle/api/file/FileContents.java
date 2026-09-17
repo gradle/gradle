@@ -44,6 +44,7 @@ public interface FileContents {
      * </p>
      *
      * @return provider of the entire file contents as a single String.
+     * @since 6.1
      */
     Provider<String> getAsText();
 
@@ -66,6 +67,7 @@ public interface FileContents {
      * </p>
      *
      * @return provider of the entire file contents as a single byte array.
+     * @since 6.1
      */
     Provider<byte[]> getAsBytes();
 }

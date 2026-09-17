@@ -20,26 +20,35 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link org.gradle.platform.base.ComponentSpec} that is directly {@link Buildable} via a specified task.
+ * @since 2.12
  */
 @Incubating
 @Deprecated
 public interface BuildableComponentSpec extends Buildable, org.gradle.platform.base.ComponentSpec {
     /**
      * Returns the task responsible for building this component.
+     * @since 2.12
      */
     @Nullable
     Task getBuildTask();
 
     /**
      * Specifies the task responsible for building this component.
+     * @since 2.12
      */
     void setBuildTask(@Nullable Task buildTask);
 
     /**
      * Adds tasks required to build this component. Tasks added this way are subsequently
      * added as dependencies of this component's {@link #getBuildTask() build task}.
+     * @since 2.12
      */
     void builtBy(Object... tasks);
 
+    /**
+     * Returns whether build dependencies.
+     *
+     * @since 2.12
+     */
     boolean hasBuildDependencies();
 }

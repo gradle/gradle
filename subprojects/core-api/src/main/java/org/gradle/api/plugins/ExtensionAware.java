@@ -81,11 +81,13 @@ import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
  *
  * <li>The <em>extensions</em> added to the object by plugins. Each extension is available as a read-only property with the same name as the extension.</li>
  * </ul>
+ * @since 1.0
  */
 public interface ExtensionAware {
 
     /**
      * The container of extensions.
+     * @since 1.0
      */
     @Internal
     @HiddenInDefinition

@@ -21,20 +21,20 @@ repositories {
 apply plugin: "io.spring.dependency-management"
 dependencyManagement {
     imports {
-        mavenBom 'org.springframework.boot:spring-boot-dependencies:1.3.5.RELEASE'
-        mavenBom 'io.spring.platform:platform-bom:2.0.5.RELEASE'
+        mavenBom 'org.springframework.boot:spring-boot-dependencies:4.1.0'
+        mavenBom 'io.spring.platform:platform-bom:2.0.8.RELEASE'
     }
 }
 <% } %>
 
 dependencies {
-    implementation 'commons-lang:commons-lang:2.5'
-    implementation "org.apache.httpcomponents:httpclient:4.0"
-    implementation "commons-codec:commons-codec:1.2"
-    implementation "org.slf4j:jcl-over-slf4j:2.0.17"
-    implementation "org.codehaus.groovy:groovy:2.4.15"
-    testImplementation 'junit:junit:4.13'
-    runtimeOnly 'com.googlecode:reflectasm:1.01'
+    implementation 'org.apache.commons:commons-lang3:3.20.0'
+    implementation "org.apache.httpcomponents.client5:httpclient5:5.6.2"
+    implementation "commons-codec:commons-codec:1.22.0"
+    implementation "org.slf4j:jcl-over-slf4j:2.0.18"
+    implementation "org.apache.groovy:groovy:4.0.32"
+    testImplementation 'junit:junit:4.13.2'
+    runtimeOnly 'com.esotericsoftware:reflectasm:1.11.9'
 
     <% if (dependencies) { dependencies.each { %>
         implementation "${it.shortNotation()}" <% } %>
@@ -77,14 +77,14 @@ tasks.withType(Test) {
 <% if (groovyProject) { %>
 apply plugin: 'groovy'
 dependencies {
-    implementation 'org.codehaus:groovy:groovy-all:2.4.15'
+    implementation 'org.apache.groovy:groovy-all:4.0.32'
 }
 <% } %>
 
 <% if (scalaProject) { %>
 apply plugin: 'scala'
 dependencies {
-    implementation 'org.scala-lang:scala-library:2.9.2'
+    implementation 'org.scala-lang:scala-library:2.13.18'
 }
 tasks.withType(ScalaCompile) {
     scalaCompileOptions.with {

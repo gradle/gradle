@@ -399,6 +399,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "daemon-main",
+    "path": "platforms/core-runtime/daemon-main",
+    "unitTests": false,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
     "name": "daemon-messaging",
     "path": "platforms/core-runtime/daemon-messaging",
     "unitTests": true,
@@ -481,6 +488,13 @@
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": true
+  },
+  {
+    "name": "dependency-management-resources",
+    "path": "platforms/software/dependency-management-resources",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
   },
   {
     "name": "dependency-management-serialization-codecs",
@@ -807,7 +821,7 @@
   {
     "name": "instrumentation-agent-services",
     "path": "platforms/core-runtime/instrumentation-agent-services",
-    "unitTests": false,
+    "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
@@ -831,13 +845,6 @@
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": true
-  },
-  {
-    "name": "internal-architecture-testing",
-    "path": "testing/internal-architecture-testing",
-    "unitTests": false,
-    "functionalTests": false,
-    "crossVersionTests": false
   },
   {
     "name": "internal-build-reports",
@@ -900,6 +907,13 @@
     "path": "platforms/core-configuration/isolated-action-services",
     "unitTests": true,
     "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "isolated-ant-builder",
+    "path": "platforms/software/isolated-ant-builder",
+    "unitTests": false,
+    "functionalTests": true,
     "crossVersionTests": false
   },
   {
@@ -1290,6 +1304,13 @@
   {
     "name": "problems-rendering",
     "path": "platforms/ide/problems-rendering",
+    "unitTests": true,
+    "functionalTests": false,
+    "crossVersionTests": false
+  },
+  {
+    "name": "problems-reporting",
+    "path": "platforms/ide/problems-reporting",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
@@ -1719,6 +1740,13 @@
     "path": "platforms/core-execution/worker-process-services",
     "unitTests": true,
     "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
+    "name": "worker-shared",
+    "path": "platforms/core-execution/worker-shared",
+    "unitTests": true,
+    "functionalTests": false,
     "crossVersionTests": false
   },
   {

@@ -1,0 +1,19 @@
+plugins {
+    `java-library`
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::overlapping-root[]
+dependencies {
+    api(project(":moduleA"))
+    api("org.apache.httpcomponents:httpclient") {
+        version {
+            // Wide strict range: max is in 4.5.x.
+            strictly("[4.0, 5.0[")
+        }
+    }
+}
+// end::overlapping-root[]

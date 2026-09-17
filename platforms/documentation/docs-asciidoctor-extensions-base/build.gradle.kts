@@ -1,6 +1,5 @@
 plugins {
-    id("gradlebuild.internal.java")
-    groovy
+    id("gradlebuild.internal.tooling")
 }
 
 description = "Asciidoctor extensions that work with all backends"
@@ -11,7 +10,6 @@ dependencies {
     api(buildLibs.jspecify)
 
     implementation(buildLibs.commonsIo)
-    testImplementation(testLibs.spock)
 }
 
 errorprone {

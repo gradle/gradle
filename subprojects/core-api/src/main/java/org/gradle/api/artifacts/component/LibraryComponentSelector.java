@@ -20,12 +20,14 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Criteria for selecting a library instance that is built as part of the current build.
+ * @since 2.5
  */
 public interface LibraryComponentSelector extends ComponentSelector {
     /**
      * Return the project path of the selected library.
      *
      * @return the project path of the library
+     * @since 2.5
      */
     String getProjectPath();
 
@@ -36,10 +38,16 @@ public interface LibraryComponentSelector extends ComponentSelector {
      * If not <code>null</code> then the name will never be empty.
      *
      * @return the library name
+     * @since 2.5
      */
     @Nullable
     String getLibraryName();
 
+    /**
+     * Returns the variant.
+     *
+     * @since 2.11
+     */
     @Nullable
     String getVariant();
 

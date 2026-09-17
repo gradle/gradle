@@ -29,10 +29,12 @@ package org.gradle.api.logging;
  * Logging sensitive information (credentials, tokens, certain environment variables) above {@link Logger#debug} level is a security vulnerability.
  * See <a href="https://docs.gradle.org/current/userguide/logging.html#sec:debug_security">our recommendations</a> for more information.
  * </p>
+ * @since 0.8
  */
 public interface Logger extends org.slf4j.Logger {
     /**
      * Returns true if lifecycle log level is enabled for this logger.
+     * @since 0.8
      */
     boolean isLifecycleEnabled();
 
@@ -49,6 +51,7 @@ public interface Logger extends org.slf4j.Logger {
      * Logs the given message at lifecycle log level.
      *
      * @param message the log message.
+     * @since 0.8
      */
     void lifecycle(String message);
 
@@ -57,6 +60,7 @@ public interface Logger extends org.slf4j.Logger {
      *
      * @param message the log message.
      * @param objects the log message parameters.
+     * @since 0.8
      */
     void lifecycle(String message, Object... objects);
 
@@ -65,11 +69,13 @@ public interface Logger extends org.slf4j.Logger {
      *
      * @param message the log message.
      * @param throwable the exception to log.
+     * @since 0.8
      */
     void lifecycle(String message, Throwable throwable);
 
     /**
      * Returns true if quiet log level is enabled for this logger.
+     * @since 0.8
      */
     boolean isQuietEnabled();
 
@@ -77,6 +83,7 @@ public interface Logger extends org.slf4j.Logger {
      * Logs the given message at quiet log level.
      *
      * @param message the log message.
+     * @since 0.8
      */
     void quiet(String message);
 
@@ -85,6 +92,7 @@ public interface Logger extends org.slf4j.Logger {
      *
      * @param message the log message.
      * @param objects the log message parameters.
+     * @since 0.8
      */
     void quiet(String message, Object... objects);
 
@@ -102,11 +110,13 @@ public interface Logger extends org.slf4j.Logger {
      *
      * @param message the log message.
      * @param throwable the exception to log.
+     * @since 0.8
      */
     void quiet(String message, Throwable throwable);
 
     /**
      * Returns true if the given log level is enabled for this logger.
+     * @since 0.8
      */
     boolean isEnabled(LogLevel level);
 
@@ -115,6 +125,7 @@ public interface Logger extends org.slf4j.Logger {
      *
      * @param level the log level.
      * @param message the log message.
+     * @since 0.8
      */
     void log(LogLevel level, String message);
 
@@ -124,6 +135,7 @@ public interface Logger extends org.slf4j.Logger {
      * @param level the log level.
      * @param message the log message.
      * @param objects the log message parameters.
+     * @since 0.8
      */
     void log(LogLevel level, String message, Object... objects);
 
@@ -133,6 +145,7 @@ public interface Logger extends org.slf4j.Logger {
      * @param level the log level.
      * @param message the log message.
      * @param throwable the exception to log.
+     * @since 0.8
      */
     void log(LogLevel level, String message, Throwable throwable);
 }

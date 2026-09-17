@@ -32,7 +32,7 @@ public enum RuleApplicationScope {
     DESCENDANTS;
 
     /**
-     * Detects if the subject of the rule has been annotated with {@literal @}{@link Each}.
+     * Detects if the subject of the rule has been annotated with {@literal @}{@link org.gradle.model.Each}.
      *
      * @throws IndexOutOfBoundsException If the rule definition has too few parameters.
      */

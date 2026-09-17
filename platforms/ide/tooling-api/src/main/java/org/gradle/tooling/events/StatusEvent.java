@@ -25,6 +25,7 @@ public interface StatusEvent extends ProgressEvent {
      * The amount of work already performed by the build operation.
      *
      * @return The amount of performed work
+     * @since 3.5
      */
     long getProgress();
 
@@ -32,6 +33,7 @@ public interface StatusEvent extends ProgressEvent {
      * The total amount of work that the build operation is in the progress of performing, or -1 if not known.
      *
      * @return The total amount of work, or -1 if not known.
+     * @since 3.5
      */
     long getTotal();
 
@@ -39,6 +41,7 @@ public interface StatusEvent extends ProgressEvent {
      * The measure used to express the amount of work.
      *
      * @return The measure used to express the amount of work.
+     * @since 3.5
      */
     String getUnit();
 }

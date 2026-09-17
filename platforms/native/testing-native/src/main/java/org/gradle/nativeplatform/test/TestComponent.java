@@ -28,6 +28,7 @@ import org.gradle.api.provider.Provider;
 public interface TestComponent extends SoftwareComponent {
     /**
      * Returns the task that runs the tests for this component.
+     * @since 4.5
      */
     Provider<? extends Task> getRunTask();
 }

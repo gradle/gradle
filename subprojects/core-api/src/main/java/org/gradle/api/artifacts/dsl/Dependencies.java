@@ -94,6 +94,7 @@ public interface Dependencies {
      * @return a {@link ProjectDependency} for the given path
      *
      * @see org.gradle.api.Project#project(String)
+     * @since 7.6
      */
     default ProjectDependency project(String projectPath) {
         return getDependencyFactory().createProjectDependency(projectPath);
@@ -103,6 +104,7 @@ public interface Dependencies {
      * Returns the current project as a {@link ProjectDependency}.
      *
      * @return the current project as a dependency
+     * @since 7.6
      */
     default ProjectDependency project() {
         return getDependencyFactory().createProjectDependency();
@@ -114,6 +116,7 @@ public interface Dependencies {
      * @param dependencyNotation dependency to add
      * @return the new dependency
      * @see DependencyFactory#create(CharSequence) Valid dependency notation for this method
+     * @since 7.6
      */
     @HiddenInDefinition
     default ExternalModuleDependency module(CharSequence dependencyNotation) {
@@ -130,6 +133,7 @@ public interface Dependencies {
      * @return the new dependency
      *
      * @deprecated This method will be removed in Gradle 10. Use single-string notation instead.
+     * @since 7.6
      */
     @HiddenInDefinition
     @Deprecated

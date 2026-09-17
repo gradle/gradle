@@ -25,5 +25,28 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public enum OperatingSystem {
-    LINUX, UNIX, WINDOWS, MAC_OS, SOLARIS, FREE_BSD
+    /**
+     * @since 7.6
+     */
+    LINUX,
+    /**
+     * @since 7.6
+     */
+    UNIX,
+    /**
+     * @since 7.6
+     */
+    WINDOWS,
+    /**
+     * @since 7.6
+     */
+    MAC_OS,
+    /**
+     * @since 7.6
+     */
+    SOLARIS,
+    /**
+     * @since 7.6
+     */
+    FREE_BSD
 }

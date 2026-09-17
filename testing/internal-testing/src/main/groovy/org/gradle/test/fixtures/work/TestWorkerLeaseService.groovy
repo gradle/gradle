@@ -25,6 +25,8 @@ import org.gradle.util.Path
 import org.jspecify.annotations.NullMarked
 import org.jspecify.annotations.Nullable
 
+import java.util.function.BooleanSupplier
+
 @NullMarked
 class TestWorkerLeaseService implements WorkerLeaseService {
     @Override
@@ -52,13 +54,13 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    ResourceLock getAllProjectsLock(Path buildIdentityPath) {
+    Collection<? extends ResourceLock> getCurrentProjectLocks() {
         throw new UnsupportedOperationException()
     }
 
     @Override
-    Collection<? extends ResourceLock> getCurrentProjectLocks() {
-        throw new UnsupportedOperationException()
+    boolean holdsProjectLock(ResourceLock lock) {
+        return false
     }
 
     @Override
@@ -91,8 +93,8 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    <T> Optional<T> tryRunAsWorkerThread(Factory<T> action) {
-        return Optional.of(action.create())
+    void tryWhileConditionToRunAsWorkerThread(Runnable action, BooleanSupplier shouldContinue) {
+        action.run()
     }
 
     @Override
@@ -165,7 +167,7 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     }
 
     @Override
-    <T> T withReplacedLocks(Collection<? extends ResourceLock> currentLocks, ResourceLock newLock, Factory<T> factory) {
+    <T> T withReplacedLocks(Collection<? extends ResourceLock> currentLocks, Collection<? extends ResourceLock> newLocks, Factory<T> factory) {
         return factory.create()
     }
 
@@ -182,16 +184,6 @@ class TestWorkerLeaseService implements WorkerLeaseService {
     @Override
     <T> T blocking(Factory<T> action) {
         return action.create()
-    }
-
-    @Override
-    <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
-        return factory.create()
-    }
-
-    @Override
-    boolean isAllowedUncontrolledAccessToAnyProject() {
-        return false
     }
 
     private WorkerLease workerLease() {

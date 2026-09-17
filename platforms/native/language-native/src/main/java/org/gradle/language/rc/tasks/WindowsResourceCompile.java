@@ -60,6 +60,7 @@ import java.util.concurrent.Callable;
 
 /**
  * Compiles Windows Resource scripts into .res files.
+ * @since 2.2
  */
 @Incubating
 @DisableCachingByDefault(because = "Not made cacheable, yet")
@@ -73,6 +74,11 @@ public abstract class WindowsResourceCompile extends DefaultTask {
     // It would be better to provide some way for a task to express these things separately.
     private transient IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
 
+    /**
+     * Creates a new {@code WindowsResourceCompile}.
+     *
+     * @since 2.2
+     */
     @SuppressWarnings("this-escape")
     public WindowsResourceCompile() {
         getInputs().property("outputType", new Callable<String>() {
@@ -98,6 +104,11 @@ public abstract class WindowsResourceCompile extends DefaultTask {
     @Inject
     public abstract BuildOperationLoggerFactory getOperationLoggerFactory();
 
+    /**
+     * Compile.
+     *
+     * @since 5.4
+     */
     @TaskAction
     public void compile(InputChanges inputs) {
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
@@ -145,18 +156,25 @@ public abstract class WindowsResourceCompile extends DefaultTask {
 
     /**
      * The directory where object files will be generated.
+     * @since 2.2
      */
     @OutputDirectory
     public File getOutputDir() {
         return outputDir;
     }
 
+    /**
+     * Sets the output dir.
+     *
+     * @since 2.2
+     */
     public void setOutputDir(File outputDir) {
         this.outputDir = outputDir;
     }
 
     /**
      * Returns the header directories to be used for compilation.
+     * @since 2.2
      */
     @Incremental
     @PathSensitive(PathSensitivity.RELATIVE)
@@ -165,6 +183,7 @@ public abstract class WindowsResourceCompile extends DefaultTask {
 
     /**
      * Add directories where the compiler should search for header files.
+     * @since 2.2
      */
     public void includes(Object includeRoots) {
         getIncludes().from(includeRoots);
@@ -172,6 +191,7 @@ public abstract class WindowsResourceCompile extends DefaultTask {
 
     /**
      * Returns the source files to be compiled.
+     * @since 2.2
      */
     @InputFiles
     @SkipWhenEmpty
@@ -181,6 +201,7 @@ public abstract class WindowsResourceCompile extends DefaultTask {
 
     /**
      * Adds a set of source files to be compiled. The provided sourceFiles object is evaluated as per {@link Project#files(Object...)}.
+     * @since 2.2
      */
     public void source(Object sourceFiles) {
         getSource().from(sourceFiles);
@@ -188,12 +209,18 @@ public abstract class WindowsResourceCompile extends DefaultTask {
 
     /**
      * Macros that should be defined for the compiler.
+     * @since 2.2
      */
     @Input
     public Map<String, String> getMacros() {
         return macros;
     }
 
+    /**
+     * Sets the macros.
+     *
+     * @since 2.2
+     */
     public void setMacros(Map<String, String> macros) {
         this.macros = macros;
     }

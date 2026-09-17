@@ -70,6 +70,11 @@ abstract public class AbstractCodeQualityTask extends SourceTask implements Veri
         this.getIgnoreFailuresProperty().set(ignoreFailures);
     }
 
+    /**
+     * Returns the ignore failures property.
+     *
+     * @since 8.4
+     */
     @Internal
     abstract protected Property<Boolean> getIgnoreFailuresProperty();
 
@@ -82,6 +87,11 @@ abstract public class AbstractCodeQualityTask extends SourceTask implements Veri
     @Inject
     abstract protected WorkerExecutor getWorkerExecutor();
 
+    /**
+     * Configure fork options.
+     *
+     * @since 8.4
+     */
     protected void configureForkOptions(JavaForkOptions forkOptions) {
         forkOptions.setMinHeapSize(getMinHeapSize().getOrNull());
         forkOptions.setMaxHeapSize(getMaxHeapSize().getOrNull());
@@ -97,6 +107,7 @@ abstract public class AbstractCodeQualityTask extends SourceTask implements Veri
 
     /**
      * Java launcher used to start the worker process
+     * @since 8.4
      */
     @Nested
     public abstract Property<JavaLauncher> getJavaLauncher();
@@ -107,6 +118,7 @@ abstract public class AbstractCodeQualityTask extends SourceTask implements Veri
      * Supports units like the command-line option {@code -Xms} such as {@code "1g"}.
      *
      * @return The minimum heap size.
+     * @since 8.4
      */
     @Optional
     @Input
@@ -118,6 +130,7 @@ abstract public class AbstractCodeQualityTask extends SourceTask implements Veri
      * Supports units like the command-line option {@code -Xmx} such as {@code "1g"}.
      *
      * @return The maximum heap size.
+     * @since 8.4
      */
     @Optional
     @Input

@@ -30,6 +30,7 @@ import java.util.Set;
 /**
  * Contains the information about the result of dependency resolution. You can use this type to determine all the component instances that are included
  * in the resolved dependency graph, and the dependencies between them.
+ * @since 1.2
  */
 @UsedByScanPlugin
 @HasInternalProtocol
@@ -41,6 +42,7 @@ public interface ResolutionResult {
      * For example, Gradle's built-in 'dependencies' task uses this to render the dependency tree.
      *
      * @return the root node of the resolved dependency graph
+     * @since 1.2
      */
     ResolvedComponentResult getRoot();
 
@@ -76,6 +78,7 @@ public interface ResolutionResult {
      * In dependency graph terminology, this method returns the edges of the graph.
      *
      * @return all dependencies, including unresolved dependencies.
+     * @since 1.3
      */
     Set<? extends DependencyResult> getAllDependencies();
 
@@ -84,6 +87,7 @@ public interface ResolutionResult {
      * An instance of {@link DependencyResult} is passed as parameter to the action.
      *
      * @param action - action that is applied for each dependency
+     * @since 1.3
      */
     void allDependencies(Action<? super DependencyResult> action);
 
@@ -92,6 +96,7 @@ public interface ResolutionResult {
      * An instance of {@link DependencyResult} is passed as parameter to the closure.
      *
      * @param closure - closure that is applied for each dependency
+     * @since 1.3
      */
     void allDependencies(@DelegatesTo(DependencyResult.class) Closure closure);
 
@@ -100,6 +105,7 @@ public interface ResolutionResult {
      * e.g. all nodes of the dependency graph.
      *
      * @return all nodes of the dependency graph.
+     * @since 1.10
      */
     Set<ResolvedComponentResult> getAllComponents();
 
@@ -108,6 +114,7 @@ public interface ResolutionResult {
      * An instance of {@link ResolvedComponentResult} is passed as parameter to the action.
      *
      * @param action - action that is applied for each component
+     * @since 1.10
      */
     void allComponents(Action<? super ResolvedComponentResult> action);
 
@@ -116,6 +123,7 @@ public interface ResolutionResult {
      * An instance of {@link ResolvedComponentResult} is passed as parameter to the closure.
      *
      * @param closure - closure that is applied for each component
+     * @since 1.10
      */
     void allComponents(@DelegatesTo(ResolvedComponentResult.class) Closure closure);
 

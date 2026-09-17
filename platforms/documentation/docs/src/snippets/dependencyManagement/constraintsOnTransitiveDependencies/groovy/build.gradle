@@ -1,0 +1,19 @@
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::transitive-constraints[]
+dependencies {
+    implementation 'org.apache.httpcomponents:httpclient:4.5.13'
+
+    constraints {
+        implementation('commons-codec:commons-codec:1.15') {
+            because 'httpclient pulls in 1.11 which has known vulnerabilities'
+        }
+    }
+}
+// end::transitive-constraints[]

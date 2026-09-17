@@ -19,6 +19,7 @@ package org.gradle.api.internal.initialization.transform;
 import org.gradle.api.artifacts.transform.TransformOutputs;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationAnalysisSerializer;
 import org.gradle.api.internal.initialization.transform.utils.InstrumentationTransformUtils.InstrumentationInputType;
+import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.classpath.types.PropertiesBackedInstrumentationTypeRegistry;
@@ -66,11 +67,22 @@ public abstract class ExternalDependencyInstrumentingArtifactTransform extends B
         long contextId = getParameters().getContextId().get();
         File originalArtifact = getParameters().getBuildService().get().getOriginalFile(contextId, metadata);
         doTransform(originalArtifact, outputs);
+        if (originalArtifact.exists() && getParameters().getAgentSupported().get()) {
+            // Pass the dependency analysis file through, by reference, so the type hierarchy is available
+            // when the entry has to be re-instrumented at class load time to compose with a third-party agent.
+            // A missing original artifact produces no instrumented group at all, so no analysis either.
+            outputs.file(input);
+        }
     }
 
     private InstrumentationArtifactMetadata readArtifactMetadata(File input) {
         InstrumentationAnalysisSerializer serializer = getParameters().getBuildService().get().getCachedInstrumentationAnalysisSerializer();
         return serializer.readMetadataOnly(input);
+    }
+
+    @Override
+    protected TransformedClassPath.FileMarker agentInstrumentationMarker() {
+        return TransformedClassPath.FileMarker.AGENT_INSTRUMENTATION_EXTERNAL_MARKER;
     }
 
     @Override

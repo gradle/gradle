@@ -26,6 +26,7 @@ import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.any
 class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements WithRuleBasedTasks {
 
     def "can view task container as various view types"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << '''
             class MyPlugin extends RuleSource {
@@ -60,6 +61,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     def "can view tasks as various view types"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             ${ruleBasedTasks()}
@@ -98,6 +100,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     def "mutate rules are applied to tasks created using legacy DSL when the task is added to the task graph"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             ${ruleBasedTasks()}
@@ -134,6 +137,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     def "mutate rules are not applied to tasks created using legacy DSL when the task is not added to the task graph"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             ${ruleBasedTasks()}
@@ -170,6 +174,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     def "mutate rules are applied to task created using legacy DSL after task is configured from legacy DSL"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             ${ruleBasedTasks()}
@@ -194,6 +199,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
 
     @NotYetImplemented
     def "mutate rules are applied to task created using rules after task is configured from legacy DSL"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             ${ruleBasedTasks()}
@@ -221,6 +227,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     def "task initializer defined by rule is invoked before actions defined through legacy task container DSL"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             ${ruleBasedTasks()}
@@ -249,6 +256,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     def "task created in afterEvaluate() is visible to rules"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << '''
             class MyPlugin extends RuleSource {
@@ -295,6 +303,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     def "registering a creation rule for a task that is already defined using legacy DSL"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
             class MyPlugin extends RuleSource {
@@ -317,6 +326,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     def "registering creation rules to create a task using legacy container DSL that is already defined using container DSL"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
             class MyPlugin extends RuleSource {
@@ -352,6 +362,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     def "a non-rule-source task can depend on a rule-source task"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
         ${ruleBasedTasks()}
@@ -376,6 +387,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     def "a non-rule-source task can depend on one or more task of types created via both rule sources and old world container"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
         ${ruleBasedTasks()}
@@ -403,6 +415,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
 
     @ToBeFixedForIsolatedProjects(because = "evaluationDependsOn is not IP compatible, configuring projects from root, ")
     def "can depend on a rule-source task in a project which has already evaluated"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         createDirs("sub1", "sub2")
         settingsFile << 'include "sub1", "sub2"'
@@ -437,6 +450,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     def "can depend on a rule-source task after a project has been evaluated"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
         ${ruleBasedTasks()}
@@ -464,6 +478,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     def "a build failure occurs when depending on a rule task with failing configuration"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
         ${ruleBasedTasks()}
@@ -493,6 +508,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     def "can not depend on a general Task"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
         task customTask
@@ -509,6 +525,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     def "a non-rule-source task can depend on a rule-source task through another task collection"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
         ${ruleBasedTasks()}
@@ -534,6 +551,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     def "a non-rule-source task can depend on a rule-source task with matching criteria"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
         ${ruleBasedTasks()}
@@ -558,6 +576,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     def "a non-rule-source task can not depend on both realizable and default task collections"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
         ${ruleBasedTasks()}
@@ -584,6 +603,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
 
     @NotYetImplemented
     def "a non-rule-source task can depend on combined task collections"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
         ${ruleBasedTasks()}
@@ -610,6 +630,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
 
     @NotYetImplemented
     def "actions are applied to a rule-source task using all task action constructs"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
         class OverruleTask extends EchoTask {}
@@ -647,6 +668,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
 
     @NotYetImplemented
     def "rule sources can have a task with some action applied to it as a rule subject"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
         ${ruleBasedTasks()}
@@ -673,6 +695,7 @@ class RuleTaskBridgingIntegrationTest extends AbstractIntegrationSpec implements
     }
 
     def "only tasks of specified type are created when tasks with type are declared as dependency"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile """
             ${ruleBasedTasks()}

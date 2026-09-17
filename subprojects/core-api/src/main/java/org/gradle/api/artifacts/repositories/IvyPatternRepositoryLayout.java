@@ -32,18 +32,21 @@ public interface IvyPatternRepositoryLayout extends RepositoryLayout {
     /**
      * Adds an Ivy artifact pattern to define where artifacts are located in this repository.
      * @param pattern The ivy pattern
+     * @since 2.3
      */
     void artifact(String pattern);
 
     /**
      * Adds an Ivy pattern to define where ivy files are located in this repository.
      * @param pattern The ivy pattern
+     * @since 2.3
      */
     void ivy(String pattern);
 
     /**
      * Tells whether a Maven style layout is to be used for the 'organisation' part, replacing any dots with forward slashes.
      * Defaults to {@code false}.
+     * @since 2.3
      */
     boolean getM2Compatible();
 
@@ -52,6 +55,7 @@ public interface IvyPatternRepositoryLayout extends RepositoryLayout {
      * Defaults to {@code false}.
      *
      * @param m2compatible whether a Maven style layout is to be used for the 'organisation' part
+     * @since 2.3
      */
     void setM2compatible(boolean m2compatible);
 }

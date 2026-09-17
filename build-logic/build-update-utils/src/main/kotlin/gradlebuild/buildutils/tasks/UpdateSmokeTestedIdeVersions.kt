@@ -17,6 +17,7 @@
 package gradlebuild.buildutils.tasks
 
 import com.google.gson.Gson
+import gradlebuild.basics.createSecureDocumentBuilder
 import org.gradle.api.file.RegularFileProperty
 import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction

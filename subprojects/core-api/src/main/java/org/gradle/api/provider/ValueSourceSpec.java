@@ -35,6 +35,7 @@ public interface ValueSourceSpec<P extends ValueSourceParameters> {
      * this returns the {@link ValueSourceParameters.None} singleton.</p>
      *
      * @see org.gradle.api.provider.ProviderFactory#of(Class, Action)
+     * @since 6.1
      */
     P getParameters();
 
@@ -45,6 +46,7 @@ public interface ValueSourceSpec<P extends ValueSourceParameters> {
      * parameters type; in that case it receives the {@link ValueSourceParameters.None} singleton.</p>
      *
      * @see org.gradle.api.provider.ProviderFactory#of(Class, Action)
+     * @since 6.1
      */
     void parameters(Action<? super P> action);
 }

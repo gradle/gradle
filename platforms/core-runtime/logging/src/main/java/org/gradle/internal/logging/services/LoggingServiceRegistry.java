@@ -22,12 +22,11 @@ import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.config.LoggingSourceSystem;
-import org.gradle.internal.logging.config.LoggingSystemAdapter;
 import org.gradle.internal.logging.console.DefaultUserInputReceiver;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.sink.OutputEventListenerManager;
 import org.gradle.internal.logging.sink.OutputEventRenderer;
-import org.gradle.internal.logging.slf4j.Slf4jLoggingConfigurer;
+import org.gradle.internal.logging.slf4j.Slf4jLoggingSystem;
 import org.gradle.internal.logging.source.DefaultStdErrLoggingSystem;
 import org.gradle.internal.logging.source.DefaultStdOutLoggingSystem;
 import org.gradle.internal.logging.source.JavaUtilLoggingSystem;
@@ -159,10 +158,11 @@ public abstract class LoggingServiceRegistry implements ServiceRegistrationProvi
         stderr.setLevel(LogLevel.ERROR);
         return new DefaultLoggingManagerFactory(
             renderer,
-            new LoggingSystemAdapter(new Slf4jLoggingConfigurer(outputEventBroadcaster)),
+            new Slf4jLoggingSystem(outputEventBroadcaster),
             new JavaUtilLoggingSystem(),
             stdout,
-            stderr);
+            stderr
+        );
     }
 
     @Provides

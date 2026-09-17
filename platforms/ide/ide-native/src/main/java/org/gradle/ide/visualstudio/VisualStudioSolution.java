@@ -46,12 +46,14 @@ import org.gradle.plugins.ide.IdeWorkspace;
  *      }
  *  }
  * </pre>
+ * @since 1.11
  */
 @Incubating
 @HasInternalProtocol
 public interface VisualStudioSolution extends Named, Buildable, IdeWorkspace {
     /**
      * Configuration for the generated solution file.
+     * @since 1.11
      */
     @Incubating
     TextConfigFile getSolutionFile();

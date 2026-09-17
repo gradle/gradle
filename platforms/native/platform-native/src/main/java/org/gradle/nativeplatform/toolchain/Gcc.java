@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 
 /**
  * The <a href="http://gcc.gnu.org/">GNU GCC</a> tool chain.
+ * @since 2.2
  */
 @Incubating
 public interface Gcc extends GccCompatibleToolChain {

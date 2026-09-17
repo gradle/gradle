@@ -24,34 +24,37 @@ import org.gradle.model.internal.inspect.ModelRuleExtractor
 class ModelRuleCachingIntegrationTest extends PersistentBuildProcessIntegrationTest {
 
     def setup() {
+        // A stateless rule source (no managed properties): the extractor caches one
+        // CachedRuleSource per class and reuses the same extracted instance on every call.
+        // It lives in buildSrc so the daemon reuses its class loader, keeping the Class
+        // identity (the cache key) stable across builds.
+        file("buildSrc/src/main/java/org/gradle/integtest/CachingRuleSource.java") << """
+            package org.gradle.integtest;
+
+            import org.gradle.model.RuleSource;
+
+            public class CachingRuleSource extends RuleSource {}
+        """
         buildFile << """
-            def ruleCache = project.services.get($ModelRuleExtractor.name).cache
-            def initialSize = ruleCache.size()
-            gradle.buildFinished { println "### extracted new rules: \${ruleCache.size() > initialSize}" }
+            def extractor = project.services.get($ModelRuleExtractor.name)
+            def ruleSource = extractor.extract(org.gradle.integtest.CachingRuleSource)
+            println "### rule source id: \${System.identityHashCode(ruleSource)}"
         """
     }
 
-    boolean getNewRulesExtracted() {
-        def match = output =~ /.*### extracted new rules: (true|false).*/
-        match[0][1] == "true"
+    private String getExtractedRuleSourceId() {
+        def match = output =~ /### rule source id: (\d+)/
+        match[0][1]
     }
 
-    def "rules extracted from core plugins are reused across builds"() {
-        given:
-        buildFile << '''
-            apply plugin: 'cpp'
-        '''
-
+    def "rule sources are reused across builds in a persistent process"() {
         when:
         run()
-
-        then:
-        newRulesExtracted
-
-        when:
+        def firstId = extractedRuleSourceId
         run()
+        def secondId = extractedRuleSourceId
 
         then:
-        !newRulesExtracted
+        firstId == secondId
     }
 }

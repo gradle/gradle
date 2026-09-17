@@ -32,11 +32,13 @@ import java.util.List;
 public interface CapabilityResolutionDetails {
     /**
      * Returns the capability in conflict
+     * @since 5.6
      */
     Capability getCapability();
 
     /**
      * Returns the list of components which are in conflict on this capability
+     * @since 5.6
      */
     List<ComponentVariantIdentifier> getCandidates();
 
@@ -58,6 +60,7 @@ public interface CapabilityResolutionDetails {
      * @param notation the selected candidate
      *
      * @return this details instance
+     * @since 5.6
      */
     CapabilityResolutionDetails select(Object notation);
 
@@ -67,6 +70,7 @@ public interface CapabilityResolutionDetails {
      * the automatic selection description.
      *
      * @return this details instance
+     * @since 5.6
      */
     CapabilityResolutionDetails selectHighestVersion();
 
@@ -76,6 +80,7 @@ public interface CapabilityResolutionDetails {
      * @param reason the reason why a candidate is selected.
      *
      * @return this details instance
+     * @since 5.6
      */
     CapabilityResolutionDetails because(String reason);
 }

@@ -61,6 +61,7 @@ import static java.util.Collections.emptyList;
  * By default, this report shows only those tasks which have been assigned to a task group, so-called <i>visible</i>
  * tasks. Tasks which have not been assigned to a task group, so-called <i>hidden</i> tasks, can be included in the report
  * by enabling the command line option {@code --all}.
+ * @since 0.7
  */
 @SuppressWarnings("this-escape")
 @DisableCachingByDefault(because = "Not worth caching")
@@ -81,6 +82,11 @@ public abstract class TaskReportTask extends ConventionReportTask {
         return renderer;
     }
 
+    /**
+     * Sets the renderer.
+     *
+     * @since 0.7
+     */
     public void setRenderer(TaskReportRenderer renderer) {
         this.renderer = renderer;
     }
@@ -89,6 +95,7 @@ public abstract class TaskReportTask extends ConventionReportTask {
      * Sets whether to show "invisible" tasks without a group or dependent tasks.
      *
      * This property can be set via command-line option '--all'.
+     * @since 0.9
      */
     @Option(option = "all", description = "Show additional tasks and detail.")
     public void setShowDetail(boolean detail) {
@@ -96,6 +103,11 @@ public abstract class TaskReportTask extends ConventionReportTask {
     }
 
     // TODO config-cache - should invalidate the cache or the filtering and merging should be moved to task execution time
+    /**
+     * Returns whether detail is set.
+     *
+     * @since 0.9
+     */
     @Console
     @ToBeReplacedByLazyProperty
     public boolean isDetail() {

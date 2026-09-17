@@ -34,6 +34,7 @@ public interface PluginResolveDetails {
 
     /**
      * Get the plugin that was requested.
+     * @since 3.5
      */
     PluginRequest getRequested();
 
@@ -52,6 +53,7 @@ public interface PluginResolveDetails {
      * </ul>
      *
      * @param notation the module to use
+     * @since 3.5
      */
     void useModule(Object notation);
 
@@ -59,11 +61,13 @@ public interface PluginResolveDetails {
      * Sets the version of the plugin to use.
      *
      * @param version version to use
+     * @since 3.5
      */
     void useVersion(@Nullable String version);
 
     /**
      * The target plugin request to use.
+     * @since 3.5
      */
     PluginRequest getTarget();
 

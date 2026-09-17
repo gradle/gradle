@@ -121,8 +121,15 @@ public class DefaultUrlArtifactRepository {
     }
 
     HttpRedirectVerifier createRedirectVerifier() {
-        @Nullable
-        URI uri = getUrl();
+        return createRedirectVerifier(getUrl());
+    }
+
+    /**
+     * Builds the verifier against a specific URL rather than the declared one, for repositories
+     * whose requests go somewhere else — a Maven mirror rewrites the URL, and it is the URL
+     * actually contacted that has to be secure.
+     */
+    HttpRedirectVerifier createRedirectVerifier(@Nullable URI uri) {
         return HttpRedirectVerifierFactory
             .create(
                 uri,

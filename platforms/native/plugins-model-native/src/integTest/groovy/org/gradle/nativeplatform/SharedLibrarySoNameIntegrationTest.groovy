@@ -28,6 +28,7 @@ import org.gradle.test.preconditions.OsTestPreconditions
 ])
 class SharedLibrarySoNameIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         settingsFile << "rootProject.name = 'test'"
 
         def app = new CppHelloWorldApp()
@@ -44,6 +45,7 @@ model {
     }
 
     def "library soname is file name when installName is not set"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         succeeds "helloSharedLibrary"
 
@@ -53,6 +55,7 @@ model {
     }
 
     def "library soname uses specified installName"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 tasks.withType(LinkSharedLibrary) {
@@ -68,6 +71,7 @@ tasks.withType(LinkSharedLibrary) {
     }
 
     def "library soname defaults when installName is null"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 tasks.withType(LinkSharedLibrary) {

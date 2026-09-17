@@ -25,7 +25,6 @@ import org.gradle.performance.results.PerformanceDatabase;
 import org.gradle.performance.results.PerformanceExperiment;
 import org.gradle.performance.results.PerformanceFlakinessDataProvider;
 import org.gradle.performance.results.PerformanceReportScenario;
-import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
@@ -47,7 +46,10 @@ import static org.gradle.performance.results.PerformanceFlakinessDataProvider.Em
 
 public abstract class AbstractReportGenerator<R extends ResultsStore> {
     public static Set<String> getDependencyPerformanceTestTeamCityBuildIds() {
-        return new HashSet<>(Arrays.asList(System.getProperty("org.gradle.performance.dependencyBuildIds", "").split(",")));
+        return Arrays.stream(System.getProperty("org.gradle.performance.dependencyBuildIds", "").split(","))
+            .map(String::trim)
+            .filter(id -> !id.isEmpty())
+            .collect(Collectors.toCollection(HashSet::new));
     }
 
     protected void generateReport(String... args) {
@@ -78,9 +80,9 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
 
     protected void generateReport(ResultsStore store, PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, File outputDirectory, String projectName) throws IOException {
         renderIndexPage(flakinessDataProvider, executionDataProvider, new File(outputDirectory, "index.html"));
-        List<String> executedBuildIds = executionDataProvider.getReportScenarios().stream()
-            .flatMap(scenario -> scenario.getTeamCityExecutions().stream().map(PerformanceTestExecutionResult::getTeamCityBuildId))
-            .collect(Collectors.toList());
+        // The result JSONs no longer carry build IDs; use this pipeline's authoritative bucket build IDs so the
+        // per-scenario history graphs highlight the executions produced by this run.
+        List<String> executedBuildIds = new ArrayList<>(getDependencyPerformanceTestTeamCityBuildIds());
 
         executionDataProvider.getReportScenarios().stream()
             .map(PerformanceReportScenario::getPerformanceExperiment)

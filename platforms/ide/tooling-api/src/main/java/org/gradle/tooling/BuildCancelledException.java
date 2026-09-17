@@ -22,10 +22,20 @@ package org.gradle.tooling;
  * @since 2.1
  */
 public class BuildCancelledException extends GradleConnectionException {
+    /**
+     * Creates a new {@code BuildCancelledException}.
+     *
+     * @since 2.1
+     */
     public BuildCancelledException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code BuildCancelledException}.
+     *
+     * @since 2.1
+     */
     public BuildCancelledException(String message, Throwable throwable) {
         super(message, throwable);
     }

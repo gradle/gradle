@@ -33,6 +33,7 @@ public interface ArtifactResult {
 
     /**
      * Returns the type of this artifact.
+     * @since 2.0
      */
     Class<? extends Artifact> getType();
 }

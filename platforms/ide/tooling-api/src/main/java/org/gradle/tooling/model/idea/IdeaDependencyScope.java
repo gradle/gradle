@@ -18,8 +18,14 @@ package org.gradle.tooling.model.idea;
 
 /**
  * The scope of the IDEA dependency.
+ * @since 1.0
  */
 public interface IdeaDependencyScope {
 
+    /**
+     * Returns the scope.
+     *
+     * @since 1.0
+     */
     String getScope();
 }

@@ -38,6 +38,7 @@ class ModelRuleValidationIntegrationTest extends AbstractIntegrationSpec {
         """
 
         then:
+        expectSoftwareModelDeprecation("MyPlugin")
         fails "tasks"
 
         and:
@@ -62,11 +63,16 @@ class ModelRuleValidationIntegrationTest extends AbstractIntegrationSpec {
         """
 
         then:
+        expectSoftwareModelDeprecation("MyPlugin")
         fails "tasks"
 
         and:
         failure.assertHasCause("Failed to apply plugin class 'MyPlugin'")
         failure.assertHasCause('''Type MyPlugin.Rules is not a valid rule source:
 - Method strings() is not a valid rule method: The declared model element path 'foo. bar' is not a valid path: Model path 'foo. bar' is invalid due to invalid name component.''')
+    }
+
+    private void expectSoftwareModelDeprecation(String pluginName) {
+        executer.expectDocumentedDeprecationWarning("The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
     }
 }

@@ -28,11 +28,13 @@ class ObjectiveCppUnsupportedIntegrationTest extends AbstractInstalledToolChainI
     def helloWorldApp = new ObjectiveCppHelloWorldApp()
 
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << helloWorldApp.pluginScript
         buildFile << helloWorldApp.extraConfiguration
     }
 
     def "fails with decent error message with visual studio toolchain"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {

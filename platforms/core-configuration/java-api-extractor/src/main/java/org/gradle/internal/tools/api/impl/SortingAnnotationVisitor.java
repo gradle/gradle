@@ -20,6 +20,8 @@ import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.Opcodes;
 
+import static java.util.Objects.requireNonNull;
+
 import java.util.LinkedList;
 import java.util.List;
 
@@ -28,6 +30,7 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
     private final List<AnnotationValue<?>> annotationValues = new LinkedList<>();
     private final AnnotationMember annotation;
 
+    @Nullable
     private SortingAnnotationVisitor parentVisitor;
     @Nullable
     private String annotationValueName;
@@ -58,7 +61,7 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
     @Override
     public AnnotationVisitor visitArray(@Nullable String name) {
         SortingAnnotationVisitor visitor = new SortingAnnotationVisitor(annotation, super.visitArray(name));
-        visitor.arrayValueName = name;
+        visitor.arrayValueName = nameOrValue(name);
         return visitor;
     }
 
@@ -70,17 +73,22 @@ public class SortingAnnotationVisitor extends AnnotationVisitor {
 
     @Override
     public void visitEnd() {
-        if (annotationValueName != null) {
-            AnnotationAnnotationValue value = new AnnotationAnnotationValue(annotationValueName, annotation);
-            parentVisitor.annotationValues.add(value);
-            annotationValueName = null;
-        } else if (arrayValueName != null) {
+        if (arrayValueName != null) {
+            // The collected values are the elements of the array, not members of the annotation.
+            // They must not be added to the annotation, since an array element carries no name of
+            // its own and would therefore masquerade as the "value" member of the annotation.
             ArrayAnnotationValue value = new ArrayAnnotationValue(
                 arrayValueName, annotationValues.toArray(new AnnotationValue<?>[0]));
             annotation.addValue(value);
             arrayValueName = null;
+        } else {
+            if (annotationValueName != null) {
+                AnnotationAnnotationValue value = new AnnotationAnnotationValue(annotationValueName, annotation);
+                requireNonNull(parentVisitor).annotationValues.add(value);
+                annotationValueName = null;
+            }
+            annotation.addValues(annotationValues);
         }
-        annotation.addValues(annotationValues);
         annotationValues.clear();
         super.visitEnd();
     }

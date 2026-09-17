@@ -41,6 +41,7 @@ public interface BuildLayout {
      * The settings directory is the directory containing the settings file.
      *
      * @see Settings#getSettingsDir()
+     * @since 8.5
      */
     Directory getSettingsDirectory();
 
@@ -50,6 +51,7 @@ public interface BuildLayout {
      * The root directory is the project directory of the root project.
      *
      * @see Settings#getRootDir()
+     * @since 8.5
      */
     Directory getRootDirectory();
 }

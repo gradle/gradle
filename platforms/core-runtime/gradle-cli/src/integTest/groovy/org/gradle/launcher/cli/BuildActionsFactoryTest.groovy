@@ -39,8 +39,8 @@ import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction
 import org.gradle.launcher.daemon.client.DaemonClient
 import org.gradle.launcher.daemon.client.SingleUseDaemonClient
 import org.gradle.launcher.daemon.configuration.DaemonParameters
-import org.gradle.launcher.daemon.configuration.DaemonPriority
 import org.gradle.launcher.daemon.context.DaemonRequestContext
+import org.gradle.launcher.daemon.startup.DaemonPriority
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria
 import org.gradle.launcher.exec.BuildActionExecutor
 import org.gradle.process.internal.CurrentProcess

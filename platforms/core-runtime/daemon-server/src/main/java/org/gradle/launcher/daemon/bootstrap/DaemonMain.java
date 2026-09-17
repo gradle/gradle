@@ -19,7 +19,6 @@ import com.google.common.io.Files;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.logging.LoggingManagerFactory;
@@ -29,15 +28,11 @@ import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
 import org.gradle.internal.remote.Address;
-import org.gradle.internal.serialize.kryo.KryoBackedDecoder;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.internal.stream.EncodedStream;
 import org.gradle.launcher.bootstrap.EntryPoint;
 import org.gradle.launcher.bootstrap.ExecutionListener;
-import org.gradle.launcher.daemon.configuration.DaemonPriority;
-import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
-import org.gradle.launcher.daemon.configuration.DefaultDaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
+import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.server.Daemon;
 import org.gradle.launcher.daemon.server.DaemonLogFile;
@@ -45,14 +40,14 @@ import org.gradle.launcher.daemon.server.DaemonProcessState;
 import org.gradle.launcher.daemon.server.DaemonStopState;
 import org.gradle.launcher.daemon.server.MasterExpirationStrategy;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
+import org.gradle.launcher.daemon.startup.DaemonServerConfiguration;
+import org.gradle.launcher.daemon.startup.DaemonStartupCommunication;
+import org.gradle.launcher.daemon.startup.DaemonStartupInfo;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
 
 import java.io.ByteArrayInputStream;
-import java.io.EOFException;
 import java.io.File;
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.List;
 
 import static java.nio.file.Files.newOutputStream;
 
@@ -76,18 +71,8 @@ public class DaemonMain extends EntryPoint {
         }
 
         // Read configuration from stdin
-        File gradleHomeDir;
-        DaemonServerConfiguration parameters;
-
-        try {
-            KryoBackedDecoder decoder = new KryoBackedDecoder(new EncodedStream.EncodedInput(System.in));
-            gradleHomeDir = new File(decoder.readString());
-            parameters = readDaemonServerConfiguration(decoder);
-        } catch (EOFException e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
-
-        NativeServices.initializeOnDaemon(gradleHomeDir, NativeServicesMode.fromSystemProperties());
+        DaemonServerConfiguration parameters = DaemonStartupCommunication.readDaemonServerConfiguration(System.in);
+        NativeServices.initializeOnDaemon(parameters.getGradleUserHomeDir(), NativeServicesMode.fromSystemProperties());
         ServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
         LoggingManagerInternal loggingManager = loggingRegistry.get(LoggingManagerFactory.class).createLoggingManager();
 
@@ -121,22 +106,6 @@ public class DaemonMain extends EntryPoint {
         }
     }
 
-    private static DaemonServerConfiguration readDaemonServerConfiguration(KryoBackedDecoder decoder) throws EOFException {
-        File daemonBaseDir = new File(decoder.readString());
-        int idleTimeoutMs = decoder.readSmallInt();
-        int periodicCheckIntervalMs = decoder.readSmallInt();
-        boolean singleUse = decoder.readBoolean();
-        NativeServicesMode nativeServicesMode = NativeServicesMode.values()[decoder.readSmallInt()];
-        String daemonUid = decoder.readString();
-        DaemonPriority priority = DaemonPriority.values()[decoder.readSmallInt()];
-        int argCount = decoder.readSmallInt();
-        List<String> startupJvmOpts = new ArrayList<>(argCount);
-        for (int i = 0; i < argCount; i++) {
-            startupJvmOpts.add(decoder.readString());
-        }
-        return new DefaultDaemonServerConfiguration(daemonUid, daemonBaseDir, idleTimeoutMs, periodicCheckIntervalMs, singleUse, priority, startupJvmOpts, nativeServicesMode);
-    }
-
     private static void invalidArgs() {
         System.out.println("USAGE: <gradle version>");
         System.out.println("Following arguments are required: <gradle-version>");
@@ -145,7 +114,7 @@ public class DaemonMain extends EntryPoint {
 
     protected void daemonStarted(Long pid, String uid, Address address, File daemonLog) {
         // directly printing to the stream to avoid log level filtering.
-        new DaemonStartupCommunication().printDaemonStarted(originalOut, pid, uid, address, daemonLog);
+        DaemonStartupCommunication.writeDaemonStartupInfo(originalOut, new DaemonStartupInfo(uid, address, new DaemonDiagnostics(daemonLog, pid)));
         try {
             originalOut.close();
             originalErr.close();

@@ -41,6 +41,7 @@ public abstract class ResolvableConfigurationsReportTask extends AbstractConfigu
      * Limits the report to a single configuration.
      *
      * @return property holding name of the configuration to report
+     * @since 7.5
      */
     @Input
     @Optional
@@ -51,6 +52,7 @@ public abstract class ResolvableConfigurationsReportTask extends AbstractConfigu
      * Shows all configurations, including legacy and deprecated configurations.
      *
      * @return property holding the flag to show all configurations
+     * @since 7.5
      */
     @Input
     @Optional
@@ -61,6 +63,7 @@ public abstract class ResolvableConfigurationsReportTask extends AbstractConfigu
      * Show all extended configurations, including transitively extended configurations.
      *
      * @return property holding the flag to show all extended configurations
+     * @since 7.5
      */
     @Input
     @Optional

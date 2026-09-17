@@ -48,6 +48,9 @@ dependencies {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.coreApi)
 }
 
 gradleModule {
@@ -73,12 +76,6 @@ sourceSets.main {
     resources.srcDir(files(runtimeApiInfoDir) { builtBy(generateTestKitPackageList) })
 }
 
-packageCycles {
-    excludePatterns.add("org/gradle/testkit/runner/internal/**")
-}
-
 tasks.integMultiVersionTest {
     systemProperty("org.gradle.integtest.testkit.compatibility", "all")
 }
-
-

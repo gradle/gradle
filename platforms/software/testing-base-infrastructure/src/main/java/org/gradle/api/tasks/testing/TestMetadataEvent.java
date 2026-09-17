@@ -23,7 +23,7 @@ import java.time.Instant;
 /**
  * Metadata captured during the execution of a test.
  *
- * @since 9.4.0
+ * @since 8.13
  */
 @NullMarked
 public interface TestMetadataEvent {
@@ -34,6 +34,7 @@ public interface TestMetadataEvent {
      * as environment information that isn't tied to a specific point during test execution.
      *
      * @return log time
+     * @since 8.13
      */
     Instant getLogTime();
 }

@@ -34,6 +34,7 @@ public interface ArtifactResolutionResult {
      *     <li>{@link UnresolvedComponentResult} for any component that could not be resolved from the set of repositories.</li>
      * </ul>
      * @return the set of results for all requested components
+     * @since 2.0
      */
     Set<ComponentResult> getComponents();
 
@@ -43,6 +44,7 @@ public interface ArtifactResolutionResult {
      * <p>Calling this method is the same as calling {@link #getComponents()} and filtering the resulting set for elements of type {@link ComponentArtifactsResult}.
      *
      * @return the set of all successfully resolved components
+     * @since 2.0
      */
     Set<ComponentArtifactsResult> getResolvedComponents();
 }

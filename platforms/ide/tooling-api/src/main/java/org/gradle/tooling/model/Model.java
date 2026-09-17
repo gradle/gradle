@@ -17,11 +17,11 @@
 package org.gradle.tooling.model;
 
 // TODO:ADAM - Deprecate
+// If you add a new Model implementation, please also add it to GradleBuildToolingApiSmokeTest's list.
 /**
  * A model that is buildable by the Tooling API. Models contain various information regarding the build.
  * Models are typically tailored to a specific domain, for example build environment or IDE.
  *
- * @since 1.0-milestone-8
+ * @since 1.0
  */
-// If you add a new Model implementation, please also add it to GradleBuildToolingApiSmokeTest's list.
 public interface Model {}

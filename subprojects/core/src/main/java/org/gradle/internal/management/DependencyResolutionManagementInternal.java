@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.management;
 
-import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement;
 import org.gradle.api.initialization.resolve.RepositoriesMode;
@@ -32,8 +31,6 @@ import java.util.List;
 public interface DependencyResolutionManagementInternal extends DependencyResolutionManagement, FinalizableValue {
 
     void configureProject(ProjectInternal project);
-
-    void applyRules(ComponentMetadataHandler target);
 
     RepositoriesModeInternal getConfiguredRepositoriesMode();
 

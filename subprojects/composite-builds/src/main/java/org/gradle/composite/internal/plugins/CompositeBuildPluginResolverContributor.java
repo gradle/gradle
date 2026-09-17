@@ -16,11 +16,11 @@
 
 package org.gradle.composite.internal.plugins;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.artifacts.DefaultProjectDependencyFactory;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.HoldsProjectState;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
@@ -125,7 +125,7 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
                 return PluginResult.NO_INCLUDED_BUILDS;
             }
             for (IncludedBuildState build : includedBuilds) {
-                PluginResolution pluginResolution = resolvePlugin(requestedPluginId, build.getBuildIdentifier());
+                PluginResolution pluginResolution = resolvePlugin(requestedPluginId, build.getBuildIdentity());
                 if (pluginResolution != null) {
                     return new ResolvedPlugin(pluginResolution);
                 }
@@ -136,7 +136,7 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
         private PluginResolution resolveFromIncludedPluginBuilds(PluginId requestedPluginId) {
             for (IncludedBuildState build : buildIncluder.getRegisteredPluginBuilds()) {
                 buildIncluder.prepareForPluginResolution(build);
-                PluginResolution pluginResolution = resolvePlugin(requestedPluginId, build.getBuildIdentifier());
+                PluginResolution pluginResolution = resolvePlugin(requestedPluginId, build.getBuildIdentity());
                 if (pluginResolution != null) {
                     return pluginResolution;
                 }
@@ -145,7 +145,7 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
         }
 
         @Nullable
-        private PluginResolution resolvePlugin(PluginId requestedPluginId, BuildIdentifier buildIdentity) {
+        private PluginResolution resolvePlugin(PluginId requestedPluginId, BuildIdentity buildIdentity) {
             Collection<ProjectPublicationRegistry.PublicationForProject<PluginPublication>> publicationsForBuild =
                 publicationRegistry.getPublicationsForBuild(PluginPublication.class, buildIdentity);
 

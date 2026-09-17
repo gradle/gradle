@@ -95,6 +95,14 @@ class ApacheDirectoryListingParserTest extends Specification {
         uris.collect { it.toString() } == ["\u0321\u0322"]
     }
 
+    def "parse handles a listing served with a byte order mark"() {
+        def html = "\uFEFF<a href=\"directory1\">directory1</a>"
+
+        expect:
+        def uris = parser.parse(baseUrl, new ByteArrayInputStream(html.getBytes("utf-8")), CONTENT_TYPE)
+        uris.collect { it.toString() } == ["directory1"]
+    }
+
     def "parse ignores #descr"() {
         expect:
         parser.parse(baseUrl, new ByteArrayInputStream(href.bytes), CONTENT_TYPE).isEmpty()

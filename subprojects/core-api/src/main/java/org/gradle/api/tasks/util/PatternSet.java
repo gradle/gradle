@@ -38,6 +38,7 @@ import java.util.Set;
 
 /**
  * Standalone implementation of {@link PatternFilterable}.
+ * @since 0.7
  */
 @NotToBeMigratedToLazy
 public class PatternSet implements AntBuilderAware, PatternFilterable {
@@ -51,14 +52,29 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     private Set<Spec<FileTreeElement>> excludeSpecs;
     private boolean caseSensitive = true;
 
+    /**
+     * Creates a new {@code PatternSet}.
+     *
+     * @since 0.7
+     */
     public PatternSet() {
         this(PatternSpecFactory.INSTANCE);
     }
 
+    /**
+     * Creates a new {@code PatternSet}.
+     *
+     * @since 2.11
+     */
     protected PatternSet(PatternSet patternSet) {
         this(patternSet.patternSpecFactory);
     }
 
+    /**
+     * Creates a new {@code PatternSet}.
+     *
+     * @since 2.11
+     */
     protected PatternSet(PatternSpecFactory patternSpecFactory) {
         this.patternSpecFactory = patternSpecFactory;
     }
@@ -111,10 +127,20 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         return set == null ? Collections.emptySet() : set;
     }
 
+    /**
+     * Copy.
+     *
+     * @since 0.8
+     */
     public PatternSet copyFrom(PatternFilterable sourcePattern) {
         return doCopyFrom((PatternSet) sourcePattern);
     }
 
+    /**
+     * Do copy.
+     *
+     * @since 2.5
+     */
     protected PatternSet doCopyFrom(PatternSet from) {
         caseSensitive = from.caseSensitive;
 
@@ -143,6 +169,11 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         target.excludeSpecs = from.excludeSpecs == null ? null : Sets.newLinkedHashSet(from.excludeSpecs);
     }
 
+    /**
+     * Intersect.
+     *
+     * @since 0.8
+     */
     public PatternSet intersect() {
         if (isEmpty()) {
             return new PatternSet(this.patternSpecFactory);
@@ -158,6 +189,7 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
      * in this case.
      *
      * @return true when no includes or excludes have been added to this instance
+     * @since 2.13
      */
     public boolean isEmpty() {
         return (includes == null || includes.isEmpty())
@@ -166,14 +198,29 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
             && (excludeSpecs == null || excludeSpecs.isEmpty());
     }
 
+    /**
+     * Returns the as spec.
+     *
+     * @since 0.8
+     */
     public Spec<FileTreeElement> getAsSpec() {
         return patternSpecFactory.createSpec(this);
     }
 
+    /**
+     * Returns the as include spec.
+     *
+     * @since 1.4
+     */
     public Spec<FileTreeElement> getAsIncludeSpec() {
         return patternSpecFactory.createIncludeSpec(this);
     }
 
+    /**
+     * Returns the as exclude spec.
+     *
+     * @since 1.4
+     */
     public Spec<FileTreeElement> getAsExcludeSpec() {
         return patternSpecFactory.createExcludeSpec(this);
     }
@@ -212,6 +259,11 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         return nullToEmptyAndUnmodifiableSet(includeSpecs);
     }
 
+    /**
+     * Returns the include specs.
+     *
+     * @since 0.9
+     */
     public Set<Spec<FileTreeElement>> getIncludeSpecs() {
         if (includeSpecs == null) {
             includeSpecs = new LinkedHashSet<>();
@@ -279,6 +331,11 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         return nullToEmptyAndUnmodifiableSet(excludeSpecs);
     }
 
+    /**
+     * Returns the exclude specs.
+     *
+     * @since 0.9
+     */
     public Set<Spec<FileTreeElement>> getExcludeSpecs() {
         if (excludeSpecs == null) {
             excludeSpecs = new LinkedHashSet<>();
@@ -293,16 +350,31 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
     }
 
 
+    /**
+     * Returns whether case sensitive is set.
+     *
+     * @since 0.8
+     */
     public boolean isCaseSensitive() {
         return caseSensitive;
     }
 
+    /**
+     * Sets the case sensitive.
+     *
+     * @since 0.8
+     */
     public void setCaseSensitive(boolean caseSensitive) {
         this.caseSensitive = caseSensitive;
     }
 
     /*
     This can't be called just include, because it has the same erasure as include(Iterable<String>).
+     */
+    /**
+     * Include specs.
+     *
+     * @since 0.9
      */
     public PatternSet includeSpecs(Iterable<Spec<FileTreeElement>> includeSpecs) {
         CollectionUtils.addAll(getIncludeSpecs(), includeSpecs);
@@ -335,6 +407,11 @@ public class PatternSet implements AntBuilderAware, PatternFilterable {
         return this;
     }
 
+    /**
+     * Exclude specs.
+     *
+     * @since 0.9
+     */
     public PatternSet excludeSpecs(Iterable<Spec<FileTreeElement>> excludes) {
         CollectionUtils.addAll(getExcludeSpecs(), excludes);
         return this;

@@ -21,11 +21,8 @@ import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.project.IsolatedProject;
 import org.gradle.internal.build.BuildState;
-import org.gradle.internal.model.CalculatedModelValue;
-import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.StateTransitionControllerFactory;
 import org.gradle.internal.project.ImmutableProjectDescriptor;
-import org.gradle.internal.resources.ProjectLeaseRegistry;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -35,11 +32,11 @@ import org.jspecify.annotations.Nullable;
 import java.io.Closeable;
 import java.io.File;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.concurrent.CopyOnWriteArraySet;
-import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Consumer;
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -54,7 +51,6 @@ class DefaultProjectState implements ProjectState, Closeable {
     private final WorkerLeaseService workerLeaseService;
     private final ProjectStateLookup projectStateLookup;
 
-    private final ResourceLock allProjectsLock;
     private final ResourceLock projectLock;
     private final ResourceLock taskLock;
 
@@ -76,7 +72,6 @@ class DefaultProjectState implements ProjectState, Closeable {
         this.controller = new ProjectLifecycleController(getDisplayName(), stateTransitionControllerFactory, this::withProjectLock, buildServices);
         this.workerLeaseService = workerLeaseService;
         this.projectStateLookup = projectStateLookup;
-        this.allProjectsLock = workerLeaseService.getAllProjectsLock(owner.getIdentityPath());
         this.projectLock = workerLeaseService.getProjectLock(owner.getIdentityPath(), identity.getBuildTreePath());
         this.taskLock = workerLeaseService.getTaskExecutionLock(owner.getIdentityPath(), identity.getBuildTreePath());
     }
@@ -242,24 +237,15 @@ class DefaultProjectState implements ProjectState, Closeable {
 
     @Override
     public <S extends @Nullable Object> S runWithModelLock(Supplier<S> action) {
-        Thread currentThread = Thread.currentThread();
-        if (workerLeaseService.isAllowedUncontrolledAccessToAnyProject() || canDoAnythingToThisProject.contains(currentThread)) {
+        if (canDoAnythingToThisProject.contains(Thread.currentThread())) {
             // Current thread is allowed to access anything at any time, so run the action
             return action.get();
         }
-
-        Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
-        if (currentLocks.contains(projectLock) || currentLocks.contains(allProjectsLock)) {
-            // if we already hold the project lock for this project
-            if (currentLocks.size() == 1) {
-                // the lock for this project is the only lock we hold, can run the action
-                return action.get();
-            } else {
-                throw new IllegalStateException("Current thread holds more than one project lock. It should hold only one project lock at any given time.");
-            }
-        } else {
-            return workerLeaseService.withReplacedLocks(currentLocks, projectLock, action::get);
+        if (workerLeaseService.holdsProjectLock(projectLock)) {
+            // We're already holding the lock for this project.
+            return action.get();
         }
+        return workerLeaseService.withReplacedLocks(workerLeaseService.getCurrentProjectLocks(), Collections.singletonList(projectLock), action::get);
     }
 
     @Override
@@ -277,17 +263,8 @@ class DefaultProjectState implements ProjectState, Closeable {
 
     @Override
     public boolean hasMutableState() {
-        Thread currentThread = Thread.currentThread();
-        if (canDoAnythingToThisProject.contains(currentThread) || workerLeaseService.isAllowedUncontrolledAccessToAnyProject()) {
-            return true;
-        }
-        Collection<? extends ResourceLock> locks = workerLeaseService.getCurrentProjectLocks();
-        return locks.contains(projectLock) || locks.contains(allProjectsLock);
-    }
-
-    @Override
-    public <T> CalculatedModelValue<T> newCalculatedValue(@Nullable T initialValue) {
-        return new CalculatedModelValueImpl<>(this, workerLeaseService, initialValue);
+        return canDoAnythingToThisProject.contains(Thread.currentThread())
+            || workerLeaseService.holdsProjectLock(projectLock);
     }
 
     @Override
@@ -295,74 +272,4 @@ class DefaultProjectState implements ProjectState, Closeable {
         controller.close();
     }
 
-    private static class CalculatedModelValueImpl<T> implements CalculatedModelValue<T> {
-        private final ProjectLeaseRegistry projectLeaseRegistry;
-        private final ModelContainer<?> owner;
-        private final ReentrantLock lock = new ReentrantLock();
-        private volatile @Nullable T value;
-
-        public CalculatedModelValueImpl(DefaultProjectState owner, WorkerLeaseService projectLeaseRegistry, @Nullable T initialValue) {
-            this.projectLeaseRegistry = projectLeaseRegistry;
-            this.value = initialValue;
-            this.owner = owner;
-        }
-
-        @Override
-        public T get() throws IllegalStateException {
-            T currentValue = getOrNull();
-            if (currentValue == null) {
-                throw new IllegalStateException("No calculated value is available for " + owner);
-            }
-            return currentValue;
-        }
-
-        @Override
-        public @Nullable T getOrNull() {
-            // Grab the current value, ignore updates that may be happening
-            return value;
-        }
-
-        @Override
-        public void set(T newValue) {
-            assertCanMutate();
-            value = newValue;
-        }
-
-        @Override
-        public T update(Function<T, T> updateFunction) {
-            acquireUpdateLock();
-            try {
-                T newValue = updateFunction.apply(value);
-                value = newValue;
-                return newValue;
-            } finally {
-                releaseUpdateLock();
-            }
-        }
-
-        private void acquireUpdateLock() {
-            // It's important that we do not block waiting for the lock while holding the project mutation lock.
-            // Doing so can lead to deadlocks.
-
-            assertCanMutate();
-
-            if (lock.tryLock()) {
-                // Update lock was not contended, can keep holding the project locks
-                return;
-            }
-
-            // Another thread holds the update lock, release the project locks and wait for the other thread to finish the update
-            projectLeaseRegistry.blocking(lock::lock);
-        }
-
-        private void assertCanMutate() {
-            if (!owner.hasMutableState()) {
-                throw new IllegalStateException("Current thread does not hold the state lock for " + owner);
-            }
-        }
-
-        private void releaseUpdateLock() {
-            lock.unlock();
-        }
-    }
 }

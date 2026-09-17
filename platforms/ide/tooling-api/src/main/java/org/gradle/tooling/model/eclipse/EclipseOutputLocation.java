@@ -27,6 +27,7 @@ public interface EclipseOutputLocation {
      * Returns the project-relative path to the output location.
      *
      * @return The path to the output location. Does not return null.
+     * @since 3.0
      */
     String getPath();
 }

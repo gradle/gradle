@@ -17,6 +17,8 @@
 package org.gradle.internal.cc.impl.serialize
 
 import org.gradle.api.internal.initialization.ClassLoaderScope
+import org.gradle.api.internal.initialization.transform.ClassLoadTimeInstrumentationComposer
+import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.instantiation.DeserializationInstantiator
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.graph.ClassDecoder
@@ -30,6 +32,7 @@ internal
 class DefaultClassDecoder(
     private val defaultClassLoaderScope: ClassLoaderScope,
     private val instantiator: DeserializationInstantiator,
+    private val instrumentationComposer: ClassLoadTimeInstrumentationComposer,
     private val scopeSpecDecoder: ClassLoaderScopeSpecDecoder = InlineClassLoaderScopeSpecDecoder()
 ) : ClassDecoder {
 
@@ -93,19 +96,29 @@ class DefaultClassDecoder(
             parent.createLockedChild(
                 spec.name,
                 spec.origin,
-                spec.localClassPath,
+                composeInstrumentation(spec.localClassPath),
                 spec.localImplementationHash,
                 null
             )
         } else {
             parent
                 .createChild(spec.name, spec.origin)
-                .local(spec.localClassPath)
-                .export(spec.exportClassPath)
+                .local(composeInstrumentation(spec.localClassPath))
+                .export(composeInstrumentation(spec.exportClassPath))
                 .lock()
         }
 
         scopeBySpec.put(spec, newScope)
         return newScope
     }
+
+    /**
+     * Wires the transformation pipeline to the classpath if a third-party agent is applied,
+     * so Gradle can re-run the transform when the other agent modifies the classes at runtime.
+     *
+     * @see org.gradle.api.internal.initialization.DefaultScriptClassPathResolver
+     */
+    private
+    fun composeInstrumentation(classPath: ClassPath): ClassPath =
+        instrumentationComposer.composeWithThirdPartyAgentIfPresent(classPath)
 }

@@ -20,6 +20,7 @@ import org.gradle.declarative.dsl.model.annotations.internal.DeclarativeWithHidd
 
 /**
  * <p>A {@code ExternalModuleDependency} is a {@link Dependency} on a module outside the current project hierarchy.</p>
+ * @since 0.7
  */
 @DeclarativeWithHiddenMembers
 public interface ExternalModuleDependency extends ExternalDependency {
@@ -27,6 +28,7 @@ public interface ExternalModuleDependency extends ExternalDependency {
      * Indicates that the given dependency can have different content for the same identifier.
      *
      * @see #setChanging(boolean)
+     * @since 0.7
      */
     @HiddenInDefinition
     boolean isChanging();
@@ -39,6 +41,7 @@ public interface ExternalModuleDependency extends ExternalDependency {
      * @param changing if true, the dependency is considered changing and Gradle should
      * check for a change in the remote repository, even if a local entry exists.
      * @return this
+     * @since 0.7
      */
     @HiddenInDefinition
     ExternalModuleDependency setChanging(boolean changing);

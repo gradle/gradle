@@ -66,10 +66,3 @@ gradleModule {
 strictCompile {
     ignoreRawTypes()
 }
-
-packageCycles {
-    excludePatterns.add("org/gradle/internal/jacoco/*")
-    excludePatterns.add("org/gradle/testing/jacoco/plugins/*")
-}
-
-

@@ -30,6 +30,7 @@ public interface TestingExtension {
      * Available test suites in this project.
      *
      * The type of test suites available depend on which other plugins are applied.
+     * @since 7.3
      */
     ExtensiblePolymorphicDomainObjectContainer<TestSuite> getSuites();
 }

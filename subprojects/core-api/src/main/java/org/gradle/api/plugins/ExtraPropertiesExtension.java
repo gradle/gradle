@@ -30,6 +30,14 @@ import java.util.Map;
  * <p>
  * An important feature of extra properties extensions is that all of its properties are exposed for reading and writing via the {@link ExtensionAware}
  * object that owns the extension.
+ * <p>
+ * A project's extra properties also contain Gradle properties loaded for that project that are not mapped directly to a
+ * {@code Project} property. A value added explicitly with {@link #set(String, Object)} takes precedence over a Gradle
+ * property with the same name. Accessing the extra properties extension only searches this map; unlike
+ * {@link org.gradle.api.Project#findProperty(String)}, it does not search the project's own properties, extensions,
+ * tasks, or ancestor projects.
+ * See the <a href="https://docs.gradle.org/current/userguide/build_environment.html#sec:project_properties">
+ * project properties documentation</a> for the precedence of Gradle property sources.
  *
  * <pre class='autoTested'>
  * project.ext.set("myProp", "myValue")
@@ -68,11 +76,13 @@ import java.util.Map;
  * Groovy syntax is used or not. If Groovy property syntax is used, the Groovy {@link groovy.lang.MissingPropertyException} will be thrown.
  * When the {@link #get(String)} method is used, an {@link UnknownPropertyException} will be thrown.
  *
+ * @since 1.0
  */
 public interface ExtraPropertiesExtension {
 
     /**
      * The name of this extension in all {@link ExtensionContainer ExtensionContainers}, {@value}.
+     * @since 1.0
      */
     String EXTENSION_NAME = "ext";
 
@@ -91,6 +101,7 @@ public interface ExtraPropertiesExtension {
      *
      * @param name The name of the property to check for
      * @return {@code true} if a property has been registered with this name, otherwise {@code false}.
+     * @since 1.0
      */
     boolean has(String name);
 
@@ -118,6 +129,7 @@ public interface ExtraPropertiesExtension {
      * @param name The name of the property to get the value of
      * @return The value for the property with the given name.
      * @throws UnknownPropertyException if there is no property registered with the given name
+     * @since 1.0
      */
     @Nullable
     Object get(String name) throws UnknownPropertyException;
@@ -140,6 +152,7 @@ public interface ExtraPropertiesExtension {
      *
      * @param name The name of the property to update the value of or create
      * @param value The value to set for the property
+     * @since 1.0
      */
     void set(String name, @Nullable Object value);
 
@@ -164,17 +177,29 @@ public interface ExtraPropertiesExtension {
      * </pre>
      *
      * @return All of the registered properties and their current values as a map.
+     * @since 1.0
      */
     Map<String, Object> getProperties();
 
     /**
      * The exception that will be thrown when an attempt is made to read a property that is not set.
+     * @since 1.0
      */
     class UnknownPropertyException extends InvalidUserDataException {
+        /**
+         * Creates a new {@code UnknownPropertyException}.
+         *
+         * @since 1.0
+         */
         public UnknownPropertyException(ExtraPropertiesExtension extension, String propertyName) {
             super(createMessage(propertyName));
         }
 
+        /**
+         * Create message.
+         *
+         * @since 2.14
+         */
         public static String createMessage(String propertyName) {
             return String.format("Cannot get property '%s' on extra properties extension as it does not exist", propertyName);
         }

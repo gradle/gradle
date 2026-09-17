@@ -29,16 +29,19 @@ import org.gradle.nativeplatform.tasks.InstallExecutable;
 public interface ComponentWithInstallation extends ComponentWithNativeRuntime {
     /**
      * Returns the runtime libraries required for the installation. Includes the runtime libraries of the component's dependencies.
+     * @since 4.5
      */
     FileCollection getRuntimeLibraries();
 
     /**
      * Returns the installation directory.
+     * @since 4.5
      */
     Provider<Directory> getInstallDirectory();
 
     /**
      * Returns the install task.
+     * @since 4.5
      */
     Provider<? extends InstallExecutable> getInstallTask();
 }

@@ -29,6 +29,7 @@ import org.jspecify.annotations.NullMarked;
 
 /**
  * A {@link Plugin} which makes the <a href="http://clang.llvm.org">Clang</a> compiler available for compiling C/C++ code.
+ * @since 2.2
  */
 @Incubating
 @NullMarked

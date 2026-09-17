@@ -73,7 +73,11 @@ public class ModuleResolveState implements CandidateModule {
     private SelectorStateResolver<ComponentState> selectorStateResolver;
     private final PendingDependencies pendingDependencies;
     private @Nullable ComponentState selected;
-    private ImmutableAttributes mergedConstraintAttributes = ImmutableAttributes.EMPTY;
+    /**
+     * The merged attributes of all component selectors that are currently used by at least
+     * one constraint edge. Null when invalidated. Recomputed on demand.
+     */
+    private @Nullable ImmutableAttributes mergedConstraintAttributes = ImmutableAttributes.EMPTY;
     private @Nullable AttributeMergingException attributeMergingError;
     private @Nullable VirtualPlatformState platformState;
     private boolean overriddenSelection;
@@ -259,7 +263,7 @@ public class ModuleResolveState implements CandidateModule {
 
         if (oldSelected != null && oldSelected != newSelection) {
             for (NodeState node : oldSelected.getNodes()) {
-                node.maybeResolveReplacement().restartIncomingEdges();
+                node.maybeResolveCapabilityReplacement().restartIncomingEdges();
             }
         }
         for (SelectorState selector : selectors) {
@@ -316,7 +320,6 @@ public class ModuleResolveState implements CandidateModule {
 
     void addSelector(SelectorState selector, boolean deferSelection) {
         selectors.add(selector, deferSelection);
-        mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selector);
         if (overriddenSelection) {
             assert selected != null : "An overridden module cannot have selected == null";
             selector.overrideSelection(selected);
@@ -325,10 +328,6 @@ public class ModuleResolveState implements CandidateModule {
 
     void removeSelector(SelectorState selector) {
         selectors.remove(selector);
-        mergedConstraintAttributes = ImmutableAttributes.EMPTY;
-        for (SelectorState selectorState : selectors) {
-            mergedConstraintAttributes = appendAttributes(mergedConstraintAttributes, selectorState);
-        }
     }
 
     public ModuleSelectors<SelectorState> getSelectors() {
@@ -340,18 +339,34 @@ public class ModuleResolveState implements CandidateModule {
     }
 
     ImmutableAttributes getMergedConstraintAttributes() {
+        if (mergedConstraintAttributes == null) {
+            ImmutableAttributes merged = ImmutableAttributes.EMPTY;
+            for (SelectorState selectorState : selectors) {
+                merged = appendConstraintAttributes(merged, selectorState);
+            }
+            mergedConstraintAttributes = merged;
+        }
         if (attributeMergingError != null) {
             throw new IncompatibleDependencyAttributesException(this, attributeMergingError);
         }
         return mergedConstraintAttributes;
     }
 
-    private ImmutableAttributes appendAttributes(ImmutableAttributes dependencyAttributes, SelectorState selectorState) {
+    /**
+     * Invalidate the merged constraint attributes, for example, when a selector starts or
+     * stops being used by constraint edges.
+     */
+    // TODO: The merged constraint attributes feed back into the resolution of this module's
+    //  selectors. When the merged attributes change, any existing resolution of this module's
+    //  selectors is potentially stale and should be invalidated as well.
+    void invalidateMergedConstraintAttributes() {
+        mergedConstraintAttributes = null;
+    }
+
+    private ImmutableAttributes appendConstraintAttributes(ImmutableAttributes dependencyAttributes, SelectorState selectorState) {
         try {
-            DependencyMetadata dependencyMetadata = selectorState.getDependencyMetadata();
-            boolean constraint = dependencyMetadata.isConstraint();
-            if (constraint) {
-                ComponentSelector selector = dependencyMetadata.getSelector();
+            if (selectorState.isUsedByConstraint()) {
+                ComponentSelector selector = selectorState.getComponentSelector();
                 ImmutableAttributes attributes = ((AttributeContainerInternal) selector.getAttributes()).asImmutable();
                 dependencyAttributes = attributesFactory.safeConcat(attributes, dependencyAttributes);
             }

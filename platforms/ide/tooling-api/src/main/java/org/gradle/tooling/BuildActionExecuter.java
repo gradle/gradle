@@ -44,6 +44,7 @@ public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildAction
          * @param <T> The returning type of the action.
          * @return The builder.
          * @throws IllegalArgumentException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
+         * @since 4.8
          */
         <T> Builder projectsLoaded(BuildAction<T> buildAction, IntermediateResultHandler<? super T> handler) throws IllegalArgumentException;
 
@@ -57,6 +58,7 @@ public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildAction
          * @param <T> The returning type of the action.
          * @return The builder.
          * @throws IllegalArgumentException If an action has already been added to this build phase. Multiple actions per phase are not supported yet.
+         * @since 4.8
          */
         <T> Builder buildFinished(BuildAction<T> buildAction, IntermediateResultHandler<? super T> handler) throws IllegalArgumentException;
 
@@ -64,6 +66,7 @@ public interface BuildActionExecuter<T> extends ConfigurableLauncher<BuildAction
          * Builds the executer from the added actions.
          *
          * @return The executer.
+         * @since 4.8
          */
         BuildActionExecuter<Void> build();
     }

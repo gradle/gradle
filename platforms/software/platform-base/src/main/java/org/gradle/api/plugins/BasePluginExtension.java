@@ -29,6 +29,7 @@ public interface BasePluginExtension {
      * Returns the directory to generate TAR and ZIP archives into.
      *
      * @return The directory. Never returns null.
+     * @since 7.1
      */
     DirectoryProperty getDistsDirectory();
 
@@ -36,11 +37,13 @@ public interface BasePluginExtension {
      * Returns the directory to generate JAR and WAR archives into.
      *
      * @return The directory. Never returns null.
+     * @since 7.1
      */
     DirectoryProperty getLibsDirectory();
 
     /**
      * The base name to use for archive files.
+     * @since 7.1
      */
     Property<String> getArchivesName();
 }

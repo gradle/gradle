@@ -32,7 +32,6 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
 
             configurations {
                 sample {
-                    visible = false
                     canBeResolved = false
                     assert canBeConsumed
 
@@ -68,7 +67,6 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
 
             configurations {
                 sample {
-                    visible = false
                     canBeResolved = false
                     assert canBeConsumed
                     extendsFrom(configurations.implementation)
@@ -95,7 +93,6 @@ class LazyAttributesIntegrationTest extends AbstractIntegrationSpec {
 
             configurations {
                 sample {
-                    visible = false
                     canBeResolved = false
                     assert canBeConsumed
                     extendsFrom(configurations.implementation)

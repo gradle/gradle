@@ -29,6 +29,7 @@ public interface ClasspathAttribute {
      * Returns the key of this attribute.
      *
      * @return The key of this attribute.
+     * @since 2.14
      */
     String getName();
 
@@ -36,6 +37,7 @@ public interface ClasspathAttribute {
      * Returns the value of this attribute.
      *
      * @return The value of this classpath attribute.
+     * @since 2.14
      */
     String getValue();
 

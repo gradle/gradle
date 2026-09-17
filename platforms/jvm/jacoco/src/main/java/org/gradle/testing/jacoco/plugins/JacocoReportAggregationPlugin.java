@@ -57,6 +57,11 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 @Incubating
 public abstract class JacocoReportAggregationPlugin implements Plugin<Project> {
 
+    /**
+     * The jacoco aggregation configuration name.
+     *
+     * @since 7.4
+     */
     public static final String JACOCO_AGGREGATION_CONFIGURATION_NAME = "jacocoAggregation";
 
     @Inject

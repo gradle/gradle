@@ -40,9 +40,9 @@ class DefaultProjectDependencyTest extends Specification {
 
     def setup() {
         def project = Mock(ProjectInternal) {
+            getName() >> projectState.identity.projectName
             getGroup() >> "org.gradle"
             getVersion() >> "1.2"
-            getOwner() >> projectState
         }
         projectState.getMutableModel() >> project
 

@@ -84,6 +84,13 @@ configurations {
 val myAttribute = Attribute.of("my.attribute.name", String::class.java)
 // An attribute of type `Usage`
 val myUsage = Attribute.of("my.usage.attribute", Usage::class.java)
+// An attribute of an `Enum` type that implements `Named` (plain enums are not supported)
+enum class MyEnum : Named {
+    FOO, BAR;
+
+    override fun getName(): String = name
+}
+val myEnumAttribute = Attribute.of("my.enum.attribute", MyEnum::class.java)
 // end::define_attribute[]
 
 // tag::register-attributes[]

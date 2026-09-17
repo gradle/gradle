@@ -42,6 +42,7 @@ public interface Directory extends FileSystemLocation {
 
     /**
      * Returns a {@link FileTree} that allows the files and directories contained in this directory to be queried.
+     * @since 4.1
      */
     @HiddenInDefinition
     FileTree getAsFileTree();
@@ -51,6 +52,7 @@ public interface Directory extends FileSystemLocation {
      *
      * @param path The path. Can be absolute.
      * @return The directory.
+     * @since 4.1
      */
     Directory dir(String path);
 
@@ -61,6 +63,7 @@ public interface Directory extends FileSystemLocation {
      *
      * @param path The path provider. Can have value that is an absolute path.
      * @return The provider.
+     * @since 4.1
      */
     @HiddenInDefinition
     Provider<Directory> dir(Provider<? extends CharSequence> path);
@@ -70,6 +73,7 @@ public interface Directory extends FileSystemLocation {
      *
      * @param path The path. Can be absolute.
      * @return The file.
+     * @since 4.1
      */
     RegularFile file(String path);
 
@@ -80,6 +84,7 @@ public interface Directory extends FileSystemLocation {
      *
      * @param path The path provider. Can have value that is an absolute path.
      * @return The file.
+     * @since 4.1
      */
     @HiddenInDefinition
     Provider<RegularFile> file(Provider<? extends CharSequence> path);

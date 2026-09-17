@@ -440,6 +440,9 @@ Could not resolve: myGroup:missing-extra-artifact:1.0
     void canCustomizeTheClasspathModel() {
         //when
         expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.api.XmlFileContentMerger.withXml"): 1,
+        )
         runEclipseTask """
             apply plugin: 'java'
             apply plugin: 'eclipse'

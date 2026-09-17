@@ -65,6 +65,11 @@ import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegra
  */
 public abstract class MavenPublishPlugin implements Plugin<Project> {
 
+    /**
+     * The publish local lifecycle task name.
+     *
+     * @since 1.4
+     */
     public static final String PUBLISH_LOCAL_LIFECYCLE_TASK_NAME = "publishToMavenLocal";
 
     private final InstantiatorFactory instantiatorFactory;
@@ -189,7 +194,10 @@ public abstract class MavenPublishPlugin implements Plugin<Project> {
                 buildDir.file("publications/" + publication.getName() + "/pom-default.xml")
             );
         });
-        publication.setPomGenerator(generatorTask);
+        publication.setPomGenerator(
+            generatorTask.flatMap(GenerateMavenPom::getDestinationFile),
+            generatorTask.map(GenerateMavenPom::getEnabled)
+        );
     }
 
     private void createGenerateMetadataTask(final TaskContainer tasks, final MavenPublicationInternal publication, final Set<? extends MavenPublicationInternal> publications, final DirectoryProperty buildDir) {

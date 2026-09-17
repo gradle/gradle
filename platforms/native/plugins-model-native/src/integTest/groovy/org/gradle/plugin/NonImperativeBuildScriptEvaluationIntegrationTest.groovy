@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class NonImperativeBuildScriptEvaluationIntegrationTest extends AbstractIntegrationSpec {
 
     def "all non-imperative script plugins applied to a project get evaluated"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         file("scriptPlugin1.gradle") << """
             model {

@@ -16,8 +16,7 @@
 
 package org.gradle.ide.visualstudio.internal;
 
-import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.TaskDependencyUtil;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.plugins.ide.internal.IdeProjectMetadata;
@@ -25,9 +24,9 @@ import org.gradle.util.internal.CollectionUtils;
 
 import java.io.File;
 import java.util.List;
-import java.util.Set;
 
 public class VisualStudioProjectMetadata implements IdeProjectMetadata {
+
     private final DefaultVisualStudioProject project;
 
     public VisualStudioProjectMetadata(DefaultVisualStudioProject project) {
@@ -49,8 +48,8 @@ public class VisualStudioProjectMetadata implements IdeProjectMetadata {
     }
 
     @Override
-    public Set<? extends Task> getGeneratorTasks() {
-        return TaskDependencyUtil.getDependenciesForInternalUse(project);
+    public void visitDependencies(TaskDependencyResolveContext context) {
+        context.add(project.getBuildDependencies());
     }
 
     public List<VisualStudioProjectConfigurationMetadata> getConfigurations() {
@@ -59,4 +58,5 @@ public class VisualStudioProjectMetadata implements IdeProjectMetadata {
             configuration -> new VisualStudioProjectConfigurationMetadata(configuration.getName(), configuration.isBuildable())
         );
     }
+
 }

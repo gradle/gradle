@@ -22,12 +22,14 @@ import java.util.Set;
  * A set of domain objects of type T.
  *
  * @param <T> The type of objects in this collection.
+ * @since 0.9.2
  */
 public interface DomainObjectSet<T> extends Set<T> {
     /**
      * Returns the elements of this set in the set's iteration order.
      *
      * @return The elements of this set in the set's iteration order.
+     * @since 0.9.2
      */
     List<T> getAll();
 
@@ -36,6 +38,7 @@ public interface DomainObjectSet<T> extends Set<T> {
      *
      * @param index The index of the element to get.
      * @return The element at the given index according to the set's iteration order.
+     * @since 0.9.2
      */
     T getAt(int index) throws IndexOutOfBoundsException;
 }

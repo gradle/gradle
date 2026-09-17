@@ -34,8 +34,18 @@ import java.util.TreeSet;
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class ProjectBasedReportTask extends ConventionReportTask {
 
+    /**
+     * Generate.
+     *
+     * @since 6.8
+     */
     protected abstract void generate(Project project) throws IOException;
 
+    /**
+     * Generate.
+     *
+     * @since 6.8
+     */
     @TaskAction
     public void generate() {
         reportGenerator().generateReport(

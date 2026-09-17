@@ -46,6 +46,8 @@ class DeprecationsCrossVersionSpec extends ToolingApiSpecification {
     def "resolving configuration from a project other than its target fails in newer Gradle versions"() {
         given:
         setupBuild()
+        // The build enables --parallel without an explicit org.gradle.tooling.parallel, which is deprecated.
+        expectImplicitParallelModelBuildingDeprecation()
 
         when:
         fails { connection ->

@@ -34,6 +34,11 @@ public abstract class PluginDeclaration implements Named {
     private String displayName;
     private String description;
 
+    /**
+     * Creates a new {@code PluginDeclaration}.
+     *
+     * @since 2.14
+     */
     public PluginDeclaration(String name) {
         this.name = name;
     }
@@ -44,20 +49,40 @@ public abstract class PluginDeclaration implements Named {
         return name;
     }
 
+    /**
+     * Returns the id.
+     *
+     * @since 2.14
+     */
     @ToBeReplacedByLazyProperty
     public String getId() {
         return id;
     }
 
+    /**
+     * Sets the id.
+     *
+     * @since 2.14
+     */
     public void setId(String id) {
         this.id = id;
     }
 
+    /**
+     * Returns the implementation class.
+     *
+     * @since 2.14
+     */
     @ToBeReplacedByLazyProperty
     public String getImplementationClass() {
         return implementationClass;
     }
 
+    /**
+     * Sets the implementation class.
+     *
+     * @since 2.14
+     */
     public void setImplementationClass(String implementationClass) {
         this.implementationClass = implementationClass;
     }

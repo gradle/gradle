@@ -28,16 +28,26 @@ import org.gradle.kotlin.dsl.support.delegates.ArtifactHandlerDelegate
  * Receiver for `artifacts` block providing convenient utilities for configuring artifacts.
  *
  * @see ArtifactHandler
+ *
+ * @since 5.1
  */
 class ArtifactHandlerScope
 private constructor(
+    /**
+     * @since 5.1
+     */
     val artifacts: ArtifactHandler
 ) : ArtifactHandlerDelegate() {
 
+    /**
+     * @since 5.1
+     */
     companion object {
         /**
          * Creates an [ArtifactHandlerScope] with the given [artifacts]
          * @param artifacts the underlying [ArtifactHandler]
+         *
+         * @since 5.1
          */
         fun of(artifacts: ArtifactHandler) =
             ArtifactHandlerScope(artifacts)
@@ -52,6 +62,8 @@ private constructor(
      * @param artifactNotation notation of the artifact to add.
      * @return The artifact.
      * @see [ArtifactHandler.add]
+     *
+     * @since 5.1
      */
     operator fun String.invoke(artifactNotation: Any): PublishArtifact =
         artifacts.add(this, artifactNotation)
@@ -63,6 +75,8 @@ private constructor(
      * @param configureAction the action to execute to configure the artifact.
      * @return The artifact.
      * @see [ArtifactHandler.add]
+     *
+     * @since 5.1
      */
     operator fun String.invoke(artifactNotation: Any, configureAction: ConfigurablePublishArtifact.() -> Unit): PublishArtifact =
         artifacts.add(this, artifactNotation, configureAction)
@@ -73,6 +87,8 @@ private constructor(
      * @param artifactNotation notation of the artifact to add.
      * @return The artifact.
      * @see [ArtifactHandler.add]
+     *
+     * @since 5.1
      */
     operator fun Configuration.invoke(artifactNotation: Any): PublishArtifact =
         add(name, artifactNotation)
@@ -85,6 +101,8 @@ private constructor(
      * @param configureAction the action to execute to configure the artifact.
      * @return The artifact.
      * @see [ArtifactHandler.add]
+     *
+     * @since 5.1
      */
     operator fun Configuration.invoke(artifactNotation: Any, configureAction: ConfigurablePublishArtifact.() -> Unit): PublishArtifact =
         add(name, artifactNotation, configureAction)
@@ -92,6 +110,8 @@ private constructor(
 
     /**
      * Configures the artifacts.
+     *
+     * @since 5.1
      */
     inline operator fun invoke(configuration: ArtifactHandlerScope.() -> Unit) =
         run(configuration)

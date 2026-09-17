@@ -25,6 +25,7 @@ import java.util.Collection;
  * A source set that depends on one or more {@link org.gradle.nativeplatform.NativeDependencySet}s to be built.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating
 @HasInternalProtocol
@@ -32,6 +33,7 @@ import java.util.Collection;
 public interface DependentSourceSet extends LanguageSourceSet {
     /**
      * The libraries that this source set requires.
+     * @since 2.2
      */
     Collection<?> getLibs();
 
@@ -52,6 +54,7 @@ public interface DependentSourceSet extends LanguageSourceSet {
      *     <li>library: the name of the library (required)</li>
      *     <li>linkage: the library linkage required ['shared'/'static'] (optional, defaults to 'shared')</li>
      * </ul>
+     * @since 2.2
      */
     void lib(Object library);
 
@@ -59,6 +62,7 @@ public interface DependentSourceSet extends LanguageSourceSet {
      * Sets the pre-compiled header to be used when compiling sources in this source set.
      *
      * @param header the header to precompile
+     * @since 2.5
      */
     void setPreCompiledHeader(String header);
 
@@ -66,6 +70,7 @@ public interface DependentSourceSet extends LanguageSourceSet {
      * Returns the pre-compiled header configured for this source set.
      *
      * @return the pre-compiled header
+     * @since 2.5
      */
     String getPreCompiledHeader();
 }

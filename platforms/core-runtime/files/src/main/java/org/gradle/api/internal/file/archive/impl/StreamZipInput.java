@@ -64,7 +64,7 @@ public class StreamZipInput implements ZipInput {
         }
 
         @Override
-        public <T> T withInputStream(IoFunction<InputStream, T> action) throws IOException {
+        public <T extends @Nullable Object> T withInputStream(IoFunction<InputStream, T> action) throws IOException {
             if (opened) {
                 throw new IllegalStateException("The input stream for " + getName() + " has already been opened.  It cannot be reopened again.");
             }

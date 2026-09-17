@@ -31,6 +31,7 @@ class CppPreCompiledHeaderSourcesIntegrationTest extends AbstractNativePreCompil
 
     @ToBeFixedForConfigurationCache
     def "caching is disabled if precompiled headers are configured"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         writeStandardSourceFiles()
 
         when:

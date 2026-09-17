@@ -27,6 +27,7 @@ class VisualStudioSoftwareModelIncrementalIntegrationTest extends AbstractVisual
     def app = new CppHelloWorldApp()
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         settingsFile << """
             rootProject.name = 'app'
         """

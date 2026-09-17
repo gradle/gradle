@@ -22,6 +22,7 @@ import java.io.File;
 
 /**
  * IDEA compiler output settings.
+ * @since 1.0
  */
 public interface IdeaCompilerOutput {
 
@@ -31,6 +32,7 @@ public interface IdeaCompilerOutput {
      * @return inherit output dirs flag
      * @see #getOutputDir()
      * @see #getTestOutputDir()
+     * @since 1.0
      */
     boolean getInheritOutputDirs();
 
@@ -39,6 +41,7 @@ public interface IdeaCompilerOutput {
      *
      * @return directory to store production output. non-<code>null</code> if
      *            {@link #getInheritOutputDirs()} returns <code>'false'</code>
+     * @since 1.0
      */
     @Nullable
     File getOutputDir();
@@ -48,6 +51,7 @@ public interface IdeaCompilerOutput {
      *
      * @return directory to store test output. non-<code>null</code> if
      *            {@link #getInheritOutputDirs()} returns <code>'false'</code>
+     * @since 1.0
      */
     @Nullable
     File getTestOutputDir();

@@ -54,9 +54,8 @@ To view all Gradle releases:
 
 For Gradle support:
 
-- link:https://discuss.gradle.org/[Gradle Forum]
-- link:https://gradle-community.slack.com/[Gradle Slack Channel]
-- link:https://gradle.org/courses/[Free Gradle Training]
+- link:https://discuss.gradle.org[Gradle Forum]
+- link:https://gradle-community.slack.com[Gradle Slack Channel]
 
 == Step 2. Next steps
 

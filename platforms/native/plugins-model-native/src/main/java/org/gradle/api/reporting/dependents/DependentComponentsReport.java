@@ -48,6 +48,7 @@ import static org.gradle.api.reporting.dependents.internal.DependentComponentsUt
  * Displays dependent components.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 3.2
  */
 @Deprecated
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
@@ -65,12 +66,18 @@ public abstract class DependentComponentsReport extends DefaultTask {
 
     /**
      * Should this include non-buildable components in the report?
+     * @since 3.2
      */
     @Console
     public boolean isShowNonBuildable() {
         return showNonBuildable;
     }
 
+    /**
+     * Sets the show non buildable.
+     *
+     * @since 3.2
+     */
     @Option(option = "non-buildable", description = "Show non-buildable components.")
     public void setShowNonBuildable(boolean showNonBuildable) {
         this.showNonBuildable = showNonBuildable;
@@ -78,12 +85,18 @@ public abstract class DependentComponentsReport extends DefaultTask {
 
     /**
      * Should this include test suites in the report?
+     * @since 3.2
      */
     @Console
     public boolean isShowTestSuites() {
         return showTestSuites;
     }
 
+    /**
+     * Sets the show test suites.
+     *
+     * @since 3.2
+     */
     @Option(option = "test-suites", description = "Show test suites components.")
     public void setShowTestSuites(boolean showTestSuites) {
         this.showTestSuites = showTestSuites;
@@ -91,6 +104,7 @@ public abstract class DependentComponentsReport extends DefaultTask {
 
     /**
      * Should this include both non-buildable and test suites in the report?
+     * @since 3.2
      */
     @Console
     public boolean getShowAll() {
@@ -99,6 +113,7 @@ public abstract class DependentComponentsReport extends DefaultTask {
 
     /**
      * Set this to include both non buildable components and test suites in the report.
+     * @since 3.2
      */
     @Option(option = "all", description = "Show all components (non-buildable and test suites).")
     public void setShowAll(boolean showAll) {
@@ -111,6 +126,7 @@ public abstract class DependentComponentsReport extends DefaultTask {
      * Defaults to all components of this project.
      *
      * @return the components.
+     * @since 3.2
      */
     @Console
     public List<String> getComponents() {
@@ -121,6 +137,7 @@ public abstract class DependentComponentsReport extends DefaultTask {
      * Sets the components to generate the report for.
      *
      * @param components the components.
+     * @since 3.2
      */
     @Option(option = "component", description = "Component to generate the report for (can be specified more than once).")
     public void setComponents(List<String> components) {
@@ -136,6 +153,11 @@ public abstract class DependentComponentsReport extends DefaultTask {
     @Inject
     protected abstract WorkerLeaseService getWorkerLeaseService();
 
+    /**
+     * Report.
+     *
+     * @since 3.2
+     */
     @TaskAction
     public void report() {
         DeprecationLogger.whileDisabled(this::doReport);

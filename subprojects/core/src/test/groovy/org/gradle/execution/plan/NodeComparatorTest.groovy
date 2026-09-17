@@ -20,6 +20,7 @@ import groovy.transform.stc.ClosureParams
 import groovy.transform.stc.FromString
 import org.apache.commons.lang3.NotImplementedException
 import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.tasks.NodeExecutionContext
 import org.gradle.api.internal.tasks.WorkNodeAction
 import org.gradle.composite.internal.IncludedBuildTaskResource
 import org.gradle.internal.operations.BuildOperationRunner
@@ -127,6 +128,11 @@ class NodeComparatorTest extends Specification {
 
             @Override
             void resolveDependencies(TaskDependencyResolver dependencyResolver) {
+                throw new NotImplementedException()
+            }
+
+            @Override
+            void execute(NodeExecutionContext context) {
                 throw new NotImplementedException()
             }
 

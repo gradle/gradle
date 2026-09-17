@@ -25,6 +25,7 @@ import java.io.File;
  * A {@link NativeLibrary} that has been compiled and archived into a static library.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating
 @HasInternalProtocol
@@ -32,6 +33,7 @@ import java.io.File;
 public interface StaticLibraryBinary extends NativeLibraryBinary {
     /**
      * The static library file.
+     * @since 2.2
      */
     File getStaticLibraryFile();
 }

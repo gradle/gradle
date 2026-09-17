@@ -21,8 +21,10 @@ import org.gradle.internal.classpath.DefaultClassPath
 import org.gradle.internal.classpath.TransformedClassPath
 import org.gradle.internal.serialize.Decoder
 import org.gradle.internal.serialize.Encoder
+import org.gradle.internal.serialize.graph.readEnum
 import org.gradle.internal.serialize.graph.readFile
 import org.gradle.internal.serialize.graph.writeCollectionUnchecked
+import org.gradle.internal.serialize.graph.writeEnum
 import org.gradle.internal.serialize.graph.writeFile
 import java.io.File
 
@@ -61,10 +63,24 @@ inline fun Encoder.writeDefaultClassPath(classPath: ClassPath, writeFile: (File)
 
 private
 inline fun Encoder.writeTransformedClassPath(classPath: TransformedClassPath, writeFile: (File) -> Unit) {
-    classPath.asFiles.zip(classPath.asTransformedFiles).let { files ->
-        writeCollectionUnchecked(files, files.size) {
-            writeFile(it.first)
-            writeFile(it.second)
+    classPath.asFiles.let { files ->
+        writeCollectionUnchecked(files, files.size) { original ->
+            writeFile(original)
+            val entry = classPath.findEntryFor(original)
+            if (entry == null) {
+                writeBoolean(false)
+            } else {
+                writeBoolean(true)
+                writeFile(entry.instrumentedFile)
+                writeEnum(entry.kind)
+                val analysisFile = entry.analysisFile
+                if (analysisFile == null) {
+                    writeBoolean(false)
+                } else {
+                    writeBoolean(true)
+                    writeFile(analysisFile)
+                }
+            }
         }
     }
 }
@@ -104,7 +120,15 @@ inline fun Decoder.readTransformedClassPath(readFile: Decoder.() -> File): Class
     val size = readSmallInt()
     val builder = TransformedClassPath.builderWithExactSize(size)
     repeat(size) {
-        builder.add(readFile(), readFile())
+        val original = readFile()
+        if (readBoolean()) {
+            val instrumentedFile = readFile()
+            val kind = readEnum<TransformedClassPath.InstrumentationKind>()
+            val analysisFile = if (readBoolean()) readFile() else null
+            builder.add(original, TransformedClassPath.TransformedEntry(instrumentedFile, analysisFile, kind))
+        } else {
+            builder.addUntransformed(original)
+        }
     }
     return builder.build()
 }

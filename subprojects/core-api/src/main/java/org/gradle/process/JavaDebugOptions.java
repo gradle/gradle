@@ -30,6 +30,7 @@ public interface JavaDebugOptions {
 
     /**
      * Should the debug agent start in the forked process? By default, this is false.
+     * @since 5.6
      */
     @Input
     Property<Boolean> getEnabled();
@@ -55,6 +56,7 @@ public interface JavaDebugOptions {
 
     /**
      * The debug port to listen on or connect to.
+     * @since 5.6
      */
     @Input
     Property<Integer> getPort();
@@ -67,12 +69,14 @@ public interface JavaDebugOptions {
      * <p>
      * In client mode ({@code server = false}), the process attempts to connect to an already running debugger.
      * </p>
+     * @since 5.6
      */
     @Input
     Property<Boolean> getServer();
 
     /**
      * Should the process suspend until the connection to the debugger is established?
+     * @since 5.6
      */
     @Input
     Property<Boolean> getSuspend();

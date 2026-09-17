@@ -23,12 +23,14 @@ import org.gradle.internal.HasInternalProtocol;
  * Defines Platform specific operations for ComponentSpecs
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating @HasInternalProtocol
 @Deprecated
 public interface PlatformAwareComponentSpec extends VariantComponentSpec {
     /**
      * Specifies a platform that this component should be built be for.
+     * @since 2.3
      */
     void targetPlatform(String targetPlatform);
 }

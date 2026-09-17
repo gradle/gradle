@@ -23,6 +23,7 @@ import org.gradle.api.tasks.Internal;
 
 /**
  * The reports produced by the {@link Test} task.
+ * @since 1.7
  */
 public interface TestTaskReports extends ReportContainer<Report> {
 
@@ -30,6 +31,7 @@ public interface TestTaskReports extends ReportContainer<Report> {
      * A HTML report indicate the results of the test execution.
      *
      * @return The HTML report
+     * @since 1.7
      */
     @Internal
     DirectoryReport getHtml();
@@ -38,6 +40,7 @@ public interface TestTaskReports extends ReportContainer<Report> {
      * The test results in "JUnit XML" format.
      *
      * @return The test results in "JUnit XML" format
+     * @since 1.7
      */
     @Internal
     JUnitXmlReport getJunitXml();

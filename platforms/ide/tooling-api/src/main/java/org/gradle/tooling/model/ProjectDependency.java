@@ -17,6 +17,7 @@ package org.gradle.tooling.model;
 
 /**
  * Represents a dependency on another project.
+ * @since 1.0
  */
 public interface ProjectDependency extends Dependency {
 

@@ -19,7 +19,7 @@ package org.gradle.internal.operations;
 /**
  * An individual active, single use, queue of build operations.
  * <p>
- * The queue is active in that operations are potentially executed as soon as they are added.
+ * The queue is active in that operations may start running on another thread as soon as they are added.
  * The queue is single use in that no further work can be added once {@link #waitForCompletion()} has completed.
  * <p>
  * A queue instance is threadsafe. Build operations can submit further operations to the queue but must not block waiting for them to complete.
@@ -29,21 +29,48 @@ package org.gradle.internal.operations;
 public interface BuildOperationQueue<T extends BuildOperation> {
 
     /**
-     * Adds an operation to be executed, potentially executing it instantly.
+     * Adds an operation to be executed. Another thread may start running it before this method returns.
+     * <p>
+     * Execution is constrained by the {@linkplain org.gradle.internal.work.WorkerLimits#getMaxWorkerCount()
+     * configured maximum number of workers}: the operation is required to acquire a
+     * {@linkplain org.gradle.internal.work.WorkerLeaseRegistry worker lease} before proceeding.
+     * Intended for CPU intensive operations.
+     * <p>
+     * The thread that calls {@link #waitForCompletion()} may also run operations added this way, so that
+     * its worker lease is not left idle while it waits.
      *
      * @param operation operation to execute
+     * @see #addUnconstrained for IO intensive operations
      */
     void add(T operation);
 
     /**
+     * Adds an operation to be executed without holding a worker lease. Another thread may start running it
+     * before this method returns.
+     * <p>
+     * Execution is not constrained by the {@linkplain org.gradle.internal.work.WorkerLimits#getMaxWorkerCount()
+     * configured maximum number of workers}, allowing as many threads as required up to a
+     * {@linkplain org.gradle.internal.work.WorkerLimits#getMaxUnconstrainedWorkerCount() separate, higher limit}.
+     * Intended for IO intensive operations. Such operations must not depend on acquiring a worker lease.
+     * <p>
+     * Operations added this way are tracked by this queue just like those added via {@link #add}: they are
+     * covered by {@link #cancel()} and awaited by {@link #waitForCompletion()}, and their failures are
+     * reported together.
+     *
+     * @param operation operation to execute
+     * @see #add for CPU intensive operations
+     */
+    void addUnconstrained(T operation);
+
+    /**
      * Cancels all queued operations in this queue.  Any operations that have started will be allowed to complete.
+     *
+     * @throws IllegalStateException if someone is waiting for completion of this queue
      */
     void cancel();
 
     /**
-     * Waits for all previously added operations to complete.
-     * <p>
-     * On failure, some effort is made to cancel any operations that have not started.
+     * Waits for all previously added operations to complete, or for the queue to finish after cancellation.
      *
      * @throws MultipleBuildOperationFailures if <em>any</em> operation failed
      */

@@ -29,6 +29,7 @@ public interface MutableVariantFilesMetadata {
      * Remove all files already defined for the variant.
      * Useful when files where initialized from a base variant or configuration using
      * {@link ComponentMetadataDetails#addVariant(String, String, Action)} .
+     * @since 6.0
      */
     void removeAllFiles();
 
@@ -36,6 +37,7 @@ public interface MutableVariantFilesMetadata {
      * Add a file, if the file location is the same as the file name.
      *
      * @param name name and path of the file.
+     * @since 6.0
      */
     void addFile(String name);
 
@@ -44,6 +46,7 @@ public interface MutableVariantFilesMetadata {
      *
      * @param name name of the file
      * @param url location of the file, if not located next to the metadata in the repository
+     * @since 6.0
      */
     void addFile(String name, String url);
 }

@@ -27,20 +27,41 @@ import org.jspecify.annotations.Nullable;
  * Uses lazy evaluation.
  *
  * @param <T> The target type for this Spec
+ * @since 0.7
  */
 public class AndSpec<T> extends CompositeSpec<T> {
+    /**
+     * The empty.
+     *
+     * @since 3.1
+     */
     public static final AndSpec<?> EMPTY = new AndSpec<>();
 
+    /**
+     * Creates a new {@code AndSpec}.
+     *
+     * @since 3.0
+     */
     public AndSpec() {
         super();
     }
 
+    /**
+     * Creates a new {@code AndSpec}.
+     *
+     * @since 0.7
+     */
     @SafeVarargs
     @SuppressWarnings("varargs")
     public AndSpec(Spec<? super T>... specs) {
         super(specs);
     }
 
+    /**
+     * Creates a new {@code AndSpec}.
+     *
+     * @since 0.9
+     */
     public AndSpec(Iterable<? extends Spec<? super T>> specs) {
         super(specs);
     }
@@ -70,6 +91,11 @@ public class AndSpec<T> extends CompositeSpec<T> {
         return null;
     }
 
+    /**
+     * And.
+     *
+     * @since 0.9
+     */
     @SafeVarargs
     @SuppressWarnings("varargs")
     public final AndSpec<T> and(Spec<? super T>... specs) {
@@ -96,11 +122,21 @@ public class AndSpec<T> extends CompositeSpec<T> {
         return and(Cast.<Spec<? super T>[]>uncheckedNonnullCast(new Spec<?>[]{spec}));
     }
 
+    /**
+     * And.
+     *
+     * @since 0.9
+     */
     @SuppressWarnings("rawtypes")
     public AndSpec<T> and(Closure spec) {
         return and(new ClosureSpec<>(spec));
     }
 
+    /**
+     * Empty.
+     *
+     * @since 3.1
+     */
     public static <T> AndSpec<T> empty() {
         return uncheckedCast(EMPTY);
     }

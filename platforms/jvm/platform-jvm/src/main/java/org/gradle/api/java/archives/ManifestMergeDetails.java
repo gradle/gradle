@@ -19,42 +19,50 @@ import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy
 
 /**
  * Details of a value being merged from two different manifests.
+ * @since 0.9
  */
 @NotToBeMigratedToLazy
 public interface ManifestMergeDetails {
     /**
      * Returns the section this merge details belongs to.
+     * @since 0.9
      */
     String getSection();
 
     /**
      * Returns the key that is to be merged.
+     * @since 0.9
      */
     String getKey();
 
     /**
      * Returns the value for the key of the manifest that is the target of the merge.
+     * @since 0.9
      */
     String getBaseValue();
 
     /**
      * Returns the value for the key of the manifest that is the source for the merge.
+     * @since 0.9
      */
     String getMergeValue();
 
     /**
      * Returns the value for the key of the manifest after the merge takes place. By default this is the value
      * of the source for the merge.
+     * @since 0.9
      */
     String getValue();
 
     /**
      * Set's the value for the key of the manifest after the merge takes place.
+     * @since 0.9
      */
     void setValue(String value);
 
     /**
      * Excludes this key from being in the manifest after the merge.
+     * @since 0.9
      */
     void exclude();
 }

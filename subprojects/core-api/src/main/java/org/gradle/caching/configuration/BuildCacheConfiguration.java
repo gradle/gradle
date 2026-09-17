@@ -35,11 +35,13 @@ public interface BuildCacheConfiguration {
      *
      * @param configurationType Configuration type used to provide parameters to a {@link org.gradle.caching.BuildCacheService}
      * @param buildCacheServiceFactoryType Implementation type of {@link BuildCacheServiceFactory} that is used to create a {@code BuildCacheService}
+     * @since 3.5
      */
     <T extends BuildCache> void registerBuildCacheService(Class<T> configurationType, Class<? extends BuildCacheServiceFactory<? super T>> buildCacheServiceFactoryType);
 
     /**
      * Returns the local directory cache configuration.
+     * @since 3.5
      */
     DirectoryBuildCache getLocal();
 
@@ -47,11 +49,13 @@ public interface BuildCacheConfiguration {
      * Executes the given action against the local configuration.
      *
      * @param configuration the action to execute against the local cache configuration.
+     * @since 3.5
      */
     void local(Action<? super DirectoryBuildCache> configuration);
 
     /**
      * Returns the remote cache configuration.
+     * @since 3.5
      */
     @Nullable
     BuildCache getRemote();
@@ -66,6 +70,7 @@ public interface BuildCacheConfiguration {
      * </p>
      * @param type the type of remote cache to configure.
      *
+     * @since 3.5
      */
     <T extends BuildCache> T remote(Class<T> type);
 
@@ -83,6 +88,7 @@ public interface BuildCacheConfiguration {
      * @param type the type of remote cache to configure.
      * @param configuration the configuration to execute against the remote cache.
      *
+     * @since 3.5
      */
     <T extends BuildCache> T remote(Class<T> type, Action<? super T> configuration);
 
@@ -92,6 +98,7 @@ public interface BuildCacheConfiguration {
      * @param configuration the action to execute against the currently configured remote cache.
      *
      * @throws IllegalStateException If no remote cache has been assigned yet
+     * @since 3.5
      */
     void remote(Action<? super BuildCache> configuration);
 }

@@ -31,7 +31,7 @@ You can add any number of repositories for your dependencies by configuring the 
 repositories {
     mavenCentral()  // <1>
     maven {         // <2>
-        url = uri("https://company/com/maven2")
+        url = uri("https://your.maven.repo")
     }
     mavenLocal()    // <3>
     flatDir {       // <4>
@@ -52,7 +52,7 @@ repositories {
 repositories {
     mavenCentral()  // <1>
     maven {         // <2>
-        url = uri("https://company/com/maven2")
+        url = uri("https://your.maven.repo")
     }
     mavenLocal()    // <3>
     flatDir {       // <4>
@@ -126,10 +126,10 @@ Repositories with custom URLs can be specified as Maven or Ivy repositories by c
 ----
 repositories {
     maven {
-        url = uri("https://maven-central.storage.apis.com")
+        url = uri("https://your.maven.repo")
     }
     ivy {
-        url = uri("https://github.com/ivy-rep/")
+        url = uri("https://your.ivy.repo")
     }
 }
 ----
@@ -141,10 +141,10 @@ repositories {
 ----
 repositories {
     maven {
-        url = uri("https://maven-central.storage.apis.com")
+        url = uri("https://your.maven.repo")
     }
     ivy {
-        url = uri("https://github.com/ivy-rep/")
+        url = uri("https://your.ivy.repo")
     }
 }
 ----

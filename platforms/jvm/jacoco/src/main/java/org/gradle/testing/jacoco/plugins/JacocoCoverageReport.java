@@ -34,6 +34,7 @@ public interface JacocoCoverageReport extends ReportSpec {
      * Contains the {@link JacocoReport} task instance which produces this report
      *
      * @return the task instance
+     * @since 7.4
      */
     TaskProvider<JacocoReport> getReportTask();
 

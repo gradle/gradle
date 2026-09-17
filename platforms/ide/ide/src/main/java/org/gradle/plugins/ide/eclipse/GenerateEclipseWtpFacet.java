@@ -33,6 +33,7 @@ import javax.inject.Inject;
  * At this moment nearly all configuration is done via {@link EclipseWtpFacet}.
  *
  * @deprecated Will be removed in Gradle 10.
+ * @since 1.0
  */
 @Deprecated
 @DisableCachingByDefault(because = "Not made cacheable, yet")
@@ -40,6 +41,11 @@ public abstract class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet>
 
     private EclipseWtpFacet facet;
 
+    /**
+     * Creates a new {@code GenerateEclipseWtpFacet}.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings("this-escape")
     public GenerateEclipseWtpFacet() {
         DeprecationLogger.whileDisabled(() -> {
@@ -82,12 +88,18 @@ public abstract class GenerateEclipseWtpFacet extends XmlGeneratorTask<WtpFacet>
 
     /**
      * The Eclipse WTP facet model containing the details required to generate the settings file.
+     * @since 1.0
      */
     @Internal
     public EclipseWtpFacet getFacet() {
         return facet;
     }
 
+    /**
+     * Sets the facet.
+     *
+     * @since 1.0
+     */
     public void setFacet(EclipseWtpFacet facet) {
         this.facet = facet;
     }

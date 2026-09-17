@@ -40,6 +40,8 @@ import org.gradle.kotlin.dsl.support.uncheckedCast
  * @return The dependency.
  *
  * @see [DependencyHandler.create]
+ *
+ * @since 4.1
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use single-string notation or DependencyFactory instead")
@@ -82,6 +84,8 @@ inline fun DependencyHandler.create(dependencyNotation: String, dependencyConfig
  * @param path the path of the project to be added as a dependency.
  * @param configuration the optional configuration of the project to be added as a dependency.
  * @return The dependency.
+ *
+ * @since 4.1
  */
 fun DependencyHandler.project(
     path: String,
@@ -103,6 +107,8 @@ fun DependencyHandler.project(
  * @param dependencyNotation The dependency notation.
  * @param dependencyConfiguration The expression to use to configure the dependency.
  * @return The dependency.
+ *
+ * @since 4.1
  */
 inline fun DependencyHandler.add(
     configuration: String,
@@ -120,6 +126,8 @@ inline fun DependencyHandler.add(
  * @param dependency The dependency.
  * @param dependencyConfiguration The expression to use to configure the dependency.
  * @return The dependency.
+ *
+ * @since 4.1
  */
 inline fun <T : ModuleDependency> DependencyHandler.add(
     configuration: String,
@@ -154,6 +162,8 @@ inline fun <T : ModuleDependency> DependencyHandler.add(
  * @return this
  *
  * @see [ModuleDependency.exclude]
+ *
+ * @since 4.1
  */
 fun <T : ModuleDependency> T.exclude(group: String? = null, module: String? = null): T =
     uncheckedCast(exclude(excludeMapFor(group, module)))

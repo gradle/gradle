@@ -27,6 +27,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * Describes a test. A test may be a single atomic test, such as the execution of a test method, or it may be a
  * composite test, made up of zero or more tests.
+ * @since 0.9
  */
 @HasInternalProtocol
 @NullMarked
@@ -35,6 +36,7 @@ public interface TestDescriptor {
      * Returns the name of the test.  Not guaranteed to be unique.
      *
      * @return The test name
+     * @since 0.9
      */
     String getName();
 
@@ -52,6 +54,7 @@ public interface TestDescriptor {
      * Note that as of Gradle 9.3, this method may return a value that is not a class name for non-class-based testing.
      *
      * @return The class name. May return null.
+     * @since 0.9
      */
     @Nullable
     @UsedByScanPlugin("test-retry")
@@ -61,6 +64,7 @@ public interface TestDescriptor {
      * Is this test a composite test?
      *
      * @return true if this test is a composite test.
+     * @since 0.9
      */
     boolean isComposite();
 
@@ -68,6 +72,7 @@ public interface TestDescriptor {
      * Returns the parent of this test, if any.
      *
      * @return The parent of this test. Null if this test has no parent.
+     * @since 0.9
      */
     @Nullable
     TestDescriptor getParent();

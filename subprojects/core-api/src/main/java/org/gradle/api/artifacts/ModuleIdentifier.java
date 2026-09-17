@@ -20,6 +20,7 @@ import java.io.Serializable;
 
 /**
  * The identifier of a module.
+ * @since 1.4
  */
 public interface ModuleIdentifier extends Serializable {
 
@@ -27,6 +28,7 @@ public interface ModuleIdentifier extends Serializable {
      * The group of the module.
      *
      * @return module group
+     * @since 1.4
      */
     String getGroup();
 
@@ -34,6 +36,7 @@ public interface ModuleIdentifier extends Serializable {
      * The name of the module.
      *
      * @return module name
+     * @since 1.4
      */
     String getName();
 }

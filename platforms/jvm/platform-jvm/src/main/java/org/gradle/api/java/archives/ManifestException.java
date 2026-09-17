@@ -20,12 +20,23 @@ import org.gradle.api.GradleException;
 /**
  * Is thrown in the case an operation is applied against a {@link org.gradle.api.java.archives.Manifest} that violates
  * the Manifest specification.
+ * @since 0.9
  */
 public class ManifestException extends GradleException {
+    /**
+     * Creates a new {@code ManifestException}.
+     *
+     * @since 0.9
+     */
     public ManifestException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code ManifestException}.
+     *
+     * @since 0.9
+     */
     public ManifestException(String message, Throwable cause) {
         super(message, cause);
     }

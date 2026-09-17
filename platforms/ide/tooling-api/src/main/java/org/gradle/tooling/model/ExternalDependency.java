@@ -21,12 +21,14 @@ import java.io.File;
 
 /**
  * Represents an external artifact dependency.
+ * @since 0.9.2
  */
 public interface ExternalDependency extends Dependency {
     /**
      * Returns the file for this dependency.
      *
      * @return The file for this dependency.
+     * @since 0.9.2
      */
     File getFile();
 
@@ -34,6 +36,7 @@ public interface ExternalDependency extends Dependency {
      * Returns the source directory or archive for this dependency, or {@code null} if no source is available.
      *
      * @return The source directory or archive for this dependency, or {@code null} if no source is available.
+     * @since 1.0
      */
     @Nullable
     File getSource();
@@ -42,6 +45,7 @@ public interface ExternalDependency extends Dependency {
      * Returns the Javadoc directory or archive for this dependency, or {@code null} if no Javadoc is available.
      *
      * @return the Javadoc directory or archive for this dependency, or {@code null} if no Javadoc is available.
+     * @since 1.0
      */
     @Nullable
     File getJavadoc();

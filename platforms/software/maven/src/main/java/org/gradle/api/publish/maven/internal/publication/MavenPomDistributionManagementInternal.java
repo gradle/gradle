@@ -16,16 +16,22 @@
 
 package org.gradle.api.publish.maven.internal.publication;
 
+import org.gradle.api.publish.maven.MavenPomDeploymentRepository;
 import org.gradle.api.publish.maven.MavenPomDistributionManagement;
 import org.gradle.api.publish.maven.MavenPomRelocation;
-import org.gradle.api.publish.maven.MavenPomDeploymentRepository;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.jspecify.annotations.Nullable;
 
 public interface MavenPomDistributionManagementInternal extends MavenPomDistributionManagement {
 
+    @Nested
+    @Optional
     @Nullable
     MavenPomRelocation getRelocation();
 
+    @Nested
+    @Optional
     @Nullable
     MavenPomDeploymentRepository getRepository();
 

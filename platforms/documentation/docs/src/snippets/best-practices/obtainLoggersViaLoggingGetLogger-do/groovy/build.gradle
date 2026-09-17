@@ -1,0 +1,51 @@
+// tag::do-this[]
+import org.gradle.api.logging.Logger
+import org.gradle.api.logging.Logging
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
+
+abstract class GreetingService implements BuildService<BuildServiceParameters.None> {
+    private static final Logger LOGGER = Logging.getLogger(GreetingService)  // <1>
+
+    void greet(String name) {
+        LOGGER.lifecycle("Hello, {}!", name)
+    }
+}
+
+abstract class GreetingPlugin implements Plugin<Project> {
+    private static final Logger LOGGER = Logging.getLogger(GreetingPlugin)  // <2>
+
+    @Override
+    void apply(Project project) {
+        LOGGER.lifecycle("Applying GreetingPlugin")
+
+        def service =
+            project.gradle.sharedServices.registerIfAbsent("greeting", GreetingService) {}
+
+        project.tasks.register("greet", PluginGreetingTask) {
+            it.service = service
+            it.usesService(service)
+        }
+    }
+}
+
+abstract class PluginGreetingTask extends DefaultTask {
+    @Internal
+    abstract Property<GreetingService> getService()
+
+    @Input
+    abstract Property<String> getGreeting()
+
+    @TaskAction
+    void run() {
+        logger.lifecycle("Greeting from task: {}", greeting.get())  // <3>
+        service.get().greet(greeting.get())
+    }
+}
+
+apply plugin: GreetingPlugin
+
+tasks.named("greet", PluginGreetingTask) {
+    greeting = "world"
+}
+// end::do-this[]

@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
 
     def "can create and initialize elements"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile '''
             @Managed
@@ -51,6 +52,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "creator closure can reference inputs"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile '''
             @Managed
@@ -82,6 +84,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "reports failure in initialization closure"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile '''
             @Managed
@@ -111,6 +114,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can create elements without mutating"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile '''
             @Managed
@@ -137,6 +141,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "can apply defaults before creator closure is invoked"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile '''
             @Managed
@@ -174,6 +179,7 @@ class ModelDslCreationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "cannot create non managed types"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile '''
             apply plugin: 'language-base'
@@ -203,6 +209,7 @@ It must be one of:
     }
 
     def "cannot create non managed types and provide an initialization closure"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile '''
             apply plugin: 'language-base'

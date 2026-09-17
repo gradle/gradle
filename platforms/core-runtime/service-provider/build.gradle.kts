@@ -10,6 +10,11 @@ dependencies {
 
     api(libs.jspecify)
     api(libs.errorProneAnnotations)
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.concurrent)
+    javadocReferences(projects.serviceRegistryImpl)
+    javadocReferences(projects.baseServices) // for ServiceLocator
 }
 
 gradleModule {

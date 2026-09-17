@@ -23,26 +23,34 @@ import java.io.File;
  * <p>Consumer compatibility: This interface is used by all consumer versions from 1.0-milestone-3 to 1.0-milestone-7 to represent the model objects. Later consumer versions don't require that the
  * model objects implement this interface. </p>
  *
- * @since 1.0-milestone-3
+ * @since 1.0
  */
 public interface ProjectVersion3 {
     /**
-     * @since 1.0-milestone-3
+     * Returns the path.
+     *
+     * @since 1.0
      */
     String getPath();
 
     /**
-     * @since 1.0-milestone-3
+     * Returns the name.
+     *
+     * @since 1.0
      */
     String getName();
 
     /**
-     * @since 1.0-milestone-3
+     * Returns the description.
+     *
+     * @since 1.0
      */
     String getDescription();
 
     /**
-     * @since 1.0-milestone-3
+     * Returns the project directory.
+     *
+     * @since 1.0
      */
     File getProjectDirectory();
 }

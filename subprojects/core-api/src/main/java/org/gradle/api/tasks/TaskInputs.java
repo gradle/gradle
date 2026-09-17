@@ -26,6 +26,7 @@ import java.util.Map;
  * <p>A {@code TaskInputs} represents the inputs for a task.</p>
  *
  * <p>You can obtain a {@code TaskInputs} instance using {@link org.gradle.api.Task#getInputs()}.</p>
+ * @since 0.9
  */
 @HasInternalProtocol
 public interface TaskInputs {
@@ -33,6 +34,7 @@ public interface TaskInputs {
      * Returns true if this task has declared the inputs that it consumes.
      *
      * @return true if this task has declared any inputs.
+     * @since 0.9
      */
     boolean getHasInputs();
 
@@ -40,6 +42,7 @@ public interface TaskInputs {
      * Returns the input files of this task.
      *
      * @return The input files. Returns an empty collection if this task has no input files.
+     * @since 0.9
      */
     FileCollection getFiles();
 
@@ -48,6 +51,7 @@ public interface TaskInputs {
      *
      * @param paths The input files. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      * @return a property builder to further configure the property.
+     * @since 0.9
      */
     TaskInputFilePropertyBuilder files(@Nullable Object... paths);
 
@@ -56,6 +60,7 @@ public interface TaskInputs {
      *
      * @param path The input file. The given path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      * @return a property builder to further configure the property.
+     * @since 0.9
      */
     TaskInputFilePropertyBuilder file(Object path);
 
@@ -67,6 +72,7 @@ public interface TaskInputs {
      *
      * @param dirPath The directory. The path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      * @return a property builder to further configure the property.
+     * @since 0.9
      */
     TaskInputFilePropertyBuilder dir(Object dirPath);
 
@@ -77,6 +83,7 @@ public interface TaskInputs {
      * Trying to modify the map will result in an {@link UnsupportedOperationException} being thrown.
      *
      * @return The properties.
+     * @since 0.9
      */
     Map<String, Object> getProperties();
 
@@ -93,6 +100,7 @@ public interface TaskInputs {
      *
      * @param name The name of the property. Must not be null.
      * @param value The value for the property. Can be null.
+     * @since 0.9
      */
     TaskInputPropertyBuilder property(String name, @Nullable Object value);
 
@@ -103,6 +111,7 @@ public interface TaskInputs {
      * Instead always use call via {@link org.gradle.api.Task#getInputs()}.</p>
      *
      * @param properties The properties.
+     * @since 0.9
      */
     TaskInputs properties(Map<String, ?> properties);
 
@@ -110,6 +119,7 @@ public interface TaskInputs {
      * Returns true if this task has declared that it accepts source files.
      *
      * @return true if this task has source files, false if not.
+     * @since 1.0
      */
     boolean getHasSourceFiles();
 
@@ -118,6 +128,7 @@ public interface TaskInputs {
      * A task is skipped if it has declared it accepts source files, and this collection is empty.
      *
      * @return The set of source files for this task.
+     * @since 1.0
      */
     FileCollection getSourceFiles();
 }

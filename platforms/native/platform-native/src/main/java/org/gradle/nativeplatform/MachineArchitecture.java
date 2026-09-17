@@ -27,6 +27,11 @@ import org.gradle.api.tasks.Input;
  * @since 5.1
  */
 public abstract class MachineArchitecture implements Named {
+    /**
+     * Of.
+     *
+     * @since 5.1
+     */
     public static final Attribute<MachineArchitecture> ARCHITECTURE_ATTRIBUTE = Attribute.of("org.gradle.native.architecture", MachineArchitecture.class);
 
     /**
@@ -38,11 +43,13 @@ public abstract class MachineArchitecture implements Named {
 
     /**
      * The intel x86 32-bit architecture
+     * @since 5.1
      */
     public static final String X86 = "x86";
 
     /**
      * The intel x86 64-bit architecture
+     * @since 5.1
      */
     public static final String X86_64 = "x86-64";
 

@@ -53,6 +53,7 @@ import java.util.Collection;
 
 /**
  * Installs an executable with it's dependent libraries so it can be easily executed.
+ * @since 2.2
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class InstallExecutable extends DefaultTask {
@@ -114,12 +115,12 @@ public abstract class InstallExecutable extends DefaultTask {
     @OutputFile
     public abstract RegularFileProperty getInstalledExecutable();
 
+    // TODO - allow @InputFile and @SkipWhenEmpty to be attached to getExecutableFile()
     /**
      * Workaround for when the task is given an input file that doesn't exist
      *
      * @since 4.3
      */
-    // TODO - allow @InputFile and @SkipWhenEmpty to be attached to getExecutableFile()
     @SkipWhenEmpty
     @Nullable
     @Optional
@@ -136,6 +137,7 @@ public abstract class InstallExecutable extends DefaultTask {
 
     /**
      * The library files that should be installed.
+     * @since 2.2
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
@@ -143,12 +145,18 @@ public abstract class InstallExecutable extends DefaultTask {
         return libs;
     }
 
+    /**
+     * Sets the libs.
+     *
+     * @since 2.2
+     */
     public void setLibs(FileCollection libs) {
         this.libs.setFrom(libs);
     }
 
     /**
      * Adds a set of library files to be installed. The provided libs object is evaluated as per {@link Project#files(Object...)}.
+     * @since 2.2
      */
     public void lib(Object libs) {
         this.libs.from(libs);
@@ -170,6 +178,11 @@ public abstract class InstallExecutable extends DefaultTask {
     @Inject
     protected abstract FileSystemOperations getFileSystemOperations();
 
+    /**
+     * Install.
+     *
+     * @since 2.2
+     */
     @TaskAction
     protected void install() {
         NativePlatform nativePlatform = getTargetPlatform().get();

@@ -18,6 +18,7 @@ package org.gradle.api.resources;
 
 /**
  * Provides access to resource-specific utility methods, for example factory methods that create various resources.
+ * @since 1.0
  */
 public interface ResourceHandler {
 
@@ -26,6 +27,7 @@ public interface ResourceHandler {
      * The path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      *
      * @param path The path evaluated as per {@link org.gradle.api.Project#file(Object)}.
+     * @since 1.0
      */
     ReadableResource gzip(Object path);
 
@@ -34,6 +36,7 @@ public interface ResourceHandler {
      * The path is evaluated as per {@link org.gradle.api.Project#file(Object)}.
      *
      * @param path The path evaluated as per {@link org.gradle.api.Project#file(Object)}.
+     * @since 1.0
      */
     ReadableResource bzip2(Object path);
 

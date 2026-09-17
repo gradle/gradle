@@ -19,10 +19,16 @@ package org.gradle.api.specs;
  * A {@link org.gradle.api.specs.Spec} implementation which negates another {@code Spec}.
  * 
  * @param <T> The target type for this Spec
+ * @since 0.7
  */
 public class NotSpec<T> implements Spec<T> {
     private Spec<? super T> sourceSpec;
 
+    /**
+     * Creates a new {@code NotSpec}.
+     *
+     * @since 0.7
+     */
     public NotSpec(Spec<? super T> sourceSpec) {
         this.sourceSpec = sourceSpec;
     }

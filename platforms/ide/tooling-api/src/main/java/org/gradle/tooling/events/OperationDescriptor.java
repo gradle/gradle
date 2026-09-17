@@ -35,6 +35,7 @@ public interface OperationDescriptor {
      * by a human to disambiguate between the children of a given operation.
      *
      * @return The name of the operation.
+     * @since 2.4
      */
     String getName();
 
@@ -42,6 +43,7 @@ public interface OperationDescriptor {
      * Returns a human consumable display name for the operation. This display name provides enough context for a human to uniquely identify the operation.
      *
      * @return The display name of the operation.
+     * @since 2.4
      */
     String getDisplayName();
 
@@ -49,6 +51,7 @@ public interface OperationDescriptor {
      * Returns the parent operation, if any.
      *
      * @return The parent operation.
+     * @since 2.4
      */
     @Nullable
     OperationDescriptor getParent();

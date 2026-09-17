@@ -29,9 +29,11 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 import static org.gradle.internal.instrumentation.processor.codegen.TypeUtils.typeName;
+import org.jspecify.annotations.Nullable;
 
 public class JavadocUtils {
 
+    @Nullable
     public static String callableKindForJavadoc(CallInterceptionRequest request) {
         CallableInfo interceptedCallable = request.getInterceptedCallable();
         CallableKindInfo kind = interceptedCallable.getKind();

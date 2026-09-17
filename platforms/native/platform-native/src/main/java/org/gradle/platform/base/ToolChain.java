@@ -21,6 +21,7 @@ import org.gradle.internal.HasInternalProtocol;
 
 /**
  * A set of compilers that are used together to construct binaries.
+ * @since 2.2
  */
 @HasInternalProtocol
 public interface ToolChain extends Named {

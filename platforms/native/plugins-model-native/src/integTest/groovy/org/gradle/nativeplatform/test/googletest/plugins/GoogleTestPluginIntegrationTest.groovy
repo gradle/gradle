@@ -19,6 +19,10 @@ package org.gradle.nativeplatform.test.googletest.plugins
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class GoogleTestPluginIntegrationTest extends WellBehavedPluginTest {
+    def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
+    }
+
     @Override
     String getPluginName() {
         return "google-test"

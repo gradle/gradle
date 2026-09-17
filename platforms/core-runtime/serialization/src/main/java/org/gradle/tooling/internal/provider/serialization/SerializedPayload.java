@@ -16,19 +16,21 @@
 
 package org.gradle.tooling.internal.provider.serialization;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.Serializable;
 import java.util.List;
 
 public class SerializedPayload implements Serializable {
     private final List<byte[]> serializedModel;
-    private final Object header;
+    private final @Nullable Object header;
 
-    public SerializedPayload(Object header, List<byte[]> serializedModel) {
+    public SerializedPayload(@Nullable Object header, List<byte[]> serializedModel) {
         this.header = header;
         this.serializedModel = serializedModel;
     }
 
-    public Object getHeader() {
+    public @Nullable Object getHeader() {
         return header;
     }
 

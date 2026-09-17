@@ -29,6 +29,7 @@ public class WorkResults {
 
     /**
      * Returns a {@link WorkResult} object representing work done according to the given parameter.
+     * @since 4.2
      */
     public static WorkResult didWork(boolean didWork) {
         return didWork ? DID_WORK : DID_NO_WORK;

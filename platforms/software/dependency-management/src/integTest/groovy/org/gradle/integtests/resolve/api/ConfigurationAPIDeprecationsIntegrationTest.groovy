@@ -39,4 +39,24 @@ class ConfigurationAPIDeprecationsIntegrationTest extends AbstractIntegrationSpe
         ConfigurationAPIDeprecations.expectIsVisibleMethodDeprecation(executer)
         succeeds "test"
     }
+
+    def "sensible deprecation warning when setVisible() method is invoked"() {
+        buildFile << """
+            configurations {
+                foo {
+                    visible = true
+                }
+            }
+
+            task test {
+                doLast {
+                    println "done"
+                }
+            }
+        """
+
+        expect:
+        ConfigurationAPIDeprecations.expectSetVisibleMethodDeprecation(executer)
+        succeeds "test"
+    }
 }

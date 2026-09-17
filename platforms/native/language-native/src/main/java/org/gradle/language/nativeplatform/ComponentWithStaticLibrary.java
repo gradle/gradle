@@ -27,6 +27,7 @@ import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 public interface ComponentWithStaticLibrary extends ComponentWithLinkFile {
     /**
      * Returns the task to create the static library.
+     * @since 4.5
      */
     Provider<? extends CreateStaticLibrary> getCreateTask();
 }

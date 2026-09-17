@@ -26,6 +26,7 @@ import org.gradle.api.component.SoftwareComponent;
 public interface ComponentWithBinaries extends SoftwareComponent {
     /**
      * Returns the binaries of this component.
+     * @since 4.5
      */
     BinaryCollection<? extends SoftwareComponent> getBinaries();
 }

@@ -91,6 +91,11 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
     private final FileCollection variantFiles;
     private final Cached<InputState> inputState = Cached.of(this::computeInputState);
 
+    /**
+     * Creates a new {@code GenerateModuleMetadata}.
+     *
+     * @since 4.3
+     */
     @SuppressWarnings("this-escape")
     public GenerateModuleMetadata() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -110,6 +115,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
 
     /**
      * Returns the publication to generate the metadata file for.
+     * @since 4.3
      */
     @Internal
     public Property<Publication> getPublication() {
@@ -168,6 +174,7 @@ public abstract class GenerateModuleMetadata extends DefaultTask {
 
     /**
      * Returns the output file location.
+     * @since 4.3
      */
     @OutputFile
     public abstract RegularFileProperty getOutputFile();

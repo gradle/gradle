@@ -109,8 +109,7 @@ class IncompatibleDependencyAttributesExceptionTest extends Specification {
         componentSelector.getAttributes() >> attrs
         componentSelector.toString() >> 'org.example:lib:1.0'
         def selector = Mock(SelectorState)
-        selector.getSelector() >> componentSelector
-        selector.getRequested() >> componentSelector
+        selector.getComponentSelector() >> componentSelector
         def root = Mock(NodeState)
         root.getIncomingEdges() >> []
         root.getDisplayName() >> 'root'

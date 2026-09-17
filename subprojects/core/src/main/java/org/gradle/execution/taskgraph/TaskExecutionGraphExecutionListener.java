@@ -16,6 +16,7 @@
 
 package org.gradle.execution.taskgraph;
 
+import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.service.scopes.EventScope;
 import org.gradle.internal.service.scopes.Scope;
@@ -27,11 +28,13 @@ import org.jspecify.annotations.NullMarked;
 @EventScope(Scope.Build.class)
 @NullMarked
 public interface TaskExecutionGraphExecutionListener extends InternalListener {
+
     /**
-     * Called immediately before the graph starts executing tasks.
-     * No execution-related changes have been made to the graph yet.
+     * Called immediately before the work in the plan starts executing. No nodes have started yet,
+     * so the plan is not yet mutated and still describes all scheduled work.
      *
-     * @param graph the graph to be executed
+     * @param plan the work to be executed
      */
-    void beforeGraphExecutionStarts(TaskExecutionGraphInternal graph);
+    void beforeGraphExecutionStarts(QueryableExecutionPlan plan);
+
 }

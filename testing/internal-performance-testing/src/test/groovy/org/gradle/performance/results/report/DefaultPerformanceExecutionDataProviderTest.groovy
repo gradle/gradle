@@ -17,79 +17,125 @@
 package org.gradle.performance.results.report
 
 import org.gradle.performance.ResultSpecification
+import org.gradle.performance.measure.Duration
+import org.gradle.performance.measure.MeasuredOperation
 import org.gradle.performance.results.MeasuredOperationList
 import org.gradle.performance.results.PerformanceReportScenario
 import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution
-import org.gradle.performance.results.ResultsStore
 import org.gradle.performance.results.PerformanceTestExecutionResult
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-import org.junit.Rule
-import spock.lang.Subject
 
 class DefaultPerformanceExecutionDataProviderTest extends ResultSpecification {
-    @Rule
-    TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
 
-    @Subject
-    DefaultPerformanceExecutionDataProvider provider
+    private static final String COMMIT = 'commit-under-test'
 
-    File resultsJson = tmpDir.file('results.json')
-    ResultsStore mockStore = Mock(ResultsStore)
+    def 'identifies this pipeline\'s executions by build id (CI) or commit (local) and derives the measured verdict from them'() {
+        given:
+        // The result JSON no longer carries a build id - only the scenario identity (+ status, used by cross-build).
+        def teamCityExecution = new PerformanceTestExecutionResult(scenarioName: 'x', scenarioClass: 'org.example.C', testProject: 'p', status: 'SUCCESS')
+        // The DB has a regressed row produced by this pipeline's bucket, plus a row from an unrelated build/commit.
+        def pipelineRow = regressedExecution('114134082', COMMIT)
+        def foreignRow = regressedExecution('114123152', 'other-commit')
 
-    def setup() {
-        resultsJson << '[]'
-        provider = new DefaultPerformanceExecutionDataProvider(mockStore, [resultsJson], [] as Set)
-    }
-
-    def 'can sort scenarios correctly'() {
         when:
-        List buildResults = [
-            createLowConfidenceRegressedData(),
-            createLowConfidenceImprovedData(),
-            createHighConfidenceImprovedData(),
-            createHighConfidenceRegressedData(),
-            createFailedData()
-        ]
-        buildResults.sort(DefaultPerformanceExecutionDataProvider.SCENARIO_COMPARATOR)
+        def scenario = new PerformanceReportScenario([teamCityExecution], [pipelineRow, foreignRow], false, pipelineBuildIds as Set, currentCommit)
 
         then:
-        buildResults.collect { it.scenarioName } == ['failed', 'highConfidenceRegressed', 'lowConfidenceRegressed', 'lowConfidenceImproved', 'highConfidenceImproved']
+        scenario.currentExecutions*.teamCityBuildId == expectedCurrentBuildIds
+        scenario.regressedByMeasurement == expectedRegressed
+        // fromCache: this pipeline is known (CI) but none of its builds produced a measurement -> the bucket result
+        // was restored from the build cache, and any carried-over status must not be shown as this chain's outcome.
+        scenario.fromCache == expectedFromCache
+
+        where:
+        desc                  | pipelineBuildIds | currentCommit | expectedCurrentBuildIds | expectedRegressed | expectedFromCache
+        'CI, fresh run'       | ['114134082']    | 'ignored'     | ['114134082']           | true              | false
+        'CI, build-cache hit' | ['999999']       | 'ignored'     | []                      | false             | true
+        'local, by commit'    | []               | COMMIT        | ['114134082']           | true              | false
     }
 
-    private PerformanceReportScenario createFailedData() {
-        return new PerformanceReportScenario(
-            [new PerformanceTestExecutionResult(scenarioName: 'failed', status: 'FAILURE')],
-            [Mock(PerformanceReportScenarioHistoryExecution)],
-            false,
-            false
-        )
+    def 'cross-version verdict comes from the DB, while cross-build still uses the recorded status'() {
+        given:
+        def failed = new PerformanceTestExecutionResult(scenarioName: 'x', scenarioClass: 'org.example.C', testProject: 'p', status: 'FAILURE')
+        def row = regressedExecution('build-1', COMMIT)
+
+        when:
+        def scenario = new PerformanceReportScenario([failed], [row], crossBuild, ['build-1'] as Set, COMMIT)
+
+        then:
+        scenario.regressed == statusBasedRegressed              // status-based signal (used by the cross-build report)
+        scenario.regressedByMeasurement == measurementRegressed // DB confidence (used by the cross-version report)
+
+        where:
+        crossBuild | statusBasedRegressed | measurementRegressed
+        false      | true                 | true   // cross-version: both agree here
+        true       | true                 | false  // cross-build: only the status-based signal fires (DB model is guarded off)
     }
 
-    private PerformanceReportScenario createHighConfidenceImprovedData() {
-        // 95% confidence -50% difference
-        return createResult('highConfidenceImproved', [2, 2, 2], [1, 1, 1])
+    def 'a flaky scenario that regresses once but recovers on retry does not fail the build'() {
+        given:
+        // On CI a scenario is retried once (testRetry.maxRetries = 1), so a flaky scenario produces two current
+        // executions under the same bucket build id: one that regressed and one that recovered. The build must only
+        // fail when the regression holds across ALL of this pipeline's measurements.
+        def teamCityExecution = new PerformanceTestExecutionResult(scenarioName: 'x', scenarioClass: 'org.example.C', testProject: 'p', status: 'SUCCESS')
+        def regressedAttempt = regressedExecution('build-1', COMMIT)
+        def recoveredAttempt = improvedExecution('build-1', COMMIT)
+
+        when:
+        def scenario = new PerformanceReportScenario([teamCityExecution], [regressedAttempt, recoveredAttempt], false, ['build-1'] as Set, COMMIT)
+
+        then:
+        scenario.currentExecutions.size() == 2
+        regressedAttempt.regressedSignificantly()
+        !recoveredAttempt.regressedSignificantly()
+        !scenario.regressedByMeasurement // not every current execution regressed, so the gate stays green
     }
 
-    private PerformanceReportScenario createLowConfidenceImprovedData() {
-        // 68% confidence -50% difference
-        return createResult('lowConfidenceImproved', [2], [1])
+    def 'a scenario that regresses across every retry fails the build'() {
+        given:
+        def teamCityExecution = new PerformanceTestExecutionResult(scenarioName: 'x', scenarioClass: 'org.example.C', testProject: 'p', status: 'SUCCESS')
+        def firstAttempt = regressedExecution('build-1', COMMIT)
+        def retryAttempt = regressedExecution('build-1', COMMIT)
+
+        when:
+        def scenario = new PerformanceReportScenario([teamCityExecution], [firstAttempt, retryAttempt], false, ['build-1'] as Set, COMMIT)
+
+        then:
+        scenario.currentExecutions.size() == 2
+        scenario.regressedByMeasurement
     }
 
-    private PerformanceReportScenario createLowConfidenceRegressedData() {
-        // 68% confidence 100% difference
-        return createResult("lowConfidenceRegressed", [1], [2])
+    def 'a small regression below the test-failure criterion does not fail the build, even at high confidence'() {
+        given:
+        def teamCityExecution = new PerformanceTestExecutionResult(scenarioName: 'x', scenarioClass: 'org.example.C', testProject: 'p', status: 'SUCCESS')
+        // 5 ms slower with perfectly separated samples: statistically very confident, but below the 10 ms minimum
+        // measurable difference the test assertion requires - so the test itself PASSED. The report must not fail the
+        // build on it either; it is only a NEARLY-FAILED warning. (Gating on the >90%-confidence display heuristic is
+        // exactly what wrongly failed trigger build 115184380 with 9 nearly-failed scenarios.)
+        def nearlyFailed = new PerformanceReportScenarioHistoryExecution(
+            new Date().getTime(), 'build-1', COMMIT, millisOperationList([1000] * 10), millisOperationList([1005] * 10))
+
+        when:
+        def scenario = new PerformanceReportScenario([teamCityExecution], [nearlyFailed], false, ['build-1'] as Set, COMMIT)
+
+        then:
+        nearlyFailed.confidentToSayWorse()     // the display heuristic fires (NEARLY-FAILED tag)
+        !nearlyFailed.regressedSignificantly() // but not the test-failure criterion
+        !scenario.regressedByMeasurement       // so the build gate stays green
     }
 
-    private PerformanceReportScenario createHighConfidenceRegressedData() {
-        // 91% confidence 100% difference
-        return createResult('highConfidenceRegressed', [1, 1, 1, 2], [2, 2, 2, 2])
+    private PerformanceReportScenarioHistoryExecution regressedExecution(String teamCityBuildId, String commitId) {
+        // current markedly slower than baseline (1s -> 2s, +100%): fails the test-failure criterion outright
+        return new PerformanceReportScenarioHistoryExecution(new Date().getTime(), teamCityBuildId, commitId, measuredOperationList([1, 1, 1]), measuredOperationList([2, 2, 2]))
     }
 
-    private PerformanceReportScenario createResult(String name, List<Integer> baseVersionResult, List<Integer> currentVersionResult) {
-        MeasuredOperationList baseVersion = measuredOperationList(baseVersionResult)
-        MeasuredOperationList currentVersion = measuredOperationList(currentVersionResult)
-        PerformanceReportScenarioHistoryExecution historyExecution = new PerformanceReportScenarioHistoryExecution(new Date().getTime(), 'teamCityBuild', '', baseVersion, currentVersion)
-        PerformanceTestExecutionResult teamCityExecution = new PerformanceTestExecutionResult(scenarioName: name, status: 'SUCCESS', teamCityBuildId: 'teamCityBuild')
-        return new PerformanceReportScenario([teamCityExecution], [historyExecution], false, false)
+    private PerformanceReportScenarioHistoryExecution improvedExecution(String teamCityBuildId, String commitId) {
+        // current markedly faster than baseline (2s -> 1s, -50%): the opposite verdict, e.g. a passing retry
+        return new PerformanceReportScenarioHistoryExecution(new Date().getTime(), teamCityBuildId, commitId, measuredOperationList([2, 2, 2]), measuredOperationList([1, 1, 1]))
+    }
+
+    private MeasuredOperationList millisOperationList(List<Integer> millis) {
+        MeasuredOperationList ret = new MeasuredOperationList()
+        ret.addAll(millis.collect { new MeasuredOperation(totalTime: Duration.millis(it)) })
+        return ret
     }
 }

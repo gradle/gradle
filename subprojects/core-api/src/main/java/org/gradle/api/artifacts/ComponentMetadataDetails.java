@@ -34,6 +34,7 @@ public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigur
      * Sets whether the component is changing or immutable.
      *
      * @param changing whether the component is changing or immutable
+     * @since 1.8
      */
     void setChanging(boolean changing);
 
@@ -42,6 +43,7 @@ public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigur
      * match one of the values in {@link #getStatusScheme()}.
      *
      * @param status the status of the component
+     * @since 1.8
      */
     void setStatus(String status);
 
@@ -50,6 +52,7 @@ public interface ComponentMetadataDetails extends ComponentMetadata, HasConfigur
      * from least to most mature status.
      *
      * @param statusScheme the status scheme of the component
+     * @since 1.8
      */
     void setStatusScheme(List<String> statusScheme);
 

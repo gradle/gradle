@@ -16,11 +16,22 @@
 
 package org.gradle.api.internal.artifacts.mvnsettings;
 
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
+
 import java.io.File;
 
+@ServiceScope(Scope.BuildTree.class)
 public interface MavenFileLocations {
     File getUserMavenDir();
     File getGlobalMavenDir();
     File getUserSettingsFile();
     File getGlobalSettingsFile();
+
+    /**
+     * The settings-security.xml holding the master password used to decrypt {@code {...}}-wrapped
+     * passwords in settings.xml. Maven only reads this one from the user directory; there is no
+     * global counterpart.
+     */
+    File getUserSecuritySettingsFile();
 }

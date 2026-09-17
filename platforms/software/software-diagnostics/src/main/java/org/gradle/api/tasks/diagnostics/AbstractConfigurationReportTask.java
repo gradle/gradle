@@ -59,8 +59,18 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
     @Inject protected abstract StyledTextOutputFactory getTextOutputFactory();
     @Inject protected abstract FileResolver getFileResolver();
 
+    /**
+     * Build report spec.
+     *
+     * @since 7.5
+     */
     protected abstract AbstractConfigurationReportSpec buildReportSpec();
 
+    /**
+     * Creates a new {@code AbstractConfigurationReportTask}.
+     *
+     * @since 7.5
+     */
     @SuppressWarnings("this-escape")
     public AbstractConfigurationReportTask() {
         reports = getObjectFactory().newInstance(ConfigurationReportsImpl.class);
@@ -107,6 +117,11 @@ public abstract class AbstractConfigurationReportTask extends DefaultTask implem
         return buildReportModel(getProject());
     }
 
+    /**
+     * Report.
+     *
+     * @since 7.5
+     */
     @TaskAction
     public final void report() {
         final AbstractConfigurationReportSpec reportSpec = buildReportSpec();

@@ -43,7 +43,7 @@ package org.gradle.tooling.internal.protocol;
  * <p>Consumer compatibility: This interface is used by all consumer versions from 1.0-milestone-3.</p>
  * <p>Provider compatibility: This interface is implemented by all provider versions from 1.0-milestone-3.</p>
  *
- * @since 1.0-milestone-3
+ * @since 1.0
  */
 public interface ConnectionVersion4 {
 
@@ -54,7 +54,7 @@ public interface ConnectionVersion4 {
      * <p>Provider compatibility: This method is implemented by all provider versions from 1.0-milestone-3.</p>
      *
      * @return The meta-data.
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     ConnectionMetaDataVersion1 getMetaData();
 }

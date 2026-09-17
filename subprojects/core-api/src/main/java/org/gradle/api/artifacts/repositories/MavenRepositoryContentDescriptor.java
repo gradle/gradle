@@ -23,11 +23,13 @@ package org.gradle.api.artifacts.repositories;
 public interface MavenRepositoryContentDescriptor extends RepositoryContentDescriptor {
     /**
      * Declares that this repository only contains releases.
+     * @since 5.1
      */
     void releasesOnly();
 
     /**
      * Declares that this repository only contains snapshots.
+     * @since 5.1
      */
     void snapshotsOnly();
 }

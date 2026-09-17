@@ -21,7 +21,13 @@ import org.gradle.api.file.FileCollection;
 
 /**
  * A set of artifacts to be published.
+ * @since 1.0
  */
 public interface PublishArtifactSet extends DomainObjectSet<PublishArtifact>, Buildable {
+    /**
+     * Returns the files.
+     *
+     * @since 1.0
+     */
     FileCollection getFiles();
 }

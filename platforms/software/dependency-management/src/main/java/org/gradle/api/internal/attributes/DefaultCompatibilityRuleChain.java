@@ -75,7 +75,59 @@ public class DefaultCompatibilityRuleChain<T> implements CompatibilityRuleChain<
         ConfigurableRule<CompatibilityCheckDetails<T>> rule,
         Instantiator instantiator
     ) {
-        return new InstantiatingAction<>(DefaultConfigurableRules.of(rule), instantiator, new ExceptionHandler<>(rule.getRuleClass()));
+        Class<?> ruleClass = rule.getRuleClass();
+        Action<CompatibilityCheckDetails<T>> delegate = new InstantiatingAction<>(DefaultConfigurableRules.of(rule), instantiator, new ExceptionHandler<>(ruleClass));
+        return new ValidatingAction<>(ruleClass, delegate);
+    }
+
+    /**
+     * Wraps an {@link InstantiatingAction} with a check that the rule's declared type parameter is
+     * a supported attribute value type. Implemented as a named inner class rather than a lambda so
+     * it can be serialized by the configuration cache (lambda-synthesized classes aren't visible to
+     * the CC classloader hierarchy).
+     */
+    private static class ValidatingAction<T> implements Action<CompatibilityCheckDetails<T>> {
+        private final Class<?> ruleClass;
+        private final Action<CompatibilityCheckDetails<T>> delegate;
+
+        /**
+         * Throttles the reflective type-parameter validation, which would otherwise run on every
+         * attribute match. Kept as per-instance state (rather than a static across all rules) so it
+         * neither leaks the rule's plugin classloader for the life of the daemon nor suppresses the
+         * deprecation on builds after the first. Transient so a config-cache restore re-validates
+         * rather than inheriting a stale "already validated" flag.
+         */
+        private transient volatile boolean validated;
+
+        ValidatingAction(Class<?> ruleClass, Action<CompatibilityCheckDetails<T>> delegate) {
+            this.ruleClass = ruleClass;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void execute(CompatibilityCheckDetails<T> details) {
+            if (!validated) {
+                validated = true;
+                AttributeTypeValidator.validateRuleTypeParameter(ruleClass, AttributeCompatibilityRule.class);
+            }
+            delegate.execute(details);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            return delegate.equals(((ValidatingAction<?>) o).delegate);
+        }
+
+        @Override
+        public int hashCode() {
+            return delegate.hashCode();
+        }
     }
 
     private static class ExceptionHandler<T> implements InstantiatingAction.ExceptionHandler<CompatibilityCheckDetails<T>> {

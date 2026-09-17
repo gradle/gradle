@@ -415,6 +415,32 @@ org.gradle.api.internal.tasks.CompileServices"""
         }
     }
 
+    def "excludes Gradle module pom.properties but keeps third-party ones"() {
+        given:
+        // Our own distribution jars each carry a pom.properties naming their module; those
+        // coordinates resolve to nothing once bundled here, so they are dropped. Third-party
+        // pom.properties name real published artifacts and are kept.
+        def gradleModulePomProperties = [
+            'META-INF/maven/org.gradle/gradle-core/pom.properties',
+            'META-INF/maven/org.gradle.kotlin/gradle-kotlin-dsl-plugins/pom.properties'
+        ]
+        def thirdPartyPomProperties = 'META-INF/maven/com.google.guava/guava/pom.properties'
+        def inputFilesDir = tmpDir.createDir('inputFiles')
+        def jarFile = inputFilesDir.file('lib.jar')
+        createJarFileWithResources(jarFile, gradleModulePomProperties + thirdPartyPomProperties)
+
+        when:
+        relocatedJarCreator.create(jarType, outputJar, [jarFile])
+
+        then:
+        handleAsJarFile(outputJar) { JarFile jar ->
+            gradleModulePomProperties.each { resourceName ->
+                assert jar.getEntry(resourceName) == null
+            }
+            assert jar.getEntry(thirdPartyPomProperties) != null
+        }
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/11027")
     def "relocates multiple third-party impl dependency service providers in the same provider-configuration file"() {
         given:

@@ -66,10 +66,9 @@ public final class TestTreeModelResultsProvider implements TestResultsProvider {
     public static void useResultsFrom(Path resultsDir, Consumer<TestTreeModelResultsProvider> resultsConsumer) {
         SerializableTestResultStore resultsStore = new SerializableTestResultStore(resultsDir);
         Serializer<TestOutputEvent> testOutputEventSerializer = TestEventSerializer.create().build(TestOutputEvent.class);
-        try  {
+        try (TestOutputReader outputReader = resultsStore.createOutputReader(testOutputEventSerializer)) {
             TestTreeModel root = TestTreeModel.loadModelFromStores(Collections.singletonList(resultsStore));
-            TestTreeModelResultsProvider resultsProvider = new TestTreeModelResultsProvider(root, resultsStore.createOutputReader(testOutputEventSerializer));
-            resultsConsumer.accept(resultsProvider);
+            resultsConsumer.accept(new TestTreeModelResultsProvider(root, outputReader));
         } catch (Exception e) {
             throw UncheckedException.throwAsUncheckedException(e);
         }

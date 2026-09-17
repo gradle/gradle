@@ -23,11 +23,13 @@ import java.util.List;
 
 /**
  * An executable tool that forms part of a tool chain.
+ * @since 2.2
  */
 @Incubating
 public interface CommandLineToolConfiguration {
     /**
      * Adds an action that will be applied to the command-line arguments prior to execution.
+     * @since 2.2
      */
     void withArguments(Action<? super List<String>> arguments);
 }

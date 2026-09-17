@@ -40,7 +40,7 @@ class IsolatedProjectsBuildServiceIntegrationTest extends AbstractIsolatedProjec
         then:
         fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":")
-            problem("Build file 'build.gradle': line 13: Cannot call '${method}' on BuildServicesRegistry.getRegistrations() when Isolated Projects is enabled. Only 'findByName(String)' is permitted. Alternatively, use BuildServicesRegistry.registerIfAbsent(String, Class) if possible.", 1)
+            problem("Build file 'build.gradle': line 13: Cannot call '${method}' on 'BuildServicesRegistry.getRegistrations()' when Isolated Projects is enabled. Only 'findByName(String)' is permitted. Alternatively, use 'BuildServicesRegistry.registerIfAbsent(String, Class)' if possible.", 1)
         }
 
         where:

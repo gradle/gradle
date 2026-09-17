@@ -644,8 +644,9 @@ repositories {
     }
 }
 
-enum BuildTypeEnum {
+enum BuildTypeEnum implements Named {
     debug, release
+    @Override String getName() { return name() }
 }
 interface BuildType extends Named {
 }

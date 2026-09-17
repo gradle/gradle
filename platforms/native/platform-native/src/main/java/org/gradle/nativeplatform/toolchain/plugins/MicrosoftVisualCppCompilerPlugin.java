@@ -28,6 +28,7 @@ import org.gradle.nativeplatform.toolchain.internal.msvcpp.VisualCppToolChain;
 
 /**
  * A {@link Plugin} which makes the Microsoft Visual C++ compiler available to compile C/C++ code.
+ * @since 2.14
  */
 @Incubating
 public abstract class MicrosoftVisualCppCompilerPlugin implements Plugin<Project> {

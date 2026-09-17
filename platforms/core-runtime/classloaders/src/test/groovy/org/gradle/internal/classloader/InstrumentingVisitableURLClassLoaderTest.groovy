@@ -24,11 +24,7 @@ import java.security.CodeSource
 import java.security.ProtectionDomain
 import java.security.cert.Certificate
 
-/**
- * Verifies the instrumenting classloader forwards the loaded class's protection domain to the class-load-time transform.
- */
 class InstrumentingVisitableURLClassLoaderTest extends Specification {
-
     def "passes the protection domain of the loaded class to the class-load-time transform"() {
         given:
         def seen = []
@@ -49,5 +45,24 @@ class InstrumentingVisitableURLClassLoaderTest extends Specification {
 
         then:
         seen == [protectionDomain]
+    }
+
+    def "honors class redefinition only when a class-load-time transform re-instruments the supplied bytecode"() {
+        given:
+        def original = new File("lib.jar")
+        def classpath = TransformedClassPath.builderWithExactSize(1)
+            .addUntransformed(original)
+            .build()
+        ClassLoadTimeTransform transform = { ProtectionDomain protectionDomain, String className, byte[] classfileBuffer -> classfileBuffer }
+
+        expect: "the compose path re-instruments the JVM-supplied bytes, so a hot-swap can take effect"
+        classLoaderFrom(classpath.withClassLoadTimeTransform(transform)).canReinstrumentClasses()
+
+        and: "the substitution path serves pre-instrumented bytes and ignores the supplied buffer"
+        !classLoaderFrom(classpath).canReinstrumentClasses()
+    }
+
+    private static InstrumentingClassLoader classLoaderFrom(TransformedClassPath classpath) {
+        (InstrumentingClassLoader) VisitableURLClassLoader.fromClassPath("test", getClass().classLoader, classpath)
     }
 }

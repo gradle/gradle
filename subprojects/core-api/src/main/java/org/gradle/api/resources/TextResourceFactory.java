@@ -52,6 +52,7 @@ public interface TextResourceFactory {
      *
      * @param string a string
      * @return a text resource backed by the given string
+     * @since 2.2
      */
     TextResource fromString(String string);
 
@@ -61,6 +62,7 @@ public interface TextResourceFactory {
      * @param file a text file evaluated as per {@link org.gradle.api.Project#files(Object...)}
      * @param charset the file's character encoding (e.g. {@code "utf-8"})
      * @return a text resource backed by the given file
+     * @since 2.2
      */
     TextResource fromFile(Object file, String charset);
 
@@ -68,6 +70,7 @@ public interface TextResourceFactory {
      * Same as {@code fromFile(file, Charset.defaultCharset())}.
      *
      * @see #fromFile(Object, String)
+     * @since 2.2
      */
     TextResource fromFile(Object file);
 
@@ -81,11 +84,13 @@ public interface TextResourceFactory {
      * @param charset the archive entry's character encoding (e.g. {@code "utf-8"})
      *
      * @return a text resource backed by the archive entry at the given path within the given archive
+     * @since 2.2
      */
     TextResource fromArchiveEntry(Object archive, String entryPath, String charset);
 
     /**
      * Same as {@code fromArchiveEntry(archive, path, Charset.defaultCharset().name())}.
+     * @since 2.2
      */
     TextResource fromArchiveEntry(Object archive, String path);
 

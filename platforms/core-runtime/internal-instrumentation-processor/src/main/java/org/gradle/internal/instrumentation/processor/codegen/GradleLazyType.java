@@ -20,6 +20,9 @@ import com.squareup.javapoet.ClassName;
 import com.squareup.javapoet.ParameterizedTypeName;
 import com.squareup.javapoet.TypeName;
 
+import static java.util.Objects.requireNonNull;
+import org.jspecify.annotations.Nullable;
+
 public enum GradleLazyType {
     CONFIGURABLE_FILE_COLLECTION("org.gradle.api.file.ConfigurableFileCollection"),
     FILE_COLLECTION("org.gradle.api.file.FileCollection"),
@@ -38,25 +41,26 @@ public enum GradleLazyType {
     };
 
     @SuppressWarnings("ImmutableEnumChecker")
+    @Nullable
     private final ClassName className;
 
     GradleLazyType(String name) {
         this(ClassName.bestGuess(name));
     }
 
-    GradleLazyType(ClassName className) {
+    GradleLazyType(@Nullable ClassName className) {
         this.className = className;
     }
 
     public ClassName asClassName() {
-        return className;
+        return requireNonNull(className);
     }
 
     public boolean isEqualToRawTypeOf(TypeName typeName) {
         if (typeName instanceof ParameterizedTypeName) {
             typeName = ((ParameterizedTypeName) typeName).rawType;
         }
-        return className.equals(typeName);
+        return requireNonNull(className).equals(typeName);
     }
 
     public static GradleLazyType from(TypeName typeName) {

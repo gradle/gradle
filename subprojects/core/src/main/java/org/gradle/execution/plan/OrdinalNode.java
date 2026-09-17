@@ -29,7 +29,7 @@ import java.util.Locale;
  * the task graph and prevents producers of a higher ordinality to run before the destroyers of a lower
  * ordinality even if the destroyers are delayed waiting on dependencies (and vice versa).
  */
-public class OrdinalNode extends Node implements SelfExecutingNode {
+public class OrdinalNode extends Node {
     // order matters - see NodeComparator
     public enum Type {DESTROYER, PRODUCER}
 

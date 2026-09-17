@@ -410,7 +410,9 @@ public class ConsumerOperationParameters implements BuildParameters {
     }
 
     /**
-     * @since 1.0-milestone-3
+     * Returns the start time.
+     *
+     * @since 1.0
      */
     public long getStartTime() {
         return startTime;
@@ -421,70 +423,90 @@ public class ConsumerOperationParameters implements BuildParameters {
     }
 
     /**
-     * @since 1.0-milestone-3
+     * Returns the gradle user home dir.
+     *
+     * @since 1.0
      */
     public File getGradleUserHomeDir() {
         return parameters.getGradleUserHomeDir();
     }
 
     /**
-     * @since 1.0-milestone-3
+     * Returns the project dir.
+     *
+     * @since 1.0
      */
     public File getProjectDir() {
         return parameters.getProjectDir();
     }
 
     /**
-     * @since 1.0-milestone-3
+     * Returns whether search upwards is set.
+     *
+     * @since 1.0
      */
     public Boolean isSearchUpwards() {
         return parameters.isSearchUpwards();
     }
 
     /**
-     * @since 1.0-milestone-3
+     * Returns whether embedded is set.
+     *
+     * @since 1.0
      */
     public Boolean isEmbedded() {
         return parameters.isEmbedded();
     }
 
     /**
-     * @since 1.0-milestone-3
+     * Returns the daemon max idle time units.
+     *
+     * @since 1.0
      */
     public TimeUnit getDaemonMaxIdleTimeUnits() {
         return parameters.getDaemonMaxIdleTimeUnits();
     }
 
     /**
-     * @since 1.0-milestone-3
+     * Returns the daemon max idle time value.
+     *
+     * @since 1.0
      */
     public Integer getDaemonMaxIdleTimeValue() {
         return parameters.getDaemonMaxIdleTimeValue();
     }
 
     /**
-     * @since 2.2-rc-1
+     * Returns the daemon base dir.
+     *
+     * @since 2.2
      */
     public File getDaemonBaseDir() {
         return parameters.getDaemonBaseDir();
     }
 
     /**
-     * @since 1.0-milestone-3
+     * Returns the standard output.
+     *
+     * @since 1.0
      */
     public OutputStream getStandardOutput() {
         return stdout;
     }
 
     /**
-     * @since 1.0-milestone-3
+     * Returns the standard error.
+     *
+     * @since 1.0
      */
     public OutputStream getStandardError() {
         return stderr;
     }
 
     /**
-     * @since 2.3-rc-1
+     * Returns whether color output is set.
+     *
+     * @since 2.3
      */
     public Boolean isColorOutput() {
         return colorOutput;
@@ -550,28 +572,36 @@ public class ConsumerOperationParameters implements BuildParameters {
     }
 
     /**
-     * @since 1.12-rc-1
+     * Returns the launchables.
+     *
+     * @since 1.12
      */
     public List<InternalLaunchable> getLaunchables() {
         return launchables;
     }
 
     /**
-     * @since 2.8-rc-1
+     * Returns the injected plugin classpath.
+     *
+     * @since 2.8
      */
     public List<File> getInjectedPluginClasspath() {
         return injectedPluginClasspath.getAsFiles();
     }
 
     /**
-     * @since 1.0-milestone-3
+     * Returns the progress listener.
+     *
+     * @since 1.0
      */
     public ProgressListenerVersion1 getProgressListener() {
         return progressListener;
     }
 
     /**
-     * @since 2.4-rc-1
+     * Returns the build progress listener.
+     *
+     * @since 2.4
      */
     public FailsafeBuildProgressListenerAdapter getBuildProgressListener() {
         return buildProgressListener;
@@ -582,6 +612,8 @@ public class ConsumerOperationParameters implements BuildParameters {
     }
 
     /**
+     * Returns the system properties.
+     *
      * @since 7.6
      */
     public Map<String, ?> getSystemProperties() {
@@ -593,6 +625,8 @@ public class ConsumerOperationParameters implements BuildParameters {
     }
 
     /**
+     * On streamed value.
+     *
      * @since 8.6
      */
     public void onStreamedValue(Object model) {

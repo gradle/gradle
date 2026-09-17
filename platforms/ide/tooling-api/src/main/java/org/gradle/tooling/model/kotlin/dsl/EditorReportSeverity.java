@@ -23,6 +23,12 @@ package org.gradle.tooling.model.kotlin.dsl;
  * @since 6.0
  */
 public enum EditorReportSeverity {
+    /**
+     * @since 6.0
+     */
     WARNING,
+    /**
+     * @since 6.0
+     */
     ERROR
 }

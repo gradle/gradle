@@ -20,7 +20,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.Global.class)
-public class CurrentBuildOperationRef {
+public class CurrentBuildOperationRef implements BuildOperationIdRef {
 
     private static final CurrentBuildOperationRef INSTANCE = new CurrentBuildOperationRef();
 
@@ -37,6 +37,7 @@ public class CurrentBuildOperationRef {
     }
 
     @Nullable
+    @Override
     public OperationIdentifier getId() {
         BuildOperationRef operationState = get();
         return operationState == null ? null : operationState.getId();

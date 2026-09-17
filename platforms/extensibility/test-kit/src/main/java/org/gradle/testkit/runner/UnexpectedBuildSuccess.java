@@ -23,6 +23,11 @@ package org.gradle.testkit.runner;
  * @see GradleRunner#buildAndFail()
  */
 public class UnexpectedBuildSuccess extends UnexpectedBuildResultException {
+    /**
+     * Creates a new {@code UnexpectedBuildSuccess}.
+     *
+     * @since 2.9
+     */
     public UnexpectedBuildSuccess(String message, BuildResult buildResult) {
         super(message, buildResult);
     }

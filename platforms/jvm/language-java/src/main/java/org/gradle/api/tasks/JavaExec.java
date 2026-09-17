@@ -117,6 +117,7 @@ import static java.util.Collections.emptyList;
  *    }
  * }
  * </pre>
+ * @since 0.9
  */
 @DisableCachingByDefault(because = "Gradle would require more information to cache this task")
 public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
@@ -125,6 +126,11 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
     private final ModularitySpec modularity;
     private final Property<ExecResult> execResult;
 
+    /**
+     * Creates a new {@code JavaExec}.
+     *
+     * @since 0.9
+     */
     @SuppressWarnings("this-escape")
     public JavaExec() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -154,6 +160,11 @@ public abstract class JavaExec extends ConventionTask implements JavaExecSpec {
             task -> getJavaLauncher().map(launcher -> launcher.getMetadata().getLanguageVersion()).get() == DefaultJavaLanguageVersion.UNKNOWN);
     }
 
+    /**
+     * Exec.
+     *
+     * @since 1.1
+     */
     @TaskAction
     public void exec() {
         validateExecutableMatchesToolchain();

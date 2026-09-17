@@ -23,11 +23,13 @@ import java.io.File;
  * <p>A directory with some associated include and exclude patterns.</p>
  *
  * <p>This interface does not allow mutation. However, the actual implementation may not be immutable.</p>
+ * @since 1.0
  */
 public interface DirectoryTree {
     /**
      * Returns the base directory of this tree.
      * @return The base dir, never returns null.
+     * @since 1.0
      */
     File getDir();
 
@@ -35,6 +37,7 @@ public interface DirectoryTree {
      * Returns the patterns which select the files under the base directory.
      *
      * @return The patterns, never returns null.
+     * @since 1.0
      */
     PatternSet getPatterns();
 }

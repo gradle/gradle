@@ -17,11 +17,10 @@ package org.gradle.api.internal.project;
 
 import com.google.errorprone.annotations.concurrent.GuardedBy;
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.initialization.ProjectDescriptorInternal;
 import org.gradle.initialization.ProjectDescriptorRegistry;
-import org.gradle.internal.Factory;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.build.AllProjectsAccess;
 import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
@@ -42,6 +41,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -55,7 +55,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
     private final Object lock = new Object();
     private final Map<Path, ProjectState> projectsByPath = new LinkedHashMap<>();
     private final Map<ProjectComponentIdentifier, ProjectState> projectsById = new HashMap<>();
-    private final Map<BuildIdentifier, DefaultBuildProjectRegistry> projectsByBuild = new HashMap<>();
+    private final Map<BuildIdentity, DefaultBuildProjectRegistry> projectsByBuild = new HashMap<>();
 
     public DefaultProjectStateRegistry(WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;
@@ -117,10 +117,10 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
     }
 
     private DefaultBuildProjectRegistry getBuildProjectRegistry(BuildState owner) {
-        DefaultBuildProjectRegistry buildProjectRegistry = projectsByBuild.get(owner.getBuildIdentifier());
+        DefaultBuildProjectRegistry buildProjectRegistry = projectsByBuild.get(owner.getBuildIdentity());
         if (buildProjectRegistry == null) {
             buildProjectRegistry = new DefaultBuildProjectRegistry(owner, workerLeaseService);
-            projectsByBuild.put(owner.getBuildIdentifier(), buildProjectRegistry);
+            projectsByBuild.put(owner.getBuildIdentity(), buildProjectRegistry);
         }
         return buildProjectRegistry;
     }
@@ -135,7 +135,7 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
     @Override
     public void discardProjectsFor(BuildState build) {
-        DefaultBuildProjectRegistry registry = projectsByBuild.get(build.getBuildIdentifier());
+        DefaultBuildProjectRegistry registry = projectsByBuild.get(build.getBuildIdentity());
         if (registry != null) {
             for (ProjectState project : registry.projectsByPath.values()) {
                 projectsById.remove(project.getComponentIdentifier());
@@ -201,11 +201,11 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
     }
 
     @Override
-    public BuildProjectRegistry projectsFor(BuildIdentifier buildIdentifier) throws IllegalArgumentException {
+    public BuildProjectRegistry projectsFor(BuildIdentity buildIdentity) throws IllegalArgumentException {
         synchronized (lock) {
-            BuildProjectRegistry registry = projectsByBuild.get(buildIdentifier);
+            BuildProjectRegistry registry = projectsByBuild.get(buildIdentity);
             if (registry == null) {
-                throw new IllegalArgumentException("Projects for " + buildIdentifier + " have not been registered yet.");
+                throw new IllegalArgumentException("Projects for " + buildIdentity + " have not been registered yet.");
             }
             return registry;
         }
@@ -213,15 +213,10 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
     @Nullable
     @Override
-    public BuildProjectRegistry findProjectsFor(BuildIdentifier buildIdentifier) {
+    public BuildProjectRegistry findProjectsFor(BuildIdentity buildIdentity) {
         synchronized (lock) {
-            return projectsByBuild.get(buildIdentifier);
+            return projectsByBuild.get(buildIdentity);
         }
-    }
-
-    @Override
-    public <T> T allowUncontrolledAccessToAnyProject(Factory<T> factory) {
-        return workerLeaseService.allowUncontrolledAccessToAnyProject(factory);
     }
 
     @Override
@@ -272,23 +267,36 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
 
         @Override
         public <T extends @Nullable Object> T fromMutableStateOfAllProjects(Function<AllProjectsAccess, T> factory) {
-            ResourceLock allProjectsLock = workerLeaseService.getAllProjectsLock(owner.getIdentityPath());
-            Collection<? extends ResourceLock> locks = workerLeaseService.getCurrentProjectLocks();
-            return workerLeaseService.withReplacedLocks(locks, allProjectsLock, () ->
-                factory.apply(new AllProjectsAccessImpl(owner, workerLeaseService, allProjectsLock))
+            Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
+            return workerLeaseService.withReplacedLocks(currentLocks, accessLocksOfAllProjects(), () ->
+                factory.apply(new AllProjectsAccessImpl(owner, workerLeaseService))
             );
         }
+
+        /**
+         * The state locks of every project of this build, which may be acquired together to gain
+         * exclusive access to all of them without requiring individual lock acquisitions for each.
+         */
+        private Set<ResourceLock> accessLocksOfAllProjects() {
+            // Use a set to deduplicate, since when parallel execution is disabled, projects in
+            // the same build share a lock.
+            Set<ResourceLock> locks = new HashSet<>();
+            for (ProjectState project : projectsByPath.values()) {
+                locks.add(project.getAccessLock());
+            }
+            return locks;
+        }
+
     }
 
     private static final class AllProjectsAccessImpl implements AllProjectsAccess {
+
         private final BuildState owner;
         private final WorkerLeaseService workerLeaseService;
-        private final ResourceLock allProjectsLock;
 
-        private AllProjectsAccessImpl(BuildState owner, WorkerLeaseService workerLeaseService, ResourceLock allProjectsLock) {
+        private AllProjectsAccessImpl(BuildState owner, WorkerLeaseService workerLeaseService) {
             this.owner = owner;
             this.workerLeaseService = workerLeaseService;
-            this.allProjectsLock = allProjectsLock;
         }
 
         @Override
@@ -298,11 +306,12 @@ public class DefaultProjectStateRegistry implements ProjectStateRegistry, Closea
                     "Attempting to access mutable state of " + project.getIdentityPath() + " using AllProjectsAccess for " + owner.getIdentityPath() + "." +
                         " AllProjectsAccess can only be used to access the mutable state of projects in the same build.");
             }
-            if (!workerLeaseService.getCurrentProjectLocks().contains(allProjectsLock)) {
-                throw new IllegalStateException("Cannot access mutable project state without holding the all projects lock for " + owner.getDisplayName() + ".");
+            if (!workerLeaseService.holdsProjectLock(project.getAccessLock())) {
+                throw new IllegalStateException("Cannot access mutable state of " + project.getIdentityPath() + " without holding its state lock.");
             }
-            // SAFETY: The caller is only allowed to call this method while holding the all projects lock
+            // SAFETY: The caller is only allowed to call this method while holding the state lock of the project
             return project.getMutableModel();
         }
+
     }
 }

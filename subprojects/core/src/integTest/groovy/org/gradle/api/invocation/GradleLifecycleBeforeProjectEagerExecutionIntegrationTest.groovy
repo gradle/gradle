@@ -136,7 +136,6 @@ class GradleLifecycleBeforeProjectEagerExecutionIntegrationTest extends Abstract
             "group",
             "hasProperty('foo')",
             "layout",
-            "model",
             "modelRegistry",
             "normalization",
             "normalization{}",

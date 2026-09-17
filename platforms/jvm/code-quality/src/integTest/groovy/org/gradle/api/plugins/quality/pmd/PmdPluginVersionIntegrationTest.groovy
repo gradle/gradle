@@ -36,7 +36,9 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
 
             ${mavenCentralRepository()}
 
-            testing.suites.test.useJUnit()
+            // The default rule set's WrongTestAnnotation rule (PMD 7.26.0+) assumes JUnit Jupiter,
+            // so the analyzed test sources must not use JUnit 4 annotations.
+            testing.suites.test.useJUnitJupiter()
 
             pmd {
                 toolVersion = '$version'
@@ -396,9 +398,9 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
             """
             package org.gradle;
 
-            import static org.junit.Assert.assertTrue;
+            import static org.junit.jupiter.api.Assertions.assertTrue;
 
-            import org.junit.Test;
+            import org.junit.jupiter.api.Test;
 
             public class Class1Test {
                 @Test
@@ -420,9 +422,9 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
             """
             package org.gradle;
 
-            import static org.junit.Assert.assertTrue;
+            import static org.junit.jupiter.api.Assertions.assertTrue;
 
-            import org.junit.Test;
+            import org.junit.jupiter.api.Test;
 
             public class Class1Test {
                 @Test

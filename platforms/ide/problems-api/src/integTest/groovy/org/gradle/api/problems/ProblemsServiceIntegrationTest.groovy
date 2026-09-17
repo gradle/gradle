@@ -21,6 +21,7 @@ import org.gradle.api.problems.internal.StackTraceLocation
 import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
+import org.gradle.integtests.fixtures.problems.ProblemsReportFixture
 import spock.lang.Issue
 
 import static org.gradle.api.problems.fixtures.ReportingScript.getProblemReportingScript
@@ -429,6 +430,39 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
+    def "problems report carries the reported problems and the build context"() {
+        given:
+        withReportProblemTask """
+            ${problemIdScript()}
+            problems.getReporter().report(problemId) {
+                it.contextualLabel("Some problem")
+                    .details("Some details")
+                    .solution("Some solution")
+            }
+        """
+
+        when:
+        executer.withArgument("--problems-report")
+        run("reportProblem")
+
+        then:
+        def report = new ProblemsReportFixture(testDirectory.file(problemsReportOutputDirectory, problemsReportHtmlName))
+
+        report.summary.requestedTasks == "reportProblem"
+        report.summary.documentationLink.toString().contains("reporting_problems")
+
+        report.problemIds == ["generic.type"]
+        verifyAll(report.problems[0]) {
+            it['severity'] == "WARNING"
+            it['contextualLabel'] == "Some problem"
+            it['problemDetails'] == "Some details"
+            it['solutions'] == ["Some solution"]
+        }
+
+        and:
+        receivedProblem != null
+    }
+
     def "problem report can be disabled"() {
         given:
         withReportProblemTask """
@@ -501,7 +535,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
   This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API usage should be integrated into plugins
     For more information, please refer to https://example.com/some-problem.
-    Location: /path/to/script line 20
+    Location: /path/to/script:20
     Possible solution: Look up the samples index for real-life examples.
         """
         verifyAll(receivedProblem) {
@@ -529,6 +563,32 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
         then:
         errorOutput.count(solution) == 1
         errorOutput.count(docLink) == 1
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/35699")
+    def "cli rendering preserves the order they were emitted"() {
+        given:
+        disableProblemsApiCheck()
+        withReportProblemTask """
+            ${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("sample-problems", "Sample Problems")
+            def reporter = problems.getReporter()
+            def orderedProblems = ['a', 'b', 'c', 'e', 'd'].collect { letter ->
+                ${ProblemId.name} id = ${ProblemId.name}.create("problem-" + letter, "Problem " + letter, problemGroup)
+                reporter.create(id) { spec ->
+                    spec.contextualLabel("Context " + letter)
+                }
+            }
+            throw reporter.throwing(new RuntimeException("Multiple problems reported"), orderedProblems)
+        """
+
+        when:
+        fails('reportProblem')
+
+        then:
+        def out = errorOutput
+        def positions = ['a', 'b', 'c', 'e', 'd'].collect { out.indexOf("Problem $it") }
+        System.err.println(positions)
+        positions == positions.toSorted()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/36719")

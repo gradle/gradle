@@ -27,6 +27,7 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.junit.Assume
+import spock.lang.Issue
 
 @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
 class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements DaemonJvmPropertiesFixture, JavaToolchainFixture {
@@ -157,5 +158,20 @@ class DaemonToolchainIntegrationTest extends AbstractIntegrationSpec implements 
         expect:
         fails("help")
         failure.assertHasDescription("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=10, vendor=IBM, implementation=vendor-specific, nativeImageCapable=false}")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/36118")
+    def "Given daemon toolchain criteria requiring native-image capability that doesn't match installed ones When executing any task Then fails with the expected message"() {
+        given:
+        // Java 10 is not available
+        def java10 = AvailableJavaHomes.getAvailableJdks(JavaVersion.VERSION_1_10)
+        Assume.assumeTrue(java10.isEmpty())
+        writeJvmCriteria(JavaVersion.VERSION_1_10)
+        writeNativeImageCapableCriteria()
+        captureJavaHome()
+
+        expect:
+        fails("help")
+        failure.assertHasDescription("Cannot find a Java installation on your machine (${OperatingSystem.current()}) matching: {languageVersion=10, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=true}")
     }
 }

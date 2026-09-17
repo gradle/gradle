@@ -29,13 +29,44 @@ import org.gradle.language.base.internal.plugins.CleanRule;
  * <p>A {@link org.gradle.api.Plugin} which defines a basic project lifecycle.</p>
  *
  * @see <a href="https://docs.gradle.org/current/userguide/base_plugin.html">Base plugin reference</a>
+ * @since 2.0
  */
 public abstract class LifecycleBasePlugin implements Plugin<Project> {
+    /**
+     * The clean task name.
+     *
+     * @since 2.0
+     */
     public static final String CLEAN_TASK_NAME = "clean";
+    /**
+     * The assemble task name.
+     *
+     * @since 2.0
+     */
     public static final String ASSEMBLE_TASK_NAME = "assemble";
+    /**
+     * The check task name.
+     *
+     * @since 2.3
+     */
     public static final String CHECK_TASK_NAME = "check";
+    /**
+     * The build task name.
+     *
+     * @since 2.3
+     */
     public static final String BUILD_TASK_NAME = "build";
+    /**
+     * The build group.
+     *
+     * @since 2.0
+     */
     public static final String BUILD_GROUP = "build";
+    /**
+     * The verification group.
+     *
+     * @since 2.3
+     */
     public static final String VERIFICATION_GROUP = "verification";
 
     @Override

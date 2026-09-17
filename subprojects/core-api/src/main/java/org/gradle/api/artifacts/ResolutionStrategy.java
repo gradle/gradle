@@ -64,7 +64,7 @@ import java.util.concurrent.TimeUnit;
  * }
  * </pre>
  *
- * @since 1.0-milestone-6
+ * @since 1.0
  */
 public interface ResolutionStrategy {
 
@@ -85,7 +85,7 @@ public interface ResolutionStrategy {
      * </pre>
      *
      * @return this resolution strategy instance
-     * @since 1.0-milestone-6
+     * @since 1.0
      */
     ResolutionStrategy failOnVersionConflict();
 
@@ -209,7 +209,7 @@ public interface ResolutionStrategy {
      *
      * @param notations typically group:name:version notations to append
      * @return this ResolutionStrategy instance
-     * @since 1.0-milestone-7
+     * @since 1.0
      */
     ResolutionStrategy force(Object... notations);
 
@@ -232,7 +232,7 @@ public interface ResolutionStrategy {
      *
      * @param moduleVersionSelectorNotations typically group:name:version notations to set
      * @return this ResolutionStrategy instance
-     * @since 1.0-milestone-7
+     * @since 1.0
      */
     ResolutionStrategy setForcedModules(Object... moduleVersionSelectorNotations);
 
@@ -240,7 +240,7 @@ public interface ResolutionStrategy {
      * Returns currently configured forced modules. For more information on forcing versions see {@link #force(Object...)}
      *
      * @return forced modules
-     * @since 1.0-milestone-7
+     * @since 1.0
      */
     Set<ModuleVersionSelector> getForcedModules();
 
@@ -284,7 +284,7 @@ public interface ResolutionStrategy {
      *
      * @param value The number of time units
      * @param units The units
-     * @since 1.0-milestone-6
+     * @since 1.0
      */
     void cacheDynamicVersionsFor(int value, String units);
 
@@ -297,7 +297,7 @@ public interface ResolutionStrategy {
      *
      * @param value The number of time units
      * @param units The units
-     * @since 1.0-milestone-6
+     * @since 1.0
      */
     void cacheDynamicVersionsFor(int value, TimeUnit units);
 
@@ -309,7 +309,7 @@ public interface ResolutionStrategy {
      *
      * @param value The number of time units
      * @param units The units
-     * @since 1.0-milestone-6
+     * @since 1.0
      */
     void cacheChangingModulesFor(int value, String units);
 
@@ -322,7 +322,7 @@ public interface ResolutionStrategy {
      *
      * @param value The number of time units
      * @param units The units
-     * @since 1.0-milestone-6
+     * @since 1.0
      */
     void cacheChangingModulesFor(int value, TimeUnit units);
 
@@ -427,6 +427,17 @@ public interface ResolutionStrategy {
      * @since 3.5
      */
     enum SortOrder {
-        DEFAULT, CONSUMER_FIRST, DEPENDENCY_FIRST
+        /**
+         * @since 3.5
+         */
+        DEFAULT,
+        /**
+         * @since 3.5
+         */
+        CONSUMER_FIRST,
+        /**
+         * @since 3.5
+         */
+        DEPENDENCY_FIRST
     }
 }

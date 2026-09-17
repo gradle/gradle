@@ -497,7 +497,7 @@ class IvyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
         fails("resolve")
 
         then:
-        failure.assertHasCause("Could not resolve org:transitive:1.0")
+        failure.assertHasCause("Could not resolve project ':included' (Requested: org:transitive:1.0).")
         failure.assertHasErrorOutput("No variants exist.")
     }
 }

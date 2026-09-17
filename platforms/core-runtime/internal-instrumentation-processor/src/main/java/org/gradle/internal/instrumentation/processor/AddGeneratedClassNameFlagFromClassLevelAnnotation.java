@@ -34,6 +34,8 @@ import java.util.Optional;
 import java.util.function.BiFunction;
 import java.util.function.Predicate;
 
+import static java.util.Objects.requireNonNull;
+
 public class AddGeneratedClassNameFlagFromClassLevelAnnotation implements RequestPostProcessorExtension {
 
     private final Elements elements;
@@ -68,7 +70,7 @@ public class AddGeneratedClassNameFlagFromClassLevelAnnotation implements Reques
             return Collections.singletonList(originalRequest);
         }
 
-        Element enclosingElement = maybeOriginatingElement.get().getEnclosingElement();
+        Element enclosingElement = requireNonNull(maybeOriginatingElement.get().getEnclosingElement());
         AnnotationUtils.findAnnotationMirror(enclosingElement, generatedClassNameProvidingAnnotation).ifPresent(annotationMirror -> {
             AnnotationValue generatedClassName = AnnotationUtils.findAnnotationValue(annotationMirror, "generatedClassName")
                 .orElseThrow(() -> new IllegalStateException("Annotation " + generatedClassNameProvidingAnnotation + " does not have a generatedClassName attribute"));

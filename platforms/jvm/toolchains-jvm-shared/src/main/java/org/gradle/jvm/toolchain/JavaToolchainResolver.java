@@ -40,6 +40,7 @@ public interface JavaToolchainResolver extends BuildService<BuildServiceParamete
      *                  needed in
      * @return          empty Optional if and only if the provided specification can't be
      *                  matched
+     * @since 7.6
      */
     Optional<JavaToolchainDownload> resolve(JavaToolchainRequest request);
 

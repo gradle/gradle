@@ -16,13 +16,11 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.BuildDefinition
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.problems.Problems
@@ -33,6 +31,7 @@ import org.gradle.initialization.DefaultSettings
 import org.gradle.initialization.ProjectDescriptorInternal
 import org.gradle.initialization.SettingsState
 import org.gradle.initialization.layout.BuildLayout
+import org.gradle.internal.build.BuildIdentity
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.cc.base.serialize.service
@@ -150,8 +149,8 @@ class DefaultConfigurationCacheHost internal constructor(
             return DefaultConfigurationCacheBuild(buildStateRegistry.addImplicitIncludedBuild(buildDefinition, buildPath), fileResolver, buildStateRegistry, settingsFile)
         }
 
-        override fun getBuildSrcOf(ownerId: BuildIdentifier): ConfigurationCacheBuild {
-            return DefaultConfigurationCacheBuild(buildStateRegistry.getBuildSrcNestedBuild(buildStateRegistry.getBuild(ownerId))!!, fileResolver, buildStateRegistry, null)
+        override fun getBuildSrcOf(ownerId: BuildIdentity): ConfigurationCacheBuild {
+            return DefaultConfigurationCacheBuild(buildStateRegistry.getBuildSrcNestedBuild(buildStateRegistry.getBuild(ownerId.buildPath))!!, fileResolver, buildStateRegistry, null)
         }
 
         private
@@ -172,7 +171,7 @@ class DefaultConfigurationCacheHost internal constructor(
                 gradle,
                 classLoaderScope,
                 baseClassLoaderScope,
-                service<ScriptHandlerFactory>().create(settingsSource, classLoaderScope, StandaloneDomainObjectContext.forScript(settingsSource)),
+                service<ScriptHandlerFactory>().create(settingsSource, classLoaderScope),
                 settingsDir(),
                 settingsSource,
                 gradle.startParameter

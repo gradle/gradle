@@ -67,6 +67,7 @@ import java.util.stream.Stream;
  *     reports.html.outputLocation = file("build/reports/project/dependencies")
  * }
  * </pre>
+ * @since 1.9
  */
 @SuppressWarnings("this-escape")
 @UntrackedTask(because = "We can't describe the dependency tree of all projects as input")
@@ -74,6 +75,11 @@ public abstract class HtmlDependencyReportTask extends AbstractDependencyReportT
     private final Cached<ProjectsWithConfigurations<ProjectDetails.ProjectNameAndPath, ConfigurationDetails>> projectsWithConfigurations = Cached.of(this::computeProjectsWithConfigurations);
     private final DependencyReportContainer reports;
 
+    /**
+     * Creates a new {@code HtmlDependencyReportTask}.
+     *
+     * @since 1.9
+     */
     @SuppressWarnings("this-escape")
     public HtmlDependencyReportTask() {
         reports = getObjectFactory().newInstance(DefaultDependencyReportContainer.class, Describables.quoted("Task", getIdentityPath()));
@@ -118,6 +124,11 @@ public abstract class HtmlDependencyReportTask extends AbstractDependencyReportT
     @Inject
     protected abstract CollectionCallbackActionDecorator getCallbackActionDecorator();
 
+    /**
+     * Generate.
+     *
+     * @since 1.9
+     */
     @TaskAction
     public void generate() {
         if (!reports.getHtml().getRequired().get()) {

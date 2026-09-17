@@ -20,6 +20,7 @@ import java.io.InputStream;
 
 /**
  * Convenience base class for {@link Signatory} implementations.
+ * @since 1.0
  */
 public abstract class SignatorySupport implements Signatory {
 

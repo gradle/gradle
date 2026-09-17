@@ -33,11 +33,13 @@ public interface JacocoViolationRulesContainer {
      * Indicates whether build should fail in case of rule violation.
      *
      * @param ignore Only render violation but do not fail build
+     * @since 3.4
      */
     void setFailOnViolation(boolean ignore);
 
     /**
      * Specifies whether build should fail in case of rule violations. Defaults to true.
+     * @since 3.4
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -45,6 +47,7 @@ public interface JacocoViolationRulesContainer {
 
     /**
      * Gets all violation rules. Defaults to an empty list.
+     * @since 3.4
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -52,6 +55,7 @@ public interface JacocoViolationRulesContainer {
 
     /**
      * Adds a violation rule. Any number of rules can be added.
+     * @since 3.4
      */
     JacocoViolationRule rule(Action<? super JacocoViolationRule> configureAction);
 }

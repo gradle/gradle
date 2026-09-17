@@ -20,11 +20,13 @@ import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 
 /**
  * <p>An {@code ExternalDependency} is a {@link Dependency} on a source outside the current project hierarchy.</p>
+ * @since 0.7
  */
 public interface ExternalDependency extends ModuleDependency, ModuleVersionSelector {
 
     /**
      * Returns whether or not the version of this dependency should be enforced in the case of version conflicts.
+     * @since 0.7
      */
     @HiddenInDefinition
     boolean isForce();
@@ -48,7 +50,7 @@ public interface ExternalDependency extends ModuleDependency, ModuleVersionSelec
      * Returns the version constraint to be used during selection.
      * @return the version constraint
      *
-     * @since 4.4
+     * @since 4.10
      */
     @HiddenInDefinition
     VersionConstraint getVersionConstraint();

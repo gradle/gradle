@@ -20,11 +20,17 @@ import org.gradle.api.JavaVersion;
 
 /**
  * Java language level used by IDEA projects.
+ * @since 1.0
  */
 public class IdeaLanguageLevel {
 
     private String level;
 
+    /**
+     * Creates a new {@code IdeaLanguageLevel}.
+     *
+     * @since 1.0
+     */
     public IdeaLanguageLevel(Object version) {
         if (version != null && version instanceof String && ((String) version).startsWith("JDK_")) {
             level = (String) version;
@@ -33,10 +39,20 @@ public class IdeaLanguageLevel {
         level = JavaVersion.toVersion(version).name().replaceFirst("VERSION", "JDK");
     }
 
+    /**
+     * Returns the level.
+     *
+     * @since 1.0
+     */
     public String getLevel() {
         return level;
     }
 
+    /**
+     * Sets the level.
+     *
+     * @since 1.0
+     */
     public void setLevel(String level) {
         this.level = level;
     }

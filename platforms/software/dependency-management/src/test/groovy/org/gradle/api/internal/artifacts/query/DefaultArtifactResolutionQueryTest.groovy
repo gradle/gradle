@@ -22,9 +22,10 @@ import org.gradle.api.artifacts.result.ArtifactResolutionResult
 import org.gradle.api.artifacts.result.UnresolvedComponentResult
 import org.gradle.api.component.Artifact
 import org.gradle.api.component.Component
-import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyFactory
+import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal
+import org.gradle.api.internal.artifacts.dsl.ComponentMetadataRulesSupplier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ComponentResolvers
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalModuleComponentResolverFactory
 import org.gradle.api.internal.component.ComponentTypeRegistration
@@ -40,9 +41,11 @@ import spock.lang.Shared
 import spock.lang.Specification
 
 class DefaultArtifactResolutionQueryTest extends Specification {
+
     def resolutionStrategyFactory = Stub(ResolutionStrategyFactory)
     def externalResolverFactory = Mock(ExternalModuleComponentResolverFactory)
-    def componentMetadataProcessorFactory = Mock(ComponentMetadataProcessorFactory)
+    def componentMetadataRulesSupplier = Stub(ComponentMetadataRulesSupplier)
+    def componentMetadataHandler = Stub(ComponentMetadataHandlerInternal)
     def componentTypeRegistry = Mock(ComponentTypeRegistry)
     def artifactResolver = Mock(ArtifactResolver)
     def repositoryChain = Mock(ComponentResolvers)
@@ -123,7 +126,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     }
 
     private def withArtifactResolutionInteractions(int numberOfComponentsToResolve = 1) {
-        1 * externalResolverFactory.createResolvers(_, _, _, _, _, _) >> repositoryChain
+        1 * externalResolverFactory.createResolvers(_, _, _, _, _, _, _) >> repositoryChain
         1 * repositoryChain.artifactResolver >> artifactResolver
         1 * repositoryChain.componentResolver >> componentMetaDataResolver
         numberOfComponentsToResolve * componentMetaDataResolver.resolve(_, _, _) >> { ComponentIdentifier componentId, ComponentOverrideMetadata requestMetaData, BuildableComponentResolveResult resolveResult ->
@@ -135,7 +138,7 @@ class DefaultArtifactResolutionQueryTest extends Specification {
     }
 
     private DefaultArtifactResolutionQuery createArtifactResolutionQuery(ComponentTypeRegistry componentTypeRegistry) {
-        new DefaultArtifactResolutionQuery(resolutionStrategyFactory, { [] }, externalResolverFactory, componentMetadataProcessorFactory, componentTypeRegistry)
+        new DefaultArtifactResolutionQuery(resolutionStrategyFactory, { [] }, externalResolverFactory, componentMetadataRulesSupplier, componentMetadataHandler, componentTypeRegistry)
     }
 
     private ComponentTypeRegistry createTestComponentTypeRegistry() {
@@ -169,4 +172,5 @@ class DefaultArtifactResolutionQueryTest extends Specification {
 
     private static interface UnknownArtifact extends Artifact {
     }
+
 }

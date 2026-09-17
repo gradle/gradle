@@ -57,6 +57,7 @@ import javax.inject.Inject;
 
 /**
  * Base task for linking a native binary from object files and libraries.
+ * @since 2.2
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractLinkTask extends DefaultTask implements ObjectFilesToBinary {
@@ -64,6 +65,11 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     private final ConfigurableFileCollection libs;
     private final Property<Boolean> debuggable;
 
+    /**
+     * Creates a new {@code AbstractLinkTask}.
+     *
+     * @since 2.2
+     */
     @SuppressWarnings("this-escape")
     public AbstractLinkTask() {
         final ObjectFactory objectFactory = getProject().getObjects();
@@ -124,7 +130,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     /**
      * Create a debuggable binary?
      *
-     * @since 4.7
+     * @since 4.3
      */
     @Internal
     public boolean isDebuggable() {
@@ -143,6 +149,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
 
     /**
      * The source object files to be passed to the linker.
+     * @since 2.2
      */
     @InputFiles
     @SkipWhenEmpty
@@ -152,12 +159,18 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         return source;
     }
 
+    /**
+     * Sets the source.
+     *
+     * @since 2.2
+     */
     public void setSource(FileCollection source) {
         this.source.setFrom(source);
     }
 
     /**
      * The library files to be passed to the linker.
+     * @since 2.2
      */
     @PathSensitive(PathSensitivity.RELATIVE)
     @InputFiles
@@ -165,6 +178,11 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         return libs;
     }
 
+    /**
+     * Sets the libs.
+     *
+     * @since 2.2
+     */
     public void setLibs(FileCollection libs) {
         this.libs.setFrom(libs);
     }
@@ -179,6 +197,7 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
 
     /**
      * Adds a set of library files to be linked. The provided libs object is evaluated as per {@link Project#files(Object...)}.
+     * @since 2.2
      */
     public void lib(Object libs) {
         this.getLibs().from(libs);
@@ -200,6 +219,11 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
     @Inject
     protected abstract Deleter getDeleter();
 
+    /**
+     * Link.
+     *
+     * @since 2.2
+     */
     @TaskAction
     protected void link() {
         boolean cleanedOutputs = StaleOutputCleaner.cleanOutputs(
@@ -241,6 +265,11 @@ public abstract class AbstractLinkTask extends DefaultTask implements ObjectFile
         return toolProvider.newCompiler(linkerSpecType);
     }
 
+    /**
+     * Create linker spec.
+     *
+     * @since 2.2
+     */
     protected abstract LinkerSpec createLinkerSpec();
 
 }

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-:metadata-file-spec: https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-1.0-specification.md
+:metadata-file-spec: https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md
 
 [[java_testing]]
 = Testing in Java & JVM projects
@@ -320,7 +320,7 @@ If the test does not succeed (i.e. it fails for every retry), it will be indicat
 
 When `mergeReruns` is disabled (the default), each execution of a test will be listed as a separate test case.
 
-If you are using link:https://scans.gradle.com[Build Scan] or link:https://gradle.com/gradle-enterprise-solution-overview/failure-analytics/[Develocity],
+If you are using link:https://scans.gradle.com[Build Scan] or link:https://develocity.ai/[Develocity],
 flaky tests will be detected regardless of this setting.
 
 Enabling this option is especially useful when using a CI tool that uses the XML test results to determine build failure instead of relying on Gradle's determination of whether the build failed or not,
@@ -471,7 +471,7 @@ In this way, you can use `gradle test` to test JUnit 3/4 tests on JUnit Platform
 === Filtering test engine
 
 JUnit Platform allows you to use different test engines. JUnit currently provides two `TestEngine` implementations out of the box:
-https://junit.org/junit5/docs/current/api/org.junit.jupiter.engine/module-summary.html[junit-jupiter-engine] and https://junit.org/junit5/docs/current/api/org.junit.vintage.engine/module-summary.html[junit-vintage-engine].
+https://docs.junit.org/current/api/org.junit.jupiter.engine/module-summary.html[junit-jupiter-engine] and https://junit.org/junit5/docs/current/api/org.junit.vintage.engine/module-summary.html[junit-vintage-engine].
 You can also write and plug in your own `TestEngine` implementation as documented https://junit.org/junit5/docs/current/user-guide/#launcher-api-engines-custom[here].
 
 By default, all test engines on the test runtime classpath will be used.

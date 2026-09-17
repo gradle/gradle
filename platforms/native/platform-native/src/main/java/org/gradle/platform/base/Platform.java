@@ -24,6 +24,7 @@ import org.gradle.api.tasks.Internal;
  * The platform or runtime that a binary is designed to run on.
  *
  * Examples: the JvmPlatform defines a java runtime, while the NativePlatform defines the Operating System and Architecture for a native app.
+ * @since 2.2
  */
 public interface Platform extends Named {
     @Override
@@ -33,6 +34,7 @@ public interface Platform extends Named {
     /**
      * Returns a human consumable name for this platform.
      *
+     * @since 2.2
      */
     @Internal
     String getDisplayName();

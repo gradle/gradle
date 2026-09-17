@@ -37,7 +37,11 @@ class AbstractIncrementalExecutionPerformanceTest extends AbstractCrossVersionPe
     }
 
     protected boolean enableConfigurationCaching(boolean configurationCachingEnabled) {
-        // use the deprecated property so it works with previous versions
+        // The current property name must be passed as well: build options resolve it before the deprecated one,
+        // so a test project enabling the configuration cache in its gradle.properties (e.g. nowInAndroidBuild)
+        // would otherwise silently win over the deprecated -D flag and keep the cache on in the "disabled" iterations.
+        // The deprecated property is kept for baseline versions older than 8.1.
+        runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheOption.PROPERTY_NAME}=${configurationCachingEnabled}")
         runner.args.add("-D${StartParameterBuildOptions.ConfigurationCacheOption.DEPRECATED_PROPERTY_NAME}=${configurationCachingEnabled}")
     }
 

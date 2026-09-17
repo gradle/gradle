@@ -45,6 +45,7 @@ public interface ActionConfiguration {
      * Adds initialization parameters to use when constructing an instance of the implementation class.
      *
      * @param params - the parameters to use during construction
+     * @since 4.0
      */
     void params(@Nullable Object... params);
 
@@ -52,6 +53,7 @@ public interface ActionConfiguration {
      * Sets any initialization parameters to use when constructing an instance of the implementation class.
      *
      * @param params - the parameters to use during construction
+     * @since 4.0
      */
     void setParams(@Nullable Object... params);
 
@@ -59,6 +61,7 @@ public interface ActionConfiguration {
      * Gets the initialization parameters that will be used when constructing an instance of the implementation class.
      *
      * @return the parameters to use during construction
+     * @since 4.0
      */
     @Nullable Object[] getParams();
 }

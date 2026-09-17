@@ -36,6 +36,7 @@ import java.util.Collection;
 public interface ConfigurationPublications extends HasConfigurableAttributes<ConfigurationPublications> {
     /**
      * Returns the artifacts associated with this configuration. When an artifact is added to this set, an implicit variant is defined for the configuration. These artifacts are also inherited by all configurations that extend this configuration.
+     * @since 3.3
      */
     PublishArtifactSet getArtifacts();
 
@@ -43,6 +44,7 @@ public interface ConfigurationPublications extends HasConfigurableAttributes<Con
      * Adds an outgoing artifact to this configuration. This artifact is included in all variants.
      *
      * <p>See {@link org.gradle.api.artifacts.dsl.ArtifactHandler} for details of the supported notations.
+     * @since 3.3
      */
     void artifact(Object notation);
 
@@ -50,6 +52,7 @@ public interface ConfigurationPublications extends HasConfigurableAttributes<Con
      * Adds an outgoing artifact to this configuration, configuring it using the given action. This artifact is included in all variants.
      *
      * <p>See {@link org.gradle.api.artifacts.dsl.ArtifactHandler} for details of the supported notations.
+     * @since 3.3
      */
     void artifact(Object notation, Action<? super ConfigurablePublishArtifact> configureAction);
 
@@ -71,11 +74,13 @@ public interface ConfigurationPublications extends HasConfigurableAttributes<Con
 
     /**
      * Returns the variants of this configuration, if any.
+     * @since 3.3
      */
     NamedDomainObjectContainer<ConfigurationVariant> getVariants();
 
     /**
      * Configures the variants of this configuration.
+     * @since 3.3
      */
     void variants(Action<? super NamedDomainObjectContainer<ConfigurationVariant>> configureAction);
 

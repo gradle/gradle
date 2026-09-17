@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.plugins;
 
 import com.google.common.collect.Lists;
@@ -43,11 +42,15 @@ import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
 import org.jspecify.annotations.Nullable;
 
-import javax.annotation.concurrent.NotThreadSafe;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import javax.annotation.concurrent.NotThreadSafe;
+import org.gradle.api.internal.project.ProjectIdentity;
+import org.gradle.util.Path;
 
 @NotThreadSafe
 public class DefaultPluginManager implements PluginManagerInternal {
@@ -59,7 +62,10 @@ public class DefaultPluginManager implements PluginManagerInternal {
     private final PluginTarget target;
     private final PluginRegistry pluginRegistry;
     private final DefaultPluginContainer pluginContainer;
-    private final Map<Class<?>, PluginImplementation<?>> plugins = new HashMap<>();
+    // Plugins whose application has started, including those still being applied
+    private final Map<Class<?>, PluginImplementation<?>> plugins = new LinkedHashMap<>();
+    // Plugins whose application has completed; withPlugin() callbacks only see these
+    private final List<PluginImplementation<?>> appliedPlugins = new ArrayList<>();
     private final Map<Class<?>, Plugin> instances = new LinkedHashMap<>();
     private final Map<PluginId, DomainObjectSet<PluginWithId>> idMappings = new HashMap<>();
 
@@ -109,6 +115,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         return new Runnable() {
             @Override
             public void run() {
+                appliedPlugins.add(plugin);
                 // Take a copy because adding to an idMappings value may result in new mappings being added (i.e. ConcurrentModificationException)
                 Iterable<PluginId> pluginIds = Lists.newArrayList(idMappings.keySet());
                 for (PluginId id : pluginIds) {
@@ -165,8 +172,9 @@ public class DefaultPluginManager implements PluginManagerInternal {
             } else {
                 final Runnable adder = addPluginInternal(plugin);
                 if (adder != null) {
+                    UserCodeApplicationContext.Target appTarget = getApplicationTargetFor(target);
                     UserCodeSource source = new UserCodeSource.Binary(plugin.getDisplayName(), pluginClass.getName(), pluginIdStr);
-                    userCodeApplicationContext.apply(source, userCodeApplicationId ->
+                    userCodeApplicationContext.apply(source, appTarget, userCodeApplicationId ->
                         buildOperationRunner.run(new AddPluginBuildOperation(adder, plugin, pluginIdStr, pluginClass, userCodeApplicationId))
                     );
                 }
@@ -178,6 +186,19 @@ public class DefaultPluginManager implements PluginManagerInternal {
         } finally {
             Thread.currentThread().setContextClassLoader(contextClassLoader);
         }
+    }
+
+    private static UserCodeApplicationContext.Target getApplicationTargetFor(PluginTarget target) {
+        ConfigurationTargetIdentifier id = target.getConfigurationTargetIdentifier();
+        if (id.getTargetType() == ConfigurationTargetIdentifier.Type.PROJECT) {
+            return new UserCodeApplicationContext.Target.Project(
+                ProjectIdentity.computeProjectIdentityPath(
+                    Path.path(id.getBuildPath()),
+                    Path.path(id.getTargetPath())
+                )
+            );
+        }
+        return UserCodeApplicationContext.Target.Other.INSTANCE;
     }
 
     private void addPlugin(Runnable adder, PluginImplementation<?> plugin, String pluginId, Class<?> pluginClass) {
@@ -230,7 +251,7 @@ public class DefaultPluginManager implements PluginManagerInternal {
         if (pluginsForId == null) {
             pluginsForId = domainObjectCollectionFactory.newDomainObjectSet(PluginWithId.class);
             idMappings.put(pluginId, pluginsForId);
-            for (PluginImplementation<?> plugin : plugins.values()) {
+            for (PluginImplementation<?> plugin : appliedPlugins) {
                 if (plugin.isAlsoKnownAs(pluginId)) {
                     pluginsForId.add(new PluginWithId(pluginId, plugin.asClass()));
                 }
@@ -242,9 +263,11 @@ public class DefaultPluginManager implements PluginManagerInternal {
 
     @Override
     public AppliedPlugin findPlugin(final String id) {
-        DomainObjectSet<PluginWithId> pluginWithIds = pluginsForId(id);
-        if (!pluginWithIds.isEmpty()) {
-            return pluginWithIds.iterator().next().asAppliedPlugin();
+        PluginId pluginId = DefaultPluginId.unvalidated(id);
+        for (PluginImplementation<?> plugin : plugins.values()) {
+            if (plugin.isAlsoKnownAs(pluginId)) {
+                return new PluginWithId(pluginId, plugin.asClass()).asAppliedPlugin();
+            }
         }
         return null;
     }

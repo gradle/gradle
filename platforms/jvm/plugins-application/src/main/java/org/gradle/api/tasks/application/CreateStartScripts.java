@@ -21,6 +21,7 @@ import org.gradle.work.DisableCachingByDefault;
  * Legacy class for binary compatibility. It has the same behavior as {@link org.gradle.jvm.application.tasks.CreateStartScripts}.
  *
  * @see org.gradle.jvm.application.tasks.CreateStartScripts
+ * @since 1.0
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class CreateStartScripts extends org.gradle.jvm.application.tasks.CreateStartScripts {

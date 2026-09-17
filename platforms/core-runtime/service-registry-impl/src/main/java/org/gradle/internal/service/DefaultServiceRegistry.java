@@ -449,7 +449,6 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
         }
 
         private PersistentArray<ServiceProvider> getProviders(Class<?> type) {
-            @SuppressWarnings("NullAway") // TODO(https://github.com/uber/NullAway/issues/681) Can't infer that AtomicReference holds non-nullable type
             PersistentMap<Class<?>, PersistentArray<ServiceProvider>> providersByType = services.get().providersByType;
 
             return providersByType.getOrDefault(type, PersistentArray.of());
@@ -486,7 +485,6 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
                 annotationHandlerCreated((AnnotatedServiceLifecycleHandler) instance);
             }
 
-            @SuppressWarnings("NullAway") // TODO(https://github.com/uber/NullAway/issues/681) Can't infer that AtomicReference holds non-nullable type
             PersistentArray<AnnotatedServiceLifecycleHandler> lifecycleHandlers = services.get().lifecycleHandlers;
 
             for (AnnotatedServiceLifecycleHandler lifecycleHandler : lifecycleHandlers) {

@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl.isolated
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
 
 class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegrationTest implements TasksWithInputsAndOutputs {
 
@@ -117,6 +118,77 @@ class IsolatedProjectsIntegrationTest extends AbstractIsolatedProjectsIntegratio
         then:
         outputContains("isolatedProjects.requested=true")
         outputContains("isolatedProjects.active=true")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38598")
+    def "resolves IP from both property names (#stableValue in #stableIn, #deprecatedValue in #deprecatedIn)"() {
+        given:
+        withIpStatusTask()
+        def fileProps = []
+        def cliProps = []
+        (stableIn == "file" ? fileProps : cliProps) << "org.gradle.isolated-projects=$stableValue"
+        (deprecatedIn == "file" ? fileProps : cliProps) << "org.gradle.unsafe.isolated-projects=$deprecatedValue"
+        file("gradle.properties") << fileProps.join("\n")
+
+        when:
+        run("ipStatus", *cliProps.collect { "-D$it".toString() })
+
+        then:
+        outputContains("isolatedProjects.requested=$expected")
+        outputContains("isolatedProjects.active=$expected")
+
+        where:
+        stableIn | deprecatedIn | stableValue | deprecatedValue | expected
+        "file"   | "file"       | true        | true            | true
+        "file"   | "file"       | true        | false           | false
+        "file"   | "file"       | false       | true            | false
+        "file"   | "file"       | false       | false           | false
+        "file"   | "cli"        | true        | true            | true
+        "file"   | "cli"        | true        | false           | false
+        "file"   | "cli"        | false       | true            | false
+        "file"   | "cli"        | false       | false           | false
+        "cli"    | "file"       | true        | true            | true
+        "cli"    | "file"       | true        | false           | false
+        "cli"    | "file"       | false       | true            | false
+        "cli"    | "file"       | false       | false           | false
+        "cli"    | "cli"        | true        | true            | true
+        "cli"    | "cli"        | true        | false           | false
+        "cli"    | "cli"        | false       | true            | false
+        "cli"    | "cli"        | false       | false           | false
+    }
+
+    def "build option takes precedence over properties"() {
+        given:
+        withIpStatusTask()
+
+        when:
+        run "ipStatus", "--isolated-projects", "-Dorg.gradle.isolated-projects=false", "-Dorg.gradle.unsafe.isolated-projects=false"
+
+        then:
+        outputContains("isolatedProjects.requested=true")
+        outputContains("isolatedProjects.active=true")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38598")
+    def "explicit disable via deprecated property wins for #optionKind option"() {
+        when:
+        run "help", "-q",
+            "-Dorg.gradle.internal.operations.verbose.parameters=true",
+            "-Dorg.gradle.isolated-projects=true",
+            "-D${stableProperty}=true",
+            "-D${deprecatedProperty}=false"
+
+        then:
+        result.getOutputLineThatContains("Operational build model parameters:").contains("${outputKey}=false")
+
+        where:
+        optionKind                    | outputKey
+        "diagnostics"                 | "isolatedProjectsDiagnostics"
+        "dangerously-ignore-problems" | "isolatedProjectsDangerouslyIgnoreProblems"
+        __
+        stableProperty                                              | deprecatedProperty
+        "org.gradle.isolated-projects.diagnostics"                  | "org.gradle.unsafe.isolated-projects.diagnostics"
+        "org.gradle.isolated-projects.dangerously-ignore-problems"  | "org.gradle.unsafe.isolated-projects.dangerously-ignore-problems"
     }
 
     def "diagnostics option is accepted under both property names"() {

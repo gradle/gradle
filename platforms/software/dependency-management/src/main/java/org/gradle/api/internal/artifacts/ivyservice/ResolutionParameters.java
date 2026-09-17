@@ -21,9 +21,11 @@ import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.internal.artifacts.LegacyResolutionParameters;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
+import org.gradle.api.internal.artifacts.dsl.ImmutableComponentMetadataRules;
 import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
+import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
@@ -63,6 +65,8 @@ public class ResolutionParameters {
     private final boolean failingOnChangingVersions;
     private final FailureResolutions failureResolutions;
     private final CacheExpirationControl cacheExpirationControl;
+    private final ImmutableComponentMetadataRules componentMetadataRules;
+    private final VariantDerivationStrategy variantDerivationStrategy;
 
     public ResolutionParameters(
         ResolutionHost resolutionHost,
@@ -81,7 +85,9 @@ public class ResolutionParameters {
         boolean failingOnDynamicVersions,
         boolean failingOnChangingVersions,
         FailureResolutions failureResolutions,
-        CacheExpirationControl cacheExpirationControl
+        CacheExpirationControl cacheExpirationControl,
+        ImmutableComponentMetadataRules componentMetadataRules,
+        VariantDerivationStrategy variantDerivationStrategy
     ) {
         this.resolutionHost = resolutionHost;
         this.rootComponent = rootComponent;
@@ -100,6 +106,8 @@ public class ResolutionParameters {
         this.failingOnChangingVersions = failingOnChangingVersions;
         this.failureResolutions = failureResolutions;
         this.cacheExpirationControl = cacheExpirationControl;
+        this.componentMetadataRules = componentMetadataRules;
+        this.variantDerivationStrategy = variantDerivationStrategy;
     }
 
     /**
@@ -267,6 +275,20 @@ public class ResolutionParameters {
      */
     public boolean isFailingOnChangingVersions() {
         return failingOnChangingVersions;
+    }
+
+    /**
+     * The component metadata rules that may modify the metadata of software components resolved from external repositories.
+     */
+    public ImmutableComponentMetadataRules getComponentMetadataRules() {
+        return componentMetadataRules;
+    }
+
+    /**
+     * Get the strategy used to synthesize variants for components which do not natively expose variants.
+     */
+    public VariantDerivationStrategy getVariantDerivationStrategy() {
+        return variantDerivationStrategy;
     }
 
     /**

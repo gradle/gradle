@@ -39,10 +39,15 @@ fun checkCleanDirUnixLike(
 ) = """
     REPO=$dir
     if [ -e ${'$'}REPO ] ; then
-        tree ${'$'}REPO
-        rm -rf ${'$'}REPO
-        echo "${'$'}REPO was polluted during the build"
-        ${if (exitOnFailure) "exit 1" else ""}
+        if [ -n "${'$'}(ls -A ${'$'}REPO)" ] ; then
+            tree ${'$'}REPO
+            rm -rf ${'$'}REPO
+            echo "${'$'}REPO was polluted during the build"
+            ${if (exitOnFailure) "exit 1" else ""}
+        else
+            rm -rf ${'$'}REPO
+            echo "${'$'}REPO exists but is empty"
+        fi
     else
         echo "${'$'}REPO does not exist"
     fi
@@ -55,9 +60,13 @@ fun checkCleanDirWindows(
 ) = """
 
     IF exist $dir (
-        TREE $dir
-        RMDIR /S /Q $dir
-        ${if (exitOnFailure) "EXIT 1" else ""}
+        DIR /B /A "$dir" | findstr "^" >nul && (
+            TREE $dir
+            RMDIR /S /Q $dir
+            ${if (exitOnFailure) "EXIT 1" else ""}
+        ) || (
+            RMDIR /S /Q $dir
+        )
     )
     """.trimIndent()
 

@@ -63,6 +63,7 @@ public @interface ServiceReference {
      *
      * @see Optional
      * @see Property#get()
+     * @since 8.0
      */
     String value() default "";
 }

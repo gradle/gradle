@@ -113,6 +113,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
  * The task can also be configured from the command line.
  * For more information please refer to {@link #setDependencySpec(Object)}, {@link #setConfiguration(String)},
  * {@link #setShowSinglePathToDependency(boolean)}, and {@link #getShowingAllVariants()}.
+ * @since 1.2
  */
 @SuppressWarnings("this-escape")
 @DisableCachingByDefault(because = "Produces only non-cacheable console output")
@@ -165,6 +166,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
     /**
      * The dependency spec selects the dependency (or dependencies if multiple matches found) to show the report for.
      * The spec receives an instance of {@link DependencyResult} as parameter.
+     * @since 1.3
      */
     public void setDependencySpec(@Nullable Spec<DependencyResult> dependencySpec) {
         this.dependencySpec = dependencySpec;
@@ -180,6 +182,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      * <p>
      * This method is exposed to the command line interface. Example usage:
      * <pre>gradle dependencyInsight --dependency slf4j</pre>
+     * @since 1.3
      */
     @Option(option = "dependency", description = "Shows the details of given dependency.")
     public void setDependencySpec(@Nullable Object dependencyInsightNotation) {
@@ -189,6 +192,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
 
     /**
      * Configuration to look the dependency in
+     * @since 1.2
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -198,6 +202,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
 
     /**
      * Sets the configuration to look the dependency in.
+     * @since 1.2
      */
     public void setConfiguration(@Nullable Configuration configuration) {
         this.configuration = configuration;
@@ -208,6 +213,7 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
      * <p>
      * This method is exposed to the command line interface. Example usage:
      * <pre>gradle dependencyInsight --configuration runtime --dependency slf4j</pre>
+     * @since 1.3
      */
     @Option(option = "configuration", description = "Looks for the dependency in given configuration.")
     public void setConfiguration(@Nullable String configurationName) {
@@ -299,6 +305,11 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
         return getImmutableAttributesFactory();
     }
 
+    /**
+     * Report.
+     *
+     * @since 1.3
+     */
     @TaskAction
     public void report() {
         assertValidTaskConfiguration();

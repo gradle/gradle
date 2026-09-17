@@ -27,17 +27,28 @@ public class UnresolvedLibrary extends Library {
 
     private ComponentSelector attemptedSelector;
 
+    /**
+     * Creates a new {@code UnresolvedLibrary}.
+     *
+     * @since 6.7
+     */
     public UnresolvedLibrary(FileReference library) {
         super(library);
     }
 
     /**
      * The attempted selector reported by the related UnresolvedDependencyResult
+     * @since 6.7
      */
     public ComponentSelector getAttemptedSelector() {
         return attemptedSelector;
     }
 
+    /**
+     * Sets the attempted selector.
+     *
+     * @since 6.7
+     */
     public void setAttemptedSelector(ComponentSelector attemptedSelector) {
         this.attemptedSelector = attemptedSelector;
     }

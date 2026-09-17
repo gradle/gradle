@@ -51,6 +51,7 @@ public class CachingResourceHasher implements ResourceHasher {
         return resourceSnapshotterCacheService.hashFile(fileSnapshotContext, delegate, delegateConfigurationHash);
     }
 
+    @Nullable
     @Override
     public HashCode hash(ZipEntryContext zipEntryContext) throws IOException {
         return delegate.hash(zipEntryContext);

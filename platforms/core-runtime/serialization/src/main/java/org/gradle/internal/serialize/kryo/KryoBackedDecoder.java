@@ -20,6 +20,7 @@ import com.esotericsoftware.kryo.KryoException;
 import com.esotericsoftware.kryo.io.Input;
 import org.gradle.internal.serialize.AbstractDecoder;
 import org.gradle.internal.serialize.Decoder;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.EOFException;
@@ -34,7 +35,7 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Close
     private final Input input;
     private InputStream inputStream;
     private long extraSkipped;
-    private KryoBackedDecoder nested;
+    private @Nullable KryoBackedDecoder nested;
 
     public KryoBackedDecoder(InputStream inputStream) {
         this(inputStream, 4096);
@@ -76,7 +77,7 @@ public class KryoBackedDecoder extends AbstractDecoder implements Decoder, Close
     }
 
     private RuntimeException maybeEndOfStream(KryoException e) throws EOFException {
-        if (e.getMessage().equals("Buffer underflow.")) {
+        if ("Buffer underflow.".equals(e.getMessage())) {
             throw (EOFException) new EOFException().initCause(e);
         }
         throw e;

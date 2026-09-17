@@ -1564,7 +1564,10 @@ public class GradleResolveVisitor extends ResolveVisitor {
         super.visitCatchStatement(cs);
     }
 
+    // Groovy 5 deprecates getVariableType() in favour of getValueVariable(), which Groovy 4 does
+    // not have. Suppress until the minimum bundled Groovy is 5.
     @Override
+    @SuppressWarnings("deprecation")
     public void visitForLoop(ForStatement forLoop) {
         resolveOrFail(forLoop.getVariableType(), forLoop);
         super.visitForLoop(forLoop);

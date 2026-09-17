@@ -36,6 +36,7 @@ import java.util.List;
 
 /**
  * Options for Scala platform compilation.
+ * @since 2.3
  */
 @SuppressWarnings("this-escape")
 public abstract class BaseScalaCompileOptions implements Serializable {
@@ -73,6 +74,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
 
     /**
      * Fail the build on compilation errors.
+     * @since 2.3
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -80,12 +82,18 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return failOnError;
     }
 
+    /**
+     * Sets the fail on error.
+     *
+     * @since 2.3
+     */
     public void setFailOnError(boolean failOnError) {
         this.failOnError = failOnError;
     }
 
     /**
      * Generate deprecation information.
+     * @since 2.3
      */
     @Console
     @ToBeReplacedByLazyProperty
@@ -93,12 +101,18 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return deprecation;
     }
 
+    /**
+     * Sets the deprecation.
+     *
+     * @since 2.3
+     */
     public void setDeprecation(boolean deprecation) {
         this.deprecation = deprecation;
     }
 
     /**
      * Generate unchecked information.
+     * @since 2.3
      */
     @Console
     @ToBeReplacedByLazyProperty
@@ -106,6 +120,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return unchecked;
     }
 
+    /**
+     * Sets the unchecked.
+     *
+     * @since 2.3
+     */
     public void setUnchecked(boolean unchecked) {
         this.unchecked = unchecked;
     }
@@ -113,6 +132,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     /**
      * Generate debugging information.
      * Legal values: none, source, line, vars, notailcalls
+     * @since 2.3
      */
     @Nullable
     @Optional
@@ -122,12 +142,18 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return debugLevel;
     }
 
+    /**
+     * Sets the debug level.
+     *
+     * @since 2.3
+     */
     public void setDebugLevel(@Nullable String debugLevel) {
         this.debugLevel = debugLevel;
     }
 
     /**
      * Run optimizations.
+     * @since 2.3
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -135,12 +161,18 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return optimize;
     }
 
+    /**
+     * Sets the optimize.
+     *
+     * @since 2.3
+     */
     public void setOptimize(boolean optimize) {
         this.optimize = optimize;
     }
 
     /**
      * Encoding of source files.
+     * @since 2.3
      */
     @ToBeReplacedByLazyProperty
     @Nullable
@@ -150,6 +182,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return encoding;
     }
 
+    /**
+     * Sets the encoding.
+     *
+     * @since 2.3
+     */
     public void setEncoding(@Nullable String encoding) {
         this.encoding = encoding;
     }
@@ -159,6 +196,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      * Legal values:
      * - false (only compile modified files)
      * - true (always recompile all files)
+     * @since 2.12
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -166,6 +204,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return force;
     }
 
+    /**
+     * Sets the force.
+     *
+     * @since 2.12
+     */
     public void setForce(boolean force) {
         this.force = force;
     }
@@ -175,6 +218,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      * Each parameter must start with '-'.
      *
      * @return The list of additional parameters.
+     * @since 2.3
      */
     @Optional
     @Input
@@ -187,6 +231,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      * Sets the additional parameters.
      * <p>
      * Setting this property will clear any previously set additional parameters.
+     * @since 2.3
      */
     public void setAdditionalParameters(List<String> additionalParameters) {
         this.additionalParameters.clear();
@@ -197,6 +242,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
 
     /**
      * List files to be compiled.
+     * @since 2.3
      */
     @Console
     @ToBeReplacedByLazyProperty
@@ -204,6 +250,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return listFiles;
     }
 
+    /**
+     * Sets the list files.
+     *
+     * @since 2.3
+     */
     public void setListFiles(boolean listFiles) {
         this.listFiles = listFiles;
     }
@@ -211,6 +262,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
     /**
      * Specifies the amount of logging.
      * Legal values:  none, verbose, debug
+     * @since 2.3
      */
     @Console
     @ToBeReplacedByLazyProperty
@@ -218,6 +270,11 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return loggingLevel;
     }
 
+    /**
+     * Sets the logging level.
+     *
+     * @since 2.3
+     */
     public void setLoggingLevel(String loggingLevel) {
         this.loggingLevel = loggingLevel;
     }
@@ -226,6 +283,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
      * Phases of the compiler to log.
      * Legal values: namer, typer, pickler, uncurry, tailcalls, transmatch, explicitouter, erasure,
      * lambdalift, flatten, constructors, mixin, icode, jvm, terminal.
+     * @since 2.3
      */
     @Console
     @ToBeReplacedByLazyProperty
@@ -233,12 +291,18 @@ public abstract class BaseScalaCompileOptions implements Serializable {
         return loggingPhases;
     }
 
+    /**
+     * Sets the logging phases.
+     *
+     * @since 2.3
+     */
     public void setLoggingPhases(List<String> loggingPhases) {
         this.loggingPhases = loggingPhases;
     }
 
     /**
      * Options for running the Scala compiler in a separate process.
+     * @since 2.3
      */
     @Nested
     public ScalaForkOptions getForkOptions() {
@@ -256,6 +320,7 @@ public abstract class BaseScalaCompileOptions implements Serializable {
 
     /**
      * Options for incremental compilation of Scala code.
+     * @since 2.3
      */
     @Nested
     public IncrementalCompileOptions getIncrementalOptions() {

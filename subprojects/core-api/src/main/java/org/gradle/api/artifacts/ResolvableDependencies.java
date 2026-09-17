@@ -38,6 +38,7 @@ import org.gradle.internal.HasInternalProtocol;
  * </ul>
  *
  * <p>The dependencies are resolved once only, when the result is first requested. The result is reused and returned for subsequent calls. Once resolved, any mutation to the dependencies will result in an error.</p>
+ * @since 1.0
  */
 @HasInternalProtocol
 public interface ResolvableDependencies extends ArtifactView {
@@ -45,6 +46,7 @@ public interface ResolvableDependencies extends ArtifactView {
      * Returns the name of this set.
      *
      * @return The name. Never null.
+     * @since 1.0
      */
     String getName();
 
@@ -52,6 +54,7 @@ public interface ResolvableDependencies extends ArtifactView {
      * Returns the path of this set. This is a unique identifier for this set.
      *
      * @return The path. Never null.
+     * @since 1.0
      */
     String getPath();
 
@@ -69,6 +72,7 @@ public interface ResolvableDependencies extends ArtifactView {
      * Returns the set of dependencies which will be resolved.
      *
      * @return the dependencies. Never null.
+     * @since 1.0
      */
     DependencySet getDependencies();
 
@@ -85,6 +89,7 @@ public interface ResolvableDependencies extends ArtifactView {
      * Adds an action to be executed before the dependencies in this set are resolved.
      *
      * @param action The action to execute.
+     * @since 1.0
      */
     void beforeResolve(Action<? super ResolvableDependencies> action);
 
@@ -92,6 +97,7 @@ public interface ResolvableDependencies extends ArtifactView {
      * Adds an action to be executed before the dependencies in this set are resolved.
      *
      * @param action The action to execute.
+     * @since 1.0
      */
     void beforeResolve(@DelegatesTo(ResolvableDependencies.class) Closure action);
 
@@ -99,6 +105,7 @@ public interface ResolvableDependencies extends ArtifactView {
      * Adds an action to be executed after the dependencies of this set have been resolved.
      *
      * @param action The action to execute.
+     * @since 1.0
      */
     void afterResolve(Action<? super ResolvableDependencies> action);
 
@@ -106,6 +113,7 @@ public interface ResolvableDependencies extends ArtifactView {
      * Adds an action to be executed after the dependencies of this set have been resolved.
      *
      * @param action The action to execute.
+     * @since 1.0
      */
     void afterResolve(@DelegatesTo(ResolvableDependencies.class) Closure action);
 
@@ -136,7 +144,7 @@ public interface ResolvableDependencies extends ArtifactView {
      * Returns a builder that can be used to define and access a filtered view of the resolved artifacts.
      * @return A view over the artifacts resolved for this set of dependencies.
      *
-     * @since 3.4
+     * @since 4.0
      */
     ArtifactView artifactView(Action<? super ArtifactView.ViewConfiguration> configAction);
 }

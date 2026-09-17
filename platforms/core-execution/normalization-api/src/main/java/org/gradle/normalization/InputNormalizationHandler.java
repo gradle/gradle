@@ -30,11 +30,13 @@ import org.gradle.internal.HasInternalProtocol;
 public interface InputNormalizationHandler {
     /**
      * Returns the normalization strategy for the runtime classpath.
+     * @since 4.0
      */
     RuntimeClasspathNormalization getRuntimeClasspath();
 
     /**
      * Configures the normalization strategy for the runtime classpath.
+     * @since 4.0
      */
     void runtimeClasspath(Action<? super RuntimeClasspathNormalization> configuration);
 }

@@ -31,6 +31,7 @@ public interface ProjectComponentIdentifier extends ComponentIdentifier {
      * Identifies the build that contains the project that produces this component.
      *
      * @return The build identifier
+     * @since 3.1
      */
     BuildIdentifier getBuild();
 

@@ -29,19 +29,29 @@ import kotlin.reflect.KProperty
 
 /**
  * Provides efficient access to a property.
+ *
+ * @since 4.7
  */
 @Deprecated("Use 'project.property(name)', 'project.findProperty(name)', or 'extra[name]' instead. See the Gradle 9.6 upgrading guide.")
 interface PropertyDelegate {
+    /**
+     * @since 4.7
+     */
     operator fun <T> getValue(receiver: Any?, property: KProperty<*>): T
 }
 
 
 /**
  * Provides efficient access to a mutable dynamic property.
+ *
+ * @since 4.7
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use 'extra[name]' or 'extra.set(name, value)' instead. See the Gradle 9.6 upgrading guide.")
 interface MutablePropertyDelegate : PropertyDelegate {
+    /**
+     * @since 4.7
+     */
     operator fun <T> setValue(receiver: Any?, property: KProperty<*>, value: T)
 }
 

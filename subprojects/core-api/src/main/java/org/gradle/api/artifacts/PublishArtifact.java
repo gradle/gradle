@@ -25,6 +25,7 @@ import java.util.Date;
 
 /**
  * <p>A {@code PublishArtifact} is an artifact produced by a project.</p>
+ * @since 0.7
  */
 @HasInternalProtocol
 public interface PublishArtifact extends Buildable {
@@ -32,6 +33,7 @@ public interface PublishArtifact extends Buildable {
      * Returns the name of the artifact.
      *
      * @return The name. Never null.
+     * @since 0.7
      */
     String getName();
 
@@ -41,6 +43,7 @@ public interface PublishArtifact extends Buildable {
      * <em>ivy</em> and the extension is <em>xml</em>.
      *
      * @return The extension. Never null.
+     * @since 0.7
      */
     String getExtension();
 
@@ -50,6 +53,7 @@ public interface PublishArtifact extends Buildable {
      * <em>ivy</em> and the extension is <em>xml</em>.
      *
      * @return The type. Never null.
+     * @since 0.7
      */
     String getType();
 
@@ -57,6 +61,7 @@ public interface PublishArtifact extends Buildable {
      * Returns the classifier of this published artifact, if any.
      *
      * @return The classifier. May be null.
+     * @since 0.7
      */
     @Nullable
     String getClassifier();
@@ -65,6 +70,7 @@ public interface PublishArtifact extends Buildable {
      * Returns the file of this artifact.
      *
      * @return The file. Never null.
+     * @since 0.7
      */
     File getFile();
 
@@ -75,6 +81,7 @@ public interface PublishArtifact extends Buildable {
      * is published without an module descriptor, this property has no relevance.
      *
      * @return The date. May be null.
+     * @since 0.7
      */
     @Nullable
     Date getDate();

@@ -38,6 +38,7 @@ public interface ProgressListener {
      * @param event An event describing the operation progress.
      * @see org.gradle.tooling.events.ProgressEvent
      * @see OperationType
+     * @since 2.5
      */
     void statusChanged(ProgressEvent event);
 

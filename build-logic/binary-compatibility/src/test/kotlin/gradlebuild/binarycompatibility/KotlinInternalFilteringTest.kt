@@ -204,7 +204,7 @@ class KotlinInternalFilteringTest : AbstractBinaryCompatibilityTest() {
             v2 = publicSource
         ).apply {
             assertHasErrors(
-                *reportedMembers.map {
+                *(reportedMembers - generatedMembers.toSet()).map {
                     added(it.first, it.second)
                 }.toTypedArray()
             )
@@ -252,6 +252,16 @@ class KotlinInternalFilteringTest : AbstractBinaryCompatibilityTest() {
         "Field" to "cathedral"
     ) + reportedMembersFor("SourceKt") + listOf(
         "Method" to "SourceKt.setValTurnedIntoVar(java.lang.String)"
+    )
+
+    private
+    val generatedMembers = listOf(
+        "Constructor" to "AddedClass()",
+        "Method" to "AddedEnum.values()",
+        "Method" to "AddedEnum.valueOf(java.lang.String)",
+        "Method" to "AddedEnum.getEntries()",
+        "Field" to "INSTANCE",
+        "Constructor" to "ExistingClass${'$'}ExistingNestedClass()"
     )
 
     private

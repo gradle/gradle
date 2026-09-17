@@ -21,7 +21,7 @@ package org.gradle.tooling.internal.protocol;
  *
  * DO NOT CHANGE THIS CLASS. It is part of the cross-version protocol.
  *
- * @since 1.0-milestone-3
+ * @since 1.0
  */
 public class BuildExceptionVersion1 extends RuntimeException {
     public BuildExceptionVersion1(Throwable throwable) {

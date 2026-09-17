@@ -27,6 +27,7 @@ import org.gradle.api.model.ManagedType;
  *
  * @see ManagedType Create an instance of this as a managed property (preferred).
  * @see org.gradle.api.model.ObjectFactory#polymorphicDomainObjectContainer(Class) Create an instance of this manually.
+ * @since 1.5
  */
 @ManagedType
 public interface ExtensiblePolymorphicDomainObjectContainer<T> extends PolymorphicDomainObjectContainer<T>, NamedDomainObjectFactoryRegistry<T> {
@@ -52,6 +53,7 @@ public interface ExtensiblePolymorphicDomainObjectContainer<T> extends Polymorph
      * @param <U> the type of objects created by the factory
      *
      * @throws IllegalArgumentException if the specified type is not a subtype of the container element type
+     * @since 1.6
      */
     <U extends T> void registerFactory(Class<U> type, final Closure<? extends U> factory);
 
@@ -69,6 +71,7 @@ public interface ExtensiblePolymorphicDomainObjectContainer<T> extends Polymorph
      * @param type a public domain object type
      * @param implementationType the corresponding implementation type
      * @param <U> a public domain object type
+     * @since 1.6
      */
     <U extends T> void registerBinding(Class<U> type, final Class<? extends U> implementationType);
 }

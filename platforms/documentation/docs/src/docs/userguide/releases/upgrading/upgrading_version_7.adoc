@@ -1612,7 +1612,7 @@ Instead of using `@Input` on a type Gradle doesn't understand directly, use `@Ne
 [[v7_updates_to_default_tool_versions_7_1]]
 ==== Updates to default tool integration versions
 
-- JaCoCo has been updated to http://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.7].
+- JaCoCo has been updated to https://www.jacoco.org/jacoco/trunk/doc/changes.html[0.8.7].
 
 [[v7_org_gradle_util_package_is_now_public_api]]
 ==== The `org.gradle.util` package is now a public API

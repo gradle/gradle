@@ -36,6 +36,7 @@ class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectSoftwareModelDeprecations("Rules", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
         fails "components"
         failure.assertHasCause "Invalid managed model type SampleBinary: @Variant annotation only allowed for properties of type String and org.gradle.api.Named, but property has type java.lang.Integer (invalid property: variantProp)"
     }
@@ -56,6 +57,7 @@ class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectSoftwareModelDeprecations("Rules", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
         fails "components"
         failure.assertHasCause "Invalid managed model type SampleBinary: @Variant annotation only allowed for properties of type String and org.gradle.api.Named, but property has type int (invalid property: variantProp)"
     }
@@ -75,6 +77,7 @@ class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectSoftwareModelDeprecations("Rules", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
         fails "components"
         failure.assertHasCause "Invalid managed model type SampleBinary: @Variant annotation only allowed for properties of type String and org.gradle.api.Named, but property has type boolean (invalid property: variantProp)"
     }
@@ -95,7 +98,14 @@ class VariantAspectExtractionIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        expectSoftwareModelDeprecations("Rules", "org.gradle.platform.base.plugins.BinaryBasePlugin", "org.gradle.platform.base.plugins.ComponentBasePlugin")
         fails "components"
         failure.assertHasCause "Invalid managed model type SampleBinary: @Variant annotation is only allowed on getter methods (invalid property: variantProp)"
+    }
+
+    private void expectSoftwareModelDeprecations(String... pluginNames) {
+        for (String name : pluginNames) {
+            executer.expectDocumentedDeprecationWarning("The ${name} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+        }
     }
 }

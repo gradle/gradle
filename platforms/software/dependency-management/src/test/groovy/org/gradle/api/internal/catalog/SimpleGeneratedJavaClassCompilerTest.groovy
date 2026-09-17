@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.catalog
 
+import org.gradle.api.JavaVersion
 import org.gradle.api.internal.classpath.EffectiveClassPath
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.DefaultClassPath
@@ -65,6 +66,16 @@ class SimpleGeneratedJavaClassCompilerTest extends Specification {
     }
 
     def "compiler is isolated from the Gradle API"() {
+        given:
+        // javac 27 omits the downstream errors from the missing import
+        def unresolvedSymbols = JavaVersion.current() >= JavaVersion.VERSION_27 ? "" : """
+  - File A.java, line: 6, cannot find symbol
+      symbol:   class DefaultVersionCatalog
+      location: class org.test.A
+  - File A.java, line: 8, cannot find symbol
+      symbol:   class DefaultVersionCatalog
+      location: class org.test.A"""
+
         when:
         compile(source("A", """
             import org.gradle.api.internal.catalog.DefaultVersionCatalog;
@@ -81,13 +92,7 @@ class SimpleGeneratedJavaClassCompilerTest extends Specification {
         then:
         GeneratedClassCompilationException ex = thrown()
         normaliseLineSeparators(ex.message) == """Unable to compile generated sources:
-  - File A.java, line: 3, package org.gradle.api.internal.catalog does not exist
-  - File A.java, line: 6, cannot find symbol
-      symbol:   class DefaultVersionCatalog
-      location: class org.test.A
-  - File A.java, line: 8, cannot find symbol
-      symbol:   class DefaultVersionCatalog
-      location: class org.test.A"""
+  - File A.java, line: 3, package org.gradle.api.internal.catalog does not exist$unresolvedSymbols"""
     }
 
     def "can compile a class with a dependency on the Gradle API"() {

@@ -21,11 +21,13 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * An artifact published as part of a {@link MavenPublication}.
+ * @since 1.5
  */
 public interface MavenArtifact extends PublicationArtifact {
     /**
      * The extension used to publish the artifact file, never <code>null</code>.
      * For an artifact without an extension, this value will be an empty String.
+     * @since 1.5
      */
     @ToBeReplacedByLazyProperty
     String getExtension();
@@ -33,12 +35,14 @@ public interface MavenArtifact extends PublicationArtifact {
     /**
      * Sets the extension used to publish the artifact file.
      * @param extension The extension.
+     * @since 1.5
      */
     void setExtension(String extension);
 
     /**
      * The classifier used to publish the artifact file.
      * A <code>null</code> value (the default) indicates that this artifact will be published without a classifier.
+     * @since 1.5
      */
     @Nullable
     @ToBeReplacedByLazyProperty
@@ -47,6 +51,7 @@ public interface MavenArtifact extends PublicationArtifact {
     /**
      * Sets the classifier used to publish the artifact file.
      * @param classifier The classifier.
+     * @since 1.5
      */
     void setClassifier(@Nullable String classifier);
 }

@@ -43,6 +43,7 @@ import java.util.TreeSet;
 
 /**
  * Displays the dependency tree for a configuration.
+ * @since 2.10
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractDependencyReportTask extends AbstractProjectBasedReportTask<AbstractDependencyReportTask.DependencyReportModel> {
@@ -59,6 +60,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
 
     /**
      * Set the renderer to use to build a report. If unset, AsciiGraphRenderer will be used.
+     * @since 2.10
      */
     public void setRenderer(DependencyReportRenderer renderer) {
         this.renderer = renderer;
@@ -107,6 +109,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
      * project.
      *
      * @return the configurations.
+     * @since 2.10
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -118,6 +121,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
      * Sets the configurations to generate the report for.
      *
      * @param configurations The configuration. Must not be null.
+     * @since 2.10
      */
     public void setConfigurations(Set<Configuration> configurations) {
         this.configurations = configurations;
@@ -127,6 +131,7 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
      * Sets the single configuration (by name) to generate the report for.
      *
      * @param configurationName name of the configuration to generate the report for
+     * @since 2.10
      */
     @ToBeReplacedByLazyProperty
     @Option(option = "configuration", description = "The configuration to generate the report for.")
@@ -144,6 +149,11 @@ public abstract class AbstractDependencyReportTask extends AbstractProjectBasedR
         return filteredConfigurations;
     }
 
+    /**
+     * Returns the task configurations.
+     *
+     * @since 2.10
+     */
     @Internal
     public ConfigurationContainer getTaskConfigurations() {
         return getProject().getConfigurations();

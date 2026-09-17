@@ -55,6 +55,7 @@ import org.gradle.api.Action;
  * </p>
  *
  * @param <T> The base type of the report container
+ * @since 1.0
  */
 public interface Reporting<T extends ReportContainer> {
 
@@ -65,6 +66,7 @@ public interface Reporting<T extends ReportContainer> {
      * are available.
      *
      * @return The report container
+     * @since 1.0
      */
     T getReports();
 
@@ -82,6 +84,7 @@ public interface Reporting<T extends ReportContainer> {
      *
      * @param closure The configuration
      * @return The report container
+     * @since 1.0
      */
     T reports(@DelegatesTo(type="T", strategy = Closure.DELEGATE_FIRST) Closure closure);
 
@@ -98,6 +101,7 @@ public interface Reporting<T extends ReportContainer> {
      * </pre>
      * @param configureAction The configuration
      * @return The report container
+     * @since 3.0
      */
     T reports(Action<? super T> configureAction);
 }

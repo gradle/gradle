@@ -22,16 +22,19 @@ import java.io.File;
 
 /**
  * A configuration file generated for Visual Studio.
+ * @since 1.11
  */
 @Incubating
 public interface ConfigFile {
     /**
      * The location where this file will be generated.
+     * @since 1.11
      */
     File getLocation();
 
     /**
      * Specify the location where this file will be generated.
+     * @since 1.11
      */
     void setLocation(Object location);
 }

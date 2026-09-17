@@ -18,6 +18,18 @@ import gradlebuild.basics.BuildEnvironmentExtension
 import gradlebuild.basics.BuildEnvironmentService
 
 with(layout.rootDirectory) {
+    // The requested task names are only available from the `StartParameter`, which a build service
+    // cannot reach, so they are resolved here and passed in as service parameters.
+    //
+    // These must be locals rather than script-level properties: the `beforeProject` action below is
+    // isolated, and capturing a script property would drag in a reference to the script object itself.
+    val runningInstallTask = listOf("install", "installAll")
+        .flatMap { listOf(":distributions-full:$it", "distributions-full:$it", it) }
+        .any(gradle.startParameter.taskNames::contains)
+
+    val runningDocsTestTask = setOf(":docs:docsTest", "docs:docsTest")
+        .any(gradle.startParameter.taskNames::contains)
+
     gradle.lifecycle.beforeProject {
         val service = gradle.sharedServices.registerIfAbsent("buildEnvironmentService", BuildEnvironmentService::class) {
             check(project.path == ":") {
@@ -26,11 +38,14 @@ with(layout.rootDirectory) {
             }
             parameters.rootProjectDir = this@with
             parameters.rootProjectBuildDir = project.layout.buildDirectory
+            parameters.runningInstallTask = runningInstallTask
+            parameters.runningDocsTestTask = runningDocsTestTask
         }
         val buildEnvironmentExtension = extensions.create("buildEnvironment", BuildEnvironmentExtension::class)
         buildEnvironmentExtension.gitCommitId = service.flatMap { it.gitCommitId }
         buildEnvironmentExtension.gitBranch = service.flatMap { it.gitBranch }
         buildEnvironmentExtension.scriptTemplateCommitId = service.flatMap { it.scriptTemplateCommitId }
+        buildEnvironmentExtension.buildTimestamp = service.flatMap { it.buildTimestamp }
         buildEnvironmentExtension.repoRoot = this@with
         buildEnvironmentExtension.rootProjectBuildDir = service.flatMap { it.parameters.rootProjectBuildDir }
     }

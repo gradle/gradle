@@ -38,7 +38,7 @@ abstract class OutputSpecification extends Specification {
     }
 
     /**
-     * Returns timestamp representing 10AM today in local time.
+     * Returns a fixed timestamp representing 10AM on 11 June 2012 in local time.
      */
     long getTenAm() {
         return getTenAmAsDate().getTimeInMillis()

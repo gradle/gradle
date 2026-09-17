@@ -23,6 +23,7 @@ import org.gradle.api.Named;
  * Represents an element in a model. Elements are arranged in a hierarchy.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.14
  */
 @Incubating
 @Deprecated
@@ -36,6 +37,7 @@ public interface ModelElement extends Named {
 
     /**
      * Returns a human-consumable display name for this element.
+     * @since 2.14
      */
     String getDisplayName();
 }

@@ -89,7 +89,9 @@ public interface DiagnosticsTaskNames {
      * The name of the model report task.
      *
      * @since 8.13
+     * @deprecated The software model is deprecated and will be removed in Gradle 10.
      */
+    @Deprecated
     String MODEL_TASK = "model";
 
     /**

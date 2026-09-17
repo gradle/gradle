@@ -33,6 +33,7 @@ import java.util.Comparator;
  * unmodified, meaning we still have an ambiguous match.</p>
  *
  * @param <T> the concrete type of the attribute
+ * @since 3.3
  */
 @HasInternalProtocol
 public interface DisambiguationRuleChain<T> {
@@ -67,6 +68,7 @@ public interface DisambiguationRuleChain<T> {
      * still be an ambiguity).
      *
      * @param comparator the comparator to use
+     * @since 3.3
      */
     void pickFirst(Comparator<? super T> comparator);
 
@@ -77,6 +79,7 @@ public interface DisambiguationRuleChain<T> {
      * still be an ambiguity).
      *
      * @param comparator the comparator to use
+     * @since 3.3
      */
     void pickLast(Comparator<? super T> comparator);
 

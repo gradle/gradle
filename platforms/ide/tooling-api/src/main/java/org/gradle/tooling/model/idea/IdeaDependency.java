@@ -21,7 +21,7 @@ import org.gradle.tooling.model.Dependency;
 /**
  * IDEA dependency.
  *
- * @since 1.0-milestone-5
+ * @since 1.0
  */
 public interface IdeaDependency extends Dependency {
 
@@ -29,6 +29,7 @@ public interface IdeaDependency extends Dependency {
      * scope of the current dependency. Not-<code>null</code> all the time
      *
      * @return scope
+     * @since 1.0
      */
     IdeaDependencyScope getScope();
 
@@ -36,6 +37,7 @@ public interface IdeaDependency extends Dependency {
      * Allows to check if current dependency is transitive, i.e. is visible to the module which depends on module that has current dependency.
      *
      * @return <code>true</code> if current dependency is transitive; <code>false</code> otherwise
+     * @since 1.0
      */
     boolean getExported();
 }

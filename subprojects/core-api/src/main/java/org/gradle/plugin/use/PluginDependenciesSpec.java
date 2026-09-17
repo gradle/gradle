@@ -94,6 +94,7 @@ import org.gradle.api.provider.ProviderConvertible;
  * arbitrary code, and version Strings may contain property replacements. It is an error to call the `apply` method
  * with a value other than `false` (the default).
  * </p>
+ * @since 2.0
  */
 public interface PluginDependenciesSpec {
 
@@ -124,6 +125,7 @@ public interface PluginDependenciesSpec {
      *
      * @param id the id of the plugin to depend on
      * @return a mutable plugin dependency specification that can be used to further refine the dependency
+     * @since 2.0
      */
     PluginDependencySpec id(String id);
 

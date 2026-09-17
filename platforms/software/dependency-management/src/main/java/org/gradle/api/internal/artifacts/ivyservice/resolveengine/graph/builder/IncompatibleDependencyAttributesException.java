@@ -82,8 +82,7 @@ public class IncompatibleDependencyAttributesException extends GraphValidationEx
             SelectorState selector = edge.getSelector();
             boolean isConstraint = edge.getDependencyMetadata().isConstraint();
             for (String path : MessageBuilderHelper.formattedPathsTo(edge)) {
-                String quotelessPath = stripSingleQuotesFromPath(path);
-                fmt.node(quotelessPath + " " + formatAttributeQuery(selector, attribute, value, isConstraint));
+                fmt.node(path + " " + formatAttributeQuery(selector, attribute, value, isConstraint));
             }
         }
         fmt.endChildren();
@@ -91,12 +90,8 @@ public class IncompatibleDependencyAttributesException extends GraphValidationEx
         return fmt.toString();
     }
 
-    private static String stripSingleQuotesFromPath(String path) {
-        return path.replaceAll("'([^()]+)' \\(", "$1 (");
-    }
-
     private static @Nullable Object findRequestedAttributeValue(EdgeState edge, Attribute<?> attribute) {
-        ComponentSelector selector = edge.getSelector().getSelector();
+        ComponentSelector selector = edge.getSelector().getComponentSelector();
         if (selector instanceof ModuleComponentSelector) {
             return selector.getAttributes().getAttribute(attribute);
         }
@@ -105,7 +100,7 @@ public class IncompatibleDependencyAttributesException extends GraphValidationEx
 
     private static String formatAttributeQuery(SelectorState state, Attribute<?> attribute, Object value, boolean isConstraint) {
         String verb = isConstraint ? "requires" : "depends on";
-        return verb + " '" + state.getRequested() + "' with attribute '" + attribute.getName() + "' = '" + value + "'";
+        return verb + " '" + state.getComponentSelector() + "' with attribute '" + attribute.getName() + "' = '" + value + "'";
     }
 
     private static List<String> buildResolutions(Attribute<?> attribute) {

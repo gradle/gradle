@@ -25,32 +25,63 @@ import java.util.Map;
 
 /**
  * A wtp descriptor property entry.
+ * @since 1.0
  */
 public class WbProperty implements WbModuleEntry {
     private String name;
     private String value;
 
+    /**
+     * Creates a new {@code WbProperty}.
+     *
+     * @since 2.14
+     */
     public WbProperty(Node node) {
         this((String) node.attribute("name"), (String) node.attribute("value"));
     }
 
+    /**
+     * Creates a new {@code WbProperty}.
+     *
+     * @since 1.0
+     */
     public WbProperty(String name, String value) {
         this.name = Preconditions.checkNotNull(name);
         this.value = Preconditions.checkNotNull(value);
     }
 
+    /**
+     * Returns the name.
+     *
+     * @since 1.0
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the name.
+     *
+     * @since 1.0
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Returns the value.
+     *
+     * @since 1.0
+     */
     public String getValue() {
         return value;
     }
 
+    /**
+     * Sets the value.
+     *
+     * @since 1.0
+     */
     public void setValue(String value) {
         this.value = value;
     }

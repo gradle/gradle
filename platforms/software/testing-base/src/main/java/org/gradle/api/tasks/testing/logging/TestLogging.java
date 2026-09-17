@@ -23,12 +23,14 @@ import java.util.Set;
 
 /**
  * Options that determine which test events get logged, and at which detail.
+ * @since 1.1
  */
 public interface TestLogging {
     /**
      * Returns the events to be logged.
      *
      * @return the events to be logged
+     * @since 1.1
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -46,6 +48,7 @@ public interface TestLogging {
      * Sets the events to be logged.
      *
      * @param events the events to be logged
+     * @since 1.1
      */
     void setEvents(Iterable<?> events);
 
@@ -53,6 +56,7 @@ public interface TestLogging {
      * Sets the events to be logged. Events can be passed as enum values (e.g. {@link TestLogEvent#FAILED}) or Strings (e.g. "failed").
      *
      * @param events the events to be logged
+     * @since 1.1
      */
     void events(Object... events);
 
@@ -65,6 +69,7 @@ public interface TestLogging {
      * method will be logged and events from the test method and lower will be ignored.
      *
      * @return the minimum granularity of the events to be logged
+     * @since 1.1
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -79,6 +84,7 @@ public interface TestLogging {
      * method will be logged and events from the test method and lower will be ignored.
      *
      * @param granularity the minimum granularity of the events to be logged
+     * @since 1.1
      */
     void setMinGranularity(int granularity);
 
@@ -91,6 +97,7 @@ public interface TestLogging {
      * will be ignored.
      *
      * @return the maximum granularity of the events to be logged
+     * @since 1.1
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -107,6 +114,7 @@ public interface TestLogging {
      * minimum granularity to a value greater than -1.
      *
      * @param granularity the maximum granularity of the events to be logged
+     * @since 1.1
      */
     void setMaxGranularity(int granularity);
 
@@ -115,6 +123,7 @@ public interface TestLogging {
      * set to 2, the same event will be displayed as "org.someClass &gt; org.someMethod". <p>-1 denotes the highest granularity and corresponds to an atomic test.
      *
      * @return the display granularity of the events to be logged
+     * @since 1.1
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -125,14 +134,15 @@ public interface TestLogging {
      * to 2, the same event will be displayed as "org.someClass &gt; org.someMethod". <p>-1 denotes the highest granularity and corresponds to an atomic test.
      *
      * @param granularity the display granularity of the events to be logged
+     * @since 1.1
      */
-
     void setDisplayGranularity(int granularity);
 
     /**
      * Tells whether exceptions that occur during test execution will be logged. Typically these exceptions coincide with a "failed" event.  Defaults to true.
      *
      * @return whether exceptions that occur during test execution will be logged
+     * @since 1.1
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -142,6 +152,7 @@ public interface TestLogging {
      * Sets whether exceptions that occur during test execution will be logged.  Defaults to true.
      *
      * @param flag whether exceptions that occur during test execution will be logged
+     * @since 1.1
      */
     void setShowExceptions(boolean flag);
 
@@ -149,6 +160,7 @@ public interface TestLogging {
      * Tells whether causes of exceptions that occur during test execution will be logged. Only relevant if {@code showExceptions} is {@code true}.  Defaults to true.
      *
      * @return whether causes of exceptions that occur during test execution will be logged
+     * @since 1.1
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -158,6 +170,7 @@ public interface TestLogging {
      * Sets whether causes of exceptions that occur during test execution will be logged. Only relevant if {@code showExceptions} is {@code true}. Defaults to true.
      *
      * @param flag whether causes of exceptions that occur during test execution will be logged
+     * @since 1.1
      */
     void setShowCauses(boolean flag);
 
@@ -165,6 +178,7 @@ public interface TestLogging {
      * Tells whether stack traces of exceptions that occur during test execution will be logged.  Defaults to true.
      *
      * @return whether stack traces of exceptions that occur during test execution will be logged
+     * @since 1.1
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -174,6 +188,7 @@ public interface TestLogging {
      * Sets whether stack traces of exceptions that occur during test execution will be logged.  Defaults to true.
      *
      * @param flag whether stack traces of exceptions that occur during test execution will be logged
+     * @since 1.1
      */
     void setShowStackTraces(boolean flag);
 
@@ -182,6 +197,7 @@ public interface TestLogging {
      * the INFO and DEBUG log levels and {@link TestExceptionFormat#SHORT} for the LIFECYCLE log level.
      *
      * @return the format to be used for logging test exceptions
+     * @since 1.1
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -201,6 +217,7 @@ public interface TestLogging {
      * the INFO and DEBUG log levels and {@link TestExceptionFormat#SHORT} for the LIFECYCLE log level.
      *
      * @param exceptionFormat the format to be used for logging test exceptions
+     * @since 1.1
      */
     void setExceptionFormat(Object exceptionFormat);
 
@@ -208,6 +225,7 @@ public interface TestLogging {
      * Returns the set of filters to be used for sanitizing test stack traces.
      *
      * @return the set of filters to be used for sanitizing test stack traces
+     * @since 1.1
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -225,17 +243,20 @@ public interface TestLogging {
      * Sets the set of filters to be used for sanitizing test stack traces.
      *
      * @param stackTraces the set of filters to be used for sanitizing test stack traces
+     * @since 1.1
      */
     void setStackTraceFilters(Iterable<?> stackTraces);
 
     /**
      * Convenience method for {@link #setStackTraceFilters(java.lang.Iterable)}. Accepts both enum values and Strings.
+     * @since 1.1
      */
     void stackTraceFilters(Object... stackTraces);
 
     /**
      * Tells whether output on standard out and standard error will be logged. Equivalent to checking if both log events {@code TestLogEvent.STANDARD_OUT} and {@code TestLogEvent.STANDARD_ERROR} are
      * set.
+     * @since 1.1
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -243,6 +264,7 @@ public interface TestLogging {
 
     /**
      * Sets whether output on standard out and standard error will be logged. Equivalent to setting log events {@code TestLogEvent.STANDARD_OUT} and {@code TestLogEvent.STANDARD_ERROR}.
+     * @since 1.1
      */
     TestLogging setShowStandardStreams(boolean flag);
 }

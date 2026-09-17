@@ -27,6 +27,7 @@ import org.gradle.api.provider.Provider;
 public interface ComponentWithRuntimeFile extends ComponentWithNativeRuntime {
     /**
      * Returns the runtime file of this component.
+     * @since 4.5
      */
     Provider<RegularFile> getRuntimeFile();
 }

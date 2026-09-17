@@ -72,6 +72,7 @@ public abstract class GradleRunner {
      * this means that the same distribution of Gradle that was used when importing the project will be used.
      *
      * @return a new Gradle runner
+     * @since 2.6
      */
     public static GradleRunner create() {
         return new DefaultGradleRunner();
@@ -176,6 +177,7 @@ public abstract class GradleRunner {
      * This is analogous to the current directory when executing Gradle from the command line.
      *
      * @return the directory to execute the build in
+     * @since 2.6
      */
     public abstract File getProjectDir();
 
@@ -196,6 +198,7 @@ public abstract class GradleRunner {
      * @param projectDir the project directory
      * @return {@code this}
      * @see #getProjectDir()
+     * @since 2.6
      */
     public abstract GradleRunner withProjectDir(File projectDir);
 
@@ -208,6 +211,7 @@ public abstract class GradleRunner {
      * The returned list is immutable.
      *
      * @return the build arguments
+     * @since 2.6
      */
     public abstract List<String> getArguments();
 
@@ -217,6 +221,7 @@ public abstract class GradleRunner {
      * @param arguments the build arguments
      * @return this
      * @see #getArguments()
+     * @since 2.6
      */
     public abstract GradleRunner withArguments(List<String> arguments);
 
@@ -226,6 +231,7 @@ public abstract class GradleRunner {
      * @param arguments the build arguments
      * @return this
      * @see #getArguments()
+     * @since 2.6
      */
     public abstract GradleRunner withArguments(String... arguments);
 
@@ -401,6 +407,7 @@ public abstract class GradleRunner {
      * @throws InvalidRunnerConfigurationException if the configuration of this runner is invalid (e.g. project directory not set)
      * @throws UnexpectedBuildFailure if the build does not succeed
      * @return the build result
+     * @since 2.6
      */
     public abstract BuildResult build() throws InvalidRunnerConfigurationException, UnexpectedBuildFailure;
 
@@ -410,6 +417,7 @@ public abstract class GradleRunner {
      * @throws InvalidRunnerConfigurationException if the configuration of this runner is invalid (e.g. project directory not set)
      * @throws UnexpectedBuildSuccess if the build succeeds
      * @return the build result
+     * @since 2.6
      */
     public abstract BuildResult buildAndFail() throws InvalidRunnerConfigurationException, UnexpectedBuildSuccess;
 

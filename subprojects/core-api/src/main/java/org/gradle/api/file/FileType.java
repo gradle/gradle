@@ -22,10 +22,17 @@ package org.gradle.api.file;
  * @since 5.4
  */
 public enum FileType {
+    /**
+     * @since 5.4
+     */
     FILE,
+    /**
+     * @since 5.4
+     */
     DIRECTORY,
     /**
      * Element of an input property pointing to a non-existing file.
+     * @since 5.4
      */
     MISSING
 }

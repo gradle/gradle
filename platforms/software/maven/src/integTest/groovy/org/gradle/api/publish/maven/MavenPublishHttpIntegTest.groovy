@@ -160,7 +160,8 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         then:
         failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository' (registered by plugin 'org.gradle.maven-publish').")
         failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
-        failure.assertHasCause("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
+        failure.assertHasCause("Could not PUT '${module.artifact.uri}'.")
+        failure.assertHasCause("Received status code 401 from server: Unauthorized")
 
         where:
         authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]
@@ -178,7 +179,8 @@ class MavenPublishHttpIntegTest extends AbstractMavenPublishIntegTest {
         then:
         failure.assertHasDescription("Execution failed for task ':publishMavenPublicationToMavenRepository' (registered by plugin 'org.gradle.maven-publish').")
         failure.assertHasCause("Failed to publish publication 'maven' to repository 'maven'")
-        failure.assertHasCause("Could not PUT '${module.artifact.uri}'. Received status code 401 from server: Unauthorized")
+        failure.assertHasCause("Could not PUT '${module.artifact.uri}'.")
+        failure.assertHasCause("Received status code 401 from server: Unauthorized")
 
         where:
         authScheme << [AuthScheme.BASIC, AuthScheme.DIGEST, AuthScheme.NTLM]

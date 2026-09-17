@@ -34,13 +34,29 @@ import static java.util.Arrays.asList;
 
 /**
  * Represents a path in Gradle.
+ * @since 0.9
  */
 public class Path implements Comparable<Path> {
+    /**
+     * Path.
+     *
+     * @since 0.9
+     */
     public static final Path ROOT = new Path(new String[0], true);
 
     private static final Comparator<String> STRING_COMPARATOR = GUtil.caseInsensitive();
+    /**
+     * The separator.
+     *
+     * @since 4.2
+     */
     public static final String SEPARATOR = ":";
 
+    /**
+     * Path.
+     *
+     * @since 0.9
+     */
     public static Path path(@Nullable String path) {
         validatePathInternal(path);
         if (SEPARATOR.equals(path)) {
@@ -103,6 +119,7 @@ public class Path implements Comparable<Path> {
      * path('a:b').append(path(':c:d')) == path('a:b:c:d')
      * path('a:b').append(path('c:d')) == path('a:b:c:d')
      * </pre>
+     * @since 4.0
      */
     public Path append(Path path) {
         if (segments.length == 0) {
@@ -129,6 +146,7 @@ public class Path implements Comparable<Path> {
      * @deprecated use {@link #asString()} instead
      *
      * @return string representation of this path
+     * @since 0.9
      */
     @Deprecated
     public String getPath() {
@@ -231,6 +249,7 @@ public class Path implements Comparable<Path> {
      * Returns the parent of this path, or null if this path has no parent.
      *
      * @return The parent of this path.
+     * @since 0.9
      */
     @Nullable
     public Path getParent() {
@@ -249,6 +268,7 @@ public class Path implements Comparable<Path> {
      * Returns the base name of this path, or null if this path is the root path.
      *
      * @return The base name,
+     * @since 0.9
      */
     @Nullable
     public String getName() {
@@ -260,6 +280,7 @@ public class Path implements Comparable<Path> {
 
     /**
      * Creates a child of this path with the given name.
+     * @since 3.3
      */
     public Path child(String name) {
         String[] childSegments = new String[segments.length + 1];
@@ -270,11 +291,17 @@ public class Path implements Comparable<Path> {
 
     /**
      * Resolves the given name relative to this path. If an absolute path is provided, it is returned.
+     * @since 0.9
      */
     public String absolutePath(String path) {
         return absolutePath(path(path)).asString();
     }
 
+    /**
+     * Absolute path.
+     *
+     * @since 4.0
+     */
     public Path absolutePath(Path path) {
         if (path.absolute) {
             return path;
@@ -283,17 +310,28 @@ public class Path implements Comparable<Path> {
     }
 
 
+    /**
+     * Returns whether absolute is set.
+     *
+     * @since 6.8
+     */
     public boolean isAbsolute() {
         return absolute;
     }
 
     /**
      * Calculates a path relative to this path. If the given path is not a child of this path, it is returned unmodified.
+     * @since 0.9
      */
     public String relativePath(String path) {
         return relativePath(path(path)).asString();
     }
 
+    /**
+     * Relative path.
+     *
+     * @since 4.0
+     */
     public Path relativePath(Path path) {
         if (path.absolute != absolute) {
             return path;
@@ -312,10 +350,20 @@ public class Path implements Comparable<Path> {
         return new Path(Arrays.copyOfRange(path.segments, segments.length, path.segments.length), false);
     }
 
+    /**
+     * Segment count.
+     *
+     * @since 6.8
+     */
     public int segmentCount() {
         return segments.length;
     }
 
+    /**
+     * Remove first segments.
+     *
+     * @since 6.8
+     */
     public Path removeFirstSegments(int n) {
         if (n == 0) {
             return this;
@@ -328,6 +376,11 @@ public class Path implements Comparable<Path> {
         return new Path(Arrays.copyOfRange(segments, n, segments.length), absolute);
     }
 
+    /**
+     * Segment.
+     *
+     * @since 6.8
+     */
     public String segment(int index) {
         if (index < 0 || index >= segments.length) {
             throw new IllegalArgumentException("Segment index " + index + " is invalid for path " + asString());

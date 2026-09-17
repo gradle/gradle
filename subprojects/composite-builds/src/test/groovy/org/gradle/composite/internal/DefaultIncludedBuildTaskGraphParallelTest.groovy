@@ -17,12 +17,12 @@
 package org.gradle.composite.internal
 
 import org.gradle.api.Action
+import org.gradle.api.BuildCancelledException
 import org.gradle.api.DefaultTask
-import org.gradle.api.artifacts.component.BuildIdentifier
+import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.TaskInternal
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.plugins.PluginManagerInternal
@@ -31,23 +31,27 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.internal.tasks.NodeExecutionContext
+import org.gradle.api.internal.tasks.TaskDependencyInternal
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
-import org.gradle.api.tasks.TaskDependency
 import org.gradle.execution.plan.BuildWorkPlan
 import org.gradle.execution.plan.DefaultExecutionPlan
 import org.gradle.execution.plan.DefaultPlanExecutor
+import org.gradle.execution.plan.DependencyResolver
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies
 import org.gradle.execution.plan.ExecutionPlan
 import org.gradle.execution.plan.FinalizedExecutionPlan
+import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.NodeValidator
 import org.gradle.execution.plan.OrdinalGroupFactory
 import org.gradle.execution.plan.PlanExecutor
-import org.gradle.execution.plan.SelfExecutingNode
 import org.gradle.execution.plan.TaskDependencyResolver
 import org.gradle.execution.plan.TaskNodeFactory
+import org.gradle.initialization.BuildCancellationToken
 import org.gradle.initialization.DefaultBuildCancellationToken
+import org.gradle.internal.build.BuildIdentity
 import org.gradle.internal.build.BuildLifecycleController
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildToolingModelController
@@ -61,6 +65,9 @@ import org.gradle.internal.concurrent.CompositeStoppable
 import org.gradle.internal.concurrent.DefaultExecutorFactory
 import org.gradle.internal.concurrent.ExecutorFactory
 import org.gradle.internal.file.Stat
+import org.gradle.internal.operations.BuildOperationRef
+import org.gradle.internal.operations.CurrentBuildOperationRef
+import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
@@ -96,6 +103,17 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
     def manyWorkers = 10
     def cancellationToken = new DefaultBuildCancellationToken()
     def preparer = Stub(BuildTreeWorkGraphPreparer)
+    def parentOperation = Stub(BuildOperationRef) {
+        getId() >> new OperationIdentifier(42L)
+    }
+
+    def setup() {
+        CurrentBuildOperationRef.instance().set(parentOperation)
+    }
+
+    def cleanup() {
+        CurrentBuildOperationRef.instance().clear()
+    }
 
     def "does nothing when nothing scheduled"() {
         when:
@@ -109,7 +127,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     def "runs scheduled work"() {
         def services = new TreeServices(workers)
-        def build = build(services, DefaultBuildIdentifier.ROOT)
+        def build = build(services, new BuildIdentity(Path.ROOT))
         def node = new TestNode()
 
         when:
@@ -130,8 +148,8 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     def "runs scheduled unrelated work across multiple builds"() {
         def services = new TreeServices(workers)
-        def childBuild = build(services, new DefaultBuildIdentifier(Path.path(":child")))
-        def build = build(services, DefaultBuildIdentifier.ROOT)
+        def childBuild = build(services, new BuildIdentity(Path.path(":child")))
+        def build = build(services, new BuildIdentity(Path.ROOT))
         def childNode = new TestNode("child build node")
         def node = new TestNode("main build node")
 
@@ -156,10 +174,40 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         workers << [1, manyWorkers]
     }
 
+    def "runs the work of each build under the operation of that build"() {
+        def services = new TreeServices(workers)
+        def childBuild = build(services, new BuildIdentity(Path.path(":child")))
+        def build = build(services, new BuildIdentity(Path.ROOT))
+        def childNode = new TestNode("child build node")
+        def node = new TestNode("main build node")
+
+        when:
+        def result = scheduleAndRun(services) { builder ->
+            builder.withWorkGraph(build.state) { graphBuilder ->
+                def task = task(build, node)
+                graphBuilder.addEntryTasks([task])
+            }
+            builder.withWorkGraph(childBuild.state) { graphBuilder ->
+                def task = task(childBuild, childNode)
+                graphBuilder.addEntryTasks([task])
+            }
+        }
+
+        then:
+        result.failures.empty
+
+        and:
+        node.operationWhileExecuting.is(build.buildOperation)
+        childNode.operationWhileExecuting.is(childBuild.buildOperation)
+
+        where:
+        workers << [1, manyWorkers]
+    }
+
     def "runs scheduled related work across multiple builds"() {
         def services = new TreeServices(workers)
-        def childBuild = build(services, new DefaultBuildIdentifier(Path.path(":child")))
-        def build = build(services, DefaultBuildIdentifier.ROOT)
+        def childBuild = build(services, new BuildIdentity(Path.path(":child")))
+        def build = build(services, new BuildIdentity(Path.ROOT))
         def childNode = new TestNode("child build node")
         def node = new DelegateNode("main build node", [childNode])
 
@@ -184,9 +232,41 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         workers << [1, manyWorkers]
     }
 
+    def "stops running work and fails with exception when build is cancelled"() {
+        def services = new TreeServices(workers)
+        def childBuild = build(services, new BuildIdentity(Path.path(":child")))
+        def build = build(services, new BuildIdentity(Path.ROOT))
+        def childNode = new CancellingNode("child build node", cancellationToken)
+        def node = new DelegateNode("main build node", [childNode])
+
+        when:
+        def result = scheduleAndRun(services) { builder ->
+            builder.withWorkGraph(build.state) { graphBuilder ->
+                def task = task(build, node)
+                graphBuilder.addEntryTasks([task])
+            }
+            builder.withWorkGraph(childBuild.state) { graphBuilder ->
+                def task = task(childBuild, childNode)
+                graphBuilder.addEntryTasks([task])
+            }
+        }
+
+        then:
+        childNode.executed
+        !node.executed
+
+        and:
+        // Every build that still had work to start is cancelled
+        !result.failures.empty
+        result.failures.every { it instanceof BuildCancelledException }
+
+        where:
+        workers << [1, manyWorkers]
+    }
+
     def "fails when no further nodes can be selected"() {
         def services = new TreeServices(manyWorkers)
-        def build = build(services, DefaultBuildIdentifier.ROOT)
+        def build = build(services, new BuildIdentity(Path.ROOT))
         def node = new DependenciesStuckNode()
 
         when:
@@ -212,8 +292,8 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
     def "fails when no further nodes can be selected across multiple builds"() {
         def services = new TreeServices(manyWorkers)
-        def childBuild = build(services, new DefaultBuildIdentifier(Path.path(":child")))
-        def build = build(services, DefaultBuildIdentifier.ROOT)
+        def childBuild = build(services, new BuildIdentity(Path.path(":child")))
+        def build = build(services, new BuildIdentity(Path.ROOT))
         def node = new DependenciesStuckNode("main build node")
         def childNode = new DependenciesStuckNode("child build node")
 
@@ -262,25 +342,32 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         return result
     }
 
-    BuildServices build(TreeServices services, BuildIdentifier identifier) {
+    BuildServices build(TreeServices services, BuildIdentity identifier) {
         def identityPath = Stub(Path)
         def gradle = Stub(GradleInternal) {
             getIdentityPath() >> identityPath
         }
-        return new BuildServices(services, identifier, gradle)
+        def buildOperation = Stub(BuildOperationRef) {
+            getId() >> new OperationIdentifier(identifier.buildPath.asString().hashCode())
+        }
+        return new BuildServices(services, identifier, gradle, buildOperation)
     }
 
     TaskInternal task(BuildServices services, Node dependsOn) {
         def projectState = Stub(ProjectState)
-        def buildId = Path.path(services.identifier.buildPath)
+        def buildId = services.identifier.buildPath
         def projectId = ProjectIdentity.forRootProject(buildId, "root")
         def project = Stub(ProjectInternal) {
             getProjectIdentity() >> projectId
         }
         def task = Stub(TaskInternal)
-        def dependencies = Stub(TaskDependency)
-        _ * dependencies.getDependencies(_) >> [dependsOn].toSet()
+        def dependencies = Stub(TaskDependencyInternal)
+        _ * dependencies.visitDependencies(_) >> { TaskDependencyResolveContext context -> context.add(dependsOn) }
         _ * task.taskDependencies >> dependencies
+        _ * task.lifecycleDependencies >> TaskDependencyInternal.EMPTY
+        _ * task.finalizedBy >> TaskDependencyInternal.EMPTY
+        _ * task.mustRunAfter >> TaskDependencyInternal.EMPTY
+        _ * task.shouldRunAfter >> TaskDependencyInternal.EMPTY
         _ * task.project >> project
         _ * task.identityPath >> projectId.buildTreePath.child("task")
         _ * task.taskIdentity >> TestTaskIdentities.create("task", DefaultTask, project)
@@ -303,20 +390,19 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         def builder = Mock(BuildLifecycleController.WorkGraphBuilder)
         def nodeFactory = new TaskNodeFactory(services.gradle, Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationRunner(), new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_INSENSITIVE, Stub(Stat)), TestUtil.problemsService())
         def hierarchies = new ExecutionNodeAccessHierarchies(CaseSensitivity.CASE_SENSITIVE, TestFiles.fileSystem())
-        def dependencyResolver = Stub(TaskDependencyResolver)
-        _ * dependencyResolver.resolveDependenciesFor(_, _) >> { TaskInternal task, Object dependencies ->
-            if (dependencies instanceof TaskDependency) {
-                dependencies.getDependencies(task)
-            } else {
-                []
+        def dependencyResolver = new TaskDependencyResolver([new DependencyResolver() {
+            @Override
+            boolean resolve(Task t, Object node, Action<? super Node> resolveAction) {
+                resolveAction.execute((Node) node)
+                return true
             }
-        }
+        }])
         def plan = new DefaultExecutionPlan(displayName, nodeFactory, new OrdinalGroupFactory(), dependencyResolver, hierarchies.outputHierarchy, hierarchies.destroyableHierarchy, services.services.coordinationService)
         def workPlan = Stub(BuildWorkPlan) {
             _ * stop() >> { plan.close() }
         }
 
-        def controller = new TestBuildLifecycleController(plan, workPlan, builder, services.services)
+        def controller = new TestBuildLifecycleController(plan, workPlan, builder, services.services, services.buildOperation)
 
         _ * builder.addEntryTasks(_) >> { args ->
             plan.addEntryTasks(args[0])
@@ -336,12 +422,14 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         final BuildWorkPlan workPlan
         final WorkGraphBuilder builder
         final TreeServices services
+        final BuildOperationRef buildOperation
 
-        TestBuildLifecycleController(ExecutionPlan plan, BuildWorkPlan workPlan, WorkGraphBuilder builder, TreeServices services) {
+        TestBuildLifecycleController(ExecutionPlan plan, BuildWorkPlan workPlan, WorkGraphBuilder builder, TreeServices services, BuildOperationRef buildOperation) {
             this.workPlan = workPlan
             this.plan = plan
             this.builder = builder
             this.services = services
+            this.buildOperation = buildOperation
         }
 
         @Override
@@ -366,11 +454,15 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
 
         @Override
         ExecutionResult<Void> executeTasks(BuildWorkPlan buildPlan) {
-            return services.planExecutor.process(finalizedPlan.asWorkSource()) { node ->
-                if (node instanceof SelfExecutingNode) {
-                    node.execute(null)
+            return CurrentBuildOperationRef.instance().with(buildOperation, {
+                services.planExecutor.process(finalizedPlan.asWorkSource()) { node ->
+                    // This test is only concerned with how work is scheduled and coordinated, so the tasks
+                    // themselves are not run.
+                    if (!(node instanceof LocalTaskNode)) {
+                        node.execute(null)
+                    }
                 }
-            }
+            } as CurrentBuildOperationRef.Callable)
         }
 
         @Override
@@ -442,12 +534,14 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         final TreeServices services
         final GradleInternal gradle
         final BuildState state
-        final BuildIdentifier identifier
+        final BuildIdentity identifier
+        final BuildOperationRef buildOperation
 
-        BuildServices(TreeServices services, BuildIdentifier identifier, GradleInternal gradle) {
+        BuildServices(TreeServices services, BuildIdentity identifier, GradleInternal gradle, BuildOperationRef buildOperation) {
             this.identifier = identifier
             this.services = services
             this.gradle = gradle
+            this.buildOperation = buildOperation
             this.state = build(identifier, buildWorkGraphController(identifier.toString(), this))
         }
     }
@@ -482,10 +576,11 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
     }
 
-    private static class TestNode extends Node implements SelfExecutingNode {
+    private static class TestNode extends Node {
         private final String displayName
         private final List<Runnable> observers = []
         boolean executed
+        BuildOperationRef operationWhileExecuting
 
         TestNode(String displayName = "test node") {
             this.displayName = displayName
@@ -512,6 +607,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         @Override
         void execute(NodeExecutionContext context) {
             executed = true
+            operationWhileExecuting = CurrentBuildOperationRef.instance().get()
             sleep(SLOW_NODE_EXECUTION_TIME)
         }
 
@@ -524,6 +620,22 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
                     action.run()
                 }
             }
+        }
+    }
+
+    private static class CancellingNode extends TestNode {
+        private final BuildCancellationToken cancellationToken
+
+        CancellingNode(String displayName, BuildCancellationToken cancellationToken) {
+            super(displayName)
+            this.cancellationToken = cancellationToken
+        }
+
+        @Override
+        void execute(NodeExecutionContext context) {
+            cancellationToken.cancel()
+            // Sleeping while cancelled gives every worker a chance to notice before this node completes
+            super.execute(context)
         }
     }
 

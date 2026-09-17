@@ -286,6 +286,7 @@ class DefaultJavaInstallationRegistryTest extends Specification {
             os,
             loggerFactory,
             new JvmInstallationProblemReporter(),
+            null,
         )
     }
 }

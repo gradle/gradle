@@ -22,10 +22,12 @@ import java.io.File;
 
 /**
  * Information about a resolved artifact.
+ * @since 0.8
  */
 public interface ResolvedArtifact {
     /**
      * Returns the local file for this artifact. Downloads the artifact if not already available locally, blocking until complete.
+     * @since 0.8
      */
     File getFile();
 
@@ -33,18 +35,44 @@ public interface ResolvedArtifact {
      * Returns the module which this artifact belongs to.
      *
      * @return The module.
+     * @since 1.0
      */
     ResolvedModuleVersion getModuleVersion();
 
+    /**
+     * Returns the name.
+     *
+     * @since 0.8
+     */
     String getName();
 
+    /**
+     * Returns the type.
+     *
+     * @since 0.8
+     */
     String getType();
 
+    /**
+     * Returns the extension.
+     *
+     * @since 0.8
+     */
     @Nullable
     String getExtension();
 
+    /**
+     * Returns the classifier.
+     *
+     * @since 1.0
+     */
     @Nullable
     String getClassifier();
 
+    /**
+     * Returns the id.
+     *
+     * @since 2.6
+     */
     ComponentArtifactIdentifier getId();
 }

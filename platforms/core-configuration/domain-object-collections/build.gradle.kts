@@ -48,10 +48,6 @@ gradleModule {
     }
 }
 
-packageCycles {
-    excludePatterns.add("org/gradle/api/internal/**")
-}
-
 strictCompile {
     ignoreRawTypes() // raw types used in public API (Closure)
 }

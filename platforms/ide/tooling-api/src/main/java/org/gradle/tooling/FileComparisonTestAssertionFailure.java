@@ -30,6 +30,7 @@ public interface FileComparisonTestAssertionFailure extends TestAssertionFailure
      * Returns the string representation of the expected value.
      *
      * @return the expected value or {@code null} if the test framework doesn't supply detailed information on assertion failures
+     * @since 8.3
      */
     byte @Nullable [] getExpectedContent();
 
@@ -37,6 +38,7 @@ public interface FileComparisonTestAssertionFailure extends TestAssertionFailure
      * Returns the string representation of the actual value.
      *
      * @return the actual value or {@code null} if the test framework doesn't supply detailed information on assertion failures
+     * @since 8.3
      */
     byte @Nullable [] getActualContent();
 }

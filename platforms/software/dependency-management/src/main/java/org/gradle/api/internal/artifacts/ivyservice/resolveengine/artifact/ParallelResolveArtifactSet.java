@@ -63,12 +63,10 @@ public abstract class ParallelResolveArtifactSet {
             // Start preparing the result
             StartVisitAction visitAction = new StartVisitAction(visitor);
 
-            // TODO: Ideally we'd execute this work on an unconstrained executor, allowing us to download
-            // more artifacts in parallel than the number of worker leases. However, if there are artifact
-            // transforms in this artifact set that have not yet executed, they will execute here on-demand.
-            // We need a way to split the downloading work and transform computations into separate queues,
-            // potentially allowing `Artifact#startFinalization` to submit work to separate queues -- one for
-            // CPU-bound work and one for IO-bound work.
+            // TODO: Downloads here should use `BuildOperationQueue#addUnconstrained`, so that we can fetch
+            // more artifacts in parallel than there are worker leases. This is blocked on classifying the
+            // work submitted by `Artifact#startFinalization`: artifact transforms in this set that have not
+            // yet executed run here on-demand, and being CPU-bound they must stay lease-constrained.
             buildOperationProcessor.runAll(visitAction);
 
             // Now visit the result in order

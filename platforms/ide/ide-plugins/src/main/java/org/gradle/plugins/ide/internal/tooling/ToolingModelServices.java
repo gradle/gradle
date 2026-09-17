@@ -67,9 +67,10 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
                     boolean isolatedProjects = buildModelParameters.isIsolatedProjects();
                     GradleProjectBuilderInternal gradleProjectBuilder = createGradleProjectBuilder(isolatedProjects);
                     IdeaModelBuilderInternal ideaModelBuilder = createIdeaModelBuilder(isolatedProjects, gradleProjectBuilder);
-                    registry.register(new RunBuildDependenciesTaskBuilder());
+                    IntermediateToolingModelProvider modelProvider = isolatedProjects ? intermediateToolingModelProvider : null;
+                    registry.register(new RunBuildDependenciesTaskBuilder(modelProvider));
                     registry.register(new RunEclipseTasksBuilder());
-                    registry.register(new EclipseModelBuilder(gradleProjectBuilder, projectStateLookup));
+                    registry.register(new EclipseModelBuilder(gradleProjectBuilder, projectStateLookup, modelProvider));
                     registry.register(ideaModelBuilder);
                     registry.register(gradleProjectBuilder);
                     registry.register(new GradleBuildBuilder(buildStateRegistry, failedIncludedBuildsRegistry, failureFactory));
@@ -80,6 +81,7 @@ public class ToolingModelServices extends AbstractGradleModuleServices {
                     registry.register(new HelpBuilder());
                     registry.register(new IsolatedGradleProjectInternalBuilder());
                     registry.register(new IsolatedIdeaModuleInternalBuilder());
+                    registry.register(new IsolatedEclipseProjectBuilder());
                     registry.register(new PluginApplyingBuilder());
                     registry.register(new GradleDslBaseScriptModelBuilder());
                 }

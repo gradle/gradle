@@ -44,6 +44,7 @@ dependencies {
     implementation(projects.scopedPersistentCache)
     implementation(projects.serviceLookup)
     implementation(projects.workerMain)
+    implementation(projects.workerShared)
 
     implementation(libs.guava)
 
@@ -77,12 +78,3 @@ gradleModule {
         daemon = true
     }
 }
-
-packageCycles {
-    excludePatterns.add("org/gradle/api/internal/tasks/scala/**")
-    excludePatterns.add("org/gradle/api/tasks/*")
-    excludePatterns.add("org/gradle/api/tasks/scala/internal/*")
-    excludePatterns.add("org/gradle/language/scala/tasks/*")
-}
-
-

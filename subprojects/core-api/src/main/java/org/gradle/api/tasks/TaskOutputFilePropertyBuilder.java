@@ -31,12 +31,14 @@ public interface TaskOutputFilePropertyBuilder extends TaskFilePropertyBuilder {
     /**
      * Marks a task property as optional. This means that a value does not have to be specified for the property, but any
      * value specified must meet the validation constraints for the property.
+     * @since 3.0
      */
     TaskOutputFilePropertyBuilder optional();
 
     /**
      * Sets whether the task property is optional. If the task property is optional, it means that a value does not have to be
      * specified for the property, but any value specified must meet the validation constraints for the property.
+     * @since 3.0
      */
     TaskOutputFilePropertyBuilder optional(boolean optional);
 }

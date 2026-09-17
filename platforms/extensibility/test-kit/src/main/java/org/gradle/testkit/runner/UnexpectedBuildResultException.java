@@ -35,6 +35,7 @@ public abstract class UnexpectedBuildResultException extends RuntimeException {
      * The result of the build execution.
      *
      * @return the result of the build execution
+     * @since 2.9
      */
     public BuildResult getBuildResult() {
         return buildResult;

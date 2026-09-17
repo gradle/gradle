@@ -22,12 +22,14 @@ import org.gradle.api.XmlProvider;
 
 /**
  * An XML config file generated for Visual Studio.
+ * @since 1.11
  */
 @Incubating
 public interface XmlConfigFile extends ConfigFile {
 
     /**
      * Add an action that can manipulate the generated file content.
+     * @since 1.11
      */
     void withXml(Action<? super XmlProvider> action);
 }

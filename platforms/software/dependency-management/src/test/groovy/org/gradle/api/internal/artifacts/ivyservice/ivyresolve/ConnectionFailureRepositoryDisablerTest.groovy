@@ -92,7 +92,7 @@ class ConnectionFailureRepositoryDisablerTest extends Specification {
     }
 
     static RuntimeException createHttpErrorStatusCodeException(int statusCode) {
-        createNestedException(new HttpErrorStatusCodeException('GET', 'test.file', statusCode, ''))
+        createNestedException(new HttpErrorStatusCodeException(statusCode, ''))
     }
 
     static RuntimeException createTimeoutException() {

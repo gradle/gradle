@@ -47,6 +47,7 @@ public interface BuildEventsListenerRegistry {
      *
      * @param listenerProvider The provider of listener to receive events.
      * The implementation of the listener must be a {@link org.gradle.api.services.BuildService} instance, see {@link BuildServiceRegistry}.
+     * @since 6.1
      */
     void onTaskCompletion(Provider<? extends OperationCompletionListener> listenerProvider);
 }

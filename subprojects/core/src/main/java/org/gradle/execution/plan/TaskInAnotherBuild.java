@@ -17,13 +17,13 @@
 package org.gradle.execution.plan;
 
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.composite.internal.IncludedBuildTaskResource;
 import org.gradle.composite.internal.TaskIdentifier;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.util.Path;
@@ -33,13 +33,13 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
-public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecutingNode {
+public abstract class TaskInAnotherBuild extends TaskNode {
     public static TaskInAnotherBuild of(
         TaskInternal task,
         BuildTreeWorkGraphController taskGraph
     ) {
-        BuildIdentifier targetBuild = buildIdentifierOf(task);
-        TaskIdentifier taskIdentifier = TaskIdentifier.of(targetBuild, task);
+        BuildIdentity targetBuild = buildIdentityOf(task);
+        TaskIdentifier taskIdentifier = new TaskIdentifier(targetBuild, task);
         IncludedBuildTaskResource taskResource = taskGraph.locateTask(taskIdentifier);
         return new TaskInAnotherBuild(task.getIdentityPath(), task.getPath(), targetBuild) {
             @Override
@@ -50,44 +50,80 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
     }
 
     /**
-     * Creates a lazy reference to a task in another build.
+     * Creates a reference to a task in another build, restored from the configuration cache.
      *
-     * The task will be located on-demand to allow for cycles between builds stored to
-     * the configuration cache.
+     * The reference must be {@link Restored#bindTarget bound} to its restored target node once all
+     * builds in the tree have been loaded. The target task is located on-demand, once the work graph
+     * is being scheduled, to allow for cycles between builds stored to the configuration cache.
      *
      * @param taskPath the path to the task relative to its build
      * @param targetBuild the build containing the task
      * @param taskGraph the task graph where the task should be located
-     * @return a lazy reference to the given task.
      */
-    public static TaskInAnotherBuild lazy(
+    public static Restored restored(
         String taskPath,
-        BuildIdentifier targetBuild,
+        BuildIdentity targetBuild,
         BuildTreeWorkGraphController taskGraph
     ) {
-        TaskIdentifier taskIdentifier = TaskIdentifier.of(targetBuild, taskPath);
-        Path taskIdentityPath = Path.path(targetBuild.getBuildPath()).append(Path.path(taskPath));
-        Lazy<IncludedBuildTaskResource> target = Lazy.unsafe().of(() -> taskGraph.locateTask(taskIdentifier));
-        return new TaskInAnotherBuild(taskIdentityPath, taskPath, targetBuild) {
-            @Override
-            protected IncludedBuildTaskResource getTarget() {
-                return target.get();
+        Path taskIdentityPath = targetBuild.getBuildPath().append(Path.path(taskPath));
+        return new Restored(taskIdentityPath, taskPath, targetBuild, taskGraph);
+    }
+
+    /**
+     * A reference restored from the configuration cache.
+     */
+    public static class Restored extends TaskInAnotherBuild {
+
+        private final BuildTreeWorkGraphController taskGraph;
+        private final Lazy<IncludedBuildTaskResource> target;
+
+        private @Nullable TaskNode targetNode;
+
+        private Restored(
+            Path taskIdentityPath,
+            String taskPath,
+            BuildIdentity targetBuild,
+            BuildTreeWorkGraphController taskGraph
+        ) {
+            super(taskIdentityPath, taskPath, targetBuild);
+            this.taskGraph = taskGraph;
+
+            this.target = Lazy.unsafe().of(this::locateTarget);
+        }
+
+        /**
+         * Binds this reference to its restored target node.
+         */
+        public void bindTarget(TaskNode targetNode) {
+            this.targetNode = targetNode;
+        }
+
+        private IncludedBuildTaskResource locateTarget() {
+            if (targetNode == null) {
+                throw new IllegalStateException("No target node has been bound for " + this);
             }
-        };
+            return taskGraph.locateTask(new TaskIdentifier(getTargetBuild(), targetNode.getTask()));
+        }
+
+        @Override
+        protected IncludedBuildTaskResource getTarget() {
+            return target.get();
+        }
+
     }
 
     private IncludedBuildTaskResource.State taskState = IncludedBuildTaskResource.State.Scheduled;
     private final Path taskIdentityPath;
     private final String taskPath;
-    private final BuildIdentifier targetBuild;
+    private final BuildIdentity targetBuild;
 
-    protected TaskInAnotherBuild(Path taskIdentityPath, String taskPath, BuildIdentifier targetBuild) {
+    protected TaskInAnotherBuild(Path taskIdentityPath, String taskPath, BuildIdentity targetBuild) {
         this.taskIdentityPath = taskIdentityPath;
         this.taskPath = taskPath;
         this.targetBuild = targetBuild;
     }
 
-    public BuildIdentifier getTargetBuild() {
+    public BuildIdentity getTargetBuild() {
         return targetBuild;
     }
 
@@ -206,8 +242,8 @@ public abstract class TaskInAnotherBuild extends TaskNode implements SelfExecuti
         // This node does not do anything itself
     }
 
-    private static BuildIdentifier buildIdentifierOf(TaskInternal task) {
-        return ((ProjectInternal) task.getProject()).getOwner().getOwner().getBuildIdentifier();
+    private static BuildIdentity buildIdentityOf(TaskInternal task) {
+        return ((ProjectInternal) task.getProject()).getOwner().getOwner().getBuildIdentity();
     }
 
     protected abstract IncludedBuildTaskResource getTarget();

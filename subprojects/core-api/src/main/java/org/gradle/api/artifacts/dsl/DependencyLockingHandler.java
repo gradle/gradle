@@ -37,6 +37,7 @@ public interface DependencyLockingHandler {
      *     resolutionStrategy.activateDependencyLocking()
      * }
      *
+     * @since 4.8
      */
     void lockAllConfigurations();
 

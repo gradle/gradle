@@ -55,6 +55,7 @@ import java.util.List;
 
 /**
  * Generates HTML API documentation for Scala source files.
+ * @since 0.8
  */
 @CacheableTask
 public abstract class ScalaDoc extends SourceTask {
@@ -63,6 +64,11 @@ public abstract class ScalaDoc extends SourceTask {
     private FileCollection scalaClasspath;
     private String title;
 
+    /**
+     * Creates a new {@code ScalaDoc}.
+     *
+     * @since 0.8
+     */
     @SuppressWarnings("this-escape")
     public ScalaDoc() {
         JavaToolchainService javaToolchainService = getJavaToolchainService();
@@ -80,6 +86,7 @@ public abstract class ScalaDoc extends SourceTask {
 
     /**
      * Returns the directory to generate the API documentation into.
+     * @since 0.8
      */
     @ReplacedBy("destinationDirectory")
     @NotToBeReplacedByLazyProperty(because = "Bridge for backward compatibility, use getDestinationDirectory() instead", willBeDeprecated = true)
@@ -87,6 +94,11 @@ public abstract class ScalaDoc extends SourceTask {
         return getDestinationDirectory().isPresent() ? getDestinationDirectory().get().getAsFile() : null;
     }
 
+    /**
+     * Sets the destination dir.
+     *
+     * @since 0.8
+     */
     public void setDestinationDir(File destinationDir) {
         getDestinationDirectory().set(destinationDir);
         getDestinationDirectory().convention(getObjectFactory().directoryProperty().fileValue(destinationDir));
@@ -136,6 +148,7 @@ public abstract class ScalaDoc extends SourceTask {
      * <p>Returns the classpath to use to locate classes referenced by the documented source.</p>
      *
      * @return The classpath.
+     * @since 0.8
      */
     @Classpath
     @ToBeReplacedByLazyProperty
@@ -143,12 +156,18 @@ public abstract class ScalaDoc extends SourceTask {
         return classpath;
     }
 
+    /**
+     * Sets the classpath.
+     *
+     * @since 0.8
+     */
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
     }
 
     /**
      * Returns the classpath to use to load the ScalaDoc tool.
+     * @since 0.9
      */
     @Classpath
     @ToBeReplacedByLazyProperty
@@ -156,12 +175,18 @@ public abstract class ScalaDoc extends SourceTask {
         return scalaClasspath;
     }
 
+    /**
+     * Sets the scala classpath.
+     *
+     * @since 0.9
+     */
     public void setScalaClasspath(FileCollection scalaClasspath) {
         this.scalaClasspath = scalaClasspath;
     }
 
     /**
      * Returns the ScalaDoc generation options.
+     * @since 0.8
      */
     @Nested
     public abstract ScalaDocOptions getScalaDocOptions();
@@ -177,6 +202,7 @@ public abstract class ScalaDoc extends SourceTask {
 
     /**
      * Returns the documentation title.
+     * @since 0.8
      */
     @Nullable
     @Optional
@@ -186,6 +212,11 @@ public abstract class ScalaDoc extends SourceTask {
         return title;
     }
 
+    /**
+     * Sets the title.
+     *
+     * @since 0.8
+     */
     public void setTitle(@Nullable String title) {
         this.title = title;
     }
@@ -206,6 +237,11 @@ public abstract class ScalaDoc extends SourceTask {
     @Nested
     public abstract Property<JavaLauncher> getJavaLauncher();
 
+    /**
+     * Generate.
+     *
+     * @since 0.8
+     */
     @TaskAction
     protected void generate() {
         ScalaDocOptions options = getScalaDocOptions();

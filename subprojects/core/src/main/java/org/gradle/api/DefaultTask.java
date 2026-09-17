@@ -42,6 +42,7 @@ import java.util.Set;
 
 /**
  * {@code DefaultTask} is the standard {@link Task} implementation. You can extend this to implement your own task types.
+ * @since 0.7
  */
 @NoConventionMapping
 @SuppressWarnings("deprecation")

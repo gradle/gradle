@@ -34,6 +34,7 @@ import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.action.DefaultConfigurableRule
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.NoOpDerivationStrategy
 import org.gradle.internal.component.external.model.ivy.DefaultMutableIvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.maven.DefaultMutableMavenModuleResolveMetadata
 import org.gradle.internal.resolve.ModuleVersionResolveException
@@ -93,7 +94,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
     }
 
     def "does nothing when no rules registered"() {
-        def processor = new DefaultComponentMetadataProcessor(metadataRuleContainer, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, AttributeTestUtil.attributesFactory(), executor, DependencyManagementTestUtil.platformSupport(), context)
+        def processor = newProcessor(ImmutableComponentMetadataRules.EMPTY)
         def metadata = ivyMetadata().asImmutable()
 
         expect:
@@ -105,7 +106,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
         context.injectingInstantiator >> instantiator
         String notation = "${GROUP}:${MODULE}"
         addRuleForModule(notation)
-        def processor = new DefaultComponentMetadataProcessor(metadataRuleContainer, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, AttributeTestUtil.attributesFactory(), executor, DependencyManagementTestUtil.platformSupport(), context)
+        def processor = newProcessor(metadataRuleContainer.asImmutable())
 
 
         when:
@@ -121,7 +122,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
         String notation = "${GROUP}:${MODULE}"
         addRuleForModuleWithParams(notation, "foo", 42L)
 
-        def processor = new DefaultComponentMetadataProcessor(metadataRuleContainer, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, AttributeTestUtil.attributesFactory(), executor, DependencyManagementTestUtil.platformSupport(), context)
+        def processor = newProcessor(metadataRuleContainer.asImmutable())
 
         when:
         processor.processMetadata(ivyMetadata().asImmutable())
@@ -132,7 +133,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
     }
 
     def "processing fails when status is not present in status scheme"() {
-        def processor = new DefaultComponentMetadataProcessor(metadataRuleContainer, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, AttributeTestUtil.attributesFactory(), executor, DependencyManagementTestUtil.platformSupport(), context)
+        def processor = newProcessor(ImmutableComponentMetadataRules.EMPTY)
         def metadata = ivyMetadata()
         metadata.status = "green"
         metadata.statusScheme = ["alpha", "beta"]
@@ -156,8 +157,7 @@ class DefaultComponentMetadataProcessorTest extends Specification {
                 addRuleForModule(notation)
             }
         }
-        def processor = new DefaultComponentMetadataProcessor(metadataRuleContainer, instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, AttributeTestUtil.attributesFactory(), executor, DependencyManagementTestUtil.platformSupport(), context)
-
+        def processor = newProcessor(metadataRuleContainer.asImmutable())
 
         when:
         processor.processMetadata(ivyMetadata().asImmutable())
@@ -170,6 +170,10 @@ class DefaultComponentMetadataProcessorTest extends Specification {
         where:
         rules << [rule1, rule2, "classRule1", "classRule2"].permutations()
 
+    }
+
+    private DefaultComponentMetadataProcessor newProcessor(ImmutableComponentMetadataRules container) {
+        new DefaultComponentMetadataProcessor(context, container, NoOpDerivationStrategy.getInstance(), instantiator, dependencyMetadataNotationParser, dependencyConstraintMetadataNotationParser, componentIdentifierNotationParser, AttributeTestUtil.attributesFactory(), executor, DependencyManagementTestUtil.platformSupport())
     }
 
     private SpecConfigurableRule addRuleForModule(String notation) {
@@ -197,4 +201,5 @@ class DefaultComponentMetadataProcessorTest extends Specification {
         metadata.statusScheme = ["integration", "release"]
         return metadata
     }
+
 }

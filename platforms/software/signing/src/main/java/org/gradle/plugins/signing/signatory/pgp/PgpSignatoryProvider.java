@@ -25,6 +25,7 @@ import java.util.Arrays;
 
 /**
  * A {@link SignatoryProvider} of {@link PgpSignatory} instances.
+ * @since 1.0
  */
 public class PgpSignatoryProvider extends BasePgpSignatoryProvider implements ConfigurableSignatoryProvider<PgpSignatory> {
 
@@ -45,6 +46,11 @@ public class PgpSignatoryProvider extends BasePgpSignatoryProvider implements Co
         }
     }
 
+    /**
+     * Property missing.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings("unused") // invoked by Groovy
     public PgpSignatory propertyMissing(String signatoryName) {
         return getSignatory(signatoryName);

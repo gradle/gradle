@@ -33,6 +33,7 @@ public interface PublishingExtension {
 
     /**
      * The name of this extension when installed by the {@link org.gradle.api.publish.plugins.PublishingPlugin} ({@value}).
+     * @since 1.3
      */
     String NAME = "publishing";
 
@@ -42,6 +43,7 @@ public interface PublishingExtension {
      * See {@link #repositories(org.gradle.api.Action)} for more information.
      *
      * @return The container of possible repositories to publish to.
+     * @since 1.3
      */
     RepositoryHandler getRepositories();
 
@@ -71,6 +73,7 @@ public interface PublishingExtension {
      * for information on how this can be used for publishing to Ivy repositories.
      *
      * @param configure The action to configure the container of repositories with.
+     * @since 1.3
      */
     void repositories(Action<? super RepositoryHandler> configure);
 
@@ -80,6 +83,7 @@ public interface PublishingExtension {
      * See {@link #publications(org.gradle.api.Action)} for more information.
      *
      * @return The publications of this project.
+     * @since 1.3
      */
     PublicationContainer getPublications();
 
@@ -109,6 +113,7 @@ public interface PublishingExtension {
      * Please see {@link org.gradle.api.publish.ivy.IvyPublication} and {@link org.gradle.api.publish.maven.MavenPublication} for more information on publishing in these specific formats.
      *
      * @param configure The action or closure to configure the publications with.
+     * @since 1.3
      */
     void publications(Action<? super PublicationContainer> configure);
 

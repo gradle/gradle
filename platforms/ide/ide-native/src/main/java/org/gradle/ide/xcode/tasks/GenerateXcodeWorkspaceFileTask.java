@@ -38,6 +38,11 @@ import java.io.File;
 public abstract class GenerateXcodeWorkspaceFileTask extends XmlGeneratorTask<XcodeWorkspaceFile> {
     private FileCollection xcodeProjectLocations;
 
+    /**
+     * Creates a new {@code GenerateXcodeWorkspaceFileTask}.
+     *
+     * @since 4.2
+     */
     @SuppressWarnings("this-escape")
     public GenerateXcodeWorkspaceFileTask() {
         this.xcodeProjectLocations = getProject().files();
@@ -55,12 +60,22 @@ public abstract class GenerateXcodeWorkspaceFileTask extends XmlGeneratorTask<Xc
         return new XcodeWorkspaceFile(getXmlTransformer());
     }
 
+    /**
+     * Returns the xcode project locations.
+     *
+     * @since 4.2
+     */
     @PathSensitive(PathSensitivity.ABSOLUTE)
     @InputFiles
     public FileCollection getXcodeProjectLocations() {
         return xcodeProjectLocations;
     }
 
+    /**
+     * Sets the xcode project locations.
+     *
+     * @since 4.2
+     */
     public void setXcodeProjectLocations(FileCollection xcodeProjectLocations) {
         this.xcodeProjectLocations = xcodeProjectLocations;
     }

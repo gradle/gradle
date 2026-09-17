@@ -21,6 +21,7 @@ import org.gradle.nativeplatform.fixtures.RequiresInstalledToolChain
 class TestingNativeComponentReportIntegrationTest extends AbstractNativeComponentReportIntegrationTest {
     @RequiresInstalledToolChain
     def "shows details of native C++ executable with test suite"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 plugins {

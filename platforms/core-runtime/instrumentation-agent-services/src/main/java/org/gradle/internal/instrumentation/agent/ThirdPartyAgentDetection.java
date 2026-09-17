@@ -28,6 +28,11 @@ import java.lang.management.ManagementFactory;
  * <p>The result is computed on first call from the JVM's startup arguments and cached.
  * Agents attached at runtime via the Attach API are not detected and are not supported by
  * Gradle's buildscript instrumentation.
+ *
+ * <p>Some non-instrumenting JVMTI agents, such as the JDWP debug agent and async-profiler, are
+ * deliberately not reported as third-party agents, so that a plain debugging or profiling session
+ * exercises the same instrumentation path as a regular build. See
+ * {@link AgentUtils#isThirdPartyAgentSwitch(String)}.
  */
 public final class ThirdPartyAgentDetection {
 

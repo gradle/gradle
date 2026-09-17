@@ -21,6 +21,7 @@ import org.jspecify.annotations.NullMarked;
 
 @NullMarked
 public interface NodeExecutionContext {
+
     /**
      * Locates the given execution service.
      */
@@ -33,7 +34,6 @@ public interface NodeExecutionContext {
      * part of executing the execution graph. This is happening when a node value is requested
      * without scheduling and executing the node first.
      */
-    default boolean isPartOfExecutionGraph() {
-        return true;
-    }
+    boolean isPartOfExecutionGraph();
+
 }

@@ -26,6 +26,7 @@ import org.gradle.api.component.SoftwareComponent;
 public interface ComponentWithDependencies extends SoftwareComponent {
     /**
      * Returns the dependencies of this component.
+     * @since 4.6
      */
     ComponentDependencies getDependencies();
 }

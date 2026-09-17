@@ -20,13 +20,24 @@ import org.gradle.internal.exceptions.Contextual;
 
 /**
  * A {@code PluginInstantiationException} is thrown when a plugin cannot be instantiated.
+ * @since 0.7
  */
 @Contextual
 public class PluginInstantiationException extends GradleException {
+    /**
+     * Creates a new {@code PluginInstantiationException}.
+     *
+     * @since 0.7
+     */
     public PluginInstantiationException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code PluginInstantiationException}.
+     *
+     * @since 0.7
+     */
     public PluginInstantiationException(String message, Throwable cause) {
         super(message, cause);
     }

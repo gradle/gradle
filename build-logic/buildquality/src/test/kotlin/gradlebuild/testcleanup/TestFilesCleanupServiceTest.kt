@@ -52,6 +52,7 @@ class TestFilesCleanupServiceTest {
             include(":flaky-test-with-leftover")
             include(":flaky-test-without-leftover")
             include(":successful-report")
+            include(":test-without-selected-tests")
             """.trimIndent()
         )
 
@@ -74,6 +75,7 @@ class TestFilesCleanupServiceTest {
         projectDir.resolve("flaky-test-with-leftover/src/test/java/FlakyTest.java").writeFlakyTest(true)
         projectDir.resolve("flaky-test-without-leftover/src/test/java/FlakyTest.java").writeFlakyTest(true)
         projectDir.resolve("successful-report").mkdirs()
+        projectDir.resolve("test-without-selected-tests/src/test/java/FlakyTest.java").writeFlakyTest(false)
 
         projectDir.resolve("build.gradle.kts").writeText(
             """
@@ -118,6 +120,18 @@ class TestFilesCleanupServiceTest {
                         }
                     }
                     useJUnitPlatform()
+                }
+            }
+
+            // Runs a real Test task that selects no test at all, like `-PflakyTests=ONLY` does to most
+            // tasks of the flaky test quarantine build. Its reports are empty and must not be archived.
+            project(":test-without-selected-tests") {
+                configureTestWithLeftover(false, false)
+                tasks.named<Test>("test").configure {
+                    filter {
+                        isFailOnNoMatchingTests = false
+                        includeTestsMatching("NoSuchTestClass")
+                    }
                 }
             }
 
@@ -191,6 +205,15 @@ class TestFilesCleanupServiceTest {
     }
 
     private
+    fun assertArchivedFilesNotSeen(vararg archiveFileNames: String) {
+        val rootDirFiles = projectDir.resolve("build").walk().toList()
+
+        archiveFileNames.forEach { fileName ->
+            assertTrue(rootDirFiles.none { it.name == fileName }, "File $fileName should not have been archived")
+        }
+    }
+
+    private
     fun assertLeftoverFilesCleanedUpEventually(vararg leftoverFiles: String) {
         leftoverFiles.forEach {
             assertTrue(projectDir.resolve(it).walk().filter { it.isFile }.toList().isEmpty())
@@ -215,6 +238,17 @@ class TestFilesCleanupServiceTest {
         assertEquals(TaskOutcome.SUCCESS, result.task(":flaky-test-without-leftover:test")!!.outcome)
 
         assertArchivedFilesSeen("report-flaky-test-without-leftover-test.zip")
+    }
+
+    @Test
+    fun `reports of a test task that selected no test are not archived`() {
+        val result = run(":test-without-selected-tests:test").build()
+        assertEquals(TaskOutcome.SUCCESS, result.task(":test-without-selected-tests:test")!!.outcome)
+
+        assertArchivedFilesNotSeen(
+            "report-test-without-selected-tests-test.zip",
+            "report-test-without-selected-tests.zip"
+        )
     }
 
     @Test

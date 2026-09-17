@@ -17,6 +17,7 @@ package org.gradle.api.internal.artifacts.ivyservice.moduleconverter;
 
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
 import org.gradle.api.internal.artifacts.Module;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
@@ -24,10 +25,11 @@ import org.gradle.api.internal.artifacts.configurations.DependencyMetaDataProvid
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory;
-import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveMetadata;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveStateFactory;
+import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.jspecify.annotations.Nullable;
@@ -42,7 +44,8 @@ import org.jspecify.annotations.Nullable;
 public class ProjectRootComponentProvider implements RootComponentProvider {
 
     // Services
-    private final ProjectState owner;
+    private final ModelContainer<?> owner;
+    private final ProjectIdentity projectIdentity;
     private final DependencyMetaDataProvider componentIdentity;
     private final AttributesSchemaInternal schema;
     private final ConfigurationsProvider configurationsProvider;
@@ -55,7 +58,8 @@ public class ProjectRootComponentProvider implements RootComponentProvider {
     private @Nullable LocalComponentGraphResolveState cachedValue;
 
     public ProjectRootComponentProvider(
-        ProjectState owner,
+        ModelContainer<?> owner,
+        ProjectIdentity projectIdentity,
         DependencyMetaDataProvider componentIdentity,
         AttributesSchemaInternal schema,
         ConfigurationsProvider configurationsProvider,
@@ -65,6 +69,7 @@ public class ProjectRootComponentProvider implements RootComponentProvider {
         AdhocRootComponentProvider adhocRootComponentProvider
     ) {
         this.owner = owner;
+        this.projectIdentity = projectIdentity;
         this.componentIdentity = componentIdentity;
         this.schema = schema;
         this.configurationsProvider = configurationsProvider;
@@ -91,7 +96,7 @@ public class ProjectRootComponentProvider implements RootComponentProvider {
         Module module = componentIdentity.getModule();
 
         ModuleVersionIdentifier moduleVersionId = moduleIdentifierFactory.moduleWithVersion(module.getGroup(), module.getName(), module.getVersion());
-        ComponentIdentifier componentIdentifier = owner.getComponentIdentifier();
+        ComponentIdentifier componentIdentifier = new DefaultProjectComponentIdentifier(projectIdentity);
         String status = module.getStatus();
         ImmutableAttributesSchema immutableSchema = attributesSchemaFactory.create(schema);
 

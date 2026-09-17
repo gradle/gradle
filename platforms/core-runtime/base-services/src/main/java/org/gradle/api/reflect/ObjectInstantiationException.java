@@ -26,6 +26,11 @@ import org.jspecify.annotations.Nullable;
  */
 @Contextual
 public class ObjectInstantiationException extends RuntimeException {
+    /**
+     * Creates a new {@code ObjectInstantiationException}.
+     *
+     * @since 4.2
+     */
     public ObjectInstantiationException(Class<?> targetType, @Nullable Throwable throwable) {
         super(String.format("Could not create an instance of type %s.", targetType.getName()), throwable);
     }

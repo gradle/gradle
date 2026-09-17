@@ -30,8 +30,14 @@ import java.util.ListIterator;
  * and target file path when copying files.</p>
  *
  * <p>{@code RelativePath} instances are immutable.</p>
+ * @since 0.8
  */
 public class RelativePath implements Serializable, Comparable<RelativePath>, CharSequence {
+    /**
+     * Relative path.
+     *
+     * @since 3.2
+     */
     public static final RelativePath EMPTY_ROOT = new RelativePath(false);
     private final boolean endsWithFile;
     private final String[] segments;
@@ -40,11 +46,17 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
      * Creates a {@code RelativePath}.
      *
      * @param endsWithFile - if true, the path ends with a file, otherwise a directory
+     * @since 0.8
      */
     public RelativePath(boolean endsWithFile, String... segments) {
         this(endsWithFile, null, segments);
     }
 
+    /**
+     * Creates a new {@code RelativePath}.
+     *
+     * @since 0.8
+     */
     private RelativePath(boolean endsWithFile, @Nullable RelativePath parentPath, String... childSegments) {
         this.endsWithFile = endsWithFile;
         final int expectedLength;
@@ -90,19 +102,39 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
         System.arraycopy(source, 0, target, 0, length);
     }
 
+    /**
+     * Returns the segments.
+     *
+     * @since 0.8
+     */
     public String[] getSegments() {
         return segments;
     }
 
+    /**
+     * Segment iterator.
+     *
+     * @since 0.8
+     */
     public ListIterator<String> segmentIterator() {
         ArrayList<String> content = new ArrayList<String>(Arrays.asList(segments));
         return content.listIterator();
     }
 
+    /**
+     * Returns whether file is set.
+     *
+     * @since 0.8
+     */
     public boolean isFile() {
         return endsWithFile;
     }
 
+    /**
+     * Returns the path string.
+     *
+     * @since 0.8
+     */
     public String getPathString() {
         if (segments.length == 0) {
             return "";
@@ -156,10 +188,20 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
         return CharBuffer.wrap(this, start, end);
     }
 
+    /**
+     * Returns the file.
+     *
+     * @since 0.8
+     */
     public File getFile(File baseDir) {
         return new File(baseDir, getPathString());
     }
 
+    /**
+     * Returns the last name.
+     *
+     * @since 0.8
+     */
     public String getLastName() {
         if (segments.length > 0) {
             return segments[segments.length - 1];
@@ -201,6 +243,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
      * Returns the parent of this path.
      *
      * @return The parent of this path, or null if this is the root path.
+     * @since 0.8
      */
     @Nullable
     public RelativePath getParent() {
@@ -216,10 +259,20 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
         }
     }
 
+    /**
+     * Parse.
+     *
+     * @since 0.9
+     */
     public static RelativePath parse(boolean isFile, String path) {
         return parse(isFile, null, path);
     }
 
+    /**
+     * Parse.
+     *
+     * @since 0.9
+     */
     public static RelativePath parse(boolean isFile, @Nullable RelativePath parent, String path) {
         String[] names = FilePathUtil.getPathSegments(path);
         return new RelativePath(isFile, parent, names);
@@ -230,6 +283,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
      *
      * @param name The name.
      * @return The path.
+     * @since 0.9
      */
     public RelativePath replaceLastName(String name) {
         String[] newSegments = new String[segments.length];
@@ -243,6 +297,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
      *
      * @param other The path to append
      * @return The new path
+     * @since 0.9
      */
     public RelativePath append(RelativePath other) {
         return new RelativePath(other.endsWithFile, this, other.segments);
@@ -253,6 +308,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
      *
      * @param other The path to append
      * @return The new path
+     * @since 0.9
      */
     public RelativePath plus(RelativePath other) {
         return append(other);
@@ -264,6 +320,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
      * @param segments The names to append.
      * @param endsWithFile when true, the new path refers to a file.
      * @return The new path.
+     * @since 0.9
      */
     public RelativePath append(boolean endsWithFile, String... segments) {
         return new RelativePath(endsWithFile, this, segments);
@@ -274,6 +331,7 @@ public class RelativePath implements Serializable, Comparable<RelativePath>, Cha
      *
      * @param segments The names to prepend
      * @return The new path.
+     * @since 0.9
      */
     public RelativePath prepend(String... segments) {
         return new RelativePath(false, segments).append(this);

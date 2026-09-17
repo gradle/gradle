@@ -32,6 +32,7 @@ public interface VersionMappingStrategy {
     /**
      * Configures the version mapping strategy for all variants
      * @param action the configuration action
+     * @since 5.2
      */
     void allVariants(Action<? super VariantVersionMappingStrategy> action);
 
@@ -41,6 +42,7 @@ public interface VersionMappingStrategy {
      * @param attribute the attribute to find
      * @param attributeValue the attribute value
      * @param action the configuration action
+     * @since 5.2
      */
     <T> void variant(Attribute<T> attribute, T attributeValue, Action<? super VariantVersionMappingStrategy> action);
 
@@ -49,6 +51,7 @@ public interface VersionMappingStrategy {
      * This is the recommended way to configure the mapping strategy for the general case.
      * @param usage the usage to look for
      * @param action the configuration action
+     * @since 5.2
      */
     void usage(String usage, Action<? super VariantVersionMappingStrategy> action);
 }

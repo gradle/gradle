@@ -43,6 +43,7 @@ import java.util.Map;
  * {@code AbstractExecTask} is the base class for all exec tasks.
  *
  * @param <T> The concrete type of the class.
+ * @since 2.1
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractExecTask<T extends AbstractExecTask> extends ConventionTask implements ExecSpec {
@@ -51,6 +52,11 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     private final Property<ExecResult> execResult;
     private final DefaultExecSpec execSpec;
 
+    /**
+     * Creates a new {@code AbstractExecTask}.
+     *
+     * @since 2.1
+     */
     @SuppressWarnings("this-escape")
     public AbstractExecTask(Class<T> taskType) {
         execSpec = getObjectFactory().newInstance(DefaultExecSpec.class);
@@ -64,6 +70,11 @@ public abstract class AbstractExecTask<T extends AbstractExecTask> extends Conve
     @Inject
     protected abstract ExecActionFactory getExecActionFactory();
 
+    /**
+     * Exec.
+     *
+     * @since 2.1
+     */
     @TaskAction
     protected void exec() {
         ExecAction execAction = getExecActionFactory().newExecAction();

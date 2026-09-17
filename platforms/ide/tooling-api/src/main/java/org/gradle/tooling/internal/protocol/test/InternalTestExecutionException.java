@@ -21,7 +21,7 @@ package org.gradle.tooling.internal.protocol.test;
  *
  * DO NOT CHANGE THIS CLASS. It is part of the cross-version protocol.
  *
- * @since 2.6-rc-1
+ * @since 2.6
  */
 public class InternalTestExecutionException extends RuntimeException {
     public InternalTestExecutionException(String message, Throwable cause) {

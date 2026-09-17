@@ -17,7 +17,7 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph;
 
 import org.gradle.api.Describable;
-import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.internal.Describables;
 import org.jspecify.annotations.Nullable;
 
@@ -36,7 +36,7 @@ public class DependencyGraphPathResolver {
     public static Collection<List<Describable>> calculatePaths(
         List<DependencyGraphNode> fromNodes,
         DependencyGraphNode toNode,
-        DomainObjectContext owner
+        DependencyManagementInstanceIdentity owner
     ) {
         // Compute the shortest path from each component that has a direct dependency on the broken
         // dependency back to the root component. Each search is an independent BFS in the reverse

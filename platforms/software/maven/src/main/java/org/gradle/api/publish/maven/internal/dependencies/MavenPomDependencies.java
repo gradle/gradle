@@ -16,6 +16,8 @@
 
 package org.gradle.api.publish.maven.internal.dependencies;
 
+import org.gradle.api.tasks.Nested;
+
 import java.util.List;
 
 /**
@@ -23,8 +25,10 @@ import java.util.List;
  */
 public interface MavenPomDependencies {
 
+    @Nested
     List<MavenDependency> getDependencies();
 
+    @Nested
     List<MavenDependency> getDependencyManagement();
 
 }

@@ -18,6 +18,7 @@ package org.gradle.api.tasks.testing;
 
 /**
  * The base class for any test framework specific options.
+ * @since 0.9
  */
 public abstract class TestFrameworkOptions {
 }

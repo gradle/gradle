@@ -42,6 +42,7 @@ public interface PlatformDependencyModifiers {
      * @implSpec Do not implement this method. Gradle generates the implementation automatically.
      *
      * @see PlatformDependencyModifiers.PlatformDependencyModifier#modifyImplementation(ModuleDependency)
+     * @since 8.0
      */
     @Nested
     PlatformDependencyModifier getPlatform();
@@ -74,6 +75,7 @@ public interface PlatformDependencyModifiers {
      * @implSpec Do not implement this method. Gradle generates the implementation automatically.
      *
      * @see PlatformDependencyModifiers.EnforcedPlatformDependencyModifier#modifyImplementation(ModuleDependency)
+     * @since 8.0
      */
     @Nested
     EnforcedPlatformDependencyModifier getEnforcedPlatform();

@@ -16,61 +16,90 @@
 
 package org.gradle.internal.classpath.transforms;
 
+import org.gradle.api.file.RelativePath;
+import org.gradle.internal.Pair;
 import org.gradle.internal.classloader.ProtectionDomains;
+import org.gradle.internal.classpath.ClassData;
 import org.gradle.internal.classpath.ClassLoadTimeTransform;
-import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
+import org.gradle.internal.classpath.ClasspathEntryVisitor;
+import org.gradle.internal.hash.Hasher;
 import org.jspecify.annotations.Nullable;
+import org.objectweb.asm.ClassVisitor;
 
 import java.io.File;
 import java.io.IOException;
 import java.security.ProtectionDomain;
-import java.util.HashSet;
-import java.util.Set;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ConcurrentMap;
 
 /**
  * Runs {@link InstrumentingClassTransform} at class-load time against bytes supplied
  * by the JVM, so that Gradle's instrumentation composes with any third-party
  * {@link java.lang.instrument.ClassFileTransformer} that ran earlier.
  * <p>
- * The filter applied depends on the origin of the class, matching the ahead-of-time pipeline:
- * project dependencies are instrumented only, while everything else is instrumented and upgraded.
- * Property-upgrade reporting on project dependencies is not reproduced here. Classes whose code
- * source cannot be resolved to a file are treated as external.
+ * The transform applied depends on the classpath entry the class originates from, matching
+ * the ahead-of-time pipeline that produced the pre-instrumented "double" of that entry.
+ * Classes whose code source cannot be resolved to a known classpath entry are left untouched,
+ * matching the ahead-of-time behavior where such entries are loaded without substitution.
+ * Property-upgrade reporting on project dependencies is not reproduced here.
  */
 public final class InstrumentingClassLoadTimeTransform implements ClassLoadTimeTransform {
+    private static final ClassTransform NO_TRANSFORM_SENTINEL = new ClassTransform() {
+        @Override
+        public void applyConfigurationTo(Hasher hasher) {
+            throw new UnsupportedOperationException("Cannot apply empty transform");
+        }
 
-    private final ClassTransform externalTransform;
-    private final ClassTransform projectTransform;
-    private final Set<File> projectOriginFiles;
+        @Override
+        public Pair<RelativePath, ClassVisitor> apply(ClasspathEntryVisitor.Entry entry, ClassVisitor visitor, ClassData classData) throws IOException {
+            throw new UnsupportedOperationException("Cannot apply empty transform");
+        }
+    };
 
-    public InstrumentingClassLoadTimeTransform(
-        BytecodeInterceptorFilter externalFilter,
-        InstrumentationTypeRegistry externalTypeRegistry,
-        BytecodeInterceptorFilter projectFilter,
-        InstrumentationTypeRegistry projectTypeRegistry,
-        Set<File> projectOriginFiles
-    ) {
-        this.externalTransform = new InstrumentingClassTransform(externalFilter, externalTypeRegistry);
-        this.projectTransform = new InstrumentingClassTransform(projectFilter, projectTypeRegistry);
-        this.projectOriginFiles = normalize(projectOriginFiles);
+    private final Map<File, ClassTransform> transformsByOrigin;
+    // The classloader reuses one ProtectionDomain per classpath entry, while this transform runs for
+    // every class it loads. Resolving the code source to an entry canonicalizes the file, which hits
+    // the filesystem, so cache the result per domain like TransformReplacer does.
+    // Empty transforms are represented as NO_TRANSFORM_SENTINEL, so we don't look up their transforms over and over.
+    private final ConcurrentMap<ProtectionDomain, ClassTransform> transformsByDomain = new ConcurrentHashMap<>();
+
+    /**
+     * @param transformsByOrigin the transform to apply to classes of each original classpath entry
+     */
+    public InstrumentingClassLoadTimeTransform(Map<File, ClassTransform> transformsByOrigin) {
+        this.transformsByOrigin = normalizeKeys(transformsByOrigin);
     }
 
     @Override
     public byte[] transform(@Nullable ProtectionDomain protectionDomain, String className, byte[] classfileBuffer) {
-        ClassTransform transform = isProjectOrigin(protectionDomain) ? projectTransform : externalTransform;
+        ClassTransform transform = protectionDomain != null ? transformFor(protectionDomain) : null;
+        if (transform == null) {
+            return classfileBuffer;
+        }
         return ClassTransforms.applyToBytes(transform, className, classfileBuffer);
     }
 
-    boolean isProjectOrigin(@Nullable ProtectionDomain protectionDomain) {
-        File codeSourceFile = ProtectionDomains.codeSourceFileOf(protectionDomain);
-        return codeSourceFile != null && projectOriginFiles.contains(normalize(codeSourceFile));
+    @Nullable
+    private ClassTransform transformFor(ProtectionDomain protectionDomain) {
+        ClassTransform transform = transformsByDomain.computeIfAbsent(protectionDomain, this::lookUpTransform);
+        return transform != NO_TRANSFORM_SENTINEL ? transform : null;
     }
 
-    private static Set<File> normalize(Set<File> files) {
-        Set<File> result = new HashSet<>(files.size());
-        for (File file : files) {
-            result.add(normalize(file));
+    private ClassTransform lookUpTransform(ProtectionDomain protectionDomain) {
+        File codeSourceFile = ProtectionDomains.codeSourceFileOf(protectionDomain);
+        if (codeSourceFile == null) {
+            return NO_TRANSFORM_SENTINEL;
+        }
+        ClassTransform transform = transformsByOrigin.get(normalize(codeSourceFile));
+        return transform != null ? transform : NO_TRANSFORM_SENTINEL;
+    }
+
+    private static Map<File, ClassTransform> normalizeKeys(Map<File, ClassTransform> transformsByOrigin) {
+        Map<File, ClassTransform> result = new HashMap<>(transformsByOrigin.size());
+        for (Map.Entry<File, ClassTransform> entry : transformsByOrigin.entrySet()) {
+            result.put(normalize(entry.getKey()), entry.getValue());
         }
         return result;
     }

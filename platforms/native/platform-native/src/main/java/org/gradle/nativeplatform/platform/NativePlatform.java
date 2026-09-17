@@ -35,11 +35,13 @@ import org.gradle.platform.base.Platform;
  *         }
  *     }
  * </pre>
+ * @since 2.2
  */
 @HasInternalProtocol
 public interface NativePlatform extends Platform, Describable {
     /**
      * The cpu architecture being targeted. Defaults to the default architecture produced by the tool chain.
+     * @since 2.2
      */
     @Nested
     Architecture getArchitecture();
@@ -50,12 +52,14 @@ public interface NativePlatform extends Platform, Describable {
      * The architecture is provided as a string name, which is translated into one of the supported architecture types.
      * </p>
      * @see Architecture Supported notations.
+     * @since 2.3
      */
     void architecture(String name);
 
     /**
      * The operating system being targeted.
      * Defaults to the default operating system targeted by the tool chain (normally the current operating system).
+     * @since 2.2
      */
     @Nested
     OperatingSystem getOperatingSystem();
@@ -66,6 +70,7 @@ public interface NativePlatform extends Platform, Describable {
      * The operating system is provided as a string name, which is translated into one of the supported operating system types.
      * </p>
      * @see OperatingSystem Supported notations.
+     * @since 2.3
      */
     void operatingSystem(String name);
 }

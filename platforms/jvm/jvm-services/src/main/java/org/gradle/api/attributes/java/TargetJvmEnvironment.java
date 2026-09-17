@@ -28,15 +28,22 @@ import org.gradle.api.attributes.Attribute;
  * @since 7.0
  */
 public interface TargetJvmEnvironment extends Named {
+    /**
+     * Of.
+     *
+     * @since 7.0
+     */
     Attribute<TargetJvmEnvironment> TARGET_JVM_ENVIRONMENT_ATTRIBUTE = Attribute.of("org.gradle.jvm.environment", TargetJvmEnvironment.class);
 
     /**
      * A standard JVM environment (e.g. running on desktop or server machines).
+     * @since 7.0
      */
     String STANDARD_JVM = "standard-jvm";
 
     /**
      * An Android environment.
+     * @since 7.0
      */
     String ANDROID = "android";
 }

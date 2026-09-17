@@ -85,6 +85,7 @@ class ConfigurationCacheKey(
         }
 
         putBoolean(startParameter.isOffline)
+        putBoolean(startParameter.isSharedMavenMirrorSettings)
         putBoolean(startParameter.isIsolatedProjects)
         // Keep entries from runs that ignore IP problems separate from normal entries, so removing
         // the flag is a clean cache miss and a normal build never reuses a possibly-incorrect entry.

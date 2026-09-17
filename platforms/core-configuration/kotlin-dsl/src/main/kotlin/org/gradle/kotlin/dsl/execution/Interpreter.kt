@@ -21,7 +21,6 @@ import org.gradle.api.GradleScriptException
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
-import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.invocation.Gradle
@@ -35,6 +34,10 @@ import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.operations.RunnableBuildOperation
 import org.gradle.internal.service.ServiceRegistry
+import org.gradle.internal.vfs.FileSystemAccess
+import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
+import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
+import org.gradle.kotlin.dsl.support.KotlinCompiler
 import org.gradle.kotlin.dsl.support.KotlinCompilerOptions
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.ScriptCompilationException
@@ -148,6 +151,14 @@ class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner
         val compilerOptions: KotlinCompilerOptions
 
         val buildTreeRootDir: Path
+
+        val kotlinCompiler: KotlinCompiler
+
+        val fileSystemAccess: FileSystemAccess
+
+        val classpathEntrySnapshotCache: KotlinDslClasspathEntrySnapshotCache
+
+        val incrementalCompilationCache: KotlinDslIncrementalCompilationCache
 
         fun serviceRegistryFor(programTarget: ProgramTarget, target: Any): ServiceRegistry = when (programTarget) {
             ProgramTarget.Project -> serviceRegistryOf(target as Project)
@@ -282,7 +293,6 @@ class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner
             programTarget,
             host.compilationClassPathOf(targetScope.parent),
             stage1BlocksAccessorsClassPath,
-            scriptHost.temporaryFileProvider,
             scriptHost.metadataCompatibilityChecker
         )
 
@@ -307,7 +317,6 @@ class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner
         programTarget: ProgramTarget,
         compilationClassPath: ClassPath,
         stage1BlocksAccessorsClassPath: ClassPath,
-        temporaryFileProvider: TemporaryFileProvider,
         metadataCompatibilityChecker: KotlinMetadataCompatibilityChecker
     ): File = host.cachedDirFor(
         scriptHost,
@@ -340,12 +349,15 @@ class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner
                     programKind = programKind,
                     programTarget = programTarget,
                     implicitImports = host.implicitImports,
-                    logger = interpreterLogger,
-                    temporaryFileProvider = temporaryFileProvider,
+                    kotlinCompiler = host.kotlinCompiler,
                     metadataCompatibilityChecker = metadataCompatibilityChecker,
+                    fileSystemAccess = host.fileSystemAccess,
+                    classpathEntrySnapshotCache = host.classpathEntrySnapshotCache,
+                    incrementalCompilationCache = host.incrementalCompilationCache,
                     compileBuildOperationRunner = host::runCompileBuildOperation,
                     stage1BlocksAccessorsClassPath = stage1BlocksAccessorsClassPath,
                     packageName = residualProgram.packageName,
+                    logger = interpreterLogger
                 ).compile(residualProgram.document)
             }
         }
@@ -490,25 +502,25 @@ class Interpreter(val host: Host, val buildOperationRunner: BuildOperationRunner
 
                         scriptSource.withLocationAwareExceptionHandling {
 
-                            scriptHost.temporaryFileProvider.withTemporaryScriptFileFor(originalScriptPath, program.secondStageScriptText) { scriptFile ->
-
-                                ResidualProgramCompiler(
-                                    outputDir,
-                                    host.compilerOptions,
-                                    compilationClassPath,
-                                    sourceHash,
-                                    programKind,
-                                    programTarget,
-                                    host.implicitImports,
-                                    interpreterLogger,
-                                    scriptHost.temporaryFileProvider,
-                                    scriptHost.metadataCompatibilityChecker,
-                                    host::runCompileBuildOperation
-                                ).emitStage2ProgramFor(
-                                    scriptFile,
-                                    originalScriptPath
-                                )
-                            }
+                            ResidualProgramCompiler(
+                                outputDir = outputDir,
+                                compilerOptions = host.compilerOptions,
+                                classPath = compilationClassPath,
+                                originalSourceHash = sourceHash,
+                                programKind = programKind,
+                                programTarget = programTarget,
+                                implicitImports = host.implicitImports,
+                                kotlinCompiler = host.kotlinCompiler,
+                                metadataCompatibilityChecker = scriptHost.metadataCompatibilityChecker,
+                                fileSystemAccess = host.fileSystemAccess,
+                                classpathEntrySnapshotCache = host.classpathEntrySnapshotCache,
+                                incrementalCompilationCache = host.incrementalCompilationCache,
+                                compileBuildOperationRunner = host::runCompileBuildOperation,
+                                logger = interpreterLogger
+                            ).emitStage2ProgramFor(
+                                program.secondStageScriptText,
+                                originalScriptPath
+                            )
                         }
                     }
                 }
@@ -656,5 +668,5 @@ fun logClassLoadingOf(templateId: String, source: ScriptSource) {
 }
 
 
-internal
+private
 val interpreterLogger = loggerFor<Interpreter>()

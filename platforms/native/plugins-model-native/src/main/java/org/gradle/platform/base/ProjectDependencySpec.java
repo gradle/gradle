@@ -23,6 +23,7 @@ import org.jspecify.annotations.Nullable;
  * A dependency onto a library published by a project.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.10
  */
 @Incubating
 @Deprecated
@@ -32,6 +33,7 @@ public interface ProjectDependencySpec extends DependencySpec {
      * Returns the project path of the project this dependency refers to.
      *
      * @return the project path
+     * @since 2.10
      */
     @Nullable
     String getProjectPath();
@@ -41,6 +43,7 @@ public interface ProjectDependencySpec extends DependencySpec {
      * defines a single library.
      *
      * @return the library name
+     * @since 2.10
      */
     @Nullable
     String getLibraryName();

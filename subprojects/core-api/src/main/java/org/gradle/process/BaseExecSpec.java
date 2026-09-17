@@ -23,6 +23,7 @@ import java.util.List;
 
 /**
  * Specifies options for launching a child process.
+ * @since 0.9
  */
 public interface BaseExecSpec extends ProcessForkOptions {
     /**
@@ -30,6 +31,7 @@ public interface BaseExecSpec extends ProcessForkOptions {
      *
      * @param ignoreExitValue whether a non-zero exit value is ignored, or an exception thrown
      * @return this
+     * @since 0.9
      */
     BaseExecSpec setIgnoreExitValue(boolean ignoreExitValue);
 
@@ -37,6 +39,7 @@ public interface BaseExecSpec extends ProcessForkOptions {
      * Tells whether a non-zero exit value is ignored, or an exception thrown. Defaults to <code>false</code>.
      *
      * @return whether a non-zero exit value is ignored, or an exception thrown
+     * @since 0.9
      */
     @ToBeReplacedByLazyProperty
     boolean isIgnoreExitValue();
@@ -47,6 +50,7 @@ public interface BaseExecSpec extends ProcessForkOptions {
      *
      * @param inputStream The standard input stream for the process. Must not be null.
      * @return this
+     * @since 0.9
      */
     BaseExecSpec setStandardInput(InputStream inputStream);
 
@@ -55,6 +59,7 @@ public interface BaseExecSpec extends ProcessForkOptions {
      * completes. Defaults to an empty stream.
      *
      * @return The standard input stream.
+     * @since 0.9
      */
     @ToBeReplacedByLazyProperty(comment = "Should this be lazy? Probably not, since it's a stream")
     InputStream getStandardInput();
@@ -65,6 +70,7 @@ public interface BaseExecSpec extends ProcessForkOptions {
      *
      * @param outputStream The standard output stream for the process. Must not be null.
      * @return this
+     * @since 0.9
      */
     BaseExecSpec setStandardOutput(OutputStream outputStream);
 
@@ -73,6 +79,7 @@ public interface BaseExecSpec extends ProcessForkOptions {
      * System.out}.
      *
      * @return The output stream
+     * @since 0.9
      */
     @ToBeReplacedByLazyProperty(comment = "Should this be lazy? Probably not, since it's a stream")
     OutputStream getStandardOutput();
@@ -83,6 +90,7 @@ public interface BaseExecSpec extends ProcessForkOptions {
      *
      * @param outputStream The standard output error stream for the process. Must not be null.
      * @return this
+     * @since 0.9
      */
     BaseExecSpec setErrorOutput(OutputStream outputStream);
 
@@ -91,6 +99,7 @@ public interface BaseExecSpec extends ProcessForkOptions {
      * System.err}.
      *
      * @return The error output stream.
+     * @since 0.9
      */
     @ToBeReplacedByLazyProperty(comment = "Should this be lazy? Probably not, since it's a stream")
     OutputStream getErrorOutput();
@@ -99,6 +108,7 @@ public interface BaseExecSpec extends ProcessForkOptions {
      * Returns the full command line, including the executable plus its arguments.
      *
      * @return The full command line, including the executable plus its arguments
+     * @since 0.9
      */
     @ToBeReplacedByLazyProperty
     List<String> getCommandLine();

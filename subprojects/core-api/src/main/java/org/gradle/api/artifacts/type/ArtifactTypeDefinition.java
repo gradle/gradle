@@ -82,6 +82,7 @@ public interface ArtifactTypeDefinition extends HasAttributes, Named {
 
     /**
      * Returns the set of file name extensions that should be mapped to this artifact type. Defaults to the name of this type.
+     * @since 4.0
      */
     Set<String> getFileNameExtensions();
 

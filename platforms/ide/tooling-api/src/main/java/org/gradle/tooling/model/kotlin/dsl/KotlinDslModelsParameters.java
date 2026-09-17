@@ -24,17 +24,52 @@ package org.gradle.tooling.model.kotlin.dsl;
  */
 public final class KotlinDslModelsParameters {
 
+    /**
+     * The preparation task name.
+     *
+     * @since 6.0
+     */
     public static final String PREPARATION_TASK_NAME = "prepareKotlinBuildScriptModel";
 
+    /**
+     * The correlation id gradle property name.
+     *
+     * @since 6.0
+     */
     public static final String CORRELATION_ID_GRADLE_PROPERTY_NAME = "org.gradle.kotlin.dsl.provider.cid";
 
+    /**
+     * The provider mode system property name.
+     *
+     * @since 6.0
+     */
     public static final String PROVIDER_MODE_SYSTEM_PROPERTY_NAME = "org.gradle.kotlin.dsl.provider.mode";
 
+    /**
+     * The classpath mode system property value.
+     *
+     * @since 6.0
+     */
     public static final String CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE = "classpath";
 
+    /**
+     * The strict classpath mode system property value.
+     *
+     * @since 6.0
+     */
     public static final String STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE = "strict-classpath";
 
+    /**
+     * The classpath mode system property declaration.
+     *
+     * @since 6.0
+     */
     public static final String CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION = "-D" + PROVIDER_MODE_SYSTEM_PROPERTY_NAME + "=" + CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE;
 
+    /**
+     * The strict classpath mode system property declaration.
+     *
+     * @since 6.0
+     */
     public static final String STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_DECLARATION = "-D" + PROVIDER_MODE_SYSTEM_PROPERTY_NAME + "=" + STRICT_CLASSPATH_MODE_SYSTEM_PROPERTY_VALUE;
 }

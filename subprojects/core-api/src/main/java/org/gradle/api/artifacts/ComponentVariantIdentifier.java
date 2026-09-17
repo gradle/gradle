@@ -27,11 +27,13 @@ public interface ComponentVariantIdentifier {
 
     /**
      * Returns the component identifier.
+     * @since 6.0
      */
     ComponentIdentifier getId();
 
     /**
      * Returns the variant name.
+     * @since 6.0
      */
     String getVariantName();
 }

@@ -45,6 +45,8 @@ import kotlin.reflect.KProperty
  *
  * @param configuration The expression to configure this [TaskContainer] with.
  * @return The given [TaskContainer].
+ *
+ * @since 4.10
  */
 inline operator fun TaskContainer.invoke(
     configuration: TaskContainerScope.() -> Unit
@@ -57,6 +59,8 @@ inline operator fun TaskContainer.invoke(
 
 /**
  * Provides a [TaskProvider] delegate for the task named after the property.
+ *
+ * @since 4.10
  */
 @Deprecated("Use 'val task = tasks.named(name)' instead. See the Gradle 9.6 upgrading guide.")
 @Suppress("DEPRECATION")
@@ -72,6 +76,8 @@ operator fun ExistingDomainObjectDelegateProvider<out TaskContainer>.provideDele
 
 /**
  * Provides a [TaskProvider] delegate for the task named after the property after configuring it with the given action.
+ *
+ * @since 4.10
  */
 @Deprecated("Use 'val task = tasks.named(name) { }' instead. See the Gradle 9.6 upgrading guide.")
 @Suppress("DEPRECATION")
@@ -87,6 +93,8 @@ operator fun ExistingDomainObjectDelegateProviderWithAction<out TaskContainer, T
 
 /**
  * Provides a [TaskProvider] delegate for the task of the given type named after the property.
+ *
+ * @since 4.10
  */
 @Deprecated("Use 'val task = tasks.named<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
 @Suppress("DEPRECATION")
@@ -102,6 +110,8 @@ operator fun <U : Task> ExistingDomainObjectDelegateProviderWithType<out TaskCon
 
 /**
  * Provides a [TaskProvider] delegate for the task of the given type named after the property after configuring it with the given action.
+ *
+ * @since 5.0
  */
 @Deprecated("Use 'val task = tasks.named<Type>(name) { }' instead. See the Gradle 9.6 upgrading guide.")
 @Suppress("DEPRECATION")
@@ -117,6 +127,8 @@ operator fun <U : Task> ExistingDomainObjectDelegateProviderWithTypeAndAction<ou
 
 /**
  * Registers a task and provides a delegate with the resulting [TaskProvider].
+ *
+ * @since 4.10
  */
 @Deprecated("Use 'val task = tasks.register(name)' instead. See the Gradle 9.6 upgrading guide.")
 @Suppress("DEPRECATION")
@@ -132,6 +144,8 @@ operator fun RegisteringDomainObjectDelegateProvider<out TaskContainer>.provideD
 
 /**
  * Registers a task that gets configured with the given action and provides a delegate with the resulting [TaskProvider].
+ *
+ * @since 4.10
  */
 @Deprecated("Use 'val task = tasks.register(name) { }' instead. See the Gradle 9.6 upgrading guide.")
 @Suppress("DEPRECATION")
@@ -147,6 +161,8 @@ operator fun RegisteringDomainObjectDelegateProviderWithAction<out TaskContainer
 
 /**
  * Registers a task of the given type and provides a delegate with the resulting [TaskProvider].
+ *
+ * @since 4.10
  */
 @Deprecated("Use 'val task = tasks.register<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
 @Suppress("DEPRECATION")
@@ -162,6 +178,8 @@ operator fun <U : Task> RegisteringDomainObjectDelegateProviderWithType<out Task
 
 /**
  * Registers a task of the given type that gets configured with the given action and provides a delegate with the resulting [TaskProvider].
+ *
+ * @since 4.10
  */
 @Deprecated("Use 'val task = tasks.register<Type>(name) { }' instead. See the Gradle 9.6 upgrading guide.")
 @Suppress("DEPRECATION")
@@ -177,13 +195,24 @@ operator fun <U : Task> RegisteringDomainObjectDelegateProviderWithTypeAndAction
 
 /**
  * Receiver for the `tasks` block providing an extended set of operators for the configuration of tasks.
+ *
+ * @since 4.10
  */
 class TaskContainerScope
 private constructor(
+    /**
+     * @since 4.10
+     */
     val container: TaskContainer
 ) : TaskContainerDelegate() {
 
+    /**
+     * @since 5.0
+     */
     companion object {
+        /**
+         * @since 5.0
+         */
         fun of(container: TaskContainer) =
             TaskContainerScope(container)
     }
@@ -196,6 +225,8 @@ private constructor(
      *
      * @see [TaskContainer.named]
      * @see [TaskProvider.configure]
+     *
+     * @since 4.10
      */
     operator fun String.invoke(configuration: Task.() -> Unit): TaskProvider<Task> =
         named(this).apply { configure(configuration) }
@@ -205,6 +236,8 @@ private constructor(
      *
      * @see [TaskContainer.named]
      * @see [TaskProvider.configure]
+     *
+     * @since 4.10
      */
     operator fun <U : Task> String.invoke(type: KClass<U>, configuration: U.() -> Unit): TaskProvider<U> =
         container.named(this, type, configuration)
@@ -213,6 +246,8 @@ private constructor(
      * Locates a task by name and type, without triggering its creation or configuration, failing if there is no such task.
      *
      * @see [TaskContainer.named]
+     *
+     * @since 4.10
      */
     operator fun <U : Task> String.invoke(type: KClass<U>): TaskProvider<U> =
         container.named(this, type)
@@ -223,6 +258,8 @@ private constructor(
  * Locates a task by name and type, without triggering its creation or configuration, failing if there is no such task.
  *
  * @see [TaskCollection.named]
+ *
+ * @since 5.6
  */
 @Suppress("extension_shadowed_by_member")
 inline fun <reified T : Task> TaskCollection<out Task>.named(name: String): TaskProvider<T> =
@@ -233,6 +270,8 @@ inline fun <reified T : Task> TaskCollection<out Task>.named(name: String): Task
  * Locates a task by name and type, without triggering its creation or configuration, failing if there is no such task.
  *
  * @see [TaskCollection.named]
+ *
+ * @since 5.0
  */
 @Suppress("unchecked_cast")
 fun <T : Task> TaskCollection<out Task>.named(name: String, type: KClass<T>): TaskProvider<T> =
@@ -244,6 +283,8 @@ fun <T : Task> TaskCollection<out Task>.named(name: String, type: KClass<T>): Ta
  *
  * @see [TaskCollection.named]
  * @see [TaskProvider.configure]
+ *
+ * @since 5.0
  */
 @Suppress("unchecked_cast")
 fun <T : Task> TaskCollection<out Task>.named(name: String, type: KClass<T>, configuration: T.() -> Unit): TaskProvider<T> =
@@ -255,6 +296,8 @@ fun <T : Task> TaskCollection<out Task>.named(name: String, type: KClass<T>, con
  *
  * @see [TaskCollection.named]
  * @see [TaskProvider.configure]
+ *
+ * @since 5.6
  */
 @Suppress("unchecked_cast")
 inline fun <reified T : Task> TaskCollection<out Task>.named(name: String, noinline configuration: T.() -> Unit): TaskProvider<T> =
@@ -265,6 +308,8 @@ inline fun <reified T : Task> TaskCollection<out Task>.named(name: String, noinl
  * Defines a new task, which will be created when it is required.
  *
  * @see [TaskContainer.register]
+ *
+ * @since 5.6
  */
 @Suppress("extension_shadowed_by_member")
 inline fun <reified T : Task> TaskContainer.register(name: String): TaskProvider<T> =
@@ -275,6 +320,8 @@ inline fun <reified T : Task> TaskContainer.register(name: String): TaskProvider
  * Defines and configure a new task, which will be created when it is required.
  *
  * @see [TaskContainer.register]
+ *
+ * @since 5.6
  */
 inline fun <reified T : Task> TaskContainer.register(name: String, noinline configuration: T.() -> Unit): TaskProvider<T> =
     register(name, T::class.java, configuration)
@@ -284,6 +331,8 @@ inline fun <reified T : Task> TaskContainer.register(name: String, noinline conf
  * Defines a new task, which will be created when it is required passing the given arguments to the [javax.inject.Inject]-annotated constructor.
  *
  * @see [TaskContainer.register]
+ *
+ * @since 5.6
  */
 inline fun <reified T : Task> TaskContainer.register(name: String, vararg arguments: Any): TaskProvider<T> =
     register(name, T::class.java, *arguments)
@@ -292,6 +341,8 @@ inline fun <reified T : Task> TaskContainer.register(name: String, vararg argume
 /**
  * Creates a [Task] with the given [name] and type, passing the given arguments to the [javax.inject.Inject]-annotated constructor,
  * and adds it to this project tasks container.
+ *
+ * @since 5.6
  */
 @Deprecated("Use register instead. See https://docs.gradle.org/current/userguide/task_configuration_avoidance.html for more information.", ReplaceWith("this.register<T>(name, *arguments)"))
 @Suppress("DEPRECATION")
@@ -301,6 +352,8 @@ inline fun <reified T : Task> TaskContainer.create(name: String, vararg argument
 /**
  * Creates a [Task] with the specified [name] and type, adds it to the container,
  * and configures it with the specified action.
+ *
+ * @since 8.12
  */
 @Deprecated("Use register instead. See https://docs.gradle.org/current/userguide/task_configuration_avoidance.html for more information.", ReplaceWith("this.register<T>(name, configureAction)"))
 @Suppress("DEPRECATION")
@@ -309,6 +362,8 @@ inline fun <reified T : Task> TaskContainer.create(name: String, noinline config
 
 /**
  * Provides a property delegate that creates tasks of the default type.
+ *
+ * @since 8.12
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use registering instead. See https://docs.gradle.org/current/userguide/task_configuration_avoidance.html for more information.", ReplaceWith("registering"))
@@ -327,6 +382,8 @@ val TaskContainer.creating
  * Provides a property delegate that creates tasks of the default type with the given [configuration].
  *
  * `val someTask by tasks.creating { onlyIf = true }`
+ *
+ * @since 8.12
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use registering instead. See https://docs.gradle.org/current/userguide/task_configuration_avoidance.html for more information.", ReplaceWith("registering(configuration)"))
@@ -343,6 +400,8 @@ fun TaskContainer.creating(configuration: Task.() -> Unit) =
 
 /**
  * Provides a property delegate that creates tasks of the given [type].
+ *
+ * @since 8.12
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use registering instead. See https://docs.gradle.org/current/userguide/task_configuration_avoidance.html for more information.", ReplaceWith("registering(type)"))
@@ -360,6 +419,8 @@ fun <U : Task> TaskContainer.creating(type: KClass<U>) =
 
 /**
  * Provides a property delegate that creates tasks of the given [type] with the given [configuration].
+ *
+ * @since 8.12
  */
 @Deprecated("Use registering instead. See https://docs.gradle.org/current/userguide/task_configuration_avoidance.html for more information.", ReplaceWith("registering(type, configuration)"))
 @Suppress("DEPRECATION")
@@ -370,6 +431,8 @@ fun <U : Task> TaskContainer.creating(type: KClass<U>, configuration: U.() -> Un
 /**
  * Provides a property delegate that creates tasks of the given [type] expressed as a [java.lang.Class]
  * with the given [configuration].
+ *
+ * @since 8.12
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use registering instead. See https://docs.gradle.org/current/userguide/task_configuration_avoidance.html for more information.", ReplaceWith("registering(type, configuration)"))

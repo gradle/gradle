@@ -19,8 +19,7 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.tasks.TaskDependency;
-
-import java.util.Set;
+import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse;
 
 public interface WorkDependencyResolver<T> {
     /**
@@ -35,12 +34,14 @@ public interface WorkDependencyResolver<T> {
      */
     WorkDependencyResolver<Task> TASK_AS_TASK = new WorkDependencyResolver<Task>() {
         @Override
+        @AllowUsingApiForExternalUse
         public boolean resolve(Task originalTask, Object node, Action<? super Task> resolveAction) {
             if (node instanceof TaskDependency) {
+                assert !(node instanceof TaskDependencyContainer) : "TaskDependencyContainer should be handled by CachingTaskDependencyResolveContext";
+                // We have found a TaskDependency that does not implement the internal TaskDependencyContainer.
+                // The user has implemented their own TaskDependency. We should probably deprecate this scenario.
                 TaskDependency taskDependency = (TaskDependency) node;
-                Set<? extends Task> dependenciesForInternalUse = TaskDependencyUtil.getDependenciesForInternalUse(taskDependency, originalTask);
-
-                for (Task dependencyTask : dependenciesForInternalUse) {
+                for (Task dependencyTask : taskDependency.getDependencies(originalTask)) {
                     resolveAction.execute(dependencyTask);
                 }
                 return true;

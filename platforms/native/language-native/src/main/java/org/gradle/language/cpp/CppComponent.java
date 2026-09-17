@@ -39,6 +39,7 @@ import org.gradle.language.ComponentWithTargetMachines;
 public interface CppComponent extends ComponentWithBinaries, ComponentWithDependencies, ComponentWithTargetMachines {
     /**
      * Specifies the base name for this component. This name is used to calculate various output file names. The default value is calculated from the project name.
+     * @since 4.2
      */
     Property<String> getBaseName();
 
@@ -46,16 +47,19 @@ public interface CppComponent extends ComponentWithBinaries, ComponentWithDepend
      * Defines the source files or directories of this component. You can add files or directories to this collection. When a directory is added, all source files are included for compilation.
      *
      * <p>When this collection is empty, the directory {@code src/main/cpp} is used by default.</p>
+     * @since 4.2
      */
     ConfigurableFileCollection getSource();
 
     /**
      * Configures the source files or directories for this component.
+     * @since 4.2
      */
     void source(Action<? super ConfigurableFileCollection> action);
 
     /**
      * Returns the C++ source files of this component, as defined in {@link #getSource()}.
+     * @since 4.2
      */
     FileCollection getCppSource();
 
@@ -63,26 +67,31 @@ public interface CppComponent extends ComponentWithBinaries, ComponentWithDepend
      * Defines the private header file directories of this library.
      *
      * <p>When this collection is empty, the directory {@code src/main/headers} is used by default.</p>
+     * @since 4.2
      */
     ConfigurableFileCollection getPrivateHeaders();
 
     /**
      * Configures the private header directories for this component.
+     * @since 4.2
      */
     void privateHeaders(Action<? super ConfigurableFileCollection> action);
 
     /**
      * Returns the private header include directories of this component, as defined in {@link #getPrivateHeaders()}.
+     * @since 4.2
      */
     FileCollection getPrivateHeaderDirs();
 
     /**
      * Returns all header files of this component. Includes public and private header files.
+     * @since 4.2
      */
     FileTree getHeaderFiles();
 
     /**
      * Returns the implementation dependencies of this component.
+     * @since 4.2
      */
     Configuration getImplementationDependencies();
 

@@ -469,6 +469,133 @@ class PublicAPIRulesTest extends Specification {
         implicitMethod << ["values", "valueOf"]
     }
 
+    def "the @since annotation on the matching method overload is recognised"() {
+        given:
+        def rule = withContext(new SinceAnnotationRule([:]))
+        def jApiMethod = Stub(JApiMethod)
+        jApiMethod.name >> 'method'
+        jApiMethod.jApiClass >> jApiClassifier
+        jApiMethod.parameters >> [paramStub('int')]
+
+        when:
+        sourceFile.text = """
+            public class $TEST_INTERFACE_SIMPLE_NAME {
+                /**
+                 * @since 10.0
+                 */
+                public void method(long p) { }
+                /**
+                 * @since 11.38
+                 */
+                public void method(int p) { }
+            }
+        """
+
+        then:
+        rule.maybeViolation(jApiMethod) == null
+    }
+
+    def "the @since annotation on the matching constructor overload is recognised"() {
+        given:
+        def rule = withContext(new SinceAnnotationRule([:]))
+        def jApiConstructor = Stub(JApiConstructor)
+        jApiConstructor.name >> 'ApiTest'
+        jApiConstructor.jApiClass >> jApiClassifier
+        jApiConstructor.parameters >> [paramStub('int')]
+
+        when:
+        sourceFile.text = """
+            public class $TEST_INTERFACE_SIMPLE_NAME {
+                /**
+                 * @since 10.0
+                 */
+                public $TEST_INTERFACE_SIMPLE_NAME(long p) { }
+                /**
+                 * @since 11.38
+                 */
+                public $TEST_INTERFACE_SIMPLE_NAME(int p) { }
+            }
+        """
+
+        then:
+        rule.maybeViolation(jApiConstructor) == null
+    }
+
+    def "the @since annotation on a generic method is recognised"() {
+        given:
+        def rule = withContext(new SinceAnnotationRule([:]))
+        def jApiMethod = Stub(JApiMethod)
+        jApiMethod.name >> 'method'
+        jApiMethod.jApiClass >> jApiClassifier
+        jApiMethod.parameters >> [paramStub('java.lang.Object')]
+
+        when:
+        sourceFile.text = """
+            public class $TEST_INTERFACE_SIMPLE_NAME {
+                /**
+                 * @since 11.38
+                 */
+                public <T> void method(T p) { }
+            }
+        """
+
+        then:
+        rule.maybeViolation(jApiMethod) == null
+    }
+
+    def "the @since annotation on a method with an array type nested in a generic parameter is recognised"() {
+        given: "japicmp erases the generic parameter to its raw type, while the source declares an array type inside the generics"
+        def rule = withContext(new SinceAnnotationRule([:]))
+        def jApiMethod = Stub(JApiMethod)
+        jApiMethod.name >> 'method'
+        jApiMethod.jApiClass >> jApiClassifier
+        jApiMethod.parameters >> [paramStub('java.util.concurrent.ConcurrentMap')]
+
+        when: "the array `byte[]` lives inside the generic argument, not in the parameter type itself"
+        sourceFile.text = """
+            import java.util.concurrent.ConcurrentMap;
+            public class $TEST_INTERFACE_SIMPLE_NAME {
+                /**
+                 * @since 11.38
+                 */
+                public void method(ConcurrentMap<String, byte[]> p) { }
+            }
+        """
+
+        then: "the matcher strips generics before counting array depth, so the parameter still matches"
+        rule.maybeViolation(jApiMethod) == null
+    }
+
+    def "the @since annotation on an implicit default constructor is not required"() {
+        given:
+        def rule = withContext(new SinceAnnotationRule([:]))
+        def jApiConstructor = Stub(JApiConstructor)
+        jApiConstructor.name >> 'ApiTest'
+        jApiConstructor.jApiClass >> jApiClassifier
+        // a no-arg constructor with no parameters, matching the implicit default constructor
+
+        when: "the class declares no constructor of its own, so the no-arg constructor is compiler-generated"
+        sourceFile.text = """
+            public class $TEST_INTERFACE_SIMPLE_NAME {
+                public String field = "value";
+            }
+        """
+
+        then: "there is no source declaration to carry a @since, so it is exempt"
+        rule.maybeViolation(jApiConstructor) == null
+
+        when: "the class declares the no-arg constructor explicitly"
+        repository.emptyCaches()
+        sourceFile.text = """
+            public class $TEST_INTERFACE_SIMPLE_NAME {
+                public $TEST_INTERFACE_SIMPLE_NAME() { }
+            }
+        """
+
+        then: "the explicit declaration must be annotated"
+        rule.maybeViolation(jApiConstructor).humanExplanation =~ 'Is not annotated with @since 11.38'
+    }
+
     private def paramStub(String type) {
         def stub = Stub(JApiParameter)
         stub.type >> type

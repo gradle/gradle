@@ -22,6 +22,7 @@ import java.io.Writer;
  * Generates a script to start a JVM application.
  *
  * @see TemplateBasedScriptGenerator
+ * @since 2.4
  */
 public interface ScriptGenerator {
 
@@ -33,6 +34,7 @@ public interface ScriptGenerator {
      *
      * @param details the application details
      * @param destination the script destination
+     * @since 2.4
      */
     void generateScript(JavaAppStartScriptGenerationDetails details, Writer destination);
 

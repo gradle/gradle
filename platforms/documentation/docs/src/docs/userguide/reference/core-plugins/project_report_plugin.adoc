@@ -17,8 +17,6 @@
 
 The Project report plugin adds some tasks to your project which generate reports containing useful information about your build. These tasks generate the same content that you get by executing the `tasks`, `dependencies`, and `properties` tasks from the command line (see <<command_line_interface.adoc#sec:command_line_project_reporting,Command-line project reporting>>). In contrast to the command line reports, the report plugin generates the reports into a file. There is also an aggregating task that depends on all report tasks added by the plugin.
 
-We plan to add much more to the existing reports and create additional ones in future releases of Gradle.
-
 [[sec:project_reports_usage]]
 == Usage
 
@@ -52,6 +50,32 @@ Generates the project task report.
 _Depends on_: `dependencyReport`, `propertyReport`, `taskReport`, `htmlDependencyReport`
 +
 Generates all project reports.
+
+[[sec:project_reports_output]]
+== Report output
+
+By default, the reports are written to the `project` directory under the reporting base directory, which resolves to `build/reports/project/`:
+
+`tasks.txt`::
+The plain-text task report, produced by `taskReport`.
+
+`properties.txt`::
+The plain-text property report, produced by `propertyReport`.
+
+`dependencies.txt`::
+The plain-text dependency report, produced by `dependencyReport`.
+
+`dependencies/`::
+The HTML dependency report, produced by `htmlDependencyReport`.
+
+The plugin applies the reporting base plugin, so you can change the base directory for all reports through the link:{groovyDslPath}/org.gradle.api.reporting.ReportingExtension.html[`reporting`] extension:
+
+[source,groovy]
+----
+reporting {
+    baseDirectory = layout.buildDirectory.dir('my-reports')
+}
+----
 
 [[sec:project_reports_project_layout]]
 == Project layout

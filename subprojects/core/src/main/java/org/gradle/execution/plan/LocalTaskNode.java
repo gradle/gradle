@@ -13,12 +13,12 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.execution.plan;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.properties.DefaultTaskProperties;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.internal.execution.WorkValidationContext;
@@ -31,6 +31,7 @@ import java.util.List;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
+import org.gradle.api.internal.TaskInternalUtil;
 
 /**
  * A {@link TaskNode} implementation for a task in the current build.
@@ -127,7 +128,7 @@ public class LocalTaskNode extends TaskNode {
             addDependencySuccessor(targetNode);
         }
 
-        lifecycleSuccessors = dependencyResolver.resolveDependenciesFor(task, task.getLifecycleDependencies());
+        lifecycleSuccessors = dependencyResolver.resolveDependenciesFor(task, TaskInternalUtil.getLifecycleDependencies(task));
 
         for (Node targetNode : getFinalizedBy(dependencyResolver)) {
             if (!(targetNode instanceof TaskNode)) {
@@ -149,19 +150,19 @@ public class LocalTaskNode extends TaskNode {
     }
 
     private Set<Node> getDependencies(TaskDependencyResolver dependencyResolver) {
-        return dependencyResolver.resolveDependenciesFor(task, task.getTaskDependencies());
+        return dependencyResolver.resolveDependenciesFor(task, TaskInternalUtil.getTaskDependencies(task));
     }
 
     private Set<Node> getFinalizedBy(TaskDependencyResolver dependencyResolver) {
-        return dependencyResolver.resolveDependenciesFor(task, task.getFinalizedBy());
+        return dependencyResolver.resolveDependenciesFor(task, TaskInternalUtil.getFinalizedBy(task));
     }
 
     private Set<Node> getMustRunAfter(TaskDependencyResolver dependencyResolver) {
-        return dependencyResolver.resolveDependenciesFor(task, task.getMustRunAfter());
+        return dependencyResolver.resolveDependenciesFor(task, TaskInternalUtil.getMustRunAfter(task));
     }
 
     private Set<Node> getShouldRunAfter(TaskDependencyResolver dependencyResolver) {
-        return dependencyResolver.resolveDependenciesFor(task, task.getShouldRunAfter());
+        return dependencyResolver.resolveDependenciesFor(task, TaskInternalUtil.getShouldRunAfter(task));
     }
 
     @Override
@@ -222,4 +223,10 @@ public class LocalTaskNode extends TaskNode {
     protected boolean dependsOnOutcome(Node dependency) {
         return lifecycleSuccessors.contains(dependency);
     }
+
+    @Override
+    public void execute(NodeExecutionContext context) {
+        context.getService(TaskNodeExecutor.class).execute(this);
+    }
+
 }

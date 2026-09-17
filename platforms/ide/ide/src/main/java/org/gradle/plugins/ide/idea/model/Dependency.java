@@ -19,6 +19,7 @@ import groovy.util.Node;
 
 /**
  * Represents a dependency of an IDEA module.
+ * @since 1.0
  */
 public interface Dependency {
 
@@ -34,5 +35,10 @@ public interface Dependency {
      */
     void setScope(String scope);
 
+    /**
+     * Add to node.
+     *
+     * @since 1.0
+     */
     void addToNode(Node parentNode);
 }

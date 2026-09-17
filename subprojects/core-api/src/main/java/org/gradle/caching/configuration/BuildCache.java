@@ -27,23 +27,27 @@ public interface BuildCache {
 
     /**
      * Returns whether the build cache is enabled.
+     * @since 3.5
      */
     @ToBeReplacedByLazyProperty
     boolean isEnabled();
 
     /**
      * Sets whether the build cache is enabled.
+     * @since 3.5
      */
     void setEnabled(boolean enabled);
 
     /**
      * Returns whether a given build can store outputs in the build cache.
+     * @since 3.5
      */
     @ToBeReplacedByLazyProperty
     boolean isPush();
 
     /**
      * Sets whether a given build can store outputs in the build cache.
+     * @since 3.5
      */
     void setPush(boolean enabled);
 }

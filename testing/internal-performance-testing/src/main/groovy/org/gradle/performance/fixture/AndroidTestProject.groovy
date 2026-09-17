@@ -82,6 +82,12 @@ class AndroidTestProject implements TestProject {
         version
     }
 
+    static String useAgpLatestStableVersion(CrossVersionPerformanceTestRunner runner) {
+        def version = AGP_VERSIONS.latestStable
+        configureForAgpVersion(runner, version)
+        version
+    }
+
     static void configureForAgpVersion(CrossVersionPerformanceTestRunner runner, String agpVersion) {
         runner.args.add("-DagpVersion=${agpVersion}")
 

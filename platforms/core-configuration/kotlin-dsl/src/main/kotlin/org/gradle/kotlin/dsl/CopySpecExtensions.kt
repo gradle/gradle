@@ -25,6 +25,8 @@ import java.io.FilterReader
  * Adds a content filter to be used during the copy.
  *
  * @see [CopySpec.filter]
+ *
+ * @since 5.6
  */
 inline fun <reified T : FilterReader> CopySpec.filter(vararg properties: Pair<String, Any?>) =
     filter(mapOf(*properties), T::class.java)
@@ -34,6 +36,8 @@ inline fun <reified T : FilterReader> CopySpec.filter(vararg properties: Pair<St
  * Adds a content filter to be used during the copy.
  *
  * @see [CopySpec.filter]
+ *
+ * @since 5.6
  */
 inline fun <reified T : FilterReader> CopySpec.filter(properties: Map<String, Any?>) =
     filter(properties, T::class.java)

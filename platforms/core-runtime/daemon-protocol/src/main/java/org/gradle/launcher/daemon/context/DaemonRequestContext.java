@@ -17,7 +17,7 @@
 package org.gradle.launcher.daemon.context;
 
 import org.gradle.internal.nativeintegration.services.NativeServices;
-import org.gradle.launcher.daemon.configuration.DaemonPriority;
+import org.gradle.launcher.daemon.startup.DaemonPriority;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 
 import java.util.Collection;

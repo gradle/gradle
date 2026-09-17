@@ -1,5 +1,6 @@
 Class <org.gradle.api.internal.InternalAction> does not have simple name ending with 'Internal' in (InternalAction.java:0)
 Class <org.gradle.api.internal.InternalAction> has simple name starting with 'Internal' in (InternalAction.java:0)
+Class <org.gradle.api.internal.TaskInternalUtil> does not have simple name ending with 'Internal' in (TaskInternalUtil.java:0)
 Class <org.gradle.api.internal.artifacts.configurations.ConfigurationInternal$InternalState> does not have simple name ending with 'Internal' in (ConfigurationInternal.java:0)
 Class <org.gradle.api.internal.artifacts.configurations.ConfigurationInternal$InternalState> has simple name starting with 'Internal' in (ConfigurationInternal.java:0)
 Class <org.gradle.api.internal.file.copy.FileCopyAction$FileCopyDetailsInternalAction> does not have simple name ending with 'Internal' in (FileCopyAction.java:0)

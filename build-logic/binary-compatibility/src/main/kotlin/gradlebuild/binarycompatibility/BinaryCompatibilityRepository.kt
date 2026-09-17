@@ -71,6 +71,14 @@ class BinaryCompatibilityRepository internal constructor(
             }
         }
 
+    fun isGenerated(member: JApiCompatibility): Boolean =
+        apiSourceFileFor(member).let { apiSourceFile ->
+            when (apiSourceFile) {
+                is ApiSourceFile.Java -> sources.executeQuery(apiSourceFile, JavaSourceQueries.isGenerated(member))
+                is ApiSourceFile.Kotlin -> sources.executeQuery(apiSourceFile, KotlinSourceQueries.isGenerated(member))
+            }
+        }
+
     private
     fun apiSourceFileFor(member: JApiCompatibility): ApiSourceFile =
         member.jApiClass.let { declaringClass ->

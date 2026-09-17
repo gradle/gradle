@@ -56,7 +56,7 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
     }
 
     @Override
-    public ComponentSelector getSelector() {
+    public ComponentSelector getComponentSelector() {
         return new TestComponentSelector();
     }
 
@@ -92,7 +92,7 @@ public class TestModuleSelectorState implements ResolvableSelectorState {
     }
 
     @Override
-    public void markResolved() {
+    public void markSelectionCompleted() {
     }
 
     @Override

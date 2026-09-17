@@ -27,6 +27,7 @@ import org.gradle.api.reflect.TypeOf;
 public interface NamedDomainObjectCollectionSchema {
     /**
      * Returns an iterable of the schemas for each element in the collection.
+     * @since 4.10
      */
     Iterable<? extends NamedDomainObjectSchema> getElements();
 
@@ -38,11 +39,13 @@ public interface NamedDomainObjectCollectionSchema {
     interface NamedDomainObjectSchema {
         /**
          * The name of the domain object.
+         * @since 4.10
          */
         String getName();
 
         /**
          * The public type of the domain object.
+         * @since 4.10
          */
         TypeOf<?> getPublicType();
     }

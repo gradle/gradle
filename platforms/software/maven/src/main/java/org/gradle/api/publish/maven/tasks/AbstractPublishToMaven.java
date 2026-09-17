@@ -44,6 +44,11 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
 
     private final Transient.Var<MavenPublicationInternal> publication = varOf();
 
+    /**
+     * Creates a new {@code AbstractPublishToMaven}.
+     *
+     * @since 2.4
+     */
     @SuppressWarnings("this-escape")
     public AbstractPublishToMaven() {
         // Allow the publication to participate in incremental build
@@ -65,6 +70,7 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
      * The publication to be published.
      *
      * @return The publication to be published
+     * @since 2.4
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -76,11 +82,17 @@ public abstract class AbstractPublishToMaven extends DefaultTask {
      * Sets the publication to be published.
      *
      * @param publication The publication to be published
+     * @since 2.4
      */
     public void setPublication(MavenPublication publication) {
         this.publication.set(toPublicationInternal(publication));
     }
 
+    /**
+     * Returns the publication internal.
+     *
+     * @since 2.4
+     */
     @Internal
     protected MavenPublicationInternal getPublicationInternal() {
         return toPublicationInternal(getPublication());

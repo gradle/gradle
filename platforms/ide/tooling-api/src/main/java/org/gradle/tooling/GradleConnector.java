@@ -71,7 +71,7 @@ import java.net.URI;
  *
  * <p>The Tooling API requires Java 8 or later. The Gradle version used by builds may have additional Java version requirements.</p>
  *
- * @since 1.0-milestone-3
+ * @since 1.0
  */
 public abstract class GradleConnector {
 
@@ -79,7 +79,7 @@ public abstract class GradleConnector {
      * Creates a new connector instance.
      *
      * @return The instance. Never returns null.
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     public static GradleConnector newConnector() {
         return ConnectorServices.createConnector();
@@ -101,7 +101,7 @@ public abstract class GradleConnector {
      *
      * @param gradleHome The Gradle installation directory.
      * @return this
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     public abstract GradleConnector useInstallation(File gradleHome);
 
@@ -111,7 +111,7 @@ public abstract class GradleConnector {
      *
      * @param gradleVersion The version to use.
      * @return this
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     public abstract GradleConnector useGradleVersion(String gradleVersion);
 
@@ -121,7 +121,7 @@ public abstract class GradleConnector {
      *
      * @param gradleDistribution The distribution to use.
      * @return this
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     public abstract GradleConnector useDistribution(URI gradleDistribution);
 
@@ -140,7 +140,7 @@ public abstract class GradleConnector {
      *
      * @param projectDir The working directory.
      * @return this
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     public abstract GradleConnector forProjectDirectory(File projectDir);
 
@@ -149,7 +149,7 @@ public abstract class GradleConnector {
      *
      * @param gradleUserHomeDir The user's Gradle home directory to use.
      * @return this
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     public abstract GradleConnector useGradleUserHomeDir(File gradleUserHomeDir);
 
@@ -162,7 +162,7 @@ public abstract class GradleConnector {
      * @return The connection. Never return null.
      * @throws UnsupportedVersionException When the target Gradle version does not support this version of the tooling API.
      * @throws GradleConnectionException On failure to establish a connection with the target Gradle version.
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     public abstract ProjectConnection connect() throws GradleConnectionException;
 

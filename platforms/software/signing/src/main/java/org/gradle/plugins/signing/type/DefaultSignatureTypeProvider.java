@@ -20,9 +20,15 @@ import org.gradle.plugins.signing.type.pgp.ArmoredSignatureType;
 /**
  * The default {@link SignatureTypeProvider} implementation including support for
  * {@link BinarySignatureType} and {@link ArmoredSignatureType} signatures.
+ * @since 1.0
  */
 public class DefaultSignatureTypeProvider extends AbstractSignatureTypeProvider {
 
+    /**
+     * Creates a new {@code DefaultSignatureTypeProvider}.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings("this-escape")
     public DefaultSignatureTypeProvider() {
         register(new BinarySignatureType());

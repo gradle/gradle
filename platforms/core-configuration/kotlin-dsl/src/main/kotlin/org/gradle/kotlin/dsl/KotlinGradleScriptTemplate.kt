@@ -29,6 +29,9 @@ import kotlin.script.experimental.api.filePathPattern
 import kotlin.script.experimental.api.implicitReceivers
 
 
+/**
+ * @since 8.11
+ */
 class KotlinGradleScriptTemplateCompilationConfiguration : KotlinDslStandaloneScriptCompilationConfiguration({
     filePathPattern.put(".*/(?:.+\\.)?init\\.gradle\\.kts")
     baseClass(KotlinGradleScriptTemplate::class)
@@ -55,6 +58,8 @@ abstract class KotlinGradleScriptTemplate(
 
     /**
      * The [ScriptHandler] for this script.
+     *
+     * @since 8.1
      */
     fun getInitscript(): ScriptHandler =
         host.scriptHandler

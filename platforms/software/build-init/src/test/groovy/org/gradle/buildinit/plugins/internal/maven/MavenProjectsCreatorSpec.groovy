@@ -20,6 +20,7 @@ import org.gradle.api.file.Directory
 import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider
 import org.gradle.api.internal.artifacts.mvnsettings.MavenFileLocations
+import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.buildinit.InsecureProtocolOption
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -32,7 +33,7 @@ import spock.lang.Specification
 class MavenProjectsCreatorSpec extends Specification {
 
     @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
-    private settings = new DefaultMavenSettingsProvider({} as MavenFileLocations)
+    private settings = new DefaultMavenSettingsProvider({} as MavenFileLocations, FileResourceListener.NO_OP)
     private creator = new MavenProjectsCreator()
 
     def "creates single module project"() {

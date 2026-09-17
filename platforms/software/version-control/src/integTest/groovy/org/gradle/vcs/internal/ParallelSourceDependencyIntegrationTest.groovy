@@ -17,7 +17,7 @@
 package org.gradle.vcs.internal
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.vcs.fixtures.GitHttpRepository
 import org.junit.Rule
@@ -66,7 +66,7 @@ class ParallelSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         repo.createLightWeightTag('1.2')
     }
 
-    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/36610")
+    @UnsupportedWithConfigurationCache(because = "parallel population of source dependencies can only happen at execution time, which the configuration cache can only support by degrading to vintage execution, making the configuration cache run identical to the non-CC run")
     def "can populate into same dir in parallel"() {
         given:
         createDirs("A", "B", "C", "D")
@@ -102,7 +102,7 @@ class ParallelSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
         succeeds('resolve', '--parallel', '--max-workers=4')
     }
 
-    @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/36610")
+    @UnsupportedWithConfigurationCache(because = "parallel population of source dependencies can only happen at execution time, which the configuration cache can only support by degrading to vintage execution, making the configuration cache run identical to the non-CC run")
     def "can populate from multiple Gradle invocations in parallel"() {
         given:
         createDirs("A")

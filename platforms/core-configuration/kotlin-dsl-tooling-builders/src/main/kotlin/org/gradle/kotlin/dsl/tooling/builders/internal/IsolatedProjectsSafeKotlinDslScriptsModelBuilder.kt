@@ -16,6 +16,7 @@
 
 package org.gradle.kotlin.dsl.tooling.builders.internal
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
@@ -37,6 +38,7 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinDslScriptsModelBuilder
 import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsParameter
 import org.gradle.kotlin.dsl.tooling.builders.PrecompiledScriptPluginsMetadataDir
+import org.gradle.kotlin.dsl.tooling.builders.SCRIPTS_GRADLE_PROPERTY_NAME
 import org.gradle.kotlin.dsl.tooling.builders.StandardKotlinDslScriptModel
 import org.gradle.kotlin.dsl.tooling.builders.StandardKotlinDslScriptsModel
 import org.gradle.kotlin.dsl.tooling.builders.accessorsClassPathOf
@@ -51,7 +53,6 @@ import org.gradle.kotlin.dsl.tooling.builders.resolveCorrelationIdParameter
 import org.gradle.kotlin.dsl.tooling.builders.buildEditorReportsFor
 import org.gradle.kotlin.dsl.tooling.builders.mapEditorReports
 import org.gradle.kotlin.dsl.tooling.builders.runtimeFailuresLocatedIn
-import org.gradle.kotlin.dsl.tooling.builders.isLocationAwareEditorHintsEnabled
 import org.gradle.kotlin.dsl.tooling.builders.scriptCompilationClassPath
 import org.gradle.kotlin.dsl.tooling.builders.scriptHandlerFactoryOf
 import org.gradle.kotlin.dsl.tooling.builders.settings
@@ -70,8 +71,11 @@ class IsolatedProjectsSafeKotlinDslScriptsModelBuilder(
 ) : AbstractKotlinDslScriptsModelBuilder() {
 
     override fun prepareParameter(rootProject: Project): KotlinDslScriptsParameter {
-        require(rootProject.findProperty(KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME) == null) {
-            "Property ${KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME} is not supported with Isolated Projects"
+        if (rootProject.findProperty(SCRIPTS_GRADLE_PROPERTY_NAME) != null) {
+            throw InvalidUserDataException(
+                "Property $SCRIPTS_GRADLE_PROPERTY_NAME is not supported with Isolated Projects: " +
+                    "the model is always built for all the Kotlin DSL scripts of the build."
+            )
         }
 
         return KotlinDslScriptsParameter(rootProject.resolveCorrelationIdParameter(), emptyList())
@@ -109,7 +113,7 @@ private fun buildOutputsForNonProject(
     val classPath = base.nonProjectScriptPaths.bin + it.classPath
     val gradleKotlinDslJar = classPath.filter(::isGradleKotlinDslJar)
     val sourcePath = gradleKotlinDslJar + base.nonProjectScriptPaths.src + it.sourcePath
-    buildOutputModel(it.scriptFile, classPath, sourcePath, base.implicitImports, exceptions, base.locationAwareEditorHints)
+    buildOutputModel(it.scriptFile, classPath, sourcePath, base.implicitImports, exceptions)
 }
 
 
@@ -135,10 +139,6 @@ class ScriptModelBase(
 
     val implicitImports: List<String> by unsafeLazy {
         rootProject.serviceOf<ImplicitImports>().list
-    }
-
-    val locationAwareEditorHints: Boolean by unsafeLazy {
-        rootProject.isLocationAwareEditorHintsEnabled
     }
 
     val nonProjectScriptPaths: ScriptClassPath by unsafeLazy {
@@ -233,15 +233,12 @@ fun buildOutputsForHierarchy(
             val effectiveParentSourcePath = if (childScriptModel.includeParentSourcePath) parentSourcePath else EMPTY
             val sourcePath = gradleKotlinDslJar + base.scriptPaths.src + effectiveParentSourcePath + childScriptModel.localSourcePath
             val implicitImports = base.implicitImports + childScriptModel.localImplicitImports
-            // Use the owning project's locationAwareEditorHints — a subproject's gradle.properties
-            // override is only visible inside that project's IsolatedScriptsModel build.
             outputModels[childScriptModel.scriptFile] = buildOutputModel(
                 childScriptModel.scriptFile,
                 classPath,
                 sourcePath,
                 implicitImports,
-                exceptions,
-                model.locationAwareEditorHints
+                exceptions
             )
         }
     }
@@ -336,7 +333,6 @@ internal
 data class IsolatedScriptsModel(
     val models: List<IntermediateScriptModel>,
     val buildScriptSourcePath: ClassPath,
-    val locationAwareEditorHints: Boolean
 )
 
 
@@ -362,8 +358,7 @@ fun isolatedScriptsModelFor(project: ProjectInternal): IsolatedScriptsModel {
     val buildScriptSourcePath =
         if (buildScriptModel != null) sourcePathFor(listOf(project.buildscript))
         else EMPTY
-    val locationAwareEditorHints = project.isLocationAwareEditorHintsEnabled
-    return IsolatedScriptsModel(models, buildScriptSourcePath, locationAwareEditorHints)
+    return IsolatedScriptsModel(models, buildScriptSourcePath)
 }
 
 
@@ -420,13 +415,12 @@ fun buildOutputModel(
     classPath: ClassPath,
     sourcePath: ClassPath,
     implicitImports: List<String>,
-    exceptions: List<Exception>,
-    locationAwareEditorHints: Boolean
+    exceptions: List<Exception>
 ) = StandardKotlinDslScriptModel(
     classPath.asFiles,
     sourcePath.asFiles,
     implicitImports,
-    editorReports = mapEditorReports(buildEditorReportsFor(scriptFile, exceptions, locationAwareEditorHints)),
+    editorReports = mapEditorReports(buildEditorReportsFor(scriptFile, exceptions)),
     exceptions = getExceptionsForFile(scriptFile, exceptions)
 )
 

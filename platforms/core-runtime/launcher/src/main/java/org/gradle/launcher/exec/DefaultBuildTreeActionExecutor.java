@@ -26,6 +26,7 @@ import org.gradle.internal.buildtree.BuildModelParametersFactory;
 import org.gradle.internal.buildtree.BuildTreeActionExecutor;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.RunTasksRequirements;
+import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.id.UniqueId;
@@ -34,6 +35,8 @@ import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.CallableBuildOperation;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.RootBuildOperationRef;
 import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
 import org.gradle.internal.problems.failure.Failure;
@@ -62,6 +65,8 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
     private final BuildOperationRunner buildOperationRunner;
     private final LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster;
     private final BuildOperationNotificationValve buildOperationNotificationValve;
+    private final RootBuildOperationRef rootBuildOperationRef;
+    private final UserCodeApplicationContext userCodeApplicationContext;
 
     public DefaultBuildTreeActionExecutor(
         BuildModelParametersFactory modelParametersFactory,
@@ -71,7 +76,9 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
         WorkerLeaseService workerLeaseService,
         BuildOperationRunner buildOperationRunner,
         LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
-        BuildOperationNotificationValve buildOperationNotificationValve
+        BuildOperationNotificationValve buildOperationNotificationValve,
+        RootBuildOperationRef rootBuildOperationRef,
+        UserCodeApplicationContext userCodeApplicationContext
     ) {
         this.buildModelParametersFactory = modelParametersFactory;
         this.buildLayoutValidator = buildLayoutValidator;
@@ -81,6 +88,8 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
         this.buildOperationRunner = buildOperationRunner;
         this.loggingBuildOperationProgressBroadcaster = loggingBuildOperationProgressBroadcaster;
         this.buildOperationNotificationValve = buildOperationNotificationValve;
+        this.rootBuildOperationRef = rootBuildOperationRef;
+        this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
     @Override
@@ -94,8 +103,18 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
             return buildOperationRunner.call(new CallableBuildOperation<BuildActionRunner.Result>() {
                 @Override
                 public BuildActionRunner.Result call(BuildOperationContext buildOperationContext) {
-                    loggingBuildOperationProgressBroadcaster.rootBuildOperationStarted();
-                    BuildActionRunner.Result result = runBuildTreeLifecycle(action, buildSessionServices);
+                    BuildActionRunner.Result result;
+                    userCodeApplicationContext.startTrackingApplications();
+                    try {
+                        result = runBuildTreeLifecycle(action, buildSessionServices);
+                    } finally {
+                        // TODO: Include the recorded user code application timings in the Run Build build
+                        //  operation result, so Develocity can consume them instead of deriving timings
+                        //  from the build operation hierarchy. Then, once DV reads these timings, we can
+                        //  stop emitting collection callback build operations, leading to a massive
+                        //  performance improvement.
+                        userCodeApplicationContext.stopTrackingApplications();
+                    }
                     buildOperationContext.setResult(new DefaultRunBuildResult(result));
                     if (result.getBuildFailure() != null) {
                         buildOperationContext.failed(result.getBuildFailure());
@@ -114,6 +133,8 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
     }
 
     private BuildActionRunner.Result runBuildTreeLifecycle(BuildAction action, ServiceRegistry buildSessionServices) {
+        loggingBuildOperationProgressBroadcaster.rootBuildOperationStarted();
+        rootBuildOperationRef.set(CurrentBuildOperationRef.instance().getId());
         BuildActionRunner.Result result = null;
         try {
             buildLayoutValidator.validate(action.getStartParameter());

@@ -126,6 +126,21 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         result5.value.exception == null
     }
 
+    def "serializes a build failure whose exception cannot be reconstructed by the client as a placeholder"() {
+        expect:
+        // Exceptions are sent with plain Java serialization, which rejects a non-transient field whose value
+        // doesn't implement Serializable.
+        def unserializable = new RuntimeException("broken") {
+            def thing = new Object()
+        }
+        def message = new Success(BuildActionResult.failed(unserializable))
+        def result = serialize(message, serializer)
+        result instanceof Success
+        result.value instanceof BuildActionResult
+        result.value.exception instanceof PlaceholderException
+        result.value.exception.message == "broken"
+    }
+
     def "can serialize Failure messages"() {
         expect:
         def failure = new RuntimeException()
@@ -134,6 +149,8 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         result instanceof Failure
         result.value.getClass() == RuntimeException
 
+        // Exceptions are sent with plain Java serialization, which rejects a non-transient field whose value
+        // doesn't implement Serializable.
         def unserializable = new IOException() {
             def thing = new Object()
         }

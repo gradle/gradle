@@ -21,14 +21,24 @@ package org.gradle.tooling;
  * <p>
  * The exception extends {@link UnsupportedVersionException} only for backwards compatibility reasons.
  *
- * @since 1.0-milestone-8
+ * @since 1.0
  */
 public class UnknownModelException extends UnsupportedVersionException {
 
+    /**
+     * Creates a new {@code UnknownModelException}.
+     *
+     * @since 1.0
+     */
     public UnknownModelException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code UnknownModelException}.
+     *
+     * @since 1.8
+     */
     public UnknownModelException(String message, Throwable cause) {
         super(message, cause);
     }

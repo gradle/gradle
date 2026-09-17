@@ -37,6 +37,7 @@ class WindowsResourcesIntegrationTest extends AbstractNativeLanguageIntegrationT
     HelloWorldApp helloWorldApp = new WindowsResourceHelloWorldApp()
 
     def "compile and link executable with #sdk.name (#sdk.version.toString()) [#tc.displayName]"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             model {
@@ -69,6 +70,7 @@ class WindowsResourcesIntegrationTest extends AbstractNativeLanguageIntegrationT
     }
 
     def "user receives a reasonable error message when resource compilation fails"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {
@@ -93,6 +95,7 @@ model {
     }
 
     def "can create resources-only shared library"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {

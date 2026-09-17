@@ -26,18 +26,34 @@ import org.gradle.model.internal.type.ModelType;
  * Thrown when an attempt is made to change the value of a model element that is not writable at the time.
  *
  * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.14
  */
 @Incubating
 @Deprecated
 public class ReadOnlyModelViewException extends GradleException {
+    /**
+     * Creates a new {@code ReadOnlyModelViewException}.
+     *
+     * @since 2.14
+     */
     public ReadOnlyModelViewException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code ReadOnlyModelViewException}.
+     *
+     * @since 2.14
+     */
     public ReadOnlyModelViewException(ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {
         super(createMessage("read only", path, type, ruleDescriptor));
     }
 
+    /**
+     * Create message.
+     *
+     * @since 2.14
+     */
     protected static String createMessage(String viewType, ModelPath path, ModelType<?> type, ModelRuleDescriptor ruleDescriptor) {
         StringBuilder result = new StringBuilder();
         result.append("Attempt to modify a ").append(viewType).append(" view of model element '");

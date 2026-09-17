@@ -21,6 +21,7 @@ import org.gradle.internal.HasInternalProtocol;
 /**
  * <p>A {@code LoggingManager} provides access to and control over the Gradle logging system. Using this interface, you
  * can control standard output and error capture and receive logging events.</p>
+ * @since 0.9
  */
 @HasInternalProtocol
 public interface LoggingManager extends LoggingOutput {
@@ -30,6 +31,7 @@ public interface LoggingManager extends LoggingOutput {
      *
      * @param level The log level to route System.out to.
      * @return this
+     * @since 0.9
      */
     LoggingManager captureStandardOutput(LogLevel level);
 
@@ -39,6 +41,7 @@ public interface LoggingManager extends LoggingOutput {
      *
      * @param level The log level to route System.err to.
      * @return this
+     * @since 0.9
      */
     LoggingManager captureStandardError(LogLevel level);
 
@@ -46,6 +49,7 @@ public interface LoggingManager extends LoggingOutput {
      * Returns the log level that output written to System.out will be mapped to.
      *
      * @return The log level. Returns null when standard output capture is disabled.
+     * @since 0.9
      */
     LogLevel getStandardOutputCaptureLevel();
 
@@ -53,6 +57,7 @@ public interface LoggingManager extends LoggingOutput {
      * Returns the log level that output written to System.err will be mapped to.
      *
      * @return The log level. Returns null when standard error capture is disabled.
+     * @since 0.9
      */
     LogLevel getStandardErrorCaptureLevel();
 
@@ -60,6 +65,7 @@ public interface LoggingManager extends LoggingOutput {
      * Returns the current logging level.
      *
      * @return The current logging level.
+     * @since 1.0
      */
     LogLevel getLevel();
 }

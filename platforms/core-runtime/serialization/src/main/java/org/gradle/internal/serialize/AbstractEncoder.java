@@ -22,7 +22,7 @@ import java.io.IOException;
 import java.io.OutputStream;
 
 public abstract class AbstractEncoder implements Encoder {
-    private EncoderStream stream;
+    private @Nullable EncoderStream stream;
 
     @Override
     public OutputStream getOutputStream() {

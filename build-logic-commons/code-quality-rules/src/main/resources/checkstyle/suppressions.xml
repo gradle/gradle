@@ -179,9 +179,6 @@
     <!-- Ignore constant name for architecture tests since we want to use snake case there -->
     <suppress checks="ConstantName"
               files=".*[/\\]architecture-test[/\\]src[/\\]test[/\\]java[/\\]org[/\\]gradle[/\\].+" />
-    <suppress checks="ConstantName"
-              files=".*[/\\]internal-architecture-testing[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\].+" />
-
     <!-- AccessTrackingProperties must override clone() to fix delegate sharing bug (gradle/gradle#17344) -->
     <suppress checks="NoClone"
               files=".*[/\\]input-tracking[/\\]src[/\\]main[/\\]java[/\\]org[/\\]gradle[/\\]internal[/\\]configuration[/\\]inputs[/\\]AccessTrackingProperties.java"/>

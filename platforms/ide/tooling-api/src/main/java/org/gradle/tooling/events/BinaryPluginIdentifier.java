@@ -27,11 +27,13 @@ public interface BinaryPluginIdentifier extends PluginIdentifier {
 
     /**
      * Returns the fully-qualified class name of this plugin.
+     * @since 5.1
      */
     String getClassName();
 
     /**
      * Returns the plugin id of this plugin, if available.
+     * @since 5.1
      */
     @Nullable
     String getPluginId();

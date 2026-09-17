@@ -31,6 +31,7 @@ import org.gradle.language.swift.tasks.SwiftCompile;
 public interface SwiftBinary extends ComponentWithObjectFiles, ComponentWithDependencies {
     /**
      * Returns the name of the Swift module that this binary defines.
+     * @since 4.2
      */
     Provider<String> getModule();
 
@@ -43,6 +44,7 @@ public interface SwiftBinary extends ComponentWithObjectFiles, ComponentWithDepe
 
     /**
      * Returns the Swift source files of this binary.
+     * @since 4.2
      */
     FileCollection getSwiftSource();
 
@@ -55,11 +57,13 @@ public interface SwiftBinary extends ComponentWithObjectFiles, ComponentWithDepe
 
     /**
      * Returns the link libraries to use to link this binary. Includes the link libraries of the component's dependencies.
+     * @since 4.2
      */
     FileCollection getLinkLibraries();
 
     /**
      * Returns the runtime libraries required by this binary. Includes the runtime libraries of the component's dependencies.
+     * @since 4.2
      */
     FileCollection getRuntimeLibraries();
 
@@ -80,7 +84,7 @@ public interface SwiftBinary extends ComponentWithObjectFiles, ComponentWithDepe
     /**
      * Returns the target platform for this component.
      *
-     * @since 5.2
+     * @since 4.5
      */
     SwiftPlatform getTargetPlatform();
 }

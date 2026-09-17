@@ -26,6 +26,7 @@ import javax.inject.Inject;
 
 /**
  * A plugin that creates tasks used for constructing native binaries.
+ * @since 2.2
  */
 @Incubating
 public abstract class NativeComponentPlugin implements Plugin<Project> {

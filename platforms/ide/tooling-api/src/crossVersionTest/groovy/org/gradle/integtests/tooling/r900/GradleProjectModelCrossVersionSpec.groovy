@@ -19,6 +19,7 @@ package org.gradle.integtests.tooling.r900
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.tooling.model.GradleProject
+import org.gradle.util.GradleVersion
 
 @TargetGradleVersion(">=9.0.0")
 class GradleProjectModelCrossVersionSpec extends ToolingApiSpecification {
@@ -36,6 +37,9 @@ class GradleProjectModelCrossVersionSpec extends ToolingApiSpecification {
                something.resolve()
             }
             """
+        if (parallel && targetVersion >= GradleVersion.version("9.8.0")) {
+            expectImplicitParallelModelBuildingDeprecation()
+        }
 
         when:
         GradleProject model = loadToolingModel(GradleProject)
@@ -60,6 +64,9 @@ class GradleProjectModelCrossVersionSpec extends ToolingApiSpecification {
             def something = configurations.create('something')
             something.resolve()
             """
+        if (parallel && targetVersion >= GradleVersion.version("9.8.0")) {
+            expectImplicitParallelModelBuildingDeprecation()
+        }
 
         when:
         GradleProject model = loadToolingModel(GradleProject)

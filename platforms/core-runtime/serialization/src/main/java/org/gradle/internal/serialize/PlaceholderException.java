@@ -20,15 +20,17 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.scan.UsedByScanPlugin;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Objects;
+
 /**
  * A {@code PlaceholderException} is used when an exception cannot be serialized or deserialized.
  */
 @UsedByScanPlugin
 public class PlaceholderException extends RuntimeException implements PlaceholderExceptionSupport {
     private final String exceptionClassName;
-    private final Throwable getMessageException;
-    private final String toString;
-    private final Throwable toStringRuntimeEx;
+    private final @Nullable Throwable getMessageException;
+    private final @Nullable String toString;
+    private final @Nullable Throwable toStringRuntimeEx;
 
     @UsedByScanPlugin("test-distribution")
     public PlaceholderException(String exceptionClassName, @Nullable String message, @Nullable Throwable getMessageException, @Nullable String toString,
@@ -46,7 +48,7 @@ public class PlaceholderException extends RuntimeException implements Placeholde
     }
 
     @Override
-    public String getMessage() {
+    public @Nullable String getMessage() {
         if (getMessageException != null) {
             throw UncheckedException.throwAsUncheckedException(getMessageException);
         }
@@ -58,6 +60,6 @@ public class PlaceholderException extends RuntimeException implements Placeholde
         if (toStringRuntimeEx != null) {
             throw UncheckedException.throwAsUncheckedException(toStringRuntimeEx);
         }
-        return toString;
+        return Objects.requireNonNull(toString);
     }
 }

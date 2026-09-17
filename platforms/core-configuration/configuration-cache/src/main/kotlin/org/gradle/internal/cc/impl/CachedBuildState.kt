@@ -16,8 +16,8 @@
 
 package org.gradle.internal.cc.impl
 
-import org.gradle.execution.plan.ScheduledWork
 import org.gradle.internal.build.BuildState
+import org.gradle.internal.serialize.codecs.core.RestoredWorkGraph
 import org.gradle.internal.serialize.graph.codecs.ValueObject
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal
 import org.gradle.util.Path
@@ -94,7 +94,7 @@ class BuildWithWork(
     val build: ConfigurationCacheBuild,
     rootProjectName: String,
     projects: List<CachedProjectState>,
-    val workGraph: ScheduledWork
+    val workGraph: RestoredWorkGraph
 ) : BuildWithProjects(identityPath, rootProjectName, projects)
 
 

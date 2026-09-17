@@ -30,6 +30,7 @@ public interface TestFailure extends Failure {
      * The fully-qualified name of the underlying exception type.
      *
      * @return The exception class name
+     * @since 7.6
      */
     String getClassName();
 
@@ -37,6 +38,7 @@ public interface TestFailure extends Failure {
      * The stringified version of the stacktrace created from the underlying exception.
      *
      * @return the stacktrace
+     * @since 7.6
      */
     String getStacktrace();
 }

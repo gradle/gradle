@@ -43,6 +43,7 @@ public interface JavaPluginExtension {
 
     /**
      * Returns the source compatibility used for compiling Java sources.
+     * @since 4.10
      */
     @ToBeReplacedByLazyProperty
     JavaVersion getSourceCompatibility();
@@ -55,11 +56,13 @@ public interface JavaPluginExtension {
      * @param value The value for the source compatibility
      *
      * @see #toolchain(Action)
+     * @since 4.10
      */
     void setSourceCompatibility(JavaVersion value);
 
     /**
      * Returns the target compatibility used for compiling Java sources.
+     * @since 4.10
      */
     @ToBeReplacedByLazyProperty
     JavaVersion getTargetCompatibility();
@@ -72,6 +75,7 @@ public interface JavaPluginExtension {
      * @param value The value for the target compatibility
      *
      * @see #toolchain(Action)
+     * @since 4.10
      */
     void setTargetCompatibility(JavaVersion value);
 

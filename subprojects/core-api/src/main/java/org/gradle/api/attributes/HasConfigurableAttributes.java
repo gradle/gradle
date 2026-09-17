@@ -32,6 +32,7 @@ public interface HasConfigurableAttributes<SELF> extends HasAttributes {
     /**
      * Configure the attribute container that provides the attributes
      * associated with this domain object.
+     * @since 3.4
      */
     @HiddenInDefinition
     SELF attributes(Action<? super AttributeContainer> action);

@@ -46,12 +46,33 @@ import org.gradle.util.Configurable;
  *     url = uri('some-url')
  * }
  * </pre>
+ * @since 1.0
  */
 @HiddenInDefinition
 public interface ArtifactRepositoryContainer extends NamedDomainObjectList<ArtifactRepository>, Configurable<ArtifactRepositoryContainer> {
+    /**
+     * The default maven central repo name.
+     *
+     * @since 1.0
+     */
     String DEFAULT_MAVEN_CENTRAL_REPO_NAME = "MavenRepo";
+    /**
+     * The default maven local repo name.
+     *
+     * @since 1.0
+     */
     String DEFAULT_MAVEN_LOCAL_REPO_NAME = "MavenLocal";
+    /**
+     * The maven central url.
+     *
+     * @since 1.0
+     */
     String MAVEN_CENTRAL_URL = "https://repo.maven.apache.org/maven2/";
+    /**
+     * The google url.
+     *
+     * @since 4.0
+     */
     String GOOGLE_URL = "https://dl.google.com/dl/android/maven2/";
 
     /**
@@ -66,6 +87,7 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      * Adds a repository to this container, at the start of the repository sequence.
      *
      * @param repository The repository to add.
+     * @since 1.0
      */
     void addFirst(ArtifactRepository repository);
 
@@ -73,6 +95,7 @@ public interface ArtifactRepositoryContainer extends NamedDomainObjectList<Artif
      * Adds a repository to this container, at the end of the repository sequence.
      *
      * @param repository The repository to add.
+     * @since 1.0
      */
     void addLast(ArtifactRepository repository);
 

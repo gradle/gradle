@@ -19,8 +19,19 @@ import groovy.util.Node;
 
 /**
  * Represents an entry in the Eclipse classpath.
+ * @since 1.0
  */
 public interface ClasspathEntry {
+    /**
+     * Returns the kind.
+     *
+     * @since 1.0
+     */
     String getKind();
+    /**
+     * Append node.
+     *
+     * @since 1.0
+     */
     void appendNode(Node node);
 }

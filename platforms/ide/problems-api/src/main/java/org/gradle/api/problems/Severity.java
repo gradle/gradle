@@ -21,13 +21,14 @@ import org.gradle.api.Incubating;
 /**
  * A problem severity.
  *
- * @since 8.6
+ * @since 8.4
  */
 @Incubating
 public enum Severity {
     /**
      * Advice-level severity.
      * @deprecated Only kept for backward compatibility. Will be removed in Gradle 10.0.
+     * @since 8.4
      */
     @Deprecated
     ADVICE("Advice"),
@@ -35,11 +36,13 @@ public enum Severity {
     /**
      * Warning-level severity, for problems that won't fail the build.
      *
+     * @since 8.4
      */
     WARNING("Warning"),
 
     /**
      * Error-level severity, for problems that will fail the build.
+     * @since 8.4
      */
     ERROR("Error");
 

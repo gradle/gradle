@@ -33,6 +33,7 @@ public interface ArtifactCollection extends Iterable<ResolvedArtifactResult> {
     /**
      * A file collection containing the files for all artifacts in this collection.
      * This is primarily useful to wire this artifact collection as a task input.
+     * @since 3.4
      */
     FileCollection getArtifactFiles();
 
@@ -41,6 +42,7 @@ public interface ArtifactCollection extends Iterable<ResolvedArtifactResult> {
      * This will resolve the artifact metadata and download the artifact files as required.
      *
      * @throws ResolveException On failure to resolve or download any artifact.
+     * @since 3.4
      */
     Set<ResolvedArtifactResult> getArtifacts();
 

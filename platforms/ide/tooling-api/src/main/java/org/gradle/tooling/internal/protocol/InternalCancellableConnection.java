@@ -27,7 +27,7 @@ import org.gradle.tooling.internal.protocol.exceptions.InternalUnsupportedBuildA
  * <p>Consumer compatibility: This interface is used by all consumer versions from 2.1-rc-1.</p>
  * <p>Provider compatibility: This interface is implemented by all provider versions from 2.1-rc-1. Methods have different version compatibilities.</p>
  *
- * @since 2.1-rc-1
+ * @since 2.1
  * @see InternalParameterAcceptingConnection
  * @see org.gradle.tooling.internal.protocol.ConnectionVersion4
  */
@@ -45,7 +45,7 @@ public interface InternalCancellableConnection extends InternalProtocolInterface
      * @throws InternalUnsupportedBuildArgumentException When the specified command-line options are not supported.
      * @throws InternalBuildCancelledException When the operation was cancelled before it could complete.
      * @throws IllegalStateException When this connection has been stopped.
-     * @since 2.1-rc-1
+     * @since 2.1
      */
     BuildResult<?> getModel(ModelIdentifier modelIdentifier, InternalCancellationToken cancellationToken,
                             BuildParameters operationParameters) throws
@@ -68,7 +68,7 @@ public interface InternalCancellableConnection extends InternalProtocolInterface
      * @throws InternalBuildActionFailureException When the action fails with an exception.
      * @throws InternalBuildCancelledException When the operation was cancelled before it could complete.
      * @throws IllegalStateException When this connection has been stopped.
-     * @since 2.1-rc-1
+     * @since 2.1
      * @deprecated 4.4. Use {@link InternalParameterAcceptingConnection#run(InternalBuildActionVersion2, InternalCancellationToken, BuildParameters)} instead.
      */
     @Deprecated

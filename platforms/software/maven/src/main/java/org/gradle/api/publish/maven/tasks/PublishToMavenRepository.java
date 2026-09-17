@@ -65,6 +65,7 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
      * The repository to publish to.
      *
      * @return The repository to publish to
+     * @since 1.4
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -83,12 +84,18 @@ public abstract class PublishToMavenRepository extends AbstractPublishToMaven {
      * Sets the repository to publish to.
      *
      * @param repository The repository to publish to
+     * @since 1.4
      */
     public void setRepository(MavenArtifactRepository repository) {
         this.repository.set((DefaultMavenArtifactRepository) repository);
         this.getCredentials().set(((DefaultMavenArtifactRepository) repository).getConfiguredCredentials());
     }
 
+    /**
+     * Publish.
+     *
+     * @since 1.4
+     */
     @TaskAction
     public void publish() {
         PublishSpec spec = this.spec.get();

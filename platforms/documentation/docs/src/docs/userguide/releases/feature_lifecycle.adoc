@@ -134,3 +134,5 @@ As such, each major Gradle release causes:
 
 * The previous major version becomes maintenance only. It will only receive critical bug fixes and security fixes.
 * The major version before the previous one to become end-of-life (EOL), and that release line will not receive any new fixes.
+
+NOTE: This policy governs the open-source distribution. If you need security fixes for releases it no longer covers, or contractual timelines for those fixes, see the https://gradle.org/security-subscription/[Gradle Security Subscription].

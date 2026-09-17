@@ -24,7 +24,6 @@ import org.gradle.api.internal.tasks.WorkNodeAction;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
-import org.gradle.internal.service.ServiceLookupException;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.ThreadSafe;
@@ -222,7 +221,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
                 owner.result = Try.ofFailable(() -> {
                     NodeExecutionContext effectiveContext = context;
                     if (effectiveContext == null) {
-                        effectiveContext = new GlobalContext(defaultContext);
+                        effectiveContext = defaultContext;
                     }
                     return supplier.calculateValue(effectiveContext);
                 });
@@ -246,27 +245,4 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
         }
     }
 
-    /**
-     * Used when calculating the value outside of an execution graph.
-     * <p>
-     * In that case we need to use the global context and not the context that would be created as
-     * part of executing the execution graph.
-     */
-    private static class GlobalContext implements NodeExecutionContext {
-        private final NodeExecutionContext delegate;
-
-        public GlobalContext(NodeExecutionContext delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public <T> T getService(Class<T> type) throws ServiceLookupException {
-            return delegate.getService(type);
-        }
-
-        @Override
-        public boolean isPartOfExecutionGraph() {
-            return false;
-        }
-    }
 }

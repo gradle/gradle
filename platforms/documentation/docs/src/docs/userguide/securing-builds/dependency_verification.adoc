@@ -854,8 +854,8 @@ You can configure custom key servers by adding them to your verification metadat
       <verify-metadata>true</verify-metadata>
       <verify-signatures>true</verify-signatures>
       <key-servers>
-         <key-server uri="hkp://my-key-server.org"/>
-         <key-server uri="https://my-other-key-server.org"/>
+         <key-server uri="hkp://my.server.com"/>
+         <key-server uri="https://my.key.server.com"/>
       </key-servers>
    </configuration>
 </verification-metadata>

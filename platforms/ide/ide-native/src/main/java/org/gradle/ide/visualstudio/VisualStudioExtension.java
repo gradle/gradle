@@ -20,10 +20,12 @@ import org.gradle.api.NamedDomainObjectSet;
 
 /**
  * The configuration for mapping a set of native components to a Visual Studio project.
+ * @since 1.11
  */
 public interface VisualStudioExtension {
     /**
      * The {@link VisualStudioProject}s generated.
+     * @since 1.11
      */
     NamedDomainObjectSet<? extends VisualStudioProject> getProjects();
 }

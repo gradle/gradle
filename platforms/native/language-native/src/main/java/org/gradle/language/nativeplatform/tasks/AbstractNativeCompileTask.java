@@ -59,6 +59,7 @@ import java.util.Map;
 
 /**
  * Compiles native source files into object files.
+ * @since 2.2
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractNativeCompileTask extends DefaultTask {
@@ -72,6 +73,11 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     // It would be better to provide some way for a task to express these things separately.
     private transient IncrementalCompilerBuilder.IncrementalCompiler incrementalCompiler;
 
+    /**
+     * Creates a new {@code AbstractNativeCompileTask}.
+     *
+     * @since 2.2
+     */
     @SuppressWarnings("this-escape")
     public AbstractNativeCompileTask() {
         dependsOn(getIncludes());
@@ -99,6 +105,11 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
     @Inject
     protected abstract FileCollectionFactory getFileCollectionFactory();
 
+    /**
+     * Compile.
+     *
+     * @since 5.4
+     */
     @TaskAction
     protected void compile(InputChanges inputs) {
         BuildOperationLogger operationLogger = getOperationLoggerFactory().newOperationLogger(getName(), getTemporaryDir());
@@ -125,6 +136,11 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         setDidWork(doCompile(spec, platformToolProvider).getDidWork());
     }
 
+    /**
+     * Configure spec.
+     *
+     * @since 2.5
+     */
     protected void configureSpec(NativeCompileSpec spec) {
     }
 
@@ -136,6 +152,11 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
         return loggingCompiler.execute(spec);
     }
 
+    /**
+     * Create compile spec.
+     *
+     * @since 2.2
+     */
     protected abstract NativeCompileSpec createCompileSpec();
 
     /**
@@ -156,12 +177,18 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     /**
      * Should the compiler generate position independent code?
+     * @since 2.2
      */
     @Input
     public boolean isPositionIndependentCode() {
         return positionIndependentCode;
     }
 
+    /**
+     * Sets the position independent code.
+     *
+     * @since 2.2
+     */
     public void setPositionIndependentCode(boolean positionIndependentCode) {
         this.positionIndependentCode = positionIndependentCode;
     }
@@ -214,12 +241,14 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     /**
      * Returns the header directories to be used for compilation.
+     * @since 2.2
      */
     @Internal("The paths for include directories are tracked via the includePaths property, the contents are tracked via discovered inputs")
     public abstract ConfigurableFileCollection getIncludes();
 
     /**
      * Add directories where the compiler should search for header files.
+     * @since 2.2
      */
     public void includes(Object includeRoots) {
         getIncludes().from(includeRoots);
@@ -235,6 +264,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     /**
      * Returns the source files to be compiled.
+     * @since 2.2
      */
     @InputFiles
     @SkipWhenEmpty
@@ -246,6 +276,7 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     /**
      * Adds a set of source files to be compiled. The provided sourceFiles object is evaluated as per {@link Project#files(Object...)}.
+     * @since 2.2
      */
     public void source(Object sourceFiles) {
         source.from(sourceFiles);
@@ -253,12 +284,18 @@ public abstract class AbstractNativeCompileTask extends DefaultTask {
 
     /**
      * Macros that should be defined for the compiler.
+     * @since 2.2
      */
     @Input
     public Map<String, String> getMacros() {
         return macros;
     }
 
+    /**
+     * Sets the macros.
+     *
+     * @since 2.2
+     */
     public void setMacros(Map<String, String> macros) {
         this.macros.clear();
         this.macros.putAll(macros);

@@ -77,6 +77,17 @@ class LeakingProcessKillPatternTest extends Specification {
         (line =~ KillLeakingJavaProcesses.generateLeakingProcessKillPattern(projectDir)).find()
     }
 
+    def "matches kotlin 2.4 compile daemon without keepalive flag on windows"() {
+        // Kotlin 2.4+ (Build Tools API) no longer passes `-Dkotlin.environment.keepalive`; it uses
+        // `-Dkotlin.daemon.initiator.marker.file` and `--daemon-logsPath` (pointing into build/tmp) instead.
+        def line = '38972 "C:\\tcagent1\\JdkProvider\\jdks\\windows-amd64-temurin-jdk-25.0.3_9\\bin\\java.exe" -cp C:\\tcagent1\\work\\f63322e10dd6b396\\intTestHomeDir\\distributions-full\\caches\\modules-2\\files-2.1\\org.jetbrains.kotlin\\kotlin-compiler-embeddable\\2.4.0\\f1a24af8bd111a83950236b1aec7a6d72a97e92c\\kotlin-compiler-embeddable-2.4.0.jar;C:\\tcagent1\\work\\f63322e10dd6b396\\intTestHomeDir\\distributions-full\\caches\\modules-2\\files-2.1\\org.jetbrains.kotlin\\kotlin-daemon-embeddable\\2.4.0\\1ecabef3a8ba6a8e25654573d54edb7e4136e903\\kotlin-daemon-embeddable-2.4.0.jar -Djava.awt.headless=true -Djava.rmi.server.hostname=127.0.0.1 -Xmx1024m -XX:MaxMetaspaceSize=512m -XX:ReservedCodeCacheSize=320m -ea -Dkotlin.daemon.custom.run.files.path.for.tests=C:\\Users\\tcagent1\\AppData\\Local\\kotlin\\daemon -XX:+UseCodeCacheFlushing -XX:+UseParallelGC -Dkotlin.daemon.initiator.marker.file=C:\\tcagent1\\work\\f63322e10dd6b396\\platforms\\core-configuration\\configuration-cache\\build\\tmp\\kotlin-compiler-client-10732081455334371727-is-running --add-exports java.base/sun.nio.ch=ALL-UNNAMED org.jetbrains.kotlin.daemon.KotlinCompileDaemon --daemon-logsPath C:\\tcagent1\\work\\f63322e10dd6b396\\platforms\\core-configuration\\configuration-cache\\build\\tmp --daemon-logsFileSizeLimit=1048576 --daemon-logsFileCountLimit=3 --daemon-runFilesPath C:\\Users\\tcagent1\\AppData\\Local\\kotlin\\daemon --daemon-autoshutdownIdleSeconds=7200 --daemon-compilerClasspath C:\\tcagent1\\work\\f63322e10dd6b396\\intTestHomeDir\\distributions-full\\caches\\modules-2\\files-2.1\\org.jetbrains.kotlin\\kotlin-build-tools-impl\\2.4.0\\3dde5b4075cd7963afd0b0b2835627f40abc1149\\kotlin-build-tools-impl-2.4.0.jar'
+
+        def projectDir = "C:\\tcagent1\\work\\f63322e10dd6b396\\"
+
+        expect:
+        (line =~ KillLeakingJavaProcesses.generateLeakingProcessKillPattern(projectDir)).find()
+    }
+
     def "matches google-chrome-for-testing"() {
         def line = '3723579 /usr/bin/google-chrome-for-testing --allow-pre-commit-input --disable-background-networking --disable-client-side-phishing-detection --disable-default-apps --disable-gpu --disable-hang-monitor --disable-popup-blocking --disab'
 

@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
 import org.gradle.integtests.tooling.r930.KotlinDslPluginRelatedToolingApiSpecification
+import org.gradle.util.GradleVersion
 
 import static org.gradle.integtests.tooling.r940.TestResilientModelAction.QueryStrategy.EDITABLE_BUILDS_FIRST
 import static org.gradle.integtests.tooling.r940.TestResilientModelAction.QueryStrategy.ROOT_BUILD_FIRST
@@ -29,9 +30,20 @@ import static org.gradle.integtests.tooling.r940.TestResilientModelAction.QueryS
 class CustomResilientModelCrossVersionSpec extends KotlinDslPluginRelatedToolingApiSpecification {
 
     private static final List<String> IP_CONFIGURE_ON_DEMAND_FLAGS = [
-        "-Dorg.gradle.internal.isolated-projects.configure-on-demand=true",
-        "-Dorg.gradle.unsafe.isolated-projects=true"
+        "-Dorg.gradle.internal.isolated-projects.configure-on-demand=true"
     ]
+
+    // Appends the flag enabling Isolated Projects to any non-empty flag list, under the name the
+    // target version understands: the isolated-projects property was renamed in Gradle 9.7.
+    private List<String> flagsForTargetVersion(List<String> flags) {
+        if (flags.isEmpty()) {
+            return flags
+        }
+        def name = targetVersion.baseVersion >= GradleVersion.version("9.7")
+            ? "org.gradle.isolated-projects"
+            : "org.gradle.unsafe.isolated-projects"
+        return flags + ["-D${name}=true".toString()]
+    }
 
     def setup() {
         settingsFile.delete()
@@ -124,7 +136,7 @@ class CustomPlugin implements Plugin<Project> {
             action(new TestResilientModelAction(CustomModel, queryStrategy))
                 .withArguments(
                     "--init-script=${file('init.gradle').absolutePath}",
-                    *extraGradleProperties
+                    *flagsForTargetVersion(extraGradleProperties)
                 )
                 .run()
         }
@@ -185,7 +197,7 @@ class CustomPlugin implements Plugin<Project> {
             action(new TestResilientModelAction(CustomModel, queryStrategy))
                 .withArguments(
                     "--init-script=${file('init.gradle').absolutePath}",
-                    *extraGradleProperties
+                    *flagsForTargetVersion(extraGradleProperties)
                 )
                 .run()
         }

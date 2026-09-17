@@ -16,13 +16,15 @@
 
 package org.gradle.internal.tools.api.impl;
 
+import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.TypePath;
 
 public class TypeAnnotationMember extends AnnotationMember {
     private final int typeRef;
+    @Nullable
     private final TypePath typePath;
 
-    public TypeAnnotationMember(String desc, boolean visible, int typeRef, TypePath typePath) {
+    public TypeAnnotationMember(String desc, boolean visible, int typeRef, @Nullable TypePath typePath) {
         super(desc, visible);
         this.typeRef = typeRef;
         this.typePath = typePath;
@@ -32,7 +34,35 @@ public class TypeAnnotationMember extends AnnotationMember {
         return typeRef;
     }
 
+    /**
+     * The path to the annotated type, or {@code null} when the annotated type is the whole type.
+     */
+    @Nullable
     public TypePath getTypePath() {
         return typePath;
+    }
+
+    @Override
+    protected int kindRank() {
+        return 2;
+    }
+
+    @Override
+    public int compareTo(AnnotationMember o) {
+        if (!(o instanceof TypeAnnotationMember)) {
+            // The rank of the kinds decides, and it never leaves them equal
+            return super.compare(o).result();
+        }
+        TypeAnnotationMember other = (TypeAnnotationMember) o;
+        return super.compare(o)
+            // The same annotation can appear on several types of the same member,
+            // so the target must be part of the identity
+            .compare(typeRef, other.typeRef)
+            .compare(typePathString(), other.typePathString())
+            .result();
+    }
+
+    private String typePathString() {
+        return typePath == null ? "" : typePath.toString();
     }
 }

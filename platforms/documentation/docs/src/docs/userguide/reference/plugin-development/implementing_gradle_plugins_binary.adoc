@@ -588,6 +588,13 @@ include::{snippetsPath}/reference/plugin-development/reactingToBuildFeatures/gro
 <2> Accessing the `requested` status of a feature for reporting.
 <3> Using the `active` status of a feature to disable incompatible functionality.
 
+[WARNING]
+====
+Disabling functionality based on a feature's `active` status makes the plugin behave differently depending on whether the feature is enabled, which raises complexity and can lead to divergent build results.
+Treat such conditionals as a last resort, and prefer making the functionality compatible with the feature instead.
+For the <<isolated_projects.adoc#isolated_projects,Isolated Projects>> feature specifically, see <<isolated_projects.adoc#sec:guarding_build_logic,Guard incompatible build logic as a last resort>>.
+====
+
 [[build_feature_properties]]
 === Build feature properties
 
@@ -825,16 +832,14 @@ The following sample demonstrates how to add a variant that is compatible with G
 include::sample[dir="snippets/reference/plugin-development/pluginWithVariants/kotlin",files="build.gradle.kts[tags=add-plugin-variant]"]
 include::sample[dir="snippets/reference/plugin-development/pluginWithVariants/groovy",files="build.gradle[tags=add-plugin-variant]"]
 ====
-
-NOTE: Only Gradle versions 7 or higher can be explicitly targeted by a variant, as support for this was only added in Gradle 7.
-
-First, we declare a separate _source set_ and a _feature variant_ for our Gradle 7 plugin variant.
-Then, we do some specific wiring to turn the feature into a proper Gradle plugin variant:
-
 <1> Assign the <<component_capabilities.adoc#sec:declaring-component-capabilities,implicit capability that corresponds to the components GAV>> to the variant.
 <2> Assign the <<variant_attributes.adoc#sec:gradle-plugins-default-attributes,Gradle API version attribute>> to all <<declaring_configurations.adoc#sec:resolvable-consumable-configs,consumable configurations>> of our Gradle7 variant. Gradle uses this information to determine which variant to select during plugin resolution.
 <3> Configure the `processGradle7Resources` task to ensure the plugin descriptor file is added to the Gradle7 variant Jar.
 <4> Add a dependency to the `gradleApi()` for our new variant so that the API is visible during compilation time.
+
+The sample declares a separate _source set_ and a _feature variant_ for our Gradle 7 plugin variant, then wires the feature into a proper Gradle plugin variant.
+
+NOTE: Only Gradle versions 7 or higher can be explicitly targeted by a variant, as support for this was only added in Gradle 7.
 
 Note that there is currently no convenient way to access the API of other Gradle versions as the one you are building the plugin with.
 Ideally, every variant should be able to declare a dependency on the API of the minimal Gradle version it supports.

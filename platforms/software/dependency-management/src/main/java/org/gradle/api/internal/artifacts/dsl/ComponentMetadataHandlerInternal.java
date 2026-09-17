@@ -15,23 +15,23 @@
  */
 package org.gradle.api.internal.artifacts.dsl;
 
-import org.gradle.api.internal.artifacts.ComponentMetadataProcessor;
-import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
-import org.gradle.api.internal.artifacts.MetadataResolutionContext;
+import org.gradle.api.artifacts.dsl.ComponentMetadataHandler;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.VariantDerivationStrategy;
-import org.gradle.internal.management.DependencyResolutionManagementInternal;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.function.Consumer;
 
 @ServiceScope(Scope.Project.class)
-public interface ComponentMetadataHandlerInternal {
-    ComponentMetadataProcessor createComponentMetadataProcessor(MetadataResolutionContext resolutionContext);
+public interface ComponentMetadataHandlerInternal extends ComponentMetadataHandler {
+
     void setVariantDerivationStrategy(VariantDerivationStrategy strategy);
+
     VariantDerivationStrategy getVariantDerivationStrategy();
+
     void onAddRule(Consumer<DisplayName> consumer);
 
-    ComponentMetadataProcessorFactory createFactory(DependencyResolutionManagementInternal dependencyResolutionManagement);
+    ImmutableComponentMetadataRules getConfiguredRules();
+
 }

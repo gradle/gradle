@@ -44,9 +44,13 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
 
     def setupBuildOperationExecutor(int maxWorkers) {
         def workerLimits = new DefaultWorkerLimits(maxWorkers)
-        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), workerLimits, ResourceLockStatistics.NO_OP)
+        def coordinationService = new DefaultResourceLockCoordinationService()
+        workerRegistry = new DefaultWorkerLeaseService(coordinationService, workerLimits, ResourceLockStatistics.NO_OP)
         workerRegistry.startProjectExecution(true)
-        buildOperationExecutor = BuildOperationExecutorSupport.builder(workerLimits).withWorkerLeaseService(workerRegistry).build()
+        buildOperationExecutor = BuildOperationExecutorSupport.builder(workerLimits)
+            .withCoordinationService(coordinationService)
+            .withWorkerLeaseService(workerRegistry)
+            .build()
     }
 
     static class SimpleWorker implements BuildOperationWorker<DefaultBuildOperationQueueTest.TestBuildOperation> {
@@ -93,7 +97,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         workerThread {
             buildOperationExecutor.runAll(queue -> { // Block until all operations have executed
                 (maxWorkers - 1).times {
-                    queue.add(new RunnableBuildOperation() {
+                    queue.addUnconstrained(new RunnableBuildOperation() {
                         @Override
                         void run(BuildOperationContext context) throws Exception {
                             started.countDown() // We've captured a worker lease
@@ -106,7 +110,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
                         }
                     })
                 }
-            }, BuildOperationConstraint.UNCONSTRAINED)
+            })
         }
 
         started.await() // We've started `maxWorkers - 1` unconstrained operations
@@ -128,7 +132,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
                     }
                 })
             }
-            }, BuildOperationConstraint.MAX_WORKERS)
+            })
         }
 
         expect:
@@ -147,10 +151,10 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
             buildOperationExecutor.runAll(queue -> {
                 // Add more operations than there are worker leases
                 numUnconstrainedOperations.times {
-                    queue.add(new RunnableBuildOperation() {
+                    queue.addUnconstrained(new RunnableBuildOperation() {
                         @Override
                         void run(BuildOperationContext context) throws Exception {
-                            started.countDown() // We've captured a worker lease
+                            started.countDown()
                             started.await() // Wait until all operations have started
                         }
 
@@ -160,7 +164,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
                         }
                     })
                 }
-            }, BuildOperationConstraint.UNCONSTRAINED)
+            })
         }
 
         expect:
@@ -273,7 +277,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
     def "operations are canceled when the generator fails"() {
         def buildQueue = Mock(BuildOperationQueue)
         def buildOperationQueueFactory = Mock(BuildOperationQueueFactory) {
-            create(_, _, _, _) >> { buildQueue }
+            create(_, _, _, _, _) >> { buildQueue }
         }
 
         def buildOperationExecutor = BuildOperationExecutorSupport.builder(1).withQueueFactory(buildOperationQueueFactory).build()
@@ -300,7 +304,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
             waitForCompletion() >> { throw new MultipleBuildOperationFailures(operationFailures, null) }
         }
         def buildOperationQueueFactory = Mock(BuildOperationQueueFactory) {
-            create(_, _, _, _) >> { buildQueue }
+            create(_, _, _, _, _) >> { buildQueue }
         }
         def buildOperationExecutor = BuildOperationExecutorSupport.builder(1).withQueueFactory(buildOperationQueueFactory).build()
         def worker = Stub(BuildOperationWorker)
@@ -373,9 +377,11 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
         // stays counted but never starts to drain the queue. That is what leaves the main thread
         // looking like an "extra" worker.
         def workerLimits = new DefaultWorkerLimits(2)
-        workerRegistry = new DefaultWorkerLeaseService(new DefaultResourceLockCoordinationService(), workerLimits, ResourceLockStatistics.NO_OP)
+        def coordinationService = new DefaultResourceLockCoordinationService()
+        workerRegistry = new DefaultWorkerLeaseService(coordinationService, workerLimits, ResourceLockStatistics.NO_OP)
         workerRegistry.startProjectExecution(true)
         buildOperationExecutor = BuildOperationExecutorSupport.builder(workerLimits)
+            .withCoordinationService(coordinationService)
             .withWorkerLeaseService(workerRegistry)
             .withExecutorFactory(new SingleThreadExecutorFactory())
             .build()
@@ -408,7 +414,7 @@ class DefaultBuildOperationExecutorParallelExecutionTest extends ConcurrentSpec 
 
                 // On return we will start draining the queue on the main thread, which should run opForMain() despite the worker count being too high.
                 // If the bug is present, it will never run and the test will time out.
-            }, BuildOperationConstraint.MAX_WORKERS)
+            })
         }
 
         then:

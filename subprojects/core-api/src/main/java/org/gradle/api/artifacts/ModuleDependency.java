@@ -43,6 +43,7 @@ import static groovy.lang.Closure.DELEGATE_FIRST;
  * when declaring a dependency on that module.
  * <p>
  * For examples on configuring exclude rules for modules please refer to {@link #exclude(java.util.Map)}.
+ * @since 0.7
  */
 public interface ModuleDependency extends Dependency, HasConfigurableAttributes<ModuleDependency> {
     /**
@@ -78,6 +79,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @param excludeProperties the properties to define the exclude rule.
      * @return this
+     * @since 0.7
      */
     @Adding // Workaround for configuring excludes in DCL. Should be removed once we have a better model.
     ModuleDependency exclude(Map<String, String> excludeProperties);
@@ -86,6 +88,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * Returns the exclude rules for this dependency.
      *
      * @see #exclude(java.util.Map)
+     * @since 0.7
      */
     @HiddenInDefinition
     Set<ExcludeRule> getExcludeRules();
@@ -104,6 +107,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * intended to support dependencies on non-Gradle-published components.
      *
      * @see #addArtifact(DependencyArtifact)
+     * @since 0.7
      */
     Set<DependencyArtifact> getArtifacts();
 
@@ -115,6 +119,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * the implicit default artifact won't be used any longer.</p>
      *
      * @return this
+     * @since 0.7
      */
     @HiddenInDefinition
     ModuleDependency addArtifact(DependencyArtifact artifact);
@@ -130,6 +135,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * @return the added artifact
      *
      * @see DependencyArtifact
+     * @since 0.9
      */
     @HiddenInDefinition
     DependencyArtifact artifact(@DelegatesTo(value = DependencyArtifact.class, strategy = DELEGATE_FIRST) Closure configureClosure);
@@ -155,6 +161,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * Returns whether this dependency should be resolved including or excluding its transitive dependencies.
      *
      * @see #setTransitive(boolean)
+     * @since 0.7
      */
     boolean isTransitive();
 
@@ -165,6 +172,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      *
      * @param transitive Whether transitive dependencies should be resolved.
      * @return this
+     * @since 0.7
      */
     ModuleDependency setTransitive(boolean transitive);
 
@@ -173,6 +181,7 @@ public interface ModuleDependency extends Dependency, HasConfigurableAttributes<
      * <p>
      * If non-null, this overrides variant-aware dependency resolution and selects the
      * variant in the target component matching the requested configuration name.
+     * @since 3.2
      */
     @HiddenInDefinition
     @Nullable

@@ -34,6 +34,7 @@ public interface JvmTestSuiteTarget extends TestSuiteTarget, Named {
      * The {@link Test} task that runs the tests for the associated test suite.
      *
      * @return provider to the test task
+     * @since 7.3
      */
     TaskProvider<Test> getTestTask();
 

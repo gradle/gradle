@@ -20,11 +20,13 @@ import com.esotericsoftware.kryo.KryoException;
 import com.esotericsoftware.kryo.io.Input;
 import org.gradle.internal.serialize.AbstractDecoder;
 import org.gradle.internal.serialize.Decoder;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Closeable;
 import java.io.EOFException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 
 import static org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedEncoder.NEW_STRING;
 import static org.gradle.internal.serialize.kryo.StringDeduplicatingKryoBackedEncoder.NULL_STRING;
@@ -87,7 +89,7 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
     }
 
     private RuntimeException maybeEndOfStream(KryoException e) throws EOFException {
-        if (e.getMessage().equals("Buffer underflow.")) {
+        if ("Buffer underflow.".equals(e.getMessage())) {
             throw (EOFException) new EOFException().initCause(e);
         }
         throw e;
@@ -185,11 +187,11 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
 
     @Override
     public String readString() throws EOFException {
-        return readNullableString();
+        return Objects.requireNonNull(readNullableString());
     }
 
     @Override
-    public String readNullableString() throws EOFException {
+    public @Nullable String readNullableString() throws EOFException {
         try {
             int index = readStringIndex();
             switch (index) {
@@ -233,7 +235,7 @@ public class StringDeduplicatingKryoBackedDecoder extends AbstractDecoder implem
 
     @Override
     public void close() throws IOException {
-        strings = null;
+        strings = INITIAL_CAPACITY_MARKER;
         input.close();
     }
 }

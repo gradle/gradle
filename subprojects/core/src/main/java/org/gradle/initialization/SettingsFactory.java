@@ -21,7 +21,6 @@ import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
 import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
 import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.groovy.scripts.ScriptSource;
@@ -60,7 +59,7 @@ public class SettingsFactory {
             gradle,
             classLoaderScope,
             baseClassLoaderScope,
-            scriptHandlerFactory.create(settingsScript, classLoaderScope, StandaloneDomainObjectContext.forScript(settingsScript)),
+            scriptHandlerFactory.create(settingsScript, classLoaderScope),
             settingsDir,
             settingsScript,
             startParameter

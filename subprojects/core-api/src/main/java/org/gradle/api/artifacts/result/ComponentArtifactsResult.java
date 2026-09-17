@@ -37,6 +37,7 @@ public interface ComponentArtifactsResult extends ComponentResult {
      * </ul>
      *
      * @return the artifacts of this component with the specified type, or an empty set if no artifacts of the type exist.
+     * @since 2.0
      */
     Set<ArtifactResult> getArtifacts(Class<? extends Artifact> type);
 }

@@ -33,6 +33,7 @@ public interface JavaToolchainRepositoryHandler {
     /**
      * Utility method for creating a named {@link JavaToolchainRepository} based on
      * a configuration block.
+     * @since 7.6
      */
     void repository(String name, Action<? super JavaToolchainRepository> configureAction);
 

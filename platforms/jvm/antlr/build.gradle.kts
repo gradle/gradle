@@ -56,7 +56,3 @@ gradleModule {
         daemon = true
     }
 }
-
-packageCycles {
-    excludePatterns.add("org/gradle/api/plugins/antlr/internal/*")
-}

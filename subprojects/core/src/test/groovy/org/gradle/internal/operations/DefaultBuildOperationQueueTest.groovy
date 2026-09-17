@@ -16,33 +16,31 @@
 
 package org.gradle.internal.operations
 
-import org.gradle.api.Action
 import org.gradle.api.GradleException
 import org.gradle.internal.Factory
-import org.gradle.internal.concurrent.ExecutorPolicy
-import org.gradle.internal.concurrent.ManagedExecutor
-import org.gradle.internal.concurrent.ManagedExecutorImpl
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService
 import org.gradle.internal.resources.ResourceLockCoordinationService
 import org.gradle.internal.work.DefaultWorkerLeaseService
 import org.gradle.internal.work.DefaultWorkerLimits
 import org.gradle.internal.work.ResourceLockStatistics
+import org.gradle.internal.work.WorkerLeaseQueueProcessor
 import org.gradle.internal.work.WorkerLeaseRegistry
 import org.gradle.internal.work.WorkerLeaseService
-import org.gradle.util.Path
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Timeout
 
 import java.util.concurrent.CopyOnWriteArrayList
 import java.util.concurrent.CountDownLatch
+import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import java.util.concurrent.RejectedExecutionException
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.atomic.AtomicInteger
-import java.util.concurrent.atomic.AtomicReference
-import java.util.concurrent.locks.ReentrantLock
+import java.util.function.BooleanSupplier
 
+@Timeout(value = 30, unit = TimeUnit.SECONDS)
 class DefaultBuildOperationQueueTest extends Specification {
 
     public static final String LOG_LOCATION = "<log location>"
@@ -78,23 +76,46 @@ class DefaultBuildOperationQueueTest extends Specification {
     BuildOperationQueue operationQueue
     WorkerLeaseService workerRegistry
     WorkerLeaseRegistry.WorkerLeaseCompletion lease
+    WorkerLeaseQueueProcessor workerLeaseProcessor
+    ExecutorService backingExecutor
+    ExecutorService unconstrainedExecutor
 
     void setupQueue(int threads) {
+        setupQueue(threads, Executors.newCachedThreadPool())
+    }
+
+    void setupQueue(int threads, ExecutorService unconstrainedPool) {
         coordinationService = new DefaultResourceLockCoordinationService()
         workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(threads), ResourceLockStatistics.NO_OP) {}
         workerRegistry.startProjectExecution(true)
         lease = workerRegistry.startWorker()
-        def executionContext = new BuildOperationExecutionContext(
-            new ManagedExecutorImpl(Executors.newFixedThreadPool(threads), new ExecutorPolicy.CatchAndRecordFailures()),
-            threads,
-            true
-        )
-        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, executionContext, new SimpleWorker(), null)
+
+        backingExecutor = Executors.newCachedThreadPool()
+        workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, threads, threads * 2)
+        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), newUnconstrainedExecutor(unconstrainedPool), new SimpleWorker(), null)
     }
 
-    def "cleanup"() {
+    /**
+     * A pool for unconstrained work, mirroring how DefaultBuildOperationExecutor wires one up.
+     * Deliberately independent of the worker leases.
+     */
+    ExecutorService newUnconstrainedExecutor(ExecutorService pool = Executors.newCachedThreadPool()) {
+        unconstrainedExecutor = pool
+        return pool
+    }
+
+    def cleanup() {
+        // ORDER MATTERS. shutdown() flips shouldContinue but does not call notifyStateChange,
+        // so any starved worker still blocked acquiring a lease will not wake from shutdown alone.
+        // Releasing the lease next triggers notifyStateChange, the worker re-evaluates
+        // shouldContinue (now false), and exits its lock-acquisition retry loop.
+        workerLeaseProcessor?.shutdown()
         lease?.leaseFinish()
-        workerRegistry.stop()
+        backingExecutor?.shutdown()
+        backingExecutor?.awaitTermination(15, TimeUnit.SECONDS)
+        unconstrainedExecutor?.shutdown()
+        unconstrainedExecutor?.awaitTermination(15, TimeUnit.SECONDS)
+        workerRegistry?.stop()
     }
 
     def "executes all #runs operations in #threads threads"() {
@@ -124,64 +145,6 @@ class DefaultBuildOperationQueueTest extends Specification {
         5    | 10
     }
 
-    def "does not submit more work processors than #threads threads"() {
-        given:
-        setupQueue(threads)
-        lease.leaseFinish() // Release worker lease to allow operation to run, when there is max 1 worker thread
-
-        def expectedWorkerCount = Math.min(runs, threads)
-        def workersStarted = new AtomicInteger()
-        def startedLatch = new CountDownLatch(expectedWorkerCount)
-        def releaseLatch = new CountDownLatch(1)
-        def operationAction = {
-            if (workersStarted.get() < expectedWorkerCount) {
-                println "started worker in thread ${Thread.currentThread().id} (waiting for ${expectedWorkerCount - workersStarted.incrementAndGet()}).."
-            }
-        }
-        def executor = Mock(ManagedExecutor)
-        def delegateExecutor = Executors.newFixedThreadPool(threads)
-        def executionContext = new BuildOperationExecutionContext(
-            executor,
-            threads,
-            true
-        )
-        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, executionContext, new SimpleWorker(), null)
-
-        println "expecting ${expectedWorkerCount} concurrent work processors to be started..."
-
-        when:
-        def waitForCompletionThread = new Thread({
-            workerRegistry.runAsWorkerThread {
-                runs.times { operationQueue.add(new SynchronizedBuildOperation(operationAction, startedLatch, releaseLatch)) }
-                operationQueue.waitForCompletion()
-            }
-        })
-        waitForCompletionThread.start()
-
-        and:
-        startedLatch.await(30, TimeUnit.SECONDS)
-        releaseLatch.countDown()
-
-        and:
-        waitForCompletionThread.join(30000)
-
-        then:
-        !waitForCompletionThread.alive
-        // The main thread sometimes processes items when there are more items than threads available, so
-        // we may only submit workerCount - 1 work processors, but we should never submit more than workerCount
-        ((expectedWorkerCount-1)..expectedWorkerCount) * executor.execute(_) >> { args -> delegateExecutor.execute(args[0]) }
-
-        where:
-        runs | threads
-        1    | 1
-        1    | 4
-        1    | 10
-        5    | 1
-        5    | 4
-        5    | 10
-        20   | 10
-    }
-
     def "cannot use operation queue once it has completed"() {
         given:
         setupQueue(1)
@@ -192,6 +155,163 @@ class DefaultBuildOperationQueueTest extends Specification {
 
         then:
         thrown IllegalStateException
+    }
+
+    def "cannot add an unconstrained operation once the queue has completed"() {
+        given:
+        setupQueue(1)
+        operationQueue.waitForCompletion()
+
+        when:
+        operationQueue.addUnconstrained(Mock(TestBuildOperation))
+
+        then:
+        thrown IllegalStateException
+    }
+
+    def "queue completes when a constrained operation cannot be handed off"() {
+        given:
+        setupQueue(1)
+        workerLeaseProcessor.shutdown()
+
+        when:
+        operationQueue.add(new Success())
+
+        then:
+        thrown IllegalStateException
+
+        when:
+        operationQueue.cancel()
+        operationQueue.waitForCompletion()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "queue completes when an unconstrained operation cannot be handed off"() {
+        given:
+        setupQueue(1)
+        unconstrainedExecutor.shutdown()
+
+        when:
+        operationQueue.addUnconstrained(new Success())
+
+        then:
+        thrown RejectedExecutionException
+
+        when:
+        operationQueue.cancel()
+        operationQueue.waitForCompletion()
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "queue completes when the processor is shut down with operations still queued"() {
+        given:
+        // The main thread holds the only lease, so the spawned worker starves and the operations
+        // are still queued when the processor is shut down.
+        setupQueue(1)
+        def executed = new AtomicInteger()
+
+        when:
+        3.times { operationQueue.add(operation { executed.incrementAndGet() }) }
+        workerLeaseProcessor.shutdown()
+        operationQueue.waitForCompletion()
+
+        then:
+        noExceptionThrown()
+        executed.get() == 3
+    }
+
+    def "constrained operation stays queued for the waiting thread when no worker can be spawned"() {
+        given:
+        setupQueue(1)
+        backingExecutor.shutdown()
+        def executed = new AtomicInteger()
+
+        when:
+        operationQueue.add(operation { executed.incrementAndGet() })
+        operationQueue.waitForCompletion()
+
+        then:
+        executed.get() == 1
+    }
+
+    def "unconstrained operations do not run on a worker thread"() {
+        given:
+        // Exactly one lease, held by the main thread, so a constrained operation could only ever
+        // run via the main thread's self-drain -- which is a worker thread.
+        setupQueue(1)
+        def ranOnWorkerThread = new AtomicBoolean(true)
+
+        when:
+        operationQueue.addUnconstrained(operation { ranOnWorkerThread.set(workerRegistry.isWorkerThread()) })
+        operationQueue.waitForCompletion()
+
+        then:
+        !ranOnWorkerThread.get()
+    }
+
+    def "unconstrained operations execute concurrently beyond the max worker count"() {
+        given:
+        setupQueue(1)
+        int operations = 4
+        def peakConcurrency = new AtomicInteger()
+        def currentConcurrency = new AtomicInteger()
+        def allStarted = new CountDownLatch(operations)
+
+        when:
+        operations.times {
+            operationQueue.addUnconstrained(operation {
+                int running = currentConcurrency.incrementAndGet()
+                peakConcurrency.updateAndGet { Math.max(it, running) }
+                allStarted.countDown()
+                allStarted.await(2, TimeUnit.SECONDS)
+                currentConcurrency.decrementAndGet()
+            })
+        }
+        operationQueue.waitForCompletion()
+
+        then:
+        peakConcurrency.get() == operations
+    }
+
+    def "queue mixing constrained and unconstrained operations routes each kind to its own pool"() {
+        given:
+        setupQueue(2)
+        def constrainedOnWorkerThread = new CopyOnWriteArrayList<Boolean>()
+        def unconstrainedOnWorkerThread = new CopyOnWriteArrayList<Boolean>()
+
+        when:
+        3.times {
+            operationQueue.add(operation { constrainedOnWorkerThread.add(workerRegistry.isWorkerThread()) })
+            operationQueue.addUnconstrained(operation { unconstrainedOnWorkerThread.add(workerRegistry.isWorkerThread()) })
+        }
+        operationQueue.waitForCompletion()
+
+        then:
+        constrainedOnWorkerThread.size() == 3
+        unconstrainedOnWorkerThread.size() == 3
+        constrainedOnWorkerThread.every()
+        !unconstrainedOnWorkerThread.any()
+    }
+
+    def "failures from constrained and unconstrained operations propagate together"() {
+        given:
+        setupQueue(2)
+
+        when:
+        operationQueue.add(new Success())
+        operationQueue.add(new Failure())
+        operationQueue.addUnconstrained(new Success())
+        operationQueue.addUnconstrained(new Failure())
+        operationQueue.waitForCompletion()
+
+        then:
+        MultipleBuildOperationFailures e = thrown()
+        e.causes.size() == 2
+        e.causes.every { it instanceof GradleException }
     }
 
     def "failures propagate to caller regardless of when it failed #operations with #threads threads"() {
@@ -247,31 +367,19 @@ class DefaultBuildOperationQueueTest extends Specification {
 
         given:
         setupQueue(threads)
-        lease.leaseFinish() // Release worker lease to allow operation to run, when there is max 1 worker thread
+        lease.leaseFinish()
+        lease = null
 
         when:
-        def waitForCompletionThread = new Thread({
-            workerRegistry.runAsWorkerThread {
-                runs.times { operationQueue.add(new SynchronizedBuildOperation(operationAction, startedLatch, releaseLatch)) }
-                operationQueue.waitForCompletion()
-            }
-        })
-        waitForCompletionThread.start()
-
-        and:
-        // wait for operations to begin running
+        runs.times { operationQueue.add(new SynchronizedBuildOperation(operationAction, startedLatch, releaseLatch)) }
         startedLatch.await(30, TimeUnit.SECONDS)
-
-        and:
         operationQueue.cancel()
-
-        and:
-        // release the running operations to complete
         releaseLatch.countDown()
-        waitForCompletionThread.join(30000)
+        // Cancelled operations still have to be pulled off the queue, so the waiting thread may have
+        // to drain them itself, which it can only do while holding a lease.
+        workerRegistry.runAsWorkerThread { operationQueue.waitForCompletion() }
 
         then:
-        !waitForCompletionThread.alive
         expectedInvocations * operationAction.run()
 
         where:
@@ -284,13 +392,40 @@ class DefaultBuildOperationQueueTest extends Specification {
         5    | 10
     }
 
+    def "when queue is canceled, unstarted operations of both kinds do not execute"() {
+        CountDownLatch startedLatch = new CountDownLatch(2)
+        CountDownLatch releaseLatch = new CountDownLatch(1)
+        def executedAfterCancel = new AtomicInteger()
+
+        given:
+        // A single lease and a single unconstrained thread, so the operations queued behind the
+        // blocking ones below are still unstarted when cancel() is called.
+        setupQueue(1, Executors.newSingleThreadExecutor())
+        lease.leaseFinish()
+        lease = null
+
+        when:
+        operationQueue.add(new SynchronizedBuildOperation({}, startedLatch, releaseLatch))
+        operationQueue.addUnconstrained(new SynchronizedBuildOperation({}, startedLatch, releaseLatch))
+        assert startedLatch.await(30, TimeUnit.SECONDS)
+
+        and:
+        5.times { operationQueue.add(operation { executedAfterCancel.incrementAndGet() }) }
+        5.times { operationQueue.addUnconstrained(operation { executedAfterCancel.incrementAndGet() }) }
+        operationQueue.cancel()
+        releaseLatch.countDown()
+        workerRegistry.runAsWorkerThread { operationQueue.waitForCompletion() }
+
+        then:
+        executedAfterCancel.get() == 0
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/37613")
-    @Timeout(value = 30, unit = TimeUnit.SECONDS)
     def "workers do not pull operations without a lease, and main thread can progress the queue"() {
         given:
         // Slightly modified from setupQueue to allow certain injection points.
         def mainThread = Thread.currentThread()
-        def workerStartedRetrying = new CountDownLatch(1)
+        def workerStartedLoop = new CountDownLatch(1)
         def executedByMain = new AtomicInteger()
         def executedByOther = new AtomicInteger()
         def recordingWorker = { TestBuildOperation op ->
@@ -305,31 +440,29 @@ class DefaultBuildOperationQueueTest extends Specification {
         coordinationService = new DefaultResourceLockCoordinationService()
         workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(1), ResourceLockStatistics.NO_OP) {
             @Override
-            <T> Optional<T> tryRunAsWorkerThread(Factory<T> action) {
-                // Called repeatedly from the retry loop; CountDownLatch tolerates extra countDown() calls.
+            void tryWhileConditionToRunAsWorkerThread(Runnable action, BooleanSupplier shouldContinue) {
+                // Called once per spawned worker; signal that the worker thread has entered the loop
+                // and is about to block trying to acquire a lease (since the main thread holds the only one).
                 if (Thread.currentThread() !== mainThread) {
-                    workerStartedRetrying.countDown()
+                    workerStartedLoop.countDown()
                 }
-                return super.tryRunAsWorkerThread(action)
+                super.tryWhileConditionToRunAsWorkerThread(action, shouldContinue)
             }
         }
         workerRegistry.startProjectExecution(true)
-        // Keep the lease on the main thread so the spawned worker starves on runAsWorkerThread.
+        // Keep the lease on the main thread so the spawned worker starves waiting for one.
         lease = workerRegistry.startWorker()
-        def executionContext = new BuildOperationExecutionContext(
-            new ManagedExecutorImpl(Executors.newFixedThreadPool(1), new ExecutorPolicy.CatchAndRecordFailures()),
-            1,
-            true
-        )
-        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, executionContext, recordingWorker, null)
+        backingExecutor = Executors.newCachedThreadPool()
+        workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 1, 2)
+        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), newUnconstrainedExecutor(), recordingWorker, null)
 
         when:
         operationQueue.add(new Success())
 
         and:
-        // Wait until the worker has tried and failed to acquire a lease.
+        // Wait until the worker has started and is blocked acquiring a lease.
         // This ensures that the main thread will be needed to progress the queue.
-        assert workerStartedRetrying.await(10, TimeUnit.SECONDS)
+        assert workerStartedLoop.await(10, TimeUnit.SECONDS)
 
         and:
         operationQueue.waitForCompletion()
@@ -339,55 +472,14 @@ class DefaultBuildOperationQueueTest extends Specification {
         executedByMain.get() == 1
     }
 
-    @Timeout(value = 30, unit = TimeUnit.SECONDS)
-    def "starved worker exits via shouldExitWithExtraWorkerInvalidation when the queue is cancelled"() {
-        given:
-        def mainThread = Thread.currentThread()
-        def workerStartedRetrying = new CountDownLatch(1)
-        coordinationService = new DefaultResourceLockCoordinationService()
-        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(1), ResourceLockStatistics.NO_OP) {
-            @Override
-            <T> Optional<T> tryRunAsWorkerThread(Factory<T> action) {
-                if (Thread.currentThread() !== mainThread) {
-                    workerStartedRetrying.countDown()
-                }
-                return super.tryRunAsWorkerThread(action)
-            }
-        }
-        workerRegistry.startProjectExecution(true)
-        // Hold the only lease on the main thread so the spawned worker is starved.
-        lease = workerRegistry.startWorker()
-        def underlyingExecutor = Executors.newFixedThreadPool(1)
-        def executionContext = new BuildOperationExecutionContext(
-            new ManagedExecutorImpl(underlyingExecutor, new ExecutorPolicy.CatchAndRecordFailures()),
-            1,
-            true
-        )
-        operationQueue = new DefaultBuildOperationQueue(false, workerRegistry, executionContext, new SimpleWorker(), null)
-
-        when:
-        operationQueue.add(new Success())
-        // Wait for the spawned worker to enter its lease-retry loop.
-        assert workerStartedRetrying.await(10, TimeUnit.SECONDS)
-
-        and:
-        operationQueue.cancel()
-
-        and:
-        underlyingExecutor.shutdown()
-        def terminated = underlyingExecutor.awaitTermination(15, TimeUnit.SECONDS)
-
-        then:
-        terminated
-    }
-
-    @Timeout(value = 30, unit = TimeUnit.SECONDS)
+    @Issue("https://github.com/gradle/gradle/issues/38154")
     def "waiting for completion #policyDesc project lock changes when allowAccessToProjectState is #allowAccessToProjectState"() {
         given:
         def mainThread = Thread.currentThread()
         def disallowDepth = ThreadLocal.withInitial { 0 }
         def lockChangesDisallowedDuringWait = new AtomicBoolean()
         def blockingCalled = new CountDownLatch(1)
+        def startedLatch = new CountDownLatch(1)
         def releaseLatch = new CountDownLatch(1)
 
         coordinationService = new DefaultResourceLockCoordinationService()
@@ -407,8 +499,7 @@ class DefaultBuildOperationQueueTest extends Specification {
                 if (Thread.currentThread() === mainThread) {
                     lockChangesDisallowedDuringWait.set(disallowDepth.get() > 0)
                     blockingCalled.countDown()
-                    // Unblock the in-flight operation only once the main thread has reached the wait,
-                    // guaranteeing pendingOperations > 0 when waitForWorkToComplete() checks it
+                    // Let the in-flight operation finish only once the main thread has reached the wait.
                     releaseLatch.countDown()
                 }
                 super.blocking(action)
@@ -416,16 +507,15 @@ class DefaultBuildOperationQueueTest extends Specification {
         }
         workerRegistry.startProjectExecution(true)
         lease = workerRegistry.startWorker()
-        // requiresWorkerLease=false so the main thread skips the self-drain and goes straight to the blocking wait
-        def executionContext = new BuildOperationExecutionContext(
-            new ManagedExecutorImpl(Executors.newFixedThreadPool(2), new ExecutorPolicy.CatchAndRecordFailures()),
-            2,
-            false
-        )
-        operationQueue = new DefaultBuildOperationQueue(allowAccessToProjectState, workerRegistry, executionContext, new SimpleWorker(), null)
+        backingExecutor = Executors.newCachedThreadPool()
+        workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 2, 4)
+        operationQueue = new DefaultBuildOperationQueue(allowAccessToProjectState, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), newUnconstrainedExecutor(), new SimpleWorker(), null)
 
         when:
-        operationQueue.add(new SynchronizedBuildOperation({}, new CountDownLatch(1), releaseLatch))
+        operationQueue.add(new SynchronizedBuildOperation({}, startedLatch, releaseLatch))
+        // Ensure a worker thread has picked up the operation, so the main thread reaches the blocking
+        // wait instead of running the operation itself during the self-drain.
+        assert startedLatch.await(10, TimeUnit.SECONDS)
         operationQueue.waitForCompletion()
 
         then:
@@ -439,7 +529,7 @@ class DefaultBuildOperationQueueTest extends Specification {
         policyDesc = lockChangesDisallowed ? "disallows" : "allows"
     }
 
-    @Timeout(value = 30, unit = TimeUnit.SECONDS)
+    @Issue("https://github.com/gradle/gradle/issues/38154")
     def "executing work #policyDesc project lock changes when allowAccessToProjectState is #allowAccessToProjectState"() {
         given:
         def disallowDepth = ThreadLocal.withInitial { 0 }
@@ -463,12 +553,9 @@ class DefaultBuildOperationQueueTest extends Specification {
         }
         workerRegistry.startProjectExecution(true)
         lease = workerRegistry.startWorker()
-        def executionContext = new BuildOperationExecutionContext(
-            new ManagedExecutorImpl(Executors.newFixedThreadPool(1), new ExecutorPolicy.CatchAndRecordFailures()),
-            1,
-            true
-        )
-        operationQueue = new DefaultBuildOperationQueue(allowAccessToProjectState, workerRegistry, executionContext, recordingWorker, null)
+        backingExecutor = Executors.newCachedThreadPool()
+        workerLeaseProcessor = new WorkerLeaseQueueProcessor(coordinationService, workerRegistry, backingExecutor, 1, 2)
+        operationQueue = new DefaultBuildOperationQueue(allowAccessToProjectState, workerRegistry, workerLeaseProcessor.createSubmissionQueue(), newUnconstrainedExecutor(), recordingWorker, null)
 
         when:
         operationQueue.add(new Success())
@@ -484,152 +571,13 @@ class DefaultBuildOperationQueueTest extends Specification {
         policyDesc = lockChangesDisallowed ? "disallows" : "allows"
     }
 
-    @Timeout(value = 60, unit = TimeUnit.SECONDS)
-    def "runAll does not lend project lock while waiting, avoiding deadlock against a resource held across the queue"() {
-        given:
-        // The waiter owns some resource plus a project lock; the other thread takes the project lock
-        // and then wants the resource, so lending the project lock while waiting would deadlock.
-        def resource = new ReentrantLock()
-        def blockingStarted = new CountDownLatch(1)
-        def releaseOperation = new CountDownLatch(1)
-        def failure = new AtomicReference<Throwable>()
-
-        def executor = setupLockLendingExecutor(blockingStarted)
-        def projectLock = workerRegistry.getProjectLock(Path.path(":build"), Path.path(":build:project"))
-
-        def waiter = lockLendingWaiterThread(projectLock, resource, failure) {
-            executor.runAll({ queue ->
-                queue.add(new SynchronizedBuildOperation({}, new CountDownLatch(1), releaseOperation))
-            } as Action, BuildOperationConstraint.UNCONSTRAINED)
-        }
-        def other = lockLendingOtherThread(projectLock, resource, new CountDownLatch(1), failure)
-
-        when:
-        waiter.start()
-        assert blockingStarted.await(10, TimeUnit.SECONDS)
-        boolean lockHeldDuringWait = false
-        coordinationService.withStateLock({ lockHeldDuringWait = projectLock.locked } as Runnable)
-        other.start()
-        releaseOperation.countDown()
-        waiter.join(10_000)
-        other.join(10_000)
-
-        then:
-        // The wait kept the project lock, so the other thread could never interleave into it
-        lockHeldDuringWait
-        !waiter.alive
-        !other.alive
-        failure.get() == null
-
-        cleanup:
-        releaseOperation.countDown()
-        other.interrupt()
-        waiter.join(10_000)
-        other.join(10_000)
-    }
-
-    @Timeout(value = 60, unit = TimeUnit.SECONDS)
-    def "runAllWithAccessToProjectState lends project lock while waiting, deadlocking against a resource held across the queue"() {
-        given:
-        def resource = new ReentrantLock()
-        def blockingStarted = new CountDownLatch(1)
-        def releaseOperation = new CountDownLatch(1)
-        def otherHasProjectLock = new CountDownLatch(1)
-        def failure = new AtomicReference<Throwable>()
-
-        def executor = setupLockLendingExecutor(blockingStarted)
-        def projectLock = workerRegistry.getProjectLock(Path.path(":build"), Path.path(":build:project"))
-
-        def waiter = lockLendingWaiterThread(projectLock, resource, failure) {
-            executor.runAllWithAccessToProjectState({ queue ->
-                queue.add(new SynchronizedBuildOperation({}, new CountDownLatch(1), releaseOperation))
-            } as Action, BuildOperationConstraint.UNCONSTRAINED)
-        }
-        def other = lockLendingOtherThread(projectLock, resource, otherHasProjectLock, failure)
-
-        when:
-        waiter.start()
-        assert blockingStarted.await(10, TimeUnit.SECONDS)
-        boolean lockHeldDuringWait = true
-        coordinationService.withStateLock({ lockHeldDuringWait = projectLock.locked } as Runnable)
-        other.start()
-        // Only possible because the wait lent out the project lock
-        assert otherHasProjectLock.await(10, TimeUnit.SECONDS)
-        releaseOperation.countDown()
-        waiter.join(2_000)
-
-        then:
-        // The queue's work is done, but the waiter cannot take its project lock back from the
-        // other thread, which in turn cannot acquire the resource the waiter still holds
-        !lockHeldDuringWait
-        waiter.alive
-        other.alive
-        failure.get() == null
-
-        cleanup:
-        // Break the deadlock so the registry can shut down cleanly
-        other.interrupt()
-        waiter.join(10_000)
-        other.join(10_000)
-    }
-
-    private BuildOperationExecutor setupLockLendingExecutor(CountDownLatch blockingStarted) {
-        coordinationService = new DefaultResourceLockCoordinationService()
-        workerRegistry = new DefaultWorkerLeaseService(coordinationService, new DefaultWorkerLimits(2), ResourceLockStatistics.NO_OP) {
+    private static TestBuildOperation operation(Closure<?> body) {
+        return new TestBuildOperation() {
             @Override
-            void blocking(Runnable action) {
-                // Count down inside the action so the lend/keep decision has already been made
-                super.blocking({
-                    blockingStarted.countDown()
-                    action.run()
-                } as Runnable)
+            void run(BuildOperationContext context) {
+                body.call()
             }
         }
-        workerRegistry.startProjectExecution(true)
-        return BuildOperationExecutorSupport.builder(2)
-            .withWorkerLeaseService(workerRegistry)
-            .build()
-    }
-
-    private Thread lockLendingWaiterThread(projectLock, ReentrantLock resource, AtomicReference<Throwable> failure, Closure<?> scheduleAndWait) {
-        def waiter = new Thread({
-            try {
-                // runAll() is always invoked from a thread that already holds a worker lease. The work is
-                // scheduled as UNCONSTRAINED so the wait does not require a lease and skips the self-drain,
-                // going straight to the blocking wait this exercises.
-                workerRegistry.runAsWorkerThread({
-                    workerRegistry.withLocks([projectLock]) {
-                        resource.lock()
-                        try {
-                            scheduleAndWait.call()
-                        } finally {
-                            resource.unlock()
-                        }
-                    }
-                } as Runnable)
-            } catch (Throwable t) {
-                failure.set(t)
-            }
-        })
-        waiter.daemon = true
-        return waiter
-    }
-
-    private Thread lockLendingOtherThread(projectLock, ReentrantLock resource, CountDownLatch hasProjectLock, AtomicReference<Throwable> failure) {
-        def other = new Thread({
-            try {
-                workerRegistry.withLocks([projectLock]) {
-                    hasProjectLock.countDown()
-                    resource.lockInterruptibly()
-                    resource.unlock()
-                }
-            } catch (InterruptedException ignored) {
-            } catch (Throwable t) {
-                failure.set(t)
-            }
-        })
-        other.daemon = true
-        return other
     }
 
     static class SynchronizedBuildOperation extends TestBuildOperation {

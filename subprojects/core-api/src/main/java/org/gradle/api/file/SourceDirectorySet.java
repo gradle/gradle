@@ -44,6 +44,7 @@ import java.util.function.Function;
  * You can filter the <strong>files</strong> that are obtainable in this set using patterns via {@link #include(Spec)}
  * and {@link #include(Spec)} (or any overload of these methods).  The set of included source directories themselves are
  * <strong>not filtered</strong>.
+ * @since 0.8
  */
 @UnmanagedStruct
 @NotToBeMigratedToLazy
@@ -61,6 +62,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      *
      * @param srcPath The source directory. This is evaluated as per {@link org.gradle.api.Project#files(Object...)}
      * @return this
+     * @since 0.8
      */
     SourceDirectorySet srcDir(Object srcPath);
 
@@ -69,6 +71,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      *
      * @param srcPaths The source directories. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}
      * @return this
+     * @since 0.8
      */
     SourceDirectorySet srcDirs(@Nullable Object... srcPaths);
 
@@ -82,6 +85,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * Does not filter source directories that do not exist.
      *
      * @return The source directories. Returns an empty set when this set contains no source directories.
+     * @since 0.8
      */
     Set<File> getSrcDirs();
 
@@ -90,6 +94,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      *
      * @param srcPaths The source directories. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}
      * @return this
+     * @since 0.8
      */
     SourceDirectorySet setSrcDirs(Iterable<?> srcPaths);
 
@@ -98,6 +103,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      *
      * @param source The source to add.
      * @return this
+     * @since 1.0
      */
     SourceDirectorySet source(SourceDirectorySet source);
 
@@ -106,6 +112,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * Generally, it is preferable to use this method instead of {@link #getSrcDirs()}, as this method does not require the source directories to be calculated when it is called. Instead, the source directories are calculated when queried. The return value of this method also maintains dependency information.
      *
      * <p>The returned collection is live and reflects changes to this source directory set.
+     * @since 3.2
      */
     FileCollection getSourceDirectories();
 
@@ -123,6 +130,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * {@link DirectoryTree}s.  It is discouraged to add multiple source directories that include the same dir to the same set.
      *
      * @return The source directory trees. Returns an empty set when this set contains no source directories.
+     * @since 1.0
      */
     Set<DirectoryTree> getSrcDirTrees();
 
@@ -132,6 +140,7 @@ public interface SourceDirectorySet extends FileTree, PatternFilterable, Named, 
      * restrict the contents to certain types of files, eg {@code *.java}.
      *
      * @return The filter patterns.
+     * @since 0.8
      */
     PatternFilterable getFilter();
 

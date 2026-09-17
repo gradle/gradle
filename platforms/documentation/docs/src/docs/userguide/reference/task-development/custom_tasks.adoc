@@ -412,6 +412,12 @@ Verification failures are also useful for tasks that need to report a failure ev
 include::sample[dir="snippets/reference/task-development/verificationFailure/kotlin",files="build.gradle.kts[tags=verification-failure]"]
 include::sample[dir="snippets/reference/task-development/verificationFailure/groovy",files="build.gradle[tags=verification-failure]"]
 ====
+<1> *Register Output*: The `process` task writes its output to a log file.
+<2> *Modify Output*: The task writes to its output file as it executes.
+<3> *Task Failure*: The task throws a `VerificationException` and fails at this point.
+<4> *Continue to Modify Output*: This line never runs due to the exception stopping the task.
+<5> *Consume Output*: The `postProcess` task depends on the output of the `process` task due to using that task's outputs as its own inputs.
+<6> *Use Partial Result*: With the `--continue` flag set, Gradle still runs the requested `postProcess` task despite the `process` task's failure.  `postProcess` can read and display the partial (though still valid) result.
 
 [source,bash]
 ----
@@ -421,9 +427,3 @@ $ ./gradlew postProcess --continue
 ----
 include::{snippetsPath}/reference/task-development/verificationFailure/tests/verificationFailure.out[]
 ----
-<1> *Register Output*: The `process` task writes its output to a log file.
-<2> *Modify Output*: The task writes to its output file as it executes.
-<3> *Task Failure*: The task throws a `VerificationException` and fails at this point.
-<4> *Continue to Modify Output*: This line never runs due to the exception stopping the task.
-<5> *Consume Output*: The `postProcess` task depends on the output of the `process` task due to using that task's outputs as its own inputs.
-<6> *Use Partial Result*: With the `--continue` flag set, Gradle still runs the requested `postProcess` task despite the `process` task's failure.  `postProcess` can read and display the partial (though still valid) result.

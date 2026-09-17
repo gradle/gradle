@@ -21,7 +21,7 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.action.ConfigurableRule;
 
-class SpecConfigurableRule {
+public class SpecConfigurableRule {
 
     private final ConfigurableRule<ComponentMetadataContext> configurableRule;
     private final Spec<ModuleVersionIdentifier> spec;
@@ -39,4 +39,5 @@ class SpecConfigurableRule {
     public Spec<ModuleVersionIdentifier> getSpec() {
         return spec;
     }
+
 }

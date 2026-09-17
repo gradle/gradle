@@ -29,6 +29,7 @@ public interface PasswordCredentials extends Credentials {
      * Returns the user name to use when authenticating.
      *
      * @return The user name. May be null.
+     * @since 3.5
      */
     @Nullable
     @ToBeReplacedByLazyProperty
@@ -38,6 +39,7 @@ public interface PasswordCredentials extends Credentials {
      * Sets the user name to use when authenticating.
      *
      * @param userName The user name. May be null.
+     * @since 3.5
      */
     void setUsername(@Nullable String userName);
 
@@ -45,6 +47,7 @@ public interface PasswordCredentials extends Credentials {
      * Returns the password to use when authenticating.
      *
      * @return The password. May be null.
+     * @since 3.5
      */
     @Nullable
     @ToBeReplacedByLazyProperty
@@ -54,6 +57,7 @@ public interface PasswordCredentials extends Credentials {
      * Sets the password to use when authenticating.
      *
      * @param password The password. May be null.
+     * @since 3.5
      */
     void setPassword(@Nullable String password);
 }

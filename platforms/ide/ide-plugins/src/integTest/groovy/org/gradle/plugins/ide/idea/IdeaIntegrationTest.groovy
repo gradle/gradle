@@ -119,6 +119,9 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
     @Test
     void overwritesExistingDependencies() {
         expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.idea.model.IdeaModel.pathVariables"): 1,
+        )
         executer.withTasks('idea').run()
 
         assertHasExpectedContents('root.iml')
@@ -155,6 +158,9 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
     @Test
     void addsScalaFacetAndCompilerLibraries() {
         expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.idea.model.IdeaModel.targetVersion"): 1,
+        )
         executer.withTasks('idea').run()
 
         hasProjectLibrary('root.ipr', 'scala-compiler-2.10.0', ['compiler-bridge_2.10', 'scala-compiler-2.10.0', 'scala-library-2.10.0', 'scala-reflect-2.10.0', 'compiler-interface', 'util-interface'], [], [], [])
@@ -219,6 +225,9 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
         def artifact1 = maven(repoDir).module("myGroup", "myArtifact1").publish().artifactFile
 
         expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.idea.model.IdeaModel.pathVariables"): 1,
+        )
         runIdeaTask """
             apply plugin: "java"
             apply plugin: "idea"
@@ -275,6 +284,7 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
         expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
         expectTaskTypeDeprecations(
                 ("org.gradle.plugins.ide.idea.model.IdeaModuleIml"): 1,
+                ("org.gradle.plugins.ide.api.XmlFileContentMerger.withXml"): 1,
         )
         runIdeaTask '''
             apply plugin: 'java'
@@ -460,6 +470,9 @@ class IdeaIntegrationTest extends AbstractIdeIntegrationTest implements StableCo
     @Test
     void canAddProjectLibraries() {
         expectTaskDeprecations("idea", "ideaModule", "ideaProject", "ideaWorkspace")
+        expectTaskTypeDeprecations(
+                ("org.gradle.plugins.ide.idea.model.IdeaProject.projectLibraries"): 1,
+        )
         runTask("idea", """
             apply plugin: 'idea'
 

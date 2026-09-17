@@ -20,6 +20,7 @@ import org.gradle.api.Action
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.initialization.DefaultScriptClassPathResolver
+import org.gradle.api.internal.initialization.transform.ClassLoadTimeInstrumentationComposer
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.invocation.Gradle
@@ -54,7 +55,8 @@ class BuildSrcBuildListenerFactoryTest extends Specification {
         def listener = new BuildSrcBuildListenerFactory(action, new DefaultScriptClassPathResolver(
             Stub(AgentStatus),
             Stub(Gradle),
-            Stub(PropertyUpgradeReportConfig)
+            Stub(PropertyUpgradeReportConfig),
+            ClassLoadTimeInstrumentationComposer.empty()
         )).create()
 
         when:

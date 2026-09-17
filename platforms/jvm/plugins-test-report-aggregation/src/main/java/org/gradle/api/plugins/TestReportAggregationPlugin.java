@@ -53,6 +53,11 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 @Incubating
 public abstract class TestReportAggregationPlugin implements Plugin<Project> {
 
+    /**
+     * The test report aggregation configuration name.
+     *
+     * @since 7.4
+     */
     public static final String TEST_REPORT_AGGREGATION_CONFIGURATION_NAME = "testReportAggregation";
 
     @Inject

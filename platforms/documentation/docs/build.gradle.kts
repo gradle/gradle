@@ -181,6 +181,16 @@ tasks.named<Test>("docsTest") {
     }
     jvmArgumentProviders.add(installationEnvProvider)
 
+    // IntegrationTestSamplesExecutor gives each docsTest worker its own Gradle user home next to the shared one, so
+    // that the sample daemons of parallel workers never share - and deadlock on - a cache. Delete those homes before
+    // the run: they live in intTestHomeDir, which is not wiped by `clean`, so leftovers of an earlier (possibly
+    // crashed) build would otherwise pile up on long-lived CI checkouts.
+    val intTestHomeDir = repoRoot().dir("intTestHomeDir").asFile
+    doFirst {
+        intTestHomeDir.listFiles(FileFilter { it.isDirectory && it.name.contains("-sample-worker-") })
+            ?.forEach { it.deleteRecursively() }
+    }
+
     // For unknown reason, this is set to 'sourceSet.getRuntimeClasspath()' in the 'org.gradle.samples' plugin
     testClassesDirs = sourceSets.docsTest.get().output.classesDirs
     // 'integTest.samplesdir' is set to an absolute path by the 'org.gradle.samples' plugin
@@ -208,11 +218,14 @@ tasks.named<Test>("docsTest") {
         }
 
         if (javaVersion.isCompatibleWith(JavaVersion.VERSION_26)) {
-            // PMD doesn't support Java 26
-            excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-core-plugins-code-quality*")
             // There is a bug in either AGP or the JDK which causes JdkImageTransform to fail with Java 26
             // https://issuetracker.google.com/issues/486844145
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-dependency-management-declaring-dependencies-declaring-configurations-kmp*")
+        }
+
+        if (javaVersion.isCompatibleWith(JavaVersion.VERSION_27)) {
+            // PMD doesn't support Java 27
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-core-plugins-code-quality*")
         }
 
         if (OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64") {
@@ -329,6 +342,8 @@ tasks.withType<CheckLinks>().configureEach {
 
 tasks.register("checkLinks") {
     dependsOn(tasks.withType<CheckLinks>())
+    dependsOn("checkDeadInternalLinks")
+    dependsOn("checkDeadExternalLinks")
 }
 
 errorprone {

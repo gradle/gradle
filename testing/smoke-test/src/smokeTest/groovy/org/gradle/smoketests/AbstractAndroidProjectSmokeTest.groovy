@@ -69,6 +69,7 @@ class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements Runne
         return runnerForLocation(projectDir, agpVersion, "assembleDebug", *excludingCCIncompatibleTasks())
             .deprecations(AndroidProjectDeprecations) {
                 expectProjectDependencyNotationDeprecation()
+                expectSetVisibleDeprecation()
             }
             .build()
     }
@@ -77,6 +78,7 @@ class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements Runne
         return runnerForLocation(projectDir, agpVersion, "assembleDebug", *excludingCCIncompatibleTasks())
             .deprecations(AndroidProjectDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache())
+                expectSetVisibleDeprecationIf(GradleContextualExecuter.isNotConfigCache())
             }
             .build()
     }
@@ -101,6 +103,10 @@ class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements Runne
             .withProjectDir(projectDir)
             .withTestKitDir(SHARED_GRADLE_USER_HOME)
             .withJdkWarningChecksDisabled() // Kapt seems to be accessing JDK internals. See KT-49187
+            // These projects apply the Develocity plugin and use the remote build cache, so a Develocity outage makes
+            // the Develocity agent log connection stack traces to the build output. Those are infrastructure noise
+            // unrelated to what these smoke tests verify. See https://github.com/gradle/gradle-private/issues/5290
+            .ignoreStackTraces("Develocity agent may log stack traces when ge.gradle.org / the remote build cache is unavailable")
 
         if (JavaVersion.current().isJava9Compatible()) {
             runner.withJvmArguments(

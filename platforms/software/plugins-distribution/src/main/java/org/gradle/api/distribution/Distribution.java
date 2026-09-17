@@ -24,6 +24,7 @@ import org.gradle.api.provider.Property;
 
 /**
  * A distribution allows to bundle an application or a library including dependencies, sources...
+ * @since 1.5
  */
 public interface Distribution extends Named {
 
@@ -55,6 +56,7 @@ public interface Distribution extends Named {
 
     /**
      * The contents of the distribution.
+     * @since 1.5
      */
     CopySpec getContents();
 
@@ -76,6 +78,7 @@ public interface Distribution extends Named {
      * }
      * </pre>
      * The DSL inside the {@code contents{} } block is the same DSL used for Copy tasks.
+     * @since 1.5
      */
     CopySpec contents(Action<? super CopySpec> action);
 }

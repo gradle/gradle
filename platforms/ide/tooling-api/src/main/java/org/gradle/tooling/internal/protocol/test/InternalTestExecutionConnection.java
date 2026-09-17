@@ -29,7 +29,7 @@ import org.gradle.tooling.internal.protocol.InternalProtocolInterface;
  * <p>Consumer compatibility: This interface is used by all consumer versions from 2.6-rc-1.</p>
  * <p>Provider compatibility: This interface is implemented by all provider versions from 2.6-rc-1.</p>
  *
- * @since 2.6-rc-1
+ * @since 2.6
  */
 public interface InternalTestExecutionConnection extends InternalProtocolInterface {
     BuildResult<?> runTests(InternalTestExecutionRequest testExecutionRequest, InternalCancellationToken cancellationToken, BuildParameters operationParameters);

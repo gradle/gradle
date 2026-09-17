@@ -18,10 +18,12 @@ package org.gradle.process;
 
 /**
  * Represents the result of running an external process.
+ * @since 0.9
  */
 public interface ExecResult {
     /**
      * Returns the exit value of the process.
+     * @since 0.9
      */
     int getExitValue();
 
@@ -30,6 +32,7 @@ public interface ExecResult {
      *
      * @return this
      * @throws ProcessExecutionException if the process exited with a non-zero exit value
+     * @since 0.9
      */
     ExecResult assertNormalExitValue() throws ProcessExecutionException;
 
@@ -38,6 +41,7 @@ public interface ExecResult {
      *
      * @return this
      * @throws ProcessExecutionException the execution failure
+     * @since 0.9
      */
     ExecResult rethrowFailure() throws ProcessExecutionException;
 }

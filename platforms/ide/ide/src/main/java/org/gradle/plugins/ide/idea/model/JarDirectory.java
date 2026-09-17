@@ -20,12 +20,18 @@ import com.google.common.base.Objects;
 
 /**
  * Represents a jar directory element of an idea module library.
+ * @since 1.0
  */
 public class JarDirectory {
 
     private Path path;
     private boolean recursive;
 
+    /**
+     * Creates a new {@code JarDirectory}.
+     *
+     * @since 2.14
+     */
     public JarDirectory(Path path, boolean recursive) {
         this.path = path;
         this.recursive = recursive;
@@ -33,6 +39,7 @@ public class JarDirectory {
 
     /**
      * The path of the jar directory
+     * @since 1.0
      */
     public Path getPath() {
         return path;
@@ -40,15 +47,26 @@ public class JarDirectory {
 
     /**
      * The value for the recursive attribute of the jar directory element.
+     * @since 1.0
      */
     public void setPath(Path path) {
         this.path = path;
     }
 
+    /**
+     * Returns whether recursive is set.
+     *
+     * @since 1.0
+     */
     public boolean isRecursive() {
         return recursive;
     }
 
+    /**
+     * Sets the recursive.
+     *
+     * @since 1.0
+     */
     public void setRecursive(boolean recursive) {
         this.recursive = recursive;
     }

@@ -1291,7 +1291,7 @@ This includes reworking the way that Gradle configures JGit for SSH operations b
 [[v8_7_upgrade_to_apache_commons_compress_1_25_0]]
 ==== Upgrade to Apache Commons Compress 1.25.0
 
-Apache Commons Compress has been updated from 1.21 to https://commons.apache.org/proper/commons-compress/changes-report.html#a1.25.0[1.25.0].
+Apache Commons Compress has been updated from 1.21 to https://commons.apache.org/proper/commons-compress/changes.html#a1.25.0[1.25.0].
 This change may affect the checksums of the produced jars, zips, and other archive types because the metadata of the produced artifacts may differ.
 
 [[v8_7_upgrade_to_asm_9_6]]

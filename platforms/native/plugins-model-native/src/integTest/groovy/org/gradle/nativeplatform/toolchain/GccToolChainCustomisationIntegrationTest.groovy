@@ -33,6 +33,7 @@ class GccToolChainCustomisationIntegrationTest extends AbstractInstalledToolChai
     def helloWorldApp = new CHelloWorldApp()
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
 apply plugin: 'c'
 

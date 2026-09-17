@@ -26,15 +26,20 @@ import org.gradle.problems.ProblemDiagnostics;
 @ServiceScope(Scope.BuildTree.class)
 public interface ProblemDiagnosticsFactory {
     /**
-     * Creates a new stream of problems. Each problem stream produces diagnostics for some logical set of problems, applying limits to
-     * the number of stack traces captured. Each stream has its own limits.
+     * Creates a stream that limits how many full stack traces it captures, and limits the cheaper partial
+     * captures it falls back on as well. Problems reported once both run out say which script they came
+     * from, but not which line.
+     *
+     * <p>Each stream counts its own captures, so one kind of problem cannot exhaust the limits of another.</p>
      */
     ProblemStream newStream();
 
     /**
-     * Creates a stream that caps full stack-trace captures like {@link #newStream()} but applies no limit to
-     * the cheaper bounded location captures past that cap, so every problem still gets a location. Used for
-     * {@code --warning-mode=all} and {@code --warning-mode=fail}.
+     * Creates a stream that limits full stack traces like {@link #newStream()}, but falls back on as many
+     * partial captures as it needs, so every problem keeps its line.
+     *
+     * <p>Used where every problem is shown individually and a missing line would be noticed, namely
+     * {@code --warning-mode=all} and {@code --warning-mode=fail}.</p>
      */
     ProblemStream newUnlimitedStream();
 

@@ -15,8 +15,10 @@
  */
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.launcher.daemon.diagnostics.DaemonStartupInfo;
+import org.gradle.launcher.daemon.startup.DaemonStartupInfo;
 
 public interface DaemonStarter {
+
     DaemonStartupInfo startDaemon(boolean singleRun);
+
 }

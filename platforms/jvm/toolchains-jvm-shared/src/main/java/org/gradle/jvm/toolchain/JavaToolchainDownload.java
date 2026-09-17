@@ -34,8 +34,18 @@ import java.net.URI;
 @Incubating
 public interface JavaToolchainDownload {
 
+    /**
+     * Returns the uri.
+     *
+     * @since 7.6
+     */
     URI getUri();
 
+    /**
+     * From uri.
+     *
+     * @since 7.6
+     */
     static JavaToolchainDownload fromUri(URI uri) {
         return DefaultJavaToolchainDownload.fromUri(uri);
     }

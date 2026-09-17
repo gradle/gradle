@@ -28,6 +28,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.requireNonNull;
+
 public class CompositeInstrumentationCodeGenerator implements InstrumentationCodeGenerator {
 
     private final Collection<InstrumentationCodeGenerator> generators;
@@ -61,7 +63,7 @@ public class CompositeInstrumentationCodeGenerator implements InstrumentationCod
 
             @Override
             public void buildType(String className, TypeSpec.Builder builder) {
-                generatorByClassName.get(className).buildType(className, builder);
+                requireNonNull(generatorByClassName.get(className)).buildType(className, builder);
             }
 
             @Override

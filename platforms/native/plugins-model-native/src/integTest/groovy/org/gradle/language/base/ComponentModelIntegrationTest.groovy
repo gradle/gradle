@@ -31,6 +31,7 @@ import static org.gradle.util.Matchers.containsText
 class ComponentModelIntegrationTest extends AbstractComponentModelIntegrationTest {
 
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         withCustomComponentType()
         buildFile << """
             model {
@@ -83,6 +84,7 @@ class ComponentModelIntegrationTest extends AbstractComponentModelIntegrationTes
     }
 
     def "component container is visible to rules as various types"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
 class Rules extends RuleSource {
     @Defaults
@@ -121,6 +123,7 @@ model {
     }
 
     def "component sources and binaries containers are visible in model report"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         succeeds "model"
 
@@ -136,6 +139,7 @@ model {
     }
 
     def "plugin can create component"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
         class SomeComponentPlugin extends RuleSource {
@@ -165,6 +169,7 @@ model {
     }
 
     def "plugin can configure component with given name"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withMainSourceSet()
         when:
@@ -200,6 +205,7 @@ model {
     }
 
     def "plugin can apply component beforeEach / afterEach"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
         class SomeComponentPlugin extends RuleSource {
@@ -231,6 +237,7 @@ afterEach CustomComponent 'newComponent'"""
     }
 
     def "plugin can configure component with given type "() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withMainSourceSet()
         when:
@@ -265,6 +272,7 @@ afterEach CustomComponent 'newComponent'"""
     }
 
     def "buildscript can create component"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
         model {
@@ -286,6 +294,7 @@ afterEach CustomComponent 'newComponent'"""
     }
 
     def "buildscript can configure component with given name"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withMainSourceSet()
         when:
@@ -324,6 +333,7 @@ afterEach CustomComponent 'newComponent'"""
     }
 
     def "buildscript can apply component beforeEach / afterEach"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withMainSourceSet()
         when:
@@ -356,6 +366,7 @@ afterEach CustomComponent 'newComponent'"""
     }
 
     def "buildscript can configure component with given type "() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withMainSourceSet()
         when:
@@ -386,6 +397,7 @@ afterEach CustomComponent 'newComponent'"""
     }
 
     def "reasonable error message when adding element to map using its default implementation"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
         interface UnmanagedComponent extends ComponentSpec {}
@@ -412,6 +424,7 @@ afterEach CustomComponent 'newComponent'"""
     }
 
     def "reasonable error message when adding element of unknown component type to map"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << """
         interface AnotherCustomComponent extends ComponentSpec {}
@@ -431,6 +444,7 @@ afterEach CustomComponent 'newComponent'"""
     }
 
     def "componentSpecContainer is groovy decorated when used in rules"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withMainSourceSet()
         buildFile << '''
@@ -463,6 +477,7 @@ afterEach CustomComponent 'newComponent'"""
     }
 
     def "#projectionType is closed when used as input"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withMainSourceSet()
         buildFile << """
@@ -492,6 +507,7 @@ afterEach CustomComponent 'newComponent'"""
     }
 
     def "component binaries container elements and their tasks containers are visible in model report"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withBinaries()
 
@@ -532,6 +548,7 @@ afterEach CustomComponent 'newComponent'"""
     }
 
     def "can reference binaries container for a component in a rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withBinaries()
         buildFile << '''
@@ -555,6 +572,7 @@ afterEach CustomComponent 'newComponent'"""
     }
 
     def "can reference binaries container elements using specialized type in a rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withBinaries()
         buildFile << '''
@@ -580,6 +598,7 @@ afterEach CustomComponent 'newComponent'"""
     }
 
     def "can reference task container of a binary in a rule"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withBinaries()
         withLanguageTransforms()
@@ -606,6 +625,7 @@ afterEach CustomComponent 'newComponent'"""
     }
 
     def "can view components container as a model map"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << '''
             class ComponentsRules extends RuleSource {
@@ -636,6 +656,7 @@ afterEach CustomComponent 'newComponent'"""
 
     @Issue("android problem with 2.8-rc-1")
     def "plugin can declare a top level element and register a component type"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             @Managed
             interface MyModel {
@@ -672,6 +693,7 @@ afterEach CustomComponent 'newComponent'"""
 
     @Issue("android problem with 2.8-rc-1")
     def "plugin can declare a top level element and register a component type and use the JavaBasePlugin"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             @Managed
             public interface MyModel {

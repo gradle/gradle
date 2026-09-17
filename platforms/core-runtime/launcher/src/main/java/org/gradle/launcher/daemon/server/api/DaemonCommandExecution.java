@@ -15,9 +15,9 @@
  */
 package org.gradle.launcher.daemon.server.api;
 
-import org.gradle.launcher.daemon.configuration.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.protocol.Command;
+import org.gradle.launcher.daemon.startup.DaemonServerConfiguration;
 
 import java.util.LinkedList;
 import java.util.List;

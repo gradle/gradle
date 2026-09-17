@@ -20,6 +20,7 @@ import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalOperationDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalPluginIdentifier;
 import org.gradle.tooling.internal.protocol.events.InternalTaskWithExtraInfoDescriptor;
+import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
 import java.util.Set;
@@ -34,7 +35,7 @@ public class DefaultTaskDescriptor implements Serializable, InternalTaskWithExtr
     private final Set<InternalOperationDescriptor> dependencies;
     private final InternalPluginIdentifier originPlugin;
 
-    public DefaultTaskDescriptor(OperationIdentifier id, String taskIdentityPath, String taskPath, String displayName, OperationIdentifier parentId, Set<InternalOperationDescriptor> dependencies, InternalPluginIdentifier originPlugin) {
+    public DefaultTaskDescriptor(OperationIdentifier id, String taskIdentityPath, String taskPath, String displayName, OperationIdentifier parentId, Set<InternalOperationDescriptor> dependencies, @Nullable InternalPluginIdentifier originPlugin) {
         this.id = id;
         this.taskIdentityPath = taskIdentityPath;
         this.displayName = displayName;
@@ -75,7 +76,7 @@ public class DefaultTaskDescriptor implements Serializable, InternalTaskWithExtr
     }
 
     @Override
-    public InternalPluginIdentifier getOriginPlugin() {
+    public @Nullable InternalPluginIdentifier getOriginPlugin() {
         return originPlugin;
     }
 

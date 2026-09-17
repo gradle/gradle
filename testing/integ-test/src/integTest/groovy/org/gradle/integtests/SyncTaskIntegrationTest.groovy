@@ -28,6 +28,161 @@ import spock.lang.Issue
 
 class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableConfigurationCacheDeprecations {
 
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    def 'an empty source when destination is #destDescription and skipWhenSourceIsEmpty is #skipOnEmpty'() {
+        given:
+        file('source/foo.txt').text = 'foo'
+
+        buildFile """
+            // `base` is responsible for registering build-owned locations
+            apply plugin: 'base'
+            task sync(type: Sync) {
+                from 'source'
+                into $into
+                skipWhenSourceIsEmpty = $skipOnEmpty
+            }
+        """
+
+        when:
+        run 'sync'
+
+        then:
+        executedAndNotSkipped ':sync'
+        file("$destDir/foo.txt").exists()
+
+        when:
+        file('source/foo.txt').delete()
+        run 'sync'
+
+        then:
+        assertSyncOutcome(afterEmptying)
+        assertDestination(destDir, remaining)
+
+        when:
+        run 'sync'
+
+        then:
+        assertSyncOutcome(onRerun)
+        assertDestination(destDir, remaining)
+
+        where:
+        skipOnEmpty | destDescription   | into                                 | destDir     | afterEmptying | onRerun      | remaining
+        true        | 'build-owned'     | 'layout.buildDirectory.dir("out")'   | 'build/out' | 'EXECUTED'    | 'NO-SOURCE'  | null
+        true        | 'non-build-owned' | 'layout.projectDirectory.dir("out")' | 'out'       | 'NO-SOURCE'   | 'NO-SOURCE'  | ['foo.txt']
+        false       | 'build-owned'     | 'layout.buildDirectory.dir("out")'   | 'build/out' | 'EXECUTED'    | 'UP-TO-DATE' | []
+        false       | 'non-build-owned' | 'layout.projectDirectory.dir("out")' | 'out'       | 'EXECUTED'    | 'UP-TO-DATE' | []
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    def 'an empty source with no previous run (skipWhenSourceIsEmpty: #skipOnEmpty)'() {
+        given:
+        // 'source' is never created, so it resolves to an empty file tree (simulating a misconfigured 'from').
+        file('dest/unrelated.txt').text = 'do not delete me'
+
+        buildFile """
+            task sync(type: Sync) {
+                from 'source'
+                into 'dest'
+                skipWhenSourceIsEmpty = $skipOnEmpty
+            }
+        """
+
+        when:
+        run 'sync'
+
+        then:
+        assertSyncOutcome(expectedOutcome)
+        assertDestination('dest', remaining)
+
+        where:
+        skipOnEmpty | expectedOutcome | remaining
+        true        | 'NO-SOURCE'     | ['unrelated.txt']
+        false       | 'EXECUTED'      | []
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    def 'an empty source with a destination that does not exist yet (skipWhenSourceIsEmpty: #skipOnEmpty)'() {
+        given:
+        // neither 'source' nor 'dest' is created, so the source resolves to an empty file tree and there is
+        // nothing at all for the task to do
+        buildFile """
+            task sync(type: Sync) {
+                from 'source'
+                into 'dest'
+                skipWhenSourceIsEmpty = $skipOnEmpty
+            }
+        """
+
+        when:
+        run 'sync'
+
+        then:
+        assertSyncOutcome(expectedOutcome)
+        assertDestination('dest', remaining)
+
+        where:
+        // not skipping runs the task, which creates its output directory, but the copy action does no work,
+        // so the task is reported as UP-TO-DATE rather than as executed
+        skipOnEmpty | expectedOutcome | remaining
+        true        | 'NO-SOURCE'     | null
+        false       | 'UP-TO-DATE'    | []
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    def 'skipWhenSourceIsEmpty is honored when set after the task has been configured'() {
+        given:
+        // 'source' is never created, so it resolves to an empty file tree. The pre-existing file gives the
+        // task something to do, so that honoring the late assignment shows up as the task running rather
+        // than being skipped as NO-SOURCE. What it does to the destination is covered elsewhere.
+        file('dest/pre-existing.txt').text = 'delete me'
+
+        buildFile """
+            task sync(type: Sync) {
+                from 'source'
+                into 'dest'
+            }
+
+            tasks.named('sync') {
+                skipWhenSourceIsEmpty = false
+            }
+        """
+
+        when:
+        run 'sync'
+
+        then:
+        assertSyncOutcome('EXECUTED')
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    def 'disabling skipWhenSourceIsEmpty removes the copy spec from the task source files (skipWhenSourceIsEmpty: #skipOnEmpty)'() {
+        given:
+        file('source/foo.txt').text = 'foo'
+
+        buildFile """
+            task sync(type: Sync) {
+                from 'source'
+                into 'dest'
+                skipWhenSourceIsEmpty = $skipOnEmpty
+            }
+
+            println "sourceFiles=" + tasks.sync.inputs.sourceFiles.files.size()
+            println "inputFiles=" + tasks.sync.inputs.files.files.size()
+        """
+
+        when:
+        run 'help'
+
+        then:
+        outputContains("sourceFiles=$expectedSourceFiles")
+        outputContains("inputFiles=1")
+
+        where:
+        skipOnEmpty | expectedSourceFiles
+        true        | 1
+        false       | 0
+    }
+
     def 'copies files and removes extra files from destDir'() {
         given:
         defaultSourceFileTree()
@@ -96,6 +251,49 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
             'dir1/extraDir/extra.txt',
             'emptyDir'
         )
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/37597")
+    def 'preserve is honored when the source is fully emptied and skipWhenSourceIsEmpty is false (destination: #description)'() {
+        given:
+        file('source/foo.txt').text = 'foo'
+        file('source/keep.txt').text = 'keep'
+
+        buildFile """
+            // `base` is responsible for registering build-owned locations
+            apply plugin: 'base'
+            task sync(type: Sync) {
+                from 'source'
+                into $into
+                skipWhenSourceIsEmpty = false
+                preserve {
+                    include 'keep.txt'
+                }
+            }
+        """
+
+        when:
+        run 'sync'
+
+        then:
+        executedAndNotSkipped ':sync'
+        file("$destDir/foo.txt").exists()
+        file("$destDir/keep.txt").exists()
+
+        when:
+        file('source/foo.txt').delete()
+        file('source/keep.txt').delete()
+        run 'sync'
+
+        then:
+        executedAndNotSkipped ':sync'
+        !file("$destDir/foo.txt").exists()
+        file("$destDir/keep.txt").exists()
+
+        where:
+        description         | into                                    | destDir
+        'build-owned'       | 'layout.buildDirectory.dir("out")'      | 'build/out'
+        'non-build-owned'   | 'layout.projectDirectory.dir("out")'    | 'out'
     }
 
     def 'only excluding non-preserved files works as expected'() {
@@ -739,6 +937,33 @@ class SyncTaskIntegrationTest extends AbstractIntegrationSpec implements StableC
         file('dest').assertHasDescendants(
             'file1.txt'
         )
+    }
+
+    /**
+     * Asserts the outcome the ':sync' task was reported with: 'EXECUTED', or a skip marker such as
+     * 'NO-SOURCE' or 'UP-TO-DATE'. Both markers report the task as skipped, so the marker itself is
+     * what distinguishes them.
+     */
+    private void assertSyncOutcome(String expectedOutcome) {
+        if (expectedOutcome == 'EXECUTED') {
+            executedAndNotSkipped ':sync'
+        } else {
+            skipped ':sync'
+            outputContains(":sync $expectedOutcome")
+        }
+    }
+
+    /**
+     * Asserts the contents of the destination directory, where {@code null} expects the directory itself not
+     * to exist: the stale-output clean-up deletes it once it is left empty, and a skipped task never creates
+     * it in the first place. The copy action, in contrast, both creates and keeps it.
+     */
+    private void assertDestination(String destDir, List<String> expectedContents) {
+        if (expectedContents == null) {
+            file(destDir).assertDoesNotExist()
+        } else {
+            file(destDir).assertHasDescendants(expectedContents)
+        }
     }
 
     def defaultSourceFileTree() {

@@ -18,8 +18,13 @@ package org.gradle.problems.internal.rendering
 
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
+import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
+import org.gradle.api.problems.internal.DefaultLineInFileLocation
+import org.gradle.api.problems.internal.DefaultProblem
 import org.gradle.api.problems.internal.DefaultProblemBuilder
+import org.gradle.api.problems.internal.DefaultProblemDefinition
+import org.gradle.api.problems.internal.DefaultStackTraceLocation
 import org.gradle.api.problems.internal.IsolatableToBytesSerializer
 import org.gradle.api.problems.internal.ProblemBuilderInternal
 import org.gradle.api.problems.internal.ProblemInternal
@@ -163,8 +168,31 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 Problem found: Project is a prototype (id: sample-problems:prototype-project)
   This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API usage should integrated into plugins
-    Location: /path/to/script line 20
+    Location: /path/to/script:20
     Possible solution: Look up the samples index for real-life examples.
+        ''')
+    }
+
+    def "render location inferred from a stack trace location"() {
+        given:
+        def problem = new DefaultProblem(
+            new DefaultProblemDefinition(createId(), Severity.WARNING, null),
+            null,
+            [],
+            [new DefaultStackTraceLocation(DefaultLineInFileLocation.from("/path/to/script", 20), [])],
+            [],
+            null,
+            null,
+            null
+        )
+
+        when:
+        problemWriter.write(problem, writer)
+
+        then:
+        renderedProblem == denormalizeAndStrip('''
+Problem found: Project is a prototype (id: sample-problems:prototype-project)
+    Location: /path/to/script:20
         ''')
     }
 
@@ -189,8 +217,8 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
 Problem found: Project is a prototype (id: sample-problems:prototype-project)
   This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API usage should integrated into plugins
-    Location: /path/to/script line 20
-    Location: /path/to/alternative line 30
+    Location: /path/to/script:20
+    Location: /path/to/alternative:30
     Possible solutions:
       1. Look up the samples index for real-life examples.
       2. Or read the documentation on the Gradle website.

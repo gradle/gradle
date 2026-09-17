@@ -20,6 +20,7 @@ import org.gradle.authentication.Authentication;
 
 /**
  * Authentication scheme for basic access authentication over HTTP. When using this scheme, credentials are sent preemptively.
+ * @since 2.7
  */
 public interface BasicAuthentication extends Authentication {
 }

@@ -19,14 +19,16 @@ package org.gradle.internal.serialize;
 import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Objects;
+
 /**
  * A {@code PlaceholderException} is used when an assertion error cannot be serialized or deserialized.
  */
 public class PlaceholderAssertionError extends AssertionError implements PlaceholderExceptionSupport {
     private final String exceptionClassName;
-    private final Throwable getMessageException;
-    private final String toString;
-    private final Throwable toStringRuntimeEx;
+    private final @Nullable Throwable getMessageException;
+    private final @Nullable String toString;
+    private final @Nullable Throwable toStringRuntimeEx;
 
     @SuppressWarnings("this-escape")
     public PlaceholderAssertionError(String exceptionClassName,
@@ -49,7 +51,7 @@ public class PlaceholderAssertionError extends AssertionError implements Placeho
     }
 
     @Override
-    public String getMessage() {
+    public @Nullable String getMessage() {
         if (getMessageException != null) {
             throw UncheckedException.throwAsUncheckedException(getMessageException);
         }
@@ -61,6 +63,6 @@ public class PlaceholderAssertionError extends AssertionError implements Placeho
         if (toStringRuntimeEx != null) {
             throw UncheckedException.throwAsUncheckedException(toStringRuntimeEx);
         }
-        return toString;
+        return Objects.requireNonNull(toString);
     }
 }

@@ -21,6 +21,7 @@ import org.gradle.api.component.Component;
 
 /**
  * A library that can be linked into or depended on by another software element.
+ * @since 2.2
  */
 @Incubating
 public interface Library extends Component {

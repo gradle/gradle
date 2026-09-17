@@ -24,11 +24,13 @@ import java.io.OutputStream;
 
 /**
  * The type of signature.
+ * @since 1.0
  */
 public interface SignatureType {
 
     /**
      * The file extension (without the leading dot) associated to this type of signature.
+     * @since 1.0
      */
     @Input
     String getExtension();
@@ -38,6 +40,7 @@ public interface SignatureType {
      *
      * @param toSign The file to be signed
      * @return The file where to write the signature of the given file to be signed
+     * @since 1.0
      */
     File fileFor(File toSign);
 
@@ -47,6 +50,7 @@ public interface SignatureType {
      * @see #getExtension()
      * @param toSign The file to be signed
      * @return The combined file extension (without the leading dot)
+     * @since 1.0
      */
     String combinedExtension(File toSign);
 
@@ -56,6 +60,7 @@ public interface SignatureType {
      * @param signatory The signatory
      * @param toSign The file to be signed
      * @return The file where the signature has been written to
+     * @since 1.0
      */
     File sign(Signatory signatory, File toSign);
 
@@ -65,6 +70,7 @@ public interface SignatureType {
      * @param signatory The signatory
      * @param toSign The source of the data to be signed
      * @param destination Where the signature will be written to
+     * @since 1.0
      */
     void sign(Signatory signatory, InputStream toSign, OutputStream destination);
 }

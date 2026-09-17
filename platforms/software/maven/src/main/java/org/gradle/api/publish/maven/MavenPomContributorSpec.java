@@ -29,6 +29,7 @@ public interface MavenPomContributorSpec {
 
     /**
      * Creates, configures and adds a contributor to the publication.
+     * @since 4.8
      */
     void contributor(Action<? super MavenPomContributor> action);
 

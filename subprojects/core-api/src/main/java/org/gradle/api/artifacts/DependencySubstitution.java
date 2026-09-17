@@ -23,7 +23,7 @@ import org.gradle.internal.HasInternalProtocol;
 /**
  * Provides means to substitute a different dependency during resolution.
  *
- * @since 2.5
+ * @since 2.4
  */
 @HasInternalProtocol
 public interface DependencySubstitution {
@@ -31,6 +31,7 @@ public interface DependencySubstitution {
      * The requested dependency, before it is resolved.
      * The requested dependency does not change even if there are multiple dependency substitution rules
      * that manipulate the dependency metadata.
+     * @since 2.4
      */
     ComponentSelector getRequested();
 
@@ -48,6 +49,7 @@ public interface DependencySubstitution {
      * </ul>
      *
      * @param notation the notation that gets parsed into an instance of {@link ComponentSelector}.
+     * @since 2.4
      */
     void useTarget(Object notation);
 

@@ -22,8 +22,9 @@ import org.gradle.api.internal.artifacts.cache.DependencyResolutionControl;
 import org.gradle.api.internal.artifacts.cache.ModuleResolutionControl;
 import org.gradle.api.internal.artifacts.configurations.CachePolicy;
 import org.gradle.api.internal.artifacts.configurations.MutationValidator;
-import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheExpirationControl;
 import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
+import org.gradle.api.internal.artifacts.ivyservice.DefaultCacheExpirationControl;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -32,33 +33,40 @@ import java.util.concurrent.TimeUnit;
 import static org.gradle.api.internal.artifacts.configurations.MutationValidator.MutationType.STRATEGY;
 
 public class DefaultCachePolicy implements CachePolicy {
+
     private static final int SECONDS_IN_DAY = 24 * 60 * 60;
     private static final int MILLISECONDS_IN_DAY = SECONDS_IN_DAY * 1000;
 
-    final List<Action<? super DependencyResolutionControl>> dependencyCacheRules;
-    final List<Action<? super ModuleResolutionControl>> moduleCacheRules;
-    final List<Action<? super ArtifactResolutionControl>> artifactCacheRules;
+    private static final Action<DependencyResolutionControl> DEFAULT_DYNAMIC_VERSIONS_RULE = dependencyCacheRuleFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
+    private static final Action<ModuleResolutionControl> DEFAULT_CHANGING_MODULE_RULE = moduleCacheRuleFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
+    private static final Action<ArtifactResolutionControl> DEFAULT_CHANGING_MODULE_ARTIFACT_RULE = artifactCacheRuleFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
+    private static final Action<ArtifactResolutionControl> DEFAULT_MISSING_ARTIFACT_RULE = artifactResolutionControl -> {
+        if (artifactResolutionControl.getCachedResult() == null) {
+            artifactResolutionControl.cacheFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
+        }
+    };
+
+    private static final ImmutableList<Action<? super DependencyResolutionControl>> DEFAULT_DEPENDENCY_CACHE_RULES = ImmutableList.of(DEFAULT_DYNAMIC_VERSIONS_RULE);
+    private static final ImmutableList<Action<? super ModuleResolutionControl>> DEFAULT_MODULE_CACHE_RULES = ImmutableList.of(DEFAULT_CHANGING_MODULE_RULE);
+    private static final ImmutableList<Action<? super ArtifactResolutionControl>> DEFAULT_ARTIFACT_CACHE_RULES = ImmutableList.of(DEFAULT_MISSING_ARTIFACT_RULE, DEFAULT_CHANGING_MODULE_ARTIFACT_RULE);
+
+    private @Nullable List<Action<? super DependencyResolutionControl>> dependencyCacheRules;
+    private @Nullable List<Action<? super ModuleResolutionControl>> moduleCacheRules;
+    private @Nullable List<Action<? super ArtifactResolutionControl>> artifactCacheRules;
+
     private MutationValidator mutationValidator = MutationValidator.IGNORE;
     private long keepDynamicVersionsFor = MILLISECONDS_IN_DAY;
     private long keepChangingModulesFor = MILLISECONDS_IN_DAY;
     private boolean offline = false;
     private boolean refresh = false;
 
-    @SuppressWarnings("this-escape")
     public DefaultCachePolicy() {
-        this.dependencyCacheRules = new ArrayList<>(1);
-        this.moduleCacheRules = new ArrayList<>(1);
-        this.artifactCacheRules = new ArrayList<>(2);
-
-        cacheDynamicVersionsFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
-        cacheChangingModulesFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
-        cacheMissingArtifactsFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
     }
 
     private DefaultCachePolicy(DefaultCachePolicy policy) {
-        this.dependencyCacheRules = new ArrayList<>(policy.dependencyCacheRules);
-        this.moduleCacheRules = new ArrayList<>(policy.moduleCacheRules);
-        this.artifactCacheRules = new ArrayList<>(policy.artifactCacheRules);
+        this.dependencyCacheRules = policy.dependencyCacheRules == null ? null : new ArrayList<>(policy.dependencyCacheRules);
+        this.moduleCacheRules = policy.moduleCacheRules == null ? null : new ArrayList<>(policy.moduleCacheRules);
+        this.artifactCacheRules = policy.artifactCacheRules == null ? null : new ArrayList<>(policy.artifactCacheRules);
         this.keepDynamicVersionsFor = policy.keepDynamicVersionsFor;
         this.keepChangingModulesFor = policy.keepChangingModulesFor;
         this.offline = policy.offline;
@@ -89,11 +97,18 @@ public class DefaultCachePolicy implements CachePolicy {
     public void cacheDynamicVersionsFor(final int value, final TimeUnit unit) {
         keepDynamicVersionsFor = unit.toMillis(value);
         mutationValidator.validateMutation(STRATEGY);
-        dependencyCacheRules.add(0, dependencyResolutionControl -> {
+        if (dependencyCacheRules == null) {
+            dependencyCacheRules = new ArrayList<>(1);
+        }
+        dependencyCacheRules.add(0, dependencyCacheRuleFor(value, unit));
+    }
+
+    private static Action<DependencyResolutionControl> dependencyCacheRuleFor(int value, TimeUnit unit) {
+        return dependencyResolutionControl -> {
             if (!dependencyResolutionControl.getCachedResult().isEmpty()) {
                 dependencyResolutionControl.cacheFor(value, unit);
             }
-        });
+        };
     }
 
     @Override
@@ -101,26 +116,31 @@ public class DefaultCachePolicy implements CachePolicy {
         keepChangingModulesFor = units.toMillis(value);
         mutationValidator.validateMutation(STRATEGY);
 
-        moduleCacheRules.add(0, moduleResolutionControl -> {
-            if (moduleResolutionControl.isChanging()) {
-                moduleResolutionControl.cacheFor(value, units);
-            }
-        });
+        if (moduleCacheRules == null) {
+            moduleCacheRules = new ArrayList<>(1);
+        }
+        moduleCacheRules.add(0, moduleCacheRuleFor(value, units));
 
-        artifactCacheRules.add(0, artifactResolutionControl -> {
+        if (artifactCacheRules == null) {
+            artifactCacheRules = new ArrayList<>(1);
+        }
+        artifactCacheRules.add(0, artifactCacheRuleFor(value, units));
+    }
+
+    private static Action<ArtifactResolutionControl> artifactCacheRuleFor(int value, TimeUnit units) {
+        return artifactResolutionControl -> {
             if (artifactResolutionControl.belongsToChangingModule()) {
                 artifactResolutionControl.cacheFor(value, units);
             }
-        });
+        };
     }
 
-    private void cacheMissingArtifactsFor(final int value, final TimeUnit units) {
-        mutationValidator.validateMutation(STRATEGY);
-        artifactCacheRules.add(0, artifactResolutionControl -> {
-            if (artifactResolutionControl.getCachedResult() == null) {
-                artifactResolutionControl.cacheFor(value, units);
+    private static Action<ModuleResolutionControl> moduleCacheRuleFor(int value, TimeUnit units) {
+        return moduleResolutionControl -> {
+            if (moduleResolutionControl.isChanging()) {
+                moduleResolutionControl.cacheFor(value, units);
             }
-        });
+        };
     }
 
     @Override
@@ -131,14 +151,29 @@ public class DefaultCachePolicy implements CachePolicy {
     @Override
     public CacheExpirationControl asImmutable() {
         return new DefaultCacheExpirationControl(
-            ImmutableList.copyOf(dependencyCacheRules),
-            ImmutableList.copyOf(moduleCacheRules),
-            ImmutableList.copyOf(artifactCacheRules),
+            withDefaultRules(dependencyCacheRules, DEFAULT_DEPENDENCY_CACHE_RULES),
+            withDefaultRules(moduleCacheRules, DEFAULT_MODULE_CACHE_RULES),
+            withDefaultRules(artifactCacheRules, DEFAULT_ARTIFACT_CACHE_RULES),
             keepDynamicVersionsFor,
             keepChangingModulesFor,
             offline,
             refresh
         );
+    }
+
+    /**
+     * Appends the shared default rules to the user-provided rules, preserving the historic
+     * evaluation order where user rules are evaluated before the default rules.
+     */
+    private static <T> ImmutableList<Action<? super T>> withDefaultRules(@Nullable List<Action<? super T>> userRules, ImmutableList<Action<? super T>> defaultRules) {
+        if (userRules == null) {
+            return defaultRules;
+        }
+
+        return ImmutableList.<Action<? super T>>builderWithExpectedSize(userRules.size() + defaultRules.size())
+            .addAll(userRules)
+            .addAll(defaultRules)
+            .build();
     }
 
 }

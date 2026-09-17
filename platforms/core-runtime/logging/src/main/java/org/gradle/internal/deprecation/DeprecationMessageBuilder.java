@@ -91,6 +91,14 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     /**
+     * Output: This is scheduled to be removed in Gradle 11.
+     */
+    public WithDeprecationTimeline willBeRemovedInGradle11() {
+        this.deprecationTimeline = DeprecationTimeline.willBeRemovedInVersion(GRADLE11);
+        return new WithDeprecationTimeline(this);
+    }
+
+    /**
      * Output: This will fail with an error in Gradle 10.
      */
     public WithDeprecationTimeline willBecomeAnErrorInGradle10() {

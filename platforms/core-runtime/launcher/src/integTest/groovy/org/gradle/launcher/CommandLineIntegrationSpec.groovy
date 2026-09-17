@@ -19,13 +19,11 @@ package org.gradle.launcher
 import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.jvm.JDWPUtil
-import org.gradle.launcher.daemon.logging.DaemonMessages
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
-
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Assume
 import spock.lang.Issue
 import spock.lang.Timeout
@@ -84,7 +82,7 @@ class CommandLineIntegrationSpec extends AbstractIntegrationSpec {
         def output = gradle.waitForFinish().getOutput();
 
         expect:
-        output.contains(DaemonMessages.WAITING_FOR_DEBUGGER)
+        output.contains("Listening for transport dt_socket at address")
     }
 
     @Issue('https://github.com/gradle/gradle/issues/18084')

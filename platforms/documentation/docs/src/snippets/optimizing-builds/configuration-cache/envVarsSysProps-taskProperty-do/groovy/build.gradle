@@ -1,0 +1,19 @@
+abstract class StampBuildTask extends DefaultTask {
+    @Input
+    abstract Property<String> getBuildNumber()
+
+    @OutputFile
+    abstract RegularFileProperty getOutput()
+
+    @TaskAction
+    void run() {
+        output.get().asFile.text = "Build ${buildNumber.get()}"
+    }
+}
+
+// tag::do[]
+tasks.register('stampBuild', StampBuildTask) {
+    buildNumber = providers.environmentVariable('BUILD_NUMBER').orElse('local') // <1> <2>
+    output = layout.buildDirectory.file('build-stamp.txt')
+}
+// end::do[]

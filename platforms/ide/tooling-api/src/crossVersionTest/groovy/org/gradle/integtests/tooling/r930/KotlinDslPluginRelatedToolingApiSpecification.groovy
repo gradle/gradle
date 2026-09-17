@@ -36,7 +36,7 @@ class KotlinDslPluginRelatedToolingApiSpecification extends ToolingApiSpecificat
     }
 
     private boolean disableJdkWarningCheck() {
-        // Doing this to avoid "The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `X` that might work differently than in the requested version `Y`." errors
+        // Doing this to avoid "The `embedded-kotlin` and `kotlin-dsl` plugins rely on features of Kotlin `X` that might work differently than in the compiler version `Y`." errors
         // on embedded Kotlin version bumps. Proper solution would be to make these tests use a version of `kotlin-dsl` plugin that's generated from current sources.
         withJdkWarningsCheckDisabled()
     }

@@ -58,3 +58,7 @@ tasks.named<Test>("test").configure {
         )
     }
 }
+
+errorprone {
+    nullawayEnabled = true
+}

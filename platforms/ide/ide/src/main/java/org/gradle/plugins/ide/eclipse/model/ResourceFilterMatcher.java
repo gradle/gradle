@@ -41,6 +41,7 @@ public interface ResourceFilterMatcher {
      * The id of the matcher type, as defined by its Eclipse extension.
      *
      * Can be null on a newly created matcher, but must be set in order to be considered valid.
+     * @since 3.5
      */
     @Nullable
     String getId();
@@ -49,11 +50,13 @@ public interface ResourceFilterMatcher {
      * Sets the id of the matcher type.
      *
      * @param id the id, cannot be null
+     * @since 3.5
      */
     void setId(String id);
 
     /**
      * The arguments of the matcher or null if it has children.
+     * @since 3.5
      */
     @Nullable
     String getArguments();
@@ -62,11 +65,13 @@ public interface ResourceFilterMatcher {
      * Sets the arguments of the matcher.
      *
      * @param arguments the arguments or null if the matcher should have child matchers instead
+     * @since 3.5
      */
     void setArguments(String arguments);
 
     /**
      * The child matchers of this matcher, e.g. when this is an OR-matcher.
+     * @since 3.5
      */
     Set<ResourceFilterMatcher> getChildren();
 
@@ -74,6 +79,7 @@ public interface ResourceFilterMatcher {
      * Adds a child/nested matcher to this matcher.
      *
      * @param configureAction The action to use to configure the matcher.
+     * @since 3.5
      */
     ResourceFilterMatcher matcher(Action<? super ResourceFilterMatcher> configureAction);
 }

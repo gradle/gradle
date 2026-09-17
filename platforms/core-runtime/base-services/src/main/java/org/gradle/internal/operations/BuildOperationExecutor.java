@@ -31,18 +31,14 @@ import javax.annotation.concurrent.ThreadSafe;
 public interface BuildOperationExecutor {
     /**
      * Submits an arbitrary number of runnable operations, created synchronously by the scheduling action, to be executed in the global
-     * build operation thread pool constrained to {@link BuildOperationConstraint#MAX_WORKERS}. Operations may execute concurrently. Blocks until all operations are complete.
+     * build operation thread pool. Operations may execute concurrently. Blocks until all operations are complete.
+     * <p>
+     * How much parallelism an individual operation gets is chosen per operation, when it is added to the queue:
+     * see {@link BuildOperationQueue#add} and {@link BuildOperationQueue#addUnconstrained}.
      *
      * <p>Actions are not permitted to access any mutable project state. Generally, this is preferred.</p>
      */
     <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction);
-
-    /**
-     * Overload allowing {@link BuildOperationConstraint} to be specified.
-     *
-     * @see BuildOperationExecutor#runAllWithAccessToProjectState(Action)
-     */
-    <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint);
 
     /**
      * Same as {@link #runAll(Action)}. However, the actions are allowed to access mutable project state. In general, this is more likely to
@@ -53,13 +49,6 @@ public interface BuildOperationExecutor {
     <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction);
 
     /**
-     * Overload allowing {@link BuildOperationConstraint} to be specified.
-     *
-     * @see BuildOperationExecutor#runAllWithAccessToProjectState(Action)
-     */
-    <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint);
-
-    /**
      * Submits an arbitrary number of operations, created synchronously by the scheduling action, to be executed by the supplied
      * worker in the global build operation thread pool. Operations may execute concurrently, so the worker should be thread-safe.
      * Blocks until all operations are complete.
@@ -67,11 +56,4 @@ public interface BuildOperationExecutor {
      * <p>Actions are not permitted to access any mutable project state. Generally, this is preferred.</p>
      */
     <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction);
-
-    /**
-     * Overload allowing {@link BuildOperationConstraint} to be specified.
-     *
-     * @see BuildOperationExecutor#runAll(BuildOperationWorker, Action)
-     */
-    <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint);
 }

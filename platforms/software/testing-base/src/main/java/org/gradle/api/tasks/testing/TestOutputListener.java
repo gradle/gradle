@@ -22,6 +22,7 @@ import org.gradle.internal.service.scopes.Scope;
 
 /**
  * Listens to the output events like printing to standard output or error
+ * @since 1.0
  */
 @EventScope(Scope.Build.class)
 @DeprecatedInGradleScope
@@ -32,6 +33,7 @@ public interface TestOutputListener {
      *
      * @param testDescriptor describes the test
      * @param outputEvent the event that contains the output message and the destination (standard output or error, etc.)
+     * @since 1.0
      */
     void onOutput(TestDescriptor testDescriptor, TestOutputEvent outputEvent);
 }

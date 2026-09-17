@@ -21,7 +21,16 @@ package org.gradle.plugins.ide.eclipse.model;
  * @since 3.5
  */
 public enum ResourceFilterAppliesTo {
+    /**
+     * @since 3.5
+     */
     FILES,
+    /**
+     * @since 3.5
+     */
     FOLDERS,
+    /**
+     * @since 3.5
+     */
     FILES_AND_FOLDERS;
 }

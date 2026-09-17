@@ -206,7 +206,7 @@ class DefaultSharedObjectDecoderTest {
             isIntegrityCheckEnabled = false,
             logger = mock(),
             problemsListener = mock(),
-            classDecoder = DefaultClassDecoder(mock(), mock()),
+            classDecoder = DefaultClassDecoder(mock(), mock(), mock()),
             specialDecoders = specialDecoders
         )
 }

@@ -32,6 +32,7 @@ public interface HasPublicType {
      * Public type.
      *
      * @return this object's public type
+     * @since 3.5
      */
     TypeOf<?> getPublicType();
 }

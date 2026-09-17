@@ -20,6 +20,7 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.resources.ProjectLeaseRegistry;
+import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -32,12 +33,13 @@ import java.util.function.Supplier;
  */
 @ServiceScope(Scope.BuildSession.class)
 public class CalculatedValueContainerFactory implements CalculatedValueFactory {
+
     private final ProjectLeaseRegistry projectLeaseRegistry;
     private final NodeExecutionContext globalContext;
 
     public CalculatedValueContainerFactory(ProjectLeaseRegistry projectLeaseRegistry, ServiceRegistry buildScopeServices) {
         this.projectLeaseRegistry = projectLeaseRegistry;
-        this.globalContext = buildScopeServices::get;
+        this.globalContext = new GlobalContext(buildScopeServices);
     }
 
     /**
@@ -69,4 +71,28 @@ public class CalculatedValueContainerFactory implements CalculatedValueFactory {
             return supplier.get();
         }
     }
+
+    /**
+     * Used when calculating the value outside an execution graph.
+     */
+    private static class GlobalContext implements NodeExecutionContext {
+
+        private final ServiceRegistry delegate;
+
+        public GlobalContext(ServiceRegistry delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public <T> T getService(Class<T> type) throws ServiceLookupException {
+            return delegate.get(type);
+        }
+
+        @Override
+        public boolean isPartOfExecutionGraph() {
+            return false;
+        }
+
+    }
+
 }

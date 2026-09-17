@@ -24,6 +24,7 @@ import org.gradle.test.preconditions.TestEnvironmentPreconditions
 @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
 class SourceSetLinkDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         settingsFile << "rootProject.name = 'test'"
 
         file("src/main/headers/funcs.h") << """
@@ -78,6 +79,7 @@ model {
     }
 
     def "library dependency of binary is available when linking all source sets"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {
@@ -103,6 +105,7 @@ model {
     }
 
     def "library dependency of 1 language source set is available to another when linking"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {
@@ -127,6 +130,7 @@ model {
     }
 
     def "dependencies of language source set added to binary are available when linking"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {

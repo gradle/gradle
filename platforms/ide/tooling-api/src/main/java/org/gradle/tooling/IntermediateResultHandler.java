@@ -27,6 +27,7 @@ public interface IntermediateResultHandler<T> {
      * Handles successful completion of the action.
      *
      * @param result the result
+     * @since 4.8
      */
     void onComplete(T result);
 }

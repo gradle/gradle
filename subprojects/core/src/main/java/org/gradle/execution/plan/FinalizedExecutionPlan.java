@@ -26,26 +26,6 @@ import java.io.Closeable;
  */
 @ThreadSafe
 public interface FinalizedExecutionPlan extends Describable, Closeable {
-    FinalizedExecutionPlan EMPTY = new FinalizedExecutionPlan() {
-        @Override
-        public WorkSource<Node> asWorkSource() {
-            throw new IllegalStateException();
-        }
-
-        @Override
-        public QueryableExecutionPlan getContents() {
-            return QueryableExecutionPlan.EMPTY;
-        }
-
-        @Override
-        public String getDisplayName() {
-            return "empty";
-        }
-
-        @Override
-        public void close() {
-        }
-    };
 
     /**
      * Returns this plan as a {@link WorkSource} ready for execution.
@@ -62,4 +42,5 @@ public interface FinalizedExecutionPlan extends Describable, Closeable {
      */
     @Override
     void close();
+
 }

@@ -42,9 +42,3 @@ gradleModule {
         daemon = true
     }
 }
-
-packageCycles {
-    // These public packages have classes that are tangled with the corresponding internal package.
-    excludePatterns.add("org/gradle/external/javadoc/**")
-    excludePatterns.add("org/gradle/api/tasks/javadoc/**")
-}

@@ -17,6 +17,7 @@
 package org.gradle.jvm.toolchain.internal
 
 
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
@@ -62,5 +63,38 @@ class LocationListInstallationSupplierTest extends Specification {
         directories.size() == 2
         directories*.location.containsAll(expectedFile1, expectedFile2)
         directories*.source.unique() == [ "Gradle property 'org.gradle.java.installations.paths'" ]
+    }
+
+    def "skips unresolvable paths without failing"() {
+        given:
+        def fileResolver = Mock(FileResolver) {
+            resolve("bad/relative/path") >> { throw new UnsupportedOperationException("Cannot convert relative path bad/relative/path to an absolute file.") }
+        }
+        def supplier = new LocationListInstallationSupplier(buildOptions, fileResolver)
+
+        when:
+        buildOptions.installationsFromPaths >> ["bad/relative/path"]
+        def directories = supplier.get()
+
+        then:
+        directories.isEmpty()
+    }
+
+    def "returns valid entries even when some paths fail resolution"() {
+        given:
+        def validFile = tmpDir.createDir("valid/jdk")
+        def fileResolver = Mock(FileResolver) {
+            resolve("bad/path") >> { throw new UnsupportedOperationException("Cannot convert relative path") }
+            resolve(validFile.absolutePath) >> validFile
+        }
+        def supplier = new LocationListInstallationSupplier(buildOptions, fileResolver)
+
+        when:
+        buildOptions.installationsFromPaths >> ["bad/path", validFile.absolutePath]
+        def directories = supplier.get()
+
+        then:
+        directories.size() == 1
+        directories[0].location == validFile
     }
 }

@@ -24,9 +24,9 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.initialization.ScriptHandlerInternal
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectOrderingUtil
+import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
@@ -45,7 +45,6 @@ import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.KotlinScriptEvaluator
 import org.gradle.kotlin.dsl.provider.runCatching
-import org.gradle.kotlin.dsl.resolver.EditorReports
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
 import org.gradle.kotlin.dsl.support.ImplicitImports
@@ -315,7 +314,7 @@ fun compilationClassPathForScriptPluginOf(
 
     val scriptSource = textResourceScriptSource(resourceDescription, scriptFile, project.serviceOf())
     val scriptScope = baseScope.createChild("model-${scriptFile.toURI()}", null)
-    val scriptHandler = scriptHandlerFactory.create(scriptSource, scriptScope, StandaloneDomainObjectContext.forScript(scriptSource))
+    val scriptHandler = scriptHandlerFactory.create(scriptSource, scriptScope)
 
     kotlinScriptFactoryOf(project).evaluate(
         target = target,
@@ -352,8 +351,14 @@ fun textResourceScriptSource(description: String, scriptFile: File, resourceLoad
 
 
 private
-fun sourceLookupScriptHandlersFor(project: Project) =
-    project.hierarchy.map { it.buildscript }.toList()
+fun sourceLookupScriptHandlersFor(project: ProjectInternal) =
+    buildList {
+        var current: ProjectState? = project.owner
+        while (current != null) {
+            add(current.mutableModelEvenAfterFailure.buildscript)
+            current = current.parent
+        }
+    }
 
 
 private
@@ -414,8 +419,7 @@ data class KotlinScriptTargetModelBuilder(
     fun buildEditorReportsFor(exceptions: List<Exception>) =
         buildEditorReportsFor(
             scriptFile,
-            exceptions,
-            project.isLocationAwareEditorHintsEnabled
+            exceptions
         )
 
     private
@@ -471,23 +475,6 @@ inline fun KotlinScriptClassPathProvider.safeCompilationClassPathOf(
 internal
 val Project.scriptImplicitImports
     get() = serviceOf<ImplicitImports>().list
-
-
-private
-val Project.hierarchy: Sequence<Project>
-    get() = sequence {
-        var project = this@hierarchy
-        yield(project)
-        while (project != project.rootProject) {
-            project = project.parent!!
-            yield(project)
-        }
-    }
-
-
-internal
-val Project.isLocationAwareEditorHintsEnabled: Boolean
-    get() = findProperty(EditorReports.locationAwareEditorHintsPropertyName) == "true"
 
 
 internal

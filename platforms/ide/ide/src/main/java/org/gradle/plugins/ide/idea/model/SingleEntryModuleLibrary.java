@@ -26,6 +26,7 @@ import java.util.Set;
 
 /**
  * Single entry module library
+ * @since 1.0
  */
 public class SingleEntryModuleLibrary extends ModuleLibrary {
 
@@ -38,6 +39,7 @@ public class SingleEntryModuleLibrary extends ModuleLibrary {
      * @param javadoc paths to javadoc jars or javadoc folders
      * @param source paths to source jars or source folders
      * @param scope scope
+     * @since 2.3
      */
     public SingleEntryModuleLibrary(FilePath library, Set<FilePath> javadoc, Set<FilePath> source, String scope) {
         super(Collections.singletonList(library), javadoc, source, new ArrayList<>(), scope);
@@ -50,6 +52,7 @@ public class SingleEntryModuleLibrary extends ModuleLibrary {
      * @param javadoc path to javadoc jars or javadoc folders
      * @param source paths to source jars or source folders
      * @param scope scope
+     * @since 1.0
      */
     public SingleEntryModuleLibrary(FilePath library, @Nullable FilePath javadoc, @Nullable FilePath source, String scope) {
         super(
@@ -66,6 +69,7 @@ public class SingleEntryModuleLibrary extends ModuleLibrary {
      *
      * @param library a path to jar or class folder in Path format
      * @param scope scope
+     * @since 1.0
      */
     public SingleEntryModuleLibrary(FilePath library, String scope) {
         this(library, new LinkedHashSet<>(), new LinkedHashSet<>(), scope);
@@ -73,18 +77,25 @@ public class SingleEntryModuleLibrary extends ModuleLibrary {
 
     /**
      * Module version of the library, if any.
+     * @since 1.1
      */
     @Nullable
     public ModuleVersionIdentifier getModuleVersion() {
         return moduleVersion;
     }
 
+    /**
+     * Sets the module version.
+     *
+     * @since 1.1
+     */
     public void setModuleVersion(@Nullable ModuleVersionIdentifier moduleVersion) {
         this.moduleVersion = moduleVersion;
     }
 
     /**
      * Returns a single jar or class folder
+     * @since 1.0
      */
     public File getLibraryFile() {
         return ((FilePath) this.getClasses().iterator().next()).getFile();
@@ -92,6 +103,7 @@ public class SingleEntryModuleLibrary extends ModuleLibrary {
 
     /**
      * Returns a single javadoc jar or javadoc folder
+     * @since 1.0
      */
     public File getJavadocFile() {
         if (getJavadoc().size() > 0) {
@@ -103,6 +115,7 @@ public class SingleEntryModuleLibrary extends ModuleLibrary {
 
     /**
      * Returns a single source jar or source folder
+     * @since 1.0
      */
     public File getSourceFile() {
         if (getSources().size() > 0) {

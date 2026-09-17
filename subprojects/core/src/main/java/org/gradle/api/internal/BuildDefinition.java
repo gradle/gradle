@@ -133,7 +133,7 @@ public class BuildDefinition {
     }
 
     private static StartParameterInternal startParameterForIncludedBuildFrom(StartParameterInternal startParameter, @Nullable File buildRootDir) {
-        StartParameterInternal includedBuildStartParam = startParameter.newBuild();
+        StartParameterInternal includedBuildStartParam = startParameter.newBuildInternal();
         includedBuildStartParam.setCurrentDir(buildRootDir);
         includedBuildStartParam.doNotSearchUpwards();
         includedBuildStartParam.setInitScripts(startParameter.getInitScripts());
@@ -145,6 +145,6 @@ public class BuildDefinition {
      * Creates a defensive copy of this build definition, to isolate this instance from mutations made to the {@link StartParameter} during execution of the build.
      */
     public BuildDefinition newInstance() {
-        return new BuildDefinition(name, buildRootDir, startParameter.newInstance(), injectedSettingsPlugins, dependencySubstitutions, fromBuild, pluginBuild);
+        return new BuildDefinition(name, buildRootDir, startParameter.newInstanceInternal(), injectedSettingsPlugins, dependencySubstitutions, fromBuild, pluginBuild);
     }
 }

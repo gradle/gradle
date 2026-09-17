@@ -41,6 +41,8 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.FallbackBuildOperationIdRef;
+import org.gradle.internal.operations.RootBuildOperationRef;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -62,6 +64,7 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
     ProblemsInternal createProblemsService(
         ProblemSummarizer problemSummarizer,
         ProblemStream problemStream,
+        RootBuildOperationRef rootBuildOperationRef,
         ExceptionProblemRegistry exceptionProblemRegistry,
         ExceptionAnalyser exceptionAnalyser,
         InstantiatorFactory instantiatorFactory,
@@ -73,7 +76,7 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         return new DefaultProblems(
             problemSummarizer,
             problemStream,
-            CurrentBuildOperationRef.instance(),
+            new FallbackBuildOperationIdRef(CurrentBuildOperationRef.instance(), rootBuildOperationRef),
             exceptionProblemRegistry,
             exceptionAnalyser,
             instantiatorFactory.decorateLenient(serviceRegistry),
