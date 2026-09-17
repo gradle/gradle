@@ -167,6 +167,13 @@ class CrossVersionPerformanceTestRunner implements PerformanceTestRunner<CrossVe
 
         def baselineVersions = toBaselineVersions(releases, targetVersions, minimumBaseVersion).collect { results.baseline(it) }
         try {
+            // TEMPORARY - DO NOT MERGE. Intentional failure to verify the errored-scenario report gate.
+            // Placed inside this try block on purpose: the finally below still calls reporter.report(results),
+            // so the run writes its testExecution row stamped with this build's teamCityBuildId and zero
+            // measurements - exactly the shape of the AGP 9.4.0 Android Studio sync failure the gate must catch.
+            if (testId == 'packing tar' && testProject == 'archivePerformanceProject') {
+                assert 1 + 1 == 3
+            }
             int runIndex = 0
             runVersion(testId, current, perVersionWorkingDirectory(runIndex++), results.current)
 
