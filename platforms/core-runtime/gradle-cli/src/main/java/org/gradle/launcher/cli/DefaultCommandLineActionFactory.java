@@ -31,7 +31,6 @@ import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
-import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions;
 import org.gradle.internal.logging.LoggingManagerFactory;
@@ -109,7 +108,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
      */
     @VisibleForTesting
     protected void createBuildActionFactoryActionCreator(ServiceRegistry loggingServices, ServiceRegistry basicServices, List<CommandLineActionCreator> actionCreators) {
-        actionCreators.add(new BuildActionsFactory(loggingServices, basicServices, CurrentGradleInstallation.locate()));
+        actionCreators.add(new BuildActionsFactory(loggingServices, basicServices));
     }
 
     /**
