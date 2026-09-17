@@ -46,6 +46,19 @@ interface ClassGenerator {
         List<GeneratedConstructor<T>> getConstructors();
 
         /**
+         * Returns the service types injected into the properties of the generated class.
+         *
+         * <p>Services the decoration itself looks up, such as the {@code ManagedObjectRegistry}
+         * behind managed properties, are not included.</p>
+         */
+        List<Class<?>> getInjectedServices();
+
+        /**
+         * Returns the generated classes of the directly nested managed types.
+         */
+        List<GeneratedClass<?>> getNestedManagedClasses();
+
+        /**
          * Creates a serialization constructor. Note: this can be expensive and does not perform any caching.
          */
         SerializationConstructor<T> getSerializationConstructor(Class<? super T> baseClass);
