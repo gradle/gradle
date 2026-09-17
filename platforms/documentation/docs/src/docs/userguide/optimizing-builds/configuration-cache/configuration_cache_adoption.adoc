@@ -491,7 +491,7 @@ Gradle provides escape hatches, listed below in order of preference.
 | `task.notCompatibleWithConfigurationCache("reason")` per task. Surgical, well-understood, supported. See <<configuration_cache_debugging.adoc#config_cache:task_opt_out, Declare Incompatible Tasks>>.
 
 | 2
-| Suppressible inputs: `org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks` and `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization`. Use sparingly to mitigate noisy invalidation while the underlying plugin is being fixed. See <<configuration_cache_enabling.adoc#config_cache:usage:input_opt_outs:input_detection, Input-detection opt-outs>>.
+| Suppressible inputs: `org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks` and `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization`. Use sparingly to mitigate noisy invalidation while the underlying plugin is being fixed. *Both properties are deprecated and scheduled for removal in Gradle 11.* See <<configuration_cache_enabling.adoc#config_cache:usage:input_opt_outs:input_detection, Input-detection opt-outs>>.
 
 | 3
 | `--no-configuration-cache` for a specific invocation. Permanent flag in your CI job for one specific workflow. Reasonable when a single command is fundamentally incompatible.

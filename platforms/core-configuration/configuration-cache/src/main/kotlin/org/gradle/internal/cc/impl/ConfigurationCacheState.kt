@@ -1036,7 +1036,7 @@ class ConfigurationCacheState(
                 invalidProviders.add(subscription)
             }
         }
-        if (!gradle.startParameter.isConfigurationCacheIgnoreUnsupportedBuildEventsListeners) {
+        if (!gradle.startParameter.configurationCacheIgnoreUnsupportedBuildEventsListeners.get()) {
             invalidProviders.forEach { subscription ->
                 onProblem(
                     PropertyProblem(

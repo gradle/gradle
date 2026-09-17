@@ -134,6 +134,39 @@ abstract class UnpackTask @Inject constructor(
 
 See <<working_with_files.adoc#sec:unpacking_archives_example, Unpacking archives>> in the Gradle User Manual for more details.
 
+[[deprecated_configuration_cache_opt_out_properties]]
+==== Deprecation of temporary Configuration Cache opt-out properties
+
+The following Gradle properties were introduced as temporary opt-outs to ease the adoption of the Configuration Cache.
+They let a build revert to earlier, more lenient behavior while the underlying build logic or plugins are being fixed.
+
+These properties are now deprecated and will be removed in Gradle 11.
+Setting any of them, to any value, emits a deprecation warning.
+
+[cols="3,1,3"]
+|===
+| Property | Introduced in | Remediation
+
+| `org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks`
+| Gradle 8.3
+| Fix the build logic or plugins that perform file system checks, such as `File.exists()`, during configuration, so that they no longer cause unnecessary cache invalidation.
+
+| `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization`
+| Gradle 8.4
+| Fix the build logic or plugins that read the build environment while the task graph is being serialized, so that they no longer cause unnecessary cache invalidation.
+
+| `org.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners`
+| Gradle 9.0
+| Convert the build event listeners passed to link:{javadocPath}/org/gradle/build/event/BuildEventsListenerRegistry.html#onTaskCompletion(org.gradle.api.provider.Provider)[`BuildEventsListenerRegistry.onTaskCompletion`] into <<build_services.adoc#build_services,build services>>.
+
+| `org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization`
+| Gradle 9.8
+| Fix the serialization issues of the task output listeners registered during configuration, or register them at execution time instead, for example in a task action.
+|===
+
+Use the <<configuration_cache_debugging.adoc#config_cache:troubleshooting, Configuration Cache report>> to identify the offending build logic.
+See <<configuration_cache_enabling.adoc#config_cache:usage:input_opt_outs, Temporary Opt-Outs for Configuration Cache Behavior>> in the Gradle User Manual for the details of each property.
+
 [[changes_9.8.0]]
 == Upgrading from 9.7.0 and earlier
 
@@ -195,7 +228,7 @@ If your build registers such a listener and the listener is nonessential, you ca
 org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization=true
 ----
 
-This property is a temporary opt-out and will be removed in a future Gradle release.
+This property is a temporary opt-out, <<deprecated_configuration_cache_opt_out_properties, deprecated since Gradle 9.9>> and scheduled for removal in Gradle 11.
 
 [[kotlin_object_singletons_in_configuration_cache]]
 ==== Kotlin `object` singletons keep their identity in the Configuration Cache
