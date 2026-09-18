@@ -107,6 +107,9 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         then:
         def taskPaths = [receivedProblem(0), receivedProblem(1)]*.oneLocation(TaskLocation)*.buildTreePath
         taskPaths.toSet() == [':reportProblem', ':reportProblem2'].toSet()
+        // the console rendering has no task path, the grouping under the task header tells the copies apart
+        result.groupedOutput.task(':reportProblem').output.contains('Problem found: label')
+        result.groupedOutput.task(':reportProblem2').output.contains('Problem found: label')
     }
 
     // This test will fail when the deprecated space-assignment syntax is removed.
