@@ -27,7 +27,9 @@ import javax.annotation.concurrent.Immutable;
  * <p>
  * Groups are organized in hierarchy where the parent group should represent the more broad problem group.
  * <p>
- * Two problem groups  are considered equal if their {@link #getName()} and their parents are equal.
+ * Two problem groups are considered equal if their {@link #getName()} and their parents are equal.
+ * <p>
+ * Gradle provides a predefined hierarchy of groups, see {@link ProblemGroups}.
  *
  * @since 8.8
  * @see ProblemId
@@ -70,7 +72,7 @@ public abstract class ProblemGroup {
     /**
      * Creates a new root problem group i.e. a group with no parent.
      *
-     * @param name the name of the group. The convention is to use kebab-case (i.e., lower case with hyphens). Cannot be blank (i.e., {@code null}, empty string, or only whitespaces).
+     * @param name the name of the group. Cannot be blank (i.e., {@code null}, empty string, or only whitespaces).
      * @param displayName the user-friendly display name of the group. Cannot be blank (i.e., {@code null}, empty string, or only whitespaces).
      * @return the new group
      * @since 8.13
@@ -82,7 +84,7 @@ public abstract class ProblemGroup {
     /**
      * Creates a new problem group.
      *
-     * @param name the name of the group. The convention is to use kebab-case (ie lower case with hyphens).  Cannot be blank (i.e., {@code null}, empty string, or only whitespaces).
+     * @param name the name of the group. Cannot be blank (i.e., {@code null}, empty string, or only whitespaces).
      * @param displayName the user-friendly display name of the group. Cannot be blank (i.e., {@code null}, empty string, or only whitespaces).
      * @param parent the parent group. May be {@code null} for root groups.
      * @return the new group

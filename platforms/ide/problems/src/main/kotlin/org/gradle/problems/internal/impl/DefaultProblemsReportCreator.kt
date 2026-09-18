@@ -23,10 +23,10 @@ import org.gradle.api.logging.Logging
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.problems.FileLocation
 import org.gradle.api.problems.LineInFileLocation
-import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemLocation
 import org.gradle.api.problems.internal.PluginIdLocation
+import org.gradle.api.problems.internal.ProblemGroupSupport
 import org.gradle.api.problems.internal.ProblemInternal
 import org.gradle.api.problems.internal.ProblemReportCreator
 import org.gradle.api.problems.internal.ProblemSummaryData
@@ -108,13 +108,9 @@ private fun ProblemSummaryData.toJsProblemIdSummary(): JsProblemIdSummary =
 
 @Suppress("USELESS_ELVIS")
 private fun ProblemId.toJsProblemIdElements(): List<JsProblemIdElement> {
-    val groups = generateSequence(group) { it.parent }.toList().reversed() + ProblemGroup.create(name, displayName)
-    return groups.map { group ->
-        JsProblemIdElement(
-            name = group.name ?: "<no name provided>",
-            displayName = group.displayName ?: "<no display name provided>"
-        )
-    }
+    val groups = generateSequence(ProblemGroupSupport.asInternal(group)) { it.parentInternal }.toList().reversed()
+    return groups.map { JsProblemIdElement(name = it.name ?: "<no name provided>", displayName = it.displayName ?: "<no display name provided>") } +
+        JsProblemIdElement(name = name ?: "<no name provided>", displayName = displayName ?: "<no display name provided>")
 }
 
 private fun jsLocationsFor(

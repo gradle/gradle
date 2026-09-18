@@ -53,6 +53,8 @@ import org.gradle.api.problems.internal.DefaultTypeValidationData;
 import org.gradle.api.problems.internal.DeprecationData;
 import org.gradle.api.problems.internal.DocLinkInternal;
 import org.gradle.api.problems.internal.GeneralData;
+import org.gradle.api.problems.internal.ProblemGroupInternal;
+import org.gradle.api.problems.internal.ProblemGroupSupport;
 import org.gradle.api.problems.internal.PropertyTraceData;
 import org.gradle.api.problems.internal.TypeValidationData;
 import org.jspecify.annotations.NonNull;
@@ -539,16 +541,16 @@ public class ValidationProblemSerialization {
             JsonObject result = new JsonObject();
             result.addProperty("name", problemId.getName());
             result.addProperty("displayName", problemId.getDisplayName());
-            result.add("group", serializeGroup(problemId.getGroup()));
+            result.add("group", serializeGroup(ProblemGroupSupport.asInternal(problemId.getGroup())));
             return result;
         }
 
 
-        private static JsonObject serializeGroup(ProblemGroup group) {
+        private static JsonObject serializeGroup(ProblemGroupInternal group) {
             JsonObject groupObject = new JsonObject();
             groupObject.addProperty("name", group.getName());
             groupObject.addProperty("displayName", group.getDisplayName());
-            ProblemGroup parent = group.getParent();
+            ProblemGroupInternal parent = group.getParentInternal();
             if (parent != null) {
                 groupObject.add("parent", serializeGroup(parent));
             }
