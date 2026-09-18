@@ -287,6 +287,22 @@ class ArtifactTypeRegistryTest extends Specification {
         toImmutable(registry).mapAttributesFor(file("foo.jar")) == attrsPlusFormat
     }
 
+    def "visits the attributes that are mapped for files and directories"() {
+        given:
+        registry.getArtifactTypeContainer().create(ArtifactTypeDefinition.JAR_TYPE).attributes.attribute(Attribute.of("custom", String), "123")
+        registry.getArtifactTypeContainer().create(ArtifactTypeDefinition.DIRECTORY_TYPE).attributes.attribute(Attribute.of("custom", String), "234")
+        def immutable = toImmutable(registry)
+        def visited = [] as Set
+
+        when:
+        immutable.visitArtifactTypeAttributes([]) { visited << it }
+
+        then:
+        visited.contains(immutable.mapAttributesFor(file("foo.jar")))
+        visited.contains(immutable.mapAttributesFor(dir("foo")))
+        visited.contains(immutable.mapAttributesFor(dir("foo.jar")))
+    }
+
     File file(String name) {
         return Stub(File) {
             getName() >> name
