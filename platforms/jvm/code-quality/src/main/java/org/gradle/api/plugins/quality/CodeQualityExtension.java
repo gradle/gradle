@@ -19,13 +19,16 @@ import org.gradle.api.Incubating;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.util.Collection;
+
 
 /**
  * Base Code Quality Extension.
@@ -33,54 +36,48 @@ import java.util.Collection;
  */
 public abstract class CodeQualityExtension {
 
-    private String toolVersion;
-    private Collection<SourceSet> sourceSets;
-    private boolean ignoreFailures;
+    @SuppressWarnings("this-escape")
+    public CodeQualityExtension() {
+        getIgnoreFailures().convention(false);
+    }
 
     /**
      * The version of the code quality tool to be used.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    public String getToolVersion() {
-        return toolVersion;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getToolVersion();
 
     /**
      * The version of the code quality tool to be used.
      * @since 1.0
      */
     public void setToolVersion(String toolVersion) {
-        this.toolVersion = toolVersion;
+        getToolVersion().set(toolVersion);
     }
 
     /**
      * The source sets to be analyzed as part of the <code>check</code> and <code>build</code> tasks.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
-    public Collection<SourceSet> getSourceSets() {
-        return sourceSets;
-    }
+    @ReplacesEagerProperty(originalType = Collection.class)
+    public abstract ListProperty<SourceSet> getSourceSets();
 
     /**
      * The source sets to be analyzed as part of the <code>check</code> and <code>build</code> tasks.
      * @since 1.0
      */
     public void setSourceSets(Collection<SourceSet> sourceSets) {
-        this.sourceSets = sourceSets;
+        getSourceSets().set(sourceSets);
     }
 
     /**
      * Whether to allow the build to continue if there are warnings.
      *
      * Example: ignoreFailures = true
-     * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    public boolean isIgnoreFailures() {
-        return ignoreFailures;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getIgnoreFailures();
 
     /**
      * Whether to allow the build to continue if there are warnings.
@@ -89,7 +86,11 @@ public abstract class CodeQualityExtension {
      * @since 1.0
      */
     public void setIgnoreFailures(boolean ignoreFailures) {
-        this.ignoreFailures = ignoreFailures;
+        getIgnoreFailures().set(ignoreFailures);
+    }
+
+    public Property<Boolean> getIsIgnoreFailures() {
+        return getIgnoreFailures();
     }
 
     /**

@@ -22,6 +22,9 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.Input;
@@ -32,13 +35,13 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
 import java.io.Serializable;
-import java.util.HashMap;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.Map;
 
@@ -49,37 +52,32 @@ import java.util.Map;
 public abstract class GroovyCompileOptions implements Serializable {
     private static final long serialVersionUID = 0;
 
-    private boolean failOnError = true;
-
-    private boolean verbose;
-
-    private boolean listFiles;
-
-    private String encoding = "UTF-8";
-
-    private boolean fork = true;
-
-    private boolean keepStubs;
-
-    private List<String> fileExtensions = ImmutableList.of("java", "groovy");
-
-    private Map<String, Boolean> optimizationOptions = new HashMap<>();
-
-    private boolean javaAnnotationProcessing;
-
-    private boolean parameters;
+    @SuppressWarnings("this-escape")
+    public GroovyCompileOptions() {
+        getFailOnError().convention(true);
+        getVerbose().convention(false);
+        getListFiles().convention(false);
+        getEncoding().convention(StandardCharsets.UTF_8.name());
+        getFork().convention(true);
+        getJavaAnnotationProcessing().convention(false);
+        getParameters().convention(false);
+        getFileExtensions().convention(ImmutableList.of("java", "groovy"));
+        getKeepStubs().convention(false);
+    }
 
     @Inject
     protected abstract ObjectFactory getObjectFactory();
 
     /**
      * Tells whether the compilation task should fail if compile errors occurred. Defaults to {@code true}.
-     * @since 0.7
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isFailOnError() {
-        return failOnError;
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getFailOnError();
+
+    @Internal
+    public Property<Boolean> getIsFailOnError() {
+        return getFailOnError();
     }
 
     /**
@@ -87,17 +85,19 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @since 0.7
      */
     public void setFailOnError(boolean failOnError) {
-        this.failOnError = failOnError;
+        getFailOnError().set(failOnError);
     }
 
     /**
      * Tells whether to turn on verbose output. Defaults to {@code false}.
-     * @since 0.7
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isVerbose() {
-        return verbose;
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getVerbose();
+
+    @Internal
+    public Property<Boolean> getIsVerbose() {
+        return getVerbose();
     }
 
     /**
@@ -105,17 +105,19 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @since 0.7
      */
     public void setVerbose(boolean verbose) {
-        this.verbose = verbose;
+        getVerbose().set(verbose);
     }
 
     /**
      * Tells whether to print which source files are to be compiled. Defaults to {@code false}.
-     * @since 0.7
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    public boolean isListFiles() {
-        return listFiles;
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getListFiles();
+
+    @Internal
+    public Property<Boolean> getIsListFiles() {
+        return getListFiles();
     }
 
     /**
@@ -123,7 +125,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @since 0.7
      */
     public void setListFiles(boolean listFiles) {
-        this.listFiles = listFiles;
+        getListFiles().set(listFiles);
     }
 
     /**
@@ -131,27 +133,27 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @since 0.7
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public String getEncoding() {
-        return encoding;
-    }
+    @ReplacesEagerProperty
+    public abstract Property<String> getEncoding();
 
     /**
      * Sets the source encoding. Defaults to {@code UTF-8}.
      * @since 0.7
      */
     public void setEncoding(String encoding) {
-        this.encoding = encoding;
+        getEncoding().set(encoding);
     }
 
     /**
      * Tells whether to run the Groovy compiler in a separate process. Defaults to {@code true}.
-     * @since 0.7
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isFork() {
-        return fork;
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getFork();
+
+    @Internal
+    public Property<Boolean> getIsFork() {
+        return getFork();
     }
 
     /**
@@ -159,7 +161,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @since 0.7
      */
     public void setFork(boolean fork) {
-        this.fork = fork;
+        getFork().set(fork);
     }
 
     /**
@@ -241,12 +243,14 @@ public abstract class GroovyCompileOptions implements Serializable {
      * When this option is set to {@code false} (the default), Groovy code will not be subject to annotation processing, but any joint compiled Java code will be.
      * If the compiler argument {@code "-proc:none"} was specified as part of the Java compile options, the value of this flag will be ignored.
      * No annotation processing will be performed regardless, on Java or Groovy source.
-     * @since 2.5
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isJavaAnnotationProcessing() {
-        return javaAnnotationProcessing;
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getJavaAnnotationProcessing();
+
+    @Internal
+    public Property<Boolean> getIsJavaAnnotationProcessing() {
+        return getJavaAnnotationProcessing();
     }
 
     /**
@@ -256,7 +260,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @since 2.5
      */
     public void setJavaAnnotationProcessing(boolean javaAnnotationProcessing) {
-        this.javaAnnotationProcessing = javaAnnotationProcessing;
+        getJavaAnnotationProcessing().set(javaAnnotationProcessing);
     }
 
     /**
@@ -265,9 +269,12 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @since 6.1
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isParameters() {
-        return parameters;
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getParameters();
+
+    @Internal
+    public Property<Boolean> getIsParameters() {
+        return getParameters();
     }
 
     /**
@@ -277,7 +284,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @since 6.1
      */
     public void setParameters(boolean parameters) {
-        this.parameters = parameters;
+        getParameters().set(parameters);
     }
 
     /**
@@ -313,13 +320,10 @@ public abstract class GroovyCompileOptions implements Serializable {
      * </dl>
      * @since 1.1
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable
-    @Optional
     @Input
-    public Map<String, Boolean> getOptimizationOptions() {
-        return optimizationOptions;
-    }
+    @Optional
+    @ReplacesEagerProperty
+    public abstract MapProperty<String, Boolean> getOptimizationOptions();
 
     /**
      * Sets optimization options for the Groovy compiler. Allowed values for an option are {@code true} and {@code false}.
@@ -327,7 +331,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @since 1.1
      */
     public void setOptimizationOptions(@Nullable Map<String, Boolean> optimizationOptions) {
-        this.optimizationOptions = optimizationOptions;
+        getOptimizationOptions().set(optimizationOptions);
     }
 
     /**
@@ -377,10 +381,8 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @since 1.1
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public List<String> getFileExtensions() {
-        return fileExtensions;
-    }
+    @ReplacesEagerProperty
+    public abstract ListProperty<String> getFileExtensions();
 
     /**
      * Sets the list of acceptable source file extensions. Only takes effect when compiling against
@@ -388,19 +390,21 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @since 1.1
      */
     public void setFileExtensions(List<String> fileExtensions) {
-        this.fileExtensions = fileExtensions;
+        getFileExtensions().set(fileExtensions);
     }
 
     /**
      * Tells whether Java stubs for Groovy classes generated during Java/Groovy joint compilation
      * should be kept after compilation has completed. Useful for joint compilation debugging purposes.
      * Defaults to {@code false}.
-     * @since 1.0
      */
     @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isKeepStubs() {
-        return keepStubs;
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getKeepStubs();
+
+    @Internal
+    public Property<Boolean> getIsKeepStubs() {
+        return getKeepStubs();
     }
 
     /**
@@ -410,7 +414,7 @@ public abstract class GroovyCompileOptions implements Serializable {
      * @since 1.0
      */
     public void setKeepStubs(boolean keepStubs) {
-        this.keepStubs = keepStubs;
+        getKeepStubs().set(keepStubs);
     }
 
 }

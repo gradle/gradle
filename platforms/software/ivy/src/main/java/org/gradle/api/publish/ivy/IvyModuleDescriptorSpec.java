@@ -18,9 +18,11 @@ package org.gradle.api.publish.ivy;
 
 import org.gradle.api.Action;
 import org.gradle.api.XmlProvider;
+import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
 import org.gradle.internal.HasInternalProtocol;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -32,7 +34,7 @@ import org.jspecify.annotations.Nullable;
  * However, the preferred way to customize the project information to be published is to use the dedicated configuration methods exposed by this class, e.g.
  * {@link #description(Action)}.
  *
- * @since 2.1
+ * @since 1.3
  */
 @HasInternalProtocol
 public interface IvyModuleDescriptorSpec {
@@ -76,12 +78,12 @@ public interface IvyModuleDescriptorSpec {
     void withXml(Action<? super XmlProvider> action);
 
     /**
-     * Returns the status for this publication.
+     * The status for this publication.
      * @since 2.1
      */
-    @Nullable
-    @ToBeReplacedByLazyProperty
-    String getStatus();
+    @Optional
+    @ReplacesEagerProperty
+    Property<String> getStatus();
 
     /**
      * Sets the status for this publication.
@@ -90,12 +92,12 @@ public interface IvyModuleDescriptorSpec {
     void setStatus(@Nullable String status);
 
     /**
-     * Returns the branch for this publication
+     * The branch for this publication
      * @since 2.1
      */
-    @Nullable
-    @ToBeReplacedByLazyProperty
-    String getBranch();
+    @Optional
+    @ReplacesEagerProperty
+    Property<String> getBranch();
 
     /**
      * Sets the branch for this publication

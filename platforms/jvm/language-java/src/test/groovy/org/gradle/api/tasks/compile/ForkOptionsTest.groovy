@@ -28,12 +28,12 @@ class ForkOptionsTest extends Specification {
 
     def 'initial values of forkOptions'() {
         expect:
-        forkOptions.executable == null
+        forkOptions.executable.getOrNull() == null
         forkOptions.javaHome == null
-        forkOptions.memoryInitialSize == null
-        forkOptions.memoryMaximumSize == null
-        forkOptions.tempDir == null
-        forkOptions.jvmArgs == []
+        forkOptions.memoryInitialSize.getOrNull() == null
+        forkOptions.memoryMaximumSize.getOrNull() == null
+        forkOptions.tempDir.getOrNull() == null
+        forkOptions.jvmArgs.get() == []
     }
 
     @Issue("https://github.com/gradle/gradle/issues/32606")
@@ -49,7 +49,7 @@ class ForkOptionsTest extends Specification {
 
         expect:
         commandLineArgumentProvider.asArguments().iterator().next() instanceof GString
-        forkOptions.allJvmArgs.size() == 1
-        forkOptions.allJvmArgs[0] instanceof String
+        forkOptions.allJvmArgs.get().size() == 1
+        forkOptions.allJvmArgs.get()[0] instanceof String
     }
 }

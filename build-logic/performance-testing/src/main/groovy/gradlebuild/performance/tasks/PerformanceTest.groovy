@@ -195,7 +195,11 @@ abstract class PerformanceTest extends DistributionTest {
         DefaultTestFilter filter = getFilter() as DefaultTestFilter
         List<String> scenarios = []
         Set<String> classOnlyFilters = new LinkedHashSet<>()
-        filter.getCommandLineIncludePatterns().each { includePattern ->
+        // TODO: Remove this workaround Gradle 9.0
+        Set<String> commandLineIncludePatterns = filter.getCommandLineIncludePatterns() instanceof Provider
+            ? ((Provider<Set<String>>) filter.getCommandLineIncludePatterns()).get()
+            : filter.getCommandLineIncludePatterns() as Set<String>
+        commandLineIncludePatterns.each { includePattern ->
             def lastDot = includePattern.lastIndexOf(".")
             if (lastDot == -1) {
                 classOnlyFilters.add(includePattern)

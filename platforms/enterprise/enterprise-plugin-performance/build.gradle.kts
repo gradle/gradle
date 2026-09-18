@@ -82,6 +82,8 @@ tasks.withType<gradlebuild.performance.tasks.PerformanceTest>().configureEach {
         .map { projectRootDir.resolve(it) }
 
     // Provides a system property required by `AbstractBuildScanPluginPerformanceTest`
+    // TODO: Remove this workaround after Gradle 9: this operator is a workaround for Gradleception
+    operator fun ListProperty<CommandLineArgumentProvider>.plusAssign(value: CommandLineArgumentProvider) = this.add(value)
     jvmArgumentProviders += DevelocityPluginInfoDirPropertyProvider(pluginInfoDir)
 }
 

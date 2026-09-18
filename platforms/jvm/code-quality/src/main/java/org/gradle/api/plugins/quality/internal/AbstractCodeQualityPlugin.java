@@ -15,10 +15,8 @@
  */
 package org.gradle.api.plugins.quality.internal;
 
-import com.google.common.base.Function;
 import com.google.common.collect.ImmutableMap;
-import com.google.common.collect.Iterables;
-import com.google.common.util.concurrent.Callables;
+import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectProvider;
 import org.gradle.api.Plugin;
@@ -40,10 +38,8 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.internal.Cast;
 
 import javax.inject.Inject;
-import java.util.ArrayList;
 import java.util.Locale;
 import java.util.Map;
-import java.util.concurrent.Callable;
 
 public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInternal> {
     protected static ConventionMapping conventionMappingOf(Object object) {
@@ -132,18 +128,12 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
 
     @SuppressWarnings("rawtypes")
     private void configureExtensionRule() {
-        final ConventionMapping extensionMapping = conventionMappingOf(extension);
-        extensionMapping.map("sourceSets", Callables.returning(new ArrayList<>()));
         extension.getReportsDirectory().convention(project.getExtensions().getByType(ReportingExtension.class).getBaseDirectory().dir(getReportName()));
+
         withBasePlugin(new Action<Plugin>() {
             @Override
             public void execute(Plugin plugin) {
-                extensionMapping.map("sourceSets", new Callable<SourceSetContainer>() {
-                    @Override
-                    public SourceSetContainer call() {
-                        return getJavaPluginExtension().getSourceSets();
-                    }
-                });
+                extension.getSourceSets().convention(getJavaPluginExtension().getSourceSets());
             }
         });
     }
@@ -210,17 +200,9 @@ public abstract class AbstractCodeQualityPlugin<T> implements Plugin<ProjectInte
         project.getTasks().named(JavaBasePlugin.CHECK_TASK_NAME, new Action<Task>() {
             @Override
             public void execute(Task task) {
-                task.dependsOn(new Callable<Object>() {
-                    @Override
-                    public Object call() {
-                        return Iterables.transform(extension.getSourceSets(), new Function<SourceSet, String>() {
-                            @Override
-                            public String apply(SourceSet sourceSet) {
-                                return sourceSet.getTaskName(taskBaseName, null);
-                            }
-                        });
-                    }
-                });
+                task.dependsOn(extension.getSourceSets().map(sourceSets ->
+                    Lists.transform(sourceSets, sourceSet -> sourceSet.getTaskName(taskBaseName, null))
+                ));
             }
         });
     }

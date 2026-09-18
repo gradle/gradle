@@ -25,6 +25,6 @@ public class MinimalScalaCompilerDaemonForkOptions extends MinimalCompilerDaemon
     @SuppressWarnings("this-escape")
     public MinimalScalaCompilerDaemonForkOptions(ScalaForkOptions forkOptions) {
         super(forkOptions);
-        setJvmArgs(forkOptions.getAllJvmArgs());
+        setJvmArgs(forkOptions.getAllJvmArgs().get());
     }
 }

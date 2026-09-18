@@ -17,13 +17,14 @@
 package org.gradle.api.tasks;
 
 import org.gradle.api.Project;
+import org.gradle.api.Incubating;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.DeleteSpec;
-import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.ConventionTask;
+import org.gradle.api.provider.Property;
 import org.gradle.internal.file.Deleter;
-import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.work.DisableCachingByDefault;
 import org.jspecify.annotations.Nullable;
 
@@ -31,6 +32,9 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.util.Set;
+
+import static org.gradle.api.internal.provider.ProviderApiDeprecationLogger.logDeprecation;
+import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccessor.AccessorType.GETTER;
 
 /**
  * <p>Deletes files or directories. Example:</p>
@@ -41,17 +45,14 @@ import java.util.Set;
  * }
  * </pre>
  *
- * Be default symlinks will not be followed when deleting files. To change this behavior call
- * {@link Delete#setFollowSymlinks(boolean)} with true. On systems that do not support symlinks,
+ * Be default symlinks will not be followed when deleting files. To change this behavior, set
+ * {@link Delete#getFollowSymlinks()} property to true. On systems that do not support symlinks,
  * this will have no effect.
  * @since 0.9
  */
 @DisableCachingByDefault(because = "Deletion cannot be cached")
 @SuppressWarnings("this-escape")
 public abstract class Delete extends ConventionTask implements DeleteSpec {
-    private ConfigurableFileCollection paths = getProject().getObjects().fileCollection();
-
-    private boolean followSymlinks;
 
     /**
      * Clean.
@@ -61,7 +62,8 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
     @TaskAction
     protected void clean() throws IOException {
         boolean didWork = false;
-        for (File path : paths) {
+        boolean followSymlinks = getFollowSymlinks().getOrElse(false);
+        for (File path : getTargetFiles().getFiles()) {
             didWork |= getDeleter().deleteRecursively(path, followSymlinks);
         }
         setDidWork(didWork);
@@ -74,54 +76,16 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      * @since 0.9
      */
     @Destroys
-    @ToBeReplacedByLazyProperty
-    public FileCollection getTargetFiles() {
-        return paths;
-    }
+    @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "getTargetFiles"))
+    public abstract ConfigurableFileCollection getTargetFiles();
 
     /**
-     * Returns the set of files which will be deleted by this task.
-     *
-     * @return The files. Never returns null.
-     * @since 0.9
-     */
-    @Internal
-    @NotToBeReplacedByLazyProperty(because = "Should be deprecated, users should use getTargetFiles()", willBeDeprecated = true)
-    public Set<Object> getDelete() {
-        return paths.getFrom();
-    }
-
-    /**
-     * Sets the files to be deleted by this task.
-     *
-     * @param targets A set of any type of object accepted by {@link Project#files(Object...)}
-     * @since 4.0
-     */
-    public void setDelete(Set<Object> targets) {
-        this.paths.setFrom(targets);
-    }
-
-    /**
-     * Sets the files to be deleted by this task.
-     *
-     * @param target Any type of object accepted by {@link Project#files(Object...)}
-     * @since 0.9
-     */
-    public void setDelete(Object target) {
-        this.paths.setFrom(target);
-    }
-
-    /**
-     * Returns if symlinks should be followed when doing a delete.
-     *
-     * @return true if symlinks will be followed.
-     * @since 2.13
-     */
-    @Input
-    @ToBeReplacedByLazyProperty
-    public boolean isFollowSymlinks() {
-        return followSymlinks;
-    }
+     * Specifies whether or not symbolic links should be followed during deletion.
+     **/
+    @Override
+    @Incubating
+    @ReplacesEagerProperty(replacedAccessors = @ReplacedAccessor(value = GETTER, name = "isFollowSymlinks", originalType = boolean.class))
+    public abstract Property<Boolean> getFollowSymlinks();
 
     /**
      * Set if symlinks should be followed. If the platform doesn't support symlinks, then this will have no effect.
@@ -130,7 +94,52 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      */
     @Override
     public void setFollowSymlinks(boolean followSymlinks) {
-        this.followSymlinks = followSymlinks;
+        getFollowSymlinks().set(followSymlinks);
+    }
+
+    @Internal
+    public Property<Boolean> getIsFollowSymlinks() {
+        return getFollowSymlinks();
+    }
+
+    /**
+     * Returns the set of files which will be deleted by this task.
+     *
+     * @return The files. Never returns null.
+     * @deprecated Use {@link #getTargetFiles()} property instead
+     * @since 0.9
+     */
+    @Internal
+    @Deprecated
+    public Set<Object> getDelete() {
+        logDeprecation(Delete.class, "getDelete()", "targetFiles");
+        return getTargetFiles().getFrom();
+    }
+
+    /**
+     * Sets the files to be deleted by this task.
+     *
+     * @param targets A set of any type of object accepted by {@link Project#files(Object...)}
+     * @since 4.0
+     * @deprecated Use {@link #getTargetFiles()} property instead
+     */
+    @Deprecated
+    public void setDelete(Set<Object> targets) {
+        logDeprecation(Delete.class, "setDelete(Set<Object>)", "targetFiles");
+        this.getTargetFiles().setFrom(targets);
+    }
+
+    /**
+     * Sets the files to be deleted by this task.
+     *
+     * @param target Any type of object accepted by {@link Project#files(Object...)}
+     * @deprecated Use {@link #getTargetFiles()} property instead
+     * @since 0.9
+     */
+    @Deprecated
+    public void setDelete(Object target) {
+        logDeprecation(Delete.class, "setDelete(Object)", "targetFiles");
+        this.getTargetFiles().setFrom(target);
     }
 
     /**
@@ -140,7 +149,7 @@ public abstract class Delete extends ConventionTask implements DeleteSpec {
      */
     @Override
     public Delete delete(@Nullable Object... targets) {
-        paths.from(targets);
+        getTargetFiles().from(targets);
         return this;
     }
 

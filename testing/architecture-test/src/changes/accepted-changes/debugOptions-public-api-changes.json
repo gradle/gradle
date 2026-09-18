@@ -1,0 +1,12 @@
+{
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.tasks.compile.DebugOptions",
+            "member": "Class org.gradle.api.tasks.compile.DebugOptions",
+            "acceptation": "Changed class to abstract with Property upgrade",
+            "changes": [
+                "Class is now abstract"
+            ]
+        }
+    ]
+}

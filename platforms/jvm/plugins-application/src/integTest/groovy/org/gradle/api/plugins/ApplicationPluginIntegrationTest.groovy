@@ -357,7 +357,7 @@ task execStartScript(type: Exec) {
     ) {
         String envLines = environment.collect { name, value ->
             value.isEmpty()
-                ? "environment.keySet().removeIf { it.equalsIgnoreCase('${name}') }"
+                ? "environment.set(environment.get().findAll { !it.key.equalsIgnoreCase('${name}') })"
                 : "environment '${name}', '${escapeForGroovy(value)}'"
         }.join('\n')
         // When an output file is given we expect a possibly non-zero exit, so ignore it and

@@ -1,14 +1,14 @@
 import java.net.URI
 
 // tag::show-repos-task[]
-repositories{
+repositories {
     mavenCentral()
 }
 
 data class RepositoryData(val name: String, val url: URI)
 
 tasks.register("showRepositories") {
-    val repositoryData = repositories.withType<MavenArtifactRepository>().map { RepositoryData(it.name, it.url) }
+    val repositoryData = repositories.withType<MavenArtifactRepository>().map { RepositoryData(it.name, it.getUrl().get()) }
     doLast {
         repositoryData.forEach {
             println("repository: ${it.name} ('${it.url}')")

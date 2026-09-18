@@ -23,24 +23,21 @@ import org.gradle.api.tasks.testing.JUnitXmlReport;
 
 public abstract class DefaultJUnitXmlReport extends SingleDirectoryReport implements JUnitXmlReport {
 
-    private boolean outputPerTestCase;
-
     @SuppressWarnings("this-escape")
     public DefaultJUnitXmlReport(String name, Describable owner) {
         super(name, owner, null);
         this.getMergeReruns().convention(false);
         this.getIncludeSystemOutLog().convention(true);
         this.getIncludeSystemErrLog().convention(true);
+        this.getOutputPerTestCase().convention(false);
     }
 
     @Override
-    public boolean isOutputPerTestCase() {
-        return outputPerTestCase;
-    }
+    public abstract Property<Boolean> getOutputPerTestCase();
 
     @Override
     public void setOutputPerTestCase(boolean outputPerTestCase) {
-        this.outputPerTestCase = outputPerTestCase;
+        getOutputPerTestCase().set(outputPerTestCase);
     }
 
     @Override

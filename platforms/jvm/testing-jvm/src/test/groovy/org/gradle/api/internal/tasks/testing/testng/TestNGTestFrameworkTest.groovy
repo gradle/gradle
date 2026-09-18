@@ -51,10 +51,12 @@ class TestNGTestFrameworkTest extends Specification {
         }
 
         then:
-        testTask.options.suiteName == 'Custom Suite'
+        testTask.options.suiteName.get() == 'Custom Suite'
     }
 
-    private TestNGTestFramework createFramework() {
-        TestUtil.objectFactory().newInstance(TestNGTestFramework.class, testTask.getFilter(), testTask.getTemporaryDirFactory(), testTask.getDryRun(), testTask.getReports().getHtml())
+    TestNGTestFramework createFramework() {
+        TestNGTestFramework framework = TestUtil.objectFactory().newInstance(TestNGTestFramework.class, testTask.getFilter(), testTask.getTemporaryDirFactory(), testTask.getDryRun(), testTask.getReports().getHtml())
+        framework.options.outputDirectory = project.file('build/test-results')
+        return framework
     }
 }

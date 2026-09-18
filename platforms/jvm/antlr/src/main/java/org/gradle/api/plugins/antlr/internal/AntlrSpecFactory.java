@@ -31,22 +31,22 @@ import static org.gradle.api.plugins.antlr.internal.AntlrSpec.PACKAGE_ARG;
 public class AntlrSpecFactory {
 
     public AntlrSpec create(AntlrTask antlrTask, Set<File> grammarFiles, FileCollection sourceSetDirectories) {
-        File outputDirectory = antlrTask.getOutputDirectory();
-        List<String> arguments = Lists.newLinkedList(antlrTask.getArguments());
+        File outputDirectory = antlrTask.getOutputDirectory().getAsFile().get();
+        List<String> arguments = Lists.newLinkedList(antlrTask.getArguments().get());
 
-        if (antlrTask.isTrace() && !arguments.contains("-trace")) {
+        if (antlrTask.getTrace().get() && !arguments.contains("-trace")) {
             arguments.add("-trace");
         }
-        if (antlrTask.isTraceLexer() && !arguments.contains("-traceLexer")) {
+        if (antlrTask.getTraceLexer().get() && !arguments.contains("-traceLexer")) {
             arguments.add("-traceLexer");
         }
-        if (antlrTask.isTraceParser() && !arguments.contains("-traceParser")) {
+        if (antlrTask.getTraceParser().get() && !arguments.contains("-traceParser")) {
             arguments.add("-traceParser");
         }
-        if (antlrTask.isTraceTreeWalker() && !arguments.contains("-traceTreeWalker")) {
+        if (antlrTask.getTraceTreeWalker().get() && !arguments.contains("-traceTreeWalker")) {
             arguments.add("-traceTreeWalker");
         }
-        if (antlrTask.getArguments().contains(PACKAGE_ARG)) {
+        if (antlrTask.getArguments().get().contains(PACKAGE_ARG)) {
             DeprecationLogger.deprecateAction("Setting the '" + PACKAGE_ARG + "' argument directly on AntlrTask")
                 .withAdvice("Use the 'packageName' property of the AntlrTask to specify the package name instead of using the '" + PACKAGE_ARG + "' argument.")
                 .willBecomeAnErrorInGradle10()
@@ -69,6 +69,6 @@ public class AntlrSpecFactory {
             sourceSetDirectoriesFiles = sourceSetDirectories.getFiles();
         }
 
-        return new AntlrSpec(arguments, grammarFiles, sourceSetDirectoriesFiles, outputDirectory, antlrTask.getMaxHeapSize());
+        return new AntlrSpec(arguments, grammarFiles, sourceSetDirectoriesFiles, outputDirectory, antlrTask.getMaxHeapSize().getOrNull());
     }
 }

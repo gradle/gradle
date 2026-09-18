@@ -91,7 +91,7 @@ class DefaultIvyPublicationTest extends Specification {
         def publication = createPublication()
 
         then:
-        publication.descriptor.status == "integration"
+        publication.descriptor.status.get() == "integration"
     }
 
     def "empty publishableFiles and artifacts when no component is added"() {
@@ -112,13 +112,12 @@ class DefaultIvyPublicationTest extends Specification {
 
         when:
         notationParser.parseNotation(artifact) >> ivyArtifact
-        1 * ivyArtifact.setConf("runtime")
 
         and:
         publication.from(componentWithArtifact(artifact))
 
         then:
-        publication.publishableArtifacts.files.files == [ivyDescriptorFile, moduleDescriptorFile, artifactFile] as Set
+        publication.publishableArtifacts.getFiles().files == [ivyDescriptorFile, moduleDescriptorFile, artifactFile] as Set
         publication.artifacts == [ivyArtifact] as Set
 
         and:
@@ -256,15 +255,16 @@ class DefaultIvyPublicationTest extends Specification {
 
         when:
         notationParser.parseNotation(notation) >> ivyArtifact
-        1 * ivyArtifact.setExtension('changed')
+        _ * ivyArtifact.hashCode() >> 1
         0 * ivyArtifact._
 
         and:
         publication.artifact(notation) {
-            extension = 'changed'
+            getExtension().set("changed")
         }
 
         then:
+        ivyArtifact.getExtension().get() == "changed"
         publication.artifacts == [ivyArtifact] as Set
         publication.publishableArtifacts.files.files == [ivyDescriptorFile, artifactFile] as Set
     }
@@ -322,9 +322,9 @@ class DefaultIvyPublicationTest extends Specification {
         coordinates.revision.get() == "revision2"
 
         and:
-        publication.organisation== "organisation2"
-        publication.module == "module2"
-        publication.revision == "revision2"
+        publication.organisation.get() == "organisation2"
+        publication.module.get() == "module2"
+        publication.revision.get() == "revision2"
 
         and:
         publication.coordinates.group == "organisation2"
@@ -398,7 +398,9 @@ class DefaultIvyPublicationTest extends Specification {
 
     def createArtifact(File file) {
         return Mock(IvyArtifact) {
-            getFile() >> file
+            getFile() >> Providers.of((RegularFile) () -> file)
+            getExtension() >> TestUtil.objectFactory().property(String)
+            getConf() >> TestUtil.objectFactory().property(String)
         }
     }
 
