@@ -95,14 +95,18 @@ public final class ExceptionSerializationUtil {
     }
 
     private static @Nullable Method findCandidateGetCausesMethod(Throwable throwable) {
-        Method[] declaredMethods = throwable.getClass().getDeclaredMethods();
-        for (Method method : declaredMethods) {
-            if (CANDIDATE_GET_CAUSES.contains(method.getName())) {
-                Class<?> returnType = method.getReturnType();
-                if (Collection.class.isAssignableFrom(returnType)) {
-                    return method;
+        try {
+            Method[] declaredMethods = throwable.getClass().getDeclaredMethods();
+            for (Method method : declaredMethods) {
+                if (CANDIDATE_GET_CAUSES.contains(method.getName())) {
+                    Class<?> returnType = method.getReturnType();
+                    if (Collection.class.isAssignableFrom(returnType)) {
+                        return method;
+                    }
                 }
             }
+        } catch (Throwable ignored) {
+            return null;
         }
         return null;
     }
