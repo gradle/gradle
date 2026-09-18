@@ -19,9 +19,11 @@ package org.gradle.problems.internal.services
 
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
+import org.gradle.api.problems.ProblemLocation
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DefaultProblem
 import org.gradle.api.problems.internal.DefaultProblemDefinition
+import org.gradle.api.problems.internal.DefaultStackTraceLocation
 import org.gradle.api.problems.internal.DefaultTaskLocation
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.util.ConcurrentSpecification
@@ -47,6 +49,10 @@ class SummarizerStrategyTest extends ConcurrentSpecification {
     // Builds problems that are equal in content (no exception, so hashCode collides) but differ only
     // by the task location. This isolates the task path as the distinguishing factor for deduplication.
     private static createTestProblemFromTask(String id, String taskPath) {
+        createTestProblemWithContextualLocations(id, [new DefaultTaskLocation(taskPath)])
+    }
+
+    private static createTestProblemWithContextualLocations(String id, List<ProblemLocation> contextualLocations) {
         new DefaultProblem(
             new DefaultProblemDefinition(
                 ProblemId.create('message', "displayName", ProblemGroup.create(id, "Generic")),
@@ -56,7 +62,7 @@ class SummarizerStrategyTest extends ConcurrentSpecification {
             null,
             [],
             [],
-            [new DefaultTaskLocation(taskPath)],
+            contextualLocations,
             'description',
             null,
             null
@@ -102,6 +108,17 @@ class SummarizerStrategyTest extends ConcurrentSpecification {
         def strategy = new SummarizerStrategy(4)
         def first = createTestProblemFromTask("id", ":compileDebugKotlin")
         def second = createTestProblemFromTask("id", ":compileDebugKotlin")
+
+        expect:
+        strategy.shouldEmit(first)
+        !strategy.shouldEmit(second)
+    }
+
+    def "identical problems reached through different stack traces are deduplicated"() {
+        given:
+        def strategy = new SummarizerStrategy(4)
+        def first = createTestProblemWithContextualLocations("id", [new DefaultStackTraceLocation(null, [new StackTraceElement("Outer", "report", "Outer.java", 1)])])
+        def second = createTestProblemWithContextualLocations("id", [new DefaultStackTraceLocation(null, [new StackTraceElement("Included", "report", "Included.java", 2)])])
 
         expect:
         strategy.shouldEmit(first)
