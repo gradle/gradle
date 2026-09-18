@@ -36,7 +36,9 @@ import org.gradle.plugin.management.internal.PluginCoordinates;
 import org.gradle.plugin.management.internal.PluginRequestInternal;
 import org.gradle.plugin.use.PluginId;
 
-import java.util.Iterator;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 
 import static com.google.common.base.Strings.isNullOrEmpty;
 
@@ -62,14 +64,18 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         }
 
         boolean autoApplied = pluginRequest.getOrigin() == PluginRequestInternal.Origin.AUTO_APPLIED;
-        if (exists(markerDependency) || autoApplied) {
+        Collection<Throwable> failures = tryResolve(markerDependency);
+        if (failures.isEmpty() || autoApplied) {
             // Even if we don't find the auto-applied plugin version, continue trying to resolve it with a preferred version,
             // in case the user provides an explicit or transitive required version.
             // The resolution will fail if there is no user-provided required version, however it avoids us failing here
             // if the weak version is not present but never selected.
             return PluginResolutionResult.found(new ExternalPluginResolution(getDependencyFactory(), pluginRequest, autoApplied));
         } else {
-            return handleNotFound("could not resolve plugin artifact '" + getNotation(markerDependency) + "'");
+            return handleNotFound(
+                "could not resolve plugin artifact '" + getNotation(markerDependency) + "'",
+                failures
+            );
         }
     }
 
@@ -156,19 +162,26 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
         }
     }
 
-    private PluginResolutionResult handleNotFound(String message) {
-        StringBuilder detail = new StringBuilder("Searched in the following repositories:\n");
-        for (Iterator<ArtifactRepository> it = resolutionServices.getResolveRepositoryHandler().iterator(); it.hasNext();) {
-            detail.append("  ").append(((ArtifactRepositoryInternal) it.next()).getDisplayName());
-            if (it.hasNext()) {
-                detail.append("\n");
-            }
+    private PluginResolutionResult handleNotFound(String message, Collection<Throwable> failures) {
+        return PluginResolutionResult.notFound(
+            SOURCE_NAME,
+            message,
+            describeSearchedRepositories(),
+            ReportableResolutionFailures.selectUnexpected(failures)
+        );
+    }
+
+    private String describeSearchedRepositories() {
+        List<String> repositories = new ArrayList<>();
+        for (ArtifactRepository repository : resolutionServices.getResolveRepositoryHandler()) {
+            repositories.add("  " + ((ArtifactRepositoryInternal) repository).getDisplayName());
         }
-        return PluginResolutionResult.notFound(SOURCE_NAME, message, detail.toString());
+        return "Searched in the following repositories:\n" + Joiner.on("\n").join(repositories);
     }
 
     /**
-     * Checks whether the plugin marker artifact exists in the backing artifacts repositories.
+     * Attempts to resolve the plugin marker artifact from the backing artifact repositories,
+     * returning the failures that occurred. An empty collection means the marker was resolved.
      *
      * TODO: Performing resolution here is likely quite inefficient. This performs resolution
      * for each plugin request that is not already found on the classpath. Doing this allows
@@ -176,14 +189,14 @@ public class ArtifactRepositoriesPluginResolver implements PluginResolver {
      * number of resolutions we perform in the buildscript context in order to avoid IO and
      * serial bottlenecks before the build can start configuration and thus perform actual work.
      */
-    private boolean exists(ModuleDependency dependency) {
+    private Collection<Throwable> tryResolve(ModuleDependency dependency) {
         ConfigurationContainer configurations = resolutionServices.getConfigurationContainer();
         Configuration configuration = configurations.detachedConfiguration(dependency);
         configuration.setTransitive(false);
         ArtifactView lenientView = configuration.getIncoming().artifactView(view -> {
             view.setLenient(true);
         });
-        return lenientView.getArtifacts().getFailures().isEmpty();
+        return lenientView.getArtifacts().getFailures();
     }
 
     private ModuleDependency getMarkerDependency(PluginRequestInternal pluginRequest) {
