@@ -16,7 +16,7 @@
 
 package org.gradle.internal.enterprise.impl;
 
-import org.gradle.internal.cc.impl.InputTrackingState;
+import org.gradle.api.configuration.ConfigurationCacheInputTracking;
 import org.gradle.internal.enterprise.DevelocityPluginUnsafeConfigurationService;
 
 import javax.inject.Inject;
@@ -24,20 +24,15 @@ import java.util.function.Supplier;
 
 public class DefaultDevelocityPluginUnsafeConfigurationService implements DevelocityPluginUnsafeConfigurationService {
 
-    private final InputTrackingState inputTrackingState;
+    private final ConfigurationCacheInputTracking inputTracking;
 
     @Inject
-    public DefaultDevelocityPluginUnsafeConfigurationService(InputTrackingState inputTrackingState) {
-        this.inputTrackingState = inputTrackingState;
+    public DefaultDevelocityPluginUnsafeConfigurationService(ConfigurationCacheInputTracking inputTracking) {
+        this.inputTracking = inputTracking;
     }
 
     @Override
     public <T> T withConfigurationInputTrackingDisabled(Supplier<T> supplier) {
-        inputTrackingState.disableForCurrentThread();
-        try {
-            return supplier.get();
-        } finally {
-            inputTrackingState.restoreForCurrentThread();
-        }
+        return inputTracking.withInputTrackingDisabledUnsafe(supplier::get);
     }
 }
