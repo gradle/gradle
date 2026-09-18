@@ -16,6 +16,8 @@
 
 package org.gradle.plugin.management.internal
 
+import org.gradle.api.artifacts.MutableVersionConstraint
+import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
 import org.gradle.api.invocation.Gradle
 import org.gradle.internal.InternalBuildAdapter
 import org.gradle.internal.event.ListenerManager
@@ -41,7 +43,15 @@ class DefaultPluginResolutionStrategyTest extends Specification {
     }
 
     private PluginRequestInternal request(String id, String version = null) {
-        new DefaultPluginRequest(DefaultPluginId.of(id), true, PluginRequestInternal.Origin.OTHER, "test", 1, version, null, null, null)
+        new DefaultPluginRequest(DefaultPluginId.of(id), true, PluginRequestInternal.Origin.OTHER, "test", 1, version, null, null, null, null)
+    }
+
+    private PluginRequestInternal aliasRequest(String id, @DelegatesTo(MutableVersionConstraint) Closure<?> version = {}) {
+        def constraint = new DefaultMutableVersionConstraint("")
+        version.delegate = constraint
+        version.resolveStrategy = Closure.DELEGATE_FIRST
+        version.call()
+        new DefaultPluginRequest(DefaultPluginId.of(id), true, PluginRequestInternal.Origin.OTHER, "test", 1, null, null, null, null, constraint)
     }
 
     def "applies a default version set before projects are loaded"() {
@@ -77,5 +87,40 @@ class DefaultPluginResolutionStrategyTest extends Specification {
         then:
         def e = thrown(IllegalArgumentException)
         e.message == "Cannot provide multiple default versions for the same plugin."
+    }
+
+    def "useVersion drops the constraint that came from a catalog"() {
+        given:
+        strategy.eachPlugin { it.useVersion("1.0") }
+
+        when:
+        def target = strategy.applyTo(aliasRequest("org.example") {prefer "2.0"})
+
+        then:
+        target.version == "1.0"
+        target.versionConstraint == null
+    }
+
+    def "useModule drops the constraint that came from a catalog"() {
+        given:
+        strategy.eachPlugin { it.useModule("org.example:plugin:1.0") }
+
+        when:
+        def target = strategy.applyTo(aliasRequest("org.example") {prefer "2.0"})
+
+        then:
+        target.versionConstraint == null
+    }
+
+    def "a default version wins over a preferred version from a catalog"() {
+        given:
+        strategy.setDefaultPluginVersion(DefaultPluginId.of("org.example"), "1.0")
+
+        when:
+        def target = strategy.applyTo(aliasRequest("org.example") {prefer "2.0"})
+
+        then:
+        target.version == "1.0"
+        target.versionConstraint == null
     }
 }
