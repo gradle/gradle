@@ -64,6 +64,33 @@ For example:
     def "can use exec in settings"() { ... }
 ``` 
 
+## Add a repository when a dependency is not published to the public ones
+
+Sometimes a version under test is not available from Maven Central or the Plugin Portal, e.g. a Kotlin dev build.
+Instead of declaring the repository in every affected test, register it once in [RepoScriptBlockUtil](../testing/internal-distribution-testing/src/main/groovy/org/gradle/integtests/fixtures/RepoScriptBlockUtil.groovy).
+
+First add the mirror to the `MirroredRepository` enum in that file, so CI can mirror it.
+Then register the extra repository in `EXTRA_REPOSITORIES`:
+
+```groovy
+new ExtraRepository(MirroredRepository.KOTLIN_DEV.name, MirroredRepository.KOTLIN_DEV.mirrorUrl, [/org\.jetbrains\.kotlin(\..+)?/], {
+    KotlinGradlePluginVersions.isKotlinDevVersion(new KotlinGradlePluginVersions().latest)
+})
+```
+
+The group regexes become a content filter, so the repository is only consulted for the dependencies it serves.
+The closure is optional and decides whether the repository is used at all; without it the repository is always added.
+
+A registered repository reaches test builds two ways, neither of which requires editing a test:
+
+- An init script, passed to every build started through a `GradleExecuter` or a smoke test runner.
+  It adds the repository to the settings `pluginManagement` and `dependencyResolutionManagement` blocks, and to buildscript and project repositories that already contain one.
+  Adding a repository to a project that declares none would stop that project from using the settings repositories.
+- The repository blocks this class produces, such as `mavenCentralRepository()` and `extraRepositoriesDefinition()`, and the `repositoriesBlock` of the Kotlin DSL test fixtures.
+  Tooling API cross version tests (see below) need these, as they do not run through an executer and so cannot be given an init script.
+
+While a repository is active, tests asserting on the repositories a build uses can fail, for example those checking a plugin-resolution failure message or a resolve build operation.
+
 # Cross Version Tests
 
 Some tests in the Gradle codebase are executed with a wide range of supported Gradle versions.
