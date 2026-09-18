@@ -63,7 +63,6 @@ task retrieve(type: Copy, dependsOn: tasks.deleteDir) {
         projectARepo1.pom.expectGetMissing()
 
         projectARepo2.pom.expectGet()
-        projectARepo2.artifact.expectHead()
         projectARepo2.artifact.expectGet()
 
         and:
@@ -87,7 +86,7 @@ task retrieve(type: Copy, dependsOn: tasks.deleteDir) {
 
         and:
         projectARepo1.pom.expectGet()
-        projectARepo1.artifact.expectHeadMissing()
+        projectARepo1.artifact.expectGetMissing()
 
         and:
         run 'retrieve'
@@ -119,7 +118,7 @@ if (project.hasProperty('skipCache')) {
         and:
         snapshotA.metaData.expectGet()
         snapshotA.pom.expectGet()
-        snapshotA.artifact.expectHeadMissing()
+        snapshotA.artifact.expectGetMissing()
 
         and:
         run 'retrieve'
@@ -142,7 +141,6 @@ if (project.hasProperty('skipCache')) {
         server.resetExpectations()
         snapshotA.metaData.expectHead()
         snapshotA.pom.expectHead()
-        snapshotA.artifact.expectHead()
         snapshotA.artifact.expectGet()
 
         and:
@@ -203,7 +201,7 @@ if (project.hasProperty('skipCache')) {
 
         and:
         projectARepo1.pom.expectGet()
-        projectARepo1.artifact(type: 'orbit').expectHeadMissing()
+        projectARepo1.artifact(type: 'orbit').expectGetMissing()
         projectARepo1.artifact.expectGet()
 
         then:
@@ -227,7 +225,7 @@ if (project.hasProperty('skipCache')) {
 
         and:
         projectARepo1.pom.expectGet()
-        projectARepo1.artifact(type: 'custom').expectHeadMissing()
+        projectARepo1.artifact(type: 'custom').expectGetMissing()
         projectARepo1.artifact(type: 'jar').expectGetMissing()
 
         then:
@@ -283,7 +281,7 @@ compile 'group:mavenProject:1.0'
 
         and:
         mavenProject.pom.expectGet()
-        mavenProject.artifact.expectHeadMissing()
+        mavenProject.artifact.expectGetMissing()
 
         projectARepo1.pom.expectGet()
         projectARepo1.artifact(type: 'zip').expectGet()

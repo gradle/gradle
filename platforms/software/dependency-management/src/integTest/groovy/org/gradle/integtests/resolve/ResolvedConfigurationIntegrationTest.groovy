@@ -93,7 +93,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
     def "resolves strictly for artifact resolve failures when #expression is used"() {
         def m1 = mavenHttpRepo.module('org.foo', 'hiphop').publish()
         def m2 = mavenHttpRepo.module('org.foo', 'unknown').publish()
-        def m3 = mavenHttpRepo.module('org.foo', 'broken').publish()
+        def m3 = mavenHttpRepo.module('org.foo', 'other').publish()
         def m4 = mavenHttpRepo.module('org.foo', 'rock').dependsOn(m3).publish()
 
         settingsFile << "include 'child'"
@@ -116,9 +116,9 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
 
                     assert !compile.hasError() // all dependencies resolved ok
                     assert compile.lenientConfiguration.unresolvedModuleDependencies.empty
-                    assert compile.resolvedArtifacts.size() == 5 // Does not filter broken or missing files
 
                     println "evaluating:"
+                    assert compile.resolvedArtifacts.size() == 5 // Does not filter broken or missing files
                     compile.${expression}
                 }
             }
@@ -134,6 +134,7 @@ class ResolvedConfigurationIntegrationTest extends AbstractHttpDependencyResolut
         m2.pom.expectGet()
         m2.artifact.expectGetMissing()
         m3.pom.expectGet()
+        m3.artifact.expectGet()
         m4.allowAll()
 
         expect:

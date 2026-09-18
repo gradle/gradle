@@ -78,8 +78,8 @@ class CachingModuleComponentRepositoryTest extends Specification {
 
         def file = new File("local")
         def result = Stub(BuildableArtifactFileResolveResult) {
-            getFile() >> file
-            getFailure() >> null
+            isSuccessful() >> true
+            getResult() >> file
         }
 
         def descriptorHash = Hashing.sha1().hashString("Hello")

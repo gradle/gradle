@@ -16,18 +16,19 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.api.internal.artifacts.DownloadArtifactBuildOperationType;
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.project.UnknownProjectStateException;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.DisplayName;
+import org.gradle.internal.model.CalculatedValue;
+import org.gradle.internal.Try;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
+import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -36,6 +37,7 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.resolve.resolver.ComponentArtifactResolver;
 import org.jspecify.annotations.Nullable;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -166,26 +168,34 @@ public class ArtifactBackedResolvedVariant implements ResolvedVariant {
 
         @Override
         public void visit(ArtifactVisitor visitor) {
-            if (visitor.requireArtifactFiles() && !artifact.getFileSource().getValue().isSuccessful()) {
-                visitor.visitFailure(artifact.getFileSource().getValue().getFailure().get());
-            } else {
-                visitor.visitArtifact(artifactSetName, sourceVariantId, variantAttributes, capabilities, artifact);
-                visitor.endVisitCollection(FileCollectionInternal.OTHER);
+            if (visitor.requireArtifactFiles()) {
+                Try<@Nullable File> file = artifact.getFileSource().getValue();
+                if (!file.isSuccessful()) {
+                    visitor.visitFailure(file.getFailure().get());
+                    return;
+                }
+                if (file.get() == null) {
+                    // An optional artifact that does not exist
+                    return;
+                }
             }
+            visitor.visitArtifact(artifactSetName, sourceVariantId, variantAttributes, capabilities, artifact);
+            visitor.endVisitCollection(FileCollectionInternal.OTHER);
         }
 
         @Override
         public void visitTransformSources(TransformSourceVisitor visitor) {
-            if (artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier) {
+            if (artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier && !isKnownToNotExist(artifact)) {
                 visitor.visitArtifact(artifact);
             }
         }
 
-        @Override
-        public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
-            if (!(artifact.getId().getComponentIdentifier() instanceof ProjectComponentIdentifier)) {
-                visitor.execute(artifact);
-            }
+        /**
+         * Project artifacts that do not exist are resolved eagerly to a null file and must not be transformed.
+         */
+        private static boolean isKnownToNotExist(ResolvableArtifact artifact) {
+            CalculatedValue<@Nullable File> fileSource = artifact.getFileSource();
+            return fileSource.isFinalized() && fileSource.getValue().isSuccessful() && fileSource.get() == null;
         }
 
         @Override
