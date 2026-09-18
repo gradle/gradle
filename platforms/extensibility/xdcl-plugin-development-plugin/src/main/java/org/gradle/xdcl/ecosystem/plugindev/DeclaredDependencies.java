@@ -18,6 +18,7 @@ package org.gradle.xdcl.ecosystem.plugindev;
 
 import org.gradle.api.Project;
 import org.gradle.api.provider.Provider;
+import org.gradle.xdcl.ecosystem.common.dsl.Dependencies;
 import org.gradle.xdcl.ecosystem.common.dsl.HasDependencies;
 
 import java.util.List;
@@ -33,12 +34,14 @@ final class DeclaredDependencies {
     }
 
     static void configure(HasDependencies data, Project project) {
-        data.dependencies().ifPresent(dependencies -> {
-            addAll(project, "api", dependencies.api());
-            addAll(project, "implementation", dependencies.implementation());
-            addAll(project, "runtimeOnly", dependencies.runtimeOnly());
-            addAll(project, "compileOnly", dependencies.compileOnly());
-        });
+        Dependencies dependencies = data.dependencies().getOrNull();
+        if (dependencies == null) {
+            return;
+        }
+        addAll(project, "api", dependencies.api());
+        addAll(project, "implementation", dependencies.implementation());
+        addAll(project, "runtimeOnly", dependencies.runtimeOnly());
+        addAll(project, "compileOnly", dependencies.compileOnly());
     }
 
     private static void addAll(Project project, String configuration, Provider<List<String>> notations) {
