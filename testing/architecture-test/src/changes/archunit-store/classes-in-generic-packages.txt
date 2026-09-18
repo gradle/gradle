@@ -157,7 +157,6 @@ Class <org.gradle.initialization.ClassLoaderScopeRegistryListenerManager> is in 
 Class <org.gradle.initialization.CompositeInitScriptFinder> is in a generic package in (CompositeInitScriptFinder.java:0)
 Class <org.gradle.initialization.ConfigureBuildBuildOperationType> is in a generic package in (ConfigureBuildBuildOperationType.java:0)
 Class <org.gradle.initialization.ConventionInterfaceGenerator> is in a generic package in (ConventionInterfaceGenerator.java:0)
-Class <org.gradle.initialization.CurrentDirectoryProjectSpec> is in a generic package in (CurrentDirectoryProjectSpec.java:0)
 Class <org.gradle.initialization.DefaultBuildCancellationToken> is in a generic package in (DefaultBuildCancellationToken.java:0)
 Class <org.gradle.initialization.DefaultBuildRequestContext> is in a generic package in (DefaultBuildRequestContext.java:0)
 Class <org.gradle.initialization.DefaultBuildRequestMetaData> is in a generic package in (DefaultBuildRequestMetaData.java:0)

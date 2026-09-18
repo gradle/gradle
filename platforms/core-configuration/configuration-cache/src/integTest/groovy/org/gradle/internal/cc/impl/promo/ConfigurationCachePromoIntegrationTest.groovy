@@ -408,12 +408,23 @@ class ConfigurationCachePromoIntegrationTest extends AbstractConfigurationCacheI
         assertHasNoPromo()
     }
 
-    def "shows no promo message when gradle help is invoked without project"() {
+    def "shows no promo message when gradle help is invoked outside any build"() {
+        given:
+        useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
+
+        when:
+        run("help")
+
+        then:
+        assertHasNoPromo()
+    }
+
+    def "shows no promo message when gradle help is invoked in a directory that is not part of the build"() {
         given:
         withEmptyProjectDirectory()
 
         when:
-        run("help")
+        fails("help")
 
         then:
         assertHasNoPromo()

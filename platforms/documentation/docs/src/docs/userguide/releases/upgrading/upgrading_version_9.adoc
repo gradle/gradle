@@ -67,6 +67,33 @@ The following issues track the development of TestKit APIs for this purpose:
 These APIs are intentionally focused on testing use cases.
 If you extract the report data for other purposes, please comment on these issues and describe your use case.
 
+[[gradle_in_non_project_directory]]
+==== Running Gradle in a directory that is not part of the surrounding build now fails
+
+When Gradle is invoked in a directory that lies inside a build's directory tree but is not a project directory of that build, `gradle help` and `gradle` with no task names previously discarded the surrounding build and reported an undefined build:
+
+[source,text]
+----
+Directory '/home/user/project/sub' does not contain a Gradle build.
+
+To create a new build in this directory, run gradle init
+----
+
+Gradle now reports that the directory is not part of the surrounding build, and fails:
+
+[source,text]
+----
+Project directory '/home/user/project/sub' is not part of the build defined by settings file '/home/user/project/settings.gradle'. If this is an unrelated build, it must have its own settings file.
+----
+
+This is the message `gradle <task>` has always produced in the same directory, so the two no longer disagree.
+
+Two cases are unaffected.
+
+Running Gradle in a directory with no settings or build script anywhere in its parent hierarchy still reports an undefined build and still suggests `gradle init`.
+
+Running `gradle init` in a directory inside an existing build still creates a new build there.
+
 === Deprecations
 
 [[kotlin_dsl_scripts_model_explicit_scripts]]
