@@ -20,6 +20,7 @@ import org.gradle.api.Incubating
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginAware
+import org.gradle.api.services.GradleService
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForGradle
@@ -54,7 +55,10 @@ class KotlinGradleScriptTemplateCompilationConfiguration : KotlinDslStandaloneSc
 )
 abstract class KotlinGradleScriptTemplate(
     private val host: KotlinScriptHost<Gradle>
-) : DefaultKotlinScript(defaultKotlinScriptHostForGradle(host.target)), PluginAware by host.target {
+) : DefaultKotlinScript(defaultKotlinScriptHostForGradle(host.target)), PluginAware by host.target, InitScriptServiceLookup {
+
+    override fun <T : GradleService> service(serviceType: Class<T>): T =
+        lookupService(serviceType)
 
     /**
      * The [ScriptHandler] for this script.

@@ -54,6 +54,30 @@
             ]
         },
         {
+            "type": "org.gradle.kotlin.dsl.KotlinGradleScriptTemplate",
+            "member": "Class org.gradle.kotlin.dsl.KotlinGradleScriptTemplate",
+            "acceptation": "Script templates expose the incubating script service() lookup (#39131)",
+            "changes": [
+                "org.gradle.kotlin.dsl.InitScriptServiceLookup"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinProjectScriptTemplate",
+            "member": "Class org.gradle.kotlin.dsl.KotlinProjectScriptTemplate",
+            "acceptation": "Script templates expose the incubating script service() lookup (#39131)",
+            "changes": [
+                "org.gradle.kotlin.dsl.ProjectScriptServiceLookup"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate",
+            "member": "Class org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate",
+            "acceptation": "Script templates expose the incubating script service() lookup (#39131)",
+            "changes": [
+                "org.gradle.kotlin.dsl.SettingsScriptServiceLookup"
+            ]
+        },
+        {
             "type": "org.gradle.process.ExecOperations",
             "member": "Class org.gradle.process.ExecOperations",
             "acceptation": "Marked as available for lookup via the incubating service() markers (#13121)",
