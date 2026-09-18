@@ -977,3 +977,6 @@ To debug the daemon TestKit spawns with the Configuration Cache enabled:
 * Do not use `withDebug(true)`.
 * Pass `-Dorg.gradle.debug=true` to the build under test (see <<command_line_interface.adoc#sec:command_line_debugging,debugging options>>).
 * Attach the debugger manually.
+
+The same applies to a build under test that enables <<isolated_projects.adoc#isolated_projects,Isolated Projects>>, which is built on the Configuration Cache infrastructure.
+See <<test_kit.adoc#sub:test-kit-debug-config-cache,Debugging with the Configuration Cache or Isolated Projects>>.

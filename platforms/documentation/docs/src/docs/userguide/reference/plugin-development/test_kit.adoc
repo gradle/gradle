@@ -225,6 +225,30 @@ The TestKit provides two different ways to enable the debug mode:
 The system property approach can be used when it is desirable to enable debugging support without making an ad hoc change to the runner configuration.
 Most IDEs offer the capability to set JVM system properties for test execution, and this feature can be used to set the desired system property.
 
+[[sub:test-kit-debug-config-cache]]
+=== Debugging with the Configuration Cache or Isolated Projects
+
+In debug mode the build runs in the test process, where Gradle's instrumentation agent is not installed.
+The agent is applied through a JVM command-line switch, so it is available only in a process Gradle starts itself.
+
+A debugger on its own is fine: the JDWP agent is not treated as a third-party agent, so a debugging session takes the same instrumentation path as a regular build.
+The combination that is not supported is debug mode together with _another_ Java agent on the test JVM — a coverage agent such as JaCoCo, or the agent an IDE attaches when it runs tests.
+With <<configuration_cache.adoc#config_cache,Configuration Cache>> or <<isolated_projects.adoc#isolated_projects,Isolated Projects>> enabled in the build under test, that combination is reported as a Configuration Cache problem:
+
+[source,text]
+----
+third-party Java agents with inactive Gradle's instrumentation agent are not supported by the configuration cache
+----
+
+To debug such a build, keep it in its own process and attach to that process instead:
+
+* Do not enable debug mode.
+* Pass `-Dorg.gradle.debug=true` to the build under test (see <<command_line_interface.adoc#sec:command_line_debugging,debugging options>>).
+* Attach the debugger manually.
+
+The build then takes the same instrumentation path as a regular build.
+Support for the instrumentation agent in debug mode is tracked in link:https://github.com/gradle/gradle/issues/23817[gradle/gradle#23817].
+
 [[sub:test-kit-build-cache]]
 == Testing with the Build Cache
 
