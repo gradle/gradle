@@ -172,19 +172,16 @@ abstract class MyArchiveOperationsTask
 tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask::class)
 // end::archive-op-inject[]
 
-// tag::archive-op-adhoc[]
-interface InjectedArcOps {
-    @get:Inject val arcOps: ArchiveOperations
-}
-
-tasks.register("myAdHocArchiveOperationsTask") {
-    val injected = project.objects.newInstance<InjectedArcOps>()
-    val archiveFile = "${project.projectDir}/sources.jar"
+// tag::archive-op-lookup[]
+tasks.register("listArchiveEntries") {
+    val archiveOperations = service<ArchiveOperations>()
+    val layout = service<ProjectLayout>()
     doLast {
-        injected.arcOps.zipTree(archiveFile)
+        val entries = archiveOperations.zipTree(layout.projectDirectory.file("sources.jar")).files
+        println("Entries: ${entries.map { it.name }}")
     }
 }
-// end::archive-op-adhoc[]
+// end::archive-op-lookup[]
 
 // tag::exec-op-inject[]
 abstract class MyExecOperationsTask
@@ -201,21 +198,16 @@ abstract class MyExecOperationsTask
 tasks.register("myInjectedExecOperationsTask", MyExecOperationsTask::class)
 // end::exec-op-inject[]
 
-// tag::exec-op-adhoc[]
-interface InjectedExecOps {
-    @get:Inject val execOps: ExecOperations
-}
-
-tasks.register("myAdHocExecOperationsTask") {
-    val injected = project.objects.newInstance<InjectedExecOps>()
-
+// tag::exec-op-lookup[]
+tasks.register("printGitStatus") {
+    val execOperations = service<ExecOperations>()
     doLast {
-        injected.execOps.exec {
-            commandLine("ls", "-la")
+        execOperations.exec {
+            commandLine("git", "status")
         }
     }
 }
-// end::exec-op-adhoc[]
+// end::exec-op-lookup[]
 
 // tag::tooling-model[]
 // Implements the ToolingModelBuilder interface.
@@ -310,3 +302,22 @@ tasks.register("cleanTemp", CleanTempTask::class) {}
 // Also exercise the Java implementation that lives in buildSrc, so the snippets
 // integration test compiles and instantiates org.example.CleanTempTask.
 tasks.register<org.example.CleanTempTask>("cleanTempJava") {}
+
+// tag::service-lookup[]
+tasks.register("checkJavaVersion") {
+    doLast {
+        service<ExecOperations>().exec {
+            commandLine("java", "-version")
+        }
+    }
+}
+// end::service-lookup[]
+
+// tag::service-lookup-capture[]
+tasks.register("cleanReports") {
+    val fs = service<FileSystemOperations>() // looked up and captured at configuration time
+    doLast {
+        fs.delete { delete("build/reports") }
+    }
+}
+// end::service-lookup-capture[]

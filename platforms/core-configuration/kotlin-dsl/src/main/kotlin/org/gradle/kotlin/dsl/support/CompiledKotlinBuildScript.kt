@@ -19,13 +19,20 @@ package org.gradle.kotlin.dsl.support
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.file.FileOperations
+import org.gradle.api.internal.services.PublicServiceLookups
+import org.gradle.api.internal.services.PublicServiceLookups.EntryPoint
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.PluginAware
+import org.gradle.api.services.GradleService
+import org.gradle.api.services.ProjectService
 import org.gradle.kotlin.dsl.*
+import org.gradle.kotlin.dsl.InitScriptServiceLookup
+import org.gradle.kotlin.dsl.ProjectScriptServiceLookup
 import org.gradle.plugin.use.PluginDependenciesSpec
 import kotlin.script.experimental.annotations.KotlinScript
 
@@ -33,7 +40,10 @@ import kotlin.script.experimental.annotations.KotlinScript
 @KotlinScript(compilationConfiguration = BuildScriptCompilationConfiguration::class)
 open class CompiledKotlinBuildScript(
     private val host: KotlinScriptHost<Project>
-) : DefaultKotlinScript(defaultKotlinScriptHostForProject(host.target)), PluginAware by host.target {
+) : DefaultKotlinScript(defaultKotlinScriptHostForProject(host.target)), PluginAware by host.target, ProjectScriptServiceLookup {
+
+    override fun <T : ProjectService> service(serviceType: Class<T>): T =
+        lookupService(serviceType)
 
     /**
      * The [ScriptHandler] for this script.
@@ -102,7 +112,10 @@ open class CompiledKotlinSettingsBuildscriptBlock(
 @KotlinScript(compilationConfiguration = InitScriptCompilationConfiguration::class)
 open class CompiledKotlinInitScript(
     private val host: KotlinScriptHost<Gradle>
-) : DefaultKotlinScript(InitScriptHost(host)), PluginAware by PluginAwareScript(host) {
+) : DefaultKotlinScript(InitScriptHost(host)), PluginAware by PluginAwareScript(host), InitScriptServiceLookup {
+
+    override fun <T : GradleService> service(serviceType: Class<T>): T =
+        lookupService(serviceType)
 
     /**
      * The [ScriptHandler] for this script.
@@ -115,6 +128,8 @@ open class CompiledKotlinInitScript(
         override fun getLogger(): Logger = Logging.getLogger(Gradle::class.java)
         override fun getLogging(): LoggingManager = host.target.serviceOf()
         override fun getFileOperations(): FileOperations = host.fileOperations
+        override fun <T : Any> lookupService(serviceType: Class<T>): T =
+            PublicServiceLookups.lookup(serviceType, EntryPoint.GRADLE, (host.target as GradleInternal).services)
     }
 }
 
