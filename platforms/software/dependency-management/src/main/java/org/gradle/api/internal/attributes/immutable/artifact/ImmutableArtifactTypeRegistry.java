@@ -87,6 +87,7 @@ public class ImmutableArtifactTypeRegistry {
             }
         }
 
+        boolean directoryVisited = false;
         for (TransformRegistration registration : transformRegistrations) {
             AttributeContainerInternal sourceAttributes = registration.getFrom();
             String format = sourceAttributes.getAttribute(ARTIFACT_TYPE_ATTRIBUTE);
@@ -94,10 +95,13 @@ public class ImmutableArtifactTypeRegistry {
                 // Some artifact type that has not already been visited
                 ImmutableAttributes attributes = attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, format);
                 visitor.accept(attributes);
+                directoryVisited |= ArtifactTypeDefinition.DIRECTORY_TYPE.equals(format);
             }
         }
 
-        if (seen.add(ArtifactTypeDefinition.DIRECTORY_TYPE)) {
+        // mapAttributesFor(File) ignores a registered 'directory' definition and always returns {artifactType=directory},
+        // so these plain attributes must be visited too, even when the definition was visited above
+        if (!directoryVisited) {
             ImmutableAttributes directory = attributesFactory.of(ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE);
             visitor.accept(directory);
         }
