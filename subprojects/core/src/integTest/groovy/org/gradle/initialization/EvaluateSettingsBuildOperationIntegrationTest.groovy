@@ -18,6 +18,7 @@ package org.gradle.initialization
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import spock.lang.Issue
 
 import static org.gradle.integtests.fixtures.TestableBuildOperationRecord.buildOp
 
@@ -37,6 +38,20 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
         evaluationOps == [
             buildOp(details: [settingsDir: settingsFile.parentFile.absolutePath, settingsFile: settingsFile.absolutePath, buildPath: ":"], displayName: "Evaluate settings", parent: loadOps[0])
         ]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38623")
+    def "settings are evaluated once when targeting a buildSrc directory with no settings script"() {
+        settingsFile << ""
+        file("buildSrc/build.gradle") << ""
+
+        when:
+        executer.withArgument("-p").withArgument(file("buildSrc").absolutePath)
+        succeeds('help')
+
+        then:
+        buildOperations.all(LoadBuildBuildOperationType).size() == 1
+        buildOperations.all(EvaluateSettingsBuildOperationType).size() == 1
     }
 
     def "composite participants expose their settings details"() {
