@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.jvm;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ExternalDependency;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyModifier;
@@ -32,7 +31,6 @@ import org.gradle.api.tasks.Nested;
  *
  * @since 8.0
  */
-@Incubating
 public interface PlatformDependencyModifiers {
     /**
      * A dependency modifier that can modify a dependency to select a platform variant.
@@ -53,7 +51,6 @@ public interface PlatformDependencyModifiers {
      * @see #modifyImplementation(ModuleDependency)
      * @since 8.0
      */
-    @Incubating
     abstract class PlatformDependencyModifier extends DependencyModifier {
         /**
          * {@inheritDoc}
@@ -86,7 +83,6 @@ public interface PlatformDependencyModifiers {
      * @see #modifyImplementation(ModuleDependency)
      * @since 8.0
      */
-    @Incubating
     abstract class EnforcedPlatformDependencyModifier extends DependencyModifier {
         /**
          * {@inheritDoc}

@@ -16,7 +16,6 @@
 
 package org.gradle.api.plugins.jvm;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.artifacts.ModuleDependency;
 import org.gradle.api.artifacts.dsl.DependencyModifier;
 import org.gradle.api.tasks.Nested;
@@ -30,7 +29,6 @@ import org.gradle.internal.component.external.model.TestFixturesSupport;
  *
  * @since 8.0
  */
-@Incubating
 public interface TestFixturesDependencyModifiers {
     /**
      * A dependency modifier that can modify a dependency to select a test fixtures variant.
@@ -50,7 +48,6 @@ public interface TestFixturesDependencyModifiers {
      * @since 8.0
      * @see #modifyImplementation(ModuleDependency)
      */
-    @Incubating
     abstract class TestFixturesDependencyModifier extends DependencyModifier {
         /**
          * {@inheritDoc}
