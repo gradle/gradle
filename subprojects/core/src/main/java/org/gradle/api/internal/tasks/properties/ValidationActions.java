@@ -21,9 +21,11 @@ import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.model.internal.type.ModelType;
+import org.gradle.util.internal.DeferredUtil;
 import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
 
@@ -42,6 +44,20 @@ public enum ValidationActions implements ValidationAction {
 
         @Override
         public void validate(String propertyName, Supplier<Object> propertyValue, PropertyValidationContext context) {
+        }
+    },
+    REQUIRED_INPUT_FILES("file collection") {
+        @Override
+        public void doValidate(String propertyName, Object value, PropertyValidationContext context) {
+            Provider<?> absentProvider = findNestedAbsentProvider(value);
+            if (absentProvider != null) {
+                AbstractValidatingProperty.reportValueNotSet(propertyName, context, AbstractValidatingProperty.hasConfigurableValue(absentProvider));
+            }
+        }
+
+        @Override
+        public void validate(String propertyName, Supplier<Object> propertyValue, PropertyValidationContext context) {
+            doValidate(propertyName, propertyValue.get(), context);
         }
     },
     INPUT_FILE_VALIDATOR("file") {
@@ -138,6 +154,15 @@ public enum ValidationActions implements ValidationAction {
             default:
                 throw new AssertionError("Unknown input property type " + type);
         }
+    }
+
+    private static @Nullable Provider<?> findNestedAbsentProvider(@Nullable Object value) {
+        for (Provider<?> provider : FileParameterUtils.findNestedProviders(value)) {
+            if (!provider.isPresent()) {
+                return provider;
+            }
+        }
+        return null;
     }
 
     public static ValidationAction outputValidationActionFor(OutputFilePropertySpec spec) {
@@ -273,10 +298,12 @@ public enum ValidationActions implements ValidationAction {
 
     @Override
     public void validate(String propertyName, Supplier<Object> value, PropertyValidationContext context) {
+        Object resolvedValue = value.get();
         try {
-            doValidate(propertyName, value.get(), context);
+            resolvedValue = DeferredUtil.unpack(resolvedValue);
+            doValidate(propertyName, resolvedValue, context);
         } catch (UnsupportedNotationException unsupportedNotationException) {
-            reportUnsupportedValue(propertyName, context, targetType, value.get(), unsupportedNotationException.getCandidates());
+            reportUnsupportedValue(propertyName, context, targetType, resolvedValue, unsupportedNotationException.getCandidates());
         }
     }
 
