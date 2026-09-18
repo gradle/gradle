@@ -24,6 +24,8 @@ import org.gradle.api.internal.provider.DefaultMapProperty
 import org.gradle.api.internal.provider.ManagedFactories
 import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.provider.Providers
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Nested
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.classloader.ClasspathUtil
 import org.gradle.internal.classloader.FilteringClassLoader
@@ -31,6 +33,8 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.state.ManagedFactoryRegistry
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
 import spock.lang.Specification
 
 class DefaultIsolatableFactoryTest extends Specification {
@@ -498,5 +502,81 @@ class DefaultIsolatableFactoryTest extends Specification {
         other.prop == "123"
         !other.is(original)
         isolated.coerce(String) == null
+    }
+
+    interface SelfNestedBean {
+        @Nested
+        SelfNestedBean getSelf()
+
+        Property<String> getName()
+    }
+
+    interface MutuallyNestedBeanA {
+        @Nested
+        MutuallyNestedBeanB getB()
+    }
+
+    interface MutuallyNestedBeanB {
+        @Nested
+        MutuallyNestedBeanA getA()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39202")
+    @ToBeImplemented("A @Nested type cycle should be reported, not exhaust the stack")
+    def "isolating a managed type with a self-referencing @Nested getter reports the cycle"() {
+        def original = TestUtil.objectFactory().newInstance(SelfNestedBean)
+
+        given:
+        _ * managedFactoryRegistry.lookup(_) >> TestUtil.instantiatorFactory().managedFactory
+
+        when:
+        isolatableFactory.isolate(original)
+
+        then:
+        def e = thrown(IsolationException)
+
+        // The whole message is the value and its type, so nothing identifies the cycle
+        and:
+        e.message ==~ /Could not isolate value .*SelfNestedBean.* of type .*SelfNestedBean.*/
+
+        // Near the stack limit the cause can be dropped, so only its kind is guaranteed
+        and:
+        e.cause == null || e.cause instanceof StackOverflowError
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39202")
+    @ToBeImplemented("A @Nested type cycle should be reported, not exhaust the stack")
+    def "isolating a managed type with a mutual @Nested cycle reports the cycle"() {
+        def original = TestUtil.objectFactory().newInstance(MutuallyNestedBeanA)
+
+        given:
+        _ * managedFactoryRegistry.lookup(_) >> TestUtil.instantiatorFactory().managedFactory
+
+        when:
+        isolatableFactory.isolate(original)
+
+        then:
+        def e = thrown(IsolationException)
+
+        // Only the entry type is named; the type it forms the cycle with is not
+        and:
+        e.message ==~ /Could not isolate value .*MutuallyNestedBeanA.* of type .*MutuallyNestedBeanA.*/
+
+        and:
+        e.cause == null || e.cause instanceof StackOverflowError
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39202")
+    def "a @Nested cycle is accepted when the managed type is instantiated"() {
+        when:
+        def instance = TestUtil.objectFactory().newInstance(SelfNestedBean)
+
+        then:
+        noExceptionThrown()
+
+        // Each level of the cycle is a distinct instance, so the object graph is unbounded
+        and:
+        instance.self.is(instance.self)
+        !instance.self.is(instance.self.self)
     }
 }
