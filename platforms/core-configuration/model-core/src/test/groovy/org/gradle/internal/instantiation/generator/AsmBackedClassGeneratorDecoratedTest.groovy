@@ -28,6 +28,7 @@ import org.gradle.api.provider.Property
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.BiAction
 import org.gradle.internal.Describables
+import org.gradle.internal.instantiation.ClassGenerationException
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
@@ -58,6 +59,41 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
 
     @Rule
     final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
+
+    def "does not generate a set(Object) overload for an upgraded property that already declares one"() {
+        def bean = create(AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBeanWithObjectSetter)
+
+        when:
+        bean.getClass().getDeclaredMethod("setProp", Object)
+
+        then:
+        thrown(NoSuchMethodException)
+    }
+
+    // Pre-existing behaviour, unchanged here: convention mapping and the lazy Groovy support each generate a
+    // set(Object), and the JVM rejects the duplicate. Only upgraded properties skip the generated overload.
+    def "fails to generate a lazy property that is not upgraded and declares its own set(Object)"() {
+        when:
+        create(AsmBackedClassGeneratorTest.BeanWithLazyPropertyAndObjectSetter)
+
+        then:
+        def e = thrown(ClassGenerationException)
+        e.cause.message.contains('Duplicate method name "setProp"')
+    }
+
+    def "implements an abstract set(Object) declared for a lazy property"() {
+        def bean = create(type)
+
+        expect:
+        bean.setProp("x")
+        bean.prop.get() == "x"
+
+        where:
+        type << [
+            AsmBackedClassGeneratorTest.BeanWithLazyPropertyAndAbstractObjectSetter,
+            AsmBackedClassGeneratorTest.UpgradedPropertyBeanWithAbstractObjectSetter
+        ]
+    }
 
     def "mixes in toString() implementation for class"() {
         given:
