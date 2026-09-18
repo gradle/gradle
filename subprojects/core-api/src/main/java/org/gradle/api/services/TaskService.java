@@ -19,7 +19,7 @@ package org.gradle.api.services;
 import org.gradle.api.Incubating;
 
 /**
- * Marks a service that can be looked up via {@code Task.service(Class)}.
+ * Marks a service that can be looked up via {@link org.gradle.api.Task#service(Class)}.
  * It is not meant to be implemented by user code.
  *
  * @since 9.9.0

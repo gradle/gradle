@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.services
 
+import org.gradle.api.Task
 import org.gradle.api.services.GradleService
 import org.gradle.api.services.ProjectService
 import org.gradle.api.services.SettingsService
@@ -58,5 +59,10 @@ class PublicServiceLookupMarkerConsistencyTest extends Specification {
                 assert scopes.contains(PublicServiceLookups.EntryPoint.SETTINGS): "${serviceType.name} is available to init scripts but not to settings scripts"
             }
         }
+    }
+
+    def "Task.service(Class) is bounded by the task marker"() {
+        expect:
+        Task.getMethod("service", Class).typeParameters[0].bounds[0] == TaskService
     }
 }
