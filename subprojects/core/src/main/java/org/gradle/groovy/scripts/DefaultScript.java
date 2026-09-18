@@ -18,6 +18,7 @@ package org.gradle.groovy.scripts;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.PathValidation;
 import org.gradle.api.Script;
 import org.gradle.api.file.ConfigurableFileCollection;
@@ -26,6 +27,8 @@ import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.DeleteSpec;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.initialization.dsl.ScriptHandler;
+import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.internal.SettingsInternal;
 import org.gradle.api.internal.file.DefaultFileOperations;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileLookup;
@@ -35,6 +38,8 @@ import org.gradle.api.internal.file.HasScriptServices;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.services.PublicServiceLookups;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.LoggingManager;
@@ -230,6 +235,31 @@ public abstract class DefaultScript extends BasicScript {
     @Override
     public LoggingManager getLogging() {
         return loggingManager;
+    }
+
+    /**
+     * Resolves against the registry of the script's target, not {@link #scriptServices}: the latter is the
+     * build-scoped registry for every kind of script, which would let a project build script reach services
+     * outside its own scope.
+     *
+     * <p>Dispatches on the target here rather than in {@code ProjectScript}, {@code SettingsScript} and
+     * {@code InitScript}, because only top-level scripts use those: script plugins applied with
+     * {@code apply from:} and precompiled script plugins are plain {@code DefaultScript}s.
+     */
+    @Override
+    public <T> T service(Class<T> serviceType) {
+        Object target = getScriptTarget();
+        if (target instanceof ProjectInternal) {
+            return PublicServiceLookups.lookup(serviceType, PublicServiceLookups.EntryPoint.PROJECT, ((ProjectInternal) target).getServices());
+        }
+        if (target instanceof SettingsInternal) {
+            return PublicServiceLookups.lookup(serviceType, PublicServiceLookups.EntryPoint.SETTINGS, ((SettingsInternal) target).getServices());
+        }
+        if (target instanceof GradleInternal) {
+            return PublicServiceLookups.lookup(serviceType, PublicServiceLookups.EntryPoint.GRADLE, ((GradleInternal) target).getServices());
+        }
+        // Reachable with `apply from: 'script.gradle', to: someObject`
+        throw new InvalidUserDataException("service() is only available in scripts applied to a project, settings or Gradle instance, but this script is applied to " + target + ".");
     }
 
     @Override

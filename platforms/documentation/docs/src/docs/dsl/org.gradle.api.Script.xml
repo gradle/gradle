@@ -68,6 +68,9 @@
             <tr>
                 <td>delete</td>
             </tr>
+            <tr>
+                <td>service</td>
+            </tr>
         </table>
     </section>
 </section>

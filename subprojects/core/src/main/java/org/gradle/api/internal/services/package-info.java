@@ -16,7 +16,7 @@
 
 /**
  * Implementation of the public service lookup available to build, settings and init scripts,
- * backing {@code Script.service(Class)} and the Kotlin DSL script templates.
+ * backing {@link org.gradle.api.Script#service(Class)} and the Kotlin DSL script templates.
  */
 @NullMarked
 package org.gradle.api.internal.services;
