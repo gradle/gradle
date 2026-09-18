@@ -5,6 +5,9 @@ import gradlebuild.basics.ArchitectureDataType
 import gradlebuild.basics.DistributionArtifactScope
 import gradlebuild.basics.PublicApi
 import gradlebuild.basics.PublicKotlinDslApi
+import gradlebuild.packageinfo.support.packageInfoDataVariant
+import gradlebuild.packageinfo.support.packageInfoFilesFrom
+import gradlebuild.packageinfo.tasks.AggregatePackageInfoDataTask
 
 plugins {
     id("gradlebuild.internal.java")
@@ -23,13 +26,6 @@ val platformsDataResolvable = configurations.resolvable("platformsDataResolvable
     }
 }
 
-val packageInfoDataResolvable = configurations.resolvable("packageInfoDataResolvable") {
-    extendsFrom(rootProjectDependency.get())
-    attributes {
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(ArchitectureDataType.PACKAGE_INFO))
-    }
-}
-
 // Bucket for declaring the runtime-only distribution dependency, extended by the resolvable below.
 val distributionRuntimeDependencies = configurations.dependencyScope("distributionRuntimeDependencies")
 
@@ -38,6 +34,7 @@ val distributionRuntimeDependencies = configurations.dependencyScope("distributi
 // Selects the `runtimeJarsOnly` variant exposed by gradlebuild.distributions via the
 // DistributionArtifactScope attribute. Transitive projects that do not advertise this attribute
 // remain compatible via Gradle's default compatibility process.
+// Its graph is also the source for the package-info data below, via variant reselection.
 val distributionRuntime = configurations.resolvable("distributionRuntime") {
     extendsFrom(distributionRuntimeDependencies)
     attributes {
@@ -83,6 +80,25 @@ val sortAcceptedApiChanges = tasks.register<gradlebuild.binarycompatibility.Sort
     apiChangesDirectory = acceptedApiChangesDirectory
 }
 
+// Package-info data is produced per project by gradlebuild.package-info-data. Rather than re-derive which projects
+// ship, reselect that variant over the distribution's already-resolved runtime graph: the graph shape then comes
+// from `runtimeElements` semantics, so it covers exactly the modules whose bytecode the ArchUnit rules analyze.
+// External modules have no such variant and are filtered out up front; a *project* without it is a wiring error
+// and fails resolution rather than silently shrinking the data set.
+val packageInfoDataFiles = distributionRuntime.map {
+    it.incoming.artifactView {
+        withVariantReselection()
+        componentFilter { it is ProjectComponentIdentifier }
+        attributes { packageInfoDataVariant(objects) }
+    }.files
+}
+
+val aggregatePackageInfoData = tasks.register<AggregatePackageInfoDataTask>("aggregatePackageInfoData") {
+    description = "Merges the per-project package-info data of every project in the distribution"
+    projectData.from(packageInfoDataFiles)
+    outputFile = layout.buildDirectory.file("architecture/package-info.json")
+}
+
 val ruleStoreDir = layout.projectDirectory.dir("src/changes/archunit-store")
 
 tasks {
@@ -118,7 +134,8 @@ tasks {
         jvmArgumentProviders.add(
             PackageInfoData(
                 layout.settingsDirectory,
-                files(packageInfoDataResolvable),
+                aggregatePackageInfoData.flatMap { it.outputFile },
+                packageInfoFilesFrom(objects, layout.settingsDirectory, aggregatePackageInfoData.flatMap { it.outputFile }),
             )
         )
 
@@ -142,14 +159,21 @@ tasks {
 class PackageInfoData(
     @get:Internal
     val basePath: Directory,
+    @get:InputFile
+    @get:PathSensitive(PathSensitivity.NONE)
+    val json: Provider<RegularFile>,
+    /**
+     * The package-info.java files the test reads. The JSON only records their paths, so without declaring their
+     * contents the test would stay UP-TO-DATE when a package-info is edited in place.
+     */
     @get:InputFiles
     @get:PathSensitive(PathSensitivity.NONE)
-    val json: FileCollection,
+    val packageInfoFiles: FileCollection,
 ) : CommandLineArgumentProvider {
 
     override fun asArguments(): Iterable<String> = listOf(
         "-Dorg.gradle.architecture.package-info-base-path=${basePath.asFile.absolutePath}",
-        "-Dorg.gradle.architecture.package-info-json=${json.singleFile}",
+        "-Dorg.gradle.architecture.package-info-json=${json.get().asFile.absolutePath}",
     )
 }
 
