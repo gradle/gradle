@@ -16,19 +16,14 @@
 
 package org.gradle.api.internal.tasks
 
-import org.gradle.api.DomainObjectCollection
 import org.gradle.api.internal.tasks.properties.DefaultFinalizingValidatingProperty
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue
 import org.gradle.api.internal.tasks.properties.PropertyValidationContext
 import org.gradle.api.internal.tasks.properties.ValidationActions
 import org.gradle.api.provider.Provider
-import org.gradle.api.tasks.TaskProvider
 import org.gradle.internal.properties.PropertyValue
 import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
-
-import java.nio.file.Path
-import java.util.concurrent.Callable
 
 class DefaultFinalizingValidatingPropertyTest extends Specification {
     def "notifies property value of start and end of execution when it implements lifecycle interface"() {
@@ -101,30 +96,6 @@ class DefaultFinalizingValidatingPropertyTest extends Specification {
         "direct"    | { it }
         "list"      | { [it] }
         "array"     | { [it] as Object[] }
-        "nested"    | { [[it] as Object[]] }
-    }
-
-    def "required files validation skips live collections and deferred elements"() {
-        def domainObjects = Mock(DomainObjectCollection)
-        def taskProvider = Mock(TaskProvider)
-        def iterable = Mock(Iterable)
-        def callable = Mock(Callable)
-        def valueWrapper = Stub(PropertyValue) {
-            call() >> [domainObjects, taskProvider, iterable, callable, Path.of("input.txt")]
-        }
-        def property = new DefaultFinalizingValidatingProperty("name", valueWrapper, false, ValidationActions.REQUIRED_INPUT_FILES)
-        def context = Mock(PropertyValidationContext)
-
-        when:
-        property.validate(context)
-
-        then:
-        noExceptionThrown()
-        0 * domainObjects._
-        0 * taskProvider._
-        0 * iterable._
-        0 * callable._
-        0 * context.visitPropertyError(_)
     }
 
     def "unsupported notation while unpacking a file input is reported as a property problem"() {

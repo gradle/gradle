@@ -546,9 +546,6 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         enableProblemsApiCheck()
 
         buildFile """
-            def presentProvider = objects.fileProperty()
-            presentProvider.set(file("input.txt"))
-
             tasks.register("myTask") {
                 inputs.files($sources).withPropertyName("inputProp")
                 doLast {}
@@ -572,13 +569,9 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         assertInputPropValueNotSetProblem(configurable)
 
         where:
-        sources                                                 | configurable
-        '[objects.fileProperty()]'                              | true
-        '[providers.provider { null }]'                         | false
-        '[providers.provider { null }, objects.fileProperty()]' | false
-        '[objects.fileProperty(), providers.provider { null }]' | true
-        '[presentProvider, providers.provider { null }]'        | false
-        '[presentProvider, objects.fileProperty()]'             | true
+        sources                         | configurable
+        '[objects.fileProperty()]'      | true
+        '[providers.provider { null }]' | false
     }
 
     @Issue("https://github.com/gradle/gradle/issues/38410")

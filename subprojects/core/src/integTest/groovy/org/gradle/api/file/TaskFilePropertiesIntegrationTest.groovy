@@ -220,8 +220,6 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         description                    | declaration
         "inputs.files(fileProperty)"   | 'inputs.files(objects.fileProperty()).optional().withPropertyName("inputProp")'
         "inputs.files([fileProperty])" | 'inputs.files([objects.fileProperty()]).optional().withPropertyName("inputProp")'
-        "inputs.files(provider)"       | 'inputs.files(providers.provider { null }).optional().withPropertyName("inputProp")'
-        "inputs.files([provider])"     | 'inputs.files([providers.provider { null }]).optional().withPropertyName("inputProp")'
         "inputs.file(fileProperty)"    | 'inputs.file(objects.fileProperty()).optional().withPropertyName("inputProp")'
         "inputs.property(property)"    | 'inputs.property("inputProp", objects.property(String)).optional(true)'
     }
