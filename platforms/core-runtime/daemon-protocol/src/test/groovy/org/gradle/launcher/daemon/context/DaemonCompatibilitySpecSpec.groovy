@@ -82,6 +82,16 @@ class DaemonCompatibilitySpecSpec extends Specification {
         unsatisfiedReason.contains "JVM is incompatible"
     }
 
+    def "context with a missing java home is incompatible"() {
+        clientWants(new DaemonJvmCriteria.JavaHome(DaemonJvmCriteria.JavaHome.Source.ORG_GRADLE_JAVA_HOME, javaHome))
+        candidate.javaHome >> javaHome
+        javaHome.deleteDir()
+
+        expect:
+        !compatible
+        unsatisfiedReason.contains "JVM is incompatible"
+    }
+
     def "contexts with different jvm criteria are incompatible"() {
         clientWants(new DaemonJvmCriteria.Spec(JavaLanguageVersion.of(11), JvmVendorSpec.ADOPTIUM, JvmImplementation.VENDOR_SPECIFIC, false))
 
