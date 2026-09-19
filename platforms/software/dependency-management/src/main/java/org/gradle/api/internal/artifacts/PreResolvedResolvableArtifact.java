@@ -111,7 +111,7 @@ public class PreResolvedResolvableArtifact implements ResolvableArtifact {
             originalFileName = this.file.getName();
         }
 
-        ComponentArtifactIdentifier newId = new TransformedComponentFileArtifactIdentifier(artifactId.getComponentIdentifier(), file.getName(), originalFileName);
+        ComponentArtifactIdentifier newId = new TransformedComponentFileArtifactIdentifier(artifactId, file.getName(), originalFileName);
         return new PreResolvedResolvableArtifact(owner, artifactName, newId, file, builtBy, calculatedValueFactory);
     }
 

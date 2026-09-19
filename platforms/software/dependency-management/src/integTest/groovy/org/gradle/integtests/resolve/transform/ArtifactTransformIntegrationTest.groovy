@@ -3133,6 +3133,203 @@ Found the following transformation chains:
         failure.assertHasResolution("Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#undeclared_artifact_transform_input")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/38831")
+    def "transformed artifacts of one project with same file name are not deduplicated"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                def f1 = file("a/lib.jar")
+                def f2 = file("b/lib.jar")
+                [f1, f2]*.parentFile*.mkdirs()
+                f1.text = "1234"
+                f2.text = "123"
+                artifacts {
+                    compile f1
+                    compile f2
+                }
+            }
+
+            dependencies {
+                compile project(':lib')
+            }
+
+            ${declareTransform('FileSizer')}
+
+            task resolve {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                inputs.files artifacts.artifactFiles
+                doLast {
+                    println "artifacts: " + artifacts.collect { it.file.name }
+                    println "content: " + artifacts.collect { it.file.text }
+                }
+            }
+        """
+
+        when:
+        run "resolve"
+
+        then:
+        outputContains("artifacts: [lib.jar.txt, lib.jar.txt]")
+        outputContains("content: [4, 3]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38831")
+    def "transformed classes directories with same name are not deduplicated"() {
+        given:
+        file("lib/src/main/java/Foo.java") << "class Foo {}"
+        file("lib/other/main/Other.class") << "other"
+        buildFile << """
+            apply plugin: 'java'
+
+            project(':lib') {
+                apply plugin: 'java-library'
+                sourceSets.main.output.classesDirs.from(file('other/main'))
+            }
+
+            dependencies {
+                implementation project(':lib')
+                registerTransform(FileSizer) {
+                    from.attribute(artifactType, 'java-classes-directory')
+                    to.attribute(artifactType, 'size')
+                }
+            }
+
+            task resolve {
+                def artifacts = configurations.compileClasspath.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                inputs.files artifacts.artifactFiles
+                doLast {
+                    println "artifacts: " + artifacts.collect { it.file.name }
+                }
+            }
+        """
+
+        when:
+        run "resolve"
+
+        then:
+        output.count("Transforming main to main.txt") == 2
+        outputContains("artifacts: [main.txt, main.txt]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17213")
+    def "transformed artifacts with different input names and same output name are not deduplicated"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                def f1 = file("first.jar")
+                def f2 = file("second.jar")
+                f1.text = "first"
+                f2.text = "second"
+                artifacts {
+                    compile f1
+                    compile f2
+                }
+            }
+
+            dependencies {
+                compile project(':lib')
+            }
+
+            abstract class DirMaker implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    def output = outputs.dir("main")
+                    new File(output, "a.txt").text = input.name
+                }
+            }
+
+            ${declareTransform('DirMaker')}
+
+            task resolve {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                inputs.files artifacts.artifactFiles
+                doLast {
+                    println "files: " + artifacts.artifactFiles.files.size()
+                    println "artifacts: " + artifacts.artifacts.size()
+                    println "content: " + artifacts.collect { new File(it.file, "a.txt").text }
+                }
+            }
+        """
+
+        when:
+        run "resolve"
+
+        then:
+        outputContains("files: 2")
+        outputContains("artifacts: 2")
+        outputContains("content: [first.jar, second.jar]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/18458")
+    def "transformed artifacts with same name and different capabilities are not deduplicated"() {
+        given:
+        buildFile << """
+            project(':lib') {
+                group = 'org.test'
+                version = '1.0'
+                def f1 = file("a/a.jar")
+                def f2 = file("b/a.jar")
+                [f1, f2]*.parentFile*.mkdirs()
+                f1.text = "1234"
+                f2.text = "123"
+                configurations {
+                    testFixturesElements {
+                        canBeConsumed = true
+                        canBeResolved = false
+                        attributes { attribute usage, 'api' }
+                        outgoing.capability("org.test:lib-test-fixtures:1.0")
+                    }
+                }
+                artifacts {
+                    compile f1
+                    testFixturesElements f2
+                }
+            }
+
+            dependencies {
+                compile project(':lib')
+                compile(project(':lib')) {
+                    capabilities {
+                        requireCapability("org.test:lib-test-fixtures")
+                    }
+                }
+            }
+
+            ${declareTransform('FileSizer')}
+
+            task resolve {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                inputs.files artifacts.artifactFiles
+                doLast {
+                    println "files: " + artifacts.artifactFiles.files.size()
+                    println "artifacts: " + artifacts.collect { it.file.name }
+                    println "content: " + artifacts.collect { it.file.text }
+                    println "capabilities: " + artifacts.collect { it.variant.capabilities.collect { it.name } }
+                }
+            }
+        """
+
+        when:
+        run "resolve"
+
+        then:
+        outputContains("files: 2")
+        outputContains("artifacts: [a.jar.txt, a.jar.txt]")
+        outputContains("content: [4, 3]")
+        outputContains("capabilities: [[lib], [lib-test-fixtures]]")
+    }
+
     def declareTransform(String transformImplementation) {
         """
             dependencies {

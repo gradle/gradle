@@ -113,7 +113,7 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
             originalFileName = fileSource.get().getName();
         }
 
-        ComponentArtifactIdentifier newId = new TransformedComponentFileArtifactIdentifier(artifactId.getComponentIdentifier(), file.getName(), originalFileName);
+        ComponentArtifactIdentifier newId = new TransformedComponentFileArtifactIdentifier(artifactId, file.getName(), originalFileName);
         return new PreResolvedResolvableArtifact(owner, artifactName, newId, file, TaskDependencyContainer.EMPTY, calculatedValueFactory);
     }
 
