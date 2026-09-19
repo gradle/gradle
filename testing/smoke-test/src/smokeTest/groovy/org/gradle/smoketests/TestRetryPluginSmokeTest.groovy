@@ -18,6 +18,7 @@ package org.gradle.smoketests
 
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestExecutionResult
 import org.gradle.api.tasks.testing.TestResult
+import org.gradle.integtests.fixtures.JUnitXmlTestExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.TaskOutcome
@@ -99,30 +100,77 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
         assertTestResults()
     }
 
+    @Issue('https://plugins.gradle.org/plugin/org.gradle.test-retry')
+    def 'test retry plugin does not rerun passed tests that are not declared as methods'() {
+        given:
+        buildFile << """
+            dependencies {
+                testImplementation("org.junit.jupiter:junit-jupiter:5.14.2")
+                testImplementation("com.tngtech.archunit:archunit-junit5:1.4.2")
+                testRuntimeOnly("org.junit.platform:junit-platform-launcher")
+            }
+
+            test {
+                def markerFile = file("marker.file")
+                doFirst {
+                    markerFile.delete()
+                }
+
+                useJUnitPlatform()
+                retry {
+                    maxRetries = 2
+                }
+            }
+        """
+        file("src/test/java/org/acme/AcmeArchTest.java") << """
+            package org.acme;
+
+            import com.tngtech.archunit.junit.AnalyzeClasses;
+            import com.tngtech.archunit.junit.ArchTest;
+            import com.tngtech.archunit.lang.ArchRule;
+
+            import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+
+            @AnalyzeClasses(packages = "org.acme")
+            public class AcmeArchTest {
+                @ArchTest
+                static final ArchRule rule = classes().should().resideInAPackage("org.acme");
+            }
+        """
+
+        when:
+        def result = runner('test').buildAndFail()
+
+        then:
+        assertTaskFailed(result, ":test")
+        def results = new JUnitXmlTestExecutionResult(new TestFile(testProjectDir))
+        results.testClass("org.acme.AcmeTest").assertTestCount(7, 1, 4)
+        results.testClass("org.acme.AcmeArchTest").assertTestCount(1, 0)
+    }
+
     private void assertTestResults() {
-        def results = new GenericHtmlTestExecutionResult(testProjectDir, "build/reports/tests/test")
-        results.assertTestPathsExecuted(
+        def xmlResults = new JUnitXmlTestExecutionResult(new TestFile(testProjectDir)).testClass("org.acme.AcmeTest")
+        xmlResults.assertTestCount(7, 1, 4)
+        xmlResults.assertTestPassed("successful")
+        xmlResults.assertTestSkipped("skipped")
+
+        def htmlResults = new GenericHtmlTestExecutionResult(testProjectDir, "build/reports/tests/test")
+        htmlResults.assertTestPathsExecuted(
             ":org.acme.AcmeTest:successful()",
             ":org.acme.AcmeTest:flaky()",
             ":org.acme.AcmeTest:failing()",
             ":org.acme.AcmeTest:skipped()"
         )
-        def failing = results.testPath(":org.acme.AcmeTest:failing()")
-        failing.singleRootRunCount == 3
+        def failing = htmlResults.testPath(":org.acme.AcmeTest:failing()")
+        assert failing.singleRootRunCount == 3
         failing.singleRootWithRun(1).assertHasResult(TestResult.ResultType.FAILURE)
         failing.singleRootWithRun(2).assertHasResult(TestResult.ResultType.FAILURE)
         failing.singleRootWithRun(3).assertHasResult(TestResult.ResultType.FAILURE)
 
-        def flaky = results.testPath(":org.acme.AcmeTest:flaky()")
-        flaky.singleRootRunCount == 2
+        def flaky = htmlResults.testPath(":org.acme.AcmeTest:flaky()")
+        assert flaky.singleRootRunCount == 2
         flaky.singleRootWithRun(1).assertHasResult(TestResult.ResultType.FAILURE)
         flaky.singleRootWithRun(2).assertHasResult(TestResult.ResultType.SUCCESS)
-
-        def successful = results.testPath(":org.acme.AcmeTest:successful()")
-        successful.onlyRoot().assertHasResult(TestResult.ResultType.SUCCESS)
-
-        def skipped = results.testPath(":org.acme.AcmeTest:skipped()")
-        skipped.onlyRoot().assertHasResult(TestResult.ResultType.SKIPPED)
     }
 
     static void assertTaskFailed(BuildResult result, String task) {
