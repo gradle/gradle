@@ -26,7 +26,7 @@ import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.WorkNodeAction;
-import org.gradle.internal.component.local.model.TransformedComponentFileArtifactIdentifier;
+import org.gradle.internal.component.local.model.TransformedArtifactIdentifier;
 import org.gradle.internal.component.model.DefaultIvyArtifactName;
 import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.model.CalculatedValue;
@@ -107,13 +107,13 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
         IvyArtifactName artifactName = DefaultIvyArtifactName.forFile(file, artifact.getClassifier());
 
         String originalFileName;
-        if (artifactId instanceof TransformedComponentFileArtifactIdentifier) {
-            originalFileName = ((TransformedComponentFileArtifactIdentifier) artifactId).getOriginalFileName();
+        if (artifactId instanceof TransformedArtifactIdentifier) {
+            originalFileName = ((TransformedArtifactIdentifier) artifactId).getOriginalFileName();
         } else {
             originalFileName = fileSource.get().getName();
         }
 
-        ComponentArtifactIdentifier newId = new TransformedComponentFileArtifactIdentifier(artifactId.getComponentIdentifier(), file.getName(), originalFileName);
+        ComponentArtifactIdentifier newId = new TransformedArtifactIdentifier(artifactId, file.getName(), originalFileName);
         return new PreResolvedResolvableArtifact(owner, artifactName, newId, file, TaskDependencyContainer.EMPTY, calculatedValueFactory);
     }
 

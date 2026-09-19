@@ -16,31 +16,37 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
-import org.gradle.internal.component.local.model.TransformedComponentFileArtifactIdentifier;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.internal.component.local.model.TransformedArtifactIdentifier;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
+import java.util.function.Supplier;
+
 /**
- * A thread-safe and reusable serializer for {@link TransformedComponentFileArtifactIdentifier}.
+ * A thread-safe and reusable serializer for {@link TransformedArtifactIdentifier}.
  */
-public class TransformedComponentFileArtifactIdentifierSerializer implements Serializer<TransformedComponentFileArtifactIdentifier> {
-    private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
+public class TransformedComponentFileArtifactIdentifierSerializer implements Serializer<TransformedArtifactIdentifier> {
+    private final Lazy<Serializer<ComponentArtifactIdentifier>> inputArtifactIdSerializer;
+
+    public TransformedComponentFileArtifactIdentifierSerializer(Supplier<Serializer<ComponentArtifactIdentifier>> inputArtifactIdSerializer) {
+        this.inputArtifactIdSerializer = Lazy.locking().of(inputArtifactIdSerializer);
+    }
 
     @Override
-    public void write(Encoder encoder, TransformedComponentFileArtifactIdentifier value) throws Exception {
-        componentIdentifierSerializer.write(encoder, value.getComponentIdentifier());
+    public void write(Encoder encoder, TransformedArtifactIdentifier value) throws Exception {
+        inputArtifactIdSerializer.get().write(encoder, value.getInputArtifactId());
         encoder.writeString(value.getFileName());
         encoder.writeString(value.getOriginalFileName());
     }
 
     @Override
-    public TransformedComponentFileArtifactIdentifier read(Decoder decoder) throws Exception {
-        ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) componentIdentifierSerializer.read(decoder);
+    public TransformedArtifactIdentifier read(Decoder decoder) throws Exception {
+        ComponentArtifactIdentifier inputArtifactId = inputArtifactIdSerializer.get().read(decoder);
         String fileName = decoder.readString();
         String originalFileName = decoder.readString();
-        return new TransformedComponentFileArtifactIdentifier(componentIdentifier, fileName, originalFileName);
+        return new TransformedArtifactIdentifier(inputArtifactId, fileName, originalFileName);
     }
 }

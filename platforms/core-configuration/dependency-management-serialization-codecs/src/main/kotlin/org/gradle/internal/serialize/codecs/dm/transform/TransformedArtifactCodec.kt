@@ -16,7 +16,7 @@
 
 package org.gradle.internal.serialize.codecs.dm.transform
 
-import org.gradle.api.artifacts.component.ComponentIdentifier
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier
 import org.gradle.api.capabilities.Capability
 import org.gradle.api.internal.artifacts.PreResolvedResolvableArtifact
 import org.gradle.internal.component.model.VariantIdentifier
@@ -33,7 +33,6 @@ import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.writeCollection
 import org.gradle.internal.DisplayName
 import org.gradle.internal.component.external.model.ImmutableCapabilities
-import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.model.DefaultIvyArtifactName
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import java.io.File
@@ -47,7 +46,7 @@ class TransformedArtifactCodec(
         write(value.sourceVariantId)
         write(value.target)
         writeCollection(value.capabilities.asSet())
-        write(value.artifact.id.componentIdentifier) // TODO: Write the whole component artifact ID
+        write(value.artifact.id)
         write(value.artifact.file)
         write(unpackTransformSteps(value.transformSteps))
     }
@@ -57,9 +56,8 @@ class TransformedArtifactCodec(
         val sourceVariantId = readNonNull<VariantIdentifier>()
         val target = readNonNull<ImmutableAttributes>()
         val capabilities: List<Capability> = readList().uncheckedCast()
-        val ownerId = readNonNull<ComponentIdentifier>()
+        val artifactId = readNonNull<ComponentArtifactIdentifier>()
         val file = readNonNull<File>()
-        val artifactId = ComponentFileArtifactIdentifier(ownerId, file.name)
         val artifact = PreResolvedResolvableArtifact(null, DefaultIvyArtifactName.forFile(file, null), artifactId, file, TaskDependencyContainer.EMPTY, calculatedValueContainerFactory)
         val steps = readNonNull<List<TransformStepSpec>>().map { BoundTransformStep(it.transformStep, it.recreateDependencies()) }
         return TransformingAsyncArtifactListener.TransformedArtifact(artifactSetName, sourceVariantId, target, ImmutableCapabilities.of(capabilities), artifact, steps)
