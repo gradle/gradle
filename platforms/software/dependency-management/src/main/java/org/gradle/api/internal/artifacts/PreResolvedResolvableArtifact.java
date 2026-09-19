@@ -103,15 +103,7 @@ public class PreResolvedResolvableArtifact implements ResolvableArtifact {
     @Override
     public ResolvableArtifact transformedTo(File file) {
         IvyArtifactName artifactName = DefaultIvyArtifactName.forFile(file, artifact.getClassifier());
-
-        String originalFileName;
-        if (artifactId instanceof TransformedArtifactIdentifier) {
-            originalFileName = ((TransformedArtifactIdentifier) artifactId).getOriginalFileName();
-        } else {
-            originalFileName = this.file.getName();
-        }
-
-        ComponentArtifactIdentifier newId = new TransformedArtifactIdentifier(artifactId, file.getName(), originalFileName);
+        ComponentArtifactIdentifier newId = new TransformedArtifactIdentifier(artifactId, file.getName());
         return new PreResolvedResolvableArtifact(owner, artifactName, newId, file, builtBy, calculatedValueFactory);
     }
 
