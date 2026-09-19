@@ -375,8 +375,6 @@ class DefaultConfigurationCacheCodecs(
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)
 
         bind(TaskInAnotherBuildCodec(PathSerializer()))
-
-        bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
     }
 
     override fun internalTypesCodec(): Codec<Any?> = internalTypesBindings.append {

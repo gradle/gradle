@@ -67,7 +67,7 @@ class CompositeBuildArtifactTransformIntegrationTest extends AbstractCompositeBu
                 inputs.files artifacts.artifactFiles
                 doLast {
                     artifacts.each {
-                        println "Transformed artifact: \${it.file.name} (\${it.id.componentId}), location: \${it.file.absolutePath}"
+                        println "Transformed artifact: \${it.file.name} (\${it.id.componentIdentifier}), location: \${it.file.absolutePath}"
                     }
                 }
             }
