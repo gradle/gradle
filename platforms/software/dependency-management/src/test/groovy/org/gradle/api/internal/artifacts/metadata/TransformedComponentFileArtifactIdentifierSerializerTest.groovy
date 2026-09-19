@@ -46,7 +46,7 @@ class TransformedComponentFileArtifactIdentifierSerializerTest extends Serialize
         given:
         def projectId = newProjectId(":lib")
         def input = new PublishArtifactLocalArtifactMetadata(projectId, new ImmutablePublishArtifact("main", "", "java-classes-directory", null, new File("/build/classes/java/main").absoluteFile))
-        def id = new TransformedComponentFileArtifactIdentifier(input, "main.txt", "main")
+        def id = new TransformedComponentFileArtifactIdentifier(input, "main.txt")
 
         when:
         def result = serialize(id, serializer)
@@ -55,14 +55,13 @@ class TransformedComponentFileArtifactIdentifierSerializerTest extends Serialize
         result == id
         result.componentIdentifier == projectId
         result.fileName == "main.txt"
-        result.originalFileName == "main"
     }
 
     def "round trips transformed module artifact identifier"() {
         given:
         def moduleId = DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "module"), "1.0")
         def input = new DefaultModuleComponentArtifactIdentifier(moduleId, "module", "jar", "jar")
-        def id = new TransformedComponentFileArtifactIdentifier(input, "module-1.0.jar.txt", "module-1.0.jar")
+        def id = new TransformedComponentFileArtifactIdentifier(input, "module-1.0.jar.txt")
 
         when:
         def result = serialize(id, serializer)
@@ -76,8 +75,8 @@ class TransformedComponentFileArtifactIdentifierSerializerTest extends Serialize
         given:
         def projectId = newProjectId(":lib")
         def original = new PublishArtifactLocalArtifactMetadata(projectId, new ImmutablePublishArtifact("lib", "jar", "jar", null, new File("/build/libs/lib.jar").absoluteFile))
-        def intermediate = new TransformedComponentFileArtifactIdentifier(original, "lib.jar.txt", "lib.jar")
-        def id = new TransformedComponentFileArtifactIdentifier(intermediate, "out", "lib.jar")
+        def intermediate = new TransformedComponentFileArtifactIdentifier(original, "lib.jar.txt")
+        def id = new TransformedComponentFileArtifactIdentifier(intermediate, "out")
 
         when:
         def result = serialize(id, serializer)
@@ -92,8 +91,8 @@ class TransformedComponentFileArtifactIdentifierSerializerTest extends Serialize
         def projectId = newProjectId(":lib")
         def input1 = new PublishArtifactLocalArtifactMetadata(projectId, new ImmutablePublishArtifact("main", "", "java-classes-directory", null, new File("/build/classes/java/main").absoluteFile))
         def input2 = new PublishArtifactLocalArtifactMetadata(projectId, new ImmutablePublishArtifact("main", "", "java-classes-directory", null, new File("/build/classes/kotlin/main").absoluteFile))
-        def id1 = new TransformedComponentFileArtifactIdentifier(input1, "main.txt", "main")
-        def id2 = new TransformedComponentFileArtifactIdentifier(input2, "main.txt", "main")
+        def id1 = new TransformedComponentFileArtifactIdentifier(input1, "main.txt")
+        def id2 = new TransformedComponentFileArtifactIdentifier(input2, "main.txt")
 
         when:
         ComponentArtifactIdentifier result1 = serialize(id1, serializer)

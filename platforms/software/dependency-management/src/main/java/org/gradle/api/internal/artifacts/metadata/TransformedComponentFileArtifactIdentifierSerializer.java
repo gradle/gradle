@@ -39,14 +39,12 @@ public class TransformedComponentFileArtifactIdentifierSerializer implements Ser
     public void write(Encoder encoder, TransformedComponentFileArtifactIdentifier value) throws Exception {
         inputArtifactIdSerializer.get().write(encoder, value.getInputArtifactId());
         encoder.writeString(value.getFileName());
-        encoder.writeString(value.getOriginalFileName());
     }
 
     @Override
     public TransformedComponentFileArtifactIdentifier read(Decoder decoder) throws Exception {
         ComponentArtifactIdentifier inputArtifactId = inputArtifactIdSerializer.get().read(decoder);
         String fileName = decoder.readString();
-        String originalFileName = decoder.readString();
-        return new TransformedComponentFileArtifactIdentifier(inputArtifactId, fileName, originalFileName);
+        return new TransformedComponentFileArtifactIdentifier(inputArtifactId, fileName);
     }
 }

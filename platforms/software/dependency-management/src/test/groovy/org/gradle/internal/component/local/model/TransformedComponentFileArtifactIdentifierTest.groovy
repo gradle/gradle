@@ -27,13 +27,12 @@ import spock.lang.Specification
 class TransformedComponentFileArtifactIdentifierTest extends Specification {
     def "has useful display name"() {
         def componentId = newComponentId("foo")
-        def id = new TransformedComponentFileArtifactIdentifier(new ComponentFileArtifactIdentifier(componentId, "original"), "current", "original")
+        def id = new TransformedComponentFileArtifactIdentifier(new ComponentFileArtifactIdentifier(componentId, "original"), "current")
 
         expect:
-        id.getOriginalFileName() == "original"
         id.getFileName() == "current"
         id.getComponentIdentifier() == componentId
-        id.getDisplayName() == "original -> current (foo)"
+        id.getDisplayName() == "original (foo) -> current"
     }
 
     def "equals and hash code differentiate between same and different instances"() {
@@ -41,12 +40,12 @@ class TransformedComponentFileArtifactIdentifierTest extends Specification {
         def inputId = new ComponentFileArtifactIdentifier(componentId, "b")
 
         when:
-        def id = new TransformedComponentFileArtifactIdentifier(inputId, "a", "b")
-        def same = new TransformedComponentFileArtifactIdentifier(new ComponentFileArtifactIdentifier(componentId, "b"), "a", "b")
+        def id = new TransformedComponentFileArtifactIdentifier(inputId, "a")
+        def same = new TransformedComponentFileArtifactIdentifier(new ComponentFileArtifactIdentifier(componentId, "b"), "a")
 
-        def different1 = new TransformedComponentFileArtifactIdentifier(inputId, "a", "c")
-        def different2 = new TransformedComponentFileArtifactIdentifier(inputId, "c", "b")
-        def different3 = new TransformedComponentFileArtifactIdentifier(new ComponentFileArtifactIdentifier(newComponentId("bar"), "b"), "a", "b")
+        def different1 = new TransformedComponentFileArtifactIdentifier(inputId, "c")
+        def different2 = new TransformedComponentFileArtifactIdentifier(new ComponentFileArtifactIdentifier(componentId, "c"), "a")
+        def different3 = new TransformedComponentFileArtifactIdentifier(new ComponentFileArtifactIdentifier(newComponentId("bar"), "b"), "a")
 
         then:
         id == same
@@ -63,14 +62,16 @@ class TransformedComponentFileArtifactIdentifierTest extends Specification {
         def componentId = newComponentId("foo")
         def input1 = Stub(ComponentArtifactIdentifier) {
             getComponentIdentifier() >> componentId
+            getDisplayName() >> "main (foo)"
         }
         def input2 = Stub(ComponentArtifactIdentifier) {
             getComponentIdentifier() >> componentId
+            getDisplayName() >> "main (foo)"
         }
 
         when:
-        def id1 = new TransformedComponentFileArtifactIdentifier(input1, "main.txt", "main")
-        def id2 = new TransformedComponentFileArtifactIdentifier(input2, "main.txt", "main")
+        def id1 = new TransformedComponentFileArtifactIdentifier(input1, "main.txt")
+        def id2 = new TransformedComponentFileArtifactIdentifier(input2, "main.txt")
 
         then:
         id1 != id2
@@ -80,17 +81,17 @@ class TransformedComponentFileArtifactIdentifierTest extends Specification {
     def "distinguishes chained transform outputs with same name from different intermediate artifacts"() {
         def componentId = newComponentId("foo")
         def original = new ComponentFileArtifactIdentifier(componentId, "lib.jar")
-        def intermediate1 = new TransformedComponentFileArtifactIdentifier(original, "a.txt", "lib.jar")
-        def intermediate2 = new TransformedComponentFileArtifactIdentifier(original, "b.txt", "lib.jar")
+        def intermediate1 = new TransformedComponentFileArtifactIdentifier(original, "a.txt")
+        def intermediate2 = new TransformedComponentFileArtifactIdentifier(original, "b.txt")
 
         when:
-        def id1 = new TransformedComponentFileArtifactIdentifier(intermediate1, "out", "lib.jar")
-        def id2 = new TransformedComponentFileArtifactIdentifier(intermediate2, "out", "lib.jar")
+        def id1 = new TransformedComponentFileArtifactIdentifier(intermediate1, "out")
+        def id2 = new TransformedComponentFileArtifactIdentifier(intermediate2, "out")
 
         then:
         id1 != id2
-        id1.getDisplayName() == "lib.jar -> out (foo)"
-        id2.getDisplayName() == "lib.jar -> out (foo)"
+        id1.getDisplayName() == "lib.jar (foo) -> a.txt -> out"
+        id2.getDisplayName() == "lib.jar (foo) -> b.txt -> out"
     }
 
     ComponentIdentifier newComponentId(String id) {

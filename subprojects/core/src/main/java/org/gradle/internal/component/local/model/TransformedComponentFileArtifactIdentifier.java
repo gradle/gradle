@@ -27,14 +27,13 @@ import java.util.Objects;
  */
 public class TransformedComponentFileArtifactIdentifier implements ComponentArtifactIdentifier, DisplayName {
     private final ComponentArtifactIdentifier inputArtifactId;
+    // TODO: This is still not unique enough, output files of a transform or chain with the same name but different directories collide
+    //  Fixing that is rather involved though and no one has yet reported this as a problem, so leaving it for now.
     private final String fileName;
-    // TODO: Can we remove this field now that we have the inputArtifactId?
-    private final String originalFileName;
 
-    public TransformedComponentFileArtifactIdentifier(ComponentArtifactIdentifier inputArtifactId, String fileName, String originalFileName) {
+    public TransformedComponentFileArtifactIdentifier(ComponentArtifactIdentifier inputArtifactId, String fileName) {
         this.inputArtifactId = inputArtifactId;
         this.fileName = fileName;
-        this.originalFileName = originalFileName;
     }
 
     @Override
@@ -56,13 +55,9 @@ public class TransformedComponentFileArtifactIdentifier implements ComponentArti
         return fileName;
     }
 
-    public String getOriginalFileName() {
-        return originalFileName;
-    }
-
     @Override
     public String getDisplayName() {
-        return getOriginalFileName() + " -> " + getFileName() + " (" + getComponentIdentifier().getDisplayName() + ")";
+        return inputArtifactId.getDisplayName() + " -> " + fileName;
     }
 
     @Override
@@ -84,11 +79,11 @@ public class TransformedComponentFileArtifactIdentifier implements ComponentArti
             return false;
         }
         TransformedComponentFileArtifactIdentifier other = (TransformedComponentFileArtifactIdentifier) obj;
-        return inputArtifactId.equals(other.inputArtifactId) && fileName.equals(other.fileName) && originalFileName.equals(other.originalFileName);
+        return inputArtifactId.equals(other.inputArtifactId) && fileName.equals(other.fileName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(inputArtifactId, fileName, originalFileName);
+        return Objects.hash(inputArtifactId, fileName);
     }
 }

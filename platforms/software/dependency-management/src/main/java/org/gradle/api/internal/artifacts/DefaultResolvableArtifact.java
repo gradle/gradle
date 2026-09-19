@@ -105,15 +105,7 @@ public class DefaultResolvableArtifact implements ResolvableArtifact {
     @Override
     public ResolvableArtifact transformedTo(File file) {
         IvyArtifactName artifactName = DefaultIvyArtifactName.forFile(file, artifact.getClassifier());
-
-        String originalFileName;
-        if (artifactId instanceof TransformedComponentFileArtifactIdentifier) {
-            originalFileName = ((TransformedComponentFileArtifactIdentifier) artifactId).getOriginalFileName();
-        } else {
-            originalFileName = fileSource.get().getName();
-        }
-
-        ComponentArtifactIdentifier newId = new TransformedComponentFileArtifactIdentifier(artifactId, file.getName(), originalFileName);
+        ComponentArtifactIdentifier newId = new TransformedComponentFileArtifactIdentifier(artifactId, file.getName());
         return new PreResolvedResolvableArtifact(owner, artifactName, newId, file, TaskDependencyContainer.EMPTY, calculatedValueFactory);
     }
 
