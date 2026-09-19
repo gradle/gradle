@@ -30,7 +30,7 @@ class JUnitCoverage {
     final static String LATEST_VINTAGE_VERSION = LATEST_JUNIT6_VERSION
     final static String LATEST_PLATFORM_VERSION = LATEST_JUNIT6_VERSION
 
-    final static String LATEST_ARCHUNIT_VERSION = '0.22.0'
+    final static String LATEST_ARCHUNIT_VERSION = '1.4.2'
 
     final static List<String> JUNIT4_LARGE_COVERAGE = [LATEST_JUNIT4_VERSION, '4.0', '4.4', '4.8.2']
     final static List<String> JUNIT4_IGNORE_ON_CLASS = [LATEST_JUNIT4_VERSION, '4.4', '4.8.2']
