@@ -20,7 +20,7 @@ import com.google.common.collect.Ordering;
 import org.gradle.api.artifacts.ArtifactCollection;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.internal.component.local.model.TransformedComponentFileArtifactIdentifier;
+import org.gradle.internal.component.local.model.TransformedArtifactIdentifier;
 
 import java.io.File;
 import java.util.List;
@@ -80,7 +80,7 @@ public class InstrumentationClasspathMerger {
         }
 
         public static ClassPathTransformedArtifact ofTransformedArtifact(ResolvedArtifactResult transformedArtifact) {
-            checkArgument(transformedArtifact.getId() instanceof TransformedComponentFileArtifactIdentifier);
+            checkArgument(transformedArtifact.getId() instanceof TransformedArtifactIdentifier);
             return new ClassPathTransformedArtifact(transformedArtifact.getFile(), OriginalArtifactIdentifier.of(transformedArtifact));
         }
 
@@ -103,8 +103,8 @@ public class InstrumentationClasspathMerger {
         }
 
         private static OriginalArtifactIdentifier of(ResolvedArtifactResult artifact) {
-            if (artifact.getId() instanceof TransformedComponentFileArtifactIdentifier) {
-                TransformedComponentFileArtifactIdentifier identifier = (TransformedComponentFileArtifactIdentifier) artifact.getId();
+            if (artifact.getId() instanceof TransformedArtifactIdentifier) {
+                TransformedArtifactIdentifier identifier = (TransformedArtifactIdentifier) artifact.getId();
                 return new OriginalArtifactIdentifier(identifier.getOriginalFileName(), identifier.getComponentIdentifier());
             } else {
                 return new OriginalArtifactIdentifier(artifact.getFile().getName(), artifact.getId().getComponentIdentifier());
