@@ -18,14 +18,13 @@ package org.gradle.api.internal.initialization.transform.utils;
 
 import com.google.common.collect.Ordering;
 import org.gradle.api.artifacts.ArtifactCollection;
-import org.gradle.api.artifacts.component.ComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.internal.component.local.model.TransformedComponentFileArtifactIdentifier;
 
 import java.io.File;
 import java.util.List;
 import java.util.Map;
-import java.util.Objects;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
@@ -49,14 +48,14 @@ public class InstrumentationClasspathMerger {
         ArtifactCollection externalDependencies,
         ArtifactCollection projectDependencies
     ) {
-        List<OriginalArtifactIdentifier> identifiers = originalDependencies.getArtifacts().stream()
-            .map(OriginalArtifactIdentifier::of)
+        List<ComponentArtifactIdentifier> identifiers = originalDependencies.getArtifacts().stream()
+            .map(InstrumentationClasspathMerger::rootArtifactIdOf)
             // In some cases we end up with the same artifact multiple times in different locations,
             // additional user's artifact transform can be injected in between and could produce multiple artifacts from one original artifact.
             .distinct()
             .collect(Collectors.toList());
 
-        Ordering<OriginalArtifactIdentifier> ordering = Ordering.explicit(identifiers);
+        Ordering<ComponentArtifactIdentifier> ordering = Ordering.explicit(identifiers);
         return Stream.concat(externalDependencies.getArtifacts().stream(), projectDependencies.getArtifacts().stream())
             .map(ClassPathTransformedArtifact::ofTransformedArtifact)
             // We sort based on the original classpath to we keep the original order,
@@ -70,18 +69,26 @@ public class InstrumentationClasspathMerger {
         return file.getName().equals(INTERCEPTED_METHODS_REPORT_FILE) ? FileType.INTERCEPTED_METHODS_REPORT : FileType.ARTIFACT;
     }
 
+    private static ComponentArtifactIdentifier rootArtifactIdOf(ResolvedArtifactResult artifact) {
+        ComponentArtifactIdentifier id = artifact.getId();
+        while (id instanceof TransformedComponentFileArtifactIdentifier) {
+            id = ((TransformedComponentFileArtifactIdentifier) id).getInputArtifactId();
+        }
+        return id;
+    }
+
     private static class ClassPathTransformedArtifact {
         private final File file;
-        private final OriginalArtifactIdentifier originalIdentifier;
+        private final ComponentArtifactIdentifier originalIdentifier;
 
-        private ClassPathTransformedArtifact(File file, OriginalArtifactIdentifier originalIdentifier) {
+        private ClassPathTransformedArtifact(File file, ComponentArtifactIdentifier originalIdentifier) {
             this.file = file;
             this.originalIdentifier = originalIdentifier;
         }
 
         public static ClassPathTransformedArtifact ofTransformedArtifact(ResolvedArtifactResult transformedArtifact) {
             checkArgument(transformedArtifact.getId() instanceof TransformedComponentFileArtifactIdentifier);
-            return new ClassPathTransformedArtifact(transformedArtifact.getFile(), OriginalArtifactIdentifier.of(transformedArtifact));
+            return new ClassPathTransformedArtifact(transformedArtifact.getFile(), rootArtifactIdOf(transformedArtifact));
         }
 
         @Override
@@ -89,50 +96,6 @@ public class InstrumentationClasspathMerger {
             return "ClassPathTransformedArtifact{" +
                 "file=" + file +
                 ", originalIdentifier=" + originalIdentifier +
-                '}';
-        }
-    }
-
-    private static class OriginalArtifactIdentifier {
-        private final String originalFileName;
-        private final ComponentIdentifier componentIdentifier;
-
-        private OriginalArtifactIdentifier(String originalFileName, ComponentIdentifier componentIdentifier) {
-            this.originalFileName = originalFileName;
-            this.componentIdentifier = componentIdentifier;
-        }
-
-        private static OriginalArtifactIdentifier of(ResolvedArtifactResult artifact) {
-            if (artifact.getId() instanceof TransformedComponentFileArtifactIdentifier) {
-                TransformedComponentFileArtifactIdentifier identifier = (TransformedComponentFileArtifactIdentifier) artifact.getId();
-                return new OriginalArtifactIdentifier(identifier.getOriginalFileName(), identifier.getComponentIdentifier());
-            } else {
-                return new OriginalArtifactIdentifier(artifact.getFile().getName(), artifact.getId().getComponentIdentifier());
-            }
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            OriginalArtifactIdentifier that = (OriginalArtifactIdentifier) o;
-            return Objects.equals(originalFileName, that.originalFileName) && Objects.equals(componentIdentifier, that.componentIdentifier);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hash(originalFileName, componentIdentifier);
-        }
-
-        @Override
-        public String toString() {
-            return "OriginalArtifactIdentifier{" +
-                "originalFileName='" + originalFileName + '\'' +
-                ", componentIdentifier=" + componentIdentifier +
                 '}';
         }
     }
