@@ -16,151 +16,177 @@
 
 package org.gradle.testing.junit.junit5.platform
 
-import org.gradle.api.JavaVersion
 import org.gradle.testing.junit.platform.JUnitPlatformIntegrationSpec
 import spock.lang.Issue
 
 import static org.gradle.testing.fixture.JUnitCoverage.LATEST_ARCHUNIT_VERSION
 import static org.gradle.testing.fixture.JUnitCoverage.getLATEST_JUNIT5_VERSION
 
+/**
+ * Filtering of tests that JUnit Platform engines declare on fields rather than methods, as ArchUnit does.
+ */
 class JUnit5PlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpec {
     @Override
     String getJupiterVersion() {
         return LATEST_JUNIT5_VERSION
     }
 
-    /**
-     * This test documents the status quo behavior of the test runner, where tests based on fields
-     * are not filtered by exclude patterns.  It might be desirable to change this behavior in the
-     * future to filter on field names directly; if this is done, this test should be replaced.
-     */
-    @Issue("https://github.com/gradle/gradle/issues/19352")
-    def 'does not exclude tests with a non-standard test source if filter matches nothing'() {
-        given:
+    def setup() {
         buildFile << """
             dependencies {
                 testImplementation 'com.tngtech.archunit:archunit-junit5:${LATEST_ARCHUNIT_VERSION}'
             }
+        """
+        file('src/test/java/sample/ArchRulesTest.java') << '''
+            package sample;
 
+            import com.tngtech.archunit.junit.AnalyzeClasses;
+            import com.tngtech.archunit.junit.ArchTest;
+            import com.tngtech.archunit.junit.ArchTests;
+            import com.tngtech.archunit.lang.ArchRule;
+
+            import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+
+            @AnalyzeClasses(packages = "sample")
+            public class ArchRulesTest {
+                @ArchTest
+                static final ArchRule firstRule = classes().should().bePublic();
+
+                @ArchTest
+                static final ArchRule secondRule = classes().should().bePublic();
+
+                @ArchTest
+                static final ArchTests nested = ArchTests.in(NestedRules.class);
+            }
+        '''
+        file('src/test/java/sample/NestedRules.java') << '''
+            package sample;
+
+            import com.tngtech.archunit.junit.ArchTest;
+            import com.tngtech.archunit.lang.ArchRule;
+
+            import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+
+            public class NestedRules {
+                @ArchTest
+                static final ArchRule nestedRule = classes().should().bePublic();
+            }
+        '''
+        file('src/test/java/sample/OtherArchRulesTest.java') << '''
+            package sample;
+
+            import com.tngtech.archunit.junit.AnalyzeClasses;
+            import com.tngtech.archunit.junit.ArchTest;
+            import com.tngtech.archunit.lang.ArchRule;
+
+            import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+
+            @AnalyzeClasses(packages = "sample")
+            public class OtherArchRulesTest {
+                @ArchTest
+                static final ArchRule otherRule = classes().should().bePublic();
+            }
+        '''
+        file('src/test/java/sample/JupiterTest.java') << '''
+            package sample;
+
+            import org.junit.jupiter.api.Test;
+
+            public class JupiterTest {
+                @Test
+                public void someMethod() {}
+
+                @Test
+                public void otherMethod() {}
+            }
+        '''
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/19352")
+    def 'does not exclude tests declared as fields if filter matches nothing'() {
+        given:
+        buildFile << """
             test {
                 filter {
                     excludeTestsMatching "*notMatchingAnythingSoEverythingShouldBeRun"
                 }
             }
         """
-        file('src/test/java/DeclaresTestsAsFieldsNotMethodsTest.java') << '''
-            import com.tngtech.archunit.junit.AnalyzeClasses;
-            import com.tngtech.archunit.junit.ArchTest;
-            import com.tngtech.archunit.lang.ArchRule;
-
-            import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-
-            @AnalyzeClasses(packages = "example")
-            class DeclaresTestsAsFieldsNotMethodsTest {
-                // this will create a JUnit Platform TestDescriptor with neither a Class- nor a MethodSource
-                @ArchTest
-                static final ArchRule example = classes().should().bePublic();
-            }
-        '''
 
         when:
-        maybeExpectArchUnitUnsafeDeprecationWarning()
         succeeds('test')
 
         then:
-        def results = resultsFor(testDirectory)
-        results.testPath('DeclaresTestsAsFieldsNotMethodsTest').onlyRoot()
-            .assertChildCount(1, 0)
+        resultsFor().assertTestPathsExecuted(
+            ':sample.ArchRulesTest:firstRule',
+            ':sample.ArchRulesTest:secondRule',
+            ':sample.ArchRulesTest:NestedRules:NestedRules > nestedRule',
+            ':sample.OtherArchRulesTest:otherRule',
+            ':sample.JupiterTest:someMethod()',
+            ':sample.JupiterTest:otherMethod()'
+        )
     }
 
-    /**
-     * This test documents the status quo behavior of the test runner, where tests based on fields
-     * are not filtered by exclude patterns.  It might be desirable to change this behavior in the
-     * future to filter on field names directly; if this is done, this test should be replaced.
-     */
-    @Issue("https://github.com/gradle/gradle/issues/19352")
-    def 'does not exclude tests with a non-standard test source if filter matches field name'() {
+    def 'excludes tests declared as fields if filter matches field name'() {
         given:
         buildFile << """
-            dependencies {
-                testImplementation 'com.tngtech.archunit:archunit-junit5:${LATEST_ARCHUNIT_VERSION}'
-            }
-
             test {
                 filter {
-                    excludeTestsMatching "*example"
+                    excludeTestsMatching "*firstRule"
                 }
             }
         """
-        file('src/test/java/DeclaresTestsAsFieldsNotMethodsTest.java') << '''
-            import com.tngtech.archunit.junit.AnalyzeClasses;
-            import com.tngtech.archunit.junit.ArchTest;
-            import com.tngtech.archunit.lang.ArchRule;
-
-            import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
-
-            @AnalyzeClasses(packages = "example")
-            class DeclaresTestsAsFieldsNotMethodsTest {
-                // this will create a JUnit Platform TestDescriptor with neither a Class- nor a MethodSource
-                @ArchTest
-                static final ArchRule example = classes().should().bePublic();
-            }
-        '''
 
         when:
-        maybeExpectArchUnitUnsafeDeprecationWarning()
         succeeds('test')
 
         then:
-        def results = resultsFor(testDirectory)
-        results.testPath('DeclaresTestsAsFieldsNotMethodsTest').onlyRoot()
-            .assertChildCount(1, 0)
+        resultsFor().assertTestPathsExecuted(
+            ':sample.ArchRulesTest:secondRule',
+            ':sample.ArchRulesTest:NestedRules:NestedRules > nestedRule',
+            ':sample.OtherArchRulesTest:otherRule',
+            ':sample.JupiterTest:someMethod()',
+            ':sample.JupiterTest:otherMethod()'
+        )
     }
 
-    /**
-     * This test demonstrates the workaround for the inability to filter fields - we can
-     * filter based on containing class name.
-     */
     @Issue("https://github.com/gradle/gradle/issues/19352")
-    def 'can filter tests with a non-standard test source using containing class name'() {
+    def 'excludes tests declared as fields if filter matches containing class name'() {
         given:
         buildFile << """
-            dependencies {
-                testImplementation 'com.tngtech.archunit:archunit-junit5:${LATEST_ARCHUNIT_VERSION}'
-            }
-
             test {
                 filter {
-                    excludeTestsMatching "*DeclaresTestsAsFieldsNotMethodsTest"
+                    excludeTestsMatching "ArchRulesTest"
                 }
             }
         """
-        file('src/test/java/DeclaresTestsAsFieldsNotMethodsTest.java') << '''
-            import com.tngtech.archunit.junit.AnalyzeClasses;
-            import com.tngtech.archunit.junit.ArchTest;
-            import com.tngtech.archunit.lang.ArchRule;
 
-            import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.classes;
+        when:
+        succeeds('test')
 
-            @AnalyzeClasses(packages = "example")
-            class DeclaresTestsAsFieldsNotMethodsTest {
-                // this will create a JUnit Platform TestDescriptor with neither a Class- nor a MethodSource
-                @ArchTest
-                static final ArchRule example = classes().should().bePublic();
-            }
-        '''
-
-        expect:
-        fails('test')
-        errorOutput.contains("No tests found for given includes")
+        then:
+        resultsFor().assertTestPathsExecuted(
+            ':sample.OtherArchRulesTest:otherRule',
+            ':sample.JupiterTest:someMethod()',
+            ':sample.JupiterTest:otherMethod()'
+        )
     }
 
-    /**
-     * ArchUnit uses an Guava version older than 33.4.5, which emits this warning when being used with Java 24+.
-     */
-    private void maybeExpectArchUnitUnsafeDeprecationWarning() {
-        if (JavaVersion.current() >= JavaVersion.VERSION_24) {
-            executer.expectExternalDeprecatedMessage("WARNING: A terminally deprecated method in sun.misc.Unsafe has been called")
-        }
+    def 'runs only tests matching command line filter #filter when tests are declared as fields'() {
+        when:
+        succeeds('test', '--tests', filter)
+
+        then:
+        resultsFor().assertTestPathsExecuted(*expectedTestPaths)
+
+        where:
+        filter                                   | expectedTestPaths
+        'ArchRulesTest.firstRule'                | [':sample.ArchRulesTest:firstRule']
+        'sample.ArchRulesTest.firstRule'         | [':sample.ArchRulesTest:firstRule']
+        'ArchRulesTest'                          | [':sample.ArchRulesTest:firstRule', ':sample.ArchRulesTest:secondRule', ':sample.ArchRulesTest:NestedRules:NestedRules > nestedRule']
+        'ArchRulesTest.NestedRules > nestedRule' | [':sample.ArchRulesTest:NestedRules:NestedRules > nestedRule']
+        '*Rule'                                  | [':sample.ArchRulesTest:firstRule', ':sample.ArchRulesTest:secondRule', ':sample.ArchRulesTest:NestedRules:NestedRules > nestedRule', ':sample.OtherArchRulesTest:otherRule']
+        'JupiterTest.someMethod'                 | [':sample.JupiterTest:someMethod()']
+        '*someMethod'                            | [':sample.JupiterTest:someMethod()']
     }
 }

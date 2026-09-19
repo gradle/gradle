@@ -77,6 +77,20 @@ Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that
 ### Test reporting and execution
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
 
+#### Test filters apply to JUnit Platform tests that are not declared as methods
+
+Some JUnit Platform engines do not declare tests as methods, for example [ArchUnit](https://www.archunit.org/) rules annotated with `@ArchTest` on fields.
+Previously, such tests were always executed regardless of [test filters](userguide/java_testing.html#test_filtering), so requesting a single test with `--tests` or excluding tests with `excludeTestsMatching` had no effect on them.
+
+Test filters now match such tests by their enclosing test class and the name they are reported with, in the same way that test methods are matched by class and method name.
+For a rule declared in a field `firstRule` of `ArchRulesTest`, `--tests "ArchRulesTest.firstRule"` runs only that rule and `excludeTestsMatching "*firstRule"` skips it.
+Rules grouped in an `ArchTests` set are reported as `RuleSet > rule`, so they are matched by that name, not by the field name alone.
+Tests that an engine registers only while executing, as Kotest does, are not visible to the filter and can still only be selected by class.
+
+This also affects the [Test Retry plugin](https://github.com/gradle/test-retry-gradle-plugin), which uses test filters to select the tests to run again.
+Previously, all such tests were retried whenever any test in the task was retried, even if they had passed.
+Now only the failed ones are retried.
+
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 

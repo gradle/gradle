@@ -20,17 +20,19 @@ import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.jspecify.annotations.NullMarked;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
-import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.PostDiscoveryFilter;
 
 import java.util.Optional;
-import java.util.Set;
 
 /**
- * A JUnit Platform {@link PostDiscoveryFilter} filter that includes or excludes
- * class or method based tests based on their fully qualified names.
+ * A JUnit Platform {@link PostDiscoveryFilter} filter that includes or excludes tests based on the
+ * fully qualified name of their class and, where applicable, their method or test name.
+ * <p>
+ * A test that is not declared as a method, such as an ArchUnit rule declared as a field or a Spek scope,
+ * belongs to the nearest enclosing class in the descriptor hierarchy. It is matched by that class name together
+ * with its own reporting name. A test without an enclosing class cannot be judged by name and is included.
  */
 @NullMarked
 public final class ClassMethodNameFilter implements PostDiscoveryFilter {
@@ -42,6 +44,9 @@ public final class ClassMethodNameFilter implements PostDiscoveryFilter {
 
     @Override
     public FilterResult apply(TestDescriptor descriptor) {
+        if (!descriptor.getChildren().isEmpty()) {
+            return FilterResult.included("Has children, inclusion decided by them");
+        }
         if (classMatch(descriptor)) {
             return FilterResult.included("Class match");
         }
@@ -49,58 +54,13 @@ public final class ClassMethodNameFilter implements PostDiscoveryFilter {
     }
 
     private boolean shouldRun(TestDescriptor descriptor) {
-        return shouldRun(descriptor, false);
-    }
-
-    private boolean shouldRun(TestDescriptor descriptor, boolean checkingParent) {
-        Optional<TestSource> source = descriptor.getSource();
-        if (source.isPresent()) {
-            TestSource testSource = source.get();
-            if (testSource instanceof MethodSource) {
-                return shouldRun(descriptor, (MethodSource) testSource);
-            }
-            if (testSource instanceof ClassSource) {
-                return shouldRun(descriptor, checkingParent, (ClassSource) testSource);
-            }
+        Optional<MethodSource> methodSource = methodSource(descriptor);
+        if (methodSource.isPresent()) {
+            return shouldRun(descriptor, methodSource.get());
         }
-
-        // Source is absent or of a custom type (e.g. ArchUnit field-based tests).
-        // Walk up to the first ancestor with a class source and honor its exclude status:
-        // if that enclosing class exactly matches an exclude pattern, this descriptor is also
-        // excluded (as a member of the class). Otherwise default to included (original behavior
-        // preserved — the filter's status quo for custom sources is inclusive).
-        TestDescriptor current = descriptor.getParent().orElse(null);
-        while (current != null) {
-            Optional<String> enclosingClassName = className(current);
-            if (enclosingClassName.isPresent()) {
-                return !matcher.matchesExcludeClassExactly(enclosingClassName.get());
-            }
-            current = current.getParent().orElse(null);
-        }
-        return true;
-    }
-
-    private boolean shouldRun(TestDescriptor descriptor, boolean checkingParent, ClassSource classSource) {
-        String className = classSource.getClassName();
-        if (matcher.matchesExcludeClassExactly(className)) {
-            // This class exactly matches an exclude pattern.
-            // Return immediately to prevent children from re-including the container. Ancestors that are
-            // themselves included by pattern (e.g. a test suite) are handled by classMatch.
-            return false;
-        }
-        Set<? extends TestDescriptor> children = descriptor.getChildren();
-        if (!checkingParent) {
-            for (TestDescriptor child : children) {
-                if (shouldRun(child)) {
-                    return true;
-                }
-            }
-        }
-        if (children.isEmpty()) {
-            return matcher.matchesTest(className, null)
-                || matcher.matchesTest(className, descriptor.getLegacyReportingName());
-        }
-        return true;
+        return enclosingClassName(descriptor)
+            .map(className -> matcher.matchesTest(className, null) || matcher.matchesTest(className, descriptor.getLegacyReportingName()))
+            .orElse(true);
     }
 
     private boolean shouldRun(TestDescriptor descriptor, MethodSource methodSource) {
@@ -166,8 +126,9 @@ public final class ClassMethodNameFilter implements PostDiscoveryFilter {
 
             // If the descriptor is a MethodSource, capture the method name to use when checking against parent class names
             // (for instance, if the method is in a nested class).
-            if (current.getSource().isPresent() && current.getSource().get() instanceof MethodSource) {
-                methodName = ((MethodSource) current.getSource().get()).getMethodName();
+            Optional<MethodSource> methodSource = methodSource(current);
+            if (methodSource.isPresent()) {
+                methodName = methodSource.get().getMethodName();
             }
 
             current = parent.get();
@@ -175,10 +136,24 @@ public final class ClassMethodNameFilter implements PostDiscoveryFilter {
         return false;
     }
 
+    private Optional<String> enclosingClassName(TestDescriptor descriptor) {
+        Optional<String> className = className(descriptor);
+        if (className.isPresent()) {
+            return className;
+        }
+        return descriptor.getParent().flatMap(this::enclosingClassName);
+    }
+
     private Optional<String> className(TestDescriptor descriptor) {
         return descriptor.getSource()
             .filter(ClassSource.class::isInstance)
             .map(ClassSource.class::cast)
             .map(ClassSource::getClassName);
+    }
+
+    private Optional<MethodSource> methodSource(TestDescriptor descriptor) {
+        return descriptor.getSource()
+            .filter(MethodSource.class::isInstance)
+            .map(MethodSource.class::cast);
     }
 }
