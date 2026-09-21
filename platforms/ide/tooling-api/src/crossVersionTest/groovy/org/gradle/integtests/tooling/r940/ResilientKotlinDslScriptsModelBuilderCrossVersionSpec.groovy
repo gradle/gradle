@@ -31,6 +31,7 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.ToBeImplemented
 import org.junit.Assume
+import spock.lang.Issue
 
 import java.util.function.Function
 import java.util.stream.Collectors
@@ -378,6 +379,59 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         // From 9.7 each build reports only its own configuration failure, so builds that did not fail themselves report the general failure
         "9.7"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE), Pair.of("included", BUILD_SCRIPT_COMPILE_ERROR)] | ""                       | NO_EXTRA_PROPERTIES
         "9.7"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE), Pair.of("included", BUILD_SCRIPT_COMPILE_ERROR)] | "with isolated projects" | IP_FLAGS
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39247")
+    @ToBeImplemented
+    def "compilation failure in plugin build script body with precompiled script plugin: no model is returned for the plugin build #mode"() {
+        given:
+        skipIfIpNotSupported(extraGradleProperties)
+        skipUnlessExpectationsApply("9.7", null)
+        settingsKotlinFile << """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+            rootProject.name = "root"
+            include("lib")
+        """
+
+        def buildLogic = file("build-logic")
+        buildLogic.file("settings.gradle.kts") << """
+            rootProject.name = "build-logic"
+        """
+        buildLogic.file("build.gradle.kts") << """
+            plugins { `kotlin-dsl` }
+
+            repositories {
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+            }
+
+            blow up !!!
+        """
+        buildLogic.file("src/main/kotlin/custom.gradle.kts") << """
+            plugins { `java-library` }
+        """
+        file("lib/build.gradle.kts") << """
+            plugins { id("custom") }
+        """
+
+        when:
+        fails {
+            resilientModel(it, ROOT_PROJECT_FIRST, extraGradleProperties)
+        }
+
+        then:
+        def e = thrown(BuildException)
+        e.cause.message.contains("Script compilation error")
+        def model = modelCollector.model
+        // TODO: "build-logic/settings.gradle.kts", "build-logic/build.gradle.kts" and "build-logic/src/main/kotlin/custom.gradle.kts" should get a model too
+        assertHasScriptModelForFiles(model, "settings.gradle.kts", "lib/build.gradle.kts")
+        assertHasErrorsInScriptModels(model, Pair.of(".", GENERAL_CONFIGURATION_FAILURE), Pair.of("build-logic", BUILD_SCRIPT_COMPILE_ERROR))
+
+        where:
+        mode                       | extraGradleProperties
+        ""                         | NO_EXTRA_PROPERTIES
+        "with isolated projects"   | IP_FLAGS
     }
 
     def "#description failure in main build subproject: resilient model is equal to non-resilient model except accessors and the expected failures are reported with #queryStrategy from #fromVersion #mode"() {
