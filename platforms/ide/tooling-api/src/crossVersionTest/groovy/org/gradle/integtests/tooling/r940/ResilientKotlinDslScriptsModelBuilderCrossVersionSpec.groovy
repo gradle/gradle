@@ -436,6 +436,10 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         assertHasErrorsInScriptModels(model, [".": [GENERAL_CONFIGURATION_FAILURE], "build-logic": pluginBuildFailures])
         if (!pluginBuildScripts.isEmpty()) {
             assertHasJarsInScriptModelClasspath(model, "build-logic/build.gradle.kts", "gradle-kotlin-dsl-plugins")
+            // The project accessors were generated before the script body failed to compile, and the stage 1 blocks
+            // accessors (plugin spec builders) can be generated even though the root project failed, so the model has both
+            assertHasClassPathEntryWithPath(model, "build-logic/build.gradle.kts", "/accessors/")
+            assertHasClassPathEntryWithPath(model, "build-logic/build.gradle.kts", "-PS/")
             assertHasAnyJarInScriptModelClasspath(model, "build-logic/src/main/kotlin/custom.gradle.kts", expectedPublicApiJarPrefixes())
         }
 
@@ -814,8 +818,14 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
             def modelAssert = new ComparingModelAssert(scriptFile, resilientModels, original)
             modelAssert.assertBothModelsExist()
             if (scriptFile == b) {
-                // In this case we don't have accessors and build-logic in the classpath
-                modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") && !it.contains("/build-logic.jar") }
+                // The plugins block of b failed, so there are no project accessors and no build-logic jar in the classpath
+                if (stage1BlocksAccessors) {
+                    // From 9.9 the stage 1 blocks accessors (plugin spec builders) are generated even though the project failed
+                    modelAssert.assertClassPathsAreEqualIfIgnoringSomeEntries { !it.contains("/accessors/") && !it.contains("/build-logic.jar") }
+                    modelAssert.assertResilientModelContainsClassPathEntriesWithPath("-PS/")
+                } else {
+                    modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") && !it.contains("/build-logic.jar") }
+                }
                 modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             } else {
                 modelAssert.assertClassPathsAreEqualIfIgnoringSomeEntries { !it.contains("/accessors/") }
@@ -825,16 +835,21 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         assertHasErrorsInScriptModels(resilientModels, *expectedFailures)
 
         where:
-        fromVersion | untilVersion | expectedFailures                                                     | queryStrategy         | mode                     | extraGradleProperties
-        "9.4"       | "9.7"        | [Pair.of(".", ["A problem occurred configuring project ':b'."])] | ROOT_PROJECT_FIRST    | ""                       | NO_EXTRA_PROPERTIES
-        "9.4"       | "9.7"        | [Pair.of(".", ["A problem occurred configuring project ':b'."])] | INCLUDED_BUILDS_FIRST | ""                       | NO_EXTRA_PROPERTIES
-        "9.4"       | "9.7"        | [Pair.of(".", ["A problem occurred configuring project ':b'."])] | ROOT_PROJECT_FIRST    | "with isolated projects" | IP_FLAGS
-        "9.4"       | "9.7"        | [Pair.of(".", ["A problem occurred configuring project ':b'."])] | INCLUDED_BUILDS_FIRST | "with isolated projects" | IP_FLAGS
+        fromVersion | untilVersion | expectedFailures                                                     | stage1BlocksAccessors | queryStrategy         | mode                     | extraGradleProperties
+        "9.4"       | "9.7"        | [Pair.of(".", ["A problem occurred configuring project ':b'."])] | false                 | ROOT_PROJECT_FIRST    | ""                       | NO_EXTRA_PROPERTIES
+        "9.4"       | "9.7"        | [Pair.of(".", ["A problem occurred configuring project ':b'."])] | false                 | INCLUDED_BUILDS_FIRST | ""                       | NO_EXTRA_PROPERTIES
+        "9.4"       | "9.7"        | [Pair.of(".", ["A problem occurred configuring project ':b'."])] | false                 | ROOT_PROJECT_FIRST    | "with isolated projects" | IP_FLAGS
+        "9.4"       | "9.7"        | [Pair.of(".", ["A problem occurred configuring project ':b'."])] | false                 | INCLUDED_BUILDS_FIRST | "with isolated projects" | IP_FLAGS
         // From 9.7 each build reports only its own configuration failure, so builds that did not fail themselves report the general failure
-        "9.7"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | ROOT_PROJECT_FIRST    | ""                       | NO_EXTRA_PROPERTIES
-        "9.7"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | INCLUDED_BUILDS_FIRST | ""                       | NO_EXTRA_PROPERTIES
-        "9.7"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | ROOT_PROJECT_FIRST    | "with isolated projects" | IP_FLAGS
-        "9.7"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | INCLUDED_BUILDS_FIRST | "with isolated projects" | IP_FLAGS
+        "9.7"       | "9.9"        | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | false                 | ROOT_PROJECT_FIRST    | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | "9.9"        | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | false                 | INCLUDED_BUILDS_FIRST | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | "9.9"        | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | false                 | ROOT_PROJECT_FIRST    | "with isolated projects" | IP_FLAGS
+        "9.7"       | "9.9"        | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | false                 | INCLUDED_BUILDS_FIRST | "with isolated projects" | IP_FLAGS
+        // From 9.9 the stage 1 blocks accessors are generated even for a project that failed to configure
+        "9.9"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | true                  | ROOT_PROJECT_FIRST    | ""                       | NO_EXTRA_PROPERTIES
+        "9.9"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | true                  | INCLUDED_BUILDS_FIRST | ""                       | NO_EXTRA_PROPERTIES
+        "9.9"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | true                  | ROOT_PROJECT_FIRST    | "with isolated projects" | IP_FLAGS
+        "9.9"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | true                  | INCLUDED_BUILDS_FIRST | "with isolated projects" | IP_FLAGS
     }
 
     @ToBeImplemented
@@ -1139,6 +1154,13 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
                 "Expected jar named $expectedJar in the script model classpath for file $expectedFile, " +
                     "but it wasn't there: ${jarFilesInClasspath.stream().collect(Collectors.joining("\n\t", "\n\t", ""))}"
         }
+    }
+
+    void assertHasClassPathEntryWithPath(KotlinModel model, String expectedFile, String path) {
+        def scriptModel = model.scriptModels.get(new File(projectDir, expectedFile))
+        assert scriptModel != null: "Expected script model for file $expectedFile, but there wasn't one"
+        assert scriptModel.classPath.any { TextUtil.normaliseFileSeparators(it.absolutePath).contains(path) }:
+            "Expected a classpath entry with path '$path' in the script model classpath for file $expectedFile, but there was none: ${scriptModel.classPath}"
     }
 
     /**

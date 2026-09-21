@@ -22,7 +22,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.ClassPath.EMPTY
-import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.runCatching
@@ -299,9 +298,7 @@ private
 fun buildSettingsScriptModel(settingsScript: File, rootProject: Project): NonProjectScriptModel {
     val settings = rootProject.settings
     val scriptCompilationClassPath = settings.scriptCompilationClassPath
-    val accessorsClassPath = rootProject.serviceOf<ClassPathModeExceptionCollector>().runCatching {
-        settings.accessorsClassPathOf(scriptCompilationClassPath)
-    } ?: AccessorsClassPath.empty
+    val accessorsClassPath = settings.accessorsClassPathOf(scriptCompilationClassPath)
 
     return NonProjectScriptModel(
         settingsScript,
@@ -370,9 +367,7 @@ fun buildScriptModelFor(project: ProjectInternal): IntermediateScriptModel? {
     // TODO:isolated this relies on the hierarchy of classloaders
     val compilationClassPath = project.scriptCompilationClassPath
 
-    val accessorsClassPath = project.serviceOf<ClassPathModeExceptionCollector>().runCatching {
-        project.accessorsClassPathOf(compilationClassPath)
-    } ?: AccessorsClassPath.empty
+    val accessorsClassPath = project.accessorsClassPathOf(compilationClassPath)
 
     val classpathSources = sourcePathFor(listOf(project.buildscript))
 

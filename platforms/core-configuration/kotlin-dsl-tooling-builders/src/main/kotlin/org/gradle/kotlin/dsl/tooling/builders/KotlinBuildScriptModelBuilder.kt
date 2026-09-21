@@ -266,22 +266,34 @@ fun GradleInternal.baseScriptClassPath(): ClassPath =
     serviceOf<KotlinScriptClassPathProvider>().compilationClassPathOf(baseProjectClassLoaderScope())
 
 
+/**
+ * The accessors classpath of a project script, made of the project accessors, the stage 1 blocks accessors
+ * and the dependencies accessors.
+ *
+ * Each part is computed on its own, so a failure of one part, e.g. the stage 1 blocks accessors when the root
+ * project failed to configure, still leaves the other parts, and in particular the project accessors, in the model.
+ */
 internal
 fun ProjectInternal.accessorsClassPathOf(classPath: ClassPath): AccessorsClassPath {
-    val stage1BlocksAccessorClassPathGenerator = serviceOf<Stage1BlocksAccessorClassPathGenerator>()
-    val projectAccessorClassPathGenerator = serviceOf<ProjectAccessorsClassPathGenerator>()
-    val dependenciesAccessors = serviceOf<DependenciesAccessors>()
-    return (projectAccessorClassPathGenerator.projectAccessorsClassPath(this, classPath)
-        + stage1BlocksAccessorClassPathGenerator.stage1BlocksAccessorClassPath(this)
-        + AccessorsClassPath(dependenciesAccessors.classes, dependenciesAccessors.sources))
+    val exceptionCollector = serviceOf<ClassPathModeExceptionCollector>()
+    val projectAccessors = exceptionCollector.runCatching {
+        serviceOf<ProjectAccessorsClassPathGenerator>().projectAccessorsClassPath(this, classPath)
+    } ?: AccessorsClassPath.empty
+    val stage1BlocksAccessors = exceptionCollector.runCatching {
+        serviceOf<Stage1BlocksAccessorClassPathGenerator>().stage1BlocksAccessorClassPath(this)
+    } ?: AccessorsClassPath.empty
+    val dependenciesAccessors = exceptionCollector.runCatching {
+        serviceOf<DependenciesAccessors>().let { AccessorsClassPath(it.classes, it.sources) }
+    } ?: AccessorsClassPath.empty
+    return projectAccessors + stage1BlocksAccessors + dependenciesAccessors
 }
 
 
 internal
-fun SettingsInternal.accessorsClassPathOf(classPath: ClassPath): AccessorsClassPath {
-    val projectAccessorClassPathGenerator = serviceOf<ProjectAccessorsClassPathGenerator>()
-    return projectAccessorClassPathGenerator.projectAccessorsClassPath(this, classPath)
-}
+fun SettingsInternal.accessorsClassPathOf(classPath: ClassPath): AccessorsClassPath =
+    serviceOf<ClassPathModeExceptionCollector>().runCatching {
+        serviceOf<ProjectAccessorsClassPathGenerator>().projectAccessorsClassPath(this, classPath)
+    } ?: AccessorsClassPath.empty
 
 
 private
@@ -438,10 +450,7 @@ data class KotlinScriptTargetModelBuilder(
     fun buildScriptModel(): KotlinBuildScriptModel {
         val classpathSources = sourcePathFor(sourceLookupScriptHandlers)
         val classPathModeExceptionCollector = project.serviceOf<ClassPathModeExceptionCollector>()
-        val accessorsClassPath =
-            classPathModeExceptionCollector.runCatching {
-                accessorsClassPath(scriptClassPath.classPath)
-            } ?: AccessorsClassPath.empty
+        val accessorsClassPath = accessorsClassPath(scriptClassPath.classPath)
 
         val additionalImports =
             classPathModeExceptionCollector.runCatching {
