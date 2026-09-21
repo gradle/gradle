@@ -76,7 +76,11 @@ class Stage1BlocksAccessorClassPathGenerator @Inject internal constructor(
 
     private
     val stage1BlocksAccessorClassPath by lazy {
-        buildState.projects.rootProject.fromMutableState { rootProject ->
+        // The accessors only depend on the buildSrc classpath and the version catalogs, so they can be
+        // generated for IDE models even when the root project failed to configure.
+        val rootProjectState = buildState.projects.rootProject
+        rootProjectState.runWithModelLock {
+            val rootProject = rootProjectState.mutableModelEvenAfterFailure
             val buildSrcClassLoaderScope = rootProject.baseClassLoaderScope
             val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
             val versionCatalogAccessors = generateVersionCatalogAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
