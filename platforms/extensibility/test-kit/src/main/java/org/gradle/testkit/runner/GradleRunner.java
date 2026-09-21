@@ -317,7 +317,7 @@ public abstract class GradleRunner {
      * is attached to the test JVM. To debug such a build, leave debug support off, pass
      * {@code -Dorg.gradle.debug=true} to the build under test, and attach the debugger to that process.
      * See <a
-     * href="https://docs.gradle.org/current/userguide/test_kit.html#sub:test-kit-debug-config-cache">Debugging
+     * href="https://docs.gradle.org/current/userguide/test_kit.html#sub:test-kit-debug-config-cache" target="_top">Debugging
      * with the Configuration Cache or Isolated Projects</a>.
      *
      * @see #isDebug()
