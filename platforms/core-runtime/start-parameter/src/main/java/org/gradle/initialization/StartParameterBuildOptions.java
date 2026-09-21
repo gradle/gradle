@@ -98,7 +98,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new ProblemReportGenerationOption(),
         new PropertyUpgradeReportOption(),
         new TaskGraphOption(),
-        new ParallelToolingModelBuildingOption()
+        new ParallelToolingModelBuildingOption(),
+        new AgentOption()
     );
 
     @Override
@@ -1110,6 +1111,32 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, @Nullable Origin origin) {
             settings.setParallelToolingModelBuilding(Option.Value.value(value));
+        }
+    }
+
+    public static class AgentOption extends BooleanBuildOption<StartParameterInternal> {
+        public static final String LONG_OPTION = "agent";
+        public static final String PROPERTY_NAME = "org.gradle.agent";
+
+        public AgentOption() {
+            super(
+                PROPERTY_NAME,
+                BooleanCommandLineOptionConfiguration.create(
+                    LONG_OPTION,
+                    "Enables agent mode, for builds driven by an AI agent.",
+                    "Disables agent mode."
+                ).incubating()
+            );
+        }
+
+        @Override
+        public void applyTo(boolean value, StartParameterInternal settings, @Nullable Origin origin) {
+            settings.setAgentMode(value);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.CONSOLE;
         }
     }
 }

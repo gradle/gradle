@@ -126,6 +126,26 @@ class StartParameterConverterTest extends Specification {
         parameters2.maxWorkerCount == 789
     }
 
+    def "agent mode is #expected with args #args"() {
+        expect:
+        convert(args as String[]).agentMode == expected
+
+        where:
+        args                                      | expected
+        []                                        | false
+        ["--agent"]                               | true
+        ["--no-agent"]                            | false
+        ["-Dorg.gradle.agent=true"]               | true
+        ["--no-agent", "-Dorg.gradle.agent=true"] | false
+    }
+
+    def "can enable agent mode as persistent property"() {
+        expect:
+        userHome.file("gradle.properties") << "org.gradle.agent=true"
+        convert().agentMode
+        !convert("--no-agent").agentMode
+    }
+
     StartParameterInternal convert(String... args) {
         def converter = new StartParameterConverter()
         def initialPropertiesConverter = new InitialPropertiesConverter()
