@@ -18,6 +18,7 @@ package org.gradle.launcher
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -26,7 +27,7 @@ import org.junit.Rule
 @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "output is redirected by the command-line client")
 class AgentModeIntegrationTest extends AbstractIntegrationSpec {
 
-    private static final String OUTPUT_FILE = ".gradle/agent/builds/latest/build-output.log"
+    private static final String BUILDS_DIR = ".gradle/agent/builds"
 
     @Rule
     BlockingHttpServer server = new BlockingHttpServer()
@@ -53,8 +54,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         succeeds("hello", "--agent")
 
         then:
-        def agentOutput = file(OUTPUT_FILE)
-        output.trim() == agentOutput.absolutePath
+        def agentOutput = agentOutputFile()
         errorOutput.trim().empty
 
         and:
@@ -69,8 +69,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         fails("broken", "--agent")
 
         then:
-        def agentOutput = file(OUTPUT_FILE)
-        output.trim() == agentOutput.absolutePath
+        def agentOutput = agentOutputFile()
         errorOutput.trim().empty
 
         and:
@@ -92,11 +91,10 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         settings.waitForAllPendingCalls()
 
         then:
-        def agentOutput = file(OUTPUT_FILE)
         ConcurrentTestUtil.poll {
-            assert build.standardOutput.trim() == agentOutput.absolutePath
-            assert agentOutput.text.contains("Message from settings")
+            assert agentOutputFile(build.standardOutput).text.contains("Message from settings")
         }
+        def agentOutput = agentOutputFile(build.standardOutput)
         !agentOutput.text.contains("BUILD SUCCESSFUL")
 
         when:
@@ -115,9 +113,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         fails("hello", "--agent")
 
         then:
-        def agentOutput = file(OUTPUT_FILE)
-        output.trim() == agentOutput.absolutePath
-        agentOutput.text.contains("Unable to start the daemon process")
+        agentOutputFile().text.contains("Unable to start the daemon process")
     }
 
     def "writes the file to the root directory when run from a subproject"() {
@@ -130,7 +126,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         succeeds("inSub", "--agent")
 
         then:
-        output.trim() == file(OUTPUT_FILE).absolutePath
+        agentOutputFile()
         !file("sub/.gradle/agent").exists()
     }
 
@@ -142,15 +138,14 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         succeeds("hello")
 
         then:
-        output.trim() == file(OUTPUT_FILE).absolutePath
+        agentOutputFile()
 
         when:
-        file(OUTPUT_FILE).delete()
         succeeds("hello", "--no-agent")
 
         then:
         outputContains("Hello from the task")
-        !file(OUTPUT_FILE).exists()
+        file(BUILDS_DIR).listFiles().size() == 1
     }
 
     def "environment variable takes precedence over properties and command line flag over environment variable"() {
@@ -162,16 +157,15 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         succeeds("hello")
 
         then:
-        output.trim() == file(OUTPUT_FILE).absolutePath
+        agentOutputFile()
 
         when:
-        file(OUTPUT_FILE).delete()
         executer.withEnvironmentVars(ORG_GRADLE_AGENT: "true")
         succeeds("hello", "--no-agent")
 
         then:
         outputContains("Hello from the task")
-        !file(OUTPUT_FILE).exists()
+        file(BUILDS_DIR).listFiles().size() == 1
     }
 
     def "agent mode is #expected with gradle.properties #gradleProperty, GRADLE_OPTS #gradleOpts, environment variable #envVar and args #args"() {
@@ -190,8 +184,8 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         succeeds(["hello"] + args)
 
         then:
-        file(OUTPUT_FILE).exists() == expected
-        expected ? output.trim() == file(OUTPUT_FILE).absolutePath : output.contains("Hello from the task")
+        file(BUILDS_DIR).exists() == expected
+        expected ? agentOutputFile() : output.contains("Hello from the task")
 
         where:
         gradleProperty | gradleOpts | envVar  | args           | expected
@@ -217,7 +211,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         then:
         outputContains("Agent mode has been disabled because the --console option was specified.")
         outputContains("Hello from the task")
-        !file(OUTPUT_FILE).exists()
+        !file(BUILDS_DIR).exists()
 
         where:
         description            | args        | envVars                    | property
@@ -249,7 +243,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         succeeds("slow", "--agent")
 
         then:
-        output.trim() == file(OUTPUT_FILE).absolutePath
+        agentOutputFile()
         result.error ==~ /\n{5,}/
     }
 
@@ -276,20 +270,35 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         succeeds("hello", "--agent", "--project-cache-dir", "custom-cache")
 
         then:
-        def agentOutput = file("custom-cache/agent/builds/latest/build-output.log")
-        output.trim() == agentOutput.absolutePath
-        agentOutput.text.contains("Hello from the task")
-        !file(".gradle/agent").exists()
+        agentOutputFile(output, "custom-cache/agent/builds").text.contains("Hello from the task")
+        !file(BUILDS_DIR).exists()
     }
 
-    def "replaces the output of the previous build"() {
+    def "writes the output of each build to a separate file"() {
         when:
         succeeds("hello", "--agent")
+        def first = agentOutputFile()
         fails("broken", "--agent")
+        def second = agentOutputFile()
 
         then:
-        def text = file(OUTPUT_FILE).text
-        text.contains("task is broken")
-        !text.contains("Hello from the task")
+        first != second
+        first.text.contains("Hello from the task")
+        !first.text.contains("task is broken")
+        second.text.contains("task is broken")
+        !second.text.contains("Hello from the task")
+    }
+
+    /**
+     * Verifies that the given standard output is nothing but the location of the output file, and returns that file.
+     */
+    private TestFile agentOutputFile(String standardOutput = output, String buildsDir = BUILDS_DIR) {
+        def lines = standardOutput.readLines().findAll { !it.empty }
+        assert lines.size() == 1
+        def outputFile = new TestFile(lines[0])
+        assert outputFile.name == "build-output.log"
+        assert outputFile.parentFile.name ==~ /[a-z2-7]{26}/
+        assert outputFile.parentFile.parentFile == file(buildsDir)
+        return outputFile
     }
 }

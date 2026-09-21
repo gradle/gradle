@@ -24,8 +24,6 @@ import org.junit.Rule
 import spock.lang.Specification
 
 class AgentOutputLocationTest extends Specification {
-    private static final String OUTPUT_FILE_PATH = "agent/builds/latest/build-output.log"
-
     @Rule
     TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
     def userHome = tmpDir.file("user-home")
@@ -36,7 +34,7 @@ class AgentOutputLocationTest extends Specification {
         rootDir.file("settings.gradle").createFile()
 
         expect:
-        resolve("--project-dir", rootDir.absolutePath) == rootDir.file(".gradle/$OUTPUT_FILE_PATH")
+        isOutputFileIn(resolve("--project-dir", rootDir.absolutePath), rootDir.file(".gradle"))
     }
 
     def "uses the root directory when run from a subproject"() {
@@ -45,7 +43,7 @@ class AgentOutputLocationTest extends Specification {
         def subDir = rootDir.createDir("sub")
 
         expect:
-        resolve("--project-dir", subDir.absolutePath) == rootDir.file(".gradle/$OUTPUT_FILE_PATH")
+        isOutputFileIn(resolve("--project-dir", subDir.absolutePath), rootDir.file(".gradle"))
     }
 
     def "uses the project cache directory given on the command line"() {
@@ -54,7 +52,7 @@ class AgentOutputLocationTest extends Specification {
         def cacheDir = tmpDir.file("custom-cache")
 
         expect:
-        resolve("--project-dir", rootDir.absolutePath, "--project-cache-dir", cacheDir.absolutePath) == cacheDir.file(OUTPUT_FILE_PATH)
+        isOutputFileIn(resolve("--project-dir", rootDir.absolutePath, "--project-cache-dir", cacheDir.absolutePath), cacheDir)
     }
 
     def "uses the project cache directory given as a property"() {
@@ -63,7 +61,7 @@ class AgentOutputLocationTest extends Specification {
         def cacheDir = tmpDir.file("custom-cache")
 
         expect:
-        resolve("--project-dir", rootDir.absolutePath, "-Dorg.gradle.projectcachedir=${cacheDir.absolutePath}") == cacheDir.file(OUTPUT_FILE_PATH)
+        isOutputFileIn(resolve("--project-dir", rootDir.absolutePath, "-Dorg.gradle.projectcachedir=${cacheDir.absolutePath}"), cacheDir)
     }
 
     def "does not use the root directory when there is no build definition"() {
@@ -80,8 +78,29 @@ class AgentOutputLocationTest extends Specification {
         def location = resolve(buildLayoutFactory, "--project-dir", emptyDir.absolutePath)
 
         then:
-        location.path.startsWith(userHome.file("undefined-build").path)
-        location.path.endsWith(new File(OUTPUT_FILE_PATH).path)
+        def projectCacheDir = location.parentFile.parentFile.parentFile.parentFile
+        projectCacheDir.parentFile == userHome.file("undefined-build")
+        isOutputFileIn(location, projectCacheDir)
+    }
+
+    def "uses a different directory for each invocation"() {
+        given:
+        rootDir.file("settings.gradle").createFile()
+
+        when:
+        def first = resolve("--project-dir", rootDir.absolutePath)
+        def second = resolve("--project-dir", rootDir.absolutePath)
+
+        then:
+        first.parentFile != second.parentFile
+        first.parentFile.parentFile == second.parentFile.parentFile
+    }
+
+    private static boolean isOutputFileIn(File location, File projectCacheDir) {
+        assert location.name == "build-output.log"
+        assert location.parentFile.name ==~ /[a-z2-7]{26}/
+        assert location.parentFile.parentFile == new File(projectCacheDir, "agent/builds")
+        true
     }
 
     private File resolve(String... args) {

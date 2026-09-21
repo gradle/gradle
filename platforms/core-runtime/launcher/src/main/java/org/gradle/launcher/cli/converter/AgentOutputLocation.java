@@ -22,6 +22,7 @@ import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.initialization.StartParameterBuildOptions.ProjectCacheDirOption;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.id.UniqueId;
 import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.jspecify.annotations.NullMarked;
 
@@ -31,12 +32,14 @@ import java.util.Map;
 /**
  * Locates the file that build output is written to in agent mode.
  *
- * <p>The file lives in the project cache directory, which is resolved the same way the build itself resolves it.</p>
+ * <p>The file lives in the project cache directory, which is resolved the same way the build itself resolves it,
+ * in a directory that is unique to the invocation.</p>
  */
 @NullMarked
 public class AgentOutputLocation {
-    // TODO Replace "latest" with a unique id per build invocation, and clean up the directories of old invocations
-    private static final String OUTPUT_FILE_PATH = "agent/builds/latest/build-output.log";
+    // TODO Clean up the directories of old invocations
+    private static final String BUILDS_DIR_PATH = "agent/builds";
+    private static final String OUTPUT_FILE_NAME = "build-output.log";
 
     private final BuildLayoutFactory buildLayoutFactory;
     private final ProjectCacheDirOption projectCacheDirOption = new ProjectCacheDirOption();
@@ -60,6 +63,8 @@ public class AgentOutputLocation {
             buildLayoutFactory.getLayoutFor(buildLayout.toLayoutConfiguration()),
             settings
         ).getDir();
-        return new File(projectCacheDir, OUTPUT_FILE_PATH);
+        // Generated here rather than taken from the build, as the file is needed before any daemon has been contacted
+        String invocationId = UniqueId.generate().asString();
+        return new File(projectCacheDir, BUILDS_DIR_PATH + "/" + invocationId + "/" + OUTPUT_FILE_NAME);
     }
 }

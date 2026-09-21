@@ -878,7 +878,7 @@ Do not prompt for user input.
 == Agent mode
 
 Agent mode is intended for builds driven by an AI agent rather than a person.
-Gradle renders all build output as with `--console=plain` and writes it to the file `agent/builds/latest/build-output.log` in the project cache directory (`.gradle` in the root directory by default), replacing any previous content.
+Gradle renders all build output as with `--console=plain` and writes it to the file `agent/builds/<id>/build-output.log` in the project cache directory (`.gradle` in the root directory by default), where `<id>` is unique to each invocation.
 The only thing printed to standard output is the absolute path of that file.
 While the build is running, Gradle writes a single newline character to standard error every 10 seconds, so that the process does not appear to be hung.
 The exit code still reports whether the build succeeded.
