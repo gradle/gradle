@@ -86,8 +86,8 @@ class KotlinModelAction implements BuildAction<KotlinModel>, Serializable {
     public static void queryResilientKotlinDslScriptsModel(BuildController controller, GradleBuild build, Model target, Map<File, KotlinDslScriptModel> scriptModels, Map<File, Failure> failures) {
         FetchModelResult<KotlinDslScriptsModel> modelResult = controller.fetch(target, KotlinDslScriptsModel.class);
 
-        assert modelResult.getFailures().size() <= 1: "Expected a single failure, but got multiple ones";
-        Optional<? extends Failure> failure = modelResult.getFailures().stream().findAny();
+        // A build's configuration failure comes first, followed by failures the model builder recovered from.
+        Optional<? extends Failure> failure = modelResult.getFailures().stream().findFirst();
         if (failure.isPresent()) {
             failures.put(build.getBuildIdentifier().getRootDir(), failure.get());
         }
