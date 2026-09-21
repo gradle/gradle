@@ -20,6 +20,8 @@
     --border-color: #e5e5e5;
     --various-border-color: #e7e7e9;
     --code-color: #f7f7f8;
+    --code-text-color: rgba(0, 0, 0, 0.9);
+    --code-link-color: #021274;
     --top-header-color: #fff;
     --nav-color: #f8f8f7;
     --table-color: #f9f9f9;
@@ -38,6 +40,8 @@
     --border-color: #444;
     --various-border-color: #242526;
     --code-color: #1f1f1f;
+    --code-text-color: rgba(255, 255, 255, 0.9);
+    --code-link-color: #1fafcc;
     --top-header-color: #242526;
     --nav-color: #121212;
     --table-color: #1a1a1a;
@@ -333,8 +337,11 @@ blockquote p:last-child {
 code {
     font-size: 90%;
     background-color: var(--code-color);
+    color: var(--code-text-color);
     border-radius: 4px;
 }
+
+a code { color: var(--code-link-color); }
 
 *:not(pre) > code {
     letter-spacing: 0;
