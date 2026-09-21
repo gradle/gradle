@@ -24,6 +24,8 @@ import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 
+import java.util.concurrent.TimeUnit
+
 @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "output is redirected by the command-line client")
 class AgentModeIntegrationTest extends AbstractIntegrationSpec {
 
@@ -287,6 +289,34 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         !first.text.contains("task is broken")
         second.text.contains("task is broken")
         !second.text.contains("Hello from the task")
+    }
+
+    def "build #description cleans up build output that is older than 7 days"() {
+        given:
+        def oldOutput = createAgentOutput("old", 8)
+        def recentOutput = createAgentOutput("recent", 6)
+
+        when:
+        succeeds(["hello"] + args)
+
+        then:
+        ConcurrentTestUtil.poll {
+            oldOutput.assertDoesNotExist()
+        }
+        recentOutput.assertExists()
+
+        where:
+        description          | args
+        "in agent mode"     | ["--agent"]
+        "not in agent mode" | []
+    }
+
+    private TestFile createAgentOutput(String invocation, int daysAgo) {
+        def lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(daysAgo)
+        def dir = file("$BUILDS_DIR/$invocation").createDir()
+        dir.file("build-output.log").createFile().lastModified = lastModified
+        dir.lastModified = lastModified
+        return dir
     }
 
     /**

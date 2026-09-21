@@ -17,6 +17,7 @@
 package org.gradle.launcher.cli.converter;
 
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.cache.internal.AgentOutputCleanupAction;
 import org.gradle.cache.internal.BuildScopeCacheDir;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
@@ -37,8 +38,6 @@ import java.util.Map;
  */
 @NullMarked
 public class AgentOutputLocation {
-    // TODO Clean up the directories of old invocations
-    private static final String BUILDS_DIR_PATH = "agent/builds";
     private static final String OUTPUT_FILE_NAME = "build-output.log";
 
     private final BuildLayoutFactory buildLayoutFactory;
@@ -65,6 +64,6 @@ public class AgentOutputLocation {
         ).getDir();
         // Generated here rather than taken from the build, as the file is needed before any daemon has been contacted
         String invocationId = UniqueId.generate().asString();
-        return new File(projectCacheDir, BUILDS_DIR_PATH + "/" + invocationId + "/" + OUTPUT_FILE_NAME);
+        return new File(projectCacheDir, AgentOutputCleanupAction.BUILDS_DIR_PATH + "/" + invocationId + "/" + OUTPUT_FILE_NAME);
     }
 }
