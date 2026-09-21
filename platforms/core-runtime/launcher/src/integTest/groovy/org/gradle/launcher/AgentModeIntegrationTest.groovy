@@ -234,6 +234,43 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain("Agent mode")
     }
 
+    def "writes newlines to standard error while the build is running"() {
+        given:
+        buildFile << """
+            tasks.register("slow") {
+                doLast {
+                    Thread.sleep(2000)
+                }
+            }
+        """
+
+        when:
+        executer.withCommandLineGradleOpts("-Dorg.gradle.internal.testing.agent.heartbeat.millis=100")
+        succeeds("slow", "--agent")
+
+        then:
+        output.trim() == file(OUTPUT_FILE).absolutePath
+        result.error ==~ /\n{5,}/
+    }
+
+    def "does not write a heartbeat when agent mode is not enabled"() {
+        given:
+        buildFile << """
+            tasks.register("slow") {
+                doLast {
+                    Thread.sleep(1000)
+                }
+            }
+        """
+
+        when:
+        executer.withCommandLineGradleOpts("-Dorg.gradle.internal.testing.agent.heartbeat.millis=100")
+        succeeds("slow")
+
+        then:
+        result.error.empty
+    }
+
     def "writes the file to the requested project cache directory"() {
         when:
         succeeds("hello", "--agent", "--project-cache-dir", "custom-cache")
