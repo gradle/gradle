@@ -649,6 +649,11 @@ Can be used to specify a default Gradle repository URL in `org.gradle.plugins.id
 +
 Useful override to specify an internally hosted repository if your company uses a firewall/proxy.
 
+`ORG_GRADLE_AGENT` incubating-label:[]::
+When set to `true`, enables <<command_line_interface.adoc#sec:agent_mode,agent mode>>; when set to `false`, disables it.
++
+Takes precedence over the `org.gradle.agent` Gradle property, and is overridden by the `--agent` and `--no-agent` command-line options.
+
 `NO_COLOR`::
 When present and non-empty, disables color output while preserving other styling (bold, underline) and rich features (progress bars, animations).
 +

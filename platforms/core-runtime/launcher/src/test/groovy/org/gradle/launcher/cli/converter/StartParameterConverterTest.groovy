@@ -127,23 +127,31 @@ class StartParameterConverterTest extends Specification {
         parameters2.maxWorkerCount == 789
     }
 
-    def "agent mode is #expected with args #args"() {
-        expect:
-        convert(args as String[]).agentMode == expected
+    def "agent mode is #agentMode and console is #console with args #args and env #env"() {
+        when:
+        def parameter = convert(env, args as String[])
+
+        then:
+        parameter.agentMode == agentMode
+        parameter.consoleOutput == console
 
         where:
-        args                                      | expected
-        []                                        | false
-        ["--agent"]                               | true
-        ["--no-agent"]                            | false
-        ["-Dorg.gradle.agent=true"]               | true
-        ["--no-agent", "-Dorg.gradle.agent=true"] | false
-    }
-
-    def "agent mode forces plain console"() {
-        expect:
-        convert("--agent", "--console=rich").consoleOutput == ConsoleOutput.Plain
-        convert("--no-agent", "--console=rich").consoleOutput == ConsoleOutput.Rich
+        args                                          | env                         | agentMode | console
+        []                                            | [:]                         | false     | ConsoleOutput.Auto
+        ["--agent"]                                   | [:]                         | true      | ConsoleOutput.Plain
+        ["--no-agent"]                                | [:]                         | false     | ConsoleOutput.Auto
+        ["-Dorg.gradle.agent=true"]                   | [:]                         | true      | ConsoleOutput.Plain
+        []                                            | [ORG_GRADLE_AGENT: "true"]  | true      | ConsoleOutput.Plain
+        ["-Dorg.gradle.agent=false"]                  | [ORG_GRADLE_AGENT: "true"]  | true      | ConsoleOutput.Plain
+        ["-Dorg.gradle.agent=true"]                   | [ORG_GRADLE_AGENT: "false"] | false     | ConsoleOutput.Auto
+        ["--no-agent"]                                | [ORG_GRADLE_AGENT: "true"]  | false     | ConsoleOutput.Auto
+        ["--agent"]                                   | [ORG_GRADLE_AGENT: "false"] | true      | ConsoleOutput.Plain
+        ["--no-agent", "-Dorg.gradle.agent=true"]     | [:]                         | false     | ConsoleOutput.Auto
+        ["--agent", "--console=rich"]                 | [:]                         | false     | ConsoleOutput.Rich
+        ["--agent", "--console=plain"]                | [:]                         | false     | ConsoleOutput.Plain
+        ["--console=rich"]                            | [ORG_GRADLE_AGENT: "true"]  | false     | ConsoleOutput.Rich
+        ["-Dorg.gradle.agent=true", "--console=rich"] | [:]                         | false     | ConsoleOutput.Rich
+        ["--no-agent", "--console=rich"]              | [:]                         | false     | ConsoleOutput.Rich
     }
 
     def "can enable agent mode as persistent property"() {
@@ -151,9 +159,14 @@ class StartParameterConverterTest extends Specification {
         userHome.file("gradle.properties") << "org.gradle.agent=true"
         convert().agentMode
         !convert("--no-agent").agentMode
+        !convert("-Dorg.gradle.agent=false").agentMode
     }
 
     StartParameterInternal convert(String... args) {
+        convert([:], args)
+    }
+
+    StartParameterInternal convert(Map<String, String> env, String... args) {
         def converter = new StartParameterConverter()
         def initialPropertiesConverter = new InitialPropertiesConverter()
         def buildLayoutConverter = new BuildLayoutConverter()
@@ -170,6 +183,6 @@ class StartParameterConverterTest extends Specification {
         }
         def properties = propertiesConverter.convert(initialProperties, buildLayout)
 
-        return converter.convert(parsedCommandLine, buildLayout, properties, [:], new StartParameterInternal())
+        return converter.convert(parsedCommandLine, buildLayout, properties, env, new StartParameterInternal())
     }
 }

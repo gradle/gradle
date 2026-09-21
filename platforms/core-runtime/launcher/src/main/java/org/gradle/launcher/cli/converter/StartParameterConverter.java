@@ -42,6 +42,7 @@ public class StartParameterConverter {
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
     private final BuildOptionBackedConverter<StartParameterInternal> buildOptionsConverter = new BuildOptionBackedConverter<>(new StartParameterBuildOptions());
     private final BuildOptionBackedConverter<StartParameter> toolchainOptionsConverter = new BuildOptionBackedConverter<>(ToolchainBuildOptions.forStartParameter());
+    private final AgentModeResolver agentModeResolver = new AgentModeResolver();
 
     public void configure(CommandLineParser parser) {
         welcomeMessageConfigurationCommandLineConverter.configure(parser);
@@ -71,7 +72,9 @@ public class StartParameterConverter {
 
         buildOptionsConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, startParameter);
 
-        if (startParameter.isAgentMode()) {
+        boolean agentMode = agentModeResolver.resolve(parsedCommandLine, properties.getProperties(), environmentVariables) == AgentModeResolver.AgentMode.ENABLED;
+        startParameter.setAgentMode(agentMode);
+        if (agentMode) {
             startParameter.setConsoleOutput(ConsoleOutput.Plain);
         }
 

@@ -1117,6 +1117,7 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
     public static class AgentOption extends BooleanBuildOption<StartParameterInternal> {
         public static final String LONG_OPTION = "agent";
         public static final String PROPERTY_NAME = "org.gradle.agent";
+        public static final String ENVIRONMENT_VARIABLE = "ORG_GRADLE_AGENT";
 
         public AgentOption() {
             super(
@@ -1132,6 +1133,14 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(boolean value, StartParameterInternal settings, @Nullable Origin origin) {
             settings.setAgentMode(value);
+        }
+
+        @Override
+        public void applyFromEnvVar(Map<String, String> envVars, StartParameterInternal settings) {
+            String value = envVars.get(ENVIRONMENT_VARIABLE);
+            if (value != null) {
+                settings.setAgentMode(Boolean.parseBoolean(value.trim()));
+            }
         }
 
         @Override
