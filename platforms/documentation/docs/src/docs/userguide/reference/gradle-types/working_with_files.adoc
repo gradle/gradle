@@ -1310,8 +1310,7 @@ The result is a collection of ZIP file trees, the contents of which are copied i
 [[sec:creating_directories_example]]
 == Creating directories
 
-Many tasks need to create directories to store the files they generate, which is why Gradle <<incremental_build.adoc#incremental_build,automatically manages>> this aspect of tasks when they explicitly define file and directory outputs.
-All core Gradle tasks ensure that any output directories they need are created, if necessary, using this mechanism.
+Gradle automatically creates the output directories of any task that <<incremental_build.adoc#incremental_build,declares its file and directory outputs>>.
 
 [[using_file_mkdirs_and_files_create_directories]]
 === Using `File.mkdirs` and `Files.createDirectories`
