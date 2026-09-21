@@ -78,5 +78,6 @@ with(Helper(providers)) {
 
     gradle.settingsEvaluated {
         withMirrors(settings.pluginManagement.repositories)
+        withMirrors(settings.dependencyResolutionManagement.repositories)
     }
 }
