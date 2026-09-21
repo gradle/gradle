@@ -877,7 +877,11 @@ Do not prompt for user input.
 [[sec:agent_mode]]
 == Agent mode
 
-Agent mode tells Gradle that the build is driven by an AI agent rather than a person.
+Agent mode is intended for builds driven by an AI agent rather than a person.
+Gradle renders all build output as with `--console=plain` and writes it to the file `agent/builds/latest/build-output.log` in the project cache directory (`.gradle` in the root directory by default), replacing any previous content.
+The only thing printed to standard output is the absolute path of that file.
+The exit code still reports whether the build succeeded.
+
 You can also enable it by setting the `org.gradle.agent` <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> to `true`.
 
 `--agent`, `--no-agent` incubating-label:[]::

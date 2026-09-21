@@ -18,6 +18,7 @@ package org.gradle.launcher.cli.converter
 
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.cli.CommandLineParser
 import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -137,6 +138,12 @@ class StartParameterConverterTest extends Specification {
         ["--no-agent"]                            | false
         ["-Dorg.gradle.agent=true"]               | true
         ["--no-agent", "-Dorg.gradle.agent=true"] | false
+    }
+
+    def "agent mode forces plain console"() {
+        expect:
+        convert("--agent", "--console=rich").consoleOutput == ConsoleOutput.Plain
+        convert("--no-agent", "--console=rich").consoleOutput == ConsoleOutput.Rich
     }
 
     def "can enable agent mode as persistent property"() {

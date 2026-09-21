@@ -390,7 +390,7 @@ NOTE: The location of the `GRADLE_USER_HOME` may have been changed beforehand vi
 For reference, the following properties are common Gradle properties:
 
 `org.gradle.agent=(true,false)` incubating-label:[]::
-When set to `true`, enables <<command_line_interface.adoc#sec:agent_mode,agent mode>>, telling Gradle that the build is driven by an AI agent.
+When set to `true`, enables <<command_line_interface.adoc#sec:agent_mode,agent mode>>, which writes all build output to a file instead of the console.
 +
 _Default is `false`._
 

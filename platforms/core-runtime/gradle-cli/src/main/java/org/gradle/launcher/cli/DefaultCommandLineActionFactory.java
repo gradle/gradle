@@ -17,10 +17,12 @@ package org.gradle.launcher.cli;
 
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.Action;
+import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.cache.internal.BuildScopeCacheDir;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.OptionCategory;
@@ -28,8 +30,11 @@ import org.gradle.cli.ParsedCommandLine;
 import org.gradle.configuration.DefaultBuildClientMetaData;
 import org.gradle.configuration.GradleLauncherMetaData;
 import org.gradle.initialization.BuildClientMetaData;
+import org.gradle.initialization.StartParameterBuildOptions.AgentOption;
+import org.gradle.initialization.StartParameterBuildOptions.ProjectCacheDirOption;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.Actions;
+import org.gradle.internal.IoActions;
 import org.gradle.internal.buildevents.BuildExceptionReporter;
 import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.logging.DefaultLoggingConfiguration;
@@ -58,6 +63,12 @@ import org.gradle.launcher.configuration.BuildLayoutResult;
 import org.gradle.launcher.configuration.InitialProperties;
 import org.jspecify.annotations.Nullable;
 
+import java.io.File;
+import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintStream;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -69,6 +80,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
     private static final String HELP = "h";
     private static final String VERSION = "v";
     private static final String VERSION_CONTINUE = "V";
+    // TODO Replace "latest" with a unique id per build invocation, and clean up the directories of old invocations
+    private static final String AGENT_OUTPUT_FILE_PATH ="agent/builds/latest/build-output.log";
 
     /**
      * <p>Converts the given command-line arguments to an {@link Action} which performs the action requested by the
@@ -343,7 +356,10 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             BuildOptionBackedConverter<LoggingConfiguration> loggingBuildOptions = new BuildOptionBackedConverter<>(new LoggingConfigurationBuildOptions());
             InitialPropertiesConverter propertiesConverter = new InitialPropertiesConverter();
             BuildLayoutConverter buildLayoutConverter = new BuildLayoutConverter();
-            LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter(new BuildLayoutFactory());
+            BuildLayoutFactory buildLayoutFactory = new BuildLayoutFactory();
+            LayoutToPropertiesConverter layoutToPropertiesConverter = new LayoutToPropertiesConverter(buildLayoutFactory);
+            AgentOption agentOption = new AgentOption();
+            ProjectCacheDirOption projectCacheDirOption = new ProjectCacheDirOption();
             Map<String, String> environmentVariables = System.getenv();
 
             BuildLayoutResult buildLayout = buildLayoutConverter.defaultValues();
@@ -352,11 +368,14 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             propertiesConverter.configure(parser);
             buildLayoutConverter.configure(parser);
             loggingBuildOptions.configure(parser);
+            agentOption.configure(parser);
+            projectCacheDirOption.configure(parser);
 
             parser.allowUnknownOptions();
             parser.allowMixedSubcommandsAndOptions();
 
             WelcomeMessageConfiguration welcomeMessageConfiguration = new WelcomeMessageConfiguration(WelcomeMessageDisplayMode.ONCE);
+            File agentOutputFile = null;
 
             try {
                 ParsedCommandLine parsedCommandLine = parser.parse(args);
@@ -373,9 +392,28 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
                 // Get configuration for showing the welcome message
                 welcomeMessageConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, welcomeMessageConfiguration);
+
+                StartParameterInternal agentSettings = new StartParameterInternal();
+                agentOption.applyFromProperty(properties.getProperties(), agentSettings);
+                agentOption.applyFromCommandLine(parsedCommandLine, agentSettings);
+                if (agentSettings.isAgentMode()) {
+                    buildLayout.applyTo(agentSettings);
+                    projectCacheDirOption.applyFromProperty(properties.getProperties(), agentSettings);
+                    projectCacheDirOption.applyFromCommandLine(parsedCommandLine, agentSettings);
+                    File gradleUserHomeDir = buildLayout.getGradleUserHomeDir();
+                    File projectCacheDir = new BuildScopeCacheDir(
+                        () -> gradleUserHomeDir,
+                        buildLayoutFactory.getLayoutFor(buildLayout.toLayoutConfiguration()),
+                        agentSettings
+                    ).getDir();
+                    agentOutputFile = new File(projectCacheDir, AGENT_OUTPUT_FILE_PATH);
+                }
             } catch (CommandLineArgumentException e) {
                 // Ignore, deal with this problem later
             }
+
+            // System.out is replaced once the logging manager starts
+            OutputStream agentOutput = agentOutputFile == null ? null : openAgentOutput(agentOutputFile, System.out);
 
             LoggingManagerInternal loggingManager = loggingServices.get(LoggingManagerFactory.class).createLoggingManager();
             loggingManager.setLevelInternal(loggingConfiguration.getLogLevel());
@@ -383,12 +421,25 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             try {
                 Action<ExecutionListener> exceptionReportingAction =
                     new ExceptionReportingAction(reporter, loggingManager,
-                        new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager,
+                        new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager, agentOutput,
                             new WelcomeMessageAction(buildLayout, welcomeMessageConfiguration,
                                 new DebugLoggerWarningAction(loggingConfiguration, action))));
                 exceptionReportingAction.execute(executionListener);
             } finally {
                 loggingManager.stop();
+                IoActions.closeQuietly(agentOutput);
+            }
+        }
+
+        private static OutputStream openAgentOutput(File file, PrintStream stdout) {
+            try {
+                Files.createDirectories(file.getParentFile().toPath());
+                OutputStream output = Files.newOutputStream(file.toPath());
+                stdout.println(file.getAbsolutePath());
+                stdout.flush();
+                return output;
+            } catch (IOException e) {
+                throw new UncheckedIOException("Could not open agent output file " + file, e);
             }
         }
     }

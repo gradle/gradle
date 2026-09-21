@@ -18,6 +18,7 @@ package org.gradle.launcher.cli.converter;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
+import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
@@ -69,6 +70,10 @@ public class StartParameterConverter {
         }
 
         buildOptionsConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, startParameter);
+
+        if (startParameter.isAgentMode()) {
+            startParameter.setConsoleOutput(ConsoleOutput.Plain);
+        }
 
         return startParameter;
     }
