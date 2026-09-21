@@ -593,17 +593,23 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
                 }
             }
 
-            task producer(type: DirProducer) {
+            def producer = tasks.register("producer", DirProducer) {
                 output = layout.buildDirectory.dir("classes")
                 names = ["a", "b"]
             }
 
-            def libraries = files(tasks.producer.output, 'lib.jar')
-            def snapshots = configurations.detachedConfiguration(dependencies.create(libraries)).incoming.artifactView {
+            def deps = configurations.dependencyScope("implementation")
+            def resolver = configurations.resolvable("resolver") {
+                extendsFrom(deps.get())
+            }
+            dependencies {
+                implementation files(producer.flatMap { it.output }, 'lib.jar')
+            }
+            def snapshots = resolver.get().incoming.artifactView {
                 attributes.attribute(artifactType, 'snapshot')
             }.files
 
-            task resolve(type: ShowFileCollection) {
+            tasks.register("resolve", ShowFileCollection) {
                 files.from(snapshots)
             }
 

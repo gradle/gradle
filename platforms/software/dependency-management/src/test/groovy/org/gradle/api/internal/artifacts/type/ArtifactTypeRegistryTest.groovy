@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.type
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.artifacts.TransformRegistration
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry
 import org.gradle.internal.component.model.ComponentArtifactMetadata
@@ -301,6 +302,21 @@ class ArtifactTypeRegistryTest extends Specification {
         visited.contains(immutable.mapAttributesFor(file("foo.jar")))
         visited.contains(immutable.mapAttributesFor(dir("foo")))
         visited.contains(immutable.mapAttributesFor(dir("foo.jar")))
+    }
+
+    def "visits directory attributes once when a transform is registered from directories and no directory artifact type is registered"() {
+        given:
+        def registration = Stub(TransformRegistration) {
+            getFrom() >> attributesFactory.of(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE)
+        }
+        def immutable = toImmutable(registry)
+        def visited = []
+
+        when:
+        immutable.visitArtifactTypeAttributes([registration]) { visited << it }
+
+        then:
+        visited == [immutable.mapAttributesFor(dir("foo"))]
     }
 
     File file(String name) {
