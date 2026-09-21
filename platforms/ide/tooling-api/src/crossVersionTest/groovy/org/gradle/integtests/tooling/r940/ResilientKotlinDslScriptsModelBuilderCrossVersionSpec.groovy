@@ -464,7 +464,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
             pluginManagement {
                 repositories {
-                    mavenCentral()
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
                     gradlePluginPortal()
                 }
             }
@@ -475,7 +475,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
             }
 
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
                 gradlePluginPortal()
             }
         """
@@ -564,7 +564,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
             pluginManagement {
                 repositories {
-                    mavenCentral()
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
                     gradlePluginPortal()
                 }
             }
@@ -575,7 +575,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
             }
 
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
                 gradlePluginPortal()
             }
         """
@@ -729,7 +729,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
             pluginManagement {
                 repositories {
-                    mavenCentral()
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
                     gradlePluginPortal()
                 }
             }
@@ -740,7 +740,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
             }
 
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
                 gradlePluginPortal()
             }
         """

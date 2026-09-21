@@ -57,6 +57,10 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
         executer.with {
             inDirectory(contentsDir)
             usingExecutable('gradlew')
+            // The nested build runs with a test-local Gradle user home, so the agent's
+            // mirror configuration does not apply to it. Install the mirror init script
+            // explicitly, otherwise build-logic-settings resolves from Maven Central.
+            withRepositoryMirrors()
             // we add implicit Xmx1024m in AbstractGradleExecuter.getImplicitBuildJvmArgs()
             // that's too small for this build
             useOnlyRequestedJvmOpts()
