@@ -279,6 +279,15 @@ trait ValidationMessageChecker {
             .render(renderSolutions)
     }
 
+    String outputProviderWithoutProducer(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}, boolean renderSolutions = true) {
+        def config = display(SimpleMessage, 'output_provider_without_producer', spec)
+        config.description("is a Provider that is not associated with this task")
+            .reason("The property is declared as an output, but the provider does not know that this task produces its value, so other tasks consuming this provider do not get an implicit dependency on this task. Gradle can only associate the value with the task when it is returned from a non-final getter")
+            .solution("Declare the property with a non-final getter, e.g. mark the property 'open' in Kotlin or declare an explicit getter method in Groovy")
+            .solution("Declare the property with a Property type such as RegularFileProperty, DirectoryProperty or ConfigurableFileCollection instead")
+            .render(renderSolutions)
+    }
+
     String inputDoesNotExist(@DelegatesTo(value = IncorrectInputMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}) {
         def config = display(IncorrectInputMessage, 'input_file_does_not_exist', spec)
         config.description("specifies ${config.kind} '${config.file}' which doesn't exist")

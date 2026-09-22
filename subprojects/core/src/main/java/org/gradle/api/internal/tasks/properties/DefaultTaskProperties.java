@@ -29,6 +29,7 @@ import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.properties.InputFilePropertyType;
+import org.gradle.internal.properties.OutputFilePropertyType;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
 import org.gradle.internal.properties.bean.PropertyWalker;
@@ -232,6 +233,11 @@ public class DefaultTaskProperties implements TaskProperties {
         @Override
         public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
             taskPropertySpecs.add(new DefaultValidatingProperty(propertyName, value, optional, ValidationActions.NO_OP));
+        }
+
+        @Override
+        public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
+            taskPropertySpecs.add(new OutputProviderWithoutProducerValidatingProperty(propertyName, value));
         }
 
         @Override

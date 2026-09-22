@@ -413,9 +413,9 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             // but that would break existing code that relies on lazy attachment of properties.
             return property.getBackingField() == null || !property.getMainGetter().method.isAnnotationPresent(Generated.class);
         }
-        // Other Property should be eagerly attached, as they are not overridable.
+        // Other Property and ConfigurableFileCollection properties should be eagerly attached, as they are not overridable.
         // Other non-Property properties cannot be eagerly attached for backwards compatibility reasons.
-        return !hasPropertyType(property);
+        return !hasPropertyType(property) && !isConfigurableFileCollectionType(property.getType());
     }
 
     private static boolean isAttachProperty(PropertyMetadata property) {

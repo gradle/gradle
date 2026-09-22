@@ -66,8 +66,8 @@ public class ManagedObjectFactory {
 
     // Called from generated code
     @SuppressWarnings("unused")
-    public void applyRole(Object value, ModelObject owner) {
-        roleHandler.applyRoleTo(owner, value);
+    public Object applyRole(Object value, ModelObject owner) {
+        return roleHandler.applyRoleTo(owner, value);
     }
 
     // Called from generated code
