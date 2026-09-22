@@ -57,6 +57,11 @@ public class StartParameterConverter {
     public StartParameterInternal convert(ParsedCommandLine parsedCommandLine, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> environmentVariables, StartParameterInternal startParameter) throws CommandLineArgumentException {
         buildLayout.applyTo(startParameter);
 
+        boolean agentMode = agentModeResolver.resolve(parsedCommandLine, properties.getProperties(), environmentVariables).isEnabled();
+        if (agentMode) {
+            AgentModeResolver.applyDefaultsTo(startParameter);
+        }
+
         welcomeMessageConfigurationCommandLineConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, startParameter.getWelcomeMessageConfiguration());
         loggingConfigurationCommandLineConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, startParameter);
         parallelConfigurationCommandLineConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, startParameter);
@@ -72,7 +77,7 @@ public class StartParameterConverter {
 
         buildOptionsConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, startParameter);
 
-        boolean agentMode = agentModeResolver.resolve(parsedCommandLine, properties.getProperties(), environmentVariables).isEnabled();
+        // Agent mode does not follow the usual precedence of the build options, and owns the console output
         startParameter.setAgentMode(agentMode);
         if (agentMode) {
             startParameter.setConsoleOutput(ConsoleOutput.Plain);

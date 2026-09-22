@@ -16,6 +16,7 @@
 
 package org.gradle.launcher
 
+import org.gradle.api.internal.tasks.userinput.UserInputHandler
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
@@ -249,6 +250,73 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         !agentOutputFile().text.contains("--console")
+    }
+
+    def "does not prompt for user input"() {
+        given:
+        buildFile << """
+            def handler = services.get(${UserInputHandler.name})
+            tasks.register("askYesNo") {
+                def result = handler.askUser { it.askYesNoQuestion("thing?") }
+                doLast {
+                    println("result = " + result.getOrElse("<default>"))
+                }
+            }
+        """
+        executer.withStdinPipe().withForceInteractiveSession(true)
+
+        when:
+        def build = executer.withTasks("askYesNo").withArgument("--agent").start()
+        build.stdinPipe.close()
+        build.waitForFinish()
+
+        then:
+        def agentOutput = agentOutputFile(build.standardOutput)
+        !agentOutput.text.contains("thing? [yes, no]")
+        agentOutput.text.contains("result = <default>")
+    }
+
+    def "suppresses warnings unless a warning mode is given"() {
+        given:
+        buildFile << """
+            tasks.register("deprecated") {
+                doLast {
+                    org.gradle.internal.deprecation.DeprecationLogger.deprecate("Something").willBeRemovedInGradle10().undocumented().nagUser()
+                }
+            }
+        """
+        executer.noDeprecationChecks().withWarningMode(null)
+
+        when:
+        succeeds("deprecated", "--agent")
+
+        then:
+        !agentOutputFile().text.contains("Something has been deprecated")
+
+        when:
+        executer.noDeprecationChecks().withWarningMode(null)
+        succeeds("deprecated", "--agent", "--warning-mode=all")
+
+        then:
+        agentOutputFile().text.contains("Something has been deprecated")
+    }
+
+    def "writes the stack trace of a failure to the file"() {
+        when:
+        fails("broken", "--agent")
+
+        then:
+        def agentOutput = agentOutputFile()
+        agentOutput.text.contains("task is broken")
+        agentOutput.text.contains("java.lang.RuntimeException: task is broken")
+        agentOutput.text.contains("at ")
+
+        when:
+        fails("broken")
+
+        then:
+        failure.assertHasCause("task is broken")
+        !result.error.contains("java.lang.RuntimeException: task is broken")
     }
 
     def "writes newlines to standard error while the build is running"() {

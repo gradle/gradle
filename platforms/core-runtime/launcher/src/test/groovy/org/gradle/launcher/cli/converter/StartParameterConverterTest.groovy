@@ -19,6 +19,8 @@ package org.gradle.launcher.cli.converter
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.ConsoleOutput
+import org.gradle.api.logging.configuration.ShowStacktrace
+import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.cli.CommandLineParser
 import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -152,6 +154,39 @@ class StartParameterConverterTest extends Specification {
         ["--console=rich"]                            | [ORG_GRADLE_AGENT: "true"]  | true      | ConsoleOutput.Plain
         ["-Dorg.gradle.agent=true", "--console=rich"] | [:]                         | true      | ConsoleOutput.Plain
         ["--no-agent", "--console=rich"]              | [:]                         | false     | ConsoleOutput.Rich
+    }
+
+    def "agent mode implies non-interactive, no warnings and stack traces unless configured otherwise"() {
+        when:
+        def defaults = convert("--agent")
+
+        then:
+        !defaults.interactive
+        defaults.warningMode == WarningMode.None
+        defaults.showStacktrace == ShowStacktrace.ALWAYS
+
+        when:
+        def overridden = convert("--agent", "--warning-mode=all", "--full-stacktrace")
+
+        then:
+        overridden.warningMode == WarningMode.All
+        overridden.showStacktrace == ShowStacktrace.ALWAYS_FULL
+
+        when:
+        def viaProperties = convert("--agent", "-Dorg.gradle.warning.mode=summary", "-Dorg.gradle.logging.stacktrace=internal", "-Dorg.gradle.console.interactive=true")
+
+        then:
+        viaProperties.warningMode == WarningMode.Summary
+        viaProperties.showStacktrace == ShowStacktrace.INTERNAL_EXCEPTIONS
+        viaProperties.interactive
+
+        when:
+        def withoutAgentMode = convert()
+
+        then:
+        withoutAgentMode.interactive
+        withoutAgentMode.warningMode == WarningMode.Summary
+        withoutAgentMode.showStacktrace == ShowStacktrace.INTERNAL_EXCEPTIONS
     }
 
     def "can enable agent mode as persistent property"() {

@@ -886,6 +886,10 @@ The exit code still reports whether the build succeeded (exit code 0) or failed 
 
 You can also enable it by setting the `org.gradle.agent` <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> to `true` (for example in `gradle.properties`, `GRADLE_OPTS`, or via `-D`), or with the `ORG_GRADLE_AGENT` <<build_environment.adoc#environment_variables_reference,environment variable>>.
 
+Agent mode also implies `--non-interactive`, `--warning-mode=none` and `--stacktrace`.
+Each of these can still be configured explicitly, for example `--agent --warning-mode=all` writes deprecation warnings to the output file.
+The <<#sec:command_line_logging,log level options>> apply as usual and control what is written to the output file.
+
 Agent mode controls the console output, so the `--console` command-line option has no effect while it is enabled.
 Gradle prints a warning to the build output file when it ignores an explicit `--console` option.
 

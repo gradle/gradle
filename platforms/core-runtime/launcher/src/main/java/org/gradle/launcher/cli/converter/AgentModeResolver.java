@@ -18,6 +18,9 @@ package org.gradle.launcher.cli.converter;
 
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.initialization.StartParameterBuildOptions.AgentOption;
@@ -67,6 +70,17 @@ public class AgentModeResolver {
             return AgentMode.NOT_REQUESTED;
         }
         return isConsoleOptionIgnored(commandLine) ? AgentMode.ENABLED_IGNORING_CONSOLE_OPTION : AgentMode.ENABLED;
+    }
+
+    /**
+     * Applies the logging settings agent mode implies. Meant to be called before the logging options are converted,
+     * so that any explicitly configured value takes precedence, except for the console output, which agent mode owns.
+     */
+    public static void applyDefaultsTo(LoggingConfiguration configuration) {
+        configuration.setConsoleOutput(ConsoleOutput.Plain);
+        configuration.setInteractive(false);
+        configuration.setWarningMode(WarningMode.None);
+        configuration.setShowStacktrace(ShowStacktrace.ALWAYS);
     }
 
     private static boolean isConsoleOptionIgnored(ParsedCommandLine commandLine) {

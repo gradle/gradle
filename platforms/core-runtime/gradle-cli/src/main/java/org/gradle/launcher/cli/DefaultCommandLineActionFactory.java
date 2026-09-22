@@ -388,13 +388,17 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                 // Read *.properties files
                 AllProperties properties = layoutToPropertiesConverter.convert(initialProperties, buildLayout);
 
+                agentMode = agentModeResolver.resolve(parsedCommandLine, properties.getProperties(), environmentVariables);
+                if (agentMode.isEnabled()) {
+                    AgentModeResolver.applyDefaultsTo(loggingConfiguration);
+                }
+
                 // Calculate the logging configuration
                 loggingBuildOptions.convert(parsedCommandLine, properties.getProperties(), environmentVariables, loggingConfiguration);
 
                 // Get configuration for showing the welcome message
                 welcomeMessageConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, welcomeMessageConfiguration);
 
-                agentMode = agentModeResolver.resolve(parsedCommandLine, properties.getProperties(), environmentVariables);
                 if (agentMode.isEnabled()) {
                     agentOutputFile = agentOutputLocation.resolve(parsedCommandLine, properties.getProperties(), buildLayout);
                 }
