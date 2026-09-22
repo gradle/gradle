@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r85
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.GradleConnectionException
@@ -94,12 +95,12 @@ class TestLauncherDebugCrossVersionSpec extends ToolingApiSpecification {
     }
 
     private void javaLibraryWithTests(TestFile projectDir) {
-        projectDir.file('build.gradle') << '''
+        projectDir.file('build.gradle') << """
             plugins {
                 id 'java-library'
             }
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
             }
             testing {
                 suites {
@@ -116,7 +117,7 @@ class TestLauncherDebugCrossVersionSpec extends ToolingApiSpecification {
                     System.out.println("Debug mode enabled: " + debugOptions.enabled.get())
                 }
             }
-        '''
+        """
         writeTestClass(projectDir, 'TestClass1')
         writeTestClass(projectDir, 'TestClass2')
     }

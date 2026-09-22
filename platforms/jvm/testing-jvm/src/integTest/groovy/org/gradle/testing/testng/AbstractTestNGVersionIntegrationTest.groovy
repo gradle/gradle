@@ -24,6 +24,11 @@ import org.gradle.util.internal.VersionNumber
 
 @TargetCoverage({ TestNGCoverage.SUPPORTED_BY_JDK })
 class AbstractTestNGVersionIntegrationTest extends MultiVersionIntegrationSpec implements VerifiesGenericTestReportResults {
+    def setup() {
+        // The build files copied in from resources declare a bare mavenCentral()
+        executer.withRepositoryMirrors()
+    }
+
     static boolean supportConfigFailurePolicy() {
         return versionNumber >= VersionNumber.parse('5.13')
     }
