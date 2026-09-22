@@ -16,12 +16,8 @@
 
 package org.gradle.internal.file;
 
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
-
 import java.io.File;
 
-@ServiceScope(Scope.Project.class)
 public interface ReservedFileSystemLocationRegistry {
     boolean isInReservedFileSystemLocation(File location);
 }

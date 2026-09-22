@@ -17,10 +17,7 @@ package org.gradle.api.internal.changedetection;
 
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
-import org.gradle.internal.service.scopes.Scope;
-import org.gradle.internal.service.scopes.ServiceScope;
 
-@ServiceScope(Scope.Project.class)
 public interface TaskExecutionModeResolver {
     TaskExecutionMode getExecutionMode(TaskInternal task, TaskProperties properties);
 }
