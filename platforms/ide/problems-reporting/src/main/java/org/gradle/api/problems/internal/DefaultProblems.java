@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.ProblemGroups;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.internal.exception.ExceptionAnalyser;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -55,6 +56,11 @@ public class DefaultProblems implements ProblemsInternal {
     @Override
     public ProblemReporter getReporter() {
         return createReporter();
+    }
+
+    @Override
+    public ProblemGroups getGroups() {
+        return DefaultProblemGroups.INSTANCE;
     }
 
     private DefaultProblemReporter createReporter() {

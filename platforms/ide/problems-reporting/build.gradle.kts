@@ -28,6 +28,7 @@ dependencies {
     api(projects.snapshots)
 
     compileOnly(libs.jspecify)
+    implementation(libs.guava)
 
     implementation(libs.slf4jApi)
     implementation(projects.problemsRendering)
