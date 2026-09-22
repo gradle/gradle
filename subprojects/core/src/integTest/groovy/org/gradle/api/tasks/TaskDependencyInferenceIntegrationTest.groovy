@@ -17,6 +17,8 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
@@ -1043,6 +1045,179 @@ The following types/formats are supported:
         then:
         result.assertTasksScheduled(":a", ":b")
         file("out.txt").text == "12"
+    }
+
+    @ToBeImplemented("Leaf dependencies of fixed elements are not discovered while the collection also holds an element that cannot be computed before its producer ran")
+    def "nested list property with fixed and mapped elements does not yet imply dependency of the fixed element"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            interface Bean {}
+            abstract class LazyBean implements Bean {
+                @InputFile
+                abstract RegularFileProperty getInputFile()
+            }
+            class PlainBean implements Bean {
+                @Input
+                final String value
+                PlainBean(String value) { this.value = value }
+            }
+            abstract class NestedTask extends DefaultTask {
+                @Nested
+                abstract ListProperty<Bean> getBeans()
+                @OutputFile
+                abstract RegularFileProperty getOutFile()
+                @TaskAction
+                def go() {
+                    outFile.get().asFile.text = beans.get().collect { it instanceof LazyBean ? it.inputFile.get().asFile.text : it.value }.join(",")
+                }
+            }
+            def taskA = tasks.create("a", FileProducer) {
+                output = file("a.txt")
+                content = "a"
+            }
+            def taskB = tasks.register("b", FileProducer) {
+                output = file("b.txt")
+                content = "b"
+            }
+            tasks.register("c", NestedTask) {
+                def eager = objects.newInstance(LazyBean)
+                eager.inputFile = taskA.output
+                beans.add(eager)
+                beans.add(taskB.flatMap { it.output }.map { new PlainBean(it.asFile.text) })
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("c", "--dry-run")
+
+        then:
+        // Unpacking the list fails while task b has not run, so the input file of the fixed element is never visited.
+        // The producer carried by the list itself is still discovered.
+        result.assertTasksScheduled(":b", ":c")
+    }
+
+    @ToBeFixedForConfigurationCache(because = "BiProvider.calculateExecutionTimeValue() ignores changing content, so the combiner runs at store time and reads files that do not exist yet")
+    def "nested property with value of zipped task outputs implies dependency on both tasks"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            class Bean {
+                @Input
+                final String value
+                Bean(String value) { this.value = value }
+            }
+            abstract class NestedTask extends DefaultTask {
+                @Nested
+                abstract Property<Bean> getBean()
+                @OutputFile
+                abstract RegularFileProperty getOutFile()
+                @TaskAction
+                def go() {
+                    outFile.get().asFile.text = bean.get().value
+                }
+            }
+            def taskA = tasks.create("a", FileProducer) {
+                output = file("a.txt")
+                content = "a"
+            }
+            def taskB = tasks.create("b", FileProducer) {
+                output = file("b.txt")
+                content = "b"
+            }
+            tasks.register("c", NestedTask) {
+                bean = taskA.output.zip(taskB.output) { x, y -> new Bean(x.asFile.text + y.asFile.text) }
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("c")
+
+        then:
+        result.assertTasksScheduled(":a", ":b", ":c")
+        file("out.txt").text == "ab"
+    }
+
+    def "nested property with value of mapped task provider implies dependency on the task"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            class Bean {
+                @Input
+                final String value
+                Bean(String value) { this.value = value }
+            }
+            abstract class NestedTask extends DefaultTask {
+                @Nested
+                abstract Property<Bean> getBean()
+                @OutputFile
+                abstract RegularFileProperty getOutFile()
+                @TaskAction
+                def go() {
+                    outFile.get().asFile.text = bean.get().value
+                }
+            }
+            def taskProvider = tasks.register("a", FileProducer) {
+                output = file("a.txt")
+                content = "12"
+            }
+            tasks.register("b", NestedTask) {
+                bean = taskProvider.map { new Bean(it.content.get()) }
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksScheduled(":a", ":b")
+        file("out.txt").text == "12"
+    }
+
+    def "nested property with value produced by a task does not imply dependencies of the produced value"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            class Bean {
+                @Input
+                final String value
+                @InputFile
+                final Provider<RegularFile> extra
+                Bean(String value, Provider<RegularFile> extra) {
+                    this.value = value
+                    this.extra = extra
+                }
+            }
+            abstract class NestedTask extends DefaultTask {
+                @Nested
+                abstract Property<Bean> getBean()
+                @OutputFile
+                abstract RegularFileProperty getOutFile()
+                @TaskAction
+                def go() {
+                    outFile.get().asFile.text = bean.get().value + bean.get().extra.get().asFile.text
+                }
+            }
+            def taskA = tasks.register("a", FileProducer) {
+                output = file("a.txt")
+                content = "a"
+            }
+            def other = tasks.create("other", FileProducer) {
+                output = file("other.txt")
+                content = "other"
+            }
+            def otherOutput = other.output
+            tasks.register("b", NestedTask) {
+                // The bean only exists once task a has run, so the dependency carried by its 'extra' property is not visible when building the task graph
+                bean = taskA.flatMap { it.output }.map { new Bean(it.asFile.text, otherOutput) }
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b", "--dry-run")
+
+        then:
+        result.assertTasksScheduled(":a", ":b")
     }
 
     def "ad hoc input property with value of mapped task output implies dependency on the task"() {
