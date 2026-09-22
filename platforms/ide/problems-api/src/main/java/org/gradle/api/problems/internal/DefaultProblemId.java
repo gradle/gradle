@@ -20,7 +20,6 @@ import com.google.common.base.Objects;
 import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.util.internal.TextUtil;
-import org.jspecify.annotations.Nullable;
 
 import java.io.Serializable;
 
@@ -66,15 +65,13 @@ public class DefaultProblemId extends ProblemId implements Serializable {
 
     @Override
     public String toString() {
-        return groupPath(getGroup()) + getName();
+        // a debugging aid; the rendering for humans, with quoting, lives in problems-rendering
+        return name + " (in " + groupPath(parent) + ")";
     }
 
-    static String groupPath(@Nullable ProblemGroup group) {
-        if (group == null) {
-            return "";
-        }
+    private static String groupPath(ProblemGroup group) {
         ProblemGroup parent = group.getParent();
-        return groupPath(parent) + group.getName() + ":";
+        return parent == null ? group.getName() : groupPath(parent) + " > " + group.getName();
     }
 
     @Override
