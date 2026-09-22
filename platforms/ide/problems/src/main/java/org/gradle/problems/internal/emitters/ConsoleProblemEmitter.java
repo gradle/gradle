@@ -21,7 +21,7 @@ import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.problems.ProblemUtils;
+import org.gradle.problems.internal.ProblemUtils;
 import org.gradle.problems.internal.rendering.ProblemWriter;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;

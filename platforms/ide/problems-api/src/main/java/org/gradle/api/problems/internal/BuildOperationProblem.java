@@ -141,7 +141,7 @@ public class BuildOperationProblem implements Problem {
 
         @Override
         public ProblemGroup getGroup() {
-            return new BuildOperationProblemGroup(definition.getId().getGroup());
+            return new BuildOperationProblemGroup(ProblemGroupInternal.of(definition.getId().getGroup()));
         }
 
         @Nullable
@@ -152,9 +152,9 @@ public class BuildOperationProblem implements Problem {
         }
 
         private static class BuildOperationProblemGroup implements ProblemGroup {
-            private final org.gradle.api.problems.ProblemGroup currentGroup;
+            private final ProblemGroupInternal currentGroup;
 
-            public BuildOperationProblemGroup(org.gradle.api.problems.ProblemGroup currentGroup) {
+            public BuildOperationProblemGroup(ProblemGroupInternal currentGroup) {
                 this.currentGroup = currentGroup;
             }
 
@@ -171,7 +171,7 @@ public class BuildOperationProblem implements Problem {
             @Nullable
             @Override
             public ProblemGroup getParent() {
-                org.gradle.api.problems.ProblemGroup parent = currentGroup.getParent();
+                ProblemGroupInternal parent = currentGroup.getParentInternal();
                 return parent == null ? null : new BuildOperationProblemGroup(parent);
             }
         }
