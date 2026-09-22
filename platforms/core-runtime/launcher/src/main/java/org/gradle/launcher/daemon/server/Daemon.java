@@ -26,6 +26,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
+import org.gradle.launcher.daemon.management.internal.DaemonIndexPublisher;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.api.DaemonStateControl;
 import org.gradle.launcher.daemon.server.exec.DaemonCommandExecuter;
@@ -34,7 +35,9 @@ import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus;
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
+import org.jspecify.annotations.Nullable;
 
+import java.io.File;
 import java.security.SecureRandom;
 import java.util.Date;
 import java.util.concurrent.ScheduledExecutorService;
@@ -65,6 +68,8 @@ public class Daemon implements Stoppable {
     private final ScheduledExecutorService scheduledExecutorService;
     private final ExecutorFactory executorFactory;
     private final ListenerManager listenerManager;
+    private final DaemonIndexPublisher indexPublisher;
+    private final @Nullable File daemonLogFile;
 
     private DaemonStateCoordinator stateCoordinator;
 
@@ -80,7 +85,7 @@ public class Daemon implements Stoppable {
      * @param connector The provider of server connections for this daemon
      * @param daemonRegistry The registry that this daemon should advertise itself in
      */
-    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonContext daemonContext, DaemonCommandExecuter commandExecuter, ExecutorFactory executorFactory, ListenerManager listenerManager) {
+    public Daemon(DaemonServerConnector connector, DaemonRegistry daemonRegistry, DaemonContext daemonContext, DaemonCommandExecuter commandExecuter, ExecutorFactory executorFactory, ListenerManager listenerManager, @Nullable File daemonLogFile) {
         this.connector = connector;
         this.daemonRegistry = daemonRegistry;
         this.daemonContext = daemonContext;
@@ -88,6 +93,8 @@ public class Daemon implements Stoppable {
         this.executorFactory = executorFactory;
         this.scheduledExecutorService = executorFactory.createScheduled("Daemon periodic checks", 1);
         this.listenerManager = listenerManager;
+        this.daemonLogFile = daemonLogFile;
+        this.indexPublisher = new DaemonIndexPublisher(daemonContext.getDaemonRegistryDir());
     }
 
     public String getUid() {
@@ -129,6 +136,7 @@ public class Daemon implements Stoppable {
             ShutdownHooks.addShutdownHook(new Runnable() {
                 @Override
                 public void run() {
+                    indexPublisher.withdraw(daemonContext.getUid());
                     try {
                         daemonRegistry.remove(connectorAddress);
                     } catch (Exception e) {
@@ -175,6 +183,17 @@ public class Daemon implements Stoppable {
             connectorAddress = connector.start(connectionHandler, connectionErrorHandler);
             LOGGER.debug("Daemon starting at: {}, with address: {}", new Date(), connectorAddress);
             registryUpdater.onStart(connectorAddress);
+            // Announce this daemon to processes of every Gradle version, not only this one. Done last, so
+            // that a daemon is only advertised across versions once it is genuinely able to answer.
+            indexPublisher.publish(
+                daemonContext.getUid(),
+                daemonContext.getPid(),
+                connectorAddress,
+                token,
+                daemonContext.getDaemonRegistryDir(),
+                daemonContext.getJavaHome(),
+                daemonLogFile
+            );
         } finally {
             lifecycleLock.unlock();
         }
@@ -205,6 +224,8 @@ public class Daemon implements Stoppable {
             }
 
             LOGGER.info(DaemonMessages.REMOVING_PRESENCE_DUE_TO_STOP);
+
+            indexPublisher.withdraw(daemonContext.getUid());
 
             // Stop periodic checks
             scheduledExecutorService.shutdown();

@@ -43,6 +43,20 @@ public class TcpOutgoingConnector implements OutgoingConnector {
 
     @Override
     public ConnectCompletion connect(Address destinationAddress) throws ConnectException {
+        return connect(destinationAddress, true);
+    }
+
+    /**
+     * Connects to the given address, optionally announcing itself with the connection preamble.
+     *
+     * <p>Gradle 9.3 and later expect the preamble and refuse a connection without it. Versions before
+     * that know nothing about it and treat those bytes as the start of a message, which fails. A caller
+     * that knows it is talking to an older Gradle therefore has to leave the preamble out, and it can
+     * only be a caller that knows the version it is addressing.
+     *
+     * @param sendConnectionPreamble false only when the peer is known to predate Gradle 9.3
+     */
+    public ConnectCompletion connect(Address destinationAddress, boolean sendConnectionPreamble) throws ConnectException {
         if (!(destinationAddress instanceof InetEndpoint)) {
             throw new IllegalArgumentException(String.format("Cannot create a connection to address of unknown type: %s.", destinationAddress));
         }
@@ -60,7 +74,7 @@ public class TcpOutgoingConnector implements OutgoingConnector {
                 LOGGER.debug("Trying to connect to address {}.", candidate);
                 SocketChannel socketChannel;
                 try {
-                    socketChannel = tryConnect(address, candidate);
+                    socketChannel = tryConnect(address, candidate, sendConnectionPreamble);
                 } catch (SocketException e) {
                     LOGGER.debug("Cannot connect to address {}, skipping.", candidate);
                     lastFailure = e;
@@ -83,13 +97,15 @@ public class TcpOutgoingConnector implements OutgoingConnector {
         }
     }
 
-    private SocketChannel tryConnect(InetEndpoint address, InetAddress candidate) throws IOException {
+    private SocketChannel tryConnect(InetEndpoint address, InetAddress candidate, boolean sendConnectionPreamble) throws IOException {
         SocketChannel socketChannel = SocketChannel.open();
         try {
             socketChannel.socket().connect(new InetSocketAddress(candidate, address.getPort()), CONNECT_TIMEOUT);
             if (!detectSelfConnect(socketChannel)) {
                 SocketBlockingUtil.configureNonblocking(socketChannel);
-                socketChannel.write(ByteBuffer.wrap(CONNECTION_PREAMBLE));
+                if (sendConnectionPreamble) {
+                    socketChannel.write(ByteBuffer.wrap(CONNECTION_PREAMBLE));
+                }
                 return socketChannel;
             }
             socketChannel.close();

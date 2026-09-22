@@ -665,10 +665,22 @@ Use the <<gradle_daemon.adoc#gradle_daemon, Gradle Daemon>> to run the build. St
 Starts the Gradle Daemon in a foreground process.
 
 `--status` (Standalone command)::
-Run `gradle --status` to list running and recently stopped Gradle daemons. It only displays daemons of the same Gradle version.
+Run `gradle --status` to list running and recently stopped Gradle daemons. By default it only displays daemons of the same Gradle version.
 
 `--stop` (Standalone command)::
 Run `gradle --stop` to stop all Gradle Daemons of the same version.
+
+`--stop-when-idle` (Standalone command)::
+Run `gradle --stop-when-idle` to stop Gradle Daemons once they finish what they are doing. A Daemon running a build completes that build first.
+
+`--all-versions`::
+Applies `--status`, `--stop` and `--stop-when-idle` to Gradle Daemons of every version rather than the current one alone.
+
+`--cancel=(pid)` (Standalone command)::
+Run `gradle --cancel 28486` to cancel the build running in that Daemon, leaving the Daemon itself running. The process id may belong to a Daemon of any Gradle version. Daemons before Gradle 9.9 can only have a build cancelled by the client that started it.
+
+`--start-daemon` (Standalone command)::
+Run `gradle --start-daemon` to start an idle Gradle Daemon for the current project and exit.
 
 `-Dorg.gradle.daemon.idletimeout=(number of milliseconds)`::
 A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> wherein the Gradle Daemon will stop itself after this number of milliseconds of idle time. _Default is 10800000_ (3 hours).

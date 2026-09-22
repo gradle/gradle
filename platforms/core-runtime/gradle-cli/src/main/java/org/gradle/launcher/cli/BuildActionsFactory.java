@@ -47,6 +47,7 @@ import org.gradle.jvm.toolchain.JavaLanguageVersion;
 import org.gradle.launcher.bootstrap.ExecutionListener;
 import org.gradle.launcher.daemon.bootstrap.ForegroundDaemonAction;
 import org.gradle.launcher.daemon.client.DaemonClient;
+import org.gradle.launcher.daemon.client.DaemonConnector;
 import org.gradle.launcher.daemon.client.DaemonClientFactory;
 import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
 import org.gradle.launcher.daemon.client.DaemonStopClient;
@@ -56,6 +57,10 @@ import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.context.DefaultDaemonContext;
+import org.gradle.launcher.daemon.management.DaemonStartSupport;
+import org.gradle.launcher.daemon.management.ManagedDaemons;
+import org.gradle.launcher.daemon.management.internal.DefaultManagedDaemons;
+import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.startup.DaemonPriority;
 import org.gradle.launcher.daemon.startup.DefaultDaemonServerConfiguration;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
@@ -66,7 +71,9 @@ import org.gradle.launcher.exec.DefaultBuildActionParameters;
 import org.gradle.process.internal.CurrentProcess;
 import org.gradle.tooling.internal.provider.ForwardStdInToThisProcess;
 import org.gradle.tooling.internal.provider.RunInProcess;
+import org.jspecify.annotations.Nullable;
 
+import java.io.File;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.Collections;
@@ -102,10 +109,24 @@ class BuildActionsFactory implements CommandLineActionCreator {
         BuildLayoutConfiguration buildLayoutConfiguration = parameters.getBuildLayout().toLayoutConfiguration();
 
         if (daemonParameters.isStop()) {
-            return Actions.toAction(stopAllDaemons(daemonParameters));
+            // Without --all-versions this is the long standing single version path, left exactly as it was.
+            return Actions.toAction(daemonParameters.isAllVersions()
+                ? manageDaemons(daemonParameters, ManagedDaemonsAction.Verb.STOP, null, null, null)
+                : stopAllDaemons(daemonParameters));
+        }
+        if (daemonParameters.isStopWhenIdle()) {
+            return Actions.toAction(manageDaemons(daemonParameters, ManagedDaemonsAction.Verb.STOP_WHEN_IDLE, null, null, null));
         }
         if (daemonParameters.isStatus()) {
-            return Actions.toAction(showDaemonStatus(daemonParameters));
+            return Actions.toAction(daemonParameters.isAllVersions()
+                ? manageDaemons(daemonParameters, ManagedDaemonsAction.Verb.STATUS, null, null, null)
+                : showDaemonStatus(daemonParameters));
+        }
+        if (daemonParameters.getCancelPid() != null) {
+            return Actions.toAction(manageDaemons(daemonParameters, ManagedDaemonsAction.Verb.CANCEL, daemonParameters.getCancelPid(), null, null));
+        }
+        if (daemonParameters.isStart()) {
+            return Actions.toAction(startDaemon(daemonParameters, startParameter, buildLayoutConfiguration));
         }
         if (daemonParameters.isForeground()) {
             // Foreground daemon cannot be 'told' its startup options since the client sits in the same process.
@@ -144,6 +165,30 @@ class BuildActionsFactory implements CommandLineActionCreator {
         }
 
         return Actions.toAction(runBuildInSingleUseDaemon(startParameter, daemonParameters, requestContext, buildLayoutConfiguration));
+    }
+
+    private Runnable manageDaemons(
+        DaemonParameters daemonParameters,
+        ManagedDaemonsAction.Verb verb,
+        @Nullable String cancelPid,
+        @Nullable File projectDir,
+        @Nullable DaemonStartSupport startSupport
+    ) {
+        ManagedDaemons daemons = new DefaultManagedDaemons(daemonParameters.getBaseDir(), startSupport);
+        return new ManagedDaemonsAction(daemons, verb, daemonParameters.isAllVersions(), cancelPid, projectDir);
+    }
+
+    private Runnable startDaemon(DaemonParameters daemonParameters, StartParameterInternal startParameter, BuildLayoutConfiguration buildLayoutConfiguration) {
+        DaemonRequestContext requestContext = daemonParameters.toRequestContext();
+        ServiceRegistry clientSharedServices = createGlobalClientServices();
+        ServiceRegistry clientServices = clientSharedServices.get(DaemonClientFactory.class)
+            .createBuildClientServices(loggingServices, daemonParameters, requestContext, buildLayoutConfiguration, System.in, Optional.empty());
+        DaemonStartSupport startSupport = new CliDaemonStartSupport(
+            clientServices.get(DaemonConnector.class),
+            clientServices.get(DaemonRegistry.class),
+            new DaemonCompatibilitySpec(requestContext)
+        );
+        return manageDaemons(daemonParameters, ManagedDaemonsAction.Verb.START, null, startParameter.getCurrentDir(), startSupport);
     }
 
     private Runnable stopAllDaemons(DaemonParameters daemonParameters) {

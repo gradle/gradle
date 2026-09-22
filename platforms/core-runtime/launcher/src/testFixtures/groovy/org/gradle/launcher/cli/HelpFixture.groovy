@@ -101,11 +101,15 @@ Diagnostics:
   --warning-mode                     Specifies which mode of warnings to generate. Supported values are 'all', 'fail', 'summary' (default), or 'none'.
 
 Daemon:
+  --all-versions                     Applies --status, --stop and --stop-when-idle to daemons of every Gradle version, not only this one.
+  --cancel                           Cancels the build running in the daemon with the given process id.
   --daemon                           Uses the Gradle daemon to run the build. Starts the daemon if it is not running.
   --no-daemon                        Runs the build without the Gradle daemon. Useful occasionally if you have configured Gradle to always run with the daemon by default.
   --foreground                       Starts the Gradle daemon in the foreground.
+  --start-daemon                     Starts an idle Gradle daemon for this project and exits.
   --status                           Shows the status of running and recently stopped Gradle daemons.
   --stop                             Stops the Gradle daemon if it is running.
+  --stop-when-idle                   Stops the Gradle daemon once it finishes what it is doing.
 
 Develocity:
   --develocity-plugin-version        Version of the Develocity plugin to auto-apply, must be 4.4.0 or higher if Develocity URL is specified as well.

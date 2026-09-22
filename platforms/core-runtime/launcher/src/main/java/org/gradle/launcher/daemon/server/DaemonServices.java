@@ -42,6 +42,7 @@ import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
 import org.gradle.launcher.daemon.server.api.DaemonCommandAction;
 import org.gradle.launcher.daemon.server.api.HandleInvalidateVirtualFileSystem;
+import org.gradle.launcher.daemon.server.api.HandleCancelBuild;
 import org.gradle.launcher.daemon.server.api.HandleReportStatus;
 import org.gradle.launcher.daemon.server.api.HandleStop;
 import org.gradle.launcher.daemon.server.exec.ApplyClientEnvironmentVariables;
@@ -165,6 +166,7 @@ public class DaemonServices implements ServiceRegistrationProvider {
             new HandleStop(listenerManager),
             new HandleInvalidateVirtualFileSystem(userHomeServiceRegistry),
             new HandleCancel(),
+            new HandleCancelBuild(),
             new HandleReportStatus(),
             new CleanUpVirtualFileSystemAfterBuild(executorFactory, userHomeServiceRegistry),
             new ReturnResult(),
@@ -194,7 +196,8 @@ public class DaemonServices implements ServiceRegistrationProvider {
         InetAddressFactory inetAddressFactory,
         DaemonRegistry daemonRegistry,
         DaemonContext daemonContext,
-        ListenerManager listenerManager
+        ListenerManager listenerManager,
+        DaemonLogFile daemonLogFile
     ) {
         return new Daemon(
             new DaemonTcpServerConnector(
@@ -206,7 +209,8 @@ public class DaemonServices implements ServiceRegistrationProvider {
             daemonContext,
             new DaemonCommandExecuter(configuration, actions),
             executorFactory,
-            listenerManager
+            listenerManager,
+            daemonLogFile.getFile()
         );
     }
 }

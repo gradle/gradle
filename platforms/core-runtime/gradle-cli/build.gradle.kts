@@ -26,6 +26,7 @@ dependencies {
     api(projects.cli)
     api(projects.clientServices)
     api(projects.concurrent)
+    api(projects.daemonManagement)
     api(projects.daemonMessaging)
     api(projects.daemonProtocol)
     api(projects.logging)

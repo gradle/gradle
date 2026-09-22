@@ -56,7 +56,11 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         new DaemonOption(),
         new ForegroundOption(),
         new StopOption(),
+        new StopWhenIdleOption(),
         new StatusOption(),
+        new AllVersionsOption(),
+        new CancelOption(),
+        new StartOption(),
         new PriorityOption(),
         new NativeServicesOption()
     );
@@ -353,6 +357,70 @@ public class DaemonBuildOptions extends BuildOptionSet<DaemonParameters> {
         @Override
         public void applyTo(DaemonParameters settings, Origin origin) {
             settings.setStop(true);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DAEMON;
+        }
+    }
+
+    public static class StopWhenIdleOption extends EnabledOnlyBooleanBuildOption<DaemonParameters> {
+        public StopWhenIdleOption() {
+            super(null, CommandLineOptionConfiguration.create("stop-when-idle", "Stops the Gradle daemon once it finishes what it is doing."));
+        }
+
+        @Override
+        public void applyTo(DaemonParameters settings, Origin origin) {
+            settings.setStopWhenIdle(true);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DAEMON;
+        }
+    }
+
+    public static class AllVersionsOption extends EnabledOnlyBooleanBuildOption<DaemonParameters> {
+        public AllVersionsOption() {
+            super(null, CommandLineOptionConfiguration.create("all-versions", "Applies --status, --stop and --stop-when-idle to daemons of every Gradle version, not only this one."));
+        }
+
+        @Override
+        public void applyTo(DaemonParameters settings, Origin origin) {
+            settings.setAllVersions(true);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DAEMON;
+        }
+    }
+
+    public static class CancelOption extends StringBuildOption<DaemonParameters> {
+        public CancelOption() {
+            super(null, CommandLineOptionConfiguration.create("cancel", "Cancels the build running in the daemon with the given process id."));
+        }
+
+        @Override
+        public void applyTo(String value, DaemonParameters settings, Origin origin) {
+            settings.setCancelPid(value);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.DAEMON;
+        }
+    }
+
+    public static class StartOption extends EnabledOnlyBooleanBuildOption<DaemonParameters> {
+        public StartOption() {
+            super(null, CommandLineOptionConfiguration.create("start-daemon", "Starts an idle Gradle daemon for this project and exits."));
+        }
+
+        @Override
+        public void applyTo(DaemonParameters settings, Origin origin) {
+            settings.setStart(true);
         }
 
         @Override

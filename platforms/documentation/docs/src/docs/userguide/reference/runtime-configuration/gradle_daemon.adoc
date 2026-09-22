@@ -91,8 +91,53 @@ $ gradle --status
  34247 BUSY     7.5
 ----
 
-Currently, a given Gradle version can only connect to Daemons of the same version.
-This means the status output only shows Daemons spawned running the same version of Gradle as the current project.
+By default the status output only shows Daemons running the same version of Gradle as the current project.
+
+To see Daemons of every Gradle version, add `--all-versions`:
+
+[source,bash]
+----
+$ gradle --status --all-versions
+----
+
+[source,text]
+----
+     PID STATUS     VERSION        INFO
+   28486 IDLE       9.9.0
+   34247 BUSY       9.9.0
+   41022 IDLE       8.7            state last recorded by the daemon
+----
+
+A Daemon of another Gradle version cannot report its state directly, because its answers are encoded in
+that version's own format. For those Daemons Gradle shows the state the Daemon last recorded for itself,
+and says so in the `INFO` column.
+
+[[sec:cancel]]
+== Cancel a build running in a Daemon
+
+To cancel the build a Daemon is running without stopping the Daemon itself, pass its process id, as
+shown by `--status`:
+
+[source,bash]
+----
+$ gradle --cancel 28486
+----
+
+The process id may belong to a Daemon of any Gradle version, so `--all-versions` is not needed here.
+
+This works for Daemons of Gradle 9.9 and later. Earlier versions can only have a build cancelled by the
+client that started it.
+
+[[sec:start]]
+== Start a Daemon
+
+A Daemon normally starts when a build needs one. To start an idle Daemon ahead of time, for example
+while an IDE is still opening a project, use:
+
+[source,bash]
+----
+$ gradle --start-daemon
+----
 
 [[find_all_daemons]]
 == Find Daemons
@@ -209,6 +254,24 @@ $ gradle --stop
 ----
 
 This terminates all Daemon processes started with the same version of Gradle used to execute the command.
+
+To stop Daemons of every Gradle version, add `--all-versions`:
+
+[source,bash]
+----
+$ gradle --stop --all-versions
+----
+
+Gradle asks each Daemon to stop, whatever version it runs. A Daemon that no longer answers is terminated
+through the operating system, so a wedged Daemon does not survive the command.
+
+To let Daemons finish what they are doing first, use `--stop-when-idle`. A Daemon running a build
+completes that build and then stops:
+
+[source,bash]
+----
+$ gradle --stop-when-idle --all-versions
+----
 
 You can also kill Daemons manually with your operating system.
 To find the PIDs for all Daemons regardless of Gradle version, see <<gradle_daemon.adoc#find_all_daemons,Find Daemons>>.

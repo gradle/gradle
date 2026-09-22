@@ -92,6 +92,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         "daemon-logging",
         "daemon-main",
         "daemon-messaging",
+        "daemon-management",
         "daemon-protocol",
         "daemon-server",
         "daemon-services",

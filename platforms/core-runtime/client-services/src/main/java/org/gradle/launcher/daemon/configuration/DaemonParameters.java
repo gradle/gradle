@@ -30,6 +30,7 @@ import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.launcher.daemon.toolchain.ToolchainDownloadUrlProvider;
 import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.Collections;
@@ -59,7 +60,11 @@ public class DaemonParameters {
     private boolean enabled = true;
     private boolean foreground;
     private boolean stop;
+    private boolean stopWhenIdle;
     private boolean status;
+    private boolean allVersions;
+    private boolean start;
+    private @Nullable String cancelPid;
     private DaemonPriority priority = DaemonPriority.NORMAL;
     private DaemonJvmCriteria requestedJvmCriteria = new DaemonJvmCriteria.LauncherJvm();
     private ToolchainDownloadUrlProvider toolchainDownloadUrlProvider;
@@ -228,6 +233,44 @@ public class DaemonParameters {
 
     public void setStop(boolean stop) {
         this.stop = stop;
+    }
+
+    public boolean isStopWhenIdle() {
+        return stopWhenIdle;
+    }
+
+    public void setStopWhenIdle(boolean stopWhenIdle) {
+        this.stopWhenIdle = stopWhenIdle;
+    }
+
+    /**
+     * Whether daemon management commands apply to daemons of every Gradle version rather than this one alone.
+     */
+    public boolean isAllVersions() {
+        return allVersions;
+    }
+
+    public void setAllVersions(boolean allVersions) {
+        this.allVersions = allVersions;
+    }
+
+    public boolean isStart() {
+        return start;
+    }
+
+    public void setStart(boolean start) {
+        this.start = start;
+    }
+
+    /**
+     * The process id of the daemon whose build should be cancelled, or null when no cancellation was asked for.
+     */
+    public @Nullable String getCancelPid() {
+        return cancelPid;
+    }
+
+    public void setCancelPid(@Nullable String cancelPid) {
+        this.cancelPid = cancelPid;
     }
 
     public boolean isStatus() {

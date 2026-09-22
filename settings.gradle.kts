@@ -63,6 +63,7 @@ val core = platform("core") {
         subproject("daemon-services")
         subproject("daemon-server")
         subproject("daemon-logging")
+        subproject("daemon-management")
         subproject("file-temp")
         subproject("files")
         subproject("functional")
