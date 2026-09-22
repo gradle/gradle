@@ -85,6 +85,18 @@ By contrast, any type that is used in the following list is irrelevant to the AB
 * types exclusively used in private members
 * types exclusively found in internal classes (Gradle does not currently support declaring which packages belong to the public API)
 
+[NOTE]
+====
+These rules of thumb describe the general case, but the compiler's view of your API can be broader than your own.
+
+In some situations `javac` needs the class file of a type even when that type is only used in a private member.
+Most commonly when the private member carries a type annotation (such as a nullness annotation) and also when overload resolution for a public method has to examine a private member.
+In those cases a consumer whose compile classpath only sees your `implementation` dependencies fails to compile, with an error such as `class file for ... not found` or `Cannot attach type annotations ... : class file for ... not found`.
+
+When a dependency triggers this behavior, declare it as an `api` dependency so that it is available on consumers' compile classpath.
+API and implementation separation has to account for what the compiler requires, not only which types you consider part of your public API.
+====
+
 The following class makes use of a couple of third-party libraries, one of which is exposed in the class's public API and the other is only used internally. The import statements don't help us determine which is which, so we have to look at the fields, constructors and methods instead:
 
 [[sec:example_making_the_difference_between_api_and_implementation]]
