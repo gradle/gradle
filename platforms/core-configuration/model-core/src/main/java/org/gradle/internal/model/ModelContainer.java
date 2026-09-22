@@ -73,22 +73,17 @@ public interface ModelContainer<T> {
      * Acquires the {@link #getAccessLock() access lock} if present and not already held
      * by the current thread, executes the given action, then releases the lock if acquired.
      * <p>
-     * If the access lock is present and not held by the current thread, this method will yield
-     * all locks held by the current thread and reacquire them atomically along with the access
-     * lock before executing the given function.
+     * When the access lock must be acquired, the access locks that the current thread holds on
+     * other containers are released first, then reacquired once the action has completed. In that
+     * case the action runs holding this container's access lock, but not the locks of other
+     * containers. Otherwise, no locks are released or acquired, and the action runs holding
+     * whichever locks the current thread already holds.
      */
     <S extends @Nullable Object> S fromMutableState(Function<? super T, ? extends S> factory);
 
     /**
-     * Runs the given supplier, while synchronizing on the model.
-     * The mutable state of the model can be used by the calculation, if a reference to it has been retrieved earlier.
-     * <p>
-     * Acquires the {@link #getAccessLock() access lock} if present and not already held
-     * by the current thread, executes the given action, then releases the lock if acquired.
-     * <p>
-     * If the access lock is present and not held by the current thread, this method will yield
-     * all locks held by the current thread and reacquire them atomically along with the access
-     * lock before executing the given supplier.
+     * Same as {@link #fromMutableState(Function)}, but the action is not given the model. The mutable
+     * state of the model can still be used by the action, if a reference to it has been retrieved earlier.
      */
     <S extends @Nullable Object> S runWithModelLock(Supplier<S> action);
 
@@ -98,10 +93,7 @@ public interface ModelContainer<T> {
     <S> S forceAccessToMutableState(Function<? super T, ? extends S> factory);
 
     /**
-     * Runs the given action on the mutable model this container guards.
-     * <p>
-     * Acquires the {@link #getAccessLock() access lock} if present and not already held
-     * by the current thread, executes the given action, then releases the lock if acquired.
+     * Same as {@link #fromMutableState(Function)}, but the action does not calculate a value.
      */
     void applyToMutableState(Consumer<? super T> action);
 
