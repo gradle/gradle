@@ -189,6 +189,18 @@ class StartParameterConverterTest extends Specification {
         withoutAgentMode.showStacktrace == ShowStacktrace.INTERNAL_EXCEPTIONS
     }
 
+    def "records but does not apply agent mode for the Tooling API"() {
+        when:
+        def parameter = convert(StartParameterConverter.forToolingApi(), [ORG_GRADLE_AGENT: "true"], "--console=rich")
+
+        then:
+        parameter.agentMode
+        parameter.consoleOutput == ConsoleOutput.Rich
+        parameter.interactive
+        parameter.warningMode == WarningMode.Summary
+        parameter.showStacktrace == ShowStacktrace.INTERNAL_EXCEPTIONS
+    }
+
     def "can enable agent mode as persistent property"() {
         expect:
         userHome.file("gradle.properties") << "org.gradle.agent=true"
@@ -202,7 +214,10 @@ class StartParameterConverterTest extends Specification {
     }
 
     StartParameterInternal convert(Map<String, String> env, String... args) {
-        def converter = new StartParameterConverter()
+        convert(StartParameterConverter.forCommandLine(), env, args)
+    }
+
+    StartParameterInternal convert(StartParameterConverter converter, Map<String, String> env, String... args) {
         def initialPropertiesConverter = new InitialPropertiesConverter()
         def buildLayoutConverter = new BuildLayoutConverter()
         def propertiesConverter = new LayoutToPropertiesConverter(new BuildLayoutFactory())
