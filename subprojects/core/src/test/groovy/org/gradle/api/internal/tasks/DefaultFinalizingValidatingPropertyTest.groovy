@@ -18,8 +18,11 @@ package org.gradle.api.internal.tasks
 
 import org.gradle.api.internal.tasks.properties.DefaultFinalizingValidatingProperty
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue
+import org.gradle.api.internal.tasks.properties.PropertyValidationContext
 import org.gradle.api.internal.tasks.properties.ValidationActions
+import org.gradle.api.provider.Provider
 import org.gradle.internal.properties.PropertyValue
+import org.gradle.internal.typeconversion.UnsupportedNotationException
 import spock.lang.Specification
 
 class DefaultFinalizingValidatingPropertyTest extends Specification {
@@ -74,5 +77,41 @@ class DefaultFinalizingValidatingPropertyTest extends Specification {
 
         then:
         noExceptionThrown()
+    }
+
+    def "required files validation does not query present provider value"() {
+        def provider = Mock(Provider)
+        def valueWrapper = Stub(PropertyValue) { call() >> wrap(provider) }
+        def property = new DefaultFinalizingValidatingProperty("name", valueWrapper, false, ValidationActions.REQUIRED_INPUT_FILES)
+
+        when:
+        property.validate(Stub(PropertyValidationContext))
+
+        then:
+        1 * provider.isPresent() >> true
+        0 * provider._
+
+        where:
+        description | wrap
+        "direct"    | { it }
+        "list"      | { [it] }
+        "array"     | { [it] as Object[] }
+    }
+
+    def "unsupported notation while unpacking a file input is reported as a property problem"() {
+        def provider = Mock(Provider)
+        def context = Mock(PropertyValidationContext)
+        def valueWrapper = Stub(PropertyValue) { call() >> provider }
+        def property = new DefaultFinalizingValidatingProperty("name", valueWrapper, false, ValidationActions.INPUT_FILE_VALIDATOR)
+
+        when:
+        property.validate(context)
+
+        then:
+        noExceptionThrown()
+        1 * provider.isPresent() >> true
+        1 * provider.get() >> { throw new UnsupportedNotationException("bad notation") }
+        1 * context.visitPropertyError(_)
+        0 * context.getFileResolver()
     }
 }

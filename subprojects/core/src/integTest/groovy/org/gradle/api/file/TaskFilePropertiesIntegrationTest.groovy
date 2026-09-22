@@ -102,6 +102,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
                 def outputDir = file("build/dir1").toPath()
                 inputs.file(inputFile)
                 inputs.dir(inputDir)
+                inputs.files(Path.of("file1.txt")).withPropertyName("inputFiles")
                 outputs.file(outputFile)
                 outputs.dir(outputDir)
                 doLast {
@@ -196,7 +197,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         result.assertTasksScheduledInOrder(any(':b:jar', ':b:otherJar'), ':a:doStuff')
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/38330")
+    @Issue(["https://github.com/gradle/gradle/issues/38330", "https://github.com/gradle/gradle/issues/38410"])
     def "optional runtime input declared via #description with an absent provider source is ignored"() {
         buildFile """
             task myTask {
@@ -213,16 +214,17 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         executedAndNotSkipped(":myTask")
+        outputContains("inputs = []")
 
         where:
-        description                                | declaration
-        "inputs.files(fileProperty)"               | 'inputs.files(objects.fileProperty()).optional().withPropertyName("inputProp")'
-        "inputs.files(fileProperty, fileProperty)" | 'inputs.files([objects.fileProperty()]).withPropertyName("inputProp")'
-        "inputs.file(fileProperty)"                | 'inputs.file(objects.fileProperty()).optional().withPropertyName("inputProp")'
-        "inputs.property(property)"                | 'inputs.property("inputProp", objects.property(String)).optional(true)'
+        description                    | declaration
+        "inputs.files(fileProperty)"   | 'inputs.files(objects.fileProperty()).optional().withPropertyName("inputProp")'
+        "inputs.files([fileProperty])" | 'inputs.files([objects.fileProperty()]).optional().withPropertyName("inputProp")'
+        "inputs.file(fileProperty)"    | 'inputs.file(objects.fileProperty()).optional().withPropertyName("inputProp")'
+        "inputs.property(property)"    | 'inputs.property("inputProp", objects.property(String)).optional(true)'
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/38330")
+    @Issue(["https://github.com/gradle/gradle/issues/38330", "https://github.com/gradle/gradle/issues/38410"])
     def "required runtime input declared via #description with an absent provider source fails"() {
         buildFile """
             task myTask {
@@ -246,33 +248,71 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
             fqid == 'validation:property-validation:value-not-set'
             definition.id.displayName == 'Value not set'
             contextualLabel == "Property 'inputProp' doesn't have a configured value"
+            solutions == [
+                configurable
+                    ? "Assign a value to 'inputProp'"
+                    : "The value of 'inputProp' is calculated, make sure a valid value can be calculated",
+                "Mark property 'inputProp' as optional"
+            ]
         }
 
         where:
-        description                  | declaration
-        "inputs.files(fileProperty)" | 'inputs.files(objects.fileProperty()).withPropertyName("inputProp")'
-        "inputs.file(fileProperty)"  | 'inputs.file(objects.fileProperty()).withPropertyName("inputProp")'
-        "inputs.property(property)"  | 'inputs.property("inputProp", objects.property(String))'
+        description                                | declaration                                                                                  | configurable
+        "inputs.files(fileProperty)"               | 'inputs.files(objects.fileProperty()).withPropertyName("inputProp")'                         | true
+        "inputs.files([fileProperty])"             | 'inputs.files([objects.fileProperty()]).withPropertyName("inputProp")'                       | true
+        "inputs.files(fileProperty, fileProperty)" | 'inputs.files(objects.fileProperty(), objects.fileProperty()).withPropertyName("inputProp")' | true
+        "inputs.files(file, fileProperty)"         | 'inputs.files(file("input.txt"), objects.fileProperty()).withPropertyName("inputProp")'      | true
+        "inputs.files(provider)"                   | 'inputs.files(providers.provider { null }).withPropertyName("inputProp")'                    | false
+        "inputs.files([provider])"                 | 'inputs.files([providers.provider { null }]).withPropertyName("inputProp")'                  | false
+        "inputs.file(fileProperty)"                | 'inputs.file(objects.fileProperty()).withPropertyName("inputProp")'                          | true
+        "inputs.property(property)"                | 'inputs.property("inputProp", objects.property(String))'                                     | true
     }
 
-    @Issue("https://github.com/gradle/gradle/issues/38330")
-    def "required runtime input declared via files() with an absent provider in a list source is ignored"() {
+    @Issue("https://github.com/gradle/gradle/issues/38410")
+    def "required annotated InputFiles with an absent provider in a list fails"() {
         buildFile """
-            task myTask {
-                inputs.files([objects.fileProperty()]).withPropertyName("inputProp")
+            import org.gradle.api.model.ObjectFactory
 
-                doLast {
-                    println("inputs = \${inputs.files.files}")
+            class AnnotatedInputFilesTask extends DefaultTask {
+                private final RegularFileProperty absentProvider
+
+                @javax.inject.Inject
+                AnnotatedInputFilesTask(ObjectFactory objects) {
+                    absentProvider = objects.fileProperty()
+                }
+
+                @InputFiles
+                @PathSensitive(PathSensitivity.ABSOLUTE)
+                List<Object> getInputProp() {
+                    [absentProvider]
+                }
+
+                @TaskAction
+                void executeTask() {
+                    println("input action executed")
                 }
             }
+
+            tasks.register("myTask", AnnotatedInputFilesTask)
         """
 
         enableProblemsApiCheck()
 
         when:
-        run "myTask"
+        fails "myTask"
 
         then:
-        outputContains("inputs = []")
+        failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'AnnotatedInputFilesTask').")
+        outputDoesNotContain("input action executed")
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'validation:property-validation:value-not-set'
+            definition.id.displayName == 'Value not set'
+            contextualLabel.endsWith("'inputProp' doesn't have a configured value")
+            solutions == [
+                "Assign a value to 'inputProp'",
+                "Mark property 'inputProp' as optional"
+            ]
+        }
     }
 }
