@@ -210,6 +210,46 @@ And the next graph describes the test configurations setup:
 
 image::java-library-ignore-deprecated-test.png[]
 
+[[sec:java_library_annotation_processing]]
+=== Declaring an annotation processor
+
+An annotation processor runs at compile time to inspect your code and generate additional sources.
+Declare it in the `annotationProcessor` configuration so it is placed on the annotation processor path for compilation:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+dependencies {
+    // The annotations you reference in your code
+    compileOnly("org.projectlombok:lombok:1.18.34")
+
+    // The processor that reads those annotations and generates code
+    annotationProcessor("org.projectlombok:lombok:1.18.34")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+dependencies {
+    // The annotations you reference in your code
+    compileOnly 'org.projectlombok:lombok:1.18.34'
+
+    // The processor that reads those annotations and generates code
+    annotationProcessor 'org.projectlombok:lombok:1.18.34'
+}
+----
+=====
+====
+
+Many processors ship the annotations and the processor in the same artifact, so you declare it in both `compileOnly` (to compile against the annotations) and `annotationProcessor` (to run the processor), as shown above.
+A processor that only generates code without exposing annotations you reference needs only the `annotationProcessor` entry.
+
 [[sec:java_library_modular]]
 == Building Modules for the Java Module System
 
