@@ -79,25 +79,28 @@ class AgentModeCrossVersionSpec extends ToolingApiSpecification {
     def "agent mode does not imply other options for a Tooling API build"() {
         given:
         buildFile """
-            tasks.register("deprecated") {
+            tasks.register("broken") {
                 doLast {
-                    org.gradle.internal.deprecation.DeprecationLogger.deprecate("Something").willBeRemovedInGradle10().undocumented().nagUser()
+                    throw new RuntimeException("task is broken")
                 }
             }
         """
-        def output = new ByteArrayOutputStream()
+        def error = new ByteArrayOutputStream()
 
         when:
         withConnection { connection ->
             connection.newBuild()
-                .forTasks("deprecated")
-                .withArguments("--agent", "--warning-mode=all")
-                .setStandardOutput(output)
+                .forTasks("broken")
+                .withArguments("--agent")
+                .setStandardError(error)
                 .run()
         }
 
         then:
-        output.toString().contains("Something has been deprecated")
+        thrown(Exception)
+        // Agent mode would imply --stacktrace, which prints the exception instead of this hint
+        error.toString().contains("Run with --stacktrace option to get the stack trace.")
+        !error.toString().contains("* Exception is:")
     }
 
     def "no problem is reported when agent mode is not requested"() {

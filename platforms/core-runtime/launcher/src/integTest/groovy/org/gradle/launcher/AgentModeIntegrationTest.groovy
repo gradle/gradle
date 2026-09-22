@@ -23,6 +23,7 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.gradle.util.GradleVersion
 import org.junit.Rule
 
 import java.util.concurrent.TimeUnit
@@ -151,6 +152,17 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         agentOutput.text.contains("Partial line from settings")
+    }
+
+    def "writes an invalid option to the file"() {
+        when:
+        executer.withWarningMode(null)
+        fails("hello", "--agent", "--warning-mode=bogus")
+
+        then:
+        def agentOutput = agentOutputFile()
+        errorOutput.trim().empty
+        agentOutput.text.contains("Argument value 'bogus' given for --warning-mode option is invalid")
     }
 
     def "prints the file location before starting the daemon"() {
@@ -399,6 +411,39 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         result.error.empty
+    }
+
+    def "writes #option output to the file"() {
+        when:
+        succeeds(option, "--agent")
+
+        then:
+        agentOutputFile().text.contains(expectedOutput)
+
+        where:
+        option      | expectedOutput
+        "--help"    | "USAGE: gradle [option...] [task...]"
+        "--version" | "Gradle ${GradleVersion.current().version}"
+    }
+
+    def "environment variable value #value is treated as #expected"() {
+        given:
+        file("gradle.properties") << "org.gradle.agent=${!expected}"
+
+        when:
+        executer.withEnvironmentVars(ORG_GRADLE_AGENT: value)
+        succeeds("hello")
+
+        then:
+        file(BUILDS_DIR).exists() == expected
+
+        where:
+        value   | expected
+        "true"  | true
+        "TRUE"  | true
+        "false" | false
+        "1"     | false
+        ""      | false
     }
 
     def "writes the file to the requested project cache directory"() {

@@ -390,6 +390,8 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
                 agentMode = agentModeResolver.resolve(parsedCommandLine, properties.getProperties(), environmentVariables);
                 if (agentMode.isEnabled()) {
+                    // Resolved before anything else can fail, so that the failure is reported the way agent mode reports everything
+                    agentOutputFile = agentOutputLocation.resolve(parsedCommandLine, properties.getProperties(), buildLayout);
                     AgentModeResolver.applyDefaultsTo(loggingConfiguration);
                 }
 
@@ -398,10 +400,6 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
                 // Get configuration for showing the welcome message
                 welcomeMessageConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, welcomeMessageConfiguration);
-
-                if (agentMode.isEnabled()) {
-                    agentOutputFile = agentOutputLocation.resolve(parsedCommandLine, properties.getProperties(), buildLayout);
-                }
             } catch (CommandLineArgumentException e) {
                 // Ignore, deal with this problem later
             }
