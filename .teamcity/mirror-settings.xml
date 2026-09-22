@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Passed to Maven by the CI build when the repository mirror is in use.
+  The URL comes from MAVEN_CENTRAL_MIRROR_URL so the mirror host is not
+  duplicated here; the build step derives it from REPO_MIRROR_URLS.
+
+  Only the two repositories that resolve from Maven Central are mirrored:
+  Maven's implicit "central", and "maven_central" as declared in pom.xml.
+  jetbrains-all and teamcity-server are deliberately left alone.
+-->
+<settings xmlns="http://maven.apache.org/SETTINGS/1.0.0">
+    <mirrors>
+        <mirror>
+            <id>central-mirror</id>
+            <mirrorOf>central,maven_central</mirrorOf>
+            <url>${env.MAVEN_CENTRAL_MIRROR_URL}</url>
+        </mirror>
+    </mirrors>
+</settings>

@@ -17,6 +17,7 @@
 package org.gradle.scala.compile
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ScalaCoverage
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
@@ -27,7 +28,7 @@ class ScalaCompileMultiProjectTest extends AbstractIntegrationSpec implements Ja
         buildFile << """
             subprojects {
                 repositories {
-                    mavenCentral()
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
                 }
             }
             project("a") {
