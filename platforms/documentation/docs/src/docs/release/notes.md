@@ -87,6 +87,23 @@ This makes it easy to see how far a long-running build has progressed while the 
 
 See the [Rich console](userguide/command_line_interface.html#sec:rich_console) section in the Gradle User Manual for more details.
 
+#### Predefined problem groups in the Problems API
+
+The incubating [Problems API](userguide/reporting_problems.html#header) now provides a predefined hierarchy of problem groups, available from the `Problems` service as `problems.groups`.
+Plugins report into the matching predefined group or add a subgroup below one.
+The types of the hierarchy enforce placement:
+
+```kotlin
+problems.reporter.report(problems.groups.compilation.java.problemId("Unused import")) {}
+problems.reporter.report(problems.groups.transformation.group("KMP").problemId("Bundle failed")) {}
+```
+
+Predefined groups are documented with a description of what belongs in them, giving consumers of problem reports a documented set of group names to navigate, filter, and aggregate the problems plugins report.
+On the console, problems now show the chain of groups they belong to, for example `Unused import (in Compilation > Java)`.
+The existing `ProblemGroup.create()` and `ProblemId.create()` methods keep working; migrating to the predefined groups is recommended.
+
+See the [Predefined Problem Groups](userguide/reporting_problems.html#sec:predefined_problem_groups) section in the Gradle User Manual for more details.
+
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
