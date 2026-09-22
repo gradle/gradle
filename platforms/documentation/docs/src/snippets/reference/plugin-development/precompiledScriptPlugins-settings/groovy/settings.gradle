@@ -2,6 +2,7 @@
 pluginManagement {
     repositories {
         gradlePluginPortal()
+        mavenCentral()
     }
     includeBuild('./settings-plugin')
 }
