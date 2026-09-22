@@ -82,7 +82,7 @@ public class DefaultProblemId extends ProblemId implements Serializable {
         if (this == o) {
             return true;
         }
-        if (o == null || o.getClass().isAssignableFrom(ProblemId.class)) {
+        if (!(o instanceof ProblemId)) {
             return false;
         }
 
