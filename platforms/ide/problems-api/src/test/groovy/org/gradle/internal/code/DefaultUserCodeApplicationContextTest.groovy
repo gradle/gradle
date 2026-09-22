@@ -17,6 +17,7 @@
 package org.gradle.internal.code
 
 import org.gradle.api.Action
+import org.gradle.internal.Describables
 import org.gradle.api.specs.Spec
 import org.gradle.util.Path
 import spock.lang.Specification
@@ -421,6 +422,124 @@ class DefaultUserCodeApplicationContextTest extends Specification {
         then:
         // Consumers order plugin application results by id
         ids*.longValue() == [1L, 2L, 3L]
+    }
+
+    def "restoring a known application returns the application already tracking it"() {
+        def source = Stub(UserCodeSource)
+        UserCodeApplicationContext.Application applied
+
+        when:
+        context.apply(source, target) { id ->
+            applied = context.current()
+            timeSource.increment(5)
+        }
+        def restored = context.restoreApplication(applied.id.longValue(), source, target)
+        restored.reapply({ timeSource.increment(10) }, UserCodeApplicationContext.CodeType.GENERAL)
+
+        then:
+        restored.is(applied)
+        context.getApplicationsFor(target).size() == 1
+        context.getApplicationsFor(target).first().getTotalDurationNs() == ms(15)
+    }
+
+    def "restoring an unknown application registers it against the given target"() {
+        def restoredSource = Stub(UserCodeSource)
+        def project = new UserCodeApplicationContext.Target.Project(Path.path(":a"))
+
+        when:
+        def restored = context.restoreApplication(42, restoredSource, project)
+        restored.reapply({ timeSource.increment(10) }, UserCodeApplicationContext.CodeType.GENERAL)
+
+        then:
+        restored.id.longValue() == 42
+        restored.source == restoredSource
+        restored.target == project
+
+        and:
+        context.getApplicationsFor(target).empty
+        with(context.getApplicationsFor(project).first()) {
+            assert id.longValue() == 42
+            assert it.source == restoredSource
+            assert getTotalDurationNs() == ms(10)
+        }
+    }
+
+    def "restoring the same unknown application twice registers it once"() {
+        given:
+        def source = Stub(UserCodeSource)
+
+        when:
+        def first = context.restoreApplication(42, source, target)
+        def second = context.restoreApplication(42, source, target)
+
+        then:
+        second.is(first)
+        context.getApplicationsFor(target).size() == 1
+    }
+
+    def "does not assign the id of a restored application to a later application"() {
+        when:
+        context.restoreApplication(42, Stub(UserCodeSource), target)
+        def id
+        context.apply(Stub(UserCodeSource), target) { it -> id = it }
+
+        then:
+        id.longValue() > 42
+    }
+
+    def "cannot restore an application whose id is held by a different application"() {
+        given:
+        def applied = new UserCodeSource.Binary(Describables.of("plugin 'a'"), "PluginA", "a")
+        def restored = new UserCodeSource.Binary(Describables.of("plugin 'b'"), "PluginB", "b")
+
+        def id
+        context.apply(applied, target) { it -> id = it }
+
+        when:
+        context.restoreApplication(id.longValue(), restored, target)
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot restore user code application: plugin 'b'. ID ${id.longValue()} is already used by an application of plugin 'a'."
+    }
+
+    def "cannot restore an application whose id is held by the same source applied to a different target"() {
+        given:
+        def source = new UserCodeSource.Binary(Describables.of("plugin 'a'"), "PluginA", "a")
+        def id
+        context.apply(source, new UserCodeApplicationContext.Target.Project(Path.path(":a"))) { it -> id = it }
+
+        when:
+        context.restoreApplication(id.longValue(), source, new UserCodeApplicationContext.Target.Project(Path.path(":b")))
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "Cannot restore user code application: plugin 'a'. ID ${id.longValue()} is already used by an application of plugin 'a'."
+    }
+
+    def "restoring an application applied by this build accepts a source rebuilt from its serialized form"() {
+        given:
+        // The configuration cache rebuilds the display name from its text, so the restored source
+        // display name may not be not equal to the one the application was applied with
+        def applied = new UserCodeSource.Binary(Describables.of("plugin", "'a'"), "PluginA", "a")
+        def restored = new UserCodeSource.Binary(Describables.of("plugin 'a'"), "PluginA", "a")
+
+        def id
+        context.apply(applied, target) { it -> id = it }
+
+        expect:
+        context.restoreApplication(id.longValue(), restored, target).id.longValue() == id.longValue()
+    }
+
+    def "cannot restore an application when no recording is in progress"() {
+        given:
+        context.stopTrackingApplications()
+
+        when:
+        context.restoreApplication(42, Stub(UserCodeSource), target)
+
+        then:
+        thrown(IllegalStateException)
     }
 
     def "cannot apply or query applications when no recording is in progress"() {

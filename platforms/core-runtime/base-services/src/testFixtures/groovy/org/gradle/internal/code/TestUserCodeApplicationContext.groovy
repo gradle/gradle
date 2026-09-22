@@ -42,6 +42,11 @@ class TestUserCodeApplicationContext implements UserCodeApplicationContext {
     }
 
     @Override
+    Application restoreApplication(long id, UserCodeSource source, Target target) {
+        throw new UnsupportedOperationException()
+    }
+
+    @Override
     Application current() {
         return null
     }

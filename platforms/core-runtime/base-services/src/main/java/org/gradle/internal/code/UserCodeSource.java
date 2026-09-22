@@ -20,6 +20,7 @@ import org.gradle.api.Describable;
 import org.jspecify.annotations.Nullable;
 
 import java.net.URI;
+import java.util.Objects;
 
 /**
  * Describes the source of code being applied.
@@ -65,6 +66,30 @@ public interface UserCodeSource {
             return className;
         }
 
+        @Override
+        public boolean equals(@Nullable Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Binary that = (Binary) o;
+            return className.equals(that.className)
+                && Objects.equals(pluginId, that.pluginId)
+                // Compare rendered display names since the CC codec restores them as fixed values.
+                && displayName.getDisplayName().equals(that.displayName.getDisplayName());
+        }
+
+        @Override
+        public int hashCode() {
+            int result = className.hashCode();
+            result = 31 * result + Objects.hashCode(pluginId);
+            result = 31 * result + displayName.getDisplayName().hashCode();
+            return result;
+        }
+
     }
 
     /**
@@ -90,6 +115,28 @@ public interface UserCodeSource {
          */
         public @Nullable URI getUri() {
             return uri;
+        }
+
+        @Override
+        public boolean equals(@Nullable Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+
+            Script that = (Script) o;
+            return Objects.equals(uri, that.uri)
+                // Compare rendered display names since the CC codec restores them as fixed values.
+                && displayName.getDisplayName().equals(that.displayName.getDisplayName());
+        }
+
+        @Override
+        public int hashCode() {
+            int result = Objects.hashCode(uri);
+            result = 31 * result + displayName.getDisplayName().hashCode();
+            return result;
         }
 
     }
