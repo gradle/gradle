@@ -52,10 +52,12 @@ public class NativeServicesInitializingAction implements Action<ExecutionListene
 
     @Override
     public void execute(ExecutionListener executionListener) {
-        NativeServices.initializeOnClient(buildLayout.getGradleUserHomeDir(), NativeServicesMode.fromSystemProperties());
         if (agentOutput != null) {
+            // Attached first, so that whatever the initialization logs does not reach the process streams
             loggingManager.attachConsole(agentOutput, agentOutput, ConsoleOutput.Plain);
+            NativeServices.initializeOnClient(buildLayout.getGradleUserHomeDir(), NativeServicesMode.fromSystemProperties());
         } else {
+            NativeServices.initializeOnClient(buildLayout.getGradleUserHomeDir(), NativeServicesMode.fromSystemProperties());
             loggingManager.attachProcessConsole(loggingConfiguration.getConsoleOutput(), loggingConfiguration.getConsoleUnicodeSupport());
         }
         action.execute(executionListener);

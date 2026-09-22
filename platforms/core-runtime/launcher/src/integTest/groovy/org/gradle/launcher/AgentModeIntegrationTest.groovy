@@ -67,6 +67,19 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         agentOutput.text.contains("BUILD SUCCESSFUL")
     }
 
+    def "prints only the file path at log level #logLevel"() {
+        when:
+        succeeds("hello", "--agent", logLevel)
+
+        then:
+        def agentOutput = agentOutputFile()
+        errorOutput.trim().empty
+        agentOutput.text.contains("Hello from the task")
+
+        where:
+        logLevel << ["--quiet", "--warn", "--info", "--debug"]
+    }
+
     def "writes build failure to the file"() {
         when:
         fails("broken", "--agent")
