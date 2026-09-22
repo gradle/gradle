@@ -75,6 +75,7 @@ class KnownProblemIds {
 
         // dependency resolution failures
         'dependency-variant-resolution': 'Dependency variant resolution',
+        'dependency-resolution': 'Dependency resolution',
 
         // DCL
         'scripts:dcl-schema': 'DCL Schema issues',
@@ -182,6 +183,7 @@ class KnownProblemIds {
         'validation:invalid-java-toolchain': ["Running task ValidatePlugins with Java Toolchain lower than ${SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION}"],
 
         // dependency resolution failures
+        'dependency-resolution:project-coordinate-collision': ['Project coordinate collision'],
         'dependency-variant-resolution:configuration-not-compatible': ['Configuration selected by name is not compatible'],
         'dependency-variant-resolution:configuration-not-consumable': ['Configuration selected by name is not consumable'],
         'dependency-variant-resolution:configuration-does-not-exist': ['Configuration selected by name does not exist'],

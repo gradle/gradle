@@ -51,7 +51,19 @@ class ResolveTestFixture {
     static String configureProject(String first, String... rest) {
         return """
             ${configureCheckTask()}
-            ${configureProjectTasks(first, rest)}
+            ${configureProjectTasks(true, first, rest)}
+        """
+    }
+
+    /**
+     * As {@link #configureProject}, but does not resolve artifacts.
+     *
+     * <p>Use when resolving the artifacts is not possible. Assert the result with {@link #expectGraphOnly}.
+     */
+    static String configureProjectGraphOnly(String first, String... rest) {
+        return """
+            ${configureCheckTask()}
+            ${configureProjectTasks(false, first, rest)}
         """
     }
 
@@ -60,7 +72,7 @@ class ResolveTestFixture {
      * given configurations in all projects of a build. The code snippet
      * is intended to be inlined into a Groovy settings script.
      *
-     * @deprecated Prefer {@link #configureProject(String, String...)}. This method
+     * @deprecated Prefer {@link #configureProject(String, String ...)}. This method
      * should only be used when the test setup otherwise prevents the more targeted
      * project-specific method, for example when a parent project configures child
      * projects inline, and a configuration in the child project is being resolved.
@@ -70,20 +82,20 @@ class ResolveTestFixture {
         return """
             ${configureCheckTask()}
             gradle.lifecycle.beforeProject {
-                ${configureProjectTasks(first, rest)}
+                ${configureProjectTasks(true, first, rest)}
             }
         """
     }
 
-    private static String configureProjectTasks(String first, String... rest) {
+    private static String configureProjectTasks(boolean enableArtifactResolution, String first, String... rest) {
         List<String> allTaskDefinitions = []
 
         if (rest.length == 0) {
-            allTaskDefinitions << configureTask(first, "checkDeps")
+            allTaskDefinitions << configureTask(first, enableArtifactResolution, "checkDeps")
         } else {
-            allTaskDefinitions << configureTask(first)
+            allTaskDefinitions << configureTask(first, enableArtifactResolution)
             for (String configurationName : rest) {
-                allTaskDefinitions << configureTask(configurationName)
+                allTaskDefinitions << configureTask(configurationName, enableArtifactResolution)
             }
         }
 
@@ -92,11 +104,13 @@ class ResolveTestFixture {
 
     private static String configureTask(
         String configurationName,
+        boolean enableArtifactResolution,
         String taskName = "check${configurationName.capitalize()}"
     ) {
         """
             tasks.register("${taskName}", GenerateGraphTask) {
                 def configuration = configurations.${configurationName}
+                it.enableArtifactResolution = ${enableArtifactResolution}
 
                 it.outputFile = file("\${buildDir}/last-graph.txt")
 
@@ -111,6 +125,13 @@ class ResolveTestFixture {
             abstract class GenerateGraphTask extends DefaultTask {
                 @Internal
                 File outputFile
+
+                /**
+                 * Set to false to disable resolving artifacts, files, and artifact views.
+                 * Only the dependency graph will be resolved.
+                 */
+                @Internal
+                boolean enableArtifactResolution = true
 
                 @Internal
                 abstract Property<ResolvedComponentResult> getRootComponent()
@@ -145,18 +166,21 @@ class ResolveTestFixture {
 
                 def configureFrom(Configuration configuration) {
                     rootComponent = configuration.incoming.resolutionResult.rootComponent
-                    files.from(configuration)
 
-                    incomingFiles = configuration.incoming.files
-                    incomingArtifacts = configuration.incoming.artifacts
+                    if (enableArtifactResolution) {
+                        files.from(configuration)
 
-                    artifactViewFiles = configuration.incoming.artifactView { }.files
-                    artifactViewArtifacts = configuration.incoming.artifactView { }.artifacts
+                        incomingFiles = configuration.incoming.files
+                        incomingArtifacts = configuration.incoming.artifacts
 
-                    lenientArtifactViewFiles = configuration.incoming.artifactView { it.lenient = true }.files
-                    lenientArtifactViewArtifacts = configuration.incoming.artifactView { it.lenient = true }.artifacts
+                        artifactViewFiles = configuration.incoming.artifactView {}.files
+                        artifactViewArtifacts = configuration.incoming.artifactView {}.artifacts
 
-                    inputs.files configuration
+                        lenientArtifactViewFiles = configuration.incoming.artifactView { it.lenient = true }.files
+                        lenientArtifactViewArtifacts = configuration.incoming.artifactView { it.lenient = true }.artifacts
+
+                        inputs.files configuration
+                    }
 
                     configurationCacheUnsafeLines.set(project.provider {
                         def stringWriter = new StringWriter()
@@ -209,71 +233,77 @@ class ResolveTestFixture {
                         // These are always checked regardless of whether or not building artifacts is requested
                         writeGraphStructure(writer, root, components, dependencies)
 
-                        incomingArtifacts.artifacts.each {
-                            writeArtifact("incoming-artifact-artifact", writer, it)
+                        if (enableArtifactResolution) {
+                            resolveArtifacts(writer)
                         }
-
-                        files.each {
-                            writeFile("file-file", writer, it)
-                        }
-                        files.filter { true }.each {
-                            writeFile("file-filtered", writer, it)
-                        }
-
-                        incomingFiles.each {
-                            writeFile("incoming-file", writer, it)
-                        }
-                        incomingArtifacts.each {
-                            writeArtifact("incoming-artifact", writer, it)
-                        }
-                        incomingArtifacts.resolvedArtifacts.get().each {
-                            writeArtifact("incoming-resolved-artifact", writer, it)
-                        }
-                        incomingArtifacts.artifactFiles.each {
-                            writeFile("incoming-artifact-file", writer, it)
-                        }
-
-                        artifactViewFiles.each {
-                            writeFile("artifact-view-file", writer, it)
-                        }
-                        artifactViewArtifacts.each {
-                            writeArtifact("artifact-view-artifact", writer, it)
-                        }
-                        artifactViewFiles.files.each {
-                            writeFile("artifact-view-file-file", writer, it)
-                        }
-                        artifactViewArtifacts.artifacts.each {
-                            writeArtifact("artifact-view-artifact-artifact", writer, it)
-                        }
-                        artifactViewArtifacts.resolvedArtifacts.get().each {
-                            writeArtifact("artifact-view-resolved-artifact", writer, it)
-                        }
-                        artifactViewArtifacts.artifactFiles.each {
-                            writeFile("artifact-view-artifact-file", writer, it)
-                        }
-
-                        lenientArtifactViewFiles.each {
-                            writeFile("lenient-artifact-view-file", writer, it)
-                        }
-                        lenientArtifactViewArtifacts.each {
-                            writeArtifact("lenient-artifact-view-artifact", writer, it)
-                        }
-                        lenientArtifactViewFiles.files.each {
-                            writeFile("lenient-artifact-view-file-file", writer, it)
-                        }
-                        lenientArtifactViewArtifacts.artifacts.each {
-                            writeArtifact("lenient-artifact-view-artifact-artifact", writer, it)
-                        }
-                        lenientArtifactViewArtifacts.resolvedArtifacts.get().each {
-                            writeArtifact("lenient-artifact-view-resolved-artifact", writer, it)
-                        }
-                        lenientArtifactViewArtifacts.artifactFiles.each {
-                            writeFile("lenient-artifact-view-artifact-file", writer, it)
-                        }
-
-                        // ResolvedConfiguration and LenientConfiguration (captured during configuration)
-                        writer.print(configurationCacheUnsafeLines.get())
                     }
+                }
+
+                protected void resolveArtifacts(PrintWriter writer) {
+                    incomingArtifacts.artifacts.each {
+                        writeArtifact("incoming-artifact-artifact", writer, it)
+                    }
+
+                    files.each {
+                        writeFile("file-file", writer, it)
+                    }
+                    files.filter { true }.each {
+                        writeFile("file-filtered", writer, it)
+                    }
+
+                    incomingFiles.each {
+                        writeFile("incoming-file", writer, it)
+                    }
+                    incomingArtifacts.each {
+                        writeArtifact("incoming-artifact", writer, it)
+                    }
+                    incomingArtifacts.resolvedArtifacts.get().each {
+                        writeArtifact("incoming-resolved-artifact", writer, it)
+                    }
+                    incomingArtifacts.artifactFiles.each {
+                        writeFile("incoming-artifact-file", writer, it)
+                    }
+
+                    artifactViewFiles.each {
+                        writeFile("artifact-view-file", writer, it)
+                    }
+                    artifactViewArtifacts.each {
+                        writeArtifact("artifact-view-artifact", writer, it)
+                    }
+                    artifactViewFiles.files.each {
+                        writeFile("artifact-view-file-file", writer, it)
+                    }
+                    artifactViewArtifacts.artifacts.each {
+                        writeArtifact("artifact-view-artifact-artifact", writer, it)
+                    }
+                    artifactViewArtifacts.resolvedArtifacts.get().each {
+                        writeArtifact("artifact-view-resolved-artifact", writer, it)
+                    }
+                    artifactViewArtifacts.artifactFiles.each {
+                        writeFile("artifact-view-artifact-file", writer, it)
+                    }
+
+                    lenientArtifactViewFiles.each {
+                        writeFile("lenient-artifact-view-file", writer, it)
+                    }
+                    lenientArtifactViewArtifacts.each {
+                        writeArtifact("lenient-artifact-view-artifact", writer, it)
+                    }
+                    lenientArtifactViewFiles.files.each {
+                        writeFile("lenient-artifact-view-file-file", writer, it)
+                    }
+                    lenientArtifactViewArtifacts.artifacts.each {
+                        writeArtifact("lenient-artifact-view-artifact-artifact", writer, it)
+                    }
+                    lenientArtifactViewArtifacts.resolvedArtifacts.get().each {
+                        writeArtifact("lenient-artifact-view-resolved-artifact", writer, it)
+                    }
+                    lenientArtifactViewArtifacts.artifactFiles.each {
+                        writeFile("lenient-artifact-view-artifact-file", writer, it)
+                    }
+
+                    // ResolvedConfiguration and LenientConfiguration (captured during configuration)
+                    writer.print(configurationCacheUnsafeLines.get())
                 }
 
                 protected void visitNodes(String prefix, Collection<ResolvedDependency> nodes, PrintWriter writer, Set<ResolvedDependency> visited) {
@@ -376,16 +406,9 @@ class ResolveTestFixture {
     }
 
     /**
-     * Verifies the result of executing tasks created by this test fixture.
-     *
-     * That task writes information about the graph, files and artifacts to a flat file accessible here via {@link #getResultFile(Path)}.
-     * This method reads that file (the actual result) and compares it to the expected result - the graph info provided to this fixture via
-     * the DSL supplied as an argument.
-     *
-     * @param path The path to the project containing the result file, e.g. ":" or ":subproject"
-     * @param closure a closure containing DSL that configures the expected graph
+     * Compares the graph structure and returns the expected graph, its root, and the lines of the result file.
      */
-    void expectGraph(String path= ":", @DelegatesTo(GraphBuilder) Closure closure) {
+    private List compareGraphStructure(String path, Closure closure) {
         def graph = new GraphBuilder()
         closure.resolveStrategy = Closure.DELEGATE_ONLY
         closure.delegate = graph
@@ -419,6 +442,34 @@ class ResolveTestFixture {
         def actualEdges = findLines(configDetails, 'dependency')
         def expectedEdges = graph.edges.collect { "${it.constraint ? '[constraint]' : ''}[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
         compare("edges in graph", actualEdges, expectedEdges)
+
+        return [graph, root, configDetails]
+    }
+
+    /**
+     * Verifies the dependency graph only: the root, the components and the edges between them.
+     *
+     * <p>Use with {@link #configureProjectGraphOnly}, where no artifacts or files were resolved.
+     *
+     * @param path The path to the project containing the result file, e.g. ":" or ":subproject"
+     * @param closure a closure containing DSL that configures the expected graph
+     */
+    void expectGraphOnly(String path = ":", @DelegatesTo(GraphBuilder) Closure closure) {
+        compareGraphStructure(path, closure)
+    }
+
+    /**
+     * Verifies the result of executing tasks created by this test fixture.
+     *
+     * That task writes information about the graph, files and artifacts to a flat file accessible here via {@link #getResultFile(Path)}.
+     * This method reads that file (the actual result) and compares it to the expected result - the graph info provided to this fixture via
+     * the DSL supplied as an argument.
+     *
+     * @param path The path to the project containing the result file, e.g. ":" or ":subproject"
+     * @param closure a closure containing DSL that configures the expected graph
+     */
+    void expectGraph(String path = ":", @DelegatesTo(GraphBuilder) Closure closure) {
+        def (graph, root, configDetails) = compareGraphStructure(path, closure)
 
         def expectedFiles = root.files + graph.artifactNodes.collect { it.fileName }
         def expectedArtifacts = graph.artifactNodes.collect { "${it.fileName} (${it.componentId})" } + graph.files as List<String>

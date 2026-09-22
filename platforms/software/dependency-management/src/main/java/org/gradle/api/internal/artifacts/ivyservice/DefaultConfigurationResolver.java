@@ -65,12 +65,12 @@ import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
 
 /**
  * Responsible for resolving a configuration. Delegates to a {@link ShortCircuitingResolutionExecutor} to perform
@@ -169,7 +169,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ImmutableArtifactTypeRegistry immutableArtifactTypeRegistry = attributeSchemaServices.getArtifactTypeRegistryFactory().create(artifactTypeRegistry);
         ImmutableModuleReplacements moduleReplacements = componentModuleMetadataHandler.getModuleReplacements();
         ProjectIdentity projectIdentity = configuration.getDomainObjectContext() instanceof ProjectDomainObjectContext pdoc ? pdoc.getModel().getIdentity() : null;
-        ConfigurationFailureResolutions failureResolutions = new ConfigurationFailureResolutions(projectIdentity, configuration.getName());
+        ConfigurationFailureResolutions failureResolutions = new ConfigurationFailureResolutions(projectIdentity, configuration.getName(), configuration.isDetachedConfiguration());
 
         return new ResolutionParameters(
             configuration.getResolutionHost(),
@@ -238,31 +238,49 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
 
         private final @Nullable ProjectIdentity owningProject;
         private final String configurationName;
+        private final boolean detachedConfiguration;
 
         public ConfigurationFailureResolutions(
             @Nullable ProjectIdentity owningProject,
-            String configurationName
+            String configurationName,
+            boolean detachedConfiguration
         ) {
             this.owningProject = owningProject;
             this.configurationName = configurationName;
+            this.detachedConfiguration = detachedConfiguration;
         }
 
         @Override
         public List<String> forVersionConflict(Conflict conflict) {
+            return dependencyInsight(
+                conflict.getModuleId(),
+                "Run with %s --configuration %s --dependency %s to get more insight on how to solve the conflict."
+            );
+        }
+
+        @Override
+        public List<String> forProjectCoordinateCollision(ModuleIdentifier module) {
+            if (detachedConfiguration) {
+                // A detached configuration cannot be named on the command line
+                return Collections.emptyList();
+            }
+
+            return dependencyInsight(
+                module,
+                "Run with %s --configuration %s --dependency %s to see which project each dependency resolved to."
+            );
+        }
+
+        private List<String> dependencyInsight(ModuleIdentifier module, String suggestion) {
             if (owningProject == null) {
                 // owningProject is null for settings execution
                 return Collections.emptyList();
             }
 
             String taskPath = owningProject.getBuildTreePath().append(Path.path("dependencyInsight")).asString();
+            String dependencyNotation = module.getGroup() + ":" + module.getName();
 
-            ModuleIdentifier moduleId = conflict.getModuleId();
-            String dependencyNotation = moduleId.getGroup() + ":" + moduleId.getName();
-
-            return Collections.singletonList(String.format(
-                "Run with %s --configuration %s --dependency %s to get more insight on how to solve the conflict.",
-                taskPath, configurationName, dependencyNotation
-            ));
+            return Collections.singletonList(String.format(suggestion, taskPath, configurationName, dependencyNotation));
         }
 
     }

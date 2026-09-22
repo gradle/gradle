@@ -432,6 +432,7 @@ public class ResolutionExecutor {
             params.getSortOrder(),
             params.isFailingOnDynamicVersions(),
             params.isFailingOnChangingVersions(),
+            params.getResolutionHost().displayName(),
             params.getFailureResolutions(),
             new CompositeDependencyGraphVisitor(visitors)
         );
