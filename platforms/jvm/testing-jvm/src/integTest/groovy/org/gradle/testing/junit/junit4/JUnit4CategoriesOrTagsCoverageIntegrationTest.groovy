@@ -178,6 +178,52 @@ class JUnit4CategoriesOrTagsCoverageIntegrationTest extends AbstractJUnit4Catego
         outputContains('MyTest > testMyMethod FAILED')
     }
 
+    @Issue('https://github.com/gradle/gradle/issues/10694')
+    def "configuring a category or tag that does not apply to a test class does not affect runners sensitive to filtering"() {
+        given:
+        file('src/test/java/UnrelatedCategory.java') << '''
+            public interface UnrelatedCategory {
+            }
+        '''.stripIndent()
+        file('src/test/java/MyTest.java') << """
+            ${testFrameworkImports}
+            import org.mockito.Mock;
+            import org.mockito.Mockito;
+            import org.mockito.junit.MockitoJUnitRunner;
+
+            @RunWith(MockitoJUnitRunner.class)
+            public class MyTest {
+                @Mock
+                private Runnable mock;
+
+                @Test
+                public void testMyMethod() {
+                    Mockito.when(mock.toString()).thenReturn("never used");
+                }
+            }
+        """.stripIndent()
+        buildFile << """
+            apply plugin: 'java'
+
+            ${mavenCentralRepository()}
+
+            dependencies {
+                ${testFrameworkDependencies}
+                testImplementation "org.mockito:mockito-core:2.24.5"
+            }
+
+            test {
+                ${configureTestFramework} { ${excludeCategoryOrTag('UnrelatedCategory')} }
+            }
+        """.stripIndent()
+
+        when:
+        fails('test')
+
+        then:
+        outputContains('MyTest > unnecessary Mockito stubbings FAILED')
+    }
+
     @Issue('https://github.com/gradle/gradle/issues/4924')
     def "re-executes test when options are changed in #suiteName"() {
         given:
