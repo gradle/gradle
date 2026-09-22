@@ -20,8 +20,8 @@ import org.gradle.cli.CommandLineParser
 import org.gradle.internal.logging.LoggingConfigurationBuildOptions
 import spock.lang.Specification
 
-import static org.gradle.launcher.cli.converter.AgentModeResolver.AgentMode.DISABLED_BY_CONSOLE_OPTION
 import static org.gradle.launcher.cli.converter.AgentModeResolver.AgentMode.ENABLED
+import static org.gradle.launcher.cli.converter.AgentModeResolver.AgentMode.ENABLED_IGNORING_CONSOLE_OPTION
 import static org.gradle.launcher.cli.converter.AgentModeResolver.AgentMode.NOT_REQUESTED
 
 class AgentModeResolverTest extends Specification {
@@ -45,14 +45,14 @@ class AgentModeResolverTest extends Specification {
         ["--no-agent"] | "true"  | "true"   | NOT_REQUESTED
     }
 
-    def "explicit console option disables agent mode requested with args #args, env var #envVar and property #property"() {
+    def "explicit console option is ignored when agent mode is requested with args #args, env var #envVar and property #property"() {
         expect:
-        resolve(args + ["--console", console], envVar, property) == DISABLED_BY_CONSOLE_OPTION
+        resolve(args + ["--console", console], envVar, property) == ENABLED_IGNORING_CONSOLE_OPTION
 
         where:
         args        | envVar | property | console
-        ["--agent"] | null   | null     | "plain"
         ["--agent"] | null   | null     | "rich"
+        ["--agent"] | null   | null     | "RICH"
         []          | "true" | null     | "auto"
         []          | null   | "true"   | "verbose"
     }
@@ -63,7 +63,15 @@ class AgentModeResolverTest extends Specification {
         resolve(["--no-agent", "--console", "rich"], "true", "true") == NOT_REQUESTED
     }
 
-    def "console Gradle property does not disable agent mode"() {
+    def "console option is not reported as ignored when it asks for #console"() {
+        expect:
+        resolve(["--agent", "--console", console], null, null) == ENABLED
+
+        where:
+        console << ["plain", "Plain", "PLAIN"]
+    }
+
+    def "console Gradle property is not reported as ignored"() {
         expect:
         resolve(["--agent"], null, null, ["org.gradle.console": "rich"]) == ENABLED
     }

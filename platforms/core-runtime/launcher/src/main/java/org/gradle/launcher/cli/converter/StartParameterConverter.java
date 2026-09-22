@@ -72,7 +72,7 @@ public class StartParameterConverter {
 
         buildOptionsConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, startParameter);
 
-        boolean agentMode = agentModeResolver.resolve(parsedCommandLine, properties.getProperties(), environmentVariables) == AgentModeResolver.AgentMode.ENABLED;
+        boolean agentMode = agentModeResolver.resolve(parsedCommandLine, properties.getProperties(), environmentVariables).isEnabled();
         startParameter.setAgentMode(agentMode);
         if (agentMode) {
             startParameter.setConsoleOutput(ConsoleOutput.Plain);

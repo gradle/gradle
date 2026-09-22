@@ -147,10 +147,10 @@ class StartParameterConverterTest extends Specification {
         ["--no-agent"]                                | [ORG_GRADLE_AGENT: "true"]  | false     | ConsoleOutput.Auto
         ["--agent"]                                   | [ORG_GRADLE_AGENT: "false"] | true      | ConsoleOutput.Plain
         ["--no-agent", "-Dorg.gradle.agent=true"]     | [:]                         | false     | ConsoleOutput.Auto
-        ["--agent", "--console=rich"]                 | [:]                         | false     | ConsoleOutput.Rich
-        ["--agent", "--console=plain"]                | [:]                         | false     | ConsoleOutput.Plain
-        ["--console=rich"]                            | [ORG_GRADLE_AGENT: "true"]  | false     | ConsoleOutput.Rich
-        ["-Dorg.gradle.agent=true", "--console=rich"] | [:]                         | false     | ConsoleOutput.Rich
+        ["--agent", "--console=rich"]                 | [:]                         | true      | ConsoleOutput.Plain
+        ["--agent", "--console=plain"]                | [:]                         | true      | ConsoleOutput.Plain
+        ["--console=rich"]                            | [ORG_GRADLE_AGENT: "true"]  | true      | ConsoleOutput.Plain
+        ["-Dorg.gradle.agent=true", "--console=rich"] | [:]                         | true      | ConsoleOutput.Plain
         ["--no-agent", "--console=rich"]              | [:]                         | false     | ConsoleOutput.Rich
     }
 

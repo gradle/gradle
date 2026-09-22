@@ -17,6 +17,7 @@
 package org.gradle.launcher.cli.converter;
 
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.initialization.StartParameterBuildOptions.AgentOption;
@@ -29,7 +30,8 @@ import java.util.Map;
  * Decides whether agent mode applies to an invocation.
  *
  * <p>Build options normally give environment variables the lowest precedence. Agent mode instead resolves as
- * command-line flag, then environment variable, then properties, and is switched off by an explicit {@code --console}.
+ * command-line flag, then environment variable, then properties. Agent mode owns the console output, so an explicit
+ * {@code --console} has no effect on it and is reported as ignored, unless it asks for the output agent mode produces anyway.
  * The properties are expected to have system properties already merged over those from {@code gradle.properties},
  * as done by {@link LayoutToPropertiesConverter}.</p>
  */
@@ -39,7 +41,11 @@ public class AgentModeResolver {
     public enum AgentMode {
         NOT_REQUESTED,
         ENABLED,
-        DISABLED_BY_CONSOLE_OPTION
+        ENABLED_IGNORING_CONSOLE_OPTION;
+
+        public boolean isEnabled() {
+            return this != NOT_REQUESTED;
+        }
     }
 
     private final AgentOption agentOption = new AgentOption();
@@ -60,6 +66,14 @@ public class AgentModeResolver {
         if (!settings.isAgentMode()) {
             return AgentMode.NOT_REQUESTED;
         }
-        return commandLine.hasOption(ConsoleOption.LONG_OPTION) ? AgentMode.DISABLED_BY_CONSOLE_OPTION : AgentMode.ENABLED;
+        return isConsoleOptionIgnored(commandLine) ? AgentMode.ENABLED_IGNORING_CONSOLE_OPTION : AgentMode.ENABLED;
+    }
+
+    private static boolean isConsoleOptionIgnored(ParsedCommandLine commandLine) {
+        if (!commandLine.hasOption(ConsoleOption.LONG_OPTION)) {
+            return false;
+        }
+        String value = commandLine.option(ConsoleOption.LONG_OPTION).getValue();
+        return !ConsoleOutput.Plain.name().equalsIgnoreCase(value);
     }
 }

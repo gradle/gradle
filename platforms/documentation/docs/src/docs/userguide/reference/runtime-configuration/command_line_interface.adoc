@@ -886,8 +886,8 @@ The exit code still reports whether the build succeeded (exit code 0) or failed 
 
 You can also enable it by setting the `org.gradle.agent` <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> to `true` (for example in `gradle.properties`, `GRADLE_OPTS`, or via `-D`), or with the `ORG_GRADLE_AGENT` <<build_environment.adoc#environment_variables_reference,environment variable>>.
 
-Specifying the `--console` command-line option disables agent mode.
-Gradle prints a warning when this overrides a request for agent mode.
+Agent mode controls the console output, so the `--console` command-line option has no effect while it is enabled.
+Gradle prints a warning to the build output file when it ignores an explicit `--console` option.
 
 `--agent`, `--no-agent` incubating-label:[]::
 Toggles agent mode. Default is off.

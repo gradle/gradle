@@ -395,7 +395,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                 welcomeMessageConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, welcomeMessageConfiguration);
 
                 agentMode = agentModeResolver.resolve(parsedCommandLine, properties.getProperties(), environmentVariables);
-                if (agentMode == AgentMode.ENABLED) {
+                if (agentMode.isEnabled()) {
                     agentOutputFile = agentOutputLocation.resolve(parsedCommandLine, properties.getProperties(), buildLayout);
                 }
             } catch (CommandLineArgumentException e) {
@@ -410,20 +410,29 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             loggingManager.setLevelInternal(loggingConfiguration.getLogLevel());
             loggingManager.start();
             try {
-                if (agentMode == AgentMode.DISABLED_BY_CONSOLE_OPTION) {
-                    LOGGER.warn("Agent mode has been disabled because the --console option was specified.");
-                }
                 Action<ExecutionListener> exceptionReportingAction =
                     new ExceptionReportingAction(reporter, loggingManager,
                         new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager, agentOutput,
                             new WelcomeMessageAction(buildLayout, welcomeMessageConfiguration,
-                                new DebugLoggerWarningAction(loggingConfiguration, action))));
+                                new DebugLoggerWarningAction(loggingConfiguration,
+                                    ignoredConsoleOptionWarning(agentMode, action)))));
                 exceptionReportingAction.execute(executionListener);
             } finally {
                 loggingManager.stop();
                 IoActions.closeQuietly(agentHeartbeat);
                 IoActions.closeQuietly(agentOutput);
             }
+        }
+
+        // Must run after the console has been attached, so that the warning goes to the agent output file
+        private static Action<ExecutionListener> ignoredConsoleOptionWarning(AgentMode agentMode, Action<ExecutionListener> action) {
+            if (agentMode != AgentMode.ENABLED_IGNORING_CONSOLE_OPTION) {
+                return action;
+            }
+            return executionListener -> {
+                LOGGER.warn("The --console option has been ignored because agent mode is enabled.");
+                action.execute(executionListener);
+            };
         }
 
         private static OutputStream openAgentOutput(File file, PrintStream stdout) {

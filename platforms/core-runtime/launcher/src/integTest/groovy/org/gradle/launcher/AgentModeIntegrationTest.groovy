@@ -200,7 +200,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         "false"        | "false"    | "false" | ["--agent"]    | true
     }
 
-    def "explicit console option disables agent mode requested via #description with a warning"() {
+    def "explicit console option is ignored with a warning when agent mode is requested via #description"() {
         given:
         if (property) {
             file("gradle.properties") << "org.gradle.agent=true"
@@ -208,12 +208,13 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         executer.withEnvironmentVars(envVars)
-        succeeds(["hello", "--console=plain"] + args)
+        succeeds(["hello", "--console=rich"] + args)
 
         then:
-        outputContains("Agent mode has been disabled because the --console option was specified.")
-        outputContains("Hello from the task")
-        !file(BUILDS_DIR).exists()
+        def agentOutput = agentOutputFile()
+        errorOutput.trim().empty
+        agentOutput.text.contains("The --console option has been ignored because agent mode is enabled.")
+        agentOutput.text.contains("Hello from the task")
 
         where:
         description            | args        | envVars                    | property
@@ -227,7 +228,27 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         succeeds("hello", "--console=plain")
 
         then:
-        outputDoesNotContain("Agent mode")
+        outputDoesNotContain("agent mode")
+        outputContains("Hello from the task")
+    }
+
+    def "does not warn about a plain console option in agent mode"() {
+        when:
+        succeeds("hello", "--agent", "--console=plain")
+
+        then:
+        !agentOutputFile().text.contains("--console")
+    }
+
+    def "does not warn about a console Gradle property in agent mode"() {
+        given:
+        file("gradle.properties") << "org.gradle.console=rich"
+
+        when:
+        succeeds("hello", "--agent")
+
+        then:
+        !agentOutputFile().text.contains("--console")
     }
 
     def "writes newlines to standard error while the build is running"() {
