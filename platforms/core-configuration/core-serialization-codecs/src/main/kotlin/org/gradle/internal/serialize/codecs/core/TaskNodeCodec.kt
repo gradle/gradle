@@ -408,9 +408,9 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
         writePropertyValue(kind, propertyName, propertyValue)
     }
 
-    suspend fun writeInputProperty(propertyName: String, propertyValue: Any?, validationProviders: List<Provider<*>>) {
+    suspend fun writeInputProperty(propertyName: String, propertyValue: Any?, nestedProviders: List<Provider<*>>) {
         writeString(propertyName)
-        write(validationProviders)
+        write(nestedProviders)
         writePropertyValue(PropertyKind.InputProperty, propertyName, propertyValue)
     }
 
@@ -425,13 +425,13 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
                     val value = DeferredUtil.unpackNestableDeferred(propertyValue)
                     val finalValue = adaptInputFileValueForSerialization(value, filePropertyType)
                     // Keep nested provider presence available after the file value is serialized as a FileCollection.
-                    val validationProviders =
+                    val nestedProviders =
                         if (filePropertyType == InputFilePropertyType.FILES && !optional) {
                             FileParameterUtils.findNestedProviders(value)
                         } else {
                             emptyList()
                         }
-                    writeInputProperty(propertyName, finalValue, validationProviders)
+                    writeInputProperty(propertyName, finalValue, nestedProviders)
                     writeBoolean(optional)
                     writeBoolean(true)
                     writeEnum(filePropertyType)
@@ -607,7 +607,7 @@ private
 suspend fun ReadContext.readInputPropertiesOf(task: Task) =
     readCollection {
         val propertyName = readString()
-        val validationProviders = readNonNull<List<Provider<*>>>()
+        val nestedProviders = readNonNull<List<Provider<*>>>()
         readPropertyValue(PropertyKind.InputProperty, propertyName) { propertyValue ->
             val optional = readBoolean()
             val isFileInputProperty = readBoolean()
@@ -624,10 +624,11 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                             InputFilePropertyType.DIRECTORY -> dir(pack(propertyValue))
                             InputFilePropertyType.FILES -> {
                                 val value = pack(propertyValue)
-                                if (validationProviders.isEmpty()) {
+                                if (nestedProviders.isEmpty()) {
                                     files(value)
                                 } else {
-                                    files(value, requiredInputFilesValidationProviders(validationProviders))
+                                    val presenceProviders = nestedProviders.toPresenceOnlyProviders(isolate.owner.serviceOf<PropertyFactory>())
+                                    files(value, presenceProviders)
                                 }
                             }
                         }
@@ -652,12 +653,13 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
 
 
 private
-fun ReadContext.requiredInputFilesValidationProviders(providers: List<Provider<*>>): List<Provider<*>> =
-    providers.map { provider ->
-        // Keep the presence check of each provider, and preserve whether its solution can be configured directly.
+fun List<Provider<*>>.toPresenceOnlyProviders(propertyFactory: PropertyFactory): List<Provider<*>> =
+    map { provider ->
+        // Keep only the presence of each provider, so it contributes no files, and whether it is a configurable property,
+        // so validation reports the same solution as it does without the configuration cache.
         val presence = Providers.memoizing(Providers.internal(provider.map { emptyList<Any>() }))
         if (provider is HasConfigurableValue) {
-            isolate.owner.serviceOf<PropertyFactory>().property(Any::class.java).apply { set(presence) }
+            propertyFactory.property(Any::class.java).apply { set(presence) }
         } else {
             presence
         }

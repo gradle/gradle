@@ -66,7 +66,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
         // unnest callables without resolving deferred values (providers, factories)
         Object unnested = DeferredUtil.unpackNestableDeferred(value.call());
         if (isPresent(unnested)) {
-            // only resolve deferred values if actually required by some action
+            // the value is passed unresolved; each action decides whether to resolve the root provider, see ValidationActions.validate()
             validationAction.validate(propertyName, () -> unnested, context);
         } else {
             if (!optional) {

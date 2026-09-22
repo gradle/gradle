@@ -315,5 +315,4 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
             ]
         }
     }
-
 }
