@@ -282,8 +282,8 @@ trait ValidationMessageChecker {
     String outputProviderWithoutProducer(@DelegatesTo(value = SimpleMessage, strategy = Closure.DELEGATE_FIRST) Closure<?> spec = {}, boolean renderSolutions = true) {
         def config = display(SimpleMessage, 'output_provider_without_producer', spec)
         config.description("is a Provider that is not associated with this task")
-            .reason("The property is declared as an output, but the provider does not know that this task produces its value, so other tasks consuming this provider do not get an implicit dependency on this task. Gradle can only associate the value with the task when it is returned from a non-final getter")
-            .solution("Declare the property with a non-final getter, e.g. mark the property 'open' in Kotlin or declare an explicit getter method in Groovy")
+            .reason("The property is declared as an output, but the provider does not know that this task produces its value, so other tasks consuming this provider do not get an implicit dependency on this task. Gradle can only associate the value with the task when it is returned from a non-final getter of a property without a setter")
+            .solution("Declare the property with a non-final getter and no setter, e.g. mark the property 'open' in Kotlin or the field 'final' in Groovy")
             .solution("Declare the property with a Property type such as RegularFileProperty, DirectoryProperty or ConfigurableFileCollection instead")
             .render(renderSolutions)
     }

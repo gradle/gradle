@@ -32,8 +32,8 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
  * Consumers of such a provider do not get an implicit dependency on the task.
  *
  * <p>Gradle decorates the value returned from an overridable output getter so that it carries the task (see
- * {@code OutputPropertyRoleAnnotationHandler}). The value of a final getter, e.g. a Kotlin {@code val}, or of a Groovy
- * field cannot be decorated and ends up here.</p>
+ * {@code OutputPropertyRoleAnnotationHandler}). The value of a final getter, e.g. a Kotlin {@code val}, or of a property
+ * with a setter of the same type cannot be decorated and ends up here.</p>
  */
 public class OutputProviderWithoutProducerValidatingProperty implements ValidatingProperty {
     private static final String OUTPUT_PROVIDER_WITHOUT_PRODUCER = "OUTPUT_PROVIDER_WITHOUT_PRODUCER";
@@ -56,8 +56,8 @@ public class OutputProviderWithoutProducerValidatingProperty implements Validati
                     .id(TextUtil.screamingSnakeToKebabCase(OUTPUT_PROVIDER_WITHOUT_PRODUCER), "Output provider is not associated with its producing task", GradleCoreProblemGroup.validation().property())
                     .contextualLabel("is a Provider that is not associated with this task")
                     .documentedAt(userManual("validation_problems", OUTPUT_PROVIDER_WITHOUT_PRODUCER.toLowerCase(Locale.ROOT)))
-                    .details("The property is declared as an output, but the provider does not know that this task produces its value, so other tasks consuming this provider do not get an implicit dependency on this task. Gradle can only associate the value with the task when it is returned from a non-final getter.")
-                    .solution("Declare the property with a non-final getter, e.g. mark the property 'open' in Kotlin or declare an explicit getter method in Groovy")
+                    .details("The property is declared as an output, but the provider does not know that this task produces its value, so other tasks consuming this provider do not get an implicit dependency on this task. Gradle can only associate the value with the task when it is returned from a non-final getter of a property without a setter.")
+                    .solution("Declare the property with a non-final getter and no setter, e.g. mark the property 'open' in Kotlin or the field 'final' in Groovy")
                     .solution("Declare the property with a Property type such as RegularFileProperty, DirectoryProperty or ConfigurableFileCollection instead")
             );
         }

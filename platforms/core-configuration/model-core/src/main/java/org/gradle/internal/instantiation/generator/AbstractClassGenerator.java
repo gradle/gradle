@@ -408,14 +408,27 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             // All properties that override a method can be lazily attached,
             // unless they have a known backing field and @Generated, in which case we need to eagerly attach them
             // to keep Groovy properties working inside their own class.
+            // Eager attachment only helps for values that are attached in place (Property, ConfigurableFileCollection).
+            // Any other value, e.g. a plain Provider declared as an output, is decorated by the role handler, and the
+            // decorated value can only be exposed by overriding the getter, so such properties are always lazily attached.
 
             // In theory, we should eagerly attach all overridable properties just in case,
             // but that would break existing code that relies on lazy attachment of properties.
-            return property.getBackingField() == null || !property.getMainGetter().method.isAnnotationPresent(Generated.class);
+            return property.getBackingField() == null
+                || !property.getMainGetter().method.isAnnotationPresent(Generated.class)
+                || !isAttachedInPlace(property);
         }
         // Other Property and ConfigurableFileCollection properties should be eagerly attached, as they are not overridable.
         // Other non-Property properties cannot be eagerly attached for backwards compatibility reasons.
-        return !hasPropertyType(property) && !isConfigurableFileCollectionType(property.getType());
+        return !isAttachedInPlace(property);
+    }
+
+    /**
+     * Whether attaching the owner and role to the property value mutates the value itself, so that every reference to the
+     * value observes the attachment, including direct field reads inside the declaring class.
+     */
+    private static boolean isAttachedInPlace(PropertyMetadata property) {
+        return hasPropertyType(property) || isConfigurableFileCollectionType(property.getType());
     }
 
     private static boolean isAttachProperty(PropertyMetadata property) {

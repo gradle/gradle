@@ -1168,6 +1168,39 @@ The following types/formats are supported:
         "mapped output"           | 'a.get().output.map { it }'
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/25645")
+    def "dependency declared using flat map task provider of a Provider-typed output held in a final Groovy field implies dependency on task"() {
+        taskTypeWithInputFileCollection()
+        buildFile << """
+            class GroovyFieldProviderOutputTask extends DefaultTask {
+                @Internal
+                final DirectoryProperty outputDir = project.objects.directoryProperty()
+                // Groovy generates a non-final getter and, as the field is final, no setter: Gradle overrides the getter and
+                // returns a provider that carries this task as its producer, while the task's own code keeps reading the field
+                @OutputFile
+                final Provider<RegularFile> output = outputDir.map { it.file("file.txt") }
+                @TaskAction
+                def go() {
+                    output.get().asFile.text = "1"
+                }
+            }
+            def a = tasks.register("a", GroovyFieldProviderOutputTask) {
+                outputDir = layout.buildDirectory
+            }
+            tasks.register("b", InputFilesTask) {
+                inFiles.from(a.flatMap { it.output })
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksScheduled(":a", ":b")
+        file("out.txt").text == "1"
+    }
+
 
     @Issue("https://github.com/gradle/gradle/issues/25645")
     def "dependency declared using flat map task provider of a ConfigurableFileCollection held in a final field implies dependency on task"() {
@@ -1202,7 +1235,7 @@ The following types/formats are supported:
             class PlainProviderOutputTask extends DefaultTask {
                 @Internal
                 final DirectoryProperty outputDir = project.objects.directoryProperty()
-                // Gradle cannot override the getter, so nothing records this task as the producer of the value
+                // Gradle does not decorate the value (final getter, or a settable property), so nothing records this task as its producer
                 $declaration
                 @TaskAction
                 def go() {
@@ -1224,10 +1257,9 @@ The following types/formats are supported:
         file("build/file.txt").text == "1"
 
         where:
-        description                     | declaration
-        "held in a Groovy field"        | '@OutputFile Provider<RegularFile> output = outputDir.map { it.file("file.txt") }'
-        "held in a final Groovy field"  | '@OutputFile final Provider<RegularFile> output = outputDir.map { it.file("file.txt") }'
-        "returned from a final getter"  | '@OutputFile final Provider<RegularFile> getOutput() { outputDir.map { it.file("file.txt") } }'
+        description                       | declaration
+        "returned from a final getter"    | '@OutputFile final Provider<RegularFile> getOutput() { outputDir.map { it.file("file.txt") } }'
+        "held in a settable Groovy field" | '@OutputFile Provider<RegularFile> output = outputDir.map { it.file("file.txt") }'
     }
 
     @Issue("https://github.com/gradle/gradle/issues/25645")
