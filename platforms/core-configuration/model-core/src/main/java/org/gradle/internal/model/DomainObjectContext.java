@@ -13,10 +13,9 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal;
+package org.gradle.internal.model;
 
 import org.gradle.api.Describable;
-import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
@@ -26,6 +25,28 @@ import org.gradle.util.Path;
  */
 @ServiceScope({Scope.Build.class, Scope.Project.class})
 public interface DomainObjectContext extends Describable {
+
+    /**
+     * A domain object context modeling no mutable state.
+     */
+    DomainObjectContext NONE = new DomainObjectContext() {
+
+        @Override
+        public Path getBuildPath() {
+            return Path.ROOT;
+        }
+
+        @Override
+        public ModelContainer<?> getModel() {
+            return ModelContainer.EMPTY;
+        }
+
+        @Override
+        public String getDisplayName() {
+            return "none";
+        }
+
+    };
 
     /**
      * The identity of the build that this context belongs to.
