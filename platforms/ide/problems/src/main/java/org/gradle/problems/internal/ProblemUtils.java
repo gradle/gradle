@@ -14,20 +14,21 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.problems;
+package org.gradle.problems.internal;
 
 import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.internal.ProblemGroupInternal;
 import org.gradle.api.problems.internal.ProblemInternal;
 
 public class ProblemUtils {
 
     public static boolean isInGroup(ProblemInternal problem, ProblemGroup targetGroup) {
-        ProblemGroup group = problem.getDefinition().getId().getGroup();
+        ProblemGroupInternal group = ProblemGroupInternal.of(problem.getDefinition().getId().getGroup());
         while (group != null) {
             if (group.equals(targetGroup)) {
                 return true;
             }
-            group = group.getParent();
+            group = group.getParentInternal();
         }
         return false;
     }
