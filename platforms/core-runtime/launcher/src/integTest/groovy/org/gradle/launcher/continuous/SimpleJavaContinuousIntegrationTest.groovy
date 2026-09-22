@@ -17,6 +17,7 @@
 package org.gradle.launcher.continuous
 
 import org.gradle.integtests.fixtures.AbstractContinuousIntegrationTest
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.test.precondition.Requires
 import org.gradle.test.precondition.TestPrecondition
 import org.gradle.test.preconditions.OsTestPreconditions
@@ -32,7 +33,7 @@ class SimpleJavaContinuousIntegrationTest extends AbstractContinuousIntegrationT
             apply plugin: 'java'
 
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
             }
             dependencies {
                 implementation "junit:junit:4.13.2"
