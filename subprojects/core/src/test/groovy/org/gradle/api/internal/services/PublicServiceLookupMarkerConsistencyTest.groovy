@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.services
 
+import org.gradle.api.Project
+import org.gradle.api.Task
+import org.gradle.api.initialization.Settings
 import org.gradle.api.services.ProjectService
 import org.gradle.api.services.SettingsService
 import org.gradle.api.services.TaskService
@@ -23,8 +26,8 @@ import spock.lang.Specification
 
 /**
  * Pins the two representations of "which service is available in which kind of script" together: the runtime
- * allowlist in {@link PublicServiceLookups} (authoritative) and the per-scope compile-time marker interfaces
- * that bound the {@code service(Class)} members. If one drifts from the other this fails.
+ * allowlist in {@link PublicServiceLookups} (authoritative), the per-scope compile-time marker interfaces,
+ * and the generic bound on each {@code service(Class)} member. If any drifts from the others this fails.
  */
 class PublicServiceLookupMarkerConsistencyTest extends Specification {
 
@@ -44,5 +47,16 @@ class PublicServiceLookupMarkerConsistencyTest extends Specification {
                     "${serviceType.name} ${allowed ? 'is' : 'is not'} allowlisted for ${entryPoint} but ${marked ? 'implements' : 'does not implement'} ${marker.name}"
             }
         }
+    }
+
+    def "the service(Class) member of #host.simpleName is bounded by its scope marker"() {
+        expect:
+        host.getMethod("service", Class).typeParameters[0].bounds[0] == marker
+
+        where:
+        host     | marker
+        Project  | ProjectService
+        Settings | SettingsService
+        Task     | TaskService
     }
 }

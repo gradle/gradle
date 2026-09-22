@@ -15,8 +15,8 @@
  */
 
 /**
- * Implementation of the public service lookup, backing {@code Project.service(Class)},
- * {@code Settings.service(Class)} and {@code Task.service(Class)}.
+ * Implementation of the public service lookup, backing {@link org.gradle.api.Project#service(Class)},
+ * {@link org.gradle.api.initialization.Settings#service(Class)} and {@link org.gradle.api.Task#service(Class)}.
  */
 @NullMarked
 package org.gradle.api.internal.services;

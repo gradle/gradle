@@ -81,6 +81,75 @@ class PrecompiledGroovyPluginsIntegrationTest extends AbstractIntegrationSpec {
         outputContains("foo script plugin applied")
     }
 
+    def "can look up services in a precompiled project plugin"() {
+        given:
+        enablePrecompiledPluginsInBuildSrc()
+        file("buildSrc/src/main/groovy/my-plugin.gradle") << """
+            def property = service(ObjectFactory).property(String)
+            property.set("from project plugin")
+            println(property.get())
+            println("project dir: " + service(ProjectLayout).projectDirectory.asFile.name)
+        """
+        buildFile << """
+            plugins { id("my-plugin") }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("from project plugin")
+        outputContains("project dir: " + testDirectory.name)
+    }
+
+    def "can look up services in a precompiled settings plugin"() {
+        given:
+        file("plugin/build.gradle") << """
+            plugins {
+                id 'groovy-gradle-plugin'
+            }
+        """
+        file("plugin/src/main/groovy/my-settings-plugin.settings.gradle") << """
+            def property = service(ObjectFactory).property(String)
+            property.set("from settings plugin")
+            println(property.get())
+            println("settings dir: " + service(BuildLayout).settingsDirectory.asFile.name)
+        """
+        settingsFile << """
+            pluginManagement {
+                includeBuild("plugin")
+            }
+            plugins {
+                id("my-settings-plugin")
+            }
+        """
+
+        when:
+        succeeds("help")
+
+        then:
+        outputContains("from settings plugin")
+        outputContains("settings dir: " + testDirectory.name)
+    }
+
+    def "looking up a service outside the scope of a precompiled plugin fails"() {
+        given:
+        enablePrecompiledPluginsInBuildSrc()
+        file("buildSrc/src/main/groovy/my-plugin.gradle") << """
+            service(BuildLayout)
+        """
+        buildFile << """
+            plugins { id("my-plugin") }
+        """
+
+        when:
+        fails("help")
+
+        then:
+        // The generated plugin adapter wraps the script failure, so the cause carries the exception type
+        failure.assertHasCause("org.gradle.api.InvalidUserDataException: org.gradle.api.file.BuildLayout is not available in project scripts and project plugins.\nIt is available in settings scripts and settings plugins.")
+    }
+
     @ToBeFixedForIsolatedProjects(because = "configure projects from root")
     def "can apply a precompiled script plugin by id to a multi-project build from root"() {
         given:

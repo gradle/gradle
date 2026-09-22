@@ -19,8 +19,26 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Incubating
+import org.gradle.api.Project
 import org.gradle.api.Task
+import org.gradle.api.initialization.Settings
+import org.gradle.api.services.ProjectService
+import org.gradle.api.services.SettingsService
 import org.gradle.api.services.TaskService
+
+
+/**
+ * Looks up a service provided by Gradle for use in this project.
+ *
+ * @param T the type of the service to look up
+ * @return the service instance
+ * @throws org.gradle.api.InvalidUserDataException when the given type is not one of the services available in this scope
+ * @see [Project.service]
+ * @since 9.9.0
+ */
+@Incubating
+inline fun <reified T : ProjectService> Project.service(): T =
+    service(T::class.java)
 
 
 /**
@@ -47,4 +65,18 @@ import org.gradle.api.services.TaskService
  */
 @Incubating
 inline fun <reified T : TaskService> Task.service(): T =
+    service(T::class.java)
+
+
+/**
+ * Looks up a service provided by Gradle for use in this build.
+ *
+ * @param T the type of the service to look up
+ * @return the service instance
+ * @throws org.gradle.api.InvalidUserDataException when the given type is not one of the services available in this scope
+ * @see [Settings.service]
+ * @since 9.9.0
+ */
+@Incubating
+inline fun <reified T : SettingsService> Settings.service(): T =
     service(T::class.java)
