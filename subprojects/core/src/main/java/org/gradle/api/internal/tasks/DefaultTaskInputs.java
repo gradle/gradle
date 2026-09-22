@@ -199,6 +199,11 @@ public class DefaultTaskInputs implements TaskInputsInternal {
             }
 
             @Override
+            public void visitNestedProvider(String propertyName, PropertyValue value) {
+                context.add(value.getTaskDependencies());
+            }
+
+            @Override
             public void visitInputFileProperty(
                 final String propertyName,
                 boolean optional,

@@ -135,8 +135,10 @@ abstract class AbstractTypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMe
 
         @Override
         protected void walkNestedProvider(Object node, String qualifiedName, PropertyMetadata propertyMetadata, InstanceMetadataVisitor visitor, boolean isElementOfCollection, Consumer<Object> handler) {
+            Provider<?> provider = (Provider<?>) node;
+            visitor.visitNestedProvider(qualifiedName, provider);
             walkNestedChild(
-                () -> ((Provider<?>) node).getOrNull(),
+                provider::getOrNull,
                 qualifiedName,
                 propertyMetadata,
                 visitor,

@@ -927,6 +927,124 @@ The following types/formats are supported:
         file("out.txt").text == "22"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/13590")
+    def "nested property with value of mapped task output implies dependency on the task"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            class Bean {
+                @Input
+                final String value
+                Bean(String value) { this.value = value }
+            }
+            abstract class NestedTask extends DefaultTask {
+                @Nested
+                abstract Property<Bean> getBean()
+                @OutputFile
+                abstract RegularFileProperty getOutFile()
+                @TaskAction
+                def go() {
+                    outFile.get().asFile.text = bean.get().value
+                }
+            }
+            def task = tasks.create("a", FileProducer) {
+                output = file("file.txt")
+                content = "12"
+            }
+            tasks.register("b", NestedTask) {
+                bean = task.output.map { new Bean(it.asFile.text) }
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksScheduled(":a", ":b")
+        file("out.txt").text == "12"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/13590")
+    def "nested list property with value of flat mapped task provider output implies dependency on the task"() {
+        buildFile << """
+            abstract class FilesProducer extends DefaultTask {
+                @OutputFiles
+                abstract ListProperty<File> getOutputFiles()
+                @TaskAction
+                def go() {
+                    outputFiles.get().each { it.text = it.name }
+                }
+            }
+            class Bean {
+                @Input
+                final String value
+                Bean(String value) { this.value = value }
+            }
+            abstract class NestedTask extends DefaultTask {
+                @Nested
+                abstract ListProperty<Bean> getBeans()
+                @OutputFile
+                abstract RegularFileProperty getOutFile()
+                @TaskAction
+                def go() {
+                    outFile.get().asFile.text = beans.get().collect { it.value }.join(",")
+                }
+            }
+            def taskProvider = tasks.register("a", FilesProducer) {
+                outputFiles.add(file("file1.txt"))
+                outputFiles.add(file("file2.txt"))
+            }
+            tasks.register("b", NestedTask) {
+                beans.addAll(taskProvider.flatMap { it.outputFiles }.map { files -> files.collect { new Bean(it.text) } })
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksScheduled(":a", ":b")
+        file("out.txt").text == "file1.txt,file2.txt"
+    }
+
+    def "nested property with fixed value whose input file property has value of task output implies dependency on the task"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            abstract class Bean {
+                @InputFile
+                abstract RegularFileProperty getInputFile()
+            }
+            abstract class NestedTask extends DefaultTask {
+                @Nested
+                abstract Property<Bean> getBean()
+                @OutputFile
+                abstract RegularFileProperty getOutFile()
+                @TaskAction
+                def go() {
+                    outFile.get().asFile.text = bean.get().inputFile.get().asFile.text
+                }
+            }
+            def task = tasks.create("a", FileProducer) {
+                output = file("file.txt")
+                content = "12"
+            }
+            tasks.register("b", NestedTask) {
+                def value = objects.newInstance(Bean)
+                value.inputFile = task.output
+                bean = value
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksScheduled(":a", ":b")
+        file("out.txt").text == "12"
+    }
+
     def "ad hoc input property with value of mapped task output implies dependency on the task"() {
         taskTypeWithOutputFileProperty()
         buildFile << """

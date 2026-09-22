@@ -118,6 +118,47 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
             "nestedNamedList.namedType\$0.inputProperty::Property[third-property]",
             "nestedProperty.inputProperty::Property[second-property]"
         ]
+        visitor.nestedProviders == [["nestedProperty", myTask.nestedProperty]]
+    }
+
+    def "instance walker should visit nested providers before unpacking them"() {
+        given:
+        def nestedType = new NestedType()
+        def nestedProperty = TestUtil.propertyFactory().property(NestedType).value(nestedType)
+        def innerProvider = TestUtil.providerFactory().provider { nestedType }
+        def outerProvider = TestUtil.providerFactory().provider { innerProvider }
+        def elementProvider = TestUtil.providerFactory().provider { nestedType }
+        def instance = new Object() {
+            @TestNested
+            Property<NestedType> getNestedProperty() {
+                return nestedProperty
+            }
+            @TestNested
+            Provider<Provider<NestedType>> getNestedProviderOfProvider() {
+                return outerProvider as Provider<Provider<NestedType>>
+            }
+            @TestNested
+            List<Provider<NestedType>> getNestedProviderList() {
+                return [elementProvider]
+            }
+        }
+        def visitor = new TestInstanceMetadataVisitor()
+
+        when:
+        TypeMetadataWalker.instanceWalker(typeMetadataStore, TestNested.class).walk(instance, visitor)
+
+        then:
+        visitor.nestedProviders == [
+            ["nestedProperty", nestedProperty],
+            ["nestedProviderList.\$0", elementProvider],
+            ["nestedProviderOfProvider", outerProvider],
+            ["nestedProviderOfProvider", innerProvider]
+        ]
+        visitor.nested == [
+            "nestedProperty::$nestedType",
+            "nestedProviderList.\$0::$nestedType",
+            "nestedProviderOfProvider::$nestedType"
+        ] as List<String>
     }
 
     def "type walker should handle types with nested cycles"() {
@@ -366,10 +407,23 @@ class AbstractTypeMetadataWalkerTest extends Specification implements TestAnnota
 
     static class TestInstanceMetadataVisitor extends TestNodeMetadataVisitor<Object> implements TypeMetadataWalker.InstanceMetadataVisitor {
         private final List<CollectedNode> leaves = []
+        private final List<List<Object>> nestedProviders = []
 
         @Override
         void visitNestedUnpackingError(String qualifiedName, Exception e) {
             throw e
+        }
+
+        @Override
+        void visitNestedProvider(String qualifiedName, Provider<?> provider) {
+            nestedProviders.add([qualifiedName, provider])
+        }
+
+        /**
+         * The visited nested providers, as [qualifiedName, provider] pairs in visiting order.
+         */
+        List<List<Object>> getNestedProviders() {
+            return nestedProviders
         }
 
         @Override

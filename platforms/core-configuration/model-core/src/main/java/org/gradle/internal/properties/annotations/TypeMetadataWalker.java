@@ -76,6 +76,13 @@ public interface TypeMetadataWalker<T, V extends TypeMetadataWalker.TypeMetadata
         @Override
         void visitNested(TypeMetadata typeMetadata, String qualifiedName, PropertyMetadata propertyMetadata, @Nullable Object value);
         void visitNestedUnpackingError(String qualifiedName, Exception e);
+
+        /**
+         * Visits a nested {@link Provider} before it is unpacked.
+         * The value of the provider is unpacked and visited separately, as nested beans and leaf properties.
+         */
+        void visitNestedProvider(String qualifiedName, Provider<?> provider);
+
         void visitLeaf(Object parent, String qualifiedName, PropertyMetadata propertyMetadata);
     }
 }

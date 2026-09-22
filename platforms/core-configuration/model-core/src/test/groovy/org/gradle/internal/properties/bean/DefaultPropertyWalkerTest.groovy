@@ -213,6 +213,7 @@ class DefaultPropertyWalkerTest extends AbstractProjectBuilderSpec {
 
         then:
         _ * visitor.visitOutputFilePropertiesOnly() >> false
+        1 * visitor.visitNestedProvider("nested", { it.call().is(task.nested) && it.taskDependencies.is(task.nested) })
         1 * visitor.visitInputProperty("nested" , _, false)
         1 * visitor.visitInputProperty("nested.nestedInput", _, false)
         1 * visitor.visitInputFileProperty("nested.inputDir", _, _, _, _, _, _, InputFilePropertyType.DIRECTORY)

@@ -87,6 +87,11 @@ public class DefaultPropertyWalker implements PropertyWalker {
             }
 
             @Override
+            public void visitNestedProvider(String qualifiedName, Provider<?> provider) {
+                visitor.visitNestedProvider(qualifiedName, new NestedProviderValue(provider));
+            }
+
+            @Override
             public void visitLeaf(Object parent, String qualifiedName, PropertyMetadata propertyMetadata) {
                 PropertyValue cachedValue = new CachedPropertyValue(
                     () -> propertyMetadata.getPropertyValue(parent),
@@ -192,6 +197,36 @@ public class DefaultPropertyWalker implements PropertyWalker {
         @Override
         public String toString() {
             return "Implementation: " + implementationValue;
+        }
+    }
+
+    private static class NestedProviderValue implements PropertyValue {
+        private final Provider<?> provider;
+
+        public NestedProviderValue(Provider<?> provider) {
+            this.provider = provider;
+        }
+
+        @Override
+        public Object call() {
+            return provider;
+        }
+
+        @Override
+        public TaskDependencyContainer getTaskDependencies() {
+            return (TaskDependencyContainer) provider;
+        }
+
+        @Override
+        public void maybeFinalizeValue() {
+            if (provider instanceof HasConfigurableValueInternal) {
+                ((HasConfigurableValueInternal) provider).implicitFinalizeValue();
+            }
+        }
+
+        @Override
+        public String toString() {
+            return "Nested provider: " + provider;
         }
     }
 

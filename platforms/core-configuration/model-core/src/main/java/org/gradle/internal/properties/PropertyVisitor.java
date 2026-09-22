@@ -30,6 +30,13 @@ public interface PropertyVisitor {
 
     default void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {}
 
+    /**
+     * Visits a nested property whose value is a {@link org.gradle.api.provider.Provider}.
+     * The provider is unpacked and its value is visited separately, as nested beans and leaf properties.
+     * This method exposes the provider itself, so that the tasks producing its value can be discovered without unpacking it.
+     */
+    default void visitNestedProvider(String propertyName, PropertyValue value) {}
+
     default void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {}
 
     default void visitDestroyableProperty(Object value) {}
