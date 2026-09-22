@@ -442,7 +442,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
         private static OutputStream openAgentOutput(File file, PrintStream stdout) {
             try {
                 Files.createDirectories(file.getParentFile().toPath());
-                OutputStream output = Files.newOutputStream(file.toPath());
+                OutputStream output = new LineBufferingOutputStream(Files.newOutputStream(file.toPath()));
                 stdout.println(file.getAbsolutePath());
                 stdout.flush();
                 return output;

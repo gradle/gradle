@@ -84,7 +84,8 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         given:
         server.start()
         settingsFile << """
-            println("Message from settings")
+            print("Message from settings")
+            print(" continued")
             ${server.callFromBuild("settings")}
         """
 
@@ -94,10 +95,10 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         settings.waitForAllPendingCalls()
 
         then:
-        ConcurrentTestUtil.poll {
-            assert agentOutputFile(build.standardOutput).text.contains("Message from settings")
-        }
         def agentOutput = agentOutputFile(build.standardOutput)
+        ConcurrentTestUtil.poll {
+            assert agentOutput.text.contains("Message from settings continued")
+        }
         !agentOutput.text.contains("BUILD SUCCESSFUL")
 
         when:
@@ -106,6 +107,37 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         agentOutput.text.contains("BUILD SUCCESSFUL")
+    }
+
+    def "only writes complete lines to the file"() {
+        given:
+        server.start()
+        settingsFile << """
+            println("Complete line from settings")
+            print("Partial line from settings")
+            new URL("${server.uri("settings")}").text
+        """
+
+        when:
+        def settings = server.expectAndBlock("settings")
+        def build = executer.withTasks("hello").withArgument("--agent").start()
+        settings.waitForAllPendingCalls()
+
+        then:
+        def agentOutput = agentOutputFile(build.standardOutput)
+        ConcurrentTestUtil.poll {
+            assert agentOutput.text.contains("Complete line from settings\n")
+        }
+        sleep(1000) // give the partial line a chance to reach the client
+        agentOutput.text.endsWith("\n")
+        !agentOutput.text.contains("Partial line from settings")
+
+        when:
+        settings.releaseAll()
+        build.waitForFinish()
+
+        then:
+        agentOutput.text.contains("Partial line from settings")
     }
 
     def "prints the file location before starting the daemon"() {
