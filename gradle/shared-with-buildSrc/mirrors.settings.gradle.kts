@@ -42,7 +42,7 @@ class Helper(private val providers: ProviderFactory) {
 
     fun isCI() = providers.environmentVariable("CI").isPresent()
 
-    fun withMirrors(handler: RepositoryHandler) {
+    fun withMirrors(handler: RepositoryHandler, mirrorNames: Set<String> = originalUrls.keys) {
         if (!isCI()) {
             return
         }
@@ -51,7 +51,7 @@ class Helper(private val providers: ProviderFactory) {
                 // see https://github.com/gradle/gradle/issues/37612
                 @Suppress("USELESS_ELVIS")
                 val currentUrl = this.url?.toString() ?: return@all
-                originalUrls.forEach { name, originalUrl ->
+                originalUrls.filterKeys { it in mirrorNames }.forEach { name, originalUrl ->
                     if (normalizeUrl(originalUrl) == normalizeUrl(currentUrl) && mirrorUrls.containsKey(name)) {
                         mirrorUrls.get(name)?.let { this.setUrl(it) }
                     }
@@ -78,5 +78,6 @@ with(Helper(providers)) {
 
     gradle.settingsEvaluated {
         withMirrors(settings.pluginManagement.repositories)
+        withMirrors(settings.dependencyResolutionManagement.repositories, setOf("mavencentral"))
     }
 }

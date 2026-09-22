@@ -18,6 +18,7 @@ package org.gradle.buildinit.plugins
 
 import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
@@ -39,7 +40,7 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
          * RepositorySystem.defaultUserLocalRepository is statically initialised and used when
          * creating multiple ProjectBuildingRequest.
          * */
-        m2.generateUserSettingsFile(m2.mavenRepo())
+        m2.generateUserSettingsFile(m2.mavenRepo(), RepoScriptBlockUtil.mavenCentralMirrorUrl)
         using m2
 
         targetDir.file("src/main/java/Foo.java") << """

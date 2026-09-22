@@ -88,11 +88,20 @@ class M2Installation implements Action<GradleExecuter> {
         new MavenLocalRepository(userM2Directory.file("repository"))
     }
 
-    M2Installation generateUserSettingsFile(MavenLocalRepository userRepository) {
+    M2Installation generateUserSettingsFile(MavenLocalRepository userRepository, String mavenCentralMirrorUrl = null) {
         init()
         userSettingsFile.text = """
 <settings>
     <localRepository>${userRepository.rootDir.absolutePath}</localRepository>
+    ${mavenCentralMirrorUrl ? """
+    <mirrors>
+        <mirror>
+            <id>maven-central-mirror</id>
+            <url>${mavenCentralMirrorUrl}</url>
+            <mirrorOf>central</mirrorOf>
+        </mirror>
+    </mirrors>
+    """ : ""}
 </settings>"""
         return this
     }

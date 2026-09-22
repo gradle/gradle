@@ -21,6 +21,7 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.buildinit.InsecureProtocolOption
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
@@ -55,7 +56,7 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
          * RepositorySystem.defaultUserLocalRepository is statically initialised and used when
          * creating multiple ProjectBuildingRequest.
          * */
-        m2.generateUserSettingsFile(m2.mavenRepo())
+        m2.generateUserSettingsFile(m2.mavenRepo(), RepoScriptBlockUtil.mavenCentralMirrorUrl)
         using m2
     }
 

@@ -19,6 +19,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.BuildScriptBuilder
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.TextUtil
 import org.hamcrest.Matcher
@@ -35,6 +36,12 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
     @Override
     String subprojectName() { 'app' }
+
+    def setup() {
+        // Auto-detected Maven conversion resolves its classpath through a detached resolver.
+        m2.generateUserSettingsFile(m2.mavenRepo(), RepoScriptBlockUtil.mavenCentralMirrorUrl)
+        using m2
+    }
 
     @SuppressWarnings('GroovyAssignabilityCheck')
     def "init must be only task requested #args"() {
