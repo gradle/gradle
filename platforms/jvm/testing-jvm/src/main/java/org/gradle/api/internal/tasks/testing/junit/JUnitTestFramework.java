@@ -36,6 +36,7 @@ import org.gradle.process.internal.worker.WorkerProcessBuilder;
 import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
+import java.util.LinkedHashSet;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -76,7 +77,13 @@ public abstract class JUnitTestFramework implements TestFramework {
     public WorkerTestDefinitionProcessorFactory<?> getProcessorFactory() {
         validateOptions();
         return new JUnitTestDefinitionProcessorFactory(new JUnitSpec(
-            filter.toSpec(), getOptions().getIncludeCategories(), getOptions().getExcludeCategories(), dryRun.get()));
+            filter.toSpec(),
+            // JUnitSpec get serialized to worker, so we create a copy of original set,
+            // to avoid serialization issues on worker for ImmutableSet that SetProperty returns
+            new LinkedHashSet<>(getOptions().getIncludeCategories().get()),
+            new LinkedHashSet<>(getOptions().getExcludeCategories().get()),
+            dryRun.get()
+        ));
     }
 
     @Override
@@ -105,8 +112,8 @@ public abstract class JUnitTestFramework implements TestFramework {
     }
 
     private void validateOptions() {
-        Set<String> intersection = Sets.newHashSet(getOptions().getIncludeCategories());
-        intersection.retainAll(getOptions().getExcludeCategories());
+        Set<String> intersection = Sets.newHashSet(getOptions().getIncludeCategories().get());
+        intersection.retainAll(getOptions().getExcludeCategories().get());
         if (!intersection.isEmpty()) {
             if (intersection.size() == 1) {
                 LOGGER.warn("The category '" + intersection.iterator().next() + "' is both included and excluded.  " +

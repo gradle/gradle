@@ -16,6 +16,7 @@
 
 package org.gradle.plugins.ear.descriptor.internal
 
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultEarModuleTest extends Specification {
@@ -28,12 +29,26 @@ class DefaultEarModuleTest extends Specification {
 
         where:
         lhs || rhs || equals
-        new DefaultEarModule("some.jar") | new DefaultEarModule("some-other.jar") | false
-        new DefaultEarModule("some.jar") | new DefaultEarModule("some.jar") | true
-        new DefaultEarModule(path: "some.jar", altDeployDescriptor: "some.xml") | new DefaultEarModule("some.jar") | false
-        new DefaultEarSecurityRole("role", "description") | new DefaultEarSecurityRole("role", "description") | true
-        new DefaultEarSecurityRole("role") | new DefaultEarSecurityRole("role") | true
-        new DefaultEarSecurityRole("role") | new DefaultEarSecurityRole("other-role") | false
-        new DefaultEarSecurityRole("role", "description") | new DefaultEarSecurityRole("other-role", "other-description") | false
+        newDefaultEarModule("some.jar") | newDefaultEarModule("some-other.jar") | false
+        newDefaultEarModule("some.jar") | newDefaultEarModule("some.jar") | true
+        newDefaultEarModule("some.jar", "some.xml") | newDefaultEarModule("some.jar") | false
+        newDefaultEarSecurityRole("role", "description") | newDefaultEarSecurityRole("role", "description") | true
+        newDefaultEarSecurityRole("role") | newDefaultEarSecurityRole("role") | true
+        newDefaultEarSecurityRole("role") | newDefaultEarSecurityRole("other-role") | false
+        newDefaultEarSecurityRole("role", "description") | newDefaultEarSecurityRole("other-role", "other-description") | false
+    }
+
+    private static DefaultEarModule newDefaultEarModule(String path, String altDeployDescriptor = null) {
+        return TestUtil.objectFactory().newInstance(DefaultEarModule).tap {
+            it.path = path
+            it.altDeployDescriptor = altDeployDescriptor
+        }
+    }
+
+    private static DefaultEarSecurityRole newDefaultEarSecurityRole(String roleName, String description = null) {
+        return TestUtil.objectFactory().newInstance(DefaultEarSecurityRole).tap {
+            it.roleName = roleName
+            it.description = description
+        }
     }
 }

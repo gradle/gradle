@@ -151,7 +151,7 @@ class RepoScriptBlockUtil {
     static String mirrorInitScript() {
         def mirrorConditions = MirroredRepository.values().collect { MirroredRepository mirror ->
             """
-                if (normalizeUrl(repo.url) == normalizeUrl('${mirror.originalUrl}')) {
+                if (normalizeUrl(urlOf(repo)) == normalizeUrl('${mirror.originalUrl}')) {
                     repo.url = '${mirror.mirrorUrl}'
                 }
             """
@@ -222,6 +222,14 @@ class RepoScriptBlockUtil {
 
                 static void mirror(IvyArtifactRepository repo) {
                     ${mirrorConditions}
+                }
+
+                // The url is a Property<URI> since the Provider API migration and a plain URI before it,
+                // so unwrap it dynamically to stay compatible with the Gradle versions this script runs against.
+                @CompileDynamic
+                static Object urlOf(Object repo) {
+                    def url = repo.url
+                    return url.respondsTo('getOrNull') ? url.getOrNull() : url
                 }
 
                 // We see them as equal:

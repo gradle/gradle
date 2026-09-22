@@ -210,7 +210,7 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
             });
             publicationInternal.allPublishableArtifacts(artifact -> {
                 if (isNoSignatureArtifact(artifact)) {
-                    addSignature(new Signature(artifact, artifact::getFile, null, null, this, this));
+                    addSignature(new Signature(artifact, () -> artifact.getFile().get().getAsFile(), null, null, this, this));
                 }
             });
             publicationInternal.whenPublishableArtifactRemoved(this::removeSignature);
@@ -218,7 +218,7 @@ public abstract class Sign extends DefaultTask implements SignatureSpec {
     }
 
     private boolean isNoSignatureArtifact(PublicationArtifact artifact) {
-        return !getSignatureFiles().contains(artifact.getFile());
+        return !getSignatureFiles().contains(artifact.getFile().get().getAsFile());
     }
 
     private void addSignature(Signature signature) {

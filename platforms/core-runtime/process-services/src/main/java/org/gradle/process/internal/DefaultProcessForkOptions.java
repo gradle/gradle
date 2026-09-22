@@ -15,7 +15,7 @@
  */
 package org.gradle.process.internal;
 
-import com.google.common.collect.Maps;
+import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.FileSystemLocation;
@@ -25,10 +25,15 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.collections.DefaultDirectoryFileTreeFactory;
 import org.gradle.api.internal.lambdas.SerializableLambdas.SerializableTransformer;
+import org.gradle.api.internal.provider.DefaultMapProperty;
+import org.gradle.api.internal.provider.DefaultProperty;
+import org.gradle.api.internal.provider.MapPropertyInternal;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.MapProperty;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.internal.file.PathToFileResolver;
@@ -42,10 +47,13 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class DefaultProcessForkOptions implements ProcessForkOptions {
+    // TODO(mlopatkin) this provider is a good candidate for CC deduplication
+    public static final Provider<Map<String, String>> CURRENT_ENVIRONMENT = Providers.changing(DefaultClientExecHandleBuilder::getCurrentEnvironment);
+
     protected final PathToFileResolver resolver;
-    private Object executable;
+    private final Property<String> executable;
     private final DirectoryProperty workingDir;
-    private Map<String, Object> environment;
+    private final MapProperty<String, Object> environment;
 
     /**
      * Kept for backward compatibility with some external plugins (e.g. KGP). Use {@link #DefaultProcessForkOptions(ObjectFactory, PathToFileResolver)} instead.
@@ -53,38 +61,74 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
      * @deprecated Use {@link #DefaultProcessForkOptions(ObjectFactory, PathToFileResolver)} instead.
      */
     @Deprecated
+    @SuppressWarnings("this-escape")
     public DefaultProcessForkOptions(PathToFileResolver resolver) {
-        this(resolver, SimplePropertyFactory.directoryProperty((FileResolver) resolver), SimplePropertyFactory.directoryProperty((FileResolver) resolver));
+        this(
+            resolver,
+            SimplePropertyFactory.property(String.class),
+            SimplePropertyFactory.directoryProperty((FileResolver) resolver),
+            SimplePropertyFactory.directoryProperty((FileResolver) resolver),
+            SimplePropertyFactory.mapProperty(String.class, Object.class),
+            CURRENT_ENVIRONMENT
+        );
     }
 
     @Inject
+    @SuppressWarnings("this-escape")
     public DefaultProcessForkOptions(ObjectFactory objectFactory, PathToFileResolver resolver) {
-        this(resolver, objectFactory.directoryProperty(), objectFactory.directoryProperty());
+        this(objectFactory, resolver, CURRENT_ENVIRONMENT);
     }
 
-    private DefaultProcessForkOptions(PathToFileResolver resolver, DirectoryProperty defaultWorkingDir, DirectoryProperty workingDir) {
+    @SuppressWarnings("this-escape")
+    protected DefaultProcessForkOptions(ObjectFactory objectFactory, PathToFileResolver resolver, Provider<Map<String, String>> inheritableEnvironment) {
+        this(
+            resolver,
+            objectFactory.property(String.class),
+            objectFactory.directoryProperty(),
+            objectFactory.directoryProperty(),
+            objectFactory.mapProperty(String.class, Object.class),
+            inheritableEnvironment
+        );
+    }
+
+    private DefaultProcessForkOptions(
+        PathToFileResolver resolver,
+        Property<String> executable,
+        DirectoryProperty defaultWorkingDir,
+        DirectoryProperty workingDir,
+        MapProperty<String, Object> environment,
+        Provider<Map<String, String>> inheritableEnvironment
+    ) {
         this.resolver = resolver;
+        this.executable = executable;
+        // TODO: Gradle 9.0 we should just use defaultWorkingDir.fileProvider(Providers.of(new File("."))) here,
+        //  but it seems ObjectFactory.directoryProperty() doesn't have the right fileResolver set up in some cases
         this.workingDir = workingDir.convention(defaultWorkingDir.fileProvider(Providers.changing(() -> resolver.resolve("."))));
+        this.environment = environment.value(inheritableEnvironment);
     }
 
     @Override
-    public String getExecutable() {
-        return executable == null ? null : executable.toString();
+    public Property<String> getExecutable() {
+        return executable;
     }
 
     @Override
     public void setExecutable(String executable) {
-        this.executable = executable;
+        getExecutable().set(executable);
     }
 
     @Override
     public void setExecutable(Object executable) {
-        this.executable = executable;
+        this.executable(executable);
     }
 
     @Override
     public ProcessForkOptions executable(Object executable) {
-        setExecutable(executable);
+        if (executable instanceof Provider) {
+            getExecutable().set(((Provider<?>) executable).map(Object::toString));
+        } else {
+            getExecutable().set(Providers.changing(executable::toString));
+        }
         return this;
     }
 
@@ -130,61 +174,66 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
     }
 
     @Override
-    public Map<String, Object> getEnvironment() {
-        if (environment == null) {
-            setEnvironment(getInheritableEnvironment());
-        }
+    public MapProperty<String, Object> getEnvironment() {
         return environment;
     }
 
-    protected Map<String, ?> getInheritableEnvironment() {
-        return System.getenv();
-    }
-
-    public Map<String, String> getActualEnvironment() {
-        return getActualEnvironment(this);
-    }
-
-    public static Map<String, String> getActualEnvironment(ProcessForkOptions forkOptions) {
-        Map<String, String> actual = new HashMap<>();
-        for (Map.Entry<String, Object> entry : forkOptions.getEnvironment().entrySet()) {
-            actual.put(entry.getKey(), String.valueOf(entry.getValue()));
-        }
-        return actual;
+    @Override
+    public void setEnvironment(Map<String, ?> environment) {
+        getEnvironment().set(environment);
     }
 
     @Override
-    public void setEnvironment(Map<String, ?> environmentVariables) {
-        environment = Maps.newHashMap(environmentVariables);
-    }
-
-    @Override
+    @SuppressWarnings("unchecked")
     public ProcessForkOptions environment(String name, Object value) {
-        getEnvironment().put(name, value);
+        if (value instanceof Provider) {
+            ((MapPropertyInternal<String, Object>) getEnvironment()).insert(name, (Provider<?>) value);
+        } else {
+            getEnvironment().put(name, value == null ? "null" : value);
+        }
         return this;
     }
 
     @Override
     public ProcessForkOptions environment(Map<String, ?> environmentVariables) {
-        getEnvironment().putAll(environmentVariables);
+        for (Map.Entry<String, ?> entry : environmentVariables.entrySet()) {
+            environment(entry.getKey(), entry.getValue());
+        }
         return this;
     }
 
     @Override
     public ProcessForkOptions copyTo(ProcessForkOptions target) {
-        target.setExecutable(executable);
+        target.getExecutable().set(getExecutable());
         target.getWorkingDirectory().set(getWorkingDirectory());
-        target.setEnvironment(getEnvironment());
+        target.getEnvironment().set(getEnvironment());
         return this;
     }
 
+    @VisibleForTesting
+    Map<String, String> getActualEnvironment() {
+        return getActualEnvironment(this);
+    }
+
+    public static Map<String, String> getActualEnvironment(ProcessForkOptions forkOptions) {
+        Map<String, String> actual = new HashMap<>();
+        for (Map.Entry<String, Object> entry : forkOptions.getEnvironment().get().entrySet()) {
+            actual.put(entry.getKey(), String.valueOf(entry.getValue()));
+        }
+        return actual;
+    }
+
     /**
-     * Creates a {@link DirectoryProperty} backed only by a {@link FileResolver}, so that the working directory can be
-     * exposed as a lazy property even when no {@link org.gradle.api.model.ObjectFactory} is available (e.g. for the
-     * legacy {@code DefaultProcessForkOptions(PathToFileResolver)} constructor).
+     * Kept for backward compatibility with some external plugins (e.g. KGP), together with the legacy
+     * {@code DefaultProcessForkOptions(PathToFileResolver)} constructor that has no {@link ObjectFactory} available.
      */
     @NullMarked
     static class SimplePropertyFactory {
+
+        public static Property<String> property(Class<String> type) {
+            return new DefaultProperty<>(PropertyHost.NO_OP, type);
+        }
+
         @SuppressWarnings("deprecation")
         public static DirectoryProperty directoryProperty(FileResolver fileResolver) {
             FileCollectionFactory fileCollectionFactory = new DefaultFileCollectionFactory(
@@ -200,6 +249,10 @@ public class DefaultProcessForkOptions implements ProcessForkOptions {
                 fileResolver,
                 fileCollectionFactory
             ).newDirectoryProperty();
+        }
+
+        public static MapProperty<String, Object> mapProperty(Class<String> keyType, Class<Object> valueType) {
+            return new DefaultMapProperty<>(PropertyHost.NO_OP, keyType, valueType);
         }
     }
 }

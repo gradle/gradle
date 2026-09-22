@@ -60,7 +60,8 @@ class Antlr4PluginIntegrationTest extends AbstractAntlrIntegrationTest {
         when:
         buildFile "grammar-builder/build.gradle", """
             generateGrammarSource {
-                arguments << "-lib" << "src/main/antlr/org/acme"
+                arguments.add("-lib")
+                arguments.add("src/main/antlr/org/acme")
             }
         """
         then:

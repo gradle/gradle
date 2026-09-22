@@ -18,7 +18,7 @@ dependencies {
 // tag::force-compilation[]
 tasks.withType<ScalaCompile>().configureEach {
     scalaCompileOptions.apply {
-        isForce = true
+        force = true
     }
 }
 // end::force-compilation[]

@@ -16,7 +16,8 @@
 package org.gradle.plugins.ear.descriptor;
 
 import groovy.util.Node;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 /**
  * A module element in a deployment descriptor like application.xml.
@@ -28,8 +29,8 @@ public interface EarModule {
      * The connector element specifies the URI of an archive file, relative to the top level of the application package.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    String getPath();
+    @ReplacesEagerProperty
+    Property<String> getPath();
 
     /**
      * Sets the path.
@@ -45,8 +46,8 @@ public interface EarModule {
      * from the default location and file name required by the respective component specification.
      * @since 1.0
      */
-    @ToBeReplacedByLazyProperty
-    String getAltDeployDescriptor();
+    @ReplacesEagerProperty
+    Property<String> getAltDeployDescriptor();
 
     /**
      * Sets the alt deploy descriptor.

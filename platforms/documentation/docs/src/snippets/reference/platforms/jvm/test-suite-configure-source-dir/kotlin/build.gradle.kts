@@ -46,7 +46,7 @@ testing {
             targets {
                 all { // <1>
                     testTask.configure {
-                        setMaxHeapSize("512m") // <2>
+                        maxHeapSize = "512m" // <2>
                     }
                 }
             }

@@ -16,6 +16,11 @@
 
 package org.gradle.external.javadoc;
 
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.provider.ListProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.IgnoreEmptyDirectories;
@@ -25,13 +30,14 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 import org.gradle.process.ExecSpec;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
 import java.util.List;
+
 
 /**
  * Provides the core Javadoc options.
@@ -43,9 +49,10 @@ public interface MinimalJavadocOptions {
      *
      * @since 0.7
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    String getOverview();
+    @Input
+    @Optional
+    @ReplacesEagerProperty
+    Property<String> getOverview();
 
     /**
      * Sets the overview.
@@ -66,9 +73,10 @@ public interface MinimalJavadocOptions {
      *
      * @since 0.7
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    JavadocMemberLevel getMemberLevel();
+    @Input
+    @Optional
+    @ReplacesEagerProperty
+    Property<JavadocMemberLevel> getMemberLevel();
 
     /**
      * Sets the member level.
@@ -117,9 +125,10 @@ public interface MinimalJavadocOptions {
      *
      * @since 0.7
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    String getDoclet();
+    @Input
+    @Optional
+    @ReplacesEagerProperty
+    Property<String> getDoclet();
 
     /**
      * Sets the doclet.
@@ -141,8 +150,8 @@ public interface MinimalJavadocOptions {
      * @since 0.9
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    List<File> getDocletpath();
+    @ReplacesEagerProperty(adapter = MinimalJavadocOptionsAdapters.DocletpathAdapter.class)
+    ConfigurableFileCollection getDocletpath();
 
     /**
      * Sets the docletpath.
@@ -163,9 +172,10 @@ public interface MinimalJavadocOptions {
      *
      * @since 0.7
      */
-    @Nullable @Optional @Input
-    @ToBeReplacedByLazyProperty
-    String getSource();
+    @Input
+    @Optional
+    @ReplacesEagerProperty
+    Property<String> getSource();
 
     /**
      * Sets the source.
@@ -187,8 +197,8 @@ public interface MinimalJavadocOptions {
      * @since 0.7
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    List<File> getClasspath();
+    @ReplacesEagerProperty(adapter = MinimalJavadocOptionsAdapters.ClasspathAdapter.class)
+    ConfigurableFileCollection getClasspath();
 
     /**
      * Sets the classpath.
@@ -203,8 +213,8 @@ public interface MinimalJavadocOptions {
      * @since 6.4
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    List<File> getModulePath();
+    @ReplacesEagerProperty(adapter = MinimalJavadocOptionsAdapters.ModulePath.class)
+    ConfigurableFileCollection getModulePath();
 
     /**
      * The --module-path.
@@ -240,8 +250,8 @@ public interface MinimalJavadocOptions {
      * @since 0.7
      */
     @Classpath
-    @ToBeReplacedByLazyProperty
-    List<File> getBootClasspath();
+    @ReplacesEagerProperty(adapter = MinimalJavadocOptionsAdapters.BootclasspathAdapter.class)
+    ConfigurableFileCollection getBootClasspath();
 
     /**
      * Sets the boot classpath.
@@ -262,9 +272,12 @@ public interface MinimalJavadocOptions {
      *
      * @since 0.7
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @IgnoreEmptyDirectories @PathSensitive(PathSensitivity.RELATIVE) @InputFiles
-    List<File> getExtDirs();
+    @InputFiles
+    @Optional
+    @IgnoreEmptyDirectories
+    @PathSensitive(PathSensitivity.RELATIVE)
+    @ReplacesEagerProperty(adapter = MinimalJavadocOptionsAdapters.ExtDirsAdapter.class)
+    ConfigurableFileCollection getExtDirs();
 
     /**
      * Sets the ext dirs.
@@ -286,8 +299,8 @@ public interface MinimalJavadocOptions {
      * @since 0.7
      */
     @Console
-    @ToBeReplacedByLazyProperty
-    JavadocOutputLevel getOutputLevel();
+    @ReplacesEagerProperty
+    Property<JavadocOutputLevel> getOutputLevel();
 
     /**
      * Sets the output level.
@@ -303,14 +316,15 @@ public interface MinimalJavadocOptions {
      */
     MinimalJavadocOptions verbose();
 
+    @Internal
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Provider<Boolean> getVerbose();
+
     /**
-     * Returns whether verbose is set.
-     *
-     * @since 0.7
+     * This method exists only for Kotlin source backward compatibility.
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    boolean isVerbose();
+    Provider<Boolean> getIsVerbose();
 
     /**
      * Quiet.
@@ -319,14 +333,9 @@ public interface MinimalJavadocOptions {
      */
     MinimalJavadocOptions quiet();
 
-    /**
-     * Returns whether break iterator is set.
-     *
-     * @since 0.7
-     */
     @Input
-    @ToBeReplacedByLazyProperty
-    boolean isBreakIterator();
+    @ReplacesEagerProperty(originalType = boolean.class)
+    Property<Boolean> getBreakIterator();
 
     /**
      * Sets the break iterator.
@@ -334,6 +343,12 @@ public interface MinimalJavadocOptions {
      * @since 0.7
      */
     void setBreakIterator(boolean breakIterator);
+
+    /**
+     * This method exists only for Kotlin source backward compatibility.
+     */
+    @Internal
+    Property<Boolean> getIsBreakIterator();
 
     /**
      * Break iterator.
@@ -354,9 +369,10 @@ public interface MinimalJavadocOptions {
      *
      * @since 0.7
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    String getLocale();
+    @Input
+    @Optional
+    @ReplacesEagerProperty
+    Property<String> getLocale();
 
     /**
      * Sets the locale.
@@ -377,9 +393,10 @@ public interface MinimalJavadocOptions {
      *
      * @since 0.7
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    String getEncoding();
+    @Input
+    @Optional
+    @ReplacesEagerProperty
+    Property<String> getEncoding();
 
     /**
      * Sets the encoding.
@@ -400,9 +417,10 @@ public interface MinimalJavadocOptions {
      *
      * @since 0.7
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    List<String> getJFlags();
+    @Input
+    @Optional
+    @ReplacesEagerProperty
+    ListProperty<String> getJFlags();
 
     /**
      * Sets the j flags.
@@ -423,9 +441,11 @@ public interface MinimalJavadocOptions {
      *
      * @since 0.7
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @PathSensitive(PathSensitivity.NONE) @InputFiles
-    List<File> getOptionFiles();
+    @InputFiles
+    @Optional
+    @PathSensitive(PathSensitivity.NONE)
+    @ReplacesEagerProperty(adapter = MinimalJavadocOptionsAdapters.OptionFilesAdapter.class)
+    ConfigurableFileCollection getOptionFiles();
 
     /**
      * Sets the option files.
@@ -447,15 +467,15 @@ public interface MinimalJavadocOptions {
      * @since 0.7
      */
     @Internal
-    @ToBeReplacedByLazyProperty
-    File getDestinationDirectory();
+    @ReplacesEagerProperty
+    DirectoryProperty getDestinationDirectory();
 
     /**
      * Sets the destination directory.
      *
      * @since 0.7
      */
-    void setDestinationDirectory(@Nullable File directory);
+    void setDestinationDirectory(@Nullable File destinationDirectory);
 
     /**
      * Destination directory.
@@ -469,9 +489,10 @@ public interface MinimalJavadocOptions {
      *
      * @since 0.7
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    String getWindowTitle();
+    @Input
+    @Optional
+    @ReplacesEagerProperty
+    Property<String> getWindowTitle();
 
     /**
      * Sets the window title.
@@ -492,9 +513,10 @@ public interface MinimalJavadocOptions {
      *
      * @since 0.9
      */
-    @ToBeReplacedByLazyProperty
-    @Nullable @Optional @Input
-    String getHeader();
+    @Input
+    @Optional
+    @ReplacesEagerProperty
+    Property<String> getHeader();
 
     /**
      * Sets the header.
@@ -522,10 +544,9 @@ public interface MinimalJavadocOptions {
      *
      * @since 0.7
      */
-    @Nullable
     @Internal
-    @ToBeReplacedByLazyProperty
-    List<String> getSourceNames();
+    @ReplacesEagerProperty
+    ListProperty<String> getSourceNames();
 
     /**
      * Sets the source names.

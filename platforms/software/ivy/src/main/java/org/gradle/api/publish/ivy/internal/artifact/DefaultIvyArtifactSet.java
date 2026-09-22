@@ -37,6 +37,7 @@ public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> i
     private final FileCollection files;
     private final NotationParser<Object, IvyArtifact> ivyArtifactParser;
 
+    @SuppressWarnings("this-escape")
     public DefaultIvyArtifactSet(
         String publicationName,
         NotationParser<Object, IvyArtifact> ivyArtifactParser,
@@ -84,7 +85,7 @@ public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> i
         public Set<File> getFiles() {
             Set<File> files = new LinkedHashSet<>();
             for (IvyArtifact artifact : DefaultIvyArtifactSet.this) {
-                files.add(artifact.getFile());
+                files.add(artifact.getFile().get().getAsFile());
             }
             return files;
         }

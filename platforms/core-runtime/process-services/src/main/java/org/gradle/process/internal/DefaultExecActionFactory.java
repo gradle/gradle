@@ -31,6 +31,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.api.tasks.util.internal.PatternSets;
 import org.gradle.initialization.BuildCancellationToken;
+import org.gradle.internal.Factory;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.internal.jvm.Jvm;
@@ -127,19 +128,18 @@ public class DefaultExecActionFactory implements ExecFactory {
         return objectFactory.newInstance(DefaultExecSpec.class, objectFactory, fileResolver);
     }
 
-
     @Override
     public JavaForkOptionsInternal newDecoratedJavaForkOptions() {
         final DefaultJavaForkOptions forkOptions = instantiator.newInstance(DefaultJavaForkOptions.class, objectFactory, fileResolver, fileCollectionFactory);
-        forkOptions.setExecutable(Jvm.current().getJavaExecutable());
+        forkOptions.getExecutable().set(Jvm.current().getJavaExecutable().getAbsolutePath());
         return forkOptions;
     }
 
     @Override
     public JavaForkOptionsInternal newJavaForkOptions() {
         final DefaultJavaForkOptions forkOptions = objectFactory.newInstance(DefaultJavaForkOptions.class, objectFactory, fileResolver, fileCollectionFactory);
-        if (forkOptions.getExecutable() == null) {
-            forkOptions.setExecutable(Jvm.current().getJavaExecutable());
+        if (!forkOptions.getExecutable().isPresent()) {
+            forkOptions.getExecutable().set(Jvm.current().getJavaExecutable().getAbsolutePath());
         }
         return forkOptions;
     }
@@ -155,14 +155,22 @@ public class DefaultExecActionFactory implements ExecFactory {
     }
 
     public JavaExecAction newDecoratedJavaExecAction() {
-        final JavaForkOptionsInternal forkOptions = newDecoratedJavaForkOptions();
-        forkOptions.setExecutable(Jvm.current().getJavaExecutable());
-        DefaultJavaExecAction javaExecAction = instantiator.newInstance(DefaultJavaExecAction.class, newJavaExec());
+        DefaultJavaExecAction javaExecAction = instantiator.newInstance(DefaultJavaExecAction.class, newJavaExecSpec(), newJavaExec());
         ExecHandleListener listener = getExecHandleListener();
         if (listener != null) {
             javaExecAction.listener(listener);
         }
         return javaExecAction;
+    }
+
+    private JavaExecSpec newJavaExecSpec() {
+        return objectFactory.newInstance(
+            DefaultJavaExecSpec.class,
+            objectFactory,
+            fileResolver,
+            fileCollectionFactory,
+            (Factory<JavaModuleDetector>) () -> javaModuleDetector
+        );
     }
 
     @Nullable
@@ -193,7 +201,11 @@ public class DefaultExecActionFactory implements ExecFactory {
 
     @Override
     public JavaExecAction newJavaExecAction() {
-        return new DefaultJavaExecAction(newJavaExec());
+        return objectFactory.newInstance(
+            DefaultJavaExecAction.class,
+            newJavaExecSpec(),
+            newJavaExec()
+        );
     }
 
     @Override
