@@ -302,7 +302,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.withCommandLineGradleOpts("-Dorg.gradle.internal.testing.agent.heartbeat.millis=100")
+        executer.withCommandLineGradleOpts("-Dorg.gradle.internal.agent.heartbeat.millis=100")
         succeeds("slow", "--agent")
 
         then:
@@ -321,7 +321,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        executer.withCommandLineGradleOpts("-Dorg.gradle.internal.testing.agent.heartbeat.millis=100")
+        executer.withCommandLineGradleOpts("-Dorg.gradle.internal.agent.heartbeat.millis=100")
         succeeds("slow")
 
         then:
