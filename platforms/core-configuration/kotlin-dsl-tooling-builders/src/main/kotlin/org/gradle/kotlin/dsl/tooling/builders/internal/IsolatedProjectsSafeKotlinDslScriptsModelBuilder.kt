@@ -52,7 +52,7 @@ import org.gradle.kotlin.dsl.tooling.builders.discoverSettingScript
 import org.gradle.kotlin.dsl.tooling.builders.resolveCorrelationIdParameter
 import org.gradle.kotlin.dsl.tooling.builders.buildEditorReportsFor
 import org.gradle.kotlin.dsl.tooling.builders.mapEditorReports
-import org.gradle.kotlin.dsl.tooling.builders.precompiledScriptPluginClassPathOf
+import org.gradle.kotlin.dsl.tooling.builders.resolveCompileClassPathOf
 import org.gradle.kotlin.dsl.tooling.builders.runtimeFailuresLocatedIn
 import org.gradle.kotlin.dsl.tooling.builders.scriptCompilationClassPath
 import org.gradle.kotlin.dsl.tooling.builders.scriptHandlerFactoryOf
@@ -388,9 +388,9 @@ fun buildScriptModelFor(project: ProjectInternal): IntermediateScriptModel? {
 private
 fun precompiledScriptModelsFor(project: ProjectInternal): ScriptModelResult<List<IntermediateScriptModel>> {
     val scripts = project.discoverPrecompiledScriptPluginScripts()
-    if (scripts.isEmpty()) return ScriptModelResult(emptyList())
+    if (scripts.isEmpty()) return ScriptModelResult.empty()
 
-    val sourceSets = project.sourceSets ?: return ScriptModelResult(emptyList())
+    val sourceSets = project.sourceSets ?: return ScriptModelResult.empty()
     val metadataDir = PrecompiledScriptPluginsMetadataDir.of(project)
 
     val classPathBySourceSet = mutableMapOf<String, ResolvedClassPath>()
@@ -398,7 +398,7 @@ fun precompiledScriptModelsFor(project: ProjectInternal): ScriptModelResult<List
 
     val models = scripts.mapNotNull { scriptFile ->
         val sourceSet = sourceSets.find { scriptFile in it.allSource } ?: return@mapNotNull null
-        val classPath = classPathBySourceSet.getOrPut(sourceSet.name) { project.precompiledScriptPluginClassPathOf(sourceSet) }.classPath
+        val classPath = classPathBySourceSet.getOrPut(sourceSet.name) { project.resolveCompileClassPathOf(sourceSet) }.classPath
         val accessorImports = metadataDir.implicitAccessorsImports(scriptFile)
         IntermediateScriptModel(
             scriptFile,
