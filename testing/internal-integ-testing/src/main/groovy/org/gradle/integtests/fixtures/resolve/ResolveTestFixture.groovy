@@ -337,7 +337,10 @@ class ResolveTestFixture {
                     nodes.each { GraphNode node ->
                         writer.println("variant:${formatNode(node.variant)}@@${formatAttributes(node.variant.attributes)}@@${formatCapabilities(node.variant.capabilities)}")
                         node.outgoingEdges.each { ResolvedDependencyResult edge ->
-                            writer.println("variant-dependency:${edge.constraint}@@${formatNode(node.variant)}@@${edge.requested}@@${formatNode(edge.resolvedVariant)}")
+                            // A constraint conceptually targets a component, and ResolutionResult arbitrarily picks
+                            // one of its variants, so only the component it targets is recorded.
+                            String target = edge.constraint ? "${edge.selected.id}" : formatNode(edge.resolvedVariant)
+                            writer.println("variant-dependency:${edge.constraint ? '[constraint]' : ''}[from:${formatNode(node.variant)}][${edge.requested}->${target}]")
                         }
                     }
 
@@ -461,7 +464,7 @@ class ResolveTestFixture {
 
         def actualRoot = findLines(configDetails, 'root').first()
         def expectedRoot = "[${root.type}][id:${root.id}][mv:${root.moduleVersionId}][reason:${componentReasons(nodesByComponent[root.id], constraintsByComponent[root.id] ?: [], root).join('!!')}]".toString()
-        assert actualRoot.startsWith(expectedRoot)
+        assert actualRoot == expectedRoot
 
         Map<String, Set<String>> ignoredReasonPrefixes = [:]
         List<ParsedComponent> expectedComponents = expectedComponentIds.collect { String id ->
@@ -486,12 +489,26 @@ class ResolveTestFixture {
         def actualComponents = findLines(configDetails, 'component').collect { parseComponent(it, actualVariants, ignoredReasonPrefixes) }
         compareComponents("components in graph", actualComponents, expectedComponents)
 
-        def actualEdges = findLines(configDetails, 'dependency')
-        def expectedEdges = graph.edges.collect { "${it.constraint ? '[constraint]' : ''}[from:${it.from.id}][${it.requested}->${it.selected.id}]" }
+        def actualVariantEdges = findLines(configDetails, 'variant-dependency')
+        def expectedVariantEdges = graph.edges.collect {
+            // Every hard edge of the graph is an edge between two variants. A constraint edge
+            // targets a component, and which of its variants the result names is arbitrary.
+            String target = it.constraint ? it.selected.id : "${it.selected.id}@@${it.selected.variant.name}"
+            "${it.constraint ? '[constraint]' : ''}[from:${it.from.id}@@${it.from.variant.name}][${it.requested}->${target}]"
+        }
+        compare("variant edges in graph", actualVariantEdges, expectedVariantEdges)
+
+        // The component graph is an overlay on the variant graph, so verify it can be derived from the
+        // declared variant edges. A component's dependencies are the deduplicated union of those of its
+        // variants, so an edge that two of its variants declare is reported once.
+        Set<String> actualEdges = new LinkedHashSet<>(findLines(configDetails, 'dependency'))
+        Set<String> expectedEdges = graph.edges.collect {
+            "${it.constraint ? '[constraint]' : ''}[from:${it.from.id}][${it.requested}->${it.selected.id}]".toString()
+        }.toSet()
         compare("edges in graph", actualEdges, expectedEdges)
 
         def expectedFiles = root.files + graph.artifactNodes.collect { it.fileName }
-        def expectedArtifacts = graph.artifactNodes.collect { "${it.fileName} (${it.componentId})" } + graph.fileDependencies as List<String>
+        def expectedArtifacts = graph.artifactNodes.collect { "${it.fileName} (${it.componentId})" } + graph.fileDependencies.collect { "${it} (${it})" }
 
         def actualArtifacts = findLines(configDetails, 'incoming-artifact-artifact')
         compare("incoming.artifacts.artifacts", actualArtifacts, expectedArtifacts)
@@ -567,7 +584,7 @@ class ResolveTestFixture {
         compare("resolved dependencies in graph", actualResolvedDeps, expectedResolvedDependencies)
 
         def expectedResolvedEdges = graph.edges
-            .findAll { !it.constraint && it.from != root }
+            .findAll { !it.constraint && it.from.moduleVersionId != root.moduleVersionId }
             .collect { "[${it.from.moduleVersionId}]->[${it.selected.moduleVersionId}]" } as Set
 
         def actualResolvedEdges = findLines(configDetails, 'resolved-resolved-dependency-edge')
@@ -711,6 +728,10 @@ class ResolveTestFixture {
                     }
                 }
             }
+            Set<String> unclaimed = (actual.variants*.name as Set) - (this.variants*.name as Set)
+            if (!unclaimed.isEmpty()) {
+                errors.add("Variants ${unclaimed.sort()} are in the graph, but no declaration claims them".toString())
+            }
 
             if (errors) {
                 sb.append("On component $id:\n")
@@ -752,15 +773,9 @@ class ResolveTestFixture {
     }
 
     void compare(String compType, Collection<String> actual, Collection<String> expected) {
-        def actualSorted = new ArrayList<String>(actual).sort()
-        def expectedSorted = new ArrayList<String>(expected).sort()
-        boolean equals = actual.size() == expectedSorted.size()
-        if (equals) {
-            for (int i = 0; i < actual.size(); i++) {
-                equals &= actualSorted.get(i).startsWith(expectedSorted.get(i))
-            }
-        }
-        if (!equals) {
+        List<String> actualSorted = actual.collect { it.toString() }.sort()
+        List<String> expectedSorted = expected.collect { it.toString() }.sort()
+        if (actualSorted != expectedSorted) {
             def actualFormatted = Joiner.on("\n").join(actualSorted)
             def expectedFormatted = Joiner.on("\n").join(expectedSorted)
 

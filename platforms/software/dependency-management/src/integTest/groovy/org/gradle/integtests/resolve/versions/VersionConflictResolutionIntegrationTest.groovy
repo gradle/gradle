@@ -844,6 +844,7 @@ parentFirst
                 module("org:other:1.7") {
                     edge("org:test:1.2", ":", "org:test:1.3") {
                         variant("runtimeElements")
+                        module("org:other:1.7")
                     }
                 }
             }

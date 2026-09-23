@@ -713,6 +713,13 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                         forced()
                         module("org:platform:2.7.9") {
                             variant(platformVariant)
+                            constraint('org:core:2.7.9')
+                            constraint('org:databind:2.7.9')
+                            constraint('org:annotations:2.7.9')
+                            constraint('org:kotlin:2.7.9')
+                            module("org:platform:2.7.9") {
+                                variant(platformVariant)
+                            }
                         }
                     }
                     module('org:core:2.7.9') {

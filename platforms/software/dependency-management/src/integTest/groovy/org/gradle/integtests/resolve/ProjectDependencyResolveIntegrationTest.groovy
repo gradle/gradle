@@ -507,6 +507,7 @@ class ProjectDependencyResolveIntegrationTest extends AbstractIntegrationSpec im
                     project(":c", "test:c:") {
                         project(":a", "test:a:") {
                             variant("default")
+                            project(":b", "test:b:")
                         }
                     }
                 }

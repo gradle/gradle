@@ -310,15 +310,15 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:platform:{strictly 1.0}", "org:platform:1.0") {
-                    variant(regularVariant, [
-                        'org.gradle.category': 'platform',
+                    variant(enforcedVariant, [
+                        'org.gradle.category': 'enforced-platform',
                         'org.gradle.status': 'release',
                         'org.gradle.usage': javaUsage])
                     noArtifacts()
                 }
                 module("org:platform:1.0") {
-                    variant(enforcedVariant, [
-                        'org.gradle.category': 'enforced-platform',
+                    variant(regularVariant, [
+                        'org.gradle.category': 'platform',
                         'org.gradle.status': 'release',
                         'org.gradle.usage': javaUsage])
                     noArtifacts()

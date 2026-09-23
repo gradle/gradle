@@ -414,6 +414,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
                 compositeSubstitute()
                 edge("org.test:buildA:1.0", ":", "org.test:buildA:1.0") {
                     variant("graphElements")
+                    edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:1.0")
                 }
             }
         }
@@ -443,6 +444,7 @@ class CompositeBuildDependencyCycleIntegrationTest extends AbstractCompositeBuil
                 compositeSubstitute()
                 edge("org.test:buildA:1.0", ":", "org.test:buildA:1.0") {
                     variant("graphElements")
+                    edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:1.0")
                 }
             }
         }
