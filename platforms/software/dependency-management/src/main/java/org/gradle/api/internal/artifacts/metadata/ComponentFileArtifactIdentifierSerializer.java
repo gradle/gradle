@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.artifacts.metadata;
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 import org.gradle.internal.serialize.Decoder;
@@ -37,7 +37,7 @@ public class ComponentFileArtifactIdentifierSerializer implements Serializer<Com
 
     @Override
     public ComponentFileArtifactIdentifier read(Decoder decoder) throws Exception {
-        ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) componentIdentifierSerializer.read(decoder);
+        ComponentIdentifier componentIdentifier = componentIdentifierSerializer.read(decoder);
         String fileName = decoder.readString();
         return new ComponentFileArtifactIdentifier(componentIdentifier, fileName);
     }
