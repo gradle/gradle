@@ -20,6 +20,8 @@ import org.gradle.api.Action;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.launcher.cli.WelcomeMessageConfiguration;
 import org.gradle.api.launcher.cli.WelcomeMessageDisplayMode;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.cli.CommandLineArgumentException;
 import org.gradle.cli.CommandLineParser;
@@ -76,6 +78,7 @@ import java.util.Map;
  * <p>Responsible for converting a set of command-line arguments into a {@link Runnable} action.</p>
  */
 public class DefaultCommandLineActionFactory implements CommandLineActionFactory {
+    private static final Logger LOGGER = Logging.getLogger(DefaultCommandLineActionFactory.class);
     private static final String HELP = "h";
     private static final String VERSION = "v";
     private static final String VERSION_CONTINUE = "V";
@@ -389,6 +392,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                 if (agentMode.isEnabled()) {
                     // Resolved ahead of the remaining options, whose conversion can fail, so that such a failure lands in the output file like all other output
                     agentOutputFile = agentOutputLocation.resolve(parsedCommandLine, properties.getProperties(), buildLayout);
+                    AgentModeResolver.applyDefaultsTo(loggingConfiguration);
                 }
 
                 // Calculate the logging configuration
@@ -416,13 +420,25 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                     new ExceptionReportingAction(reporter, loggingManager,
                         new NativeServicesInitializingAction(buildLayout, loggingConfiguration, loggingManager, agentOutput,
                             new WelcomeMessageAction(buildLayout, welcomeMessageConfiguration,
-                                new DebugLoggerWarningAction(loggingConfiguration, action))));
+                                new DebugLoggerWarningAction(loggingConfiguration,
+                                    ignoredConsoleOptionWarning(agentMode, action)))));
                 exceptionReportingAction.execute(executionListener);
             } finally {
                 loggingManager.stop();
                 IoActions.closeQuietly(agentHeartbeat);
                 IoActions.closeQuietly(agentOutput);
             }
+        }
+
+        // Must run after the console has been attached, so that the warning goes to the agent output file
+        private static Action<ExecutionListener> ignoredConsoleOptionWarning(AgentMode agentMode, Action<ExecutionListener> action) {
+            if (agentMode != AgentMode.ENABLED_IGNORING_CONSOLE_OPTION) {
+                return action;
+            }
+            return executionListener -> {
+                LOGGER.warn("The --console option has been ignored because agent mode is enabled.");
+                action.execute(executionListener);
+            };
         }
 
         private static OutputStream openAgentOutput(File file, PrintStream stdout) {
