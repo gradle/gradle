@@ -25,6 +25,7 @@ import org.gradle.internal.component.model.IvyArtifactName;
 
 import java.io.File;
 
+// TODO Split an immutable id out of this metadata, so serializing a ComponentArtifactIdentifier does not serialize live project state
 public class PublishArtifactLocalArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
     private final ComponentIdentifier componentIdentifier;
     private final PublishArtifact publishArtifact;
