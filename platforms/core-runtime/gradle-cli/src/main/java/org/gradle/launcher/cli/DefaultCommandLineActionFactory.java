@@ -405,7 +405,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             if (agentOutputFile != null) {
                 // Only in agent mode. System.out and System.err are replaced once the logging manager starts
                 agentOutput = openAgentOutput(agentOutputFile, System.out);
-                agentHeartbeat = AgentHeartbeat.start(System.err);
+                agentHeartbeat = AgentHeartbeat.start();
             }
 
             LoggingManagerInternal loggingManager = loggingServices.get(LoggingManagerFactory.class).createLoggingManager();
