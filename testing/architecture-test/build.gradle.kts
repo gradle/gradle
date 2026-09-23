@@ -5,6 +5,7 @@ import gradlebuild.basics.ArchitectureDataType
 import gradlebuild.basics.DistributionArtifactScope
 import gradlebuild.basics.PublicApi
 import gradlebuild.basics.PublicKotlinDslApi
+import gradlebuild.packageinfo.support.distributionModuleProjects
 import gradlebuild.packageinfo.support.packageInfoDataVariant
 import gradlebuild.packageinfo.support.packageInfoFilesFrom
 import gradlebuild.packageinfo.tasks.AggregatePackageInfoDataTask
@@ -83,8 +84,9 @@ val sortAcceptedApiChanges = tasks.register<gradlebuild.binarycompatibility.Sort
 // Package-info data is produced per project by gradlebuild.package-info-data. Rather than re-derive which projects
 // ship, reselect that variant over the distribution's already-resolved runtime graph: the graph shape then comes
 // from `runtimeElements` semantics, so it covers exactly the modules whose bytecode the ArchUnit rules analyze.
-// External modules have no such variant and are filtered out up front; a *project* without it is a wiring error
-// and fails resolution rather than silently shrinking the data set.
+// External modules have no such variant and are filtered out up front. Reselection cannot fail on a *project*
+// without the variant, it silently yields nothing for it, so the aggregating task cross-checks the projects it
+// received against the modules of the resolved graph instead.
 val packageInfoDataFiles = distributionRuntime.map {
     it.incoming.artifactView {
         withVariantReselection()
@@ -96,6 +98,10 @@ val packageInfoDataFiles = distributionRuntime.map {
 val aggregatePackageInfoData = tasks.register<AggregatePackageInfoDataTask>("aggregatePackageInfoData") {
     description = "Merges the per-project package-info data of every project in the distribution"
     projectData.from(packageInfoDataFiles)
+    // Every module of the distribution has to contribute. Two analyzed jars are not modules and so have no
+    // package-info data: the generated Kotlin DSL extensions jar of the distribution itself, and the Kotlin DSL
+    // shared runtime that comes from the build-logic build.
+    expectedProjects = distributionRuntime.distributionModuleProjects()
     outputFile = layout.buildDirectory.file("architecture/package-info.json")
 }
 
