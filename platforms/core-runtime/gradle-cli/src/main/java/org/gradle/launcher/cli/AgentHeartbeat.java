@@ -16,6 +16,7 @@
 
 package org.gradle.launcher.cli;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.jspecify.annotations.NullMarked;
 
 import java.io.Closeable;
@@ -35,10 +36,14 @@ class AgentHeartbeat implements Closeable {
         this.thread = thread;
     }
 
-    static AgentHeartbeat start(PrintStream output) {
-        return start(output, Long.getLong(INTERVAL_MILLIS_SYSTEM_PROPERTY, DEFAULT_INTERVAL_MILLIS));
+    /**
+     * Must be called before the logging manager replaces {@code System.err}.
+     */
+    static AgentHeartbeat start() {
+        return start(System.err, Long.getLong(INTERVAL_MILLIS_SYSTEM_PROPERTY, DEFAULT_INTERVAL_MILLIS));
     }
 
+    @VisibleForTesting
     static AgentHeartbeat start(PrintStream output, long intervalMillis) {
         Thread thread = new Thread(() -> {
             try {
