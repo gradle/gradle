@@ -16,9 +16,9 @@
 package org.gradle.api.internal.project;
 
 import org.gradle.api.Project;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
 import org.gradle.initialization.ProjectDescriptorRegistry;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.project.ImmutableProjectDescriptor;
@@ -53,13 +53,13 @@ public interface ProjectStateRegistry extends ProjectStateLookup {
     /**
      * Locates the state objects for all projects of the given build.
      */
-    BuildProjectRegistry projectsFor(BuildIdentifier buildIdentifier) throws IllegalArgumentException;
+    BuildProjectRegistry projectsFor(BuildIdentity buildIdentity) throws IllegalArgumentException;
 
     /**
      * Locates the state objects for all projects of the given build, or {@code null} if these are not available yet.
      */
     @Nullable
-    BuildProjectRegistry findProjectsFor(BuildIdentifier buildIdentifier);
+    BuildProjectRegistry findProjectsFor(BuildIdentity buildIdentity);
 
     /**
      * Registers the projects of a build.

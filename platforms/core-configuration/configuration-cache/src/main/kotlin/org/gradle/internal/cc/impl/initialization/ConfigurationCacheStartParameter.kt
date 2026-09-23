@@ -88,7 +88,7 @@ class ConfigurationCacheStartParameter internal constructor(
     }
 
     val isIgnoreInputsDuringStore: Boolean
-        get() = startParameter.isConfigurationCacheIgnoreInputsDuringStore
+        get() = startParameter.configurationCacheIgnoreInputsDuringStore.get()
 
     val maxProblems: Int
         get() = startParameter.configurationCacheMaxProblems

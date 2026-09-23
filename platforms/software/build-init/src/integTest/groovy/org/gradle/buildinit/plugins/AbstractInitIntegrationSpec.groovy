@@ -21,7 +21,9 @@ import org.gradle.api.internal.tasks.testing.report.generic.GenericTestExecution
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
+import org.gradle.api.artifacts.ArtifactRepositoryContainer
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.test.fixtures.file.TestFile
 
@@ -45,6 +47,37 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         """
         initializeIntoTestDir()
         executer.withRepositoryMirrors()
+        mirrorMavenCentralForInit()
+    }
+
+    /**
+     * Routes the libraries that the {@code :init} task resolves through the repository mirror.
+     *
+     * <p>Those are resolved by a {@code ProjectInternal.DetachedResolver} created in
+     * {@code PomProjectInitDescriptor}, whose repositories the init script installed by
+     * {@link org.gradle.integtests.fixtures.executer.GradleExecuter#withRepositoryMirrors()}
+     * never sees. A Maven settings mirror does reach them, because
+     * {@code DefaultMavenArtifactRepository} consults it for every repository it creates.</p>
+     *
+     * <p>{@code BuildInitPlugin} calls {@code configureClasspath} on the build converter when it
+     * registers the task, so every {@code init} invocation gets this classpath regardless of
+     * {@code --type}. That is why this applies to all build-init tests, not only the ones that
+     * convert a POM.</p>
+     */
+    protected void mirrorMavenCentralForInit() {
+        def mirrorUrl = RepoScriptBlockUtil.mavenCentralMirrorUrl
+        // Without a mirror configured, mirrorUrl is Maven Central itself. Writing that as a
+        // <mirrorOf>central</mirrorOf> would be a no-op for resolution, but it would still switch
+        // on the incubating feature - emitting its warning and making settings.xml a configuration
+        // cache input - so leave local runs alone entirely.
+        if (!RepoScriptBlockUtil.mirrorEnabled || mirrorUrl == ArtifactRepositoryContainer.MAVEN_CENTRAL_URL) {
+            return
+        }
+        using m2
+        m2.withCentralMirror(mirrorUrl)
+        executer.beforeExecute {
+            it.withArgument("-Dorg.gradle.mirror.maven.settings=true")
+        }
     }
 
     void initializeIntoTestDir() {

@@ -173,10 +173,10 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
     }
 
     private static class RegistrationImpl implements Registration {
-        final UserCodeApplicationContext.Application registeredBy;
+        final UserCodeApplicationContext.@Nullable Application registeredBy;
         final ToolingModelBuilder builder;
 
-        public RegistrationImpl(UserCodeApplicationContext.Application registeredBy, ToolingModelBuilder builder) {
+        public RegistrationImpl(UserCodeApplicationContext.@Nullable Application registeredBy, ToolingModelBuilder builder) {
             this.registeredBy = registeredBy;
             this.builder = builder;
         }
@@ -187,7 +187,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
         }
 
         @Override
-        public UserCodeApplicationContext.Application getRegisteredBy() {
+        public UserCodeApplicationContext.@Nullable Application getRegisteredBy() {
             return registeredBy;
         }
     }
@@ -357,7 +357,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
 
         @Override
         public Object build(@Nullable Object parameter) {
-            return registeredBy.reapply(() -> delegate.build(parameter));
+            return registeredBy.reapplySupplier(() -> delegate.build(parameter), UserCodeApplicationContext.CodeType.GENERAL);
         }
     }
 

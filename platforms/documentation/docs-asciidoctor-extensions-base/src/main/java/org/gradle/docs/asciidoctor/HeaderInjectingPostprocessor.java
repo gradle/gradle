@@ -19,6 +19,7 @@ import org.asciidoctor.ast.Document;
 import org.asciidoctor.extension.Postprocessor;
 
 import java.util.Map;
+import java.util.regex.Matcher;
 
 /**
  * Injects static assets for docs
@@ -39,6 +40,16 @@ public class HeaderInjectingPostprocessor extends Postprocessor {
         if (!document.isBasebackend("html")) {
             return output;
         }
-        return output.replaceAll("<div id=\"header\">", headerHtml + "<div id=\"header\">");
+        String resolvedHeader = substituteGradleVersion(headerHtml, document);
+        return output.replaceAll("<div id=\"header\">", Matcher.quoteReplacement(resolvedHeader) + "<div id=\"header\">");
+    }
+
+    private static String substituteGradleVersion(String html, Document document) {
+        // Asciidoctor normalizes attribute names to lowercase.
+        Object version = document.getAttribute("gradleversion");
+        if (version == null) {
+            return html;
+        }
+        return html.replace("{gradleVersion}", version.toString());
     }
 }

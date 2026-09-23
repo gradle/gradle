@@ -63,6 +63,7 @@ import org.gradle.api.internal.artifacts.publish.DefaultPublishArtifact
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.project.ProjectDomainObjectContext
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.internal.project.ProjectStateRegistry
@@ -80,7 +81,6 @@ import org.gradle.internal.dispatch.Dispatch
 import org.gradle.internal.event.AnonymousListenerBroadcast
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.operations.TestBuildOperationRunner
-import org.gradle.internal.service.scopes.ProjectDomainObjectContext
 import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.testfixtures.ProjectBuilder
@@ -115,7 +115,7 @@ class DefaultConfigurationSpec extends Specification {
         _ * listenerManager.createAnonymousBroadcaster(DependencyResolutionListener) >> { new AnonymousListenerBroadcast<DependencyResolutionListener>(DependencyResolutionListener, Stub(Dispatch)) }
         _ * resolver.getAllRepositories() >> []
         _ * domainObjectCollectionCallbackActionDecorator.decorate(_) >> { args -> args[0] }
-        _ * userCodeApplicationContext.reapplyCurrentLater(_) >> { args -> args[0] }
+        _ * userCodeApplicationContext.current() >> null
     }
 
     void defaultValues() {
@@ -1729,8 +1729,13 @@ This method is only meant to be called on configurations which allow the (non-de
 
     void 'does not fail to map failures when settings are not available'() {
         when:
-        DependencyResolutionServices resolutionServices = ProjectBuilder.builder().build().services.get(DependencyResolutionServices)
-        resolutionServices.resolveRepositoryHandler.mavenCentral()
+        def project = ProjectBuilder.builder().build()
+        DependencyResolutionServices resolutionServices = project.services.get(DependencyResolutionServices)
+        // An empty local repository, not Maven Central: all this needs is a repository that reports
+        // the module as missing, and going over the network makes it fail on throttling instead.
+        def emptyRepo = project.file("empty-repo")
+        emptyRepo.mkdirs()
+        resolutionServices.resolveRepositoryHandler.maven { it.url = emptyRepo.toURI() }
 
         Dependency dep = resolutionServices.dependencyHandler.create("dummyGroupId:dummyArtifactId:dummyVersion")
         resolutionServices.configurationContainer.detachedConfiguration(dep).files
@@ -1892,8 +1897,8 @@ This method is only meant to be called on configurations which allow the (non-de
 
         def domainObjectContext = Stub(ProjectDomainObjectContext) {
             getBuildPath() >> identity.buildPath
+            getIdentity() >> identity
             getModel() >> Mock(ProjectState) {
-                getIdentity() >> identity
                 hasMutableState() >> true
             }
         }

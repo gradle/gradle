@@ -199,7 +199,7 @@ class ConfigurationCacheTaskExecutionIntegrationTest extends AbstractConfigurati
         configurationCache.assertStateStoredAndDiscarded {
             hasStoreFailure = false
             serializationProblem "Task `:printDependencies` of type `org.gradle.api.DefaultTask`: " +
-                "value 'fixed(class org.gradle.api.internal.file.DefaultFileCollectionFactory\$ResolvingFileCollection, file collection)' " +
+                "value 'fixed(class org.gradle.api.internal.file.DefaultFileCollectionFactory\$ResolvingFileCollection, configuration ':compileClasspath')' " +
                 "is not assignable to 'org.gradle.api.NamedDomainObjectProvider'"
         }
 

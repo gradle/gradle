@@ -73,7 +73,8 @@ class PrecompiledScriptDependenciesResolver : ScriptDependenciesResolver {
 
         private
         fun precompiledScriptPluginImportsFrom(environment: Environment?, scriptText: CharSequence): List<String> =
-            environment.stringList(hashOfNormalisedString(scriptText))
+            // Normalised hash: the light tree parser hands over raw script text, which may contain CRLF separators.
+            environment.stringList(hashOf(scriptText))
 
         private
         fun Environment?.stringList(key: String) =

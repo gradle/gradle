@@ -23,7 +23,6 @@ import org.gradle.api.Action
 import org.gradle.api.PathValidation
 import org.gradle.api.Project
 import org.gradle.api.ProjectEvaluationListener
-import org.gradle.api.services.ProjectService
 import org.gradle.api.artifacts.dsl.DependencyFactory
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.ConfigurableFileTree
@@ -313,11 +312,6 @@ class ProblemReportingCrossProjectModelAccess(
             return super.getObjects()
         }
 
-        override fun <T : ProjectService> service(serviceType: Class<T>): T {
-            onIsolationViolation("service")
-            return delegate.service(serviceType)
-        }
-
         override fun mkdir(path: Any): File {
             onIsolationViolation("mkdir")
             return super.mkdir(path)
@@ -581,9 +575,7 @@ class ProblemReportingCrossProjectModelAccess(
                     text(" $accessRefKind on ")
                     describeCrossProjectAccess()
                     buildAdditionalMessage()
-                }
-                    .exception()
-                    .build()
+                }.build()
             }
         }
 

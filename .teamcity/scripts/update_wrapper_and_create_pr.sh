@@ -14,6 +14,10 @@ set -e
 #   GITHUB_TOKEN    - GitHub bot token
 #   TRIGGERED_BY    - Optional. If it's "Release - Final", version will be from version-info-final-release/version-info.properties
 #                     If it's "Release - Release Candidate", version will be from version-info-release-candidate/version-info.properties
+#
+# Both version-info.properties artifact dependencies are optional ("?:" rules), because the
+# artifacts of an older lastSuccessful() promotion build may already have been cleaned up.
+# Only the one belonging to the triggering build is actually needed, and it is always fresh.
 
 post() {
     local endpoint="$1"
@@ -39,6 +43,18 @@ post() {
     echo "$body"
 }
 
+source_promoted_version() {
+    local version_info="$1/promote-projects/gradle/build/version-info.properties"
+
+    if [[ ! -f "$version_info" ]]; then
+        printf "Error: %s was not downloaded from the triggering build. Was its artifact cleaned up?\n" "$version_info" >&2
+        exit 1
+    fi
+
+    source "$version_info"
+    export WRAPPER_VERSION="$promotedVersion"
+}
+
 main() {
     WRAPPER_VERSION="${1:-}"
 
@@ -46,11 +62,9 @@ main() {
     : "${GITHUB_TOKEN:?GITHUB_TOKEN environment variable is required}"
 
     if [[ "$TRIGGERED_BY" == *"Release - Final"* ]]; then
-        source version-info-final-release/promote-projects/gradle/build/version-info.properties
-        export WRAPPER_VERSION="$promotedVersion"
+        source_promoted_version version-info-final-release
     elif [[ "$TRIGGERED_BY" == *"Release - Release Candidate"* ]]; then
-        source version-info-release-candidate/promote-projects/gradle/build/version-info.properties
-        export WRAPPER_VERSION="$promotedVersion"
+        source_promoted_version version-info-release-candidate
     fi
 
     ./gradlew :wrapper --gradle-version=$WRAPPER_VERSION

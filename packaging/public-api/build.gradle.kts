@@ -21,7 +21,14 @@ plugins {
     id("signing")
 }
 
-group = "org.gradle.experimental"
+gradleModule {
+    identity {
+        // The experimental public API is published under its own group; `project.group` derives
+        // from this, as does the coordinate recorded in the jar's manifest and pom.properties.
+        group = "org.gradle.experimental"
+    }
+}
+
 description = "Public API for Gradle"
 
 dependencies {

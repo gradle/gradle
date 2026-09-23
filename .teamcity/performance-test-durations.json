@@ -1,30 +1,4 @@
 [ {
-  "scenario" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslConfigurationPerformanceTest.configure",
-  "durations" : [ {
-    "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
-    "linux" : 350,
-    "windows" : 731,
-    "macOs" : 229
-  } ]
-}, {
-  "scenario" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.clean checkout",
-  "durations" : [ {
-    "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
-    "linux" : 457
-  } ]
-}, {
-  "scenario" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.cold daemon",
-  "durations" : [ {
-    "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
-    "linux" : 441
-  } ]
-}, {
-  "scenario" : "org.gradle.performance.experiment.declarativedsl.DeclarativeDslFirstUsePerformanceTest.first use",
-  "durations" : [ {
-    "testProject" : "largeEmptyMultiProjectDeclarativeDsl",
-    "linux" : 1000
-  } ]
-}, {
   "scenario" : "org.gradle.performance.regression.android.AndroidIncrementalExecutionPerformanceTest.abi change",
   "durations" : [ {
     "testProject" : "nowInAndroidBuild",

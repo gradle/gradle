@@ -19,7 +19,6 @@ package org.gradle.initialization;
 import org.gradle.StartParameter;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.DependencyManagementParameters;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
 import org.gradle.api.internal.plugins.ExtraPropertiesExtensionInternal;
@@ -60,7 +59,7 @@ public class SettingsFactory {
             gradle,
             classLoaderScope,
             baseClassLoaderScope,
-            scriptHandlerFactory.create(settingsScript, classLoaderScope, new DependencyManagementParameters(settingsScript.getShortDisplayName(), "settings-", true, true, true)),
+            scriptHandlerFactory.create(settingsScript, classLoaderScope),
             settingsDir,
             settingsScript,
             startParameter

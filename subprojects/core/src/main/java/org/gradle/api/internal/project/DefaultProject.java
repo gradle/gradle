@@ -17,7 +17,6 @@ package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
-import kotlin.Unit;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.CircularReferenceException;
@@ -65,7 +64,6 @@ import org.gradle.api.internal.plugins.DefaultObjectConfigurationAction;
 import org.gradle.api.internal.plugins.ExtensionContainerInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
 import org.gradle.api.internal.project.taskfactory.TaskInstantiator;
-import org.gradle.api.internal.services.PublicServiceLookups;
 import org.gradle.api.internal.tasks.TaskContainerInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.logging.Logger;
@@ -79,7 +77,6 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.resources.ResourceHandler;
-import org.gradle.api.services.ProjectService;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.configuration.ScriptPluginFactory;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
@@ -930,11 +927,6 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
     public abstract ProjectLayout getLayout();
 
     @Override
-    public <T extends ProjectService> T service(Class<T> serviceType) {
-        return PublicServiceLookups.lookup(serviceType, PublicServiceLookups.EntryPoint.PROJECT, getServices());
-    }
-
-    @Override
     public File file(Object path) {
         return getFileOperations().file(path);
     }
@@ -1183,11 +1175,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     public static void reportGetPropertiesProblem(IsolatedProjectsProblemsReporter reporter) {
         reporter.report(factory ->
-            factory.problem(null, builder -> {
-                builder.text("use of ").reference("Project.getProperties()")
-                    .text(" is not allowed with Isolated Projects");
-                return Unit.INSTANCE;
-            }).exception().build()
+            factory.problem(message -> message
+                .text("use of ").reference("Project.getProperties()")
+                .text(" is not allowed with Isolated Projects")
+            ).build()
         );
     }
 
@@ -1557,7 +1548,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         DependencyResolutionServices resolver = dms.newDetachedResolver(
             services.get(FileResolver.class),
             services.get(FileCollectionFactory.class),
-            new DependencyManagementParameters(Describables.of("detached context for", owner.getDisplayName()), null, true, true, true)
+            DependencyManagementParameters.forDetachedJvmEnvironment(Describables.of("detached context for", owner.getDisplayName()))
         );
 
         return new LocalDetachedResolver(resolver);

@@ -202,20 +202,5 @@ public enum OperationType {
      * @since 8.12
      */
     @Incubating
-    ROOT,
-
-    /**
-     * Flag for configuration cache events.
-     *
-     * <p>
-     * The following events are currently issued for this operation type.
-     * <ul>
-     *     <li>{@link org.gradle.tooling.events.configuration.ConfigurationCacheStartEvent}</li>
-     *     <li>{@link org.gradle.tooling.events.configuration.ConfigurationCacheFinishEvent}</li>
-     * </ul>
-     *
-     * @since 9.8.0
-     */
-    @Incubating
-    CONFIGURATION_CACHE
+    ROOT
 }

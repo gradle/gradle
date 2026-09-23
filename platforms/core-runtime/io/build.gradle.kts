@@ -24,6 +24,8 @@ description = "I/O utilities"
 dependencies {
     api(libs.jspecify)
 
+    compileOnly(libs.errorProneAnnotations)
+
     implementation(projects.stdlibJavaExtensions)
     implementation(libs.errorProneAnnotations)
 }

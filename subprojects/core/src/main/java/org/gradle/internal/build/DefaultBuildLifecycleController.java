@@ -21,7 +21,6 @@ import org.gradle.BuildResult;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.HoldsProjectState;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectState;
@@ -296,7 +295,7 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
 
         @Nullable
         private BuildState findBuild(Path buildPath) {
-            return getBuildStateRegistry().findBuild(new DefaultBuildIdentifier(buildPath));
+            return getBuildStateRegistry().findBuild(buildPath);
         }
 
         private BuildStateRegistry getBuildStateRegistry() {

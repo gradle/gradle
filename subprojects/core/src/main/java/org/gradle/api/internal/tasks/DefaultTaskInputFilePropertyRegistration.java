@@ -29,11 +29,13 @@ import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.properties.StaticValue;
 import org.jspecify.annotations.NullMarked;
 
+import java.util.function.BooleanSupplier;
+
 @NullMarked
 public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePropertyRegistration implements TaskInputFilePropertyRegistration {
 
     private final InputFilePropertyType filePropertyType;
-    private boolean skipWhenEmpty;
+    private BooleanSupplier skipWhenEmpty = () -> false;
     private DirectorySensitivity directorySensitivity = DirectorySensitivity.DEFAULT;
     private LineEndingSensitivity lineEndingSensitivity = LineEndingSensitivity.DEFAULT;
     private FileNormalizer normalizer = InputNormalizer.ABSOLUTE_PATH;
@@ -56,11 +58,16 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
 
     @Override
     public boolean isSkipWhenEmpty() {
-        return skipWhenEmpty;
+        return skipWhenEmpty.getAsBoolean();
     }
 
     @Override
-    public TaskInputFilePropertyBuilderInternal skipWhenEmpty(boolean skipWhenEmpty) {
+    public TaskInputFilePropertyBuilderInternal skipWhenEmpty(boolean newValue) {
+        return skipWhenEmpty(() -> newValue);
+    }
+
+    @Override
+    public TaskInputFilePropertyBuilderInternal skipWhenEmpty(BooleanSupplier skipWhenEmpty) {
         this.skipWhenEmpty = skipWhenEmpty;
         return this;
     }

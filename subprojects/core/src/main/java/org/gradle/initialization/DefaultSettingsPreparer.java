@@ -18,7 +18,6 @@ package org.gradle.initialization;
 
 import org.gradle.StartParameter;
 import org.gradle.api.GradleException;
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.SettingsInternal;
@@ -36,6 +35,7 @@ import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.initialization.buildsrc.BuildSrcDetector;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.build.BuildIncluder;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.CompositeBuildParticipantBuildState;
@@ -185,7 +185,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
 
     private void loadGradlePropertiesForBuild(GradleInternal gradle) {
         SettingsLocation settingsLocation = buildLayoutFactory.getLayoutFor(gradle.getStartParameter().toBuildLayoutConfiguration());
-        BuildIdentifier buildId = gradle.getOwner().getBuildIdentifier();
+        BuildIdentity buildId = gradle.getOwner().getBuildIdentity();
         gradlePropertiesController.loadGradleProperties(buildId, settingsLocation.getSettingsDir(), true);
     }
 

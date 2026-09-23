@@ -48,7 +48,13 @@ trait KotlinDslTestProjectInitiation {
         def precompiledJar = withEmptyJar("classes_b_precompiled.jar")
 
         def some = withFile("some.gradle.kts", getBuildScriptDependency(someJar))
-        def settings = withSettings("""${getBuildScriptDependency(settingsJar)}
+        def settings = withSettings("""
+            pluginManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+            ${getBuildScriptDependency(settingsJar)}
             apply(from = "some.gradle.kts")
             include("a", "b")
         """)

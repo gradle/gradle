@@ -31,7 +31,6 @@ import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBui
 import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBuildOperationType.CheckStatus
 import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBuildOperationType.FingerprintInvalidationReason
 import org.gradle.operations.configuration.ConfigurationCacheCheckFingerprintBuildOperationType.ProjectInvalidationReasons
-import org.gradle.operations.configuration.ConfigurationCacheEntryOutcomeBuildOperationType
 import org.gradle.util.Path
 import java.io.File
 
@@ -143,33 +142,6 @@ fun BuildOperationRunner.withFingerprintCheckOperations(block: () -> EntrySearch
 
 internal
 data class EntrySearchResult(val originInvocationId: String?, val checkedFingerprint: CheckedFingerprint)
-
-
-internal
-fun BuildOperationRunner.emitConfigurationCacheEntryOutcomeOperation(outcome: ConfigurationCacheEntryOutcomeBuildOperationType.Outcome, problemCount: Int): Unit =
-    run(object : RunnableBuildOperation {
-        override fun description(): BuildOperationDescriptor.Builder = BuildOperationDescriptor
-            .displayName("Configuration cache entry outcome")
-            .details(EntryOutcomeDetails)
-
-        override fun run(context: BuildOperationContext) {
-            context.setResult(EntryOutcomeResult(outcome, problemCount))
-        }
-    })
-
-
-private
-object EntryOutcomeDetails : ConfigurationCacheEntryOutcomeBuildOperationType.Details
-
-
-private
-data class EntryOutcomeResult(
-    private val outcome: ConfigurationCacheEntryOutcomeBuildOperationType.Outcome,
-    private val problemCount: Int
-) : ConfigurationCacheEntryOutcomeBuildOperationType.Result {
-    override fun getOutcome(): ConfigurationCacheEntryOutcomeBuildOperationType.Outcome = outcome
-    override fun getProblemCount(): Int = problemCount
-}
 
 
 private

@@ -18,7 +18,6 @@ package org.gradle.api.internal.plugins;
 
 import org.gradle.api.Plugin;
 import org.gradle.api.initialization.dsl.ScriptHandler;
-import org.gradle.api.internal.artifacts.DependencyManagementParameters;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.api.internal.initialization.ScriptHandlerFactory;
@@ -145,7 +144,7 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
         }
         ScriptSource scriptSource = new TextResourceScriptSource(resource);
         ClassLoaderScope classLoaderScopeChild = classLoaderScope.createChild("script-" + scriptUri, null);
-        ScriptHandler scriptHandler = scriptHandlerFactory.create(scriptSource, classLoaderScopeChild, new DependencyManagementParameters(scriptSource.getShortDisplayName(), "settings-", true, true, true));
+        ScriptHandler scriptHandler = scriptHandlerFactory.create(scriptSource, classLoaderScopeChild);
         ScriptPlugin configurer = configurerFactory.create(scriptSource, scriptHandler, classLoaderScopeChild, classLoaderScope, false);
         for (Object target : targets) {
             configurer.apply(target);

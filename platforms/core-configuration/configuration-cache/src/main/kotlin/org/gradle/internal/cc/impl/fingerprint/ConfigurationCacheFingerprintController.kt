@@ -516,7 +516,7 @@ class ConfigurationCacheFingerprintController internal constructor(
             when (propertyScope) {
                 is GradlePropertyScope.Build -> {
                     propertiesController.loadGradleProperties(
-                        propertyScope.buildIdentifier,
+                        propertyScope.buildIdentity,
                         propertiesDir,
                         true
                     )

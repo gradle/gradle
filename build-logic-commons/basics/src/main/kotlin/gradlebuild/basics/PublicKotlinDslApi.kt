@@ -27,4 +27,9 @@ object PublicKotlinDslApi {
         // Kotlin inlined functions classes
         "**/*${'$'}inlined${'$'}*"
     )
+
+    val relocated = listOf(
+        // kotlin-dsl jar bundles and relocates kotlin.metadata and kotlinx.metadata
+        "org/gradle/kotlin/dsl/internal/relocated/**"
+    )
 }

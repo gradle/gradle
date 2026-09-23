@@ -17,6 +17,8 @@
 package org.gradle.integtests.tooling.r970
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r930.KotlinDslPluginRelatedToolingApiSpecification
 import org.gradle.integtests.tooling.r930.ResilientGradleBuildBuilderCrossVersionSpec.BuildActionResult
@@ -44,7 +46,7 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
     static final String BROKEN_SETTINGS_CONTENT = "broken settings file content!!!"
     static final String BROKEN_BUILD_CONTENT = "broken build file content!!!"
     static final String ISOLATED_PROJECTS_FLAG = "-Dorg.gradle.internal.isolated-projects.tooling=true"
-    static final String UNSAFE_ISOLATED_PROJECTS_FLAG = "-Dorg.gradle.unsafe.isolated-projects=true"
+    static final String ISOLATED_PROJECTS_ENABLED_FLAG = "-Dorg.gradle.isolated-projects=true"
 
     private BuildException buildFailure
 
@@ -145,8 +147,8 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
                 `kotlin-dsl`
             }
             repositories {
-                mavenCentral()
-                gradlePluginPortal()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
             }
         """
         included.file("src/main/kotlin/build-logic.settings.gradle.kts") << """
@@ -194,7 +196,7 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
         given:
         def intermediateCaching = [
             ISOLATED_PROJECTS_FLAG,
-            UNSAFE_ISOLATED_PROJECTS_FLAG
+            ISOLATED_PROJECTS_ENABLED_FLAG
         ]
         createRootProject()
         createFailingSettingsIncludedProject("included")

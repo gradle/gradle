@@ -1,9 +1,10 @@
 package org.example
 
-import org.gradle.testkit.runner.ConfigurationCacheOutcome
 import org.gradle.testkit.runner.GradleRunner
 import spock.lang.Specification
 import spock.lang.TempDir
+
+import static org.gradle.testkit.runner.TaskOutcome.*
 
 class BuildLogicFunctionalTest extends Specification {
 
@@ -35,7 +36,7 @@ class BuildLogicFunctionalTest extends Specification {
             .build()
 
         then:
-        result.configurationCacheOutcome == ConfigurationCacheOutcome.REUSED     // <3>
+        result.output.contains('Reusing configuration cache.')      // <3>
         // ... more assertions on your task behavior
     }
     // end::functional-test-configuration-cache[]

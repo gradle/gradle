@@ -30,6 +30,7 @@ at https://github.com/melix/jdoctor/
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
+    api(projects.buildOption)
     api(projects.enterpriseOperations)
     api(projects.serialization)
     api(projects.snapshots)
@@ -42,8 +43,11 @@ dependencies {
     implementation(libs.jsr305)
 
     testImplementation(projects.logging)
+    testImplementation(testFixtures(projects.time))
+
     integTestImplementation(projects.internalTesting)
     integTestImplementation(testFixtures(projects.logging))
+
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 
     testFixturesImplementation(projects.internalDistributionTesting)

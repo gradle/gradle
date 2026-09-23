@@ -55,10 +55,9 @@ class PrecompiledScriptPluginVersionCatalogIntegrationTest : AbstractKotlinInteg
     }
 
     @Test
-    fun `version catalogs from outer builds are not available as accessors`() {
+    fun `version catalogs from outer builds are not available as accessors (with applied plugins)`() {
         withKotlinBuildSrc()
         withSimpleVersionCatalog()
-        withFile("buildSrc/src/main/kotlin/plugin-without-plugins.gradle.kts", "println(libs)")
         withFile(
             "buildSrc/src/main/kotlin/plugin-with-plugins.gradle.kts",
             """
@@ -77,8 +76,30 @@ class PrecompiledScriptPluginVersionCatalogIntegrationTest : AbstractKotlinInteg
 
         buildAndFail(":help").apply {
             assertHasFailure("Execution failed for task ':buildSrc:compileKotlin' (registered by plugin class 'org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper').") {
-                assertOutputContainsPattern("""Unresolved reference 'libs'\.\s+Location: .*?plugin-without-plugins\.gradle\.kts:1""")
                 assertOutputContainsPattern("""Unresolved reference 'libs'\.\s+Location: .*?plugin-with-plugins\.gradle\.kts:3""")
+            }
+        }
+    }
+
+    @Test
+    fun `version catalogs from outer builds are not available as accessors (no applied plugins)`() {
+        withKotlinBuildSrc()
+        withSimpleVersionCatalog()
+        withFile("buildSrc/src/main/kotlin/plugin-without-plugins.gradle.kts",
+            "println(libs)"
+        )
+        withBuildScript(
+            """
+            plugins {
+                id("plugin-without-plugins")
+                id("plugin-with-plugins")
+            }
+            """
+        )
+
+        buildAndFail(":help").apply {
+            assertHasFailure("Execution failed for task ':buildSrc:compileKotlin' (registered by plugin class 'org.jetbrains.kotlin.gradle.plugin.KotlinPluginWrapper').") {
+                assertOutputContainsPattern("""Unresolved reference 'libs'\.\s+Location: .*?plugin-without-plugins\.gradle\.kts:1""")
             }
         }
     }

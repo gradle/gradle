@@ -27,14 +27,13 @@ class CheckProject(
 
         params {
             if (model.branch.isMaster || model.branch.isExperimental) {
-                param("env.GRADLE_OPTS", "-Dorg.gradle.unsafe.isolated-projects=%enableIsolatedProjects%")
+                param("env.GRADLE_OPTS", "-Dorg.gradle.isolated-projects=%enableIsolatedProjects%")
             }
             param("credentialsStorageType", "credentialsJSON")
             // Disallow Web UI changes to TeamCity settings
             param("teamcity.ui.settings.readOnly", "true")
             // Avoid rebuilding same revision if it's already built on another branch
             param("teamcity.vcsTrigger.runBuildOnSameRevisionInEveryBranch", "false")
-            param("env.DEVELOCITY_SERVER_URL", "%gbt.public.develocity.server.url%")
             param("env.CHROME_BIN", "%linux.chrome.bin.path%")
 
             text(

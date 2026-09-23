@@ -16,7 +16,7 @@
 
 package org.gradle.internal.problems
 
-import com.google.common.base.Supplier
+import org.gradle.problems.buildtree.ProblemStream
 import spock.lang.Specification
 
 class StackTraceCapturerTest extends Specification {
@@ -29,7 +29,7 @@ class StackTraceCapturerTest extends Specification {
         def capturer = new StackTraceCapturer(2, 3, boundedCapturer)
 
         when:
-        def results = (1..6).collect { capturer.captureCaller() }
+        def results = (1..6).collect { capturer.captureLocation() }
 
         then:
         results[0] != null
@@ -44,22 +44,41 @@ class StackTraceCapturerTest extends Specification {
         3 * boundedCapturer.captureCallerStack() >> boundedException
     }
 
-    def "captureSupplied returns the supplied throwable until the full budget is spent, never falling back to bounded"() {
+    def "captureRetainableException runs the factory only while the full budget lasts"() {
         given:
         def supplied = new Exception()
-        def factory = { supplied } as Supplier
-        def capturer = new StackTraceCapturer(2, 3, boundedCapturer)
+        def creator = { supplied } as ProblemStream.ExceptionCreator
+        def capturer = new StackTraceCapturer(2, 1, boundedCapturer)
 
         when:
-        def results = (1..4).collect { capturer.captureSupplied(factory) }
+        def results = (1..3).collect { capturer.captureRetainableException(creator) }
 
         then:
         results[0].is(supplied)
         results[1].is(supplied)
         results[2] == null
-        results[3] == null
 
         0 * boundedCapturer.captureCallerStack()
+    }
+
+    def "captureLocation still locates a problem the budget could not afford an exception for"() {
+        given:
+        def boundedException = new Exception()
+        def creator = { new Exception() } as ProblemStream.ExceptionCreator
+        def capturer = new StackTraceCapturer(1, 1, boundedCapturer)
+        capturer.captureRetainableException(creator)
+
+        when:
+        def unaffordable = capturer.captureRetainableException(creator)
+        def located = capturer.captureLocation()
+        def pastBoundedBudget = capturer.captureLocation()
+
+        then:
+        unaffordable == null
+        located.is(boundedException)
+        pastBoundedBudget == null
+
+        1 * boundedCapturer.captureCallerStack() >> boundedException
     }
 
     def "captureCaller with an unbounded bounded budget keeps capturing past the full cap"() {
@@ -68,7 +87,7 @@ class StackTraceCapturerTest extends Specification {
         def capturer = new StackTraceCapturer(1, Integer.MAX_VALUE, boundedCapturer)
 
         when:
-        def results = (1..100).collect { capturer.captureCaller() }
+        def results = (1..100).collect { capturer.captureLocation() }
 
         then:
         results[0] != null
@@ -83,7 +102,7 @@ class StackTraceCapturerTest extends Specification {
         def capturer = new StackTraceCapturer(0, 2, boundedCapturer)
 
         when:
-        def results = (1..3).collect { capturer.captureCaller() }
+        def results = (1..3).collect { capturer.captureLocation() }
 
         then:
         results.every { it == null }

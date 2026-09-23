@@ -19,8 +19,9 @@ package org.gradle.api.internal.file.copy;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DirectoryProperty;
-import org.gradle.api.file.FileSystemLocation;
+import org.gradle.api.internal.file.FileFactory;
 import org.gradle.api.internal.file.FilePropertyFactory;
+import org.gradle.api.internal.provider.MappingProvider;
 import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.model.ReplacedBy;
 import org.gradle.api.provider.Provider;
@@ -35,12 +36,14 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 public class DestinationRootCopySpec extends DelegatingCopySpecInternal {
 
     private final PathToFileResolver fileResolver;
+    private final FileFactory fileFactory;
     private final CopySpecInternal delegate;
     private final DirectoryProperty destinationDirectory;
 
     @Inject
-    public DestinationRootCopySpec(PathToFileResolver fileResolver, FilePropertyFactory filePropertyFactory, CopySpecInternal delegate) {
+    public DestinationRootCopySpec(PathToFileResolver fileResolver, FilePropertyFactory filePropertyFactory, FileFactory fileFactory, CopySpecInternal delegate) {
         this.fileResolver = fileResolver;
+        this.fileFactory = fileFactory;
         this.delegate = delegate;
         this.destinationDirectory = filePropertyFactory.newDirectoryProperty();
     }
@@ -61,10 +64,14 @@ public class DestinationRootCopySpec extends DelegatingCopySpecInternal {
         } else if (destinationDir instanceof Directory) {
             destinationDirectory.set((Directory) destinationDir);
         } else if (destinationDir instanceof Provider) {
-            destinationDirectory.fileProvider(((Provider<?>) destinationDir).map(transformer(value ->
-                value instanceof FileSystemLocation
-                    ? ((FileSystemLocation) value).getAsFile()
-                    : fileResolver.resolve(value))));
+            // Only the location of the destination is needed, never its contents, so map with a MappingProvider,
+            // which does not require a producing task to have completed. This matters when the provider is derived
+            // from an output of the task that is currently running, e.g. `into(outputDir.dir("sub"))` in a task action.
+            FileFactory fileFactory = this.fileFactory;
+            destinationDirectory.set(new MappingProvider<>(Directory.class, Providers.internal((Provider<?>) destinationDir), transformer(value ->
+                value instanceof Directory
+                    ? (Directory) value
+                    : fileFactory.dir(fileResolver.resolve(value)))));
         } else {
             // Resolve all other notations (String, File, Closure, Callable, ...) lazily, preserving legacy behavior.
             destinationDirectory.fileProvider(Providers.changing(() -> fileResolver.resolve(destinationDir)));

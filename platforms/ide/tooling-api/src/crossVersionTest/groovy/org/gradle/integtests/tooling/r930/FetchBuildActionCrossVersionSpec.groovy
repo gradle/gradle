@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
+import org.gradle.integtests.tooling.r980.FetchFailureDescriptionsAction
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.util.GradleVersion
 
@@ -121,6 +122,28 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         then:
         result.modelValue == null
         result.failureMessages == ["broken builder"]
+    }
+
+    @ToolingApiVersion(">=9.8.0")
+    @TargetGradleVersion(">=9.3.0 <9.7.0")
+    def "reports node-only failure descriptions as unavailable from an older provider"() {
+        given:
+        setupInitScriptWithCustomModelBuilder("throw new RuntimeException('broken builder', new IllegalStateException('root cause'))")
+
+        when:
+        def failures = succeeds {
+            action(new FetchFailureDescriptionsAction())
+                .withArguments("--init-script=${file('init.gradle').absolutePath}")
+                .run()
+        }
+
+        then:
+        failures.size() == 1
+        def failure = failures.first()
+        failure.message == "broken builder"
+        failure.description.contains("Caused by: java.lang.IllegalStateException: root cause")
+        failure.ownDescription == null
+        failure.causes.first().ownDescription == null
     }
 
     @TargetGradleVersion(">=7.6.6 <9.7.0")

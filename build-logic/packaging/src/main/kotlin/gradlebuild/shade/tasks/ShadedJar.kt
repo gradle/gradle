@@ -64,6 +64,16 @@ abstract class ShadedJar : DefaultTask() {
     abstract val buildReceiptFile: ConfigurableFileCollection
 
     /**
+     * The Maven-style `pom.properties` tree to include, so Maven-aware tooling can
+     * identify the shaded jar by its user-visible coordinates (not the relocated
+     * package name). Copied into the jar preserving relative paths, so the file lands
+     * at `META-INF/maven/<groupId>/<artifactId>/pom.properties`.
+     */
+    @get:PathSensitive(PathSensitivity.RELATIVE)
+    @get:InputFiles
+    abstract val pomProperties: ConfigurableFileCollection
+
+    /**
      * The output Jar file.
      */
     @get:OutputFile
@@ -91,6 +101,12 @@ abstract class ShadedJar : DefaultTask() {
             }
             if (!buildReceiptFile.isEmpty) {
                 jarOutputStream.addJarEntry(BuildReceipt.buildReceiptLocation, buildReceiptFile.singleFile)
+            }
+            pomProperties.files.forEach { pomPropertiesDir ->
+                val pomPropertiesDirPath = pomPropertiesDir.toPath()
+                pomPropertiesDir.walk().filter { it.isFile }.forEach {
+                    jarOutputStream.addJarEntry(pomPropertiesDirPath.relativePath(it), it)
+                }
             }
             relocatedClassesConfiguration.files.forEach { classesDir ->
                 val classesDirPath = classesDir.toPath()

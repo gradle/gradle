@@ -16,11 +16,10 @@
 
 package org.gradle.internal.configuration.problems
 
-import com.google.common.base.Supplier
+import org.gradle.api.Action
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.code.UserCodeSource
-import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
 import org.gradle.problems.ProblemDiagnostics
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
@@ -43,31 +42,31 @@ class DefaultProblemFactory(
     }
 
     private fun getProblemDiagnostics(exception: Throwable?, getStackTrace: Boolean): ProblemDiagnostics {
-        if (getStackTrace) {
-            return problemStream.forCurrentCaller(exception)
+        if (!getStackTrace) {
+            return NoOpProblemDiagnosticsFactory.EMPTY_DIAGNOSTICS
         }
-        return NoOpProblemDiagnosticsFactory.EMPTY_DIAGNOSTICS
+        return if (exception != null) {
+            problemStream.forThrownException(exception)
+        } else {
+            problemStream.forCurrentCaller()
+        }
     }
 
-    override fun problem(consumer: String?, messageBuilder: StructuredMessage.Builder.() -> Unit): ProblemFactory.Builder {
-        val message = StructuredMessage.build(messageBuilder)
+    override fun problem(consumer: String?, message: Action<StructuredMessage.Builder>): ProblemFactory.Builder {
+        val builtMessage = StructuredMessage.build { message.execute(this) }
         return object : ProblemFactory.Builder {
-            var exceptionMessage: String? = null
+            var failure = true
+            var exceptionMessageBuilder: ((String) -> String)? = null
             var documentationSection: DocumentationSection? = null
             var locationMapper: (PropertyTrace) -> PropertyTrace = { it }
 
-            override fun exception(message: String): ProblemFactory.Builder {
-                exceptionMessage = message
+            override fun informational(): ProblemFactory.Builder {
+                failure = false
                 return this
             }
 
-            override fun exception(): ProblemFactory.Builder {
-                exceptionMessage = message.toString().capitalized()
-                return this
-            }
-
-            override fun exception(builder: (String) -> String): ProblemFactory.Builder {
-                exceptionMessage = builder(message.toString().capitalized())
+            override fun exceptionMessage(message: (String) -> String): ProblemFactory.Builder {
+                exceptionMessageBuilder = message
                 return this
             }
 
@@ -82,14 +81,18 @@ class DefaultProblemFactory(
             }
 
             override fun build(): PropertyProblem {
-                val exceptionMessage = exceptionMessage
-                val diagnostics = if (exceptionMessage == null) {
-                    problemStream.forCurrentCaller()
+                val diagnostics = if (failure) {
+                    problemStream.forCurrentCallerWithException { InvalidUserCodeException(exceptionMessage()) }
                 } else {
-                    problemStream.forCurrentCaller(Supplier { InvalidUserCodeException(exceptionMessage) })
+                    problemStream.forCurrentCaller()
                 }
                 val location = locationMapper(locationForCaller(consumer, diagnostics))
-                return PropertyProblem(location, message, diagnostics.exception, diagnostics.failure, documentationSection)
+                return PropertyProblem(location, builtMessage, diagnostics.exception, diagnostics.failure, documentationSection)
+            }
+
+            private fun exceptionMessage(): String {
+                val message = builtMessage.renderCapitalized()
+                return exceptionMessageBuilder?.invoke(message) ?: message
             }
         }
     }

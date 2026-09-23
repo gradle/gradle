@@ -92,7 +92,19 @@ interface ModuleIdentity {
 
     val version: Property<GradleVersion>
 
+    /**
+     * A reproducible take on the version, to be used in produced artifacts and metadata, so reproducibility is preserved for timestamped builds.
+     * This is the same as [version] for non-timestamped builds, and a `-SNAPSHOT` version for timestamped builds.
+     */
+    val reproducibleVersion: Property<String>
+
     val baseName: Property<String>
+
+    /**
+     * The Maven `groupId` this module is published under, and the group recorded in its jar
+     * metadata. Follows `project.group` unless a module overrides it.
+     */
+    val group: Property<String>
 
     val buildTimestamp: Property<String>
 

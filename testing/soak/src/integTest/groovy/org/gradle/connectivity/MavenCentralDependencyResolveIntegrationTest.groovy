@@ -16,8 +16,11 @@
 package org.gradle.connectivity
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestEnvironmentPreconditions
+import org.opentest4j.TestAbortedException
 
 
 @Requires(TestEnvironmentPreconditions.Online)
@@ -71,10 +74,39 @@ task repoNames {
 }
 """
 
-        expect:
-        succeeds "check", "repoNames"
+        when:
+        resolveUnlessThrottled()
 
-        and:
-        output.contains(["MavenRepo", "otherCentral"].toString())
+        then:
+        outputContains(["MavenRepo", "otherCentral"].toString())
+    }
+
+    /**
+     * This test exists to prove Maven Central is reachable, so it deliberately does not use the
+     * repository mirror. Maven Central throttles our shared CI egress IP, and an HTTP 429 means we
+     * reached it and were turned away - connectivity is fine, which is the thing under test. Treat
+     * that as skipped, and keep failing for everything else: DNS, TLS, firewalls, wrong content.
+     */
+    private ExecutionResult resolveUnlessThrottled() {
+        try {
+            return succeeds("check", "repoNames")
+        } catch (UnexpectedBuildFailure failure) {
+            if (isThrottled(failure)) {
+                throw new TestAbortedException("Maven Central answered HTTP 429; it is reachable but throttling this IP")
+            }
+            throw failure
+        }
+    }
+
+    private static boolean isThrottled(Throwable failure) {
+        def text = new StringBuilder()
+        for (Throwable cause = failure; cause != null; cause = cause.cause) {
+            text.append(cause.message ?: "")
+            if (cause.cause === cause) {
+                break
+            }
+        }
+        def message = text.toString()
+        return message.contains("Received status code 429") || message.contains("Too Many Requests")
     }
 }

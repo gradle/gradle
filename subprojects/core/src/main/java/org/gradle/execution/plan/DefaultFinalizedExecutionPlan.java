@@ -381,8 +381,8 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
     }
 
     private boolean tryAcquireLocksForNode(Node node, List<ResourceLock> resources) {
-        if (!tryLockProjectFor(node, resources)) {
-            LOGGER.debug("Cannot acquire project lock for node {}", node);
+        if (!tryLockResourceFor(node, resources)) {
+            LOGGER.debug("Cannot acquire resource lock for node {}", node);
             return false;
         } else if (!tryLockSharedResourceFor(node, resources)) {
             LOGGER.debug("Cannot acquire shared resource lock for node {}", node);
@@ -414,8 +414,8 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         });
     }
 
-    private boolean tryLockProjectFor(Node node, List<ResourceLock> resources) {
-        ResourceLock toLock = node.getProjectToLock();
+    private boolean tryLockResourceFor(Node node, List<ResourceLock> resources) {
+        ResourceLock toLock = node.getResourceToLock();
         if (toLock == null) {
             return true;
         } else if (toLock.tryLock()) {
@@ -426,8 +426,8 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
         }
     }
 
-    private void unlockProjectFor(Node node) {
-        ResourceLock toUnlock = node.getProjectToLock();
+    private void unlockResourceFor(Node node) {
+        ResourceLock toUnlock = node.getResourceToLock();
         if (toUnlock != null) {
             toUnlock.unlock();
         }
@@ -651,7 +651,7 @@ public class DefaultFinalizedExecutionPlan implements WorkSource<Node>, Finalize
                 });
             }
         } finally {
-            unlockProjectFor(node);
+            unlockResourceFor(node);
             unlockSharedResourcesFor(node);
             invalidNodeRunning = false;
         }

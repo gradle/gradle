@@ -29,6 +29,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.processServices)
     api(projects.dependencyManagement)
+    api(projects.dependencyManagementResources)
     api(projects.fileTemp)
     api(projects.graphSerialization)
     api(projects.loggingApi)
@@ -53,6 +54,7 @@ dependencies {
     implementation(projects.classpath)
     implementation(projects.coreFlowServicesApi)
     implementation(projects.coreKotlinExtensions)
+    implementation(projects.daemonServices)
     implementation(projects.dependencyManagementSerializationCodecs)
     implementation(projects.encryptionServices)
     implementation(projects.enterpriseOperations)
@@ -80,6 +82,9 @@ dependencies {
     implementation(projects.stdlibSerializationCodecs)
     implementation(projects.toolingApi)
 
+    implementation(libs.configurationCacheReport) {
+        because("The configuration cache report summary is handed to the report writer here")
+    }
     implementation(libs.guava)
     implementation(libs.fastutil)
     implementation(libs.kryo)

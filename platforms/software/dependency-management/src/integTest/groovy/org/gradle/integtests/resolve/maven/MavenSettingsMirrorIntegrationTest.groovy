@@ -15,6 +15,7 @@
  */
 package org.gradle.integtests.resolve.maven
 
+import org.gradle.api.internal.artifacts.BaseRepositoryFactory
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.server.http.AuthScheme
@@ -194,6 +195,104 @@ class MavenSettingsMirrorIntegrationTest extends AbstractHttpDependencyResolutio
         run 'retrieve'
 
         then:
+        file('libs').assertHasDescendants('projectA-1.0.jar')
+    }
+
+    def "mirrorOf matches the gradle plugin portal by its repository name"() {
+        given: "the portal is redirected at a local repository that is never served"
+        def portalRepo = mavenHttpRepo("portal")
+        def mirrorRepo = mavenHttpRepo("mirror")
+        def module = mirrorRepo.module("org.test", "projectA", "1.0").publish()
+        writeMirrorSettings(mirrorRepo.uri.toString(), "Gradle Central Plugin Repository", "portal-mirror")
+
+        buildFile << """
+            repositories {
+                gradlePluginPortal()
+            }
+        """
+
+        and:
+        module.pom.expectGet()
+        module.artifact.expectGet()
+
+        when:
+        using m2
+        executer.withArguments(
+            "-D${BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${portalRepo.uri}",
+            "-Dorg.gradle.mirror.maven.settings=true")
+        run 'retrieve'
+
+        then: "the portal is matched by the name gradlePluginPortal() gives it"
+        file('libs').assertHasDescendants('projectA-1.0.jar')
+    }
+
+    def "a negated mirrorOf token excludes the gradle plugin portal from a wildcard mirror"() {
+        given:
+        def portalRepo = mavenHttpRepo("portal")
+        def mirrorRepo = mavenHttpRepo("mirror")
+        def module = portalRepo.module("org.test", "projectA", "1.0").publish()
+        // The mirror is never served, so the build fails if the portal is mirrored after all
+        mirrorRepo.module("org.test", "projectA", "1.0").publish()
+        writeMirrorSettings(mirrorRepo.uri.toString(), "*,!Gradle Central Plugin Repository", "portal-mirror")
+
+        buildFile << """
+            repositories {
+                gradlePluginPortal()
+            }
+        """
+
+        and:
+        module.pom.expectGet()
+        module.artifact.expectGet()
+
+        when:
+        using m2
+        executer.withArguments(
+            "-D${BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${portalRepo.uri}",
+            "-Dorg.gradle.mirror.maven.settings=true")
+        run 'retrieve'
+
+        then: "the negated token wins over the wildcard, so the portal url is used"
+        file('libs').assertHasDescendants('projectA-1.0.jar')
+    }
+
+    def "mirrorOf tolerates surrounding whitespace around an id containing spaces"() {
+        given:
+        def portalRepo = mavenHttpRepo("portal")
+        def mirrorRepo = mavenHttpRepo("mirror")
+        def module = mirrorRepo.module("org.test", "projectA", "1.0").publish()
+        m2.userSettingsFile.text = """
+            <settings>
+                <mirrors>
+                    <mirror>
+                        <id>portal-mirror</id>
+                        <mirrorOf>
+                            Gradle Central Plugin Repository
+                        </mirrorOf>
+                        <url>${mirrorRepo.uri}</url>
+                    </mirror>
+                </mirrors>
+            </settings>
+        """
+
+        buildFile << """
+            repositories {
+                gradlePluginPortal()
+            }
+        """
+
+        and:
+        module.pom.expectGet()
+        module.artifact.expectGet()
+
+        when:
+        using m2
+        executer.withArguments(
+            "-D${BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${portalRepo.uri}",
+            "-Dorg.gradle.mirror.maven.settings=true")
+        run 'retrieve'
+
+        then: "the settings reader trims the element, internal spaces are kept"
         file('libs').assertHasDescendants('projectA-1.0.jar')
     }
 

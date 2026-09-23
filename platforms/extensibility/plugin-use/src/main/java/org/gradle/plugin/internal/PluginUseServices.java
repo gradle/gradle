@@ -158,7 +158,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
             }
 
             Factory<DependencyResolutionServices> dependencyResolutionServicesFactory =
-                () -> dependencyManagementServices.newDetachedResolver(new DependencyManagementParameters(Describables.of("plugin resolution"), null, true, true, true));
+                () -> dependencyManagementServices.newDetachedResolver(DependencyManagementParameters.forDetachedJvmEnvironment(Describables.of("plugin resolution")));
 
             return new DefaultInjectedClasspathPluginResolver(
                 classLoaderScopeRegistry.getCoreAndPluginsScope(),
@@ -181,7 +181,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
             DependencyManagementServices dependencyManagementServices
         ) {
             return new PluginDependencyResolutionServices(() ->
-                dependencyManagementServices.newDetachedResolver(new DependencyManagementParameters(Describables.of("plugin resolution"), null, true, true, true))
+                dependencyManagementServices.newDetachedResolver(DependencyManagementParameters.forDetachedJvmEnvironment(Describables.of("plugin resolution")))
             );
         }
 

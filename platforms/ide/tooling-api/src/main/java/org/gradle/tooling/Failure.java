@@ -39,13 +39,32 @@ public interface Failure {
     String getMessage();
 
     /**
-     * Returns a long description of the failure. For example, a stack trace.
+     * Returns a long description of the failure. For example, a stack trace. Call this method on the root failure
+     * only: the description may include the full text of the failures returned by {@link #getCauses()}.
+     * When inspecting every node in a failure tree, use {@link #getOwnDescription()} to avoid processing cause
+     * descriptions repeatedly.
      *
      * @return a long description of the failure
      * @since 2.4
      */
     @Nullable
     String getDescription();
+
+    /**
+     * Returns a long description of this failure node, excluding the descriptions of its causes. For example, the failure header, its stack frames, and
+     * any suppressed exceptions, but not the descriptions of the failures returned by {@link #getCauses()}.
+     * <p>
+     * Unlike {@link #getDescription()}, which may contain the text of the whole cause subtree, this method can be used
+     * to inspect the description of every node in a failure tree without processing cause descriptions repeatedly.
+     * <p>
+     * When using a target Gradle version earlier than 9.7.0, this method returns {@code null}.
+     *
+     * @return a long description of this failure node, or {@code null} if it is not available
+     * @since 9.8.0
+     */
+    @Nullable
+    @Incubating
+    String getOwnDescription();
 
     /**
      * Returns the underlying causes for this failure, if any.

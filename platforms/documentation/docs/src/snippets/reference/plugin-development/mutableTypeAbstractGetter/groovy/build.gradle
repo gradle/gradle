@@ -1,0 +1,18 @@
+// tag::task-class[]
+abstract class MyTask extends DefaultTask {
+
+    @Input
+    abstract Property<Integer> getX()
+
+    @TaskAction
+    void run() {
+        println(x.get())
+    }
+}
+// end::task-class[]
+
+// tag::usage[]
+tasks.register('myTask', MyTask) {
+    x.set(123)
+}
+// end::usage[]

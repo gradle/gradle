@@ -36,9 +36,9 @@ public class ClasspathFactory {
     private final EclipseClasspath classpath;
     private final EclipseDependenciesCreator dependenciesCreator;
 
-    public ClasspathFactory(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry, GradleApiSourcesResolver gradleApiSourcesResolver, boolean inferModulePath) {
+    public ClasspathFactory(EclipseClasspath classpath, IdeArtifactRegistry ideArtifactRegistry, GradleApiSourcesResolver gradleApiSourcesResolver, boolean inferModulePath, ProjectModulePathResolver modulePathResolver) {
         this.classpath = classpath;
-        this.dependenciesCreator = new EclipseDependenciesCreator(classpath, ideArtifactRegistry, gradleApiSourcesResolver, inferModulePath);
+        this.dependenciesCreator = new EclipseDependenciesCreator(classpath, ideArtifactRegistry, gradleApiSourcesResolver, inferModulePath, modulePathResolver);
     }
 
     public List<ClasspathEntry> createEntries() {

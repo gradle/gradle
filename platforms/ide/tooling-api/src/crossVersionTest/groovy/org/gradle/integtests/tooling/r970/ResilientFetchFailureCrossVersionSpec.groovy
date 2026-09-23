@@ -29,7 +29,7 @@ class ResilientFetchFailureCrossVersionSpec extends KotlinDslPluginRelatedToolin
 
     private static final List<String> CONFIGURE_ON_DEMAND_ON = [
         "-Dorg.gradle.internal.isolated-projects.configure-on-demand=true",
-        "-Dorg.gradle.unsafe.isolated-projects=true"
+        "-Dorg.gradle.isolated-projects=true"
     ]
 
     private static final List<String> ISOLATED_PROJECTS_ON = [
@@ -166,6 +166,20 @@ class CustomPlugin implements Plugin<Project> {
         and: "the full description embeds the cause chain for each project"
         result.rootDescriptionByProject['b'].contains("Caused by:")
         result.rootDescriptionByProject['c'].contains("Caused by:")
+    }
+
+    @ToolingApiVersion('>=9.8.0')
+    @TargetGradleVersion('>=9.7.0')
+    def "configure-on-demand wrappers preserve the identity of their shared included build cause"() {
+        when:
+        fetchFailures(CONFIGURE_ON_DEMAND_ON)
+
+        then:
+        thrown(BuildException)
+        def b = fetchResult.failureTreeByProject['b']
+        def c = fetchResult.failureTreeByProject['c']
+        !b.is(c)
+        b.deepest().is(c.deepest())
     }
 
     def "a configuration failure attached to every fetched project fails the build only once"() {

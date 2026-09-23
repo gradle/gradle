@@ -17,22 +17,14 @@
 
 package org.gradle.process.internal
 
-import org.gradle.api.internal.file.TestFiles
-import org.gradle.initialization.BuildCancellationToken
-import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.CollectingTestOutputEventListener
 import org.gradle.internal.logging.ConfigureLogging
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecResult
 import org.gradle.process.ProcessExecutionException
 import org.gradle.process.internal.streams.FinishNotifyingStreamsHandler
-import org.gradle.test.fixtures.concurrent.ConcurrentSpec
-import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.OsTestPreconditions
 import org.gradle.util.UsesNativeServices
-import org.gradle.util.internal.GUtil
-import org.gradle.util.internal.TextUtil
 import org.junit.Rule
 import spock.lang.Ignore
 import spock.lang.Timeout
@@ -40,12 +32,11 @@ import spock.lang.Timeout
 import java.util.concurrent.Callable
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.Executor
+import java.util.concurrent.atomic.AtomicReference
 
 @UsesNativeServices
 @Timeout(60)
-class DefaultExecHandleSpec extends ConcurrentSpec {
-    @Rule final TestNameTestDirectoryProvider tmpDir = new TestNameTestDirectoryProvider(getClass())
-    private BuildCancellationToken buildCancellationToken = Mock(BuildCancellationToken)
+class DefaultExecHandleSpec extends AbstractExecHandleSpec {
     private final CollectingTestOutputEventListener outputEventListener = new CollectingTestOutputEventListener()
     @Rule final ConfigureLogging logging = new ConfigureLogging(outputEventListener)
 
@@ -174,6 +165,60 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         e.message == "A problem occurred starting process 'awesome'"
     }
 
+    void "does not deadlock when end state bookkeeping throws while start is failing"() {
+        given:
+        def execHandle = handle().setDisplayName("awesome").setExecutable("no_such_command").build()
+        buildCancellationToken.removeCallback(_) >> { throw new RuntimeException("boom") }
+
+        when:
+        execHandle.start()
+
+        then:
+        def e = thrown(ProcessExecutionException)
+        e.message == "A problem occurred starting process 'awesome'"
+        execHandle.state == ExecHandleState.FAILED
+    }
+
+    void "does not lose the failure when the error message cannot be built"() {
+        given:
+        System.setProperty("org.gradle.internal.cmdline.max.length", "1")
+        def streamsHandler = Stub(FinishNotifyingStreamsHandler) {
+            connectStreams(_, _, _) >> { throw new RuntimeException() }
+        }
+        def execHandle = handle().setDisplayName("awesome").streamsHandler(streamsHandler).build()
+
+        when:
+        execHandle.start()
+
+        then:
+        def e = thrown(ProcessExecutionException)
+        e.message == "A problem occurred starting process 'awesome'"
+        execHandle.state == ExecHandleState.FAILED
+
+        cleanup:
+        System.clearProperty("org.gradle.internal.cmdline.max.length")
+    }
+
+    void "destroys started process when streams cannot be connected"() {
+        given:
+        def startedProcess = new AtomicReference<Process>()
+        def streamsHandler = Stub(FinishNotifyingStreamsHandler) {
+            connectStreams(_, _, _) >> { Process process, String displayName, Executor executor ->
+                startedProcess.set(process)
+                throw new RuntimeException()
+            }
+        }
+        def execHandle = handle().args(args(SlowApp.class)).streamsHandler(streamsHandler).build()
+
+        when:
+        execHandle.start()
+
+        then:
+        thrown(ProcessExecutionException)
+        startedProcess.get() != null
+        !startedProcess.get().isAlive()
+    }
+
     void "aborts process"() {
         def execHandle = handle().args(args(SlowApp.class)).build()
 
@@ -194,27 +239,6 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
             assert it[0].class == ExecHandleShutdownHookAction
             true
         }
-        and:
-        execHandle.state == ExecHandleState.ABORTED
-        and:
-        execHandle.waitForFinish().exitValue != 0
-    }
-
-    void "abort destroys all child processes"() {
-        def execHandle = handle().args(args(AppWithChildWithGrandChild.class)).build()
-        // On Windows additional `conhost.exe` processes are spawned as children of java processes
-        def expectedDescendantProcesses = OperatingSystem.current().isWindows() ? 5 : 2
-
-        when:
-        execHandle.start()
-        // wait for child and grand child to start
-        while(childProcessHandles(execHandle).size() != expectedDescendantProcesses) {
-            Thread.sleep(10)
-        }
-        execHandle.abort()
-
-        then:
-        childProcessHandles(execHandle).isEmpty()
         and:
         execHandle.state == ExecHandleState.ABORTED
         and:
@@ -559,32 +583,6 @@ class DefaultExecHandleSpec extends ConcurrentSpec {
         Object call() {
             return message
         }
-    }
-
-    private ClientExecHandleBuilder handle() {
-        new DefaultClientExecHandleBuilder(TestFiles.pathToFileResolver(), executor, buildCancellationToken)
-            .setExecutable(Jvm.current().getJavaExecutable().getAbsolutePath())
-            .setTimeout(20000) //sanity timeout
-            .setWorkingDir(tmpDir.getTestDirectory())
-            .environment('CLASSPATH', mergeClasspath())
-            .environment('JAVA_EXE_PATH', TextUtil.normaliseFileSeparators(Jvm.current().getJavaExecutable().getAbsolutePath()))
-    }
-
-    private String mergeClasspath() {
-        if (System.getenv('CLASSPATH') == null) {
-            return System.getProperty('java.class.path')
-        } else {
-            return "${System.getenv('CLASSPATH')}${File.pathSeparator}${System.getProperty('java.class.path')}"
-        }
-    }
-
-    private List args(Class mainClass, String... args) {
-        GUtil.flattenElements(mainClass.getName(), args)
-    }
-
-    private List<String> childProcessHandles(ExecHandle execHandle) {
-        Process process = execHandle.execHandleRunner.process
-        process.descendants().map { it.toString() }.toList()
     }
 
     public static class BrokenApp {

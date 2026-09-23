@@ -112,7 +112,8 @@ public class DefaultResourceLockCoordinationService implements ResourceLockCoord
                             } catch (InterruptedException e) {
                                 // Interrupting the state lock thread means something changed,
                                 // so let's retry obtaining the lock.
-                                // Clear the interrupted flag.
+                                // Clear the interrupted flag: swallowing the interrupt here is intentional.
+                                @SuppressWarnings("InterruptedInCatchBlock")
                                 boolean ignored = Thread.interrupted();
                             }
                             startOperation(resourceLockState);

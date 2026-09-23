@@ -85,7 +85,7 @@ class GenericReceiverTypesTest {
             assertEquals("""
                 Using a parameterized type as a configured type is not supported
                   in configured type 'org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.GenericSuperType<kotlin.Int, kotlin.String>'
-                  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.SchemaConfiguringGenericType.sup((org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.GenericSuperType<kotlin.Int, kotlin.String>) -> kotlin.Unit): kotlin.Unit'
+                  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.SchemaConfiguringGenericType.sup(org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.GenericSuperType<kotlin.Int, kotlin.String>.() -> kotlin.Unit): kotlin.Unit'
                   in class 'org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.SchemaConfiguringGenericType'
             """.trimIndent(), message)
         }
@@ -102,7 +102,7 @@ class GenericReceiverTypesTest {
             assertEquals("""
                 Using a type parameter as a configured type is not supported
                   in configured type 'T'
-                  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.SchemaConfiguringTypeArgument.sup((T) -> kotlin.Unit): T'
+                  in member 'fun org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.SchemaConfiguringTypeArgument.sup(T.() -> kotlin.Unit): T'
                   in class 'org.gradle.internal.declarativedsl.schemaBuidler.GenericReceiverTypesTest.SchemaConfiguringTypeArgument'
             """.trimIndent(), message)
         }

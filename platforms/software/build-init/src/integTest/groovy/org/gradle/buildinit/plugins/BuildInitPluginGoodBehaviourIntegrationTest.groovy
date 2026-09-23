@@ -15,9 +15,27 @@
  */
 package org.gradle.buildinit.plugins
 
+import org.gradle.api.artifacts.ArtifactRepositoryContainer
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class BuildInitPluginGoodBehaviourIntegrationTest extends WellBehavedPluginTest {
+
+    def setup() {
+        // Applying the build-init plugin registers the init task, and BuildInitPlugin configures
+        // the build converter's classpath at that point, so the Maven conversion libraries are
+        // resolved through a detached resolver that no init script can reach. This class does not
+        // extend AbstractInitIntegrationSpec, so it needs the Maven settings mirror of its own.
+        def mirrorUrl = RepoScriptBlockUtil.mavenCentralMirrorUrl
+        if (RepoScriptBlockUtil.mirrorEnabled && mirrorUrl != ArtifactRepositoryContainer.MAVEN_CENTRAL_URL) {
+            using m2
+            m2.withCentralMirror(mirrorUrl)
+            executer.beforeExecute {
+                it.withArgument("-Dorg.gradle.mirror.maven.settings=true")
+            }
+        }
+    }
+
     @Override
     def getMainTask() {
         return ["init", "--overwrite"]

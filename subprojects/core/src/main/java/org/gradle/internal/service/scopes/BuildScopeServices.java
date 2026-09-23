@@ -29,7 +29,6 @@ import org.gradle.api.internal.DefaultClassPathProvider;
 import org.gradle.api.internal.DefaultClassPathRegistry;
 import org.gradle.api.internal.DependencyClassPathProvider;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.classpath.ModuleRegistry;
@@ -221,6 +220,7 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.management.ToolchainManagementInternal;
 import org.gradle.internal.model.CalculatedValueFactory;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -418,7 +418,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         BuildIdentity buildIdentity,
         GradlePropertiesController gradlePropertiesController
     ) {
-        return gradlePropertiesController.getGradleProperties(buildIdentity.getBuildIdentifier());
+        return gradlePropertiesController.getGradleProperties(buildIdentity);
     }
 
     @Provides
@@ -428,7 +428,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         InstantiatorFactory instantiatorFactory,
         IsolatableFactory isolatableFactory,
         ServiceRegistry services,
-        GradleProperties gradleProperties,
         ExecFactory execFactory,
         CalculatedValueFactory calculatedValueFactory
     ) {
@@ -437,7 +436,6 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             computationListener,
             instantiatorFactory,
             isolatableFactory,
-            gradleProperties,
             calculatedValueFactory,
             new DefaultExecOperations(execFactory.forContext().withoutExternalProcessStartedListener().build()),
             services
@@ -808,7 +806,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         // Instantiate via `instantiator` for the DSL decorations to the `BuildServiceRegistry` API
         return instantiator.newInstance(
             DefaultBuildServicesRegistry.class,
-            buildIdentity.getBuildIdentifier(),
+            buildIdentity,
             factory,
             instantiatorFactory,
             services,

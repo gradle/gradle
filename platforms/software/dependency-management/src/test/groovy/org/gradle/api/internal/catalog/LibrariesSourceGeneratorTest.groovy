@@ -61,7 +61,6 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest {
             Stub(ValueSourceProviderFactory.ComputationListener),
             TestUtil.instantiatorFactory(),
             new TestIsolatableFactory(),
-            Stub(GradleProperties),
             TestUtil.calculatedValueContainerFactory(),
             Stub(ExecOperations),
             TestUtil.services()

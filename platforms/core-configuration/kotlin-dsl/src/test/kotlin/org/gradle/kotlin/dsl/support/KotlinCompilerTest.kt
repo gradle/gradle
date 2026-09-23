@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl.support
 import org.gradle.api.JavaVersion
 import org.hamcrest.MatcherAssert.assertThat
 import org.hamcrest.core.IsEqual.equalTo
+import org.jetbrains.kotlin.buildtools.api.arguments.enums.JvmTarget as BtaJvmTarget
 import org.jetbrains.kotlin.config.JvmTarget
 import org.junit.Test
 
@@ -60,5 +61,15 @@ class KotlinCompilerTest {
         JavaVersion.values().filter { it > JavaVersion.VERSION_26 }.forEach { javaVersion ->
             assertThat("$javaVersion --> ${javaVersion.toKotlinJvmTarget()}", javaVersion.toKotlinJvmTarget(), equalTo(JvmTarget.JVM_26))
         }
+    }
+
+    @Test
+    fun `Kotlin JvmTarget to Build Tools API JvmTarget conversion`() {
+        assertThat(JvmTarget.JVM_1_8.toBuildToolsApiJvmTarget(), equalTo(BtaJvmTarget.JVM1_8))
+        assertThat(JvmTarget.JVM_9.toBuildToolsApiJvmTarget(), equalTo(BtaJvmTarget.JVM_9))
+        assertThat(JvmTarget.JVM_11.toBuildToolsApiJvmTarget(), equalTo(BtaJvmTarget.JVM_11))
+        assertThat(JvmTarget.JVM_17.toBuildToolsApiJvmTarget(), equalTo(BtaJvmTarget.JVM_17))
+        assertThat(JvmTarget.JVM_21.toBuildToolsApiJvmTarget(), equalTo(BtaJvmTarget.JVM_21))
+        assertThat(JvmTarget.JVM_26.toBuildToolsApiJvmTarget(), equalTo(BtaJvmTarget.JVM_26))
     }
 }

@@ -1064,7 +1064,7 @@ class ConfigurationCacheFingerprintWriter(
     ) = PropertyTrace.Project(
         path = when (propertyScope) {
             is GradlePropertyScope.Project -> propertyScope.projectIdentity.buildTreePath.asString()
-            is GradlePropertyScope.Build -> propertyScope.buildIdentifier.buildPath
+            is GradlePropertyScope.Build -> propertyScope.buildIdentity.buildPath.asString()
             else -> error("Unexpected property scope $propertyScope")
         },
         trace = location
