@@ -844,7 +844,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
         public Configurer from(Object... paths) {
             assertMutable();
-            if (paths.length > 0) {
+            if (paths != null && paths.length > 0) {
                 setValue(getValue().plus(DefaultConfigurableFileCollection.this, resolver, patternSetFactory, dependencyFactory, host, paths));
             }
             return this;

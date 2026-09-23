@@ -672,6 +672,39 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         "from"       | ["a.txt", "b.txt"]
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/34646")
+    def "ignores null passed as the only argument to #api"() {
+        buildFile("""
+            abstract class FooTask extends DefaultTask {
+                @InputFiles
+                abstract ConfigurableFileCollection getIncoming()
+
+                @TaskAction
+                void foo() {
+                    println("Incoming: \${incoming.files.toSorted()}")
+                }
+            }
+
+            tasks.register("foo", FooTask) {
+                incoming.from("a.txt")
+                incoming.from($expression)
+            }
+        """)
+        when:
+        run "foo"
+
+        then:
+        outputContains("Incoming: ${[testDirectory.file("a.txt")]}")
+
+        where:
+        api                                 | expression
+        "ConfigurableFileCollection.from"   | "null"
+        "Project.files"                     | "project.files(null)"
+        "ProjectLayout.files"               | "project.layout.files(null)"
+        "Directory.files"                   | "project.layout.projectDirectory.files(null)"
+        "DirectoryProperty.files"           | "project.layout.buildDirectory.files(null)"
+    }
+
     private void withSubprojects(String... subprojects) {
         subprojects.each {
             createDir it
