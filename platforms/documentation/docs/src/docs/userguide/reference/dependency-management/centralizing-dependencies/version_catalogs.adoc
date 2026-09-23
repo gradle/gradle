@@ -417,6 +417,9 @@ Bundles and plugins can be added the same way, using `bundle()` and `plugin()`.
 
 TIP: Don't use `libs` for your programmatic version catalog name if you have the default `libs.versions.toml` in your project.
 
+NOTE: If you want to <<#sec:using_the_version_catalog_plugin,publish>> a catalog you declared this way, switch it to the <<#sec:version-catalog-declaration,TOML file>> form instead.
+The `version-catalog` plugin can only publish from a TOML file or its own `catalog` extension, not from a `dependencyResolutionManagement.versionCatalogs` block, but a `gradle/libs.versions.toml` file gives you the same typesafe accessors and is auto-imported, so nothing is lost by moving the declaration there.
+
 [[sec:version-catalog-plugin]]
 == Publishing a catalog
 
