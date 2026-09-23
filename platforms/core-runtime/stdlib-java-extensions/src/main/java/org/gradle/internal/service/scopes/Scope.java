@@ -40,8 +40,8 @@ package org.gradle.internal.service.scopes;
  *          BuildTree
  *              │
  *            Build
- *         ┌────┴────┐
- *      Project   Settings
+ *       ┌──────┴───┬──────────────┐
+ *    Project   Settings   ProjectExecution
  * </pre>
  *
  * Each scope roughly corresponds to the following user-facing concepts:
@@ -54,6 +54,7 @@ package org.gradle.internal.service.scopes;
  * <li>{@link Build}             — build in a composite build
  * <li>{@link Settings}          — init scripts, settings script
  * <li>{@link Project}           — project in a build
+ * <li>{@link ProjectExecution}  — execution of a project's work in a work graph
  * </ul>
  *
  * There can be multiple "instances" of a scope inside one "instance" of a parent scope.
@@ -196,4 +197,16 @@ public interface Scope {
      * {@link Build} and parent scope services are visible to {@link Project} scope services, but not vice versa.
      */
     interface Project extends Build {}
+
+    /**
+     * The scope of executing the work of a single {@link Project project} in a work graph.
+     * <p>
+     * The state is created when the first node owned by the project executes,
+     * and is discarded when the work graph finishes executing.
+     * Its services are not available when configuring the project.
+     * <p>
+     * {@link Build} and parent scope services are visible to {@link ProjectExecution} scope services, but not vice versa.
+     * {@link Project} scope services are not visible, so the project state that execution needs is provided explicitly.
+     */
+    interface ProjectExecution extends Build {}
 }
