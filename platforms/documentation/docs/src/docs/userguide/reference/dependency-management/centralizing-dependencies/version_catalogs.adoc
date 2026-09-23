@@ -742,3 +742,11 @@ Passing the provider avoids mismatches between these types.
 
 NOTE: A few `dependencies` blocks, such as the one used by native plugins like `cpp-application`, only accept a resolved dependency notation and do not support the provider form.
 In those cases, call `.get()` on the accessor at the declaration site, for example `implementation(libs.boost.asio.get())`.
+
+[[sec:testing_plugins_that_use_a_catalog_pointer]]
+== Testing plugins that read a version catalog
+
+A plugin that reads from the `VersionCatalogsExtension` can't rely on a real version catalog when tested with `ProjectBuilder`.
+A `ProjectBuilder`-built project never goes through the settings-level catalog processing that a real build does, and working around this the wrong way leaves you with an empty catalog you can't replace.
+
+See <<testing_gradle_plugins.adoc#sec:testing_plugins_that_use_a_catalog,Testing plugins that use a version catalog>> for the gotcha and coded example.
