@@ -167,6 +167,10 @@ include::sample[dir="snippets/reference/dependency-management/centralizing-depen
 include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-classifiers/groovy",files="build.gradle[tags=use_artifact_type]"]
 ====
 
+NOTE: A plain String-notation dependency with a type or classifier (for example, `"com.example:artifact:1.2.3@tar.gz"`) resolves non-transitively.
+The dependency notation parser sets this automatically whenever a type is present.
+Version catalog accessors don't go through that parser, so the same dependency declared via `libs.my.lib` with an `artifact { }` block stays transitive unless you set `isTransitive = false` (Kotlin DSL) or `transitive = false` (Groovy DSL) yourself, as shown above.
+
 See <<#sec:toml-limitations, TOML Limitations>> to learn more.
 
 [[sec:importing-published-catalog]]
