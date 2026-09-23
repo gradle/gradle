@@ -74,6 +74,7 @@ public class AgentOutputCleanupAction implements MonitoredCleanupAction {
 
     @Override
     public boolean execute(CleanupProgressMonitor progressMonitor) {
+        // Check if there is output, so that the marker file is only ever created next to existing output
         if (!hasOutput() || !requiresCleanup()) {
             return false;
         }
