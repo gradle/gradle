@@ -26,7 +26,7 @@ import java.io.PrintStream;
  */
 @NullMarked
 class AgentHeartbeat implements Closeable {
-    static final String INTERVAL_MILLIS_SYSTEM_PROPERTY = "org.gradle.internal.testing.agent.heartbeat.millis";
+    static final String INTERVAL_MILLIS_SYSTEM_PROPERTY = "org.gradle.internal.agent.heartbeat.millis";
     private static final long DEFAULT_INTERVAL_MILLIS = 10_000;
 
     private final Thread thread;
