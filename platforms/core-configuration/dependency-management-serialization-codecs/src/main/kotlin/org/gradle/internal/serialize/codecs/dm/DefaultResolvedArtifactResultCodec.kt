@@ -35,6 +35,7 @@ class DefaultResolvedArtifactResultCodec(
 ) : Codec<DefaultResolvedArtifactResult> {
 
     override suspend fun WriteContext.encode(value: DefaultResolvedArtifactResult) {
+        // TODO Split an immutable id out of PublishArtifactLocalArtifactMetadata so this does not serialize live metadata
         write(value.id)
         attributesCodec.run { encode(value.attributes) }
         capabilitiesCodec.run { encode(value.capabilities) }

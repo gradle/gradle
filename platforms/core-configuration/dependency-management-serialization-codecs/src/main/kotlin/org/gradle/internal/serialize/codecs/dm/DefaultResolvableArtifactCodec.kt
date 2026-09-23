@@ -38,6 +38,7 @@ class DefaultResolvableArtifactCodec(
         // Write the source artifact
         writeFile(value.file)
         IvyArtifactNameSerializer.INSTANCE.write(this, value.artifactName)
+        // TODO Split an immutable id out of PublishArtifactLocalArtifactMetadata so this does not serialize live metadata
         write(value.id)
         // TODO - preserve the artifact's owner id (or get rid of it as it's not used for transforms)
     }
