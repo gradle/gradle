@@ -107,6 +107,39 @@ include::sample[dir="snippets/reference/platforms/jvm/jvm-multi-project-with-cod
 
 Report creation automatically creates backing tasks to aggregate coverage results for the given test suite type value.
 
+[[sec:jacoco_aggregation_report_formats]]
+=== Report formats
+
+By default, the aggregate report is generated in HTML and XML.
+The backing tasks are of type link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html[`JacocoReport`], so you can also enable CSV (or disable a default format) via the report task's `reports` container (the task name follows the `__testSuite__CodeCoverageReport` pattern, e.g. `testCodeCoverageReport`):
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+tasks.named<JacocoReport>("testCodeCoverageReport") {
+    reports {
+        csv.required = true
+        xml.required = false
+    }
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+tasks.named('testCodeCoverageReport', JacocoReport) {
+    reports {
+        csv.required = true
+        xml.required = false
+    }
+}
+----
+=====
+====
+
 [[sec:dependency_management_jacoco]]
 == Dependency management
 
