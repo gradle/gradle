@@ -403,12 +403,17 @@ For excludes and capabilities, apply them at the dependency declaration site in 
 [[sec:programmatic-catalog-versions]]
 == Programming catalogs
 
-Version catalogs can be declared programmatically in the `settings.gradle(.kts)` file using the link:{javadocPath}/org/gradle/api/initialization/Settings.html[Settings API]:
+The <<#sec:version-catalog-declaration,TOML file>> is the recommended way to declare a catalog.
+An alternative is to build the catalog with method calls in `settings.gradle(.kts)`, which is useful when entries need to be computed at configuration time rather than written out as static TOML — for example, generating aliases from another data source.
+This is done through the `dependencyResolutionManagement.versionCatalogs` block, part of the link:{javadocPath}/org/gradle/api/initialization/Settings.html[Settings API]:
 
 ====
 include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-settings/kotlin",files="settings.gradle.kts[tags=catalog_with_versions]"]
 include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-settings/groovy",files="settings.gradle[tags=catalog_with_versions]"]
 ====
+
+Each `library()` call maps an alias to GAV coordinates, and `version()` declares a reusable version reference — the same concepts as the TOML file's `[libraries]` and `[versions]` sections, just expressed as method calls instead of table entries.
+Bundles and plugins can be added the same way, using `bundle()` and `plugin()`.
 
 TIP: Don't use `libs` for your programmatic version catalog name if you have the default `libs.versions.toml` in your project.
 
@@ -703,7 +708,8 @@ Both the plugin alias and the library aliases resolve to `2.4.20`, and updating 
 == Using catalog entries in Gradle APIs
 
 A version catalog accessor such as `libs.groovy.core` returns a `Provider<MinimalExternalModuleDependency>`.
-Calling `.get()` on it unwraps the provider and gives you the `MinimalExternalModuleDependency` directly.
+A bundle accessor such as `libs.bundles.groovy` returns a `Provider<ExternalModuleDependencyBundle>`, and a plugin accessor such as `libs.plugins.versions` returns a `Provider<PluginDependency>`.
+Calling `.get()` on any of these unwraps the provider and gives you the underlying dependency object directly.
 
 In dependency declarations, both forms work identically:
 
@@ -722,3 +728,6 @@ include::sample[dir="snippets/reference/dependency-management/centralizing-depen
 When you pass the provider, Gradle handles any necessary type conversions internally.
 Unwrapping with `.get()` gives you a `MinimalExternalModuleDependency`, which implements `ExternalDependency` and `ModuleVersionSelector` — but some resolution APIs expect `ModuleComponentSelector`, a different type.
 Passing the provider avoids mismatches between these types.
+
+NOTE: A few `dependencies` blocks, such as the one used by native plugins like `cpp-application`, only accept a resolved dependency notation and do not support the provider form.
+In those cases, call `.get()` on the accessor at the declaration site, for example `implementation(libs.boost.asio.get())`.
