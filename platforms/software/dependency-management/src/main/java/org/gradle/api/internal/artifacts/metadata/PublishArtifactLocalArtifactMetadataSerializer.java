@@ -60,6 +60,6 @@ public class PublishArtifactLocalArtifactMetadataSerializer implements Serialize
         encoder.writeString(publishArtifact.getExtension());
         encoder.writeString(publishArtifact.getType());
         encoder.writeNullableString(publishArtifact.getClassifier());
-        encoder.writeString(publishArtifact.getFile().getCanonicalPath());
+        encoder.writeString(publishArtifact.getFile().getPath());
     }
 }
