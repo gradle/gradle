@@ -401,9 +401,11 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
             }
 
             OutputStream agentOutput = null;
+            AgentHeartbeat agentHeartbeat = null;
             if (agentOutputFile != null) {
-                // Only in agent mode. System.out is replaced once the logging manager starts
+                // Only in agent mode. System.out and System.err are replaced once the logging manager starts
                 agentOutput = openAgentOutput(agentOutputFile, System.out);
+                agentHeartbeat = AgentHeartbeat.start(System.err);
             }
 
             LoggingManagerInternal loggingManager = loggingServices.get(LoggingManagerFactory.class).createLoggingManager();
@@ -418,6 +420,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                 exceptionReportingAction.execute(executionListener);
             } finally {
                 loggingManager.stop();
+                IoActions.closeQuietly(agentHeartbeat);
                 IoActions.closeQuietly(agentOutput);
             }
         }
