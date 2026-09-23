@@ -57,7 +57,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         succeeds("hello", "--agent")
 
         then:
-        def agentOutput = agentOutputFile()
+        def agentOutput = assertOnlyLogFilePathPrinted()
         errorOutput.trim().empty
 
         and:
@@ -72,7 +72,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         succeeds("hello", "--agent", logLevel)
 
         then:
-        def agentOutput = agentOutputFile()
+        def agentOutput = assertOnlyLogFilePathPrinted()
         errorOutput.trim().empty
         agentOutput.text.contains("Hello from the task")
 
@@ -85,7 +85,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         fails("broken", "--agent")
 
         then:
-        def agentOutput = agentOutputFile()
+        def agentOutput = assertOnlyLogFilePathPrinted()
         errorOutput.trim().empty
 
         and:
@@ -108,7 +108,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         settings.waitForAllPendingCalls()
 
         then:
-        def agentOutput = agentOutputFile(build.standardOutput)
+        def agentOutput = assertOnlyLogFilePathPrinted(build.standardOutput)
         ConcurrentTestUtil.poll {
             assert agentOutput.text.contains("Message from settings continued")
         }
@@ -137,7 +137,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         settings.waitForAllPendingCalls()
 
         then:
-        def agentOutput = agentOutputFile(build.standardOutput)
+        def agentOutput = assertOnlyLogFilePathPrinted(build.standardOutput)
         ConcurrentTestUtil.poll {
             assert agentOutput.text.contains("Complete line from settings\n")
         }
@@ -159,7 +159,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         fails("hello", "--agent", "--warning-mode=bogus")
 
         then:
-        def agentOutput = agentOutputFile()
+        def agentOutput = assertOnlyLogFilePathPrinted()
         errorOutput.trim().empty
         agentOutput.text.contains("Argument value 'bogus' given for --warning-mode option is invalid")
     }
@@ -172,7 +172,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         fails("hello", "--agent")
 
         then:
-        agentOutputFile().text.contains("Unable to start the daemon process")
+        assertOnlyLogFilePathPrinted().text.contains("Unable to start the daemon process")
     }
 
     def "writes the file to the root directory when run from a subproject"() {
@@ -185,7 +185,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         succeeds("inSub", "--agent")
 
         then:
-        agentOutputFile()
+        assertOnlyLogFilePathPrinted()
         !file("sub/.gradle/agent").exists()
     }
 
@@ -197,7 +197,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         succeeds("hello")
 
         then:
-        agentOutputFile()
+        assertOnlyLogFilePathPrinted()
 
         when:
         succeeds("hello", "--no-agent")
@@ -216,7 +216,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         succeeds("hello")
 
         then:
-        agentOutputFile()
+        assertOnlyLogFilePathPrinted()
 
         when:
         executer.withEnvironmentVars(ORG_GRADLE_AGENT: "true")
@@ -244,7 +244,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         file(BUILDS_DIR).exists() == expected
-        expected ? agentOutputFile() : output.contains("Hello from the task")
+        expected ? assertOnlyLogFilePathPrinted() : output.contains("Hello from the task")
 
         where:
         gradleProperty | gradleOpts | envVar  | args           | expected
@@ -262,7 +262,7 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         succeeds(option, "--agent")
 
         then:
-        agentOutputFile().text.contains(expectedOutput)
+        assertOnlyLogFilePathPrinted().text.contains(expectedOutput)
 
         where:
         option      | expectedOutput
@@ -295,16 +295,16 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         succeeds("hello", "--agent", "--project-cache-dir", "custom-cache")
 
         then:
-        agentOutputFile(output, "custom-cache/agent/builds").text.contains("Hello from the task")
+        assertOnlyLogFilePathPrinted(output, "custom-cache/agent/builds").text.contains("Hello from the task")
         !file(BUILDS_DIR).exists()
     }
 
     def "writes the output of each build to a separate file"() {
         when:
         succeeds("hello", "--agent")
-        def first = agentOutputFile()
+        def first = assertOnlyLogFilePathPrinted()
         fails("broken", "--agent")
-        def second = agentOutputFile()
+        def second = assertOnlyLogFilePathPrinted()
 
         then:
         first != second
@@ -343,10 +343,10 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
     }
 
     /**
-     * Verifies that the given standard output is nothing but the location of the output file, and returns that file.
+     * Asserts that the given standard output is nothing but the location of the output file, and returns that file.
      */
-    private TestFile agentOutputFile(String standardOutput = output, String buildsDir = BUILDS_DIR) {
-        def lines = standardOutput.readLines().findAll { !it.empty }
+    private TestFile assertOnlyLogFilePathPrinted(String standardOutput = output, String buildsDir = BUILDS_DIR) {
+        def lines = standardOutput.readLines()
         assert lines.size() == 1
         def outputFile = new TestFile(lines[0])
         assert outputFile.name == "build-output.log"
