@@ -140,6 +140,36 @@ class DefaultSourceDirectorySetTest extends Specification {
         set.srcDirs equalTo([new File(testDir, 'dir1'), new File(testDir, 'dir2')] as Set)
     }
 
+    def "ignores nulls passed to #scenario"() {
+        given:
+        touch(testDir.file('dir1/file1.txt'))
+        touch(testDir.file('dir2/file2.txt'))
+        set.srcDir 'dir1'
+
+        when:
+        configure(set)
+
+        then:
+        set.srcDirs == expectedDirs.collect { testDir.file(it) } as Set
+        set.srcDirTrees*.dir as Set == expectedDirs.collect { testDir.file(it) } as Set
+        set.sourceDirectories.files == expectedDirs.collect { testDir.file(it) } as Set
+        set.files == expectedDirs.collect { testDir.file("$it/file${it[-1]}.txt") } as Set
+        dependencies(set).empty
+
+        where:
+        scenario                       | configure                                                 | expectedDirs
+        "srcDir(null)"                 | { SourceDirectorySet s -> s.srcDir(null) }                | ['dir1']
+        "srcDir with null element"     | { SourceDirectorySet s -> s.srcDir([null, 'dir2']) }      | ['dir1', 'dir2']
+        "srcDir with closure of null"  | { SourceDirectorySet s -> s.srcDir { -> null } }          | ['dir1']
+        "srcDirs(null)"                | { SourceDirectorySet s -> s.srcDirs(null) }               | ['dir1']
+        "srcDirs with null array"      | { SourceDirectorySet s -> s.srcDirs((Object[]) null) }    | ['dir1']
+        "srcDirs with null elements"   | { SourceDirectorySet s -> s.srcDirs(null, 'dir2', null) } | ['dir1', 'dir2']
+        "setSrcDirs(null)"             | { SourceDirectorySet s -> s.setSrcDirs(null) }            | []
+        "setSrcDirs with null element" | { SourceDirectorySet s -> s.setSrcDirs([null, 'dir2']) }  | ['dir2']
+        "setSrcDirs with only nulls"   | { SourceDirectorySet s -> s.setSrcDirs([null, null]) }    | []
+        "source(null)"                 | { SourceDirectorySet s -> s.source(null) }                | ['dir1']
+    }
+
     void canViewSourceDirectoriesAsLiveFileCollection() {
         when:
         def dirs = set.sourceDirectories

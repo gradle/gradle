@@ -41,6 +41,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -332,7 +334,8 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         }
     }
 
-    private static boolean isEmpty(Object sources) {
+    @Contract("null -> true")
+    private static boolean isEmpty(@Nullable Object sources) {
         // Groovy passes a lone `null` argument as a null varargs array
         return sources == null || (sources.getClass().isArray() && Array.getLength(sources) == 0);
     }
