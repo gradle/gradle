@@ -133,7 +133,6 @@ Assembles the artifacts for the specified configuration. This rule is added by t
 
 The following diagram shows the relationships between these tasks.
 
-.Java plugin - tasks
 image::javaPluginTasks.png[]
 
 [[sec:java_project_layout]]
@@ -279,10 +278,26 @@ The role of each configuration is described in the following tables.
 For information on the `default` and `archives` configurations, please consult the
 <<base_plugin.adoc#sec:base_plugin_configurations,Base Plugin>> reference documentation.
 
-For information on the `api`, `compileOnlyApi` , or consumable configurations, please consult the
-<<java_library_plugin.adoc#sec:java_library_separation, Java Library Plugin>> reference documentation and
+For information on the `api` and `compileOnlyApi` configurations, which are only added when the
+<<java_library_plugin.adoc#sec:java_library_separation,Java Library Plugin>> is applied, please consult its reference documentation and
 <<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects, Dependency Management for Java Projects>>.
 ====
+
+[[sec:java_configuration_diagram]]
+=== Configuration diagram
+
+The diagrams below show how the Java plugin's configurations relate to each other and to the tasks that use them, for the _main_ and _test_ source sets.
+For an explanation of what it means for a configuration to be declarable, resolvable, or consumable, see <<declaring_configurations.adoc#sec:resolvable-consumable-configs,Declarable, Resolvable, and Consumable configurations>>.
+
+Main source sets:
+
+image::java-main-configurations.png[]
+
+Test source sets:
+
+image::java-test-configurations.png[]
+
+The tables below give the full reference for each configuration shown above.
 
 [[sec:java_declarable_configurations]]
 === Declarable (Bucket) Configurations
@@ -320,6 +335,22 @@ For information on the `api`, `compileOnlyApi` , or consumable configurations, p
 | Represents annotation processors used during the compilation of a project's source code (i.e., annotation processors used during compilation).
 |===
 
+[[sec:java_consumable_configurations]]
+=== Consumable Configurations
+
+[%header%autowidth,compact]
+|===
+| Configuration name | Role | Description
+
+| `apiElements`
+| Consumable
+| Represents the elements exposed to consumers that compile against this project, such as other projects that depend on it or components published from it. Under the Java Plugin alone, this configuration carries no declared dependencies of its own — it exposes only this project's compiled classes. The <<java_library_plugin.adoc#sec:java_library_separation,Java Library Plugin>> adds the `api` and `compileOnlyApi` configurations, whose dependencies are then also exposed here.
+
+| `runtimeElements` (extends `runtimeOnly, implementation`)
+| Consumable
+| Represents the elements exposed to consumers that run against this project, such as other projects that depend on it or components published from it. Includes the dependencies from both `runtimeOnly` and `implementation` configurations, since implementation dependencies are required at runtime even though they are not part of the compile-time API.
+|===
+
 [[sec:java_resolvable_configurations]]
 === Resolvable Configurations
 
@@ -343,18 +374,6 @@ For information on the `api`, `compileOnlyApi` , or consumable configurations, p
 | Resolvable
 | Represents the classpath used to run the test sources, which includes dependencies from both `testRuntimeOnly` and `testImplementation` configurations. Used by the `test` task.
 |===
-
-The following diagrams show the dependency configurations for the _main_ source set. You can use this legend to interpret the colors:
-
- * _blue_ background — you can declare dependencies against the configuration.
- * _green_ background — the configuration is for consumption by tasks, not for you to declare dependencies.
- * _grey_ background — a task.
-
-image::java-main-configurations.png[]
-
-And the next graph describes the _test_ source set:
-
-image::java-test-configurations.png[]
 
 For each source set you add to the project, the Java plugins adds the following dependency configurations:
 

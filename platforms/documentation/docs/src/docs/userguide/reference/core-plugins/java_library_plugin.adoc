@@ -122,7 +122,24 @@ include::sample[dir="snippets/reference/dependency-management/publishing/javaLib
 [[sec:java_library_configurations_graph]]
 == Dependency configurations
 
-The role of each configuration is described in the following tables.
+The Java Library plugin adds a number of dependency configurations to your project, building on top of the ones added by the <<java_plugin.adoc#sec:java_plugin_and_dependency_management,Java Plugin>>.
+Tasks such as `compileJava` and `test` then use one or more of those configurations to get the corresponding files and use them, for example by placing them on a compilation or runtime classpath.
+
+[[sec:java_library_configuration_diagram]]
+=== Configuration diagram
+
+The diagrams below show how the Java Library plugin's configurations relate to each other and to the tasks that use them, for the _main_ and _test_ source sets.
+For an explanation of what it means for a configuration to be declarable, resolvable, or consumable, see <<declaring_configurations.adoc#sec:resolvable-consumable-configs,Declarable, Resolvable, and Consumable configurations>>.
+
+Main source sets:
+
+image::java-library-ignore-deprecated-main.png[]
+
+Test source sets:
+
+image::java-library-ignore-deprecated-test.png[]
+
+The tables below give the full reference for each configuration shown above.
 
 [[sec:java_library_declarable_configurations]]
 === Declarable (Bucket) Configurations
@@ -139,11 +156,11 @@ The role of each configuration is described in the following tables.
 | Declarable
 | This is where you declare dependencies which are transitively exported to consumers, for compile time and runtime.
 
-| `implementation`
+| `implementation` (extends `api`)
 | Declarable
 | This is where you declare dependencies which are purely internal and not meant to be exposed to consumers (they are still exposed to consumers at runtime).
 
-| `compileOnly`
+| `compileOnly` (extends `compileOnlyApi`)
 | Declarable
 | This is where you declare dependencies which are required at compile time, but not at runtime. This typically includes dependencies which are shaded when found at runtime.
 
@@ -155,7 +172,7 @@ The role of each configuration is described in the following tables.
 | Declarable
 | This is where you declare dependencies which are only required at runtime, and not at compile time.
 
-| `testImplementation`
+| `testImplementation` (extends `implementation`)
 | Declarable
 | This is where you declare dependencies which are used to compile tests.
 
@@ -163,7 +180,7 @@ The role of each configuration is described in the following tables.
 | Declarable
 | This is where you declare dependencies which are only required at test compile time, but should not leak into the runtime. This typically includes dependencies which are shaded when found at runtime.
 
-| `testRuntimeOnly`
+| `testRuntimeOnly` (extends `runtimeOnly`)
 | Declarable
 | This is where you declare dependencies which are only required at test runtime, and not at test compile time.
 |===
@@ -175,13 +192,13 @@ The role of each configuration is described in the following tables.
 |===
 | Configuration name | Role | Description
 
-| `apiElements`
+| `apiElements` (extends `api, compileOnlyApi`)
 | Consumable
-| This configuration is meant to be used by consumers to retrieve all the elements necessary to compile against this library.
+| Represents the elements exposed to consumers that compile against this library, such as other projects that depend on it or components published from it. Includes the dependencies from both `api` and `compileOnlyApi` configurations.
 
-| `runtimeElements`
+| `runtimeElements` (extends `runtimeOnly, implementation`)
 | Consumable
-| This configuration is meant to be used by consumers to retrieve all the elements necessary to run this library.
+| Represents the elements exposed to consumers that run against this library, such as other projects that depend on it or components published from it. Includes the dependencies from both `runtimeOnly` and `implementation` configurations, since implementation dependencies are required at runtime even though they are not part of the compile-time API.
 |===
 
 [[sec:java_library_resolvable_configurations]]
@@ -191,36 +208,22 @@ The role of each configuration is described in the following tables.
 |===
 | Configuration name | Role | Description
 
-| `compileClasspath`
+| `compileClasspath` (extends `compileOnly, implementation`)
 | Resolvable
 | This configuration contains the compile classpath of this library and is therefore used when invoking the Java compiler to compile it.
 
-| `runtimeClasspath`
+| `runtimeClasspath` (extends `runtimeOnly, implementation`)
 | Resolvable
 | This configuration contains the runtime classpath of this library.
 
-| `testCompileClasspath`
+| `testCompileClasspath` (extends `testCompileOnly, testImplementation`)
 | Resolvable
 | This configuration contains the test compile classpath of this library.
 
-| `testRuntimeClasspath`
+| `testRuntimeClasspath` (extends `testRuntimeOnly, testImplementation`)
 | Resolvable
 | This configuration contains the test runtime classpath of this library.
 |===
-
-The following graph describes how configurations are setup when the Java Library plugin is in use.
-You can use this legend to interpret the colors:
-
-* The configurations in _blue_ are the ones a user should use to declare dependencies.
-* The configurations in _purple_ are the ones used when a component compiles, or runs against the library.
-* The configurations in _green_ are internal to the component, for its own use.
-* The tasks in _grey_.
-
-image::java-library-ignore-deprecated-main.png[]
-
-And the next graph describes the test configurations setup:
-
-image::java-library-ignore-deprecated-test.png[]
 
 [[sec:java_library_annotation_processing]]
 === Declaring an annotation processor
