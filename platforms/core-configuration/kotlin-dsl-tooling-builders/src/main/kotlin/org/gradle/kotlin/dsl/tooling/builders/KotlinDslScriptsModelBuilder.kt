@@ -243,25 +243,13 @@ fun Project.discoverPrecompiledScriptPluginScripts() =
  * while a resilient one returns the degraded model to the client and fails the build once it finishes.
  */
 internal
-data class ScriptModelResult<out T : Any>(
+data class ScriptModelResult<T : Any>(
     val model: T,
     val failures: List<Throwable> = emptyList()
 ) {
 
     fun toToolingModelResult(failureFactory: FailureFactory): ToolingModelBuilderResultInternal =
         ToolingModelBuilderResultInternal.of(model, failures.map { failureFactory.create(it) })
-
-    companion object {
-
-        private
-        val EMPTY: ScriptModelResult<List<Nothing>> = ScriptModelResult(emptyList())
-
-        /**
-         * No models and no failures, e.g. for a project without precompiled script plugins.
-         * Usable as any `ScriptModelResult<List<T>>`.
-         */
-        fun empty(): ScriptModelResult<List<Nothing>> = EMPTY
-    }
 }
 
 

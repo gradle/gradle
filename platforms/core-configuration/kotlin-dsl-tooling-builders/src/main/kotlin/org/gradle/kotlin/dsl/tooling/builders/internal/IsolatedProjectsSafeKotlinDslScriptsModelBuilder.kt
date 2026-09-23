@@ -386,11 +386,15 @@ fun buildScriptModelFor(project: ProjectInternal): IntermediateScriptModel? {
 
 
 private
+val emptyScriptModelResult: ScriptModelResult<List<IntermediateScriptModel>> = ScriptModelResult(emptyList())
+
+
+private
 fun precompiledScriptModelsFor(project: ProjectInternal): ScriptModelResult<List<IntermediateScriptModel>> {
     val scripts = project.discoverPrecompiledScriptPluginScripts()
-    if (scripts.isEmpty()) return ScriptModelResult.empty()
+    if (scripts.isEmpty()) return emptyScriptModelResult
 
-    val sourceSets = project.sourceSets ?: return ScriptModelResult.empty()
+    val sourceSets = project.sourceSets ?: return emptyScriptModelResult
     val metadataDir = PrecompiledScriptPluginsMetadataDir.of(project)
 
     val classPathBySourceSet = mutableMapOf<String, ResolvedClassPath>()
