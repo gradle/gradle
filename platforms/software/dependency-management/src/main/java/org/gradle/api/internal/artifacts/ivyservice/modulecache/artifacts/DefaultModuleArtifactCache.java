@@ -19,7 +19,7 @@ package org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts;
 import com.google.common.annotations.VisibleForTesting;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.ArtifactCacheLockingAccessCoordinator;
-import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
+import org.gradle.api.internal.artifacts.metadata.DefaultModuleComponentArtifactIdentifierSerializer;
 import org.gradle.api.internal.artifacts.metadata.ModuleComponentFileArtifactIdentifierSerializer;
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier;
@@ -50,7 +50,7 @@ public class DefaultModuleArtifactCache extends AbstractCachedIndex<ArtifactAtRe
     @SuppressWarnings("ExposedPrivateType")
     protected static ArtifactAtRepositoryKeySerializer keySerializer() {
         DefaultSerializerRegistry serializerRegistry = new DefaultSerializerRegistry();
-        serializerRegistry.register(DefaultModuleComponentArtifactIdentifier.class, new ComponentArtifactIdentifierSerializer());
+        serializerRegistry.register(DefaultModuleComponentArtifactIdentifier.class, new DefaultModuleComponentArtifactIdentifierSerializer());
         serializerRegistry.register(ModuleComponentFileArtifactIdentifier.class, new ModuleComponentFileArtifactIdentifierSerializer());
         return new ArtifactAtRepositoryKeySerializer(serializerRegistry.build(ComponentArtifactIdentifier.class));
     }
