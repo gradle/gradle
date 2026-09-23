@@ -23,7 +23,8 @@ The Java Platform plugin brings the ability to declare platforms for the Java ec
 A platform can be used for different purposes:
 
 - a description of modules which are published together (and for example, share the same version)
-- a set of recommended versions for heterogeneous libraries. A typical example includes the {spring-boot-bom}[Spring Boot BOM]
+- a set of recommended versions for heterogeneous libraries.
+A typical example includes the {spring-boot-bom}[Spring Boot BOM]
 - <<sec:java_platform_consumption,sharing a set of dependency versions>> between subprojects
 
 A platform is a special kind of software component which doesn't contain any sources:
