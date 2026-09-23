@@ -159,11 +159,10 @@ class JavaLibraryPublishedTargetJvmEnvironmentIntegrationTest extends AbstractHt
         then:
         resolve.expectGraph {
             root(':', ':test:') {
-                module('org:producer:1.0')
-                constraint('org:producer:1.0', 'org:producer:1.0') {
+                module('org:producer:1.0') {
                     variant('apiElementsJre', [
                         'org.gradle.jvm.environment': 'standard-jvm',
-                        'org.gradle.jvm.version': 8,
+                        'org.gradle.jvm.version': "8",
                         'org.gradle.usage': 'java-api',
                         'org.gradle.category': 'library',
                         'org.gradle.libraryelements': 'jar',
@@ -173,6 +172,7 @@ class JavaLibraryPublishedTargetJvmEnvironmentIntegrationTest extends AbstractHt
                     byConstraint()
                     artifact(classifier: 'jre')
                 }
+                constraint('org:producer:1.0', 'org:producer:1.0')
             }
         }
     }
@@ -212,7 +212,7 @@ class JavaLibraryPublishedTargetJvmEnvironmentIntegrationTest extends AbstractHt
                 module('org:producer:1.0') {
                     variant('apiElementsJre', [
                         'org.gradle.jvm.environment': 'standard-jvm',
-                        'org.gradle.jvm.version': 8,
+                        'org.gradle.jvm.version': "8",
                         'org.gradle.usage': 'java-api',
                         'org.gradle.category': 'library',
                         'org.gradle.libraryelements': 'jar',
@@ -231,7 +231,7 @@ class JavaLibraryPublishedTargetJvmEnvironmentIntegrationTest extends AbstractHt
                 module('org:producer:1.0') {
                     variant('apiElementsAndroid', [
                         'org.gradle.jvm.environment': 'android',
-                        'org.gradle.jvm.version': 6,
+                        'org.gradle.jvm.version': "6",
                         'org.gradle.usage': 'java-api',
                         'org.gradle.category': 'library',
                         'org.gradle.libraryelements': 'jar',

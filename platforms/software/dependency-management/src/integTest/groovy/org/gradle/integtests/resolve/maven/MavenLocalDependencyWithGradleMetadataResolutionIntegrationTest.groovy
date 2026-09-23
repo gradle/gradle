@@ -138,7 +138,7 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
             root(":", ":test:") {
                 module("test:a:1.2") {
                     artifact(classifier: "debug")
-                    configuration("debug")
+                    variant("debug")
                     edge("test:b:{prefer 2.0}", "test:b:2.0")
                 }
             }
@@ -152,7 +152,7 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
             root(":", ":test:") {
                 module("test:a:1.2") {
                     artifact(classifier: "release")
-                    configuration("release")
+                    variant("release")
                     edge("test:c:{prefer 2.2}", "test:c:2.2")
                 }
             }
@@ -220,7 +220,7 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
         resolve.expectGraph {
             root(":", ":test:") {
                 module("test:a:1.2") {
-                    configuration("debug")
+                    variant("debug")
                     artifact(classifier: "api")
                     artifact(classifier: "runtime")
                     edge("test:b:{prefer 2.0}", "test:b:2.0")
@@ -235,7 +235,7 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
         resolve.expectGraph {
             root(":", ":test:") {
                 module("test:a:1.2") {
-                    configuration("release")
+                    variant("release")
                     noArtifacts()
                     edge("test:b:{prefer 2.0}", "test:b:2.0")
                 }
@@ -291,7 +291,7 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
         resolve.expectGraph {
             root(":", ":test:") {
                 module("test:a:1.2") {
-                    configuration("lot-o-files")
+                    variant("lot-o-files")
                     artifact(fileName: 'a_main.jar', version: '')
                     // Version is extracted from the file name byt classifier is extracted from the URL. This is checking current behaviour not necessarily desired behaviour
                     artifact(fileName: 'a_extra.jar', version: '', classifier: 'extra')
@@ -352,7 +352,7 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
         resolve.expectGraph {
             root(":", ":test:") {
                 module("test:a:1.2") {
-                    configuration("lot-o-files")
+                    variant("lot-o-files")
                     artifact(name: 'file1', version: '')
                     artifact(name: 'a', version: '1.2', legacyName: 'file2')
                     artifact(name: 'a', version: '3', legacyName: '../sibling/file3')
@@ -448,7 +448,7 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
         resolve.expectGraph {
             root(":", ":test:") {
                 module("test:a:1.2") {
-                    configuration("debug")
+                    variant("debug")
                     artifact(classifier: "debug")
                     edge("test:b:{prefer 2.0}", "test:b:2.0") {
                         module("test:c:preview") {
@@ -466,10 +466,10 @@ class MavenLocalDependencyWithGradleMetadataResolutionIntegrationTest extends Ab
         resolve.expectGraph {
             root(":", ":test:") {
                 module("test:a:1.2") {
-                    configuration("release")
+                    variant("release")
                     noArtifacts()
                     edge("test:c:{prefer preview}", "test:c:preview") {
-                        configuration("release")
+                        variant("release")
                         noArtifacts()
                     }
                 }

@@ -412,7 +412,7 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         resolve.expectGraph {
             root(":", ":test:") {
                 module("bom:bom:1.0") {
-                    configuration = 'platform-runtime'
+                    variant('platform-runtime')
                     constraint("org:xml:2.0", "org:xml:1.0") {
                         forced()
                         byConstraint()
@@ -540,7 +540,6 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                     module('org:annotations:2.7.9')
                 }
             }
-            virtualConfiguration('org:platform:2.7.9')
         }
 
         where: "order of dependencies doesn't matter"
@@ -599,7 +598,6 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                     module('org:annotations:2.7.9')
                 }
             }
-            virtualConfiguration('org:platform:2.7.9')
         }
 
         where: "order of dependencies doesn't matter"
@@ -655,7 +653,6 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                     module('org:annotations:2.9.4.1')
                 }
             }
-            virtualConfiguration('org:platform:2.9.4.1')
         }
         where: "order of dependencies doesn't matter"
         dependencies << [
@@ -699,6 +696,9 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         run ':checkDeps'
 
         then:
+        boolean gradleMetadata = GradleMetadataResolveRunner.isGradleMetadataPublished()
+        String enforcedVariant = gradleMetadata ? 'enforcedRuntimeElements' : 'enforced-platform-runtime'
+        String platformVariant = gradleMetadata ? 'runtimeElements' : 'platform-runtime'
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:core:2.9.4", "org:core:2.7.9") {
@@ -711,30 +711,47 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                     module('org:annotations:2.7.9') {
                         byConstraint()
                         forced()
-                        module("org:platform:2.7.9")
+                        module("org:platform:2.7.9") {
+                            variant(platformVariant)
+                            constraint('org:core:2.7.9')
+                            constraint('org:databind:2.7.9')
+                            constraint('org:annotations:2.7.9')
+                            constraint('org:kotlin:2.7.9')
+                            module("org:platform:2.7.9") {
+                                variant(platformVariant)
+                            }
+                        }
                     }
                     module('org:core:2.7.9') {
-                        module("org:platform:2.7.9")
+                        module("org:platform:2.7.9") {
+                            variant(platformVariant)
+                        }
                     }
-                    module("org:platform:2.7.9")
+                    module("org:platform:2.7.9") {
+                        variant(platformVariant)
+                    }
                 }
                 edge("org:kotlin:2.9.4.1", "org:kotlin:2.7.9") {
                     byConstraint()
                     forced()
                     module('org:core:2.7.9')
                     module('org:annotations:2.7.9')
-                    module("org:platform:2.7.9")
+                    module("org:platform:2.7.9") {
+                        variant(platformVariant)
+                    }
                 }
-                String expectedVariant = GradleMetadataResolveRunner.isGradleMetadataPublished() ? 'enforcedRuntimeElements' : 'enforced-platform-runtime'
                 edge("org:platform:{strictly 2.7.9}", "org:platform:2.7.9") {
                     byAncestor()
-                    configuration(expectedVariant)
+                    variant(enforcedVariant)
                     constraint('org:core:2.7.9')
                     constraint('org:databind:2.7.9')
                     constraint('org:annotations:2.7.9')
                     constraint('org:kotlin:2.7.9')
                     noArtifacts()
-                    module("org:platform:2.7.9")
+                    module("org:platform:2.7.9") {
+                        variant(platformVariant)
+                        noArtifacts()
+                    }
                 }
             }
         }
@@ -821,11 +838,11 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                 module("com.amazonaws:aws-java-sdk-core:1.11.438") {
                     edge("org:cbor:2.6.7", "org:cbor:2.8.10") {
                         byConstraint("belongs to platform org:platform:2.8.11.1")
-                        maybeByConflictResolution()
+                        byConflictResolution("between versions 2.8.10 and 2.6.7")
                         forced()
                         module("org:core:2.8.10") {
                             byConstraint("belongs to platform org:platform:2.8.11.1")
-                            maybeByConflictResolution()
+                            byConflictResolution("between versions 2.8.10 and 2.6.7")
                             forced()
                         }
                     }

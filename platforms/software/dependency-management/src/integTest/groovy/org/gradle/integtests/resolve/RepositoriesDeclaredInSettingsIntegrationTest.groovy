@@ -110,12 +110,12 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":lib1", "test:lib1:") {
-                    configuration = 'conf'
+                    variant('conf')
                     noArtifacts()
                     module('org:module-lib1:1.0')
                 }
                 project(":lib2", "test:lib2:") {
-                    configuration = 'conf'
+                    variant('conf')
                     noArtifacts()
                     module('org:module-lib2:1.0')
                 }
@@ -333,7 +333,7 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("com.acme:included:1.0", ":included", "com.acme:included:0.x") {
-                    configuration = 'default'
+                    variant('default')
                     compositeSubstitute()
                     noArtifacts()
                     module('org:module:1.0')
@@ -400,11 +400,11 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("com.acme:included:1.0", ":included", "com.acme:included:0.x") {
-                    configuration = 'default'
+                    variant('default')
                     compositeSubstitute()
                     noArtifacts()
                     edge("com.acme:nested:1.0", ":nested", "com.acme:nested:0.x") {
-                        configuration = 'default'
+                        variant('default')
                         compositeSubstitute()
                         noArtifacts()
                         module('org:module:1.0')
@@ -480,11 +480,11 @@ class RepositoriesDeclaredInSettingsIntegrationTest extends AbstractModuleDepend
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("com.acme:included:1.0", ":included", "com.acme:included:0.x") {
-                    configuration = 'default'
+                    variant('default')
                     compositeSubstitute()
                     noArtifacts()
                     edge("com.acme:nested:1.0", ":nested", "com.acme:nested:0.x") {
-                        configuration = 'default'
+                        variant('default')
                         compositeSubstitute()
                         noArtifacts()
                         module('org:module:1.0')
