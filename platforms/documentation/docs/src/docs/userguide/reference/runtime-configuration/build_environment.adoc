@@ -389,6 +389,11 @@ NOTE: The location of the `GRADLE_USER_HOME` may have been changed beforehand vi
 
 For reference, the following properties are common Gradle properties:
 
+`org.gradle.agent=(true,false)` incubating-label:[]::
+When set to `true`, enables <<command_line_interface.adoc#sec:agent_mode,agent mode>>.
++
+_Default is `false`._
+
 `org.gradle.caching=(true,false)`::
 When set to `true`, Gradle will reuse task outputs from any previous build when possible, <<build_cache.adoc#build_cache,resulting in much faster builds>>.
 +
@@ -643,6 +648,11 @@ Overrides for the default Gradle library repository.
 Can be used to specify a default Gradle repository URL in `org.gradle.plugins.ide.internal.resolver`.
 +
 Useful override to specify an internally hosted repository if your company uses a firewall/proxy.
+
+`ORG_GRADLE_AGENT` incubating-label:[]::
+When set to `true`, enables <<command_line_interface.adoc#sec:agent_mode,agent mode>>; when set to `false`, disables it.
++
+Takes precedence over the `org.gradle.agent` Gradle property, and is overridden by the `--agent` and `--no-agent` command-line options.
 
 `NO_COLOR`::
 When present and non-empty, disables color output while preserving other styling (bold, underline) and rich features (progress bars, animations).

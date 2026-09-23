@@ -18,6 +18,7 @@ package org.gradle.launcher.cli.converter
 
 import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.logging.LogLevel
+import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.cli.CommandLineParser
 import org.gradle.initialization.layout.BuildLayoutFactory
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -126,25 +127,40 @@ class StartParameterConverterTest extends Specification {
         parameters2.maxWorkerCount == 789
     }
 
-    def "agent mode is #agentMode with args #args and env #env"() {
+    def "agent mode is #agentMode and console is #console with args #args and env #env"() {
         when:
         def parameter = convert(env, args as String[])
 
         then:
         parameter.agentMode == agentMode
+        parameter.consoleOutput == console
 
         where:
-        args                                      | env                         | agentMode
-        []                                        | [:]                         | false
-        ["--agent"]                               | [:]                         | true
-        ["--no-agent"]                            | [:]                         | false
-        ["-Dorg.gradle.agent=true"]               | [:]                         | true
-        []                                        | [ORG_GRADLE_AGENT: "true"]  | true
-        ["-Dorg.gradle.agent=false"]              | [ORG_GRADLE_AGENT: "true"]  | true
-        ["-Dorg.gradle.agent=true"]               | [ORG_GRADLE_AGENT: "false"] | false
-        ["--no-agent"]                            | [ORG_GRADLE_AGENT: "true"]  | false
-        ["--agent"]                               | [ORG_GRADLE_AGENT: "false"] | true
-        ["--no-agent", "-Dorg.gradle.agent=true"] | [:]                         | false
+        args                                          | env                         | agentMode | console
+        []                                            | [:]                         | false     | ConsoleOutput.Auto
+        ["--agent"]                                   | [:]                         | true      | ConsoleOutput.Plain
+        ["--no-agent"]                                | [:]                         | false     | ConsoleOutput.Auto
+        ["-Dorg.gradle.agent=true"]                   | [:]                         | true      | ConsoleOutput.Plain
+        []                                            | [ORG_GRADLE_AGENT: "true"]  | true      | ConsoleOutput.Plain
+        ["-Dorg.gradle.agent=false"]                  | [ORG_GRADLE_AGENT: "true"]  | true      | ConsoleOutput.Plain
+        ["-Dorg.gradle.agent=true"]                   | [ORG_GRADLE_AGENT: "false"] | false     | ConsoleOutput.Auto
+        ["--no-agent"]                                | [ORG_GRADLE_AGENT: "true"]  | false     | ConsoleOutput.Auto
+        ["--agent"]                                   | [ORG_GRADLE_AGENT: "false"] | true      | ConsoleOutput.Plain
+        ["--no-agent", "-Dorg.gradle.agent=true"]     | [:]                         | false     | ConsoleOutput.Auto
+        ["--agent", "--console=rich"]                 | [:]                         | true      | ConsoleOutput.Plain
+        ["--agent", "--console=plain"]                | [:]                         | true      | ConsoleOutput.Plain
+        ["--console=rich"]                            | [ORG_GRADLE_AGENT: "true"]  | true      | ConsoleOutput.Plain
+        ["-Dorg.gradle.agent=true", "--console=rich"] | [:]                         | true      | ConsoleOutput.Plain
+        ["--no-agent", "--console=rich"]              | [:]                         | false     | ConsoleOutput.Rich
+    }
+
+    def "records but does not apply agent mode for the Tooling API"() {
+        when:
+        def parameter = convert(StartParameterConverter.forToolingApi(), [ORG_GRADLE_AGENT: "true"], "--console=rich")
+
+        then:
+        parameter.agentMode
+        parameter.consoleOutput == ConsoleOutput.Rich
     }
 
     def "can enable agent mode as persistent property"() {
@@ -160,7 +176,10 @@ class StartParameterConverterTest extends Specification {
     }
 
     StartParameterInternal convert(Map<String, String> env, String... args) {
-        def converter = new StartParameterConverter()
+        convert(StartParameterConverter.forCommandLine(), env, args)
+    }
+
+    StartParameterInternal convert(StartParameterConverter converter, Map<String, String> env, String... args) {
         def initialPropertiesConverter = new InitialPropertiesConverter()
         def buildLayoutConverter = new BuildLayoutConverter()
         def propertiesConverter = new LayoutToPropertiesConverter(new BuildLayoutFactory())

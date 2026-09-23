@@ -71,7 +71,7 @@ public class BuildEnvironmentConfigurationConverter {
         this(new InitialPropertiesConverter(),
             new BuildLayoutConverter(),
             new LayoutToPropertiesConverter(buildLayoutFactory),
-            new StartParameterConverter(),
+            StartParameterConverter.forCommandLine(),
             new BuildOptionBackedConverter<>(new DaemonBuildOptions()),
             fileCollectionFactory
         );
