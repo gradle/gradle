@@ -44,6 +44,47 @@ When used with the <<java_plugin#java_plugin,Java Plugin>>:
 
 The `test` task, SourceSet and derived configurations are identical in name and function to those used in prior Gradle releases.
 
+[[sec:jvm_test_suite_configurations]]
+== Dependency configurations
+
+Every test suite, whether it's the built-in `test` suite or one you declare yourself (e.g. `integrationTest`), gets the same set of configurations, named after the suite:
+
+[%header%autowidth,compact]
+|===
+| Configuration name | Role | Description
+
+| `__suiteName__Implementation`
+| Declarable
+| Dependencies required to compile and run this suite. For the built-in `test` suite only, this configuration additionally extends the main source set's `implementation`, so it automatically sees the project's own production dependencies; every other suite must add a `project(...)` dependency itself to reference production code (see <<sec:configure_dependencies_of_a_test_suite_to_reference_project_outputs,Configure dependencies of a test suite to reference project outputs>>).
+
+| `__suiteName__CompileOnly`
+| Declarable
+| Compile-time-only dependencies of this suite, not included on its runtime classpath.
+
+| `__suiteName__RuntimeOnly`
+| Declarable
+| Runtime-only dependencies of this suite.
+
+| `__suiteName__AnnotationProcessor`
+| Declarable
+| Annotation processors used when compiling this suite.
+|===
+
+[%header%autowidth,compact]
+|===
+| Configuration name | Role | Description
+
+| `__suiteName__CompileClasspath` (extends `__suiteName__CompileOnly`, `__suiteName__Implementation`)
+| Resolvable
+| The classpath used to compile this suite.
+
+| `__suiteName__RuntimeClasspath` (extends `__suiteName__RuntimeOnly`, `__suiteName__Implementation`)
+| Resolvable
+| The classpath used to run this suite.
+|===
+
+Each test suite target also produces an outgoing variant containing its test execution results — see <<sec:outgoing_variants,Outgoing Variants>> below.
+
 [[sec:jvm_test_suite_tasks]]
 == Tasks
 
@@ -149,6 +190,39 @@ include::sample[dir="snippets/reference/platforms/jvm/test-suite-configure-suite
 <1> Add a production dependency which is used as part of the library's public API.
 <2> Add a production dependency which is only used internally and is not exposed as part of this project's public classes.
 <3> Configure a new test suite which adds a `project()` dependency to the suite's compile and runtime classpaths. This dependency provides access to the project's outputs as well as any dependencies declared on its `api` and `compileOnlyApi` configurations.
+
+[[sec:configure_test_suite_to_use_test_fixtures]]
+== Configure a test suite to use test fixtures
+
+Like a `project()` dependency, a dependency on this project's own <<java_test_fixtures_plugin.adoc#java_test_fixtures_plugin,test fixtures>> is not added automatically to any suite other than the built-in `test` suite — you add it the same way, using link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html#testFixtures-java.lang.Object-[testFixtures(Object)] inside the suite's `dependencies {}` block:
+
+====
+include::sample[dir="snippets/reference/platforms/jvm/test-suite-configure-suite-dependencies-test-fixtures/kotlin",files="build.gradle.kts[tags=configure-suite-dependencies-test-fixtures]"]
+include::sample[dir="snippets/reference/platforms/jvm/test-suite-configure-suite-dependencies-test-fixtures/groovy",files="build.gradle[tags=configure-suite-dependencies-test-fixtures]"]
+====
+<1> Add a `project()` dependency so `integrationTest` can see this project's production code, same as the previous example.
+<2> Add a dependency on this project's own test fixtures.
+
+The `testFixtures(project())` dependency resolves against this project's own `testFixturesApiElements`/`testFixturesRuntimeElements` (see the <<java_test_fixtures_plugin.adoc#sec:java_test_fixtures_configurations,Java Test Fixtures Plugin's configurations>>).
+To use the fixtures of _another_ project instead, replace `project()` with `project(":other-project")` in both dependency declarations.
+
+For example, given this fixture in `src/testFixtures/java`, which builds a handful of reusable `Person` instances:
+
+[source,java,indent=0]
+.src/testFixtures/java/com/acme/Simpsons.java
+----
+include::{snippetsPath}/reference/platforms/jvm/test-suite-configure-suite-dependencies-test-fixtures/common/src/testFixtures/java/com/acme/Simpsons.java[tags=sample]
+----
+
+The `integrationTest` suite can consume it directly, exactly as it would consume any other suite-local class:
+
+[source,java,indent=0]
+.src/integrationTest/java/com/acme/SimpsonsIntegrationTest.java
+----
+include::{snippetsPath}/reference/platforms/jvm/test-suite-configure-suite-dependencies-test-fixtures/common/src/integrationTest/java/com/acme/SimpsonsIntegrationTest.java[tags=sample]
+----
+<1> `Person` comes from the project's own production code, available because of the `implementation(project())` dependency.
+<2> `Simpsons` comes from the project's test fixtures, available because of the `implementation(testFixtures(project()))` dependency.
 
 [[sec:configure_source_directories_of_a_test_suite]]
 == Configure source directories of a test suite
