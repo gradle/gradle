@@ -22,7 +22,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
 
 import java.util.function.Consumer;
 
-@ServiceScope({Scope.Global.class, Scope.Build.class, Scope.Project.class})
+@ServiceScope({Scope.Global.class, Scope.Build.class, Scope.Project.class, Scope.ProjectExecution.class})
 public interface TaskDependencyFactory {
     DefaultTaskDependency configurableDependency();
 
