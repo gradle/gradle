@@ -115,7 +115,13 @@ A test suite is a collection of JVM-based tests.
 [[sec:test_suite_target]]
 ==== Test Suite Target
 
-For the initial release of this plugin, each test suite has a single target.  This results in a 1:1:1 relationship between test suite, test suite target and a matching link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task.  The name of the `Test` task is derived from the suite name.  Future iterations of the plugin will allow defining multiple targets based on other attributes, such as a particular JDK/JRE runtime.
+By default, each test suite has a single target.
+This results in a 1:1:1 relationship between test suite, test suite target and a matching link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task.
+The name of this default target's `Test` task is derived from the suite name.
+
+A suite is not limited to this single, default target, however.
+You can register additional targets on any suite, including the built-in `test` suite — see <<sec:add_an_additional_target_to_a_test_suite,Add an additional target to a test suite>> below.
+Each additional target gets its own independently-configurable `Test` task, sharing the suite's sources, dependencies and testing framework, so it is possible to run the same suite more than once with different task-level configuration (for example, a different JVM via `javaLauncher`, different system properties, or different test filters).
 
 Each test suite has some configuration that is common to all tests contained in the suite:
 
@@ -125,7 +131,8 @@ Each test suite has some configuration that is common to all tests contained in 
 
 In the future, other properties may be specified in the test suite which may influence the toolchains selected to compile and run tests.
 
-The `Test` task associated with the target inherits its name from the suite.  Other properties of the `Test` task are configurable.
+The `Test` task of the default target inherits its name from the suite; additional targets are named however you register them.
+Other properties of the `Test` task are configurable.
 
 [[sec:jvm_test_suite_examples]]
 [discrete]
@@ -168,6 +175,20 @@ include::sample[dir="snippets/reference/platforms/jvm/test-suite-configure-defau
 <1> Declare the `test` test suite uses the TestNG test framework.
 <2> Lazily configure the test task of all targets of the suite; note the return type of `testTask` is `TaskProvider<Test>`.
 <3> Configure more detailed test framework options.  The `options` will be a subclass of `org.gradle.api.tasks.testing.TestFrameworkOptions`, in this case it is `org.gradle.api.tasks.testing.testng.TestNGOptions`.
+
+[[sec:add_an_additional_target_to_a_test_suite]]
+== Add an additional target to a test suite
+
+Every suite, including the built-in `test` suite, can have more than one target.  Registering an additional target creates another independently-configurable `Test` task that shares the suite's sources, dependencies and testing framework — it does not create a new suite or a new source set.
+
+====
+include::sample[dir="snippets/reference/platforms/jvm/test-suite-add-target/kotlin",files="build.gradle.kts[tags=add-additional-target]"]
+include::sample[dir="snippets/reference/platforms/jvm/test-suite-add-target/groovy",files="build.gradle[tags=add-additional-target]"]
+====
+<1> Register `otherTest` as a second target of the built-in `test` suite. This creates an `otherTest` task, alongside the existing `test` task, that runs the same suite's tests.
+<2> Configure the new target's `Test` task independently of the suite's default target — here, setting a system property that only applies when running via `otherTest`.
+
+This is the officially recommended way to give a suite more than one target: there is no separate "multi-target" API beyond registering additional entries in the suite's `targets` container, and no restriction on how many targets a suite — including the built-in `test` suite — can have. See the <<upgrading_major_version_9.adoc#test_tasks_may_no_longer_execute_expected_tests,upgrade guide>> for the migration scenario that motivated this pattern: recreating a standalone `Test` task that previously relied on the deprecated `test` source set convention.
 
 [[sec:configure_dependencies_of_a_test_suite]]
 == Configure dependencies of a test suite
