@@ -351,7 +351,7 @@ These framework configuration options can be set on the individual targets.
 [[sec:outgoing_variants]]
 == Outgoing Variants
 
-Each test suite creates an outgoing variant containing its test execution results.
+Each test suite creates a single outgoing variant containing its test execution results, named `testResultsElementsFor__SuiteName__`.
 These variants are designed for consumption by the <<test_report_aggregation_plugin#test_report_aggregation_plugin, Test Report Aggregation Plugin>>.
 
 The attributes will resemble the following.
@@ -362,7 +362,7 @@ User-configurable attributes are highlighted below the sample.
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
-Description = Directory containing binary results of running tests for the test Test Suite's test target.
+Description = Binary results obtained from running all targets in the 'test' Test Suite.
 
 Capabilities
     - org.gradle.sample:list:1.0.2 (default capability)
@@ -375,3 +375,10 @@ Artifacts
     - build/test-results/test/binary (artifactType = directory)
 ----
 <1> TestSuiteName attribute; value is derived from link:{javadocPath}/org/gradle/testing/base/TestSuite.html#getName--[TestSuite#getName()].
+
+[NOTE]
+====
+This variant is created once per suite, not once per target.
+If a suite has <<sec:add_an_additional_target_to_a_test_suite,more than one target>>, every target's binary results directory is added as a separate artifact to this same variant, rather than each target getting its own variant — Gradle does not yet have a way for targets to distinguish themselves via attributes.
+Consumers that need to tell one target's results apart from another's currently have to arrange that themselves, for example by adding a distinguishing attribute to the variant by hand.
+====
