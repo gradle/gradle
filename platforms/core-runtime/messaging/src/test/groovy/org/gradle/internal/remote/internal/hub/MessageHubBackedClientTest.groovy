@@ -39,7 +39,7 @@ class MessageHubBackedClientTest extends Specification {
         def objectConnection = client.getConnection(address)
 
         then:
-        1 * connector.connect(address) >> connectCompletion
+        1 * connector.connect(address, null) >> connectCompletion
         1 * executorFactory.create("${connectCompletion} workers") >> executor
 
         when:

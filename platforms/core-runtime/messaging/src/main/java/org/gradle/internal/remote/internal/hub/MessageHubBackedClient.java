@@ -33,6 +33,6 @@ public class MessageHubBackedClient implements MessagingClient {
 
     @Override
     public ObjectConnection getConnection(Address address) {
-        return new MessageHubBackedObjectConnection(executorFactory, connector.connect(address));
+        return new MessageHubBackedObjectConnection(executorFactory, connector.connect(address, null));
     }
 }

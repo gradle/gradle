@@ -18,6 +18,7 @@ package org.gradle.internal.remote.internal;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.Global.class)
 public interface OutgoingConnector {
@@ -26,5 +27,5 @@ public interface OutgoingConnector {
      *
      * @throws ConnectException when there is nothing listening on the remote address.
      */
-    ConnectCompletion connect(Address destinationAddress) throws ConnectException;
+    ConnectCompletion connect(Address destinationAddress, byte @Nullable [] connectionToken) throws ConnectException;
 }
