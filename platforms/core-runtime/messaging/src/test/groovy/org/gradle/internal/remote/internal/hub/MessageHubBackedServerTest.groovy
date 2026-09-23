@@ -27,6 +27,8 @@ import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage
 import spock.lang.Specification
 
 class MessageHubBackedServerTest extends Specification {
+    private static final byte[] CONNECTION_TOKEN = "0123456789abcdef".bytes
+
     final IncomingConnector connector = Mock()
     final ExecutorFactory executorFactory = Mock()
     final MessageHubBackedServer server = new MessageHubBackedServer(connector, executorFactory)
@@ -41,10 +43,10 @@ class MessageHubBackedServerTest extends Specification {
         def connection
 
         when:
-        server.accept(connectAction)
+        server.accept(connectAction, CONNECTION_TOKEN)
 
         then:
-        1 * connector.accept(_, false, null) >> { acceptAction = it[0]; return acceptor }
+        1 * connector.accept(_, false, CONNECTION_TOKEN) >> { acceptAction = it[0]; return acceptor }
 
         when:
         acceptAction.execute(completion)

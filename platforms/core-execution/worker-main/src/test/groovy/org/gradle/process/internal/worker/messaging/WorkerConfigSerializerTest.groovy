@@ -36,6 +36,7 @@ class WorkerConfigSerializerTest extends Specification {
             true,
             "/path/to/user/home",
             new MultiChoiceAddress(new UUID(123, 456), 789, [InetAddress.getByName("example.com")]),
+            "0123456789abcdef".bytes,
             987,
             "name",
             new TestAction("value"),
@@ -56,6 +57,7 @@ class WorkerConfigSerializerTest extends Specification {
         processed.shouldPublishJvmMemoryInfo() == original.shouldPublishJvmMemoryInfo()
         processed.gradleUserHomeDirPath == original.gradleUserHomeDirPath
         processed.serverAddress == original.serverAddress
+        processed.connectionToken == original.connectionToken
         processed.workerId == original.workerId
         processed.displayName == original.displayName
         processed.workerAction instanceof TestAction

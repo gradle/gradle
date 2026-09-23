@@ -26,7 +26,6 @@ import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.remote.internal.ConnectCompletion;
 import org.gradle.internal.remote.internal.IncomingConnector;
-import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -59,7 +58,7 @@ public class TcpIncomingConnector implements IncomingConnector {
     }
 
     @Override
-    public ConnectionAcceptor accept(Action<ConnectCompletion> action, boolean allowRemote, byte @Nullable [] connectionToken) {
+    public ConnectionAcceptor accept(Action<ConnectCompletion> action, boolean allowRemote, byte[] connectionToken) {
         final ServerSocketChannel serverSocket;
         int localPort;
         try {
@@ -101,9 +100,9 @@ public class TcpIncomingConnector implements IncomingConnector {
         private final ServerSocketChannel serverSocket;
         private final Action<ConnectCompletion> action;
         private final boolean allowRemote;
-        private final byte @Nullable [] connectionToken;
+        private final byte[] connectionToken;
 
-        public Receiver(ServerSocketChannel serverSocket, Action<ConnectCompletion> action, boolean allowRemote, byte @Nullable [] connectionToken) {
+        public Receiver(ServerSocketChannel serverSocket, Action<ConnectCompletion> action, boolean allowRemote, byte[] connectionToken) {
             this.serverSocket = serverSocket;
             this.action = action;
             this.allowRemote = allowRemote;
@@ -151,8 +150,7 @@ public class TcpIncomingConnector implements IncomingConnector {
         }
 
         private void waitForHandshake(SocketChannel socket) throws IOException, InterruptedException {
-            int tokenLength = connectionToken == null ? 0 : connectionToken.length;
-            ByteBuffer buffer = ByteBuffer.allocate(CONNECTION_PREAMBLE.length + tokenLength);
+            ByteBuffer buffer = ByteBuffer.allocate(CONNECTION_PREAMBLE.length + connectionToken.length);
             long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(acceptTimeoutSeconds);
             while (buffer.hasRemaining() && System.nanoTime() < deadline) {
                 int read = socket.read(buffer);
@@ -167,7 +165,7 @@ public class TcpIncomingConnector implements IncomingConnector {
             if (!ByteBuffer.wrap(handshake, 0, CONNECTION_PREAMBLE.length).equals(ByteBuffer.wrap(CONNECTION_PREAMBLE))) {
                 throw new IOException("Did not receive connection preamble within " + acceptTimeoutSeconds + "s");
             }
-            if (connectionToken != null && !ByteBuffer.wrap(handshake, CONNECTION_PREAMBLE.length, tokenLength).equals(ByteBuffer.wrap(connectionToken))) {
+            if (!ByteBuffer.wrap(handshake, CONNECTION_PREAMBLE.length, connectionToken.length).equals(ByteBuffer.wrap(connectionToken))) {
                 throw new IOException("Peer did not present the expected connection token");
             }
         }
