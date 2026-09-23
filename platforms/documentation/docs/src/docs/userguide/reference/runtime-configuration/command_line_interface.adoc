@@ -895,7 +895,7 @@ Agent mode controls the console output, so the `--console` command-line option h
 Gradle prints a warning to the build output file when it ignores an explicit `--console` option.
 
 Agent mode only applies to builds run from the command line.
-A build run through the <<tooling_api.adoc#tooling_api,Tooling API>> ignores it, however it was requested.
+A build run through the <<tooling_api.adoc#tooling_api,Tooling API>> ignores it, however it was requested, and reports a problem instead.
 
 `--agent`, `--no-agent` incubating-label:[]::
 Toggles agent mode. Default is off.
