@@ -17,8 +17,10 @@
 package org.gradle.initialization.layout;
 
 import org.gradle.cache.CleanupFrequency;
+import org.gradle.cache.internal.AgentOutputCleanupAction;
 import org.gradle.cache.internal.DefaultCleanupProgressMonitor;
 import org.gradle.cache.internal.VersionSpecificCacheCleanupAction;
+import org.gradle.internal.cache.MonitoredCleanupAction;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.file.Deleter;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -34,6 +36,7 @@ import java.io.File;
 @ServiceScope(Scope.BuildSession.class)
 public class ProjectCacheDir implements Stoppable {
     private static final int MAX_UNUSED_DAYS_FOR_RELEASES_AND_SNAPSHOTS = 7;
+    private static final int MAX_UNUSED_DAYS_FOR_AGENT_OUTPUT = 7;
 
     private final File dir;
     private final BuildOperationRunner buildOperationRunner;
@@ -51,12 +54,25 @@ public class ProjectCacheDir implements Stoppable {
 
     @Override
     public void stop() {
-        VersionSpecificCacheCleanupAction cleanupAction = new VersionSpecificCacheCleanupAction(
+        run(new VersionSpecificCacheCleanupAction(
             dir,
             TimestampSuppliers.daysAgo(MAX_UNUSED_DAYS_FOR_RELEASES_AND_SNAPSHOTS),
             deleter,
             CleanupFrequency.DAILY
+        ));
+
+        AgentOutputCleanupAction agentOutputCleanupAction = new AgentOutputCleanupAction(
+            dir,
+            TimestampSuppliers.daysAgo(MAX_UNUSED_DAYS_FOR_AGENT_OUTPUT),
+            deleter,
+            CleanupFrequency.DAILY
         );
+        if (agentOutputCleanupAction.hasOutput()) {
+            run(agentOutputCleanupAction);
+        }
+    }
+
+    private void run(MonitoredCleanupAction cleanupAction) {
         buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {

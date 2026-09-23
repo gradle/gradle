@@ -68,7 +68,7 @@ class ProviderStartParameterConverter {
         }
 
         List<String> arguments = parameters.getArguments();
-        StartParameterConverter converter = new StartParameterConverter();
+        StartParameterConverter converter = StartParameterConverter.forToolingApi();
         CommandLineParser parser = new CommandLineParser();
         new InitialPropertiesConverter().configure(parser);
         new BuildLayoutConverter().configure(parser);
