@@ -59,6 +59,7 @@ public class StartParameterConverter {
     private final ProjectPropertiesCommandLineConverter projectPropertiesCommandLineConverter = new ProjectPropertiesCommandLineConverter();
     private final BuildOptionBackedConverter<StartParameterInternal> buildOptionsConverter = new BuildOptionBackedConverter<>(new StartParameterBuildOptions());
     private final BuildOptionBackedConverter<StartParameter> toolchainOptionsConverter = new BuildOptionBackedConverter<>(ToolchainBuildOptions.forStartParameter());
+    private final AgentModeResolver agentModeResolver = new AgentModeResolver();
 
     private StartParameterConverter(boolean agentModeSupported) {
         this.agentModeSupported = agentModeSupported;
@@ -77,6 +78,11 @@ public class StartParameterConverter {
     public StartParameterInternal convert(ParsedCommandLine parsedCommandLine, BuildLayoutResult buildLayout, AllProperties properties, Map<String, String> environmentVariables, StartParameterInternal startParameter) throws CommandLineArgumentException {
         buildLayout.applyTo(startParameter);
 
+        boolean agentMode = agentModeResolver.resolve(parsedCommandLine, properties.getProperties(), environmentVariables).isEnabled();
+        if (agentMode && agentModeSupported) {
+            AgentModeResolver.applyDefaultsTo(startParameter);
+        }
+
         welcomeMessageConfigurationCommandLineConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, startParameter.getWelcomeMessageConfiguration());
         loggingConfigurationCommandLineConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, startParameter);
         parallelConfigurationCommandLineConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, startParameter);
@@ -93,7 +99,7 @@ public class StartParameterConverter {
         buildOptionsConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, startParameter);
 
         // Agent mode owns the console output
-        if (startParameter.isAgentMode() && agentModeSupported) {
+        if (agentMode && agentModeSupported) {
             startParameter.setConsoleOutput(ConsoleOutput.Plain);
         }
 
