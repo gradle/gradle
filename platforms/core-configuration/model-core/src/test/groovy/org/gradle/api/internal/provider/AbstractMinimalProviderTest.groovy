@@ -17,8 +17,10 @@
 package org.gradle.api.internal.provider
 
 import org.gradle.api.Transformer
+import org.gradle.api.provider.Provider
 import org.gradle.internal.Describables
 import org.gradle.internal.state.ManagedFactory
+import spock.lang.Issue
 
 import javax.annotation.Nullable
 
@@ -28,6 +30,65 @@ class AbstractMinimalProviderTest extends ProviderSpec<String> {
     @Override
     TestProvider<String> providerWithNoValue() {
         return new TestProvider(String)
+    }
+
+    def "#base cannot use a null value as a fallback"() {
+        when:
+        base.orElse((String) null)
+
+        then:
+        def e = thrown(NullPointerException)
+        e.message == "Cannot set a fallback for a provider using a null value."
+
+        where:
+        base << [new TestProvider(String), Providers.notDefined()]
+    }
+
+    def "#base cannot use a null provider as a fallback"() {
+        when:
+        base.orElse((Provider) null)
+
+        then:
+        def e = thrown(NullPointerException)
+        e.message == "Cannot set a fallback for a provider using a null provider."
+
+        where:
+        base << [new TestProvider(String), Providers.notDefined()]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12307")
+    def "cannot zip with a null provider"() {
+        when:
+        provider.zip((Provider) null) { a, b -> a + b }
+
+        then:
+        def e = thrown(NullPointerException)
+        e.message == "Cannot zip a provider with a null provider."
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12307")
+    def "cannot zip using a null combiner"() {
+        when:
+        provider.zip(Providers.of("b"), null)
+
+        then:
+        def e = thrown(NullPointerException)
+        e.message == "Cannot zip providers using a null combiner."
+    }
+
+    def "cannot #method using a null argument"() {
+        when:
+        provider."$method"(null)
+
+        then:
+        def e = thrown(NullPointerException)
+        e.message == message
+
+        where:
+        method    | message
+        "map"     | "Cannot map a provider using a null transformer."
+        "flatMap" | "Cannot flat map a provider using a null transformer."
+        "filter"  | "Cannot filter a provider using a null spec."
     }
 
     @Override

@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import com.google.common.base.Preconditions;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
@@ -36,6 +35,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 
+import static java.util.Objects.requireNonNull;
 import static org.gradle.api.internal.provider.AppendOnceList.toAppendOnceList;
 import static org.gradle.internal.Cast.uncheckedCast;
 import static org.gradle.internal.Cast.uncheckedNonnullCast;
@@ -58,6 +58,8 @@ import static org.gradle.internal.Cast.uncheckedNonnullCast;
 public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSupplier<K, V>> implements MapProperty<K, V>, MapProviderInternal<K, V>, MapPropertyInternal<K, V> {
     private static final String NULL_KEY_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null key to a property of type %s.", Map.class.getSimpleName());
     private static final String NULL_VALUE_FORBIDDEN_MESSAGE = String.format("Cannot add an entry with a null value to a property of type %s.", Map.class.getSimpleName());
+    private static final String NULL_MAP_FORBIDDEN_MESSAGE = String.format("Cannot add a null map to a property of type %s.", Map.class.getSimpleName());
+    private static final String NULL_PROVIDER_FORBIDDEN_MESSAGE = String.format("Cannot add a null provider to a property of type %s.", Map.class.getSimpleName());
 
     private final Class<K> keyType;
     private final Class<V> valueType;
@@ -184,15 +186,15 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     public void put(K key, V value) {
-        Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
-        Preconditions.checkNotNull(value, NULL_VALUE_FORBIDDEN_MESSAGE);
+        requireNonNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
+        requireNonNull(value, NULL_VALUE_FORBIDDEN_MESSAGE);
         addExplicitCollector(new SingleEntry<>(key, value));
     }
 
     @Override
     public void put(K key, Provider<? extends V> providerOfValue) {
-        Preconditions.checkNotNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
-        Preconditions.checkNotNull(providerOfValue, NULL_VALUE_FORBIDDEN_MESSAGE);
+        requireNonNull(key, NULL_KEY_FORBIDDEN_MESSAGE);
+        requireNonNull(providerOfValue, NULL_VALUE_FORBIDDEN_MESSAGE);
         ProviderInternal<? extends V> p = Providers.internal(providerOfValue);
         if (p.getType() != null && !valueType.isAssignableFrom(p.getType())) {
             throw new IllegalArgumentException(String.format("Cannot add an entry to a property of type %s with values of type %s using a provider of type %s.",
@@ -203,11 +205,13 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     public void putAll(Map<? extends K, ? extends V> entries) {
+        requireNonNull(entries, NULL_MAP_FORBIDDEN_MESSAGE);
         addExplicitCollector(new EntriesFromMap<>(entries));
     }
 
     @Override
     public void putAll(Provider<? extends Map<? extends K, ? extends V>> provider) {
+        requireNonNull(provider, NULL_PROVIDER_FORBIDDEN_MESSAGE);
         addExplicitCollector(new EntriesFromMapProvider<>(checkMapProvider(provider)));
     }
 
@@ -261,7 +265,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     @SuppressWarnings("unchecked")
     private ProviderInternal<? extends Map<? extends K, ? extends V>> checkMapProvider(String valueKind, @Nullable Provider<? extends Map<? extends K, ? extends V>> provider) {
         if (provider == null) {
-            throw new IllegalArgumentException(String.format("Cannot set the %s of a property using a null provider.", valueKind));
+            throw new NullPointerException(String.format("Cannot set the %s of a property using a null provider.", valueKind));
         }
         ProviderInternal<? extends Map<? extends K, ? extends V>> p = Providers.internal(provider);
         if (p.getType() != null && !Map.class.isAssignableFrom(p.getType())) {
@@ -293,7 +297,7 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     public MapProperty<K, V> convention(Provider<? extends Map<? extends K, ? extends V>> valueProvider) {
-        setConvention(newCollectingSupplierOf(new EntriesFromMapProvider<>(Providers.internal(valueProvider))));
+        setConvention(newCollectingSupplierOf(new EntriesFromMapProvider<>(checkMapProvider("convention", valueProvider))));
         return this;
     }
 
@@ -642,7 +646,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
         }
 
         private MapCollector<K, V> toCollector(ExecutionTimeValue<? extends Map<? extends K, ? extends V>> value) {
-            Preconditions.checkArgument(!value.isMissing(), "Cannot get a collector for the missing value");
+            if (value.isMissing()) {
+                throw new IllegalArgumentException("Cannot get a collector for the missing value");
+            }
             if (value.isChangingValue() || value.hasChangingContent() || value.getSideEffect() != null) {
                 return new EntriesFromMapProvider<>(value.toProvider());
             }
