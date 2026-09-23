@@ -53,11 +53,12 @@ import org.jspecify.annotations.Nullable;
 import java.io.File;
 import java.util.AbstractSet;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
-import java.util.Collections;
 import java.util.Iterator;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Supplier;
@@ -601,7 +602,8 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             this.resolver = resolver;
             this.taskDependencyFactory = taskDependencyFactory;
             this.patternSetFactory = patternSetFactory;
-            Collections.addAll(items, item);
+            //noinspection ConstantValue
+            Arrays.stream(item).filter(Objects::nonNull).forEach(items::add);
         }
 
         /**
@@ -670,6 +672,10 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         }
 
         private void addItem(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, PatternSetFactory patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Object path, ImmutableList<Object> oldItems) {
+            //noinspection ConstantValue
+            if (path == null) {
+                return;
+            }
             // Unpack to deal with DSL syntax: collection += someFiles
             if (path instanceof FileCollectionInternal) {
                 path = ((FileCollectionInternal) path).replace(owner, () -> {
@@ -691,9 +697,6 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             ImmutableList.Builder<Object> builder = ImmutableList.builderWithExpectedSize(items.size());
             boolean hasChanges = false;
             for (Object candidate : items) {
-                if (candidate == null) {
-                    continue;
-                }
                 if (candidate instanceof FileCollectionInternal) {
                     FileCollectionInternal newCollection = ((FileCollectionInternal) candidate).replace(original, supplier);
                     hasChanges |= newCollection != candidate;

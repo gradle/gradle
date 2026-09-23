@@ -641,6 +641,37 @@ class FileCollectionIntegrationTest extends AbstractIntegrationSpec implements T
         api << ["setFrom", "convention", "from"]
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/34646")
+    def "ignores null when calling ConfigurableFileCollection.#api on a collection that already contains null"() {
+        buildFile("""
+            abstract class FooTask extends DefaultTask {
+                @InputFiles
+                abstract ConfigurableFileCollection getIncoming()
+
+                @TaskAction
+                void foo() {
+                    println("Incoming: \${incoming.files.toSorted()}")
+                }
+            }
+
+            tasks.register("foo", FooTask) {
+                incoming.$api(provider { "a.txt" }, null)
+                incoming.$api(null, provider { "b.txt" })
+            }
+        """)
+        when:
+        run "foo"
+
+        then:
+        outputContains("Incoming: ${files.collect { testDirectory.file(it) }.toSorted()}")
+
+        where:
+        api          | files
+        "setFrom"    | ["b.txt"]
+        "convention" | ["b.txt"]
+        "from"       | ["a.txt", "b.txt"]
+    }
+
     private void withSubprojects(String... subprojects) {
         subprojects.each {
             createDir it
