@@ -44,6 +44,11 @@ public class AgentModeResolver {
     public enum AgentMode {
         NOT_REQUESTED,
         ENABLED,
+        /**
+         * Enabled, overriding an explicit {@code --console} option. Kept apart from {@link #ENABLED}, as the warning
+         * about the override can only be written once the console has been attached to the output file, long after
+         * the options have been resolved, and the command line is no longer at hand by then.
+         */
         ENABLED_IGNORING_CONSOLE_OPTION;
 
         public boolean isEnabled() {
