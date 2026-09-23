@@ -53,7 +53,7 @@ Applying the plugin adds a `catalog` extension, a `generateCatalogAsToml` task, 
 [[sec:version_catalog_plugin_tasks]]
 == Tasks
 
-`generateCatalogAsToml` (type `TomlFileGenerator`)::
+`generateCatalogAsToml`::
 Generates the version catalog TOML file from the configured catalog.
 The default output location is `layout.buildDirectory.file("version-catalog/libs.versions.toml")`.
 When the <<base_plugin.adoc#base_plugin,Base Plugin>> is applied — for example, transitively by a publishing plugin — this task is wired into the `assemble` lifecycle task.

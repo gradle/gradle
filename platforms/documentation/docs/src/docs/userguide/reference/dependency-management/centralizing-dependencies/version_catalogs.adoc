@@ -167,6 +167,10 @@ include::sample[dir="snippets/reference/dependency-management/centralizing-depen
 include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-classifiers/groovy",files="build.gradle[tags=use_artifact_type]"]
 ====
 
+NOTE: A plain String-notation dependency with a type or classifier (for example, `"com.example:artifact:1.2.3@tar.gz"`) resolves non-transitively.
+The dependency notation parser sets this automatically whenever a type is present.
+Version catalog accessors don't go through that parser, so the same dependency declared via `libs.my.lib` with an `artifact { }` block stays transitive unless you set `isTransitive = false` (Kotlin DSL) or `transitive = false` (Groovy DSL) yourself, as shown above.
+
 See <<#sec:toml-limitations, TOML Limitations>> to learn more.
 
 [[sec:importing-published-catalog]]
@@ -352,6 +356,10 @@ include::sample[dir="snippets/reference/dependency-management/centralizing-depen
 
 WARNING: You cannot use a plugin declared in a version catalog in your settings file or settings plugin.
 
+NOTE: A version constraint on a `[plugins]` entry (for example, `version = { strictly = "1.0.1" }`) only constrains the plugin's <<plugins_intermediate.adoc#sec:plugin_markers,marker artifact>> coordinates (`plugin.id:plugin.id.gradle.plugin`), not the coordinates of the module that actually implements the plugin.
+Because the marker's own dependency on that implementation module isn't affected by the constraint, another plugin that transitively pulls in a different version of the same implementation module can still win the conflict resolution.
+If you need to pin the resolved implementation version, apply a constraint (or an enforced platform) directly to the implementation module's own coordinates on the build's classpath, rather than relying on the catalog's plugin version alone.
+
 [[sec:avoiding_subgroup_accessors]]
 === Avoiding subgroup accessors
 
@@ -403,14 +411,22 @@ For excludes and capabilities, apply them at the dependency declaration site in 
 [[sec:programmatic-catalog-versions]]
 == Programming catalogs
 
-Version catalogs can be declared programmatically in the `settings.gradle(.kts)` file using the link:{javadocPath}/org/gradle/api/initialization/Settings.html[Settings API]:
+The <<#sec:version-catalog-declaration,TOML file>> is the recommended way to declare a catalog.
+An alternative is to build the catalog with method calls in `settings.gradle(.kts)`, which is useful when entries need to be computed at configuration time rather than written out as static TOML — for example, generating aliases from another data source.
+This is done through the `dependencyResolutionManagement.versionCatalogs` block, part of the link:{javadocPath}/org/gradle/api/initialization/Settings.html[Settings API]:
 
 ====
 include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-settings/kotlin",files="settings.gradle.kts[tags=catalog_with_versions]"]
 include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-settings/groovy",files="settings.gradle[tags=catalog_with_versions]"]
 ====
 
+Each `library()` call maps an alias to GAV coordinates, and `version()` declares a reusable version reference — the same concepts as the TOML file's `[libraries]` and `[versions]` sections, just expressed as method calls instead of table entries.
+Bundles and plugins can be added the same way, using `bundle()` and `plugin()`.
+
 TIP: Don't use `libs` for your programmatic version catalog name if you have the default `libs.versions.toml` in your project.
+
+NOTE: If you want to <<#sec:using_the_version_catalog_plugin,publish>> a catalog you declared this way, switch it to the <<#sec:version-catalog-declaration,TOML file>> form instead.
+The `version-catalog` plugin can only publish from a TOML file or its own `catalog` extension, not from a `dependencyResolutionManagement.versionCatalogs` block, but a `gradle/libs.versions.toml` file gives you the same typesafe accessors and is auto-imported, so nothing is lost by moving the declaration there.
 
 [[sec:version-catalog-plugin]]
 == Publishing a catalog
@@ -703,7 +719,8 @@ Both the plugin alias and the library aliases resolve to `2.4.20`, and updating 
 == Using catalog entries in Gradle APIs
 
 A version catalog accessor such as `libs.groovy.core` returns a `Provider<MinimalExternalModuleDependency>`.
-Calling `.get()` on it unwraps the provider and gives you the `MinimalExternalModuleDependency` directly.
+A bundle accessor such as `libs.bundles.groovy` returns a `Provider<ExternalModuleDependencyBundle>`, and a plugin accessor such as `libs.plugins.versions` returns a `Provider<PluginDependency>`.
+Calling `.get()` on any of these unwraps the provider and gives you the underlying dependency object directly.
 
 In dependency declarations, both forms work identically:
 
@@ -722,3 +739,14 @@ include::sample[dir="snippets/reference/dependency-management/centralizing-depen
 When you pass the provider, Gradle handles any necessary type conversions internally.
 Unwrapping with `.get()` gives you a `MinimalExternalModuleDependency`, which implements `ExternalDependency` and `ModuleVersionSelector` — but some resolution APIs expect `ModuleComponentSelector`, a different type.
 Passing the provider avoids mismatches between these types.
+
+NOTE: A few `dependencies` blocks, such as the one used by native plugins like `cpp-application`, only accept a resolved dependency notation and do not support the provider form.
+In those cases, call `.get()` on the accessor at the declaration site, for example `implementation(libs.boost.asio.get())`.
+
+[[sec:testing_plugins_that_use_a_catalog_pointer]]
+== Testing plugins that read a version catalog
+
+A plugin that reads from the `VersionCatalogsExtension` can't rely on a real version catalog when tested with `ProjectBuilder`.
+A `ProjectBuilder`-built project never goes through the settings-level catalog processing that a real build does, and working around this the wrong way leaves you with an empty catalog you can't replace.
+
+See <<testing_gradle_plugins.adoc#sec:testing_plugins_that_use_a_catalog,Testing plugins that use a version catalog>> for the gotcha and coded example.
