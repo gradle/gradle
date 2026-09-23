@@ -68,6 +68,7 @@ public class StartParameterInternal extends StartParameter {
     private @Nullable String develocityUrl;
     private @Nullable String develocityPluginVersion;
     private boolean sharedMavenMirrorSettings = false;
+    private boolean agentMode = false;
     // Runtime-only wiring, deliberately transient: a StartParameter captured in task state must be
     // serializable to the configuration cache without dragging the listener (and its services) along.
     private transient @Nullable Consumer<String> mutationListener;
@@ -214,6 +215,7 @@ public class StartParameterInternal extends StartParameter {
         p.daemonJvmCriteriaConfigured = daemonJvmCriteriaConfigured;
         p.parallelToolingModelBuilding = parallelToolingModelBuilding;
         p.sharedMavenMirrorSettings = sharedMavenMirrorSettings;
+        p.agentMode = agentMode;
         return p;
     }
 
@@ -509,6 +511,15 @@ public class StartParameterInternal extends StartParameter {
     public void setSharedMavenMirrorSettings(boolean sharedMavenMirrorSettings) {
         onMutableCall("setSharedMavenMirrorSettings(boolean)");
         this.sharedMavenMirrorSettings = sharedMavenMirrorSettings;
+    }
+
+    public boolean isAgentMode() {
+        return agentMode;
+    }
+
+    public void setAgentMode(boolean agentMode) {
+        onMutableCall("setAgentMode(boolean)");
+        this.agentMode = agentMode;
     }
 
     public Option.Value<Boolean> getParallelToolingModelBuilding() {
