@@ -882,6 +882,7 @@ Gradle renders all build output as with `--console=plain` and writes it to the f
 Gradle <<directory_layout.adoc#dir:project_root:cache_cleanup,deletes these files>> once they are older than 7 days.
 The only thing printed to standard output is the absolute path of that file.
 The path is printed before the build starts, and Gradle only ever appends complete lines to the file, so an agent can follow it as it grows without seeing a partially written line.
+While the build is running, Gradle writes a single newline character to standard error every 10 seconds, so that the process does not appear to be hung.
 The exit code still reports whether the build succeeded (exit code 0) or failed (exit code 1).
 
 You can also enable it by setting the `org.gradle.agent` <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> to `true` (for example in `gradle.properties`, `GRADLE_OPTS`, or via `-D`), or with the `ORG_GRADLE_AGENT` <<build_environment.adoc#environment_variables_reference,environment variable>>.
