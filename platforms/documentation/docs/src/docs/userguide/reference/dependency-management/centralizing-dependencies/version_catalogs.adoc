@@ -356,6 +356,10 @@ include::sample[dir="snippets/reference/dependency-management/centralizing-depen
 
 WARNING: You cannot use a plugin declared in a version catalog in your settings file or settings plugin.
 
+NOTE: A version constraint on a `[plugins]` entry (for example, `version = { strictly = "1.0.1" }`) only constrains the plugin's <<plugins_intermediate.adoc#sec:plugin_markers,marker artifact>> coordinates (`plugin.id:plugin.id.gradle.plugin`), not the coordinates of the module that actually implements the plugin.
+Because the marker's own dependency on that implementation module isn't affected by the constraint, another plugin that transitively pulls in a different version of the same implementation module can still win the conflict resolution.
+If you need to pin the resolved implementation version, apply a constraint (or an enforced platform) directly to the implementation module's own coordinates on the build's classpath, rather than relying on the catalog's plugin version alone.
+
 [[sec:avoiding_subgroup_accessors]]
 === Avoiding subgroup accessors
 
