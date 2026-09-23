@@ -67,6 +67,7 @@ public class ProjectCacheDir implements Stoppable {
             deleter,
             CleanupFrequency.DAILY
         );
+        // Otherwise skip running entirely, rather than run as a no-op build operation, in the many builds that never used agent mode
         if (agentOutputCleanupAction.hasOutput()) {
             run(agentOutputCleanupAction);
         }
