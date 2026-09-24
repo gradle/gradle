@@ -23,7 +23,8 @@ The Java Platform plugin brings the ability to declare platforms for the Java ec
 A platform can be used for different purposes:
 
 - a description of modules which are published together (and for example, share the same version)
-- a set of recommended versions for heterogeneous libraries. A typical example includes the {spring-boot-bom}[Spring Boot BOM]
+- a set of recommended versions for heterogeneous libraries.
+A typical example includes the {spring-boot-bom}[Spring Boot BOM]
 - <<sec:java_platform_consumption,sharing a set of dependency versions>> between subprojects
 
 A platform is a special kind of software component which doesn't contain any sources:
@@ -82,6 +83,16 @@ include::sample[dir="snippets/reference/platforms/jvm/javaPlatformQuickstart/gro
 
 The Java Platform plugin adds the configurations described below.
 
+[[sec:java_platform_configuration_diagram]]
+=== Configuration diagram
+
+The diagram below shows how the Java Platform plugin's configurations relate to each other.
+For an explanation of what it means for a configuration to be declarable, resolvable, or consumable, see <<declaring_configurations.adoc#sec:resolvable-consumable-configs,Declarable, Resolvable, and Consumable configurations>>.
+
+image::java-platform-configurations.png[]
+
+The tables below give the full reference for each configuration shown above.
+
 [[sec:java_platform_declarable_configurations]]
 === Declarable Configurations
 
@@ -93,7 +104,7 @@ The Java Platform plugin adds the configurations described below.
 | Declarable
 | This is where you declare constraints and dependencies that apply when compiling against the platform. They are exported to consumers.
 
-| `runtime`
+| `runtime` (extends `api`)
 | Declarable
 | This is where you declare constraints and dependencies that are only visible at runtime.
 |===
@@ -105,21 +116,33 @@ The Java Platform plugin adds the configurations described below.
 |===
 | Configuration name | Role | Description
 
-| `apiElements`
+| `apiElements` (extends `api`)
 | Consumable
 | The elements exposed to consumers that depend on the platform via `platform(...)` for compilation.
 
-| `runtimeElements`
+| `runtimeElements` (extends `runtime`)
 | Consumable
 | The elements exposed to consumers that depend on the platform via `platform(...)` at runtime.
 
-| `enforcedApiElements`
+| `enforcedApiElements` (extends `api`)
 | Consumable
 | Like `apiElements`, but exposes the platform's constraints as _forced_. Used when consumers depend on the platform via `enforcedPlatform(...)`.
 
-| `enforcedRuntimeElements`
+| `enforcedRuntimeElements` (extends `runtime`)
 | Consumable
 | Like `runtimeElements`, but exposes the platform's constraints as _forced_. Used when consumers depend on the platform via `enforcedPlatform(...)`.
+|===
+
+[[sec:java_platform_resolvable_configurations]]
+=== Resolvable Configurations
+
+[%header%autowidth,compact]
+|===
+| Configuration name | Role | Description
+
+| `classpath` (extends `runtime`)
+| Resolvable
+| Used internally by Gradle to resolve the final versions of this platform's constraints when publishing it. Not intended for consumers or build authors to use directly.
 |===
 
 [[sec:java_platform_project_constraints]]
