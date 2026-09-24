@@ -31,9 +31,11 @@ class AgentHeartbeat implements Closeable {
     private static final long DEFAULT_INTERVAL_MILLIS = 10_000;
 
     private final Thread thread;
+    private volatile boolean closed;
 
-    private AgentHeartbeat(Thread thread) {
-        this.thread = thread;
+    private AgentHeartbeat(PrintStream output, long intervalMillis) {
+        thread = new Thread(() -> run(output, intervalMillis), "Agent mode heartbeat");
+        thread.setDaemon(true);
     }
 
     /**
@@ -45,25 +47,28 @@ class AgentHeartbeat implements Closeable {
 
     @VisibleForTesting
     static AgentHeartbeat start(PrintStream output, long intervalMillis) {
-        Thread thread = new Thread(() -> {
+        AgentHeartbeat heartbeat = new AgentHeartbeat(output, intervalMillis);
+        heartbeat.thread.start();
+        return heartbeat;
+    }
+
+    private void run(PrintStream output, long intervalMillis) {
+        while (!closed) {
             try {
-                while (true) {
-                    Thread.sleep(intervalMillis);
-                    // Not println(), which would write the platform line separator
-                    output.write('\n');
-                    output.flush();
-                }
+                Thread.sleep(intervalMillis);
             } catch (InterruptedException e) {
-                // closed
+                // Only close() is expected to interrupt, but an unexpected interrupt must not silence the heartbeat
+                continue;
             }
-        }, "Agent mode heartbeat");
-        thread.setDaemon(true);
-        thread.start();
-        return new AgentHeartbeat(thread);
+            // Not println(), which would write the platform line separator
+            output.write('\n');
+            output.flush();
+        }
     }
 
     @Override
     public void close() {
+        closed = true;
         thread.interrupt();
     }
 }
