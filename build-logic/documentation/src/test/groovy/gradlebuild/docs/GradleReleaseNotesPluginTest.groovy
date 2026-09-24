@@ -74,8 +74,6 @@ class GradleReleaseNotesPluginTest extends Specification {
                 }
             }
 
-            tasks.register('assembleSamples')
-
             javadocAll {
                 enabled = false
             }
