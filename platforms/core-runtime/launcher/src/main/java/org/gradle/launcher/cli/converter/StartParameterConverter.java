@@ -79,6 +79,9 @@ public class StartParameterConverter {
         buildLayout.applyTo(startParameter);
 
         boolean agentMode = agentModeResolver.resolve(parsedCommandLine, properties.getProperties(), environmentVariables).isEnabled();
+        if (agentMode && agentModeSupported) {
+            AgentModeResolver.applyDefaultsTo(startParameter);
+        }
 
         welcomeMessageConfigurationCommandLineConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, startParameter.getWelcomeMessageConfiguration());
         loggingConfigurationCommandLineConverter.convert(parsedCommandLine, properties.getProperties(), environmentVariables, startParameter);

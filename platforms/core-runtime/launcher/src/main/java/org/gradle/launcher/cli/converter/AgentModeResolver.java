@@ -17,9 +17,14 @@
 package org.gradle.launcher.cli.converter;
 
 import org.gradle.api.internal.StartParameterInternal;
+import org.gradle.api.logging.configuration.ConsoleOutput;
+import org.gradle.api.logging.configuration.LoggingConfiguration;
+import org.gradle.api.logging.configuration.ShowStacktrace;
+import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
 import org.gradle.initialization.StartParameterBuildOptions.AgentOption;
+import org.gradle.internal.logging.LoggingConfigurationBuildOptions.ConsoleOption;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.Map;
@@ -28,7 +33,8 @@ import java.util.Map;
  * Decides whether agent mode applies to an invocation.
  *
  * <p>Build options normally give environment variables the lowest precedence. Agent mode instead resolves as
- * command-line flag, then environment variable, then properties.
+ * command-line flag, then environment variable, then properties. Agent mode owns the console output, so an explicit
+ * {@code --console} has no effect on it and is reported as ignored, unless it asks for the output agent mode produces anyway.
  * The properties are expected to have system properties already merged over those from {@code gradle.properties},
  * as done by {@link LayoutToPropertiesConverter}.</p>
  */
@@ -37,7 +43,13 @@ public class AgentModeResolver {
 
     public enum AgentMode {
         NOT_REQUESTED,
-        ENABLED;
+        ENABLED,
+        /**
+         * Enabled, overriding an explicit {@code --console} option. Kept apart from {@link #ENABLED}, as the warning
+         * about the override can only be written once the console has been attached to the output file, long after
+         * the options have been resolved, and the command line is no longer at hand by then.
+         */
+        ENABLED_IGNORING_CONSOLE_OPTION;
 
         public boolean isEnabled() {
             return this != NOT_REQUESTED;
@@ -46,6 +58,9 @@ public class AgentModeResolver {
 
     private final AgentOption agentOption = new AgentOption();
 
+    /**
+     * The parser must also have the logging options configured.
+     */
     public void configure(CommandLineParser parser) {
         agentOption.configure(parser);
     }
@@ -56,6 +71,28 @@ public class AgentModeResolver {
         agentOption.applyFromEnvVar(environmentVariables, settings);
         agentOption.applyFromCommandLine(commandLine, settings);
 
-        return settings.isAgentMode() ? AgentMode.ENABLED : AgentMode.NOT_REQUESTED;
+        if (!settings.isAgentMode()) {
+            return AgentMode.NOT_REQUESTED;
+        }
+        return isConsoleOptionIgnored(commandLine) ? AgentMode.ENABLED_IGNORING_CONSOLE_OPTION : AgentMode.ENABLED;
+    }
+
+    /**
+     * Applies the logging settings agent mode implies. Meant to be called before the logging options are converted,
+     * so that any explicitly configured value takes precedence, except for the console output, which agent mode owns.
+     */
+    public static void applyDefaultsTo(LoggingConfiguration configuration) {
+        configuration.setConsoleOutput(ConsoleOutput.Plain);
+        configuration.setInteractive(false);
+        configuration.setWarningMode(WarningMode.None);
+        configuration.setShowStacktrace(ShowStacktrace.ALWAYS);
+    }
+
+    private static boolean isConsoleOptionIgnored(ParsedCommandLine commandLine) {
+        if (!commandLine.hasOption(ConsoleOption.LONG_OPTION)) {
+            return false;
+        }
+        String value = commandLine.option(ConsoleOption.LONG_OPTION).getValue();
+        return !ConsoleOutput.Plain.name().equalsIgnoreCase(value);
     }
 }

@@ -16,6 +16,7 @@
 
 package org.gradle.launcher
 
+import org.gradle.api.internal.tasks.userinput.UserInputHandler
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.ConcurrentTestUtil
 import org.gradle.test.fixtures.file.TestFile
@@ -289,6 +290,124 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         "true"         | "false"    | "true"  | []             | true
         "true"         | "true"     | "true"  | ["--no-agent"] | false
         "false"        | "false"    | "false" | ["--agent"]    | true
+    }
+
+    def "explicit console option is ignored with a warning when agent mode is requested via #description"() {
+        given:
+        if (property) {
+            file("gradle.properties") << "org.gradle.agent=true"
+        }
+
+        when:
+        executer.withEnvironmentVars(envVars)
+        succeeds(["hello", "--console=rich"] + args)
+
+        then:
+        def agentOutput = assertOnlyLogFilePathPrinted()
+        errorOutput.trim().empty
+        agentOutput.text.contains("The --console option has been ignored because agent mode is enabled.")
+        agentOutput.text.contains("Hello from the task")
+
+        where:
+        description            | args        | envVars                    | property
+        "command line flag"    | ["--agent"] | [:]                        | false
+        "environment variable" | []          | [ORG_GRADLE_AGENT: "true"] | false
+        "Gradle property"      | []          | [:]                        | true
+    }
+
+    def "does not warn about the console option when agent mode is not requested"() {
+        when:
+        succeeds("hello", "--console=plain")
+
+        then:
+        outputDoesNotContain("agent mode")
+        outputContains("Hello from the task")
+    }
+
+    def "does not warn about a plain console option in agent mode"() {
+        when:
+        succeeds("hello", "--agent", "--console=plain")
+
+        then:
+        !assertOnlyLogFilePathPrinted().text.contains("--console")
+    }
+
+    def "does not warn about a console Gradle property in agent mode"() {
+        given:
+        file("gradle.properties") << "org.gradle.console=rich"
+
+        when:
+        succeeds("hello", "--agent")
+
+        then:
+        !assertOnlyLogFilePathPrinted().text.contains("--console")
+    }
+
+    def "does not prompt for user input"() {
+        given:
+        buildFile << """
+            def handler = services.get(${UserInputHandler.name})
+            tasks.register("askYesNo") {
+                def result = handler.askUser { it.askYesNoQuestion("thing?") }
+                doLast {
+                    println("result = " + result.getOrElse("<default>"))
+                }
+            }
+        """
+        executer.withStdinPipe().withForceInteractiveSession(true)
+
+        when:
+        def build = executer.withTasks("askYesNo").withArgument("--agent").start()
+        build.stdinPipe.close()
+        build.waitForFinish()
+
+        then:
+        def agentOutput = assertOnlyLogFilePathPrinted(build.standardOutput)
+        !agentOutput.text.contains("thing? [yes, no]")
+        agentOutput.text.contains("result = <default>")
+    }
+
+    def "suppresses warnings unless a warning mode is given"() {
+        given:
+        buildFile << """
+            tasks.register("deprecated") {
+                doLast {
+                    org.gradle.internal.deprecation.DeprecationLogger.deprecate("Something").willBeRemovedInGradle10().undocumented().nagUser()
+                }
+            }
+        """
+        executer.noDeprecationChecks().withWarningMode(null)
+
+        when:
+        succeeds("deprecated", "--agent")
+
+        then:
+        !assertOnlyLogFilePathPrinted().text.contains("Something has been deprecated")
+
+        when:
+        executer.noDeprecationChecks().withWarningMode(null)
+        succeeds("deprecated", "--agent", "--warning-mode=all")
+
+        then:
+        assertOnlyLogFilePathPrinted().text.contains("Something has been deprecated")
+    }
+
+    def "writes the stack trace of a failure to the file"() {
+        when:
+        fails("broken", "--agent")
+
+        then:
+        def agentOutput = assertOnlyLogFilePathPrinted()
+        agentOutput.text.contains("task is broken")
+        agentOutput.text.contains("java.lang.RuntimeException: task is broken")
+        agentOutput.text.contains("at ")
+
+        when:
+        fails("broken")
+
+        then:
+        failure.assertHasCause("task is broken")
+        !result.error.contains("java.lang.RuntimeException: task is broken")
     }
 
     def "writes newlines to standard error while the build is running"() {
