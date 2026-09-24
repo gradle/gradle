@@ -44,7 +44,7 @@ class MessageHubBackedServerTest extends Specification {
         server.accept(connectAction)
 
         then:
-        1 * connector.accept(_, false) >> { acceptAction = it[0]; return acceptor }
+        1 * connector.accept(_, false, null) >> { acceptAction = it[0]; return acceptor }
 
         when:
         acceptAction.execute(completion)

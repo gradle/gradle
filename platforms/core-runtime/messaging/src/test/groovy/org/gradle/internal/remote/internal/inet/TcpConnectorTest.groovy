@@ -50,8 +50,8 @@ class TcpConnectorTest extends ConcurrentSpec {
         Action action = Mock()
 
         when:
-        def acceptor = incomingConnector.accept(action, false)
-        def connection = outgoingConnector.connect(acceptor.address).create(serializer)
+        def acceptor = incomingConnector.accept(action, false, null)
+        def connection = outgoingConnector.connect(acceptor.address, null).create(serializer)
 
         then:
         connection != null
@@ -65,8 +65,8 @@ class TcpConnectorTest extends ConcurrentSpec {
         Action action = Mock()
 
         when:
-        def acceptor = incomingConnector.accept(action, true)
-        def connection = outgoingConnector.connect(acceptor.address).create(serializer)
+        def acceptor = incomingConnector.accept(action, true, null)
+        def connection = outgoingConnector.connect(acceptor.address, null).create(serializer)
 
         then:
         connection != null
@@ -80,8 +80,8 @@ class TcpConnectorTest extends ConcurrentSpec {
         Action action = Mock()
 
         when:
-        def acceptor = incomingConnector.accept(action, false)
-        def connection = outgoingConnector.connect(acceptor.address).create(serializer)
+        def acceptor = incomingConnector.accept(action, false, null)
+        def connection = outgoingConnector.connect(acceptor.address, null).create(serializer)
         thread.blockUntil.connected
 
         then:
@@ -96,7 +96,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         def address = new MultiChoiceAddress(idGenerator.generateId(), portAllocator.assignPort(), [InetAddress.getByName("localhost")])
 
         when:
-        outgoingConnector.connect(address)
+        outgoingConnector.connect(address, null)
 
         then:
         ConnectException e = thrown()
@@ -108,7 +108,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         def address = new MultiChoiceAddress(idGenerator.generateId(), portAllocator.assignPort(), [InetAddress.getByName("localhost"), InetAddress.getByName("127.0.0.1")])
 
         when:
-        outgoingConnector.connect(address)
+        outgoingConnector.connect(address, null)
 
         then:
         ConnectException e = thrown()
@@ -118,9 +118,9 @@ class TcpConnectorTest extends ConcurrentSpec {
 
     def "client cannot connect after server stopped"() {
         when:
-        def acceptor = incomingConnector.accept(Mock(Action), false)
+        def acceptor = incomingConnector.accept(Mock(Action), false, null)
         acceptor.stop()
-        outgoingConnector.connect(acceptor.address)
+        outgoingConnector.connect(acceptor.address, null)
 
         then:
         ConnectException e = thrown()
@@ -137,8 +137,8 @@ class TcpConnectorTest extends ConcurrentSpec {
         }
 
         when:
-        def acceptor = incomingConnector.accept(action, false)
-        def connection = outgoingConnector.connect(acceptor.address).create(serializer)
+        def acceptor = incomingConnector.accept(action, false, null)
+        def connection = outgoingConnector.connect(acceptor.address, null).create(serializer)
         def result = connection.receive()
 
         then:
@@ -158,12 +158,12 @@ class TcpConnectorTest extends ConcurrentSpec {
         }
 
         when:
-        def acceptor = incomingConnector.accept(action, false)
+        def acceptor = incomingConnector.accept(action, false, null)
         async {
-            def connection = outgoingConnector.connect(acceptor.address).create(serializer)
+            def connection = outgoingConnector.connect(acceptor.address, null).create(serializer)
             connection.stop()
         }
-        outgoingConnector.connect(acceptor.address)
+        outgoingConnector.connect(acceptor.address, null)
 
         then:
         ConnectException e = thrown()
@@ -185,8 +185,8 @@ class TcpConnectorTest extends ConcurrentSpec {
         }
 
         when:
-        def acceptor = incomingConnector.accept(action, false)
-        def connection = outgoingConnector.connect(acceptor.address).create(serializer)
+        def acceptor = incomingConnector.accept(action, false, null)
+        def connection = outgoingConnector.connect(acceptor.address, null).create(serializer)
         thread.blockUntil.connected
         operation.stop {
             acceptor.stop()
@@ -209,9 +209,9 @@ class TcpConnectorTest extends ConcurrentSpec {
             conn.dispatch("bye")
             conn.stop()
             instant.closed
-        } as Action, false)
+        } as Action, false, null)
 
-        def connection = outgoingConnector.connect(acceptor.address).create(serializer)
+        def connection = outgoingConnector.connect(acceptor.address, null).create(serializer)
         thread.blockUntil.closed
 
         then:
@@ -239,8 +239,8 @@ class TcpConnectorTest extends ConcurrentSpec {
         } as Serializer
 
         when:
-        def acceptor = incomingConnector.accept(action, false)
-        def connection = outgoingConnector.connect(acceptor.address).create(Serializers.stateful(outgoingSerializer))
+        def acceptor = incomingConnector.accept(action, false, null)
+        def connection = outgoingConnector.connect(acceptor.address, null).create(Serializers.stateful(outgoingSerializer))
         def result = connection.receive()
 
         then:
@@ -266,8 +266,8 @@ class TcpConnectorTest extends ConcurrentSpec {
         }
 
         when:
-        def acceptor = incomingConnector.accept(action, false)
-        def connection = outgoingConnector.connect(acceptor.address).create(Serializers.stateful(outgoingSerializer))
+        def acceptor = incomingConnector.accept(action, false, null)
+        def connection = outgoingConnector.connect(acceptor.address, null).create(Serializers.stateful(outgoingSerializer))
         connection.receive()
 
         then:
@@ -305,7 +305,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         given:
         def action = Mock(Action)
         def socketChannel = SocketChannel.open()
-        def acceptor = incomingConnector.accept(action, false)
+        def acceptor = incomingConnector.accept(action, false, null)
         def communicationAddress = addressFactory.getLocalBindingAddress()
         def bindAnyPort = new InetSocketAddress(communicationAddress, 0)
         def connectAddress = new InetSocketAddress(communicationAddress, acceptor.address.port)
@@ -330,7 +330,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         def connected = false
         def action = { connected = true  }
         def socketChannel = SocketChannel.open()
-        def acceptor = incomingConnector.accept(action, false)
+        def acceptor = incomingConnector.accept(action, false, null)
         def communicationAddress = addressFactory.getLocalBindingAddress()
         def bindAnyPort = new InetSocketAddress(communicationAddress, 0)
         def connectAddress = new InetSocketAddress(communicationAddress, acceptor.address.port)
@@ -347,5 +347,61 @@ class TcpConnectorTest extends ConcurrentSpec {
         acceptor?.stop()
         socketChannel?.close()
     }
-}
 
+    def "server executes action when incoming connection presents the expected connection token"() {
+        Action action = Mock()
+        def token = "0123456789abcdef".bytes
+
+        when:
+        def acceptor = incomingConnector.accept(action, false, token)
+        def connection = outgoingConnector.connect(acceptor.address, token).create(serializer)
+        thread.blockUntil.connected
+
+        then:
+        1 * action.execute(!null) >> { instant.connected }
+
+        cleanup:
+        acceptor?.stop()
+        connection?.stop()
+    }
+
+    def "refuses connections that present the wrong connection token"() {
+        given:
+        def connected = false
+        def action = { connected = true }
+
+        when:
+        def acceptor = incomingConnector.accept(action, false, "0123456789abcdef".bytes)
+        def connection = outgoingConnector.connect(acceptor.address, "0123456789abcdeF".bytes).create(serializer)
+        acceptor.stop()
+
+        then:
+        !connected
+
+        cleanup:
+        connection?.stop()
+    }
+
+    def "times out and refuses connections that send the preamble but no connection token"() {
+        given:
+        def connected = false
+        def action = { connected = true }
+        def socketChannel = SocketChannel.open()
+        def acceptor = incomingConnector.accept(action, false, "0123456789abcdef".bytes)
+        def communicationAddress = addressFactory.getLocalBindingAddress()
+        def connectAddress = new InetSocketAddress(communicationAddress, acceptor.address.port)
+
+        when:
+        socketChannel.socket().bind(new InetSocketAddress(communicationAddress, 0))
+        socketChannel.socket().connect(connectAddress)
+        socketChannel.socket().outputStream.write(TcpOutgoingConnector.CONNECTION_PREAMBLE)
+        socketChannel.socket().outputStream.flush()
+        acceptor.stop()
+
+        then:
+        !connected
+
+        cleanup:
+        socketChannel?.close()
+    }
+}

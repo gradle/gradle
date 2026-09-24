@@ -168,6 +168,7 @@ class DaemonInitialCommunicationFailureIntegrationSpec extends DaemonIntegration
         def socket = new Socket(new InetAddressFactory().localBindingAddress, daemon.port)
 
         socket.outputStream.write(TcpOutgoingConnector.CONNECTION_PREAMBLE)
+        socket.outputStream.write(daemon.token)
         socket.outputStream.write("GET / HTTP/1.0\n\n".getBytes())
         socket.outputStream.flush()
 

@@ -20,6 +20,7 @@ import org.gradle.api.Action;
 import org.gradle.internal.remote.ConnectionAcceptor;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.Global.class)
 public interface IncomingConnector {
@@ -28,7 +29,8 @@ public interface IncomingConnector {
      *
      * @param action the action to execute on incoming connection. The supplied action is not required to be thread-safe.
      * @param allowRemote If true, only allow connections from remote machines. If false, allow only from the local machine.
+     * @param connectionToken the token a peer must present during the connection handshake.
      * @return the address of the endpoint which the connector is listening on.
      */
-    ConnectionAcceptor accept(Action<ConnectCompletion> action, boolean allowRemote);
+    ConnectionAcceptor accept(Action<ConnectCompletion> action, boolean allowRemote, byte @Nullable [] connectionToken);
 }

@@ -16,11 +16,13 @@
 
 package org.gradle.internal.remote.internal.inet;
 
+import com.google.common.primitives.Bytes;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.internal.ConnectCompletion;
 import org.gradle.internal.remote.internal.ConnectException;
 import org.gradle.internal.remote.internal.OutgoingConnector;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -42,7 +44,7 @@ public class TcpOutgoingConnector implements OutgoingConnector {
     private static final int CONNECT_TIMEOUT = 10000;
 
     @Override
-    public ConnectCompletion connect(Address destinationAddress) throws ConnectException {
+    public ConnectCompletion connect(Address destinationAddress, byte @Nullable [] connectionToken) throws ConnectException {
         if (!(destinationAddress instanceof InetEndpoint)) {
             throw new IllegalArgumentException(String.format("Cannot create a connection to address of unknown type: %s.", destinationAddress));
         }
@@ -53,6 +55,8 @@ public class TcpOutgoingConnector implements OutgoingConnector {
         // is on - the default for debian and others), so we will try each of them until we can connect
         List<InetAddress> candidateAddresses = address.getCandidates();
 
+        byte[] handshake = connectionToken == null ? CONNECTION_PREAMBLE : Bytes.concat(CONNECTION_PREAMBLE, connectionToken);
+
         // Now try each address
         try {
             Exception lastFailure = null;
@@ -60,7 +64,7 @@ public class TcpOutgoingConnector implements OutgoingConnector {
                 LOGGER.debug("Trying to connect to address {}.", candidate);
                 SocketChannel socketChannel;
                 try {
-                    socketChannel = tryConnect(address, candidate);
+                    socketChannel = tryConnect(address, candidate, handshake);
                 } catch (SocketException e) {
                     LOGGER.debug("Cannot connect to address {}, skipping.", candidate);
                     lastFailure = e;
@@ -83,13 +87,13 @@ public class TcpOutgoingConnector implements OutgoingConnector {
         }
     }
 
-    private SocketChannel tryConnect(InetEndpoint address, InetAddress candidate) throws IOException {
+    private SocketChannel tryConnect(InetEndpoint address, InetAddress candidate, byte[] handshake) throws IOException {
         SocketChannel socketChannel = SocketChannel.open();
         try {
             socketChannel.socket().connect(new InetSocketAddress(candidate, address.getPort()), CONNECT_TIMEOUT);
             if (!detectSelfConnect(socketChannel)) {
                 SocketBlockingUtil.configureNonblocking(socketChannel);
-                socketChannel.write(ByteBuffer.wrap(CONNECTION_PREAMBLE));
+                socketChannel.write(ByteBuffer.wrap(handshake));
                 return socketChannel;
             }
             socketChannel.close();
