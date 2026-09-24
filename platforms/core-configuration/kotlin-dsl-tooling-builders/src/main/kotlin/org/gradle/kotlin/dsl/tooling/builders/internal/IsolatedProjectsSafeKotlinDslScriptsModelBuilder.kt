@@ -36,7 +36,6 @@ import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinDslScriptsModelBuild
 import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsParameter
 import org.gradle.kotlin.dsl.tooling.builders.PrecompiledScriptPluginsMetadataDir
 import org.gradle.kotlin.dsl.tooling.builders.SCRIPTS_GRADLE_PROPERTY_NAME
-import org.gradle.kotlin.dsl.tooling.builders.ResolvedClassPath
 import org.gradle.kotlin.dsl.tooling.builders.ScriptModelResult
 import org.gradle.kotlin.dsl.tooling.builders.StandardKotlinDslScriptModel
 import org.gradle.kotlin.dsl.tooling.builders.StandardKotlinDslScriptsModel
@@ -52,7 +51,7 @@ import org.gradle.kotlin.dsl.tooling.builders.discoverSettingScript
 import org.gradle.kotlin.dsl.tooling.builders.resolveCorrelationIdParameter
 import org.gradle.kotlin.dsl.tooling.builders.buildEditorReportsFor
 import org.gradle.kotlin.dsl.tooling.builders.mapEditorReports
-import org.gradle.kotlin.dsl.tooling.builders.resolveCompileClassPathOf
+import org.gradle.kotlin.dsl.tooling.builders.SourceSetClassPathResolver
 import org.gradle.kotlin.dsl.tooling.builders.runtimeFailuresLocatedIn
 import org.gradle.kotlin.dsl.tooling.builders.scriptCompilationClassPath
 import org.gradle.kotlin.dsl.tooling.builders.scriptHandlerFactoryOf
@@ -397,12 +396,12 @@ fun precompiledScriptModelsFor(project: ProjectInternal): ScriptModelResult<List
     val sourceSets = project.sourceSets ?: return emptyScriptModelResult
     val metadataDir = PrecompiledScriptPluginsMetadataDir.of(project)
 
-    val classPathBySourceSet = mutableMapOf<String, ResolvedClassPath>()
+    val classPathResolver = SourceSetClassPathResolver()
     val pluginSpecImports = metadataDir.implicitPluginSpecBuildersImports
 
     val models = scripts.mapNotNull { scriptFile ->
         val sourceSet = sourceSets.find { scriptFile in it.allSource } ?: return@mapNotNull null
-        val classPath = classPathBySourceSet.getOrPut(sourceSet.name) { project.resolveCompileClassPathOf(sourceSet) }.classPath
+        val classPath = classPathResolver.resolveCompileClassPathOf(project, sourceSet).classPath
         val accessorImports = metadataDir.implicitAccessorsImports(scriptFile)
         IntermediateScriptModel(
             scriptFile,
@@ -412,7 +411,7 @@ fun precompiledScriptModelsFor(project: ProjectInternal): ScriptModelResult<List
             includeParentSourcePath = false
         )
     }
-    return ScriptModelResult(models, classPathBySourceSet.values.mapNotNull { it.failure })
+    return ScriptModelResult(models, classPathResolver.failures)
 }
 
 private

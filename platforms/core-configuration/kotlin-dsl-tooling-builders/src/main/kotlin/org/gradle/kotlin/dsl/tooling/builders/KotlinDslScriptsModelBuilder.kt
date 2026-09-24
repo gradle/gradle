@@ -114,12 +114,14 @@ object KotlinDslScriptsModelBuilder : AbstractKotlinDslScriptsModelBuilder() {
     override fun prepareParameter(rootProject: Project) = rootProject.parameterFromRequest()
 
     override fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): ScriptModelResult<KotlinDslScriptsModel> {
+        val classPathResolver = SourceSetClassPathResolver()
         val scriptModels = parameter.scriptFiles.associateWith { scriptFile ->
-            buildScriptModel(rootProject, scriptFile, parameter)
+            buildScriptModel(rootProject, scriptFile, parameter, classPathResolver)
         }
         return ScriptModelResult(
             createStandardKotlinDslScriptsModel(scriptModels.mapValues { (_, result) -> result.model }),
-            scriptModels.values.flatMap { it.failures }
+            // The scripts of one source set share a classpath, so report its failure once, not once per script
+            scriptModels.values.flatMap { it.failures }.distinct()
         )
     }
 
@@ -127,11 +129,12 @@ object KotlinDslScriptsModelBuilder : AbstractKotlinDslScriptsModelBuilder() {
     fun buildScriptModel(
         rootProject: Project,
         scriptFile: File,
-        parameter: KotlinDslScriptsParameter
+        parameter: KotlinDslScriptsParameter,
+        classPathResolver: SourceSetClassPathResolver
     ): ScriptModelResult<StandardKotlinDslScriptModel> {
 
         val scriptModelParameter = KotlinBuildScriptModelParameter(scriptFile, parameter.correlationId)
-        val (scriptModel, failures) = KotlinBuildScriptModelBuilder.kotlinBuildScriptModelFor(rootProject, scriptModelParameter)
+        val (scriptModel, failures) = KotlinBuildScriptModelBuilder.kotlinBuildScriptModelFor(rootProject, scriptModelParameter, classPathResolver)
         return ScriptModelResult(
             StandardKotlinDslScriptModel(
                 scriptModel.classPath,

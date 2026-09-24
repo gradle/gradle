@@ -76,7 +76,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
         val timer = startTimer()
         val parameter = requestParameterOf(modelRequestProject)
         try {
-            val result = kotlinBuildScriptModelFor(modelRequestProject, parameter)
+            val result = kotlinBuildScriptModelFor(modelRequestProject, parameter, SourceSetClassPathResolver())
             log("$parameter => ${result.model}")
             return result.toToolingModelResult(modelRequestProject.serviceOf())
         } catch (e: Exception) {
@@ -88,13 +88,18 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
     }
 
     internal
-    fun kotlinBuildScriptModelFor(modelRequestProject: Project, parameter: KotlinBuildScriptModelParameter): ScriptModelResult<KotlinBuildScriptModel> =
-        scriptModelBuilderFor(modelRequestProject as ProjectInternal, parameter).buildModel()
+    fun kotlinBuildScriptModelFor(
+        modelRequestProject: Project,
+        parameter: KotlinBuildScriptModelParameter,
+        classPathResolver: SourceSetClassPathResolver
+    ): ScriptModelResult<KotlinBuildScriptModel> =
+        scriptModelBuilderFor(modelRequestProject as ProjectInternal, parameter, classPathResolver).buildModel()
 
     private
     fun scriptModelBuilderFor(
         modelRequestProject: ProjectInternal,
-        parameter: KotlinBuildScriptModelParameter
+        parameter: KotlinBuildScriptModelParameter,
+        classPathResolver: SourceSetClassPathResolver
     ): KotlinScriptTargetModelBuilder {
 
         val scriptFile = parameter.scriptFile
@@ -105,7 +110,7 @@ object KotlinBuildScriptModelBuilder : ToolingModelBuilder {
         }
 
         modelRequestProject.enclosingSourceSetOf(scriptFile)?.let { enclosingSourceSet ->
-            return precompiledScriptPluginModelBuilder(scriptFile, enclosingSourceSet, modelRequestProject)
+            return precompiledScriptPluginModelBuilder(scriptFile, enclosingSourceSet, modelRequestProject, classPathResolver)
         }
 
         if (isSettingsFileOf(modelRequestProject, scriptFile)) {
@@ -181,12 +186,13 @@ private
 fun precompiledScriptPluginModelBuilder(
     scriptFile: File,
     enclosingSourceSet: EnclosingSourceSet,
-    modelRequestProject: Project
+    modelRequestProject: Project,
+    classPathResolver: SourceSetClassPathResolver
 ): KotlinScriptTargetModelBuilder {
     return KotlinScriptTargetModelBuilder(
         scriptFile = scriptFile,
         project = modelRequestProject,
-        scriptClassPath = enclosingSourceSet.project.resolveCompileClassPathOf(enclosingSourceSet.sourceSet),
+        scriptClassPath = classPathResolver.resolveCompileClassPathOf(enclosingSourceSet.project, enclosingSourceSet.sourceSet),
         enclosingScriptProjectDir = enclosingSourceSet.project.projectDir,
         additionalImports = {
             PrecompiledScriptPluginsMetadataDir.of(enclosingSourceSet.project).run {
@@ -211,7 +217,9 @@ fun projectScriptModelBuilder(
 
 
 /**
- * Resolves the compile classpath of the given source set, e.g. the one containing precompiled script plugins.
+ * Resolves the compile classpath of source sets, e.g. the one containing precompiled script plugins, once per
+ * model request, so that all the scripts of a source set share one classpath, and one failure when it could
+ * not be resolved.
  *
  * Resolution can fail, e.g. when the project did not configure completely because its build script body failed
  * to compile before the `repositories {}` block ran, or when a dependency cannot be resolved. This never throws:
@@ -219,12 +227,38 @@ fun projectScriptModelBuilder(
  * model for the scripts of that source set, and for the other scripts of the build.
  */
 internal
-fun Project.resolveCompileClassPathOf(sourceSet: SourceSet): ResolvedClassPath =
-    try {
-        ResolvedClassPath(DefaultClassPath.of(sourceSet.compileClasspath))
-    } catch (e: Exception) {
-        ResolvedClassPath((this as ProjectInternal).gradle.baseScriptClassPath(), e)
-    }
+class SourceSetClassPathResolver {
+
+    private
+    val resolved = mutableMapOf<SourceSet, ResolvedClassPath>()
+
+    fun resolveCompileClassPathOf(project: Project, sourceSet: SourceSet): ResolvedClassPath =
+        resolved.getOrPut(sourceSet) { resolve(project, sourceSet) }
+
+    /**
+     * The failures of the source sets whose compile classpath could not be resolved, one per source set.
+     */
+    val failures: List<Throwable>
+        get() = resolved.values.mapNotNull { it.failure }
+
+    private
+    fun resolve(project: Project, sourceSet: SourceSet): ResolvedClassPath =
+        try {
+            ResolvedClassPath(DefaultClassPath.of(sourceSet.compileClasspath))
+        } catch (e: Exception) {
+            ResolvedClassPath(baseScriptClassPathAfter(project, e), e)
+        }
+
+    private
+    fun baseScriptClassPathAfter(project: Project, resolutionFailure: Exception): ClassPath =
+        try {
+            (project as ProjectInternal).gradle.baseScriptClassPath()
+        } catch (fallbackFailure: Exception) {
+            // Without the base script classpath no script of the build gets a classpath, so lets give up
+            fallbackFailure.addSuppressed(resolutionFailure)
+            throw fallbackFailure
+        }
+}
 
 
 internal
