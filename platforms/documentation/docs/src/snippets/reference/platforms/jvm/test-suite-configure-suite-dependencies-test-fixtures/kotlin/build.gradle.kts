@@ -29,7 +29,7 @@ repositories {
 // tag::configure-suite-dependencies-test-fixtures[]
 testing {
     suites {
-        val integrationTest by registering(JvmTestSuite::class) {
+        register<JvmTestSuite>("integrationTest") {
             dependencies {
                 implementation(project()) // <1>
                 implementation(testFixtures(project())) // <2>
