@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.internal.scan.config.fixtures.ApplyDevelocityPluginFixture
 import org.gradle.test.fixtures.file.DoesNotSupportNonAsciiPaths
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -61,10 +62,7 @@ class AbstractAndroidProjectSmokeTest extends AbstractSmokeTest implements Runne
 
     protected void setupCopyOfAndroidProject(TestFile targetDir) {
         copyRemoteProject("androidProject", targetDir)
-        // The Develocity plugin is not part of what these tests verify, it was only applied so the
-        // builds under test publish scans. It is a settings plugin, so it resolves before the
-        // mirror init script can influence anything, and the plugin portal mirror intermittently
-        // answers 404 for its marker, which fails the build outright.
+        ApplyDevelocityPluginFixture.applyDevelocityPlugin(targetDir.file("settings.gradle.kts"))
     }
 
     protected SmokeTestGradleRunner.SmokeTestBuildResult buildLocation(File projectDir, String agpVersion) {
