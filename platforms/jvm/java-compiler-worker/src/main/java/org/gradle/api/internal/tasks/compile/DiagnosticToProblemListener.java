@@ -29,7 +29,7 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.SecondLevelProblemGroup;
 import org.gradle.api.problems.internal.ProblemReporterInternal;
 
 import javax.tools.Diagnostic;
@@ -57,13 +57,18 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     private final Context context;
     private final ProblemReporterInternal problemReporter;
+    private final SecondLevelProblemGroup javaCompilationGroup;
     private final List<Problem> problemsReported = new ArrayList<>();
 
     private int errorCount = 0;
     private int warningCount = 0;
 
-    public DiagnosticToProblemListener(ProblemReporterInternal problemReporter, Context context) {
+    /**
+     * @param javaCompilationGroup the predefined {@code Compilation > Java} group, obtained from the {@link Problems} service of the process the compiler runs in
+     */
+    public DiagnosticToProblemListener(ProblemReporterInternal problemReporter, SecondLevelProblemGroup javaCompilationGroup, Context context) {
         this.problemReporter = problemReporter;
+        this.javaCompilationGroup = javaCompilationGroup;
         this.context = context;
     }
 
@@ -85,13 +90,15 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
         problemsReported.add(reportedProblem);
     }
 
-    private static ProblemId id(Diagnostic<? extends JavaFileObject> diagnostic) {
+    private ProblemId id(Diagnostic<? extends JavaFileObject> diagnostic) {
         String code = diagnostic.getCode();
         String message = diagnostic.getMessage(Locale.getDefault());
+        // The javac diagnostic code is the name and the message the display name, so the id cannot be created through
+        // SecondLevelProblemGroup.problemId(), which uses the name as the display name.
         return ProblemId.create(
             code == null ? "unknown" : code,
             message == null ? "unknown" : message,
-            GradleCoreProblemGroup.compilation().java()
+            javaCompilationGroup
         );
     }
 

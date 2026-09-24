@@ -28,6 +28,10 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.LoggingConfiguration
 import org.gradle.api.logging.configuration.ShowStacktrace
+import org.gradle.api.problems.ProblemGroups
+import org.gradle.api.problems.internal.ProblemInternal
+import org.gradle.api.problems.internal.ProblemLocator
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.tasks.TaskExecutionException
 import org.gradle.execution.MultipleBuildFailures
 import org.gradle.initialization.BuildClientMetaData
@@ -42,6 +46,7 @@ import org.gradle.internal.logging.text.TestStyledTextOutput
 import org.gradle.internal.problems.failure.DefaultFailureFactory
 import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.util.Path
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 import java.lang.reflect.Field
@@ -504,6 +509,42 @@ $STACKTRACE
 $INFO_OR_DEBUG
 $TRY_SCAN
 $GET_HELP
+"""
+    }
+
+    def "includes solutions of Java compilation problems as resolutions"() {
+        // Java compilation problems are rendered as their details only, so their solutions must be listed as resolutions.
+        // Other problems render their solutions inline.
+        ProblemsInternal problems = TestUtil.problemsService()
+        ProblemGroups groups = problems.groups
+        def javaProblem = problems.internalReporter.create(groups.compilation.java.problemId("Deprecated API used")) {
+            it.details("Foo.java:3: warning: [deprecation] bar() in Foo has been deprecated")
+            it.solution("Use baz() instead.")
+        } as ProblemInternal
+        def kotlinProblem = problems.internalReporter.create(groups.compilation.kotlin.problemId("Unused import")) {
+            it.details("Import of kotlin.collections.List is not used")
+            it.solution("Remove the import.")
+        } as ProblemInternal
+        def exception = new GradleException(MESSAGE)
+        def failure = failureFactory.create(exception, { [javaProblem, kotlinProblem] } as ProblemLocator)
+
+        when:
+        reporter.buildFinished(failure)
+
+        then:
+        output.value == """
+{failure}FAILURE: {normal}{failure}Build failed with an exception.{normal}
+
+* What went wrong:
+$MESSAGE
+Foo.java:3: warning: [deprecation] bar() in Foo has been deprecated
+Unused import
+  Import of kotlin.collections.List is not used
+    Possible solution: Remove the import.
+
+* Try:
+{info}> {normal}Use baz() instead.
+$TRY_SCAN
 """
     }
 

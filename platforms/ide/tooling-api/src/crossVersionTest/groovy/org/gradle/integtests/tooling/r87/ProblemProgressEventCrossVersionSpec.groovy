@@ -159,9 +159,9 @@ class ProblemProgressEventCrossVersionSpec extends ToolingApiSpecification {
     }
 
     static void validateCompilationProblem(List<ProblemEvent> problems, TestFile buildFile) {
-        problems.size() == 1
-        problems[0].label.label == "Could not compile build file '$buildFile.absolutePath'."
-        problems[0].category.category == 'compilation'
+        assert problems.size() == 1
+        assert problems[0].label.label == "Could not compile build file '$buildFile.absolutePath'."
+        assert problems[0].category.category == 'compilation'
     }
 
     @ToolingApiVersion(">=8.7 <8.9")
