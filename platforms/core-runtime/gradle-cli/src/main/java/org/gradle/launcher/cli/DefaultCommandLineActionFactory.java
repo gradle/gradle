@@ -400,8 +400,11 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
                 // Ignore, deal with this problem later
             }
 
-            // System.out is replaced once the logging manager starts
-            OutputStream agentOutput = agentOutputFile == null ? null : openAgentOutput(agentOutputFile, System.out);
+            OutputStream agentOutput = null;
+            if (agentOutputFile != null) {
+                // Only in agent mode. System.out is replaced once the logging manager starts
+                agentOutput = openAgentOutput(agentOutputFile, System.out);
+            }
 
             LoggingManagerInternal loggingManager = loggingServices.get(LoggingManagerFactory.class).createLoggingManager();
             loggingManager.setLevelInternal(loggingConfiguration.getLogLevel());
