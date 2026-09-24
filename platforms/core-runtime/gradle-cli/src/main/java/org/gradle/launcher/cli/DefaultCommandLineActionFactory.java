@@ -387,7 +387,7 @@ public class DefaultCommandLineActionFactory implements CommandLineActionFactory
 
                 agentMode = agentModeResolver.resolve(parsedCommandLine, properties.getProperties(), environmentVariables);
                 if (agentMode.isEnabled()) {
-                    // Resolved before anything else can fail, so that the failure is reported the way agent mode reports everything
+                    // Resolved ahead of the remaining options, whose conversion can fail, so that such a failure lands in the output file like all other output
                     agentOutputFile = agentOutputLocation.resolve(parsedCommandLine, properties.getProperties(), buildLayout);
                 }
 
