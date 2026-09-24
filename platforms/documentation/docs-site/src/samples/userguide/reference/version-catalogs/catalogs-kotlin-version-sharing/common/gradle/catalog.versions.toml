@@ -1,0 +1,8 @@
+# // tag::kotlin_catalog[]
+[libraries]
+kotlin-stdlib  = { module = "org.jetbrains.kotlin:kotlin-stdlib", version.ref = "kotlin" }
+kotlin-reflect = { module = "org.jetbrains.kotlin:kotlin-reflect", version.ref = "kotlin" }
+
+[plugins]
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
+# // end::kotlin_catalog[]

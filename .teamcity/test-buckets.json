@@ -193,7 +193,6 @@
           "code-quality-workers",
           "collections",
           "daemon-messaging",
-          "docs-asciidoctor-extensions-base",
           "groovy-compiler-worker",
           "plugin-use",
           "problems-reporting",
@@ -572,7 +571,6 @@
       {
         "subprojects": [
           "build-init-specs",
-          "docs-asciidoctor-extensions-base",
           "java-compiler-plugin",
           "javadoc",
           "kotlin-dsl-provider-plugins",
@@ -888,7 +886,6 @@
           "client-services",
           "daemon-protocol",
           "docs",
-          "docs-asciidoctor-extensions-base",
           "isolated-action-services",
           "language-java",
           "logging-api",
@@ -1166,7 +1163,6 @@
       {
         "subprojects": [
           "core-flow-services-api",
-          "docs-asciidoctor-extensions-base",
           "groovy-compiler-worker",
           "hashing-services",
           "ide-model-impls",
@@ -3676,7 +3672,6 @@
         "subprojects": [
           "concurrent",
           "core-flow-services-api",
-          "docs-asciidoctor-extensions-base",
           "file-temp",
           "internal-distribution-testing",
           "internal-testing",
@@ -5528,7 +5523,6 @@
           "declarative-dsl-tooling-builders",
           "dependency-management",
           "docs",
-          "docs-asciidoctor-extensions-base",
           "domain-object-collections",
           "ear",
           "enterprise",

@@ -1,0 +1,5 @@
+// tag::apply-base-plugin[]
+plugins {
+    id 'base'
+}
+// end::apply-base-plugin[]

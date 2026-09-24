@@ -1,0 +1,14 @@
+// tag::main-block[]
+plugins {
+    id 'java-gradle-plugin'
+}
+
+gradlePlugin {
+    plugins {
+        myPlugins {
+            id = 'my-plugin'
+            implementationClass = 'my.MyPlugin'
+        }
+    }
+}
+// end::main-block[]

@@ -1,0 +1,20 @@
+// tag::avoid[]
+abstract class StampBuildTask extends DefaultTask {
+    @Input
+    abstract Property<String> getBuildNumber()
+
+    @OutputFile
+    abstract RegularFileProperty getOutput()
+
+    @TaskAction
+    void run() {
+        output.get().asFile.text = "Build ${buildNumber.get()}"
+    }
+}
+
+tasks.register('stampBuild', StampBuildTask) {
+    // Eager: reads the env var at configuration time; still tracked correctly, but re-runs configuration whenever the value changes
+    buildNumber = System.getenv('BUILD_NUMBER') ?: 'local'
+    output = layout.buildDirectory.file('build-stamp.txt')
+}
+// end::avoid[]

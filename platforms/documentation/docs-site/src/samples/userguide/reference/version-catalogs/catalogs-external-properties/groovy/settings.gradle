@@ -1,0 +1,24 @@
+rootProject.name = "catalogs-external-properties"
+
+// tag::inject_versions[]
+def sharedVersions = new Properties()
+file('gradle/shared-versions.properties').withInputStream { sharedVersions.load(it) }
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+    versionCatalogs {
+        distributionLibs {
+            from(files('gradle/distribution.versions.toml'))
+            version('errorProne', sharedVersions.getProperty('errorProne'))
+            version('kotlin', sharedVersions.getProperty('kotlin'))
+        }
+        testLibs {
+            from(files('gradle/test.versions.toml'))
+            version('errorProne', sharedVersions.getProperty('errorProne'))
+            version('kotlin', sharedVersions.getProperty('kotlin'))
+        }
+    }
+}
+// end::inject_versions[]

@@ -1,0 +1,10 @@
+// tag::content-filtering-avoid[]
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+        google()
+    }
+}
+// end::content-filtering-avoid[]
+
+rootProject.name = 'content-filtering-avoid'

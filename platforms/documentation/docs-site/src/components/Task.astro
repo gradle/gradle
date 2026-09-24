@@ -1,0 +1,133 @@
+---
+export interface Props {
+  name: string;
+  dependsOn?: string;
+}
+
+const { name, dependsOn } = Astro.props;
+const id = name.toLowerCase().replace(/[^a-z0-9]+/g, '-');
+---
+
+<div class="task-component">
+  <div class="task-header">
+    <a href={`#${id}`} id={id}>
+      <code>{name}</code>
+    </a>
+    {Astro.slots.has('type') && (
+      <span class="task-type">
+        (<slot name="type" />)
+      </span>
+    )}
+  </div>
+  {dependsOn && (
+    <div class="task-depends">
+      <strong>Depends on:</strong> {dependsOn}
+    </div>
+  )}
+  <div class="task-details">
+    <div class="task-description">
+      <slot />
+    </div>
+  </div>
+</div>
+
+<style>
+  .task-component {
+    margin: 1.5rem 0;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    overflow: hidden;
+  }
+
+  .task-component :global(*) {
+    margin-top: 0;
+  }
+
+  .task-header {
+    background: var(--sl-color-gray-6);
+    padding: 0.75rem 1rem;
+    display: flex;
+    align-items: baseline;
+    flex-wrap: nowrap;
+    gap: 0.25rem;
+  }
+
+  .task-depends {
+    background: var(--sl-color-gray-7);
+    padding: 0.5rem 1rem;
+    border-top: 1px solid var(--sl-color-gray-5);
+    border-bottom: 1px solid var(--sl-color-gray-5);
+    font-size: 0.9rem;
+  }
+
+  .task-depends strong {
+    margin-right: 0.5rem;
+  }
+
+  .task-header a {
+    text-decoration: none;
+    color: inherit;
+    display: inline;
+  }
+
+  .task-header a {
+    flex-shrink: 0;
+  }
+
+  .task-header a:hover code {
+    text-decoration: underline;
+  }
+
+  .task-header code {
+    font-size: 1rem;
+    font-weight: 600;
+    background: transparent;
+    padding: 0;
+    color: var(--sl-color-text-accent);
+  }
+
+  .task-type {
+    font-size: 0.875rem;
+    font-weight: normal;
+    color: var(--sl-color-gray-2);
+    white-space: nowrap;
+    flex-shrink: 0;
+    display: inline-flex;
+    align-items: baseline;
+  }
+
+  .task-type :global(*) {
+    display: inline;
+  }
+
+  .task-type :global(a) {
+    text-decoration: none;
+    color: inherit;
+    white-space: nowrap;
+  }
+
+  .task-type :global(a:hover) {
+    text-decoration: underline;
+  }
+
+  .task-details {
+    padding: 1rem;
+  }
+
+  .task-description {
+    line-height: 1.6;
+  }
+
+  /* Handle paragraphs inside description */
+  .task-description :global(p) {
+    margin: 0.5rem 0;
+  }
+
+  .task-description :global(p:first-child) {
+    margin-top: 0;
+  }
+
+  .task-description :global(p:last-child) {
+    margin-bottom: 0;
+  }
+</style>

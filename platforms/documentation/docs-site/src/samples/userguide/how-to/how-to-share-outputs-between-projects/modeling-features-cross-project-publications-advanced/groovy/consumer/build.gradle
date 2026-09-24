@@ -1,0 +1,57 @@
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::test_dependency[]
+dependencies {
+    testImplementation 'junit:junit:4.13'
+    testImplementation project(':producer')
+}
+// end::test_dependency[]
+
+// tag::ask-for-instrumented-classes[]
+configurations {
+    testRuntimeClasspath {
+        attributes {
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, 'instrumented-jar'))
+        }
+    }
+}
+// end::ask-for-instrumented-classes[]
+
+// tag::compatibility-rule-use[]
+dependencies {
+    attributesSchema {
+        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE) {
+            compatibilityRules.add(InstrumentedJarsRule)
+        }
+    }
+}
+// end::compatibility-rule-use[]
+
+// tag::compatibility-rule[]
+abstract class InstrumentedJarsRule implements AttributeCompatibilityRule<LibraryElements> {
+
+    @Override
+    void execute(CompatibilityCheckDetails<LibraryElements> details) {
+        if (details.consumerValue.name == 'instrumented-jar' && details.producerValue.name == 'jar') {
+            details.compatible()
+        }
+    }
+}
+// end::compatibility-rule[]
+
+tasks.register("showTestClasspath") {
+    FileCollection testCompileClasspath = configurations.testCompileClasspath
+    FileCollection testRuntimeClasspath = configurations.testRuntimeClasspath
+    inputs.files(testCompileClasspath)
+    inputs.files(testRuntimeClasspath)
+    doLast {
+        println testCompileClasspath.files.name
+        println testRuntimeClasspath.files.name
+    }
+}

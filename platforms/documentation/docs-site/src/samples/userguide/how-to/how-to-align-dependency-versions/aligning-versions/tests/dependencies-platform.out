@@ -1,0 +1,26 @@
+> Task :dependencies
+
+------------------------------------------------------------
+Root project 'how_to_align_dependency_versions'
+------------------------------------------------------------
+
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- org.apache.kafka:kafka-streams:3.6.0 -> 3.7.0
+|    +--- org.slf4j:slf4j-api:1.7.36
+|    +--- com.fasterxml.jackson.core:jackson-annotations:2.16.0
+|    |    \--- com.fasterxml.jackson:jackson-bom:2.16.0
+|    |         +--- com.fasterxml.jackson.core:jackson-annotations:2.16.0 (c)
+|    |         +--- com.fasterxml.jackson.core:jackson-core:2.16.0 (c)
+|    |         \--- com.fasterxml.jackson.core:jackson-databind:2.16.0 (c)
+|    +--- com.fasterxml.jackson.core:jackson-databind:2.16.0
+|    |    +--- com.fasterxml.jackson.core:jackson-annotations:2.16.0 (*)
+|    |    +--- com.fasterxml.jackson.core:jackson-core:2.16.0
+|    |    |    \--- com.fasterxml.jackson:jackson-bom:2.16.0 (*)
+|    |    \--- com.fasterxml.jackson:jackson-bom:2.16.0 (*)
+|    +--- org.apache.kafka:kafka-clients:3.7.0
+|    |    +--- com.github.luben:zstd-jni:1.5.5-6
+|    |    +--- org.lz4:lz4-java:1.8.0
+|    |    +--- org.xerial.snappy:snappy-java:1.1.10.5
+|    |    \--- org.slf4j:slf4j-api:1.7.36
+|    \--- org.rocksdb:rocksdbjni:7.9.2
+\--- org.apache.kafka:kafka-clients:3.7.0 (*)

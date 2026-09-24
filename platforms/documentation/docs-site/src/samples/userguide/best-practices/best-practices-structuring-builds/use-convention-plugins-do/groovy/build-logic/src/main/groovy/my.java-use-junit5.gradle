@@ -1,0 +1,17 @@
+// tag::do-this[]
+plugins {
+    id("java-library")
+}
+
+tasks.withType(Test).configureEach { // <3>
+    useJUnitPlatform()
+    maxParallelForks = Runtime.runtime.availableProcessors().intdiv(2) ?: 1
+}
+
+dependencies {
+    testImplementation("org.junit.jupiter:junit-jupiter:5.9.3")
+}
+// end::do-this[]
+
+def conventionPluginApplied = tasks.register("myJavaUseJunit5Applied")
+tasks.compileJava.configure { dependsOn(conventionPluginApplied) }

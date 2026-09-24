@@ -1,0 +1,12 @@
+subprojects {
+    apply plugin: 'java'
+}
+// tag::avoid-this[]
+subprojects {
+    // Apply the Java plugin to every subproject
+    afterEvaluate {
+        // This runs after the app subproject’s build script is evaluated and results in an error
+        apply plugin: 'java'
+    }
+}
+// end::avoid-this[]

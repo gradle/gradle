@@ -1,0 +1,24 @@
+import org.gradle.api.provider.ValueSource
+import org.gradle.api.provider.ValueSourceParameters
+import java.nio.charset.Charset
+
+// tag::value-source[]
+abstract class GitVersionValueSource implements ValueSource<String, ValueSourceParameters.None> {
+    @Inject
+    abstract ExecOperations getExecOperations()
+
+    String obtain() {
+        ByteArrayOutputStream output = new ByteArrayOutputStream()
+        execOperations.exec {
+            it.commandLine "git", "--version"
+            it.standardOutput = output
+        }
+        return new String(output.toByteArray(), Charset.defaultCharset())
+    }
+}
+// end::value-source[]
+
+// tag::create-provider[]
+def gitVersionProvider = providers.of(GitVersionValueSource.class) {}
+def gitVersion = gitVersionProvider.get()
+// end::create-provider[]

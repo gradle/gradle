@@ -32,3 +32,12 @@ updates:
       - "@dev-productivity"
       - "a:chore"
       - "in:building-gradle"
+  - package-ecosystem: "npm"
+    directory: "/platforms/documentation/docs-site"
+    open-pull-requests-limit: 0 # security updates only, no version-update PRs
+    schedule:
+      interval: "daily"
+    labels:
+      - "@dev-productivity"
+      - "a:chore"
+      - "in:documentation-infrastructure"

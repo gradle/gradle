@@ -1,0 +1,12 @@
+# Prettier only supports MDX v1 and corrupts MDX v3 syntax (e.g., collapses
+# markdown blocks inside JSX components onto one line). Ignoring *.mdx also
+# protects against editor format-on-save.
+# https://github.com/prettier/prettier/issues/12209
+*.mdx
+
+# Doc sample sources are rendered as documentation content; their formatting
+# is part of the docs, not project code style.
+src/samples/
+
+# Upstream Gradle repo (git submodule) — not ours to format.
+gradle-master/

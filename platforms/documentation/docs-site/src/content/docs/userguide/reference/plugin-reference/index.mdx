@@ -1,0 +1,284 @@
+---
+title: "Gradle Plugin Reference"
+description: "Reference list of every core plugin distributed with Gradle, with a short description and link for each."
+---
+
+import { GroovyDocLink, Xref } from '#/components';
+
+This page contains links and short descriptions for all the core plugins provided by Gradle itself.
+
+## JVM languages and frameworks
+
+<dl>
+<dt><Xref page="java-plugin" section="The Java Plugin">Java</Xref> — `java`</dt>
+<dd>
+
+Compiles, tests, and packages Java source code, and provides the foundational configurations, source sets, and tasks reused by higher-level JVM plugins.
+
+</dd>
+<dt><Xref page="java-library-plugin" section="The Java Library Plugin">Java Library</Xref> — `java-library`</dt>
+<dd>
+
+Extends the Java plugin with a proper `api`/`implementation` separation so a library exposes only its intended public dependencies to consumers.
+
+</dd>
+<dt><Xref page="java-platform-plugin" section="The Java Platform Plugin">Java Platform</Xref> — `java-platform`</dt>
+<dd>
+
+Publishes a set of dependency constraints as a platform (Maven BOM equivalent) that other projects can align their versions against.
+
+</dd>
+<dt><Xref page="groovy-plugin" section="The Groovy Plugin">Groovy</Xref> — `groovy`</dt>
+<dd>
+
+Adds joint Java/Groovy compilation, Groovydoc, and the `groovy` configuration on top of the Java plugin for building [Groovy](https://groovy-lang.org/) projects.
+
+</dd>
+<dt><Xref page="scala-plugin" section="The Scala Plugin">Scala</Xref> — `scala`</dt>
+<dd>
+
+Adds Scala compilation, ScalaDoc, and Zinc-based incremental compilation on top of the Java plugin for building [Scala](https://www.scala-lang.org/) projects.
+
+</dd>
+<dt><Xref page="antlr-plugin" section="The ANTLR Plugin">ANTLR</Xref> — `antlr`</dt>
+<dd>
+
+Generates parser and lexer sources from [ANTLR](https://www.antlr.org/) grammar files and wires the generated code into the Java compile task.
+
+</dd>
+<dt><Xref page="jvm-test-suite-plugin" section="The JVM Test Suite Plugin">JVM Test Suite</Xref> — `jvm-test-suite`</dt>
+<dd>
+
+Declaratively models multiple test suites (unit, integration, functional) as first-class citizens with their own source sets, dependencies, and tasks. Applied automatically by the `java` plugin.
+
+</dd>
+<dt><Xref page="test-report-aggregation-plugin" section="The Test Report Aggregation Plugin">Test Report Aggregation</Xref> — `test-report-aggregation`</dt>
+<dd>
+
+Aggregates the results of multiple <GroovyDocLink class="org.gradle.api.tasks.testing.Test" /> task invocations (potentially spanning multiple Gradle projects) into a single HTML report.
+
+</dd>
+<dt><Xref page="java-test-fixtures-plugin" section="The Java Test Fixtures Plugin">Java Test Fixtures</Xref> — `java-test-fixtures`</dt>
+<dd>
+
+Produces a `testFixtures` component so a project can share reusable test helpers, doubles, and builders with its own test source set and with downstream consumers.
+
+</dd>
+<dt><Xref page="jvm-toolchains-plugins" section="The JVM Toolchains Plugins">JVM Toolchains</Xref> — `jvm-toolchains` / `jvm-toolchain-management`</dt>
+<dd>
+
+Selects and provisions the JDK used to build and test. Applied automatically by JVM plugins in projects (`jvm-toolchains`), and used in `settings.gradle(.kts)` to configure toolchain download repositories (`jvm-toolchain-management`).
+
+</dd>
+</dl>
+
+## Native languages
+
+<dl>
+<dt><Xref page="cpp-application-plugin" section="C++ Application">C++ Application</Xref> — `cpp-application`</dt>
+<dd>
+
+Builds an executable C++ application, with multi-variant support for debug/release, target machines, and toolchains on Windows, Linux, and macOS.
+
+</dd>
+<dt><Xref page="cpp-library-plugin" section="C++ Library">C++ Library</Xref> — `cpp-library`</dt>
+<dd>
+
+Builds a shared or static C++ library, with the same variant model as `cpp-application` for cross-platform builds on Windows, Linux, and macOS.
+
+</dd>
+<dt><Xref page="cpp-unit-test-plugin" section="C++ Unit Test">C++ Unit Test</Xref> — `cpp-unit-test`</dt>
+<dd>
+
+Adds a native executable test suite backed by a C test entry point, and wires it into the C variant model for Windows, Linux, and macOS.
+
+</dd>
+<dt><Xref page="swift-application-plugin" section="Swift Application">Swift Application</Xref> — `swift-application`</dt>
+<dd>
+
+Builds an executable Swift application, integrating with the Swift compiler and the variant model used by other native plugins on Linux and macOS.
+
+</dd>
+<dt><Xref page="swift-library-plugin" section="Swift Library">Swift Library</Xref> — `swift-library`</dt>
+<dd>
+
+Builds a Swift library (static or shared) and exposes it through the same variant model as `swift-application` on Linux and macOS.
+
+</dd>
+<dt><Xref page="xctest-plugin" section="XCTest">XCTest</Xref> — `xctest`</dt>
+<dd>
+
+Adds an XCTest-based test executable for Swift or Objective-C code, running against the XCTest framework on Linux and macOS.
+
+</dd>
+</dl>
+
+## Packaging and distribution
+
+<dl>
+<dt><Xref page="application-plugin" section="The Application Plugin">Application</Xref> — `application`</dt>
+<dd>
+
+Packages a JVM application together with its runtime classpath and generates cross-platform `run`, `installDist`, and `distZip`/`distTar` tasks with launcher scripts.
+
+</dd>
+<dt><Xref page="war-plugin" section="The War Plugin">WAR</Xref> — `war`</dt>
+<dd>
+
+Assembles a Java web application as a WAR archive, including `web.xml`, static resources, and the runtime classpath under `WEB-INF/lib`.
+
+</dd>
+<dt><Xref page="ear-plugin" section="The Ear Plugin">EAR</Xref> — `ear`</dt>
+<dd>
+
+Assembles a Java EE Enterprise Archive (EAR) from component modules, including the `application.xml` deployment descriptor and shared library modules.
+
+</dd>
+<dt><Xref page="publishing-maven" section="The Maven Publish Plugin">Maven Publish</Xref> — `maven-publish`</dt>
+<dd>
+
+<Xref page="publishing-setup" section="Publishing a project as module">Publishes artifacts</Xref> to Maven-compatible repositories, generating a POM per publication and supporting local and remote repositories.
+
+</dd>
+<dt><Xref page="publishing-ivy" section="The Ivy Publish Plugin">Ivy Publish</Xref> — `ivy-publish`</dt>
+<dd>
+
+<Xref page="publishing-setup" section="Publishing a project as module">Publishes artifacts</Xref> to Ivy-compatible repositories, generating an `ivy.xml` per publication and supporting local and remote repositories.
+
+</dd>
+<dt><Xref page="distribution-plugin" section="The Distribution Plugin">Distribution</Xref> — `distribution`</dt>
+<dd>
+
+Defines named distributions (a set of files bundled together) and generates ZIP and tarball assemble/install tasks for each.
+
+</dd>
+<dt><Xref page="java-library-distribution-plugin" section="The Java Library Distribution Plugin">Java Library Distribution</Xref> — `java-library-distribution`</dt>
+<dd>
+
+Creates a ZIP distribution of a Java library project that bundles the library JAR alongside its runtime dependencies for offline use.
+
+</dd>
+</dl>
+
+## Code analysis
+
+<dl>
+<dt><Xref page="checkstyle-plugin" section="The Checkstyle Plugin">Checkstyle</Xref> — `checkstyle`</dt>
+<dd>
+
+Runs [Checkstyle](https://checkstyle.org/index.html) against Java source sets and generates HTML/XML reports; configurable via a shared Checkstyle configuration file.
+
+</dd>
+<dt><Xref page="pmd-plugin" section="The PMD Plugin">PMD</Xref> — `pmd`</dt>
+<dd>
+
+Runs [PMD](https://pmd.github.io/) against Java source sets and generates HTML/XML reports of code style and correctness violations.
+
+</dd>
+<dt><Xref page="jacoco-plugin" section="The JaCoCo Plugin">JaCoCo</Xref> — `jacoco`</dt>
+<dd>
+
+Adds [JaCoCo](https://www.jacoco.org/jacoco/) code coverage to `Test` tasks and generates coverage reports and coverage-based build verification checks.
+
+</dd>
+<dt><Xref page="jacoco-report-aggregation-plugin" section="The JaCoCo Report Aggregation Plugin">JaCoCo Report Aggregation</Xref> — `jacoco-report-aggregation`</dt>
+<dd>
+
+Aggregates the results of multiple JaCoCo code coverage reports (potentially spanning multiple Gradle projects) into a single HTML report.
+
+</dd>
+<dt><Xref page="codenarc-plugin" section="The CodeNarc Plugin">CodeNarc</Xref> — `codenarc`</dt>
+<dd>
+
+Runs [CodeNarc](https://codenarc.org/) against Groovy source sets and generates HTML/XML/text reports of style and correctness violations.
+
+</dd>
+</dl>
+
+## IDE integration
+
+<dl>
+<dt><Xref page="eclipse-plugin" section="The Eclipse Plugins">Eclipse</Xref> — `eclipse` / `eclipse-wtp`</dt>
+<dd>
+
+Generates Eclipse project metadata (`.project`, `.classpath`) and customizes how Eclipse and [Buildship](https://projects.eclipse.org/projects/tools.buildship) import your build. Use `eclipse-wtp` for web projects.
+
+</dd>
+<dt><Xref page="idea-plugin" section="The IDEA Plugin">IntelliJ IDEA</Xref> — `idea`</dt>
+<dd>
+
+Generates IntelliJ IDEA project metadata (`.ipr`, `.iml`, `.iws`) and customizes how IntelliJ IDEA imports your build.
+
+</dd>
+<dt><Xref page="visual-studio-plugin" section="Visual Studio">Visual Studio</Xref> — `visual-studio`</dt>
+<dd>
+
+Generates a Visual Studio solution and per-component project files for the current C++ build so it can be opened directly in the IDE.
+
+</dd>
+<dt><Xref page="xcode-plugin" section="Xcode">Xcode</Xref> — `xcode`</dt>
+<dd>
+
+Generates an Xcode workspace and per-component project files for the current C++/Swift build so it can be opened directly in the IDE.
+
+</dd>
+</dl>
+
+## Utility
+
+<dl>
+<dt><Xref page="base-plugin" section="The Base Plugin">Base</Xref> — `base`</dt>
+<dd>
+
+Provides the common `clean`, `assemble`, `check`, and `build` lifecycle tasks and the archive/distribution conventions reused by most other plugins. Applied transitively by any plugin that adds archives or lifecycle tasks (JVM, native, distribution), so it rarely needs to be applied directly.
+
+</dd>
+<dt><Xref page="gradle-wrapper" section="Gradle Wrapper">Wrapper</Xref> — `wrapper`</dt>
+<dd>
+
+Registers the `wrapper` task that generates the Gradle Wrapper scripts and `gradle-wrapper.properties` for a project. Applied automatically to the root project, so it never needs to be applied directly.
+
+</dd>
+<dt><Xref page="build-init-plugin" section="Build Init Plugin">Build Init</Xref> — `build-init`</dt>
+<dd>
+
+Generates a new Gradle build of a specified type (Java library, Kotlin application, and so on). Can also generate a build from a Maven POM — see <Xref page="migrating-from-maven" section="Migrating Builds From Apache Maven">Migrating from Maven to Gradle</Xref>.
+
+</dd>
+<dt><Xref page="signing-plugin" section="The Signing Plugin">Signing</Xref> — `signing`</dt>
+<dd>
+
+Digitally signs generated files and artifacts (typically with PGP), and wires signatures into Maven and Ivy publications.
+
+</dd>
+<dt><Xref page="java-gradle-plugin" section="Gradle Plugin Development Plugin">Plugin Development</Xref> — `java-gradle-plugin`</dt>
+<dd>
+
+Configures a project for authoring Gradle plugins in Java, Groovy, or Kotlin; adds the `gradleApi()` dependency, registers plugin descriptors, and enables `TestKit` and plugin publishing.
+
+</dd>
+<dt><Xref page="project-report-plugin" section="The Project Report Plugin">Project Report Plugin</Xref> — `project-report`</dt>
+<dd>
+
+Adds reporting tasks that produce project information, task graphs, and dependency listings for inspecting a build.
+
+</dd>
+<dt><Xref page="build-dashboard-plugin" section="The Build Dashboard Plugin">Build Dashboard Plugin</Xref> — `build-dashboard`</dt>
+<dd>
+
+Generates a single HTML dashboard that links to every report produced by the build (test results, coverage, static analysis, and more).
+
+</dd>
+<dt><Xref page="version-catalog-plugin" section="The Version Catalog Plugin">Version Catalog</Xref> — `version-catalog`</dt>
+<dd>
+
+Declares a shareable dependency version catalog and publishes it as a TOML artifact so other projects can consume it via `versionCatalogs`.
+
+</dd>
+<dt><Xref page="groovy-gradle-plugin" section="The Groovy Gradle Plugin">Groovy Gradle Plugin</Xref> — `groovy-gradle-plugin`</dt>
+<dd>
+
+Configures a project to author Gradle plugins as precompiled Groovy DSL scripts in `src/main/groovy`, without hand-writing a plugin class.
+
+</dd>
+</dl>

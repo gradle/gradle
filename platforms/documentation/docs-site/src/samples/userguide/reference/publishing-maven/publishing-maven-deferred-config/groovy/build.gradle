@@ -1,0 +1,34 @@
+plugins {
+    id 'java-library'
+    id 'maven-publish'
+}
+
+/*
+// tag::deferred-config-before[]
+subprojects {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                artifactId = jar.archiveBaseName
+            }
+        }
+    }
+}
+// end::deferred-config-before[]
+*/
+
+// tag::deferred-config-after[]
+subprojects {
+    publishing {
+        publications {
+            mavenJava(MavenPublication) {
+                from components.java
+                afterEvaluate {
+                    artifactId = jar.archiveBaseName
+                }
+            }
+        }
+    }
+}
+// end::deferred-config-after[]

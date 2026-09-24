@@ -1,0 +1,20 @@
+plugins {
+    application
+}
+
+repositories {
+    // Intentionally left empty to demonstrate that the init plugin will add defaults
+}
+
+dependencies {
+    testImplementation(platform("org.junit:junit-bom:5.10.2"))
+    testImplementation("org.junit.jupiter:junit-jupiter")
+}
+
+application {
+    mainClass = "App"
+}
+
+tasks.test {
+    useJUnitPlatform()
+}

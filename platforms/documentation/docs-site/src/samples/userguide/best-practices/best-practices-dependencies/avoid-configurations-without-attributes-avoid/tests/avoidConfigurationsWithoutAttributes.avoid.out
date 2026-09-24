@@ -1,0 +1,4 @@
+> Task :producer:generateFile
+
+> Task :consumer:resolveCustom
+Resolved: output.txt

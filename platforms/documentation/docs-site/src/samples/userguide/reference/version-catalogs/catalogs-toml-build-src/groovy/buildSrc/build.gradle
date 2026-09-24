@@ -1,0 +1,24 @@
+plugins {
+    id 'groovy-gradle-plugin'
+    alias(libs.plugins.versions) // Access version catalog in buildSrc for plugin
+}
+
+repositories {
+    gradlePluginPortal()
+}
+
+def catalogs = project.extensions.getByType(VersionCatalogsExtension)
+def libs = catalogs.named("libs")
+
+dependencies {
+    // Access version catalog in buildSrc for dependencies
+    implementation plugin(libs.findPlugin("jacocolog").get()) // Plugin dependency
+    implementation libs.findLibrary("groovy-core").get() // Regular library from version catalog
+    implementation "org.apache.commons:commons-lang3:3.9" // Direct dependency
+}
+
+// Helper function that transforms a Gradle Plugin alias from a
+// Version Catalog into a valid dependency notation for buildSrc
+def plugin(Provider<PluginDependency> plugin) {
+    return plugin.map { it.pluginId + ":" + it.pluginId + ".gradle.plugin:" + it.version }
+}

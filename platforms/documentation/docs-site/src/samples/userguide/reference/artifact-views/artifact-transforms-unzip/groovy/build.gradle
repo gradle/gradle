@@ -1,0 +1,92 @@
+import java.nio.file.Files
+import java.util.zip.ZipEntry
+import java.util.zip.ZipException
+import java.util.zip.ZipFile
+
+import org.gradle.api.artifacts.transform.TransformParameters
+
+plugins {
+    id("java-library")
+}
+
+// tag::artifact-transform-unzip[]
+abstract class Unzip implements TransformAction<TransformParameters.None> { // <1>
+    @InputArtifact                                                          // <2>
+    abstract Provider<FileSystemLocation> getInputArtifact()
+
+    @Override
+    void transform(TransformOutputs outputs) {
+        def input = inputArtifact.get().asFile
+        def unzipDir = outputs.dir(input.name + "-unzipped")                // <3>
+        unzipTo(input, unzipDir)                                            // <4>
+    }
+
+    private static void unzipTo(File zipFile, File unzipDir) {
+        // implementation...
+// end::artifact-transform-unzip[]
+        new ZipFile(zipFile).withCloseable { zip ->
+            def outputDirectoryCanonicalPath = unzipDir.canonicalPath
+            for (entry in zip.entries()) {
+                unzipEntryTo(unzipDir, outputDirectoryCanonicalPath, zip, entry)
+            }
+        }
+    }
+
+    private static unzipEntryTo(File outputDirectory, String outputDirectoryCanonicalPath, ZipFile zip, ZipEntry entry) {
+        def output = new File(outputDirectory, entry.name)
+        if (!output.canonicalPath.startsWith(outputDirectoryCanonicalPath)) {
+            throw new ZipException("Zip entry '${entry.name}' is outside of the output directory")
+        }
+        if (entry.directory) {
+            output.mkdirs()
+        } else {
+            output.parentFile.mkdirs()
+            zip.getInputStream(entry).withCloseable { Files.copy(it, output.toPath()) }
+        }
+// tag::artifact-transform-unzip[]
+    }
+}
+// end::artifact-transform-unzip[]
+
+// tag::artifact-transform-registration[]
+dependencies {
+    registerTransform(Unzip) {
+        from.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.JAR))
+        from.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.JAR_TYPE)
+        to.attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES_AND_RESOURCES))
+        to.attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE)
+    }
+}
+// end::artifact-transform-registration[]
+
+abstract class ResolveFiles extends DefaultTask {
+
+    @InputFiles
+    abstract ConfigurableFileCollection getFiles()
+
+    @TaskAction
+    void print() {
+        files.each {
+            println(it.name)
+        }
+    }
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation("org.junit.jupiter:junit-jupiter-api:5.11.0")
+}
+
+// tag::resolve-transformed-files[]
+tasks.register("resolveTransformedFiles", ResolveFiles) {
+    files.from(configurations.runtimeClasspath.incoming.artifactView {
+        attributes {
+            attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named(LibraryElements, LibraryElements.CLASSES_AND_RESOURCES))
+            attribute(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE)
+        }
+    }.files)
+}
+// end::resolve-transformed-files[]

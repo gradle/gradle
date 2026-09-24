@@ -1,0 +1,35 @@
+plugins {
+    id "application"
+}
+
+// tag::avoid-this[]
+dependencies {
+    runtimeOnly(project(":lib")) // <1>
+}
+
+abstract class BadClasspathPrinter extends DefaultTask {
+    @InputFiles
+    Set<File> classpath = [] as Set // <2>
+
+    protected int calculateDigest(File fileOrDirectory) {
+        if (!fileOrDirectory.exists()) {
+            throw new IllegalArgumentException("File or directory $fileOrDirectory doesn't exist")
+        }
+        return 0 // actual implementation is stripped
+    }
+
+    @TaskAction
+    void run() {
+        logger.lifecycle(
+            classpath.collect { file ->
+                def digest = calculateDigest(file) // <3>
+                "$file#$digest"
+            }.join("\n")
+        )
+    }
+}
+
+tasks.register("badClasspathPrinter", BadClasspathPrinter) {
+    classpath = configurations.named("runtimeClasspath").get().resolve() // <4>
+}
+// end::avoid-this[]

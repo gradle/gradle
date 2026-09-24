@@ -1,0 +1,3 @@
+org.junit.platform:junit-platform-commons:1.11.0 variant runtimeElements:junit-platform-commons-1.11.0.jar
+org.junit.jupiter:junit-jupiter-api:5.11.0 variant runtimeElements:junit-jupiter-api-5.11.0.jar
+org.opentest4j:opentest4j:1.3.0 variant runtimeElements:opentest4j-1.3.0.jar

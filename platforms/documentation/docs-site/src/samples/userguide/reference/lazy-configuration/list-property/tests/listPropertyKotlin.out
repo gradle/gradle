@@ -1,0 +1,13 @@
+
+> Task :producerOne
+Wrote 'Hello, World!' to /home/user/gradle/samples/kotlin/output/one.txt
+
+> Task :producerTwo
+Wrote 'Hello, World!' to /home/user/gradle/samples/kotlin/output/two.txt
+
+> Task :consumer
+Read 'Hello, World!' from /home/user/gradle/samples/kotlin/output/one.txt
+Read 'Hello, World!' from /home/user/gradle/samples/kotlin/output/two.txt
+
+BUILD SUCCESSFUL in 0s
+3 actionable tasks: 3 executed

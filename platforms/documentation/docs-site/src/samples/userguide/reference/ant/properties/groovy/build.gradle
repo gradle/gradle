@@ -1,0 +1,25 @@
+// tag::set-property[]
+ant.buildDir = buildDir
+ant.properties.buildDir = buildDir
+ant.properties['buildDir'] = buildDir
+ant.property(name: 'buildDir', location: buildDir)
+// end::set-property[]
+
+ant.importBuild 'build.xml'
+
+// tag::get-property[]
+println ant.antProp
+println ant.properties.antProp
+println ant.properties['antProp']
+// end::get-property[]
+
+// tag::set-reference[]
+ant.path(id: 'classpath', location: 'libs')
+ant.references.classpath = ant.path(location: 'libs')
+ant.references['classpath'] = ant.path(location: 'libs')
+// end::set-reference[]
+
+// tag::get-reference[]
+println ant.references.antPath
+println ant.references['antPath']
+// end::get-reference[]

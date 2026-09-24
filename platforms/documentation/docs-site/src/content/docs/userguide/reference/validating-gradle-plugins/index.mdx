@@ -1,0 +1,502 @@
+---
+title: "Validating Plugins"
+description: "How Gradle validates task and artifact transform metadata, the problems it reports, and how to fix them."
+---
+
+import { GroovyDocLink, JavaDocLink, SampleScripts, Xref } from '#/components';
+
+Gradle validates the metadata of tasks and artifact transforms: how their inputs and outputs are declared, how they are cached, and how they depend on other work.
+When something is misdeclared, Gradle reports a _validation problem_.
+
+This page explains how validation runs, how to control it with the [`validatePlugins` task](#the_validate_plugins_task), and what [stricter validation](#stricter_validation) adds.
+It also serves as a reference for every validation problem Gradle can report and how to fix it.
+
+## What plugin validation checks
+
+Correct input and output declarations are what let Gradle deliver incremental builds, <Xref page="build-cache" section="Task Output Caching">build caching</Xref>, and reliable up-to-date checks.
+When a task or transform’s metadata is wrong, those features silently misbehave and outputs get rebuilt when they shouldn’t (or worse, get reused when they shouldn’t).
+
+Validation catches those mistakes at two moments:
+
+1. **Class-level (static)**: When Gradle first loads a task or artifact transform class, it inspects the type: annotation placement, getter shapes, mutable-type setters, cacheability annotations, `@Nested` type constraints, and so on.
+Most of the problems on this page are reported here.
+2. **Execution-time (runtime)**: Just before a task runs, Gradle checks the actual property values: input files exist and are the right kind, output locations are writable, values are set for required properties, and no task reads another task’s output without a declared dependency.
+
+The [`validatePlugins` task](#the_validate_plugins_task) runs the class-level checks as a static-analysis step so problems surface at build time rather than at your users' execution time.
+
+## How Gradle reports validation problems
+
+Each validation problem is reported through the <Xref page="reporting-problems" section="Reporting Plugin Problems with the Problems API">Problems API</Xref> and appears in:
+
+- the build’s console output,
+- the HTML problems report linked from the build log,
+- the Tooling API stream, so IDEs and Develocity can surface it inline.
+
+Problems have one of three severities:
+
+<dl>
+<dt>Error</dt>
+<dd>
+
+Fails the build.
+Most validation problems on this page are errors.
+
+</dd>
+<dt>Warning</dt>
+<dd>
+
+Logged but not fatal by default.
+The `validatePlugins` task escalates warnings to failures when `failOnWarning` is set, which is the default (see below).
+
+</dd>
+<dt>Deprecation</dt>
+<dd>
+
+Warns now, will fail in a future major version.
+For example, [implicit dependencies between tasks in different builds](#implicit_dependency) are a deprecation in Gradle 9 and will become an error in Gradle 10.
+
+</dd>
+</dl>
+
+## The `validatePlugins` task
+
+`validatePlugins` statically inspects the classes of your plugin: every `Task` subclass, every `TransformAction` implementation, and every `@Nested` type.
+
+Apply the <Xref page="java-gradle-plugin" section="Gradle Plugin Development Plugin">`java-gradle-plugin`</Xref> and the task is registered automatically and wired into `check`:
+
+<SampleScripts sample_name="validate-plugins-config" basename="build" tag="apply" source_dir="snippets/reference/plugin-development/validatePluginsConfig" />
+
+If you do not use `java-gradle-plugin`, register a `ValidatePlugins` task manually with `classes` and `classpath` pointing at the code under validation.
+
+### Configuration
+
+| Property | Default | Purpose |
+| --- | --- | --- |
+| `enableStricterValidation` | `false` | Turn on the stricter rules described in [Stricter validation](#stricter_validation). Auto-enabled for published plugins. |
+| `failOnWarning` | `true` | Fail the build when validation produces warnings, not only errors. |
+| `ignoreFailures` | `false` | If `true`, log problems instead of failing. Useful when introducing validation on an existing codebase. |
+| `classes` | Plugin classes (from `java-gradle-plugin`) | The compiled classes to validate. |
+| `classpath` | Plugin runtime classpath (from `java-gradle-plugin`) | Used to load `classes` and their dependencies. |
+| `launcher` | Project toolchain or daemon JVM | The Java launcher used to run the validation worker. |
+| `outputFile` | `build/reports/plugin-development/validation-report.json` | Where the JSON report is written. |
+
+<SampleScripts sample_name="validate-plugins-config" basename="build" tag="config" source_dir="snippets/reference/plugin-development/validatePluginsConfig" />
+
+## Stricter validation
+
+Stricter validation is the mode Gradle uses for plugins that are about to be shared with others.
+It turns on rules that catch subtle correctness and caching bugs before your plugin reaches the Plugin Portal.
+
+Enable it explicitly by setting `enableStricterValidation = true` on the `validatePlugins` task (see [the configuration example above](#the_validate_plugins_task)).
+
+Stricter validation is enabled automatically when the `java-gradle-plugin` is applied together with any of:
+
+- a `publishing` plugin, including <Xref page="publishing-maven" section="The Maven Publish Plugin">`maven-publish`</Xref> and <Xref page="publishing-ivy" section="The Ivy Publish Plugin">`ivy-publish`</Xref>,
+- the [`com.gradle.plugin-publish`](https://plugins.gradle.org/plugin/com.gradle.plugin-publish) plugin.
+
+Turning on stricter validation has two effects:
+
+1. Cacheability checks fire on _every_ task and artifact transform, not only on ones marked `@CacheableTask` or `@CacheableTransform`.
+For example, [`missing_normalization_annotation`](#missing_normalization_annotation) is reported for any file input whose normalization strategy is not declared, regardless of whether the work is cacheable.
+2. Every task and transform must state its caching intent explicitly.
+See [`disable_caching_by_default`](#disable_caching_by_default).
+
+If you plan to publish a plugin, enable stricter validation from day one.
+It is what your publish pipeline runs anyway.
+
+## Validation problem reference
+
+The rest of this page lists each validation problem Gradle can report, when it fires, and how to fix it.
+The anchor of each section (for example, `#missing_normalization_annotation`) is the URL Gradle emits in the problem message, so you can navigate directly from a build failure.
+
+### Invalid use of cacheable annotation
+
+You annotated a type with `@CacheableTransform` on something that is not an artifact transform, or `@CacheableTask` on something that is not a `Task`.
+
+Remove the misplaced annotation.
+For tasks use <JavaDocLink class="org.gradle.api.tasks.CacheableTask">`@CacheableTask`</JavaDocLink>; for artifact transforms use <JavaDocLink class="org.gradle.work.DisableCachingByDefault">`@CacheableTransform`</JavaDocLink>.
+
+### Missing normalization annotation
+
+A cacheable task or artifact transform has a file or file-collection input property that does not declare how the file(s) should be normalized.
+
+Normalization tells Gradle which aspects of a file input matter: absolute path, relative path, contents only, classpath order, and so on.
+Without it, outputs cannot be reused between machines or between different checkout locations on the same machine, and caching becomes ineffective.
+
+Fix it by adding one of:
+
+- <JavaDocLink class="org.gradle.api.tasks.PathSensitive">`@PathSensitive`</JavaDocLink>
+- <JavaDocLink class="org.gradle.api.tasks.Classpath">`@Classpath`</JavaDocLink>
+- <JavaDocLink class="org.gradle.api.tasks.CompileClasspath">`@CompileClasspath`</JavaDocLink>
+
+Under [stricter validation](#stricter_validation), this check runs on non-cacheable work too.
+
+### Required value isn’t set
+
+An input or output property has no value at execution time and is not marked optional.
+
+Fix it by either:
+
+- configuring the property (in the build script, in a convention, or in the task action), or
+- marking the property with <JavaDocLink class="org.gradle.api.tasks.Optional">`@Optional`</JavaDocLink> if it is genuinely optional.
+
+### Invalid use of absolute path sensitivity for an artifact transform
+
+A cacheable artifact transform declares an input as sensitive to the _absolute_ path.
+
+Artifact transforms run in an isolated workspace and are resilient to `clean` builds; even without cross-machine caching, absolute-path sensitivity does not make sense here.
+
+Use a non-absolute normalization instead:
+
+- <JavaDocLink class="org.gradle.api.tasks.PathSensitive">`@PathSensitive`</JavaDocLink> with a non-`ABSOLUTE` value
+- <JavaDocLink class="org.gradle.api.tasks.Classpath">`@Classpath`</JavaDocLink>
+- <JavaDocLink class="org.gradle.api.tasks.CompileClasspath">`@CompileClasspath`</JavaDocLink>
+
+### Invalid use of an output property on an artifact transform
+
+An artifact transform has a property annotated as an output (`@OutputFile`, `@OutputDirectory`, …​).
+Artifact transforms produce outputs through the <JavaDocLink class="org.gradle.api.artifacts.transform.TransformOutputs" /> parameter of `transform()`, not through annotated properties.
+
+Remove the output-annotated property and register outputs through <JavaDocLink class="org.gradle.api.artifacts.transform.TransformAction" method="transform-org.gradle.api.artifacts.transform.TransformOutputs-">`TransformAction.transform(TransformOutputs)`</JavaDocLink> instead.
+
+### Annotations on fields without a getter
+
+You annotated a field, but the field has no corresponding getter.
+Gradle only recognizes annotations on properties, and a property requires a getter.
+Annotations on plain fields are silently ignored.
+
+Add a getter for the field, and prefer annotating the getter rather than the field.
+
+If you are using Groovy, this often happens because a `private` modifier was added to what looks like a property declaration:
+
+```groovy
+@InputFile
+RegularFileProperty inputFile             // property — has an implicit getter
+
+@InputFile
+private RegularFileProperty inputFile     // field — the annotation is ignored
+```
+
+### Annotation on unexpected method
+
+An annotation like `@InputFiles` or `@OutputDirectory` was placed on a method that is not a property getter.
+A property is defined by having a getter; annotations on non-getter methods have no effect on up-to-date checking or caching.
+
+Remove the annotation, define a getter for the property you meant to declare, and annotate the getter.
+
+### Annotation on property or field where it does not belong
+
+An annotation intended for a non-property method was placed on a field or on a property getter.
+Only input and output annotations like `@InputFiles` or `@OutputDirectory` belong on a property getter or field.
+Other annotations are ignored there.
+
+Remove the annotation, or move it to a method that matches its requirements.
+
+### Mutable type with setter
+
+A property of a lazy, mutable type (for example <JavaDocLink class="org.gradle.api.provider.Property" /> or <JavaDocLink class="org.gradle.api.file.ConfigurableFileCollection" />) also declares a setter.
+
+Mutable types track dependencies and the origin of their values.
+Replacing them via a setter throws that history away and prevents Gradle from resolving where a value came from.
+
+For example, this is wrong:
+
+```groovy
+class MyTask extends DefaultTask {
+    private Property<Integer> x
+
+    @Input
+    Property<Integer> getX() { this.x }
+
+    void setX(Property<Integer> x) { this.x = x }
+}
+```
+
+Let Gradle inject the property using an abstract getter, which is the recommended shape:
+
+<SampleScripts sample_name="mutable-type-abstract-getter" basename="build" tag="task-class" source_dir="snippets/reference/plugin-development/mutableTypeAbstractGetter" />
+
+Configure the value through the mutation methods (`set`, `convention`, `value`, …​):
+
+<SampleScripts sample_name="mutable-type-abstract-getter" basename="build" tag="usage" source_dir="snippets/reference/plugin-development/mutableTypeAbstractGetter" />
+
+### Redundant getters
+
+A `boolean` property declares both an `is`-getter and a `get`-getter.
+Each can carry different annotations, so Gradle cannot decide which one to consult.
+
+Delete one of the getters, or mark one with <JavaDocLink class="org.gradle.api.tasks.Internal">`@Internal`</JavaDocLink> so Gradle knows to ignore it.
+
+### Annotations on private getters
+
+You annotated a `private` getter with an input or output annotation.
+Gradle does not consider private getters for up-to-date checking, so the annotation has no effect.
+Worse, it makes the code look correct when it isn’t.
+
+Make the getter public, move the annotation to an existing public getter, or add a new annotated public getter.
+
+### Annotations on private methods
+
+You annotated a `private` method with an annotation that Gradle queries for at runtime.
+Gradle cannot call a private method, so the annotation has no effect.
+
+Make the method public, or annotate a different public method.
+
+### Annotations on ignored properties
+
+A property is annotated both with an _ignore_ annotation (for example <JavaDocLink class="org.gradle.api.model.ReplacedBy">`@ReplacedBy`</JavaDocLink> or <JavaDocLink class="org.gradle.api.tasks.Internal">`@Internal`</JavaDocLink>) _and_ with an input or output annotation (for example <JavaDocLink class="org.gradle.api.tasks.InputFile">`@InputFile`</JavaDocLink>).
+Gradle cannot tell whether this property is an input or should be skipped.
+
+Remove either the ignoring annotation or the input/output annotation.
+
+A common special case is combining `@Internal` with <JavaDocLink class="org.gradle.api.tasks.Optional">`@Optional`</JavaDocLink>.
+`@Internal` already excludes the property from validation, so `@Optional` adds nothing and is rejected.
+Remove `@Optional`.
+
+### Conflicting annotations
+
+A property carries annotations with incompatible semantics, for example both `@InputFile` and `@OutputFile`.
+Because the annotations contradict each other, Gradle cannot infer what the property represents.
+
+Pick the annotation that matches the property’s actual role and remove the others.
+
+### Annotation is invalid in a particular context
+
+A property uses an annotation that is not allowed in the current context.
+For example, `@OutputDirectory` is generally valid on a `DirectoryProperty`, but not on an artifact transform, because transforms produce outputs through <JavaDocLink class="org.gradle.api.artifacts.transform.TransformOutputs" /> instead.
+
+Remove the property or replace the annotation with one that is valid in the context.
+
+### Properties without annotations
+
+A property has no input or output annotation, so Gradle cannot classify it.
+It does not know whether the property is an input, an output, or should be ignored.
+As a result, up-to-date checking and caching cannot work for it.
+
+Annotate the property with the annotation matching its role (`@InputFile`, `@OutputDirectory`, `@Input`, …​), or mark it <JavaDocLink class="org.gradle.api.tasks.Internal">`@Internal`</JavaDocLink> if it is not part of the task’s contract.
+
+:::note
+A common mistake is to annotate a property with only <JavaDocLink class="org.gradle.api.tasks.Optional">`@Optional`</JavaDocLink>.
+`@Optional` is a _modifier_ annotation and must be combined with an input or output annotation such as `@InputFile`.
+Using `@Optional` alone does not suppress validation; it triggers this error.
+If your intent is to exclude the property from up-to-date checking entirely, use `@Internal` instead.
+:::
+
+### Annotation is incompatible with the property type
+
+You combined an annotation with a property type where the combination has no meaning, for example `@SkipWhenEmpty` on an output property.
+
+Remove the incompatible modifier annotation, or check that the property’s type is what you intended.
+
+### Incorrect use of the `@Input` annotation
+
+A property is annotated with <JavaDocLink class="org.gradle.api.tasks.Input">`@Input`</JavaDocLink>, but its type represents a file or files: `File`, <JavaDocLink class="org.gradle.api.file.RegularFile" />, <JavaDocLink class="org.gradle.api.file.RegularFileProperty" />, `java.nio.file.Path`, <JavaDocLink class="org.gradle.api.file.FileCollection" />, <JavaDocLink class="org.gradle.api.file.Directory" />, or <JavaDocLink class="org.gradle.api.file.DirectoryProperty" />.
+
+With `@Input`, Gradle treats the property as an opaque value and does not look at file contents or the directory’s children.
+That is almost never what you want.
+
+Fix it by choosing the annotation that matches the intent:
+
+- <JavaDocLink class="org.gradle.api.tasks.InputFile">`@InputFile`</JavaDocLink> for a single file
+- <JavaDocLink class="org.gradle.api.tasks.InputFiles">`@InputFiles`</JavaDocLink> for a collection of files
+- <JavaDocLink class="org.gradle.api.tasks.InputDirectory">`@InputDirectory`</JavaDocLink> for a directory
+
+If you really do want to track the file’s absolute path as a string (not its contents), return a `String` and keep `@Input`.
+
+### Property annotated with `@ServiceReference` is not a `BuildService`
+
+A property annotated with <JavaDocLink class="org.gradle.api.services.ServiceReference">`@ServiceReference`</JavaDocLink> has a type that does not implement <JavaDocLink class="org.gradle.api.services.BuildService" />.
+
+`@ServiceReference` is only for holding references to <Xref page="build-services" section="Using Shared Build Services">shared build services</Xref>.
+Change the property’s type to implement `BuildService`, or remove the annotation.
+
+### Implicit dependencies between tasks
+
+One task consumes an output of another without a declared dependency between them.
+The build only works because of the order in which tasks happen to run.
+Remove the output or reorder the build, and it breaks.
+
+The most common cause is passing a raw `File` from a producing task:
+
+```kotlin
+someTask {
+    inputFile.from(jar.archivePath)   // File — carries no task dependency
+}
+```
+
+`jar.archivePath` is a plain `File`; nothing tells Gradle it comes from the `jar` task.
+
+Prefer the lazy `Provider`-typed accessor, which carries the dependency:
+
+<SampleScripts sample_name="implicit-dependency-fix" basename="build" tag="from-archive-file" source_dir="snippets/reference/plugin-development/implicitDependencyFix" />
+
+Or add the task itself as an input, which is cleaner still:
+
+<SampleScripts sample_name="implicit-dependency-fix" basename="build" tag="from-task" source_dir="snippets/reference/plugin-development/implicitDependencyFix" />
+
+For producing tasks that do not use the <Xref page="lazy-configuration" section="Configuring Tasks Lazily">configuration-avoidance APIs</Xref>, add an explicit dependency:
+
+<SampleScripts sample_name="implicit-dependency-fix" basename="build" tag="depends-on" source_dir="snippets/reference/plugin-development/implicitDependencyFix" />
+
+If adding a producer dependency is genuinely wrong (for example, a report task that aggregates from many optional producers), declare an <Xref page="controlling-task-execution" section="Ordering tasks">ordering constraint</Xref> with <GroovyDocLink class="org.gradle.api.Task" method="mustRunAfter(java.lang.Object[])">`Task.mustRunAfter()`</GroovyDocLink> instead.
+
+:::note
+When the producer and consumer live in _different_ builds (composite builds), Gradle 9 reports this as a deprecation, not an error.
+It becomes an error in Gradle 10.
+:::
+
+### Input file doesn’t exist
+
+A file or directory declared as an input does not exist when the task is about to run.
+
+This usually means a missing task dependency: the file was supposed to be produced by another task that did not run.
+See [`implicit_dependency`](#implicit_dependency) for the standard fixes.
+
+If the file is not produced by another task, make sure it exists before the consuming task runs.
+
+If it is legitimately optional (the task should not fail when the input is absent), use <JavaDocLink class="org.gradle.api.tasks.InputFiles">`@InputFiles`</JavaDocLink>, which tolerates non-existent inputs:
+
+<SampleScripts sample_name="custom-task-with-missing-file-property" basename="build" tag="task" source_dir="snippets/unused/tasks/customTaskWithMissingFileProperty" />
+
+### Unexpected input file or directory
+
+A property expected a file but got a directory, or vice versa.
+For example, `@InputFile` was declared but the configured path points to a directory:
+
+```groovy
+@InputFile
+File getInputFile()
+```
+
+Either the value is wrong and should point to a regular file, or the annotation is wrong and should be `@InputDirectory`.
+
+### Cannot write to an output file or directory
+
+The configured output location is not writable.
+The specific reason varies:
+
+- an output directory property points to a file, not a directory,
+- an output file property points to a directory, not a file,
+- an ancestor of the output location exists as a file, so Gradle cannot create the parent directories,
+- the root of a file-tree output is not a directory.
+
+For example, setting `outputDir` to `/some/path/file.txt` (where `file.txt` is a file) triggers this.
+So does setting it to `/some/path` when `/some` already exists as a regular file.
+
+Configure the property to point to a location of the correct kind (file or directory).
+
+### Cannot write to reserved location
+
+The output points to a filesystem location that Gradle manages internally, typically an artifact transform’s output workspace.
+
+Artifact transforms must write only through <JavaDocLink class="org.gradle.api.artifacts.transform.TransformOutputs" /> inside the `transform()` method; they must not write files directly into their workspace directory.
+
+For any other task, choose a different output location.
+
+### Unsupported notation in file inputs
+
+A file, directory, or file-collection property received a value that Gradle does not know how to convert to a file.
+
+The problem message lists the supported notations for the property.
+Pick one of them.
+
+### Invalid use of `@Optional` on a primitive type
+
+A property of primitive type (`int`, `double`, `boolean`, …​) is annotated with <JavaDocLink class="org.gradle.api.tasks.Optional">`@Optional`</JavaDocLink>.
+This is nonsensical: `null` cannot be assigned to a primitive, so a primitive property can never be "absent".
+
+Fix it by either:
+
+- removing `@Optional`, or
+- switching to the boxed type (`Integer`, `Double`, `Boolean`, …​) if you genuinely want the property to be nullable.
+
+### Cannot use an input with an unknown implementation
+
+Gradle tracks the implementation _class_ of certain inputs as part of up-to-date checking:
+
+- the task class itself,
+- the classes of the task’s actions (`doFirst`, `doLast`, …​),
+- the classes of `@Nested` inputs.
+
+If Gradle cannot identify one of those classes uniquely across JVMs, it reports this problem.
+Two causes:
+
+<dl>
+<dt>Non-serializable Java lambdas</dt>
+<dd>
+
+A lambda is compiled to an `invokedynamic` call site whose class is generated at JVM runtime.
+Gradle cannot correlate that class across JVMs unless the target functional interface is `Serializable`.
+Task actions get special handling, but nested inputs do not.
+
+Fix it by converting the lambda to an anonymous inner class, or by making the target functional interface `Serializable`.
+
+</dd>
+<dt>Classes loaded by an unknown classloader</dt>
+<dd>
+
+The class was loaded by a classloader Gradle does not recognize.
+
+Load the class through Gradle’s built-in mechanisms so Gradle can track it.
+For example, add it to your plugin’s `classpath` or `buildscript` classpath.
+
+</dd>
+</dl>
+
+### Missing reason for not caching
+
+A task or artifact transform has not been marked cacheable, and there is no explicit statement of _why_ it is not cacheable.
+Gradle reports this only under [stricter validation](#stricter_validation).
+
+The intent is to force plugin authors to be explicit about caching, so consumers know whether the omission was a deliberate design decision or an oversight.
+
+Fix it by choosing one of these annotations on the type:
+
+- <JavaDocLink class="org.gradle.api.tasks.CacheableTask">`@CacheableTask`</JavaDocLink> or <JavaDocLink class="org.gradle.work.DisableCachingByDefault">`@CacheableTransform`</JavaDocLink>: the work _is_ cacheable.
+- <JavaDocLink class="org.gradle.work.DisableCachingByDefault">`@DisableCachingByDefault(because = "…​")`</JavaDocLink>: the work is not worth caching, with a reason.
+- <JavaDocLink class="org.gradle.api.tasks.UntrackedTask">`@UntrackedTask(because = "…​")`</JavaDocLink> (tasks only): inputs and outputs cannot be tracked at all.
+
+### Unsupported value type
+
+A property has a type that Gradle does not support for its annotation.
+
+Known unsupported combinations:
+
+<dl>
+<dt>`ResolvedArtifactResult`</dt>
+<dd>
+
+See <Xref page="artifact-resolution" section="Artifact Resolution">Mapping `ResolvedArtifactResult` as a task input</Xref>.
+
+</dd>
+<dt>`java.net.URL` on `@Input`</dt>
+<dd>
+
+`URL` has a known serialization defect ([JDK-8075619](https://bugs.openjdk.org/browse/JDK-8075619)) that produces inconsistent up-to-date checks.
+Use `java.net.URI` instead.
+
+</dd>
+</dl>
+
+The problem message identifies the specific type and the suggested replacement for your case.
+
+### Unsupported key type of nested map
+
+A `Map`-typed `@Nested` property uses a key type that is not `String`, `Integer`, or an enum.
+Gradle uses map keys to generate names for sub-properties; restricting them to those types guarantees the generated names are unique and well-formed, rather than depending on `toString()`.
+
+Change the key type to `String`, `Integer`, or an enum.
+
+### Unsupported nested type
+
+A type used as `@Nested` comes from `java.**`, `javax.**`, `kotlin.*`, or is Groovy’s `GString`.
+`@Nested` types are expected either to declare annotated properties (which Gradle then walks into) or to represent conditional behaviour where capturing the type as an input matters.
+The listed package families satisfy neither requirement.
+
+Fix it by wrapping the value in a supported nested container:
+
+- `Provider<T>` where `T` has annotated properties
+- `Iterable<T>` where `T` has annotated properties
+- `MapProperty<K, V>` where `V` has annotated properties
+
+Or move the annotation off the nested property and onto the specific properties you care about.

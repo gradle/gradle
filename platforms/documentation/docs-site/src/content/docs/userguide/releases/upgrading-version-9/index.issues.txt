@@ -1,0 +1,1 @@
+WARNING: id assigned to section already in use: kotlin_2_4_10 (/Users/lkassovic/Documents/Repositories/gradle-user-guide-astro-experiment/gradle-master/platforms/documentation/docs/src/docs/userguide/releases/upgrading/upgrading_version_9.adoc:176)

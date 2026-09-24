@@ -1,0 +1,7 @@
+ant.importBuild 'build.xml'
+
+hello {
+    doLast {
+        println 'Hello, from Gradle'
+    }
+}

@@ -1,0 +1,28 @@
+// tag::test-report[]
+plugins {
+    id 'xctest'
+}
+
+xctest {
+    binaries.configureEach {
+        runTask.get().configure {
+            // Disable the test report for the individual test task
+            reports.html.required = false
+        }
+    }
+}
+
+// Share the test report data to be aggregated for the whole project
+configurations {
+    binaryTestResultsElements {
+        canBeResolved = false
+        attributes {
+            attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category, Category.DOCUMENTATION))
+            attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named(DocsType, 'test-report-data'))
+        }
+        tasks.withType(XCTest).configureEach {
+            outgoing.artifact(it.binaryResultsDirectory)
+        }
+    }
+}
+// end::test-report[]

@@ -1,0 +1,15 @@
+// tag::use-ear-plugin[]
+plugins {
+    id 'ear'
+}
+// end::use-ear-plugin[]
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    deploy project(path: ':war', configuration: 'war')
+
+    earlib("log4j:log4j:1.2.15@jar")
+}

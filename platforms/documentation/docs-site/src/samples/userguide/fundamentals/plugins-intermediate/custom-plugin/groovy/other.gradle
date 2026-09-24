@@ -1,0 +1,12 @@
+class GreetingScriptPlugin implements Plugin<Project> {
+    void apply(Project project) {
+        project.task('hi') {
+            doLast {
+                println 'Hi from the GreetingScriptPlugin'
+            }
+        }
+    }
+}
+
+// Apply the plugin
+apply plugin: GreetingScriptPlugin

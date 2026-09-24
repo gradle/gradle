@@ -1,0 +1,42 @@
+plugins {
+    id("application")
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::dependency-full[]
+dependencies {
+    implementation("commons-beanutils:commons-beanutils:1.9.4")
+}
+// end::dependency-full[]
+
+// tag::dependency-ex[]
+dependencies {
+    implementation("commons-beanutils:commons-beanutils:1.9.4") {
+        exclude(group = "commons-collections", module = "commons-collections")
+    }
+}
+// end::dependency-ex[]
+
+// tag::dependency-extra[]
+dependencies {
+    implementation("commons-beanutils:commons-beanutils:1.9.4") {
+        exclude(group = "commons-collections", module = "commons-collections")
+    }
+    implementation("com.opencsv:opencsv:4.6") // Depends on 'commons-beanutils' but does NOT exclude 'commons-collections'
+}
+// end::dependency-extra[]
+
+// tag::dependency-extra-ex[]
+dependencies {
+    implementation("commons-beanutils:commons-beanutils:1.9.4") {
+        exclude(group = "commons-collections", module = "commons-collections")
+    }
+    implementation("com.opencsv:opencsv:4.6") {
+        exclude(group = "commons-collections", module = "commons-collections")
+        exclude(group = "org.apache.commons", module = "commons-collections4") // Watch out for other transitive dependency creep
+    }
+}
+// end::dependency-extra-ex[]

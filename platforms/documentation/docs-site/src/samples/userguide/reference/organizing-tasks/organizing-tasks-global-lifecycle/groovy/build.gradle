@@ -1,0 +1,17 @@
+def globalBuildGroup = "My global build"
+def ciBuildGroup = "My CI build"
+
+// tag::global-lifecycle[]
+tasks.register("qualityCheckApp") {
+    group = globalBuildGroup
+    description = "Runs checks on app (globally)"
+    dependsOn(":app:qualityCheck")
+}
+
+tasks.register("checkAll") {
+    group = ciBuildGroup
+    description = "Runs checks for all projects (CI)"
+    dependsOn subprojects.collect { ":${it.name}:check" }
+    dependsOn gradle.includedBuilds.collect { it.task(":checkAll") }
+}
+// end::global-lifecycle[]

@@ -1,0 +1,11 @@
+> Task :build-logic:jar
+:project-a:myBaseJavaLibraryApplied SKIPPED
+:project-a:myJavaLibraryApplied SKIPPED
+:project-a:myJavaUseJunit5Applied SKIPPED
+:project-a:compileJava SKIPPED
+:project-b:myBaseJavaLibraryApplied SKIPPED
+:project-b:myJavaLibraryApplied SKIPPED
+:project-b:myJavaUseJunit5Applied SKIPPED
+:project-b:compileJava SKIPPED
+
+BUILD SUCCESSFUL in 0s

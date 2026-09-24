@@ -1,0 +1,21 @@
+// tag::use-java-gradle-plugin-plugin[]
+plugins {
+    `java-gradle-plugin`
+}
+// end::use-java-gradle-plugin-plugin[]
+
+// tag::gradle-plugin-block[]
+gradlePlugin {
+    plugins {
+        register("org.gradle.sample.simple-plugin") {
+            // id is automatically inferred as "org.gradle.sample.simple-plugin"
+            implementationClass = "org.gradle.sample.SimplePlugin"
+        }
+        register("org.gradle.sample.convention-plugin") {
+            // id is overwritten to "convention-plugin"
+            id = "convention-plugin"
+            implementationClass = "org.gradle.sample.ConventionPlugin"
+        }
+    }
+}
+// end::gradle-plugin-block[]

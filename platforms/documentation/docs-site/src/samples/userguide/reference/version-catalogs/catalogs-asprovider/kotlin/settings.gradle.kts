@@ -1,0 +1,7 @@
+rootProject.name = "catalog-asprovider"
+
+dependencyResolutionManagement {
+    repositories {
+        mavenCentral()
+    }
+}

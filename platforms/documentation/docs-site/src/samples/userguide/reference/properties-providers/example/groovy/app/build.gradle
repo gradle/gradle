@@ -1,0 +1,69 @@
+plugins {
+    id 'application'
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    testImplementation 'org.junit.jupiter:junit-jupiter:5.7.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+    implementation 'com.google.guava:guava:32.1.2-jre'
+}
+
+// tag::demo[]
+tasks.register("demoTask") {
+    // Eager evaluation: happens immediately during configuration
+    def eagerMessage = "Hello from eager"
+
+    // Lazy evaluation: will only be computed if the task runs during execution
+    def lazyMessage = objects.property(String)
+    lazyMessage.set(providers.provider {
+        return "Hello from lazy"
+    })
+
+    // This block runs during the configuration phase (when the build script is loaded)
+    println ">> DURING CONFIGURATION"
+    println ">>> eagerMessage type: ${eagerMessage.getClass()}"
+    println ">>> eagerMessage value: $eagerMessage"
+    println ">>> lazyMessage type: ${lazyMessage.getClass()}"
+    println ">>> lazyMessage value: $lazyMessage"
+
+    // This block runs during the execution phase (when the task is actually run)
+    doLast {
+        println ">> DURING EXECUTION"
+        println ">>> eagerMessage type: ${eagerMessage.getClass()}"
+        println ">>> eagerMessage value: $eagerMessage"
+        // Now the provider is evaluated and the actual value is computed and printed
+        println ">>> lazyMessage type: ${lazyMessage.getClass()}"
+        println ">>> lazyMessage value: ${lazyMessage.get()}"
+    }
+}
+// end::demo[]
+
+// tag::type[]
+tasks.register("printFloatFromFile") {
+    // Type: RegularFile
+    def myFile = layout.projectDirectory.file("someNumber.txt")
+
+    // Type: Provider<Float>
+    def floatProvider = project.providers
+        // Type: Provider<FileContents>
+        .fileContents(myFile)
+        // Type: Provider<String>
+        .asText
+        // Type: Provider<Float>
+        .map {
+            // Type: Float
+            it.toFloat()
+        }
+
+    doLast {
+        // Type: Provider<Float>
+        println ">>> Float value from file: $floatProvider"
+        // Type: Float
+        println ">>> Float value from file: ${floatProvider.get()}"
+    }
+}
+// end::type[]

@@ -1,0 +1,15 @@
+---
+import ApiDocLinkBase from './ApiDocLinkBase.astro';
+import { javadocUrl } from './api-doc-url';
+
+interface Props {
+  class: string;
+  method?: string;
+  text?: string;
+}
+
+const props = Astro.props;
+const href = javadocUrl(props.class, props.method);
+---
+
+<ApiDocLinkBase {...props} href={href} docClass="javadoc-link" componentName="JavaDocLink" />

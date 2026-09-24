@@ -1,0 +1,46 @@
+// tag::task-execution-graph-listener[]
+gradle.taskGraph.addTaskExecutionGraphListener { graph ->
+    def tasks = graph.allTasks.collect { it.path }.join("\n  ")
+    println("[TaskExecutionGraphListener] Graph is ready. Tasks to execute:\n  ${tasks}")
+
+    if (graph.hasTask(":skippedTask")) {
+        println("[TaskExecutionGraphListener] :skippedTask is in the graph (it will still be skipped via onlyIf)")
+    }
+}
+
+tasks.register("hello") {
+    group = "demo"
+    description = "Prints a greeting. Always runs."
+    doLast {
+        println("Hello from the :hello task!")
+    }
+}
+
+tasks.register("upToDateTask") {
+    group = "demo"
+    description = "Writes a file. Runs once, then reports UP-TO-DATE on subsequent runs."
+
+    def outputFile = layout.buildDirectory.file("up-to-date-output.txt")
+    outputs.file(outputFile)
+
+    doLast {
+        outputFile.get().asFile.text = "generated"
+        println("upToDateTask: file written.")
+    }
+}
+
+tasks.register("skippedTask") {
+    group = "demo"
+    description = "Always skipped via onlyIf."
+    onlyIf { false }
+    doLast {
+        println("This never prints.")
+    }
+}
+// end::task-execution-graph-listener[]
+
+tasks.register("runAll") {
+    group = "demo"
+    description = "Runs all demo tasks together."
+    dependsOn("hello", "upToDateTask", "skippedTask")
+}

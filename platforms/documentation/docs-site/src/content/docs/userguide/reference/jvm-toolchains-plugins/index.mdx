@@ -1,0 +1,73 @@
+---
+title: "The JVM Toolchains Plugins"
+description: "The jvm-toolchains and jvm-toolchain-management plugins, which provide Java toolchain support and provisioning."
+---
+
+import { JavaDocLink, Xref } from '#/components';
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+
+Two related core plugins provide <Xref page="toolchains" section="Toolchains for JVM projects">Java toolchain</Xref> support: `jvm-toolchains` works at the project level, and `jvm-toolchain-management` works at the settings level.
+Both are applied automatically in the situations described below, so you rarely apply them by hand.
+
+For the concepts — how a toolchain is selected, provisioned, and used by JVM tasks — see <Xref page="toolchains" section="Toolchains for JVM projects">Toolchains for JVM projects</Xref>.
+For writing and registering toolchain download repositories, see <Xref page="toolchain-plugins" section="Toolchain Resolver Plugins">Toolchain Resolver Plugins</Xref>.
+
+## The `jvm-toolchains` plugin
+
+The `jvm-toolchains` plugin (a `Plugin<Project>`) makes the <JavaDocLink class="org.gradle.jvm.toolchain.JavaToolchainService" /> available to a project so that toolchains can be selected and provisioned for JVM tools such as compilation, testing, and execution.
+
+It adds the following extension:
+
+<dl>
+<dt>`javaToolchains` — <JavaDocLink class="org.gradle.jvm.toolchain.JavaToolchainService" /></dt>
+<dd>
+
+Used to query for and provision toolchains — for example, to obtain a `JavaLauncher`, `JavaCompiler`, or `JavadocTool` for a specific `JavaLanguageVersion`.
+
+</dd>
+</dl>
+
+The JVM language plugins (via the `java-base` plugin) apply `jvm-toolchains` automatically, so most builds never apply it directly.
+Apply it explicitly only when you need the `javaToolchains` service in a project that does not apply a JVM language plugin:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="build.gradle.kts"
+plugins {
+    id("jvm-toolchains")
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="build.gradle"
+plugins {
+    id 'jvm-toolchains'
+}
+```
+
+</TabItem>
+</Tabs>
+
+## The `jvm-toolchain-management` plugin
+
+The `jvm-toolchain-management` plugin (a `Plugin<Settings>`) adds a `jvm` block to the settings-level `toolchainManagement` container, where <Xref page="toolchain-plugins" section="Toolchain Resolver Plugins">Java toolchain download repositories</Xref> are configured:
+
+```kotlin
+toolchainManagement {
+    jvm {
+        javaRepositories {
+            // register toolchain resolver repositories here
+        }
+    }
+}
+```
+
+Toolchain resolver plugins apply `jvm-toolchain-management` automatically, so you normally do not apply it yourself.
+
+## See also
+
+- <Xref page="toolchains" section="Toolchains for JVM projects">Toolchains for JVM projects</Xref> — selecting and provisioning toolchains.
+- <Xref page="toolchain-plugins" section="Toolchain Resolver Plugins">Toolchain Resolver Plugins</Xref> — writing and registering toolchain download repositories.

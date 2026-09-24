@@ -1,0 +1,12 @@
+// tag::simple_register[]
+tasks.register('hello') {
+    doLast {
+        println 'hello'
+    }
+}
+// end::simple_register[]
+
+tasks.register('copy', Copy) {
+    from(file('srcDir'))
+    into(buildDir)
+}

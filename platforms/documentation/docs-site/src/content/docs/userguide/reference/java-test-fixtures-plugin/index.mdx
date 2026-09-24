@@ -1,0 +1,134 @@
+---
+title: "The Java Test Fixtures Plugin"
+description: "The Java Test Fixtures plugin: producing and consuming test fixtures between projects."
+---
+
+import { JavaDocLink, Xref } from '#/components';
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+
+The Java Test Fixtures plugin (plugin id: `java-test-fixtures`) adds support for producing and consuming _test fixtures_ — shared test helper code such as fake implementations, test data builders, or base classes that are used by the project’s own tests and can also be consumed by other projects.
+
+Despite the name, fixtures may be written in any supported JVM language, not only Java.
+
+For a task-oriented guide — producing, consuming, and publishing fixtures — see <Xref page="java-testing" section="Using test fixtures">Test fixtures</Xref> in _Testing in Java & JVM projects_.
+
+## Usage
+
+Apply the plugin alongside a JVM library or application plugin:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="build.gradle.kts"
+plugins {
+    `java-library`
+    `java-test-fixtures`
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="build.gradle"
+plugins {
+    id 'java-library'
+    id 'java-test-fixtures'
+}
+```
+
+</TabItem>
+</Tabs>
+
+Applying the plugin (it applies the <Xref page="java-plugin" section="The Java Plugin">Java (base) plugin</Xref> automatically):
+
+- creates a `testFixtures` source set and a corresponding feature exposing a `<group>:<name>-test-fixtures` capability;
+- makes the fixtures depend on the main component, and the project’s own `test` suite depend on the fixtures — both by convention, so no wiring is required;
+- when the <Xref page="java-plugin" section="The Java Plugin">Java Plugin</Xref> is applied, exposes the fixtures to consumers as additional variants of the project’s component.
+
+## Project layout
+
+<dl>
+<dt>`src/testFixtures/java`</dt>
+<dd>
+
+Test fixture source files.
+
+</dd>
+<dt>`src/testFixtures/resources`</dt>
+<dd>
+
+Test fixture resources.
+
+</dd>
+</dl>
+
+## Dependency configurations
+
+The plugin adds a set of configurations for the `testFixtures` source set, mirroring those of a normal <Xref page="java-library-plugin" section="The Java Library Plugin">Java library</Xref>:
+
+<dl>
+<dt>`testFixturesApi`</dt>
+<dd>
+
+Declarable. Dependencies exported to consumers of the fixtures (and to the fixtures' own compilation).
+
+</dd>
+<dt>`testFixturesImplementation`</dt>
+<dd>
+
+Declarable. Dependencies used internally by the fixtures and not exposed to consumers.
+
+</dd>
+<dt>`testFixturesCompileOnly` / `testFixturesCompileOnlyApi`</dt>
+<dd>
+
+Declarable. Compile-time-only dependencies of the fixtures (the `Api` variant is also visible to consumers at compile time).
+
+</dd>
+<dt>`testFixturesRuntimeOnly`</dt>
+<dd>
+
+Declarable. Runtime-only dependencies of the fixtures.
+
+</dd>
+<dt>`testFixturesApiElements` / `testFixturesRuntimeElements`</dt>
+<dd>
+
+Consumable. The variants exposed to consumers for compiling against, and running against, the fixtures.
+
+</dd>
+<dt>`testFixturesCompileClasspath` / `testFixturesRuntimeClasspath`</dt>
+<dd>
+
+Resolvable. The compile and runtime classpaths used to build the fixtures.
+
+</dd>
+</dl>
+
+## Consuming test fixtures
+
+Reference the fixtures of another project (or an external module) with the <JavaDocLink class="org.gradle.api.artifacts.dsl.DependencyHandler" method="testFixtures-java.lang.Object-">DependencyHandler.testFixtures(Object)</JavaDocLink> method:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="build.gradle.kts"
+dependencies {
+    testImplementation(testFixtures(project(":lib")))
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="build.gradle"
+dependencies {
+    testImplementation(testFixtures(project(":lib")))
+}
+```
+
+</TabItem>
+</Tabs>
+
+The same method accepts standard module notation — `testFixtures("com.example:lib:1.0")` — for fixtures published to a repository.
+See <Xref page="java-testing" section="Consuming test fixtures of another project">Consuming test fixtures</Xref> and <Xref page="java-testing" section="Publishing test fixtures">Publishing test fixtures</Xref> for details.

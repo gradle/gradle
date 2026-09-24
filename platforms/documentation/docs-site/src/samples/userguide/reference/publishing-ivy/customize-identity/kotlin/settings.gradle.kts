@@ -1,0 +1,2 @@
+rootProject.name = "maven-customize-identity"
+include("library")

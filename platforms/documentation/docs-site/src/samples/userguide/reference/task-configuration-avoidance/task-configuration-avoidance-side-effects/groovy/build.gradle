@@ -1,0 +1,9 @@
+// tag::side-effects[]
+def check = tasks.register("check")
+tasks.register("verificationTask") { verificationTask ->
+    // Configure verificationTask
+
+    // Run verificationTask when someone runs check
+    check.get().dependsOn verificationTask
+}
+// end::side-effects[]

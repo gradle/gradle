@@ -1,0 +1,14 @@
+// tag::declare-task[]
+tasks.register('myCopy', Copy)
+// end::declare-task[]
+
+// tag::configure[]
+// Configure task through a task provider
+def myCopy = tasks.named('myCopy')  {
+    from 'resources'
+    into 'target'
+}
+myCopy.configure {
+    include('**/*.txt', '**/*.xml', '**/*.properties')
+}
+// end::configure[]

@@ -1,0 +1,17 @@
+plugins {
+    id 'application'
+}
+
+// tag::task-grouping[]
+def myBuildGroup = "my app build"               // Create a group name
+
+tasks.register("tasksAll", TaskReportTask) {    // Register the tasksAll task
+    group = myBuildGroup
+    description = "Show additional tasks."
+    setShowDetail(true)
+}
+
+tasks.named("tasks", TaskReportTask) {          // Move all existing tasks to the group
+    displayGroup = myBuildGroup
+}
+// end::task-grouping[]

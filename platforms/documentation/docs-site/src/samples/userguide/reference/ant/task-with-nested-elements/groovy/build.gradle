@@ -1,0 +1,10 @@
+tasks.register('zip') {
+    doLast {
+        ant.zip(destfile: 'archive.zip') {
+            fileset(dir: 'src') {
+                include(name: '**.xml')
+                exclude(name: '**.java')
+            }
+        }
+    }
+}

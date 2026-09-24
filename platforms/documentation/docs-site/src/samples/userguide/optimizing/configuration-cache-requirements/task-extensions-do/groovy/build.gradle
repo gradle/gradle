@@ -1,0 +1,17 @@
+version = '1.0'
+
+// tag::do[]
+abstract class ReleaseTask extends DefaultTask {
+    @Input
+    abstract Property<String> getBanner() // <1>
+
+    @TaskAction
+    void run() {
+        println banner.get() // <2>
+    }
+}
+
+tasks.register('release', ReleaseTask) {
+    banner = providers.provider { "=== Releasing build ${rootProject.version} ===" } // <3>
+}
+// end::do[]

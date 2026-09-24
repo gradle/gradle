@@ -1,0 +1,8 @@
+ArtifactView with attribute 'libraryelements = classes' for runtimeClasspath:
+- Attributes:
+  - org.gradle.libraryelements = classes
+  - org.gradle.category = library
+  - org.gradle.usage = java-runtime
+  - org.gradle.dependency.bundling = external
+  - org.gradle.jvm.environment = standard-jvm
+- Artifact: main

@@ -1,0 +1,168 @@
+---
+title: "The War Plugin"
+description: "The War plugin: assembling web application WAR archives, extending the Java plugin."
+---
+
+import { GroovyDocLink, JavaDocLink, SampleScripts, Xref } from '#/components';
+import { Image } from 'astro:assets';
+import warPluginTasks from './warPluginTasks.png';
+
+The War plugin extends the <Xref page="java-plugin" section="The Java Plugin">Java plugin</Xref> to add support for assembling web application WAR files.
+It adds a default `war` task that assembles the WAR archive, and a `web` software component for [publishing](#sec:war_plugin_publishing) it.
+
+## Usage
+
+To use the War plugin, include the following in your build script:
+
+<SampleScripts sample_name="web-application" basename="build" tag="use-war-plugin" source_dir="snippets/reference/core-plugins/webApplication" />
+
+## Project layout
+
+In addition to the <Xref page="java-plugin" section="Project layout">standard Java project layout</Xref>, the War Plugin adds:
+
+<dl>
+<dt>`src/main/webapp`</dt>
+<dd>
+
+Web application sources
+
+</dd>
+</dl>
+
+## Tasks
+
+The War plugin adds and modifies the following tasks:
+
+<dl>
+<dt>`war` — <GroovyDocLink class="org.gradle.api.tasks.bundling.War" /></dt>
+<dd>
+
+_Depends on_: `classes`
+
+Assembles the WAR archive containing the compiled classes, the web application content, and the runtime libraries.
+
+</dd>
+<dt>`assemble` - _lifecycle task_</dt>
+<dd>
+
+_Depends on_: `war`
+
+</dd>
+</dl>
+
+The War plugin adds the following dependencies to tasks added by the Java plugin;
+
+<Image src={warPluginTasks} alt="warPluginTasks" />
+
+## Dependency management
+
+The War plugin adds two dependency configurations:
+
+<dl>
+<dt>`providedCompile`</dt>
+<dd>
+
+This configuration should be used for dependencies required at compilation but which are provided by the environment in which the WAR is deployed.
+Dependencies declared here are visible to the `main` and `test` compile and runtime classpaths, but are excluded from the WAR archive.
+
+</dd>
+<dt>`providedRuntime`</dt>
+<dd>
+
+This configuration should be used for dependencies required at runtime but which are provided by the environment in which the WAR is deployed.
+Dependencies declared here are visible to the `main` and `test` runtime classpaths, but are excluded from the WAR archive.
+
+</dd>
+</dl>
+
+:::note
+It is important to note that these `provided` configurations work transitively.
+Let’s say you add `commons-httpclient:commons-httpclient:3.0` to any of the provided configurations.
+This dependency has a dependency on `commons-codec`.
+Because this is a "provided" configuration, this means that neither of these dependencies will be added to your WAR, even if the `commons-codec` library is an explicit dependency of your `implementation` configuration.
+If you don’t want this transitive behavior, simply declare your `provided` dependencies like `commons-httpclient:commons-httpclient:3.0@jar`.
+:::
+
+### `providedCompile` versus `compileOnly`
+
+The War plugin’s `provided` configurations are not the same as the <Xref page="java-plugin" section="Dependency management">`compileOnly`</Xref> configuration added by the <Xref page="java-plugin" section="The Java Plugin">Java plugin</Xref>, and the two are not interchangeable:
+
+<dl>
+<dt>`compileOnly`</dt>
+<dd>
+
+Dependencies are available on the compile classpath only.
+They are _not_ on any runtime classpath (including the test runtime classpath) and are never packaged.
+Use it for dependencies that are needed solely to compile, such as annotation-only libraries.
+
+</dd>
+<dt>`providedCompile` (and `providedRuntime`)</dt>
+<dd>
+
+Dependencies are available on the runtime classpath as well (including the test runtime classpath), so your tests can run against them, but they are excluded from the WAR archive.
+Use these for dependencies that the servlet container or application server supplies at deployment time, such as the Servlet API.
+
+</dd>
+</dl>
+
+## Publishing
+
+<dl>
+<dt>`components.web`</dt>
+<dd>
+
+A <JavaDocLink class="org.gradle.api.component.SoftwareComponent" /> for <Xref page="publishing-setup" section="Publishing a project as module">publishing</Xref> the production WAR created by the `war` task.
+
+</dd>
+</dl>
+
+## War
+
+The default behavior of the `War` task is to copy the content of `src/main/webapp` to the root of the archive. Your `webapp` directory may of course contain a `WEB-INF` sub-directory, which may contain a `web.xml` file. Your compiled classes are copied to `WEB-INF/classes`. The libraries on the `runtimeClasspath` configuration, minus those declared in the `providedRuntime` configuration, are copied to `WEB-INF/lib`.
+
+The <GroovyDocLink class="org.gradle.api.tasks.bundling.War" /> class in the API documentation has additional useful information.
+
+The most commonly configured properties of the `War` task are:
+
+<dl>
+<dt>`webAppDirectory` — <JavaDocLink class="org.gradle.api.file.DirectoryProperty" /></dt>
+<dd>
+
+The directory whose contents are copied to the root of the archive.
+The `war` plugin sets the default value to `src/main/webapp`.
+
+</dd>
+<dt>`classpath` — <JavaDocLink class="org.gradle.api.file.FileCollection" /></dt>
+<dd>
+
+The classpath to include in the archive.
+Directories on the classpath are added to `WEB-INF/classes` and JAR or ZIP files are added to `WEB-INF/lib`.
+The `war` plugin sets the default value to `sourceSets.main.runtimeClasspath` minus the `providedRuntime` configuration.
+
+</dd>
+<dt>`webXml` — `File`</dt>
+<dd>
+
+The `web.xml` file to copy to `WEB-INF/web.xml`.
+When not set, no `web.xml` file is included in the archive.
+
+:::note
+An incubating replacement, `webXmlFile` (a <JavaDocLink class="org.gradle.api.file.RegularFileProperty" />), was introduced in Gradle 9.7.0.
+:::
+
+</dd>
+<dt>`webInf`</dt>
+<dd>
+
+Adds a nested <GroovyDocLink class="org.gradle.api.file.CopySpec" /> whose contents are copied into the `WEB-INF` directory of the archive.
+
+</dd>
+</dl>
+
+## Customizing
+
+Here is an example with the most important customization options:
+
+<SampleScripts sample_name="customized" basename="build" tag="customization" source_dir="snippets/reference/core-plugins/customized" />
+
+Of course one can configure the different file-sets with a closure to define excludes and includes.

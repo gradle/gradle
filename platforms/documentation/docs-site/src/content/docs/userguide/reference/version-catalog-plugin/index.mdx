@@ -1,0 +1,97 @@
+---
+title: "The Version Catalog Plugin"
+description: "The Version Catalog plugin: publishing a version catalog as a Maven or Ivy artifact for other builds to consume."
+---
+
+import { GroovyDocLink, JavaDocLink, SampleScripts, Xref } from '#/components';
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+
+The Version Catalog Plugin (plugin id: `version-catalog`) lets you publish a <Xref page="version-catalogs" section="Version Catalogs">version catalog</Xref> as a Maven or Ivy artifact, so it can be consumed like any other dependency by independent Gradle builds.
+It works with both an existing `libs.versions.toml` file and programmatic catalog declarations.
+
+For an introduction to version catalogs themselves — the TOML format, aliases, bundles, and how to consume them — see <Xref page="version-catalogs" section="Version Catalogs">Version Catalogs</Xref>.
+
+## Usage
+
+To use the Version Catalog Plugin, include the following in your build script:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin title="build.gradle.kts"
+plugins {
+    `version-catalog`
+    `maven-publish`
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy title="build.gradle"
+plugins {
+    id 'version-catalog'
+    id 'maven-publish'
+}
+```
+
+</TabItem>
+</Tabs>
+
+Applying the plugin adds a `catalog` extension, a `generateCatalogAsToml` task, and registers a `versionCatalog` software component for publishing.
+
+## Tasks
+
+<dl>
+<dt>`generateCatalogAsToml` (type `TomlFileGenerator`)</dt>
+<dd>
+
+Generates the version catalog TOML file from the configured catalog.
+The default output location is `layout.buildDirectory.file("version-catalog/libs.versions.toml")`.
+When the <Xref page="base-plugin" section="The Base Plugin">Base Plugin</Xref> is applied — for example, transitively by a publishing plugin — this task is wired into the `assemble` lifecycle task.
+
+</dd>
+</dl>
+
+## Dependency management
+
+The Version Catalog Plugin adds the following dependency configurations:
+
+<dl>
+<dt>`versionCatalog`</dt>
+<dd>
+
+_Declarable._ Used to declare the platforms and dependencies whose coordinates and versions make up the generated catalog.
+
+</dd>
+<dt>`versionCatalogElements`</dt>
+<dd>
+
+_Consumable._ Exposes the generated TOML catalog as an artifact for publishing and consumption, with the `org.gradle.category=platform` and `org.gradle.usage=version-catalog` attributes.
+This configuration backs the `versionCatalog` component.
+
+</dd>
+</dl>
+
+## Contributed extension
+
+The plugin adds the <GroovyDocLink class="org.gradle.api.plugins.catalog.CatalogPluginExtension">`catalog`</GroovyDocLink> extension to the project.
+Configure the catalog contents through its nested `versionCatalog { }` block, which exposes a <JavaDocLink class="org.gradle.api.initialization.dsl.VersionCatalogBuilder" />.
+
+If you already have a `gradle/libs.versions.toml` file, you can publish it directly by importing it — keeping the TOML file as the single source of truth:
+
+<SampleScripts sample_name="catalogs-publish-toml-file" basename="build" tag="publish_toml_file" source_dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-publishTomlFile" />
+
+Alternatively, declare the catalog entries programmatically:
+
+<SampleScripts sample_name="catalogs-version-catalog-plugin" basename="build" tag="catalog_spec" source_dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-versionCatalogPlugin" />
+
+## Publishing
+
+The plugin registers a `versionCatalog` <Xref page="publishing-setup" section="Publishing a project as module">software component</Xref>.
+Attach it to a Maven or Ivy publication to publish the catalog:
+
+<SampleScripts sample_name="catalogs-version-catalog-plugin" basename="build" tag="catalog_publish" source_dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-versionCatalogPlugin" />
+
+Running `./gradlew publish` uploads the catalog as an artifact (with the `.toml` extension).
+Consumers then <Xref page="version-catalogs" section="Importing a published catalog">import it</Xref> in their `settings.gradle(.kts)` file using standard dependency notation.

@@ -1,0 +1,24 @@
+abstract class GenerateDataTask extends DefaultTask {
+    @OutputFile
+    abstract RegularFileProperty getOutputFile()
+
+    @TaskAction
+    void run() {
+        outputFile.get().asFile.text = 'data'
+    }
+}
+
+// tag::avoid[]
+def generateData = tasks.register('generateData', GenerateDataTask) {
+    outputFile = layout.buildDirectory.file('data.json')
+}
+
+tasks.register('processData') {
+    dependsOn generateData
+    doLast {
+        // BAD: reading another task's property at execution time
+        def source = generateData.get().outputFile.get().asFile
+        println "Processing ${source.text}"
+    }
+}
+// end::avoid[]

@@ -1,0 +1,5 @@
+> Task :printAppInfo
+App: my-app
+Jar: my-app.jar
+
+BUILD SUCCESSFUL in 0s

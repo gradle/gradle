@@ -1,0 +1,191 @@
+---
+title: "Platforms"
+description: "Platforms: modules that share a set of dependency versions with the projects that depend on them."
+---
+
+import { JavaDocLink, SampleScripts, Xref } from '#/components';
+import { TabItem, Tabs } from '@astrojs/starlight/components';
+
+{/* converter-gap: node=pass
+<script>
+const currentAnchor = window.location.hash.substring(1); // Remove the '#' symbol
+
+const redirectionRules = {
+"sub::toml-dependencies-format": "version_catalogs.html#sec::toml-dependencies-format",
+};
+
+if (currentAnchor && redirectionRules[currentAnchor]) {
+window.location.href = redirectionRules[currentAnchor];
+}
+</script>
+*/}
+
+Platforms ensure that all dependencies in a project use a coordinated set of versions.
+
+Platforms help you manage and enforce version consistency across modules or libraries, especially when working with a set of related dependencies that need to stay in sync.
+
+:::note
+Platforms influence dependency resolution by applying or enforcing versions across the dependency graph. <Xref page="version-catalogs" section="Version Catalogs">Version catalogs</Xref> also centralize dependency versions but do not affect resolution — they provide type-safe accessors and consistent coordinates. For guidance on when to use each approach, see <Xref page="centralizing-catalog-platform" section="Using Catalogs with Platforms">Using Catalogs with Platforms</Xref>.
+:::
+
+## Using a Platform
+
+A platform is a specialized software component that controls transitive dependency versions.
+Typically, it consists of <Xref page="dependency-constraints" section="Adding constraints on transitive dependencies">dependency constraints</Xref> that either recommend or enforce specific versions.
+Platforms are particularly useful when you need to share consistent dependency versions across multiple projects.
+
+For example, a local `platform` project looks as follows:
+
+<SampleScripts sample_name="recommender" basename="build" subpath="platform" tag="define-platform" source_dir="snippets/reference/dependency-management/centralizing-dependencies/recommender" />
+
+To use a platform, declare a dependency with the <JavaDocLink class="org.gradle.api.artifacts.dsl.DependencyHandler" method="platform(java.lang.Object)">`platform`</JavaDocLink> keyword in your `dependencies {}` block:
+
+<SampleScripts sample_name="recommender" basename="build" subpath="consumer" tag="get-recommendations" source_dir="snippets/reference/dependency-management/centralizing-dependencies/recommender" />
+
+For details of the published `junit` platform, see its [Maven repository page](https://mvnrepository.com/artifact/org.junit/junit-bom/5.10.0).
+
+The `platform` notation automatically performs several actions:
+
+- Sets the <JavaDocLink class="org.gradle.api.attributes.Category">`org.gradle.category` attribute</JavaDocLink> to platform, ensuring Gradle selects the platform component. See the <Xref page="variant-attributes" section="Variants and Attributes">Attributes</Xref> documentation to learn more.
+- Enables the <JavaDocLink class="org.gradle.api.artifacts.ModuleDependency" method="endorseStrictVersions--">`endorseStrictVersions`</JavaDocLink> behavior by default, enforcing strict versions defined in the platform. Check out the [Strict Version Enforcement section below](#sec:endorsing-platform-strict-versions) to learn more.
+
+Custom platforms like the `platform` project above are created with the <Xref page="java-platform-plugin" section="The Java Platform Plugin">`java-platform plugin`</Xref> and can be published as Maven BOMs (Bill of Materials) for consumption by other projects (such as the `junit-bom`).
+
+## Creating a Platform
+
+In Java projects, the `java-platform` plugin combined with <Xref page="dependency-constraints" section="Declaring Dependency Constraints">dependency constraints</Xref> can be used to create a platform:
+
+<SampleScripts sample_name="create-platform" basename="build" tag="create-platform" source_dir="snippets/java-platform/createPlatform" />
+
+Subprojects that depend on this platform inherit the declared versions without specifying them directly.
+
+If used as a [regular platform](#sec:regular-platform), this platform would set the following constraints:
+
+```text
+> Task :showConstraints
+
+Constraints published by this platform:
+  com.google.code.gson:gson:2.10.1
+  org.apache.commons:commons-lang3:3.14.0
+  org.slf4j:slf4j-api:2.0.9
+```
+
+If used as an [enforced platform](#sec:enforced-platform), this platform would set the same constraints with a `strictly` on the version.
+
+## Importing a Platform (BOM)
+
+Gradle supports importing [BOMs](https://maven.apache.org/guides/introduction/introduction-to-dependency-mechanism.html#Bill_of_Materials_.28BOM.29_POMs), which are POM files containing `<dependencyManagement>` sections that manage dependency versions.
+
+Traditionally, a BOM is a POM file with `<packaging>pom</packaging>` and a `<dependencyManagement>` block.
+Gradle, however, derives a platform variant from every Maven POM it consumes, so any POM with a `<dependencyManagement>` block can be imported as a platform, not just a traditional BOM.
+
+Gradle treats all `<dependencyManagement>` entries in a POM consumed as a platform as constraints, like <Xref page="dependency-constraints" section="Adding constraints on transitive dependencies">Adding Constraints On Dependencies</Xref>.
+
+### Regular Platform
+
+To import a BOM, declare a dependency on it using the <JavaDocLink class="org.gradle.api.artifacts.dsl.DependencyHandler" method="platform(java.lang.Object)">`platform`</JavaDocLink> dependency modifier method:
+
+<SampleScripts sample_name="managing-transitive-dependencies-constraints-from-b-o-m" basename="build" tag="dependency-on-bom" source_dir="snippets/reference/dependency-management/centralizing-dependencies/managingTransitiveDependencies-constraintsFromBOM" />
+
+In this example, the Spring Boot BOM provides the versions for `gson` and `dom4j`, so no explicit versions are needed.
+
+### Enforced Platform
+
+When you import a BOM using <JavaDocLink class="org.gradle.api.artifacts.dsl.DependencyHandler" method="platform(java.lang.Object)">`platform`</JavaDocLink>, the versions it defines act as recommendations; they can be upgraded by other dependencies in the graph.
+To prevent upgrades and lock all versions from a BOM, use <JavaDocLink class="org.gradle.api.artifacts.dsl.DependencyHandler" method="enforcedPlatform(java.lang.Object)">`enforcedPlatform`</JavaDocLink>:
+
+<SampleScripts sample_name="managing-transitive-dependencies-enforced-constraints-from-b-o-m" basename="build" tag="dependency-on-bom" source_dir="snippets/reference/dependency-management/centralizing-dependencies/managingTransitiveDependencies-enforcedConstraintsFromBOM" />
+
+Under the hood, `enforcedPlatform` converts every version constraint from the BOM into a <Xref page="dependency-versions" section="`strictly` or `!!`">`strictly`</Xref> declaration.
+This means that no dependency in the graph can be upgraded past the versions defined in the BOM.
+
+:::tip
+You can verify this on your own build: `./gradlew dependencyInsight --dependency <module>` shows the enforced version with a `{strictly <version>}` annotation, and `./gradlew dependencies` shows the platform itself pinned with `{strictly <version>}`.
+:::
+
+## `enforcedPlatform` vs. `strictly`
+
+A good rule to follow:
+
+- Use `enforcedPlatform` to pin **all** versions from a BOM as a group.
+- Use `strictly` on individual dependencies when you only need to control one or two specific modules.
+
+Using `platform` together with a `strictly` constraint on individual modules can bypass the BOM’s coordinated version management.
+The example below imports a BOM with `platform` and applies `strictly` to only one module from the group.
+The resolved versions are then driven by the `strictly` constraint and its transitive dependencies rather than the BOM:
+
+<SampleScripts sample_name="managing-transitive-dependencies-platform-with-strictly-misalignment" basename="build" tag="platform-strictly-misalignment" source_dir="snippets/dependencyManagement/managingTransitiveDependencies-platformWithStrictlyMisalignment" />
+
+Here, `log4j-core` resolves to `2.17.0` because of the `strictly` constraint, and `log4j-api` is also pulled to `2.17.0` as a transitive dependency of `log4j-core`, not because the BOM recommended it:
+
+```text
+runtimeClasspath - Runtime classpath of source set 'main'.
++--- org.apache.logging.log4j:log4j-bom:2.16.0
+|    +--- org.apache.logging.log4j:log4j-core:2.16.0 -> 2.17.0 (c)
+|    \--- org.apache.logging.log4j:log4j-api:2.16.0 -> 2.17.0 (c)
+\--- org.apache.logging.log4j:log4j-core:{strictly [2.17, 3[; prefer 2.17.0} -> 2.17.0
+     \--- org.apache.logging.log4j:log4j-api:2.17.0
+```
+
+With modules that do not share a transitive relationship, siblings could remain at the older BOM version, leading to mismatched versions within the same group.
+
+To keep the group’s versions coordinated, either upgrade the BOM version itself, or use `enforcedPlatform` with the newer BOM:
+
+<SampleScripts sample_name="managing-transitive-dependencies-enforced-platform-alignment" basename="build" tag="enforced-platform-alignment" source_dir="snippets/dependencyManagement/managingTransitiveDependencies-enforcedPlatformAlignment" />
+
+:::caution
+`enforcedPlatform` should generally only be used in applications, not in libraries or other components consumed by others.
+:::
+
+Because `enforcedPlatform` converts all BOM constraints to `strictly`, these strict versions propagate transitively to every consumer of your project.
+Consumers who need a different version cannot simply declare it.
+They must either override with their own `strictly` higher in the dependency graph, or apply a <Xref page="component-metadata-rules" section="Modifying Dependency Metadata">component metadata rule</Xref> that calls `doNotEndorseStrictVersions()` on the transitive platform dependency.
+
+If you are publishing a library that depends on specific third-party versions, prefer using <Xref page="dependency-versions" section="Declaring rich versions">rich version declarations</Xref> with `strictly` and a range on only the dependencies that require it:
+
+<SampleScripts sample_name="managing-transitive-dependencies-library-friendly-strictly" basename="build" tag="library-friendly-strictly" source_dir="snippets/dependencyManagement/managingTransitiveDependencies-libraryFriendlyStrictly" />
+
+This gives consumers the flexibility to choose any compatible version within the range.
+
+## Strict Version Endorsement
+
+With platforms, by default, `strictly` versions declared in the platform are handled as if the consuming project declared them directly.
+This matters because `strictly` has <Xref page="dependency-versions" section="Consequences of using strict versions">significant consequences</Xref> for the resolved graph.
+This behavior is controlled by `endorseStrictVersions`, which `platform()` enables by default.
+
+Without endorsement, a platform’s `strictly` constraints are treated as regular version recommendations in the consumer’s dependency graph; they will not prevent transitive upgrades outside the subgraph the platform controls.
+
+If you do not need the platform’s strict constraints to propagate, you can disable endorsement:
+
+<Tabs syncKey="script-language">
+<TabItem label="Kotlin">
+
+```kotlin
+dependencies {
+    // The platform's strictly declarations will NOT be enforced in this project.
+    // Transitive dependencies may upgrade past the versions the platform intended to pin.
+    implementation(platform("com.example:my-platform:1.0")) {
+        doNotEndorseStrictVersions()
+    }
+}
+```
+
+</TabItem>
+<TabItem label="Groovy">
+
+```groovy
+dependencies {
+    // The platform's strictly declarations will NOT be enforced in this project.
+    // Transitive dependencies may upgrade past the versions the platform intended to pin.
+    implementation(platform('com.example:my-platform:1.0')) {
+        doNotEndorseStrictVersions()
+    }
+}
+```
+
+</TabItem>
+</Tabs>
+
+:::tip
+If you create a platform with `strictly` constraints and your consuming project does not seem to enforce them, verify that `endorseStrictVersions` has not been disabled. The `platform()` keyword enables it by default, but importing a platform without this keyword (e.g., as a regular dependency) will not endorse its strict versions.
+:::

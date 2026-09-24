@@ -1,0 +1,210 @@
+---
+title: "Tooling API"
+description: "The Tooling API for embedding Gradle in another application: executing builds, querying models and receiving progress events."
+---
+
+import { JavaDocLink, SampleFile, SampleScripts, Xref } from '#/components';
+
+## Embedding Gradle using the Tooling API
+
+### Introduction to the Tooling API
+
+Gradle provides a programmatic API called the Tooling API, which you can use for embedding Gradle into your own software. This API allows you to execute and monitor builds and to query Gradle about the details of a build. The main audience for this API is IDE, CI server, other UI authors; however, the API is open for anyone who needs to embed Gradle in their application.
+
+- <Xref page="test-kit" section="Testing Build Logic with TestKit">Gradle TestKit</Xref> uses the Tooling API for functional testing of your Gradle plugins.
+- [Eclipse Buildship](http://projects.eclipse.org/projects/tools.buildship) uses the Tooling API for importing your Gradle project and running tasks.
+- [IntelliJ IDEA](https://www.jetbrains.com/idea/) uses the Tooling API for importing your Gradle project and running tasks.
+
+### Tooling API Features
+
+A fundamental characteristic of the Tooling API is that it operates in a version independent way.
+This means that you can use the same API to work with builds that use different versions of Gradle, including versions that are newer or older than the version of the Tooling API that you are using.
+The Tooling API is Gradle wrapper aware and, by default, uses the same Gradle version as that used by the wrapper-powered build.
+
+Some features that the Tooling API provides:
+
+- Query the details of a build, including the project hierarchy and the project dependencies, external dependencies (including source and Javadoc jars), source directories and tasks of each project.
+- Execute a build and listen to stdout and stderr logging and progress messages (e.g. the messages shown in the 'status bar' when you run on the command line).
+- Execute a specific test class or test method.
+- Receive interesting events as a build executes, such as project configuration, task execution or test execution.
+- Cancel a build that is running.
+- Combine multiple separate Gradle builds into a single composite build.
+- The Tooling API can download and install the appropriate Gradle version, similar to the wrapper.
+- The implementation is lightweight, with only a small number of dependencies.
+It is also a well-behaved library, and makes no assumptions about your classloader structure or logging configuration.
+This makes the API easy to embed in your application.
+
+### Tooling API and the Gradle Build Daemon
+
+The Tooling API always uses the Gradle daemon.
+This means that subsequent calls to the Tooling API, be it model building requests or task executing requests will be executed in the same long-living process.
+<Xref page="gradle-daemon" section="Gradle Daemon">Gradle Daemon</Xref> contains more details about the daemon, specifically information on situations when new daemons are forked.
+
+### Quickstart
+
+As the Tooling API is an interface for developers, the Javadoc is the main documentation for it.
+
+To use the Tooling API, add the following repository and dependency declarations to your build script:
+
+<SampleScripts sample_name="run-build" basename="build" tag="use-tooling-api" source_dir="snippets/integration/runBuild" />
+
+The main entry point to the Tooling API is the <JavaDocLink class="org.gradle.tooling.GradleConnector" />.
+You can navigate from there to find code samples and explore the available Tooling API models.
+You can use <JavaDocLink class="org.gradle.tooling.GradleConnector" method="connect--">GradleConnector.connect()</JavaDocLink> to create a <JavaDocLink class="org.gradle.tooling.ProjectConnection" />.
+A `ProjectConnection` connects to a single Gradle project.
+Using the connection you can execute tasks, tests and retrieve models relative to this project.
+
+### Compatibility of Java and Gradle versions
+
+The following components should be considered when implementing Gradle integration: the Tooling API version, The JVM running the Tooling API client (i.e. the IDE process), the JVM running the Gradle daemon, and the Gradle version.
+
+The Tooling API itself is a Java library published as part of the Gradle release.
+Each Gradle release has a corresponding Tooling API version with the same version number.
+
+The Tooling API classes are loaded into the client’s JVM, so they should have a matching version.
+The current version of the Tooling API library is compiled with Java 8 compatibility.
+
+The JVM running the Tooling API client and the one running the daemon can be different.
+At the same time, classes that are sent to the build via custom build actions need to be targeted to the lowest supported Java version.
+The JVM versions supported by Gradle is version-specific.
+The upper bound is defined in the <Xref page="compatibility" section="Compatibility Matrix">compatibility matrix</Xref>.
+The rule for the lower bound is the following:
+
+- Gradle 4.x requires a minimum version of Java 7.
+- Gradle 5 and above require a minimum version of Java 8.
+
+The Tooling API version is guaranteed to support running builds with all Gradle versions for the last five major releases.
+For example, the Tooling API 9.0.0 release is compatible with Gradle versions \>= 4.0.
+Besides, the Tooling API is guaranteed to be compatible with future Gradle releases for the current and the next major.
+This means, for example, that the 8.1 version of the Tooling API will be able to run Gradle 9.x builds and _might_ break with Gradle 10.
+
+## Querying tooling models with build actions
+
+A <JavaDocLink class="org.gradle.tooling.BuildAction" /> runs inside the Gradle process and receives a <JavaDocLink class="org.gradle.tooling.BuildController" />.
+The controller exposes several ways to query tooling models for the build, for individual projects, or for included builds.
+
+### `getModel`/`findModel` versus `fetch`
+
+The classic ways to query a model from a `BuildAction` are <JavaDocLink class="org.gradle.tooling.BuildController" method="getModel(java.lang.Class)">`BuildController.getModel(…​)`</JavaDocLink> and <JavaDocLink class="org.gradle.tooling.BuildController" method="findModel(java.lang.Class)">`BuildController.findModel(…​)`</JavaDocLink>:
+
+- `getModel(…​)` returns the requested model, or throws an exception if the model cannot be built — for example because the target project’s configuration script fails to evaluate.
+- `findModel(…​)` returns `null` when the model type is not supported, but still propagates exceptions thrown while building the model.
+
+When either of these calls throws, the build action itself fails.
+Any models that were already collected by the action are discarded, and the client receives a single failure for the whole sync.
+
+Starting with Gradle 9.3, <JavaDocLink class="org.gradle.tooling.BuildController" method="fetch(java.lang.Class)">`BuildController.fetch(…​)`</JavaDocLink> offers a resilient alternative.
+Each `fetch(…​)` call returns a <JavaDocLink class="org.gradle.tooling.FetchModelResult" /> that carries:
+
+- The fetched model — accessible via `FetchModelResult.getModel()`, or `null` if the model could not be built.
+- Any failures encountered while building the model — accessible via `FetchModelResult.getFailures()` as a collection of <JavaDocLink class="org.gradle.tooling.Failure" /> values.
+
+Unlike `getModel`/`findModel`, `fetch(…​)` does not throw when the build-side fails to produce the model.
+The build action can inspect the failures, decide whether to continue, and request more models.
+This is the recommended API for IDEs and tools that want to deliver a partial sync result when part of the build is broken, rather than failing the whole operation on the first error:
+
+<SampleFile sample_name="fetch-model" path="common/src/main/java/org/gradle/sample/FetchEclipseModelAction.java" tag="fetch-action" source_dir="snippets/integration/fetchModel" />
+
+:::note
+`BuildController.fetch(…​)` is incubating and may change in future releases.
+The API requires a Tooling API client and a target Gradle version of 9.3 or later.
+The resilient daemon-side behaviour — returning a partial model together with failures — requires Gradle 9.4 or later.
+:::
+
+### Resilient sync
+
+The Gradle 9.4 release completes the daemon-side support for _resilient sync_: building tooling models for as much of the build as configured successfully, and reporting the rest as structured failures instead of aborting the whole operation.
+
+When the build action queries models through `BuildController.fetch(…​)`, the daemon will:
+
+- Continue model building for `buildSrc` and included builds that configured successfully even when other parts of the build fail.
+- Return a partial <JavaDocLink class="org.gradle.tooling.model.gradle.GradleBuild" /> model that includes every project Gradle was able to discover from the settings script, along with the collected failures, so the IDE can present a best-effort project structure.
+- Return a partial <JavaDocLink class="org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel" /> that carries editor data for the Kotlin DSL scripts Gradle was able to resolve, with the unresolved scripts reported through `FetchModelResult.getFailures()`.
+- Serve any other tooling model for `buildSrc` and included builds whose configuration succeeded — for example, an IDE can still obtain an `EclipseProject` or `IdeaProject` model for the parts of a composite build that configured cleanly, while the failing parts are reported as failures on the corresponding `fetch(…​)` calls.
+
+There is no separate opt-in: using `fetch(…​)` enables the resilient behaviour for that call.
+Calls made through `getModel(…​)` or `findModel(…​)` continue to fail fast as before.
+
+Resilient sync affects which models can be built, not whether the operation succeeds: starting with the Gradle 9.7 daemon, a broken part of the build still fails the operation as a whole.
+See [Reading intermediate models with a phased build action](#sec:embedding_phased_action_example) for how a client receives the partial models in that case.
+
+#### Version compatibility
+
+Resilient sync requires Tooling API 9.3.0 or later and a target Gradle version that supports the behavior you rely on:
+
+- Gradle 9.3.0: The `fetch(…​)` methods and `FetchModelResult` are available.
+- Gradle 9.4.0: Partial build models, returned when a settings script or a settings plugin fails.
+- Gradle 9.7.0: Reporting a resilient sync that partially failed as a failed operation. In earlier versions, such an operation could complete successfully, with the failures reported only through `FetchModelResult.getFailures()`.
+- Gradle 9.8.0: <JavaDocLink class="org.gradle.tooling.Failure" method="getOwnDescription()" /> is available on failures returned by `FetchModelResult.getFailures()`, providing the per-node description without the cause subtree. Returns `null` when the target Gradle version is earlier than 9.7.0.
+
+#### Traversing failure trees efficiently
+
+When a build failure is shared across multiple fetch results, for example, a single configuration error that affects several projects, Gradle reuses the same <JavaDocLink class="org.gradle.tooling.Failure" /> instance for each occurrence.
+Clients can exploit this with an `IdentityHashMap` to visit each unique failure node exactly once:
+
+```java
+IdentityHashMap<Failure, Void> visited = new IdentityHashMap<>();
+
+void visit(Failure failure) {
+    if (visited.putIfAbsent(failure, null) != null) {
+        return; // already processed this node
+    }
+    String ownText = failure.getOwnDescription(); // null for daemons older than 9.7
+    if (ownText != null) {
+        process(ownText);
+    } else {
+        process(failure.getDescription());
+        return; // causes already included in the full description
+    }
+    for (Failure cause : failure.getCauses()) {
+        visit(cause);
+    }
+}
+```
+
+<JavaDocLink class="org.gradle.tooling.Failure" method="getOwnDescription()" /> is available when the Tooling API and target Gradle version are both 9.8.0 or later.
+When the target Gradle version is earlier than 9.7.0, it returns `null`, and you should fall back to <JavaDocLink class="org.gradle.tooling.Failure" method="getDescription()" /> on the root node.
+
+### Reading intermediate models with a phased build action
+
+A phased build action, created via <JavaDocLink class="org.gradle.tooling.ProjectConnection" method="action()" />, can query models at two points in the build lifecycle:
+
+- The `projectsLoaded` action runs after the settings have been evaluated, before any project is configured.
+This is the place to query models that describe the build structure, such as <JavaDocLink class="org.gradle.tooling.model.gradle.GradleBuild" />.
+- The `buildFinished` action runs at the end of the invocation, after any scheduled tasks have executed.
+
+The result of each action is delivered to its <JavaDocLink class="org.gradle.tooling.IntermediateResultHandler" /> while the build is still running, as soon as the corresponding phase completes.
+The executer produces no final value: `run()` returns `Void`, and the models arrive only through the intermediate handlers.
+
+The following example queries the build structure once projects are loaded, and fetches an Eclipse model at the end of the build, reusing the `FetchEclipseModelAction` shown [above](#sec:embedding_get_find_vs_fetch):
+
+<SampleFile sample_name="fetch-model" path="common/src/main/java/org/gradle/sample/FetchBuildStructureAction.java" tag="projects-loaded-action" source_dir="snippets/integration/fetchModel" />
+<SampleFile sample_name="fetch-model" path="common/src/main/java/org/gradle/sample/PhasedSync.java" tag="phased-sync" source_dir="snippets/integration/fetchModel" />
+
+:::note
+Starting with the Gradle 9.7 daemon, a resilient sync still fails as a whole when any part of it fails: `run()` throws, even though the intermediate handlers have already received their models.
+A single action passed to <JavaDocLink class="org.gradle.tooling.ProjectConnection" method="action(org.gradle.tooling.BuildAction)">`ProjectConnection.action(BuildAction)`</JavaDocLink> loses its result in that case, so use a phased build action and read the models from the intermediate handlers.
+:::
+
+### Running tasks together with a build action
+
+A build action can request that tasks run as part of the same Gradle invocation:
+
+- <JavaDocLink class="org.gradle.tooling.BuildActionExecuter" method="forTasks(java.lang.String&#8230;&#8203;)">`BuildActionExecuter.forTasks(…​)`</JavaDocLink> schedules tasks that run before the action executes.
+Passing an empty array runs the build’s default tasks.
+Omitting the call (or passing `null`) skips task execution entirely.
+- For a phased build action, the scheduled tasks run after the `projectsLoaded` action and before the `buildFinished` action.
+
+Prior to Gradle 9.4, if any of the scheduled tasks failed, Gradle aborted the invocation before the model-producing action got a chance to run.
+The `buildFinished` action of a phased build was skipped entirely, and the client only received the task failure.
+
+Starting with Gradle 9.4, the model-producing action — including the `buildFinished` action of a phased build — runs even when scheduled tasks fail.
+The task failures are still reported to the client as a build failure, but the action gets a chance to collect and deliver its result first through the <JavaDocLink class="org.gradle.tooling.IntermediateResultHandler" />.
+
+Combined with `BuildController.fetch(…​)`, this means an IDE can:
+
+- Schedule preparatory tasks (for example, code generation) before sync.
+- Still receive useful model information when one of those tasks fails, instead of an opaque build failure.
+
+Note that an action that uses `getModel(…​)` may itself fail when it queries a model whose underlying configuration was disturbed by the task failure.
+Use `fetch(…​)` to inspect the failures and continue building remaining models.

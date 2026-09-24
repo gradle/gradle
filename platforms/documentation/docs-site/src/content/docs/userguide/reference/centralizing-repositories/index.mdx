@@ -1,0 +1,144 @@
+---
+title: "Centralizing Repository Declarations"
+description: "Declaring repositories once for the whole build through settings, rather than per subproject."
+---
+
+import { SampleFile, SampleScripts, Xref } from '#/components';
+
+Instead of declaring repositories in every subproject of your build or via an `allprojects` block, Gradle provides a way to declare them centrally for all projects.
+
+:::note
+Central declaration of repositories is an incubating feature.
+:::
+
+You can declare repositories that will be used by convention in every subproject in the `settings.gradle(.kts)` file:
+
+<SampleScripts sample_name="define-repository-in-settings" basename="settings" tag="declare_repositories_settings" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepositoryInSettings" />
+
+The `dependencyResolutionManagement` repositories block accepts the same notations as in a project, including Maven or Ivy repositories, with or without credentials.
+
+## Repositories mode
+
+By default, repositories declared in a project’s `build.gradle(.kts)` file will override those declared in `settings.gradle(.kts)`.
+However, you can control this behavior using the `repositoriesMode` setting:
+
+<SampleScripts sample_name="define-repository-in-settings" basename="settings" tag="prefer_projects" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepositoryInSettings" />
+
+## Available modes
+
+There are three modes for dependency resolution management:
+
+| Mode | Description | Default? | Use-Case |
+| --- | --- | --- | --- |
+| `PREFER_PROJECT` | Repositories declared in a project override those declared in `settings.gradle(.kts)`. | Yes | Useful when teams need to use different repositories specific to their subprojects. |
+| `PREFER_SETTINGS` | Repositories declared in `settings.gradle(.kts)` override those declared in a project. | No | Useful for enforcing the use of approved repositories across large teams. |
+| `FAIL_ON_PROJECT_REPOS` | Declaring a repository in a project triggers a build error. | No | Strictly enforces the use of repositories declared in `settings.gradle(.kts)`. |
+
+You can change the behavior to prefer the repositories in `settings.gradle(.kts)`:
+
+<SampleScripts sample_name="define-repository-in-settings" basename="settings" tag="prefer_settings" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepositoryInSettings" />
+
+Gradle will warn you if a project or plugin declares a repository when using this mode.
+
+To enforce that **only** repositories declared in `settings.gradle(.kts)` are used, you can configure Gradle to fail the build when a project plugin is declared:
+
+<SampleScripts sample_name="define-repository-in-settings" basename="settings" tag="enforce_settings" source_dir="snippets/reference/dependency-management/declaring-repositories/defineRepositoryInSettings" />
+
+## Reusing mirror settings from Maven
+
+:::caution
+This is an incubating feature and is disabled by default.
+:::
+
+Organizations that already build with Maven often use an internal
+repository manager by declaring a `<mirror>` in `~/.m2/settings.xml`. Gradle can read those same mirrors instead of requiring the configuration to be duplicated in your build. This is meant for teams with a working Maven mirror setup to reuse those mirrors in Gradle. This is not a general-purpose way to redirect repositories.
+
+Gradle will only replace HTTP/HTTPS Maven repositories that match mirror declarations in Maven settings. Local file, S3, GCS and Ivy repositories are unaffected. Maven repositories can be used for build script dependencies as well as project dependencies, so the Gradle Plugin Portal is also affected by Maven mirrors; see [which id a repository is matched by](#sec:maven-mirror-ids) to mirror it or leave it alone.
+
+If you are not already using mirrors defined in
+Maven’s `settings.xml`, prefer configuring repositories directly in your build or setting up a mirror init script, as described in
+[Good Neighbors: How to Reduce Maven Central Traffic from Gradle Builds](https://blog.gradle.org/maven-central-mirror).
+
+Enable Maven mirror reuse with the `org.gradle.mirror.maven.settings` property, in `gradle.properties` or on the command line as a system property:
+
+<SampleFile sample_name="maven-settings-mirror" path="common/gradle.properties" tag="enable" source_dir="snippets/reference/dependency-management/declaring-repositories/maven-settings-mirror" />
+
+:::note
+This is a <Xref page="build-environment" section="Gradle properties">Gradle property</Xref>, so it is
+read from `gradle.properties` or from `-Dorg.gradle.mirror.maven.settings=true`. It is **not** a
+project property, so `-P` has no effect.
+:::
+
+With the property set, Gradle reads the mirrors from the user and global `settings.xml`, matches
+each Maven repository against them using Maven’s
+[`mirrorOf` grammar](https://maven.apache.org/guides/mini/guide-mirror-settings.html), and
+resolves from the mirror instead. Credentials come from the `<server>` entry whose id matches the
+**mirror** id, and encrypted passwords are decrypted with the Maven master password:
+
+**The Maven settings the build reads**
+
+<SampleFile sample_name="m2-home" path="settings.xml" tag="maven-settings" source_dir="snippets/reference/dependency-management/declaring-repositories/maven-settings-mirror/m2_home" />
+
+**The repository declared in the build, which the mirror above replaces**
+
+<SampleScripts sample_name="maven-settings-mirror" basename="build" tag="repositories" source_dir="snippets/reference/dependency-management/declaring-repositories/maven-settings-mirror" />
+
+See [Maven’s Password Encryption
+guide](https://maven.apache.org/guides/mini/guide-encryption.html) for how to set up the Maven master password and produce encrypted server passwords, and
+[the Settings Reference](https://maven.apache.org/settings.html) for the file as a whole.
+
+### Which id a repository is matched by
+
+A `mirrorOf` pattern matches repository **ids**. Gradle repositories do not have Maven ids, so Gradle matches each repository by name. This is the name set with `name =` in the repository block or the default name Gradle assigns.
+
+Maven Central is treated special. Maven uses the id `central` for Maven Central, so Gradle will match a repository with Maven Central’s URL as if its name is `central`.
+
+The Gradle Plugin Portal is matched by the name `Gradle Central
+Plugin Repository`. Spaces are part of the name, and the match must be exact:
+
+```xml
+<mirror>
+    <id>portal-mirror</id>
+    <mirrorOf>Gradle Central Plugin Repository</mirrorOf>
+    <url>https://repo.example.com/gradle-plugins</url>
+</mirror>
+```
+
+```xml
+<mirror>
+    <id>corp-mirror</id>
+    <mirrorOf>*,!Gradle Central Plugin Repository</mirrorOf>
+    <url>https://repo.example.com/maven</url>
+</mirror>
+```
+
+A `!` token excludes a repository whatever its position in the pattern, so
+`!Gradle Central Plugin Repository,*` behaves the same way.
+
+:::note
+`external:*` matches the Gradle Plugin Portal, because the portal is neither `localhost` nor a
+`file` URL. An `external:*` mirror needs the same `!` exclusion as `*` if the portal should not be
+mirrored.
+:::
+
+Maven’s `mirrorOf` grammar has no partial globs, so a repository cannot be matched by part of its
+name or by its host: `**Plugin**` and `plugins.gradle.org` match nothing. A pattern is split on
+commas and each token is trimmed, so a name containing a comma cannot be matched at all.
+
+### Publishing is not affected
+
+Mirrors apply to **resolution only**. Publishing always uploads to the repository URL declared in the build.
+
+### Unsupported Maven mirror settings
+
+Only mirrors and the `<server>` entries that back them are supported. All features may not be supported:
+
+- **Multiple HTTP headers per server.** Only the first `<httpHeaders>` entry is supported by Gradle.
+- **`<mirrorOfLayouts>`.** Gradle has a single repository layout, so the layout filter is ignored.
+- **The Maven 4 password encryption format.** Only the Maven 3 format produced by
+`mvn --encrypt-password` is understood.
+- **Everything else in `settings.xml`** Profiles, proxies, and `<pluginGroups>` do not apply to Gradle.
+
+A repository matched by a mirror keeps its Gradle name, but its resolved URL will become the mirror’s URL.
+Build scans and error messages will use the mirror URL.
+Enabling or disabling the `org.gradle.mirror.maven.settings` property may cause Gradle to recheck previously downloaded artifacts.

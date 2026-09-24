@@ -1,0 +1,36 @@
+// tag::do-this[]
+@CacheableTask // <1>
+abstract class GoodCalculatorTask extends DefaultTask {
+    @Input
+    abstract Property<Integer> getFirst()
+
+    @Input
+    abstract Property<Integer> getSecond()
+
+    @OutputFile
+    abstract RegularFileProperty getOutputFile()
+
+    @TaskAction
+    void run() {
+        def result = first.get() + second.get()
+        logger.lifecycle("Result: " + result)
+        outputFile.get().asFile.write(result.toString())
+    }
+}
+
+tasks.register("clean", Delete) {
+    delete layout.buildDirectory
+}
+
+tasks.register("addGood1", GoodCalculatorTask) {
+    first = 10
+    second = 25
+    outputFile = layout.buildDirectory.file("goodOutput.txt")
+}
+
+tasks.register("addGood2", GoodCalculatorTask) { // <2>
+    first = 3
+    second = 7
+    outputFile = layout.buildDirectory.file("goodOutput2.txt")
+}
+// end::do-this[]

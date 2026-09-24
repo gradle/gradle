@@ -1,0 +1,8 @@
+value = convention 1
+value = convention 2
+
+> Task :show
+value = explicit value
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed

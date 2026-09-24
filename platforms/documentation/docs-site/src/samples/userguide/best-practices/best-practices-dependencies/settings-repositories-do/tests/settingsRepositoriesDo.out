@@ -1,0 +1,16 @@
+
+> Task :dependencyInsight
+org:doesntexist:1.0.0 FAILED
+   Failures:
+      - Could not find org:doesntexist:1.0.0.
+        Searched in the following locations:
+          - https://repo.maven.apache.org/maven2/org/doesntexist/1.0.0/doesntexist-1.0.0.pom
+        If the artifact you are trying to retrieve can be found in the repository but without metadata in 'Maven POM' format, you need to adjust the 'metadataSources { ... }' of the repository declaration.
+
+org:doesntexist:1.0.0 FAILED
+\--- runtimeClasspath
+
+A web-based, searchable dependency report is available by adding the --scan option.
+
+BUILD SUCCESSFUL in 0s
+1 actionable task: 1 executed

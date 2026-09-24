@@ -1,0 +1,17 @@
+plugins {
+    id 'signing'
+}
+
+tasks.register('stuffZip', Zip) {
+    archiveBaseName = 'stuff'
+    from 'src/stuff'
+}
+
+// tag::signing[]
+signing {
+    def signingKey = findProperty("signingKey")
+    def signingPassword = findProperty("signingPassword")
+    useInMemoryPgpKeys(signingKey, signingPassword)
+    sign stuffZip
+}
+// end::signing[]

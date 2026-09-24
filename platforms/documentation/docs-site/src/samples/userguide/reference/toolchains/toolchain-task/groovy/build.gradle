@@ -1,0 +1,44 @@
+import javax.inject.Inject;
+
+// tag::custom-toolchain-task-with-java[]
+abstract class CustomTaskUsingToolchains extends DefaultTask {
+
+    @Nested
+    abstract Property<JavaLauncher> getLauncher() // <1>
+
+    CustomTaskUsingToolchains() {
+        def toolchain = project.extensions.getByType(JavaPluginExtension.class).toolchain // <2>
+        Provider<JavaLauncher> defaultLauncher = getJavaToolchainService().launcherFor(toolchain) // <3>
+        launcher.convention(defaultLauncher) // <4>
+    }
+
+    @TaskAction
+    def showConfiguredToolchain() {
+        println launcher.get().executablePath
+        println launcher.get().metadata.installationPath
+    }
+
+    @Inject
+    protected abstract JavaToolchainService getJavaToolchainService()
+}
+// end::custom-toolchain-task-with-java[]
+
+// tag::custom-toolchain-task-with-java-usage[]
+plugins {
+    id 'java'
+}
+
+java {
+    toolchain { // <1>
+        languageVersion = JavaLanguageVersion.of(8)
+    }
+}
+
+tasks.register('showDefaultToolchain', CustomTaskUsingToolchains) // <2>
+
+tasks.register('showCustomToolchain', CustomTaskUsingToolchains) {
+    launcher = javaToolchains.launcherFor { // <3>
+        languageVersion = JavaLanguageVersion.of(17)
+    }
+}
+// end::custom-toolchain-task-with-java-usage[]

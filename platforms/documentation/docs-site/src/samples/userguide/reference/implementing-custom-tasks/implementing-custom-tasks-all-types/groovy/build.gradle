@@ -1,0 +1,26 @@
+// tag::all-types[]
+abstract class AllTypes extends DefaultTask {
+
+    //inputs
+    @Input
+    abstract Property<String> getInputString()
+    @InputFile
+    abstract RegularFileProperty getInputFile()
+    @InputDirectory
+    abstract DirectoryProperty getInputDirectory()
+    @InputFiles
+    abstract ConfigurableFileCollection getInputFileCollection()
+    @Classpath
+    abstract ConfigurableFileCollection getInputClasspath()
+
+    // outputs
+    @OutputFile
+    abstract RegularFileProperty getOutputFile()
+    @OutputDirectory
+    abstract DirectoryProperty getOutputDirectory()
+    @OutputFiles
+    abstract ConfigurableFileCollection getOutputFiles()
+    @OutputDirectories
+    abstract ConfigurableFileCollection getOutputDirectories()
+}
+// end::all-types[]

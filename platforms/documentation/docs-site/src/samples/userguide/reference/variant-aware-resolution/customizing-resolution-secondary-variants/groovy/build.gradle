@@ -1,0 +1,52 @@
+// tag::lib[]
+plugins {
+    id("java-library")
+}
+
+group = "com.gradle"
+version = "1.2.3"
+// end::lib[]
+
+// tag::add[]
+// Create a new secondary variant on the existing 'apiElements' configuration.
+// This variant will be available during artifact selection (not graph resolution).
+configurations.apiElements.outgoing.variants.create("customApiElement") {
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage, "custom-variant"))
+    }
+}
+// end::add[]
+
+// tag::custom[]
+// Define custom attributes for variant identification
+def fooAttribute = Attribute.of("com.example.foo", String)
+def fooVariantAttribute = Attribute.of("com.example.fooVariant", String)
+
+// Create a consumable configuration named 'fooFiles'
+// This configuration serves as the container for outgoing variants
+def fooFiles = configurations.create("fooFiles") {
+    canBeDeclared = false
+    canBeResolved = false
+    canBeConsumed = true
+    attributes {
+        attribute(fooAttribute, "main")
+    }
+}
+
+// Define the first variant of 'fooFiles'
+// This variant inherits all attributes from the parent configuration and adds a distinguishing attribute
+fooFiles.outgoing.variants.create("fooFilesVariant1") {
+    attributes {
+        attribute(fooVariantAttribute, "variant1")
+    }
+}
+
+// Define a second variant of 'fooFiles'
+// This one overrides the inherited 'fooAttribute' value and sets a different 'fooVariantAttribute' value
+fooFiles.outgoing.variants.create("fooFilesVariant2") {
+    attributes {
+        attribute(fooAttribute, "secondary") // Overrides inherited attribute
+        attribute(fooVariantAttribute, "variant2")
+    }
+}
+// end::custom[]

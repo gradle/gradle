@@ -1,0 +1,11 @@
+tasks.register('performRelease') {
+    def isCI = providers.gradleProperty("isCI")
+    doLast {
+        if (isCI.present) {
+            println("Performing release actions")
+        } else {
+            throw new InvalidUserDataException("Cannot perform release outside of CI")
+        }
+    }
+}
+

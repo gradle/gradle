@@ -1,0 +1,20 @@
+plugins {
+    id 'java'
+}
+
+sourceSets {
+    functionalTest
+}
+
+// tag::task-definitions[]
+tasks.register('functionalTest', Test) {
+    testClassesDirs = sourceSets.functionalTest.output.classesDirs
+    classpath = sourceSets.functionalTest.runtimeClasspath
+    useJUnitPlatform()
+}
+
+tasks.named('test') {
+    // Use JUnit Jupiter for unit tests.
+    useJUnitPlatform()
+}
+// end::task-definitions[]

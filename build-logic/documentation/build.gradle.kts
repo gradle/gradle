@@ -3,7 +3,7 @@ plugins {
     id("gradlebuild.build-logic.groovy-dsl-gradle-plugin")
 }
 
-description = "Provides a plugin to generate Gradle's DSL reference, User Manual and Javadocs"
+description = "Plugins for assembling Gradle's reference documentation (Javadoc, DSL reference, Kotlin DSL reference) and the docs-site that publishes it."
 
 dependencies {
     implementation("gradlebuild:basics")

@@ -1,0 +1,6 @@
+[versions]
+guava = "33.0.0-jre"
+
+[libraries]
+guava = { group = "com.google.guava", name = "guava", version.ref = "guava" }
+commons-lang3 = { group = "org.apache.commons", name = "commons-lang3", version = "3.14.0" }

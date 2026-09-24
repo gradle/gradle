@@ -1,0 +1,20 @@
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::transitive-per-dependency[]
+dependencies {
+    implementation('com.google.guava:guava:23.0') {
+        transitive = false
+    }
+}
+// end::transitive-per-dependency[]
+
+tasks.register('copyLibs', Copy) {
+    from configurations.compileClasspath
+    into layout.buildDirectory.dir('libs')
+}

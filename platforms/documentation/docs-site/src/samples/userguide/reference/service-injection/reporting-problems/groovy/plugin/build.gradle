@@ -1,0 +1,19 @@
+plugins {
+    id 'java-gradle-plugin'
+    id 'groovy'
+}
+
+repositories {
+    mavenCentral()
+}
+
+gradlePlugin {
+    plugins {
+        create("helloProblems") {
+            id = "org.example.hello-problems"
+            implementationClass = "org.example.HelloProblemsPlugin"
+            displayName = "Hello Problems Plugin"
+            description = "Adds a greet task and demonstrates Gradle's Problems API."
+        }
+    }
+}

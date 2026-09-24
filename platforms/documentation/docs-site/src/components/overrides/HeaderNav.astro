@@ -1,0 +1,193 @@
+---
+/**
+ * Top-right site navigation, mirroring the menu on docs.gradle.org
+ * (Cloudflare-docs-style placement). Native <details> dropdowns: accessible,
+ * keyboard-friendly, no framework. A small script closes open menus when
+ * another opens or on outside clicks.
+ */
+interface MenuItem {
+  label: string;
+  href: string;
+}
+interface Menu {
+  label: string;
+  items: MenuItem[];
+}
+
+const menus: Menu[] = [
+  {
+    label: 'Gradle',
+    items: [
+      { label: 'Releases', href: 'https://gradle.org/releases' },
+      { label: 'Features', href: 'https://gradle.org/features' },
+      { label: '9.0.0 Highlights', href: 'https://gradle.org/whats-new/gradle-9' },
+      { label: '8.0.0 Highlights', href: 'https://gradle.org/whats-new/gradle-8' },
+      { label: 'Gradle vs Maven', href: 'https://gradle.org/maven-and-gradle' },
+    ],
+  },
+  {
+    label: 'Learn',
+    items: [
+      { label: 'User Manual', href: '/' },
+      { label: 'DPE University', href: 'https://dpeuniversity.gradle.com/' },
+      { label: 'YouTube Channel', href: 'https://www.youtube.com/channel/UCvClhveoEjokKIuBAsSjEwQ' },
+      { label: 'Events and Webinars', href: 'https://gradle.com/training/' },
+    ],
+  },
+  {
+    label: 'Support',
+    items: [
+      { label: 'Community Slack', href: 'https://gradle.org/slack-invite' },
+      { label: 'Community Forums', href: 'https://discuss.gradle.org/' },
+      { label: 'Professional Services', href: 'https://gradle.org/services' },
+    ],
+  },
+  {
+    label: 'News',
+    items: [
+      { label: 'Newsletter', href: 'https://newsletter.gradle.org/' },
+      { label: 'Blog', href: 'https://blog.gradle.org/' },
+    ],
+  },
+  {
+    label: 'Develocity',
+    items: [
+      { label: 'Develocity', href: 'https://gradle.com/develocity/' },
+      { label: 'Build Scan', href: 'https://scans.gradle.com/' },
+      { label: 'DPE.org', href: 'https://dpe.org/' },
+      { label: 'Careers', href: 'https://gradle.com/careers' },
+    ],
+  },
+  {
+    label: 'About',
+    items: [
+      { label: 'Contact Us', href: 'https://gradle.org/contact' },
+      { label: 'Gradle Fellowship', href: 'https://gradle.org/fellowship' },
+    ],
+  },
+];
+---
+
+<nav class="gd-header-nav" aria-label="Gradle sites">
+  {
+    menus.map((menu) => (
+      <details class="gd-menu">
+        <summary>
+          {menu.label}
+          <svg class="caret" width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M6 9l6 6 6-6" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" />
+          </svg>
+        </summary>
+        <ul>
+          {menu.items.map((item) => (
+            <li>
+              <a href={item.href}>{item.label}</a>
+            </li>
+          ))}
+        </ul>
+      </details>
+    ))
+  }
+</nav>
+
+<style>
+  .gd-header-nav {
+    display: none;
+    align-items: center;
+    gap: 0.25rem;
+  }
+
+  /* Only show on wide viewports — the header also holds search + controls. */
+  @media (min-width: 78rem) {
+    .gd-header-nav {
+      display: flex;
+    }
+  }
+
+  .gd-menu {
+    position: relative;
+  }
+
+  .gd-menu > summary {
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    padding: 0.35rem 0.55rem;
+    border-radius: 0.5rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-2);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    list-style: none;
+  }
+
+  .gd-menu > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .gd-menu > summary:hover {
+    background-color: var(--gradle-hover-fill);
+    color: var(--sl-color-white);
+  }
+
+  .gd-menu .caret {
+    transition: transform 0.15s ease;
+  }
+
+  .gd-menu[open] .caret {
+    transform: rotate(180deg);
+  }
+
+  .gd-menu > ul {
+    position: absolute;
+    top: calc(100% + 0.4rem);
+    right: 0;
+    z-index: 10;
+    min-width: 12rem;
+    margin: 0;
+    padding: 0.35rem;
+    list-style: none;
+    background-color: var(--sl-color-bg);
+    border: 1px solid var(--gradle-header-line);
+    border-radius: 0.5rem;
+    box-shadow: 0 4px 16px rgb(0 0 0 / 0.08);
+  }
+
+  .gd-menu a {
+    display: block;
+    padding: 0.35rem 0.6rem;
+    border-radius: 0.375rem;
+    font-size: var(--sl-text-sm);
+    color: var(--sl-color-gray-2);
+    text-decoration: none;
+  }
+
+  .gd-menu a:hover {
+    background-color: var(--gradle-teal-tint);
+    color: var(--gradle-blue);
+  }
+
+  :global([data-theme='dark']) .gd-menu a:hover {
+    background-color: var(--gradle-cyan-tint);
+    color: var(--gradle-cyan);
+  }
+</style>
+
+<script>
+  // One menu open at a time; close on outside click or Escape.
+  const nav = document.querySelector('.gd-header-nav');
+  if (nav) {
+    const menus = [...nav.querySelectorAll<HTMLDetailsElement>('details.gd-menu')];
+    nav.addEventListener('toggle', (e) => {
+      const opened = e.target as HTMLDetailsElement;
+      if (opened.open) menus.forEach((m) => m !== opened && (m.open = false));
+    }, true);
+    document.addEventListener('click', (e) => {
+      if (!nav.contains(e.target as Node)) menus.forEach((m) => (m.open = false));
+    });
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape') menus.forEach((m) => (m.open = false));
+    });
+  }
+</script>

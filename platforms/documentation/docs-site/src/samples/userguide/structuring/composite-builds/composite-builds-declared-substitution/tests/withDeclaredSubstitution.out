@@ -1,0 +1,13 @@
+> Task :app:processResources NO-SOURCE
+> Task :anonymous-library:compileJava
+> Task :anonymous-library:processResources NO-SOURCE
+> Task :anonymous-library:classes
+> Task :anonymous-library:jar
+> Task :app:compileJava
+> Task :app:classes
+
+> Task :app:run
+ The answer is 42
+
+BUILD SUCCESSFUL in 0s
+4 actionable tasks: 4 executed

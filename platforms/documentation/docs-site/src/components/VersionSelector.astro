@@ -1,0 +1,146 @@
+---
+/**
+ * Gradle docs version selector, mounted at the top of the sidebar.
+ *
+ * Entirely static: the list is written into the page at build time and no
+ * JavaScript runs, so it works for crawlers and in the offline documentation.
+ *
+ * It lists only versions at or below this build, which is complete for going
+ * backwards because the past does not change. Going forwards needs one link,
+ * not a list, and `/current/` is a stable alias — so the Current entry carries
+ * no version number and cannot go stale.
+ *
+ * An earlier revision re-fetched https://services.gradle.org/versions/all on
+ * every page view. That is 415 KiB of release metadata with a five-minute
+ * cache lifetime, fetched to populate a dropdown, where the previous site made
+ * no view-time request at all.
+ */
+import { variables } from "../config/variables";
+import { loadVersionsIndex } from "../lib/versions/releases";
+import { renderVersionMenu } from "../lib/versions/version-menu";
+import { sitePath } from "../lib/site-path";
+
+const index = await loadVersionsIndex();
+const siteVersion = variables.gradleVersion;
+const pagePath = sitePath(Astro.url.pathname);
+---
+
+<div class="gradle-version-selector">
+  <details>
+    <summary aria-label={`Gradle version: ${siteVersion}. Switch documentation version`}>
+      <span class="version-label"><span class="version-prefix">Version</span> {siteVersion}</span>
+      <svg class="chevron" width="12" height="12" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+        <path d="m6 9 6 6 6-6" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"></path>
+      </svg>
+    </summary>
+    <ul class="version-menu" set:html={renderVersionMenu(index, siteVersion, pagePath)} />
+  </details>
+</div>
+
+
+{/* Global (namespaced by the wrapper class) because the menu markup is built
+    as an HTML string, which would not carry Astro's scoped-style attribute. */}
+<style is:global>
+  .gradle-version-selector {
+    position: relative;
+    display: block;
+    font-size: var(--sl-text-sm);
+    margin-bottom: 0.75rem;
+  }
+
+  .gradle-version-selector summary {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.375rem;
+    cursor: pointer;
+    list-style: none;
+    padding: 0.375rem 0.75rem;
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    background-color: var(--sl-color-bg-nav);
+    color: var(--sl-color-gray-2);
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+  .gradle-version-selector .version-prefix {
+    color: var(--sl-color-gray-3);
+    margin-inline-end: 0.25rem;
+  }
+  .gradle-version-selector summary::-webkit-details-marker {
+    display: none;
+  }
+  .gradle-version-selector summary:hover {
+    color: var(--sl-color-white);
+    border-color: var(--sl-color-gray-3);
+  }
+  .gradle-version-selector details[open] .chevron {
+    transform: rotate(180deg);
+  }
+
+  .gradle-version-selector .version-menu {
+    position: absolute;
+    inset-inline-start: 0;
+    inset-inline-end: 0;
+    top: calc(100% + 0.375rem);
+    z-index: var(--sl-z-index-menu, 10);
+    margin: 0;
+    padding: 0.25rem;
+    list-style: none;
+    max-height: min(60vh, 24rem);
+    overflow-y: auto;
+    background-color: var(--sl-color-bg-nav);
+    border: 1px solid var(--sl-color-gray-5);
+    border-radius: 0.5rem;
+    box-shadow: var(--sl-shadow-md);
+  }
+
+  .gradle-version-selector .major-header {
+    position: sticky;
+    top: -0.25rem;
+    padding: 0.375rem 0.625rem 0.25rem;
+    background-color: var(--sl-color-bg-nav);
+    color: var(--sl-color-gray-3);
+    font-size: var(--sl-text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .gradle-version-selector .major-header:not(:first-child) {
+    border-top: 1px solid var(--sl-color-gray-6);
+    margin-top: 0.25rem;
+  }
+
+  .gradle-version-selector .version-menu a {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem;
+    padding: 0.25rem 0.625rem;
+    border-radius: 0.25rem;
+    color: var(--sl-color-gray-2);
+    text-decoration: none;
+  }
+  .gradle-version-selector .version-menu a:hover {
+    background-color: var(--sl-color-gray-6);
+    color: var(--sl-color-white);
+  }
+  .gradle-version-selector .version-menu a[aria-current="true"] {
+    color: var(--sl-color-text-accent);
+    font-weight: 600;
+  }
+
+  .gradle-version-selector .badge {
+    font-size: var(--sl-text-xs);
+    padding: 0 0.375rem;
+    border-radius: 999px;
+    background-color: var(--sl-color-accent-low);
+    color: var(--sl-color-accent-high);
+  }
+
+  .gradle-version-selector .all-releases {
+    border-top: 1px solid var(--sl-color-gray-5);
+    margin-top: 0.25rem;
+    padding-top: 0.25rem;
+  }
+</style>

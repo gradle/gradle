@@ -1,0 +1,97 @@
+---
+import { getCollection, render, type CollectionEntry } from 'astro:content';
+import Slugger from 'github-slugger';
+import { reportXrefFallback } from '#/lib/xref-fallbacks';
+
+interface Props {
+  page: string;
+  section?: string | string[];
+}
+
+const { page, section } = Astro.props;
+
+const docs = await getCollection('docs');
+
+const matches = docs.filter((entry: CollectionEntry<'docs'>) => {
+  const id = entry.id.replace(/\/index$/, '').replace(/\.mdx?$/, '');
+  const slug = id.split('/').pop();
+  return slug === page;
+});
+
+if (matches.length === 0) {
+  throw new Error(`Xref: page not found: ${page}`);
+}
+if (matches.length > 1) {
+  const ids = matches.map((m: CollectionEntry<'docs'>) => m.id).join(', ');
+  throw new Error(`Xref: ambiguous page slug "${page}" matches multiple entries: ${ids}`);
+}
+
+const entry = matches[0];
+const pagePath = '/' + entry.id.replace(/\/index$/, '').replace(/\.mdx?$/, '') + '/';
+
+// Slug-equivalence fallback: the AsciiDoc-to-MDX converter emits section
+// labels straight from the source (e.g. `` `#plugins` ``), while the rehype
+// plugin extracts post-parse text (`#plugins`). Both produce the same
+// `github-slugger` output, so we compare by slug when literal equality fails.
+function slugOf(text: string): string {
+  return new Slugger().slug(text);
+}
+
+let anchor: string | undefined;
+if (section) {
+  const title = (entry.data as { title?: string }).title;
+  const sectionIsPageTitle =
+    title != null &&
+    (typeof section === 'string'
+      ? section === title || slugOf(section) === slugOf(title)
+      : section.length === 1 &&
+        (section[0] === title || slugOf(section[0]) === slugOf(title)));
+
+  if (sectionIsPageTitle) {
+    anchor = undefined;
+  } else {
+    const { remarkPluginFrontmatter } = await render(entry);
+    const anchors =
+      (remarkPluginFrontmatter as { anchors?: { slug: string; path: string[] }[] }).anchors ?? [];
+
+    const lookup = Array.isArray(section) ? section : [section];
+
+    const equiv = (a: string, b: string) => a === b || slugOf(a) === slugOf(b);
+
+    let candidates: { slug: string; path: string[] }[];
+    if (lookup.length === 1) {
+      candidates = anchors.filter((a) => equiv(a.path[a.path.length - 1], lookup[0]));
+    } else {
+      candidates = anchors.filter((a) => {
+        if (a.path.length < lookup.length) return false;
+        const tail = a.path.slice(-lookup.length);
+        return tail.every((t, i) => equiv(t, lookup[i]));
+      });
+    }
+
+    if (candidates.length === 0) {
+      // Unresolved AsciiDoc attribute or stale section title from the bulk
+      // converter — degrade to a page-level link instead of failing this page.
+      // The fallback is recorded and checked against the committed baseline
+      // after `astro build`; NEW fallbacks fail the build (see src/lib/xref-fallbacks.ts).
+      console.warn(
+        `Xref: section ${JSON.stringify(section)} not found in page "${page}" (${entry.id}); falling back to page link.`
+      );
+      reportXrefFallback({ entryId: entry.id, page, section });
+      anchor = undefined;
+    } else if (candidates.length === 1) {
+      anchor = candidates[0].slug;
+    } else {
+      const formatted = candidates.map((m) => m.path.join(' › ')).join('\n  • ');
+      throw new Error(
+        `Xref: section ${JSON.stringify(section)} in page "${page}" (${entry.id}) matches multiple anchors:\n  • ${formatted}\n` +
+          `Disambiguate by passing a path: section={${JSON.stringify(candidates[0].path.slice(-2))}}`
+      );
+    }
+  }
+}
+
+const href = anchor ? `${pagePath}#${anchor}` : pagePath;
+---
+
+<a href={href}><slot /></a>

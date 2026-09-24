@@ -1,0 +1,3 @@
+// tag::task[]
+tasks.register('verifyUrl', UrlVerify)
+// end::task[]

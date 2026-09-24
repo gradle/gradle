@@ -1,0 +1,26 @@
+// tag::plugin-build-script[]
+plugins {                                                           // <1>
+    id 'java-gradle-plugin'                                         // <2>
+    id 'groovy'                                                     // <3>
+}
+
+repositories {                                                      // <4>
+    mavenCentral()                                                  // <5>
+}
+
+dependencies {                                                      // <6>
+    testImplementation libs.spock.core                              // <7>
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+
+gradlePlugin {                                                      // <8>
+    plugins {
+        greeting {
+            id = 'license.greeting'                                 // <9>
+            implementationClass = 'license.LicensePlugin'
+        }
+    }
+}
+
+// Additional lines //
+// end::plugin-build-script[]
