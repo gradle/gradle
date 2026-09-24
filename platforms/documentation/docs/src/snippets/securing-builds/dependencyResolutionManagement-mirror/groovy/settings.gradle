@@ -1,6 +1,13 @@
-rootProject.name = 'dependency-resolution-management-mirror'
-
 // tag::mirror[]
+pluginManagement {
+    repositories {
+        maven {
+            name = 'internalMirror'
+            url = uri('https://repo.internal.acme.com/gradle-plugins')
+            credentials(PasswordCredentials)
+        }
+    }
+}
 dependencyResolutionManagement {
     repositoriesMode = RepositoriesMode.FAIL_ON_PROJECT_REPOS
     repositories {
@@ -11,13 +18,6 @@ dependencyResolutionManagement {
         }
     }
 }
-pluginManagement {
-    repositories {
-        maven {
-            name = 'internalMirror'
-            url = uri('https://repo.internal.acme.com/gradle-plugins')
-            credentials(PasswordCredentials)
-        }
-    }
-}
 // end::mirror[]
+
+rootProject.name = 'dependency-resolution-management-mirror'

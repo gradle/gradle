@@ -1,5 +1,3 @@
-rootProject.name = 'dependency-resolution-management-plugin-management'
-
 // tag::plugin-management[]
 pluginManagement {
     repositories {
@@ -13,3 +11,5 @@ dependencyResolutionManagement {
     }
 }
 // end::plugin-management[]
+
+rootProject.name = 'dependency-resolution-management-plugin-management'
