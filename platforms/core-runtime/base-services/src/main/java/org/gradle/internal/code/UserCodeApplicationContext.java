@@ -177,9 +177,9 @@ public interface UserCodeApplicationContext {
     enum CodeType {
 
         /**
-         * Code that does not belong to any other type.
+         * Code executed synchronously while the application is being applied.
          */
-        GENERAL,
+        MAIN,
 
         /**
          * Callbacks executed against a domain object collection.
@@ -189,7 +189,17 @@ public interface UserCodeApplicationContext {
         /**
          * Asynchronous listener callbacks.
          */
-        LISTENER
+        LISTENER,
+
+        /**
+         * Code executed as part of a task action.
+         */
+        TASK_ACTION,
+
+        /**
+         * Code executed to build a tooling model.
+         */
+        TOOLING_MODEL_BUILDER,
 
     }
 

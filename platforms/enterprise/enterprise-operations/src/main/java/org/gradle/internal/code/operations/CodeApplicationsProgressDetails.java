@@ -68,11 +68,11 @@ public interface CodeApplicationsProgressDetails {
     enum CodeType {
 
         /**
-         * Code that does not belong to any other type.
+         * Code executed synchronously while the application is being applied.
          *
          * @since 9.9.0
          */
-        GENERAL,
+        MAIN,
 
         /**
          * Callbacks executed against a domain object collection.
@@ -87,6 +87,20 @@ public interface CodeApplicationsProgressDetails {
          * @since 9.9.0
          */
         LISTENER,
+
+        /**
+         * Code executed as part of a task action.
+         *
+         * @since 9.9.0
+         */
+        TASK_ACTION,
+
+        /**
+         * Code executed to build a tooling model.
+         *
+         * @since 9.9.0
+         */
+        TOOLING_MODEL_BUILDER,
 
     }
 

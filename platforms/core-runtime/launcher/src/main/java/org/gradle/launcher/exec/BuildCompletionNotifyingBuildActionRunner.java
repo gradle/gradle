@@ -108,10 +108,12 @@ public class BuildCompletionNotifyingBuildActionRunner implements BuildActionRun
     }
 
     private static Map<CodeApplicationsProgressDetails.CodeType, Long> convertTimings(UserCodeApplicationContext.ApplicationSnapshot snapshot) {
-        ImmutableMap.Builder<CodeApplicationsProgressDetails.CodeType, Long> timingsBuilder = ImmutableMap.builderWithExpectedSize(4);
-        addIfNonzero(snapshot, timingsBuilder, UserCodeApplicationContext.CodeType.GENERAL, CodeApplicationsProgressDetails.CodeType.GENERAL);
+        ImmutableMap.Builder<CodeApplicationsProgressDetails.CodeType, Long> timingsBuilder = ImmutableMap.builderWithExpectedSize(5);
+        addIfNonzero(snapshot, timingsBuilder, UserCodeApplicationContext.CodeType.MAIN, CodeApplicationsProgressDetails.CodeType.MAIN);
         addIfNonzero(snapshot, timingsBuilder, UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK, CodeApplicationsProgressDetails.CodeType.COLLECTION_CALLBACK);
         addIfNonzero(snapshot, timingsBuilder, UserCodeApplicationContext.CodeType.LISTENER, CodeApplicationsProgressDetails.CodeType.LISTENER);
+        addIfNonzero(snapshot, timingsBuilder, UserCodeApplicationContext.CodeType.TASK_ACTION, CodeApplicationsProgressDetails.CodeType.TASK_ACTION);
+        addIfNonzero(snapshot, timingsBuilder, UserCodeApplicationContext.CodeType.TOOLING_MODEL_BUILDER, CodeApplicationsProgressDetails.CodeType.TOOLING_MODEL_BUILDER);
         return timingsBuilder.build();
     }
 

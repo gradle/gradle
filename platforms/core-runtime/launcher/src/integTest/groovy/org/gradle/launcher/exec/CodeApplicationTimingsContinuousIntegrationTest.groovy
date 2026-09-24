@@ -79,15 +79,15 @@ class CodeApplicationTimingsContinuousIntegrationTest extends AbstractContinuous
 
         then:
         builds().size() == 1
-        builds()[0].timingsFor(SOME_PLUGIN)["GENERAL"] >= workNanos()
+        builds()[0].timingsFor(SOME_PLUGIN)["MAIN"] >= workNanos()
 
         when:
         file("input.txt").text = "two"
         buildTriggeredAndSucceeded()
 
         then:
-        builds()[0].timingsFor(SOME_PLUGIN)["GENERAL"] >= workNanos()
-        builds()[1].timingsFor(SOME_PLUGIN)["GENERAL"] >= workNanos()
+        builds()[0].timingsFor(SOME_PLUGIN)["MAIN"] >= workNanos()
+        builds()[1].timingsFor(SOME_PLUGIN)["MAIN"] >= workNanos()
     }
 
     @Requires(value = TestExecutionPreconditions.NotConfigCached, reason = "CC skips repeated configuration, which this test verifies")
@@ -120,6 +120,54 @@ class CodeApplicationTimingsContinuousIntegrationTest extends AbstractContinuous
         // IDs are assigned from scratch by each build, so the same ID identifies a different
         // application in each build of the invocation and only means anything within its own build
         builds()[0].pluginApplicationId(SOME_PLUGIN) == builds()[1].pluginApplicationId(SOME_PLUGIN)
+    }
+
+    @Requires(value = TestExecutionPreconditions.IsConfigCached, reason = "Asserts that a triggered build restores its applications from the entry the first build stored")
+    def "reports timings for applications restored from the configuration cache"() {
+        given:
+        buildFile("""
+            apply plugin: SomePlugin
+
+            class SomePlugin implements Plugin<Project> {
+                void apply(Project p) {
+                    p.tasks.register("work") {
+                        def inputFile = p.file("input.txt")
+                        def outputFile = p.file("build/out.txt")
+                        inputs.file(inputFile)
+                        outputs.file(outputFile)
+                        doLast {
+                            ${simulateWork()}
+                            outputFile.text = inputFile.text
+                        }
+                    }
+                }
+            }
+        """)
+
+        when:
+        succeeds("work")
+
+        then:
+        def firstBuild = builds()[0]
+        def applicationId = firstBuild.pluginApplicationId(SOME_PLUGIN)
+        firstBuild.timingsFor(SOME_PLUGIN)["TASK_ACTION"] >= workNanos()
+
+        when:
+        // Changing a task input does not invalidate the entry, so the triggered build restores the
+        // applications rather than applying them
+        file("input.txt").text = "two"
+        buildTriggeredAndSucceeded()
+
+        then:
+        builds().size() == 2
+        def secondBuild = builds()[1]
+        secondBuild.pluginApplicationId(SOME_PLUGIN) == null
+
+        and:
+        // The task action still belongs to the plugin that registered it, so the time it spends is
+        // reported against the application the first build made and this one restored
+        secondBuild.timingsFor(applicationId).keySet() == ["TASK_ACTION"] as Set
+        secondBuild.timingsFor(applicationId)["TASK_ACTION"] >= workNanos()
     }
 
     private List<SingleBuild> builds() {

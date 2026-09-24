@@ -74,10 +74,10 @@ class CodeApplicationTimingsIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         // Application only run code of their own, and no listeners or callbacks are executed.
-        timingsFor("Apply settings file 'settings.gradle' to settings '${testDirectory.name}'").keySet() == ["GENERAL"] as Set
-        timingsFor("Apply build file 'build.gradle' to root project 'root'").keySet() == ["GENERAL"] as Set
-        timingsFor("Apply script 'script.gradle' to root project 'root'").keySet() == ["GENERAL"] as Set
-        timingsFor("Apply plugin SomePlugin to root project 'root'").keySet() == ["GENERAL"] as Set
+        timingsFor("Apply settings file 'settings.gradle' to settings '${testDirectory.name}'").keySet() == ["MAIN"] as Set
+        timingsFor("Apply build file 'build.gradle' to root project 'root'").keySet() == ["MAIN"] as Set
+        timingsFor("Apply script 'script.gradle' to root project 'root'").keySet() == ["MAIN"] as Set
+        timingsFor("Apply plugin SomePlugin to root project 'root'").keySet() == ["MAIN"] as Set
 
         and:
         // All applications have some timings.
@@ -95,7 +95,7 @@ class CodeApplicationTimingsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def timings = timingsFor("Apply initialization script 'init.gradle' to build ':'")
-        timings["GENERAL"] >= workNanos()
+        timings["MAIN"] >= workNanos()
     }
 
     def "attributes time spent applying a plugin to that plugin's application"() {
@@ -115,8 +115,8 @@ class CodeApplicationTimingsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         def timings = timingsFor("Apply plugin SomePlugin to root project 'root'")
-        timings["GENERAL"] >= workNanos()
-        timings.keySet() == ["GENERAL"] as Set
+        timings["MAIN"] >= workNanos()
+        timings.keySet() == ["MAIN"] as Set
     }
 
     def "attributes time spent in collection callbacks separately from other code"() {
@@ -147,7 +147,7 @@ class CodeApplicationTimingsIntegrationTest extends AbstractIntegrationSpec {
         then:
         def timings = timingsFor("Apply plugin SomePlugin to root project 'root'")
         timings["COLLECTION_CALLBACK"] >= workNanos()
-        timings.keySet() == ["GENERAL", "COLLECTION_CALLBACK"] as Set
+        timings.keySet() == ["MAIN", "COLLECTION_CALLBACK"] as Set
     }
 
     def "attributes time spent in listener callbacks separately from other code"() {
@@ -172,7 +172,90 @@ class CodeApplicationTimingsIntegrationTest extends AbstractIntegrationSpec {
         then:
         def timings = timingsFor("Apply plugin SomePlugin to root project 'root'")
         timings["LISTENER"] >= workNanos()
-        timings.keySet() == ["GENERAL", "LISTENER"] as Set
+        timings.keySet() == ["MAIN", "LISTENER"] as Set
+    }
+
+    def "attributes time spent executing a task action to the application that registered the task"() {
+        given:
+        buildFile("""
+            apply plugin: SomePlugin
+
+            class SomePlugin implements Plugin<Project> {
+                void apply(Project p) {
+                    ${simulateWork()}
+
+                    p.tasks.create("work") {
+                        doLast {
+                            ${simulateWork()}
+                        }
+                    }
+                }
+            }
+        """)
+
+        when:
+        succeeds("work")
+
+        then:
+        def timings = timingsFor("Apply plugin SomePlugin to root project 'root'")
+        timings["TASK_ACTION"] >= workNanos()
+        timings.keySet() == ["MAIN", "TASK_ACTION"] as Set
+    }
+
+    @Requires(value = TestExecutionPreconditions.IsConfigCached, reason = "Asserts that the CC hit restores its applications from the entry the first build stored")
+    def "reports timings for an application restored from the configuration cache"() {
+        given:
+        buildFile("""
+            apply plugin: SomePlugin
+
+            configurations {
+                foo
+            }
+
+            class SomePlugin implements Plugin<Project> {
+                void apply(Project p) {
+                    ${simulateWork()}
+
+                    p.configurations.all {
+                        if (name == "foo") {
+                            ${simulateWork()}
+                        }
+                    }
+
+                    p.afterEvaluate {
+                        ${simulateWork()}
+                    }
+
+                    p.tasks.register("work") {
+                        doLast {
+                            ${simulateWork()}
+                        }
+                    }
+                }
+            }
+        """)
+
+        when:
+        succeeds("work")
+
+        then:
+        def applicationId = operations.only("Apply plugin SomePlugin to root project 'root'").details.applicationId
+        def stored = timingsForId(applicationId)
+        stored["MAIN"] >= workNanos()
+        stored["COLLECTION_CALLBACK"] >= workNanos()
+        stored["LISTENER"] >= workNanos()
+        stored["TASK_ACTION"] >= workNanos()
+
+        when:
+        succeeds("work")
+
+        then:
+        // The plugin is never applied in the CC hit build
+        operations.none("Apply plugin SomePlugin to root project 'root'")
+
+        and:
+        timingsForId(applicationId).keySet() == ["TASK_ACTION"] as Set
+        timingsForId(applicationId)["TASK_ACTION"] >= workNanos()
     }
 
     @Requires(value = TestExecutionPreconditions.NotIsolatedProjects, reason = "Intentionally uses allprojects to execute code against another project from the root project")
@@ -197,7 +280,7 @@ class CodeApplicationTimingsIntegrationTest extends AbstractIntegrationSpec {
         // The build script is a single application, even though it runs code for three projects.
         def buildScriptApplicationId = operations.only("Apply build file 'build.gradle' to root project 'root'").details.applicationId
         codeApplications().count { id, application -> id == buildScriptApplicationId.toString() } == 1
-        timingsFor("Apply build file 'build.gradle' to root project 'root'")["GENERAL"] >= 3 * workNanos()
+        timingsFor("Apply build file 'build.gradle' to root project 'root'")["MAIN"] >= 3 * workNanos()
     }
 
     private Map<String, Long> timingsFor(String applicationOperationName) {

@@ -115,7 +115,7 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
         }
 
         Application application = recording.registerApplication(source, target);
-        application.reapplyAction(action, application.getId(), CodeType.GENERAL);
+        application.reapplyAction(action, application.getId(), CodeType.MAIN);
     }
 
     @Override
@@ -192,9 +192,11 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
         private final UserCodeSource source;
         private final Target target;
 
-        private final AtomicLong generalDurationNs = new AtomicLong(0);
+        private final AtomicLong mainDurationNs = new AtomicLong(0);
         private final AtomicLong callbackDurationNs = new AtomicLong(0);
         private final AtomicLong listenerDurationNs = new AtomicLong(0);
+        private final AtomicLong taskActionDurationNs = new AtomicLong(0);
+        private final AtomicLong toolingModelBuilderDurationNs = new AtomicLong(0);
 
         public DefaultApplication(UserCodeApplicationId id, UserCodeSource source, Target target) {
             this.id = id;
@@ -276,9 +278,11 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
             return new DefaultApplicationSnapshot(
                 id,
                 source,
-                generalDurationNs.get(),
+                mainDurationNs.get(),
                 callbackDurationNs.get(),
-                listenerDurationNs.get()
+                listenerDurationNs.get(),
+                taskActionDurationNs.get(),
+                toolingModelBuilderDurationNs.get()
             );
         }
 
@@ -287,9 +291,11 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
          */
         private void accumulateTime(long durationNs, CodeType codeType) {
             switch (codeType) {
-                case GENERAL: generalDurationNs.addAndGet(durationNs); break;
+                case MAIN: mainDurationNs.addAndGet(durationNs); break;
                 case COLLECTION_CALLBACK: callbackDurationNs.addAndGet(durationNs); break;
                 case LISTENER: listenerDurationNs.addAndGet(durationNs); break;
+                case TASK_ACTION: taskActionDurationNs.addAndGet(durationNs); break;
+                case TOOLING_MODEL_BUILDER: toolingModelBuilderDurationNs.addAndGet(durationNs); break;
                 default: throw new IllegalArgumentException("Unknown code type: " + codeType);
             }
         }
@@ -346,22 +352,28 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
 
         private final UserCodeApplicationId id;
         private final UserCodeSource source;
-        private final long generalDurationNs;
+        private final long mainDurationNs;
         private final long callbackDurationNs;
         private final long listenerDurationNs;
+        private final long taskActionDurationNs;
+        private final long toolingModelBuilderDurationNs;
 
         public DefaultApplicationSnapshot(
             UserCodeApplicationId id,
             UserCodeSource source,
-            long generalDurationNs,
+            long mainDurationNs,
             long callbackDurationNs,
-            long listenerDurationNs
+            long listenerDurationNs,
+            long taskActionDurationNs,
+            long toolingModelBuilderDurationNs
         ) {
             this.id = id;
             this.source = source;
-            this.generalDurationNs = generalDurationNs;
+            this.mainDurationNs = mainDurationNs;
             this.callbackDurationNs = callbackDurationNs;
             this.listenerDurationNs = listenerDurationNs;
+            this.taskActionDurationNs = taskActionDurationNs;
+            this.toolingModelBuilderDurationNs = toolingModelBuilderDurationNs;
         }
 
         @Override
@@ -376,15 +388,21 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
 
         @Override
         public long getTotalDurationNs() {
-            return generalDurationNs + callbackDurationNs + listenerDurationNs;
+            return mainDurationNs +
+                callbackDurationNs +
+                listenerDurationNs +
+                taskActionDurationNs +
+                toolingModelBuilderDurationNs;
         }
 
         @Override
         public long getDurationNsForType(CodeType codeType) {
             switch (codeType) {
-                case GENERAL: return generalDurationNs;
+                case MAIN: return mainDurationNs;
                 case COLLECTION_CALLBACK: return callbackDurationNs;
                 case LISTENER: return listenerDurationNs;
+                case TASK_ACTION: return taskActionDurationNs;
+                case TOOLING_MODEL_BUILDER: return toolingModelBuilderDurationNs;
                 default: throw new IllegalArgumentException("Unknown code type: " + codeType);
             }
         }

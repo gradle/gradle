@@ -123,7 +123,7 @@ class DefaultUserCodeApplicationContextTest extends Specification {
             assert context.current().id == id
             assert context.current().source == source2
 
-            application1.reapply(runnable, UserCodeApplicationContext.CodeType.GENERAL)
+            application1.reapply(runnable, UserCodeApplicationContext.CodeType.MAIN)
 
             assert context.current().id == id
             assert context.current().source == source2
@@ -154,7 +154,7 @@ class DefaultUserCodeApplicationContextTest extends Specification {
             context.apply(source2, target, action2)
         }
         1 * action2.execute(_) >> { UserCodeApplicationId id ->
-            def result = application1.reapplySupplier(supplier, UserCodeApplicationContext.CodeType.GENERAL)
+            def result = application1.reapplySupplier(supplier, UserCodeApplicationContext.CodeType.MAIN)
             assert result == "result"
         }
         1 * supplier.get() >> {
@@ -182,7 +182,7 @@ class DefaultUserCodeApplicationContextTest extends Specification {
         }
 
         when:
-        def result = application1.reapplySupplier(supplier, UserCodeApplicationContext.CodeType.GENERAL)
+        def result = application1.reapplySupplier(supplier, UserCodeApplicationContext.CodeType.MAIN)
 
         then:
         result == "result"
@@ -209,7 +209,7 @@ class DefaultUserCodeApplicationContextTest extends Specification {
             id1 = id
             def current = context.current()
             decorated = { x ->
-                current.reapplyAction(deferred, x, UserCodeApplicationContext.CodeType.GENERAL)
+                current.reapplyAction(deferred, x, UserCodeApplicationContext.CodeType.MAIN)
             }
         }
         0 * deferred._
@@ -239,9 +239,9 @@ class DefaultUserCodeApplicationContextTest extends Specification {
         then:
         def snapshot = context.stopTrackingApplications().get(target).first()
         snapshot.getTotalDurationNs() == ms(10)
-        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.GENERAL) == ms(10)
-        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK) == 0
-        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.LISTENER) == 0
+        durationsByType(snapshot) == allCodeTypes().collectEntries {
+            [(it): it == UserCodeApplicationContext.CodeType.MAIN ? ms(10) : 0L]
+        }
     }
 
     def "duration snapshots exclude the currently executing slice"() {
@@ -259,23 +259,24 @@ class DefaultUserCodeApplicationContextTest extends Specification {
     }
 
     def "segregates time by code type"() {
+        // Every code type is given a distinct duration
+        Map<UserCodeApplicationContext.CodeType, Integer> millisByType =
+            allCodeTypes().collectEntries { [(it): 5 * (it.ordinal() + 1)] }
+
         UserCodeApplicationContext.Application captured
 
         when:
         context.apply(Stub(UserCodeSource), target) { id ->
             captured = context.current()
-            timeSource.increment(5)
         }
-        // Reapply with different code types
-        captured.reapply({ timeSource.increment(10) }, UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK)
-        captured.reapply({ timeSource.increment(15) }, UserCodeApplicationContext.CodeType.LISTENER)
+        millisByType.each { codeType, millis ->
+            captured.reapply({ timeSource.increment(millis) }, codeType)
+        }
 
         then:
         def snapshot = context.stopTrackingApplications().get(target).first()
-        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.GENERAL) == ms(5)
-        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK) == ms(10)
-        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.LISTENER) == ms(15)
-        snapshot.getTotalDurationNs() == ms(30)
+        durationsByType(snapshot) == millisByType.collectEntries { codeType, millis -> [(codeType): ms(millis)] }
+        snapshot.getTotalDurationNs() == ms(millisByType.values().sum() as long)
     }
 
     def "nested applications accumulate exclusive time"() {
@@ -293,7 +294,7 @@ class DefaultUserCodeApplicationContextTest extends Specification {
 
                 appA.reapply({
                     timeSource.increment(10)  // Inner A runs 20-30
-                }, UserCodeApplicationContext.CodeType.GENERAL)
+                }, UserCodeApplicationContext.CodeType.MAIN)
 
                 timeSource.increment(10)  // B runs 30-40
             }
@@ -332,7 +333,7 @@ class DefaultUserCodeApplicationContextTest extends Specification {
         then:
         thrown(RuntimeException)
         def snapshot = context.stopTrackingApplications().get(target).first()
-        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.GENERAL) == ms(5)
+        snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.MAIN) == ms(5)
         snapshot.getDurationNsForType(UserCodeApplicationContext.CodeType.COLLECTION_CALLBACK) == ms(10)
     }
 
@@ -434,7 +435,7 @@ class DefaultUserCodeApplicationContextTest extends Specification {
             timeSource.increment(5)
         }
         def restored = context.restoreApplication(applied.id.longValue(), source, target)
-        restored.reapply({ timeSource.increment(10) }, UserCodeApplicationContext.CodeType.GENERAL)
+        restored.reapply({ timeSource.increment(10) }, UserCodeApplicationContext.CodeType.MAIN)
 
         then:
         restored.is(applied)
@@ -448,7 +449,7 @@ class DefaultUserCodeApplicationContextTest extends Specification {
 
         when:
         def restored = context.restoreApplication(42, restoredSource, project)
-        restored.reapply({ timeSource.increment(10) }, UserCodeApplicationContext.CodeType.GENERAL)
+        restored.reapply({ timeSource.increment(10) }, UserCodeApplicationContext.CodeType.MAIN)
 
         then:
         restored.id.longValue() == 42
@@ -639,6 +640,16 @@ class DefaultUserCodeApplicationContextTest extends Specification {
 
     private static long ms(long millis) {
         return TimeUnit.MILLISECONDS.toNanos(millis)
+    }
+
+    private static List<UserCodeApplicationContext.CodeType> allCodeTypes() {
+        return UserCodeApplicationContext.CodeType.values() as List
+    }
+
+    private static Map<UserCodeApplicationContext.CodeType, Long> durationsByType(
+        UserCodeApplicationContext.ApplicationSnapshot snapshot
+    ) {
+        return allCodeTypes().collectEntries { [(it): snapshot.getDurationNsForType(it)] }
     }
 
     private class MockNanoTimeProvider implements DefaultUserCodeApplicationContext.NanoTimeProvider {
