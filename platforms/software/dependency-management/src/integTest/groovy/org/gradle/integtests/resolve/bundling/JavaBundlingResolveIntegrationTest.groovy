@@ -81,12 +81,13 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
         run ':checkDeps'
 
         then:
+        String status = defaultStatus()
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:producer:1.0') {
                     variant('api', [
                             'org.gradle.dependency.bundling': 'external',
-                            'org.gradle.status': JavaBundlingResolveIntegrationTest.defaultStatus(),
+                            'org.gradle.status': status,
                             'org.gradle.usage': 'java-api',
                             'org.gradle.libraryelements': 'jar',
                             'org.gradle.category': 'library'
@@ -157,12 +158,13 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
         if (shouldFail) {
             failure.assertHasCause("No matching variant of org:producer:1.0 was found. The consumer was configured to find a component for use during compile-time, and its dependencies repackaged (shadow jar) but:")
         } else {
+            String status = defaultStatus()
             resolve.expectGraph {
                 root(":", ":test:") {
                     module('org:producer:1.0') {
                         variant('fatApi', [
                                 'org.gradle.dependency.bundling': selected,
-                                'org.gradle.status': JavaBundlingResolveIntegrationTest.defaultStatus(),
+                                'org.gradle.status': status,
                                 'org.gradle.usage': 'java-api',
                                 'org.gradle.libraryelements': 'jar'
                         ])
@@ -179,8 +181,8 @@ class JavaBundlingResolveIntegrationTest extends AbstractModuleDependencyResolve
         Bundling.SHADOWED | Bundling.SHADOWED | Bundling.SHADOWED
     }
 
-    static Closure<String> defaultStatus() {
-        { -> GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release' }
+    static String defaultStatus() {
+        GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release'
     }
 
 }

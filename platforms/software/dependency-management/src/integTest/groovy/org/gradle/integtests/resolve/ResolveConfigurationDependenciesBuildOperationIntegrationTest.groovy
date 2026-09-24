@@ -17,6 +17,7 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.api.internal.artifacts.configurations.ResolveConfigurationDependenciesBuildOperationType
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.api.internal.initialization.DefaultScriptHandler
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheRecreateOption
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
@@ -704,7 +705,7 @@ class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends Abst
                                 name = 'two'
                                 url = "${mavenRepo.uri}"
                             }
-                            mavenCentral()
+                            ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
                         }
                     }
                 }

@@ -40,6 +40,7 @@ import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.jspecify.annotations.Nullable;
 
+import java.lang.ref.SoftReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
@@ -47,6 +48,8 @@ import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
 
 public class DefaultLenientConfiguration implements LenientConfigurationInternal {
@@ -61,7 +64,14 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
 
     // Selected for the configuration
     private @Nullable SelectedArtifactResults artifactsForThisConfiguration;
-    private @Nullable DefaultResolvedDependency root;
+
+    /**
+     * The resolved dependency graph is a view over the underlying GraphStructure and
+     * provides no additional context. Only hold a soft reference to it to avoid retained
+     * memory if no other references to the view graph exist.
+     */
+    private final Lock rootLock = new ReentrantLock();
+    private @Nullable SoftReference<DefaultResolvedDependency> root = null;
 
     public DefaultLenientConfiguration(
         ResolutionHost resolutionHost,
@@ -99,44 +109,59 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     }
 
     private DefaultResolvedDependency getRoot() {
-        if (root == null) {
-            GraphStructure structure = graphStructureSupplier.get();
-            GraphStructure.Nodes nodes = structure.nodes();
-            GraphStructure.Components components = structure.components();
-            GraphStructure.Edges edges = structure.edges();
-            SelectedArtifactResults artifactsByNodeId = getSelectedArtifacts();
-
-            List<DefaultResolvedDependency> allNodes = new ArrayList<>(nodes.count());
-            for (int i = 0; i < nodes.count(); i++) {
-                int owner = nodes.owner(i);
-                ResolvedArtifactSet artifacts = artifactsByNodeId.getArtifactsWithId(i);
-                DefaultResolvedDependency node = new DefaultResolvedDependency(
-                    nodes.variantName(i),
-                    components.moduleVersionId(owner),
-                    buildOperationExecutor,
-                    resolutionHost
-                );
-                node.addModuleArtifacts(artifacts);
-                allNodes.add(node);
-            }
-
-            for (int i = 0; i < nodes.count(); i++) {
-                DefaultResolvedDependency parent = allNodes.get(i);
-                for (int e = edges.start(i); e < edges.end(i); e++) {
-                    if (!edges.constraint(e)) {
-                        int target = edges.targetNode(e);
-                        if (target != -1) {
-                            // Resolved/LenientConfiguration only expose
-                            // successful, non-constraint edges.
-                            parent.addChild(allNodes.get(target));
-                        }
-                    }
+        rootLock.lock();
+        try {
+            if (root != null) {
+                DefaultResolvedDependency value = root.get();
+                if (value != null) {
+                    return value;
                 }
             }
 
-            root = allNodes.get(nodes.root());
+            DefaultResolvedDependency value = buildRoot();
+            this.root = new SoftReference<>(value);
+            return value;
+        } finally {
+            rootLock.unlock();
         }
-        return root;
+    }
+
+    private DefaultResolvedDependency buildRoot() {
+        GraphStructure structure = graphStructureSupplier.get();
+        GraphStructure.Nodes nodes = structure.nodes();
+        GraphStructure.Components components = structure.components();
+        GraphStructure.Edges edges = structure.edges();
+        SelectedArtifactResults artifactsByNodeId = getSelectedArtifacts();
+
+        List<DefaultResolvedDependency> allNodes = new ArrayList<>(nodes.count());
+        for (int i = 0; i < nodes.count(); i++) {
+            int owner = nodes.owner(i);
+            ResolvedArtifactSet artifacts = artifactsByNodeId.getArtifactsWithId(i);
+            DefaultResolvedDependency node = new DefaultResolvedDependency(
+                nodes.variantName(i),
+                components.moduleVersionId(owner),
+                buildOperationExecutor,
+                resolutionHost
+            );
+            node.addModuleArtifacts(artifacts);
+            allNodes.add(node);
+        }
+
+        for (int i = 0; i < nodes.count(); i++) {
+            DefaultResolvedDependency parent = allNodes.get(i);
+            for (int e = edges.start(i); e < edges.end(i); e++) {
+                if (!edges.constraint(e)) {
+                    int target = edges.targetNode(e);
+                    if (target != -1) {
+                        // Resolved/LenientConfiguration only expose
+                        // successful, non-constraint edges.
+                        parent.addChild(allNodes.get(target));
+                    }
+                }
+            }
+        }
+
+        return allNodes.get(nodes.root());
     }
 
     @Override

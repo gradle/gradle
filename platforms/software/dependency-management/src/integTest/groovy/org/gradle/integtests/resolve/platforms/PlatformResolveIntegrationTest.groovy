@@ -71,7 +71,6 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:platform:{strictly 1.0}", "org:platform:1.0") {
-                    configuration = "enforcedApi"
                     variant("enforcedApi", [
                         'org.gradle.usage': 'java-api',
                         'org.gradle.category': 'enforced-platform',
@@ -82,7 +81,7 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                 }
                 edge('org:foo:1.1', 'org:foo:1.0') {
                     forced()
-                    configuration = 'api'
+                    variant('api')
                 }
             }
         }
@@ -127,13 +126,7 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                     byConstraint()
                     noArtifacts()
                 }
-                constraint("org:platform:1.0", "org:platform:1.0") {
-                    variant("platform-compile", [
-                        'org.gradle.usage': 'java-api',
-                        'org.gradle.category': 'platform',
-                        'org.gradle.status': 'release',
-                    ])
-                }
+                constraint("org:platform:1.0", "org:platform:1.0")
             }
         }
 
@@ -200,13 +193,7 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
                                             'org.gradle.jvm.version': JavaVersion.current().majorVersion,
                                             'org.gradle.usage': 'java-api',
                                             'org.gradle.libraryelements': 'jar'])
-                    constraint("org:platform:1.0", "org:platform:1.0") {
-                        variant("platform-compile", [
-                            'org.gradle.usage': 'java-api',
-                            'org.gradle.category': 'platform',
-                            'org.gradle.status': 'release',
-                        ])
-                    }
+                    constraint("org:platform:1.0", "org:platform:1.0")
                     artifact name: 'main', version: '', extension: '', type: 'java-classes-directory'
                 }
             }
@@ -323,15 +310,15 @@ class PlatformResolveIntegrationTest extends AbstractHttpDependencyResolutionTes
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:platform:{strictly 1.0}", "org:platform:1.0") {
-                    variant(regularVariant, [
-                        'org.gradle.category': 'platform',
+                    variant(enforcedVariant, [
+                        'org.gradle.category': 'enforced-platform',
                         'org.gradle.status': 'release',
                         'org.gradle.usage': javaUsage])
                     noArtifacts()
                 }
                 module("org:platform:1.0") {
-                    variant(enforcedVariant, [
-                        'org.gradle.category': 'enforced-platform',
+                    variant(regularVariant, [
+                        'org.gradle.category': 'platform',
                         'org.gradle.status': 'release',
                         'org.gradle.usage': javaUsage])
                     noArtifacts()

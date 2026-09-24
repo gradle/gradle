@@ -67,25 +67,75 @@ Test fixture resources.
 [[sec:java_test_fixtures_configurations]]
 == Dependency configurations
 
-The plugin adds a set of configurations for the `testFixtures` source set, mirroring those of a normal <<java_library_plugin.adoc#java_library_plugin,Java library>>:
+The plugin adds a set of configurations for the `testFixtures` source set, mirroring those of a normal <<java_library_plugin.adoc#java_library_plugin,Java library>>: the fixtures get their own `api`/`implementation`/`compileOnly`/`compileOnlyApi`/`runtimeOnly` declarable configurations, their own consumable elements, and their own resolvable classpaths.
 
-`testFixturesApi`::
-Declarable. Dependencies exported to consumers of the fixtures (and to the fixtures' own compilation).
+[NOTE]
+====
+Applying this plugin also wires up two dependencies for you automatically:
 
-`testFixturesImplementation`::
-Declarable. Dependencies used internally by the fixtures and not exposed to consumers.
+* `testFixturesApi` gets an implicit dependency on the project itself, so the fixtures can use the project's own main classes.
+* The `test` source set's `testImplementation` configuration (added by the <<java_plugin.adoc#sec:java_plugin_and_dependency_management,Java Plugin>>) gets an implicit `testFixtures(project(...))` dependency on this project, so your tests can use the fixtures without declaring anything yourself.
+====
 
-`testFixturesCompileOnly` / `testFixturesCompileOnlyApi`::
-Declarable. Compile-time-only dependencies of the fixtures (the `Api` variant is also visible to consumers at compile time).
+[[sec:java_test_fixtures_declarable_configurations]]
+=== Declarable (Bucket) Configurations
 
-`testFixturesRuntimeOnly`::
-Declarable. Runtime-only dependencies of the fixtures.
+[%header%autowidth,compact]
+|===
+| Configuration name | Role | Description
 
-`testFixturesApiElements` / `testFixturesRuntimeElements`::
-Consumable. The variants exposed to consumers for compiling against, and running against, the fixtures.
+| `testFixturesApi`
+| Declarable
+| Dependencies exported to consumers of the fixtures (and to the fixtures' own compilation).
 
-`testFixturesCompileClasspath` / `testFixturesRuntimeClasspath`::
-Resolvable. The compile and runtime classpaths used to build the fixtures.
+| `testFixturesImplementation` (extends `testFixturesApi`)
+| Declarable
+| Dependencies used internally by the fixtures and not exposed to consumers.
+
+| `testFixturesCompileOnly` (extends `testFixturesCompileOnlyApi`)
+| Declarable
+| Compile-time-only dependencies of the fixtures, not exposed to consumers or at runtime.
+
+| `testFixturesCompileOnlyApi`
+| Declarable
+| Compile-time-only dependencies of the fixtures that are also visible to consumers at compile time.
+
+| `testFixturesRuntimeOnly`
+| Declarable
+| Runtime-only dependencies of the fixtures.
+|===
+
+[[sec:java_test_fixtures_consumable_configurations]]
+=== Consumable Configurations
+
+[%header%autowidth,compact]
+|===
+| Configuration name | Role | Description
+
+| `testFixturesApiElements` (extends `testFixturesApi`, `testFixturesCompileOnlyApi`)
+| Consumable
+| The elements exposed to consumers that compile against the fixtures.
+
+| `testFixturesRuntimeElements` (extends `testFixturesImplementation`, `testFixturesRuntimeOnly`)
+| Consumable
+| The elements exposed to consumers that run against the fixtures.
+|===
+
+[[sec:java_test_fixtures_resolvable_configurations]]
+=== Resolvable Configurations
+
+[%header%autowidth,compact]
+|===
+| Configuration name | Role | Description
+
+| `testFixturesCompileClasspath` (extends `testFixturesCompileOnly`, `testFixturesImplementation`)
+| Resolvable
+| The classpath used when compiling the fixtures.
+
+| `testFixturesRuntimeClasspath` (extends `testFixturesRuntimeOnly`, `testFixturesImplementation`)
+| Resolvable
+| The classpath used to run the fixtures.
+|===
 
 [[sec:java_test_fixtures_consuming]]
 == Consuming test fixtures

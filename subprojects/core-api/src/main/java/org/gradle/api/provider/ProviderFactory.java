@@ -17,6 +17,7 @@
 package org.gradle.api.provider;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.credentials.AwsCredentials;
 import org.gradle.api.credentials.Credentials;
@@ -24,10 +25,6 @@ import org.gradle.api.credentials.PasswordCredentials;
 import org.gradle.api.file.FileContents;
 import org.gradle.api.file.RegularFile;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.services.GradleService;
-import org.gradle.api.services.ProjectService;
-import org.gradle.api.services.SettingsService;
-import org.gradle.api.services.TaskService;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.process.ExecOutput;
@@ -49,7 +46,7 @@ import java.util.function.BiFunction;
  */
 @NonExtensible
 @ServiceScope(Scope.Build.class)
-public interface ProviderFactory extends GradleService, ProjectService, SettingsService, TaskService {
+public interface ProviderFactory {
 
     /**
      * Creates a {@link Provider} whose value is calculated using the given {@link Callable}.
@@ -76,6 +73,51 @@ public interface ProviderFactory extends GradleService, ProjectService, Settings
      * @since 4.0
      */
     <T> Provider<T> provider(Callable<? extends @Nullable T> value);
+
+    /**
+     * Returns a {@link Provider} that is always absent, that is, one that never has a value.
+     *
+     * <p>The returned provider is never {@link Provider#isPresent() present}: querying its value with {@link Provider#get()} always fails
+     * and {@link Provider#getOrNull()} always returns {@code null}.
+     *
+     * @param <T> the type of the value of the provider
+     * @return The provider. Never returns null.
+     * @see #present(Object)
+     * @see #presentIfNotNull(Object)
+     * @since 9.9.0
+     */
+    @Incubating
+    <T> Provider<T> absent();
+
+    /**
+     * Returns a {@link PresentProvider} that is always present, providing the given value.
+     *
+     * <p>Unlike {@link #provider(Callable)}, the value is not computed on demand: querying the returned provider simply returns the given value.
+     * Prefer this method over {@link #provider(Callable)} when the value is already known.
+     *
+     * @param value The value of the provider. Cannot be null.
+     * @param <T> the type of the value of the provider
+     * @return The provider. Never returns null.
+     * @see #absent()
+     * @see #presentIfNotNull(Object)
+     * @since 9.9.0
+     */
+    @Incubating
+    <T> PresentProvider<T> present(T value);
+
+    /**
+     * Returns a {@link Provider} that is always present when the given value is non-null, or always absent otherwise,
+     * as if created by {@link #present(Object)} or {@link #absent()} respectively.
+     *
+     * @param value The value of the provider. May be null.
+     * @param <T> the type of the value of the provider
+     * @return The provider. Never returns null.
+     * @see #absent()
+     * @see #present(Object)
+     * @since 9.9.0
+     */
+    @Incubating
+    <T> Provider<T> presentIfNotNull(@Nullable T value);
 
     /**
      * Creates a {@link Provider} whose value is fetched from the environment variable with the given name.

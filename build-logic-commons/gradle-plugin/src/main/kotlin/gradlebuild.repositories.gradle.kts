@@ -43,5 +43,12 @@ repositories {
             includeGroup("io.usethesource")
         }
     }
-    mavenCentral()
+    mavenCentral {
+        content {
+            // The japicmp baseline is served by the Gradle distributions ivy repository declared in
+            // gradlebuild.binary-compatibility. Asking Maven Central for it can only ever 404, and
+            // when the mirror answers 503 under load instead, Gradle disables the whole repository.
+            excludeModule("gradle", "gradle")
+        }
+    }
 }

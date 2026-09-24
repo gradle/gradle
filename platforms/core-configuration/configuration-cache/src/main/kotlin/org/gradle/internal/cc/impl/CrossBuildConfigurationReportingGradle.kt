@@ -33,7 +33,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.invocation.GradleLifecycle
-import org.gradle.api.services.GradleService
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
@@ -333,11 +332,6 @@ class CrossBuildConfigurationReportingGradle(
     override fun getProviders(): ProviderFactory {
         onBuildMutableStateAccess("getProviders")
         return delegate.getProviders()
-    }
-
-    override fun <T : GradleService> service(serviceType: Class<T>): T {
-        onBuildMutableStateAccess("service")
-        return delegate.service(serviceType)
     }
 
     override fun getPlugins(): PluginContainer {

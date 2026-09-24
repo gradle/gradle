@@ -28,7 +28,6 @@ import org.gradle.api.initialization.SharedModelDefaults
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.initialization.resolve.DependencyResolutionManagement
 import org.gradle.api.invocation.Gradle
-import org.gradle.api.services.SettingsService
 import org.gradle.api.plugins.ExtensionContainer
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.api.plugins.PluginContainer
@@ -157,9 +156,6 @@ abstract class SettingsDelegate : Settings {
 
     override fun getProviders(): ProviderFactory =
         delegate.providers
-
-    override fun <T : SettingsService> service(serviceType: Class<T>): T =
-        delegate.service(serviceType)
 
     override fun dependencyResolutionManagement(dependencyResolutionConfiguration: Action<in DependencyResolutionManagement>) =
         delegate.dependencyResolutionManagement(dependencyResolutionConfiguration)

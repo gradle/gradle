@@ -111,7 +111,7 @@ include::sample[dir="snippets/reference/core-plugins/jacoco-quickstart/groovy",f
 
 While all tasks of type link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] are automatically enhanced to provide coverage information when the `java` plugin has been applied, any task that implements link:{javadocPath}/org/gradle/process/JavaForkOptions.html[JavaForkOptions] can be enhanced by the JaCoCo plugin. That is, any task that forks Java processes can be used to generate coverage information.
 
-For example you can configure your build to generate code coverage using the `application` plugin:
+For example, you can configure your build to generate code coverage using the `application` plugin:
 
 ====
 include::sample[dir="snippets/reference/core-plugins/jacoco-application/kotlin",files="build.gradle.kts[tags=application-configuration]"]
@@ -131,6 +131,34 @@ include::sample[dir="snippets/reference/core-plugins/jacoco-application/groovy",
                     └── index.html
 
 ----
+
+The example above targets the `run` task directly.
+To target a `TaskCollection` instead — every `JavaExec` task, or a filtered subset — accumulate each task's execution data via `configureEach` and pass the resulting `FileCollection` to `executionData`.
+Calling `executionData(TaskCollection)` inside `tasks.register {}` trips Gradle's mutation guard, so the collection must be built up outside the registration action:
+
+====
+include::sample[dir="snippets/reference/core-plugins/jacoco-application-filtered/kotlin",files="build.gradle.kts[tags=filter-single-task]"]
+include::sample[dir="snippets/reference/core-plugins/jacoco-application-filtered/groovy",files="build.gradle[tags=filter-single-task]"]
+====
+
+[[sec:jacoco_multiple_test_suites]]
+== Aggregating coverage across multiple test suites
+
+A project may run more than one <<jvm_test_suite_plugin.adoc#jvm_test_suite_plugin,JVM test suite>> — for example the built-in `test` suite plus an `integrationTest` suite.
+Each suite has its own `Test` task that produces its own execution data, and the default `jacocoTestReport` task only covers the `test` suite.
+
+For coverage aggregated *across projects*, apply the <<jacoco_report_aggregation_plugin.adoc#jacoco_report_aggregation_plugin,JaCoCo Report Aggregation plugin>>.
+Note that it produces one report per test suite name (for example `testCodeCoverageReport` and `integrationTestCodeCoverageReport`); it does not merge different suites into a single report.
+
+To produce a single report covering *all* of a project's test suites, register a link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoReport.html[JacocoReport] task and feed it the execution data of every `Test` task.
+Two constraints shape the pattern: `executionData(TaskCollection)` cannot be called inside `tasks.register {}` (Gradle's mutation guard blocks it), so accumulate each task's execution data via `configureEach`; and `executionData` only adds a `mustRunAfter` ordering, so declare an explicit `dependsOn` to make the suites actually run:
+
+====
+include::sample[dir="snippets/reference/core-plugins/jacoco-multi-test-suites/kotlin",files="build.gradle.kts[tags=multi-test-suites]"]
+include::sample[dir="snippets/reference/core-plugins/jacoco-multi-test-suites/groovy",files="build.gradle[tags=multi-test-suites]"]
+====
+
+The same pattern applies to link:{groovyDslPath}/org.gradle.testing.jacoco.tasks.JacocoCoverageVerification.html[JacocoCoverageVerification] when you want a single coverage-threshold check across all suites.
 
 [[sec:jacoco_tasks]]
 == Tasks

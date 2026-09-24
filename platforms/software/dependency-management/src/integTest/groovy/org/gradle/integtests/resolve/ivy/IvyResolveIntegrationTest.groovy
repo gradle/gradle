@@ -429,13 +429,13 @@ class IvyResolveIntegrationTest extends AbstractHttpDependencyResolutionTest {
         resolve.expectGraph {
             root(":", "com.acme:test:1.9") {
                 edge('org:foo', 'org:foo:1.0') {
-                    configuration('alice')
+                    variant('alice')
                     byConstraint()
                     module('org:bar:1.0') {
                         notRequested()
                         byAncestor()
                         byConstraint()
-                        configuration('extra')
+                        variant('extra')
                     }
                 }
                 constraint("org:foo:{strictly 1.0}", "org:foo:1.0")

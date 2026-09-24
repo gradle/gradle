@@ -17,6 +17,8 @@
 package org.gradle.internal.declarativedsl.project
 
 import org.gradle.features.annotations.BindsProjectType
+import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.features.annotations.RegistersProjectFeatures
 import org.gradle.features.binding.ProjectFeatureApplicationContext
 import org.gradle.features.binding.ProjectTypeApplyAction
@@ -263,7 +265,7 @@ secondaryAccess { three, true, true, [USER, GROUP, ALL] }"""
                 `java-gradle-plugin`
                 ${if (language == "kotlin") { "`kotlin-dsl`" } else { "" }}
             }
-            ${if (language == "kotlin") { "repositories { mavenCentral() }" } else { "" }}
+            ${if (language == "kotlin") { "repositories { " + RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN) + " }" } else { "" }}
             gradlePlugin {
                 plugins {
                     create("restrictedPlugin") {

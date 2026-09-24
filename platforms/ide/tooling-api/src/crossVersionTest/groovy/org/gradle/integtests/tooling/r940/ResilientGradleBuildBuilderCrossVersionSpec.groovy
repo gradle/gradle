@@ -17,6 +17,8 @@
 package org.gradle.integtests.tooling.r940
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r930.KotlinDslPluginRelatedToolingApiSpecification
 import org.gradle.test.fixtures.file.TestFile
@@ -92,13 +94,23 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
             }
         """
 
+        file("buildSrc/settings.gradle.kts") << """
+            pluginManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+        """
+
         file("buildSrc/build.gradle.kts") << """
             plugins {
                 `kotlin-dsl`
             }
 
             repositories {
-                gradlePluginPortal()
+                ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
             }
         """
 

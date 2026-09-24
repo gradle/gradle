@@ -19,6 +19,7 @@ package org.gradle.api.internal.artifacts.type
 import org.gradle.api.artifacts.type.ArtifactTypeDefinition
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.CollectionCallbackActionDecorator
+import org.gradle.api.internal.artifacts.TransformRegistration
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry
 import org.gradle.internal.component.model.ComponentArtifactMetadata
@@ -285,6 +286,37 @@ class ArtifactTypeRegistryTest extends Specification {
 
         expect:
         toImmutable(registry).mapAttributesFor(file("foo.jar")) == attrsPlusFormat
+    }
+
+    def "visits the attributes that are mapped for files and directories"() {
+        given:
+        registry.getArtifactTypeContainer().create(ArtifactTypeDefinition.JAR_TYPE).attributes.attribute(Attribute.of("custom", String), "123")
+        registry.getArtifactTypeContainer().create(ArtifactTypeDefinition.DIRECTORY_TYPE).attributes.attribute(Attribute.of("custom", String), "234")
+        def immutable = toImmutable(registry)
+        def visited = [] as Set
+
+        when:
+        immutable.visitArtifactTypeAttributes([]) { visited << it }
+
+        then:
+        visited.contains(immutable.mapAttributesFor(file("foo.jar")))
+        visited.contains(immutable.mapAttributesFor(dir("foo")))
+        visited.contains(immutable.mapAttributesFor(dir("foo.jar")))
+    }
+
+    def "visits directory attributes once when a transform is registered from directories and no directory artifact type is registered"() {
+        given:
+        def registration = Stub(TransformRegistration) {
+            getFrom() >> attributesFactory.of(ArtifactTypeDefinition.ARTIFACT_TYPE_ATTRIBUTE, ArtifactTypeDefinition.DIRECTORY_TYPE)
+        }
+        def immutable = toImmutable(registry)
+        def visited = []
+
+        when:
+        immutable.visitArtifactTypeAttributes([registration]) { visited << it }
+
+        then:
+        visited == [immutable.mapAttributesFor(dir("foo"))]
     }
 
     File file(String name) {
