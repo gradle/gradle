@@ -24,6 +24,8 @@ dependencies {
     implementation(projects.kotlinDslToolingModels)
     implementation(projects.buildProcessServices)
 
+    implementation(libs.jetbrainsAnnotations)
+
     testImplementation(testFixtures(projects.kotlinDsl))
     integTestImplementation(testFixtures(projects.toolingApi))
 
