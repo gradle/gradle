@@ -28,6 +28,8 @@ import org.junit.Rule
 import spock.lang.Specification
 import spock.lang.Subject
 
+import java.util.concurrent.TimeUnit
+
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.MISSING_MARKER_FILE
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.NOT_USED_WITHIN_7_DAYS
 import static org.gradle.cache.internal.VersionSpecificCacheCleanupFixture.MarkerFileType.USED_TODAY
@@ -66,6 +68,30 @@ class ProjectCacheDirTest extends Specification implements VersionSpecificCacheC
         oldCacheDir.assertDoesNotExist()
         currentCacheDir.assertExists()
         newerCacheDir.assertExists()
+    }
+
+    def "cleans up old agent mode build output"() {
+        given:
+        def oldOutput = createAgentOutput("old", 8)
+        def recentOutput = createAgentOutput("recent", 1)
+
+        when:
+        projectCacheDir.stop()
+
+        then:
+        2 * buildOperationRunner.run(_ as RunnableBuildOperation) >> { RunnableBuildOperation operation ->
+            operation.run(context)
+        }
+        oldOutput.assertDoesNotExist()
+        recentOutput.assertExists()
+    }
+
+    private TestFile createAgentOutput(String invocation, int daysAgo) {
+        def lastModified = System.currentTimeMillis() - TimeUnit.DAYS.toMillis(daysAgo)
+        def dir = cacheDir.createDir("agent/builds/$invocation")
+        dir.file("build-output.log").createFile().lastModified = lastModified
+        dir.lastModified = lastModified
+        return dir
     }
 
     @Override

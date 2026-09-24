@@ -93,7 +93,7 @@ public final class HelpRenderer {
         // Wire core converters so the option table matches CLI (initial/build layout/start parameter/daemon)
         new InitialPropertiesConverter().configure(parser);
         new BuildLayoutConverter().configure(parser);
-        new StartParameterConverter().configure(parser);
+        StartParameterConverter.forCommandLine().configure(parser);
         new BuildOptionBackedConverter<>(new DaemonBuildOptions()).configure(parser);
         // Built-in options: -h/--help/-?, -v/--version, -V/--show-version
         parser.option("h", "?", "help").hasDescription("Shows this help message.").hasCategory(OptionCategory.HELP);
