@@ -164,6 +164,18 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         agentOutput.text.contains("Argument value 'bogus' given for --warning-mode option is invalid")
     }
 
+    def "fails on the console when the output file cannot be opened"() {
+        given:
+        file(BUILDS_DIR).createFile()
+
+        when:
+        fails("hello", "--agent")
+
+        then:
+        output.empty
+        errorOutput.contains("Could not open agent output file")
+    }
+
     def "prints the file location before starting the daemon"() {
         given:
         executer.requireDaemon().requireIsolatedDaemons().withBuildJvmOpts("-Xnot-a-jvm-option")
