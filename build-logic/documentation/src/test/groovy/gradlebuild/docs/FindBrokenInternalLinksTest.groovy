@@ -90,8 +90,6 @@ class FindBrokenInternalLinksTest extends Specification {
                 }
             }
 
-            tasks.register('assembleSamples')
-
             javadocAll {
                 enabled = false
             }

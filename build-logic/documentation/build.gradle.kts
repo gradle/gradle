@@ -11,7 +11,6 @@ dependencies {
 
     implementation(projects.buildUpdateUtils)
 
-    implementation(buildLibs.gradleGuidesPlugin)
     implementation(buildLibs.javaParserCore)
     implementation(buildLibs.guava)
     implementation(buildLibs.jhighlight) {
@@ -33,6 +32,10 @@ gradlePlugin {
         register("gradleDocumentation") {
             id = "gradlebuild.documentation"
             implementationClass = "gradlebuild.docs.GradleBuildDocumentationPlugin"
+        }
+        register("gradleSnippetsTesting") {
+            id = "gradlebuild.docs-snippets-testing"
+            implementationClass = "gradlebuild.docs.GradleSnippetsTestingPlugin"
         }
     }
 }
