@@ -62,7 +62,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
-    // KGP 2.5.0-Beta1 stopped registering IncrementalModuleInfoBuildService when Project Isolation is enabled, so only 2.0.x-2.4.x still fail.
+    // KGP 2.5.0-Beta2 stopped registering IncrementalModuleInfoBuildService when Project Isolation is enabled, so only 2.0.x-2.4.x still fail.
     @ToBeFixedForIsolatedProjects(
         because = "Kotlin accesses projects from tasks in task graph: https://github.com/JetBrains/kotlin/blob/d6383256f1addbe92344b932f7d278f42bfef5bb/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/compilerRunner/GradleKotlinCompilerRunner.kt#L304",
         iterationMatchers = [".*kotlin=2\\.[0-4]\\..*"]
