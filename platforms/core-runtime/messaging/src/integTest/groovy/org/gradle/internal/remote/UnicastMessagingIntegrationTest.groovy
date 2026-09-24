@@ -225,6 +225,8 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
         abstract void stop()
     }
 
+    static final byte[] CONNECTION_TOKEN = "0123456789abcdef".bytes
+
     class Server extends Participant {
         private final lock = new ReentrantLock()
         private final condition = lock.newCondition()
@@ -243,7 +245,7 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
                 } finally {
                     lock.unlock()
                 }
-            } as Action)
+            } as Action, CONNECTION_TOKEN)
             address = acceptor.address
         }
 
@@ -280,7 +282,7 @@ class UnicastMessagingIntegrationTest extends ConcurrentSpec {
 
         Client(Address serverAddress) {
             def client = services.get(MessagingClient)
-            connection = client.getConnection(serverAddress)
+            connection = client.getConnection(serverAddress, CONNECTION_TOKEN)
         }
 
         @Override

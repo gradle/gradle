@@ -43,6 +43,7 @@ class TcpConnectorTest extends ConcurrentSpec {
     final def addressFactory = new InetAddressFactory()
     final def outgoingConnector = new TcpOutgoingConnector()
     final def incomingConnector = new TcpIncomingConnector(executorFactory, addressFactory, idGenerator, 1)
+    final byte[] connectionToken = "0123456789abcdef".bytes
     @Rule
     public ReleasingPortAllocator portAllocator = new ReleasingPortAllocator()
 
@@ -50,8 +51,8 @@ class TcpConnectorTest extends ConcurrentSpec {
         Action action = Mock()
 
         when:
-        def acceptor = incomingConnector.accept(action, false, null)
-        def connection = outgoingConnector.connect(acceptor.address, null).create(serializer)
+        def acceptor = incomingConnector.accept(action, false, connectionToken)
+        def connection = outgoingConnector.connect(acceptor.address, connectionToken).create(serializer)
 
         then:
         connection != null
@@ -65,8 +66,8 @@ class TcpConnectorTest extends ConcurrentSpec {
         Action action = Mock()
 
         when:
-        def acceptor = incomingConnector.accept(action, true, null)
-        def connection = outgoingConnector.connect(acceptor.address, null).create(serializer)
+        def acceptor = incomingConnector.accept(action, true, connectionToken)
+        def connection = outgoingConnector.connect(acceptor.address, connectionToken).create(serializer)
 
         then:
         connection != null
@@ -80,8 +81,8 @@ class TcpConnectorTest extends ConcurrentSpec {
         Action action = Mock()
 
         when:
-        def acceptor = incomingConnector.accept(action, false, null)
-        def connection = outgoingConnector.connect(acceptor.address, null).create(serializer)
+        def acceptor = incomingConnector.accept(action, false, connectionToken)
+        def connection = outgoingConnector.connect(acceptor.address, connectionToken).create(serializer)
         thread.blockUntil.connected
 
         then:
@@ -96,7 +97,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         def address = new MultiChoiceAddress(idGenerator.generateId(), portAllocator.assignPort(), [InetAddress.getByName("localhost")])
 
         when:
-        outgoingConnector.connect(address, null)
+        outgoingConnector.connect(address, connectionToken)
 
         then:
         ConnectException e = thrown()
@@ -108,7 +109,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         def address = new MultiChoiceAddress(idGenerator.generateId(), portAllocator.assignPort(), [InetAddress.getByName("localhost"), InetAddress.getByName("127.0.0.1")])
 
         when:
-        outgoingConnector.connect(address, null)
+        outgoingConnector.connect(address, connectionToken)
 
         then:
         ConnectException e = thrown()
@@ -118,9 +119,9 @@ class TcpConnectorTest extends ConcurrentSpec {
 
     def "client cannot connect after server stopped"() {
         when:
-        def acceptor = incomingConnector.accept(Mock(Action), false, null)
+        def acceptor = incomingConnector.accept(Mock(Action), false, connectionToken)
         acceptor.stop()
-        outgoingConnector.connect(acceptor.address, null)
+        outgoingConnector.connect(acceptor.address, connectionToken)
 
         then:
         ConnectException e = thrown()
@@ -137,8 +138,8 @@ class TcpConnectorTest extends ConcurrentSpec {
         }
 
         when:
-        def acceptor = incomingConnector.accept(action, false, null)
-        def connection = outgoingConnector.connect(acceptor.address, null).create(serializer)
+        def acceptor = incomingConnector.accept(action, false, connectionToken)
+        def connection = outgoingConnector.connect(acceptor.address, connectionToken).create(serializer)
         def result = connection.receive()
 
         then:
@@ -158,12 +159,12 @@ class TcpConnectorTest extends ConcurrentSpec {
         }
 
         when:
-        def acceptor = incomingConnector.accept(action, false, null)
+        def acceptor = incomingConnector.accept(action, false, connectionToken)
         async {
-            def connection = outgoingConnector.connect(acceptor.address, null).create(serializer)
+            def connection = outgoingConnector.connect(acceptor.address, connectionToken).create(serializer)
             connection.stop()
         }
-        outgoingConnector.connect(acceptor.address, null)
+        outgoingConnector.connect(acceptor.address, connectionToken)
 
         then:
         ConnectException e = thrown()
@@ -185,8 +186,8 @@ class TcpConnectorTest extends ConcurrentSpec {
         }
 
         when:
-        def acceptor = incomingConnector.accept(action, false, null)
-        def connection = outgoingConnector.connect(acceptor.address, null).create(serializer)
+        def acceptor = incomingConnector.accept(action, false, connectionToken)
+        def connection = outgoingConnector.connect(acceptor.address, connectionToken).create(serializer)
         thread.blockUntil.connected
         operation.stop {
             acceptor.stop()
@@ -209,9 +210,9 @@ class TcpConnectorTest extends ConcurrentSpec {
             conn.dispatch("bye")
             conn.stop()
             instant.closed
-        } as Action, false, null)
+        } as Action, false, connectionToken)
 
-        def connection = outgoingConnector.connect(acceptor.address, null).create(serializer)
+        def connection = outgoingConnector.connect(acceptor.address, connectionToken).create(serializer)
         thread.blockUntil.closed
 
         then:
@@ -239,8 +240,8 @@ class TcpConnectorTest extends ConcurrentSpec {
         } as Serializer
 
         when:
-        def acceptor = incomingConnector.accept(action, false, null)
-        def connection = outgoingConnector.connect(acceptor.address, null).create(Serializers.stateful(outgoingSerializer))
+        def acceptor = incomingConnector.accept(action, false, connectionToken)
+        def connection = outgoingConnector.connect(acceptor.address, connectionToken).create(Serializers.stateful(outgoingSerializer))
         def result = connection.receive()
 
         then:
@@ -266,8 +267,8 @@ class TcpConnectorTest extends ConcurrentSpec {
         }
 
         when:
-        def acceptor = incomingConnector.accept(action, false, null)
-        def connection = outgoingConnector.connect(acceptor.address, null).create(Serializers.stateful(outgoingSerializer))
+        def acceptor = incomingConnector.accept(action, false, connectionToken)
+        def connection = outgoingConnector.connect(acceptor.address, connectionToken).create(Serializers.stateful(outgoingSerializer))
         connection.receive()
 
         then:
@@ -305,7 +306,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         given:
         def action = Mock(Action)
         def socketChannel = SocketChannel.open()
-        def acceptor = incomingConnector.accept(action, false, null)
+        def acceptor = incomingConnector.accept(action, false, connectionToken)
         def communicationAddress = addressFactory.getLocalBindingAddress()
         def bindAnyPort = new InetSocketAddress(communicationAddress, 0)
         def connectAddress = new InetSocketAddress(communicationAddress, acceptor.address.port)
@@ -330,7 +331,7 @@ class TcpConnectorTest extends ConcurrentSpec {
         def connected = false
         def action = { connected = true  }
         def socketChannel = SocketChannel.open()
-        def acceptor = incomingConnector.accept(action, false, null)
+        def acceptor = incomingConnector.accept(action, false, connectionToken)
         def communicationAddress = addressFactory.getLocalBindingAddress()
         def bindAnyPort = new InetSocketAddress(communicationAddress, 0)
         def connectAddress = new InetSocketAddress(communicationAddress, acceptor.address.port)

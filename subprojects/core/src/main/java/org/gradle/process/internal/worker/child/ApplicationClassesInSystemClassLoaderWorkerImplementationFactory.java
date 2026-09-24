@@ -98,7 +98,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
      *
      * @see <a href="https://issues.gradle.org/browse/GRADLE-3287">Context</a>
      */
-    public void prepareJavaCommand(long workerId, String displayName, WorkerProcessBuilder processBuilder, List<URL> implementationClassPath, List<URL> implementationModulePath, Address serverAddress, JavaExecHandleBuilder execSpec, boolean publishProcessInfo, boolean useOptionsFile) {
+    public void prepareJavaCommand(long workerId, String displayName, WorkerProcessBuilder processBuilder, List<URL> implementationClassPath, List<URL> implementationModulePath, Address serverAddress, byte[] connectionToken, JavaExecHandleBuilder execSpec, boolean publishProcessInfo, boolean useOptionsFile) {
         Collection<File> applicationClasspath = processBuilder.getApplicationClasspath();
         Set<File> applicationModulePath = processBuilder.getApplicationModulePath();
         LogLevel logLevel = processBuilder.getLogLevel();
@@ -167,6 +167,7 @@ public class ApplicationClassesInSystemClassLoaderWorkerImplementationFactory {
                 publishProcessInfo,
                 gradleUserHomeDir.getAbsolutePath(),
                 (MultiChoiceAddress) serverAddress,
+                connectionToken,
                 workerId,
                 displayName,
                 processBuilder.getWorker(),

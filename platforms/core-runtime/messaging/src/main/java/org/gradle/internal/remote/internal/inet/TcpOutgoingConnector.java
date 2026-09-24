@@ -16,13 +16,11 @@
 
 package org.gradle.internal.remote.internal.inet;
 
-import com.google.common.primitives.Bytes;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.remote.Address;
 import org.gradle.internal.remote.internal.ConnectCompletion;
 import org.gradle.internal.remote.internal.ConnectException;
 import org.gradle.internal.remote.internal.OutgoingConnector;
-import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -36,6 +34,7 @@ import java.net.SocketTimeoutException;
 import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
 import java.nio.charset.StandardCharsets;
+import java.util.Arrays;
 import java.util.List;
 
 public class TcpOutgoingConnector implements OutgoingConnector {
@@ -44,7 +43,7 @@ public class TcpOutgoingConnector implements OutgoingConnector {
     private static final int CONNECT_TIMEOUT = 10000;
 
     @Override
-    public ConnectCompletion connect(Address destinationAddress, byte @Nullable [] connectionToken) throws ConnectException {
+    public ConnectCompletion connect(Address destinationAddress, byte[] connectionToken) throws ConnectException {
         if (!(destinationAddress instanceof InetEndpoint)) {
             throw new IllegalArgumentException(String.format("Cannot create a connection to address of unknown type: %s.", destinationAddress));
         }
@@ -55,7 +54,8 @@ public class TcpOutgoingConnector implements OutgoingConnector {
         // is on - the default for debian and others), so we will try each of them until we can connect
         List<InetAddress> candidateAddresses = address.getCandidates();
 
-        byte[] handshake = connectionToken == null ? CONNECTION_PREAMBLE : Bytes.concat(CONNECTION_PREAMBLE, connectionToken);
+        byte[] handshake = Arrays.copyOf(CONNECTION_PREAMBLE, CONNECTION_PREAMBLE.length + connectionToken.length);
+        System.arraycopy(connectionToken, 0, handshake, CONNECTION_PREAMBLE.length, connectionToken.length);
 
         // Now try each address
         try {

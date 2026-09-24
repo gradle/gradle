@@ -25,6 +25,8 @@ import org.gradle.internal.remote.internal.hub.protocol.InterHubMessage
 import spock.lang.Specification
 
 class MessageHubBackedClientTest extends Specification {
+    private static final byte[] CONNECTION_TOKEN = "0123456789abcdef".bytes
+
     final OutgoingConnector connector = Mock()
     final ExecutorFactory executorFactory = Mock()
     final MessageHubBackedClient client = new MessageHubBackedClient(connector, executorFactory)
@@ -36,10 +38,10 @@ class MessageHubBackedClientTest extends Specification {
         ManagedExecutor executor = Mock()
 
         when:
-        def objectConnection = client.getConnection(address)
+        def objectConnection = client.getConnection(address, CONNECTION_TOKEN)
 
         then:
-        1 * connector.connect(address, null) >> connectCompletion
+        1 * connector.connect(address, CONNECTION_TOKEN) >> connectCompletion
         1 * executorFactory.create("${connectCompletion} workers") >> executor
 
         when:
