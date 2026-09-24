@@ -127,8 +127,8 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             return problemStream.forThrownException(exception);
         }
         if (this.severity == Severity.ERROR) {
-            // Errors must always have location
-            return problemStream.forThrownException(new RuntimeException());
+            // Errors must always have a location, so ask for one the budgets cannot refuse.
+            return problemStream.forCurrentCallerAlwaysLocated();
         }
         return problemStream.forCurrentCaller();
     }
