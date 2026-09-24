@@ -80,6 +80,29 @@ Gradle provides a [set of features and abstractions](userguide/java_testing.html
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 
+#### Agent mode for builds driven by AI agents
+
+The new incubating `--agent` option is the first step of Agentic Gradle, the effort to make Gradle a first-class tool for AI coding agents.
+Agent mode is where that work accumulates: its output contract will grow release by release, with structured JSON on standard output coming next, so an agent that adopts it now picks up every improvement without changing how it invokes Gradle.
+
+For an agent, plain build output is mostly noise that takes up its limited context window, and the outcome of a build can be lost when it does not fit in that window.
+Agents also tend to kill processes that stay silent for too long.
+
+When agent mode is enabled, all build output is written as plain text to a per-invocation log file under the project cache directory, and the only thing printed to standard output is the path to that file.
+The agent can tail the file while the build runs or read it afterwards, while the exit code tells it whether the build succeeded or not.
+While the build runs, Gradle writes a single newline to standard error every 10 seconds, so that the process is not mistaken for a hung one.
+Agent mode also implies `--non-interactive`, `--warning-mode=none` and `--stacktrace`.
+
+```text
+$ gradle build --agent
+/path/to/project/.gradle/agent/builds/abc123/build-output.log
+```
+
+Agent mode can also be enabled with the `ORG_GRADLE_AGENT` environment variable or the `org.gradle.agent` Gradle property, so that an agent does not need to pass the option on every invocation.
+Old log files are cleaned up together with the rest of the project cache directory.
+
+See [Agent mode](userguide/command_line_interface.html#sec:agent_mode) in the Gradle User Manual for more details.
+
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
