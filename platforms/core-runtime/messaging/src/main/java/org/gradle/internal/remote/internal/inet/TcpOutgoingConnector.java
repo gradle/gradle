@@ -31,10 +31,13 @@ import java.net.Socket;
 import java.net.SocketAddress;
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
+import java.nio.ByteBuffer;
 import java.nio.channels.SocketChannel;
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 
 public class TcpOutgoingConnector implements OutgoingConnector {
+    static final byte[] CONNECTION_PREAMBLE = "Gradle Magic".getBytes(StandardCharsets.UTF_8);
     private static final Logger LOGGER = LoggerFactory.getLogger(TcpOutgoingConnector.class);
     private static final int CONNECT_TIMEOUT = 10000;
 
@@ -84,9 +87,9 @@ public class TcpOutgoingConnector implements OutgoingConnector {
         SocketChannel socketChannel = SocketChannel.open();
         try {
             socketChannel.socket().connect(new InetSocketAddress(candidate, address.getPort()), CONNECT_TIMEOUT);
-
             if (!detectSelfConnect(socketChannel)) {
                 SocketBlockingUtil.configureNonblocking(socketChannel);
+                socketChannel.write(ByteBuffer.wrap(CONNECTION_PREAMBLE));
                 return socketChannel;
             }
             socketChannel.close();
