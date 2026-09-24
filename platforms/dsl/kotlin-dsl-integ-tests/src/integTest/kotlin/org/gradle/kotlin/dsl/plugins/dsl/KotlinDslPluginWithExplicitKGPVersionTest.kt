@@ -79,8 +79,6 @@ class KotlinDslPluginWithExplicitKGPVersionTest(
             return listOfNotNull(latestOlderStable, newerVersion)
         }
 
-        private val KOTLIN_2_5_0 = VersionNumber.parse("2.5.0")
-
         private fun isSynthetic(label: String): Boolean = label == "synthetic"
     }
 
@@ -123,17 +121,7 @@ class KotlinDslPluginWithExplicitKGPVersionTest(
                     """
             )
 
-            expectLanguageLevel2Dot2Deprecation()
-
             build("classes")
-        }
-    }
-
-    private fun expectLanguageLevel2Dot2Deprecation() {
-        if (VersionNumber.parse(kotlinVersionString).baseVersion >= KOTLIN_2_5_0) {
-            executer.expectExternalDeprecatedMessage(
-                "    Language version 2.2 is deprecated and its support will be removed in a future version of Kotlin. Update the version to 2.3."
-            )
         }
     }
 
