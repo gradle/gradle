@@ -44,6 +44,8 @@ class LineBufferingOutputStream extends OutputStream {
     public void write(byte[] bytes, int offset, int length) throws IOException {
         int end = offset + length;
         int lastLineEnd = -1;
+        // Not the platform line separator: every line ending on every platform ends with this byte;
+        // sometimes some files use `\n` even on Windows, for example task and tool outputs
         for (int i = end - 1; i >= offset; i--) {
             if (bytes[i] == '\n') {
                 lastLineEnd = i;
