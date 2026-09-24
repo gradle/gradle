@@ -38,7 +38,7 @@ class AgentModeCrossVersionSpec extends ToolingApiSpecification {
         """
     }
 
-    def "agent mode requested via #description has no effect and is reported as a problem"() {
+    def "agent mode requested via #description is ignored and reported as a problem"() {
         given:
         if (property) {
             file("gradle.properties") << "org.gradle.agent=true"
