@@ -189,6 +189,28 @@ class AgentModeIntegrationTest extends AbstractIntegrationSpec {
         !file("sub/.gradle/agent").exists()
     }
 
+    def "writes the output of an included build to the same file"() {
+        given:
+        settingsFile << "\nincludeBuild('included')"
+        file("included/settings.gradle") << "rootProject.name = 'included'"
+        file("included/build.gradle") << """
+            tasks.register("fromIncluded") {
+                doLast {
+                    println("Hello from the included build")
+                }
+            }
+        """
+
+        when:
+        succeeds("hello", ":included:fromIncluded", "--agent")
+
+        then:
+        def agentOutput = assertOnlyLogFilePathPrinted()
+        agentOutput.text.contains("Hello from the task")
+        agentOutput.text.contains("Hello from the included build")
+        !file("included/.gradle/agent").exists()
+    }
+
     def "can be enabled with a Gradle property and disabled on the command line"() {
         given:
         file("gradle.properties") << "org.gradle.agent=true"
