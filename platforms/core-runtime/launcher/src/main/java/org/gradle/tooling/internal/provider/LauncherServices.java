@@ -234,6 +234,8 @@ public class LauncherServices extends AbstractGradleModuleServices {
                     gradleEnterprisePluginManager,
                     failureFactory,
                     buildOperationRunner,
+                    userCodeApplicationContext,
+                    eventEmitter,
                     new FileSystemWatchingBuildActionRunner(
                         eventEmitter,
                         virtualFileSystem,

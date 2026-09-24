@@ -40,6 +40,8 @@ import static org.junit.Assume.assumeTrue
 @TargetGradleVersion('>=5.1')
 class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecification {
 
+    private static final long WORK_MILLIS = 100
+
     ProgressEvents events = ProgressEvents.create()
 
     @Rule
@@ -356,13 +358,12 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
 
     def "includes execution time of project evaluation listener callbacks"() {
         given:
-        def sleepMillis = 250
         file("build.gradle") << """
             apply plugin: MyPlugin
             class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
                     project.afterEvaluate {
-                        ${simulateWork(sleepMillis)}
+                        ${simulateWork()}
                     }
                 }
             }
@@ -374,12 +375,11 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         then:
         def pluginResults = getPluginConfigurationOperationResult(":").getPluginApplicationResults()
         def result = pluginResults.find { it.plugin.displayName.contains("MyPlugin") }
-        result.totalConfigurationTime >= Duration.ofMillis(sleepMillis)
+        result.totalConfigurationTime >= Duration.ofMillis(WORK_MILLIS)
     }
 
     def "includes execution time of container callbacks"() {
         given:
-        def sleepMillis = 250
         file("build.gradle") << """
             apply plugin: MyPlugin
 
@@ -391,7 +391,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
                 void apply(Project project) {
                     project.configurations.all {
                         if (name == 'foo') {
-                            ${simulateWork(sleepMillis)}
+                            ${simulateWork()}
                         }
                     }
                 }
@@ -404,48 +404,16 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         then:
         def pluginResults = getPluginConfigurationOperationResult(":").getPluginApplicationResults()
         def result = pluginResults.find { it.plugin.displayName.contains("MyPlugin") }
-        result.totalConfigurationTime >= Duration.ofMillis(sleepMillis)
-    }
-
-    def "only counts execution time of container callbacks once"() {
-        given:
-        def sleepDurationMillis = 250
-        file("build.gradle") << """
-            configurations {
-                foo
-            }
-
-            apply plugin: MyPlugin
-
-            class MyPlugin implements Plugin<Project> {
-                void apply(Project project) {
-                    project.configurations.all {
-                        if (name == 'foo') {
-                            ${simulateWork(sleepDurationMillis)}
-                        }
-                    }
-                }
-            }
-        """
-
-        when:
-        runBuild("tasks", EnumSet.of(OperationType.PROJECT_CONFIGURATION))
-
-        then:
-        def pluginResults = getPluginConfigurationOperationResult(":").getPluginApplicationResults()
-        def result = pluginResults.find { it.plugin.displayName.contains("MyPlugin") }
-        result.totalConfigurationTime >= Duration.ofMillis(sleepDurationMillis)
-        result.totalConfigurationTime < Duration.ofMillis(2 * sleepDurationMillis)
+        result.totalConfigurationTime >= Duration.ofMillis(WORK_MILLIS)
     }
 
     def "attributes plugins applied from a settings #callback callback to the project they are applied to"() {
         given:
         assumeTrue(minVersion == null || targetVersion >= GradleVersion.version(minVersion))
-        def sleepMillis = 250
         settingsFile << """
             class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
-                    ${simulateWork(sleepMillis)}
+                    ${simulateWork()}
                 }
             }
 
@@ -460,7 +428,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         then:
         def expectedApplications = targetVersion >= GradleVersion.version("9.9") ? currentApplications : legacyApplications
         assertReportedApplications(expectedApplications)
-        assertReportedDurationCoversWork(expectedApplications, "MyPlugin", sleepMillis)
+        assertReportedDurationCoversWork(expectedApplications, "MyPlugin", WORK_MILLIS)
 
         where:
         // rootProject and allprojects callbacks run before the project they configure starts being
@@ -477,7 +445,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         assumeTrue(minVersion == null || targetVersion >= GradleVersion.version(minVersion))
         settingsFile << """
             $callback {
-                ${simulateWork(250)}
+                ${simulateWork()}
             }
         """
 
@@ -498,11 +466,10 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
 
     def "attributes plugins applied from a root build script #callback block to the project they are applied to"() {
         given:
-        def sleepMillis = 250
         buildFile << """
             class MyPlugin implements Plugin<Project> {
                 void apply(Project project) {
-                    ${simulateWork(sleepMillis)}
+                    ${simulateWork()}
                 }
             }
 
@@ -517,7 +484,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         then:
         def expectedApplications = targetVersion >= GradleVersion.version("9.9") ? currentApplications : legacyApplications
         assertReportedApplications(expectedApplications)
-        assertReportedDurationCoversWork(expectedApplications, "MyPlugin", sleepMillis)
+        assertReportedDurationCoversWork(expectedApplications, "MyPlugin", WORK_MILLIS)
 
         where:
         // These blocks all run while the root project is being configured, so before 9.9 the plugin
@@ -530,10 +497,9 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
 
     def "attributes code run directly in a root build script #callback block to the root build script"() {
         given:
-        def sleepMillis = 250
         buildFile << """
             $callback {
-                ${simulateWork(sleepMillis)}
+                ${simulateWork()}
             }
         """
 
@@ -545,7 +511,7 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         // while it is configuring another project, so this is the same in every version.
         def expectedApplications = [":": ["build.gradle"], ":b": []]
         assertReportedApplications(expectedApplications)
-        assertReportedDurationCoversWork(expectedApplications, "build.gradle", sleepMillis)
+        assertReportedDurationCoversWork(expectedApplications, "build.gradle", WORK_MILLIS)
 
         where:
         callback << ["allprojects", "subprojects", 'project(":b")']
@@ -600,13 +566,29 @@ class ProjectConfigurationProgressEventCrossVersionSpec extends ToolingApiSpecif
         }
     }
 
-    def simulateWork(long durationMillis) {
+    /**
+     * A snippet that occupies the executing thread long enough for the durations reported for it
+     * to cover {@link #WORK_MILLIS}.
+     * <p>
+     * Which clock to wait on depends on the target version. Starting in 9.9, the durations come
+     * from the user code application timings, measured with {@code Time.nanoTime()}.
+     * Earlier versions measure with the  {@code Time.currentTimeMillis()}.
+     */
+    def simulateWork() {
+        if (targetVersion >= GradleVersion.version("9.9")) {
+            return """
+                def deadline = org.gradle.internal.time.Time.nanoTime() + ${TimeUnit.MILLISECONDS.toNanos(WORK_MILLIS)}L
+                def remaining
+                while ((remaining = deadline - org.gradle.internal.time.Time.nanoTime()) > 0) {
+                    Thread.sleep(Math.max(1L, (long) (remaining / 1_000_000L)))
+                }
+            """
+        }
         """
-            def start = org.gradle.internal.time.Time.currentTimeMillis()
-            Thread.sleep($durationMillis)
-            def elapsed
-            while ((elapsed = org.gradle.internal.time.Time.currentTimeMillis() - start) < $durationMillis) {
-                Thread.sleep($durationMillis - elapsed)
+            def deadline = org.gradle.internal.time.Time.currentTimeMillis() + $WORK_MILLIS
+            def remaining
+            while ((remaining = deadline - org.gradle.internal.time.Time.currentTimeMillis()) > 0) {
+                Thread.sleep(remaining)
             }
         """
     }

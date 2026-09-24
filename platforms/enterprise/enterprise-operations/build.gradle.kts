@@ -11,6 +11,8 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.stdlibJavaExtensions)
+
+    javadocReferences(projects.baseServices)
 }
 
 gradleModule {
