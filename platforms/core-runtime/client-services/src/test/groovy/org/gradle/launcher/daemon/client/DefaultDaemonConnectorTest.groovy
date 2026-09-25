@@ -62,11 +62,14 @@ class DefaultDaemonConnectorTest extends Specification {
     }
 
     def createConnector() {
+        def starter = Mock(DaemonStarter) {
+            startDaemon(_) >> { startBusyDaemon() }
+        }
         def connector = Spy(DefaultDaemonConnector, constructorArgs: [
                 new DaemonDir(new File("registry")),
                 new EmbeddedDaemonRegistry(),
                 Spy(OutgoingConnectorStub),
-                { startBusyDaemon() } as DaemonStarter,
+                starter,
                 Stub(DaemonStartListener),
                 Stub(ProgressLoggerFactory),
                 Stub(Serializer)]
@@ -75,12 +78,16 @@ class DefaultDaemonConnectorTest extends Specification {
         connector
     }
 
-    def startBusyDaemon() {
+    DaemonHandle startBusyDaemon() {
         def daemonNum = daemonCounter++
         DaemonContext context = new DefaultDaemonContext(daemonNum.toString(), javaHome, JavaLanguageVersion.current(), Jvm.current().vendor, javaHome, daemonNum, 1000, [], false, NativeServicesMode.ENABLED, DaemonPriority.NORMAL)
         def address = createAddress(daemonNum)
         registry.store(new DaemonInfo(address, context, "password".bytes, Busy))
-        return new DaemonStartupInfo(daemonNum.toString(), Mock(), Mock());
+        def startupInfo = new DaemonStartupInfo(daemonNum.toString(), Mock(), Mock())
+        Mock(DaemonHandle) {
+            getStartupInfo() >> startupInfo
+            awaitTermination(_, _) >> true
+        }
     }
 
     def startIdleDaemon() {

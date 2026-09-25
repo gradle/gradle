@@ -66,7 +66,7 @@ import org.gradle.process.internal.JvmOptions;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GFileUtils;
-import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.File;
 import java.io.InputStream;
@@ -77,7 +77,9 @@ import java.util.Collection;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
+@NullMarked
 public class DefaultDaemonStarter implements DaemonStarter {
     private static final Logger LOGGER = Logging.getLogger(DefaultDaemonStarter.class);
 
@@ -98,7 +100,7 @@ public class DefaultDaemonStarter implements DaemonStarter {
     }
 
     @Override
-    public DaemonStartupInfo startDaemon(boolean singleUse) {
+    public DaemonHandle startDaemon(boolean singleUse) {
         String daemonUid = UUID.randomUUID().toString();
 
         DaemonJvmCriteria criteria = daemonRequestContext.getJvmCriteria();
@@ -197,14 +199,15 @@ public class DefaultDaemonStarter implements DaemonStarter {
 
         InputStream stdInput = buffer.getInputStream();
 
-        return startProcess(
+        DaemonStartupInfo startupInfo = startProcess(
             daemonArgs,
             daemonDir.getVersionedDir(),
             stdInput
         );
+
+        return new ForkedDaemonHandle(startupInfo);
     }
 
-    @NonNull
     private DefaultToolchainSpec getDaemonJvmToolchainSpec(DaemonJvmCriteria.Spec daemonJvmCriteria) {
         DefaultToolchainSpec toolchainSpec = new DefaultToolchainSpec(propertyFactory);
         toolchainSpec.getLanguageVersion().value(JavaLanguageVersion.of(daemonJvmCriteria.getJavaVersion().asInt()));
@@ -272,6 +275,28 @@ public class DefaultDaemonStarter implements DaemonStarter {
         } finally {
             LOGGER.info("An attempt to start the daemon took {}.", clock.getElapsed());
         }
+    }
+
+    private static class ForkedDaemonHandle implements DaemonHandle {
+
+        private final DaemonStartupInfo startupInfo;
+
+        public ForkedDaemonHandle(DaemonStartupInfo startupInfo) {
+            this.startupInfo = startupInfo;
+        }
+
+        @Override
+        public DaemonStartupInfo getStartupInfo() {
+            return startupInfo;
+        }
+
+        @Override
+        public boolean awaitTermination(long timeout, TimeUnit unit) {
+            // A forked daemon detaches from the client at startup and borrows nothing
+            // from the client process, so its termination is not tracked.
+            return true;
+        }
+
     }
 
 }

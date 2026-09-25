@@ -32,7 +32,7 @@ import java.util.UUID;
 public class DaemonClientServices extends DaemonClientServicesSupport {
 
     public DaemonClientServices(InputStream buildStandardInput) {
-        super(buildStandardInput);
+        super(buildStandardInput, false);
     }
 
     @Provides
