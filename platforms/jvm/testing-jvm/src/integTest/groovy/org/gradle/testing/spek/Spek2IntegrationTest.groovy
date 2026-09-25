@@ -155,4 +155,94 @@ class Spek2IntegrationTest extends AbstractIntegrationSpec implements VerifiesGe
             .assertHasResult(TestResult.ResultType.SUCCESS)
             .assertStdout(containsString("test2"))
     }
+
+    def "runs only tests matching command line filter #filter"() {
+        given:
+        createFilterableSpecs()
+
+        when:
+        succeeds("test", "--tests", filter)
+
+        then:
+        resultsFor().assertTestPathsExecuted(*expectedTestPaths)
+
+        where:
+        filter                                  | expectedTestPaths
+        'SimpleSpekTest'                        | [':org.example.SimpleSpekTest:a calculator:should add two numbers', ':org.example.SimpleSpekTest:a calculator:should subtract two numbers']
+        'SimpleSpekTest.should add two numbers' | [':org.example.SimpleSpekTest:a calculator:should add two numbers']
+        '*should print'                         | [':org.example.OtherSpekTest:a printer:should print']
+        'JupiterTest.someMethod'                | [':org.example.JupiterTest:someMethod()']
+        '*someMethod'                           | [':org.example.JupiterTest:someMethod()']
+    }
+
+    def "excludes tests matching configured filter"() {
+        given:
+        createFilterableSpecs()
+        buildFile << """
+            test {
+                filter {
+                    excludeTestsMatching "*should add two numbers"
+                }
+            }
+        """
+
+        when:
+        succeeds("test")
+
+        then:
+        resultsFor().assertTestPathsExecuted(
+            ':org.example.SimpleSpekTest:a calculator:should subtract two numbers',
+            ':org.example.OtherSpekTest:a printer:should print',
+            ':org.example.JupiterTest:someMethod()',
+            ':org.example.JupiterTest:otherMethod()'
+        )
+    }
+
+    private void createFilterableSpecs() {
+        buildFile << """
+            test {
+                options {
+                    includeEngines("junit-jupiter")
+                }
+            }
+        """
+        file('src/test/java/org/example/JupiterTest.java') << """
+            package org.example;
+
+            import org.junit.jupiter.api.Test;
+
+            public class JupiterTest {
+                @Test
+                public void someMethod() {}
+
+                @Test
+                public void otherMethod() {}
+            }
+        """
+        file('src/test/kotlin/org/example/SimpleSpekTest.kt') << """
+            package org.example
+
+            import org.spekframework.spek2.Spek
+            import org.spekframework.spek2.style.specification.describe
+
+            object SimpleSpekTest : Spek({
+                describe("a calculator") {
+                    it("should add two numbers") {}
+                    it("should subtract two numbers") {}
+                }
+            })
+        """
+        file('src/test/kotlin/org/example/OtherSpekTest.kt') << """
+            package org.example
+
+            import org.spekframework.spek2.Spek
+            import org.spekframework.spek2.style.specification.describe
+
+            object OtherSpekTest : Spek({
+                describe("a printer") {
+                    it("should print") {}
+                }
+            })
+        """
+    }
 }

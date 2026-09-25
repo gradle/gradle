@@ -126,6 +126,16 @@ The command-line option is especially useful to execute a single test method. Wh
 NOTE: Not all test frameworks play well with filtering. Some advanced, synthetic tests may not be fully compatible.
 However, the vast majority of tests and use cases work perfectly well with Gradle's filtering mechanism.
 
+[[filtering_non_method_tests]]
+Not every JUnit Platform test is declared as a method, and how a test is declared affects how you can select it.
+Engines such as https://www.archunit.org/[ArchUnit] declare tests on fields, for example a rule annotated with `@ArchTest`.
+Gradle matches these by their enclosing class and the name they are reported with, in the same way it matches methods by class and method name.
+`--tests "ArchRulesTest.firstRule"` runs that rule on its own, and `excludeTestsMatching "*firstRule"` skips it.
+Rules grouped with `ArchTests.in(...)` are reported as `EnclosingClass > ruleName` and are matched by that reported name, not by the name of the field that holds the set.
+
+Engines that register their tests only while a class is executing, such as https://kotest.io/[Kotest], are a different case.
+Gradle applies filters after test discovery, before those tests exist, so you can select or exclude them only by their spec class.
+
 The following two sections look at the specific cases of simple class/method names and fully-qualified names.
 
 [[simple_name_pattern]]
