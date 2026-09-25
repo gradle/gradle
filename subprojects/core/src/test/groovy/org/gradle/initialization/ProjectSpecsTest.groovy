@@ -17,42 +17,93 @@
 package org.gradle.initialization
 
 import org.gradle.StartParameter
-import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.internal.SettingsInternal
+import org.gradle.api.internal.StartParameterInternal
+import org.gradle.test.fixtures.file.CleanupTestDirectory
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.junit.Rule
 import spock.lang.Specification
 
+import static org.gradle.util.internal.WrapUtil.toSet
+
+@CleanupTestDirectory
 class ProjectSpecsTest extends Specification {
-    static File buildFile
-    static File projectDir
-    static File currentDir
+    @Rule
+    public TestNameTestDirectoryProvider temporaryFolder = new TestNameTestDirectoryProvider(getClass())
 
-    def setupSpec() {
-        projectDir = Mock(File)
-        _ * projectDir.getCanonicalFile() >> projectDir
-        currentDir = Mock(File)
-        _ * currentDir.getCanonicalFile() >> currentDir
-        buildFile = Mock(File)
-        _ * buildFile.getCanonicalFile() >> buildFile
-        _ * buildFile.getParent() >> currentDir
+    private final File settingsDir = temporaryFolder.createDir("settings")
+    private final File rootProjectDir = temporaryFolder.createDir("settings/root")
+    private final File otherDir = temporaryFolder.createDir("other")
 
+    def "explicit project dir that is the build root selects the root project"() {
+        given:
+        StartParameter parameter = startParameter(settingsDir, settingsDir)
+
+        when:
+        def spec = ProjectSpecs.forStartParameter(parameter, settings())
+
+        then:
+        spec.selectProject("settings 'foo'", registry()) == root
     }
 
-    def "project dir based spec"() {
+    def "explicit project dir that is not the build root must match a project"() {
         given:
-        StartParameter parameter = new StartParameterInternal()
-        parameter.setProjectDir(projectDir)
-        parameter.setCurrentDir(currentDir)
+        StartParameter parameter = startParameter(otherDir, otherDir)
 
-        expect:
-        ProjectSpecs.forStartParameter(parameter, Stub(SettingsInternal)).class == ProjectDirectoryProjectSpec
+        when:
+        ProjectSpecs.forStartParameter(parameter, settings()).selectProject("settings 'foo'", registry())
+
+        then:
+        def e = thrown(InvalidUserDataException)
+        e.message.startsWith("Project directory '$otherDir' is not part of the build defined by settings 'foo'.")
     }
 
-    def "current dir based spec"() {
+    def "current dir that is the build root selects the root project"() {
         given:
-        StartParameter parameter = new StartParameterInternal()
-        parameter.setCurrentDir(currentDir)
+        StartParameter parameter = startParameter(null, settingsDir)
 
-        expect:
-        ProjectSpecs.forStartParameter(parameter, Stub(SettingsInternal)).class == CurrentDirectoryProjectSpec
+        when:
+        def spec = ProjectSpecs.forStartParameter(parameter, settings())
+
+        then:
+        spec.selectProject("settings 'foo'", registry()) == root
+    }
+
+    def "current dir that is not the build root must match a project"() {
+        given:
+        StartParameter parameter = startParameter(null, otherDir)
+
+        when:
+        ProjectSpecs.forStartParameter(parameter, settings()).selectProject("settings 'foo'", registry())
+
+        then:
+        thrown(InvalidUserDataException)
+    }
+
+    private static StartParameter startParameter(File projectDir, File currentDir) {
+        StartParameter parameter = new StartParameterInternal()
+        if (projectDir != null) {
+            parameter.setProjectDir(projectDir)
+        }
+        parameter.setCurrentDir(currentDir)
+        return parameter
+    }
+
+    private SettingsInternal settings() {
+        return Stub(SettingsInternal) {
+            getSettingsDir() >> settingsDir
+        }
+    }
+
+    private ProjectDescriptorInternal root = Mock(ProjectDescriptorInternal) {
+        getProjectDir() >> rootProjectDir
+    }
+
+    private ProjectDescriptorRegistry registry() {
+        return Stub(ProjectDescriptorRegistry) {
+            getAllProjects() >> toSet(root)
+            getRootProject() >> root
+        }
     }
 }

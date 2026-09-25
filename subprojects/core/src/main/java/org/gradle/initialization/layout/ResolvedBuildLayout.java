@@ -57,8 +57,8 @@ public class ResolvedBuildLayout {
      * Is the build using an empty settings because a build definition is missing from the current directory?
      *
      * <p>There are two cases where this might be true: Gradle was invoked from a directory where there is no build script and no settings script in the directory hierarchy,
-     * or Gradle was invoked from a directory where there is a settings script in the directory hierarchy but the directory is not a project directory for any project defined
-     * in that settings script.</p>
+     * or Gradle was invoked on a buildSrc directory that has no settings script of its own, in which case the settings script found by searching upwards belongs to the
+     * surrounding build rather than to this one.</p>
      */
     public boolean isBuildDefinitionMissing() {
         boolean isNoBuildDefinitionFound = buildLayout.isBuildDefinitionMissing();

@@ -18,6 +18,7 @@ package org.gradle.api.tasks.diagnostics
 
 import org.gradle.cache.internal.BuildScopeCacheDir
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import spock.lang.Issue
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.util.GradleVersion
@@ -78,23 +79,18 @@ BUILD SUCCESSFUL"""
         tasks << [["help"], [], [":help"]]
     }
 
-    def "shows help message when run in a directory under the root directory of another build"() {
+    @Issue("https://github.com/gradle/gradle/issues/38623")
+    def "fails when run in a directory under the root directory of another build"() {
         given:
         settingsFile.createFile()
         def sub = file("sub").createDir()
 
         when:
         executer.inDirectory(sub).withArgument("--no-problems-report")
-        run "help"
+        fails "help"
 
         then:
-        output.contains """
-> Task :help
-
-Welcome to Gradle ${version}.
-
-Directory '$sub' does not contain a Gradle build.
-"""
+        failure.assertHasDescription("Project directory '$sub' is not part of the build defined by settings file '$settingsFile'. If this is an unrelated build, it must have its own settings file.")
 
         and:
         // Directory is still empty

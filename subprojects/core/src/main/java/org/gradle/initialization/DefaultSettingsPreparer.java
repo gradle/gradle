@@ -213,22 +213,14 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
 
         SettingsState state;
         ProjectSpec spec;
-        if (shouldSkipLoadingBuildDefinition(startParameter)) {
+        if (shouldSkipLoadingBuildDefinition(startParameter) || useEmptySettings(startParameter, buildLayout)) {
             logger.debug("Skipping loading of build definition for build: '{}'", gradle.getIdentityPath());
             state = createEmptySettings(gradle, startParameter, gradle.getClassLoaderScope());
-            spec = ProjectSpecs.forStartParameter(startParameter, state.getSettings());
         } else {
             logger.debug("Loading build definition for build: '{}'", gradle.getIdentityPath());
             state = findSettingsAndLoadIfAppropriate(gradle, startParameter, buildLayout, gradle.getClassLoaderScope());
-            SettingsInternal settings = state.getSettings();
-            spec = ProjectSpecs.forStartParameter(startParameter, settings);
-            if (useEmptySettings(spec, settings, startParameter)) {
-                // Discard the loaded settings and replace with an empty one
-                logger.debug("Discarding loaded settings and replacing with empty settings for build: '{}'", gradle.getIdentityPath());
-                state.close();
-                state = createEmptySettings(gradle, startParameter, settings.getClassLoaderScope());
-            }
         }
+        spec = ProjectSpecs.forStartParameter(startParameter, state.getSettings());
 
         SettingsInternal settings = state.getSettings();
         settings.setDefaultProject(spec.selectProject(settings.getSettingsScript().getDisplayName(), settings.getProjectRegistry()));
@@ -236,12 +228,6 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
         return state;
     }
 
-    /**
-     * Checks whether the Gradle invocation contains a built-in command that runs in a directory not contained in the settings file,
-     * and shouldn't require loading the settings - it should use a new, empty Settings instance.
-     *
-     * return {@code true} if so; {@code false} otherwise
-     */
     private boolean shouldSkipLoadingBuildDefinition(StartParameter startParameter) {
         for (BuiltInCommand command : builtInCommands) {
             if (command.requireEmptyBuildDefinition() && command.wasInvoked(startParameter)) {
@@ -251,26 +237,12 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
         return false;
     }
 
-    private boolean useEmptySettings(ProjectSpec spec, SettingsInternal loadedSettings, StartParameter startParameter) {
-        // Use the loaded settings if it includes the target project (based on build file, project dir or current dir)
-        if (spec.containsProject(loadedSettings.getProjectRegistry())) {
-            return false;
-        }
-
-        // Allow a built-in command to run in a directory not contained in the settings file (but don't use the settings from that file)
-        for (BuiltInCommand command : builtInCommands) {
-            if (command.wasInvoked(startParameter)) {
-                return true;
-            }
-        }
-
-        // Allow a buildSrc directory to have no settings file
-        if (startParameter.getProjectDir() != null && startParameter.getProjectDir().getName().equals(SettingsInternal.BUILD_SRC) && BuildSrcDetector.isValidBuildSrcBuild(startParameter.getProjectDir())) {
-            return true;
-        }
-
-        // Use an empty settings for a target build file located in the same directory as the settings file.
-        return startParameter.getProjectDir() != null && loadedSettings.getSettingsDir().equals(startParameter.getProjectDir());
+    private static boolean useEmptySettings(StartParameter startParameter, BuildLayout buildLayout) {
+        File settingsFile = buildLayout.getSettingsFile();
+        return (settingsFile == null || !settingsFile.exists())
+            && startParameter.getProjectDir() != null
+            && startParameter.getProjectDir().getName().equals(SettingsInternal.BUILD_SRC)
+            && BuildSrcDetector.isValidBuildSrcBuild(startParameter.getProjectDir());
     }
 
     private SettingsState createEmptySettings(GradleInternal gradle, StartParameterInternal startParameter, ClassLoaderScope classLoaderScope) {
