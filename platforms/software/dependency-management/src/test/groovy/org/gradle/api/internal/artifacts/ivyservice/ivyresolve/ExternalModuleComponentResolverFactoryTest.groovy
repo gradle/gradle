@@ -35,6 +35,7 @@ import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleRepository
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.AbstractArtifactsCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.artifacts.ModuleArtifactCache
 import org.gradle.api.internal.artifacts.ivyservice.modulecache.dynamicversions.AbstractModuleVersionsCache
+import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.DefaultCachePolicy
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository
 import org.gradle.api.internal.artifacts.repositories.descriptor.UrlRepositoryDescriptor
 import org.gradle.api.internal.artifacts.repositories.metadata.ImmutableMetadataSources
@@ -43,6 +44,7 @@ import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceR
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.properties.GradleProperties
+import org.gradle.api.specs.Specs
 import org.gradle.internal.action.InstantiatingAction
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata
 import org.gradle.internal.component.external.model.NoOpDerivationStrategy
@@ -55,6 +57,8 @@ import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.internal.resource.local.FileStore
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder
 import org.gradle.internal.resource.transfer.CacheAwareExternalResourceAccessor
+import org.gradle.internal.rules.RuleAction
+import org.gradle.internal.rules.SpecRuleAction
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.BuildCommencedTimeProvider
@@ -110,7 +114,7 @@ class ExternalModuleComponentResolverFactoryTest extends Specification {
 
     def "returns an empty resolver when no repositories are configured"() {
         when:
-        def resolver = newFactory().createResolvers(Collections.emptyList(), ImmutableComponentMetadataRules.EMPTY, NoOpDerivationStrategy.instance, Stub(ComponentSelectionRulesInternal), false, Mock(CacheExpirationControl), ImmutableAttributesSchema.EMPTY)
+        def resolver = newFactory().createResolvers(new ResolverEnvironment(Collections.emptyList(), ImmutableComponentMetadataRules.EMPTY, NoOpDerivationStrategy.instance, Stub(ComponentSelectionRulesInternal), false, Mock(CacheExpirationControl), ImmutableAttributesSchema.EMPTY))
 
         then:
         resolver instanceof NoRepositoriesResolver
@@ -122,15 +126,17 @@ class ExternalModuleComponentResolverFactoryTest extends Specification {
             createResolver() >> spyResolver
         })
 
-
-        def componentSelectionRules = Stub(ComponentSelectionRulesInternal)
+        def selectionRule = new SpecRuleAction<>(Stub(RuleAction), Specs.satisfyAll())
+        def componentSelectionRules = Stub(ComponentSelectionRulesInternal) {
+            getRules() >> [selectionRule]
+        }
 
         when:
-        def resolver = newFactory().createResolvers(repositories, ImmutableComponentMetadataRules.EMPTY, NoOpDerivationStrategy.instance, componentSelectionRules, false, Mock(CacheExpirationControl), ImmutableAttributesSchema.EMPTY)
+        def resolver = newFactory().createResolvers(new ResolverEnvironment(repositories, ImmutableComponentMetadataRules.EMPTY, NoOpDerivationStrategy.instance, componentSelectionRules, false, Mock(CacheExpirationControl), ImmutableAttributesSchema.EMPTY))
 
         then:
         assert resolver instanceof UserResolverChain
-        resolver.componentSelectionRules == componentSelectionRules
+        resolver.componentSelectionRules.rules == [selectionRule]
 
         1 * spyResolver.setComponentResolvers(_) >> { ComponentResolvers parentResolver ->
             assert parentResolver instanceof ExternalModuleComponentResolverFactory.ParentModuleLookupResolver
@@ -140,6 +146,55 @@ class ExternalModuleComponentResolverFactoryTest extends Specification {
             assert parentComponentSelectionRules.rules.empty
 
         }
+    }
+
+    def "reuses resolvers when the environment has not changed"() {
+        def spyResolver = externalResourceResolverSpy()
+        def repository = Stub(ResolutionAwareRepository) {
+            createResolver() >> spyResolver
+        }
+        def factory = newFactory()
+
+        when:
+        // The two environments are distinct instances with equal content: fresh list
+        // wrappers, fresh selection rules and fresh cache expiration controls, as produced
+        // by repeated resolutions of the same configuration.
+        def first = factory.createResolvers(environment([repository]))
+        def second = factory.createResolvers(environment([repository]))
+
+        then:
+        first.is(second)
+    }
+
+    def "creates new resolvers when the environment differs"() {
+        def repository = Stub(ResolutionAwareRepository) {
+            createResolver() >> externalResourceResolverSpy()
+        }
+        def otherRepository = Stub(ResolutionAwareRepository) {
+            createResolver() >> externalResourceResolverSpy()
+        }
+        def factory = newFactory()
+
+        when:
+        def base = factory.createResolvers(environment([repository]))
+        def differentVerification = factory.createResolvers(environment([repository], true))
+        def differentRepositories = factory.createResolvers(environment([otherRepository]))
+
+        then:
+        !base.is(differentVerification)
+        !base.is(differentRepositories)
+    }
+
+    private ResolverEnvironment environment(List<ResolutionAwareRepository> repositories, boolean dependencyVerificationEnabled = false) {
+        new ResolverEnvironment(
+            repositories,
+            ImmutableComponentMetadataRules.EMPTY,
+            NoOpDerivationStrategy.instance,
+            Stub(ComponentSelectionRulesInternal),
+            dependencyVerificationEnabled,
+            new DefaultCachePolicy().asImmutable(),
+            ImmutableAttributesSchema.EMPTY
+        )
     }
 
     def externalResourceResolverSpy() {
