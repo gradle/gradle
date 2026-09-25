@@ -19,7 +19,9 @@ package org.gradle.internal.properties;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
-import org.gradle.api.internal.provider.PropertyInternal;
+import org.gradle.api.internal.provider.ProducerAware;
+import org.gradle.api.internal.provider.ProducerBackedProvider;
+import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.internal.state.ModelObject;
@@ -29,7 +31,7 @@ import org.jspecify.annotations.Nullable;
  * A {@link PropertyValue} backed by a fixed value.
  */
 public class StaticValue implements PropertyValue {
-    private final Object value;
+    private Object value;
 
     public StaticValue(@Nullable Object value) {
         this.value = value;
@@ -51,8 +53,10 @@ public class StaticValue implements PropertyValue {
     }
 
     public void attachProducer(Task producer) {
-        if (value instanceof PropertyInternal) {
-            ((PropertyInternal<?>) value).attachProducer((ModelObject) producer);
+        if (value instanceof ProviderInternal) {
+            value = ProducerBackedProvider.of((ProviderInternal<?>) value, (ModelObject) producer);
+        } else if (value instanceof ProducerAware) {
+            ((ProducerAware) value).attachProducer((ModelObject) producer);
         }
     }
 

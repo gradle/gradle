@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl
 
 
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
+import spock.lang.Issue
 
 class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements TasksWithInputsAndOutputs {
     def "task input property can consume the mapped output of another task"() {
@@ -289,5 +290,66 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
         then:
         configurationCache.assertStateLoaded()
         result.assertTasksSkipped(":producer", ":transformer")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25645")
+    def "task input can consume a plain Provider output of another task using #description"() {
+        taskTypeWithInputFileCollection()
+        buildFile << """
+            class ProviderOutputTask extends DefaultTask {
+                @InputFile
+                final RegularFileProperty inFile = project.objects.fileProperty()
+                @Internal
+                final DirectoryProperty outputDir = project.objects.directoryProperty()
+                private final Provider<RegularFile> output = outputDir.map { it.file("out.txt") }
+                @OutputFile
+                Provider<RegularFile> getOutput() { output }
+                @TaskAction
+                def go() {
+                    output.get().asFile.text = inFile.get().asFile.text
+                }
+            }
+            def producer = tasks.register("producer", ProviderOutputTask) {
+                inFile = file("in.txt")
+                outputDir = layout.buildDirectory
+            }
+            tasks.register("consumer", InputFilesTask) {
+                inFiles.from($expression)
+                outFile = file("out.txt")
+            }
+        """
+        def input = file("in.txt")
+        def output = file("out.txt")
+        def configurationCache = newConfigurationCacheFixture()
+
+        when:
+        input.text = "12"
+        configurationCacheRun(":consumer")
+
+        then:
+        configurationCache.assertStateStored()
+        result.assertTasksExecuted(":producer", ":consumer")
+        output.text == "12"
+
+        when:
+        input.text = "4"
+        configurationCacheRun(":consumer")
+
+        then:
+        configurationCache.assertStateLoaded()
+        result.assertTasksExecuted(":producer", ":consumer")
+        output.text == "4"
+
+        when:
+        configurationCacheRun(":consumer")
+
+        then:
+        configurationCache.assertStateLoaded()
+        result.assertTasksSkipped(":producer", ":consumer")
+
+        where:
+        description                              | expression
+        "flat map of the task provider"          | 'producer.flatMap { it.output }'
+        "direct reference to the output"         | 'producer.get().output'
     }
 }

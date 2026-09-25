@@ -17,6 +17,7 @@
 package org.gradle.internal.properties
 
 import org.gradle.api.Task
+import org.gradle.api.internal.provider.ProducerBackedProvider
 import org.gradle.api.internal.provider.PropertyInternal
 import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.tasks.TaskDependencyContainer
@@ -28,11 +29,19 @@ class StaticValueTest extends Specification {
         def provider = Mock(ProviderInternal)
         _ * provider.present >> true
 
-        expect:
+        given:
         def value = StaticValue.of(provider)
+
+        expect:
         value.call() == provider
         value.taskDependencies == provider
-        value.attachProducer(Stub(Task))
+
+        when: "the value is declared as an output of a task"
+        value.attachProducer(Stub(GeneratedTask))
+
+        then: "the provider is decorated so that it carries the producing task"
+        value.call() instanceof ProducerBackedProvider
+        value.call().delegate == provider
         value.maybeFinalizeValue()
     }
 

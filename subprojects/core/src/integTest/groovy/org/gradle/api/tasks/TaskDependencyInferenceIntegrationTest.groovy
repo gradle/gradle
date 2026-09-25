@@ -17,9 +17,10 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.reflect.validation.ValidationMessageChecker
 import spock.lang.Issue
 
-class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
+class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs, ValidationMessageChecker {
     def "dependency declared using task provider implies dependency on task"() {
         buildFile << """
             // verify that eager and lazy providers work
@@ -1119,5 +1120,269 @@ The following types/formats are supported:
         then:
         result.assertTasksScheduled(":a", ":b", ":c")
         file("out.txt").text == "a1=22,a2=25,b=10"
+    }
+
+    def providerOutputTask() {
+        buildFile << """
+            class ProviderOutputTask extends DefaultTask {
+                @Internal
+                final DirectoryProperty outputDir = project.objects.directoryProperty()
+                private final Provider<RegularFile> output = outputDir.map { it.file("file.txt") }
+                // Non-final getter: Gradle overrides it and returns a provider that carries this task as its producer
+                @OutputFile
+                Provider<RegularFile> getOutput() { output }
+                @TaskAction
+                def go() {
+                    output.get().asFile.text = "1"
+                }
+            }
+        """
+    }
+
+
+    @Issue("https://github.com/gradle/gradle/issues/25645")
+    def "dependency declared using #description of a Provider-typed output implies dependency on task"() {
+        providerOutputTask()
+        taskTypeWithInputFileCollection()
+        buildFile << """
+            def a = tasks.register("a", ProviderOutputTask) {
+                outputDir = layout.buildDirectory
+            }
+            tasks.register("b", InputFilesTask) {
+                inFiles.from($expression)
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksScheduled(":a", ":b")
+        file("out.txt").text == "1"
+
+        where:
+        description               | expression
+        "flat map task provider"  | 'a.flatMap { it.output }'
+        "direct reference"        | 'a.get().output'
+        "mapped output"           | 'a.get().output.map { it }'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25645")
+    def "dependency declared using flat map task provider of a Provider-typed output held in a final Groovy field implies dependency on task"() {
+        taskTypeWithInputFileCollection()
+        buildFile << """
+            class GroovyFieldProviderOutputTask extends DefaultTask {
+                @Internal
+                final DirectoryProperty outputDir = project.objects.directoryProperty()
+                // Groovy generates a non-final getter and, as the field is final, no setter: Gradle overrides the getter and
+                // returns a provider that carries this task as its producer, while the task's own code keeps reading the field
+                @OutputFile
+                final Provider<RegularFile> output = outputDir.map { it.file("file.txt") }
+                @TaskAction
+                def go() {
+                    output.get().asFile.text = "1"
+                }
+            }
+            def a = tasks.register("a", GroovyFieldProviderOutputTask) {
+                outputDir = layout.buildDirectory
+            }
+            tasks.register("b", InputFilesTask) {
+                inFiles.from(a.flatMap { it.output })
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksScheduled(":a", ":b")
+        file("out.txt").text == "1"
+    }
+
+
+    @Issue("https://github.com/gradle/gradle/issues/25645")
+    def "dependency declared using flat map task provider of a ConfigurableFileCollection held in a final field implies dependency on task"() {
+        taskTypeWithInputFileCollection()
+        buildFile << """
+            class FinalFieldFileCollectionOutputTask extends DefaultTask {
+                @OutputFiles
+                final ConfigurableFileCollection outs = project.files(project.layout.buildDirectory.file("file.txt"))
+                @TaskAction
+                def go() {
+                    outs.each { it.text = "1" }
+                }
+            }
+            def a = tasks.register("a", FinalFieldFileCollectionOutputTask)
+            tasks.register("b", InputFilesTask) {
+                inFiles.from(a.flatMap { it.outs.elements })
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksScheduled(":a", ":b")
+        file("out.txt").text == "1"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25645")
+    def "output declared as a plain Provider #description is reported as a validation problem"() {
+        buildFile << """
+            class PlainProviderOutputTask extends DefaultTask {
+                @Internal
+                final DirectoryProperty outputDir = project.objects.directoryProperty()
+                // Gradle does not decorate the value (final getter, or a settable property), so nothing records this task as its producer
+                $declaration
+                @TaskAction
+                def go() {
+                    output.get().asFile.text = "1"
+                }
+            }
+            tasks.register("a", PlainProviderOutputTask) {
+                outputDir = layout.buildDirectory
+            }
+        """
+
+        when:
+        expectThatExecutionOptimizationDisabledWarningIsDisplayed(executer, outputProviderWithoutProducer({
+            type('PlainProviderOutputTask').property('output')
+        }, false), 'validation_problems', 'output_provider_without_producer')
+        run("a")
+
+        then:
+        file("build/file.txt").text == "1"
+
+        where:
+        description                       | declaration
+        "returned from a final getter"    | '@OutputFile final Provider<RegularFile> getOutput() { outputDir.map { it.file("file.txt") } }'
+        "held in a settable Groovy field" | '@OutputFile Provider<RegularFile> output = outputDir.map { it.file("file.txt") }'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25645")
+    def "flat map and map of a Kotlin open val Provider output both imply dependency on task"() {
+        buildKotlinFile << """
+            import javax.inject.Inject
+
+            abstract class MyTask @Inject constructor(objectFactory: ObjectFactory) : DefaultTask() {
+                @get:Internal
+                val someDirectory = objectFactory.directoryProperty()
+
+                // open: Gradle overrides the getter and returns a provider that carries this task as its producer
+                @get:OutputFile
+                open val myFile: Provider<RegularFile> = someDirectory.map { d -> d.file("file") }
+
+                @TaskAction
+                fun execute() {
+                    myFile.get().asFile.writeText("coucou")
+                }
+            }
+
+            val t1Provider = tasks.register<MyTask>("t1") {
+                someDirectory.set(layout.buildDirectory)
+            }
+            val someDir = layout.buildDirectory.dir("someDir")
+
+            tasks.register<Sync>("t2") {
+                from(t1Provider.flatMap { it.myFile })
+                into(someDir)
+            }
+            tasks.register<Sync>("t3") {
+                from(t1Provider.map { it.myFile.get() })
+                into(someDir)
+            }
+        """
+
+        when:
+        run("t2")
+
+        then:
+        result.assertTasksScheduled(":t1", ":t2")
+        file("build/someDir/file").text == "coucou"
+
+        when:
+        run("t3")
+
+        then:
+        result.assertTasksScheduled(":t1", ":t3")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/29335")
+    def "dependency declared using #description of a Provider-typed output returned fresh from a non-final getter implies dependency on task"() {
+        taskTypeWithInputFileCollection()
+        buildFile << """
+            abstract class FreshProviderOutputTask extends DefaultTask {
+                @OutputFile
+                abstract RegularFileProperty getPrimary()
+                @Inject
+                abstract ProjectLayout getProjectLayout()
+                // Not backed by a field: a new Provider instance is returned on every call, each decorated by the overriding getter.
+                // Derived from the location only of another output, so the decoration is the only source of the producer.
+                @OutputFile
+                Provider<RegularFile> getSecondary() {
+                    return projectLayout.file(primary.locationOnly.map { new File(it.asFile.parentFile, it.asFile.name + ".secondary") })
+                }
+                @TaskAction
+                def go() {
+                    primary.get().asFile.text = "primary"
+                    secondary.get().asFile.text = "1"
+                }
+            }
+            def a = tasks.register("a", FreshProviderOutputTask) {
+                primary = layout.buildDirectory.file("primary.txt")
+            }
+            tasks.register("b", InputFilesTask) {
+                inFiles.from($expression)
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksScheduled(":a", ":b")
+        file("out.txt").text == "1"
+
+        where:
+        description               | expression
+        "flat map task provider"  | 'a.flatMap { it.secondary }'
+        "direct reference"        | 'a.get().secondary'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25645")
+    def "Kotlin val Provider output is reported as a validation problem"() {
+        buildKotlinFile << """
+            import javax.inject.Inject
+
+            abstract class MyTask @Inject constructor(objectFactory: ObjectFactory) : DefaultTask() {
+                @get:Internal
+                val someDirectory = objectFactory.directoryProperty()
+
+                // final val: Gradle cannot override the getter, so nothing records this task as the producer
+                @get:OutputFile
+                val myFile = someDirectory.map { d -> d.file("file") }
+
+                @TaskAction
+                fun execute() {
+                    myFile.get().asFile.writeText("coucou")
+                }
+            }
+
+            tasks.register<MyTask>("t1") {
+                someDirectory.set(layout.buildDirectory)
+            }
+        """
+
+        when:
+        executer.noDeprecationChecks()
+        run("t1")
+
+        then:
+        outputContains("property 'myFile' is a Provider that is not associated with this task")
+        file("build/file").text == "coucou"
     }
 }
