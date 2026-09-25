@@ -316,6 +316,33 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         outputContains("variants = [{artifactType=jar, color=green}, {artifactType=jar, color=green}]")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/38831")
+    def "transformed artifacts of one project with same file name are not deduplicated on configuration cache load"() {
+        setupBuildWithArtifactTransformOfProjectDependencies()
+        file("a/other/a.jar").text = "other"
+        buildFile << """
+            project(':a') {
+                artifacts {
+                    implementation file("other/a.jar")
+                }
+            }
+        """
+
+        when:
+        run(":resolveArtifacts")
+
+        then:
+        assertTransformed("a.jar", "a.jar", "b.jar")
+        outputContains("files = [a.jar.green, a.jar.green, b.jar.green]")
+
+        when:
+        run(":resolveArtifacts")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("files = [a.jar.green, a.jar.green, b.jar.green]")
+    }
+
     def setupBuildWithArtifactTransformsOfExternalDependencies() {
         httpServer.start()
         withColorVariants(remoteRepo.module("group", "thing1", "1.2")).publish().allowAll()

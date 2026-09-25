@@ -23,38 +23,41 @@ import org.gradle.internal.DisplayName;
 import java.util.Objects;
 
 /**
- * Identifies the transformed artifact of a component. The original file name is tracked in order to guarantee uniqueness,
- * as artifact transformations may result in multiple artifacts with the same file name.
- *
- * <p>The original file name should refer to the name of the artifact at the beginning of the transform chain.</p>
+ * Identifies the transformed artifact of a component.
  */
 public class TransformedComponentFileArtifactIdentifier implements ComponentArtifactIdentifier, DisplayName {
-    private final ComponentIdentifier componentId;
+    private final ComponentArtifactIdentifier inputArtifactId;
+    // TODO: This is still not unique enough, output files of a transform or chain with the same name but different directories collide
+    //  Fixing that is rather involved though and no one has yet reported this as a problem, so leaving it for now.
     private final String fileName;
-    private final String originalFileName;
 
-    public TransformedComponentFileArtifactIdentifier(ComponentIdentifier componentId, String fileName, String originalFileName) {
-        this.componentId = componentId;
+    public TransformedComponentFileArtifactIdentifier(ComponentArtifactIdentifier inputArtifactId, String fileName) {
+        this.inputArtifactId = inputArtifactId;
         this.fileName = fileName;
-        this.originalFileName = originalFileName;
     }
 
     @Override
     public ComponentIdentifier getComponentIdentifier() {
-        return componentId;
+        return inputArtifactId.getComponentIdentifier();
+    }
+
+    /**
+     * The identifier of the input artifact that was transformed to produce this artifact.
+     * This is used to determine uniqueness of the transformed artifact.
+     *
+     * @return the identifier of the input artifact
+     */
+    public ComponentArtifactIdentifier getInputArtifactId() {
+        return inputArtifactId;
     }
 
     public String getFileName() {
         return fileName;
     }
 
-    public String getOriginalFileName() {
-        return originalFileName;
-    }
-
     @Override
     public String getDisplayName() {
-        return getOriginalFileName() + " -> " + getFileName() + " (" + getComponentIdentifier().getDisplayName() + ")";
+        return inputArtifactId.getDisplayName() + " -> " + fileName;
     }
 
     @Override
@@ -76,11 +79,11 @@ public class TransformedComponentFileArtifactIdentifier implements ComponentArti
             return false;
         }
         TransformedComponentFileArtifactIdentifier other = (TransformedComponentFileArtifactIdentifier) obj;
-        return componentId.equals(other.componentId) && fileName.equals(other.fileName) && originalFileName.equals(other.originalFileName);
+        return inputArtifactId.equals(other.inputArtifactId) && fileName.equals(other.fileName);
     }
 
     @Override
     public int hashCode() {
-        return Objects.hash(componentId, fileName, originalFileName);
+        return Objects.hash(inputArtifactId, fileName);
     }
 }

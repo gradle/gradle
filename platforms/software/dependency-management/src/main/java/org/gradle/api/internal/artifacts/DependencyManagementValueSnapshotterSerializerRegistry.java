@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
@@ -107,7 +108,9 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
         register(DefaultModuleComponentArtifactIdentifier.class, new ComponentArtifactIdentifierSerializer());
         register(ModuleComponentFileArtifactIdentifier.class, new ModuleComponentFileArtifactIdentifierSerializer());
         register(ComponentFileArtifactIdentifier.class, new ComponentFileArtifactIdentifierSerializer());
-        register(TransformedComponentFileArtifactIdentifier.class, new TransformedComponentFileArtifactIdentifierSerializer());
+        // Lazily build the serializer for ComponentArtifactIdentifier to avoid circular dependency issues
+        // since the ComponentArtifactIdentifierSerializer depends on the TransformedComponentFileArtifactIdentifierSerializer.
+        register(TransformedComponentFileArtifactIdentifier.class, new TransformedComponentFileArtifactIdentifierSerializer(() -> build(ComponentArtifactIdentifier.class)));
         register(DefaultModuleComponentIdentifier.class, Cast.uncheckedCast(componentIdentifierSerializer));
         register(DefaultProjectComponentIdentifier.class, Cast.uncheckedCast(componentIdentifierSerializer));
         register(AttributeContainer.class, attributeContainerSerializer);
