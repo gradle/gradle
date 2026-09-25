@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Gradle, Inc.
+// Copyright (C) 2026 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -15,39 +15,56 @@
 [[security_gradle]]
 = Securing Gradle Builds
 
-Every Gradle build pulls in code from external repositories, executes tools you didn’t author, and publishes artifacts that others will trust. Each step is a potential attack surface.
+Every Gradle build pulls in code from external repositories, executes tools you didn't author, and publishes artifacts that others will trust.
+Each step is a potential attack surface.
 
-For a typical Gradle build, the supply chain has three main components:
+For a typical Gradle build, the supply chain has three layers:
 
-1. *Dependencies* – Libraries and plugins your project consumes.
-2. *Repositories* – Where artifacts are stored and served.
-3. *Build Tool* – Gradle itself.
+1. *Repositories:* where artifacts are stored and served.
+2. *Dependencies:* the libraries and plugins your project consumes.
+3. *Build Tool:* Gradle itself, including the Wrapper, init scripts, and everything under `~/.gradle`.
 
 Attacks can originate at any layer and then propagate downstream through published artifacts, transitive dependencies, or compromised tools.
-
 Even the build tool itself is an attack vector.
 
-image::securing-builds-1.png[]
+image::securing-builds/securing-builds-1.png[]
 
-Common issues and attacks include:
+Gradle provides features to protect each layer:
 
-. *Dependencies*
-.. Typosquatting
-.. Compromised artifacts
-.. Silent version drift
+[cols="1,3,3"]
+|===
+|Layer |Common issues and attacks |How to protect it
 
-. *Repositories*
-.. Using unauthorized public repositories
-.. Leaking secure package names
-.. Artifacts from unauthenticated repositories
+|*Repositories*
+a|
+* Dependency-confusion attacks against private coordinates
+* Leaking private package names to public mirrors
+* Artifacts from unauthenticated or plaintext-HTTP repositories
+a|
+Centralize repository declarations, require HTTPS, restrict which coordinates each repository is allowed to serve, and mark internal artifacts as exclusive to internal repositories.
 
-. *Build Tool*
-.. Poisoned caches
-.. Compromised CI
-.. Compromised wrapper
+See <<securing_repositories.adoc#securing_repositories,Securing Repositories>>.
 
-Gradle provides features to harden each part of this chain:
+|*Dependencies*
+a|
+* Typosquatting and name-squatting
+* Compromised or replaced artifacts
+* Silent version drift from dynamic versions
+* Publicly disclosed vulnerabilities in code the author intentionally published
+a|
+Screen for known vulnerabilities, verify artifact checksums to protect integrity, and verify PGP signatures to protect provenance.
 
-1. *Dependencies* – Validate libraries and plugins using checksums and signatures.
-2. *Repositories* – Centralize repository definitions and use trusted mirrors.
-3. *Build Tool* – Verify the Gradle distribution and Wrapper JAR file using checksums.
+See <<securing_dependencies.adoc#securing_dependencies,Securing Dependencies>>.
+
+|*Build Tool*
+a|
+* Tampered Wrapper JAR or distribution
+* Compromised init scripts under `~/.gradle/init.d`
+* Compromised `buildSrc` or included builds
+* Poisoned local or remote caches
+* Credentials leaked through plain-text `gradle.properties` or the configuration cache
+a|
+Pin and verify the Gradle Wrapper and distribution, protect the Gradle User Home, guard init scripts and `buildSrc`, protect caches and the daemon, and stay on a supported Gradle release.
+
+See <<securing_build_tool.adoc#securing_build_tool,Securing the Build Tool>>.
+|===

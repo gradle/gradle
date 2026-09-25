@@ -345,7 +345,9 @@ include::isolated_projects.adoc[leveloffset=+2]
 == SECURING BUILDS
 
 include::security.adoc[leveloffset=+2]
-include::dependency_verification.adoc[leveloffset=+2]
+include::securing_repositories.adoc[leveloffset=+2]
+include::securing_dependencies.adoc[leveloffset=+2]
+include::securing_build_tool.adoc[leveloffset=+2]
 
 [[part:integration]]
 == INTEGRATION
