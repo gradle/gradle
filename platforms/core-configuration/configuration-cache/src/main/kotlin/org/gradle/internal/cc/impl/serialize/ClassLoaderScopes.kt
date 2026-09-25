@@ -30,7 +30,13 @@ import org.gradle.internal.serialize.graph.WriteIdentities
 internal
 interface ScopeLookup {
     fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>?
-    val knownClassLoaders: Set<ClassLoader>
+
+    /**
+     * Describes the recorded class loaders for a failure message. Available in
+     * any state, because a failure must be reported even when a lookup is not
+     * permitted.
+     */
+    fun describeKnownClassLoaders(): String
 }
 
 
