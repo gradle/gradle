@@ -112,15 +112,6 @@ link:{gradle-issues}13473[[.green]#✓#]:: <<project_report_plugin.adoc#project_
 // no unsupported plug-ins atm
 [.red]#✖#:: Unsupported plugin
 ////
-[[config_cache:plugins:community]]
-=== Community Plugins
-
-Please refer to issue link:{gradle-issues}13490[gradle/gradle#13490] to learn about the status of Community Plugins.
-
-The two most popular ecosystem plugins are supported:
-
-- [.green]#✓# Android Gradle Plugin
-- [.green]#✓# Kotlin Gradle Plugin
 
 [[config_cache:not_yet_implemented]]
 == Not Yet Implemented
