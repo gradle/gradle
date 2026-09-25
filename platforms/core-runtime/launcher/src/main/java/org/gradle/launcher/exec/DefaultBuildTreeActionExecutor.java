@@ -26,7 +26,6 @@ import org.gradle.internal.buildtree.BuildModelParametersFactory;
 import org.gradle.internal.buildtree.BuildTreeActionExecutor;
 import org.gradle.internal.buildtree.BuildTreeState;
 import org.gradle.internal.buildtree.RunTasksRequirements;
-import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.id.UniqueId;
@@ -66,7 +65,6 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
     private final LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster;
     private final BuildOperationNotificationValve buildOperationNotificationValve;
     private final RootBuildOperationRef rootBuildOperationRef;
-    private final UserCodeApplicationContext userCodeApplicationContext;
 
     public DefaultBuildTreeActionExecutor(
         BuildModelParametersFactory modelParametersFactory,
@@ -77,8 +75,7 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
         BuildOperationRunner buildOperationRunner,
         LoggingBuildOperationProgressBroadcaster loggingBuildOperationProgressBroadcaster,
         BuildOperationNotificationValve buildOperationNotificationValve,
-        RootBuildOperationRef rootBuildOperationRef,
-        UserCodeApplicationContext userCodeApplicationContext
+        RootBuildOperationRef rootBuildOperationRef
     ) {
         this.buildModelParametersFactory = modelParametersFactory;
         this.buildLayoutValidator = buildLayoutValidator;
@@ -89,7 +86,6 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
         this.loggingBuildOperationProgressBroadcaster = loggingBuildOperationProgressBroadcaster;
         this.buildOperationNotificationValve = buildOperationNotificationValve;
         this.rootBuildOperationRef = rootBuildOperationRef;
-        this.userCodeApplicationContext = userCodeApplicationContext;
     }
 
     @Override
@@ -103,18 +99,7 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
             return buildOperationRunner.call(new CallableBuildOperation<BuildActionRunner.Result>() {
                 @Override
                 public BuildActionRunner.Result call(BuildOperationContext buildOperationContext) {
-                    BuildActionRunner.Result result;
-                    userCodeApplicationContext.startTrackingApplications();
-                    try {
-                        result = runBuildTreeLifecycle(action, buildSessionServices);
-                    } finally {
-                        // TODO: Include the recorded user code application timings in the Run Build build
-                        //  operation result, so Develocity can consume them instead of deriving timings
-                        //  from the build operation hierarchy. Then, once DV reads these timings, we can
-                        //  stop emitting collection callback build operations, leading to a massive
-                        //  performance improvement.
-                        userCodeApplicationContext.stopTrackingApplications();
-                    }
+                    BuildActionRunner.Result result = runBuildTreeLifecycle(action, buildSessionServices);
                     buildOperationContext.setResult(new DefaultRunBuildResult(result));
                     if (result.getBuildFailure() != null) {
                         buildOperationContext.failed(result.getBuildFailure());

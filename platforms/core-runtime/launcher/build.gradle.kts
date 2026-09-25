@@ -98,6 +98,7 @@ dependencies {
     integTestImplementation(libs.commonsLang)
     integTestImplementation(libs.commonsIo)
     integTestImplementation(testFixtures(projects.buildConfiguration))
+    integTestImplementation(testFixtures(projects.time))
     integTestImplementation(testFixtures(projects.buildProcessServices))
     integTestImplementation(testFixtures(projects.toolchainsJvmShared))
 

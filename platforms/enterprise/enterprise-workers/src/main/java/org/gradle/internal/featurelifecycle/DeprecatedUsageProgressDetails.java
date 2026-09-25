@@ -65,6 +65,16 @@ public interface DeprecatedUsageProgressDetails {
     String getType();
 
     /**
+     * The ID of the code application that triggered this deprecated usage, if known.
+     *
+     * @see org.gradle.api.internal.plugins.ApplyPluginBuildOperationType.Details#getApplicationId()
+     * @see org.gradle.configuration.ApplyScriptPluginBuildOperationType.Details#getApplicationId()
+     *
+     * @since 9.9.0
+     */
+    @Nullable Long getCurrentCodeApplicationId();
+
+    /**
      * See {@code org.gradle.internal.deprecation.DeprecatedFeatureUsage#getStack()}
      */
     List<StackTraceElement> getStackTrace();

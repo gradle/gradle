@@ -44,6 +44,7 @@ dependencies {
     runtimeOnly(libs.jclToSlf4j)
     runtimeOnly(libs.log4jToSlf4j)
 
+    testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.core))
     testImplementation(testFixtures(projects.time))
     testImplementation(testFixtures(projects.testingJvm))

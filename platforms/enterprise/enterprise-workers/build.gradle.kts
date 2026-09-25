@@ -7,6 +7,8 @@ description = "Develocity plugin dependencies that also need to be exposed to wo
 
 dependencies {
     api(libs.jspecify)
+
+    javadocReferences(projects.enterpriseOperations)
 }
 
 gradleModule {
