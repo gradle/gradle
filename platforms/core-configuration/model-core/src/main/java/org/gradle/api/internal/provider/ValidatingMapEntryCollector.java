@@ -17,6 +17,7 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
 
 import java.util.Map;
 
@@ -35,7 +36,7 @@ class ValidatingMapEntryCollector<K, V> implements MapEntryCollector<K, V> {
     }
 
     @Override
-    public void add(K key, V value, Map<K, V> dest) {
+    public void add(K key, V value, ImmutableMap.Builder<K, V> dest) {
         Preconditions.checkNotNull(
             key,
             "Cannot get the value of a property of type %s with key type %s as the source contains a null key.",
@@ -63,7 +64,7 @@ class ValidatingMapEntryCollector<K, V> implements MapEntryCollector<K, V> {
     }
 
     @Override
-    public void addAll(Iterable<? extends Map.Entry<? extends K, ? extends V>> entries, Map<K, V> dest) {
+    public void addAll(Iterable<? extends Map.Entry<? extends K, ? extends V>> entries, ImmutableMap.Builder<K, V> dest) {
         for (Map.Entry<? extends K, ? extends V> entry : entries) {
             add(entry.getKey(), entry.getValue(), dest);
         }

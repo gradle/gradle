@@ -222,6 +222,11 @@ public class Providers {
         }
 
         @Override
+        public boolean isSelfContained() {
+            return true;
+        }
+
+        @Override
         public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
             return ExecutionTimeValue.fixedValue(value);
         }
@@ -274,6 +279,11 @@ public class Providers {
 
         @Override
         public boolean isImmutable() {
+            return true;
+        }
+
+        @Override
+        public boolean isSelfContained() {
             return true;
         }
 

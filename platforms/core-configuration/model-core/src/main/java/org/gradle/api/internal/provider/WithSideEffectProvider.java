@@ -50,6 +50,13 @@ public class WithSideEffectProvider<T> extends AbstractMinimalProvider<T> {
     }
 
     @Override
+    public boolean isSelfContained() {
+        // The side effect is attached to the Value here and executed later by Value.get(), by which
+        // point the evaluation scope has already closed, so it does not affect re-entrance.
+        return provider.isSelfContained();
+    }
+
+    @Override
     protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
         return provider.calculateValue(consumer).withSideEffect(sideEffect);
     }
