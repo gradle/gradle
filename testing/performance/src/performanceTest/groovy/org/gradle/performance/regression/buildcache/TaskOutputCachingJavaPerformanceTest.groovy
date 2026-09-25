@@ -166,7 +166,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         given:
         setupTestProject(runner)
         def testProject = JavaTestProject.projectFor(runner.testProject)
-        runner.addBuildMutator { new ApplyAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])) }
+        runner.addBuildMutator { new ApplyAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.fileToChangeFor('assemble'))) }
         runner.args += "--parallel"
         pushToRemote = false
 
@@ -186,7 +186,7 @@ class TaskOutputCachingJavaPerformanceTest extends AbstractTaskOutputCachingPerf
         given:
         setupTestProject(runner)
         def testProject = JavaTestProject.projectFor(runner.testProject)
-        runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.config.fileToChangeByScenario['assemble'])) }
+        runner.addBuildMutator { new ApplyNonAbiChangeToJavaSourceFileMutator(new File(it.projectDir, testProject.fileToChangeFor('assemble'))) }
         runner.args += "--parallel"
         pushToRemote = false
 
