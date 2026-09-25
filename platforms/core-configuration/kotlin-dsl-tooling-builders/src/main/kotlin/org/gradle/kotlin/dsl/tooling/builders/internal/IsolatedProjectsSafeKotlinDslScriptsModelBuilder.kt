@@ -22,7 +22,6 @@ import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.ClassPath.EMPTY
-import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
 import org.gradle.kotlin.dsl.provider.runCatching
@@ -193,9 +192,9 @@ fun visitProjectHierarchy(
     val classPathModeExceptionCollector = rootProject.serviceOf<ClassPathModeExceptionCollector>()
 
     fun prepareForParallelAccess() {
-        // Avoid deadlock on stage1BlocksAccessorClassPath on root.fromMutableState call.
-        // It's wrapped in runCatching the same way the per-project and settings accessorsClassPathOf calls,
-        // so a broken root build degrades to empty accessors instead of aborting the model build.
+        // Compute the stage 1 blocks accessors on this thread, which holds the root project lock, before fanning out
+        // to the workers. Otherwise a worker can enter the lazy and block on the root project lock held here.
+        // A failure is collected so a broken root build degrades to empty accessors instead of aborting the model build.
         classPathModeExceptionCollector.runCatching {
             rootProject.serviceOf<Stage1BlocksAccessorClassPathGenerator>().prepareForParallelAccess()
         }
@@ -299,9 +298,7 @@ private
 fun buildSettingsScriptModel(settingsScript: File, rootProject: Project): NonProjectScriptModel {
     val settings = rootProject.settings
     val scriptCompilationClassPath = settings.scriptCompilationClassPath
-    val accessorsClassPath = rootProject.serviceOf<ClassPathModeExceptionCollector>().runCatching {
-        settings.accessorsClassPathOf(scriptCompilationClassPath)
-    } ?: AccessorsClassPath.empty
+    val accessorsClassPath = settings.accessorsClassPathOf(scriptCompilationClassPath)
 
     return NonProjectScriptModel(
         settingsScript,
@@ -370,9 +367,7 @@ fun buildScriptModelFor(project: ProjectInternal): IntermediateScriptModel? {
     // TODO:isolated this relies on the hierarchy of classloaders
     val compilationClassPath = project.scriptCompilationClassPath
 
-    val accessorsClassPath = project.serviceOf<ClassPathModeExceptionCollector>().runCatching {
-        project.accessorsClassPathOf(compilationClassPath)
-    } ?: AccessorsClassPath.empty
+    val accessorsClassPath = project.accessorsClassPathOf(compilationClassPath)
 
     val classpathSources = sourcePathFor(listOf(project.buildscript))
 

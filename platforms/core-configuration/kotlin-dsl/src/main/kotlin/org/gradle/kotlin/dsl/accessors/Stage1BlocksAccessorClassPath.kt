@@ -76,7 +76,11 @@ class Stage1BlocksAccessorClassPathGenerator @Inject internal constructor(
 
     private
     val stage1BlocksAccessorClassPath by lazy {
-        buildState.projects.rootProject.fromMutableState { rootProject ->
+        // The accessors only depend on the buildSrc classpath and the version catalogs, so they can be
+        // generated for IDE models even when the root project failed to configure.
+        val rootProjectState = buildState.projects.rootProject
+        rootProjectState.runWithModelLock {
+            val rootProject = rootProjectState.mutableModelEvenAfterFailure
             val buildSrcClassLoaderScope = rootProject.baseClassLoaderScope
             val classLoaderHash = requireNotNull(classLoaderHierarchyHasher.getClassLoaderHash(buildSrcClassLoaderScope.exportClassLoader))
             val versionCatalogAccessors = generateVersionCatalogAccessors(rootProject, buildSrcClassLoaderScope, classLoaderHash)
@@ -94,10 +98,9 @@ class Stage1BlocksAccessorClassPathGenerator @Inject internal constructor(
 
     /**
      * Force-computes the shared classpath on the caller's thread so later readers hit the lazy
-     * fast path. Call before fanning out parallel workers from a thread that already satisfies
-     * `fromMutableState` on the root project (holds the root lock or has uncontrolled access);
-     * otherwise a worker can enter the lazy monitor and then block on the root lock that the
-     * outer thread is still holding.
+     * fast path. Call before fanning out parallel workers from a thread that already holds the
+     * root project model lock (or has uncontrolled access); otherwise a worker can enter the lazy
+     * monitor and then block on the root lock that the outer thread is still holding.
      */
     fun prepareForParallelAccess() {
         stage1BlocksAccessorClassPath
