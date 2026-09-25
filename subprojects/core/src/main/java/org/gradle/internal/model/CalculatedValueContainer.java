@@ -44,10 +44,7 @@ import java.util.concurrent.locks.ReentrantLock;
  * <p>This type can hold null as the computed value.</p>
  */
 @ThreadSafe
-public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>> implements CalculatedValue<T>, WorkNodeAction {
-    // TODO(https://github.com/gradle/gradle/issues/24767): with JSpecify, the nullable nature of the type argument <T> should be expressed as <T extends @Nullable Object>.
-    //  We cannot use this syntax until adopting JSpecify with e.g. Jetbrains Annotations, because IDEA wrongly treats all usages as having a nullable type, even when
-    //  it is explicitly spelled.
+public class CalculatedValueContainer<T extends @Nullable Object, S extends ValueCalculator<? extends T>> implements CalculatedValue<T>, WorkNodeAction {
 
     private final DisplayName displayName;
     // Null when the value has been calculated and assigned to the result field. When not null the result has not been calculated
@@ -193,7 +190,7 @@ public class CalculatedValueContainer<T, S extends ValueCalculator<? extends T>>
         calculationState.attachValue(this, context);
     }
 
-    private static class CalculationState<T, S extends ValueCalculator<? extends T>> {
+    private static class CalculationState<T extends @Nullable Object, S extends ValueCalculator<? extends T>> {
         final ReentrantLock lock = new ReentrantLock();
         final S supplier;
         final ProjectLeaseRegistry projectLeaseRegistry;
