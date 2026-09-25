@@ -438,8 +438,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
             assertHasJarsInScriptModelClasspath(model, "build-logic/build.gradle.kts", "gradle-kotlin-dsl-plugins")
             // The project accessors were generated before the script body failed to compile, and the stage 1 blocks
             // accessors (plugin spec builders) can be generated even though the root project failed, so the model has both
-            assertHasClassPathEntryWithPath(model, "build-logic/build.gradle.kts", "/accessors/")
-            assertHasClassPathEntryWithPath(model, "build-logic/build.gradle.kts", "-PS/")
+            assertHasProjectAccessorsInClassPath(model, "build-logic/build.gradle.kts")
+            assertHasStage1BlocksAccessorsInClassPath(model, "build-logic/build.gradle.kts")
             assertHasAnyJarInScriptModelClasspath(model, "build-logic/src/main/kotlin/custom.gradle.kts", expectedPublicApiJarPrefixes())
         }
 
@@ -451,6 +451,75 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         // From 9.9 the plugin build reports its configuration failure and the resolution failure the model builder recovered from
         "9.9"       | null         | PLUGIN_BUILD_SCRIPTS | [BUILD_SCRIPT_COMPILE_ERROR, PRECOMPILED_CLASSPATH_RESOLUTION_FAILURE]       | ""                       | NO_EXTRA_PROPERTIES
         "9.9"       | null         | PLUGIN_BUILD_SCRIPTS | [BUILD_SCRIPT_COMPILE_ERROR, PRECOMPILED_CLASSPATH_RESOLUTION_FAILURE]       | "with isolated projects" | IP_FLAGS
+    }
+
+    @TargetGradleVersion('>=9.9.0')
+    def "compilation failure in plugin build script body with precompiled script plugin: model does not change when the plugin build script was compiled by a previous sync #mode"() {
+        given:
+        skipIfIpNotSupported(extraGradleProperties)
+        settingsKotlinFile << """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+            rootProject.name = "root"
+            include("lib")
+        """
+
+        def buildLogic = file("build-logic")
+        buildLogic.file("settings.gradle.kts") << """
+            pluginManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+            rootProject.name = "build-logic"
+        """
+        buildLogic.file("build.gradle.kts") << """
+            plugins { `kotlin-dsl` }
+
+            repositories {
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+            }
+
+            blow up !!!
+        """
+        buildLogic.file("src/main/kotlin/custom.gradle.kts") << """
+            plugins { `java-library` }
+        """
+        file("lib/build.gradle.kts") << """
+            plugins { id("custom") }
+        """
+
+        when:
+        fails {
+            resilientModel(it, ROOT_PROJECT_FIRST, extraGradleProperties)
+        }
+
+        then:
+        thrown(BuildException)
+        def firstSync = modelCollector.model
+        assertHasScriptModelForFiles(firstSync, "settings.gradle.kts", "lib/build.gradle.kts", *PLUGIN_BUILD_SCRIPTS)
+        assertHasStage1BlocksAccessorsInClassPath(firstSync, "build-logic/build.gradle.kts")
+
+        when:
+        // The daemon caches the compiled plugins block of the plugin build script, so this time the stage 1 blocks
+        // accessors are not generated while the script is evaluated, but only when the model is built after the
+        // project failed to configure
+        fails {
+            resilientModel(it, ROOT_PROJECT_FIRST, extraGradleProperties)
+        }
+
+        then:
+        thrown(BuildException)
+        def secondSync = modelCollector.model
+        assertHasStage1BlocksAccessorsInClassPath(secondSync, "build-logic/build.gradle.kts")
+        classPathsOf(secondSync) == classPathsOf(firstSync)
+
+        where:
+        mode                       | extraGradleProperties
+        ""                         | NO_EXTRA_PROPERTIES
+        "with isolated projects"   | IP_FLAGS
     }
 
     def "resolution failure of precompiled script plugin classpath: model is returned for the plugin build and the failure is reported from #fromVersion #mode"() {
@@ -820,9 +889,9 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
             if (scriptFile == b) {
                 // The plugins block of b failed, so there are no project accessors and no build-logic jar in the classpath
                 if (stage1BlocksAccessors) {
-                    // From 9.9 the stage 1 blocks accessors (plugin spec builders) are generated even though the project failed
-                    modelAssert.assertClassPathsAreEqualIfIgnoringSomeEntries { !it.contains("/accessors/") && !it.contains("/build-logic.jar") }
-                    modelAssert.assertResilientModelContainsClassPathEntriesWithPath("-PS/")
+                    // From 9.9 the stage 1 blocks accessors (plugin spec builders) are generated even though the project failed,
+                    // so the classpath is the original one without the project accessors and the build-logic jar
+                    modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { (!it.contains("/accessors/") || it.contains("-PS/")) && !it.contains("/build-logic.jar") }
                 } else {
                     modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") && !it.contains("/build-logic.jar") }
                 }
@@ -1156,11 +1225,28 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         }
     }
 
-    void assertHasClassPathEntryWithPath(KotlinModel model, String expectedFile, String path) {
+    private static Map<File, List<File>> classPathsOf(KotlinModel model) {
+        model.scriptModels.collectEntries { scriptFile, scriptModel -> [(scriptFile): scriptModel.classPath] }
+    }
+
+    // Both kinds of accessors live in the same accessors workspace, only the stage 1 blocks accessors have a -PS or -VC suffix
+    void assertHasProjectAccessorsInClassPath(KotlinModel model, String expectedFile) {
+        assertHasClassPathEntry(model, expectedFile, "with the project accessors") {
+            it.contains("/accessors/") && !it.contains("-PS/") && !it.contains("-VC/")
+        }
+    }
+
+    void assertHasStage1BlocksAccessorsInClassPath(KotlinModel model, String expectedFile) {
+        assertHasClassPathEntry(model, expectedFile, "with the stage 1 blocks accessors") {
+            it.contains("/accessors/") && it.contains("-PS/")
+        }
+    }
+
+    void assertHasClassPathEntry(KotlinModel model, String expectedFile, String description, Closure<Boolean> matcher) {
         def scriptModel = model.scriptModels.get(new File(projectDir, expectedFile))
         assert scriptModel != null: "Expected script model for file $expectedFile, but there wasn't one"
-        assert scriptModel.classPath.any { TextUtil.normaliseFileSeparators(it.absolutePath).contains(path) }:
-            "Expected a classpath entry with path '$path' in the script model classpath for file $expectedFile, but there was none: ${scriptModel.classPath}"
+        assert scriptModel.classPath.any { matcher(TextUtil.normaliseFileSeparators(it.absolutePath)) }:
+            "Expected a classpath entry $description in the script model classpath for file $expectedFile, but there was none: ${scriptModel.classPath}"
     }
 
     /**

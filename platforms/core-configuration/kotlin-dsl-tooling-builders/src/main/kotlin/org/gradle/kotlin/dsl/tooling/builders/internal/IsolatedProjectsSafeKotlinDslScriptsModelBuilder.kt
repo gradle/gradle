@@ -192,9 +192,9 @@ fun visitProjectHierarchy(
     val classPathModeExceptionCollector = rootProject.serviceOf<ClassPathModeExceptionCollector>()
 
     fun prepareForParallelAccess() {
-        // Avoid deadlock on stage1BlocksAccessorClassPath on root.fromMutableState call.
-        // It's wrapped in runCatching the same way the per-project and settings accessorsClassPathOf calls,
-        // so a broken root build degrades to empty accessors instead of aborting the model build.
+        // Compute the stage 1 blocks accessors on this thread, which holds the root project lock, before fanning out
+        // to the workers. Otherwise a worker can enter the lazy and block on the root project lock held here.
+        // A failure is collected so a broken root build degrades to empty accessors instead of aborting the model build.
         classPathModeExceptionCollector.runCatching {
             rootProject.serviceOf<Stage1BlocksAccessorClassPathGenerator>().prepareForParallelAccess()
         }
