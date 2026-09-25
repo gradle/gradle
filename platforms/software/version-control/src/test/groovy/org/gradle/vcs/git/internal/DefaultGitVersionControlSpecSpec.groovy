@@ -17,11 +17,15 @@
 package org.gradle.vcs.git.internal
 
 
+import org.gradle.api.internal.file.FileResolver
 import org.gradle.vcs.git.GitVersionControlSpec
 import spock.lang.Specification
 
 class DefaultGitVersionControlSpecSpec extends Specification {
-    GitVersionControlSpec spec = new DefaultGitVersionControlSpec()
+    FileResolver fileResolver = Mock(FileResolver) {
+        resolveUri(_) >> { args -> args[0] instanceof URI ? args[0] : new URI(args[0].toString()) }
+    }
+    GitVersionControlSpec spec = new DefaultGitVersionControlSpec(fileResolver)
 
     def 'handles file urls'() {
         given:
@@ -51,5 +55,22 @@ class DefaultGitVersionControlSpecSpec extends Specification {
         spec.repoName == 'gradle-checksum'
         spec.uniqueId == 'git-repo:https://github.com/gradle/gradle-checksum.git'
         spec.displayName == 'Git repository at https://github.com/gradle/gradle-checksum.git'
+    }
+
+    def 'resolves relative URL strings via the file resolver'() {
+        given:
+        def resolved = new URI("file:/abs/project/dep")
+        def localResolver = Mock(FileResolver) {
+            resolveUri('dep') >> resolved
+        }
+        def localSpec = new DefaultGitVersionControlSpec(localResolver)
+
+        when:
+        localSpec.url = 'dep'
+
+        then:
+        localSpec.url == resolved
+        localSpec.repoName == 'dep'
+        localSpec.uniqueId == 'git-repo:file:/abs/project/dep'
     }
 }
