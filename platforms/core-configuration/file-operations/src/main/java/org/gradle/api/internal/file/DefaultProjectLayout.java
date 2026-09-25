@@ -96,22 +96,12 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
 
     @Override
     public Provider<RegularFile> file(Provider<File> provider) {
-        return new MappingProvider<>(RegularFile.class, Providers.internal(provider), new Transformer<RegularFile, File>() {
-            @Override
-            public RegularFile transform(File file) {
-                return fileFactory.file(fileResolver.resolve(file));
-            }
-        });
+        return new MappingProvider<>(RegularFile.class, Providers.internal(provider), new ResolvingRegularFileTransformer(fileResolver, fileFactory));
     }
 
     @Override
     public Provider<Directory> dir(Provider<File> provider) {
-        return new MappingProvider<>(Directory.class, Providers.internal(provider), new Transformer<Directory, File>() {
-            @Override
-            public Directory transform(File file) {
-                return fileFactory.dir(fileResolver.resolve(file));
-            }
-        });
+        return new MappingProvider<>(Directory.class, Providers.internal(provider), new ResolvingDirectoryTransformer(fileResolver, fileFactory));
     }
 
     @Override
@@ -124,5 +114,39 @@ public class DefaultProjectLayout implements ProjectLayout, TaskFileVarFactory {
     // and removing it makes those expressions fail the build
     public void setBuildDirectory(Object value) {
         buildDir.set(fileResolver.resolve(value));
+    }
+
+    /**
+     * Captures only the resolver and the factory, so the transformer can be serialized by the configuration cache
+     * without dragging the project-scoped {@link ProjectLayout} service along with it.
+     */
+    private static class ResolvingRegularFileTransformer implements Transformer<RegularFile, File> {
+        private final FileResolver fileResolver;
+        private final FileFactory fileFactory;
+
+        ResolvingRegularFileTransformer(FileResolver fileResolver, FileFactory fileFactory) {
+            this.fileResolver = fileResolver;
+            this.fileFactory = fileFactory;
+        }
+
+        @Override
+        public RegularFile transform(File file) {
+            return fileFactory.file(fileResolver.resolve(file));
+        }
+    }
+
+    private static class ResolvingDirectoryTransformer implements Transformer<Directory, File> {
+        private final FileResolver fileResolver;
+        private final FileFactory fileFactory;
+
+        ResolvingDirectoryTransformer(FileResolver fileResolver, FileFactory fileFactory) {
+            this.fileResolver = fileResolver;
+            this.fileFactory = fileFactory;
+        }
+
+        @Override
+        public Directory transform(File file) {
+            return fileFactory.dir(fileResolver.resolve(file));
+        }
     }
 }
