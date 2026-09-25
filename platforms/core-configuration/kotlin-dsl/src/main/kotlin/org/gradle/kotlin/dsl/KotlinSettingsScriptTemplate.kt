@@ -20,6 +20,7 @@ import org.gradle.api.Incubating
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.plugins.PluginAware
+import org.gradle.api.services.SettingsService
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForSettings
@@ -57,7 +58,10 @@ class KotlinSettingsScriptTemplateCompilationConfiguration : KotlinDslStandalone
 @GradleDsl
 abstract class KotlinSettingsScriptTemplate(
     private val host: KotlinScriptHost<Settings>
-) : DefaultKotlinScript(defaultKotlinScriptHostForSettings(host.target)), PluginAware by host.target {
+) : DefaultKotlinScript(defaultKotlinScriptHostForSettings(host.target)), PluginAware by host.target, SettingsScriptServiceLookup {
+
+    override fun <T : SettingsService> service(serviceType: Class<T>): T =
+        lookupService(serviceType)
 
     /**
      * The [ScriptHandler] for this script.

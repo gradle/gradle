@@ -1,3 +1,89 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.file.ArchiveOperations",
+            "member": "Class org.gradle.api.file.ArchiveOperations",
+            "acceptation": "Marked as available for lookup via the incubating service() markers (#13121)",
+            "changes": [
+                "org.gradle.api.services.GradleService",
+                "org.gradle.api.services.ProjectService",
+                "org.gradle.api.services.SettingsService",
+                "org.gradle.api.services.TaskService"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.FileSystemOperations",
+            "member": "Class org.gradle.api.file.FileSystemOperations",
+            "acceptation": "Marked as available for lookup via the incubating service() markers (#13121)",
+            "changes": [
+                "org.gradle.api.services.GradleService",
+                "org.gradle.api.services.ProjectService",
+                "org.gradle.api.services.SettingsService",
+                "org.gradle.api.services.TaskService"
+            ]
+        },
+        {
+            "type": "org.gradle.api.file.ProjectLayout",
+            "member": "Class org.gradle.api.file.ProjectLayout",
+            "acceptation": "Marked as available for lookup via the incubating service() markers (#13121)",
+            "changes": [
+                "org.gradle.api.services.ProjectService",
+                "org.gradle.api.services.TaskService"
+            ]
+        },
+        {
+            "type": "org.gradle.api.model.ObjectFactory",
+            "member": "Class org.gradle.api.model.ObjectFactory",
+            "acceptation": "Marked as available for lookup via the incubating service() markers (#13121)",
+            "changes": [
+                "org.gradle.api.services.GradleService",
+                "org.gradle.api.services.ProjectService",
+                "org.gradle.api.services.SettingsService",
+                "org.gradle.api.services.TaskService"
+            ]
+        },
+        {
+            "type": "org.gradle.api.provider.ProviderFactory",
+            "member": "Class org.gradle.api.provider.ProviderFactory",
+            "acceptation": "Marked as available for lookup via the incubating service() markers (#13121)",
+            "changes": [
+                "org.gradle.api.services.GradleService",
+                "org.gradle.api.services.ProjectService",
+                "org.gradle.api.services.SettingsService",
+                "org.gradle.api.services.TaskService"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinGradleScriptTemplate",
+            "member": "Class org.gradle.kotlin.dsl.KotlinGradleScriptTemplate",
+            "acceptation": "Script templates expose the incubating script service() lookup (#39131)",
+            "changes": [
+                "org.gradle.kotlin.dsl.InitScriptServiceLookup"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinProjectScriptTemplate",
+            "member": "Class org.gradle.kotlin.dsl.KotlinProjectScriptTemplate",
+            "acceptation": "Script templates expose the incubating script service() lookup (#39131)",
+            "changes": [
+                "org.gradle.kotlin.dsl.ProjectScriptServiceLookup"
+            ]
+        },
+        {
+            "type": "org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate",
+            "member": "Class org.gradle.kotlin.dsl.KotlinSettingsScriptTemplate",
+            "acceptation": "Script templates expose the incubating script service() lookup (#39131)",
+            "changes": [
+                "org.gradle.kotlin.dsl.SettingsScriptServiceLookup"
+            ]
+        },
+        {
+            "type": "org.gradle.process.ExecOperations",
+            "member": "Class org.gradle.process.ExecOperations",
+            "acceptation": "Marked as available for lookup via the incubating service() markers (#13121)",
+            "changes": [
+                "org.gradle.api.services.TaskService"
+            ]
+        }
+    ]
 }

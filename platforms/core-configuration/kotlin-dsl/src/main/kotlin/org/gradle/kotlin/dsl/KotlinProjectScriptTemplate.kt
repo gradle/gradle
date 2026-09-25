@@ -19,6 +19,7 @@ package org.gradle.kotlin.dsl
 import org.gradle.api.Incubating
 import org.gradle.api.Project
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.services.ProjectService
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForProject
@@ -57,7 +58,10 @@ class KotlinProjectScriptTemplateCompilationConfiguration : KotlinDslStandaloneS
 @GradleDsl
 abstract class KotlinProjectScriptTemplate(
     private val host: KotlinScriptHost<Project>
-) : DefaultKotlinScript(defaultKotlinScriptHostForProject(host.target)) {
+) : DefaultKotlinScript(defaultKotlinScriptHostForProject(host.target)), ProjectScriptServiceLookup {
+
+    override fun <T : ProjectService> service(serviceType: Class<T>): T =
+        lookupService(serviceType)
 
     /**
      * The [ScriptHandler] for this script.
