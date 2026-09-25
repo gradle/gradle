@@ -16,6 +16,7 @@
 package org.gradle.api.internal;
 
 import org.gradle.api.Action;
+import org.gradle.process.ExecHandle;
 import org.gradle.process.ExecResult;
 import org.gradle.process.ExecSpec;
 import org.gradle.process.JavaExecSpec;
@@ -26,4 +27,5 @@ public interface ProcessOperations {
 
     ExecResult exec(Action<? super ExecSpec> action);
 
+    ExecHandle execAsync(Action<? super ExecSpec> action);
 }
