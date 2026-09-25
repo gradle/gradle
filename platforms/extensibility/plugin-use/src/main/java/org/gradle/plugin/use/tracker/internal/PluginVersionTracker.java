@@ -19,6 +19,7 @@ package org.gradle.plugin.use.tracker.internal;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
@@ -32,20 +33,24 @@ import static java.util.Collections.emptyMap;
 @ServiceScope(Scope.Build.class)
 public class PluginVersionTracker {
 
-    final Map<ClassLoaderScope, Map<String, String>> pluginVersionsPerScope = new ConcurrentHashMap<>();
+    final Map<ClassLoaderScope, Map<String, VersionDef>> pluginVersionsPerScope = new ConcurrentHashMap<>();
 
-    public void setPluginVersionAt(ClassLoaderScope scope, String pluginId, String pluginVersion) {
-        Map<String, String> pluginVersions = pluginVersionsPerScope.computeIfAbsent(scope, ignored -> new ConcurrentHashMap<>());
+    public void setPluginVersionAt(ClassLoaderScope scope, String pluginId, @Nullable String pluginVersion, boolean local) {
+        if (pluginVersion == null && !local) {
+            return;
+        }
+
+        Map<String, VersionDef> pluginVersions = pluginVersionsPerScope.computeIfAbsent(scope, ignored -> new ConcurrentHashMap<>());
         if (pluginVersions.containsKey(pluginId)) {
             throw new IllegalStateException("Plugin version already set for " + pluginId);
         }
-        pluginVersions.put(pluginId, pluginVersion);
+        pluginVersions.put(pluginId, new PluginVersionTracker.VersionDef(pluginVersion, local));
     }
 
     @Nullable
-    public String findPluginVersionAt(ClassLoaderScope scope, String pluginId) {
+    public VersionDef findPluginVersionAt(ClassLoaderScope scope, String pluginId) {
         while (scope != null) {
-            String pluginVersion = pluginVersionsPerScope.getOrDefault(scope, emptyMap()).get(pluginId);
+            VersionDef pluginVersion = pluginVersionsPerScope.getOrDefault(scope, emptyMap()).get(pluginId);
             if (pluginVersion != null) {
                 return pluginVersion;
             }
@@ -57,5 +62,31 @@ public class PluginVersionTracker {
             scope = parent;
         }
         return null;
+    }
+
+    @NullMarked
+    public static final class VersionDef {
+        @Nullable
+        private final String version;
+        private final boolean local;
+
+        public VersionDef(@Nullable String version, boolean local) {
+            this.version = version;
+            this.local = local;
+        }
+
+        @Nullable
+        public String getVersion() {
+            return version;
+        }
+
+        public boolean isLocal() {
+            return local;
+        }
+
+        @Override
+        public String toString() {
+            return "VersionDef{" + version + (local ? ", local" : "") + '}';
+        }
     }
 }
