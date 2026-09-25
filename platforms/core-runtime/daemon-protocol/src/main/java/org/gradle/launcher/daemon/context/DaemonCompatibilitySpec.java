@@ -17,6 +17,7 @@ package org.gradle.launcher.daemon.context;
 
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.internal.jvm.JavaInfo;
+import org.gradle.internal.jvm.JavaHomeException;
 import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
@@ -95,7 +96,7 @@ public class DaemonCompatibilitySpec implements ExplainingSpec<DaemonContext> {
                 File desiredJava = desiredJavaInfo.getJavaExecutable();
                 return Files.isSameFile(potentialJava.toPath(), desiredJava.toPath());
             }
-        } catch (IOException e) {
+        } catch (IOException | JavaHomeException | IllegalArgumentException e) {
             // ignore
         }
         return false;
