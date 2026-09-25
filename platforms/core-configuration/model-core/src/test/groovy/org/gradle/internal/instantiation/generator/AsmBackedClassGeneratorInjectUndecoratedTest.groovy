@@ -16,11 +16,16 @@
 
 package org.gradle.internal.instantiation.generator
 
+import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.GeneratedSubclass
 import org.gradle.api.internal.IConventionAware
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
+import org.gradle.api.tasks.Nested
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
+import org.gradle.internal.instantiation.ClassGenerationException
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
 import org.gradle.internal.service.ServiceLookup
 import org.gradle.internal.state.ModelObject
@@ -107,10 +112,123 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
         !(undecorated instanceof ExtensionAware)
     }
 
+    def "resolves the generated classes of the next layer of nested managed types only"() {
+        expect:
+        generator.generate(Outer).nestedManagedClasses*.generatedClass == [generator.generate(Inner).generatedClass]
+        generator.generate(Inner).nestedManagedClasses*.generatedClass == [generator.generate(Innermost).generatedClass]
+        generator.generate(Innermost).nestedManagedClasses.empty
+    }
+
+    def "reports the services injected into the properties of #type.simpleName"() {
+        expect:
+        generator.generate(type).injectedServices == services
+
+        where:
+        type                            | services
+        WithInjectedGetter              | [Number]
+        InheritingInjectedGetter        | [Number]
+        ExtendingAbstractInjectedGetter | [Number]
+        RedeclaringInjectedGetter       | [Number]
+        WithInjectedProvider            | [Provider]
+        WithManagedProperties           | []
+        Bean                            | []
+    }
+
+    def "rejects an injected getter of a managed property type"() {
+        when:
+        generator.generate(WithInjectedProperty)
+
+        then:
+        def e = thrown(ClassGenerationException)
+        e.cause.message == "Cannot use @Inject annotation on method WithInjectedProperty.getProp(): Property<String>."
+    }
+
+    def "rejects an abstract getter that is neither injected nor managed"() {
+        when:
+        generator.generate(WithAbstractGetter)
+
+        then:
+        def e = thrown(ClassGenerationException)
+        e.cause.message == "Cannot have abstract method WithAbstractGetter.getNumber(): Number."
+    }
+
+    def "resolves a self-nesting type to its own generated class"() {
+        def generated = generator.generate(SelfNesting)
+
+        expect:
+        generated.nestedManagedClasses.size() == 1
+        generated.nestedManagedClasses[0].is(generated)
+    }
+
     static class Bean {
         @Inject
         Bean(String a, String b) {
         }
+    }
+
+    interface Outer {
+        @Nested
+        Inner getInner()
+    }
+
+    interface Inner {
+        @Nested
+        Innermost getInnermost()
+    }
+
+    interface Innermost {
+    }
+
+    interface SelfNesting {
+        @Nested
+        SelfNesting getNested()
+    }
+
+    interface WithInjectedGetter {
+        @Inject
+        Number getNumber()
+    }
+
+    interface InheritingInjectedGetter extends WithInjectedGetter {
+    }
+
+    static abstract class AbstractInjectedGetter {
+        @Inject
+        abstract Number getNumber()
+    }
+
+    static abstract class ExtendingAbstractInjectedGetter extends AbstractInjectedGetter {
+    }
+
+    interface OtherInjectedGetter {
+        @Inject
+        Number getNumber()
+    }
+
+    interface RedeclaringInjectedGetter extends WithInjectedGetter, OtherInjectedGetter {
+    }
+
+    interface WithInjectedProvider {
+        @Inject
+        Provider<String> getProvider()
+    }
+
+    interface WithInjectedProperty {
+        @Inject
+        Property<String> getProp()
+    }
+
+    interface WithManagedProperties {
+        Property<String> getProp()
+
+        ConfigurableFileCollection getFiles()
+
+        @Nested
+        Innermost getInnermost()
+    }
+
+    interface WithAbstractGetter {
+        Number getNumber()
     }
 
     static final class FinalBean {
