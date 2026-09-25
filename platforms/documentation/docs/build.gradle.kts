@@ -7,15 +7,13 @@ import gradlebuild.integrationtests.configureTestSourceSetInIde
 import gradlebuild.integrationtests.model.GradleDistribution
 import java.io.FileFilter
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
-import org.gradle.docs.internal.tasks.CheckLinks
-import org.gradle.docs.samples.internal.tasks.InstallSample
 import org.gradle.internal.os.OperatingSystem
 
 plugins {
     id("java-library") // Needed for the dependency-analysis plugin. However, we should not need this. This is not a real library.
     id("gradlebuild.internal.java")
     id("gradlebuild.documentation")
-    id("org.gradle.samples")
+    id("gradlebuild.docs-snippets-testing")
     id("gradlebuild.android-home-warmup")
 }
 
@@ -99,65 +97,11 @@ gradleDocumentation {
     }
 }
 
-tasks.named<Sync>("stageDocs") {
-    // Add samples to generated documentation
-    from(samples.distribution.renderedDocumentation) {
-        into("samples")
-    }
-}
-
-samples {
-    // TODO: Do this lazily so we don't need to walk the filesystem during configuration
-    // iterate through each snippets and record their names and locations
-    val directoriesOnly = FileFilter { it.isDirectory }
-    val snippetsRoot = file("src/snippets")
-    val variantDirNames = setOf("groovy", "kotlin", "common", "tests", "tests-groovy", "tests-kotlin", "tests-common")
-
-    // Recursively find snippet directories (those containing a groovy/ or kotlin/ variant subdirectory)
-    val snippetDirs = mutableListOf<File>()
-    fun findSnippets(dir: File) {
-        for (child in dir.listFiles(directoriesOnly).orEmpty()) {
-            if (child.name in variantDirNames || child.name == "integration-tests" || child.name == "unused") continue
-            if (File(child, "kotlin").exists() || File(child, "groovy").exists()) {
-                snippetDirs.add(child)
-            } else {
-                findSnippets(child)
-            }
-        }
-    }
-    findSnippets(snippetsRoot)
-
-    snippetDirs.forEach { snippetDir ->
-        val relativePath = snippetsRoot.toPath().relativize(snippetDir.toPath()).toString()
-        val id = org.gradle.docs.internal.StringUtils.toLowerCamelCase("snippet-${relativePath.replace(File.separatorChar, '-')}")
-        publishedSamples.create(id) {
-            description = "Snippet from $snippetDir"
-            category = "Other"
-            readmeFile = file("src/snippets/default-readme.adoc")
-            sampleDirectory = snippetDir
-            promoted = false
-        }
-    }
-}
-
 // Use the version of Gradle being built, not the version of Gradle used to build,
 // also don't validate distribution url, since it is just a local distribution
 tasks.named<Wrapper>("generateWrapperForSamples") {
     gradleVersion = project.version.toString()
     validateDistributionUrl = false
-}
-
-// TODO: The rich console to plain text is flaky
-tasks.named("checkAsciidoctorSampleContents") {
-    enabled = false
-}
-
-// exclude (unused and non-existing) wrapper of development Gradle version, as well as README, because the timestamp in the Gradle version break the cache
-tasks.withType<InstallSample>().configureEach {
-    if (name.contains("ForTest")) {
-        excludes.add("gradle/wrapper/**")
-        excludes.add("README")
-    }
 }
 
 tasks.named("quickTest") {
@@ -170,13 +114,13 @@ tasks.named<Test>("docsTest") {
 
     dependsOn("androidHomeWarmup")
 
-    // The org.gradle.samples plugin uses Exemplar to execute integration tests on the samples.
+    // docsTest uses Exemplar to execute the snippets installed by 'installSnippetsForTest'.
     // Exemplar doesn't know about that it's running in the context of the gradle/gradle build
     // so it uses the Gradle distribution from the running build. This is not correct, because
     // we want to verify that the samples work with the Gradle distribution being built.
     val installationEnvProvider = objects.newInstance<GradleInstallationForTestEnvironmentProvider>().apply {
         gradleDistribution.homeDir.fileProvider(configurations.integTestDistributionRuntimeClasspath.getSingleFileProvider())
-        samplesdir = project.layout.buildDirectory.dir("working/samples/testing")
+        samplesdir.fileProvider(tasks.named<Sync>("installSnippetsForTest").map { it.destinationDir })
         repoRoot = project.repoRoot()
     }
     jvmArgumentProviders.add(installationEnvProvider)
@@ -191,9 +135,7 @@ tasks.named<Test>("docsTest") {
             ?.forEach { it.deleteRecursively() }
     }
 
-    // For unknown reason, this is set to 'sourceSet.getRuntimeClasspath()' in the 'org.gradle.samples' plugin
-    testClassesDirs = sourceSets.docsTest.get().output.classesDirs
-    // 'integTest.samplesdir' is set to an absolute path by the 'org.gradle.samples' plugin
+    // 'integTest.samplesdir' and the Gradle installation are passed by installationEnvProvider above
     systemProperties.clear()
 
     filter {
@@ -336,12 +278,7 @@ abstract class GradleInstallationForTestEnvironmentProvider : CommandLineArgumen
     }
 }
 
-tasks.withType<CheckLinks>().configureEach {
-    enabled = !gradle.startParameter.taskNames.contains("docs:docsTest")
-}
-
 tasks.register("checkLinks") {
-    dependsOn(tasks.withType<CheckLinks>())
     dependsOn("checkDeadInternalLinks")
     dependsOn("checkDeadExternalLinks")
 }
