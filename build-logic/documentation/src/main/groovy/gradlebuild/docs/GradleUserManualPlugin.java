@@ -18,34 +18,40 @@ package gradlebuild.docs;
 
 import gradlebuild.docs.dsl.source.GenerateApiMapping;
 import gradlebuild.docs.dsl.source.GenerateDefaultImports;
-import org.asciidoctor.gradle.jvm.AsciidoctorTask;
+import org.asciidoctor.gradle.model5.core.AsciidoctorModelExtension;
+import org.asciidoctor.gradle.model5.core.publications.AsciidoctorPublication;
+import org.asciidoctor.gradle.model5.core.publications.AsciidoctorSourceSet;
+import org.asciidoctor.gradle.model5.core.tasks.AsciidoctorTask;
+import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.Directory;
-import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.provider.ProviderFactory;
+import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.Sync;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.TaskInputs;
 import org.gradle.api.tasks.TaskProvider;
+import org.gradle.api.tasks.util.PatternFilterable;
+import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.ysb33r.grolifant.api.core.jvm.ExecutionMode;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Callable;
+import java.util.regex.Pattern;
 
 import static java.util.Arrays.asList;
-import static java.util.Collections.singletonList;
 import static java.util.Collections.singletonMap;
 
 public class GradleUserManualPlugin implements Plugin<Project> {
@@ -111,77 +117,13 @@ public class GradleUserManualPlugin implements Plugin<Project> {
     }
 
     private void generateUserManual(Project project, TaskContainer tasks, ProjectLayout layout, GradleDocumentationExtension extension) {
-        tasks.withType(AsciidoctorTask.class).configureEach(task -> {
-            if (task.getName().equals("asciidoctor")) {
-                // ignore this task
-                task.setEnabled(false);
-                return;
-            }
-
-            task.setExecutionMode(ExecutionMode.OUT_OF_PROCESS);
-            // Includes in the top-level document and private docinfo files are resolved against the base dir,
-            // so it must be the (flattened) source directory. This used to be set by the org.gradle.samples plugin.
-            task.baseDirFollowsSourceFile();
-            task.outputOptions(options -> {
-                options.setSeparateOutputDirs(false);
-                options.setBackends(singletonList("html5"));
-            });
-
-            // TODO: Break the paths assumed here
-            TaskInputs inputs = task.getInputs();
-            inputs.files(extension.getCssFiles())
-                .withPropertyName("manual")
-                .withPathSensitivity(PathSensitivity.RELATIVE);
-            inputs.dir("src/main/resources")
-                .withPropertyName("resources")
-                .withPathSensitivity(PathSensitivity.RELATIVE);
-            inputs.dir(extension.getUserManual().getSnippets())
-                .withPropertyName("snippets")
-                .withPathSensitivity(PathSensitivity.RELATIVE);
-
-            Provider<Directory> stylesDir = extension.getUserManual().getStagedDocumentation().dir("css");
-            inputs.dir(stylesDir)
-                .withPropertyName("stylesdir")
-                .withPathSensitivity(PathSensitivity.RELATIVE);
-
-            // TODO: Break the paths assumed here
-            Map<String, Object> attributes = new HashMap<>();
-            attributes.put("stylesdir", (Callable<String>) stylesDir.map(d -> d.getAsFile().getAbsolutePath())::get);
-            attributes.put("stylesheet", "manual.css");
-            attributes.put("doctype", "book");
-            attributes.put("imagesdir", "img");
-            attributes.put("nofooter", true);
-            attributes.put("javadocPath", "../javadoc");
-            attributes.put("sectanchors", true);
-            attributes.put("sectlinks", true);
-            attributes.put("linkattrs", true);
-            attributes.put("reproducible", "");
-            attributes.put("docinfo", "");
-            attributes.put("lang", "en-US");
-            attributes.put("encoding", "utf-8");
-            attributes.put("idprefix", "");
-            attributes.put("website", "https://gradle.org");
-            attributes.put("javaApi", (Callable<String>) extension.getJavadocs().getJavaApi().map(uri -> uri.toString())::get);
-            attributes.put("jdkDownloadUrl", "https://jdk.java.net/");
-            attributes.put("javadocReferenceUrl", (Callable<String>) extension.getJavadocs().getJavadocReferenceUrl().map(uri -> uri.toString())::get);
-            attributes.put("minJdkVersion", (Callable<String>) extension.getJavadocs().getMinJdkVersion().map(v -> v.toString())::get);
-
-            attributes.put("antManual", "https://ant.apache.org/manual");
-            attributes.put("docsUrl", "https://docs.gradle.org");
-
-            attributes.put("gradleVersion", (Callable<String>) extension.getGradleVersion()::get);
-            attributes.put("gradleVersion8", (Callable<String>) extension.getGradleVersion8()::get);
-            attributes.put("snippetsPath", "snippets");
-            task.attributes(attributes);
-        });
-
         TaskProvider<GenerateDocInfo> generateDocinfo = tasks.register("generateDocInfo", GenerateDocInfo.class, task -> {
             task.getDocumentationFiles().from(extension.getUserManual().getRoot());
             task.getDocumentationRoot().convention(extension.getUserManual().getRoot());
             task.getDestinationDirectory().convention(layout.getBuildDirectory().dir("tmp/" + task.getName()));
         });
 
-        TaskProvider<Sync> userguideFlattenSources = tasks.register("stageUserguideSource", Sync.class, task -> {
+        TaskProvider<StageUserManualSources> userguideFlattenSources = tasks.register("stageUserguideSource", StageUserManualSources.class, task -> {
             task.setDuplicatesStrategy(DuplicatesStrategy.FAIL);
 
             // TODO: This doesn't allow adoc files to be generated?
@@ -204,57 +146,96 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
             task.from(generateDocinfo);
 
-            // TODO: This should be available on a Copy task.
-            DirectoryProperty flattenedAsciidocDirectory = project.getObjects().directoryProperty();
-            flattenedAsciidocDirectory.set(extension.getUserManual().getStagingRoot().dir("raw"));
-            task.getOutputs().dir(flattenedAsciidocDirectory);
-            task.getExtensions().getExtraProperties().set("destinationDirectory", flattenedAsciidocDirectory);
-            task.into(flattenedAsciidocDirectory);
+            task.getStagingDirectory().set(extension.getUserManual().getStagingRoot().dir("raw"));
+            task.into(task.getStagingDirectory());
         });
 
-        TaskProvider<AsciidoctorTask> userguideSinglePageHtml = tasks.register("userguideSinglePageHtml", AsciidoctorTask.class, task -> {
+        List<TaskProvider<AsciidoctorTask>> renders = registerUserManualRenderings(project, extension);
+        TaskProvider<Sync> userguide = registerUserguide(tasks, extension, task -> renders.forEach(render -> {
+            task.dependsOn(render);
+            task.from(render.flatMap(AsciidoctorTask::getOutputDir));
+        }));
+
+        extension.userManual(userManual -> {
+            userManual.getRoot().convention(extension.getSourceRoot().dir("userguide"));
+            userManual.getStagingRoot().convention(extension.getStagingRoot().dir("usermanual"));
+            // TODO: These should be generated too
+            userManual.getSnippets().convention(layout.getProjectDirectory().dir("src/snippets"));
+            userManual.getStagedDocumentation().convention(userguideFlattenSources.flatMap(StageUserManualSources::getStagingDirectory));
+            userManual.getRenderedDocumentation().from(userguide);
+        });
+    }
+
+    /**
+     * Registers the single-page and multi-page renderings of the staged user manual.
+     */
+    private static List<TaskProvider<AsciidoctorTask>> registerUserManualRenderings(Project project, GradleDocumentationExtension extension) {
+        AsciidoctorModelExtension asciidoc = project.getExtensions().getByType(AsciidoctorModelExtension.class);
+        ProviderFactory providers = project.getProviders();
+        Provider<Directory> stagedDocumentation = extension.getUserManual().getStagedDocumentation();
+
+        // Every page of the manual, except those that are only included by other pages
+        Provider<PatternFilterable> multiPageSources = providers.of(UserManualPages.class, spec -> {
+            spec.getParameters().getUserManualRoot().set(extension.getUserManual().getRoot());
+            spec.getParameters().getExcludedFileNames().addAll("javaProject.*Layout\\.adoc", "userguide_single\\.adoc");
+        }).map(pages -> new PatternSet().include(pages));
+
+        TaskProvider<AsciidoctorTask> userguideSinglePageHtml = registerUserManualPublication(project, asciidoc, extension, "userguideSinglePage",
+            GradleBuildDocumentationPlugin.FATAL_WARNINGS_SINGLE_PAGE,
+            sourceSet -> sourceSet.sources("userguide_single.adoc"),
+            providers.provider(() -> {
+                Map<String, Object> attributes = commonAttributes(extension);
+                attributes.put("toc", "macro");
+                attributes.put("toclevels", 2);
+                String gradleVersion = extension.getGradleVersion().get();
+                attributes.put("groovyDslPath", DOCS_GRADLE_ORG + gradleVersion + "/dsl");
+                attributes.put("javadocPath", DOCS_GRADLE_ORG + gradleVersion + "/javadoc");
+                attributes.put("kotlinDslPath", DOCS_GRADLE_ORG + gradleVersion + "/kotlin-dsl");
+                // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
+                attributes.put("samples-dir", stagedDocumentation.get().getAsFile().getAbsolutePath());
+                return attributes;
+            }));
+        userguideSinglePageHtml.configure(task -> {
             task.setDescription("Generates HTML single-page user manual.");
-            configureForUserGuideSinglePage(task, extension);
-            task.outputOptions(options -> options.setBackends(singletonList("html5")));
-            task.getOutputDirProperty().set(extension.getUserManual().getStagingRoot().dir("render-single-html"));
+            task.onlyIf(new NotQuickFeedback(extension.getQuickFeedback()));
+            outputTo(task, extension.getUserManual().getStagingRoot().dir("render-single-html"));
         });
 
-        TaskProvider<AsciidoctorTask> userguideMultiPage = tasks.register("userguideMultiPage", AsciidoctorTask.class, task -> {
-            task.setGroup("documentation");
+        TaskProvider<AsciidoctorTask> userguideMultiPage = registerUserManualPublication(project, asciidoc, extension, "userguideMultiPage",
+            GradleBuildDocumentationPlugin.FATAL_WARNINGS,
+            sourceSet -> { },
+            providers.provider(() -> {
+                Map<String, Object> attributes = commonAttributes(extension);
+                attributes.put("icons", "font");
+                attributes.put("toc", "auto");
+                attributes.put("toclevels", 2);
+                attributes.put("toc-title", "On this Page");
+                attributes.put("groovyDslPath", "../dsl");
+                attributes.put("javadocPath", "../javadoc");
+                attributes.put("kotlinDslPath", "../kotlin-dsl");
+                // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
+                attributes.put("samples-dir", stagedDocumentation.get().getAsFile().getAbsolutePath());
+                return attributes;
+            }));
+        userguideMultiPage.configure(task -> {
             task.setDescription("Generates multi-page user manual.");
-            task.dependsOn(extension.getUserManual().getStagedDocumentation());
-
-            task.sources(patternSet -> {
-                patternSet.include("**/*.adoc");
-                patternSet.include("**/*.js");
-                patternSet.exclude("javaProject*Layout.adoc");
-                patternSet.exclude("userguide_single.adoc");
-                patternSet.exclude("snippets/**/*.adoc");
-            });
-
-            task.getSourceDirProperty().set(extension.getUserManual().getStagedDocumentation());
-            task.getOutputDirProperty().set(extension.getUserManual().getStagingRoot().dir("render-multi"));
-
-            Map<String, Object> attributes = new HashMap<>();
-            attributes.put("icons", "font");
-            attributes.put("toc", "auto");
-            attributes.put("toclevels", 2);
-            attributes.put("toc-title", "On this Page");
-            attributes.put("groovyDslPath", "../dsl");
-            attributes.put("javadocPath", "../javadoc");
-            attributes.put("kotlinDslPath", "../kotlin-dsl");
-            // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
-            attributes.put("samples-dir", (Callable<File>) extension.getUserManual().getStagedDocumentation().getAsFile()::get);
-            task.attributes(attributes);
+            task.setSourcePatterns(multiPageSources);
+            outputTo(task, extension.getUserManual().getStagingRoot().dir("render-multi"));
         });
 
-        // Avoid overlapping outputs by copying exactly what we want from other intermediate tasks
-        TaskProvider<Sync> userguide = tasks.register("userguide", Sync.class, task -> {
+        return asList(userguideSinglePageHtml, userguideMultiPage);
+    }
+
+    /**
+     * Copies the rendered user manual, its images and scripts into one directory.
+     * Avoids overlapping outputs by copying exactly what we want from other intermediate tasks.
+     */
+    private static TaskProvider<Sync> registerUserguide(TaskContainer tasks, GradleDocumentationExtension extension, Action<Sync> renderings) {
+        return tasks.register("userguide", Sync.class, task -> {
             task.setGroup("documentation");
             task.setDescription("Stages rendered user manual documentation.");
 
-            task.from(userguideSinglePageHtml);
-            task.from(userguideMultiPage);
+            renderings.execute(task);
             task.into(extension.getUserManual().getStagingRoot().dir("final"));
             stageUserManualImages(task, extension);
             task.from(extension.getUserManual().getRoot().dir("js"), sub -> {
@@ -262,36 +243,110 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 sub.into("js");
             });
         });
-
-        extension.userManual(userManual -> {
-            userManual.getRoot().convention(extension.getSourceRoot().dir("userguide"));
-            userManual.getStagingRoot().convention(extension.getStagingRoot().dir("usermanual"));
-            // TODO: These should be generated too
-            userManual.getSnippets().convention(layout.getProjectDirectory().dir("src/snippets"));
-            userManual.getStagedDocumentation().convention(userguideFlattenSources.flatMap(task -> (DirectoryProperty) task.getExtensions().getExtraProperties().get("destinationDirectory")));
-            userManual.getRenderedDocumentation().from(userguide);
-        });
     }
 
-    private void configureForUserGuideSinglePage(AsciidoctorTask task, GradleDocumentationExtension extension) {
-        task.setGroup("documentation");
-        task.dependsOn(extension.getUserManual().getStagedDocumentation());
-        task.onlyIf(t -> !extension.getQuickFeedback().get());
+    /**
+     * Registers a model5 publication that renders the staged user manual to HTML with the
+     * {@link GradleBuildDocumentationPlugin#ASCIIDOCTORJ_TOOLCHAIN} toolchain, and returns its conversion task.
+     */
+    private static TaskProvider<AsciidoctorTask> registerUserManualPublication(
+        Project project,
+        AsciidoctorModelExtension asciidoc,
+        GradleDocumentationExtension extension,
+        String name,
+        Pattern fatalWarnings,
+        Action<AsciidoctorSourceSet> sources,
+        Provider<Map<String, Object>> attributes
+    ) {
+        Provider<Directory> stagedDocumentation = extension.getUserManual().getStagedDocumentation();
+        AsciidoctorPublication publication = asciidoc.getPublications().create(name, pub -> pub.sourceSet(sourceSet -> {
+            sourceSet.setSourceDir(stagedDocumentation);
+            // Includes in the top-level document and private docinfo files are resolved against the base dir
+            sourceSet.baseDir(baseDir -> baseDir.baseDirFollowsSourceDir());
+            sourceSet.fatalWarnings(fatalWarnings);
+            sourceSet.attributes(attrs -> attrs.attributeProvider(attributes));
+            sources.execute(sourceSet);
+        }));
+        publication.output(GradleBuildDocumentationPlugin.ASCIIDOCTORJ_TOOLCHAIN, GradleBuildDocumentationPlugin.HTML_FORMATTER);
 
-        task.sources(patternSet -> patternSet.include("userguide_single.adoc"));
+        TaskProvider<AsciidoctorTask> task = project.getTasks().named(publication.taskNameFor(GradleBuildDocumentationPlugin.HTML_FORMATTER), AsciidoctorTask.class);
+        task.configure(t -> {
+            t.setGroup("documentation");
+            t.dependsOn(stagedDocumentation);
 
-        task.getSourceDirProperty().set(extension.getUserManual().getStagedDocumentation());
+            // TODO: Break the paths assumed here
+            TaskInputs inputs = t.getInputs();
+            inputs.files(extension.getCssFiles())
+                .withPropertyName("manual")
+                .withPathSensitivity(PathSensitivity.RELATIVE);
+            inputs.dir("src/main/resources")
+                .withPropertyName("resources")
+                .withPathSensitivity(PathSensitivity.RELATIVE);
+            inputs.dir(extension.getUserManual().getSnippets())
+                .withPropertyName("snippets")
+                .withPathSensitivity(PathSensitivity.RELATIVE);
+            inputs.dir(stagedDocumentation.map(dir -> dir.dir("css")))
+                .withPropertyName("stylesdir")
+                .withPathSensitivity(PathSensitivity.RELATIVE);
+        });
+        return task;
+    }
 
-        Map<String, Object> attributes = new HashMap<>();
-        attributes.put("toc", "macro");
-        attributes.put("toclevels", 2);
+    private static Map<String, Object> commonAttributes(GradleDocumentationExtension extension) {
+        // TODO: Break the paths assumed here
+        Map<String, Object> attributes = new LinkedHashMap<>();
+        attributes.put("stylesdir", extension.getUserManual().getStagedDocumentation().get().dir("css").getAsFile().getAbsolutePath());
+        attributes.put("stylesheet", "manual.css");
+        attributes.put("doctype", "book");
+        attributes.put("imagesdir", "img");
+        attributes.put("nofooter", true);
+        attributes.put("javadocPath", "../javadoc");
+        attributes.put("sectanchors", true);
+        attributes.put("sectlinks", true);
+        attributes.put("linkattrs", true);
+        attributes.put("reproducible", "");
+        attributes.put("docinfo", "");
+        attributes.put("lang", "en-US");
+        attributes.put("encoding", "utf-8");
+        attributes.put("idprefix", "");
+        attributes.put("website", "https://gradle.org");
+        attributes.put("javaApi", extension.getJavadocs().getJavaApi().get().toString());
+        attributes.put("jdkDownloadUrl", "https://jdk.java.net/");
+        attributes.put("javadocReferenceUrl", extension.getJavadocs().getJavadocReferenceUrl().get().toString());
+        attributes.put("minJdkVersion", extension.getJavadocs().getMinJdkVersion().get().toString());
 
-        attributes.put("groovyDslPath", (Callable<String>) extension.getGradleVersion().map(v -> DOCS_GRADLE_ORG + v + "/dsl")::get);
-        attributes.put("javadocPath", (Callable<String>) extension.getGradleVersion().map(v -> DOCS_GRADLE_ORG + v + "/javadoc")::get);
-        attributes.put("kotlinDslPath", (Callable<String>) extension.getGradleVersion().map(v -> DOCS_GRADLE_ORG + v + "/kotlin-dsl")::get);
-        // Used by SampleIncludeProcessor from `gradle/dotorg-docs`
-        attributes.put("samples-dir", (Callable<File>) extension.getUserManual().getStagedDocumentation().getAsFile()::get);
-        task.attributes(attributes);
+        attributes.put("antManual", "https://ant.apache.org/manual");
+        attributes.put("docsUrl", "https://docs.gradle.org");
+
+        attributes.put("gradleVersion", extension.getGradleVersion().get());
+        attributes.put("gradleVersion8", extension.getGradleVersion8().get());
+        attributes.put("snippetsPath", "snippets");
+        return attributes;
+    }
+
+    /**
+     * model5 derives the output directory from the publication name, under {@code build/docs}, which is where
+     * {@code stageDocs} assembles all documentation. Keep rendering into the staging root, as before.
+     */
+    @SuppressWarnings("unchecked")
+    private static void outputTo(AsciidoctorTask task, Provider<Directory> outputDir) {
+        ((Property<Directory>) task.getOutputDir()).set(outputDir);
+    }
+
+    /**
+     * Skips the single-page manual with {@code -PquickDocs}. Holds only a provider so it can be stored in the configuration cache.
+     */
+    private static final class NotQuickFeedback implements Spec<Task> {
+        private final Provider<Boolean> quickFeedback;
+
+        private NotQuickFeedback(Provider<Boolean> quickFeedback) {
+            this.quickFeedback = quickFeedback;
+        }
+
+        @Override
+        public boolean isSatisfiedBy(Task task) {
+            return !quickFeedback.get();
+        }
     }
 
     private static void stageUserManualImages(CopySpec spec, GradleDocumentationExtension extension) {
