@@ -16,10 +16,10 @@
 
 package org.gradle.api.internal.initialization;
 
+import org.gradle.api.internal.TaskInternal;
 import org.gradle.cache.FileLock;
 import org.gradle.cache.FileLockManager;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
-import org.gradle.composite.internal.TaskIdentifier;
 import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.StandAloneNestedBuild;
@@ -63,12 +63,12 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
     }
 
     @Override
-    public <T> T build(BuildState requester, List<TaskIdentifier> tasks, Supplier<T> continuationUnderLock) {
+    public <T> T build(BuildState requester, List<TaskInternal> tasks, Supplier<T> continuationUnderLock) {
         if (tasks.isEmpty()) {
             // no resources to be protected
             return continuationUnderLock.get();
         }
-        List<TaskIdentifier> remaining = removeExecuted(tasks);
+        List<TaskInternal> remaining = removeExecuted(tasks);
         if (remaining.isEmpty()) {
             // all tasks already executed
             return continuationUnderLock.get();
@@ -85,7 +85,7 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
         return withBuildLogicQueueLock(() -> buildSrcBuild.run(continuationUnderLock));
     }
 
-    private <T> T doBuild(List<TaskIdentifier> tasks, Supplier<T> continuationUnderLock) {
+    private <T> T doBuild(List<TaskInternal> tasks, Supplier<T> continuationUnderLock) {
         buildTreeWorkGraphController.withNewWorkGraph(graph -> {
             graph
                 .scheduleWork(builder -> builder.scheduleTasks(tasks))
@@ -134,9 +134,9 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
         );
     }
 
-    private static List<TaskIdentifier> removeExecuted(List<TaskIdentifier> tasks) {
+    private static List<TaskInternal> removeExecuted(List<TaskInternal> tasks) {
         return tasks.stream()
-            .filter(identifier -> !identifier.getTask().getState().getExecuted())
+            .filter(task -> !task.getState().getExecuted())
             .collect(Collectors.toList());
     }
 
