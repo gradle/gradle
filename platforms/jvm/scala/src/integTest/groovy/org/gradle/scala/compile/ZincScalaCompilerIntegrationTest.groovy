@@ -110,6 +110,39 @@ class ZincScalaCompilerIntegrationTest extends BasicZincScalaCompilerIntegration
         other2.lastModified() == old(other2.lastModified())
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39310")
+    def "deletes TASTy files of removed Scala 3 classes when compiling incrementally"() {
+        Assume.assumeTrue(versionNumber.major >= 3)
+
+        file("src/main/scala/Person.scala") << """class Person"""
+        file("src/main/scala/Removed.scala") << """class Removed"""
+        file("src/main/scala/Other.scala") << """class Other"""
+        // We need an additional file since if >50% of files is changed everything gets recompiled
+        file("src/main/scala/Other2.scala") << """class Other2"""
+
+        def removedClass = scalaClassFile("Removed.class")
+        def removedTasty = scalaClassFile("Removed.tasty")
+        def personTasty = scalaClassFile("Person.tasty")
+
+        when:
+        run("compileScala")
+
+        then:
+        removedClass.exists()
+        removedTasty.exists()
+
+        when:
+        file("src/main/scala/Removed.scala").delete()
+        args("-PscalaVersion=$version") // each run clears args (argh!)
+        run("compileScala")
+
+        then:
+        executedAndNotSkipped(":compileScala")
+        !removedClass.exists()
+        !removedTasty.exists()
+        personTasty.exists()
+    }
+
     def "compiles Java code incrementally"() {
         file("src/main/scala/Person.java") << """
             public class Person {

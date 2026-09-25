@@ -149,7 +149,7 @@ public class ZincScalaCompilerFactory {
         }
     }
 
-    private static boolean isScala3(String version) {
+    static boolean isScala3(String version) {
         return version.startsWith("3.");
     }
 
