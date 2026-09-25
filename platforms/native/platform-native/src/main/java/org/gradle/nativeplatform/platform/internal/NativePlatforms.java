@@ -25,6 +25,7 @@ public class NativePlatforms {
     private static final String OS_LINUX = "linux";
     private static final String OS_OSX = "osx";
     private static final String OS_UNIX = "unix";
+    private static final String OS_FREE_BSD = "freebsd";
     private static final String ARCH_X86 = "x86";
 
     public Set<DefaultNativePlatform> defaultPlatformDefinitions() {
@@ -34,7 +35,7 @@ public class NativePlatforms {
         OperatingSystemInternal linux = new DefaultOperatingSystem(OS_LINUX);
         OperatingSystemInternal osx = new DefaultOperatingSystem(OS_OSX);
         OperatingSystemInternal unix = new DefaultOperatingSystem(OS_UNIX);
-        OperatingSystemInternal freebsd = new DefaultOperatingSystem("freebsd");
+        OperatingSystemInternal freebsd = new DefaultOperatingSystem(OS_FREE_BSD);
         OperatingSystemInternal solaris = new DefaultOperatingSystem("solaris");
 
         ArchitectureInternal x86 = Architectures.forInput(ARCH_X86);
@@ -107,6 +108,9 @@ public class NativePlatforms {
         }
         if (os.isMacOsX()) {
             return platformName(OS_OSX, architecture.getName());
+        }
+        if (os.isFreeBSD()) {
+            return platformName(OS_FREE_BSD, architecture.getName());
         }
         return platformName(OS_UNIX, ARCH_X86);
     }
