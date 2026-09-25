@@ -29,6 +29,8 @@ import org.gradle.api.internal.provider.PropertyHost
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.internal.tasks.TaskResolver
+import org.gradle.internal.Describables
+import org.gradle.internal.state.ModelObject
 import org.gradle.api.specs.Spec
 import org.gradle.util.Path
 import org.spockframework.lang.Wildcard
@@ -590,6 +592,89 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         0 * _
+    }
+
+    def "task dependencies include the task that owns the producer"() {
+        given:
+        def task = Mock(Task)
+        collection.attachProducer(owner(task))
+        collection.from("f")
+
+        when:
+        def dependencies = collection.buildDependencies.getDependencies(null)
+
+        then:
+        dependencies.toList() == [task]
+        0 * _
+    }
+
+    def "elements provider carries the task that owns the producer"() {
+        given:
+        def task = Mock(Task)
+        collection.attachProducer(owner(task))
+        collection.from("f")
+
+        when:
+        def producerTasks = []
+        collection.elements.producer.visitProducerTasks { producerTasks << it }
+
+        then:
+        producerTasks == [task]
+        0 * _
+    }
+
+    def "can attach the same producer multiple times"() {
+        given:
+        def task = Mock(Task)
+        def owner = owner(task)
+
+        when:
+        collection.attachProducer(owner)
+        collection.attachProducer(owner)
+
+        then:
+        collection.buildDependencies.getDependencies(null).toList() == [task]
+    }
+
+    def "fails when multiple producers are attached"() {
+        def owner1 = owner(Stub(Task))
+        owner1.modelIdentityDisplayName >> Describables.of("<owner 1>")
+        def owner2 = owner(Stub(Task))
+        owner2.modelIdentityDisplayName >> Describables.of("<owner 2>")
+
+        given:
+        collection.attachProducer(owner1)
+
+        when:
+        collection.attachProducer(owner2)
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "<display> is already declared as an output property of <owner 1> (type ${owner1.class.simpleName}). Cannot also declare it as an output property of <owner 2> (type ${owner2.class.simpleName})."
+
+        when:
+        def unnamed = new DefaultConfigurableFileCollection(null, fileResolver, taskDependencyFactory, patternSetFactory, host)
+        unnamed.attachProducer(owner1)
+        unnamed.attachProducer(owner2)
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message == "This file collection is already declared as an output property of <owner 1> (type ${owner1.class.simpleName}). Cannot also declare it as an output property of <owner 2> (type ${owner2.class.simpleName})."
+    }
+
+    def "fails when visiting dependencies and producer has no task"() {
+        def owner = owner(null)
+        owner.modelIdentityDisplayName >> Describables.of("<owner>")
+
+        given:
+        collection.attachProducer(owner)
+
+        when:
+        collection.visitDependencies(Stub(TaskDependencyResolveContext))
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message == "<display> is declared as an output property of <owner> (type ${owner.class.simpleName}) but does not have a task associated with it."
     }
 
     def "can visit structure when collection contains paths"() {
@@ -1774,6 +1859,15 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         _ * taskResolver.resolveTask(Path.path("a")) >> task
     }
 
+    def "shallow copy does not inherit the producer of the original"() {
+        given:
+        collection.attachProducer(owner(Mock(Task)))
+        collection.from("f")
+
+        expect:
+        collection.shallowCopy().buildDependencies.getDependencies(null).empty
+    }
+
     def "shallow copy does not follow changes to dependencies of the original"() {
         given:
         def task = Mock(Task)
@@ -2072,5 +2166,11 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
 
         then:
         thrown StackOverflowError
+    }
+
+    private ModelObject owner(Task task) {
+        def owner = Stub(ModelObject)
+        owner.taskThatOwnsThisObject >> task
+        return owner
     }
 }
