@@ -66,6 +66,20 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         init(initialValue, initialValue);
     }
 
+    /**
+     * Returns the lifecycle state, independently of the configured value supplier.
+     */
+    protected final ValueState<S> getValueState() {
+        return state;
+    }
+
+    /**
+     * Installs specialized lifecycle state without replacing the property or its value supplier.
+     */
+    protected final void setValueState(ValueState<S> state) {
+        this.state = state;
+    }
+
     @Override
     public boolean isFinalized() {
         return state.isFinalized();

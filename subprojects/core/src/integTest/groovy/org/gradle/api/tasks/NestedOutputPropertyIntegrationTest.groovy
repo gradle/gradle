@@ -305,6 +305,51 @@ class NestedOutputPropertyIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Property 'result' is declared as an output property of an object with type OutputBean but does not have a task associated with it.")
     }
 
+    def "a property finalized before nested attachment retains ownership and aliases with configuration cache #cache"() {
+        given:
+        buildFile << """
+            abstract class PreconfiguredGenerate extends Generate {
+                private final Property<OutputBean> nestedBean
+                private final Property<OutputBean> alias
+
+                @Inject PreconfiguredGenerate(ObjectFactory objects, ProjectLayout layout) {
+                    nestedBean = objects.property(OutputBean)
+                    alias = nestedBean
+                    def configured = objects.newInstance(OutputBean)
+                    configured.result.set(layout.buildDirectory.file("preconfigured.txt"))
+                    nestedBean.convention(configured)
+                    nestedBean.finalizeValue()
+                }
+
+                @Nested @Override final Property<OutputBean> getBean() { nestedBean }
+                @Internal final Property<OutputBean> getAlias() { alias }
+            }
+            def producer = tasks.register("producer", PreconfiguredGenerate)
+            consume.configure { inputFile.set(producer.flatMap { it.alias.flatMap { it.result } }) }
+        """
+
+        when:
+        succeeds("consume", cache ? "--configuration-cache" : "--no-configuration-cache")
+
+        then:
+        result.assertTasksScheduled(":producer", ":consume")
+        file("build/consumed.txt").text == "generated"
+
+        when:
+        file("build/preconfigured.txt").delete()
+        file("build/consumed.txt").delete()
+        succeeds("consume", cache ? "--configuration-cache" : "--no-configuration-cache")
+
+        then:
+        file("build/consumed.txt").text == "generated"
+        if (cache) {
+            outputContains("Reusing configuration cache.")
+        }
+
+        where:
+        cache << [false, true]
+    }
+
     def "assignment and container access do not evaluate the bean supplier"() {
         given:
         buildFile << """

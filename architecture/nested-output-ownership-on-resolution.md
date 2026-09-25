@@ -78,7 +78,8 @@ This does not promise diagnostics for hidden file reads or plain properties with
 ## Implementation
 
 - The class generator attaches nested declaration context to eligible scalar properties. Existing managed output roles remain attached to their bean.
-- `DefaultProperty` attaches resolved values during ordinary and execution-time value calculation. A declaration binding tracks supplier and bean identity; producer lookup claims the current binding using normal property finalization.
+- `DefaultProperty` delegates nested ownership to a specialized `NestedPropertyState`, installed through its existing lifecycle-state reference when the declaration is attached. Ordinary properties and their state classes have no additional fields or allocations. The specialized state wraps the original state, preserving conventions and finalization flags without replacing the property or breaking aliases, even when attachment occurs after finalization.
+- The specialized state attaches resolved values during ordinary and execution-time value calculation. A declaration binding tracks supplier and bean identity; producer lookup claims the current binding using normal property finalization. The wrapper retains the ownership context when its delegate transitions to the shared finalized state.
 - `NestedObjectOwner` retains parent associations. Producer lookup follows these chains and detects conflicting tasks. Repeated associations use identity lookup; no task scans or assignment-time traversal are introduced.
 - `PropertyCodec` preserves the nested property's calculation hook instead of serializing its backing supplier directly. Parent associations are transient, allowing shared input beans to be serialized independently of other tasks. Restored declarations reattach when resolved.
 - The property walker checks ownership only at actual output declarations. Unowned outputs remain valid for tracking. Known conflicts receive the migration warning.
@@ -88,6 +89,8 @@ Behavioral coverage is in `NestedOutputPropertyIntegrationTest`; provider, gener
 
 ## Validation
 
-Selected regression checks passed: 179 integration cases (49 in the new suite) and 365 provider, generator, walker, and ownership unit tests. Java/Groovy style checks and documentation-link validation passed. This is targeted validation, not the full Gradle CI matrix.
+The state specialization passed 181 integration cases and 601 provider, generator, walker, and ownership unit tests, plus Java/Groovy style checks. Coverage includes the full scalar-property contract with nested state installed, six attachment-lifecycle cases, and a property finalized before attachment, including aliases and configuration-cache reuse. Documentation links were checked with the original implementation. This is targeted validation, not the full Gradle CI matrix.
 
-A local stress comparison against the same master base used 1,000 tasks sharing a two-level input bean, with 100 explicit reads per task, two warmups, and five alternating samples. Median configuration time was 28.9 ms on master and 27.8 ms with the change; median elapsed build time was 0.448 s and 0.465 s. Both distributions also stored and reused the configuration cache successfully for that scenario. These smoke measurements are not a replacement for controlled performance CI.
+Java instrumentation on the local JDK 25 measured an ordinary property at 40 bytes and its non-finalized state at 24 bytes, matching master. The first implementation measured 48 bytes for the property. The specialization adds a state wrapper only to actual nested declarations; these are shallow object sizes and depend on JVM layout settings.
+
+A local stress comparison against the same master base used 1,000 tasks sharing a two-level input bean, with 100 explicit reads per task, two warmups, and five alternating samples. With the state specialization, median configuration time was 28.4 ms on master and 30.6 ms with the change; median elapsed build time was 0.491 s and 0.472 s. Both distributions also reused the configuration cache successfully for that scenario. These smoke measurements are not a replacement for controlled performance CI.
