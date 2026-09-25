@@ -138,6 +138,7 @@ public class S3Client {
 
             PutObjectRequest putObjectRequest = new PutObjectRequest(bucketName, s3BucketKey, inputStream, objectMetadata)
                 .withCannedAcl(CannedAccessControlList.BucketOwnerFullControl);
+            putObjectRequest.getRequestClientOptions().setReadLimit(readLimitFor(contentLength));
             LOGGER.debug("Attempting to put resource:[{}] into s3 bucket [{}]", s3BucketKey, bucketName);
 
             amazonS3Client.putObject(putObjectRequest);
@@ -171,6 +172,7 @@ public class S3Client {
                         .withPartNumber(partNumber)
                         .withPartSize(partSize)
                         .withInputStream(inputStream);
+                    uploadPartRequest.getRequestClientOptions().setReadLimit(readLimitFor(partSize));
                     partETags.add(amazonS3Client.uploadPart(uploadPartRequest).getPartETag());
                     filePosition += partSize;
                 }
@@ -186,6 +188,16 @@ public class S3Client {
         } catch (AmazonClientException e) {
             throw ResourceExceptions.putFailed(destination, e);
         }
+    }
+
+    /**
+     * The SDK retries an upload by resetting the stream to a mark it placed before the first attempt,
+     * and abandons the mark once more than this many bytes have been read past it. Sizing the limit to
+     * the bytes a single attempt sends keeps a retryable error retryable; the SDK default of 128 KB
+     * would turn one into a ResetException for all but the smallest artifacts.
+     */
+    private static int readLimitFor(long attemptBytes) {
+        return (int) Math.min(attemptBytes + 1, Integer.MAX_VALUE);
     }
 
     public S3Object getMetaData(URI uri) {
