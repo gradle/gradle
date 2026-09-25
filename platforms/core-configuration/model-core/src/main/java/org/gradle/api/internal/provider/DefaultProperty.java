@@ -17,11 +17,16 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.base.Preconditions;
+import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
+import org.gradle.internal.DisplayName;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
+import org.gradle.internal.state.ModelObject;
+import org.gradle.internal.state.NestedObjectOwner;
+import org.gradle.internal.state.OwnerAware;
 import org.jspecify.annotations.Nullable;
 
 /**
@@ -34,6 +39,12 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
     private final Class<T> type;
     private final ValueSanitizer<T> sanitizer;
     private final static ProviderInternal<?> NOT_DEFINED = Providers.notDefined();
+    @Nullable
+    private NestedObjectOwner nestedOwner;
+    @Nullable
+    private NestedValueOwner<T> nestedValueOwner;
+    @Nullable
+    private Value<? extends T> nestedValueToFinalize;
 
     @SuppressWarnings("this-escape")
     public DefaultProperty(PropertyHost propertyHost, Class<T> type) {
@@ -106,6 +117,53 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
         }
     }
 
+    /**
+     * Associates the values of this nested declaration with their enclosing model object.
+     * This does not query the value or make the enclosing object a producer of this property.
+     */
+    public void attachNestedOwner(ModelObject owner, DisplayName displayName) {
+        attachOwner(owner, displayName);
+        if (nestedOwner == null) {
+            nestedOwner = new NestedObjectOwner(owner, displayName);
+        } else {
+            nestedOwner.addOwner(owner);
+        }
+    }
+
+    /**
+     * Returns the provider to serialize, retaining the value attachment performed by nested declarations.
+     */
+    public ProviderInternal<? extends T> getProviderForSerialization() {
+        return nestedOwner == null ? getProvider() : this;
+    }
+
+    private void attachNestedValue(ProviderInternal<? extends T> supplier, Value<? extends T> value) {
+        if (nestedOwner != null && !value.isMissing() && value.getWithoutSideEffect() instanceof OwnerAware) {
+            NestedValueOwner<T> binding = nestedValueOwner;
+            if (binding == null || binding.supplier != supplier || binding.value.getWithoutSideEffect() != value.getWithoutSideEffect()) {
+                binding = new NestedValueOwner<>(this, nestedOwner, supplier, value, getDisplayName());
+                nestedValueOwner = binding;
+            }
+            ((OwnerAware) value.getWithoutSideEffect()).attachOwner(binding.context, getDisplayName());
+        }
+    }
+
+    private boolean claimNestedValue(NestedValueOwner<T> binding) {
+        if (nestedValueOwner != binding || getProvider() != binding.supplier) {
+            return false;
+        }
+        if (!isFinalized()) {
+            nestedValueToFinalize = binding.value;
+            try {
+                finalizeValue();
+                binding.supplier = getProvider();
+            } finally {
+                nestedValueToFinalize = null;
+            }
+        }
+        return true;
+    }
+
     public DefaultProperty<T> provider(Provider<? extends T> provider) {
         set(provider);
         return this;
@@ -149,18 +207,45 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
 
     @Override
     protected ExecutionTimeValue<? extends T> calculateOwnExecutionTimeValue(EvaluationScopeContext context, ProviderInternal<? extends T> value) {
-        // Discard this property from a provider chain, as it does not contribute anything to the calculation.
-        return value.calculateExecutionTimeValue();
+        ExecutionTimeValue<? extends T> result = value.calculateExecutionTimeValue();
+        if (result.hasFixedValue() && value == getSupplier(context)) {
+            attachNestedValue(value, result.toValue());
+        }
+        return result;
     }
 
     @Override
     protected Value<? extends T> calculateValueFrom(EvaluationScopeContext context, ProviderInternal<? extends T> value, ValueConsumer consumer) {
-        return value.calculateValue(consumer);
+        Value<? extends T> result = value.calculateValue(consumer);
+        if (value == getSupplier(context)) {
+            attachNestedValue(value, result);
+        }
+        return result;
     }
 
     @Override
     protected ProviderInternal<? extends T> finalValue(EvaluationScopeContext context, ProviderInternal<? extends T> value, ValueConsumer consumer) {
-        return value.withFinalValue(consumer);
+        ProviderInternal<? extends T> result;
+        if (nestedValueToFinalize != null) {
+            ValueProducer producer = value.getProducer();
+            producer.visitContentProducerTasks(task -> {
+                throw new IllegalStateException("Cannot infer output ownership for " + getDisplayName()
+                    + " because its structure is produced by " + task + ". Configure the output bean before task execution.");
+            });
+            result = new FixedNestedValue<>(nestedValueToFinalize, producer);
+        } else {
+            result = value.withFinalValue(consumer);
+        }
+        if (nestedOwner != null) {
+            Value<? extends T> fixedValue = result.calculateValue(consumer);
+            NestedValueOwner<T> binding = nestedValueOwner;
+            if (binding != null && !fixedValue.isMissing() && binding.value.getWithoutSideEffect() == fixedValue.getWithoutSideEffect()) {
+                binding.supplier = result;
+            } else {
+                attachNestedValue(result, fixedValue);
+            }
+        }
+        return result;
     }
 
     @Override
@@ -185,6 +270,79 @@ public class DefaultProperty<T> extends AbstractProperty<T, ProviderInternal<? e
             set(newValue);
         } else {
             set((T) null);
+        }
+    }
+
+    private static class FixedNestedValue<T> extends AbstractMinimalProvider<T> {
+        private final Value<? extends T> value;
+        private final ValueProducer producer;
+
+        private FixedNestedValue(Value<? extends T> value, ValueProducer producer) {
+            this.value = value;
+            this.producer = producer;
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return producer;
+        }
+
+        @Override
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+            return value;
+        }
+
+        @Override
+        public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
+            return ExecutionTimeValue.value(value);
+        }
+
+        @Override
+        public Class<T> getType() {
+            return Cast.uncheckedCast(value.getWithoutSideEffect().getClass());
+        }
+    }
+
+    private static class NestedValueOwner<T> implements ModelObject {
+        private final DefaultProperty<T> property;
+        private final ModelObject enclosing;
+        private ProviderInternal<? extends T> supplier;
+        private final Value<? extends T> value;
+        private final DisplayName displayName;
+        private final NestedObjectOwner context;
+
+        private NestedValueOwner(DefaultProperty<T> property, ModelObject enclosing, ProviderInternal<? extends T> supplier, Value<? extends T> value, DisplayName displayName) {
+            this.property = property;
+            this.enclosing = enclosing;
+            this.supplier = supplier;
+            this.value = value;
+            this.displayName = displayName;
+            this.context = new NestedObjectOwner(this, displayName);
+        }
+
+        @Override
+        @Nullable
+        public Task getTaskThatOwnsThisObject() {
+            return property.claimNestedValue(this) ? enclosing.getTaskThatOwnsThisObject() : null;
+        }
+
+        @Override
+        public DisplayName getModelIdentityDisplayName() {
+            return displayName;
+        }
+
+        @Override
+        public boolean hasUsefulDisplayName() {
+            return true;
+        }
+
+        @Override
+        public void attachModelProperties() {
+        }
+
+        @Override
+        public String toString() {
+            return displayName.getDisplayName();
         }
     }
 }

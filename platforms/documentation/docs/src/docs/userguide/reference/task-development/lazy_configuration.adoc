@@ -275,6 +275,64 @@ include::{snippetsPath}/reference/task-development/implicitTaskInputDependency/t
 ====
 
 [[working_with_collections]]
+[[nested_output_properties]]
+=== Nested output properties
+
+A task can expose outputs through a managed bean in an `@Nested Property<T>`.
+Create the bean with `objects.newInstance()` and access its outputs through the task's nested property:
+
+[source,groovy]
+.build.gradle
+----
+abstract class OutputFiles {
+    @OutputFile abstract RegularFileProperty getResult()
+}
+
+abstract class Generate extends DefaultTask {
+    @Nested abstract Property<OutputFiles> getFiles()
+
+    @TaskAction void generate() {
+        files.get().result.get().asFile.text = "generated"
+    }
+}
+
+def outputFiles = objects.newInstance(OutputFiles)
+outputFiles.result.set(layout.buildDirectory.file("generated.txt"))
+def generate = tasks.register("generate", Generate) {
+    files.set(outputFiles)
+}
+
+tasks.register("copyResult", Copy) {
+    from(generate.flatMap { it.files.flatMap { it.result } })
+    into(layout.buildDirectory.dir("copied"))
+}
+----
+
+Running `copyResult` automatically schedules `generate`.
+The same inference works through an aliased container, such as `def files = generate.get().files; files.flatMap { it.result }`, and through several levels of managed nested properties.
+
+Assignment does not inspect the bean or establish its output ownership.
+Resolving the nested property establishes ownership before returning the bean to `get()`, `map`, or `flatMap`.
+Reading the bean alone leaves the property configurable.
+Once Gradle uses an output's producer information or inspects its output declaration, it finalizes the containing property and retains that bean.
+This also applies to containing nested properties at each level.
+Output locations retain their usual lazy-property lifecycle.
+
+Input-only beans may be shared between tasks.
+An output bean must have a single producing task; sharing it across resolved declarations makes automatic dependency inference ambiguous.
+Use separate output beans for separate producers.
+
+The bean's structure must be available without executing a task or reading generated file contents.
+Its input leaves can still reference other tasks' outputs, and its output filenames can be lazy.
+Beans selected from configuration inputs should use configuration-cache-compatible providers.
+
+This ownership support applies to Gradle-created beans reached through a task's managed or decorated `@Nested Property<T>` getter.
+It includes eligible final getters returning such a property.
+It does not add ownership to standalone properties, plain beans, collection elements, or command-line argument provider lists.
+Those forms can still declare output locations for tracking.
+A direct reference such as `from(outputFiles.result)` bypasses the nested property and cannot establish ownership on its own.
+Use the provider form above to make the producer discoverable.
+
 == Working with collections
 
 Gradle provides two lazy property types to help configure `Collection` properties.

@@ -38,6 +38,8 @@ import org.gradle.internal.properties.annotations.TypeMetadataWalker;
 import org.gradle.internal.properties.annotations.TypeMetadataWalker.InstanceMetadataWalker;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.snapshot.impl.ImplementationValue;
+import org.gradle.internal.state.ModelObject;
+import org.gradle.internal.state.NestedObjectOwner;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
@@ -96,6 +98,18 @@ public class DefaultPropertyWalker implements PropertyWalker {
                 PropertyAnnotationHandler handler = handlers.get(propertyMetadata.getPropertyType());
                 if (handler == null) {
                     throw new IllegalStateException("Property handler should not be null for: " + propertyMetadata.getPropertyType());
+                }
+                if (handler.getKind() == PropertyAnnotationHandler.Kind.OUTPUT && parent instanceof ModelObject) {
+                    // Validate known owners without requiring ownership for output tracking of detached beans.
+                    try {
+                        ((ModelObject) parent).getTaskThatOwnsThisObject();
+                    } catch (NestedObjectOwner.ConflictingOwnersException e) {
+                        DeprecationLogger.deprecateBehaviour("Declaring the same nested output bean on multiple tasks.")
+                            .withContext(e.getMessage())
+                            .willBecomeAnErrorInGradle10()
+                            .withUpgradeGuideSection(9, "nested_output_ownership")
+                            .nagUser();
+                    }
                 }
                 handler.visitPropertyValue(qualifiedName, cachedValue, propertyMetadata, visitor);
             }

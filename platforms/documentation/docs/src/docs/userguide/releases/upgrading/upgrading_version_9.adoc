@@ -41,6 +41,17 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+[[nested_output_structure]]
+==== Retaining output structure in nested properties
+
+Gradle now infers producer tasks for managed output beans reached through `@Nested Property<T>` declarations.
+Once Gradle uses a nested output's producer information or inspects its output declaration, it finalizes the containing property to retain the same output bean.
+Replacing that bean afterwards fails with the usual final-property error.
+Ordinary bean reads during configuration do not finalize the property, and output locations retain their normal lazy-property behavior.
+
+Configure the output structure before Gradle discovers task dependencies and output declarations.
+See <<lazy_configuration.adoc#nested_output_properties,nested output properties>> for examples and limitations.
+
 [[kotlin_2_4_10]]
 ==== Upgrade to Kotlin 2.4.20
 
@@ -68,6 +79,17 @@ These APIs are intentionally focused on testing use cases.
 If you extract the report data for other purposes, please comment on these issues and describe your use case.
 
 === Deprecations
+
+[[nested_output_ownership]]
+==== Sharing nested output beans between tasks
+
+Declaring the same managed output bean through resolved `@Nested Property<T>` properties of different tasks is deprecated.
+Gradle warns when inspecting these shared output declarations; this will become an error in Gradle 10.
+Automatic dependency inference from such an output already fails because it cannot identify a unique producing task.
+
+Create a separate output bean for each producing task.
+If a second task consumes the first task's output, declare that file as an input of the second task instead.
+Input-only beans remain shareable, and multiple declarations on the same task may refer to the same output bean.
 
 [[kotlin_dsl_scripts_model_explicit_scripts]]
 ==== Deprecation of restricting the `KotlinDslScriptsModel` to explicit scripts

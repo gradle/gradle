@@ -18,6 +18,7 @@ package org.gradle.internal.instantiation.generator;
 
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Describable;
+import org.gradle.api.internal.provider.DefaultProperty;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.instantiation.InstanceGenerator;
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler;
@@ -53,6 +54,15 @@ public class ManagedObjectFactory {
             ((OwnerAware) instance).attachOwner(owner, displayNameFor(owner, propertyName));
         }
         return instance;
+    }
+
+    // Called from generated code for task @Nested declarations.
+    public static <T> T attachNestedOwner(T instance, ModelObject owner, String propertyName) {
+        if (instance instanceof DefaultProperty) {
+            ((DefaultProperty<?>) instance).attachNestedOwner(owner, displayNameFor(owner, propertyName));
+            return instance;
+        }
+        return attachOwner(instance, owner, propertyName);
     }
 
     // Called from generated code

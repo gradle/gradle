@@ -36,6 +36,7 @@ import org.gradle.api.invocation.Gradle;
 import org.gradle.api.plugins.ExtensionAware;
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.services.ServiceReference;
+import org.gradle.api.tasks.Nested;
 import org.gradle.cache.Cache;
 import org.gradle.cache.internal.ClassCacheFactory;
 import org.gradle.internal.Cast;
@@ -56,6 +57,7 @@ import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.state.Managed;
 import org.gradle.internal.state.ModelObject;
+import org.gradle.internal.state.NestedObjectOwner;
 import org.gradle.internal.state.OwnerAware;
 import org.gradle.model.internal.asm.AsmClassGenerator;
 import org.gradle.model.internal.asm.AsmClassGeneratorUtils;
@@ -1217,6 +1219,12 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                         break;
                 }
 
+                if (property.hasAnnotation(Nested.class)) {
+                    _ALOAD(0);
+                    _LDC(property.getName());
+                    _INVOKESTATIC(MANAGED_OBJECT_FACTORY_TYPE, "attachNestedOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING);
+                }
+
                 if (applyRole) {
                     _DUP();
                     applyRole();
@@ -1303,7 +1311,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 }
                 _ALOAD(0);
                 _LDC(attached.property.getName());
-                _INVOKESTATIC(MANAGED_OBJECT_FACTORY_TYPE, "attachOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING);
+                _INVOKESTATIC(MANAGED_OBJECT_FACTORY_TYPE, attached.property.hasAnnotation(Nested.class) ? "attachNestedOwner" : "attachOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING);
                 if (applyRole) {
                     applyRole();
                 }
@@ -1435,7 +1443,10 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
             // GENERATE attachOwner(owner, displayName) { this.displayName = displayName }
             publicMethod("attachOwner", RETURN_VOID_FROM_MODEL_OBJECT_DISPLAY_NAME, methodVisitor -> new MethodVisitorScope(methodVisitor) {{
                 _ALOAD(0);
+                _ALOAD(0);
+                _GETFIELD(generatedType, OWNER_FIELD, MODEL_OBJECT_TYPE);
                 _ALOAD(1);
+                _INVOKESTATIC(getType(NestedObjectOwner.class), "merge", getMethodDescriptor(MODEL_OBJECT_TYPE, MODEL_OBJECT_TYPE, MODEL_OBJECT_TYPE));
                 _PUTFIELD(generatedType, OWNER_FIELD, MODEL_OBJECT_TYPE);
                 _ALOAD(0);
                 _ALOAD(2);
@@ -1595,7 +1606,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     _DUP();
                     _ALOAD(0);
                     _LDC(property.getName());
-                    _INVOKESTATIC(MANAGED_OBJECT_FACTORY_TYPE, "attachOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING);
+                    _INVOKESTATIC(MANAGED_OBJECT_FACTORY_TYPE, property.hasAnnotation(Nested.class) ? "attachNestedOwner" : "attachOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING);
                     _POP();
                     if (applyRole) {
                         // GENERATE ManagedObjectFactory.applyRole(<value>)

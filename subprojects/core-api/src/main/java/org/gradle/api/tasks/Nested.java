@@ -33,7 +33,13 @@ import java.lang.annotation.Target;
  * <p>The implementation of the nested bean is tracked as an input, too.
  * This allows tracking behavior such as {@link org.gradle.api.Action}s as task inputs.</p>
  *
- * <p>This annotations supports {@link org.gradle.api.provider.Provider} values by treating the result of {@link org.gradle.api.provider.Provider#get()} as a nested bean.</p>
+ * <p>This annotation supports {@link org.gradle.api.provider.Provider} values by treating the result of {@link org.gradle.api.provider.Provider#get()} as a nested bean.</p>
+ *
+ * <p>Resolving a task's nested {@link org.gradle.api.provider.Property} associates a managed bean's output properties with that task.
+ * Consumers can reference these outputs through the nested property to infer task dependencies.
+ * The bean must be available before task execution, and its outputs must belong to a single task.
+ * Once Gradle uses its output declarations or producer information, the containing property is finalized; output locations can remain lazy.
+ * See <a href="https://docs.gradle.org/current/userguide/lazy_configuration.html#nested_output_properties">nested output properties</a> for examples and limitations.</p>
  *
  * <p>This annotation supports {@link Iterable} values by treating each element as a separate nested bean.
  * As a property name, the index of the element in the iterable prefixed by {@code $} is used, e.g. {@code $0}.

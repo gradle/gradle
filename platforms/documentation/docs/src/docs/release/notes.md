@@ -102,6 +102,12 @@ Gradle provides comprehensive support for [JVM languages](userguide/building_jav
 ### Core plugin and plugin authoring enhancements
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
 
+#### Task dependencies from outputs in nested properties
+
+Managed output beans held in a task's `@Nested Property<T>` now identify that task as their producer when the nested property is resolved. Consumers can use `generate.flatMap { it.files.flatMap { it.result } }` to infer dependencies, including through several nested levels and with the Configuration Cache.
+
+The output structure is retained once Gradle uses its declarations or producer information. Input-only beans remain shareable; output beans require a unique producing task. See [nested output properties](userguide/lazy_configuration.html#nested_output_properties) for examples and supported forms.
+
 #### `Sync` can empty its destination when its source is empty
 
 A [`Sync`](dsl/org.gradle.api.tasks.Sync.html) task whose source contains no files and no directories, by default, does not run, so its destination directory is not synchronized. What is left in the destination then depends on whether it is a build-owned directory: if it is, the destination is cleaned up; otherwise it keeps the files the source no longer contains.

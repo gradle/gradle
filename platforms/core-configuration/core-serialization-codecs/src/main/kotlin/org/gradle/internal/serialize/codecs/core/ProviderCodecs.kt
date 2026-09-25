@@ -406,7 +406,7 @@ class PropertyCodec(
     override suspend fun WriteContext.encodeThis(value: DefaultProperty<*>) {
         encodePreservingIdentityOf(value) {
             writeClass(value.type)
-            providerCodec.run { encodeProvider(value.provider) }
+            providerCodec.run { encodeProvider(value.providerForSerialization) }
         }
     }
 

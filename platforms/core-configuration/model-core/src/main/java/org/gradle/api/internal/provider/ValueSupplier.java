@@ -155,6 +155,12 @@ public interface ValueSupplier {
             left.visitProducerTasks(visitor);
             right.visitProducerTasks(visitor);
         }
+
+        @Override
+        public void visitContentProducerTasks(Action<? super Task> visitor) {
+            left.visitContentProducerTasks(visitor);
+            right.visitContentProducerTasks(visitor);
+        }
     }
 
     class UnknownProducer implements ValueProducer {
