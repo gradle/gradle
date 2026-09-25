@@ -26,7 +26,7 @@ class ConsoleMetaDataSupportsTaskbarProgressTest extends Specification {
 
     def setup() {
         // Save original environment variables
-        ['ConEmuPID', 'TERM', 'TERM_PROGRAM', 'TERM_PROGRAM_VERSION'].each { varName ->
+        ['ConEmuPID', 'TERM', 'TERM_PROGRAM', 'TERM_PROGRAM_VERSION', 'WT_SESSION'].each { varName ->
             originalEnvVars[varName] = System.getenv(varName)
         }
         // Clear all relevant environment variables for clean testing
@@ -45,7 +45,7 @@ class ConsoleMetaDataSupportsTaskbarProgressTest extends Specification {
     }
 
     private void clearAllRelevantEnvVars() {
-        ['ConEmuPID', 'TERM', 'TERM_PROGRAM', 'TERM_PROGRAM_VERSION'].each { varName ->
+        ['ConEmuPID', 'TERM', 'TERM_PROGRAM', 'TERM_PROGRAM_VERSION', 'WT_SESSION'].each { varName ->
             env.removeEnvironmentVariable(varName)
         }
     }
@@ -227,5 +227,35 @@ class ConsoleMetaDataSupportsTaskbarProgressTest extends Specification {
         '3.6'   | false  // 3.6 < 3.6.6 because patch defaults to 0
         '4.0'   | true
         '2.9'   | false
+    }
+
+    def "returns true when WT_SESSION is set to any value"() {
+        when:
+        env.setEnvironmentVariable('WT_SESSION', session)
+
+        then:
+        ConsoleMetaData.evaluateTaskBarProgressSupport()
+
+        where:
+        session << ['a1b2c3d4-0000-4000-8000-000000000000', 'abc', '']
+    }
+
+    def "returns true when WT_SESSION is set inside WSL with a Linux TERM"() {
+        when:
+        env.setEnvironmentVariable('WT_SESSION', 'a1b2c3d4-0000-4000-8000-000000000000')
+        env.setEnvironmentVariable('TERM', 'xterm-256color')
+
+        then:
+        ConsoleMetaData.evaluateTaskBarProgressSupport()
+    }
+
+    def "WT_SESSION takes precedence over unsupported iTerm version"() {
+        when:
+        env.setEnvironmentVariable('WT_SESSION', 'a1b2c3d4-0000-4000-8000-000000000000')
+        env.setEnvironmentVariable('TERM_PROGRAM', 'iTerm.app')
+        env.setEnvironmentVariable('TERM_PROGRAM_VERSION', '3.0.0')
+
+        then:
+        ConsoleMetaData.evaluateTaskBarProgressSupport()
     }
 }
