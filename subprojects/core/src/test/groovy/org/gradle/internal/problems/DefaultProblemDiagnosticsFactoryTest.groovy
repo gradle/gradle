@@ -70,6 +70,72 @@ class DefaultProblemDiagnosticsFactoryTest extends Specification {
         }
     }
 
+    def "location-only capture spares the full budget"() {
+        given:
+        def boundedStack = [new StackTraceElement("build_abc", "run", "build.gradle", 7)] as StackTraceElement[]
+        def stream = factory.newStream()
+
+        when: "two location-only captures are taken, as many as the full budget would allow"
+        def bounded1 = stream.forCurrentCallerLocationOnly()
+        def bounded2 = stream.forCurrentCallerLocationOnly()
+
+        then: "neither draws on the full budget"
+        2 * boundedCallerStackCapturer.captureCallerStack() >> { new Exception().tap { it.stackTrace = boundedStack } }
+        bounded1.stack == boundedStack.toList()
+        bounded2.stack == boundedStack.toList()
+
+        when: "a problem that reports its stack asks for one"
+        def full = stream.forCurrentCaller()
+
+        then: "the full budget is still there for it"
+        full.stack.size() > boundedStack.size()
+    }
+
+    def "location-only capture stops once the bounded budget is spent"() {
+        given:
+        // No full captures, and a bounded budget of 1.
+        def cappedFactory = new DefaultProblemDiagnosticsFactory(DefaultFailureFactory.withDefaultClassifier(), locationAnalyzer, userCodeContext, 0, 1, boundedCallerStackCapturer)
+        def stream = cappedFactory.newStream()
+
+        when:
+        def first = stream.forCurrentCallerLocationOnly()
+        def second = stream.forCurrentCallerLocationOnly()
+
+        then:
+        1 * boundedCallerStackCapturer.captureCallerStack() >> new Exception()
+        !first.stack.empty
+        second.stack.empty
+    }
+
+    def "always-located capture is never refused"() {
+        given:
+        def boundedStack = [new StackTraceElement("build_abc", "run", "build.gradle", 7)] as StackTraceElement[]
+        // Nothing left in either budget.
+        def cappedFactory = new DefaultProblemDiagnosticsFactory(DefaultFailureFactory.withDefaultClassifier(), locationAnalyzer, userCodeContext, 0, 0, boundedCallerStackCapturer)
+        def stream = cappedFactory.newStream()
+
+        when:
+        def diagnostics = stream.forCurrentCallerAlwaysLocated()
+
+        then:
+        1 * boundedCallerStackCapturer.captureCallerStack() >> { new Exception().tap { it.stackTrace = boundedStack } }
+        diagnostics.stack == boundedStack.toList()
+        diagnostics.exception == null
+    }
+
+    def "always-located capture takes a full stack while the full budget lasts"() {
+        given:
+        def stream = factory.newStream()
+
+        when:
+        def diagnostics = stream.forCurrentCallerAlwaysLocated()
+
+        then:
+        0 * boundedCallerStackCapturer.captureCallerStack()
+        assertIsCallerStackTrace(diagnostics.stack)
+        diagnostics.exception == null
+    }
+
     def "does not populate stack traces after limit has been reached"() {
         def transformer = Stub(ProblemStream.StackTraceTransformer) {
             transform(_) >> { StackTraceElement[] original -> original.toList() }

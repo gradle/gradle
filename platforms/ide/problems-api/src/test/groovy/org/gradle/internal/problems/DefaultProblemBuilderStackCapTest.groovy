@@ -36,8 +36,9 @@ import spock.lang.Specification
 /**
  * Characterizes which problems still collect a stack once the capture cap is spent.
  *
- * <p>An ERROR-severity problem without its own exception gets a synthetic one, routing it through
- * {@link ProblemStream#forThrownException} and so past the cap that stops every other problem.</p>
+ * <p>An ERROR-severity problem must always be located, so it asks for that through
+ * {@link ProblemStream#forCurrentCallerAlwaysLocated} and keeps a stack past the cap that stops every
+ * other problem. Past the cap that stack is a bounded capture rather than a full one.</p>
  */
 class DefaultProblemBuilderStackCapTest extends Specification {
 
@@ -45,7 +46,10 @@ class DefaultProblemBuilderStackCapTest extends Specification {
 
     def locationAnalyzer = Mock(ProblemLocationAnalyzer)
     def userCodeContext = Mock(UserCodeApplicationContext)
-    def boundedCallerStackCapturer = Mock(BoundedCallerStackCapturer)
+    def boundedStack = [new StackTraceElement("build_abc", "run", "build.gradle", 7)] as StackTraceElement[]
+    def boundedCallerStackCapturer = Stub(BoundedCallerStackCapturer) {
+        captureCallerStack() >> new Exception().tap { it.stackTrace = boundedStack }
+    }
 
     def problemGroup = ProblemGroup.create("group", "label")
     def problemId = ProblemId.create("id", "Problem Id", problemGroup)
@@ -122,13 +126,33 @@ class DefaultProblemBuilderStackCapTest extends Specification {
         !stackOf(problem).empty
     }
 
-    def "error severity does not surface its synthetic exception on the problem"() {
+    def "error severity does not surface a located-only capture on the problem"() {
         when:
         def problem = buildProblemWithSeverity(Severity.ERROR)
 
         then:
         !stackOf(problem).empty
         problem.exception == null
+    }
+
+    def "error severity falls back to a bounded capture past the cap"() {
+        given:
+        exhaustFullBudget()
+
+        when:
+        def problem = buildProblemWithSeverity(Severity.ERROR)
+
+        then:
+        stackOf(problem) == boundedStack.toList()
+    }
+
+    def "error severity takes a full capture while the cap allows it"() {
+        when:
+        def problem = buildProblemWithSeverity(Severity.ERROR)
+
+        then:
+        stackOf(problem) != boundedStack.toList()
+        !stackOf(problem).empty
     }
 
     private void exhaustFullBudget() {
