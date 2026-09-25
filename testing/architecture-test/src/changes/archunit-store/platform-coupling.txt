@@ -217,6 +217,7 @@ Class 'org.gradle.kotlin.dsl.tooling.builders.BuildSrcClassPathModeConfiguration
 Class 'org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptModelBuilder' from platform 'core' imports class 'org.gradle.internal.resource.TextResource' from a forbidden platform 'software'
 Class 'org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptModelBuilderKt' from platform 'core' imports class 'org.gradle.api.tasks.SourceSet' from a forbidden platform 'jvm'
 Class 'org.gradle.kotlin.dsl.tooling.builders.KotlinBuildScriptModelBuilderKt' from platform 'core' imports class 'org.gradle.internal.resource.TextFileResourceLoader' from a forbidden platform 'software'
+Class 'org.gradle.kotlin.dsl.tooling.builders.SourceSetClassPathResolver' from platform 'core' imports class 'org.gradle.api.tasks.SourceSet' from a forbidden platform 'jvm'
 Class 'org.gradle.kotlin.dsl.tooling.builders.internal.IsolatedProjectsSafeKotlinDslScriptsModelBuilderKt' from platform 'core' imports class 'org.gradle.api.tasks.SourceSet' from a forbidden platform 'jvm'
 Class 'org.gradle.launcher.cli.BuildActionsFactory' from platform 'core' imports class 'org.gradle.jvm.toolchain.JavaLanguageVersion' from a forbidden platform 'jvm'
 Class 'org.gradle.launcher.daemon.client.DaemonClientServicesSupport' from platform 'core' imports class 'org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector' from a forbidden platform 'jvm'

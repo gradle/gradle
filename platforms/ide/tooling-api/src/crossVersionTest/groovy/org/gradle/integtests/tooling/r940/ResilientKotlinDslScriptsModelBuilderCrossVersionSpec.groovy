@@ -24,6 +24,7 @@ import org.gradle.integtests.tooling.r930.KotlinDslPluginRelatedToolingApiSpecif
 import org.gradle.internal.Pair
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.ProjectConnection
@@ -31,6 +32,7 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.ToBeImplemented
 import org.junit.Assume
+import spock.lang.Issue
 
 import java.util.function.Function
 import java.util.stream.Collectors
@@ -52,6 +54,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
     private static final List<String> BUILD_SCRIPT_COMPILE_ERROR = ["Build file", "build.gradle.kts", "Script compilation error"]
     private static final List<String> SETTINGS_SCRIPT_COMPILE_ERROR = ["Settings file", "settings.gradle.kts", "Script compilation error"]
     private static final List<String> GENERAL_CONFIGURATION_FAILURE = ["The build could not be configured; see the reported build failures for the underlying problems."]
+    private static final List<String> PLUGIN_BUILD_SCRIPTS = ["build-logic/settings.gradle.kts", "build-logic/build.gradle.kts", "build-logic/src/main/kotlin/custom.gradle.kts"]
+    private static final List<String> PRECOMPILED_CLASSPATH_RESOLUTION_FAILURE = ["Could not resolve all", ":build-logic:compileClasspath"]
 
     TestFile initScriptFile
     KotlinModelCollector modelCollector
@@ -378,6 +382,172 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         // From 9.7 each build reports only its own configuration failure, so builds that did not fail themselves report the general failure
         "9.7"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE), Pair.of("included", BUILD_SCRIPT_COMPILE_ERROR)] | ""                       | NO_EXTRA_PROPERTIES
         "9.7"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE), Pair.of("included", BUILD_SCRIPT_COMPILE_ERROR)] | "with isolated projects" | IP_FLAGS
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39247")
+    def "compilation failure in plugin build script body with precompiled script plugin: model is returned for the plugin build from #fromVersion #mode"() {
+        given:
+        skipIfIpNotSupported(extraGradleProperties)
+        skipUnlessExpectationsApply(fromVersion, untilVersion)
+        settingsKotlinFile << """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+            rootProject.name = "root"
+            include("lib")
+        """
+
+        def buildLogic = file("build-logic")
+        buildLogic.file("settings.gradle.kts") << """
+            pluginManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+            rootProject.name = "build-logic"
+        """
+        buildLogic.file("build.gradle.kts") << """
+            plugins { `kotlin-dsl` }
+
+            repositories {
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+            }
+
+            blow up !!!
+        """
+        buildLogic.file("src/main/kotlin/custom.gradle.kts") << """
+            plugins { `java-library` }
+        """
+        file("lib/build.gradle.kts") << """
+            plugins { id("custom") }
+        """
+
+        when:
+        fails {
+            resilientModel(it, ROOT_PROJECT_FIRST, extraGradleProperties)
+        }
+
+        then:
+        def e = thrown(BuildException)
+        e.cause.message.contains("Script compilation error")
+        def model = modelCollector.model
+        assertHasScriptModelForFiles(model, "settings.gradle.kts", "lib/build.gradle.kts", *pluginBuildScripts)
+        assertHasErrorsInScriptModels(model, [".": [GENERAL_CONFIGURATION_FAILURE], "build-logic": pluginBuildFailures])
+        if (!pluginBuildScripts.isEmpty()) {
+            assertHasJarsInScriptModelClasspath(model, "build-logic/build.gradle.kts", "gradle-kotlin-dsl-plugins")
+            assertHasAnyJarInScriptModelClasspath(model, "build-logic/src/main/kotlin/custom.gradle.kts", expectedPublicApiJarPrefixes())
+        }
+
+        where:
+        fromVersion | untilVersion | pluginBuildScripts   | pluginBuildFailures                                                          | mode                     | extraGradleProperties
+        // Before 9.9 the failure to resolve the compile classpath of the precompiled script plugin discarded the whole model of the plugin build
+        "9.7"       | "9.9"        | []                   | [BUILD_SCRIPT_COMPILE_ERROR]                                                 | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | "9.9"        | []                   | [BUILD_SCRIPT_COMPILE_ERROR]                                                 | "with isolated projects" | IP_FLAGS
+        // From 9.9 the plugin build reports its configuration failure and the resolution failure the model builder recovered from
+        "9.9"       | null         | PLUGIN_BUILD_SCRIPTS | [BUILD_SCRIPT_COMPILE_ERROR, PRECOMPILED_CLASSPATH_RESOLUTION_FAILURE]       | ""                       | NO_EXTRA_PROPERTIES
+        "9.9"       | null         | PLUGIN_BUILD_SCRIPTS | [BUILD_SCRIPT_COMPILE_ERROR, PRECOMPILED_CLASSPATH_RESOLUTION_FAILURE]       | "with isolated projects" | IP_FLAGS
+    }
+
+    def "resolution failure of precompiled script plugin classpath: model is returned for the plugin build and the failure is reported from #fromVersion #mode"() {
+        given:
+        skipIfIpNotSupported(extraGradleProperties)
+        skipUnlessExpectationsApply(fromVersion, untilVersion)
+        settingsKotlinFile << """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+            rootProject.name = "root"
+        """
+
+        def buildLogic = file("build-logic")
+        buildLogic.file("settings.gradle.kts") << """
+            pluginManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+            rootProject.name = "build-logic"
+        """
+        buildLogic.file("build.gradle.kts") << """
+            plugins { `kotlin-dsl` }
+        """
+        // Two precompiled script plugins share the source set, and so its classpath and its failure
+        buildLogic.file("src/main/kotlin/custom.gradle.kts") << """
+            plugins { `java-library` }
+        """
+        buildLogic.file("src/main/kotlin/other.gradle.kts") << """
+            plugins { `java-library` }
+        """
+
+        when:
+        fails {
+            resilientModel(it, ROOT_PROJECT_FIRST, extraGradleProperties)
+        }
+
+        then:
+        def e = thrown(BuildException)
+        collectCauseMessages(e).any { it?.contains(":build-logic:compileClasspath") }
+        def model = modelCollector.model
+        assertHasScriptModelForFiles(model, "settings.gradle.kts", *pluginBuildScripts)
+        assertHasErrorsInScriptModels(model, Pair.of("build-logic", PRECOMPILED_CLASSPATH_RESOLUTION_FAILURE))
+        if (!pluginBuildScripts.isEmpty()) {
+            assertHasJarsInScriptModelClasspath(model, "build-logic/build.gradle.kts", "gradle-kotlin-dsl-plugins")
+            assertHasAnyJarInScriptModelClasspath(model, "build-logic/src/main/kotlin/custom.gradle.kts", expectedPublicApiJarPrefixes())
+            assertHasAnyJarInScriptModelClasspath(model, "build-logic/src/main/kotlin/other.gradle.kts", expectedPublicApiJarPrefixes())
+        }
+
+        where:
+        fromVersion | untilVersion | pluginBuildScripts                                                    | mode                     | extraGradleProperties
+        // Before 9.9 the model builder threw, so no model was returned for the plugin build
+        "9.7"       | "9.9"        | []                                                                    | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | "9.9"        | []                                                                    | "with isolated projects" | IP_FLAGS
+        "9.9"       | null         | PLUGIN_BUILD_SCRIPTS + ["build-logic/src/main/kotlin/other.gradle.kts"] | ""                       | NO_EXTRA_PROPERTIES
+        "9.9"       | null         | PLUGIN_BUILD_SCRIPTS + ["build-logic/src/main/kotlin/other.gradle.kts"] | "with isolated projects" | IP_FLAGS
+    }
+
+    @TargetGradleVersion('>=9.9.0')
+    def "precompiled classpath failure in a child project is propagated by the isolated scripts model"() {
+        given:
+        settingsKotlinFile << """
+            pluginManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+            rootProject.name = "root"
+            include("plugins")
+        """
+        file("plugins/build.gradle.kts") << """
+            plugins { `kotlin-dsl` }
+        """
+        file("plugins/src/main/kotlin/custom.gradle.kts") << """
+            plugins { `java-library` }
+        """
+
+        when:
+        fails {
+            resilientModel(it, ROOT_PROJECT_FIRST, IP_FLAGS)
+        }
+
+        then:
+        def resilientFailure = thrown(BuildException)
+        collectCauseMessages(resilientFailure).any { it?.contains(":plugins:compileClasspath") }
+        def model = modelCollector.model
+        assertHasScriptModelForFiles(model, "settings.gradle.kts", "plugins/build.gradle.kts", "plugins/src/main/kotlin/custom.gradle.kts")
+        assertHasErrorsInScriptModels(model, Pair.of(".", ["Could not resolve all", ":plugins:compileClasspath"]))
+        assertHasAnyJarInScriptModelClasspath(model, "plugins/src/main/kotlin/custom.gradle.kts", expectedPublicApiJarPrefixes())
+
+        when:
+        fails {
+            originalModel(it, ROOT_PROJECT_FIRST, IP_FLAGS)
+        }
+
+        then:
+        def regularFailure = thrown(BuildActionFailureException)
+        collectCauseMessages(regularFailure).any { it?.contains(":plugins:compileClasspath") }
     }
 
     def "#description failure in main build subproject: resilient model is equal to non-resilient model except accessors and the expected failures are reported with #queryStrategy from #fromVersion #mode"() {
@@ -913,16 +1083,24 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
     }
 
     // The scripts model attaches failures per build root, not per project, so the queried build is the finest granularity these expectations can assert.
+    // Each listed build root must report exactly one failure, containing all the given fragments.
     void assertHasErrorsInScriptModels(KotlinModel model, Pair<String, List<String>>... expected) {
-        assert model.failures.size() == expected.size(): "Expected ${expected.size()} failures, but got ${model.failures.size()}"
+        assertHasErrorsInScriptModels(model, expected.collectEntries { [(it.left): [it.right]] })
+    }
+
+    // Each listed build root must report exactly the given failures, in order, each containing all of its fragments.
+    void assertHasErrorsInScriptModels(KotlinModel model, Map<String, List<List<String>>> expected) {
+        assert model.failures.size() == expected.size(): "Expected failures for ${expected.size()} build roots, but got ${model.failures.size()}: ${model.failures.keySet()}"
         def failures = new HashMap<>(model.failures)
 
-        for (Pair<String, List<String>> expectedElement : expected) {
-            def buildRootDir = new File(new File(projectDir, expectedElement.left).canonicalPath)
-            def failure = failures.remove(buildRootDir)
-            assert failure: "Failures for build root ${expectedElement.left} not available"
-            expectedElement.right.each { fragment ->
-                expectFailureToContain(failure, fragment)
+        expected.each { buildRoot, expectedFailures ->
+            def buildRootDir = new File(new File(projectDir, buildRoot).canonicalPath)
+            def actualFailures = failures.remove(buildRootDir)
+            assert actualFailures: "Failures for build root ${buildRoot} not available"
+            assert actualFailures.size() == expectedFailures.size():
+                "Expected ${expectedFailures.size()} failures for build root ${buildRoot}, but got ${actualFailures.size()}:\n${actualFailures.join('\n---\n')}"
+            [actualFailures, expectedFailures].transpose().each { actualFailure, fragments ->
+                fragments.each { fragment -> expectFailureToContain(actualFailure, fragment) }
             }
         }
 
