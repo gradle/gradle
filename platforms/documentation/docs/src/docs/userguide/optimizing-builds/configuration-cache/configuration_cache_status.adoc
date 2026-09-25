@@ -17,7 +17,7 @@
 [[config_cache_status]]
 = Configuration Cache Status
 
-[WARNING]
+[NOTE]
 ====
 This feature is _not enabled by default_.
 ====
