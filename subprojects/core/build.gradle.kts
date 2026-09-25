@@ -292,6 +292,24 @@ tasks.test {
     setForkEvery(200)
 }
 
+// The services available for lookup with service() are listed by hand in the user guide;
+// a unit test keeps the table in sync with the allowlist in PublicServiceLookups.
+tasks.test {
+    jvmArgumentProviders.add(objects.newInstance<ServiceLookupDocumentationProvider>().apply {
+        guide = layout.settingsDirectory.file("platforms/documentation/docs/src/docs/userguide/reference/gradle-types/service_injection.adoc")
+    })
+}
+
+abstract class ServiceLookupDocumentationProvider : CommandLineArgumentProvider {
+    @get:PathSensitive(PathSensitivity.NONE)
+    @get:InputFile
+    abstract val guide: RegularFileProperty
+
+    override fun asArguments() = listOf(
+        "-Dorg.gradle.services.serviceInjectionGuide=${guide.get().asFile}"
+    )
+}
+
 integTest.testJvmXmx = "1g"
 
 tasks.compileTestGroovy {

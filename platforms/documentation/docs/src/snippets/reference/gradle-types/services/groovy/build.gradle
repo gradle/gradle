@@ -201,21 +201,16 @@ abstract class MyArchiveOperationsTask extends DefaultTask {
 tasks.register("myInjectedArchiveOperationsTask", MyArchiveOperationsTask)
 // end::archive-op-inject[]
 
-// tag::archive-op-adhoc[]
-interface InjectedArcOps {
-    @Inject //@javax.inject.Inject
-    ArchiveOperations getArcOps()
-}
-
-tasks.register('myAdHocArchiveOperationsTask') {
-    def injected = project.objects.newInstance(InjectedArcOps)
-    def archiveFile = "${projectDir}/sources.jar"
-
+// tag::archive-op-lookup[]
+tasks.register('listArchiveEntries') {
+    def archiveOperations = service(ArchiveOperations)
+    def layout = service(ProjectLayout)
     doLast {
-        injected.arcOps.zipTree(archiveFile)
+        def entries = archiveOperations.zipTree(layout.projectDirectory.file("sources.jar")).files
+        println("Entries: ${entries*.name}")
     }
 }
-// end::archive-op-adhoc[]
+// end::archive-op-lookup[]
 
 // tag::exec-op-inject[]
 abstract class MyExecOperationsTask extends DefaultTask {
@@ -237,22 +232,16 @@ abstract class MyExecOperationsTask extends DefaultTask {
 tasks.register("myInjectedExecOperationsTask", MyExecOperationsTask)
 // end::exec-op-inject[]
 
-// tag::exec-op-adhoc[]
-interface InjectedExecOps {
-    @Inject //@javax.inject.Inject
-    ExecOperations getExecOps()
-}
-
-tasks.register('myAdHocExecOperationsTask') {
-    def injected = project.objects.newInstance(InjectedExecOps)
-
+// tag::exec-op-lookup[]
+tasks.register('printGitStatus') {
+    def execOperations = service(ExecOperations)
     doLast {
-        injected.execOps.exec {
-            commandLine 'ls', '-la'
+        execOperations.exec {
+            commandLine 'git', 'status'
         }
     }
 }
-// end::exec-op-adhoc[]
+// end::exec-op-lookup[]
 
 // tag::tooling-model[]
 // Implements the ToolingModelBuilder interface.
@@ -371,3 +360,22 @@ abstract class CleanTempTask extends DefaultTask {
 
 tasks.register("cleanTemp", CleanTempTask) {}
 // end::clean-temp-inject[]
+
+// tag::service-lookup[]
+tasks.register('checkJavaVersion') {
+    doLast {
+        service(ExecOperations).exec {
+            commandLine 'java', '-version'
+        }
+    }
+}
+// end::service-lookup[]
+
+// tag::service-lookup-capture[]
+tasks.register('cleanReports') {
+    def fs = service(FileSystemOperations) // looked up and captured at configuration time
+    doLast {
+        fs.delete { delete('build/reports') }
+    }
+}
+// end::service-lookup-capture[]
