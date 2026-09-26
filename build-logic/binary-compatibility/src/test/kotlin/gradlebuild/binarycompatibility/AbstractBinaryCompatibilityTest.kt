@@ -16,6 +16,7 @@
 
 package gradlebuild.binarycompatibility
 
+import gradlebuild.basics.RepositoryMirrors
 import org.gradle.kotlin.dsl.*
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.GradleRunner
@@ -178,7 +179,7 @@ abstract class AbstractBinaryCompatibilityTest {
         val runner = GradleRunner.create()
             .withProjectDir(inputBuildDir)
             .withPluginClasspath()
-            .withArguments(":binary-compatibility:checkBinaryCompatibility", "-s")
+            .withArguments(listOf(":binary-compatibility:checkBinaryCompatibility", "-s") + RepositoryMirrors.testKitArguments())
 
         val (buildResult, failure) = try {
             runner.build()!! to null
@@ -217,7 +218,7 @@ abstract class AbstractBinaryCompatibilityTest {
         val runner = GradleRunner.create()
             .withProjectDir(inputBuildDir)
             .withPluginClasspath()
-            .withArguments(":binary-compatibility:checkBinaryCompatibility", "-s")
+            .withArguments(listOf(":binary-compatibility:checkBinaryCompatibility", "-s") + RepositoryMirrors.testKitArguments())
 
         val (buildResult, failure) = try {
             runner.build()!! to null
