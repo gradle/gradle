@@ -67,6 +67,36 @@ The following issues track the development of TestKit APIs for this purpose:
 These APIs are intentionally focused on testing use cases.
 If you extract the report data for other purposes, please comment on these issues and describe your use case.
 
+[[required_input_files_absent_nested_providers]]
+==== Required input file properties reject absent providers nested in collections
+
+Required task input file properties now fail validation when a provider nested in a plain collection or array (such as a `List` passed to link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#files(java.lang.Object...)[`TaskInputs.files(...)`]) has no value.
+This applies to `TaskInputs.files(...)` declarations and to required link:{javadocPath}/org/gradle/api/tasks/InputFiles.html[`@InputFiles`] properties whose value is such a collection or array.
+Gradle reports the failure as the <<validation_problems.adoc#value_not_set, Required value isn't set>> validation problem.
+
+Passing several providers as varargs, such as `inputs.files(providerA, providerB)`, was ignored in the same way.
+The collection and varargs forms now fail just like the direct form:
+
+[source,kotlin]
+.build.gradle.kts
+----
+val absent = objects.fileProperty() // no value configured
+
+// Failed before this change, and still fails
+tasks.register("direct") {
+    inputs.files(absent).withPropertyName("p")
+}
+
+// Succeeded before this change, silently resolving to an empty collection; now fails
+tasks.register("wrapped") {
+    inputs.files(listOf(absent)).withPropertyName("p")
+}
+----
+
+To fix this, make sure every provider in the collection has a value.
+If the input is genuinely optional, declare it as such with link:{javadocPath}/org/gradle/api/tasks/TaskInputFilePropertyBuilder.html#optional()[`optional()`] on the `TaskInputs.files(...)` registration, or with link:{javadocPath}/org/gradle/api/tasks/Optional.html[`@Optional`] on the `@InputFiles` property.
+Optional inputs are not affected by this change and continue to ignore absent providers.
+
 === Deprecations
 
 [[kotlin_dsl_scripts_model_explicit_scripts]]
@@ -166,19 +196,6 @@ Setting any of them, to any value, emits a deprecation warning.
 
 Use the <<configuration_cache_debugging.adoc#config_cache:troubleshooting, Configuration Cache report>> to identify the offending build logic.
 See <<configuration_cache_enabling.adoc#config_cache:usage:input_opt_outs, Temporary Opt-Outs for Configuration Cache Behavior>> in the Gradle User Manual for the details of each property.
-
-[[required_input_files_absent_nested_providers]]
-==== Required input file properties reject absent providers nested in collections
-
-Required task input file properties now fail validation when a provider nested in an ordinary collection or object array has no value.
-This applies to `TaskInputs.files(...)` declarations and to required `@InputFiles` properties returning those values.
-
-Previously, `inputs.files([provider])` silently ignored an absent provider, while `inputs.files(provider)` failed.
-Both now fail in the same way.
-
-To fix this, make sure every provider in the collection has a value.
-If the input is genuinely optional, declare it as such with `optional()` on the `TaskInputs.files(...)` registration, or with `@Optional` on the `@InputFiles` property.
-Optional inputs are not affected by this change and continue to ignore absent providers.
 
 [[changes_9.8.0]]
 == Upgrading from 9.7.0 and earlier
