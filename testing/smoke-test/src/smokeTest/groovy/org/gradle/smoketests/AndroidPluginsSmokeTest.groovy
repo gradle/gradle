@@ -203,7 +203,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
                 repositories {
                     ${googleRepository()}
                     ${mavenCentralRepository()}
-                    gradlePluginPortal()
+                    ${gradlePluginRepositoryDefinition()}
                 }
             }
             dependencyResolutionManagement {
@@ -372,8 +372,8 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         settingsFile << """
             pluginManagement {
                 repositories {
-                    gradlePluginPortal()
-                    google()
+                    ${gradlePluginRepositoryDefinition()}
+                    ${googleRepositoryDefinition()}
                 }
                 resolutionStrategy.eachPlugin {
                     if (pluginRequest.id.id.startsWith('com.android')) {
