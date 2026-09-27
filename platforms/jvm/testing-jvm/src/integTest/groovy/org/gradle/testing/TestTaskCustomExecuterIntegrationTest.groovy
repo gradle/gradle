@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportRes
 import org.gradle.api.tasks.testing.TestFailure
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.test.fixtures.file.TestFile
 
 import static org.hamcrest.Matchers.containsString
@@ -229,7 +230,7 @@ class TestTaskCustomExecuterIntegrationTest extends AbstractIntegrationSpec impl
         settingsFile << """
             buildscript {
                 repositories {
-                    gradlePluginPortal()
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition()}
                 }
 
                 dependencies {
