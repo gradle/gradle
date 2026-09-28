@@ -67,6 +67,29 @@ The following issues track the development of TestKit APIs for this purpose:
 These APIs are intentionally focused on testing use cases.
 If you extract the report data for other purposes, please comment on these issues and describe your use case.
 
+[[filters_apply_to_non_method_tests]]
+==== Test filters apply to tests that are not declared as methods
+
+Some JUnit Platform engines declare tests on something other than a method.
+link:https://www.archunit.org/[ArchUnit] declares rules on fields, and link:https://www.spekframework.org/[Spek] declares scopes.
+Gradle previously ran such tests unconditionally, whatever <<java_testing.adoc#test_filtering,test filters>> were in effect.
+They are now matched by their enclosing class and the name they are reported with, in the same way as test methods.
+
+A filtered run that used to include these tests by accident no longer does.
+For example, `gradle test --tests "SomeUnrelatedTest"` previously ran every ArchUnit rule in the source set as well, and now runs only `SomeUnrelatedTest`.
+Review the `--tests` arguments, `filter` blocks and `include`/`exclude` patterns in your build and CI configuration, because a filtered run may now execute fewer tests than before.
+
+To keep such a test running under a filter, name it or its class in the pattern:
+
+* `--tests "ArchRulesTest"` runs every rule declared in `ArchRulesTest`.
+* `--tests "ArchRulesTest.firstRule"` runs the rule declared in the `firstRule` field on its own.
+* Rules grouped with `ArchTests.in(...)` are reported as `EnclosingClass > ruleName`, so match that reported name rather than the field that holds the set.
+
+Tests that an engine registers only while a class is executing, as link:https://kotest.io/[Kotest] does, are not affected by this change.
+Gradle applies filters before those tests exist, so they can still only be selected by their spec class.
+
+See <<java_testing.adoc#filtering_non_method_tests,Test filtering>> for details.
+
 === Deprecations
 
 [[kotlin_dsl_scripts_model_explicit_scripts]]
