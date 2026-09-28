@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.tasks.properties;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedSet;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.TaskInternal;
@@ -61,6 +62,7 @@ public class DefaultTaskProperties implements TaskProperties {
         GetInputFilesVisitor inputFilesVisitor = new GetInputFilesVisitor(beanName, fileCollectionFactory);
         GetServiceReferencesVisitor serviceReferencesVisitor = new GetServiceReferencesVisitor();
         ValidationVisitor validationVisitor = new ValidationVisitor();
+        OutputProviderValidationVisitor outputProviderValidationVisitor = new OutputProviderValidationVisitor();
         OutputFilesCollector outputFilesCollector = new OutputFilesCollector();
         OutputUnpacker outputUnpacker = new OutputUnpacker(
             beanName,
@@ -82,8 +84,7 @@ public class DefaultTaskProperties implements TaskProperties {
                 localStateVisitor,
                 serviceReferencesVisitor
             );
-            TaskPropertyUtils.visitAnnotatedProperties(propertyWalker, task, validationContext, visitor);
-            validationVisitor.visitingRegisteredProperties();
+            TaskPropertyUtils.visitAnnotatedProperties(propertyWalker, task, validationContext, new CompositePropertyVisitor(visitor, outputProviderValidationVisitor));
             TaskPropertyUtils.visitRegisteredProperties(task, visitor);
         } catch (Exception e) {
             throw new TaskExecutionException(task, e);
@@ -97,7 +98,10 @@ public class DefaultTaskProperties implements TaskProperties {
             outputUnpacker.hasDeclaredOutputs(),
             localStateVisitor.getFiles(),
             destroyablesVisitor.getFiles(),
-            validationVisitor.getTaskPropertySpecs(),
+            ImmutableList.<ValidatingProperty>builder()
+                .addAll(validationVisitor.getTaskPropertySpecs())
+                .addAll(outputProviderValidationVisitor.getTaskPropertySpecs())
+                .build(),
             validationContext);
     }
 
@@ -216,16 +220,26 @@ public class DefaultTaskProperties implements TaskProperties {
         }
     }
 
+    /**
+     * Validates that output providers carry their producing task. Visits annotated properties only: only an annotated
+     * property exposes its value to consumers through a getter that Gradle can decorate. A value registered via the
+     * runtime API is only reachable through {@code TaskOutputs.getFiles()}, which already carries the task.
+     */
+    private static class OutputProviderValidationVisitor implements PropertyVisitor {
+        private final List<ValidatingProperty> taskPropertySpecs = new ArrayList<>();
+
+        @Override
+        public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
+            taskPropertySpecs.add(new OutputProviderWithoutProducerValidatingProperty(propertyName, value));
+        }
+
+        public List<ValidatingProperty> getTaskPropertySpecs() {
+            return taskPropertySpecs;
+        }
+    }
+
     private static class ValidationVisitor implements OutputUnpacker.UnpackedOutputConsumer, PropertyVisitor {
         private final List<ValidatingProperty> taskPropertySpecs = new ArrayList<>();
-        private boolean visitingAnnotatedProperties = true;
-
-        /**
-         * Called once the annotated properties have been visited, before the properties registered via the runtime API.
-         */
-        public void visitingRegisteredProperties() {
-            visitingAnnotatedProperties = false;
-        }
 
         @Override
         public void visitInputFileProperty(
@@ -244,15 +258,6 @@ public class DefaultTaskProperties implements TaskProperties {
         @Override
         public void visitInputProperty(String propertyName, PropertyValue value, boolean optional) {
             taskPropertySpecs.add(new DefaultValidatingProperty(propertyName, value, optional, ValidationActions.NO_OP));
-        }
-
-        @Override
-        public void visitOutputFileProperty(String propertyName, boolean optional, PropertyValue value, OutputFilePropertyType filePropertyType) {
-            // Only an annotated property exposes its value to consumers through a getter that Gradle can decorate.
-            // A value registered via the runtime API is only reachable through TaskOutputs.getFiles(), which already carries the task.
-            if (visitingAnnotatedProperties) {
-                taskPropertySpecs.add(new OutputProviderWithoutProducerValidatingProperty(propertyName, value));
-            }
         }
 
         @Override
