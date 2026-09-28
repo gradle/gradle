@@ -83,6 +83,33 @@ Gradle provides an intuitive [command-line interface](userguide/command_line_int
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
+#### Look up Gradle services from scripts and task actions
+
+Build and settings scripts, plugins, and task actions can now [look up commonly used Gradle services](userguide/service_injection.html#looking_up_services) directly, without declaring an `@Inject` point or going through the `objects.newInstance(...)` ceremony:
+
+```kotlin
+tasks.register("cleanReports") {
+    doLast {
+        service<FileSystemOperations>().delete { delete("build/reports") }
+    }
+}
+```
+
+Use `service(Class)` in the Groovy DSL or `service<Type>()` in the Kotlin DSL.
+The lookup is a member of `Project`, `Settings`, and `Task`, so it also works in script plugins, precompiled script plugins, and binary plugins.
+It resolves the services of that project, build, or task and is compatible with the Configuration Cache and Isolated Projects.
+
+Available services by scope:
+
+| Service                                                                         | Available in                  |
+|---------------------------------------------------------------------------------|-------------------------------|
+| `ObjectFactory`, `ProviderFactory`, `FileSystemOperations`, `ArchiveOperations` | Projects, tasks, and settings |
+| `ProjectLayout`                                                                 | Projects and tasks            |
+| `BuildLayout`                                                                   | Settings                      |
+| `ExecOperations`                                                                | Tasks                         |
+
+See the [Looking up services in scripts and task actions](userguide/service_injection.html#looking_up_services) section in the Gradle User Manual for more details.
+
 #### The `wrapper` task preserves customized properties
 
 The [`wrapper`](userguide/gradle_wrapper.html#gradle_wrapper) task now preserves values customized in an existing `gradle-wrapper.properties` file when they are not explicitly configured on the task. Preserved values include the network timeout, URL validation, retries, retry backoff, and the distribution and archive paths and bases. Explicit task configuration still takes precedence.

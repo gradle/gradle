@@ -62,6 +62,9 @@
             <tr>
                 <td>caches</td>
             </tr>
+            <tr>
+                <td>service</td>
+            </tr>
         </table>
     </section>
 </section>

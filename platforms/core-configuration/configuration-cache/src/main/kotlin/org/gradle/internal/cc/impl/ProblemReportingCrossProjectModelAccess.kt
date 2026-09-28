@@ -52,6 +52,7 @@ import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
 import org.gradle.api.resources.ResourceHandler
+import org.gradle.api.services.ProjectService
 import org.gradle.api.tasks.WorkResult
 import org.gradle.configuration.ConfigurationTargetIdentifier
 import org.gradle.configuration.project.ProjectConfigurationActionContainer
@@ -310,6 +311,11 @@ class ProblemReportingCrossProjectModelAccess(
         override fun getObjects(): ObjectFactory {
             onIsolationViolation("objects")
             return super.getObjects()
+        }
+
+        override fun <T : ProjectService> service(serviceType: Class<T>): T {
+            onIsolationViolation("service")
+            return delegate.service(serviceType)
         }
 
         override fun mkdir(path: Any): File {
