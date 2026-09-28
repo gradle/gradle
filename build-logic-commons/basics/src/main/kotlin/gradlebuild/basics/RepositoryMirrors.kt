@@ -59,7 +59,13 @@ object RepositoryMirrors {
      * Empty when no mirrors are configured.
      */
     @JvmStatic
-    fun testKitArguments(): List<String> {
+    fun testKitArguments(): List<String> = arguments { mirrorsScript() }
+
+    @JvmStatic
+    fun nestedBuildArguments(repositoryRoot: File): List<String> = arguments { repositoryRoot.resolve(MIRRORS_SCRIPT) }
+
+    private
+    fun arguments(mirrorsScript: () -> File): List<String> {
         if (mirrorUrls.isEmpty()) {
             return emptyList()
         }
