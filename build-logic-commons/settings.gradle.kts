@@ -53,3 +53,5 @@ include("gradle-plugin")
 include("publishing")
 
 rootProject.name = "build-logic-commons"
+
+apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
