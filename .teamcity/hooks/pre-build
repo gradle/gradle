@@ -15,8 +15,9 @@
 # limitations under the License.
 #
 # Pre-build hook entry point (file name required by the teamcity-hooks-plugin).
-# All logic lives in hooks.sh.
+# All logic lives in blackhole.sh and hooks.sh.
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"${SCRIPT_DIR}/blackhole.sh" || true
 exec "${SCRIPT_DIR}/hooks.sh" pre
