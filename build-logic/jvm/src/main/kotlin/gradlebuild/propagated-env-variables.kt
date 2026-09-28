@@ -69,6 +69,7 @@ val propagatedEnvironmentVariables = listOf(
 
     // Used by mirror init script, see RepoScriptBlockUtil
     "IGNORE_MIRROR",
+    "LD_PRELOAD",
 
     "LANG",
     "LANGUAGE",
