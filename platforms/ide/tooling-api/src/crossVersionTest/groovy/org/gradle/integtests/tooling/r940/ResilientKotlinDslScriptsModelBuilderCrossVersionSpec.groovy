@@ -439,7 +439,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
             // The project accessors were generated before the script body failed to compile, and the stage 1 blocks
             // accessors (plugin spec builders) can be generated even though the root project failed, so the model has both
             assertHasProjectAccessorsInClassPath(model, "build-logic/build.gradle.kts")
-            assertHasStage1BlocksAccessorsInClassPath(model, "build-logic/build.gradle.kts")
+            assertHasPluginSpecBuildersAccessorsInClassPath(model, "build-logic/build.gradle.kts")
             assertHasAnyJarInScriptModelClasspath(model, "build-logic/src/main/kotlin/custom.gradle.kts", expectedPublicApiJarPrefixes())
         }
 
@@ -487,6 +487,10 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         buildLogic.file("src/main/kotlin/custom.gradle.kts") << """
             plugins { `java-library` }
         """
+        buildLogic.file("gradle/libs.versions.toml") << """
+            [libraries]
+            junit = "junit:junit:4.13.2"
+        """.stripIndent()
         file("lib/build.gradle.kts") << """
             plugins { id("custom") }
         """
@@ -500,7 +504,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         thrown(BuildException)
         def firstSync = modelCollector.model
         assertHasScriptModelForFiles(firstSync, "settings.gradle.kts", "lib/build.gradle.kts", *PLUGIN_BUILD_SCRIPTS)
-        assertHasStage1BlocksAccessorsInClassPath(firstSync, "build-logic/build.gradle.kts")
+        assertHasPluginSpecBuildersAccessorsInClassPath(firstSync, "build-logic/build.gradle.kts")
+        assertHasVersionCatalogAccessorsInClassPath(firstSync, "build-logic/build.gradle.kts")
 
         when:
         // The daemon caches the compiled plugins block of the plugin build script, so this time the stage 1 blocks
@@ -513,7 +518,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         then:
         thrown(BuildException)
         def secondSync = modelCollector.model
-        assertHasStage1BlocksAccessorsInClassPath(secondSync, "build-logic/build.gradle.kts")
+        assertHasPluginSpecBuildersAccessorsInClassPath(secondSync, "build-logic/build.gradle.kts")
+        assertHasVersionCatalogAccessorsInClassPath(secondSync, "build-logic/build.gradle.kts")
         classPathsOf(secondSync) == classPathsOf(firstSync)
 
         where:
@@ -891,7 +897,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
                 if (stage1BlocksAccessors) {
                     // From 9.9 the stage 1 blocks accessors (plugin spec builders) are generated even though the project failed,
                     // so the classpath is the original one without the project accessors and the build-logic jar
-                    modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { (!it.contains("/accessors/") || it.contains("-PS/")) && !it.contains("/build-logic.jar") }
+                    modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { (!it.contains("/accessors/") || it.contains("-PS/") || it.contains("-VC/")) && !it.contains("/build-logic.jar") }
                 } else {
                     modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") && !it.contains("/build-logic.jar") }
                 }
@@ -1236,9 +1242,15 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         }
     }
 
-    void assertHasStage1BlocksAccessorsInClassPath(KotlinModel model, String expectedFile) {
-        assertHasClassPathEntry(model, expectedFile, "with the stage 1 blocks accessors") {
+    void assertHasPluginSpecBuildersAccessorsInClassPath(KotlinModel model, String expectedFile) {
+        assertHasClassPathEntry(model, expectedFile, "with the plugin spec builders accessors") {
             it.contains("/accessors/") && it.contains("-PS/")
+        }
+    }
+
+    void assertHasVersionCatalogAccessorsInClassPath(KotlinModel model, String expectedFile) {
+        assertHasClassPathEntry(model, expectedFile, "with the version catalog accessors") {
+            it.contains("/accessors/") && it.contains("-VC/")
         }
     }
 
