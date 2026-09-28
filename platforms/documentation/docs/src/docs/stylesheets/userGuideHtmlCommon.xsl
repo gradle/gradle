@@ -46,16 +46,35 @@
         <link href="base.css" rel="stylesheet" type="text/css"/>
         <link id="hljs-theme" rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-light.min.css"/>
         <script>(function() {
+            // Tri-state theme: localStorage.theme is 'light', 'dark', or 'system' (or
+            // absent, treated as 'system'). 'system' follows OS `prefers-color-scheme`
+            // and responds live to OS-theme changes; explicit 'light' or 'dark' pins
+            // the theme until the user toggles again. Kept in sync with the user
+            // manual's head.html so the theme carries across both sets of pages.
             var LIGHT = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-light.min.css';
             var DARK = 'https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.11.1/styles/stackoverflow-dark.min.css';
             var mql = window.matchMedia('(prefers-color-scheme: dark)');
             var hljsEl = document.getElementById('hljs-theme');
-            function apply(dark) {
-                document.documentElement.setAttribute('data-theme', dark ? 'dark' : 'light');
-                if (hljsEl) { hljsEl.href = dark ? DARK : LIGHT; }
+            function stored() {
+                try { return localStorage.getItem('theme'); } catch (err) { return null; }
             }
-            apply(mql.matches);
-            mql.addEventListener('change', function(e) { apply(e.matches); });
+            function followSystem() {
+                var t = stored();
+                return !(t === 'light' || t === 'dark');
+            }
+            function apply(theme) {
+                document.documentElement.setAttribute('data-theme', theme);
+                if (hljsEl) { hljsEl.href = theme === 'dark' ? DARK : LIGHT; }
+            }
+            function resolve() {
+                var t = stored();
+                if (t === 'light' || t === 'dark') { return t; }
+                return mql.matches ? 'dark' : 'light';
+            }
+            apply(resolve());
+            mql.addEventListener('change', function(e) {
+                if (followSystem()) { apply(e.matches ? 'dark' : 'light'); }
+            });
         })();</script>
     </xsl:template>
 
