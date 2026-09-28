@@ -20,7 +20,7 @@ import java.io.File
 
 
 /**
- * Routes Gradle builds that build-logic tests launch through TestKit to the CI repository mirrors.
+ * Routes Gradle builds that build logic launches, from TestKit tests or from tasks, to the CI repository mirrors.
  *
  * The outer build mirrors its own repositories by applying `gradle/shared-with-buildSrc/mirrors.settings.gradle.kts`
  * from every settings script. A build launched with `GradleRunner` never sees that, so tests add
@@ -59,7 +59,18 @@ object RepositoryMirrors {
      * Empty when no mirrors are configured.
      */
     @JvmStatic
-    fun testKitArguments(): List<String> {
+    fun testKitArguments(): List<String> =
+        arguments { mirrorsScriptAboveWorkingDirectory() }
+
+    /**
+     * Arguments to add to a Gradle build that build logic launches itself, for example via `ExecOperations`.
+     * Empty when no mirrors are configured.
+     */
+    fun launchedBuildArguments(repoRoot: File): List<String> =
+        arguments { repoRoot.resolve(MIRRORS_SCRIPT) }
+
+    private
+    fun arguments(mirrorsScript: () -> File): List<String> {
         if (mirrorUrls.isEmpty()) {
             return emptyList()
         }
@@ -75,7 +86,7 @@ object RepositoryMirrors {
      * closest ancestor that holds the shared mirrors script.
      */
     private
-    fun mirrorsScript(): File =
+    fun mirrorsScriptAboveWorkingDirectory(): File =
         generateSequence(File("").absoluteFile) { it.parentFile }
             .map { it.resolve(MIRRORS_SCRIPT) }
             .firstOrNull { it.isFile }

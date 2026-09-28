@@ -16,6 +16,7 @@
 
 package gradlebuild.integrationtests.androidhomewarmup
 
+import gradlebuild.basics.RepositoryMirrors
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.ListProperty
@@ -147,14 +148,16 @@ abstract class AndroidHomeWarmupTask : DefaultTask() {
 
     private fun buildProject(projectDir: File) {
         val wrapperName = if (OperatingSystem.current().isWindows) "gradlew.bat" else "gradlew"
-        val gradleExecutable = rootProjectDir.file(wrapperName).get().asFile.absolutePath
+        val rootDir = rootProjectDir.get().asFile
+        val gradleExecutable = rootDir.resolve(wrapperName).absolutePath
 
         logger.info("Building project in $projectDir using $gradleExecutable")
 
         val result: ExecResult = execOperations.exec {
             workingDir = projectDir
             executable = gradleExecutable
-            args = listOf("build", "--no-daemon", "--quiet", "-x", "lint", "-x", "lintDebug", "-x", "lintRelease")
+            args = listOf("build", "--no-daemon", "--quiet", "-x", "lint", "-x", "lintDebug", "-x", "lintRelease") +
+                RepositoryMirrors.launchedBuildArguments(rootDir)
             isIgnoreExitValue = false
         }
 
