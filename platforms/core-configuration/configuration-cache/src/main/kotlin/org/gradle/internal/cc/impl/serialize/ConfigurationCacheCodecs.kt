@@ -53,7 +53,6 @@ import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.serialize.BaseSerializerFactory.HASHCODE_SERIALIZER
 import org.gradle.internal.serialize.codecs.core.BooleanValueSnapshotCodec
-import org.gradle.internal.serialize.codecs.core.BuildLayoutCodec
 import org.gradle.internal.serialize.codecs.core.BuildServiceParameterCodec
 import org.gradle.internal.serialize.codecs.core.BuildServiceProviderCodec
 import org.gradle.internal.serialize.codecs.core.CalculatedValueContainerCodec
@@ -317,9 +316,6 @@ class DefaultConfigurationCacheCodecs(
             bind(NullValueSnapshotCodec)
 
             bind(GradlePropertiesCodec)
-            // Must precede ServicesCodec: BuildLayout is a @ServiceScope type that ServicesCodec
-            // would otherwise try (and fail) to re-resolve from the task's own scope on load.
-            bind(BuildLayoutCodec)
             bind(ServicesCodec)
 
             bind(ProxyCodec)

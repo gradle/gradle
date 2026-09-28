@@ -27,6 +27,8 @@ import org.gradle.features.binding.ProjectTypeBinding
 import org.gradle.features.binding.ProjectTypeBindingBuilder
 import org.gradle.kotlin.dsl.accessors.DCL_ENABLED_PROPERTY_NAME
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.test.fixtures.dsl.GradleDsl
 import kotlin.test.Test
 
 class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
@@ -123,7 +125,7 @@ class OptInDclAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 }
 
                 repositories {
-                    mavenCentral()
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
                 }
 
                 gradlePlugin {

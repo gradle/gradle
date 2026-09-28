@@ -17,6 +17,7 @@
 package org.gradle.integtests.configuration
 
 import org.gradle.api.internal.ExecuteDomainObjectCollectionCallbackBuildOperationType
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.api.internal.plugins.ApplyPluginBuildOperationType
 import org.gradle.api.internal.tasks.RealizeTaskBuildOperationType
 import org.gradle.configuration.ApplyScriptPluginBuildOperationType
@@ -371,7 +372,7 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
             apply from: 'callback.gradle'
 
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
             }
 
             configurations.foo.resolve()

@@ -117,6 +117,10 @@ class RepoScriptBlockUtil {
         MirroredRepository.LIGHTBEND_IVY.getRepositoryDefinition(dsl)
     }
 
+    static String getGoogleMirrorUrl() {
+        MirroredRepository.GOOGLE.mirrorUrl
+    }
+
     static String googleRepositoryDefinition(GradleDsl dsl = GROOVY) {
         MirroredRepository.GOOGLE.getRepositoryDefinition(dsl)
     }

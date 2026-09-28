@@ -17,6 +17,7 @@
 package org.gradle.plugin.use
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestEnvironmentPreconditions
@@ -126,7 +127,7 @@ class DeployedPortalIntegrationSpec extends AbstractIntegrationSpec {
         buildFile """
             buildscript {
                 repositories {
-                    gradlePluginPortal()
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition()}
                 }
                 dependencies {
                     classpath "$helloWorldGroup:$helloWorldName:$HELLO_WORLD_PLUGIN_VERSION"

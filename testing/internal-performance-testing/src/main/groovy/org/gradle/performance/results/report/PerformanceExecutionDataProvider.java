@@ -25,6 +25,7 @@ import org.gradle.performance.results.PerformanceReportScenarioHistoryExecution;
 import org.gradle.performance.results.PerformanceTestExecution;
 import org.gradle.performance.results.PerformanceTestExecutionResult;
 import org.gradle.performance.results.ResultsStore;
+import org.gradle.performance.results.UnmeasuredExecution;
 import org.gradle.performance.util.Git;
 
 import java.io.File;
@@ -92,12 +93,23 @@ public abstract class PerformanceExecutionDataProvider {
         return executions.stream().map(this::extractExecutionData).filter(Objects::nonNull).collect(toList());
     }
 
-    private PerformanceReportScenarioHistoryExecution extractExecutionData(PerformanceTestExecution performanceTestExecution) {
-        List<MeasuredOperationList> nonEmptyExecutions = performanceTestExecution
-            .getScenarios()
-            .stream()
-            .filter(testExecution -> !testExecution.getTotalTime().isEmpty())
+    /**
+     * The counterpart of {@link #removeEmptyExecution}: the rows it drops, kept as {@link UnmeasuredExecution}.
+     *
+     * A scenario that errors out before measuring anything still writes its execution row - the runner reports in a
+     * {@code finally} block - so these rows are how the report learns that this pipeline ran a scenario and it failed
+     * without producing a measurement. Discarding them silently is what let a broken scenario stay invisible to the
+     * build gate.
+     */
+    protected List<UnmeasuredExecution> unmeasuredExecutions(List<? extends PerformanceTestExecution> executions) {
+        return executions.stream()
+            .filter(execution -> !hasComparableMeasurements(execution))
+            .map(execution -> new UnmeasuredExecution(execution.getTeamCityBuildId(), getCommit(execution)))
             .collect(toList());
+    }
+
+    private PerformanceReportScenarioHistoryExecution extractExecutionData(PerformanceTestExecution performanceTestExecution) {
+        List<MeasuredOperationList> nonEmptyExecutions = measuredScenarios(performanceTestExecution);
         if (nonEmptyExecutions.size() > 1) {
             int size = nonEmptyExecutions.size();
             return new PerformanceReportScenarioHistoryExecution(
@@ -110,6 +122,22 @@ public abstract class PerformanceExecutionDataProvider {
         } else {
             return null;
         }
+    }
+
+    /**
+     * Whether this row holds enough measurements to compare a baseline against the version under test. Fewer than two
+     * non-empty series means no comparison is possible, which is the shape of an errored run.
+     */
+    private static boolean hasComparableMeasurements(PerformanceTestExecution performanceTestExecution) {
+        return measuredScenarios(performanceTestExecution).size() > 1;
+    }
+
+    private static List<MeasuredOperationList> measuredScenarios(PerformanceTestExecution performanceTestExecution) {
+        return performanceTestExecution
+            .getScenarios()
+            .stream()
+            .filter(testExecution -> !testExecution.getTotalTime().isEmpty())
+            .collect(toList());
     }
 
     private String getCommit(PerformanceTestExecution execution) {

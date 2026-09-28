@@ -74,6 +74,7 @@ public class DefaultPerformanceExecutionDataProvider extends PerformanceExecutio
         return new PerformanceReportScenario(
             teamCityExecutionsOfSameScenario,
             historyExecutions,
+            unmeasuredExecutions(history.getExecutions()),
             history instanceof CrossBuildPerformanceTestHistory,
             performanceTestBuildIds,
             commitId

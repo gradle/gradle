@@ -28,6 +28,8 @@ class M2Installation implements Action<GradleExecuter> {
     private TestFile userM2Directory
     private TestFile userSettingsFile
     private TestFile globalMavenDirectory
+    private MavenLocalRepository userRepository
+    private String centralMirrorUrl
     private TestFile globalSettingsFile
     private TestFile isolatedMavenRepoForLeakageChecks
     private boolean isolateMavenLocal = true
@@ -90,11 +92,43 @@ class M2Installation implements Action<GradleExecuter> {
 
     M2Installation generateUserSettingsFile(MavenLocalRepository userRepository) {
         init()
-        userSettingsFile.text = """
-<settings>
-    <localRepository>${userRepository.rootDir.absolutePath}</localRepository>
-</settings>"""
+        this.userRepository = userRepository
+        writeUserSettingsFile()
         return this
+    }
+
+    /**
+     * Adds a {@code <mirrorOf>central</mirrorOf>} mirror to the generated user settings.
+     *
+     * <p>Together with {@code -Dorg.gradle.mirror.maven.settings=true} this redirects
+     * {@code mavenCentral()} for every repository the build creates, including those of a
+     * {@code ProjectInternal.DetachedResolver}, which an init script cannot reach.</p>
+     */
+    M2Installation withCentralMirror(String mirrorUrl) {
+        init()
+        this.centralMirrorUrl = mirrorUrl
+        writeUserSettingsFile()
+        return this
+    }
+
+    private static String xmlEscape(String value) {
+        value.replace("&", "&amp;").replace("<", "&lt;").replace(">", "&gt;")
+    }
+
+    private void writeUserSettingsFile() {
+        def localRepository = userRepository == null ? "" : """
+    <localRepository>${userRepository.rootDir.absolutePath}</localRepository>"""
+        def mirrors = centralMirrorUrl == null ? "" : """
+    <mirrors>
+        <mirror>
+            <id>central-mirror</id>
+            <mirrorOf>central</mirrorOf>
+            <url>${xmlEscape(centralMirrorUrl)}</url>
+        </mirror>
+    </mirrors>"""
+        userSettingsFile.text = """
+<settings>${localRepository}${mirrors}
+</settings>"""
     }
 
     M2Installation generateGlobalSettingsFile(MavenLocalRepository globalRepository = mavenRepo()) {
