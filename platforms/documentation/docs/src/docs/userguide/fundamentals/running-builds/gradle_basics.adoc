@@ -22,15 +22,6 @@ image::gradle-basic-1.png[]
 [[sec:core_concepts]]
 == Core concepts
 
-++++
-<p>
-  <div style="position:relative;padding-top:56.25%;">
-    <iframe src="https://www.youtube-nocookie.com/embed/Vw39uWQ08Go?si=Qt7qceGy2EDgkU0a&rel=0" frameborder="0" allowfullscreen
-      style="position:absolute;top:0;left:0;width:100%;height:100%;"></iframe>
-  </div>
-</p>
-++++
-
 Gradle builds are defined in terms of *projects* and *tasks*, configured using *build scripts* written in *Groovy* or *Kotlin*.
 
 [cols="1,2", options="header"]
