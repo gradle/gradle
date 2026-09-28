@@ -51,3 +51,5 @@ include("default-settings-plugins")
 include("version-catalogs")
 
 rootProject.name = "build-logic-settings"
+
+apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
