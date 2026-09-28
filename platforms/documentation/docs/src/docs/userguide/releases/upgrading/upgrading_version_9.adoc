@@ -67,6 +67,26 @@ The following issues track the development of TestKit APIs for this purpose:
 These APIs are intentionally focused on testing use cases.
 If you extract the report data for other purposes, please comment on these issues and describe your use case.
 
+[[service_method_added_to_scripts_and_tasks]]
+==== New `service(Class)` method in scripts and on `Task`
+
+Gradle 9.9.0 adds an incubating `service(Class)` method to Groovy DSL scripts (link:{javadocPath}/org/gradle/api/Script.html[`Script`]) and to link:{javadocPath}/org/gradle/api/Task.html[`Task`], along with `service(Class)` and reified `service<T>()` functions in Kotlin DSL scripts and a reified `Task.service<T>()` extension.
+See <<service_injection.adoc#looking_up_services,Looking up services in scripts and task actions>> for details.
+
+If your build already exposes something called `service` that is called from a script or on a task (for example, a method or extension added to `Project`, a Groovy dynamic method, a Kotlin extension function, or a member of a custom task type), the new built-in member may shadow it or make calls ambiguous.
+In the Groovy DSL, a method of the script is found before a method of the script's target, so an unqualified `service(...)` call in a script now resolves to the new method first.
+Rename your member (for example, to `myService`) to disambiguate:
+
+[source,kotlin]
+.build.gradle.kts
+----
+// Before: can clash with the new built-in service() of build scripts
+fun Project.service(name: String): MyService = extensions.getByName(name) as MyService
+
+// After: rename to avoid the conflict
+fun Project.myService(name: String): MyService = extensions.getByName(name) as MyService
+----
+
 === Deprecations
 
 [[kotlin_dsl_scripts_model_explicit_scripts]]

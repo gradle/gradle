@@ -19,6 +19,10 @@ package org.gradle.api.file;
 import org.gradle.api.Action;
 import org.gradle.api.Incubating;
 import org.gradle.api.provider.Provider;
+import org.gradle.api.services.GradleService;
+import org.gradle.api.services.ProjectService;
+import org.gradle.api.services.SettingsService;
+import org.gradle.api.services.TaskService;
 import org.gradle.api.tasks.WorkResult;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
@@ -32,7 +36,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  * @since 6.0
  */
 @ServiceScope({Scope.Build.class, Scope.Project.class})
-public interface FileSystemOperations {
+public interface FileSystemOperations extends GradleService, ProjectService, SettingsService, TaskService {
 
     /**
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive. The given action is used

@@ -376,4 +376,35 @@ public interface Script {
      * @since 4.0
      */
     <T> Provider<T> provider(Callable<T> value);
+
+    /**
+     * Looks up a service provided by Gradle for use in this script.
+     *
+     * <p>Only a curated set of services can be obtained this way, depending on the kind of script:
+     *
+     * <table>
+     *   <caption>Services available for lookup</caption>
+     *   <tr><th>Service</th><th>Build scripts</th><th>Settings scripts</th><th>Init scripts</th></tr>
+     *   <tr><td>{@link org.gradle.api.file.ArchiveOperations}</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+     *   <tr><td>{@link org.gradle.api.file.BuildLayout}</td><td></td><td>&#10003;</td><td></td></tr>
+     *   <tr><td>{@link org.gradle.api.file.FileSystemOperations}</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+     *   <tr><td>{@link org.gradle.api.model.ObjectFactory}</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+     *   <tr><td>{@link org.gradle.api.file.ProjectLayout}</td><td>&#10003;</td><td></td><td></td></tr>
+     *   <tr><td>{@link org.gradle.api.provider.ProviderFactory}</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td></tr>
+     * </table>
+     *
+     * <p>This method belongs to the script and is not available at execution time.
+     * To look up a service from a task action, use {@link Task#service(Class)}.
+     *
+     * @param serviceType the type of the service to look up
+     * @param <T> the type of the service to look up
+     * @return the service instance
+     * @throws org.gradle.api.InvalidUserDataException when the given type is not one of the services available to this script
+     * @see org.gradle.api.services.ProjectService
+     * @see org.gradle.api.services.SettingsService
+     * @see org.gradle.api.services.GradleService
+     * @since 9.9.0
+     */
+    @Incubating
+    <T> T service(Class<T> serviceType);
 }

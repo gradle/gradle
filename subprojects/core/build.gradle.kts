@@ -292,6 +292,30 @@ tasks.test {
     setForkEvery(200)
 }
 
+// The services available for lookup with service() are repeated by hand in the user guide and in the Javadoc of
+// Script.service(); a unit test keeps both in sync with the allowlist in PublicServiceLookups.
+tasks.test {
+    jvmArgumentProviders.add(objects.newInstance<ServiceLookupDocumentationProvider>().apply {
+        guide = layout.settingsDirectory.file("platforms/documentation/docs/src/docs/userguide/reference/gradle-types/service_injection.adoc")
+        scriptSource = layout.settingsDirectory.file("subprojects/core-api/src/main/java/org/gradle/api/Script.java")
+    })
+}
+
+abstract class ServiceLookupDocumentationProvider : CommandLineArgumentProvider {
+    @get:PathSensitive(PathSensitivity.NONE)
+    @get:InputFile
+    abstract val guide: RegularFileProperty
+
+    @get:PathSensitive(PathSensitivity.NONE)
+    @get:InputFile
+    abstract val scriptSource: RegularFileProperty
+
+    override fun asArguments() = listOf(
+        "-Dorg.gradle.services.serviceInjectionGuide=${guide.get().asFile}",
+        "-Dorg.gradle.services.scriptSource=${scriptSource.get().asFile}"
+    )
+}
+
 integTest.testJvmXmx = "1g"
 
 tasks.compileTestGroovy {

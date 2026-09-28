@@ -18,18 +18,26 @@ package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.FileOperations
+import org.gradle.api.internal.services.PublicServiceLookups
+import org.gradle.api.internal.services.PublicServiceLookups.EntryPoint
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.PluginAware
+import org.gradle.api.services.SettingsService
+import org.gradle.kotlin.dsl.SettingsScriptServiceLookup
 import kotlin.script.experimental.annotations.KotlinScript
 
 
 @KotlinScript(compilationConfiguration = SettingsScriptCompilationConfiguration::class)
 open class CompiledKotlinSettingsScript(
     private val host: KotlinScriptHost<Settings>
-) : DefaultKotlinScript(SettingsScriptHost(host)), PluginAware by PluginAwareScript(host) {
+) : DefaultKotlinScript(SettingsScriptHost(host)), PluginAware by PluginAwareScript(host), SettingsScriptServiceLookup {
+
+    override fun <T : SettingsService> service(serviceType: Class<T>): T =
+        lookupService(serviceType)
 
     /**
      * The [ScriptHandler] for this script.
@@ -42,6 +50,9 @@ open class CompiledKotlinSettingsScript(
         override fun getLogger(): Logger = Logging.getLogger(Settings::class.java)
         override fun getLogging(): LoggingManager = host.target.serviceOf()
         override fun getFileOperations(): FileOperations = host.fileOperations
+        // Deliberately not host.serviceRegistry / serviceOf(): those resolve against the build scope.
+        override fun <T : Any> lookupService(serviceType: Class<T>): T =
+            PublicServiceLookups.lookup(serviceType, EntryPoint.SETTINGS, (host.target as SettingsInternal).services)
     }
 }
 

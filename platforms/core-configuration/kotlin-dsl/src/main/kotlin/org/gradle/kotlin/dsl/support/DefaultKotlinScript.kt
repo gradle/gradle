@@ -25,8 +25,12 @@ import org.gradle.api.file.CopySpec
 import org.gradle.api.file.DeleteSpec
 import org.gradle.api.file.FileTree
 import org.gradle.api.initialization.Settings
+import org.gradle.api.internal.GradleInternal
+import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.file.FileOperations
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.services.PublicServiceLookups
+import org.gradle.api.internal.services.PublicServiceLookups.EntryPoint
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
@@ -44,7 +48,7 @@ import java.net.URI
  * a suitable [host][Host].
  */
 open class DefaultKotlinScript internal constructor(
-    host: Host
+    private val host: Host
 ) : KotlinScript, GradleScript {
 
     internal
@@ -52,7 +56,15 @@ open class DefaultKotlinScript internal constructor(
         fun getLogger(): Logger
         fun getLogging(): LoggingManager
         fun getFileOperations(): FileOperations
+        fun <T : Any> lookupService(serviceType: Class<T>): T
     }
+
+    /**
+     * Backs the `service()` members of the script base classes, which each bound `T` by the marker of their scope.
+     */
+    internal
+    fun <T : Any> lookupService(serviceType: Class<T>): T =
+        host.lookupService(serviceType)
 
     override val logging: LoggingManager by unsafeLazy(host::getLogging)
 
@@ -130,6 +142,8 @@ class ProjectScriptHost(val project: Project) : DefaultKotlinScript.Host {
     override fun getLogger(): Logger = project.logger
     override fun getLogging(): LoggingManager = project.logging
     override fun getFileOperations(): FileOperations = projectInternal().fileOperations
+    override fun <T : Any> lookupService(serviceType: Class<T>): T =
+        PublicServiceLookups.lookup(serviceType, EntryPoint.PROJECT, projectInternal().services)
     fun projectInternal() = (project as ProjectInternal)
 }
 
@@ -144,6 +158,9 @@ class SettingsScriptHost(val settings: Settings) : DefaultKotlinScript.Host {
     override fun getLogger(): Logger = Logging.getLogger(Settings::class.java)
     override fun getLogging(): LoggingManager = settings.serviceOf()
     override fun getFileOperations(): FileOperations = fileOperationsFor(settings)
+    // Deliberately not serviceRegistryOf(settings): that resolves against the build scope.
+    override fun <T : Any> lookupService(serviceType: Class<T>): T =
+        PublicServiceLookups.lookup(serviceType, EntryPoint.SETTINGS, (settings as SettingsInternal).services)
 }
 
 
@@ -157,4 +174,6 @@ class GradleScriptHost(val gradle: Gradle) : DefaultKotlinScript.Host {
     override fun getLogger(): Logger = Logging.getLogger(Gradle::class.java)
     override fun getLogging(): LoggingManager = gradle.serviceOf()
     override fun getFileOperations(): FileOperations = fileOperationsFor(gradle, null)
+    override fun <T : Any> lookupService(serviceType: Class<T>): T =
+        PublicServiceLookups.lookup(serviceType, EntryPoint.GRADLE, (gradle as GradleInternal).services)
 }

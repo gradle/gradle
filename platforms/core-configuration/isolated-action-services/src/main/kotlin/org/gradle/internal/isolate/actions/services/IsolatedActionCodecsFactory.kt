@@ -24,6 +24,7 @@ import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.services.internal.BuildServiceProvider
 import org.gradle.internal.isolate.graph.IsolationCodecsProvider
 import org.gradle.internal.reflection.access.ObjectOpener
+import org.gradle.internal.serialize.codecs.core.BuildLayoutCodec
 import org.gradle.internal.serialize.codecs.core.DirectoryCodec
 import org.gradle.internal.serialize.codecs.core.DirectoryPropertyCodec
 import org.gradle.internal.serialize.codecs.core.FixedValueReplacingProviderCodec
@@ -85,6 +86,8 @@ class IsolatedActionCodecsFactory(
         bind(LoggerCodec)
         bind(ProxyCodec)
 
+        // Must precede ServicesCodec, see BuildLayoutCodec
+        bind(BuildLayoutCodec)
         bind(ServicesCodec)
 
         bind(JavaObjectSerializationCodec(javaSerializationEncodingLookup, objectOpener))

@@ -23,6 +23,9 @@ import org.gradle.api.invocation.Gradle
 import org.gradle.api.plugins.PluginAware
 import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderConvertible
+import org.gradle.api.services.GradleService
+import org.gradle.api.services.ProjectService
+import org.gradle.api.services.SettingsService
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment
 import org.gradle.kotlin.dsl.support.DefaultKotlinScript
@@ -91,7 +94,11 @@ object PrecompiledPluginsBlockCompilationConfiguration : ScriptCompilationConfig
 @GradleDsl
 open class PrecompiledInitScript(
     target: Gradle
-) : DefaultKotlinScript(defaultKotlinScriptHostForGradle(target)), PluginAware by target
+) : DefaultKotlinScript(defaultKotlinScriptHostForGradle(target)), PluginAware by target, InitScriptServiceLookup {
+
+    override fun <T : GradleService> service(serviceType: Class<T>): T =
+        lookupService(serviceType)
+}
 
 
 /**
@@ -107,7 +114,10 @@ open class PrecompiledInitScript(
 @GradleDsl
 open class PrecompiledSettingsScript(
     target: Settings
-) : DefaultKotlinScript(defaultKotlinScriptHostForSettings(target)), PluginAware by target {
+) : DefaultKotlinScript(defaultKotlinScriptHostForSettings(target)), PluginAware by target, SettingsScriptServiceLookup {
+
+    override fun <T : SettingsService> service(serviceType: Class<T>): T =
+        lookupService(serviceType)
 
     /**
      * Configures the plugin dependencies for this settings script.
@@ -165,7 +175,10 @@ open class PrecompiledSettingsScript(
 @GradleDsl
 open class PrecompiledProjectScript(
     target: Project
-) : DefaultKotlinScript(defaultKotlinScriptHostForProject(target)), PluginAware by target {
+) : DefaultKotlinScript(defaultKotlinScriptHostForProject(target)), PluginAware by target, ProjectScriptServiceLookup {
+
+    override fun <T : ProjectService> service(serviceType: Class<T>): T =
+        lookupService(serviceType)
 
     /**
      * Configures the build script classpath for this project.
