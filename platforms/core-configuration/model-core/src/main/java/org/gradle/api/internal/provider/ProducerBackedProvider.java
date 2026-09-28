@@ -35,20 +35,20 @@ public class ProducerBackedProvider<T> extends AbstractMinimalProvider<T> implem
     private final ModelObject producer;
 
     /**
-     * Declares the given provider as an output of the given model object. Providers that can record the
-     * producer themselves are returned as is, any other provider is wrapped.
+     * Declares the given provider as an output property of the given owner, whose task produces the value.
+     * Providers that can record the producer themselves are returned as is, any other provider is wrapped.
      */
-    public static <T> ProviderInternal<T> of(ProviderInternal<T> provider, ModelObject producer) {
+    public static <T> ProviderInternal<T> of(ProviderInternal<T> provider, ModelObject owner) {
         if (provider instanceof ProducerAware) {
-            ((ProducerAware) provider).attachProducer(producer);
+            ((ProducerAware) provider).attachProducer(owner);
             return provider;
         }
-        return new ProducerBackedProvider<>(provider, producer);
+        return new ProducerBackedProvider<>(provider, owner);
     }
 
-    private ProducerBackedProvider(ProviderInternal<T> delegate, ModelObject producer) {
+    private ProducerBackedProvider(ProviderInternal<T> delegate, ModelObject owner) {
         this.delegate = delegate;
-        this.producer = producer;
+        this.producer = owner;
     }
 
     public ProviderInternal<T> getDelegate() {
