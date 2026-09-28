@@ -80,8 +80,14 @@ if ! LD_PRELOAD="${SHIM}" getent ahosts "${ALLOWED_HOST}" >/dev/null; then
 fi
 echo "Verified getent cannot resolve ${BLOCKED_HOST} but resolves ${ALLOWED_HOST}."
 
-JAVA="${JAVA_HOME:+${JAVA_HOME}/bin/}java"
-if ! command -v "${JAVA}" >/dev/null; then
+JAVA=""
+for candidate in "${JAVA_HOME:+${JAVA_HOME}/bin/java}" "$(command -v java || true)" /opt/jdk/*/bin/java; do
+  if [[ -x "${candidate}" ]]; then
+    JAVA="${candidate}"
+    break
+  fi
+done
+if [[ -z "${JAVA}" ]]; then
   warn "no java found to check the shim with, skipping"
   exit 0
 fi
