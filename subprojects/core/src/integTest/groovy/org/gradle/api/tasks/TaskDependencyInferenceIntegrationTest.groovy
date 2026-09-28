@@ -1230,6 +1230,37 @@ The following types/formats are supported:
     }
 
     @Issue("https://github.com/gradle/gradle/issues/25645")
+    def "plain Provider output registered via the runtime API #description is not reported as a validation problem"() {
+        taskTypeWithInputFileCollection()
+        buildFile << """
+            def a = tasks.register("a") {
+                def output = layout.buildDirectory.file("file.txt")
+                outputs.file($registration).withPropertyName("output")
+                doLast {
+                    output.get().asFile.text = "1"
+                }
+            }
+            tasks.register("b", InputFilesTask) {
+                inFiles.from(a.map { it.outputs.files })
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        // Fails on the unexpected deprecation warning, if reported
+        run("b")
+
+        then:
+        result.assertTasksScheduled(":a", ":b")
+        file("out.txt").text == "1"
+
+        where:
+        description                          | registration
+        "directly"                           | 'output'
+        "through a closure"                  | '{ output }'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25645")
     def "output declared as a plain Provider #description is reported as a validation problem"() {
         buildFile << """
             class PlainProviderOutputTask extends DefaultTask {
