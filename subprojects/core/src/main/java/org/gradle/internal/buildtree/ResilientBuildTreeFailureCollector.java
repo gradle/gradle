@@ -43,10 +43,7 @@ public final class ResilientBuildTreeFailureCollector {
      */
     public synchronized void collectFrom(ToolingModelScopeResult result) {
         configurationFailures.addAll(result.getConfigurationFailures());
-        Throwable modelBuilderFailure = result.getModelBuilderFailure();
-        if (modelBuilderFailure != null) {
-            modelBuilderFailures.add(modelBuilderFailure);
-        }
+        modelBuilderFailures.addAll(result.getModelBuilderFailures());
     }
 
     public synchronized List<Throwable> getConfigurationFailures() {
