@@ -140,8 +140,10 @@ class StartParameterConverterTest extends Specification {
         ["--no-agent"]                            | [:]                         | false
         ["-Dorg.gradle.agent=true"]               | [:]                         | true
         []                                        | [ORG_GRADLE_AGENT: "true"]  | true
-        ["-Dorg.gradle.agent=false"]              | [ORG_GRADLE_AGENT: "true"]  | true
-        ["-Dorg.gradle.agent=true"]               | [ORG_GRADLE_AGENT: "false"] | false
+        []                                        | [ORG_GRADLE_AGENT: "TRUE"]  | true
+        []                                        | [ORG_GRADLE_AGENT: "1"]     | false
+        ["-Dorg.gradle.agent=false"]              | [ORG_GRADLE_AGENT: "true"]  | false
+        ["-Dorg.gradle.agent=true"]               | [ORG_GRADLE_AGENT: "false"] | true
         ["--no-agent"]                            | [ORG_GRADLE_AGENT: "true"]  | false
         ["--agent"]                               | [ORG_GRADLE_AGENT: "false"] | true
         ["--no-agent", "-Dorg.gradle.agent=true"] | [:]                         | false
