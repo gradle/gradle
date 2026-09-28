@@ -209,6 +209,7 @@ fun visitProjectHierarchy(
                 val original = failure.original
                 classPathModeExceptionCollector.collect(original as? Exception ?: RuntimeException(original))
             }
+            // Only model builder failures are propagated, configuration failures are reported by the BuildToolingModelController anyway
             failures.addAll(result.modelBuilderFailures)
             result.model?.let {
                 visited.add(ProjectModelWithParentSource(it, parentSourcePath))
