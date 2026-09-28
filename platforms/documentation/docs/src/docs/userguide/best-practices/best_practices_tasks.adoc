@@ -56,16 +56,6 @@ include::sample[dir="snippets/best-practices/avoidDependsOn-avoid/groovy",files=
 
 Instead, you should explicitly wire task inputs and outputs like this:
 
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidDependsOn-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidDependsOn-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
-
 ====
 include::sample[dir="snippets/best-practices/avoidDependsOn-do/kotlin",files="build.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/best-practices/avoidDependsOn-do/groovy",files="build.gradle[tags=do-this]"]
@@ -120,16 +110,6 @@ include::sample[dir="snippets/best-practices/useCacheabilityAnnotations-avoid/gr
 ==== Do This Instead
 
 As this task meets the criteria for cacheability (we can imagine a more complex calculation in the `@TaskAction` that would benefit from automatic work avoidance via caching), you should mark the _task type itself_ as cacheable like this:
-
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/useCacheabilityAnnotations-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/useCacheabilityAnnotations-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
 
 ====
 include::sample[dir="snippets/best-practices/useCacheabilityAnnotations-do/kotlin",files="build.gradle.kts[tags=do-this]"]
@@ -193,16 +173,6 @@ include::sample[dir="snippets/best-practices/avoidProviderGetOutsideTaskAction-a
 
 Instead, you should explicitly wire task inputs and outputs like this:
 
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidProviderGetOutsideTaskAction-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidProviderGetOutsideTaskAction-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
-
 ====
 include::sample[dir="snippets/best-practices/avoidProviderGetOutsideTaskAction-do/kotlin",files="build.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/best-practices/avoidProviderGetOutsideTaskAction-do/groovy",files="build.gradle[tags=do-this]"]
@@ -263,16 +233,6 @@ include::{snippetsPath}/best-practices/groupTasks-avoid/tests/groupTasks.bad.out
 
 When defining custom tasks, always assign a clear `group` and `description`:
 
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/groupTasks-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/groupTasks-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
-
 ====
 include::sample[dir="snippets/best-practices/groupTasks-do/kotlin",files="app/build.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/best-practices/groupTasks-do/groovy",files="app/build.gradle[tags=do-this]"]
@@ -331,16 +291,6 @@ The implementation of `Configuration` doesn't override the plus operator for reg
 To avoid issues, always defer resolution until the execution phase.
 Use APIs that support lazy evaluation.
 
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidJdkCollectionApiOnFileCollections-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidJdkCollectionApiOnFileCollections-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
-
 ====
 include::sample[dir="snippets/best-practices/avoidJdkCollectionApiOnFileCollections-do/kotlin/lib",files="build.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/best-practices/avoidJdkCollectionApiOnFileCollections-do/groovy/lib",files="build.gradle[tags=do-this]"]
@@ -387,16 +337,6 @@ The `lib` project will not be built when the `:app:badClasspathPrinter` task is 
 ==== Do This Instead
 
 To avoid issues, always defer resolution to the execution phase by using lazy APIs like link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection].
-
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidResolvingConfigurationsManually-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidResolvingConfigurationsManually-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
 
 ====
 include::sample[dir="snippets/best-practices/avoidResolvingConfigurationsManually-do/kotlin/app",files="build.gradle.kts[tags=do-this]"]
@@ -454,16 +394,6 @@ include::sample[dir="snippets/best-practices/preferPathSensitivityNone-avoid/gro
 <3> The `search` task is wired to use as input whatever the file the `copy` task moved to its `destinationDir`. Despite the contents of the file being the same, when enabling the `-PuseAlternateInput` after a successful build, the `search` task will be out-of-date due to its different directory, and the search will be rerun.
 
 ==== Do This Instead
-
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/preferPathSensitivityNone-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/preferPathSensitivityNone-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
 
 ====
 include::sample[dir="snippets/best-practices/preferPathSensitivityNone-do/kotlin",files="build.gradle.kts[tags=do-this]"]
@@ -536,16 +466,6 @@ However, a more _complete and idiomatic_ approach realizes that:
 1. Tasks that produce single output files should make this clear from the type of their `@Output` properties.
 2. Tasks that only consume single input files should make this clear from the type of their `@Input` properties.
 
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/uniqueOutputs-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/uniqueOutputs-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
-
 ====
 include::sample[dir="snippets/best-practices/uniqueOutputs-do/kotlin",files="build.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/best-practices/uniqueOutputs-do/groovy",files="build.gradle[tags=do-this]"]
@@ -596,16 +516,6 @@ include::sample[dir="snippets/best-practices/avoidHardcodingTaskNames-avoid/groo
 <2> Using `tasks.named` to get the `generatePomFileForMavenPublication` task: This unnecessarily relies on this task's name, even though it's the only `GenerateMavenPom` task that needs configuring.
 
 ==== Do This Instead
-
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidHardcodingTaskNames-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidHardcodingTaskNames-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
 
 A better option for the `compileJava` configuration is to use a public constant — this task name is part of <<public_apis.adoc#public_gradle_apis,public API>>, so referencing it via the constant is safe:
 
@@ -664,16 +574,6 @@ There are two main problems with this setup:
 2. Because the version is not declared as a task input, Gradle cannot track it. This leads to incorrect up-to-date results if the project version changes.
 
 ==== Do This Instead
-
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/dontAccessProject-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/dontAccessProject-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
 
 To ensure compatibility, avoid accessing the `Project` instance during task execution.
 Instead, tasks should explicitly declare all required inputs.
