@@ -301,9 +301,8 @@ class ConfigurationCacheTaskWiringIntegrationTest extends AbstractConfigurationC
                 final RegularFileProperty inFile = project.objects.fileProperty()
                 @Internal
                 final DirectoryProperty outputDir = project.objects.directoryProperty()
-                private final Provider<RegularFile> output = outputDir.map { it.file("out.txt") }
                 @OutputFile
-                Provider<RegularFile> getOutput() { output }
+                final Provider<RegularFile> output = outputDir.map { it.file("out.txt") }
                 @TaskAction
                 def go() {
                     output.get().asFile.text = inFile.get().asFile.text
