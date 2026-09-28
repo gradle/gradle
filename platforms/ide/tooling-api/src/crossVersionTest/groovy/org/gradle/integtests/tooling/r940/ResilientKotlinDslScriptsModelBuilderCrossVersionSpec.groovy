@@ -1083,9 +1083,9 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
     }
 
     // The scripts model attaches failures per build root, not per project, so the queried build is the finest granularity these expectations can assert.
-    // Each listed build root must report exactly one failure, containing all the given fragments.
+    // Each pair is one expected failure of a build root, containing all the given fragments; pairs of the same build root are its failures in order.
     void assertHasErrorsInScriptModels(KotlinModel model, Pair<String, List<String>>... expected) {
-        assertHasErrorsInScriptModels(model, expected.collectEntries { [(it.left): [it.right]] })
+        assertHasErrorsInScriptModels(model, expected.groupBy { it.left }.collectEntries { buildRoot, pairs -> [(buildRoot): pairs*.right] })
     }
 
     // Each listed build root must report exactly the given failures, in order, each containing all of its fragments.
