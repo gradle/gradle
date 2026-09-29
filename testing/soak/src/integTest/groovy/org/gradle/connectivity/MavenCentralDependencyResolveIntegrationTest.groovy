@@ -88,6 +88,9 @@ task repoNames {
      * that as skipped, and keep failing for everything else: DNS, TLS, firewalls, wrong content.
      */
     private ExecutionResult resolveUnlessThrottled() {
+        if (isBlackholedOnThisAgent()) {
+            throw new TestAbortedException("repo.maven.apache.org resolves to a loopback address on this agent, so Maven Central is deliberately unreachable")
+        }
         try {
             return succeeds("check", "repoNames")
         } catch (UnexpectedBuildFailure failure) {
@@ -95,6 +98,14 @@ task repoNames {
                 throw new TestAbortedException("Maven Central answered HTTP 429; it is reachable but throttling this IP")
             }
             throw failure
+        }
+    }
+
+    private static boolean isBlackholedOnThisAgent() {
+        try {
+            return InetAddress.getAllByName("repo.maven.apache.org").every { it.loopbackAddress }
+        } catch (UnknownHostException ignored) {
+            return false
         }
     }
 

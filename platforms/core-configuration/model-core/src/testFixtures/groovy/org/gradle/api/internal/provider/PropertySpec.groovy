@@ -157,7 +157,7 @@ abstract class PropertySpec<T> extends ProviderSpec<T> {
         property.set((Provider) null)
 
         then:
-        def e = thrown(IllegalArgumentException)
+        def e = thrown(NullPointerException)
         e.message == 'Cannot set the value of a property using a null provider.'
     }
 

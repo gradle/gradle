@@ -1,4 +1,4 @@
-// Copyright (C) 2025 Gradle, Inc.
+// Copyright (C) 2026 Gradle, Inc.
 //
 // Licensed under the Creative Commons Attribution-Noncommercial-ShareAlike 4.0 International License.;
 // you may not use this file except in compliance with the License.
@@ -12,27 +12,75 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
+[[securing_dependencies]]
 [[verifying-dependencies]]
-= Verifying Dependencies
+= Securing Dependencies
 
-Working with external dependencies and plugins from third-party repositories exposes your build to significant supply chain risks.
-Dependencies are the most commonly attacked part of the software supply chain, and every artifact you consume, including transitively pulled-in binaries, needs to be both legitimate and unchanged.
+Every artifact your build consumes, including transitively pulled-in libraries and plugins, becomes part of the code you ship.
+A single compromised dependency deep in the transitive graph can execute during your build, be embedded in your application, or reach your users through a published artifact.
 
 To illustrate the risk, consider building an application that uses the `trusty-lib:1.0` library from a public repository.
 If an attacker successfully replaces `trusty-lib` in the repository with a malicious version having the same coordinates (`trusty-lib:1.0`), your next build will download the compromised code without any warning.
 
-To mitigate these risks and avoid integrating compromised artifacts, Gradle provides *dependency verification*.
+This page covers three practices that protect the dependency layer:
 
-But dependency verification adds overhead: *So why keep it on?*
+1. *Screen for known vulnerabilities:* check the dependencies you already use against public vulnerability databases.
+2. *Verify checksums:* confirm that every artifact you download matches an expected fingerprint (integrity).
+3. *Verify signatures:* confirm that every artifact you download was actually published by the party you expect (provenance).
 
-Because dependency verification is about *trust*: trust that what you download is what you think it is, and that what you ship is what you intended.
+image::securing-builds/securing-dependencies-1.png[]
 
-Without verification, it is easier for attackers to compromise your supply chain by publishing malicious artifacts under trusted coordinates or by tampering with artifacts in transit or at rest.
-Dependency verification helps protect you from these attacks by requiring you to confirm that the artifacts used in your build are the ones you expect.
+Screening tells you whether the dependencies you have chosen contain publicly reported bugs.
+Verification tells you whether the artifacts you actually receive are the ones you meant to receive.
+Both are necessary.
 
-Finding the right balance between security and convenience is hard, but Gradle provides options to let you choose the right level for your needs.
+NOTE: Dependency verification is meant to protect you from compromised dependencies, not to prevent you from including _vulnerable_ dependencies. Vulnerability screening covers the latter.
 
-NOTE: Dependency verification is meant to protect yourself from compromised dependencies, not to prevent you from including _vulnerable_ dependencies.
+[[sec:known_vulnerabilities]]
+== Screen for Known Vulnerabilities
+
+Public vulnerability databases catalog security issues found in released library versions.
+When one of your dependencies is listed with a known vulnerability, you almost always want to know quickly, so you can decide whether to upgrade, patch, or accept the risk.
+
+Screening for known vulnerabilities is separate from checksum and signature verification.
+It answers the question "does this library have a bug I already know about?", not "did I download the file I expected?".
+A dependency can pass every checksum and signature check and still contain a publicly disclosed vulnerability, because the vulnerability is in the code the author intentionally published.
+
+[[sec:vulnerability_options]]
+=== Two Places to Screen
+
+There are two natural places to run a vulnerability screen against a Gradle build:
+
+*As a build task.* A vulnerability-scanner plugin is applied to your build.
+When you run its check task, the plugin resolves the dependency graph, matches every artifact against a vulnerability database, and fails the build (or produces a report) when it finds a match.
+Multiple community and vendor plugins provide this capability; the link:https://plugins.gradle.org/search?term=vulnerability[Gradle Plugin Portal] lists current options.
+Choose one that fits your organization's tolerance for false positives and its policy on database freshness.
+
+*As part of a centralized platform.* Several options move scanning out of the project's build script and onto infrastructure the organization already runs. Two common ones:
+
+* *GitHub* — if your code is hosted on GitHub, Dependabot scans committed dependency manifests and opens alerts (and optionally pull requests) for known vulnerabilities.
+The `dependency-review` GitHub Action extends this to pull requests, failing a PR that introduces a new vulnerable dependency.
+For richer coverage of transitive dependencies, the Gradle Dependency Submission action publishes the resolved dependency graph to GitHub so Dependabot sees the full picture, not just what appears in build scripts.
+* *Develocity* — dependency scanning is a first-class feature of the platform. Scans run against every build without the individual project having to apply a plugin, results are aggregated centrally, and findings are correlated across every project in the organization.
+This is the strongest option for organizations that already run Develocity: it removes the burden of keeping a plugin and its database current in every build and gives security teams a single vantage point over the whole codebase.
+
+Other SCM providers, CI platforms, and security vendors offer comparable capabilities. The pattern to look for is centralized scanning that runs on every build or every change, without requiring per-project plugin upkeep.
+
+[[sec:vulnerability_baseline]]
+=== Establish a Baseline
+
+Regardless of where the scan runs, three habits keep vulnerability screening useful:
+
+1. *Run it on every build*, not just on releases.
+A vulnerability that appears mid-development is cheapest to fix immediately.
+2. *Fail the build on findings above an agreed severity*, rather than treating findings as advisory.
+A report no one reads has the same protective value as no report at all.
+3. *Keep a record of accepted findings*, with a reason and an expiration date.
+Some vulnerabilities have no fix, or the fix is not yet compatible with your code.
+An explicit, time-boxed acceptance is far safer than a permanent, silent exclusion.
+
+Screening addresses vulnerabilities in the code an author *intended* to publish.
+The rest of this page addresses whether the artifact you receive is the one the author actually published.
 
 [[understanding_verification_methods]]
 == Understanding Verification Methods
@@ -46,7 +94,7 @@ Used together, they help ensure you get the right library or plugin from a trust
 Checksums alone verify integrity but not authenticity.
 Signatures alone verify authenticity but may use weak hashes.
 You can use signatures whenever they are available, and fall back to checksums when artifacts are not signed.
-**But for the strongest security, use both.**
+*But for the strongest security, use both.*
 
 WARNING: Signatures can also be used to assess integrity like checksums, but signatures are an _encrypted hash_ of the artifact contents and some metadata, not artifacts themselves.
 If the signature uses an unsafe hash (even `SHA-1`), you're not correctly assessing file integrity.
@@ -124,6 +172,8 @@ Public keys are typically fetched from key servers, which are repositories for p
 * https://pgp.mit.edu
 
 Gradle uses these trusted keys plus the checksum/signature data in `verification-metadata.xml` to ensure that dependencies come from the expected author and have not been tampered with.
+
+WARNING: Gradle requires *full 40-character fingerprint IDs* for `pgp` and `trusted-key` elements, not short or long IDs. Short IDs are trivially collidable. For `ignored-key` elements, either fingerprints or long (64-bit) IDs are accepted.
 
 [[sub:enabling-verification]]
 == Enabling Dependency Verification
@@ -212,7 +262,8 @@ Dependency verification is enabled globally to provide the strongest security le
 However, plugins may need to resolve additional dependencies where verification doesn't make sense.
 
 For example, a plugin might check for newer versions of a library.
-It doesn't make sense to require checksums for versions you don't know about yet. In these cases, you can disable verification for specific configurations using the API.
+It doesn't make sense to require checksums for versions you don't know about yet.
+In these cases, you can disable verification for specific configurations using the API.
 
 WARNING: Disabling dependency verification reduces security. This API exists for cases where verification doesn't make sense. Gradle will print a warning whenever verification has been disabled for a specific configuration.
 
@@ -226,22 +277,8 @@ include::sample[dir="snippets/securing-builds/dependencyVerification-disableVeri
 You can also disable verification on detached configurations:
 
 ====
-[.multi-language-sample]
-=====
-[source,kotlin]
-----
-val detached = configurations.detachedConfiguration(dependencies.create("group:name:1.0"))
-detached.resolutionStrategy.disableDependencyVerification()
-----
-=====
-[.multi-language-sample]
-=====
-[source,groovy]
-----
-def detached = configurations.detachedConfiguration(dependencies.create("group:name:1.0"))
-detached.resolutionStrategy.disableDependencyVerification()
-----
-=====
+include::sample[dir="snippets/securing-builds/dependencyVerification-detachedConfiguration/kotlin",files="build.gradle.kts[tags=detached]"]
+include::sample[dir="snippets/securing-builds/dependencyVerification-detachedConfiguration/groovy",files="build.gradle[tags=detached]"]
 ====
 
 [[sec:skipping-javadocs]]
@@ -335,10 +372,10 @@ org.gradle.dependency.verification.console=verbose
 Gradle can automatically generate a dependency verification file by downloading all your dependencies and recording their checksums or signatures.
 This is called *bootstrapping*.
 
-However, bootstrapping has a critical security limitation: **it trusts whatever is currently in your repositories**.
+However, bootstrapping has a critical security limitation: *it trusts whatever is currently in your repositories*.
 If a malicious dependency has already been introduced into your build (or into a repository you use), Gradle will record the compromised artifact's checksum or signature.
 
-This is why you must **review the generated verification file**.
+This is why you must *review the generated verification file*.
 Bootstrapping is convenient for getting started or updating your verification file, but it's not a substitute for manual verification of critical dependencies.
 
 [[generating_checksums_only]]
@@ -394,7 +431,7 @@ Executing this command will cause Gradle to:
 * At the end of the build, generate the configuration file which will contain the inferred _verification metadata_
 
 Gradle only supports verification of signatures published as ASCII-armored PGP files (`.asc`) on remote repositories.
-Not all artifacts are published with signatures, and signature verification doesn't guarantee the signatory was legitimate—only that the artifact was signed by a specific key.
+Not all artifacts are published with signatures, and signature verification doesn't guarantee the signatory was legitimate, only that the artifact was signed by a specific key.
 
 [[example_verification_metadata_file]]
 === Example Verification Metadata File
@@ -697,9 +734,7 @@ A different failure occurs when the signing key cannot be located on any key ser
 The trailing parenthetical reports how many other keys you already trust for the failing artifact, distinguishing keys trusted for the specific `group:module` from keys trusted for the whole `group`.
 A non-zero count is a strong signal that the signing key has been rotated, rather than this being a brand-new module or group you are trusting for the first time.
 
-WARNING: Gradle requires full fingerprint IDs (40 characters, e.g., `b801e2f8ef035068ec1139cc29579f18fa8fd93b`) for `pgp` and `trusted-key` elements, not short or long IDs. This minimizes the risk of collision attacks. For `ignored-key` elements, you can use either fingerprints or long (64-bit) IDs.
-
-NOTE: The key IDs shown in error messages are from the signature file itself. This doesn't necessarily mean you should trust them—if a malicious entity signed the artifact, Gradle won't detect that. Always verify keys against official sources.
+NOTE: The key IDs shown in error messages are from the signature file itself. This doesn't necessarily mean you should trust them. If a malicious entity signed the artifact, Gradle won't detect that. Always verify keys against official sources.
 
 [[sec:trusting-keys-globally]]
 ==== Adding Global Keys
@@ -788,7 +823,7 @@ IMPORTANT: Anyone can put an arbitrary name when generating a PGP key. Never tru
 You might want to trust some artifacts more than others.
 For example, it's legitimate to think that artifacts produced in your company and found in your internal repository are safe, but you want to check every external component.
 
-NOTE: This is a typical company policy. However, nothing prevents your internal repository from being compromised, so it's a good idea to check your internal artifacts too!
+NOTE: This is a typical company policy. However, nothing prevents an internal repository from being compromised. Verify internal artifacts as well.
 
 You can automatically trust all artifacts in a group by adding this to your configuration:
 
@@ -1000,8 +1035,8 @@ To avoid this, you can export keys to a local keyring file that can be committed
 
 Gradle supports two keyring formats:
 
-* **Binary format** (`.gpg`) - Compact and can be updated via GPG commands, but not human-readable
-* **ASCII-armored format** (`.keys`) - Human-readable, easy to edit manually, and produces readable diffs for code reviews
+* *Binary format* (`.gpg`) - Compact and can be updated via GPG commands, but not human-readable
+* *ASCII-armored format* (`.keys`) - Human-readable, easy to edit manually, and produces readable diffs for code reviews
 
 You can configure which format to use:
 
@@ -1021,7 +1056,8 @@ You can configure which format to use:
 
 Available options are `armored` and `binary`.
 
-Without `keyring-format` specified, if `gradle/verification-keyring.gpg` or `gradle/verification-keyring.keys` exists, Gradle will use it. The binary version (`.gpg`) takes precedence if both exist.
+Without `keyring-format` specified, if `gradle/verification-keyring.gpg` or `gradle/verification-keyring.keys` exists, Gradle will use it.
+The binary version (`.gpg`) takes precedence if both exist.
 
 [[exporting_keys]]
 ==== Exporting Keys
@@ -1064,8 +1100,6 @@ NOTE: Only public key packets and a single userId per key are stored. All other 
 
 Once signature verification is enabled, Gradle follows this workflow for each artifact:
 
-// Really gradle uses gpg to try to recreate the hash and verify that the two hashes match
-
 1. Attempts to download the corresponding `.asc` signature file
 2. If the signature file exists:
 * Looks for the keys in the keyring, if they are not there, automatically downloads the public keys needed for verification
@@ -1078,7 +1112,8 @@ This means Gradle's verification is stronger with signatures enabled than with c
 * If an artifact is signed with multiple keys, all of them must pass validation or the build fails
 * If an artifact passes signature verification, any additional checksums configured for that artifact will also be checked
 
-However, passing signature verification doesn't automatically mean you can trust the artifact—you must explicitly trust the keys by adding them to your verification metadata as shown in <<#sec:manual-update-metadata>>.
+However, passing signature verification doesn't automatically mean you can trust the artifact.
+You must explicitly trust the keys by adding them to your verification metadata as shown in <<#sec:manual-update-metadata>>.
 
 [[sec:bootstrapping-signature-verification]]
 === Bootstrapping with Signatures
@@ -1088,10 +1123,10 @@ However, you must still provide a fallback checksum algorithm (like `SHA256`) be
 
 Gradle performs optimistic verification during bootstrapping and automatically:
 
-* **Auto-adds trusted keys** - When signature verification passes, Gradle adds the key to the trusted keys list
-* **Auto-adds ignored keys** - When a key cannot be downloaded from public key servers, Gradle marks it as ignored in the configuration
-* **Auto-generates checksums** - For artifacts without signatures or with ignored keys, Gradle generates checksums using the fallback algorithm
-* **Auto-groups keys** - Gradle attempts to group keys at the group level (in `<trusted-keys>`) rather than per-artifact to minimize configuration file size
+* *Auto-adds trusted keys* - When signature verification passes, Gradle adds the key to the trusted keys list
+* *Auto-adds ignored keys* - When a key cannot be downloaded from public key servers, Gradle marks it as ignored in the configuration
+* *Auto-generates checksums* - For artifacts without signatures or with ignored keys, Gradle generates checksums using the fallback algorithm
+* *Auto-groups keys* - Gradle attempts to group keys at the group level (in `<trusted-keys>`) rather than per-artifact to minimize configuration file size
 
 WARNING: Bootstrapping takes an optimistic point of view that signature verification is enough. If you also care about integrity, you should first bootstrap using checksum verification, then re-bootstrap with signature verification. This ensures you have checksums for all artifacts before adding signatures.
 
@@ -1131,7 +1166,7 @@ You need to add an entry to the verification file:
 ----
 
 Alternatively, ask Gradle to generate the missing information using <<#sec:bootstrapping-verification,bootstrapping>>.
-Existing information will be preserved—Gradle only adds missing verification metadata.
+Existing information will be preserved; Gradle only adds missing verification metadata.
 
 [[incorrect_checksums]]
 === Incorrect Checksums
@@ -1147,15 +1182,15 @@ Execution failed for task ':compileJava'.
 
 Gradle shows the dependency, expected checksum (declared in metadata file), and actual computed checksum.
 
-**This indicates a dependency may have been compromised.**
+*This indicates a dependency may have been compromised.*
 You must perform manual verification.
 Several scenarios:
 
-* **Dependency tampered in local cache** - Delete the file from cache and Gradle will re-download.
-* **Dependency available in multiple sources with slightly different binaries** - Additional whitespace, timestamps, etc.
+* *Dependency tampered in local cache* - Delete the file from cache and Gradle will re-download.
+* *Dependency available in multiple sources with slightly different binaries* - Additional whitespace, timestamps, etc.
 ** Inform library maintainers about the issue
 ** Use <<#sec:trusting-several-checksums,`also-trust`>> to accept additional checksums
-* **Dependency was compromised**
+* *Dependency was compromised*
 ** Immediately inform library maintainers
 ** Notify repository maintainers
 
@@ -1177,7 +1212,7 @@ You need to verify if the key can be trusted, then refer to <<#sec:understanding
 [[failed_signature_verification]]
 === Failed Signature Verification
 
-If Gradle fails to verify a signature, you must take action because **this may indicate a compromised dependency**.
+If Gradle fails to verify a signature, you must take action because *this may indicate a compromised dependency*.
 
 Gradle will fail with:
 

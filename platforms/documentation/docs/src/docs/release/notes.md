@@ -80,6 +80,13 @@ Gradle provides a [set of features and abstractions](userguide/java_testing.html
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 
+#### Taskbar progress in Windows Terminal
+
+The build progress shown in the terminal is now also reported to the Windows taskbar when running in [Windows Terminal](https://learn.microsoft.com/en-us/windows/terminal/) 1.6 or later, in addition to ConEmu, Ghostty, kitty and iTerm2.
+This makes it easy to see how far a long-running build has progressed while the terminal window is in the background, and it also works in WSL shells hosted by Windows Terminal.
+
+See the [Rich console](userguide/command_line_interface.html#sec:rich_console) section in the Gradle User Manual for more details.
+
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 

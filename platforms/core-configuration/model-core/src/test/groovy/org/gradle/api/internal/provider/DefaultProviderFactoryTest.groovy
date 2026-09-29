@@ -20,6 +20,7 @@ import org.gradle.api.Task
 import org.gradle.api.provider.PresentProvider
 import org.gradle.api.provider.Provider
 import org.gradle.testfixtures.ProjectBuilder
+import spock.lang.Issue
 import spock.lang.Specification
 
 import static org.gradle.api.internal.provider.ProviderTestUtil.withProducer
@@ -37,7 +38,7 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
         providerFactory.provider(null)
 
         then:
-        def t = thrown(IllegalArgumentException)
+        def t = thrown(NullPointerException)
         t.message == 'Value cannot be null'
     }
 
@@ -107,7 +108,7 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
         providerFactory.present(null)
 
         then:
-        def t = thrown(IllegalArgumentException)
+        def t = thrown(NullPointerException)
         t.message == 'Value cannot be null'
     }
 
@@ -142,6 +143,43 @@ class DefaultProviderFactoryTest extends Specification implements ProviderAssert
         then:
         zipped instanceof Provider
         zipped.get() == 'Big black cat'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12307")
+    def "cannot zip when #side provider is null"() {
+        when:
+        providerFactory.zip(left, right) { a, b -> a + b }
+
+        then:
+        def e = thrown(NullPointerException)
+        e.message == "Cannot zip a provider with a null provider."
+
+        where:
+        side    | left              | right
+        "right" | Providers.of("a") | null
+        "left"  | null              | Providers.of("b")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/12307")
+    def "cannot zip using a null combiner"() {
+        when:
+        providerFactory.zip(Providers.of("a"), Providers.of("b"), null)
+
+        then:
+        def e = thrown(NullPointerException)
+        e.message == "Cannot zip providers using a null combiner."
+    }
+
+    def "cannot look up #method using a null provider"() {
+        when:
+        providerFactory."$method"((Provider) null)
+
+        then:
+        def e = thrown(NullPointerException)
+        e.message == "Cannot look up Gradle properties using a null provider."
+
+        where:
+        method << ["gradleProperty", "gradlePropertiesPrefixedBy"]
     }
 
     def "can zip two providers and use null to remove the value"() {

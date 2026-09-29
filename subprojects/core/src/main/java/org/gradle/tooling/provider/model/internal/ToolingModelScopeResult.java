@@ -18,7 +18,6 @@ package org.gradle.tooling.provider.model.internal;
 
 import com.google.common.collect.ImmutableList;
 import org.jspecify.annotations.NullMarked;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
@@ -32,13 +31,12 @@ import java.util.List;
 public final class ToolingModelScopeResult {
 
     private final List<Throwable> configurationFailures;
-    @Nullable
-    private final Throwable modelBuilderFailure;
+    private final List<Throwable> modelBuilderFailures;
     private final ToolingModelBuilderResultInternal clientResult;
 
-    private ToolingModelScopeResult(List<Throwable> configurationFailures, @Nullable Throwable modelBuilderFailure, ToolingModelBuilderResultInternal clientResult) {
+    private ToolingModelScopeResult(List<Throwable> configurationFailures, List<Throwable> modelBuilderFailures, ToolingModelBuilderResultInternal clientResult) {
         this.configurationFailures = ImmutableList.copyOf(configurationFailures);
-        this.modelBuilderFailure = modelBuilderFailure;
+        this.modelBuilderFailures = ImmutableList.copyOf(modelBuilderFailures);
         this.clientResult = clientResult;
     }
 
@@ -46,28 +44,35 @@ public final class ToolingModelScopeResult {
      * The model built cleanly.
      */
     public static ToolingModelScopeResult of(ToolingModelBuilderResultInternal clientResult) {
-        return new ToolingModelScopeResult(ImmutableList.of(), null, clientResult);
+        return new ToolingModelScopeResult(ImmutableList.of(), ImmutableList.of(), clientResult);
     }
 
     /**
      * A project or the build itself failed to configure.
      */
     public static ToolingModelScopeResult withConfigurationFailure(ToolingModelBuilderResultInternal clientResult, Throwable failure) {
-        return new ToolingModelScopeResult(ImmutableList.of(failure), null, clientResult);
+        return new ToolingModelScopeResult(ImmutableList.of(failure), ImmutableList.of(), clientResult);
     }
 
     /**
      * One or more builds visited by a build-scoped builder failed to configure.
      */
     public static ToolingModelScopeResult withConfigurationFailures(ToolingModelBuilderResultInternal clientResult, List<Throwable> failures) {
-        return new ToolingModelScopeResult(failures, null, clientResult);
+        return new ToolingModelScopeResult(failures, ImmutableList.of(), clientResult);
     }
 
     /**
      * A tooling model builder threw after its target project had configured successfully.
      */
     public static ToolingModelScopeResult withModelBuilderFailure(ToolingModelBuilderResultInternal clientResult, Throwable failure) {
-        return new ToolingModelScopeResult(ImmutableList.of(), failure, clientResult);
+        return new ToolingModelScopeResult(ImmutableList.of(), ImmutableList.of(failure), clientResult);
+    }
+
+    /**
+     * A tooling model builder reported failures alongside a (partial) model after its target project had configured successfully.
+     */
+    public static ToolingModelScopeResult withModelBuilderFailures(ToolingModelBuilderResultInternal clientResult, List<Throwable> failures) {
+        return new ToolingModelScopeResult(ImmutableList.of(), failures, clientResult);
     }
 
     /**
@@ -78,11 +83,10 @@ public final class ToolingModelScopeResult {
     }
 
     /**
-     * A model builder failure hidden behind {@link #getClientResult() the result}, or {@code null} if none.
+     * Model builder failures hidden behind {@link #getClientResult() the result}, empty if none.
      */
-    @Nullable
-    public Throwable getModelBuilderFailure() {
-        return modelBuilderFailure;
+    public List<Throwable> getModelBuilderFailures() {
+        return modelBuilderFailures;
     }
 
     public ToolingModelBuilderResultInternal getClientResult() {
