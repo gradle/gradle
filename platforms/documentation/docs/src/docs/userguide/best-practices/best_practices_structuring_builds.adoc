@@ -419,16 +419,6 @@ include::sample[dir="snippets/best-practices/favorCompositeBuilds-avoid/groovy",
 
 ==== Do This Instead
 
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/favorCompositeBuilds-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/favorCompositeBuilds-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
-
 [.multi-language-sample]
 =====
 [source, kotlin]
