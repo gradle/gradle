@@ -60,20 +60,6 @@ class SettingsEvaluatedOnceIntegrationTest extends AbstractIntegrationSpec {
         countOf("settingsEvaluated") == 1
     }
 
-    def "settings lifecycle callbacks fire once when targeting a buildSrc directory with no settings script"() {
-        given:
-        settingsFile << "rootProject.name = 'root'"
-        file("buildSrc/build.gradle") << ""
-
-        when:
-        executer.withArgument("-p").withArgument(file("buildSrc").absolutePath)
-        succeeds("help")
-
-        then:
-        countOf("beforeSettings") == 1
-        countOf("settingsEvaluated") == 1
-    }
-
     private int countOf(String prefix) {
         return result.output.readLines().count { it.startsWith(prefix + ":") }
     }

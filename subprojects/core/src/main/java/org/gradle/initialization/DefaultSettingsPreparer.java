@@ -32,7 +32,6 @@ import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.configuration.project.BuiltInCommand;
-import org.gradle.initialization.buildsrc.BuildSrcDetector;
 import org.gradle.initialization.layout.BuildLayout;
 import org.gradle.initialization.layout.BuildLayoutFactory;
 import org.gradle.internal.build.BuildIdentity;
@@ -213,7 +212,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
 
         SettingsState state;
         ProjectSpec spec;
-        if (shouldSkipLoadingBuildDefinition(startParameter) || useEmptySettings(startParameter, buildLayout)) {
+        if (shouldSkipLoadingBuildDefinition(startParameter)) {
             logger.debug("Skipping loading of build definition for build: '{}'", gradle.getIdentityPath());
             state = createEmptySettings(gradle, startParameter, gradle.getClassLoaderScope());
         } else {
@@ -235,14 +234,6 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
             }
         }
         return false;
-    }
-
-    private static boolean useEmptySettings(StartParameter startParameter, BuildLayout buildLayout) {
-        File settingsFile = buildLayout.getSettingsFile();
-        return (settingsFile == null || !settingsFile.exists())
-            && startParameter.getProjectDir() != null
-            && startParameter.getProjectDir().getName().equals(SettingsInternal.BUILD_SRC)
-            && BuildSrcDetector.isValidBuildSrcBuild(startParameter.getProjectDir());
     }
 
     private SettingsState createEmptySettings(GradleInternal gradle, StartParameterInternal startParameter, ClassLoaderScope classLoaderScope) {

@@ -123,6 +123,27 @@ Directory '$sub' does not contain a Gradle build.
         executer.gradleUserHomeDir.file(BuildScopeCacheDir.UNDEFINED_BUILD).assertDoesNotExist()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/38623")
+    def "shows help message when a buildSrc directory with a build script is the project directory"() {
+        given:
+        settingsFile.createFile()
+        def buildSrc = file("buildSrc")
+        buildSrc.file("build.gradle").createFile()
+
+        when:
+        executer.withArgument("-p").withArgument(buildSrc.absolutePath)
+        run "help"
+
+        then:
+        output.contains """
+> Task :help
+
+Welcome to Gradle ${version}.
+
+To run a build, run gradle <task> ...
+"""
+    }
+
     def "shows help message when run in users home directory"() {
         given:
         useTestDirectoryThatIsNotEmbeddedInAnotherBuild()
