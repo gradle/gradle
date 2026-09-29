@@ -67,7 +67,6 @@ abstract class GreetTask : DefaultTask() {
             reporter.report(WARN_ID) {
 // tag::problems-spec[]
                 details("No recipient configured")
-                severity(Severity.WARNING)
                 solution("""Set the recipient: tasks.greet { recipient = "World" }""")
                 documentedAt("https://gradle.org/hello-problems#recipient")
                 additionalData(GreetProblemData::class.java) {
@@ -83,7 +82,6 @@ abstract class GreetTask : DefaultTask() {
 // tag::problems-throw[]
             throw reporter.throwing(GradleException("forbidden value"), FAIL_ID) {
                 details("Recipient 'fail' is not allowed")
-                severity(Severity.ERROR)
                 solution("""Choose another value, e.g. recipient = "World".""")
                 documentedAt("https://gradle.org/hello-problems#forbidden")
                 additionalData(GreetProblemData::class.java) {
