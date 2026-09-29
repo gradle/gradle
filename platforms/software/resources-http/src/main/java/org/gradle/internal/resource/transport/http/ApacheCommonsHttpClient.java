@@ -34,6 +34,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.resource.HttpErrorStatusCodeException;
 import org.gradle.internal.resource.ReadableContent;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;

@@ -20,7 +20,7 @@ import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpStatus;
 import org.apache.http.NoHttpResponseException;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException;
+import org.gradle.internal.resource.HttpErrorStatusCodeException;
 
 import java.net.SocketException;
 import java.net.SocketTimeoutException;

@@ -20,7 +20,7 @@ import org.apache.http.NoHttpResponseException
 
 import javax.net.ssl.SSLHandshakeException
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException
-import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
+import org.gradle.internal.resource.HttpErrorStatusCodeException
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -80,13 +80,14 @@ class ConnectionFailureRepositoryDisablerTest extends Specification {
         disabler.disabledRepositories.empty
 
         where:
-        type                        | exception
-        'unauthorized'              | createUnauthorizedException()
-        'forbidden'                 | createHttpErrorStatusCodeException(403)
-        'bad request'               | createHttpErrorStatusCodeException(400)
-        'gone'                      | createHttpErrorStatusCodeException(410)
-        'unparseable metadata'      | createNestedException(new MetaDataParseException('Could not parse POM the-pom'))
-        'metadata parser failure'   | createNestedException(parseFailureWrappingParserError())
+        type                                 | exception
+        'unauthorized'                       | createUnauthorizedException()
+        'forbidden'                          | createHttpErrorStatusCodeException(403)
+        'bad request'                        | createHttpErrorStatusCodeException(400)
+        'gone'                               | createHttpErrorStatusCodeException(410)
+        'unparseable metadata'               | createNestedException(new MetaDataParseException('Could not parse POM the-pom'))
+        'a status from a non-HTTP transport' | createNestedException(new HttpErrorStatusCodeException(URI.create('s3://bucket/test.file'), "Could not get resource 's3://bucket/test.file'.", 403, new RuntimeException('AccessDenied')))
+        'metadata parser failure'            | createNestedException(parseFailureWrappingParserError())
     }
 
     def "disables repository when max retries reached for transient error"() {
