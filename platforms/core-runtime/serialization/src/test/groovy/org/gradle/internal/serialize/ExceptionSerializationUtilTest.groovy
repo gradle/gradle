@@ -92,4 +92,74 @@ class ExceptionSerializationUtilTest extends Specification {
         cleanup:
         classLoader?.close()
     }
+
+    def "falls back to the standard cause when the causes collection fails in #operation during iteration #failingIteration"() {
+        given:
+        def standardCause = new IllegalStateException('actual cause')
+        def discoveredCause = new IllegalArgumentException('discovered cause')
+        int iterationCount = 0
+        Collection<Throwable> causes = Stub(Collection) {
+            isEmpty() >> {
+                if (operation == 'isEmpty') {
+                    throw new NoClassDefFoundError('MissingCollectionDependency')
+                }
+                false
+            }
+            size() >> {
+                if (operation == 'size') {
+                    throw new NoClassDefFoundError('MissingCollectionDependency')
+                }
+                1
+            }
+            iterator() >> {
+                int currentIteration = ++iterationCount
+                if (operation == 'iterator' && currentIteration == failingIteration) {
+                    throw new NoClassDefFoundError('MissingCollectionDependency')
+                }
+                def delegateIterator = [discoveredCause].iterator()
+                Stub(Iterator) {
+                    hasNext() >> {
+                        if (operation == 'hasNext' && currentIteration == failingIteration) {
+                            throw new NoClassDefFoundError('MissingCollectionDependency')
+                        }
+                        delegateIterator.hasNext()
+                    }
+                    next() >> {
+                        if (operation == 'next' && currentIteration == failingIteration) {
+                            throw new NoClassDefFoundError('MissingCollectionDependency')
+                        }
+                        delegateIterator.next()
+                    }
+                }
+            }
+        }
+        def exception = new ExternalMultiCauseException(causes, standardCause)
+
+        expect:
+        ExceptionSerializationUtil.extractCauses(exception) == [standardCause]
+
+        where:
+        operation  | failingIteration
+        'isEmpty'  | 0
+        'size'     | 0
+        'iterator' | 1
+        'iterator' | 2
+        'hasNext'  | 1
+        'hasNext'  | 2
+        'next'     | 1
+        'next'     | 2
+    }
+
+    static class ExternalMultiCauseException extends RuntimeException {
+        private final Collection<? extends Throwable> causes
+
+        ExternalMultiCauseException(Collection<? extends Throwable> causes, Throwable cause) {
+            super('external failure', cause)
+            this.causes = causes
+        }
+
+        Collection<? extends Throwable> getCauses() {
+            return causes
+        }
+    }
 }
