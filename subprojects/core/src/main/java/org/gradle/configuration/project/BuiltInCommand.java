@@ -27,7 +27,7 @@ import java.util.List;
  * Provides metadata about a build-in command, which is a task-like action (usually backed by an actual task)
  * that can be invoked from the command-line, such as `gradle init ...` or `gradle help ...`
  *
- * A built-in command can be invoked from any directory, and does not require a Gradle build definition to be present.
+ * A built-in command does not require a Gradle build definition to be present.
  */
 @ServiceScope(Scope.Global.class)
 public interface BuiltInCommand extends Describable {
