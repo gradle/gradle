@@ -18,6 +18,8 @@ package org.gradle.internal.cc.impl.isolated
 
 class IsolatedProjectsTaskGraphLazyQueriesIntegrationTest extends AbstractIsolatedProjectsIntegrationTest {
 
+    static final String REPORT_TASK_GRAPH_READS = "-Dorg.gradle.internal.isolated-projects.report-task-graph-reads=true"
+
     def setup() {
         createDirs("a", "b")
         settingsFile """
@@ -46,7 +48,7 @@ class IsolatedProjectsTaskGraphLazyQueriesIntegrationTest extends AbstractIsolat
         """)
 
         when:
-        isolatedProjectsRun(":a:t", ":a:lint", ":b:report")
+        isolatedProjectsRun(":a:t", ":a:lint", ":b:report", REPORT_TASK_GRAPH_READS)
 
         then:
         fixture.assertStateStored {
@@ -56,7 +58,7 @@ class IsolatedProjectsTaskGraphLazyQueriesIntegrationTest extends AbstractIsolat
         outputContains("lint scheduled = true")
 
         when:
-        isolatedProjectsRun(":a:t", ":a:lint", ":b:report")
+        isolatedProjectsRun(":a:t", ":a:lint", ":b:report", REPORT_TASK_GRAPH_READS)
 
         then:
         fixture.assertStateLoaded()
@@ -64,7 +66,7 @@ class IsolatedProjectsTaskGraphLazyQueriesIntegrationTest extends AbstractIsolat
         outputContains("lint scheduled = true")
 
         when:
-        isolatedProjectsRun(":b:report")
+        isolatedProjectsRun(":b:report", REPORT_TASK_GRAPH_READS)
 
         then:
         fixture.assertStateStored {
@@ -74,11 +76,48 @@ class IsolatedProjectsTaskGraphLazyQueriesIntegrationTest extends AbstractIsolat
         outputContains("lint scheduled = false")
 
         when:
-        isolatedProjectsRun(":b:report")
+        isolatedProjectsRun(":b:report", REPORT_TASK_GRAPH_READS)
 
         then:
         fixture.assertStateLoaded()
         outputContains("t scheduled = false")
         outputContains("lint scheduled = false")
+    }
+
+    def "reading the task graph from project configuration via #statement is #outcome"() {
+        buildFile("a/build.gradle", """
+            tasks.register("t")
+            $statement
+        """)
+
+        when:
+        if (optIn) {
+            isolatedProjectsFailsUsing(mode, ":a:t", REPORT_TASK_GRAPH_READS)
+        } else {
+            isolatedProjectsRun(":a:t")
+        }
+
+        then:
+        if (optIn) {
+            fixture.assertIsolatedProjectsProblems(mode) {
+                projectsConfigured(":", ":a")
+                problem("Build file 'a/build.gradle': line 3: Project ':a' cannot read the task graph at configuration time using 'TaskExecutionGraph.$api'. Use 'TaskExecutionGraph.isScheduled' or 'TaskExecutionGraph.anyScheduled' from a task instead")
+            }
+        } else {
+            fixture.assertStateStored {
+                projectsConfigured(":", ":a", ":b")
+            }
+        }
+
+        where:
+        statement                                                                  | api                             | optIn
+        "gradle.taskGraph.whenReady { }"                                           | "whenReady"                     | true
+        "gradle.taskGraph.whenReady({ } as Action)"                                | "whenReady"                     | true
+        "gradle.taskGraph.addTaskExecutionGraphListener({ } as TaskExecutionGraphListener)" | "addTaskExecutionGraphListener" | true
+        "gradle.taskGraph.hasTask(':a:t')"                                         | "hasTask"                       | true
+        "gradle.taskGraph.whenReady { }"                                           | "whenReady"                     | false
+
+        mode = IsolatedProjectsMode.FAIL_FAST
+        outcome = optIn ? "reported when opted in" : "allowed by default"
     }
 }

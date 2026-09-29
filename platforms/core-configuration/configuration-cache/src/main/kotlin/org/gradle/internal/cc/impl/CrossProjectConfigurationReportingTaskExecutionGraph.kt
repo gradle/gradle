@@ -43,6 +43,11 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
     private val crossProjectModelAccess: CrossProjectModelAccess,
     private val coupledProjectsListener: CoupledProjectsListener,
     private val projectStateLookup: ProjectStateLookup,
+    /**
+     * Whether reading the task graph from project configuration is reported at all, own tasks included.
+     * Build logic should use the lazy [isScheduled] and [anyScheduled] queries instead.
+     */
+    private val reportConfigurationTimeReads: Boolean = false,
 ) : TaskExecutionGraphInternal {
 
     private
@@ -53,6 +58,7 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
     }
 
     override fun addTaskExecutionGraphListener(listener: TaskExecutionGraphListener) {
+        reportConfigurationTimeRead("addTaskExecutionGraphListener")
         delegate.addTaskExecutionGraphListener(listener.wrap())
     }
 
@@ -73,10 +79,12 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
     }
 
     override fun whenReady(closure: Closure<*>) {
+        reportConfigurationTimeRead("whenReady")
         delegate.whenReady(CrossProjectModelAccessTrackingClosure(closure, referrerProject, crossProjectModelAccess))
     }
 
     override fun whenReady(action: Action<TaskExecutionGraph>) {
+        reportConfigurationTimeRead("whenReady")
         delegate.whenReady(action.wrap())
     }
 
@@ -100,6 +108,9 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
     }
 
     override fun hasTask(path: String): Boolean {
+        if (Path.path(path).parent?.asString() == referrerProject.projectPath.asString()) {
+            reportConfigurationTimeRead("hasTask")
+        }
         return findTask(path) != null
     }
 
@@ -113,6 +124,9 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
     }
 
     override fun hasTask(task: Task): Boolean {
+        if ((task as TaskInternal).taskIdentity.projectIdentity == referrerProject) {
+            reportConfigurationTimeRead("hasTask")
+        }
         checkCrossProjectTaskAccess(task)
         return delegate.hasTask(task)
     }
@@ -125,12 +139,14 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
         delegate.anyScheduled(taskType)
 
     override fun getAllTasks(): MutableList<Task> {
+        reportConfigurationTimeRead("getAllTasks")
         val result = delegate.allTasks
         observingTasksMaybeFromOtherProjects(result)
         return result
     }
 
     override fun getDependencies(task: Task): MutableSet<Task> {
+        reportConfigurationTimeRead("getDependencies")
         checkCrossProjectTaskAccess(task)
         val result = delegate.getDependencies(task)
         observingTasksMaybeFromOtherProjects(result)
@@ -159,6 +175,26 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
             }.exceptionMessage { message ->
                 // The exception message is not used for grouping, so it can name the exact task:
                 message + if (requestPath != null) "; tried to access '$requestPath'" else ""
+            }.build()
+        }
+    }
+
+    private
+    fun reportConfigurationTimeRead(api: String) {
+        if (!reportConfigurationTimeReads) {
+            return
+        }
+        ipProblems.report {
+            problem {
+                text("Project ")
+                reference(referrerProject.buildTreePath)
+                text(" cannot read the task graph at configuration time using ")
+                reference("TaskExecutionGraph.$api")
+                text(". Use ")
+                reference("TaskExecutionGraph.isScheduled")
+                text(" or ")
+                reference("TaskExecutionGraph.anyScheduled")
+                text(" from a task instead")
             }.build()
         }
     }
