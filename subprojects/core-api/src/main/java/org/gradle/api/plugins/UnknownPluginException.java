@@ -57,7 +57,7 @@ public class UnknownPluginException extends InvalidUserDataException {
      * @param cause the underlying failure that led to this exception, or {@code null}
      * @param pluginId the id of the plugin that could not be found, or {@code null} if it is not known
      *
-     * @since 9.8.0
+     * @since 9.9.0
      */
     @Incubating
     public UnknownPluginException(String message, @Nullable Throwable cause, @Nullable String pluginId) {

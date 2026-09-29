@@ -183,6 +183,8 @@ public class PackageCycleTest {
             "org/gradle/api/plugins/internal/*"
         )),
         entry("start-parameter", List.of("org/gradle/**")),
+        // GradleException implements ResolutionProvider, while DefaultMultiCauseException extends GradleException
+        entry("stdlib-java-extensions", List.of("org/gradle/internal/exceptions/**")),
         entry("test-kit", List.of("org/gradle/testkit/runner/internal/**")),
         entry("testing-base", List.of("org/gradle/api/internal/tasks/testing/**")),
         entry("testing-base-infrastructure", List.of("org/gradle/api/internal/tasks/testing/**")),

@@ -43,7 +43,7 @@ public class ResolveException extends DefaultMultiCauseException {
     /**
      * Should not be called except from Gradle internal code.
      *
-     * @since 9.8.0
+     * @since 9.9.0
      */
     @Incubating
     protected ResolveException(String message, Iterable<? extends Throwable> causes, List<String> resolutions) {
