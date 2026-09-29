@@ -1,0 +1,7 @@
+* What went wrong:
+Execution failed for task ':consumer:greet' (registered by plugin 'org.example.hello-problems').
+> Forbidden recipient 'fail'
+    forbidden value
+      Recipient 'fail' is not allowed
+      For more information, please refer to https://gradle.org/hello-problems#forbidden.
+      Possible solution: Choose another value, e.g. recipient = "World".
