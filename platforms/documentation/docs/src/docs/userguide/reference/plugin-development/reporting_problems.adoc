@@ -31,13 +31,15 @@ include::sample[dir="snippets/reference/plugin-development/problemReporting/kotl
 [[sec:problems_api_usage]]
 == Problems API Usage
 
-The following simple plugin adds a `greet` task:
+The following simple plugin adds a `greet` task, applied by the `consumer` build of the sample:
 
-- It prints a `Hello World` greeting when used correctly: `./gradlew greet -Precipient=World`
-- It warns if no recipient is set: `./gradlew greet`
-- It fails if the recipient is `fail`: `./gradlew greet -Precipient=fail`
+- It prints a `Hello World` greeting when used correctly: `./gradlew :consumer:greet -Precipient=World`
+- It reports a warning if no recipient is set: `./gradlew :consumer:greet`
+- It fails if the recipient is `fail`: `./gradlew :consumer:greet -Precipient=fail`
 
-The details of the failure will be provided in the <<sec:generated_html_report,HTML Problems Report>>:
+Warnings are not printed to the console.
+They are listed in the <<sec:generated_html_report,HTML Problems Report>>, whose location Gradle prints at the end of the build.
+Failures are printed to the console and also listed in the report:
 
 ====
 include::sample[dir="snippets/reference/plugin-development/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[]"]
