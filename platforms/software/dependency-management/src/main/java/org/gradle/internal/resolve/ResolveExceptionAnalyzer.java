@@ -16,30 +16,33 @@
 package org.gradle.internal.resolve;
 
 import com.google.common.base.Throwables;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
+import org.gradle.api.internal.artifacts.repositories.transport.NetworkingIssueVerifier;
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException;
-
-import java.io.InterruptedIOException;
-import java.net.UnknownHostException;
 
 public class ResolveExceptionAnalyzer {
 
     public static boolean isCriticalFailure(Throwable throwable) {
+        if (isUnusableMetadata(throwable)) {
+            return false;
+        }
         Throwable rootCause = Throwables.getRootCause(throwable);
-        return isTimeoutException(rootCause) || isUnrecoverable5xxStatusCode(rootCause) || isUnknownHostException(rootCause);
+        if (rootCause instanceof HttpErrorStatusCodeException) {
+            return indicatesUnusableRepository((HttpErrorStatusCodeException) rootCause);
+        }
+        return true;
     }
 
-    private static boolean isUnknownHostException(Throwable rootCause) {
-        return rootCause instanceof UnknownHostException;
+    private static boolean isUnusableMetadata(Throwable throwable) {
+        for (Throwable cause : Throwables.getCausalChain(throwable)) {
+            if (cause instanceof MetaDataParseException) {
+                return true;
+            }
+        }
+        return false;
     }
 
-    /**
-     * See <a href="http://hc.apache.org/httpclient-3.x/exception-handling.html">HTTPClient exception handling</a> for more information.
-     */
-    private static boolean isTimeoutException(Throwable rootCause) {
-        return rootCause instanceof InterruptedIOException;
-    }
-
-    private static boolean isUnrecoverable5xxStatusCode(Throwable rootCause) {
-        return rootCause instanceof HttpErrorStatusCodeException && ((HttpErrorStatusCodeException) rootCause).isServerError();
+    private static boolean indicatesUnusableRepository(HttpErrorStatusCodeException httpError) {
+        return httpError.isServerError() || NetworkingIssueVerifier.isTransientClientError(httpError.getStatusCode());
     }
 }

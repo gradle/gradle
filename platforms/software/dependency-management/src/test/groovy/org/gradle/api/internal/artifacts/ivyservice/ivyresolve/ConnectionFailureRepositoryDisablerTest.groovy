@@ -17,6 +17,9 @@
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.apache.http.NoHttpResponseException
+
+import javax.net.ssl.SSLHandshakeException
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException
 import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
 import spock.lang.Specification
 import spock.lang.Subject
@@ -56,10 +59,19 @@ class ConnectionFailureRepositoryDisablerTest extends Specification {
         disabler.disabledRepositories.contains(repositoryId2)
 
         where:
-        exception << [createTimeoutException(), createInternalServerException()]
+        exception << [
+            createTimeoutException(),
+            createInternalServerException(),
+            createHttpErrorStatusCodeException(408),
+            createHttpErrorStatusCodeException(429),
+            // An unrecognised failure cannot be attributed to the request, so it counts against the repository
+            createNestedException(new NullPointerException()),
+            // A handshake that cannot be completed is about the repository, not about this request
+            createNestedException(new SSLHandshakeException('Received fatal alert: handshake_failure'))
+        ]
     }
 
-    def "does not disable repository for #type"() {
+    def "does not disable repository when the failure is about the request [#type]"() {
         when:
         boolean disabled = disabler.tryDisableRepository('abc', exception, false)
 
@@ -68,9 +80,13 @@ class ConnectionFailureRepositoryDisablerTest extends Specification {
         disabler.disabledRepositories.empty
 
         where:
-        type                                        | exception
-        'NullPointerException'                      | createNestedException(new NullPointerException())
-        'HttpErrorStatusCodeException with status ' | createUnauthorizedException()
+        type                        | exception
+        'unauthorized'              | createUnauthorizedException()
+        'forbidden'                 | createHttpErrorStatusCodeException(403)
+        'bad request'               | createHttpErrorStatusCodeException(400)
+        'gone'                      | createHttpErrorStatusCodeException(410)
+        'unparseable metadata'      | createNestedException(new MetaDataParseException('Could not parse POM the-pom'))
+        'metadata parser failure'   | createNestedException(parseFailureWrappingParserError())
     }
 
     def "disables repository when max retries reached for transient error"() {
@@ -93,6 +109,12 @@ class ConnectionFailureRepositoryDisablerTest extends Specification {
 
     static RuntimeException createHttpErrorStatusCodeException(int statusCode) {
         createNestedException(new HttpErrorStatusCodeException(statusCode, ''))
+    }
+
+    static MetaDataParseException parseFailureWrappingParserError() {
+        def failure = new MetaDataParseException('Could not parse POM the-pom')
+        failure.initCause(new RuntimeException('XML document structures must start and end within the same entity.'))
+        failure
     }
 
     static RuntimeException createTimeoutException() {
