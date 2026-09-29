@@ -23,6 +23,8 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSetToFileCollectionFactory
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.CapabilitySerializer
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer
 import org.gradle.api.internal.artifacts.transform.TransformActionScheme
 import org.gradle.api.internal.artifacts.transform.TransformParameterScheme
 import org.gradle.api.internal.artifacts.transform.TransformStepNode
@@ -254,8 +256,10 @@ class DefaultConfigurationCacheCodecs(
             // Dependency management types
             val immutableAttributesCodec = ImmutableAttributesCodec(attributesFactory, managedFactoryRegistry)
             val immutableCapabilitiesCodec = ImmutableCapabilitiesCodec()
+            val componentIdentifierSerializer = ComponentIdentifierSerializer()
             bind(immutableAttributesCodec)
             bind(immutableCapabilitiesCodec)
+            bind(componentIdentifierSerializer)
             bind(ArtifactCollectionCodec(calculatedValueContainerFactory, artifactSetConverter, attributeDesugaring, taskDependencyFactory))
             bind(AttributeContainerCodec(attributesFactory, managedFactoryRegistry))
             bind(ImmutableAttributesSchemaCodec(instantiatorFactory, attributeSchemaFactory))
@@ -268,6 +272,7 @@ class DefaultConfigurationCacheCodecs(
             bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
             bind(TransformStepSpecCodec)
             bind(PublishArtifactLocalArtifactMetadataCodec)
+            bind(ComponentArtifactIdentifierSerializer(componentIdentifierSerializer))
             bind(TransformedProjectArtifactSetCodec())
             bind(TransformedExternalArtifactSetCodec())
             bind(CalculateArtifactsCodec(calculatedValueContainerFactory))
