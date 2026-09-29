@@ -19,6 +19,8 @@ package org.gradle.swiftpm.internal;
 import org.gradle.swiftpm.Product;
 
 import java.io.Serializable;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Nested;
 
 public abstract class AbstractProduct implements Product, Serializable {
     private final String name;
@@ -30,13 +32,16 @@ public abstract class AbstractProduct implements Product, Serializable {
     }
 
     @Override
+    @Input
     public String getName() {
         return name;
     }
 
+    @Nested
     public DefaultTarget getTarget() {
         return target;
     }
 
+    @Input
     public abstract boolean isExecutable();
 }

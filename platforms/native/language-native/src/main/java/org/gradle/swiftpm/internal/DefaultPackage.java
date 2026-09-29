@@ -24,6 +24,10 @@ import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Nested;
+import org.gradle.api.tasks.Optional;
+
 public class DefaultPackage implements Package, Serializable {
     private final Set<AbstractProduct> products;
     private final List<Dependency> dependencies;
@@ -37,20 +41,25 @@ public class DefaultPackage implements Package, Serializable {
         this.swiftLanguageVersion = swiftLanguageVersion;
     }
 
+    @Input
     public List<Dependency> getDependencies() {
         return dependencies;
     }
 
     @Nullable
+    @Optional
+    @Input
     public SwiftVersion getSwiftLanguageVersion() {
         return swiftLanguageVersion;
     }
 
     @Override
+    @Nested
     public Set<AbstractProduct> getProducts() {
         return products;
     }
 
+    @Nested
     public List<DefaultTarget> getTargets() {
         return targets;
     }
