@@ -5,10 +5,12 @@ import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.dsl.GradleDsl
 
 import org.junit.Test
+import org.junit.Ignore
 
 
 class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest() {
 
+    @Ignore("https://github.com/gradle/gradle-private/issues/5423")
     @Test
     fun `can download source distribution`() {
 
@@ -29,6 +31,7 @@ class SourceDistributionResolverIntegrationTest : AbstractKotlinIntegrationTest(
         build()
     }
 
+    @Ignore("https://github.com/gradle/gradle-private/issues/5423")
     @Test
     fun `can download source distribution when repositories are declared in settings`() {
 
