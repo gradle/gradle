@@ -71,15 +71,16 @@ If you extract the report data for other purposes, please comment on these issue
 ==== Builds that move the root project directory now load their settings file
 
 A build can move its root project with `rootProject.projectDir`.
-When such a build was started with an explicit project directory, Gradle evaluated the settings file, found no project at that directory, discarded the result and continued with an empty build definition.
-The build then ran with no projects at all, or, with the Build Cache enabled, failed with `Build cache controller already set`.
+When such a build was started with an explicit project directory, Gradle evaluated the settings file, found no project at that directory, and discarded the settings.
+It then ran with a single root project at that directory, named after the directory and configured by any build script found there, as if the settings file did not exist.
+With the Build Cache enabled, it failed with `Build cache controller already set` instead.
 The Tooling API always sets a project directory, so every IDE run and every IDE sync was affected.
 
 Gradle now keeps the evaluated settings and selects the root project for the build's root directory, so these builds load and run as written.
 
 Two consequences are worth checking when you upgrade:
 
-1. A build that silently ran with no projects now runs for real.
+1. A build that silently ignored its settings file now uses it.
 Configuration problems that were never reached before can surface.
 2. `beforeSettings`, `settingsEvaluated` and the `Evaluate settings` build operation each fired twice in the affected case and now fire once.
 Init scripts and build operation consumers that observed the second firing will see one.
@@ -87,7 +88,7 @@ Init scripts and build operation consumers that observed the second firing will 
 [[gradle_in_non_project_directory]]
 ==== Running Gradle in a directory that is not part of the build now fails
 
-When Gradle is invoked in a directory that lies inside a build's directory tree, other than the build's root directory, and is not a project directory of that build, `gradle help` and `gradle` with no task names previously discarded the surrounding build and reported an undefined build:
+When Gradle is invoked in a directory that lies inside a build's directory tree, other than the build's root directory, and is not a project directory of that build, `gradle help` and `gradle` with no task names previously discarded the surrounding build's settings and reported an undefined build:
 
 [source,text]
 ----
