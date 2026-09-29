@@ -53,14 +53,13 @@ public final class TaskGraphQueryProvider extends AbstractMinimalProvider<Boolea
 
     @Override
     protected Value<? extends Boolean> calculateOwnValue(ValueConsumer consumer) {
-        ScheduledTasksIndex index = scheduledTasks.getIndex();
-        if (index == null) {
+        if (!scheduledTasks.isReady()) {
             throw new IllegalStateException(
                 "Cannot query " + describeQuery() + " before the task graph is ready. " +
                     "Query it during task execution instead, for example from onlyIf { } or as a task input."
             );
         }
-        boolean answer = kind == Kind.TASK_PATH ? index.containsTaskPath(argument) : index.containsTaskType(argument);
+        boolean answer = kind == Kind.TASK_PATH ? scheduledTasks.containsTaskPath(argument) : scheduledTasks.containsTaskType(argument);
         return Value.of(answer);
     }
 

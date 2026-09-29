@@ -97,7 +97,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         executionPlan = plan;
         // Take a snapshot of all tasks, as nodes are removed from the plan as they execute
         allTasks = ImmutableList.copyOf(executionPlan.getContents().getTasks());
-        scheduledTasks.set(new ScheduledTasksIndex(allTasks));
+        scheduledTasks.set(allTasks);
         if (!hasFiredWhenReady) {
             fireWhenReady();
             hasFiredWhenReady = true;
