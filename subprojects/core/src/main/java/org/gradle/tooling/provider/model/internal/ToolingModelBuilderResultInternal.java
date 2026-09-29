@@ -24,6 +24,8 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
+import static com.google.common.collect.ImmutableList.toImmutableList;
+
 /**
  * Internal type for a model builder result that contains additional data beyond the model itself if needed.
  * <p>
@@ -62,6 +64,15 @@ public class ToolingModelBuilderResultInternal {
 
     public List<Failure> getFailures() {
         return failures;
+    }
+
+    /**
+     * The original exceptions behind {@link #getFailures()}, e.g. to fail the build with them.
+     */
+    public List<Throwable> getOriginalFailures() {
+        return failures.stream()
+            .map(Failure::getOriginal)
+            .collect(toImmutableList());
     }
 
     public static ToolingModelBuilderResultInternal attachFailures(@Nullable Object model, List<Failure> additionalFailures) {
