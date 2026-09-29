@@ -817,15 +817,15 @@ Useful for <<sharing_build_logic_between_subprojects.adoc#sec:using_buildsrc, de
 [[sec:dependency_verification_options]]
 == Dependency verification options
 
-Learn more about this in <<dependency_verification.adoc#verifying-dependencies,dependency verification>>.
+Learn more about this in <<securing_dependencies.adoc#verifying-dependencies,dependency verification>>.
 
 `-F=(strict,lenient,off)`, `--dependency-verification=(strict,lenient,off)`::
-Configures the <<dependency_verification.adoc#sec:disabling-verification,dependency verification mode>>.
+Configures the <<securing_dependencies.adoc#sec:disabling-verification,dependency verification mode>>.
 +
 The default mode is `strict`.
 
 `-M`, `--write-verification-metadata`::
-Generates checksums for dependencies used in the project (comma-separated list) for <<dependency_verification.adoc#sec:bootstrapping-verification,dependency verification>>.
+Generates checksums for dependencies used in the project (comma-separated list) for <<securing_dependencies.adoc#sec:bootstrapping-verification,dependency verification>>.
 
 `--refresh-keys`::
 Refresh the public keys used for dependency verification.

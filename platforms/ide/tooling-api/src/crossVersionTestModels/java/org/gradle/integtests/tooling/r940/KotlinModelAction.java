@@ -27,9 +27,10 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel;
 
 import java.io.File;
 import java.io.Serializable;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 class KotlinModelAction implements BuildAction<KotlinModel>, Serializable {
 
@@ -55,7 +56,7 @@ class KotlinModelAction implements BuildAction<KotlinModel>, Serializable {
             rootBuild = controller.getModel(GradleBuild.class);
         }
         Map<File, KotlinDslScriptModel> scriptModels = new HashMap<>();
-        Map<File, Failure> failures = new HashMap<>();
+        Map<File, List<Failure>> failures = new HashMap<>();
 
         if (queryStrategy == KotlinModelAction.QueryStrategy.ROOT_PROJECT_FIRST) {
             queryKotlinDslScriptsModel(controller, rootBuild, scriptModels, failures);
@@ -72,7 +73,7 @@ class KotlinModelAction implements BuildAction<KotlinModel>, Serializable {
         return new KotlinModel(scriptModels, failures);
     }
 
-    private void queryKotlinDslScriptsModel(BuildController controller, GradleBuild build, Map<File, KotlinDslScriptModel> scriptModels, Map<File, Failure> failures) {
+    private void queryKotlinDslScriptsModel(BuildController controller, GradleBuild build, Map<File, KotlinDslScriptModel> scriptModels, Map<File, List<Failure>> failures) {
         if (resilient) {
             // A build that failed in its settings has no root project in the GradleBuild model, so target the
             // build itself, which reports the build's own configuration failure.
@@ -83,13 +84,12 @@ class KotlinModelAction implements BuildAction<KotlinModel>, Serializable {
         }
     }
 
-    public static void queryResilientKotlinDslScriptsModel(BuildController controller, GradleBuild build, Model target, Map<File, KotlinDslScriptModel> scriptModels, Map<File, Failure> failures) {
+    public static void queryResilientKotlinDslScriptsModel(BuildController controller, GradleBuild build, Model target, Map<File, KotlinDslScriptModel> scriptModels, Map<File, List<Failure>> failures) {
         FetchModelResult<KotlinDslScriptsModel> modelResult = controller.fetch(target, KotlinDslScriptsModel.class);
 
-        assert modelResult.getFailures().size() <= 1: "Expected a single failure, but got multiple ones";
-        Optional<? extends Failure> failure = modelResult.getFailures().stream().findAny();
-        if (failure.isPresent()) {
-            failures.put(build.getBuildIdentifier().getRootDir(), failure.get());
+        // Keep every failure of the build: its configuration failure comes first, followed by the failures the model builder recovered from.
+        if (!modelResult.getFailures().isEmpty()) {
+            failures.put(build.getBuildIdentifier().getRootDir(), new ArrayList<>(modelResult.getFailures()));
         }
 
         if (modelResult.getModel() != null) {

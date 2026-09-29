@@ -31,6 +31,8 @@ import java.io.Serializable;
 import java.util.concurrent.Callable;
 import java.util.function.Supplier;
 
+import static java.util.Objects.requireNonNull;
+
 public class Providers {
     private static final NoValueProvider<Object> NULL_PROVIDER = new NoValueProvider<>(ValueSupplier.Value.MISSING);
 
@@ -65,14 +67,14 @@ public class Providers {
 
     public static <T> FixedValueProvider<T> of(T value) {
         if (value == null) {
-            throw new IllegalArgumentException("Value cannot be null");
+            throw new NullPointerException("Value cannot be null");
         }
         return new FixedValueProvider<>(value);
     }
 
     public static <T extends Named> NamedDomainObjectProvider<T> ofNamed(T value) {
         if (value == null) {
-            throw new IllegalArgumentException();
+            throw new NullPointerException("Value cannot be null");
         }
         return new NamedFixedValueProvider<>(value);
     }
@@ -320,11 +322,13 @@ public class Providers {
 
         @Override
         public Provider<T> orElse(T value) {
+            requireNonNull(value, "Cannot set a fallback for a provider using a null value.");
             return Providers.of(value);
         }
 
         @Override
         public Provider<T> orElse(Provider<? extends T> provider) {
+            requireNonNull(provider, "Cannot set a fallback for a provider using a null provider.");
             return Cast.uncheckedCast(provider);
         }
 

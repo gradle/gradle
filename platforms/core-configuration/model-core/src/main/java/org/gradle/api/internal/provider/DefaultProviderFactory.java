@@ -50,6 +50,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 
+import static java.util.Objects.requireNonNull;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.bifunction;
 import static org.gradle.api.internal.provider.Providers.changing;
 import static org.gradle.api.internal.provider.Providers.memoizing;
@@ -88,7 +89,7 @@ public class DefaultProviderFactory implements ProviderFactory {
     @Override
     public <T> Provider<T> provider(final Callable<? extends T> value) {
         if (value == null) {
-            throw new IllegalArgumentException("Value cannot be null");
+            throw new NullPointerException("Value cannot be null");
         }
         return new DefaultProvider<>(value);
     }
@@ -171,6 +172,7 @@ public class DefaultProviderFactory implements ProviderFactory {
 
     @Override
     public Provider<String> gradleProperty(Provider<String> propertyName) {
+        requireNonNull(propertyName, "Cannot look up Gradle properties using a null provider.");
         GradleProperties gradleProperties = getGradleProperties();
         return memoizing(
             new BiProvider<>(
@@ -191,6 +193,7 @@ public class DefaultProviderFactory implements ProviderFactory {
 
     @Override
     public Provider<Map<String, String>> gradlePropertiesPrefixedBy(Provider<String> propertyNamePrefix) {
+        requireNonNull(propertyNamePrefix, "Cannot look up Gradle properties using a null provider.");
         GradleProperties gradleProperties = getGradleProperties();
         return memoizing(
             new BiProvider<>(
@@ -276,6 +279,8 @@ public class DefaultProviderFactory implements ProviderFactory {
 
     @Override
     public <A, B, R> Provider<R> zip(Provider<A> left, Provider<B> right, BiFunction<? super A, ? super B, ? extends R> combiner) {
+        requireNonNull(left, "Cannot zip a provider with a null provider.");
+        requireNonNull(combiner, "Cannot zip providers using a null combiner.");
         return left.zip(right, combiner);
     }
 

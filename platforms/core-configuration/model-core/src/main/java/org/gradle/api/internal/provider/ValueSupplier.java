@@ -379,7 +379,7 @@ public interface ValueSupplier {
 
         static <T> Value<T> of(T value) {
             if (value == null) {
-                throw new IllegalArgumentException();
+                throw new NullPointerException("Cannot create a present value from null.");
             }
             return new Present<>(value);
         }
@@ -393,7 +393,7 @@ public interface ValueSupplier {
          */
         static <T> Value<T> withSideEffect(T value, SideEffect<? super T> sideEffect) {
             if (value == null) {
-                throw new IllegalArgumentException();
+                throw new NullPointerException("Cannot create a present value from null.");
             }
             return new Present<>(value, sideEffect);
         }
