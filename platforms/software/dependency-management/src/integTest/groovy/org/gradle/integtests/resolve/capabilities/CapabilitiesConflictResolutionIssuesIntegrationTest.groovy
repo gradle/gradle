@@ -373,12 +373,14 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         resolve.expectGraph(":p1") {
             root(":p1", "test:p1:") {
                 project(":p2", "test:p2:") {
-                    configuration 'runtimeElements'
+                    variant('runtimeElements')
                     project(":shared", "test:shared:") {
+                        variant('onePrefRuntimeElements')
                         artifact(classifier: 'one-preferred')
                         byConflictResolution("Explicit selection of project ':shared' variant onePrefRuntimeElements")
                     }
                     project(":shared", "test:shared:") {
+                        variant('twoPrefRuntimeElements')
                         artifact(classifier: 'two-preferred')
                         byConflictResolution("Explicit selection of project ':shared' variant twoPrefRuntimeElements")
                     }
@@ -390,9 +392,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                         'org.gradle.jvm.version': "${JavaVersion.current().majorVersion}",
                         'org.gradle.libraryelements': 'jar',
                         'org.gradle.usage': 'java-runtime'])
-                    project(":shared", "test:shared:") {
-
-                    }
                 }
                 project(":shared", "test:shared:") {
                     variant('twoPrefRuntimeElements', [
@@ -401,6 +400,9 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                         'org.gradle.jvm.version': "${JavaVersion.current().majorVersion}",
                         'org.gradle.libraryelements': 'jar',
                         'org.gradle.usage': 'java-runtime'])
+                    project(":shared", "test:shared:") {
+                        variant('onePrefRuntimeElements')
+                    }
                 }
             }
         }
@@ -835,11 +837,14 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                     byConstraint()
                 }
                 edge('org.apache.sshd:sshd-common', 'org.apache.sshd:sshd-common:2.12.1') {
+                    variant('runtime')
                     module('org.slf4j:jcl-over-slf4j:1.7.32') {
                         byConflictResolution("Explicit selection of org.slf4j:jcl-over-slf4j:1.7.32 variant runtime")
                     }
                 }
                 edge('org.apache.sshd:sshd-common', 'org.apache.sshd:sshd-common:2.12.1') {
+                    variant('platform-runtime')
+                    noArtifacts()
                     constraint('org.apache.httpcomponents:httpclient:4.5.14')
                 }
                 edge('org.apache.httpcomponents:httpclient:4.3.2', 'org.apache.httpcomponents:httpclient:4.5.14') {
@@ -986,8 +991,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                     noArtifacts()
                 }
                 project(":producer", "test:producer:") {
-                    variant('one-preferred', ['org.gradle.usage': 'foo'])
-                    noArtifacts()
+                    variant('one-preferred')
                 }
             }
         }

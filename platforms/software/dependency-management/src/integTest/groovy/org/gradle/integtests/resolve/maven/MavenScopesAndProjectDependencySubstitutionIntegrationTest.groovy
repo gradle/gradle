@@ -183,7 +183,7 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
         resolve.expectGraph(":child1") {
             root(':child1', 'testproject:child1:') {
                 module('org.test:maven:1.0') {
-                    configuration = 'compile'
+                    variant('runtime')
                     edge('org.test:replaced:1.0', ':child2', 'testproject:child2:') {
                         selectedByRule()
                         noArtifacts()
@@ -230,7 +230,7 @@ class MavenScopesAndProjectDependencySubstitutionIntegrationTest extends Abstrac
         resolve.expectGraph(":child1") {
             root(':child1', 'testproject:child1:') {
                 module('org.test:maven:1.0') {
-                    configuration = 'compile'
+                    variant('runtime')
                     edge('org.test:replaced:1.0', ':child2', 'testproject:child2:') {
                         selectedByRule()
                         module('org.test:m1:1.0')

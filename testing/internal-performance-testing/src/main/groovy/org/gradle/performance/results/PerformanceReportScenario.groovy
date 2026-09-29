@@ -36,11 +36,17 @@ class PerformanceReportScenario {
      */
     final List<PerformanceReportScenarioHistoryExecution> historyExecutions
 
+    /**
+     * The database rows this pipeline produced that recorded no measurement, i.e. runs that errored out.
+     */
+    final List<UnmeasuredExecution> currentUnmeasuredExecutions
+
     final boolean crossBuild
 
     PerformanceReportScenario(
         List<PerformanceTestExecutionResult> teamCityExecutions,
         List<PerformanceReportScenarioHistoryExecution> historyExecutions,
+        List<UnmeasuredExecution> unmeasuredExecutions,
         boolean crossBuild,
         Set<String> pipelineBuildIds,
         String currentCommit
@@ -56,18 +62,22 @@ class PerformanceReportScenario {
         // row's own teamCityBuildId (written accurately by the run that measured it) against the authoritative bucket
         // build IDs of this pipeline; a build-cache hit produces no DB row at all, so cached results never appear here.
         // The result JSON no longer carries a build id, so locally (authoritative set unknown) we match the commit.
-        this.currentExecutions = pipelineBuildIds.isEmpty()
-            ? historyExecutions.findAll { it.commitId == currentCommit }
-            : historyExecutions.findAll { pipelineBuildIds.contains(it.teamCityBuildId) }
+        Closure<Boolean> producedByThisPipeline = pipelineBuildIds.isEmpty()
+            ? { it.commitId == currentCommit }
+            : { pipelineBuildIds.contains(it.teamCityBuildId) }
+        this.currentExecutions = historyExecutions.findAll(producedByThisPipeline)
+        this.currentUnmeasuredExecutions = unmeasuredExecutions.findAll(producedByThisPipeline)
         this.historyExecutions = historyExecutions
-        this.fromCache = !pipelineBuildIds.isEmpty() && currentExecutions.empty
+        // Only a scenario this pipeline left no trace of at all - neither a measurement nor an errored run - can have
+        // been restored from the cache. An errored run does write a row, so it must not be excused as a cache hit.
+        this.fromCache = !pipelineBuildIds.isEmpty() && currentExecutions.empty && currentUnmeasuredExecutions.empty
     }
 
     /**
-     * True when this pipeline is known (CI, authoritative bucket build IDs available) and none of its builds produced
-     * a measurement for this scenario - i.e. the bucket result was restored from the Gradle build cache instead of
-     * being executed. Any status/failure carried by the result JSON was recorded by the original producing build,
-     * not by this build chain, so the report must not present it as this chain's outcome.
+     * True when this pipeline is known (CI, authoritative bucket build IDs available) and none of its builds left any
+     * record of this scenario - i.e. the bucket result was restored from the Gradle build cache instead of being
+     * executed. Any status/failure carried by the result JSON was recorded by the original producing build, not by
+     * this build chain, so the report must not present it as this chain's outcome.
      */
     final boolean fromCache
 
@@ -117,6 +127,22 @@ class PerformanceReportScenario {
      */
     boolean isRegressedByMeasurement() {
         return !crossBuild && !currentExecutions.empty && currentExecutions.every { it.regressedSignificantly() }
+    }
+
+    /**
+     * Whether this pipeline ran the scenario and it failed without producing a measurement - it errored out (an
+     * Android Studio sync that cannot start, a test project that no longer builds) rather than regressing.
+     *
+     * Such a run records no comparable measurement, so {@link #isRegressedByMeasurement()} cannot see it and nothing
+     * else gates on it. The evidence is the execution row the runner writes from its {@code finally} block, stamped
+     * with the id of the build that actually ran it: a build-cache hit forks no test JVM, so it can neither write nor
+     * replay one, and a result restored from the cache is still correctly ignored.
+     *
+     * Requires that no in-pipeline run *did* measure, so a scenario that errors once and succeeds on the in-pipeline
+     * retry ({@code testRetry.maxRetries = 1} on CI) stays green, consistent with {@link #isRegressedByMeasurement()}.
+     */
+    boolean isErroredInThisPipeline() {
+        return !crossBuild && !currentUnmeasuredExecutions.empty && currentExecutions.empty
     }
 
     boolean isBuildFailed() {

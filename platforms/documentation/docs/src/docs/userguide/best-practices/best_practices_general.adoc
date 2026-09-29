@@ -37,7 +37,7 @@ Android Studio also link:https://developer.android.com/build/migrate-to-kotlin-d
 
 === Tags
 
-<<tags_reference.adoc#tag:kotlin-dsl,`#kotlin-dsl`>>
+`<<tags_reference.adoc#tag:kotlin-dsl,#kotlin-dsl>>`
 
 [[use_latest_minor_versions]]
 == Use the Latest Minor Version of Gradle
@@ -85,7 +85,7 @@ Subscribe to the Gradle link:https://newsletter.gradle.org/[newsletter] to stay 
 
 === Tags
 
-<<tags_reference.adoc#tag:plugins,`#plugins`>>
+`<<tags_reference.adoc#tag:plugins,#plugins>>`
 
 [[use_the_plugins_block]]
 == Apply Plugins Using the `plugins` Block
@@ -436,7 +436,7 @@ include::sample[dir="snippets/best-practices/dontAssumePluginOrder-do/groovy",fi
 
 === Tags
 
-<<tags_reference.adoc#tag:structuring-builds,`#structuring-builds`>>, <<tags_reference.adoc#tag:plugins,`#plugins`>>
+`<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`, `<<tags_reference.adoc#tag:plugins,#plugins>>`
 
 [[do_not_use_internal_apis]]
 == Do Not Use Internal APIs
@@ -488,7 +488,7 @@ include::sample[dir="snippets/best-practices/avoidInternal-do/groovy",files="bui
 
 === Tags
 
-<<tags_reference.adoc#tag:upgrades,`#upgrades`>>
+`<<tags_reference.adoc#tag:upgrades,#upgrades>>`
 
 [[use_the_gradle_properties_file]]
 == Set Build Flags in `gradle.properties`
@@ -579,7 +579,7 @@ Now it can be executed using only `gradle run`, and the continue property will a
 
 === Tags
 
-<<tags_reference.adoc#tag:properties,`#properties`>>
+`<<tags_reference.adoc#tag:properties,#properties>>`
 
 
 [[name_your_root_project]]
@@ -646,7 +646,7 @@ include::sample[dir="snippets/best-practices/nameYourRootProject-do/tests",files
 
 === Tags
 
-<<tags_reference.adoc#tag:settings,`#settings`>>
+`<<tags_reference.adoc#tag:settings,#settings>>`
 
 [[do_not_use_gradle_properties_in_subprojects]]
 == Do not use `gradle.properties` in subprojects
@@ -807,7 +807,7 @@ This structure uses an extension type to hold values, allowing properties to be 
 
 === Tags
 
-<<tags_reference.adoc#tag:properties,`#properties`>>
+`<<tags_reference.adoc#tag:properties,#properties>>`
 
 [[avoid_after_evaluate]]
 == Avoid `afterEvaluate`
@@ -957,7 +957,7 @@ include::{snippetsPath}/best-practices/avoidAfterEvaluate-do/tests/avoidAfterEva
 
 === Tags
 
-<<tags_reference.adoc#tag:plugins,`#plugins`>>, <<tags_reference.adoc#tag:structuring-builds,`#structuring-builds`>>
+`<<tags_reference.adoc#tag:plugins,#plugins>>`, `<<tags_reference.adoc#tag:structuring-builds,#structuring-builds>>`
 
 [[consider_use_of_incubating_apis_carefully]]
 == Consider use of `@Incubating` APIs carefully
@@ -984,7 +984,7 @@ NOTE: Remember that the goal of Incubating features is to put them in users' han
 
 === Tags
 
-<<tags_reference.adoc#tag:upgrades,`#upgrades`>>
+`<<tags_reference.adoc#tag:upgrades,#upgrades>>`
 
 [[obtain_loggers_via_logging_get_logger]]
 == Obtain Loggers via `Logging.getLogger(Class)` outside of Tasks
@@ -1052,4 +1052,4 @@ include::sample[dir="snippets/best-practices/obtainLoggersViaLoggingGetLogger-do
 
 === Tags
 
-<<tags_reference.adoc#tag:tasks,`#tasks`>>, <<tags_reference.adoc#tag:plugins,`#plugins`>>, <<tags_reference.adoc#tag:logging,`#logging`>>
+`<<tags_reference.adoc#tag:tasks,#tasks>>`, `<<tags_reference.adoc#tag:plugins,#plugins>>`, `<<tags_reference.adoc#tag:logging,#logging>>`

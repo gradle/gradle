@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl
 
 import org.gradle.api.Plugin
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.api.Project
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.file.TestFile
@@ -40,7 +41,7 @@ class PluginClasspathLeakIntegrationTest extends AbstractIntegrationSpec {
                     maven {
                         url = "${mavenRepo.uri}"
                     }
-                    mavenCentral()
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
                 }
             }
             apply plugin: 'printer'
@@ -76,7 +77,7 @@ class PluginClasspathLeakIntegrationTest extends AbstractIntegrationSpec {
                 version = '${version}'
 
                 repositories {
-                    mavenCentral()
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
                 }
 
                 dependencies {

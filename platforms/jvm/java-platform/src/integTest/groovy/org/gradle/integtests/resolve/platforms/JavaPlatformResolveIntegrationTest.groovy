@@ -121,11 +121,11 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                     noArtifacts()
                 }
                 edge('org:foo', 'org:foo:1.1') {
-                    configuration = "runtime"
+                    variant("runtime")
                     byConstraint()
                 }
                 edge('org:bar', 'org:bar:1.2') {
-                    configuration = "runtime"
+                    variant("runtime")
                     byConstraint()
                 }
             }
@@ -300,12 +300,12 @@ class JavaPlatformResolveIntegrationTest extends AbstractHttpDependencyResolutio
                     }
                 }
                 module('org:bar:1.0') {
-                    configuration = 'runtime'
+                    variant('runtime')
                     module('org:foo:1.0') {
-                        configuration = 'runtime'
+                        variant('runtime')
                         byConstraint()
                         module('org:foobar:1.0') {
-                            configuration = 'runtime'
+                            variant('runtime')
                         }
                     }
                 }

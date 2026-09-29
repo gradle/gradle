@@ -144,9 +144,9 @@ public class BuildActionSerializer {
             valueSerializer.write(encoder, startParameter.getConfigurationCache());
             valueSerializer.write(encoder, startParameter.getIsolatedProjects());
             encoder.writeString(startParameter.getConfigurationCacheProblems().name());
-            encoder.writeBoolean(startParameter.isConfigurationCacheIgnoreInputsDuringStore());
-            encoder.writeBoolean(startParameter.isConfigurationCacheIgnoreUnsupportedBuildEventsListeners());
-            encoder.writeBoolean(startParameter.isConfigurationCacheSkipTaskLoggingListenersSerialization());
+            valueSerializer.write(encoder, startParameter.getConfigurationCacheIgnoreInputsDuringStore());
+            valueSerializer.write(encoder, startParameter.getConfigurationCacheIgnoreUnsupportedBuildEventsListeners());
+            valueSerializer.write(encoder, startParameter.getConfigurationCacheSkipTaskLoggingListenersSerialization());
             encoder.writeSmallInt(startParameter.getConfigurationCacheMaxProblems());
             encoder.writeNullableString(startParameter.getConfigurationCacheIgnoredFileSystemCheckInputs());
             encoder.writeBoolean(startParameter.isConfigurationCacheDebug());
@@ -248,9 +248,9 @@ public class BuildActionSerializer {
             startParameter.setConfigurationCache(valueSerializer.read(decoder));
             startParameter.setIsolatedProjects(valueSerializer.read(decoder));
             startParameter.setConfigurationCacheProblems(ConfigurationCacheProblemsOption.Value.valueOf(decoder.readString()));
-            startParameter.setConfigurationCacheIgnoreInputsDuringStore(decoder.readBoolean());
-            startParameter.setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(decoder.readBoolean());
-            startParameter.setConfigurationCacheSkipTaskLoggingListenersSerialization(decoder.readBoolean());
+            startParameter.setConfigurationCacheIgnoreInputsDuringStore(valueSerializer.read(decoder));
+            startParameter.setConfigurationCacheIgnoreUnsupportedBuildEventsListeners(valueSerializer.read(decoder));
+            startParameter.setConfigurationCacheSkipTaskLoggingListenersSerialization(valueSerializer.read(decoder));
             startParameter.setConfigurationCacheMaxProblems(decoder.readSmallInt());
             startParameter.setConfigurationCacheIgnoredFileSystemCheckInputs(decoder.readNullableString());
             startParameter.setConfigurationCacheDebug(decoder.readBoolean());

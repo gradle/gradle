@@ -17,6 +17,7 @@
 package org.gradle.api.plugins.antlr
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import spock.lang.Issue
 
 class AntlrFilteringIntegrationTest extends AbstractIntegrationSpec implements AntlrDeprecationFixture{
@@ -38,7 +39,7 @@ class AntlrFilteringIntegrationTest extends AbstractIntegrationSpec implements A
             }
 
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
             }
 
             dependencies {

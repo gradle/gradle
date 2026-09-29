@@ -117,6 +117,36 @@ Two cases are unaffected:
 1. Running Gradle in a directory with no settings or build script anywhere in its parent hierarchy still reports an undefined build and still suggests `gradle init`.
 2. Running `gradle init` in a directory inside an existing build still creates a new build there.
 
+[[required_input_files_absent_nested_providers]]
+==== Required input file properties reject absent providers nested in collections
+
+Required task input file properties now fail validation when a provider nested in a plain collection or array (such as a `List` passed to link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#files(java.lang.Object...)[`TaskInputs.files(...)`]) has no value.
+This applies to `TaskInputs.files(...)` declarations and to required link:{javadocPath}/org/gradle/api/tasks/InputFiles.html[`@InputFiles`] properties whose value is such a collection or array.
+Gradle reports the failure as the <<validation_problems.adoc#value_not_set, Required value isn't set>> validation problem.
+
+Passing several providers as varargs, such as `inputs.files(providerA, providerB)`, was ignored in the same way.
+The collection and varargs forms now fail just like the direct form:
+
+[source,kotlin]
+.build.gradle.kts
+----
+val absent = objects.fileProperty() // no value configured
+
+// Failed before this change, and still fails
+tasks.register("direct") {
+    inputs.files(absent).withPropertyName("p")
+}
+
+// Succeeded before this change, silently resolving to an empty collection; now fails
+tasks.register("wrapped") {
+    inputs.files(listOf(absent)).withPropertyName("p")
+}
+----
+
+To fix this, make sure every provider in the collection has a value.
+If the input is genuinely optional, declare it as such with link:{javadocPath}/org/gradle/api/tasks/TaskInputFilePropertyBuilder.html#optional()[`optional()`] on the `TaskInputs.files(...)` registration, or with link:{javadocPath}/org/gradle/api/tasks/Optional.html[`@Optional`] on the `@InputFiles` property.
+Optional inputs are not affected by this change and continue to ignore absent providers.
+
 === Deprecations
 
 [[kotlin_dsl_scripts_model_explicit_scripts]]
@@ -184,6 +214,39 @@ abstract class UnpackTask @Inject constructor(
 
 See <<working_with_files.adoc#sec:unpacking_archives_example, Unpacking archives>> in the Gradle User Manual for more details.
 
+[[deprecated_configuration_cache_opt_out_properties]]
+==== Deprecation of temporary Configuration Cache opt-out properties
+
+The following Gradle properties were introduced as temporary opt-outs to ease the adoption of the Configuration Cache.
+They let a build revert to earlier, more lenient behavior while the underlying build logic or plugins are being fixed.
+
+These properties are now deprecated and will be removed in Gradle 11.
+Setting any of them, to any value, emits a deprecation warning.
+
+[cols="3,1,3"]
+|===
+| Property | Introduced in | Remediation
+
+| `org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks`
+| Gradle 8.3
+| Fix the build logic or plugins that perform file system checks, such as `File.exists()`, during configuration, so that they no longer cause unnecessary cache invalidation.
+
+| `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization`
+| Gradle 8.4
+| Fix the build logic or plugins that read the build environment while the task graph is being serialized, so that they no longer cause unnecessary cache invalidation.
+
+| `org.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners`
+| Gradle 9.0
+| Convert the build event listeners passed to link:{javadocPath}/org/gradle/build/event/BuildEventsListenerRegistry.html#onTaskCompletion(org.gradle.api.provider.Provider)[`BuildEventsListenerRegistry.onTaskCompletion`] into <<build_services.adoc#build_services,build services>>.
+
+| `org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization`
+| Gradle 9.8
+| Fix the serialization issues of the task output listeners registered during configuration, or register them at execution time instead, for example in a task action.
+|===
+
+Use the <<configuration_cache_debugging.adoc#config_cache:troubleshooting, Configuration Cache report>> to identify the offending build logic.
+See <<configuration_cache_enabling.adoc#config_cache:usage:input_opt_outs, Temporary Opt-Outs for Configuration Cache Behavior>> in the Gradle User Manual for the details of each property.
+
 [[changes_9.8.0]]
 == Upgrading from 9.7.0 and earlier
 
@@ -211,25 +274,6 @@ If you need to pin the previous version, set `jacoco.toolVersion = "0.8.14"` in 
 
 Groovy has been updated to link:https://groovy-lang.org/changelogs/changelog-4.0.33.html[4.0.33].
 
-[[service_method_added_to_project_settings_gradle_task]]
-==== New `service(Class)` method on `Project`, `Settings`, `Gradle`, and `Task`
-
-Gradle 9.8.0 adds an incubating `service(Class)` method to link:{javadocPath}/org/gradle/api/Project.html[`Project`], link:{javadocPath}/org/gradle/api/initialization/Settings.html[`Settings`], link:{javadocPath}/org/gradle/api/invocation/Gradle.html[`Gradle`], and link:{javadocPath}/org/gradle/api/Task.html[`Task`], along with reified `service<T>()` extensions in the Kotlin DSL.
-See <<service_injection.adoc#looking_up_services,Looking up services in scripts and task actions>> for details.
-
-If your build, plugin, or convention already exposes a member called `service` on one of these types (for example, a user-defined extension, a Groovy dynamic property, or a Kotlin extension function), the new built-in member may shadow it or make calls ambiguous.
-Rename your member (for example, to `myService`) to disambiguate:
-
-[source,kotlin]
-.build.gradle.kts
-----
-// Before: shadowed by the new built-in Project.service(Class)
-fun Project.service(name: String): MyService = extensions.getByName(name) as MyService
-
-// After: rename to avoid the conflict
-fun Project.myService(name: String): MyService = extensions.getByName(name) as MyService
-----
-
 [[task_logging_listeners_are_now_stored_in_the_configuration_cache]]
 ==== Task logging listeners are now stored in the Configuration Cache
 
@@ -245,7 +289,7 @@ If your build registers such a listener and the listener is nonessential, you ca
 org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization=true
 ----
 
-This property is a temporary opt-out and will be removed in a future Gradle release.
+This property is a temporary opt-out, <<deprecated_configuration_cache_opt_out_properties, deprecated since Gradle 9.9>> and scheduled for removal in Gradle 11.
 
 [[kotlin_object_singletons_in_configuration_cache]]
 ==== Kotlin `object` singletons keep their identity in the Configuration Cache
@@ -460,6 +504,16 @@ KGP 2.1.0 and newer do not use a plain enum for this attribute and are unaffecte
 Like the general case, this deprecation will become an error in Gradle 10.
 
 See the <<variant_attributes.adoc#sec:creating-attributes, variant attributes documentation>> for the full set of supported attribute value types.
+
+[[deprecated_macos_amd64]]
+==== Deprecation of macOS on `AMD64`
+
+macOS `AMD64` (Intel) is deprecated as a supported platform and will be removed from the <<compatibility.adoc#target_platforms, supported platforms>> in Gradle 10.
+
+macOS 27 runs on Apple Silicon only, and the OpenJDK macOS/x64 port is link:https://openjdk.org/jeps/541[deprecated for removal], so JDK 27 and newer are not available for the platform.
+Gradle is therefore no longer tested on macOS `AMD64` with Java 27 or newer.
+
+To prepare for Gradle 10, move your builds to macOS `AArch64` (Apple Silicon).
 
 [[changes_9.7.0]]
 == Upgrading from 9.6.0 and earlier
@@ -1565,9 +1619,9 @@ When running a lock update with Gradle 9.5.0 or above, if your lockfiles were pr
 [[v9_dependency_verification_armored_key_rings_non_ascii]]
 ==== Dependency verification armored key rings now render non-ASCII characters correctly
 
-In the context of <<dependency_verification#verifying-dependencies, Dependency Verification>>, when a key has metadata that contains non-ASCII characters, it is now properly rendered in the key header.
+In the context of <<securing_dependencies#verifying-dependencies, Dependency Verification>>, when a key has metadata that contains non-ASCII characters, it is now properly rendered in the key header.
 
-When running a <<dependency_verification#sec:local-keyring,dependency verification key export>> with Gradle 9.5.0 or above, if your keyring already contained keys with non-ASCII metadata, the exported armored keyring will be updated to render those characters correctly.
+When running a <<securing_dependencies#sec:local-keyring,dependency verification key export>> with Gradle 9.5.0 or above, if your keyring already contained keys with non-ASCII metadata, the exported armored keyring will be updated to render those characters correctly.
 This is expected to happen only once.
 
 [[v9_outgoing_variants_hide_attributeless_by_default]]

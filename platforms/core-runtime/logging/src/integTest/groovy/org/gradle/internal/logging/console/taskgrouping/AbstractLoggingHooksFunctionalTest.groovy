@@ -235,6 +235,34 @@ abstract class AbstractLoggingHooksFunctionalTest extends AbstractConsoleGrouped
         !lines.contains('warn')
     }
 
+    def "listener added to task in a task action receives output"() {
+        buildFile """
+            tasks.register("log") {
+                def listenerOutput = file("listener-output.txt")
+                def listener = new CollectingListener()
+                doFirst {
+                    logging.addStandardOutputListener(listener)
+                    logging.addStandardErrorListener(listener)
+                }
+                doLast {
+                    System.out.println "output"
+                    System.err.println "error"
+                }
+                doLast {
+                    listenerOutput.text = listener.toString()
+                }
+            }
+        """
+
+        when:
+        succeeds("log")
+
+        then:
+        def captured = file("listener-output.txt").text
+        captured.contains("output")
+        captured.contains("error")
+    }
+
     def "broken listener fails build but does not kill logging output"() {
         buildFile << """
             class BrokenListener implements StandardOutputListener {

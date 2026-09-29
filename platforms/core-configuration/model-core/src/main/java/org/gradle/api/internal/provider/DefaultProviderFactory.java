@@ -32,6 +32,7 @@ import org.gradle.api.internal.provider.sources.process.DefaultExecOutput;
 import org.gradle.api.internal.provider.sources.process.ProcessOutputProviderFactory;
 import org.gradle.api.internal.provider.sources.process.ProcessOutputValueSource;
 import org.gradle.api.model.ObjectFactory;
+import org.gradle.api.provider.PresentProvider;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
 import org.gradle.api.provider.ValueSource;
@@ -49,6 +50,7 @@ import java.util.Map;
 import java.util.concurrent.Callable;
 import java.util.function.BiFunction;
 
+import static java.util.Objects.requireNonNull;
 import static org.gradle.api.internal.lambdas.SerializableLambdas.bifunction;
 import static org.gradle.api.internal.provider.Providers.changing;
 import static org.gradle.api.internal.provider.Providers.memoizing;
@@ -87,9 +89,24 @@ public class DefaultProviderFactory implements ProviderFactory {
     @Override
     public <T> Provider<T> provider(final Callable<? extends T> value) {
         if (value == null) {
-            throw new IllegalArgumentException("Value cannot be null");
+            throw new NullPointerException("Value cannot be null");
         }
         return new DefaultProvider<>(value);
+    }
+
+    @Override
+    public <T> Provider<T> absent() {
+        return Providers.notDefined();
+    }
+
+    @Override
+    public <T> PresentProvider<T> present(T value) {
+        return Providers.of(value);
+    }
+
+    @Override
+    public <T> Provider<T> presentIfNotNull(@Nullable T value) {
+        return Providers.ofNullable(value);
     }
 
     @Override
@@ -155,6 +172,7 @@ public class DefaultProviderFactory implements ProviderFactory {
 
     @Override
     public Provider<String> gradleProperty(Provider<String> propertyName) {
+        requireNonNull(propertyName, "Cannot look up Gradle properties using a null provider.");
         GradleProperties gradleProperties = getGradleProperties();
         return memoizing(
             new BiProvider<>(
@@ -175,6 +193,7 @@ public class DefaultProviderFactory implements ProviderFactory {
 
     @Override
     public Provider<Map<String, String>> gradlePropertiesPrefixedBy(Provider<String> propertyNamePrefix) {
+        requireNonNull(propertyNamePrefix, "Cannot look up Gradle properties using a null provider.");
         GradleProperties gradleProperties = getGradleProperties();
         return memoizing(
             new BiProvider<>(
@@ -260,6 +279,8 @@ public class DefaultProviderFactory implements ProviderFactory {
 
     @Override
     public <A, B, R> Provider<R> zip(Provider<A> left, Provider<B> right, BiFunction<? super A, ? super B, ? extends R> combiner) {
+        requireNonNull(left, "Cannot zip a provider with a null provider.");
+        requireNonNull(combiner, "Cannot zip providers using a null combiner.");
         return left.zip(right, combiner);
     }
 

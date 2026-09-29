@@ -16,6 +16,8 @@
 package org.gradle.integtests.resolve.maven
 
 import org.gradle.integtests.fixtures.AbstractSampleIntegrationTest
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.api.artifacts.ArtifactRepositoryContainer
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
 import org.gradle.test.precondition.Requires
@@ -46,7 +48,10 @@ class MavenSettingsMirrorSampleIntegrationTest extends AbstractSampleIntegration
         and: "the sample's settings.xml becomes the Maven settings of an isolated home"
         using m2
         executer.beforeExecute m2
+        // The sample mirrors to Maven Central, which is what a reader should see. On CI that host
+        // throttles us, so stand the repository mirror in for it without touching the snippet.
         m2.userSettingsFile.text = sample.dir.file("m2_home/settings.xml").text
+            .replace(ArtifactRepositoryContainer.MAVEN_CENTRAL_URL - ~'/$', RepoScriptBlockUtil.mavenCentralMirrorUrl - ~'/$')
 
         when:
         executer.inDirectory(projectDir)

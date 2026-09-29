@@ -55,19 +55,20 @@ class PublishedCapabilityRequestsIntegrationTest extends AbstractModuleDependenc
         succeeds 'checkDeps'
 
         then:
+        String status = defaultStatus()
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:bar:1.0') {
                     module('org:foo:1.0') {
-                        variant('runtimeAlt', [custom: 'c1', 'org.gradle.status': PublishedCapabilityRequestsIntegrationTest.defaultStatus()])
+                        variant('runtimeAlt', [custom: 'c1', 'org.gradle.status': status])
                     }
                 }
             }
         }
     }
 
-    static Closure<String> defaultStatus() {
-        { -> GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release' }
+    static String defaultStatus() {
+        GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release'
     }
 
 }

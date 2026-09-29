@@ -190,7 +190,7 @@ class DependencyResolveRulesPreferProjectModulesIntegrationTest extends Abstract
                         byConflictResolution("between versions 1.0 and 2.0")
                     }
                 }
-                project("project ':ModuleC'", "myorg:ModuleC:1.0") {
+                project(":ModuleC", "myorg:ModuleC:1.0") {
                     noArtifacts()
                 }
             }

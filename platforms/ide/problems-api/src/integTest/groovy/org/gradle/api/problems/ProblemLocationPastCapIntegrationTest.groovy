@@ -19,7 +19,6 @@ package org.gradle.api.problems
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.BuildOperationsFixture
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.operations.problems.ProblemUsageProgressDetails
 import spock.lang.Issue
 
@@ -35,7 +34,6 @@ class ProblemLocationPastCapIntegrationTest extends AbstractIntegrationSpec {
 
     def buildOperations = new BuildOperationsFixture(executer, testDirectoryProvider)
 
-    @ToBeFixedForIsolatedProjects(because = "under Isolated Projects the stack-capture cap is 5000, so the problems fired here stay within it and never reach the bounded path")
     def "problems past the stack-capture cap resolve to the calling script and keep the build-logic frame for warning mode #warningMode"() {
         given:
         // A compiled helper (build logic, not a script) reports the problem. The bounded capture must see

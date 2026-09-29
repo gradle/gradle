@@ -285,7 +285,7 @@ class StrictVersionConstraintsFeatureInteractionIntegrationTest extends Abstract
             root(':', ':test:') {
                 constraint('org:bar:{strictly 1.0}', 'org:bar:2.0').byConstraint().forced()
                 project(':foo', 'test:foo:') {
-                    configuration = 'conf'
+                    variant('conf')
                     module('org:bar:2.0')
                 }
             }

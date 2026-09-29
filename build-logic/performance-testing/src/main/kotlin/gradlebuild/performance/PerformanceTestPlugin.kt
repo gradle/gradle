@@ -58,12 +58,14 @@ import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.Task
 import org.gradle.api.artifacts.VersionCatalogsExtension
+import org.gradle.api.file.RegularFile
 import org.gradle.api.internal.tasks.testing.filter.DefaultTestFilter
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
 import org.gradle.api.tasks.ClasspathNormalizer
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.JavaExec
+import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.SourceSet
 import org.gradle.api.tasks.SourceSetContainer
 import org.gradle.api.tasks.TaskProvider
@@ -387,8 +389,19 @@ class PerformanceTestExtension(
         return doRegisterTestProject(testProject, testProjectGeneratorTask, configurationAction) {
             jvmArgumentProviders.add(project.androidStudioSystemProperties(performanceTestAndroidStudioJvmArgs + additionalStudioJvmArgs))
             environment("JAVA_HOME", LazyEnvironmentVariable { javaLauncher.get().metadata.installationPath.asFile.absolutePath })
+            inputs.files(testedAndroidVersionFiles)
+                .withPropertyName("testedAndroidVersions")
+                .withPathSensitivity(PathSensitivity.NONE)
         }
     }
+
+    private
+    val testedAndroidVersionFiles: List<RegularFile>
+        get() = listOf(
+            "agp-versions.properties",
+            "kotlin-versions.properties",
+            "smoke-tested-ides.properties"
+        ).map { project.repoRoot().file("gradle/dependency-management/$it") }
 
     private
     fun <T : Task> doRegisterTestProject(

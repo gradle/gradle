@@ -151,7 +151,18 @@ class LightweightChecks(
                     name = "RUN_MAVEN_CLEAN_VERIFY"
                     scriptContent =
                         """
-                        ./mvnw clean verify -Dmaven.repo.local=../build -Dscan.value.gitCommitId=%build.vcs.number% -Dscan.tag.CI -Dscan.value.tcBuildType=${model.projectId}_LightweightChecks
+                        set -eu
+                        MAVEN_SETTINGS_ARG=""
+                        if [ "${'$'}{IGNORE_MIRROR:-false}" != "true" ]; then
+                            MAVEN_CENTRAL_MIRROR=${'$'}(printf '%s' "${'$'}{REPO_MIRROR_URLS:-}" | tr ',' '\n' | sed -n 's|^mavencentral:||p')
+                            if [ -n "${'$'}MAVEN_CENTRAL_MIRROR" ]; then
+                                export MAVEN_CENTRAL_MIRROR_URL="${'$'}{MAVEN_CENTRAL_MIRROR%/}"
+                                export MVNW_REPOURL="${'$'}MAVEN_CENTRAL_MIRROR_URL"
+                                MAVEN_SETTINGS_ARG="--settings mirror-settings.xml"
+                                echo "Using Maven Central mirror: ${'$'}MAVEN_CENTRAL_MIRROR_URL"
+                            fi
+                        fi
+                        ./mvnw ${'$'}MAVEN_SETTINGS_ARG clean verify -Dmaven.repo.local=../build -Dscan.value.gitCommitId=%build.vcs.number% -Dscan.tag.CI -Dscan.value.tcBuildType=${model.projectId}_LightweightChecks
                         """.trimIndent()
                     workingDir = ".teamcity"
                 }

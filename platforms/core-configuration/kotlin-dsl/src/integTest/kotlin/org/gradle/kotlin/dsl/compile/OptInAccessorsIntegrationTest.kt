@@ -17,6 +17,8 @@
 package org.gradle.kotlin.dsl.compile
 
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.MatcherAssert.assertThat
 import kotlin.test.Test
@@ -529,7 +531,7 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             }
 
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
             }
 
             gradlePlugin {
@@ -563,7 +565,7 @@ class OptInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             }
 
             repositories {
-                gradlePluginPortal()
+                ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
             }
 
             dependencies {

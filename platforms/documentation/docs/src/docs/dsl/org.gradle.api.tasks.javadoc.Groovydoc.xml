@@ -17,6 +17,10 @@
                 <td><literal><replaceable>${project.docsDir}</replaceable>/groovydoc</literal></td>
             </tr>
             <tr>
+                <td>maxMemory</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
                 <td>groovyClasspath</td>
                 <td><literal>project.configurations.groovy</literal></td>
             </tr>
@@ -65,6 +69,42 @@
                 <td><literal>true</literal></td>
             </tr>
             <tr>
+                <td>javaVersion</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>showInternal</td>
+                <td><literal>false</literal></td>
+            </tr>
+            <tr>
+                <td>noIndex</td>
+                <td><literal>false</literal></td>
+            </tr>
+            <tr>
+                <td>noDeprecatedList</td>
+                <td><literal>false</literal></td>
+            </tr>
+            <tr>
+                <td>noHelp</td>
+                <td><literal>false</literal></td>
+            </tr>
+            <tr>
+                <td>syntaxHighlighter</td>
+                <td><literal>"none"</literal></td>
+            </tr>
+            <tr>
+                <td>theme</td>
+                <td><literal>"auto"</literal></td>
+            </tr>
+            <tr>
+                <td>preLanguage</td>
+                <td><literal>null</literal></td>
+            </tr>
+            <tr>
+                <td>additionalStylesheets</td>
+                <td><literal>[]</literal></td>
+            </tr>
+            <tr>
                 <td>links</td>
                 <td><literal>[]</literal></td>
             </tr>
@@ -87,6 +127,10 @@
             <tr>
                 <td>noVersionStamp</td>
                 <td><literal>false</literal></td>
+            </tr>
+            <tr>
+                <td>javaLauncher</td>
+                <td><literal>java.toolchain</literal></td>
             </tr>
         </table>
     </section>

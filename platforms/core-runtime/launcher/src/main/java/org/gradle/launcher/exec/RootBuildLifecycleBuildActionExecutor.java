@@ -95,6 +95,7 @@ public class RootBuildLifecycleBuildActionExecutor {
                 initDeprecationLogging(startParameter);
                 maybeNagOnDeprecatedJavaRuntimeVersion();
                 maybeNagOnImplicitParallelModelBuildingOptIn(startParameter);
+                maybeNagOnDeprecatedConfigurationCacheOptOuts(startParameter);
                 RootBuildState rootBuild = buildStateRegistry.createRootBuild(BuildDefinition.fromStartParameter(startParameter, null));
                 return rootBuild.run(buildController -> buildActionRunner.run(action, buildController));
             } finally {
@@ -156,5 +157,49 @@ public class RootBuildLifecycleBuildActionExecutor {
                 .withUpgradeGuideSection(currentMajorGradleVersion, "minimum_daemon_jvm_version")
                 .nagUser();
         }
+    }
+
+    /**
+     * Nags about the temporary Configuration Cache opt-out properties, which are deprecated and scheduled for removal.
+     * <p>
+     * The nag is emitted whenever a property is explicitly set, regardless of its value and of whether the
+     * Configuration Cache is enabled: an opt-out that is present in the build should be cleaned up before it
+     * stops being honored.
+     */
+    private static void maybeNagOnDeprecatedConfigurationCacheOptOuts(StartParameterInternal startParameter) {
+        if (startParameter.getConfigurationCacheIgnoredFileSystemCheckInputs() != null) {
+            nagOnDeprecatedConfigurationCacheOptOutProperty(
+                StartParameterBuildOptions.ConfigurationCacheIgnoredFileSystemCheckInputs.PROPERTY_NAME,
+                "Remove the property and fix the build logic or plugins that perform file system checks during configuration, " +
+                    "so that they no longer cause unnecessary Configuration Cache invalidation."
+            );
+        }
+        if (startParameter.getConfigurationCacheIgnoreInputsDuringStore().isExplicit()) {
+            nagOnDeprecatedConfigurationCacheOptOutProperty(
+                StartParameterBuildOptions.ConfigurationCacheIgnoreInputsDuringStore.PROPERTY_NAME,
+                "Remove the property and fix the build logic or plugins that read the build environment while the task graph is being serialized, " +
+                    "so that they no longer cause unnecessary Configuration Cache invalidation."
+            );
+        }
+        if (startParameter.getConfigurationCacheIgnoreUnsupportedBuildEventsListeners().isExplicit()) {
+            nagOnDeprecatedConfigurationCacheOptOutProperty(
+                StartParameterBuildOptions.ConfigurationCacheIgnoreUnsupportedBuildEventsListeners.PROPERTY_NAME,
+                "Remove the property and convert the build event listeners into build services."
+            );
+        }
+        if (startParameter.getConfigurationCacheSkipTaskLoggingListenersSerialization().isExplicit()) {
+            nagOnDeprecatedConfigurationCacheOptOutProperty(
+                StartParameterBuildOptions.ConfigurationCacheSkipTaskLoggingListenersSerialization.PROPERTY_NAME,
+                "Remove the property and fix the serialization issues of the task output listeners registered during configuration, or register them at execution time instead."
+            );
+        }
+    }
+
+    private static void nagOnDeprecatedConfigurationCacheOptOutProperty(String propertyName, String advice) {
+        DeprecationLogger.deprecateBuildInvocationFeature("The '" + propertyName + "' Gradle property")
+            .withAdvice(advice)
+            .willBeRemovedInGradle11()
+            .withUpgradeGuideSection(9, "deprecated_configuration_cache_opt_out_properties")
+            .nagUser();
     }
 }

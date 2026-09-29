@@ -18,13 +18,14 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.initialization.StartParameterBuildOptions
+import org.gradle.internal.cc.impl.fixtures.ConfigurationCacheOptOutDeprecations
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheFixture
 import org.gradle.tooling.events.FinishEvent
 import org.gradle.tooling.events.OperationCompletionListener
 import org.gradle.tooling.events.task.TaskFinishEvent
 
-class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements ConfigurationCacheOptOutDeprecations {
     def configurationCache = new ConfigurationCacheFixture(this)
 
     def "can use build service provider as build events listener"() {
@@ -151,6 +152,7 @@ class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfi
         """
 
         when:
+        expectDeprecatedOptOutWarning(StartParameterBuildOptions.ConfigurationCacheIgnoreUnsupportedBuildEventsListeners.PROPERTY_NAME)
         configurationCacheRun("run", "-D${StartParameterBuildOptions.ConfigurationCacheIgnoreUnsupportedBuildEventsListeners.PROPERTY_NAME}=true")
 
         then:
@@ -159,6 +161,7 @@ class ConfigurationCacheBuildEventsListenerIntegrationTest extends AbstractConfi
         outputContains("Completed: :run")
 
         when:
+        expectDeprecatedOptOutWarning(StartParameterBuildOptions.ConfigurationCacheIgnoreUnsupportedBuildEventsListeners.PROPERTY_NAME)
         configurationCacheRun("run", "-D${StartParameterBuildOptions.ConfigurationCacheIgnoreUnsupportedBuildEventsListeners.PROPERTY_NAME}=true")
 
         then:

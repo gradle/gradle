@@ -554,6 +554,85 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         outputContains("variants = [{artifactType=blue, color=green}, {artifactType=blue, color=green}, {artifactType=jar, color=green}, {artifactType=blue, color=green}]")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39132")
+    def "task input file collection can include the output of artifact transforms of directory file dependencies when the directory artifact type has attributes"() {
+        settingsFile << """
+            rootProject.name = 'root'
+        """
+        taskTypeWithOutputDirectoryProperty()
+        buildFile << """
+            import org.gradle.api.artifacts.transform.TransformParameters
+
+            def artifactType = Attribute.of('artifactType', String)
+            def color = Attribute.of('color', String)
+
+            abstract class MakeSnapshot implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println "processing [\${input.name}]"
+                    outputs.file(input.name + ".snapshot").text = input.name
+                }
+            }
+
+            dependencies {
+                registerTransform(MakeSnapshot) {
+                    from.attribute(artifactType, 'directory')
+                    to.attribute(artifactType, 'snapshot')
+                }
+                registerTransform(MakeSnapshot) {
+                    from.attribute(artifactType, 'jar')
+                    to.attribute(artifactType, 'snapshot')
+                }
+                artifactTypes {
+                    directory {
+                        attributes.attribute(color, 'blue')
+                    }
+                }
+            }
+
+            def producer = tasks.register("producer", DirProducer) {
+                output = layout.buildDirectory.dir("classes")
+                names = ["a", "b"]
+            }
+
+            def deps = configurations.dependencyScope("implementation")
+            def resolver = configurations.resolvable("resolver") {
+                extendsFrom(deps.get())
+            }
+            dependencies {
+                implementation files(producer.flatMap { it.output }, 'lib.jar')
+            }
+            def snapshots = resolver.get().incoming.artifactView {
+                attributes.attribute(artifactType, 'snapshot')
+            }.files
+
+            tasks.register("resolve", ShowFileCollection) {
+                files.from(snapshots)
+            }
+
+            ${showFileCollectionTask()}
+        """
+        file('lib.jar') << 'lib'
+
+        when:
+        run(":resolve")
+
+        then:
+        assertTransformed("classes", "lib.jar")
+        outputContains("result = [classes.snapshot, lib.jar.snapshot]")
+
+        when:
+        run(":resolve")
+
+        then: // everything up-to-date
+        configurationCache.assertStateLoaded()
+        assertTransformed()
+        outputContains("result = [classes.snapshot, lib.jar.snapshot]")
+    }
+
     def "task input file collection can include the output of chained artifact transform of project dependencies"() {
         createDirs("a", "b")
         settingsFile << """

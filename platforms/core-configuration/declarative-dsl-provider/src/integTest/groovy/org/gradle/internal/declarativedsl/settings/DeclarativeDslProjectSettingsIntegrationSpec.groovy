@@ -24,6 +24,12 @@ import static org.hamcrest.CoreMatchers.containsString
 
 class DeclarativeDslProjectSettingsIntegrationSpec extends AbstractIntegrationSpec {
 
+    def setup() {
+        // Declarative settings scripts only accept the named repository calls (a maven {} block cannot set the
+        // repository name), so the mirrors are applied by init script instead of RepoScriptBlockUtil definitions.
+        executer.withRepositoryMirrors()
+    }
+
     def "can interpret the settings file with the declarative DSL"() {
         given:
         file("settings.gradle.dcl") << """

@@ -78,6 +78,16 @@ public interface IntermediateToolingModelProvider {
     interface IntermediateToolingModelResult<T> {
         @Nullable
         T getModel();
+
+        /**
+         * All client-visible failures, including configuration failures.
+         */
         List<Failure> getFailures();
+
+        /**
+         * Model builder failures that an aggregating builder must propagate to fail the build.
+         * Configuration failures are handled by the containing build's lifecycle instead.
+         */
+        List<Throwable> getModelBuilderFailures();
     }
 }

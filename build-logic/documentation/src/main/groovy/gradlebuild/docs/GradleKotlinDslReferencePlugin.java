@@ -103,6 +103,7 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
             spec.getSourceRoots().from(extension.getDocumentedSource());
             spec.getClasspath().from(extension.getClasspath());
             spec.getIncludes().from(extension.getSourceRoot().file("kotlin/Module.md"));
+            configureJdkVersion(extension, spec);
             configureSourceLinks(project, extension, spec);
         });
 
@@ -113,9 +114,23 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
             spec.getClasspath().from(extension.getClasspath());
             spec.getClasspath().from(runtimeExtensions.flatMap(GradleKotlinDslRuntimeGeneratedSources::getGeneratedClasses));
             spec.getIncludes().from(extension.getSourceRoot().file("kotlin/Module.md"));
+            configureJdkVersion(extension, spec);
             configureSourceLinks(project, extension, spec);
             spec.getDependentSourceSets().addLater(javaApi.flatMap(DokkaSourceSetSpec::getSourceSetId));
         });
+    }
+
+    /**
+     * Links JDK types to the Javadoc of the minimum JDK version Gradle supports,
+     * rather than the JDK used to build Gradle.
+     * <p>
+     * By default, the Dokka Gradle Plugin derives {@code jdkVersion} from the Java toolchain
+     * used to build the project, which would make the Kotlin DSL reference link to Javadoc
+     * of a newer JDK than Gradle actually requires.
+     */
+    private static void configureJdkVersion(GradleDocumentationExtension extension,
+            DokkaSourceSetSpec spec) {
+        spec.getJdkVersion().set(extension.getJavadocs().getMinJdkVersion());
     }
 
     private static void configureSourceLinks(Project project, GradleDocumentationExtension extension, DokkaSourceSetSpec spec) {

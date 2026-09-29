@@ -468,6 +468,10 @@ public class JavadocConverter {
                 nodes.push(currentTable);
                 return true;
             }
+            if (elementName.equals("caption")) {
+                nodes.push(document.createElement("caption"));
+                return true;
+            }
             if (elementName.equals("tr")) {
                 currentRow = document.createElement("tr");
                 nodes.push(currentRow);

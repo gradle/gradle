@@ -200,11 +200,11 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
         resolve.expectGraph(":tool") {
             root(":tool", "test:tool:") {
                 project(":api", "test:api:") {
-                    configuration = "runtimeElements"
+                    variant("runtimeElements")
                     edge("org:foo:1.3.3", "org:foo:1.4.4").byConflictResolution("between versions 1.4.4 and 1.3.3")
                 }
                 project(":impl", "test:impl:") {
-                    configuration = "runtimeElements"
+                    variant("runtimeElements")
                     module("org:foo:1.4.4").byConflictResolution("between versions 1.4.4 and 1.3.3")
                 }
             }
@@ -657,7 +657,7 @@ class VersionConflictResolutionIntegrationTest extends AbstractIntegrationSpec {
             root(":", ":test:") {
                 edge("org:a:1.0", "org:a:2.0")
                 module("org:a:2.0") {
-                    configuration = "default"
+                    variant("default")
                     byConflictResolution("between versions 2.0 and 1.0")
                     module("org:b:2.0") {
                         edge("org:a:1.0", "org:a:2.0")
@@ -842,7 +842,10 @@ parentFirst
         resolve.expectGraph {
             root(":", "org:test:1.3") {
                 module("org:other:1.7") {
-                    edge("org:test:1.2", "org:test:1.3")
+                    edge("org:test:1.2", ":", "org:test:1.3") {
+                        variant("runtimeElements")
+                        module("org:other:1.7")
+                    }
                 }
             }
         }

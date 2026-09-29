@@ -152,41 +152,53 @@ class BomSupportPluginsSmokeTest extends AbstractSmokeTest {
             module("org.springframework.boot:spring-boot:$bomVersion")
         }
 
+        def isNebula = bomSupportProvider.startsWith("nebula")
         resolve.expectGraph {
             root(':', ':springbootproject:') {
                 if (directBomDependency) {
                     module("org.springframework.boot:spring-boot-dependencies:$bomVersion:${bomSupportProvider == 'gradle' ? 'platform-compile' : 'compile'}") {
-                        constraint("org.springframework:spring-core:${springVersion}")
-                        constraint("org.springframework:spring-aop:${springVersion}")
-                        constraint("org.springframework:spring-beans:${springVersion}")
-                        constraint("org.springframework:spring-context:${springVersion}")
-                        constraint("org.springframework:spring-expression:${springVersion}")
-                        constraint("org.springframework:spring-test:${springVersion}")
-                        constraint("org.springframework:spring-jcl:${springVersion}")
-                        constraint("org.springframework.boot:spring-boot:$bomVersion")
-                        constraint("org.springframework.boot:spring-boot-test:$bomVersion")
-                        constraint("org.springframework.boot:spring-boot-autoconfigure:$bomVersion")
-                        constraint("org.springframework.boot:spring-boot-test-autoconfigure:$bomVersion")
-                        constraint("junit:junit:4.13.2")
-                        constraint("org.hamcrest:hamcrest:2.2")
-                        constraint("org.hamcrest:hamcrest-core:2.2")
-                        constraint("io.micrometer:micrometer-commons:1.14.5")
-                        constraint("io.micrometer:micrometer-observation:1.14.5")
+                        constraint("org.springframework:spring-core:${springVersion}").byConstraint()
+                        constraint("org.springframework:spring-aop:${springVersion}").byConstraint()
+                        constraint("org.springframework:spring-beans:${springVersion}").byConstraint()
+                        constraint("org.springframework:spring-context:${springVersion}").byConstraint()
+                        constraint("org.springframework:spring-expression:${springVersion}").byConstraint()
+                        constraint("org.springframework:spring-test:${springVersion}").byConstraint()
+                        constraint("org.springframework:spring-jcl:${springVersion}").byConstraint()
+                        constraint("org.springframework.boot:spring-boot:$bomVersion").byConstraint()
+                        constraint("org.springframework.boot:spring-boot-test:$bomVersion").byConstraint()
+                        constraint("org.springframework.boot:spring-boot-autoconfigure:$bomVersion").byConstraint()
+                        constraint("org.springframework.boot:spring-boot-test-autoconfigure:$bomVersion").byConstraint()
+                        constraint("junit:junit:4.13.2").byConstraint()
+                        constraint("org.hamcrest:hamcrest:2.2").byConstraint()
+                        constraint("org.hamcrest:hamcrest-core:2.2").byConstraint()
+                        constraint("io.micrometer:micrometer-commons:1.14.5").byConstraint()
+                        constraint("io.micrometer:micrometer-observation:1.14.5").byConstraint()
                         noArtifacts()
                     }
                 }
-                edge("org.springframework.boot:spring-boot-test-autoconfigure", "org.springframework.boot:spring-boot-test-autoconfigure:$bomVersion", springBootTestAutoconfigureDeps).byReason(reason)
-                edge("org.springframework.boot:spring-boot-test", "org.springframework.boot:spring-boot-test:$bomVersion", springBootTestDeps).byReason(reason)
-                edge("org.springframework.boot:spring-boot-autoconfigure", "org.springframework.boot:spring-boot-autoconfigure:$bomVersion", springBootAutoconfigureDeps).byReason(reason)
-                edge("org.springframework.boot:spring-boot", "org.springframework.boot:spring-boot:$bomVersion", springBootDeps).byReason(reason)
-                edge("org.springframework:spring-test", "org.springframework:spring-test:${springVersion}", springTestDeps).byReason(reason)
-                edge("junit:junit", "junit:junit:4.13.2", junitDeps).byReason(reason)
-            }
-            nodes.each {
-                if (directBomDependency) {
-                    it.maybeByConstraint()
-                } else if (reason == "requested") {
-                    it.maybeSelectedByRule()
+                def bootTestAutoconfigure = edge("org.springframework.boot:spring-boot-test-autoconfigure", "org.springframework.boot:spring-boot-test-autoconfigure:$bomVersion", springBootTestAutoconfigureDeps).byReason(reason)
+                if (isNebula) {
+                    bootTestAutoconfigure.selectedByRule("Recommending version $bomVersion for dependency org.springframework.boot:spring-boot-test-autoconfigure via conflict resolution recommendation \twith reasons: nebula.dependency-recommender uses mavenBom: org.springframework.boot:spring-boot-dependencies:pom:$bomVersion")
+                }
+                def bootTest = edge("org.springframework.boot:spring-boot-test", "org.springframework.boot:spring-boot-test:$bomVersion", springBootTestDeps).byReason(reason)
+                if (isNebula) {
+                    bootTest.selectedByRule("Recommending version $bomVersion for dependency org.springframework.boot:spring-boot-test via conflict resolution recommendation \twith reasons: nebula.dependency-recommender uses mavenBom: org.springframework.boot:spring-boot-dependencies:pom:$bomVersion")
+                }
+                def bootAutoconfigure = edge("org.springframework.boot:spring-boot-autoconfigure", "org.springframework.boot:spring-boot-autoconfigure:$bomVersion", springBootAutoconfigureDeps).byReason(reason)
+                if (isNebula) {
+                    bootAutoconfigure.selectedByRule("Recommending version $bomVersion for dependency org.springframework.boot:spring-boot-autoconfigure via conflict resolution recommendation \twith reasons: nebula.dependency-recommender uses mavenBom: org.springframework.boot:spring-boot-dependencies:pom:$bomVersion")
+                }
+                def boot = edge("org.springframework.boot:spring-boot", "org.springframework.boot:spring-boot:$bomVersion", springBootDeps).byReason(reason)
+                if (isNebula) {
+                    boot.selectedByRule("Recommending version $bomVersion for dependency org.springframework.boot:spring-boot via conflict resolution recommendation \twith reasons: nebula.dependency-recommender uses mavenBom: org.springframework.boot:spring-boot-dependencies:pom:$bomVersion")
+                }
+                def springTest = edge("org.springframework:spring-test", "org.springframework:spring-test:${springVersion}", springTestDeps).byReason(reason)
+                if (isNebula) {
+                    springTest.selectedByRule("Recommending version ${springVersion} for dependency org.springframework:spring-test via conflict resolution recommendation \twith reasons: nebula.dependency-recommender uses mavenBom: org.springframework.boot:spring-boot-dependencies:pom:$bomVersion")
+                }
+                def junit = edge("junit:junit", "junit:junit:4.13.2", junitDeps).byReason(reason)
+                if (isNebula) {
+                    junit.selectedByRule("Recommending version 4.13.2 for dependency junit:junit via conflict resolution recommendation \twith reasons: nebula.dependency-recommender uses mavenBom: org.springframework.boot:spring-boot-dependencies:pom:$bomVersion")
                 }
             }
         }

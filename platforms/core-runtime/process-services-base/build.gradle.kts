@@ -42,3 +42,7 @@ gradleModule {
         worker = true
     }
 }
+
+jvmCompile {
+    addMultiReleaseVersion(9, 17)
+}

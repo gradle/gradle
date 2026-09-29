@@ -226,7 +226,11 @@ public class DefaultTaskProperties implements TaskProperties {
             PropertyValue value,
             InputFilePropertyType filePropertyType
         ) {
-            taskPropertySpecs.add(new DefaultFinalizingValidatingProperty(propertyName, value, optional, ValidationActions.inputValidationActionFor(filePropertyType)));
+            ValidationAction validationAction =
+                filePropertyType == InputFilePropertyType.FILES && !optional
+                    ? ValidationActions.REQUIRED_INPUT_FILES
+                    : ValidationActions.inputValidationActionFor(filePropertyType);
+            taskPropertySpecs.add(new DefaultFinalizingValidatingProperty(propertyName, value, optional, validationAction));
         }
 
         @Override

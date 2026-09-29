@@ -20,12 +20,12 @@ import org.gradle.api.artifacts.DependencyResolutionListener;
 import org.gradle.api.artifacts.DependencyScopeConfiguration;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.ConfigurationServicesBundle;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser;
 import org.gradle.internal.Factory;
 import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.event.ListenerBroadcast;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.typeconversion.NotationParser;
 
 import javax.inject.Inject;

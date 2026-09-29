@@ -563,7 +563,7 @@ task check(type: Sync) {
             root(":", ":test:") {
                 module('org.test:platform:1.0') {
                     if (plainMaven) {
-                        configuration("platform-runtime")
+                        variant("platform-runtime")
                     }
                     noArtifacts()
                     constraint('org.test:depA:1.0')

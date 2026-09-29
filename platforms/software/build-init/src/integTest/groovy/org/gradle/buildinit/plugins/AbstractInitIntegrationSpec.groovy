@@ -45,6 +45,7 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         """
         initializeIntoTestDir()
         executer.withRepositoryMirrors()
+        mirrorMavenCentralForInit()
     }
 
     void initializeIntoTestDir() {

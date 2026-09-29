@@ -101,12 +101,13 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         resolve.expectGraph {
             root(':', ':test:') {
                 constraint('org:foo:{strictly 1.0}', 'org:foo:1.0') {
-                    notRequested()
                     byConstraint()
-                    byAncestor()
                 }
                 module('org:bar:1.0') {
-                    edge('org:foo:2.0', 'org:foo:1.0')
+                    edge('org:foo:2.0', 'org:foo:1.0') {
+                        byAncestor()
+                        notRequested()
+                    }
                 }
             }
         }
@@ -403,12 +404,13 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         resolve.expectGraph {
             root(':', ':test:') {
                 constraint('org:foo:{strictly 1.0}', 'org:foo:1.0') {
-                    notRequested()
                     byConstraint()
-                    byAncestor()
                 }
                 module('org:bar:1.0') {
-                    edge("org:foo:$publishedFooDependencyVersion", 'org:foo:1.0')
+                    edge("org:foo:$publishedFooDependencyVersion", 'org:foo:1.0') {
+                        byAncestor()
+                        notRequested()
+                    }
                 }
             }
         }
@@ -453,12 +455,13 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         resolve.expectGraph {
             root(':', ':test:') {
                 constraint('org:foo:{strictly 1.0}', 'org:foo:1.0') {
-                    notRequested()
                     byConstraint()
-                    byAncestor()
                 }
                 module('org:bar:1.0') {
-                    edge("org:foo:[2.0,3.0)", 'org:foo:1.0')
+                    edge("org:foo:[2.0,3.0)", 'org:foo:1.0') {
+                        byAncestor()
+                        notRequested()
+                    }
                 }
             }
         }
@@ -512,7 +515,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                     edge('org:foo:2.0', ':foo', 'org:foo:1.0') {}.byAncestor()
                 }
                 project(':foo', 'org:foo:1.0') {
-                    configuration = 'default'
+                    variant('default')
                     noArtifacts()
                 }
             }

@@ -56,7 +56,9 @@ class ComponentSelectionRulesDependencyResolveIntegTest extends AbstractComponen
                 root(":", ":test:") {
                     edge("org.utils:api:${selector}", "org.utils:${chosenModule}:${chosenVersion}") {
                         byReasons(reasons)
-                        maybeRequested()
+                        if (!reasons.isEmpty()) {
+                            notRequested()
+                        }
                     }
                 }
             }

@@ -23,10 +23,10 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
 
     private Map<String, ?> expectedJavaLibraryAttributes(boolean hasJavaLibraryVariants) {
         if (hasJavaLibraryVariants) {
-            ['org.gradle.jvm.version': 8, 'org.gradle.status': useIvy() ? 'integration' : 'release', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library']
+            ['org.gradle.jvm.version': "8", 'org.gradle.status': useIvy() ? 'integration' : 'release', 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library']
         } else {
             // for ivy, we do not derive any variant attributes
-            ['org.gradle.jvm.version': 8, 'org.gradle.status': 'integration']
+            ['org.gradle.jvm.version': "8", 'org.gradle.status': 'integration']
         }
     }
 
@@ -190,7 +190,7 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
 
         then:
         succeeds 'checkDep'
-        def expectedLibraryAttributes = ['org.gradle.jvm.version': 8, 'org.gradle.status': useIvy() ? 'integration' : 'release'] // the Java library attributes are not transferred
+        def expectedLibraryAttributes = ['org.gradle.jvm.version': "8", 'org.gradle.status': useIvy() ? 'integration' : 'release'] // the Java library attributes are not transferred
         resolve.expectGraph {
             root(':', ':test:') {
                 module('org.test:moduleA:1.0') {

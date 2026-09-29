@@ -18,7 +18,6 @@ package org.gradle.api.file;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.initialization.Settings;
-import org.gradle.api.services.SettingsService;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -35,7 +34,7 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @Incubating
 @ServiceScope(Scope.Settings.class)
-public interface BuildLayout extends SettingsService {
+public interface BuildLayout {
     /**
      * Returns the settings directory.
      * <p>

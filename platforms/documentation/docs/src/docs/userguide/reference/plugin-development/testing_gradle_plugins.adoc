@@ -256,6 +256,41 @@ Here is a simple example:
 include::{snippetsPath}/reference/plugin-development/customPlugin/groovy/java-gradle-plugin/src/test/java/org/example/GreetingPluginTest.java[tag=test-plugin]
 ----
 
+[[sec:testing_plugins_that_use_a_catalog]]
+==== Testing plugins that use a version catalog
+
+A plugin that reads from the `VersionCatalogsExtension` (for example, a `buildSrc` plugin that looks up `libs.guava`) can't rely on a real version catalog when tested with `ProjectBuilder`, because a `ProjectBuilder`-built project never goes through the settings-level catalog processing that a real build does.
+
+Accessing `project.getExtensions().getByType(VersionCatalogsExtension.class)` on a fresh `ProjectBuilder` project throws, since the extension doesn't exist yet.
+
+WARNING: Don't work around this by calling something that forces the project to evaluate, such as `Project.getTasksByName()`.
+Doing so triggers Gradle's own automatic registration of a `versionCatalogs` extension, which creates one populated with an *empty* catalog — and because extension names must be unique, you can't replace it afterwards.
+
+Instead, provide your own `VersionCatalogsExtension` before applying the plugin under test, and never call anything that forces evaluation.
+`VersionCatalogsExtension` and link:{javadocPath}/org/gradle/api/artifacts/VersionCatalog.html[`VersionCatalog`] are both plain public interfaces, so a hand-written fake is enough for testing — extend the unused `find*()` methods the same way if your plugin also reads bundles, versions or plugins:
+
+====
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-projectBuilderTest/kotlin",files="src/test/java/org/example/FakeVersionCatalog.java[tags=fake_version_catalog]"]
+====
+
+====
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-projectBuilderTest/kotlin",files="src/test/java/org/example/FakeVersionCatalogsExtension.java[tags=fake_version_catalogs_extension]"]
+====
+
+The one piece that's harder to fake by hand is `MinimalExternalModuleDependency` itself — it's a wide interface, and a plugin typically only needs a couple of its methods.
+Stubbing just those with a mocking library is the pragmatic option.
+Given a plugin that reads a `guava` library from the `libs` catalog:
+
+====
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-projectBuilderTest/kotlin",files="src/main/java/org/example/VersionAwarePlugin.java[tags=plugin_reads_catalog]"]
+====
+
+The test registers the fake catalog, then applies the plugin and asserts on its effect, all without ever touching a real catalog or triggering project evaluation:
+
+====
+include::sample[dir="snippets/reference/dependency-management/centralizing-dependencies/catalogs-projectBuilderTest/kotlin",files="src/test/java/org/example/VersionAwarePluginTest.java[tags=project_builder_version_catalog_test]"]
+====
+
 [[integration-tests]]
 === Implementing integration tests
 

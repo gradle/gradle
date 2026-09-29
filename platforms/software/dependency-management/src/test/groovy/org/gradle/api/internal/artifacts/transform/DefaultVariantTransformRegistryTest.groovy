@@ -24,11 +24,9 @@ import org.gradle.api.artifacts.transform.TransformOutputs
 import org.gradle.api.artifacts.transform.TransformParameters
 import org.gradle.api.attributes.Attribute
 import org.gradle.api.internal.DocumentationRegistry
-import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.file.FileLookup
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.parameters.NoneParameters
 import org.gradle.api.internal.tasks.properties.InspectionScheme
 import org.gradle.api.plugins.ExtensionAware
@@ -38,6 +36,8 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.instantiation.InjectAnnotationHandler
 import org.gradle.internal.isolation.TestIsolatableFactory
+import org.gradle.internal.model.DomainObjectContext
+import org.gradle.internal.model.ModelContainer
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.properties.bean.PropertyWalker
 import org.gradle.internal.service.ServiceLookup
@@ -64,7 +64,7 @@ class DefaultVariantTransformRegistryTest extends Specification {
         getPropertyWalker() >> propertyWalker
     }
     def domainObjectContext = Mock(DomainObjectContext) {
-        getModel() >> StandaloneDomainObjectContext.ANONYMOUS
+        getModel() >> ModelContainer.EMPTY
     }
 
     def isolatableFactory = new TestIsolatableFactory()

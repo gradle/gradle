@@ -19,13 +19,13 @@ package org.gradle.internal.locking;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.internal.project.ProjectDomainObjectContext;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.resource.local.FileResourceListener;
-import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.gradle.util.internal.GFileUtils;
 import org.jspecify.annotations.Nullable;
 
@@ -230,7 +230,7 @@ public class LockFileReaderWriter {
 
     private @Nullable String buildRegenerationComment() {
         if (context instanceof ProjectDomainObjectContext pdoc) {
-            org.gradle.util.Path taskPath = pdoc.getModel().getIdentity().getBuildTreePath().child("dependencies");
+            org.gradle.util.Path taskPath = pdoc.getIdentity().getBuildTreePath().child("dependencies");
             return "# To regenerate this file, run: ./gradlew " + taskPath + " --write-locks";
         }
 

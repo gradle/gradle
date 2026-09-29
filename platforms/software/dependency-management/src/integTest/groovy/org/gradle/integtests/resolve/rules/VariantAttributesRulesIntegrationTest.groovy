@@ -117,7 +117,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         succeeds 'checkDep'
-        def expectedVariant = variantToTest
+        def expectedVariant = getExpectedSelectedVariant()
         resolve.expectGraph {
             root(':', ':test:') {
                 module("org.test:moduleA:1.0:$expectedVariant") {
@@ -187,7 +187,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         succeeds 'checkDep'
-        def expectedVariant = variantToTest
+        def expectedVariant = getExpectedSelectedVariant()
         resolve.expectGraph {
             root(':', ':test:') {
                 module("org.test:moduleA:1.0:$expectedVariant") {
@@ -295,7 +295,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         succeeds 'checkDep'
-        def expectedVariant = variantToTest
+        def expectedVariant = getExpectedSelectedVariant()
         resolve.expectGraph {
             root(':', ':test:') {
                 module("org.test:moduleA:1.0:$expectedVariant") {
@@ -355,7 +355,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         then:
         succeeds 'checkDep'
-        def expectedVariant = variantToTest
+        def expectedVariant = getExpectedSelectedVariant()
         resolve.expectGraph {
             root(':', ':test:') {
                 module("org.test:moduleA:1.0:$expectedVariant") {
@@ -432,7 +432,7 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
         if (GradleMetadataResolveRunner.isGradleMetadataPublished()) {
             succeeds 'checkDep'
 
-            def expectedVariant = variantToTest
+            def expectedVariant = getExpectedSelectedVariant()
             resolve.expectGraph {
                 root(':', ':test:') {
                     module("org.test:moduleA:1.0:$expectedVariant") {
@@ -446,6 +446,14 @@ class VariantAttributesRulesIntegrationTest extends AbstractModuleDependencyReso
 
         where:
         selectedVariant << ['customVariant1', 'customVariant2']
+    }
+
+    String getExpectedSelectedVariant() {
+        if (gradleMetadataPublished || useIvy()) {
+            return "customVariant"
+        } else {
+            return "runtime"
+        }
     }
 
     // published attributes are only available in Gradle metadata

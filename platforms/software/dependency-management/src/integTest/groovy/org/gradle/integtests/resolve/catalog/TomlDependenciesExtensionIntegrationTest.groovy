@@ -463,7 +463,7 @@ from-included="org.gradle.test:other:1.1"
             root(":", ":test:") {
                 edge("com.acme:included:1.0", ":included", "com.acme:included:zloubi") {
                     compositeSubstitute()
-                    configuration = "runtimeElements"
+                    variant("runtimeElements")
                     module('org.gradle.test:other:1.1')
                 }
             }

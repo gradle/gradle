@@ -44,7 +44,7 @@ class RootBuildLifecycleBuildActionExecutorTest extends Specification {
         def listener = Mock(BuildTreeLifecycleListener)
         def buildActionRunner = Mock(BuildActionRunner)
         def buildAction = Stub(BuildAction) {
-            getStartParameter() >> Stub(StartParameterInternal)
+            getStartParameter() >> new StartParameterInternal()
         }
 
         def executor = new RootBuildLifecycleBuildActionExecutor(
@@ -84,7 +84,7 @@ class RootBuildLifecycleBuildActionExecutorTest extends Specification {
         )
 
         executor.execute(Stub(BuildAction) {
-            getStartParameter() >> Stub(StartParameterInternal)
+            getStartParameter() >> new StartParameterInternal()
         })
 
         when:

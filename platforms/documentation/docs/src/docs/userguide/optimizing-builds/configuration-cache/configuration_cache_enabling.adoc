@@ -221,12 +221,11 @@ The remainder of this section is organized around the two categories: input-dete
 [[config_cache:usage:input_opt_outs:input_detection]]
 === Input-detection opt-outs
 
-It is possible to _temporarily_ opt out of configuration input detection in the following cases:
+It is possible to _temporarily_ opt out of configuration input detection using the following Gradle properties:
 
-1. Gradle now tracks file system interactions, including checks such as `File.exists()` or `File.isFile()`, as configuration inputs.
-+
-To prevent input tracking from invalidating the cache due to these file system checks, use the `org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks` property in `gradle.properties`.
-List the paths to be ignored, relative to the root project directory, separated by `;`.
+`org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks=(paths)` deprecated-label:[]::
+Gradle tracks file system interactions, including checks such as `File.exists()` or `File.isFile()`, as configuration inputs.
+To prevent input tracking from invalidating the cache due to these file system checks, list the paths to be ignored, relative to the root project directory, separated by `;`.
 Wildcards (`*` for segments, `pass:[**]` for multiple segments) are supported.
 Paths prefixed with `~/` are relative to the user's home directory.
 For example:
@@ -239,47 +238,56 @@ org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks=\
     ../../externalOutputDirectory/**;\
     build/analytics.json
 ----
-2. Prior to Gradle 8.4, some undeclared configuration inputs that were never used during configuration could still be read when the Configuration Cache serialized the task graph.
-However, these changes did not invalidate the cache.
 +
-Starting in Gradle 8.4, these undeclared inputs are correctly tracked and now cause cache invalidation.
+_Default is empty; no file system checks are ignored._
 +
-To temporarily revert to the previous behavior, set the Gradle property `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization` to `true`.
+Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11.
+See <<upgrading_version_9.adoc#deprecated_configuration_cache_opt_out_properties, the upgrade guide>>.
+
+`org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization=(true,false)` deprecated-label:[]::
+Prior to Gradle 8.4, some configuration inputs that were never used during configuration could still be read when the Configuration Cache serialized the task graph.
+However, changes to those inputs did not invalidate the cache.
+Starting in Gradle 8.4, these inputs are correctly tracked and now cause cache invalidation.
+When set to `true`, Gradle reverts to the previous behavior.
++
+_Default is `false`._
++
+Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11.
+See <<upgrading_version_9.adoc#deprecated_configuration_cache_opt_out_properties, the upgrade guide>>.
 
 [[config_cache:usage:input_opt_outs:serialization_behavior]]
 === Serialization-behavior opt-outs
 
 With the evolution of the Configuration Cache, Gradle may impose additional restrictions on build logic.
-To make adoption smoother, it is possible to _temporarily_ opt out of these restrictions in specific cases:
+To make adoption smoother, it is possible to _temporarily_ opt out of these restrictions using the following Gradle properties:
 
-1. Starting with Gradle 9.0.0, it is an error to use any provider, except a provider of `BuildService` returned from
+`org.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners=(true,false)` deprecated-label:[]::
+Starting with Gradle 9.0.0, it is an error to use any provider, except a provider of `BuildService` returned from
 link:{javadocPath}/org/gradle/api/services/BuildServiceRegistry.html#registerIfAbsent(java.lang.String,java.lang.Class,org.gradle.api.Action)[`BuildServiceRegistry.registerIfAbsent`]
 or
 link:{javadocPath}/org/gradle/api/services/BuildServiceRegistration.html#getService()[`BuildServiceRegistration.getService`]
 as an argument for
 link:{javadocPath}/org/gradle/build/event/BuildEventsListenerRegistry.html#onTaskCompletion(org.gradle.api.provider.Provider)[`BuildEventsListenerRegistry.onTaskCompletion`].
-+
 Prior to Gradle 9, unsupported providers were silently discarded and never received events during cache-hit builds.
+When set to `true`, Gradle reverts to the previous behavior.
 +
-To temporarily revert to the previous behavior, set the Gradle property:
+_Default is `false`._
 +
-[source,properties]
-----
-org.gradle.configuration-cache.unsafe.ignore.unsupported-build-events-listeners=true
-----
+Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11.
+See <<upgrading_version_9.adoc#deprecated_configuration_cache_opt_out_properties, the upgrade guide>>.
 
-2. Starting with Gradle 9.8.0, standard output and error listeners registered on a task's logging manager during configuration (for example via
+`org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization=(true,false)` deprecated-label:[]::
+Starting with Gradle 9.8.0, standard output and error listeners registered on a task's logging manager during configuration (for example via
 link:{javadocPath}/org/gradle/api/logging/LoggingOutput.html#addStandardOutputListener(org.gradle.api.logging.StandardOutputListener)[`LoggingOutput.addStandardOutputListener`] or
 link:{javadocPath}/org/gradle/api/logging/LoggingOutput.html#addStandardErrorListener(org.gradle.api.logging.StandardOutputListener)[`LoggingOutput.addStandardErrorListener`]) are stored in the Configuration Cache and re-registered on a cache hit, so a listener that cannot be serialized is now reported as a problem.
-+
 Prior to Gradle 9.8.0, these listeners were silently discarded and never received output during cache-hit builds.
+When set to `true`, Gradle reverts to the previous behavior.
+Instead of opting out, fix the serialization issues of the listener, or register it at execution time, for example in a task action.
 +
-To temporarily revert to the previous behavior, set the Gradle property:
+_Default is `false`._
 +
-[source,properties]
-----
-org.gradle.configuration-cache.unsafe.skip-task-logging-listeners-serialization=true
-----
+Deprecated since Gradle 9.9 and scheduled for removal in Gradle 11.
+See <<upgrading_version_9.adoc#deprecated_configuration_cache_opt_out_properties, the upgrade guide>>.
 
 Use these opt-out options sparingly and only when they do not impact task execution results.
 These options are intended as temporary workarounds and will be removed in future Gradle releases.

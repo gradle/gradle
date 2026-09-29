@@ -110,24 +110,24 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
         }
         reportToolingModelDependencies(requester, targets);
         BuildState buildState = extractSingleBuildState(targets);
-        List<ToolingModelBuilderResultInternal> toolingModelResults = buildState.withToolingModels(context.inResilientContext(), controller -> fanOut(controller, targets, context));
+        List<ToolingModelScopeResult> toolingModelResults = buildState.withToolingModels(context.inResilientContext(), controller -> fanOut(controller, targets, context));
         return toolingModelResults.stream()
             .map(r -> toIntermediateToolingModelResult(r, modelType))
             .collect(toList());
     }
 
-    private List<ToolingModelBuilderResultInternal> fanOut(BuildToolingModelController controller, List<ProjectState> targets, ToolingModelRequestContext context) {
+    private List<ToolingModelScopeResult> fanOut(BuildToolingModelController controller, List<ProjectState> targets, ToolingModelRequestContext context) {
         ToolingModelParameterCarrier carrier = context.getParameter().map(parameterCarrierFactory::createCarrier).orElse(null);
-        List<Supplier<ToolingModelBuilderResultInternal>> fetchActions = targets.stream()
-            .map(target -> (Supplier<ToolingModelBuilderResultInternal>) () -> {
+        List<Supplier<ToolingModelScopeResult>> fetchActions = targets.stream()
+            .map(target -> (Supplier<ToolingModelScopeResult>) () -> {
                 try {
-                    // Only the client-facing result is needed here; a deferred build failure (if any) is reported
-                    // to the build-tree model boundary, not on this nested fan-out path.
-                    return controller.locateBuilderForTarget(target, context).getModel(context, carrier).getClientResult();
+                    // Preserve the failure categories so aggregating builders can propagate model builder failures.
+                    return controller.locateBuilderForTarget(target, context).getModel(context, carrier);
                 } catch (Throwable t) {
                     // Safety net for an unexpected throw; the resilient controller normally
                     // captures configuration failures into the result itself.
-                    return ToolingModelBuilderResultInternal.of(ImmutableList.of(failureFactory.create(t)));
+                    ToolingModelBuilderResultInternal clientResult = ToolingModelBuilderResultInternal.of(ImmutableList.of(failureFactory.create(t)));
+                    return ToolingModelScopeResult.withModelBuilderFailure(clientResult, t);
                 }
             })
             .collect(toList());
@@ -155,15 +155,15 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
     }
 
     @SuppressWarnings("unchecked")
-    private static <T> IntermediateToolingModelResult<T> toIntermediateToolingModelResult(ToolingModelBuilderResultInternal result, Class<T> modelType) {
-        Object model = result.getModel();
+    private static <T> IntermediateToolingModelResult<T> toIntermediateToolingModelResult(ToolingModelScopeResult result, Class<T> modelType) {
+        Object model = result.getClientResult().getModel();
         if (model == null) {
-            return new DefaultIntermediateToolingModelResult<>(null, result.getFailures());
+            return new DefaultIntermediateToolingModelResult<>(null, result);
         }
         if (!modelType.isInstance(model)) {
             throw new IllegalStateException(String.format("Expected model of type %s but found %s", modelType.getName(), model.getClass().getName()));
         }
-        return new DefaultIntermediateToolingModelResult<>((T) model, result.getFailures());
+        return new DefaultIntermediateToolingModelResult<>((T) model, result);
     }
 
 
@@ -176,11 +176,11 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
     private static final class DefaultIntermediateToolingModelResult<T> implements IntermediateToolingModelResult<T> {
         @Nullable
         private final T model;
-        private final List<Failure> failures;
+        private final ToolingModelScopeResult result;
 
-        DefaultIntermediateToolingModelResult(@Nullable T model, List<Failure> failures) {
+        DefaultIntermediateToolingModelResult(@Nullable T model, ToolingModelScopeResult result) {
             this.model = model;
-            this.failures = failures;
+            this.result = result;
         }
 
         @Override
@@ -191,7 +191,12 @@ public class DefaultIntermediateToolingModelProvider implements IntermediateTool
 
         @Override
         public List<Failure> getFailures() {
-            return failures;
+            return result.getClientResult().getFailures();
+        }
+
+        @Override
+        public List<Throwable> getModelBuilderFailures() {
+            return result.getModelBuilderFailures();
         }
     }
 }

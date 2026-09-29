@@ -52,7 +52,8 @@ Copies production resources into the production resources directory.
 `classes`::
 _Depends on_: `compileJava`, `processResources`
 +
-This is an aggregate task that just depends on other tasks. Other plugins may attach additional compilation tasks to it.
+This is an aggregate task that just depends on other tasks.
+Other plugins may attach additional compilation tasks to it.
 
 `compileTestJava` — link:{groovyDslPath}/org.gradle.api.tasks.compile.JavaCompile.html[JavaCompile]::
 _Depends on_: `classes`, and all tasks that contribute to the test compilation classpath
@@ -65,7 +66,8 @@ Copies test resources into the test resources directory.
 `testClasses`::
 _Depends on_: `compileTestJava`, `processTestResources`
 +
-This is an aggregate task that just depends on other tasks. Other plugins may attach additional test compilation tasks to it.
+This is an aggregate task that just depends on other tasks.
+Other plugins may attach additional test compilation tasks to it.
 
 `jar` — link:{groovyDslPath}/org.gradle.api.tasks.bundling.Jar.html[Jar]::
 _Depends on_: `classes`
@@ -86,7 +88,8 @@ Runs the unit tests using JUnit or TestNG.
 Deletes the project build directory.
 
 `clean__TaskName__` — link:{groovyDslPath}/org.gradle.api.tasks.Delete.html[Delete]::
-Deletes files created by the specified task. For example, `cleanJar` will delete the JAR file created by the `jar` task and `cleanTest` will delete the test results created by the `test` task.
+Deletes files created by the specified task.
+For example, `cleanJar` will delete the JAR file created by the `jar` task and `cleanTest` will delete the test results created by the `test` task.
 
 [[java_source_set_tasks]]
 === SourceSet Tasks
@@ -104,7 +107,8 @@ Copies the given source set's resources into the resources directory.
 `__sourceSet__Classes` — link:{groovyDslPath}/org.gradle.api.Task.html[Task]::
 _Depends on_: `compile__SourceSet__Java`, `process__SourceSet__Resources`
 +
-Prepares the given source set's classes and resources for packaging and execution. Some plugins may add additional compilation tasks for the source set.
+Prepares the given source set's classes and resources for packaging and execution.
+Some plugins may add additional compilation tasks for the source set.
 
 [[sec:java_lifecycle_tasks]]
 === Lifecycle Tasks
@@ -114,32 +118,39 @@ The Java plugin attaches some of its tasks to the lifecycle tasks defined by the
 `assemble`::
 _Depends on_: `jar`
 +
-Aggregate task that assembles all the archives in the project. This task is added by the Base Plugin.
+Aggregate task that assembles all the archives in the project.
+This task is added by the Base Plugin.
 
 `check`::
 _Depends on_: `test`
 +
-Aggregate task that performs verification tasks, such as running the tests. Some plugins add their own verification tasks to `check`. You should also attach any custom `Test` tasks to this lifecycle task if you want them to execute for a full build. This task is added by the Base Plugin.
+Aggregate task that performs verification tasks, such as running the tests.
+Some plugins add their own verification tasks to `check`.
+You should also attach any custom `Test` tasks to this lifecycle task if you want them to execute for a full build.
+This task is added by the Base Plugin.
 
 `build`::
 _Depends on_: `check`, `assemble`
 +
-Aggregate tasks that performs a full build of the project. This task is added by the Base Plugin.
+Aggregate tasks that performs a full build of the project.
+This task is added by the Base Plugin.
 
 `build__ConfigName__` — _task rule_::
 _Depends on_: all tasks that generate the artifacts attached to the named — _ConfigName_ — configuration
 +
-Assembles the artifacts for the specified configuration. This rule is added by the Base Plugin.
+Assembles the artifacts for the specified configuration.
+This rule is added by the Base Plugin.
 
 The following diagram shows the relationships between these tasks.
 
-.Java plugin - tasks
 image::javaPluginTasks.png[]
 
 [[sec:java_project_layout]]
 == Project layout
 
-The Java plugin assumes the project layout shown below. None of these directories need to exist or have anything in them. The Java plugin will compile whatever it finds, and handles anything which is missing.
+The Java plugin assumes the project layout shown below.
+None of these directories need to exist or have anything in them.
+The Java plugin will compile whatever it finds, and handles anything which is missing.
 
 [[javalayout]]
 include::javaProjectMainLayout.adoc[]
@@ -151,7 +162,9 @@ include::javaProjectGenericLayout.adoc[]
 [[sec:changing_java_project_layout]]
 === Changing the project layout
 
-You configure the project layout by configuring the appropriate source set. This is discussed in more detail in the following sections. Here is a brief example which changes the main Java and resource source directories.
+You configure the project layout by configuring the appropriate source set.
+This is discussed in more detail in the following sections.
+Here is a brief example which changes the main Java and resource source directories.
 
 ====
 include::sample[dir="snippets/reference/core-plugins/customizedLayout/kotlin", files="build.gradle.kts[tags=define-main]"]
@@ -167,12 +180,14 @@ The plugin adds the following <<building_java_projects.adoc#sec:java_source_sets
 Contains the production source code of the project, which is compiled and assembled into a JAR.
 
 `test`::
-Contains your test source code, which is compiled and executed using JUnit or TestNG. These are typically unit tests, but you can include any test in this source set as long as they all share the same compilation and runtime classpaths.
+Contains your test source code, which is compiled and executed using JUnit or TestNG.
+These are typically unit tests, but you can include any test in this source set as long as they all share the same compilation and runtime classpaths.
 
 [[sec:source_set_properties]]
 === Source set properties
 
-The following table lists some of the important properties of a source set. You can find more details in the API documentation for link:{groovyDslPath}/org.gradle.api.tasks.SourceSet.html[SourceSet].
+The following table lists some of the important properties of a source set.
+You can find more details in the API documentation for link:{groovyDslPath}/org.gradle.api.tasks.SourceSet.html[SourceSet].
 
 `name` — (read-only) `String`::
 The name of the source set, used to identify it.
@@ -183,7 +198,8 @@ The output files of the source set, containing its compiled classes and resource
 `output.classesDirs` — (read-only) link:{javadocPath}/org/gradle/api/file/FileCollection.html[FileCollection]::
 _Default value_: `layout.buildDirectory.dir("classes/java/$name")`, e.g. _build/classes/java/main_
 +
-The directories to generate the classes of this source set into. May contain directories for other JVM languages, e.g. _build/classes/kotlin/main_.
+The directories to generate the classes of this source set into.
+May contain directories for other JVM languages, e.g. _build/classes/kotlin/main_.
 
 `output.resourcesDir` — `File`::
 _Default value_: `layout.buildDirectory.dir("resources/$name")`, e.g. _build/resources/main_
@@ -206,35 +222,44 @@ _Default value_: `$output`, `$\{name}RuntimeClasspath` configuration
 The classpath to use when executing the classes of this source set.
 
 `java` — (read-only) link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]::
-The Java source files of this source set. Contains only `.java` files found in the Java source directories, and excludes all other files.
+The Java source files of this source set.
+Contains only `.java` files found in the Java source directories, and excludes all other files.
 
 `java.srcDirs` — `Set&lt;File&gt;`::
 _Default value_: `src/$name/java`, e.g. _src/main/java_
 +
-The source directories containing the Java source files of this source set.  You can set this to any value that is described in <<working_with_files.adoc#sec:specifying_multiple_files,this section>>.
+The source directories containing the Java source files of this source set.
+You can set this to any value that is described in <<working_with_files.adoc#sec:specifying_multiple_files,this section>>.
 
 `java.destinationDirectory` — `DirectoryProperty`::
 _Default value_: `layout.buildDirectory.dir("classes/java/$name")`, e.g. _build/classes/java/main_
 +
-The directory to generate compiled Java sources into. You can set this to any value that is described in <<working_with_files.adoc#sec:single_file_paths,this section>>.
+The directory to generate compiled Java sources into.
+You can set this to any value that is described in <<working_with_files.adoc#sec:single_file_paths,this section>>.
 
 `resources` — (read-only) link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]::
-The resources of this source set. Contains only resources, and excludes any `.java` files found in the resource directories. Other plugins, such as the <<groovy_plugin.adoc#groovy_plugin,Groovy Plugin>>, exclude additional types of files from this collection.
+The resources of this source set.
+Contains only resources, and excludes any `.java` files found in the resource directories.
+Other plugins, such as the <<groovy_plugin.adoc#groovy_plugin,Groovy Plugin>>, exclude additional types of files from this collection.
 
 `resources.srcDirs` — `Set&lt;File&gt;`::
 _Default value_: `[src/$name/resources]`
 +
-The directories containing the resources of this source set. You can set this to any type of value that is described in <<working_with_files.adoc#sec:specifying_multiple_files,this section>>.
+The directories containing the resources of this source set.
+You can set this to any type of value that is described in <<working_with_files.adoc#sec:specifying_multiple_files,this section>>.
 
 `allJava` — (read-only) link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]::
 _Default value_: Same as `java` property
 +
-All Java files of this source set. Some plugins, such as the Groovy Plugin, add additional Java source files to this collection.
+All Java files of this source set.
+Some plugins, such as the Groovy Plugin, add additional Java source files to this collection.
 
 `allSource` — (read-only) link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]::
 _Default value_: Sum of everything in the `resources` and `java` properties
 +
-All source files of this source set of any language. This includes all resource files and all Java source files. Some plugins, such as the Groovy Plugin, add additional source files to this collection.
+All source files of this source set of any language.
+This includes all resource files and all Java source files.
+Some plugins, such as the Groovy Plugin, add additional source files to this collection.
 
 [[sec:defining_new_source_sets]]
 === Defining new source sets
@@ -279,10 +304,24 @@ The role of each configuration is described in the following tables.
 For information on the `default` and `archives` configurations, please consult the
 <<base_plugin.adoc#sec:base_plugin_configurations,Base Plugin>> reference documentation.
 
-For information on the `api`, `compileOnlyApi` , or consumable configurations, please consult the
-<<java_library_plugin.adoc#sec:java_library_separation, Java Library Plugin>> reference documentation and
-<<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects, Dependency Management for Java Projects>>.
+For information on the `api` and `compileOnlyApi` configurations, which are only added when the <<java_library_plugin.adoc#sec:java_library_separation,Java Library Plugin>> is applied, please consult its reference documentation and <<dependency_management_for_java_projects.adoc#dependency_management_for_java_projects, Dependency Management for Java Projects>>.
 ====
+
+[[sec:java_configuration_diagram]]
+=== Configuration diagram
+
+The diagrams below show how the Java plugin's configurations relate to each other and to the tasks that use them, for the _main_ and _test_ source sets.
+For an explanation of what it means for a configuration to be declarable, resolvable, or consumable, see <<declaring_configurations.adoc#sec:resolvable-consumable-configs,Declarable, Resolvable, and Consumable configurations>>.
+
+Main source sets:
+
+image::java-main-configurations.png[]
+
+Test source sets:
+
+image::java-test-configurations.png[]
+
+The tables below give the full reference for each configuration shown above.
 
 [[sec:java_declarable_configurations]]
 === Declarable (Bucket) Configurations
@@ -320,6 +359,22 @@ For information on the `api`, `compileOnlyApi` , or consumable configurations, p
 | Represents annotation processors used during the compilation of a project's source code (i.e., annotation processors used during compilation).
 |===
 
+[[sec:java_consumable_configurations]]
+=== Consumable Configurations
+
+[%header%autowidth,compact]
+|===
+| Configuration name | Role | Description
+
+| `apiElements`
+| Consumable
+| Represents the elements exposed to consumers that compile against this project, such as other projects that depend on it or components published from it. Under the Java Plugin alone, this configuration carries no declared dependencies of its own — it exposes only this project's compiled classes. The <<java_library_plugin.adoc#sec:java_library_separation,Java Library Plugin>> adds the `api` and `compileOnlyApi` configurations, whose dependencies are then also exposed here.
+
+| `runtimeElements` (extends `runtimeOnly, implementation`)
+| Consumable
+| Represents the elements exposed to consumers that run against this project, such as other projects that depend on it or components published from it. Includes the dependencies from both `runtimeOnly` and `implementation` configurations, since implementation dependencies are required at runtime even though they are not part of the compile-time API.
+|===
+
 [[sec:java_resolvable_configurations]]
 === Resolvable Configurations
 
@@ -344,31 +399,21 @@ For information on the `api`, `compileOnlyApi` , or consumable configurations, p
 | Represents the classpath used to run the test sources, which includes dependencies from both `testRuntimeOnly` and `testImplementation` configurations. Used by the `test` task.
 |===
 
-The following diagrams show the dependency configurations for the _main_ source set. You can use this legend to interpret the colors:
-
- * _blue_ background — you can declare dependencies against the configuration.
- * _green_ background — the configuration is for consumption by tasks, not for you to declare dependencies.
- * _grey_ background — a task.
-
-image::java-main-configurations.png[]
-
-And the next graph describes the _test_ source set:
-
-image::java-test-configurations.png[]
-
 For each source set you add to the project, the Java plugins adds the following dependency configurations:
 
 [[java_source_set_configurations]]
 === SourceSet dependency configurations
 
 `__sourceSet__Implementation`::
-Compile time dependencies for the given source set. Used by `__sourceSet__CompileClasspath, __sourceSet__RuntimeClasspath`.
+Compile time dependencies for the given source set.
+Used by `__sourceSet__CompileClasspath, __sourceSet__RuntimeClasspath`.
 
 `__sourceSet__CompileOnly`::
 Compile time only dependencies for the given source set, not used at runtime.
 
 `__sourceSet__CompileClasspath` extends `__sourceSet__CompileOnly, __sourceSet__Implementation`::
-Compile classpath, used when compiling source. Used by `compile__SourceSet__Java`.
+Compile classpath, used when compiling source.
+Used by `compile__SourceSet__Java`.
 
 `__sourceSet__AnnotationProcessor`::
 Annotation processors used during compilation of this source set.
@@ -397,14 +442,17 @@ Below is the list of properties and DSL functions with short explanations availa
 === Toolchain and compatibility
 
 `toolchain`::
-<<toolchains.adoc#toolchains, Java toolchain>> to be used by tasks using JVM tools, such as compilation and execution. Default value: build JVM toolchain.
+<<toolchains.adoc#toolchains, Java toolchain>> to be used by tasks using JVM tools, such as compilation and execution.
+Default value: build JVM toolchain.
 
 `link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] sourceCompatibility`::
-Java version compatibility to use when compiling Java source. Default value: language version of the toolchain from this extension. +
+Java version compatibility to use when compiling Java source.
+Default value: language version of the toolchain from this extension. +
 _Note that using a <<toolchains.adoc#toolchains, toolchain>> is preferred to using a compatibility setting for most cases._
 
 `link:{javadocPath}/org/gradle/api/JavaVersion.html[JavaVersion] targetCompatibility`::
-Java version to generate classes for. Default value: `__sourceCompatibility__`. +
+Java version to generate classes for.
+Default value: `__sourceCompatibility__`. +
 _Note that using a <<toolchains.adoc#toolchains, toolchain>> is preferred to using a compatibility setting for most cases._
 
 [[sec:java_packaging_plugin]]
@@ -420,10 +468,12 @@ Automatically packages source code and creates a variant `sourceElements` with a
 === Directory properties
 
 `docsDir` — link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]::
-The directory to generate documentation into. Default value: `layout.buildDirectory.dir("docs")`
+The directory to generate documentation into.
+Default value: `layout.buildDirectory.dir("docs")`
 
 `testResultsDir` — link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]::
-The directory to generate test result `.xml` files into. Default value: `layout.buildDirectory.dir("test-results")`
+The directory to generate test result `.xml` files into.
+Default value: `layout.buildDirectory.dir("test-results")`
 
 `testReportDir` — link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html[DirectoryProperty]::
 The directory to generate the test report into. Default value: `reporting.baseDirectory.dir("tests")`, e.g. _build/reports/tests_
@@ -437,21 +487,27 @@ The directories for library archives (`libs`) and distributions (`distributions`
 === Other properties
 
 `(read-only) link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer] sourceSets`::
-Contains the project's source sets. Default value: Not null link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer]
+Contains the project's source sets.
+Default value: Not null link:{javadocPath}/org/gradle/api/tasks/SourceSetContainer.html[SourceSetContainer]
 
 `link:{javadocPath}/org/gradle/api/java/archives/Manifest.html[Manifest] manifest`::
-The manifest to include in all JAR files. Default value: an empty manifest.
+The manifest to include in all JAR files.
+Default value: an empty manifest.
 +
 See <<building_java_projects.adoc#sec:jar_manifest, Modifying the JAR manifest>> for examples of configuring attributes and using Provider values.
 
 `modularity.inferModulePath`::
-Controls whether Gradle infers the module path (instead of the classpath) for tasks that have a `module-info.java`. See <<java_library_plugin.adoc#sec:java_library_modular, Building Modules for the Java Module System>>. Default value: `true`
+Controls whether Gradle infers the module path (instead of the classpath) for tasks that have a `module-info.java`.
+See <<java_library_plugin.adoc#sec:java_library_modular, Building Modules for the Java Module System>>.
+Default value: `true`
 
 `consistentResolution(Action)`::
 Configures dependency resolution consistency so that the compile and runtime classpaths of the project resolve to the same dependency versions. _Incubating._
 
 `(read-only) boolean autoTargetJvmDisabled`::
-Tells whether automatic JVM targeting is disabled. When enabled (the default), Gradle refuses to use a dependency built for a more recent JVM than this module's target compatibility. Default value: `false`
+Tells whether automatic JVM targeting is disabled.
+When enabled (the default), Gradle refuses to use a dependency built for a more recent JVM than this module's target compatibility.
+Default value: `false`
 
 [[sec:java_test]]
 == Testing
@@ -745,7 +801,8 @@ Check with the annotation processor project directly for the most up-to-date inf
 [[sec:java_compile_avoidance]]
 == Compilation avoidance
 
-If a dependent project has changed in an https://en.wikipedia.org/wiki/Application_binary_interface[ABI]-compatible way (only its private API has changed), then Java compilation tasks will be up-to-date. This means that if project `A` depends on project `B` and a class in `B` is changed in an ABI-compatible way (typically, changing only the body of a method), then Gradle won't recompile `A`.
+If a dependent project has changed in an https://en.wikipedia.org/wiki/Application_binary_interface[ABI]-compatible way (only its private API has changed), then Java compilation tasks will be up-to-date.
+This means that if project `A` depends on project `B` and a class in `B` is changed in an ABI-compatible way (typically, changing only the body of a method), then Gradle won't recompile `A`.
 
 Some of the types of changes that do not affect the public API and are ignored:
 

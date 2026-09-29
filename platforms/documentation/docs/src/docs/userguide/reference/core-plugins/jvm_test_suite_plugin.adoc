@@ -15,7 +15,8 @@
 [[jvm_test_suite_plugin]]
 = The JVM Test Suite Plugin
 
-The JVM Test Suite plugin (plugin id: `jvm-test-suite`) provides a DSL and API to model multiple groups of automated tests into test suites in JVM-based projects.  Test suites are intended to be grouped by their purpose and can have separate dependencies and use different testing frameworks.
+The JVM Test Suite plugin (plugin id: `jvm-test-suite`) provides a DSL and API to model multiple groups of automated tests into test suites in JVM-based projects.
+Test suites are intended to be grouped by their purpose and can have separate dependencies and use different testing frameworks.
 
 For instance, this plugin can be used to define a group of Integration Tests, which might run much longer than unit tests and have different environmental requirements.
 
@@ -24,7 +25,8 @@ NOTE: The JVM Test Suite plugin is an <<feature_lifecycle.adoc#sec:incubating_st
 [[sec:jvm_test_suite_usage]]
 == Usage
 
-This plugin is applied automatically by the `java` plugin but can be additionally applied explicitly if desired. The plugin cannot be used without a JVM language plugin applied as it relies on several conventions of the `java` plugin.
+This plugin is applied automatically by the `java` plugin but can be additionally applied explicitly if desired.
+The plugin cannot be used without a JVM language plugin applied as it relies on several conventions of the `java` plugin.
 
 ====
 include::sample[dir="snippets/reference/platforms/jvm/test-suite-plugin/kotlin",files="build.gradle.kts[tags=apply-jvm-test-suite]"]
@@ -43,6 +45,47 @@ When used with the <<java_plugin#java_plugin,Java Plugin>>:
  * A single test suite target backed by a task named `test`.
 
 The `test` task, SourceSet and derived configurations are identical in name and function to those used in prior Gradle releases.
+
+[[sec:jvm_test_suite_configurations]]
+== Dependency configurations
+
+Every test suite, whether it's the built-in `test` suite or one you declare yourself (e.g. `integrationTest`), gets the same set of configurations, named after the suite:
+
+[%header%autowidth,compact]
+|===
+| Configuration name | Role | Description
+
+| `__suiteName__Implementation`
+| Declarable
+| Dependencies required to compile and run this suite. For the built-in `test` suite only, this configuration additionally extends the main source set's `implementation`, so it automatically sees the project's own production dependencies; every other suite must add a `project(...)` dependency itself to reference production code (see <<sec:configure_dependencies_of_a_test_suite_to_reference_project_outputs,Configure dependencies of a test suite to reference project outputs>>).
+
+| `__suiteName__CompileOnly`
+| Declarable
+| Compile-time-only dependencies of this suite, not included on its runtime classpath.
+
+| `__suiteName__RuntimeOnly`
+| Declarable
+| Runtime-only dependencies of this suite.
+
+| `__suiteName__AnnotationProcessor`
+| Declarable
+| Annotation processors used when compiling this suite.
+|===
+
+[%header%autowidth,compact]
+|===
+| Configuration name | Role | Description
+
+| `__suiteName__CompileClasspath` (extends `__suiteName__CompileOnly`, `__suiteName__Implementation`)
+| Resolvable
+| The classpath used to compile this suite.
+
+| `__suiteName__RuntimeClasspath` (extends `__suiteName__RuntimeOnly`, `__suiteName__Implementation`)
+| Resolvable
+| The classpath used to run this suite.
+|===
+
+Each test suite target also produces an outgoing variant containing its test execution results — see <<sec:outgoing_variants,Outgoing Variants>> below.
 
 [[sec:jvm_test_suite_tasks]]
 == Tasks
@@ -64,7 +107,8 @@ See the link:{groovyDslPath}/org.gradle.testing.base.TestingExtension.html[Testi
 [[sec:jvm_test_suite_terminology]]
 === Terminology and Modeling
 
-The JVM Test Suite Plugin introduces some modeling concepts backed by new APIs.  Here are their definitions.
+The JVM Test Suite Plugin introduces some modeling concepts backed by new APIs.
+Here are their definitions.
 
 [[sec:test_suite]]
 ==== Test Suite
@@ -74,7 +118,13 @@ A test suite is a collection of JVM-based tests.
 [[sec:test_suite_target]]
 ==== Test Suite Target
 
-For the initial release of this plugin, each test suite has a single target.  This results in a 1:1:1 relationship between test suite, test suite target and a matching link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task.  The name of the `Test` task is derived from the suite name.  Future iterations of the plugin will allow defining multiple targets based on other attributes, such as a particular JDK/JRE runtime.
+By default, each test suite has a single target.
+This results in a 1:1:1 relationship between test suite, test suite target and a matching link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task.
+The name of this default target's `Test` task is derived from the suite name.
+
+A suite is not limited to this single, default target, however.
+You can register additional targets on any suite, including the built-in `test` suite — see <<sec:add_an_additional_target_to_a_test_suite,Add an additional target to a test suite>> below.
+Each additional target gets its own independently-configurable `Test` task, sharing the suite's sources, dependencies and testing framework, so it is possible to run the same suite more than once with different task-level configuration (for example, a different JVM via `javaLauncher`, different system properties, or different test filters).
 
 Each test suite has some configuration that is common to all tests contained in the suite:
 
@@ -84,7 +134,8 @@ Each test suite has some configuration that is common to all tests contained in 
 
 In the future, other properties may be specified in the test suite which may influence the toolchains selected to compile and run tests.
 
-The `Test` task associated with the target inherits its name from the suite.  Other properties of the `Test` task are configurable.
+The `Test` task of the default target inherits its name from the suite; additional targets are named however you register them.
+Other properties of the `Test` task are configurable.
 
 [[sec:jvm_test_suite_examples]]
 [discrete]
@@ -128,6 +179,22 @@ include::sample[dir="snippets/reference/platforms/jvm/test-suite-configure-defau
 <2> Lazily configure the test task of all targets of the suite; note the return type of `testTask` is `TaskProvider<Test>`.
 <3> Configure more detailed test framework options.  The `options` will be a subclass of `org.gradle.api.tasks.testing.TestFrameworkOptions`, in this case it is `org.gradle.api.tasks.testing.testng.TestNGOptions`.
 
+[[sec:add_an_additional_target_to_a_test_suite]]
+== Add an additional target to a test suite
+
+Every suite, including the built-in `test` suite, can have more than one target.
+Registering an additional target creates another independently-configurable `Test` task that shares the suite's sources, dependencies and testing framework — it does not create a new suite or a new source set.
+
+====
+include::sample[dir="snippets/reference/platforms/jvm/test-suite-add-target/kotlin",files="build.gradle.kts[tags=add-additional-target]"]
+include::sample[dir="snippets/reference/platforms/jvm/test-suite-add-target/groovy",files="build.gradle[tags=add-additional-target]"]
+====
+<1> Register `otherTest` as a second target of the built-in `test` suite. This creates an `otherTest` task, alongside the existing `test` task, that runs the same suite's tests.
+<2> Configure the new target's `Test` task independently of the suite's default target — here, setting a system property that only applies when running via `otherTest`.
+
+This is the officially recommended way to give a suite more than one target: there is no separate "multi-target" API beyond registering additional entries in the suite's `targets` container, and no restriction on how many targets a suite — including the built-in `test` suite — can have.
+See the <<upgrading_major_version_9.adoc#test_tasks_may_no_longer_execute_expected_tests,upgrade guide>> for the migration scenario that motivated this pattern: recreating a standalone `Test` task that previously relied on the deprecated `test` source set convention.
+
 [[sec:configure_dependencies_of_a_test_suite]]
 == Configure dependencies of a test suite
 
@@ -149,6 +216,39 @@ include::sample[dir="snippets/reference/platforms/jvm/test-suite-configure-suite
 <1> Add a production dependency which is used as part of the library's public API.
 <2> Add a production dependency which is only used internally and is not exposed as part of this project's public classes.
 <3> Configure a new test suite which adds a `project()` dependency to the suite's compile and runtime classpaths. This dependency provides access to the project's outputs as well as any dependencies declared on its `api` and `compileOnlyApi` configurations.
+
+[[sec:configure_test_suite_to_use_test_fixtures]]
+== Configure a test suite to use test fixtures
+
+Like a `project()` dependency, a dependency on this project's own <<java_test_fixtures_plugin.adoc#java_test_fixtures_plugin,test fixtures>> is not added automatically to any suite other than the built-in `test` suite — you add it the same way, using link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html#testFixtures-java.lang.Object-[testFixtures(Object)] inside the suite's `dependencies {}` block:
+
+====
+include::sample[dir="snippets/reference/platforms/jvm/test-suite-configure-suite-dependencies-test-fixtures/kotlin",files="build.gradle.kts[tags=configure-suite-dependencies-test-fixtures]"]
+include::sample[dir="snippets/reference/platforms/jvm/test-suite-configure-suite-dependencies-test-fixtures/groovy",files="build.gradle[tags=configure-suite-dependencies-test-fixtures]"]
+====
+<1> Add a `project()` dependency so `integrationTest` can see this project's production code, same as the previous example.
+<2> Add a dependency on this project's own test fixtures.
+
+The `testFixtures(project())` dependency resolves against this project's own `testFixturesApiElements`/`testFixturesRuntimeElements` (see the <<java_test_fixtures_plugin.adoc#sec:java_test_fixtures_configurations,Java Test Fixtures Plugin's configurations>>).
+To use the fixtures of _another_ project instead, replace `project()` with `project(":other-project")` in both dependency declarations.
+
+For example, given this fixture in `src/testFixtures/java`, which builds a handful of reusable `Person` instances:
+
+[source,java,indent=0]
+.src/testFixtures/java/com/acme/Simpsons.java
+----
+include::{snippetsPath}/reference/platforms/jvm/test-suite-configure-suite-dependencies-test-fixtures/common/src/testFixtures/java/com/acme/Simpsons.java[tags=sample]
+----
+
+The `integrationTest` suite can consume it directly, exactly as it would consume any other suite-local class:
+
+[source,java,indent=0]
+.src/integrationTest/java/com/acme/SimpsonsIntegrationTest.java
+----
+include::{snippetsPath}/reference/platforms/jvm/test-suite-configure-suite-dependencies-test-fixtures/common/src/integrationTest/java/com/acme/SimpsonsIntegrationTest.java[tags=sample]
+----
+<1> `Person` comes from the project's own production code, available because of the `implementation(project())` dependency.
+<2> `Simpsons` comes from the project's test fixtures, available because of the `implementation(testFixtures(project()))` dependency.
 
 [[sec:configure_source_directories_of_a_test_suite]]
 == Configure source directories of a test suite
@@ -172,12 +272,14 @@ include::sample[dir="snippets/reference/platforms/jvm/test-suite-configure-sourc
 <1> Configure the `integrationTest` task created by declaring a suite of the same name.
 <2> Configure the `Test` task properties.
 
-`Test` tasks associated with a test suite target can also be configured directly, by name.  It is not necessary to configure via the test suite DSL.
+`Test` tasks associated with a test suite target can also be configured directly, by name.
+It is not necessary to configure via the test suite DSL.
 
 [[sec:sharing_configuration_between_multiple_test_suites]]
 == Sharing configuration between multiple test suites
 
-There are several ways to share configuration between multiple test suites to avoid the duplication of dependencies or other configuration.  Each method is a tradeoff between flexibility and the use of a declarative vs. imperative configuration style.
+There are several ways to share configuration between multiple test suites to avoid the duplication of dependencies or other configuration.
+Each method is a tradeoff between flexibility and the use of a declarative vs. imperative configuration style.
 
 1. Use the `configureEach` method on the `suites` container to configure every test suite the same way.
 2. Use `withType` and `matching` with `configureEach` to filter test suites and configure a subset of them.
@@ -186,7 +288,8 @@ There are several ways to share configuration between multiple test suites to av
 [[sec:method_1_use_configure_each]]
 === Method 1: Use `configureEach`
 
-This is the most straightforward way to share configuration across _every_ test suite.  The configuration is applied to each test suite.
+This is the most straightforward way to share configuration across _every_ test suite.
+The configuration is applied to each test suite.
 
 ====
 include::sample[dir="snippets/reference/platforms/jvm/test-suite-multi-configure-each/kotlin",files="build.gradle.kts[tags=multi-configure]"]
@@ -231,21 +334,25 @@ See <<implementing_gradle_plugins_binary.adoc#sec:differences_with_top_level_dep
 [[sec:differences_between_similar_methods_on_jvm_test_suite_and_test_task]]
 == Differences between similar methods on link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] and link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task types
 
-Instances of JvmTestSuite have methods link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnit--[useJUnit()] and link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnitJupiter--[useJUnitJupiter()], which are similar in name to methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task type:  link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnit--[useJUnit()] and link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform--[useJUnitPlatform()].  However, there are important differences.
+Instances of JvmTestSuite have methods link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnit--[useJUnit()] and link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnitJupiter--[useJUnitJupiter()], which are similar in name to methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task type: link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnit--[useJUnit()] and link:{javadocPath}/org/gradle/api/tasks/testing/Test.html#useJUnitPlatform--[useJUnitPlatform()].
+However, there are important differences.
 
 Unlike the methods on the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task, link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] methods perform two additional pieces of configuration:
 
-. link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnit--[JvmTestSuite#useJUnit()], link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnitJupiter--[#useJUnitJupiter()] and other framework-specific methods automatically apply the relevant testing framework libraries to the compile and runtime classpaths of the suite targets.  Note the overloaded methods like link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnit-java.lang.String-[JvmTestSuite#useJUnit(String)] and link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnitJupiter-java.lang.String-[#useJUnitJupiter(String)] allow you to provide specific versions of the framework dependencies.
+. link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnit--[JvmTestSuite#useJUnit()], link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnitJupiter--[#useJUnitJupiter()] and other framework-specific methods automatically apply the relevant testing framework libraries to the compile and runtime classpaths of the suite targets.
+Note the overloaded methods like link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnit-java.lang.String-[JvmTestSuite#useJUnit(String)] and link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnitJupiter-java.lang.String-[#useJUnitJupiter(String)] allow you to provide specific versions of the framework dependencies.
 . link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnit--[JvmTestSuite#useJUnit()] and link:{javadocPath}/org/gradle/api/plugins/jvm/JvmTestSuite.html#useJUnitJupiter--[#useJUnitJupiter()] automatically configure the suite targets' link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] tasks to execute using the specified framework.
 
 An example of this behavior is shown in the first configuration example above, <<#sec:configuring_the_built_in_test_suite,Configuring the built-in `test` suite>>.
 
-NOTE: Unlike the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task, the aforementioned methods on link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] do not accept a closure or action for configuring the framework.  These framework configuration options can be set on the individual targets.
+NOTE: Unlike the link:{groovyDslPath}/org.gradle.api.tasks.testing.Test.html[Test] task, the aforementioned methods on link:{groovyDslPath}/org.gradle.api.plugins.jvm.JvmTestSuite.html[JvmTestSuite] do not accept a closure or action for configuring the framework.
+These framework configuration options can be set on the individual targets.
 
 [[sec:outgoing_variants]]
 == Outgoing Variants
 
-Each test suite creates an outgoing variant containing its test execution results.  These variants are designed for consumption by the <<test_report_aggregation_plugin#test_report_aggregation_plugin, Test Report Aggregation Plugin>>.
+Each test suite creates a single outgoing variant containing its test execution results, named `testResultsElementsFor__SuiteName__`.
+These variants are designed for consumption by the <<test_report_aggregation_plugin#test_report_aggregation_plugin, Test Report Aggregation Plugin>>.
 
 The attributes will resemble the following.
 User-configurable attributes are highlighted below the sample.
@@ -255,7 +362,7 @@ User-configurable attributes are highlighted below the sample.
 --------------------------------------------------
 Variant testResultsElementsForTest (i)
 --------------------------------------------------
-Description = Directory containing binary results of running tests for the test Test Suite's test target.
+Description = Binary results obtained from running all targets in the 'test' Test Suite.
 
 Capabilities
     - org.gradle.sample:list:1.0.2 (default capability)
@@ -268,3 +375,10 @@ Artifacts
     - build/test-results/test/binary (artifactType = directory)
 ----
 <1> TestSuiteName attribute; value is derived from link:{javadocPath}/org/gradle/testing/base/TestSuite.html#getName--[TestSuite#getName()].
+
+[NOTE]
+====
+This variant is created once per suite, not once per target.
+If a suite has <<sec:add_an_additional_target_to_a_test_suite,more than one target>>, every target's binary results directory is added as a separate artifact to this same variant, rather than each target getting its own variant — Gradle does not yet have a way for targets to distinguish themselves via attributes.
+Consumers that need to tell one target's results apart from another's currently have to arrange that themselves, for example by adding a distinguishing attribute to the variant by hand.
+====

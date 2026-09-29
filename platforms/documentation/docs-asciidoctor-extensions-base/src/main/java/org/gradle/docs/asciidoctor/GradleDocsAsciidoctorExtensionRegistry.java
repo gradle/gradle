@@ -33,6 +33,7 @@ public class GradleDocsAsciidoctorExtensionRegistry implements ExtensionRegistry
 
         registry.inlineMacro(SinceGradleLabelProcessor.class);
         registry.inlineMacro(IncubatingLabelProcessor.class);
+        registry.inlineMacro(DeprecatedLabelProcessor.class);
 
         registry.treeprocessor(ExampleSelfLinkProcessor.class);
 

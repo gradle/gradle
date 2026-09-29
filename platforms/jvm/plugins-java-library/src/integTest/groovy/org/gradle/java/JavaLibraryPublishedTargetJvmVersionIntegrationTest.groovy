@@ -123,7 +123,7 @@ class JavaLibraryPublishedTargetJvmVersionIntegrationTest extends AbstractHttpDe
                 module('org:producer:1.0') {
                     variant(expected, [
                             'org.gradle.dependency.bundling': 'external',
-                            'org.gradle.jvm.version': selected,
+                            'org.gradle.jvm.version': Integer.toString(selected),
                             'org.gradle.usage': 'java-api',
                             'org.gradle.category': 'library',
                             'org.gradle.libraryelements': 'jar',

@@ -16,52 +16,56 @@
 
 package org.gradle.problems.buildtree;
 
-import com.google.common.base.Supplier;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.problems.ProblemDiagnostics;
-import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
+/// Produces [ProblemDiagnostics] describing where a problem came from.
+///
+/// Capturing a full stack trace is expensive, so a stream limits how many it takes. Past that limit a
+/// cheaper partial capture, walking only as far as the calling script, still locates the problem. How
+/// many of each a stream allows is decided by [ProblemDiagnosticsFactory] when it creates the stream, so
+/// a caller cannot assume a stack or a location is present.
+///
+/// | Method | Stack describes | Retains exception | Falls back to a partial capture |
+/// |---|---|---|---|
+/// | [#forCurrentCaller()] | calling thread | no | yes |
+/// | [#forCurrentCaller(StackTraceTransformer)] | calling thread | no | yes |
+/// | [#forCurrentCallerWithException] | calling thread | while full captures last | yes |
+/// | [#forThrownException] | the given exception | yes | never limited |
 @ServiceScope(Scope.BuildTree.class)
 public interface ProblemStream {
-    /**
-     * Returns diagnostics based on the state of the calling thread.
-     *
-     * <p>This method is here because stack trace sanitizing is currently performed by the caller.
-     * However, each caller does this in a different way and they all do this in a different way
-     * to the services used by this type.
-     * </p>
-     *
-     * <p>
-     * Stack trace sanitization should be handled by this service and this method removed.
-     * </p>
-     *
-     * @param transformer A transformer to use to sanitize the stack trace.
-     */
-    ProblemDiagnostics forCurrentCaller(StackTraceTransformer transformer);
 
-    /**
-     * Returns diagnostics based on the state of the calling thread.
-     *
-     * @param exception The exception that represents the failure.
-     */
-    ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception);
-
-    /**
-     * Returns diagnostics based on the state of the calling thread.
-     */
+    /// Locates the calling thread, for a problem with no exception of its own.
     ProblemDiagnostics forCurrentCaller();
 
-    /**
-     * Returns diagnostics based on the state of the calling thread.
-     *
-     * @param exceptionFactory The factory to use to produce an exception when a stack trace is required.
-     */
-    ProblemDiagnostics forCurrentCaller(Supplier<? extends Throwable> exceptionFactory);
+    /// As [#forCurrentCaller()], but `transformer` filters the reported stack alone.
+    ///
+    /// This exists only because callers still sanitize for themselves. Move sanitizing behind this service
+    /// and remove this method.
+    ProblemDiagnostics forCurrentCaller(StackTraceTransformer transformer);
+
+    /// As [#forCurrentCaller()], but also retains an exception for the caller to rethrow.
+    ///
+    /// Only a full capture can produce that exception, so expect it to be absent once those run out.
+    ProblemDiagnostics forCurrentCallerWithException(ExceptionCreator exceptionCreator);
+
+    /// Describes `exception` and retains it, ignoring the calling thread's state.
+    ///
+    /// Never limited: creating the exception already paid for its stack, so the result always has one.
+    ProblemDiagnostics forThrownException(Throwable exception);
 
     interface StackTraceTransformer {
         List<StackTraceElement> transform(StackTraceElement[] original);
+    }
+
+    /// Creates the exception a problem retains for the caller to rethrow.
+    @FunctionalInterface
+    interface ExceptionCreator {
+
+        /// Creates the exception where the problem is reported, so its stack locates that problem.
+        Throwable create();
     }
 }

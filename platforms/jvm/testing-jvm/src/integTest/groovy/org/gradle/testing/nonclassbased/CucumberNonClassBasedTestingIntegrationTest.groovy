@@ -20,6 +20,7 @@ import groovy.xml.XmlSlurper
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import spock.lang.Issue
 
 import static org.gradle.testing.nonclassbased.AbstractNonClassBasedTestingIntegrationTest.DEFAULT_DEFINITIONS_LOCATION
@@ -157,7 +158,7 @@ class CucumberNonClassBasedTestingIntegrationTest extends AbstractIntegrationSpe
         settingsFile << """
             pluginManagement {
                 repositories {
-                    gradlePluginPortal()
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition()}
                 }
             }
         """
