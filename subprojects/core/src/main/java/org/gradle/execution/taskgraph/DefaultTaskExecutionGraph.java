@@ -17,6 +17,7 @@
 package org.gradle.execution.taskgraph;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
@@ -48,7 +49,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
-import java.util.HashMap;
+import java.util.Map;
 
 @SuppressWarnings("deprecation")
 @NullMarked
@@ -65,7 +66,8 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
     private @Nullable FinalizedExecutionPlan executionPlan;
     private List<Task> allTasks = Collections.emptyList();
-    private HashMap<String, Task> allTaskPaths = null;
+    private Map<String, Task> allTaskPaths = null;
+    private final Object allTaskPathsLock = new Object();
     private boolean hasFiredWhenReady;
 
     public DefaultTaskExecutionGraph(
@@ -235,10 +237,17 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             // TODO: Deprecate calling this method before whenReady is called
             return null;
         }
-        if (allTaskPaths == null) {
-            allTaskPaths = new HashMap<String, Task>(allTasks.size());
-            for (Task task : executionPlan.getContents().getTasks()) {
-                allTaskPaths.put(task.getPath(), task);
+        synchronized (allTaskPathsLock) {
+            if (allTaskPaths == null) {
+                if (executionPlan.getContents().getTasks().isEmpty()) {
+                    allTaskPaths = ImmutableMap.of();
+                } else {
+                    ImmutableMap.Builder<String, Task> builder = ImmutableMap.builder();
+                    for (Task task : executionPlan.getContents().getTasks()) {
+                        builder.put(task.getPath(), task);
+                    }
+                    allTaskPaths = builder.buildOrThrow();
+                }
             }
         }
         return allTaskPaths.get(path);
