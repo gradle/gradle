@@ -20,7 +20,7 @@ import org.apache.http.ConnectionClosedException
 import org.apache.http.NoHttpResponseException
 import org.apache.http.conn.HttpHostConnectException
 import org.gradle.internal.exceptions.DefaultMultiCauseException
-import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
+import org.gradle.internal.resource.HttpErrorStatusCodeException
 import org.gradle.internal.resource.transport.http.HttpRequestException
 import spock.lang.Specification
 import spock.lang.Subject

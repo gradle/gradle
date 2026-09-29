@@ -37,7 +37,7 @@ import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult
-import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
+import org.gradle.internal.resource.HttpErrorStatusCodeException
 import spock.lang.Shared
 import spock.lang.Specification
 import spock.lang.Subject

@@ -14,31 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.transport.http
+package org.gradle.internal.resource
 
 import spock.lang.Specification
 
 class HttpErrorStatusCodeExceptionTest extends Specification {
 
     def "can identify status code as 5xx error"() {
-        when:
-        boolean serverError = new HttpErrorStatusCodeException('GET', 'http://localhost:8080/', statusCode, '')
-
-        then:
-        serverError
+        expect:
+        new HttpErrorStatusCodeException('GET', 'http://localhost:8080/', statusCode, '').serverError
 
         where:
-        statusCode << (500..599).collect { it }
+        statusCode << (500..599)
     }
 
     def "can identify status code as non-server error"() {
-        when:
-        boolean serverError = new HttpErrorStatusCodeException('GET', 'http://localhost:8080/', statusCode, '')
-
-        then:
-        serverError
+        expect:
+        !new HttpErrorStatusCodeException('GET', 'http://localhost:8080/', statusCode, '').serverError
 
         where:
-        statusCode << [499, 600]
+        statusCode << [100, 200, 404, 499, 600]
     }
 }

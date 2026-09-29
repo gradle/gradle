@@ -14,21 +14,30 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.transport.http;
+package org.gradle.internal.resource;
 
+import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.exceptions.Contextual;
+
+import javax.annotation.Nullable;
+import java.net.URI;
 
 /**
  * Signals that HTTP response has been received successfully but an error code is encountered (neither 2xx/3xx nor 404).
  */
 @Contextual
-public class HttpErrorStatusCodeException extends RuntimeException {
+public class HttpErrorStatusCodeException extends ResourceException {
 
     private final int statusCode;
 
     public HttpErrorStatusCodeException(String method, String source, int statusCode, String reason) {
         super(String.format("Could not %s '%s'. Received status code %s from server: %s",
             method, source, statusCode, reason));
+        this.statusCode = statusCode;
+    }
+
+    public HttpErrorStatusCodeException(URI location, String message, int statusCode, @Nullable Throwable cause) {
+        super(location, message, cause);
         this.statusCode = statusCode;
     }
 

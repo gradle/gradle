@@ -30,6 +30,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.HttpContext;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.internal.UncheckedException;
+import org.gradle.internal.resource.HttpErrorStatusCodeException;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.slf4j.Logger;

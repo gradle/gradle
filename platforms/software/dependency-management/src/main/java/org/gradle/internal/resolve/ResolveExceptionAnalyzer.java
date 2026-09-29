@@ -18,31 +18,38 @@ package org.gradle.internal.resolve;
 import com.google.common.base.Throwables;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
 import org.gradle.api.internal.artifacts.repositories.transport.NetworkingIssueVerifier;
-import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException;
+import org.gradle.internal.resource.HttpErrorStatusCodeException;
+
+import javax.annotation.Nullable;
 
 public class ResolveExceptionAnalyzer {
 
     public static boolean isCriticalFailure(Throwable throwable) {
+        HttpErrorStatusCodeException httpError = findCause(HttpErrorStatusCodeException.class, throwable);
+        if (httpError != null) {
+            return indicatesUnusableRepository(httpError);
+        }
         if (isUnusableMetadata(throwable)) {
             return false;
-        }
-        Throwable rootCause = Throwables.getRootCause(throwable);
-        if (rootCause instanceof HttpErrorStatusCodeException) {
-            return indicatesUnusableRepository((HttpErrorStatusCodeException) rootCause);
         }
         return true;
     }
 
     private static boolean isUnusableMetadata(Throwable throwable) {
-        for (Throwable cause : Throwables.getCausalChain(throwable)) {
-            if (cause instanceof MetaDataParseException) {
-                return true;
-            }
-        }
-        return false;
+        return findCause(MetaDataParseException.class, throwable) != null;
     }
 
     private static boolean indicatesUnusableRepository(HttpErrorStatusCodeException httpError) {
         return httpError.isServerError() || NetworkingIssueVerifier.isTransientClientError(httpError.getStatusCode());
+    }
+
+    @Nullable
+    private static <T> T findCause(Class<T> type, Throwable throwable) {
+        for (Throwable cause : Throwables.getCausalChain(throwable)) {
+            if (type.isInstance(cause)) {
+                return type.cast(cause);
+            }
+        }
+        return null;
     }
 }
