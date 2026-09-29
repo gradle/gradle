@@ -17,8 +17,10 @@
 package org.gradle.integtests.resolve.catalog
 
 import org.gradle.integtests.fixtures.AbstractHttpDependencyResolutionTest
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.UnsupportedWithConfigurationCache
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import spock.lang.Issue
 
@@ -106,7 +108,7 @@ class KotlinDslVersionCatalogExtensionIntegrationTest extends AbstractHttpDepend
             }
 
             repositories {
-                gradlePluginPortal()
+                ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
             }
         """
         file("buildSrc/src/main/kotlin/my.plugin.gradle.kts") << """

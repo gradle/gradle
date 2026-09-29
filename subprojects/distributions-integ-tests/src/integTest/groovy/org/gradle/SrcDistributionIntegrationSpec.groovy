@@ -60,6 +60,10 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
             inDirectory(contentsDir)
             usingExecutable('gradlew')
             withArgument("--no-configuration-cache") // TODO:configuration-cache remove me
+            // The nested build runs with a test-local Gradle user home, so the agent's
+            // mirror configuration does not apply to it. Install the mirror init script
+            // explicitly, otherwise build-logic-settings resolves from Maven Central.
+            withRepositoryMirrors()
             withTasks(':distributions-full:binDistributionZip')
             withArgument("-D${PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY}=${gradlePluginRepositoryMirrorUrl()}")
             withArgument("-Porg.gradle.java.installations.paths=${Jvm.current().javaHome.absolutePath}")

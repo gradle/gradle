@@ -22,4 +22,6 @@ dependencyResolutionManagement {
     }
 }
 
+apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
+
 include("build-logic-settings-plugin")

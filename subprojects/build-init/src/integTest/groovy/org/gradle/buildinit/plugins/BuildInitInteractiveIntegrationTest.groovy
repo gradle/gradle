@@ -166,6 +166,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     def "prompts user when run from an interactive session and pom.xml present"() {
+        requireMavenCentralForBuildInitClasspath()
         when:
         pom()
 

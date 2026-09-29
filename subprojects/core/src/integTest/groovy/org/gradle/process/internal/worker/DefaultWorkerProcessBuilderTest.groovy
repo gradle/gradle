@@ -44,9 +44,7 @@ class DefaultWorkerProcessBuilderTest extends AbstractIntegrationSpec {
             id "java-library"
         }
 
-        repositories {
-            mavenCentral()
-        }
+        ${mavenCentralRepository()}
 
         dependencies {
             testImplementation 'junit:junit:4.13'

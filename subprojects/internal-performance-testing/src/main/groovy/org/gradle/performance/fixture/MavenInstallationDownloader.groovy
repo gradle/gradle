@@ -53,8 +53,10 @@ class MavenInstallationDownloader {
 
     private static File downloadAndExtractMavenBinArchiveWithRetry(String mavenVersion) {
         def binArchiveUrls = [
-            new URL("https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/$mavenVersion/apache-maven-$mavenVersion-bin.zip"),
-            new URL(fetchPreferredUrl(mavenVersion))
+            new URL("${mavenCentralUrl()}/org/apache/maven/apache-maven/$mavenVersion/apache-maven-$mavenVersion-bin.zip"),
+            new URL(fetchPreferredUrl(mavenVersion)),
+            // ASF mirrors only carry current releases; the archive keeps every version
+            new URL("https://archive.apache.org/dist/maven/maven-3/$mavenVersion/binaries/apache-maven-$mavenVersion-bin.zip")
         ]
 
         for (int i = 0; i < binArchiveUrls.size(); i++) {
@@ -68,6 +70,13 @@ class MavenInstallationDownloader {
             }
         }
         throw new UncheckedIOException("Unable to download Maven binary distribution from any of the repositories")
+    }
+
+
+    // The mirror comes in as a system property so Test Distribution executors, which do not inherit the agent environment, see it too
+    private static String mavenCentralUrl() {
+        def mirror = System.getProperty("org.gradle.integtest.mirrors.mavencentral")
+        return mirror ? mirror.replaceAll('/+$', '') : "https://repo.maven.apache.org/maven2"
     }
 
     private static File downloadMavenBinArchive(String mavenVersion, URL binArchiveUrl) {

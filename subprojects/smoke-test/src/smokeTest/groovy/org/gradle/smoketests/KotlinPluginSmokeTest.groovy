@@ -113,9 +113,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 id 'org.jetbrains.kotlin.jvm' version '$kotlinVersion'
             }
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             tasks.named('compileGroovy') {
                 classpath = sourceSets.main.compileClasspath
@@ -164,9 +162,7 @@ class KotlinPluginSmokeTest extends AbstractPluginValidatingSmokeTest implements
                 id 'org.jetbrains.kotlin.jvm' version '$kotlinVersion'
             }
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlinVersion"

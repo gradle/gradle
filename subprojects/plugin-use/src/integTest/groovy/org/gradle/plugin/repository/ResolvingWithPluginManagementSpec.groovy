@@ -17,6 +17,7 @@
 package org.gradle.plugin.repository
 
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.ivy.IvyFileRepository
@@ -376,7 +377,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
                     }
                 }
                 repositories {
-                    gradlePluginPortal()
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition()}
                 }
             }
         """
@@ -400,7 +401,7 @@ class ResolvingWithPluginManagementSpec extends AbstractDependencyResolutionTest
                     }
                 }
                 repositories {
-                    gradlePluginPortal()
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition()}
                 }
             }
         """

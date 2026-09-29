@@ -191,6 +191,7 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
     }
 
     def "pom conversion to groovy build scripts is triggered when pom and no gradle file found"() {
+        requireMavenCentralForBuildInitClasspath()
         given:
         pom()
 

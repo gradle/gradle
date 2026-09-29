@@ -914,6 +914,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return this;
     }
 
+    protected boolean isPluginRepositoryMirrorDisabled() {
+        return disablePluginRepositoryMirror;
+    }
+
     @Override
     public GradleExecuter ignoreCleanupAssertions() {
         this.ignoreCleanupAssertions = true;

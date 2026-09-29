@@ -18,6 +18,7 @@ package org.gradle.plugin.repository
 
 import com.google.common.base.Splitter
 import org.gradle.integtests.fixtures.AbstractDependencyResolutionTest
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.test.fixtures.Repository
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.maven.MavenFileRepository
@@ -218,7 +219,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
             pluginManagement {
                 repositories {
                     maven {url '${repoA.uri}' }
-                    gradlePluginPortal()
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition()}
                 }
             }
         """
@@ -251,7 +252,7 @@ class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependency
             pluginManagement {
                 repositories {
                     maven {url '${repoA.uri}' }
-                    gradlePluginPortal()
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition()}
                 }
             }
         """

@@ -49,6 +49,7 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
     abstract BuildInitDsl getScriptDsl()
 
     def setup() {
+        requireMavenCentralForBuildInitClasspath()
         /**
          * We need to configure the local maven repository explicitly as
          * RepositorySystem.defaultUserLocalRepository is statically initialised and used when

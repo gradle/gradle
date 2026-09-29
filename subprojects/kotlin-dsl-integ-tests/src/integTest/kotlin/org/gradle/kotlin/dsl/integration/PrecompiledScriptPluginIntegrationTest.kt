@@ -673,7 +673,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractPluginIntegrationTest() {
                             `kotlin-dsl`
                         }
                         repositories {
-                            gradlePluginPortal()
+                            ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
                             maven {
                                 url = uri("../external-plugin/maven-repo")
                             }

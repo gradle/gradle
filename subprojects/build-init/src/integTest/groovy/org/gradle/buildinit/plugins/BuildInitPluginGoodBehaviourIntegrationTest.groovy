@@ -16,7 +16,10 @@
 package org.gradle.buildinit.plugins
 
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 
+@IgnoreIf(value = { GradleContextualExecuter.configCache && System.getProperty("org.gradle.integtest.mirrors.mavencentral") }, inherited = true, reason = "init resolves its Maven conversion classpath from Maven Central when storing the configuration cache")
 class BuildInitPluginGoodBehaviourIntegrationTest extends WellBehavedPluginTest {
     @Override
     String getMainTask() {

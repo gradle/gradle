@@ -383,8 +383,8 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         settingsFile << """
             pluginManagement {
                 repositories {
-                    gradlePluginPortal()
-                    google()
+                    ${gradlePluginRepositoryDefinition()}
+                    ${googleRepositoryDefinition()}
                 }
                 resolutionStrategy.eachPlugin {
                     if (pluginRequest.id.id.startsWith('com.android')) {

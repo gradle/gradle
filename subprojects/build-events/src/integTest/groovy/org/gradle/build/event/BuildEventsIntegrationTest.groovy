@@ -16,6 +16,7 @@
 
 package org.gradle.build.event
 
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.initialization.StartParameterBuildOptions.ConfigurationCacheOption
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -301,7 +302,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         given:
         file("build.gradle") << """
             plugins { id 'groovy-gradle-plugin' }
-            repositories { mavenCentral() }
+            repositories { ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()} }
             dependencies { testImplementation("junit:junit:4.13") }
             test.testLogging {
                 showStandardStreams = true
@@ -351,7 +352,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
 
         file("build.gradle") << """
             plugins { id 'groovy-gradle-plugin' }
-            repositories { mavenCentral() }
+            repositories { ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()} }
             dependencies { testImplementation("junit:junit:4.13") }
             test.testLogging {
                 showStandardStreams = true
