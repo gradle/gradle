@@ -107,11 +107,11 @@ public abstract class GradleSnippetsTestingPlugin implements Plugin<Project> {
         });
         tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(docsTest));
 
-        // Kept so existing CI invocations (`docs:docsTest docs:checkSamples`) keep working.
+        // Same as the org.gradle.samples plugin's checkSamples, which CI still invokes (`docs:docsTest docs:checkSamples`)
         tasks.register("checkSamples", Task.class, task -> {
             task.setGroup(LifecycleBasePlugin.VERIFICATION_GROUP);
-            task.setDescription("Installs the documentation snippets for testing. Kept for CI compatibility.");
-            task.dependsOn(install);
+            task.setDescription("Runs the documentation snippets as Exemplar tests.");
+            task.dependsOn(docsTest);
         });
     }
 }
