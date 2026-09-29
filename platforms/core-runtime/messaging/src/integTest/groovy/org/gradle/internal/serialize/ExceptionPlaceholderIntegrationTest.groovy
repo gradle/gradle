@@ -193,81 +193,44 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec implem
     @Issue("https://github.com/gradle/gradle/issues/34280")
     def "preserves build failure when an exception method signature cannot be resolved"() {
         given:
-        buildFile << '''
-            import javax.tools.ToolProvider
-            import java.util.concurrent.Callable
+        jarWithClasses(file('buildSrc/libs/optional.jar'), 'repro/MissingSignatureType': '''
+            package repro;
 
-            tasks.register('reproduce') {
-                doLast {
-                    def sourceDir = layout.buildDirectory.dir('reproducer/source/repro').get().asFile
-                    def classesDir = layout.buildDirectory.dir('reproducer/classes').get().asFile
-                    sourceDir.mkdirs()
-                    classesDir.mkdirs()
+            public final class MissingSignatureType {
+            }
+        ''')
+        file('buildSrc/build.gradle') << '''
+            plugins { id 'java' }
+            dependencies { compileOnly files('libs/optional.jar') }
+        '''
+        file('buildSrc/src/main/java/repro/BrokenException.java') << '''
+            package repro;
 
-                    def missingTypeSource = new File(sourceDir, 'MissingSignatureType.java')
-                    missingTypeSource.text = """
-                        package repro;
+            public final class BrokenException extends RuntimeException {
+                public BrokenException(String message) {
+                    super(message);
+                }
 
-                        public final class MissingSignatureType {
-                        }
-                    """.stripIndent()
-
-                    def brokenExceptionSource = new File(sourceDir, 'BrokenException.java')
-                    brokenExceptionSource.text = """
-                        package repro;
-
-                        public final class BrokenException extends RuntimeException {
-                            public BrokenException(String message) {
-                                super(message);
-                            }
-
-                            public MissingSignatureType methodWithMissingReturnType() {
-                                return null;
-                            }
-                        }
-                    """.stripIndent()
-
-                    def exceptionFactorySource = new File(sourceDir, 'BrokenExceptionFactory.java')
-                    exceptionFactorySource.text = """
-                        package repro;
-
-                        import java.util.concurrent.Callable;
-
-                        public final class BrokenExceptionFactory implements Callable<Throwable> {
-                            @Override
-                            public Throwable call() {
-                                return new BrokenException("Intentional task failure");
-                            }
-                        }
-                    """.stripIndent()
-
-                    def compiler = ToolProvider.systemJavaCompiler
-                    def compilationExitCode = compiler.run(
-                        null,
-                        null,
-                        null,
-                        '-d',
-                        classesDir.absolutePath,
-                        missingTypeSource.absolutePath,
-                        brokenExceptionSource.absolutePath,
-                        exceptionFactorySource.absolutePath
-                    )
-                    if (compilationExitCode != 0) {
-                        throw new GradleException("Fixture compilation failed with exit code ${compilationExitCode}")
-                    }
-
-                    def missingTypeClass = new File(classesDir, 'repro/MissingSignatureType.class')
-                    if (!missingTypeClass.delete()) {
-                        throw new GradleException("Could not delete ${missingTypeClass}")
-                    }
-
-                    def loader = new URLClassLoader([classesDir.toURI().toURL()] as URL[], ClassLoader.platformClassLoader)
-                    Callable<Throwable> exceptionFactory = Callable.class.cast(
-                        Class.forName('repro.BrokenExceptionFactory', true, loader).getDeclaredConstructor().newInstance()
-                    )
-                    throw exceptionFactory.call()
+                public MissingSignatureType methodWithMissingReturnType() {
+                    return null;
                 }
             }
+        '''
+        file('buildSrc/src/main/java/repro/FailingTask.java') << '''
+            package repro;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.tasks.TaskAction;
+
+            public abstract class FailingTask extends DefaultTask {
+                @TaskAction
+                public void fail() {
+                    throw new BrokenException("Intentional task failure");
+                }
+            }
+        '''
+        buildFile << '''
+            tasks.register('reproduce', repro.FailingTask)
         '''
 
         when:
@@ -275,6 +238,82 @@ class ExceptionPlaceholderIntegrationTest extends AbstractIntegrationSpec implem
 
         then:
         failureCauseContains('Intentional task failure')
+        failure.assertHasFailures(1)
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/34280")
+    def "preserves build failure from a #isolationMode worker with an exception method signature dependency"() {
+        given:
+        jarWithClasses(file('libs/worker-exception.jar'),
+            'repro/MissingSignatureType': '''
+                package repro;
+
+                public final class MissingSignatureType {
+                }
+            ''',
+            'repro/BrokenException': '''
+                package repro;
+
+                public final class BrokenException extends RuntimeException {
+                    public BrokenException(String message) {
+                        super(message);
+                    }
+
+                    public MissingSignatureType methodWithMissingReturnType() {
+                        return null;
+                    }
+                }
+            '''
+        )
+        file('buildSrc/build.gradle') << '''
+            plugins { id 'java' }
+            dependencies { compileOnly files('../libs/worker-exception.jar') }
+        '''
+        file('buildSrc/src/main/java/repro/FailingWork.java') << '''
+            package repro;
+
+            import org.gradle.workers.WorkAction;
+            import org.gradle.workers.WorkParameters;
+
+            public abstract class FailingWork implements WorkAction<WorkParameters.None> {
+                @Override
+                public void execute() {
+                    throw new BrokenException("Intentional worker failure");
+                }
+            }
+        '''
+        buildFile << """
+            import org.gradle.workers.WorkerExecutor
+
+            abstract class FailingWorkerTask extends DefaultTask {
+                @Classpath
+                abstract ConfigurableFileCollection getWorkerClasspath()
+
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor()
+
+                @TaskAction
+                void fail() {
+                    workerExecutor.${isolationMode} { spec ->
+                        spec.classpath.from(workerClasspath)
+                    }.submit(repro.FailingWork) {}
+                }
+            }
+
+            tasks.register('reproduce', FailingWorkerTask) {
+                workerClasspath.from(files('libs/worker-exception.jar'))
+            }
+        """
+
+        when:
+        fails 'reproduce'
+
+        then:
+        failureCauseContains('Intentional worker failure')
+        failure.assertHasFailures(1)
+
+        where:
+        isolationMode << ['classLoaderIsolation', 'processIsolation']
     }
 
     @Issue("https://github.com/gradle/gradle/issues/9487")
