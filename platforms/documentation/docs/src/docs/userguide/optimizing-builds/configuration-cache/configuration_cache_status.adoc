@@ -28,11 +28,6 @@ This feature is _not enabled by default_.
 The Configuration Cache introduces new requirements for plugin implementations.
 As a result, both Core Gradle plugins and Community Plugins need to be adjusted to ensure compatibility.
 
-This section provides details on the current support in:
-
-- <<#config_cache:plugins:core, Core Gradle Plugins>>
-- <<#config_cache:plugins:community, Community Plugins>>
-
 [[config_cache:plugins:core]]
 === Core Gradle Plugins
 
