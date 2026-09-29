@@ -116,6 +116,7 @@ import org.gradle.internal.serialize.codecs.core.jos.JavaSerializationEncodingLo
 import org.gradle.internal.serialize.codecs.core.unsupportedTypes
 import org.gradle.internal.serialize.codecs.dm.ArtifactCollectionCodec
 import org.gradle.internal.serialize.codecs.dm.AttributeContainerCodec
+import org.gradle.internal.serialize.codecs.dm.ComponentArtifactIdentifierCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultComponentArtifactsResultCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultGraphStructureCodec
 import org.gradle.internal.serialize.codecs.dm.DefaultResolvableArtifactCodec
@@ -269,6 +270,7 @@ class DefaultConfigurationCacheCodecs(
             bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
             bind(TransformStepSpecCodec)
             bind(PublishArtifactLocalArtifactMetadataCodec)
+            bind(ComponentArtifactIdentifierCodec)
             bind(TransformedProjectArtifactSetCodec())
             bind(TransformedExternalArtifactSetCodec())
             bind(CalculateArtifactsCodec(calculatedValueContainerFactory, buildOperationExecutor))

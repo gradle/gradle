@@ -134,6 +134,35 @@ class ComponentArtifactIdentifierCodecTest : AbstractUserTypeCodecTest() {
         }
     }
 
+    @Test
+    fun `file paths are stored as-is`() {
+        val nonCanonicalFile = File(File("dir"), "../lib-1.0.jar")
+        listOf(
+            OpaqueComponentArtifactIdentifier(nonCanonicalFile),
+            TransformedArtifactIdentifier(OpaqueComponentArtifactIdentifier(nonCanonicalFile), "transformed.jar"),
+            TransformedArtifactIdentifier(
+                PublishArtifactLocalArtifactMetadata(projectId, ImmutablePublishArtifact("lib", "jar", "jar", null, nonCanonicalFile)),
+                "transformed.jar"
+            )
+        ).forEach(::assertRoundtrips)
+    }
+
+    @Test
+    fun `can roundtrip other component identifier implementations`() {
+        val id = CustomComponentIdentifier("custom")
+
+        assertThat(serializationProblemsOf(id, codec), empty())
+        assertThat(configurationCacheRoundtripOf(id, codec), equalTo(id))
+    }
+
+    @Test
+    fun `can roundtrip other component artifact identifier implementations`() {
+        val id = CustomComponentArtifactIdentifier(CustomComponentIdentifier("custom"), "custom.jar")
+
+        assertThat(serializationProblemsOf(id, codec), empty())
+        assertThat(configurationCacheRoundtripOf(id, codec), equalTo(id))
+    }
+
     private
     fun assertRoundtrips(id: ComponentArtifactIdentifier) {
         assertThat(serializationProblemsOf(id, codec), empty())
@@ -158,5 +187,17 @@ class ComponentArtifactIdentifierCodecTest : AbstractUserTypeCodecTest() {
         override fun getFile() = file
         override fun getDate(): Date? = null
         override fun getBuildDependencies(): TaskDependency = TaskDependency { emptySet() }
+    }
+
+    data class CustomComponentIdentifier(val name: String) : ComponentIdentifier {
+        override fun getDisplayName() = name
+    }
+
+    data class CustomComponentArtifactIdentifier(
+        private val componentIdentifier: ComponentIdentifier,
+        val fileName: String
+    ) : ComponentArtifactIdentifier {
+        override fun getComponentIdentifier() = componentIdentifier
+        override fun getDisplayName() = fileName
     }
 }
