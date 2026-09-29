@@ -62,7 +62,7 @@ public class NetworkingIssueVerifier {
         return false;
     }
 
-    private static boolean isTransientClientError(int statusCode) {
+    public static boolean isTransientClientError(int statusCode) {
         return statusCode == HttpStatus.SC_REQUEST_TIMEOUT || statusCode == SC_TOO_MANY_REQUESTS;
     }
 

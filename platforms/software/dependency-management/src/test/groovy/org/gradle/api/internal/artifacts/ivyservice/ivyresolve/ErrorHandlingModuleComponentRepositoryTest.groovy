@@ -292,6 +292,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         where:
         desc | exception
         "unknown host" | unknownHost
+        "an unrecognised error" | runtimeError
     }
 
     /**
@@ -301,7 +302,7 @@ class ErrorHandlingModuleComponentRepositoryTest extends Specification {
         def retries = []
         (1..3).each { ret ->
             // no retries on runtime errors, missing resources, authentication errors
-            retries << [ret, runtimeError, 1, false]
+            retries << [ret, runtimeError, 1, true]
             retries << [ret, missing, 1, false]
             retries << [ret, forbidden, 1, false]
             retries << [ret, unauthorized, 1, false]
