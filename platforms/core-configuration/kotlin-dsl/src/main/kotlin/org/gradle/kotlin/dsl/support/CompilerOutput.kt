@@ -64,11 +64,31 @@ internal object CompilerOutput {
         to: OutputStream,
         action: () -> T
     ): T = try {
-        set(PrintStream(to, true))
+        set(PrintStream(ThreadConfinedOutputStream(Thread.currentThread(), to, stream), true))
         action()
     } finally {
         set(stream)
         to.flush()
+    }
+
+
+    class ThreadConfinedOutputStream(
+        private val owner: Thread,
+        private val redirected: OutputStream,
+        private val passthrough: OutputStream
+    ) : OutputStream() {
+
+        private
+        fun target(): OutputStream =
+            if (Thread.currentThread() === owner) redirected else passthrough
+
+        override fun write(b: Int) = target().write(b)
+
+        override fun write(b: ByteArray) = target().write(b)
+
+        override fun write(b: ByteArray, off: Int, len: Int) = target().write(b, off, len)
+
+        override fun flush() = target().flush()
     }
 
 
