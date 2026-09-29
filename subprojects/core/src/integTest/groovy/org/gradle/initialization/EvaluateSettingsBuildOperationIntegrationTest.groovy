@@ -41,6 +41,22 @@ class EvaluateSettingsBuildOperationIntegrationTest extends AbstractIntegrationS
     }
 
     @Issue("https://github.com/gradle/gradle/issues/38623")
+    def "settings are evaluated once when the build root is given explicitly and the root project is relocated"() {
+        settingsFile << """
+            rootProject.projectDir = file('bar')
+        """
+        file("bar/build.gradle") << ""
+
+        when:
+        executer.withArgument("-p").withArgument(testDirectory.absolutePath)
+        succeeds('help')
+
+        then:
+        buildOperations.all(LoadBuildBuildOperationType).size() == 1
+        buildOperations.all(EvaluateSettingsBuildOperationType).size() == 1
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38623")
     def "settings are evaluated once when targeting a buildSrc directory with no settings script"() {
         settingsFile << ""
         file("buildSrc/build.gradle") << ""

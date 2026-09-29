@@ -43,6 +43,23 @@ class SettingsEvaluatedOnceIntegrationTest extends AbstractIntegrationSpec {
         countOf("settingsEvaluated") == 1
     }
 
+    def "settings lifecycle callbacks fire once when the build root is given explicitly and the root project is relocated"() {
+        given:
+        settingsFile << """
+            rootProject.name = 'root'
+            rootProject.projectDir = file('bar')
+        """
+        file("bar/build.gradle") << ""
+
+        when:
+        executer.withArgument("-p").withArgument(testDirectory.absolutePath)
+        succeeds("help")
+
+        then:
+        countOf("beforeSettings") == 1
+        countOf("settingsEvaluated") == 1
+    }
+
     def "settings lifecycle callbacks fire once when targeting a buildSrc directory with no settings script"() {
         given:
         settingsFile << "rootProject.name = 'root'"
