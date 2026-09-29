@@ -25,7 +25,9 @@ import org.gradle.api.execution.TaskExecutionAdapter;
 import org.gradle.api.execution.TaskExecutionGraph;
 import org.gradle.api.execution.TaskExecutionGraphListener;
 import org.gradle.api.internal.BuildScopeListenerRegistrationListener;
+import org.gradle.api.internal.GeneratedSubclasses;
 import org.gradle.api.internal.GradleInternal;
+import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.TaskState;
 import org.gradle.configuration.internal.ListenerBuildOperationDecorator;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
@@ -65,6 +67,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private @Nullable FinalizedExecutionPlan executionPlan;
     private List<Task> allTasks = Collections.emptyList();
     private boolean hasFiredWhenReady;
+    private final ScheduledTasks scheduledTasks;
 
     public DefaultTaskExecutionGraph(
         BuildOperationRunner buildOperationRunner,
@@ -73,7 +76,8 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         ListenerBroadcast<TaskExecutionGraphListener> graphListeners,
         ListenerBroadcast<TaskExecutionGraphExecutionListener> internalGraphListeners,
         ListenerBroadcast<org.gradle.api.execution.TaskExecutionListener> taskListeners,
-        BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener
+        BuildScopeListenerRegistrationListener buildScopeListenerRegistrationListener,
+        ScheduledTasks scheduledTasks
     ) {
         this.buildOperationRunner = buildOperationRunner;
         this.listenerBuildOperationDecorator = listenerBuildOperationDecorator;
@@ -82,6 +86,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         this.internalGraphListeners = internalGraphListeners;
         this.taskListeners = taskListeners;
         this.buildScopeListenerRegistrationListener = buildScopeListenerRegistrationListener;
+        this.scheduledTasks = scheduledTasks;
     }
 
     @Override
@@ -92,6 +97,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         executionPlan = plan;
         // Take a snapshot of all tasks, as nodes are removed from the plan as they execute
         allTasks = ImmutableList.copyOf(executionPlan.getContents().getTasks());
+        scheduledTasks.set(new ScheduledTasksIndex(allTasks));
         if (!hasFiredWhenReady) {
             fireWhenReady();
             hasFiredWhenReady = true;
@@ -248,6 +254,19 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     }
 
     @Override
+    public Provider<Boolean> isScheduled(String taskPath) {
+        if (!taskPath.startsWith(Path.SEPARATOR)) {
+            throw new IllegalArgumentException("Task path '" + taskPath + "' must be absolute, for example ':project:task'.");
+        }
+        return new TaskGraphQueryProvider(scheduledTasks, TaskGraphQueryProvider.Kind.TASK_PATH, taskPath);
+    }
+
+    @Override
+    public Provider<Boolean> anyScheduled(Class<? extends Task> taskType) {
+        return new TaskGraphQueryProvider(scheduledTasks, TaskGraphQueryProvider.Kind.TASK_TYPE, GeneratedSubclasses.unpack(taskType).getName());
+    }
+
+    @Override
     public List<Task> getAllTasks() {
         return allTasks;
     }
@@ -280,6 +299,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         taskListeners.removeAll();
         executionPlan = null;
         allTasks = Collections.emptyList();
+        scheduledTasks.clear();
     }
 
     @Override

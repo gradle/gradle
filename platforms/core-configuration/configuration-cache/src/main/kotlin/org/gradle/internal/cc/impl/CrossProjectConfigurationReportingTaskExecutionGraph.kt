@@ -26,6 +26,7 @@ import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectStateLookup
+import org.gradle.api.provider.Provider
 import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
@@ -115,6 +116,13 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
         checkCrossProjectTaskAccess(task)
         return delegate.hasTask(task)
     }
+
+    // Lazy task graph queries are answered at execution time only, so they couple no project configuration and are not reported.
+    override fun isScheduled(taskPath: String): Provider<Boolean> =
+        delegate.isScheduled(taskPath)
+
+    override fun anyScheduled(taskType: Class<out Task>): Provider<Boolean> =
+        delegate.anyScheduled(taskType)
 
     override fun getAllTasks(): MutableList<Task> {
         val result = delegate.allTasks

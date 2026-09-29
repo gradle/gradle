@@ -135,6 +135,7 @@ import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
 import org.gradle.execution.plan.WorkNodeDependencyResolver;
 import org.gradle.execution.selection.BuildTaskSelector;
 import org.gradle.execution.taskgraph.DefaultTaskExecutionGraph;
+import org.gradle.execution.taskgraph.ScheduledTasks;
 import org.gradle.execution.taskgraph.TaskExecutionGraphExecutionListener;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.features.internal.binding.ProjectFeatureDeclarations;
@@ -889,7 +890,8 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         BuildOperationRunner buildOperationRunner,
         ListenerBuildOperationDecorator listenerBuildOperationDecorator,
         GradleInternal gradleInternal,
-        ListenerManager listenerManager
+        ListenerManager listenerManager,
+        ScheduledTasks scheduledTasks
     ) {
         return new DefaultTaskExecutionGraph(
             buildOperationRunner,
@@ -898,8 +900,14 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
             listenerManager.createAnonymousBroadcaster(TaskExecutionGraphListener.class),
             listenerManager.createAnonymousBroadcaster(TaskExecutionGraphExecutionListener.class),
             listenerManager.createAnonymousBroadcaster(org.gradle.api.execution.TaskExecutionListener.class),
-            listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class)
+            listenerManager.getBroadcaster(BuildScopeListenerRegistrationListener.class),
+            scheduledTasks
         );
+    }
+
+    @Provides
+    ScheduledTasks createScheduledTasks() {
+        return new ScheduledTasks();
     }
 
 }
