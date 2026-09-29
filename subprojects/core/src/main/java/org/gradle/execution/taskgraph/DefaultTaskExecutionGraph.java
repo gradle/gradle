@@ -48,6 +48,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.HashMap;
 
 @SuppressWarnings("deprecation")
 @NullMarked
@@ -64,6 +65,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
     private @Nullable FinalizedExecutionPlan executionPlan;
     private List<Task> allTasks = Collections.emptyList();
+    private HashMap<String, Task> allTaskPaths = null;
     private boolean hasFiredWhenReady;
 
     public DefaultTaskExecutionGraph(
@@ -233,13 +235,13 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             // TODO: Deprecate calling this method before whenReady is called
             return null;
         }
-
-        for (Task task : executionPlan.getContents().getTasks()) {
-            if (task.getPath().equals(path)) {
-                return task;
+        if (allTaskPaths == null) {
+            allTaskPaths = new HashMap<String, Task>(allTasks.size());
+            for (Task task : executionPlan.getContents().getTasks()) {
+                allTaskPaths.put(task.getPath(), task);
             }
         }
-        return null;
+        return allTaskPaths.get(path);
     }
 
     @Override
