@@ -19,6 +19,7 @@ package org.gradle.integtests.resolve.catalog
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.junit.Rule
+import spock.lang.Issue
 
 class CatalogPluginsGroovyDSLIntegrationTest extends AbstractVersionCatalogIntegrationTest {
     @Rule
@@ -155,6 +156,89 @@ dependencyResolutionManagement {
         outputContains message
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/27208")
+    def "declaring a plugin in a TOML catalog with version #version is deprecated"() {
+        file("gradle/libs.versions.toml") << """
+            [plugins]
+            greeter = { id = "com.acme.greeter", version = $version }
+        """
+
+        when:
+        expectNonRequiredPluginVersionDeprecation(displayName)
+        succeeds 'help'
+
+        then:
+        noExceptionThrown()
+
+        where:
+        version                                  | displayName
+        '{ require = "[1.0,)", prefer = "1.5" }' | '{require [1.0,); prefer 1.5}'
+        '{ prefer = "1.5" }'                     | '{prefer 1.5}'
+        '{ strictly = "1.5" }'                   | '{strictly 1.5}'
+        '"1.5!!"'                                | '{strictly 1.5}'
+        '{ require = "1.5", reject = ["1.4"] }'  | '{require 1.5; reject 1.4}'
+        '{ rejectAll = true }'                   | '{reject all versions}'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/27208")
+    def "declaring a plugin in a TOML catalog referencing a version with non-required constraints is deprecated"() {
+        file("gradle/libs.versions.toml") << """
+            [versions]
+            greeter = { require = "[1.0,)", prefer = "1.5" }
+
+            [plugins]
+            greeter = { id = "com.acme.greeter", version.ref = "greeter" }
+        """
+
+        when:
+        expectNonRequiredPluginVersionDeprecation('{require [1.0,); prefer 1.5}')
+        succeeds 'help'
+
+        then:
+        noExceptionThrown()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/27208")
+    def "declaring a plugin in a catalog with non-required constraints in settings is deprecated"() {
+        settingsFile << """
+            dependencyResolutionManagement {
+                versionCatalogs {
+                    libs {
+                        plugin('greeter', 'com.acme.greeter').version {
+                            prefer '1.5'
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        expectNonRequiredPluginVersionDeprecation('{prefer 1.5}')
+        succeeds 'help'
+
+        then:
+        noExceptionThrown()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/27208")
+    def "declaring a plugin in a TOML catalog with required version #version is not deprecated"() {
+        file("gradle/libs.versions.toml") << """
+            [plugins]
+            greeter = { id = "com.acme.greeter", version = $version }
+        """
+
+        expect:
+        succeeds 'help'
+
+        where:
+        version << [
+            '"1.5"',
+            '"[1.0,2.0)"',
+            '{ require = "1.5" }',
+            '{ require = "1.5", prefer = "1.5" }',
+        ]
+    }
+
     def "can apply a plugin alias that has sub-accessors"() {
         String pluginVersion = '1.5'
         String firstLevelTask = 'greet'
@@ -242,4 +326,14 @@ dependencyResolutionManagement {
         alias << ['greeter', 'some.greeter', 'some-greeter']
     }
 
+    private void expectNonRequiredPluginVersionDeprecation(String displayName) {
+        executer.expectDocumentedDeprecationWarning(
+            "Declaring a plugin version in a version catalog with constraints other than a required version. " +
+                "This behavior has been deprecated. " +
+                "This will fail with an error in Gradle 10. " +
+                "Plugin 'greeter' in catalog 'libs' declares version '$displayName', but only the required version is used when resolving a plugin. " +
+                "Declare the plugin version using only a required version. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#version_catalog_plugin_non_required_versions"
+        )
+    }
 }
