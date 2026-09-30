@@ -125,6 +125,8 @@ class CompositeContinuousBuildIntegrationTest extends AbstractContinuousIntegrat
     }
 
     def "will rebuild on change for plugin supplied by included build"() {
+        // First compile against the Gradle API in a fresh user home is slow on EBS-backed CI agents
+        buildTimeout = 240
         // to reduce contention with concurrently executing tests
         requireOwnGradleUserHomeDir()
         executer.requireIsolatedDaemons()

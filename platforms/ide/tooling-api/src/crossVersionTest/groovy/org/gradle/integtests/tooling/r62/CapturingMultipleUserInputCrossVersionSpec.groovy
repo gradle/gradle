@@ -22,7 +22,8 @@ import org.gradle.tooling.ProjectConnection
 import spock.lang.Timeout
 
 @TargetGradleVersion(">=8.7")
-@Timeout(120)
+// The first compile against the Gradle API in a fresh user home is slow on EBS-backed CI agents
+@Timeout(300)
 class CapturingMultipleUserInputCrossVersionSpec extends ToolingApiSpecification {
     private static final String DUMMY_TASK_NAME = 'doSomething'
 

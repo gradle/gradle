@@ -30,7 +30,8 @@ import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.buildScan
 import static org.gradle.integtests.fixtures.BuildScanUserInputFixture.buildScanPluginApplication
 
 @TargetGradleVersion(">=4.3")
-@Timeout(120)
+// The first compile against the Gradle API in a fresh user home is slow on EBS-backed CI agents
+@Timeout(300)
 class CapturingUserInputCrossVersionSpec extends ToolingApiSpecification {
     def setup() {
         if (!dist.toolingApiStdinInEmbeddedModeSupported) {
