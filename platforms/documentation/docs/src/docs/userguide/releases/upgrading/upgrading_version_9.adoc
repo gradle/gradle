@@ -260,7 +260,7 @@ When a plugin declared in a <<version_catalogs.adoc#sec:plugins-ver,version cata
 Any `prefer`, `strictly`, or `reject` constraint is silently ignored, which can lead to an unexpected plugin version being selected.
 
 Declaring a plugin version in a version catalog with constraints other than a required version is now deprecated and will become an error in Gradle 10.
-This includes plugins that reference such a version with `version.ref`.
+This includes plugins that reference such a version with `version.ref`, and plugins declared through the `versionCatalogs {}` block in a settings file.
 
 [source,toml]
 .gradle/libs.versions.toml
