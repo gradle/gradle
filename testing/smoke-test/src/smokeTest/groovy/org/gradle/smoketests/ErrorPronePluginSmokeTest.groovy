@@ -16,13 +16,23 @@
 
 package org.gradle.smoketests
 
-
+import org.gradle.api.artifacts.ArtifactRepositoryContainer
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import spock.lang.Issue
+
+import static org.junit.Assume.assumeFalse
 
 class ErrorPronePluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Issue("https://github.com/gradle/gradle/issues/9897")
     def 'errorprone plugin'() {
+        // mavenCentralRepository() falls back to repo.maven.apache.org when no mirror is configured.
+        // Abort before that call when this agent black-holes Maven Central, matching
+        // MavenCentralDependencyResolveIntegrationTest on master and release.
+        assumeFalse(
+            "repo.maven.apache.org resolves to a loopback address on this agent, so Maven Central is deliberately unreachable",
+            RepoScriptBlockUtil.mavenCentralMirrorUrl == ArtifactRepositoryContainer.MAVEN_CENTRAL_URL && mavenCentralBlackholed()
+        )
 
         given:
         buildFile << """
@@ -64,6 +74,14 @@ class ErrorPronePluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         expect:
         runner('compileJava').build()
+    }
+
+    private static boolean mavenCentralBlackholed() {
+        try {
+            return InetAddress.getAllByName("repo.maven.apache.org").every { it.loopbackAddress }
+        } catch (UnknownHostException ignored) {
+            return false
+        }
     }
 
     @Override
