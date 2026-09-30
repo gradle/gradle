@@ -22,6 +22,7 @@ import org.gradle.api.Project
 import org.gradle.api.SupportsKotlinAssignmentOverloading
 import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.provider.KotlinDslPluginSupport
+import org.gradle.kotlin.dsl.support.KOTLIN_DSL_LANGUAGE_VERSION
 import org.jetbrains.kotlin.assignment.plugin.gradle.AssignmentExtension
 import org.jetbrains.kotlin.assignment.plugin.gradle.AssignmentSubplugin
 import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
@@ -51,8 +52,8 @@ abstract class KotlinDslCompilerPlugins : Plugin<Project> {
 
         tasks.withType<KotlinCompile>().configureEach { kotlinCompile ->
             kotlinCompile.compilerOptions {
-                apiVersion.set(KotlinVersion.KOTLIN_2_2)
-                languageVersion.set(KotlinVersion.KOTLIN_2_2)
+                apiVersion.set(KotlinVersion.fromVersion(KOTLIN_DSL_LANGUAGE_VERSION))
+                languageVersion.set(KotlinVersion.fromVersion(KOTLIN_DSL_LANGUAGE_VERSION))
                 freeCompilerArgs.addAll(KotlinDslPluginSupport.kotlinCompilerArgs)
             }
             // Set this back to a warning for now, as this plugin is frequently used without toolchains specifying a JVM target, and it causes errors when using newer JDKs.

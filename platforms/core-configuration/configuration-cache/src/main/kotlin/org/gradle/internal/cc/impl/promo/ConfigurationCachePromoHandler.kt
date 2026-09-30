@@ -99,7 +99,7 @@ internal class ConfigurationCachePromoHandler(
                 Factory {
                     degradationController.degradationDecision.shouldDegrade
                 }
-            ) ?: false
+            )
             problems.addIfNeeded(hasDegradationReasons)
         }
 
