@@ -34,12 +34,13 @@ include::sample[dir="snippets/reference/plugin-development/problemReporting/kotl
 The following simple plugin adds a `greet` task, applied by the `consumer` build of the sample:
 
 - It prints a `Hello World` greeting when used correctly: `./gradlew :consumer:greet -Precipient=World`
-- It reports a warning if no recipient is set: `./gradlew :consumer:greet`
+- It reports a warning if no recipient is set: `./gradlew :consumer:greet --warning-mode=all`
 - It fails if the recipient is `fail`: `./gradlew :consumer:greet -Precipient=fail`
 
-Warnings are not printed to the console.
-They are listed in the <<sec:generated_html_report,HTML Problems Report>>, whose location Gradle prints at the end of the build.
-Failures are printed to the console and also listed in the report:
+Reported problems are listed in the <<sec:generated_html_report,HTML Problems Report>>.
+By default, the console shows only the location of that report for warnings.
+Run with `--warning-mode=all` to also print warnings to the console, see <<sec:console_rendering,Console rendering>>.
+Failures are always printed to the console:
 
 ====
 include::sample[dir="snippets/reference/plugin-development/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[]"]
@@ -197,7 +198,7 @@ Run with `--warning-mode=all` or `--warning-mode=fail` to infer a location for e
 - The report is skipped if no problems are found.
 - Disable report generation with the `--no-problems-report` flag.
 
-Console output includes a link to the report:
+Console output includes a link to the report, unless `--warning-mode=none` is set:
 
 [source,text]
 ----
