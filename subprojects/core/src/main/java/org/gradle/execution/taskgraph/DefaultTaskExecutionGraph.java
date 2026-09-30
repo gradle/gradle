@@ -66,7 +66,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
     private @Nullable FinalizedExecutionPlan executionPlan;
     private List<Task> allTasks = Collections.emptyList();
-    private Map<String, Task> allTaskPaths = null;
+    private volatile @Nullable Map<String, Task> allTaskPaths = null;
     private final Object allTaskPathsLock = new Object();
     private boolean hasFiredWhenReady;
 
@@ -96,6 +96,9 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         executionPlan = plan;
         // Take a snapshot of all tasks, as nodes are removed from the plan as they execute
         allTasks = ImmutableList.copyOf(executionPlan.getContents().getTasks());
+        synchronized (allTaskPathsLock) {
+            allTaskPaths = null;
+        }
         if (!hasFiredWhenReady) {
             fireWhenReady();
             hasFiredWhenReady = true;
@@ -237,20 +240,25 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             // TODO: Deprecate calling this method before whenReady is called
             return null;
         }
-        synchronized (allTaskPathsLock) {
-            if (allTaskPaths == null) {
-                if (executionPlan.getContents().getTasks().isEmpty()) {
-                    allTaskPaths = ImmutableMap.of();
-                } else {
-                    ImmutableMap.Builder<String, Task> builder = ImmutableMap.builder();
-                    for (Task task : executionPlan.getContents().getTasks()) {
-                        builder.put(task.getPath(), task);
+        Map<String, Task> taskPaths = allTaskPaths;
+        if (taskPaths == null) {
+            synchronized (allTaskPathsLock) {
+                taskPaths = allTaskPaths;
+                if (taskPaths == null) {
+                    if (executionPlan.getContents().getTasks().isEmpty()) {
+                        taskPaths = ImmutableMap.of();
+                    } else {
+                        ImmutableMap.Builder<String, Task> builder = ImmutableMap.builder();
+                        for (Task task : executionPlan.getContents().getTasks()) {
+                            builder.put(task.getPath(), task);
+                        }
+                        taskPaths = builder.buildOrThrow();
                     }
-                    allTaskPaths = builder.buildOrThrow();
+                    allTaskPaths = taskPaths;
                 }
             }
         }
-        return allTaskPaths.get(path);
+        return taskPaths.get(path);
     }
 
     @Override
@@ -291,6 +299,9 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         taskListeners.removeAll();
         executionPlan = null;
         allTasks = Collections.emptyList();
+        synchronized (allTaskPathsLock) {
+            allTaskPaths = null;
+        }
     }
 
     @Override
