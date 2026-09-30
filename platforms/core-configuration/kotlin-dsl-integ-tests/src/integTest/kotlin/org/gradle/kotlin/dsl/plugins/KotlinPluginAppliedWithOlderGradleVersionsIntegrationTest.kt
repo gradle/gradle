@@ -27,9 +27,12 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.kotlin.dsl.support.KOTLIN_DSL_LANGUAGE_VERSION
 import org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.VersionNumber
 import org.junit.Assume.assumeTrue
+import org.junit.ClassRule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -43,6 +46,12 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
 ) : AbstractIntegrationTest() {
 
     companion object {
+        @ClassRule
+        @JvmField
+        val pluginsDirectoryProvider = TestNameTestDirectoryProvider(KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest::class.java)
+
+        private val builtPluginVersions = mutableSetOf<String>()
+
         // Gradle versions grouped by the Kotlin language version their own kotlin-dsl targets.
         private val gradleVersionsByKotlinLanguageVersion = mapOf(
             "1.4" to listOf("7.2", "7.6"),
@@ -85,13 +94,20 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
                 .map { it.version }
     }
 
+    private val pluginVersion = "1.0-kgp$kgpVersion-kotlin$kotlinLanguageVersion"
+
+    private val pluginRepoUri
+        get() = pluginsDirectoryProvider.testDirectory.file("maven-repo").toURI()
+
     @Test
     fun `plugin built with current Gradle can be applied with an older Gradle version`() {
         val gradleDistribution = buildContext.distribution(gradleVersion)
         val applyJdk = getHighestAvailableSupportedJdkForGradleVersion(gradleDistribution)
 
-        val compileJdk = getJdkSuitableForKGPCompilation()
-        buildPlugin(compileJdk)
+        if (pluginVersion !in builtPluginVersions) {
+            buildPlugin(getJdkSuitableForKGPCompilation())
+            builtPluginVersions += pluginVersion
+        }
 
         val result = applyPlugin(applyJdk)
 
@@ -100,7 +116,8 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
     }
 
     private fun buildPlugin(jdk: Jvm) {
-        file("plugin/settings.gradle.kts").setText(
+        val pluginDir: TestFile = pluginsDirectoryProvider.testDirectory.file("plugin-$pluginVersion")
+        pluginDir.file("settings.gradle.kts").setText(
             """
             pluginManagement {
                 repositories {
@@ -110,7 +127,7 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
             rootProject.name = "plugin"
             """
         )
-        file("plugin/build.gradle.kts").setText(
+        pluginDir.file("build.gradle.kts").setText(
             """
             import org.jetbrains.kotlin.gradle.dsl.JvmTarget
             import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
@@ -122,7 +139,7 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
                 `maven-publish`
             }
             group = "com.example"
-            version = "1.0"
+            version = "$pluginVersion"
             ${RepoScriptBlockUtil.mavenCentralRepository(KOTLIN)}
 
             gradlePlugin {
@@ -148,17 +165,17 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
             }
 
             publishing {
-                repositories { maven { url = uri("${mavenRepo.uri}") } }
+                repositories { maven { url = uri("$pluginRepoUri") } }
             }
             """
         )
-        file("plugin/gradle.properties").setText(
+        pluginDir.file("gradle.properties").setText(
             """
             # KGP 1.9.x registers its build statistics (FUS) listener via an unsupported provider, which is a configuration cache problem.
             enable_kotlin_performance_profile=false
             """
         )
-        file("plugin/src/main/kotlin/com/example/MyPlugin.kt").setText(
+        pluginDir.file("src/main/kotlin/com/example/MyPlugin.kt").setText(
             """
             package com.example
 
@@ -176,7 +193,7 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
             """
         )
 
-        val result = inDirectory(file("plugin"))
+        val result = inDirectory(pluginDir)
             .withTasks("publish")
             .withJavaHome(jdk.javaHome.absolutePath)
             .noDeprecationChecks() // KGP emits deprecation warnings that vary by version and are not what we test here.
@@ -208,7 +225,7 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
             """
             pluginManagement {
                 repositories {
-                    maven(url = "${mavenRepo.uri}")
+                    maven(url = "$pluginRepoUri")
                     ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(KOTLIN)}
                 }
             }
@@ -218,7 +235,7 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
         file("consumer/build.gradle.kts").setText(
             """
             plugins {
-                id("my-plugin") version "1.0"
+                id("my-plugin") version "$pluginVersion"
             }
             """
         )
