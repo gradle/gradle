@@ -23,6 +23,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.internal.jvm.Jvm
+import org.gradle.kotlin.dsl.embeddedKotlinVersion
 import org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import org.junit.Assume.assumeTrue
 import org.junit.Test
@@ -38,31 +39,27 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
 ) : AbstractIntegrationTest() {
 
     companion object {
-        @Parameterized.Parameters(name = "Gradle {0}, KGP {1}, Kotlin {2}")
-        @JvmStatic
-        fun scenarios(): List<Array<Any>> = listOf(
-            arrayOf("7.2", "1.9.22", "1.4"),
-            arrayOf("7.6", "1.9.22", "1.4"),
-
-            arrayOf("8.0", "1.9.22", "1.8"),
-            arrayOf("8.7", "1.9.22", "1.8"),
-            arrayOf("8.9", "1.9.23", "1.8"),
-            arrayOf("8.10", "1.9.24", "1.8"),
-            arrayOf("8.11", "2.0.20", "1.8"),
-            arrayOf("8.12", "2.0.21", "1.8"),
-            arrayOf("8.13", "2.1.0", "2.1"),
-            arrayOf("8.14", "2.1.21", "2.1"),
-            arrayOf("9.0.0", "2.2.0", "2.2"),
-            arrayOf("9.2.0", "2.2.20", "2.2"),
-            arrayOf("9.3.0", "2.2.21", "2.2"),
-            arrayOf("9.4.0", "2.3.0", "2.2"),
-            arrayOf("9.5.0", "2.3.20", "2.2"),
-
-            arrayOf("9.6.0", "2.3.21", "2.2"),
-            arrayOf("9.7.0", "2.4.0", "2.2"),
-            // arrayOf("9.8.0", "2.4.10", "2.2"), // TODO: once available
-            // arrayOf("9.9.0", "2.4.20", "2.2"), // TODO: once available
+        // Gradle versions grouped by the Kotlin language version their own kotlin-dsl targets.
+        private val gradleVersionsByKotlinLanguageVersion = mapOf(
+            "1.4" to listOf("7.2", "7.6"),
+            "1.8" to listOf("8.0", "8.7", "8.9", "8.10", "8.11", "8.12", "8.13", "8.14"),
+            "2.2" to listOf("9.0.0", "9.2.0", "9.3.0", "9.4.0", "9.5.0", "9.6.0", "9.7.0", "9.8.0"),
         )
+
+        // The newest KGP that can still target the given Kotlin language version.
+        private val kgpVersionByKotlinLanguageVersion = mapOf(
+            "1.4" to "1.9.22",
+            "1.8" to "2.2.21",
+            "2.2" to embeddedKotlinVersion,
+        )
+
+        @Parameterized.Parameters(name = "KGP {1} targeting Kotlin {2} applied on Gradle {0}")
+        @JvmStatic
+        fun scenarios(): List<Array<Any>> = gradleVersionsByKotlinLanguageVersion.flatMap { (kotlinLanguageVersion, gradleVersions) ->
+            gradleVersions.map { gradleVersion ->
+                arrayOf(gradleVersion, kgpVersionByKotlinLanguageVersion.getValue(kotlinLanguageVersion), kotlinLanguageVersion)
+            }
+        }
     }
 
     @Test
