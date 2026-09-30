@@ -22,6 +22,14 @@ import org.gradle.api.artifacts.VersionConstraint;
 import java.util.List;
 
 public abstract class AbstractVersionConstraint implements VersionConstraint {
+
+    public static boolean isRequiredOnly(VersionConstraint versionConstraint) {
+        return (versionConstraint.getPreferredVersion().isEmpty() || versionConstraint.getRequiredVersion().equals(versionConstraint.getPreferredVersion()))
+            && versionConstraint.getStrictVersion().isEmpty()
+            && versionConstraint.getRejectedVersions().isEmpty()
+            && versionConstraint.getBranch() == null;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) {
@@ -65,7 +73,7 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
     @Override
     public String getDisplayName() {
         String requiredVersion = getRequiredVersion();
-        if (requiredOnly()) {
+        if (isRequiredOnly(this)) {
             return requiredVersion;
         }
 
@@ -84,13 +92,6 @@ public abstract class AbstractVersionConstraint implements VersionConstraint {
         append("branch", getBranch(), builder);
         builder.append("}");
         return builder.toString();
-    }
-
-    private boolean requiredOnly() {
-        return (getPreferredVersion().isEmpty() || getRequiredVersion().equals(getPreferredVersion()))
-                && getStrictVersion().isEmpty()
-                && getRejectedVersions().isEmpty()
-                && getBranch() == null;
     }
 
     private String rejectedVersionsString() {
