@@ -86,7 +86,7 @@ class TomlCatalogFileParserTest extends Specification {
         then:
         thrown(InvalidUserDataException)
         verifyAll(problems.singleEmittedProblem()) {
-            it.definition.id.displayName == "Bundle declares dependency on non-existent alias"
+            it.definition.id == problems.groups.dependencies.declaration.problemId("Version catalog bundle declares dependency on non-existent alias")
             it.contextualLabel == "In version catalog libs, a bundle with name 'guava' declares a dependency on 'hello' which doesn't exist"
             it.details == "Bundles can only contain references to existing library aliases."
             it.solutions == ["Make sure that the library alias 'hello' is declared", "Remove 'hello' from bundle 'guava'."]
@@ -381,7 +381,7 @@ class TomlCatalogFileParserTest extends Specification {
         then:
         thrown(InvalidUserDataException)
         verifyAll(problems.singleEmittedProblem()) {
-            it.definition.id.displayName == "Unsupported format version"
+            it.definition.id == problems.groups.dependencies.declaration.problemId("Unsupported version catalog format version")
             it.contextualLabel == "In version catalog libs, unsupported version catalog format 999.999"
             it.details == "This version of Gradle only supports format version 1.1"
             it.solutions == ["Try to upgrade to a newer version of Gradle which supports the catalog format version 999.999."]
@@ -396,7 +396,7 @@ class TomlCatalogFileParserTest extends Specification {
         then:
         thrown(InvalidUserDataException)
         verifyAll(problems.singleEmittedProblem()) {
-            it.definition.id.displayName == "Invalid TOML definition"
+            it.definition.id == problems.groups.dependencies.declaration.problemId("Invalid version catalog TOML definition")
             it.contextualLabel == "On library declaration 'guava' expected to find any of 'group', 'module', 'name', or 'version' but found unexpected ${error}"
             it.details == "TOML file contains an unexpected key in a known table"
             it.solutions == ["Remove the unexpected key, or use one of 'group', 'module', 'name', or 'version'"]
@@ -417,7 +417,7 @@ class TomlCatalogFileParserTest extends Specification {
         then:
         thrown(InvalidUserDataException)
         verifyAll(problems.singleEmittedProblem()) {
-            it.definition.id.displayName == "Invalid TOML definition"
+            it.definition.id == problems.groups.dependencies.declaration.problemId("Invalid version catalog TOML definition")
             it.contextualLabel == "On version declaration of alias 'guava' expected to find any of 'prefer', 'ref', 'reject', 'rejectAll', 'require', or 'strictly' but found unexpected ${error}"
             it.details == "TOML file contains an unexpected key in a known table"
             it.solutions == ["Remove the unexpected key, or use one of 'prefer', 'ref', 'reject', 'rejectAll', 'require', or 'strictly'"]

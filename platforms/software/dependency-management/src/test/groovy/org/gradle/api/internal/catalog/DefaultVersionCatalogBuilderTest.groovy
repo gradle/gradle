@@ -36,7 +36,7 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest {
         then:
         thrown(InvalidUserDataException)
         verifyAll(problems.singleEmittedProblem()) {
-            it.definition.id.displayName == 'Invalid dependency notation'
+            it.definition.id == problems.groups.dependencies.declaration.problemId('Invalid version catalog dependency notation')
             it.definition.severity == Severity.ERROR
             it.contextualLabel == "In version catalog libs, on alias 'foo' notation '${notation}' is not a valid dependency notation"
             it.details == "The 'to(String)' method only supports 'group:artifact:version' coordinates"
@@ -61,7 +61,7 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest {
         then:
         thrown(InvalidUserDataException)
         verifyAll(problems.singleEmittedProblem()) {
-            it.definition.id.displayName == 'Invalid alias notation'
+            it.definition.id == problems.groups.dependencies.declaration.problemId('Invalid version catalog alias notation')
             it.definition.severity == Severity.ERROR
             it.contextualLabel == "In version catalog libs, invalid library alias '${notation}'"
             it.details == "library aliases must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+"
@@ -83,7 +83,7 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest {
         then:
         thrown(InvalidUserDataException)
         verifyAll(problems.singleEmittedProblem()) {
-            it.definition.id.displayName == 'Reserved alias name'
+            it.definition.id == problems.groups.dependencies.declaration.problemId('Reserved version catalog alias name')
             it.definition.severity == Severity.ERROR
             it.contextualLabel == "In version catalog libs, alias '${name}' is a reserved alias"
             it.details == "Prefix for dependency shouldn't be equal to '${prefix}'"
@@ -163,7 +163,7 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest {
         then:
         thrown(InvalidUserDataException)
         verifyAll(problems.singleEmittedProblem()) {
-            it.definition.id.displayName == 'Invalid alias notation'
+            it.definition.id == problems.groups.dependencies.declaration.problemId('Invalid version catalog alias notation')
             it.definition.severity == Severity.ERROR
             it.contextualLabel == "In version catalog libs, invalid bundle alias '${notation}'"
             it.details == "bundle aliases must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+"
@@ -228,7 +228,7 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest {
         then:
         thrown(InvalidUserDataException)
         verifyAll(problems.singleEmittedProblem()) {
-            it.definition.id.displayName == 'Bundle declares dependency on non-existent alias'
+            it.definition.id == problems.groups.dependencies.declaration.problemId('Version catalog bundle declares dependency on non-existent alias')
             it.definition.severity == Severity.ERROR
             it.contextualLabel == "In version catalog libs, a bundle with name 'toto' declares a dependency on 'foo' which doesn't exist"
             it.details == "Bundles can only contain references to existing library aliases."
@@ -392,7 +392,7 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest {
         then:
         thrown(InvalidUserDataException)
         verifyAll(problems.singleEmittedProblem()) {
-            it.definition.id.displayName == 'Undefined version reference'
+            it.definition.id == problems.groups.dependencies.declaration.problemId('Undefined version reference in version catalog')
             it.definition.severity == Severity.ERROR
             it.contextualLabel == "In version catalog libs, version reference 'nope' doesn't exist"
             it.details == "Dependency 'org:foo' references version 'nope' which doesn't exist"

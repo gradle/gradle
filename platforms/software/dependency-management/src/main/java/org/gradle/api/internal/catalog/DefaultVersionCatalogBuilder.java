@@ -42,7 +42,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.ProblemSpec;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemSpecInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
@@ -52,7 +51,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
-import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
@@ -69,7 +67,6 @@ import java.util.Set;
 import java.util.function.Supplier;
 
 import static com.google.common.collect.ImmutableList.toImmutableList;
-import static org.apache.commons.lang3.StringUtils.uncapitalize;
 import static org.gradle.api.internal.catalog.parser.DependenciesModelHelper.ALIAS_REGEX;
 import static org.gradle.api.internal.catalog.problems.DefaultCatalogProblemBuilder.VERSION_CATALOG_PROBLEMS;
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.ALIAS_NOT_FINISHED;
@@ -145,7 +142,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         this.versionConstraintInterner = versionConstraintInterner;
         this.objects = objects;
         this.dependencyResolutionServicesSupplier = dependencyResolutionServicesSupplier;
-        this.strictVersionParser = new StrictVersionParser(strings, getProblemsService());
+        this.strictVersionParser = StrictVersionParser.forVersionCatalog(strings, getProblemsService());
         this.description = objects.property(String.class).convention("A catalog of dependencies accessible via the {@code " + name + "} extension.");
     }
 
@@ -213,9 +210,9 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         return new DefaultVersionCatalog(name, description.getOrElse(""), realizedLibs.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints), realizedPlugins.build());
     }
 
-    private static ProblemSpecInternal configureVersionCatalogError(ProblemSpecInternal builder, String message, VersionCatalogProblemId catalogProblemId) {
+    private ProblemSpecInternal configureVersionCatalogError(ProblemSpecInternal builder, String message, VersionCatalogProblemId catalogProblemId) {
         return builder.
-            id(TextUtil.screamingSnakeToKebabCase(catalogProblemId.name()), catalogProblemId.getDisplayName(), GradleCoreProblemGroup.versionCatalog())
+            id(catalogProblemId.problemId(getProblemsService().getGroups()))
             .contextualLabel(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)));
     }
@@ -239,7 +236,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         Set<ResolvedArtifactResult> artifacts = cnf.getIncoming().getArtifacts().getArtifacts();
         if (artifacts.size() > 1) {
             throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
-                configureVersionCatalogError(builder, getProblemInVersionCatalog() + uncapitalize(TOO_MANY_IMPORT_FILES.getDisplayName()), TOO_MANY_IMPORT_FILES)
+                configureVersionCatalogError(builder, getProblemInVersionCatalog() + "importing multiple files is not supported", TOO_MANY_IMPORT_FILES)
                     .details("The import consists of multiple files")
                     .solution("Only import a single file")));
         }
@@ -252,7 +249,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
             withContext("catalog " + resolvedArtifactResult.getVariant().getOwner(), () -> importCatalogFromFile(file));
         } else {
             throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
-                configureVersionCatalogError(builder, getProblemInVersionCatalog() + uncapitalize(NO_IMPORT_FILES.getDisplayName()), NO_IMPORT_FILES)
+                configureVersionCatalogError(builder, getProblemInVersionCatalog() + "no files were resolved to be imported", NO_IMPORT_FILES)
                     .details("The imported dependency doesn't resolve into any file")
                     .solution("Check the import statement, it should resolve into a single file")));
         }
@@ -300,7 +297,7 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         }
         if (!modelFile.exists()) {
             throw throwVersionCatalogProblemException(getProblemsService(), getProblemsService().getInternalReporter().internalCreate(builder ->
-                configureVersionCatalogError(builder, getProblemInVersionCatalog() + uncapitalize(CATALOG_FILE_DOES_NOT_EXIST.getDisplayName()), CATALOG_FILE_DOES_NOT_EXIST)
+                configureVersionCatalogError(builder, getProblemInVersionCatalog() + "import of external catalog file failed", CATALOG_FILE_DOES_NOT_EXIST)
                     .details("File '" + modelFile + "' doesn't exist")
                     .solution("Make sure that the catalog file '" + modelFile.getName() + "' exists before importing it")));
         }

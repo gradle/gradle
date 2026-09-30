@@ -225,12 +225,12 @@ class DependencyStringNotationConverterTest extends Specification {
         then:
         thrown(InvalidUserDataException)
         verifyAll(problems.singleEmittedProblem()) {
-            it.definition.id.displayName == 'Invalid version notation'
+            it.definition.id == problems.groups.dependencies.declaration.problemId('Invalid version notation')
             it.definition.severity == Severity.ERROR
             it.contextualLabel == 'The strict version modifier (!!) must be appended to a valid version number'
             it.details == "The strict version modifier syntax expects a base version before '!!'"
             it.solutions == ["Place a valid version number before '!!', e.g. '1.0!!'"]
-            it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#invalid_version_notation')
+            it.definition.documentationLink.url.endsWith('userguide/dependency_versions.html#sec:strict-version')
         }
     }
 
