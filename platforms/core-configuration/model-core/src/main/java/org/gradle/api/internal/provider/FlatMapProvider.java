@@ -16,10 +16,14 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.Nullable;
+
+import java.util.LinkedHashSet;
+import java.util.Set;
 
 public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     private final ProviderInternal<? extends T> provider;
@@ -79,8 +83,37 @@ public class FlatMapProvider<S, T> extends AbstractMinimalProvider<S> {
     @Override
     public ValueProducer getProducer() {
         try (EvaluationScopeContext context = openScope()) {
-            return backingProvider(context, ValueConsumer.IgnoreUnsafeRead).getProducer();
+            ValueProducer producer = backingProvider(context, ValueConsumer.IgnoreUnsafeRead).getProducer();
+            if (producer.hasUnownedOutput()) {
+                // The transformation returned an output that does not know which task produces it.
+                // When the source is a task provider, the output was reached through that task, so the task is its producer.
+                Task owner = getTaskWhoseStateIsTheSource();
+                if (owner != null) {
+                    return producer.withOutputOwner(owner);
+                }
+            }
+            return producer;
         }
+    }
+
+    /**
+     * Returns the task when the source value is calculated from the state of exactly one task, for example when the source is a task provider.
+     * A source whose content is produced by a task, such as a task output, is not such a source.
+     */
+    @Nullable
+    private Task getTaskWhoseStateIsTheSource() {
+        ValueProducer sourceProducer = provider.getProducer();
+        if (sourceProducer.hasUnownedOutput()) {
+            return null;
+        }
+        Set<Task> tasks = new LinkedHashSet<>(2);
+        sourceProducer.visitProducerTasks(tasks::add);
+        if (tasks.size() != 1) {
+            return null;
+        }
+        Set<Task> contentProducers = new LinkedHashSet<>(1);
+        sourceProducer.visitContentProducerTasks(contentProducers::add);
+        return contentProducers.isEmpty() ? tasks.iterator().next() : null;
     }
 
     @Override

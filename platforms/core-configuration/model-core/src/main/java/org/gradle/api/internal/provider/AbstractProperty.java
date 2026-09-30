@@ -203,9 +203,10 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
     public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
         try (EvaluationScopeContext context = openScope()) {
             ExecutionTimeValue<? extends T> value = calculateOwnExecutionTimeValue(context, this.value);
-            if (getProducerTask() == null) {
+            if (producer == null) {
                 return value;
             } else {
+                // Declared as an output, so its content is produced by a task, whether or not that task is known here
                 return value.withChangingContent();
             }
         }
@@ -230,13 +231,17 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
 
     @Override
     public ValueProducer getProducer() {
-        Task task = getProducerTask();
-        if (task != null) {
-            return ValueProducer.task(task);
-        } else {
-            try (EvaluationScopeContext context = openScope()) {
-                return getSupplier(context).getProducer();
+        if (producer != null) {
+            Task task = producer.getTaskThatOwnsThisObject();
+            if (task != null) {
+                return ValueProducer.task(task);
             }
+            // The object that declares this output is not attached to a task.
+            // The task may still be provided by a provider that reaches this property through the task.
+            return ValueProducer.unownedOutput(this::describeUnownedOutput);
+        }
+        try (EvaluationScopeContext context = openScope()) {
+            return getSupplier(context).getProducer();
         }
     }
 
@@ -402,21 +407,14 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         state.beforeMutate(this.getDisplayName());
     }
 
-    @Nullable
-    private Task getProducerTask() {
-        if (producer == null) {
-            return null;
-        }
-        Task task = producer.getTaskThatOwnsThisObject();
-        if (task == null) {
-            TreeFormatter formatter = new TreeFormatter();
-            formatter.node(getDisplayName().getCapitalizedDisplayName());
-            formatter.append(" is declared as an output property of ");
-            format(producer, formatter);
-            formatter.append(" but does not have a task associated with it.");
-            throw new IllegalStateException(formatter.toString());
-        }
-        return task;
+    private String describeUnownedOutput() {
+        TreeFormatter formatter = new TreeFormatter();
+        formatter.node(getDisplayName().getCapitalizedDisplayName());
+        formatter.append(" is declared as an output property of ");
+        format(producer, formatter);
+        formatter.append(" but does not have a task associated with it.");
+        formatter.append(" Query this property using the provider of the task that declares it, for example 'tasks.named(...).flatMap { ... }', so that the task is known.");
+        return formatter.toString();
     }
 
     private void format(ModelObject modelObject, TreeFormatter formatter) {

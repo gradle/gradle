@@ -2790,7 +2790,113 @@ The value of this provider is derived from:
 
         then:
         def e = thrown(IllegalStateException)
-        e.message == "This property is declared as an output property of <owner> (type ${owner.class.simpleName}) but does not have a task associated with it."
+        e.message == "This property is declared as an output property of <owner> (type ${owner.class.simpleName}) but does not have a task associated with it. " +
+            "Query this property using the provider of the task that declares it, for example 'tasks.named(...).flatMap { ... }', so that the task is known."
+    }
+
+    def "property that has producer with no task is an output that a task can take ownership of"() {
+        def task = Mock(Task)
+        def owner = owner()
+        owner.taskThatOwnsThisObject >> null
+
+        given:
+        def property = propertyWithNoValue()
+        property.set(someValue())
+        property.attachProducer(owner)
+
+        when:
+        def producer = property.producer
+
+        then:
+        producer.known
+        producer.hasUnownedOutput()
+
+        when:
+        def contentProducers = []
+        producer.visitContentProducerTasks { contentProducers.add(it) }
+
+        then:
+        // the state of the task cannot be checked, as the task is not known
+        contentProducers.empty
+
+        when:
+        def owned = producer.withOutputOwner(task)
+        def tasks = []
+        owned.visitProducerTasks { tasks.add(it) }
+        owned.visitContentProducerTasks { contentProducers.add(it) }
+
+        then:
+        !owned.hasUnownedOutput()
+        tasks == [task]
+        contentProducers == [task]
+    }
+
+    def "has changing content when property has producer with no task"() {
+        def owner = owner()
+        owner.taskThatOwnsThisObject >> null
+
+        given:
+        def property = propertyWithNoValue()
+        property.set(someValue())
+        property.attachProducer(owner)
+
+        expect:
+        def value = property.calculateExecutionTimeValue()
+        value.hasFixedValue()
+        value.hasChangingContent()
+    }
+
+    def "flat mapped provider of task uses the task as producer when property has producer with no task"() {
+        def task = Mock(Task)
+        def owner = owner()
+        owner.taskThatOwnsThisObject >> null
+
+        given:
+        def property = propertyWithNoValue()
+        property.set(someValue())
+        property.attachProducer(owner)
+        def taskProvider = ProviderTestUtil.withTaskState(task, "task")
+
+        expect:
+        assertHasProducer(taskProvider.flatMap { property }, task)
+        // only the outermost provider knows the task
+        assertHasProducer(taskProvider.flatMap { Providers.of("ignored").flatMap { property } }, task)
+        assertHasProducer(taskProvider.map { "ignored" }.flatMap { property }, task)
+    }
+
+    def "flat mapped provider fails when property has producer with no task and source is not calculated from the state of a single task"() {
+        def owner = owner()
+        owner.taskThatOwnsThisObject >> null
+
+        given:
+        def property = propertyWithNoValue()
+        property.set(someValue())
+        property.attachProducer(owner)
+        def noTask = Providers.of("value")
+        // content is produced by the task, as opposed to a value that is calculated from the state of the task
+        def taskOutput = ProviderTestUtil.withProducer(String, Stub(Task), "value")
+        def twoTasks = ProviderTestUtil.withTaskState(Stub(Task), "a").zip(ProviderTestUtil.withTaskState(Stub(Task), "b")) { a, b -> a + b }
+
+        when:
+        noTask.flatMap { property }.producer.visitProducerTasks(Stub(Action))
+
+        then:
+        def e = thrown(IllegalStateException)
+        e.message.contains("but does not have a task associated with it.")
+
+        when:
+        taskOutput.flatMap { property }.producer.visitProducerTasks(Stub(Action))
+
+        then:
+        def e2 = thrown(IllegalStateException)
+        e2.message.contains("but does not have a task associated with it.")
+
+        when:
+        twoTasks.flatMap { property }.producer.visitProducerTasks(Stub(Action))
+
+        then:
+        def e3 = thrown(IllegalStateException)
+        e3.message.contains("but does not have a task associated with it.")
     }
 
     def "can unpack state and recreate instance"() {

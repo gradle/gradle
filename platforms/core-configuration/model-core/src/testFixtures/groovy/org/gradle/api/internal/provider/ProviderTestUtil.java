@@ -55,6 +55,38 @@ public class ProviderTestUtil {
         return new TestProviderWithChangingValue<>(valueType, Arrays.asList(values), producer);
     }
 
+    /**
+     * Creates a provider whose value is calculated from the state of the given task, the same way as the value of a task provider.
+     */
+    public static <T> ProviderInternal<T> withTaskState(Task task, T value) {
+        return new TestTaskStateProvider<>(task, value);
+    }
+
+    private static class TestTaskStateProvider<T> extends AbstractMinimalProvider<T> {
+        private final Task task;
+        private final T value;
+
+        TestTaskStateProvider(Task task, T value) {
+            this.task = task;
+            this.value = value;
+        }
+
+        @Override
+        public Class<T> getType() {
+            return Cast.uncheckedNonnullCast(value.getClass());
+        }
+
+        @Override
+        public ValueProducer getProducer() {
+            return ValueProducer.taskState(task);
+        }
+
+        @Override
+        protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
+            return Value.of(value);
+        }
+    }
+
     private static class TestProvider<T> extends AbstractMinimalProvider<T> {
         final Class<T> type;
         final Iterator<T> values;

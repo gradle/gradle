@@ -30,6 +30,7 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.function.Supplier;
 
 /**
  * Encapsulates the production of some value by some producer.
@@ -73,6 +74,23 @@ public interface ValueSupplier {
             visitProducerTasks(visitor);
         }
 
+        /**
+         * Returns {@code true} when some value of this producer is declared as an output whose producing task is not known.
+         *
+         * @see #unownedOutput(Supplier)
+         */
+        default boolean hasUnownedOutput() {
+            return false;
+        }
+
+        /**
+         * Returns a producer where the outputs whose producing task is not known are produced by the given task.
+         * All other producers are retained.
+         */
+        default ValueProducer withOutputOwner(Task task) {
+            return this;
+        }
+
         default ValueProducer plus(ValueProducer producer) {
             if (this == NO_PRODUCER) {
                 return producer;
@@ -111,6 +129,18 @@ public interface ValueSupplier {
          */
         static ValueProducer taskState(Task task) {
             return new TaskProducer(task, false);
+        }
+
+        /**
+         * Value is declared as an output, but the task that produces it is not known.
+         * <p>
+         * This is the case for an output property of an object that is not attached to a task, for example a nested object held by a property or a collection of a task.
+         * The task can still be provided by whoever reached the value through that task, using {@link #withOutputOwner(Task)}.
+         * Visiting the producer tasks fails with the given message otherwise.
+         * </p>
+         */
+        static ValueProducer unownedOutput(Supplier<String> failure) {
+            return new UnownedOutputProducer(failure);
         }
     }
 
@@ -154,6 +184,47 @@ public interface ValueSupplier {
         public void visitProducerTasks(Action<? super Task> visitor) {
             left.visitProducerTasks(visitor);
             right.visitProducerTasks(visitor);
+        }
+
+        @Override
+        public boolean hasUnownedOutput() {
+            return left.hasUnownedOutput() || right.hasUnownedOutput();
+        }
+
+        @Override
+        public ValueProducer withOutputOwner(Task task) {
+            if (!hasUnownedOutput()) {
+                return this;
+            }
+            return new PlusProducer(left.withOutputOwner(task), right.withOutputOwner(task));
+        }
+    }
+
+    class UnownedOutputProducer implements ValueProducer {
+        private final Supplier<String> failure;
+
+        public UnownedOutputProducer(Supplier<String> failure) {
+            this.failure = failure;
+        }
+
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            throw new IllegalStateException(failure.get());
+        }
+
+        @Override
+        public void visitContentProducerTasks(Action<? super Task> visitor) {
+            // The task is not known, so there is no task whose state can be checked before the content is read
+        }
+
+        @Override
+        public boolean hasUnownedOutput() {
+            return true;
+        }
+
+        @Override
+        public ValueProducer withOutputOwner(Task task) {
+            return ValueProducer.task(task);
         }
     }
 

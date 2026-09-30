@@ -137,5 +137,27 @@ public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
                 item.visitProducerTasks(visitor);
             }
         }
+
+        @Override
+        public boolean hasUnownedOutput() {
+            for (ValueProducer item : items) {
+                if (item.hasUnownedOutput()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public ValueProducer withOutputOwner(Task task) {
+            if (!hasUnownedOutput()) {
+                return this;
+            }
+            ImmutableList.Builder<ValueProducer> owned = ImmutableList.builderWithExpectedSize(items.size());
+            for (ValueProducer item : items) {
+                owned.add(item.withOutputOwner(task));
+            }
+            return new MergeValueProducer(owned.build());
+        }
     }
 }

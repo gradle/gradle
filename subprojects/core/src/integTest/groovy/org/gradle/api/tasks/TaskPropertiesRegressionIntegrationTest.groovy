@@ -17,14 +17,12 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 /**
  * Tests for previously existing mistakes in task properties.
  */
 class TaskPropertiesRegressionIntegrationTest extends AbstractIntegrationSpec {
-    @ToBeImplemented
     @Issue("https://github.com/gradle/gradle/issues/24747")
     def "nested property with final getter carries task dependencies in nested object"() {
         given:
@@ -77,9 +75,9 @@ class TaskPropertiesRegressionIntegrationTest extends AbstractIntegrationSpec {
         """)
 
         when:
-        fails("verify")
+        run("verify")
 
         then:
-        failureCauseContains("Property 'outputFile' is declared as an output property of an object with type Parameters but does not have a task associated with it.")
+        result.assertTasksScheduled(":myTask", ":verify")
     }
 }

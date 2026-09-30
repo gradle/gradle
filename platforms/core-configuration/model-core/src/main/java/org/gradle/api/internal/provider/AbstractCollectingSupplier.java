@@ -25,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
+import java.util.function.Supplier;
 import java.util.stream.Stream;
 
 abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE> extends AbstractMinimalProvider<TYPE> {
@@ -43,27 +44,45 @@ abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE>
 
     @Override
     public ValueProducer getProducer() {
-        return new ValueProducer() {
-            @Override
-            public void visitProducerTasks(Action<? super Task> visitor) {
-                getProducers().forEach(c -> c.visitProducerTasks(visitor));
-            }
+        return new CollectedProducer(this::getProducers);
+    }
 
-            @Override
-            public boolean isKnown() {
-                return getProducers().anyMatch(ValueProducer::isKnown);
-            }
+    private static class CollectedProducer implements ValueProducer {
+        private final Supplier<Stream<ValueProducer>> producers;
 
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                getProducers().forEach(c -> c.visitDependencies(context));
-            }
+        CollectedProducer(Supplier<Stream<ValueProducer>> producers) {
+            this.producers = producers;
+        }
 
-            @Override
-            public void visitContentProducerTasks(Action<? super Task> visitor) {
-                getProducers().forEach(c -> c.visitContentProducerTasks(visitor));
-            }
-        };
+        @Override
+        public void visitProducerTasks(Action<? super Task> visitor) {
+            producers.get().forEach(c -> c.visitProducerTasks(visitor));
+        }
+
+        @Override
+        public boolean isKnown() {
+            return producers.get().anyMatch(ValueProducer::isKnown);
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            producers.get().forEach(c -> c.visitDependencies(context));
+        }
+
+        @Override
+        public void visitContentProducerTasks(Action<? super Task> visitor) {
+            producers.get().forEach(c -> c.visitContentProducerTasks(visitor));
+        }
+
+        @Override
+        public boolean hasUnownedOutput() {
+            return producers.get().anyMatch(ValueProducer::hasUnownedOutput);
+        }
+
+        @Override
+        public ValueProducer withOutputOwner(Task task) {
+            return new CollectedProducer(() -> producers.get().map(producer -> producer.withOutputOwner(task)));
+        }
     }
 
     @Override

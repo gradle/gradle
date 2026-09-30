@@ -257,6 +257,31 @@ public interface Provider<T> {
      * </p>
      *
      * <p>
+     * There is one case where the task of this provider is used. An output property of an object that is nested in a task,
+     * for example an object held by a {@link Property} or a collection that is annotated with {@code @Nested}, does not know
+     * which task declares it. When the transformation of a task provider returns such an output property, the task of the
+     * task provider is used as the task that produces the output:
+     * </p>
+     *
+     * <pre><code>
+     * abstract class Report {
+     *     {@literal @}OutputFile
+     *     abstract RegularFileProperty getDestination()
+     * }
+     *
+     * abstract class Producer extends DefaultTask {
+     *     {@literal @}Nested
+     *     abstract Property&lt;Report&gt; getReport()
+     *
+     *     //irrelevant details omitted
+     * }
+     *
+     * consumer.configure {
+     *     inputFile = producer.flatMap { it.report.flatMap { it.destination } }
+     * }
+     * </code></pre>
+     *
+     * <p>
      * The new provider returned by {@code flatMap} will be live, so that each time it is queried, it queries
      * this provider and applies the transformation to the result. Whenever this provider has no value, the new
      * provider will also have no value and the transformation will not be called.
