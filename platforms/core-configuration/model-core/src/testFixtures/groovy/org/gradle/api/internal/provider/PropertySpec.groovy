@@ -2794,43 +2794,6 @@ The value of this provider is derived from:
             "Query this property using the provider of the task that declares it, for example 'tasks.named(...).flatMap { ... }', so that the task is known."
     }
 
-    def "property that has producer with no task is an output that a task can take ownership of"() {
-        def task = Mock(Task)
-        def owner = owner()
-        owner.taskThatOwnsThisObject >> null
-
-        given:
-        def property = propertyWithNoValue()
-        property.set(someValue())
-        property.attachProducer(owner)
-
-        when:
-        def producer = property.producer
-
-        then:
-        producer.known
-        producer.hasUnownedOutput()
-
-        when:
-        def contentProducers = []
-        producer.visitContentProducerTasks { contentProducers.add(it) }
-
-        then:
-        // the state of the task cannot be checked, as the task is not known
-        contentProducers.empty
-
-        when:
-        def owned = producer.withOutputOwner(task)
-        def tasks = []
-        owned.visitProducerTasks { tasks.add(it) }
-        owned.visitContentProducerTasks { contentProducers.add(it) }
-
-        then:
-        !owned.hasUnownedOutput()
-        tasks == [task]
-        contentProducers == [task]
-    }
-
     def "has changing content when property has producer with no task"() {
         def owner = owner()
         owner.taskThatOwnsThisObject >> null
@@ -2862,6 +2825,8 @@ The value of this provider is derived from:
         // only the outermost provider knows the task
         assertHasProducer(taskProvider.flatMap { Providers.of("ignored").flatMap { property } }, task)
         assertHasProducer(taskProvider.map { "ignored" }.flatMap { property }, task)
+        // the task is carried by the result of a transformation, without the result being produced by the task
+        assertHasProducer(taskProvider.flatMap { Providers.of("ignored") }.flatMap { property }, task)
     }
 
     def "flat mapped provider fails when property has producer with no task and source is not calculated from the state of a single task"() {
@@ -2878,21 +2843,21 @@ The value of this provider is derived from:
         def twoTasks = ProviderTestUtil.withTaskState(Stub(Task), "a").zip(ProviderTestUtil.withTaskState(Stub(Task), "b")) { a, b -> a + b }
 
         when:
-        noTask.flatMap { property }.producer.visitProducerTasks(Stub(Action))
+        noTask.flatMap { property }.producer
 
         then:
         def e = thrown(IllegalStateException)
         e.message.contains("but does not have a task associated with it.")
 
         when:
-        taskOutput.flatMap { property }.producer.visitProducerTasks(Stub(Action))
+        taskOutput.flatMap { property }.producer
 
         then:
         def e2 = thrown(IllegalStateException)
         e2.message.contains("but does not have a task associated with it.")
 
         when:
-        twoTasks.flatMap { property }.producer.visitProducerTasks(Stub(Action))
+        twoTasks.flatMap { property }.producer
 
         then:
         def e3 = thrown(IllegalStateException)

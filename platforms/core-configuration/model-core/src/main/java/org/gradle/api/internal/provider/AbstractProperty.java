@@ -237,8 +237,12 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
                 return ValueProducer.task(task);
             }
             // The object that declares this output is not attached to a task.
-            // The task may still be provided by a provider that reaches this property through the task.
-            return ValueProducer.unownedOutput(this::describeUnownedOutput);
+            // Use the task that this property was reached through, when it is queried by a transformation of a task provider.
+            Task context = TaskContextScope.findTaskContext();
+            if (context != null) {
+                return ValueProducer.task(context);
+            }
+            throw new IllegalStateException(describeUnownedOutput());
         }
         try (EvaluationScopeContext context = openScope()) {
             return getSupplier(context).getProducer();

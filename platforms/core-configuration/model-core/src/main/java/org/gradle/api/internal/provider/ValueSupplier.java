@@ -30,7 +30,6 @@ import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
-import java.util.function.Supplier;
 
 /**
  * Encapsulates the production of some value by some producer.
@@ -75,20 +74,16 @@ public interface ValueSupplier {
         }
 
         /**
-         * Returns {@code true} when some value of this producer is declared as an output whose producing task is not known.
-         *
-         * @see #unownedOutput(Supplier)
+         * Returns the task that the value was reached through, when the value is calculated from the state of a single task.
+         * This is the case for the value of a task provider, and for values that are derived from it.
+         * <p>
+         * The task context is used as the producer of an output that was reached through the task but does not know which task declares it.
+         * It is separate from the producer tasks: a value can have a task context without having a dependency on that task.
+         * </p>
          */
-        default boolean hasUnownedOutput() {
-            return false;
-        }
-
-        /**
-         * Returns a producer where the outputs whose producing task is not known are produced by the given task.
-         * All other producers are retained.
-         */
-        default ValueProducer withOutputOwner(Task task) {
-            return this;
+        @Nullable
+        default Task getTaskContext() {
+            return null;
         }
 
         default ValueProducer plus(ValueProducer producer) {
@@ -130,18 +125,6 @@ public interface ValueSupplier {
         static ValueProducer taskState(Task task) {
             return new TaskProducer(task, false);
         }
-
-        /**
-         * Value is declared as an output, but the task that produces it is not known.
-         * <p>
-         * This is the case for an output property of an object that is not attached to a task, for example a nested object held by a property or a collection of a task.
-         * The task can still be provided by whoever reached the value through that task, using {@link #withOutputOwner(Task)}.
-         * Visiting the producer tasks fails with the given message otherwise.
-         * </p>
-         */
-        static ValueProducer unownedOutput(Supplier<String> failure) {
-            return new UnownedOutputProducer(failure);
-        }
     }
 
     class TaskProducer implements ValueProducer {
@@ -163,6 +146,13 @@ public interface ValueSupplier {
             if (content) {
                 visitor.execute(task);
             }
+        }
+
+        @Nullable
+        @Override
+        public Task getTaskContext() {
+            // A value whose content is produced by the task is a result of the task, as opposed to a part of the task
+            return content ? null : task;
         }
     }
 
@@ -186,45 +176,16 @@ public interface ValueSupplier {
             right.visitProducerTasks(visitor);
         }
 
+        @Nullable
         @Override
-        public boolean hasUnownedOutput() {
-            return left.hasUnownedOutput() || right.hasUnownedOutput();
-        }
-
-        @Override
-        public ValueProducer withOutputOwner(Task task) {
-            if (!hasUnownedOutput()) {
-                return this;
+        public Task getTaskContext() {
+            Task leftContext = left.getTaskContext();
+            Task rightContext = right.getTaskContext();
+            if (leftContext == null) {
+                return rightContext;
             }
-            return new PlusProducer(left.withOutputOwner(task), right.withOutputOwner(task));
-        }
-    }
-
-    class UnownedOutputProducer implements ValueProducer {
-        private final Supplier<String> failure;
-
-        public UnownedOutputProducer(Supplier<String> failure) {
-            this.failure = failure;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-            throw new IllegalStateException(failure.get());
-        }
-
-        @Override
-        public void visitContentProducerTasks(Action<? super Task> visitor) {
-            // The task is not known, so there is no task whose state can be checked before the content is read
-        }
-
-        @Override
-        public boolean hasUnownedOutput() {
-            return true;
-        }
-
-        @Override
-        public ValueProducer withOutputOwner(Task task) {
-            return ValueProducer.task(task);
+            // Ambiguous when the value was reached through several tasks
+            return rightContext == null || rightContext == leftContext ? leftContext : null;
         }
     }
 

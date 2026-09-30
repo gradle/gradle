@@ -245,6 +245,86 @@ class EvaluationContextTest extends Specification {
         result == "fallback"
     }
 
+    def "finds nothing in scope when nothing is being evaluated"() {
+        expect:
+        context().findInScope { it } == null
+    }
+
+    def "finds the most recent owner in scope that has a result"() {
+        def outer = createOwner()
+        def inner = createOwner()
+        def innermost = createOwner()
+
+        when:
+        def visited = []
+        def found = context().evaluate(outer) {
+            context().evaluate(inner) {
+                context().evaluate(innermost) {
+                    context().findInScope {
+                        visited << it
+                        it.is(innermost) ? null : it
+                    }
+                }
+            }
+        }
+
+        then:
+        found.is(inner)
+        visited == [innermost, inner]
+    }
+
+    def "finds nothing in scope when no owner has a result"() {
+        when:
+        def visited = []
+        def found = context().evaluate(owner) {
+            context().findInScope {
+                visited << it
+                null
+            }
+        }
+
+        then:
+        found == null
+        visited == [owner]
+    }
+
+    def "finds owner of the enclosing scope from a nested scope"() {
+        def enclosingOwner = createOwner()
+        def nestedOwner = createOwner()
+
+        when:
+        def visited = []
+        def found = context().evaluate(enclosingOwner) {
+            context().evaluateNested {
+                context().evaluate(nestedOwner) {
+                    context().findInScope {
+                        visited << it
+                        it.is(enclosingOwner) ? it : null
+                    }
+                }
+            }
+        }
+
+        then:
+        found.is(enclosingOwner)
+        visited == [nestedOwner, enclosingOwner]
+    }
+
+    def "can evaluate other owners while finding an owner in scope"() {
+        def otherOwner = createOwner()
+
+        when:
+        def found = context().evaluate(owner) {
+            context().findInScope { candidate ->
+                context().evaluate(otherOwner) { candidate }
+            }
+        }
+
+        then:
+        found.is(owner)
+        !context().evaluating
+    }
+
     def "can evaluate deeper than initial capacity of 8 levels"() {
         given:
         def depth = 12

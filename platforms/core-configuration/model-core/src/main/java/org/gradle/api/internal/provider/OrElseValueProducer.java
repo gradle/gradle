@@ -42,14 +42,10 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
     }
 
     private OrElseValueProducer(EvaluationScopeContext context, ProviderInternal<?> left, @Nullable ProviderInternal<?> right, ValueSupplier.ValueProducer rightProducer) {
-        this(Objects.requireNonNull(context.getOwner()), left, right, left.getProducer(), rightProducer);
-    }
-
-    private OrElseValueProducer(EvaluationOwner owner, ProviderInternal<?> left, @Nullable ProviderInternal<?> right, ValueSupplier.ValueProducer leftProducer, ValueSupplier.ValueProducer rightProducer) {
-        this.owner = owner;
+        this.owner = Objects.requireNonNull(context.getOwner());
         this.left = left;
         this.right = right;
-        this.leftProducer = leftProducer;
+        this.leftProducer = left.getProducer();
         this.rightProducer = rightProducer;
     }
 
@@ -72,19 +68,6 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
                 rightProducer.visitProducerTasks(visitor);
             }
         }
-    }
-
-    @Override
-    public boolean hasUnownedOutput() {
-        return leftProducer.hasUnownedOutput() || rightProducer.hasUnownedOutput();
-    }
-
-    @Override
-    public ValueSupplier.ValueProducer withOutputOwner(Task task) {
-        if (!hasUnownedOutput()) {
-            return this;
-        }
-        return new OrElseValueProducer(owner, left, right, leftProducer.withOutputOwner(task), rightProducer.withOutputOwner(task));
     }
 
     private boolean mayHaveValue(ProviderInternal<?> provider) {

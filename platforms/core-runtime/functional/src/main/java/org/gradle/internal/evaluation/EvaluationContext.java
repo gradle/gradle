@@ -21,6 +21,8 @@ import it.unimi.dsi.fastutil.objects.ReferenceArrayList;
 import it.unimi.dsi.fastutil.objects.ReferenceList;
 import org.jspecify.annotations.Nullable;
 
+import java.util.function.Function;
+
 /**
  * This class keeps track of all objects being evaluated at the moment.
  * It helps to provide nicer error messages when the evaluation enters an endless cycle (A obtains a value of B which obtains a value of A).
@@ -59,6 +61,17 @@ public final class EvaluationContext {
     @Nullable
     public EvaluationOwner getOwner() {
         return getContext().getOwner();
+    }
+
+    /**
+     * Applies the function to the owners that are being evaluated in the current thread, starting with the most recent one,
+     * and returns the first result that is not null.
+     *
+     * @return the result, or null when no owner has one
+     */
+    @Nullable
+    public <T> T findInScope(Function<? super EvaluationOwner, ? extends @Nullable T> finder) {
+        return getContext().findInScope(finder);
     }
 
     /**
@@ -206,6 +219,18 @@ public final class EvaluationContext {
                 return null;
             }
             return stack.top();
+        }
+
+        @Nullable
+        <T> T findInScope(Function<? super EvaluationOwner, ? extends @Nullable T> finder) {
+            // The function may evaluate other objects, which adds them to the stack and removes them again before it returns
+            for (int i = stack.size() - 1; i >= 0; i--) {
+                @Nullable T result = finder.apply(stack.get(i));
+                if (result != null) {
+                    return result;
+                }
+            }
+            return parent != null ? parent.findInScope(finder) : null;
         }
 
         private CircularEvaluationException prepareException(EvaluationOwner circular) {

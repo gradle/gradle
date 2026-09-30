@@ -19,6 +19,8 @@ package org.gradle.api.tasks
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import spock.lang.Issue
 
+import static org.hamcrest.CoreMatchers.containsString
+
 /**
  * An output property of an object that is nested in a task does not always know which task declares it.
  * The task is known when the property is queried using the provider of the task.
@@ -211,6 +213,33 @@ class NestedOutputDependencyInferenceIntegrationTest extends AbstractIntegration
         outputContains("consumed: produced by producer")
     }
 
+    def "output of nested object carries dependency on the task when queried using #description"() {
+        buildFile << """
+            ${producerWithReportProperty()}
+
+            def producer = tasks.register("producer", Producer) {
+                report = newReport("report.txt")
+            }
+
+            tasks.register("consumer", Consumer) {
+                source = ${provider}
+            }
+        """
+
+        when:
+        run("consumer")
+
+        then:
+        result.assertTasksScheduled(":producer", ":consumer")
+        outputContains("consumed: produced by producer")
+
+        where:
+        description                                          | provider
+        "consecutive transformations of the task provider"   | "producer.flatMap { it.report }.flatMap { it.destination }"
+        "consecutive transformations with a mapping between" | "producer.flatMap { it.report }.map { it }.flatMap { it.destination }"
+        "a property that holds a transformed task provider"  | "objects.property(Report).value(producer.flatMap { it.report }).flatMap { it.destination }"
+    }
+
     def "output of command line argument provider carries dependency on the task when queried using the task provider"() {
         buildFile << """
             abstract class ReportArguments implements org.gradle.process.CommandLineArgumentProvider {
@@ -307,7 +336,7 @@ class NestedOutputDependencyInferenceIntegrationTest extends AbstractIntegration
         "inside"  | "producer.flatMap { it.report.flatMap { it.destination.map { it.asFile.text } } }"
     }
 
-    def "cannot query content of output of nested object before the task has run"() {
+    def "cannot query content of output of nested object before the task has run when the content is transformed #location the transformation of the task provider"() {
         buildFile << """
             ${producerWithReportProperty()}
 
@@ -316,16 +345,24 @@ class NestedOutputDependencyInferenceIntegrationTest extends AbstractIntegration
             }
 
             tasks.register("consumer") {
-                def text = producer.flatMap { it.report.flatMap { it.destination } }.map { it.asFile.text }
+                def text = ${text}
                 println("text: " + text.get())
             }
         """
+        // left behind by an earlier build
+        file("build/report.txt") << "stale"
 
         when:
         fails("consumer")
 
         then:
-        failure.assertHasCause("Querying the mapped value of flatmap(provider(task 'producer', class Producer)) before task ':producer' has completed is not supported")
+        failure.assertThatCause(containsString("before task ':producer' has completed is not supported"))
+        outputDoesNotContain("text: stale")
+
+        where:
+        location  | text
+        "outside" | "producer.flatMap { it.report.flatMap { it.destination } }.map { it.asFile.text }"
+        "inside"  | "producer.flatMap { it.report.flatMap { it.destination.map { it.asFile.text } } }"
     }
 
     def "task provider follows the nested object that replaces the one that was present when the output was wired"() {
@@ -390,7 +427,7 @@ class NestedOutputDependencyInferenceIntegrationTest extends AbstractIntegration
         outputContains("consumed: produced by second")
     }
 
-    def "input of nested object does not carry dependency on the task when queried using the task provider"() {
+    def "input of nested object does not carry dependency on the task when queried using #description of the task provider"() {
         buildFile << """
             abstract class Options {
                 @Input
@@ -418,7 +455,7 @@ class NestedOutputDependencyInferenceIntegrationTest extends AbstractIntegration
             }
 
             tasks.register("consumer", TextConsumer) {
-                text = producer.flatMap { it.options.flatMap { it.label } }
+                text = ${provider}
             }
         """
 
@@ -428,6 +465,11 @@ class NestedOutputDependencyInferenceIntegrationTest extends AbstractIntegration
         then:
         result.assertTasksScheduled(":consumer")
         outputContains("consumed: label")
+
+        where:
+        description                   | provider
+        "a transformation"            | "producer.flatMap { it.options.flatMap { it.label } }"
+        "consecutive transformations" | "producer.flatMap { it.options }.flatMap { it.label }"
     }
 
     def "output of nested object does not carry dependency when queried using #description"() {
