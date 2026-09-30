@@ -292,6 +292,7 @@ The highest level of version declaration—`strictly` or `require` over `prefer`
 ====
 
 TIP: Rich versions — including `strictly`, `require`, `prefer`, and `reject` — can also be declared in a <<version_catalogs.adoc#sec:version-catalog-declaration,version catalog>> using the rich-version TOML object, for example: `guava = { strictly = "[33.0, 34.0[", prefer = "33.0.0-jre" }`.
+This does not apply to `[plugins]` entries, which only use the required version and where other constraints are <<upgrading_version_9.adoc#version_catalog_plugin_non_required_versions,deprecated>>.
 
 [[sec:rich-version-examples]]
 === Choosing between `strictly`, `reject`, and `require`
