@@ -40,7 +40,7 @@ import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.jspecify.annotations.Nullable;
 
-import java.lang.ref.SoftReference;
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Deque;
@@ -67,11 +67,13 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
 
     /**
      * The resolved dependency graph is a view over the underlying GraphStructure and
-     * provides no additional context. Only hold a soft reference to it to avoid retained
-     * memory if no other references to the view graph exist.
+     * provides no additional context. However, we want to avoid having multiple live
+     * instances of the view to avoid additional memory usage and to ensure referenceial
+     * equality of objects in the view, even between different requests for the view.
+     * Only hold a weak reference so the view is GC'd when no longer referenced elsewhere.
      */
     private final Lock rootLock = new ReentrantLock();
-    private @Nullable SoftReference<DefaultResolvedDependency> root = null;
+    private @Nullable WeakReference<DefaultResolvedDependency> root = null;
 
     public DefaultLenientConfiguration(
         ResolutionHost resolutionHost,
@@ -119,7 +121,7 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
             }
 
             DefaultResolvedDependency value = buildRoot();
-            this.root = new SoftReference<>(value);
+            this.root = new WeakReference<>(value);
             return value;
         } finally {
             rootLock.unlock();
