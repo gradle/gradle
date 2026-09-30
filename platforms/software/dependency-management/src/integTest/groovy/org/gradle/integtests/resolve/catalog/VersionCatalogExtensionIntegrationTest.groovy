@@ -2214,6 +2214,14 @@ Second: 1.1"""
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning(
+            "Declaring a plugin version in a version catalog with constraints other than a required version. " +
+                "This behavior has been deprecated. " +
+                "This will fail with an error in Gradle 10. " +
+                "Plugin 'greeter2' in catalog 'libs' declares version '{require 1.0.0; prefer 1.1.0; reject 1.0.5}', but only the required version is used when resolving a plugin. " +
+                "Declare the plugin version using only a required version. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#version_catalog_plugin_non_required_versions"
+        )
         run 'printCatalog'
 
         then:
@@ -2224,6 +2232,11 @@ Second: 1.1"""
         outputContains "Found bundle: '[org:test:1.0, org:test2:{require 1.0.0; prefer 1.1.0; reject 1.0.5}]'."
         outputContains "Found plugin: 'com.acme.greeter:1.4'."
         outputContains "Found plugin: 'com.acme.greeter2:{require 1.0.0; prefer 1.1.0; reject 1.0.5}'."
+        verifyAll(receivedProblem) {
+            severity == Severity.WARNING
+            fqid == 'deprecation:version-catalog-plugin-non-required-version'
+            definition.id.displayName == 'Non-required plugin version in version catalog'
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17874")

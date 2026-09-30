@@ -31,6 +31,7 @@ import org.gradle.api.attributes.Usage;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.artifacts.ImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
+import org.gradle.api.internal.artifacts.dependencies.AbstractVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultImmutableVersionConstraint;
 import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint;
 import org.gradle.api.internal.catalog.parser.DependenciesModelHelper;
@@ -50,6 +51,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.classpath.Instrumented;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.management.VersionCatalogBuilderInternal;
 import org.gradle.util.internal.TextUtil;
@@ -208,9 +210,26 @@ public abstract class DefaultVersionCatalogBuilder implements VersionCatalogBuil
         }
         ImmutableMap.Builder<String, PluginModel> realizedPlugins = ImmutableMap.builderWithExpectedSize(plugins.size());
         for (Map.Entry<String, Supplier<PluginModel>> entry : plugins.entrySet()) {
-            realizedPlugins.put(entry.getKey(), entry.getValue().get());
+            PluginModel plugin = entry.getValue().get();
+            maybeWarnAboutNonRequiredPluginVersion(entry.getKey(), plugin);
+            realizedPlugins.put(entry.getKey(), plugin);
         }
         return new DefaultVersionCatalog(name, description.getOrElse(""), realizedLibs.build(), ImmutableMap.copyOf(bundles), ImmutableMap.copyOf(versionConstraints), realizedPlugins.build());
+    }
+
+    private void maybeWarnAboutNonRequiredPluginVersion(String alias, PluginModel plugin) {
+        ImmutableVersionConstraint version = plugin.getVersion();
+        if (AbstractVersionConstraint.isRequiredOnly(version)) {
+            return;
+        }
+        DeprecationLogger.deprecateBehaviour("Declaring a plugin version in a version catalog with constraints other than a required version.")
+            .withContext("Plugin '" + alias + "' in catalog '" + name + "' declares version '" + version + "', but only the required version is used when resolving a plugin.")
+            .withAdvice("Declare the plugin version using only a required version.")
+            .withProblemIdDisplayName("Non-required plugin version in version catalog")
+            .withProblemId("version-catalog-plugin-non-required-version")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "version_catalog_plugin_non_required_versions")
+            .nagUser();
     }
 
     private static ProblemSpecInternal configureVersionCatalogError(ProblemSpecInternal builder, String message, VersionCatalogProblemId catalogProblemId) {

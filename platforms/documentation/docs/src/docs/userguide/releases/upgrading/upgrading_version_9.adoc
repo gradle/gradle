@@ -253,6 +253,37 @@ Setting any of them, to any value, emits a deprecation warning.
 Use the <<configuration_cache_debugging.adoc#config_cache:troubleshooting, Configuration Cache report>> to identify the offending build logic.
 See <<configuration_cache_enabling.adoc#config_cache:usage:input_opt_outs, Temporary Opt-Outs for Configuration Cache Behavior>> in the Gradle User Manual for the details of each property.
 
+[[version_catalog_plugin_non_required_versions]]
+==== Deprecation of non-required versions for plugins in a version catalog
+
+When a plugin declared in a <<version_catalogs.adoc#sec:plugins-ver,version catalog>> is applied, only its required version is used to resolve the plugin.
+Any `prefer`, `strictly`, or `reject` constraint is silently ignored, which can lead to an unexpected plugin version being selected.
+
+Declaring a plugin version in a version catalog with constraints other than a required version is now deprecated and will become an error in Gradle 10.
+This includes plugins that reference such a version with `version.ref`.
+
+[source,toml]
+.gradle/libs.versions.toml
+----
+[versions]
+my-plugin = { require = "[1.0,)", prefer = "1.5" }
+
+[plugins]
+my-plugin = { id = "com.example.my-plugin", version.ref = "my-plugin" }
+----
+
+To fix this, declare the version with only a required version:
+
+[source,toml]
+.gradle/libs.versions.toml
+----
+[versions]
+my-plugin = "1.5"
+
+[plugins]
+my-plugin = { id = "com.example.my-plugin", version.ref = "my-plugin" }
+----
+
 [[changes_9.8.0]]
 == Upgrading from 9.7.0 and earlier
 
