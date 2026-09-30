@@ -1,6 +1,7 @@
 # Lazy Property Migration Report
 
 > Generated: 2026-05-15
+> Updated: 2026-09-30 -- `GradlePluginDevelopmentExtension.automatedPublishing` migrated (#38863)
 > Branch: `gradle10/provider-api-migration`
 > Excluded: `signing` tasks and plugins (by decision)
 
@@ -8,8 +9,8 @@
 
 | Category | Count |
 |---|---|
-| Properties still pending migration (`@ToBeReplacedByLazyProperty`) | ~110 methods across 46 files |
-| Properties already migrated (`@ReplacesEagerProperty`) | ~400 methods across 85 files |
+| Properties still pending migration (`@ToBeReplacedByLazyProperty`) | ~109 methods across 45 files |
+| Properties already migrated (`@ReplacesEagerProperty`) | ~401 methods across 86 files |
 | Properties excluded from migration (`@NotToBeReplacedByLazyProperty`) | ~38 methods |
 
 **Note:** `JavaExec.getJvmArgs()` is incorrectly annotated with `@ToBeReplacedByLazyProperty` despite already returning `ListProperty<String>`. This annotation should be removed.
@@ -56,7 +57,6 @@
 | Class | Pending Properties | Types |
 |---|---|---|
 | `JavaPluginExtension` | `getSourceCompatibility()`, `getTargetCompatibility()` | `JavaVersion` |
-| `GradlePluginDevelopmentExtension` | `isAutomatedPublishing()` | `boolean` |
 | `CheckstyleExtension` | `getConfigFile()`, `getConfig()` | `File`, `TextResource` |
 | `CodeNarcExtension` | `getConfig()`, `getConfigFile()` | `TextResource`, `File` (**blocked:** Gradleception test failures) |
 
@@ -109,7 +109,7 @@
 | Eager Type | Lazy Equivalent | Count | Example Classes |
 |---|---|---|---|
 | `String` | `Property<String>` | 18 | AbstractCompile, AwsCredentials, DeploymentDescriptor, GradleBuild, HttpBuildCacheCredentials, JacocoLimit, JacocoViolationRule, PasswordCredentials, HttpHeaderCredentials |
-| `boolean` | `Property<Boolean>` | 12 | AbstractCodeQualityTask, AbstractCopyTask, AbstractTestTask, CopySpec, GradlePluginDevelopmentExtension, JacocoViolationRule, JacocoViolationRulesContainer, Test, VerificationTask |
+| `boolean` | `Property<Boolean>` | 11 | AbstractCodeQualityTask, AbstractCopyTask, AbstractTestTask, CopySpec, JacocoViolationRule, JacocoViolationRulesContainer, Test, VerificationTask |
 | `File` | `RegularFileProperty` / `DirectoryProperty` | 7 | Checkstyle, CheckstyleExtension, CodeNarc, Copy, ForkOptions, GradleBuild, Sync |
 | `Set<String>` | `SetProperty<String>` | 4 | PatternFilterable, Test |
 | `List<String>` | `ListProperty<String>` | 3 | GradleBuild, JacocoViolationRule |
@@ -161,7 +161,7 @@ Likely blocked because `FileTree` in `SourceTask` is built from `source(Object..
 | Credentials | -- | -- | PasswordCredentials, HttpHeaderCredentials, AwsCredentials, HttpBuildCacheCredentials |
 | JaCoCo | -- | -- | JacocoViolationRulesContainer, JacocoViolationRule, JacocoLimit |
 | Packaging | -- | Jar | Manifest, DeploymentDescriptor |
-| Application plugin | -- | -- | GradlePluginDevelopmentExtension |
+| Plugin development | GradlePluginDevelopmentExtension | -- | -- |
 | Build infra | -- | -- | GradleBuild, JavaPluginExtension |
 | Ant/ANTLR | -- | AntlrTask | -- |
 
@@ -169,9 +169,9 @@ Likely blocked because `FileTree` in `SourceTask` is built from `source(Object..
 
 ## 7. Migration Candidates by Difficulty
 
-Each of the 110 remaining `@ToBeReplacedByLazyProperty` annotations is
+Each of the 109 remaining `@ToBeReplacedByLazyProperty` annotations is
 categorized below: **A** = do not migrate, **B** = easy candidate,
-**C** = doable with caveats. Counts: A ≈ 26, B ≈ 61, C ≈ 23.
+**C** = doable with caveats. Counts: A ≈ 26, B ≈ 61, C ≈ 22.
 
 ### 7.A. Do not migrate (~26)
 
@@ -256,7 +256,7 @@ All extend `SourceTask`. Migrate `SourceTask.getSource()` first (see A4), then t
 - `platforms/jvm/code-quality/.../CodeNarc.java:79`
 - `platforms/jvm/antlr/.../AntlrTask.java:290`
 
-### 7.C. Candidates with caveats (~23)
+### 7.C. Candidates with caveats (~22)
 
 #### C1. Public-API interfaces — bigger blast radius
 
@@ -272,7 +272,6 @@ All extend `SourceTask`. Migrate `SourceTask.getSource()` first (see A4), then t
 | `subprojects/core-api/.../util/PatternFilterable.java:75` | `getIncludes()` | `SetProperty<String>` | Widely implemented |
 | `subprojects/core-api/.../util/PatternFilterable.java:83` | `getExcludes()` | `SetProperty<String>` | Same |
 | `subprojects/core-api/.../VerificationTask.java:37` | `getIgnoreFailures()` | `Property<Boolean>` | Implemented by many tasks |
-| `platforms/extensibility/plugin-development/.../GradlePluginDevelopmentExtension.java:155` | `isAutomatedPublishing()` | `Property<Boolean>` | Public extension |
 | `subprojects/core/.../SourceTask.java:183` | `getIncludes()` | `SetProperty<String>` | Overrides `PatternFilterable` |
 | `subprojects/core/.../SourceTask.java:202` | `getExcludes()` | `SetProperty<String>` | Same |
 

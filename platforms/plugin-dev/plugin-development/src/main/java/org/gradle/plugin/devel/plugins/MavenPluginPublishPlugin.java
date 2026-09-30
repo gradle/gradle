@@ -51,7 +51,7 @@ abstract class MavenPluginPublishPlugin implements Plugin<Project> {
     private void configurePublishing(final Project project) {
         project.getExtensions().configure(PublishingExtension.class, publishing -> {
             final GradlePluginDevelopmentExtension pluginDevelopment = project.getExtensions().getByType(GradlePluginDevelopmentExtension.class);
-            if (!pluginDevelopment.isAutomatedPublishing()) {
+            if (!pluginDevelopment.getAutomatedPublishing().get()) {
                 return;
             }
             SoftwareComponent mainComponent = project.getComponents().getByName("java");
