@@ -25,7 +25,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.SourceSet;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
-import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
+import org.gradle.internal.instrumentation.api.annotations.ReplacesEagerProperty;
 
 import java.util.Arrays;
 import java.util.Set;
@@ -62,7 +62,6 @@ import java.util.Set;
 public abstract class GradlePluginDevelopmentExtension {
     private final SourceSetContainer testSourceSets;
     private final SourceSet pluginSourceSet;
-    private boolean automatedPublishing = true;
 
     /**
      * Creates a new {@code GradlePluginDevelopmentExtension}.
@@ -74,6 +73,7 @@ public abstract class GradlePluginDevelopmentExtension {
         this.pluginSourceSet = pluginSourceSet;
         this.testSourceSets = project.getObjects().newInstance(DefaultSourceSetContainer.class);
         testSourceSets(testSourceSet);
+        getAutomatedPublishing().convention(true);
     }
 
      /**
@@ -160,14 +160,13 @@ public abstract class GradlePluginDevelopmentExtension {
     }
 
     /**
-     * Whether the plugin should automatically configure the publications for the plugins.
-     * @return true if publishing should be automated, false otherwise
+     * Whether the plugin should automatically configure the publications for the plugins. Defaults to {@code true}.
+     *
+     * @return the property controlling whether publishing should be automated
      * @since 2.14
      */
-    @ToBeReplacedByLazyProperty
-    public boolean isAutomatedPublishing() {
-        return automatedPublishing;
-    }
+    @ReplacesEagerProperty(originalType = boolean.class)
+    public abstract Property<Boolean> getAutomatedPublishing();
 
     /**
      * Configures whether the plugin should automatically configure the publications for the plugins.
@@ -175,6 +174,15 @@ public abstract class GradlePluginDevelopmentExtension {
      * @since 2.14
      */
     public void setAutomatedPublishing(boolean automatedPublishing) {
-        this.automatedPublishing = automatedPublishing;
+        getAutomatedPublishing().set(automatedPublishing);
+    }
+
+    /**
+     * This method exists only for Kotlin source backward compatibility.
+     *
+     * @see #getAutomatedPublishing()
+     */
+    public Property<Boolean> getIsAutomatedPublishing() {
+        return getAutomatedPublishing();
     }
 }
