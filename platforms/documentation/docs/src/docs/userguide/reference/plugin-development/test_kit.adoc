@@ -248,7 +248,7 @@ include::{snippetsPath}/reference/plugin-development/testKitFunctionalTestSpockB
 ----
 
 [[sub:test-kit-configuration-cache]]
-== Testing with the Configuration Cache
+== Testing with the Configuration Cache incubating-label:[]
 
 To verify that your plugin is compatible with the <<configuration_cache.adoc#config_cache,Configuration Cache>>, enable it in your tests by passing the `--configuration-cache` argument to link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html[`GradleRunner`] or use one of the other methods described in <<configuration_cache_enabling.adoc#config_cache:usage:enable,Enabling the Configuration Cache>>.
 
@@ -264,7 +264,15 @@ include::sample[dir="snippets/reference/plugin-development/testKitFunctionalTest
 
 The outcome is expressed by the type of the returned object, so check it with `instanceof` in Groovy and Java, or `is` in Kotlin.
 See link:{javadocPath}/org/gradle/testkit/runner/ConfigurationCacheOutcome.html[`ConfigurationCacheOutcome`] for all possible outcomes.
-When no entry was stored, link:{javadocPath}/org/gradle/testkit/runner/ConfigurationCacheOutcome.StoreFailed.html[`StoreFailed`] indicates that the build failed, for example because of Configuration Cache problems or a serialization error, while link:{javadocPath}/org/gradle/testkit/runner/ConfigurationCacheOutcome.StoreSkipped.html[`StoreSkipped`] indicates that storing was skipped on purpose, for example because of an incompatible task.
+When no entry was stored, link:{javadocPath}/org/gradle/testkit/runner/ConfigurationCacheOutcome.StoreFailed.html[`StoreFailed`] indicates that the build failed, for example because of Configuration Cache problems or a serialization error.
+link:{javadocPath}/org/gradle/testkit/runner/ConfigurationCacheOutcome.StoreSkipped.html[`StoreSkipped`] indicates that storing was skipped on purpose, for example because of an incompatible task.
+
+[NOTE]
+====
+The console message and the outcome are computed independently and can disagree.
+For example, when the build script fails before the entry can be committed, the console reports that the entry was stored while the outcome is `StoreFailed`.
+Assert on the outcome rather than on the console output.
+====
 
 Inspecting the outcome requires the build under test to run with Gradle 9.9 or later.
 For older Gradle versions selected via link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withGradleVersion-java.lang.String-[`GradleRunner.withGradleVersion(java.lang.String)`], calling `getConfigurationCacheOutcome()` throws link:{javadocPath}/org/gradle/testkit/runner/UnsupportedFeatureException.html[`UnsupportedFeatureException`].

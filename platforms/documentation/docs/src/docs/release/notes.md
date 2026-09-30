@@ -76,9 +76,9 @@ Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that
 
 #### TestKit API for asserting the Configuration Cache outcome
 
-Plugin authors testing Configuration Cache compatibility with [TestKit](userguide/test_kit.html) previously had to parse console output to tell whether a cache entry was stored or reused — an approach that broke whenever the wording of the console messages changed.
+Plugin authors testing Configuration Cache compatibility with [TestKit](userguide/test_kit.html) previously had to parse console output to tell whether a cache entry was stored or reused. That approach broke whenever the wording of the console messages changed.
 
-The [`BuildResult`](javadoc/org/gradle/testkit/runner/BuildResult.html) now exposes the outcome directly:
+[`BuildResult`](javadoc/org/gradle/testkit/runner/BuildResult.html) now exposes the outcome directly:
 
 ```groovy
 def result = GradleRunner.create()
