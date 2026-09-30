@@ -22,6 +22,7 @@ import org.gradle.api.initialization.Settings
 import org.gradle.api.initialization.dsl.ScriptHandler
 import org.gradle.api.plugins.ObjectConfigurationAction
 import org.gradle.kotlin.dsl.resolver.KotlinBuildScriptDependenciesResolver
+import org.gradle.kotlin.dsl.support.KOTLIN_DSL_LANGUAGE_VERSION
 import org.gradle.kotlin.dsl.support.KotlinScriptHost
 import org.gradle.plugin.use.PluginDependenciesSpec
 import kotlin.script.extensions.SamWithReceiverAnnotations
@@ -42,8 +43,8 @@ import kotlin.script.templates.ScriptTemplateDefinition
 )
 @ScriptTemplateAdditionalCompilerArguments(
     [
-        "-language-version", "2.2",
-        "-api-version", "2.2",
+        "-language-version", KOTLIN_DSL_LANGUAGE_VERSION,
+        "-api-version", KOTLIN_DSL_LANGUAGE_VERSION,
         "-jvm-default=enable",
         "-Xjsr305=strict",
         "-Xjspecify-annotations=strict",
