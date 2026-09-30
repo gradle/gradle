@@ -182,9 +182,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             def artifactType = Attribute.of('artifactType', String)
             def counted = Attribute.of('counted', Boolean)
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             configurations.all {
                 afterEvaluate {

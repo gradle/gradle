@@ -33,13 +33,13 @@ abstract class MavenConversionDynamicPomIntegrationTest extends AbstractInitInte
     abstract BuildInitDsl getScriptDsl()
 
     def setup() {
+        requireMavenCentralForBuildInitClasspath()
         /**
          * We need to configure the local maven repository explicitly as
          * RepositorySystem.defaultUserLocalRepository is statically initialised and used when
          * creating multiple ProjectBuildingRequest.
          * */
         m2.generateUserSettingsFile(m2.mavenRepo())
-        using m2
 
         targetDir.file("src/main/java/Foo.java") << """
             import org.apache.commons.lang.StringUtils;

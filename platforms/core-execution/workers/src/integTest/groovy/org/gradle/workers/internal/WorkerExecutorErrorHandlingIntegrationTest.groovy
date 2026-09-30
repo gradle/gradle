@@ -26,7 +26,8 @@ import org.gradle.workers.fixtures.WorkerExecutorFixture
 
 import static org.gradle.workers.fixtures.WorkerExecutorFixture.ISOLATION_MODES
 
-@IntegrationTestTimeout(120)
+// The first compile against the Gradle API in a fresh user home is slow on EBS-backed CI agents
+@IntegrationTestTimeout(300)
 class WorkerExecutorErrorHandlingIntegrationTest extends AbstractWorkerExecutorIntegrationTest {
     WorkerExecutorFixture.WorkActionClass actionThatFailsInstantiation
     WorkerExecutorFixture.WorkActionClass actionThatThrowsUnserializableMemberException

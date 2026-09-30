@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
 import org.gradle.test.preconditions.UnitTestPreconditions
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
 @Requires([
     // We compile and execute build-logic with Java 17
@@ -248,7 +249,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
                 maven {
                     url = uri("${apiJarRepoLocation.toURI()}")
                 }
-                mavenCentral()
+                ${mavenCentralRepositoryDefinition()}
             }
         """
     }

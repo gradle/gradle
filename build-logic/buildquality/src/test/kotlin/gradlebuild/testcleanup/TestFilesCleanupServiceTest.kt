@@ -16,6 +16,7 @@
 
 package gradlebuild.testcleanup
 
+import gradlebuild.basics.RepositoryMirrors
 import org.gradle.internal.impldep.org.apache.commons.lang.StringUtils
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
@@ -161,7 +162,7 @@ class TestFilesCleanupServiceTest {
         .withTestKitDir(projectDir.resolve("test-kit"))
         .withPluginClasspath()
         .forwardOutput()
-        .withArguments(*args)
+        .withArguments(listOf(*args) + RepositoryMirrors.testKitArguments())
 
     private
     fun assertArchivedFilesSeen(vararg archiveFileNames: String) {

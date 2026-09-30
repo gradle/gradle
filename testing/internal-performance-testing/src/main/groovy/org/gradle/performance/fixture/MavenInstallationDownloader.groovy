@@ -21,6 +21,7 @@ import groovy.json.JsonSlurper
 import groovy.util.logging.Slf4j
 import org.apache.commons.io.FileUtils
 import org.gradle.api.UncheckedIOException
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.internal.os.OperatingSystem
 
 import java.util.concurrent.locks.Lock
@@ -53,7 +54,8 @@ class MavenInstallationDownloader {
 
     private static File downloadAndExtractMavenBinArchiveWithRetry(String mavenVersion) {
         def binArchiveUrls = [
-            new URL("https://repo.maven.apache.org/maven2/org/apache/maven/apache-maven/$mavenVersion/apache-maven-$mavenVersion-bin.zip"),
+            // Through the Maven Central mirror when one is configured: CI must not contact Maven Central directly.
+            new URL("${mavenCentralBaseUrl()}org/apache/maven/apache-maven/$mavenVersion/apache-maven-$mavenVersion-bin.zip"),
             new URL(fetchPreferredUrl(mavenVersion))
         ]
 
@@ -68,6 +70,11 @@ class MavenInstallationDownloader {
             }
         }
         throw new UncheckedIOException("Unable to download Maven binary distribution from any of the repositories")
+    }
+
+    private static String mavenCentralBaseUrl() {
+        def url = RepoScriptBlockUtil.mavenCentralMirrorUrl
+        return url.endsWith("/") ? url : url + "/"
     }
 
     private static File downloadMavenBinArchive(String mavenVersion, URL binArchiveUrl) {

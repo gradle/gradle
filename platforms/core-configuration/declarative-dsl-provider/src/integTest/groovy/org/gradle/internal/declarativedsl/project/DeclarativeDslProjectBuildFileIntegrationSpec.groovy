@@ -18,6 +18,8 @@ package org.gradle.internal.declarativedsl.project
 
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType
+import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.intellij.lang.annotations.Language
 
@@ -198,7 +200,7 @@ secondaryAccess { three, true, true}"""
                 `java-gradle-plugin`
                 ${if (language == "kotlin") { "`kotlin-dsl`" } else { "" }}
             }
-            ${if (language == "kotlin") { "repositories { mavenCentral() }" } else { "" }}
+            ${if (language == "kotlin") { "repositories { " + RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN) + " }" } else { "" }}
             gradlePlugin {
                 plugins {
                     create("restrictedPlugin") {

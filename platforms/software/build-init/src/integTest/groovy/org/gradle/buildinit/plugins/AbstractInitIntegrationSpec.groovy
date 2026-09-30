@@ -20,8 +20,11 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.IgnoreIf
 
 import static org.gradle.initialization.ParallelismBuildOptions.ParallelOption
 import static org.gradle.initialization.StartParameterBuildOptions.BuildCacheOption
@@ -30,6 +33,11 @@ import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
+@IgnoreIf(
+    value = { RepoScriptBlockUtil.mirrorEnabled && (GradleContextualExecuter.configCache || GradleContextualExecuter.isolatedProjects) },
+    inherited = true,
+    reason = "In configuration-cache and isolated-projects mode every init invocation resolves build init's Maven conversion classpath (org.apache.maven:maven-core and friends) from mavenCentral() through a detached resolver that no repository mirror reaches on this line. Upstream routes it through a Maven settings mirror (https://github.com/gradle/gradle/pull/39325), which needs the settings.xml mirror support that only exists from Gradle 9.8, so the fix cannot be backported. With the CI repository mirror enabled Maven Central must not be contacted."
+)
 abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
     TestFile containerDir
     TestFile targetDir
@@ -43,6 +51,7 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         """
         initializeIntoTestDir()
         executer.withRepositoryMirrors()
+        mirrorMavenCentralForInit()
     }
 
     void initializeIntoTestDir() {

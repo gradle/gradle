@@ -41,6 +41,7 @@ class TestReportTaskIntegrationTest extends AbstractIntegrationSpec {
     @UsesSample("testing/testReport/groovy")
     def "can generate report for subprojects"() {
         given:
+        executer.withRepositoryMirrors()
         super.sample(sample)
 
         when:

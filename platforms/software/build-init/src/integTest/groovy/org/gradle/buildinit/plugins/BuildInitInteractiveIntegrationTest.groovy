@@ -343,6 +343,7 @@ class BuildInitInteractiveIntegrationTest extends AbstractInteractiveInitIntegra
     }
 
     def "does not prompt user to overwrite when run from an interactive session and pom.xml present"() {
+        requireMavenCentralForBuildInitClasspath()
         given:
         pom()
 

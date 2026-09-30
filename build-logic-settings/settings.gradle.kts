@@ -44,6 +44,8 @@ plugins {
     id("org.gradle.toolchains.foojay-resolver-convention").version("1.0.0")
 }
 
+apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
+
 include("build-environment")
 include("configuration-cache-compatibility")
 

@@ -16,6 +16,7 @@
 
 package gradlebuild.docs
 
+import gradlebuild.basics.RepositoryMirrors
 import org.gradle.testkit.runner.GradleRunner
 import spock.lang.Specification
 import spock.lang.TempDir
@@ -301,7 +302,7 @@ Nothing to write about
         return GradleRunner.create()
             .withProjectDir(projectDir)
             .withPluginClasspath()
-            .withArguments(args)
+            .withArguments(args.toList() + RepositoryMirrors.testKitArguments())
             .forwardOutput()
     }
 

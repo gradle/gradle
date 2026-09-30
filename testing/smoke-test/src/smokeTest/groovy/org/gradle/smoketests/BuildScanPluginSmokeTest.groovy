@@ -29,6 +29,8 @@ import org.gradle.util.internal.VersionNumber
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
+
 // https://plugins.gradle.org/plugin/com.gradle.develocity
 class BuildScanPluginSmokeTest extends AbstractSmokeTest {
 
@@ -363,6 +365,8 @@ class BuildScanPluginSmokeTest extends AbstractSmokeTest {
             systemProp.develocity.injection.init-script-name=$initScript
             systemProp.develocity.url=http://localhost:5086
             systemProp.develocity.injection-enabled=true
+            # read by the Jenkins and Bamboo injection scripts; defaults to the real plugin portal
+            systemProp.gradle.plugin-repository.url=${gradlePluginRepositoryMirrorUrl()}
         """.stripIndent()
 
         setupLocalBuildCache()

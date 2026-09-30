@@ -16,6 +16,8 @@
 package org.gradle.plugins.ide.eclipse
 
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.junit.Test
 import spock.lang.Issue
 
@@ -131,9 +133,7 @@ dependencies {
             group = "org.example"
             version = "1.0-SNAPSHOT"
 
-            repositories {
-                mavenCentral()
-            }
+            ${RepoScriptBlockUtil.mavenCentralRepository(GradleDsl.KOTLIN)}
 
             dependencies {
                 testImplementation(platform("org.junit:junit-bom:5.9.1"))
@@ -160,9 +160,7 @@ dependencies {
             group = "org.example"
             version = "1.0-SNAPSHOT"
 
-            repositories {
-                mavenCentral()
-            }
+            ${RepoScriptBlockUtil.mavenCentralRepository(GradleDsl.KOTLIN)}
 
             dependencies {
                 implementation("org.example:GradleEclipseWTPWithIncludedBuild_Included:1.0-SNAPSHOT")

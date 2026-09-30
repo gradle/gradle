@@ -31,7 +31,7 @@ abstract class AbstractTestListenerBuildOperationAdapterIntegrationTest extends 
         given:
         buildFile << """
             apply plugin: 'java'
-            repositories { mavenCentral() }
+            ${mavenCentralRepository()}
             dependencies {
                 ${testFrameworkDependencies}
             }

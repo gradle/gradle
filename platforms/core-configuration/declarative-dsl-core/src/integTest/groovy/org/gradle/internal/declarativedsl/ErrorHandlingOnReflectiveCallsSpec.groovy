@@ -18,7 +18,9 @@ package org.gradle.internal.declarativedsl
 
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
 import org.gradle.api.internal.plugins.software.SoftwareType
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.junit.Before
 import org.junit.Test
 
@@ -292,7 +294,7 @@ class ErrorHandlingOnReflectiveCallsSpec extends AbstractKotlinIntegrationTest {
                 ${plugins.join("\n")}
             }
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
             }
             gradlePlugin {
                 plugins {

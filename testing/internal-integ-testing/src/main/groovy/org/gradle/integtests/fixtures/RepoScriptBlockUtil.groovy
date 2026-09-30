@@ -130,6 +130,10 @@ class RepoScriptBlockUtil {
         MirroredRepository.LIGHTBEND_IVY.getRepositoryDefinition(dsl)
     }
 
+    static String getGoogleMirrorUrl() {
+        MirroredRepository.GOOGLE.mirrorUrl
+    }
+
     static String googleRepositoryDefinition(GradleDsl dsl = GROOVY) {
         MirroredRepository.GOOGLE.getRepositoryDefinition(dsl)
     }
@@ -199,7 +203,11 @@ class RepoScriptBlockUtil {
 
                 @CompileDynamic
                 void maybeConfigurePluginManagement(Gradle gradle) {
-                    if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("4.4")) {
+                    if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("6.0")) {
+                        gradle.beforeSettings { Settings settings ->
+                            withMirrors(settings.pluginManagement.repositories)
+                        }
+                    } else if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("4.4")) {
                         gradle.settingsEvaluated { Settings settings ->
                             withMirrors(settings.pluginManagement.repositories)
                         }
@@ -209,7 +217,7 @@ class RepoScriptBlockUtil {
                 @CompileDynamic
                 void maybeConfigureDependencyResolutionManagement(Gradle gradle) {
                     if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("6.8")) {
-                        gradle.settingsEvaluated { Settings settings ->
+                        gradle.beforeSettings { Settings settings ->
                             withMirrors(settings.dependencyResolutionManagement.repositories)
                         }
                     }

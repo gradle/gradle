@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.versions.AndroidGradlePluginVersions
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.UnitTestPreconditions
 import spock.lang.Ignore
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 
 @Ignore("It keeps failing on release8x, blocking the release")
 class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
@@ -50,22 +51,24 @@ class IsolatedProjectsAndroidProjectSyncTest extends AbstractIdeSyncTest {
         file("settings.gradle") << """
             pluginManagement {
                 repositories {
-                    google {
+                    maven {
+                        name = 'GOOGLE_MIRROR'
+                        url = '${RepoScriptBlockUtil.googleMirrorUrl}'
                         content {
                             includeGroupByRegex("com.android.*")
                             includeGroupByRegex("com.google.*")
                             includeGroupByRegex("androidx.*")
                         }
                     }
-                    mavenCentral()
-                    gradlePluginPortal()
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition()}
                 }
             }
 
             dependencyResolutionManagement {
                 repositories {
-                    google()
-                    mavenCentral()
+                    ${RepoScriptBlockUtil.googleRepositoryDefinition()}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
                 }
             }
 

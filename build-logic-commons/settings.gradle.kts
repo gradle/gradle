@@ -37,6 +37,8 @@ plugins {
 
 includeBuild("../build-logic-settings")
 
+apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
+
 // Shared basics for all
 include("basics")
 
