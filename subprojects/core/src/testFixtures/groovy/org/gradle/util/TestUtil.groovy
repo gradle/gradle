@@ -43,6 +43,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.problems.Problem
+import org.gradle.api.problems.ProblemGroups
 import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.DeprecationData
@@ -420,6 +421,11 @@ class TestProblems implements ProblemsInternal {
     @Override
     ProblemReporter getReporter() {
         delegate.reporter
+    }
+
+    @Override
+    ProblemGroups getGroups() {
+        delegate.groups
     }
 
     @Override

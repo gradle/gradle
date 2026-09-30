@@ -30,7 +30,7 @@ class DefaultProblemIdTest extends Specification {
         ProblemId id = ProblemId.create("id", "d/id", g2)
 
         expect:
-        id.toString() == "g-1:g-2:id"
+        id.toString() == "id (in g-1 > g-2)"
     }
 
 }
