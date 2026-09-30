@@ -253,6 +253,8 @@ fun configureTests() {
 
         configureAndroidUserHome()
         filterEnvironmentVariables()
+        // Gradleception builds apply the mirror settings script, which only activates on CI.
+        if (project.name == "smoke-test") System.getenv("CI")?.let { environment("CI", it) }
 
         maxParallelForks = project.maxParallelForks
 

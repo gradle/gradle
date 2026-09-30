@@ -68,6 +68,18 @@ class ProjectSourceRoots {
 abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpecification {
 
     def setup() {
+        // These specs assert on the Kotlin plugin's sources jar, resolved with the buildscript
+        // classpath from pluginManagement. The portal override does not reach the target daemon in
+        // cross-version tests, so a bare gradlePluginPortal() there is the real portal. withDefaultSettings()
+        // writes defaultSettingsScript, so that is the field that has to carry the mirrors.
+        defaultSettingsScript = """
+            pluginManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+        """.stripIndent()
         // Required for the lenient classpath mode
         toolingApi.requireDaemons()
         // Only Kotlin settings scripts

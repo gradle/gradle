@@ -16,9 +16,7 @@
 
 package org.gradle.testkit.runner
 
-import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.AvailableJavaHomes
-import org.gradle.internal.os.OperatingSystem
 import org.gradle.testkit.runner.fixtures.NoDebug
 import org.gradle.testkit.runner.fixtures.NonCrossVersion
 import org.gradle.tooling.GradleConnectionException
@@ -33,14 +31,14 @@ class GradleRunnerSupportedBuildJvmIntegrationTest extends BaseGradleRunnerInteg
     def "fails when build is configured to use Java 7 or earlier"() {
         given:
         testDirectory.file("gradle.properties").writeProperties("org.gradle.java.home": jdk.javaHome.absolutePath)
-        String args = OperatingSystem.current().windows ? "args '-D${StartParameterBuildOptions.WatchFileSystemOption.GRADLE_PROPERTY}=false'" : 'no args'
 
         when:
         runner().buildAndFail()
 
         then:
         IllegalStateException e = thrown()
-        e.message.startsWith("An error occurred executing build with ${args} in directory ")
+        // The exact arguments depend on the environment: on CI the runner also passes the repository mirror init script
+        e.message.startsWith("An error occurred executing build with ")
         e.cause instanceof GradleConnectionException
         e.cause.cause.message == "Gradle ${GradleVersion.current().version} requires Java 8 or later to run. Your build is currently configured to use Java ${jdk.javaVersion.majorVersion}."
 

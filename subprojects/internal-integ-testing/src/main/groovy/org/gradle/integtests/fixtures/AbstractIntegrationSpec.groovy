@@ -45,6 +45,7 @@ import org.hamcrest.CoreMatchers
 import org.hamcrest.Matcher
 import org.intellij.lang.annotations.Language
 import org.junit.Rule
+import org.opentest4j.TestAbortedException
 import spock.lang.Specification
 
 import java.nio.file.Files
@@ -584,6 +585,20 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
     public GradleExecuter using(Action<GradleExecuter> action) {
         action.execute(executer)
         executer
+    }
+
+    /**
+     * Skips the calling test when the repository mirror is in use and the test needs build init's
+     * Maven conversion classpath.
+     *
+     * <p>On this line build init resolves that classpath from {@code mavenCentral()} through a detached
+     * resolver that the mirror init script cannot reach, and Gradle has no Maven settings mirror support.
+     * With the mirror in use, Maven Central must not be contacted, so such a test cannot run there.</p>
+     */
+    protected void requireMavenCentralForBuildInitClasspath() {
+        if (System.getProperty('org.gradle.integtest.mirrors.mavencentral')) {
+            throw new TestAbortedException("On this line, build init's Maven conversion classpath resolves from Maven Central directly, which is not used when the repository mirror is enabled")
+        }
     }
 
     def createZip(String name, Closure cl) {

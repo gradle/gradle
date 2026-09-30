@@ -31,7 +31,7 @@ val originalUrls: Map<String, String> = mapOf(
 )
 
 val mirrorUrls: Map<String, String> =
-    providers.environmentVariable("REPO_MIRROR_URLS").orNull
+    System.getenv("REPO_MIRROR_URLS")
         ?.ifBlank { null }
         ?.split(',')
         ?.associate { nameToUrl ->
@@ -40,12 +40,12 @@ val mirrorUrls: Map<String, String> =
         }
         ?: emptyMap()
 
-fun ignoreMirrors() = providers.environmentVariable("IGNORE_MIRROR").orNull?.toBoolean() == true
+fun ignoreMirrors() = System.getenv("IGNORE_MIRROR")?.toBoolean() == true
 
-fun isCI() = providers.environmentVariable("CI").isPresent()
+fun isCI() = System.getenv("CI") != null
 
 fun withMirrors(handler: RepositoryHandler) {
-    if (!isCI()) {
+    if (!isCI() || ignoreMirrors()) {
         return
     }
     handler.all {
@@ -75,4 +75,8 @@ gradle.allprojects {
 
 gradle.settingsEvaluated {
     withMirrors(settings.pluginManagement.repositories)
+    // Repositories declared here are never project repositories, so the afterEvaluate hook
+    // above does not see them. build-logic-commons and build-logic-settings declare
+    // gradlePluginPortal() this way.
+    withMirrors(settings.dependencyResolutionManagement.repositories)
 }

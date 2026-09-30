@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.fixtures.mirror;
 
+import org.gradle.api.artifacts.ArtifactRepositoryContainer;
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil;
 import org.gradle.exemplar.model.Command;
 import org.gradle.exemplar.model.Sample;
@@ -27,6 +28,7 @@ import java.util.List;
 
 import static org.gradle.api.internal.artifacts.BaseRepositoryFactory.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY;
 import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl;
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.isMirrorEnabled;
 
 public class SetMirrorsSampleModifier implements SampleModifier {
 
@@ -34,7 +36,7 @@ public class SetMirrorsSampleModifier implements SampleModifier {
 
     @Override
     public Sample modify(Sample sample) {
-        if (sample.getId().contains("usePluginsInInitScripts")) {
+        if (sample.getId().contains("usePluginsInInitScripts") || !isMirrorEnabled()) {
             // usePluginsInInitScripts asserts using https://repo.gradle.org/gradle/repo
             return sample;
         }
@@ -53,4 +55,9 @@ public class SetMirrorsSampleModifier implements SampleModifier {
         }
         return new Sample(sample.getId(), sample.getProjectDir(), modifiedCommands);
     }
+
+    public static boolean isMavenCentralMirrored() {
+        return !RepoScriptBlockUtil.getMavenCentralMirrorUrl().equals(ArtifactRepositoryContainer.MAVEN_CENTRAL_URL);
+    }
+
 }

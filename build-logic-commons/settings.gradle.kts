@@ -20,6 +20,8 @@ dependencyResolutionManagement {
     }
 }
 
+apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
+
 include("code-quality-rules")
 include("gradle-plugin")
 

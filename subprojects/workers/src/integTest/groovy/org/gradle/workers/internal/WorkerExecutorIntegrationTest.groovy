@@ -17,6 +17,7 @@
 package org.gradle.workers.internal
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.timeout.IntegrationTestTimeout
 import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.workers.fixtures.WorkerExecutorFixture
@@ -503,7 +504,7 @@ class WorkerExecutorIntegrationTest extends AbstractWorkerExecutorIntegrationTes
             import java.util.jar.Manifest
 
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
             }
 
             configurations {

@@ -96,6 +96,14 @@ class RepoScriptBlockUtil {
         MirroredRepository.MAVEN_CENTRAL.configure(repositories)
     }
 
+    static boolean isMirrorEnabled() {
+        return !Boolean.parseBoolean(System.getenv("IGNORE_MIRROR"))
+    }
+
+    static String getMavenCentralMirrorUrl() {
+        MirroredRepository.MAVEN_CENTRAL.mirrorUrl
+    }
+
     static String mavenCentralRepository(GradleDsl dsl = GROOVY) {
         return """
             repositories {
@@ -162,6 +170,7 @@ class RepoScriptBlockUtil {
         return """
             import groovy.transform.CompileStatic
             import groovy.transform.CompileDynamic
+            import org.gradle.util.GradleVersion
 
             apply plugin: MirrorPlugin
 
@@ -177,13 +186,29 @@ class RepoScriptBlockUtil {
                         }
                     }
                     maybeConfigurePluginManagement(gradle)
+                    maybeConfigureDependencyResolutionManagement(gradle)
                 }
 
                 @CompileDynamic
                 void maybeConfigurePluginManagement(Gradle gradle) {
-                    if (gradle.gradleVersion >= "4.4") {
+                    // beforeSettings: settingsEvaluated runs after the settings plugins {} block has
+                    // already resolved, and repositories.all still catches repositories added later.
+                    if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("6.0")) {
+                        gradle.beforeSettings { Settings settings ->
+                            withMirrors(settings.pluginManagement.repositories)
+                        }
+                    } else if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("4.4")) {
                         gradle.settingsEvaluated { Settings settings ->
                             withMirrors(settings.pluginManagement.repositories)
+                        }
+                    }
+                }
+
+                @CompileDynamic
+                void maybeConfigureDependencyResolutionManagement(Gradle gradle) {
+                    if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("6.8")) {
+                        gradle.beforeSettings { Settings settings ->
+                            withMirrors(settings.dependencyResolutionManagement.repositories)
                         }
                     }
                 }

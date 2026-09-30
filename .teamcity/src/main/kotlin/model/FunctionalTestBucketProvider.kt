@@ -19,13 +19,7 @@ val QUICK_CROSS_VERSION_BUCKETS = listOf(
     listOf("4.0", "5.0"), // 4.0 <= version < 5.0
     listOf("5.0", "6.0"), // 5.0 <=version < 6.0
     listOf("6.0", "7.0"), // 6.0 <=version < 7.0
-    listOf("7.0", "8.0"), // 7.0 <=version < 8.0
-    listOf("8.0", "9.0"), // 8.0 <=version < 9.0
-    listOf("9.0", "10.0"), // 9.0 <=version < 10.0
-    listOf("10.0", "11.0"), // 10.0 <=version < 11.0
-    listOf("11.0", "12.0"), // 11.0 <=version < 12.0
-    listOf("12.0", "13.0"), // 12.0 <=version < 13.0
-    listOf("13.0", "99.0") // 13.0 <=version < 99.0
+    listOf("7.0", "99.0") // 7.0 <=version < 99.0
 )
 
 val ALL_CROSS_VERSION_BUCKETS = listOf(

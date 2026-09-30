@@ -18,6 +18,7 @@ package org.gradle.testkit.runner
 
 import groovy.transform.Sortable
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.compatibility.MultiVersionTestCategory
 import org.gradle.integtests.fixtures.daemon.DaemonLogsAnalyzer
 import org.gradle.integtests.fixtures.daemon.DaemonsFixture
@@ -35,6 +36,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.internal.service.scopes.DefaultGradleUserHomeScopeServiceRegistry
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
 import org.gradle.testkit.runner.fixtures.CustomDaemonDirectory
 import org.gradle.testkit.runner.fixtures.CustomEnvironmentVariables
 import org.gradle.testkit.runner.fixtures.Debug
@@ -116,6 +118,13 @@ abstract class BaseGradleRunnerIntegrationTest extends AbstractIntegrationSpec {
         if (closeServices) {
             // Do not keep user home dir services open when running embedded or when using a custom user home dir
             allArgs.add(("-D" + DefaultGradleUserHomeScopeServiceRegistry.REUSE_USER_HOME_SERVICES + "=false") as String)
+        }
+        if (System.getProperty('org.gradle.integtest.mirrors.mavencentral') || System.getProperty('org.gradle.integtest.mirrors.gradle-prod-plugins')) {
+            // Route the build through the repository mirrors: the executer does not launch it, so it neither gets the
+            // mirror init script nor the plugin portal override that AbstractGradleExecuter passes to its builds.
+            allArgs.add("--init-script")
+            allArgs.add(RepoScriptBlockUtil.createMirrorInitScript().absolutePath)
+            allArgs.add(("-D" + MavenHttpPluginRepository.PLUGIN_PORTAL_OVERRIDE_URL_PROPERTY + "=" + RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl()) as String)
         }
         def gradleRunner = GradleRunner.create()
             .withTestKitDir(testKitDir)

@@ -20,6 +20,7 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.launcher.configuration.BuildLayoutResult
+import org.gradle.process.internal.CurrentProcess
 import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.SetSystemProperties
@@ -36,10 +37,18 @@ class BuildProcessTest extends Specification {
 
     private def fileCollectionFactory = TestFiles.fileCollectionFactory(tmpDir.testDirectory)
     private def currentJvm = Stub(JavaInfo)
+    // DaemonJvmOptions copies these from the JVM running this test, e.g. java.io.tmpdir set by the CI runner
+    private def hostImmutableSystemProperties = new CurrentProcess(fileCollectionFactory).jvmOptions.immutableSystemProperties
+
+    private JvmOptions currentJvmOptions() {
+        def options = new JvmOptions(fileCollectionFactory)
+        options.systemProperties(hostImmutableSystemProperties)
+        options
+    }
 
     def "current and requested build vm match if vm arguments match"() {
         given:
-        def currentJvmOptions = new JvmOptions(fileCollectionFactory)
+        def currentJvmOptions = currentJvmOptions()
         currentJvmOptions.minHeapSize = "16m"
         currentJvmOptions.maxHeapSize = "256m"
         currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
@@ -53,7 +62,7 @@ class BuildProcessTest extends Specification {
 
     def "current and requested build vm do not match if vm arguments differ"() {
         given:
-        def currentJvmOptions = new JvmOptions(fileCollectionFactory)
+        def currentJvmOptions = currentJvmOptions()
         currentJvmOptions.minHeapSize = "16m"
         currentJvmOptions.maxHeapSize = "1024m"
         currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
@@ -77,8 +86,9 @@ class BuildProcessTest extends Specification {
     def "all requested immutable jvm arguments and all immutable system properties need to match"() {
         given:
         def notDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) } find { it != Charset.defaultCharset() }
-        def currentJvmOptions = new JvmOptions(fileCollectionFactory)
+        def currentJvmOptions = currentJvmOptions()
         currentJvmOptions.setAllJvmArgs(["-Dfile.encoding=$notDefaultEncoding", "-Xmx100m", "-XX:SomethingElse"])
+        currentJvmOptions.systemProperties(hostImmutableSystemProperties.findAll { it.key != JvmOptions.FILE_ENCODING_KEY })
 
         when:
         def buildProcess = new BuildProcess(currentJvm, currentJvmOptions)
@@ -93,7 +103,7 @@ class BuildProcessTest extends Specification {
 
     def "current and requested build vm match if no arguments are requested"() {
         given:
-        def currentJvmOptions = new JvmOptions(fileCollectionFactory)
+        def currentJvmOptions = currentJvmOptions()
         currentJvmOptions.minHeapSize = "16m"
         currentJvmOptions.maxHeapSize = "1024m"
         currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
@@ -108,7 +118,7 @@ class BuildProcessTest extends Specification {
 
     def "current VM does not match if it was started with the default client heap size"() {
         given:
-        def currentJvmOptions = new JvmOptions(fileCollectionFactory)
+        def currentJvmOptions = currentJvmOptions()
         currentJvmOptions.maxHeapSize = "64m"
         def defaultRequest = buildParameters(null as Iterable)
 
@@ -135,7 +145,7 @@ class BuildProcessTest extends Specification {
 
     def "current and requested build vm match if only mutable arguments are requested"() {
         given:
-        def currentJvmOptions = new JvmOptions(fileCollectionFactory)
+        def currentJvmOptions = currentJvmOptions()
         currentJvmOptions.minHeapSize = "16m"
         currentJvmOptions.maxHeapSize = "1024m"
         currentJvmOptions.jvmArgs = ["-XX:+HeapDumpOnOutOfMemoryError"]
@@ -150,7 +160,7 @@ class BuildProcessTest extends Specification {
 
     def "current and requested build vm match if only mutable arguments vary"() {
         given:
-        def currentJvmOptions = new JvmOptions(fileCollectionFactory)
+        def currentJvmOptions = currentJvmOptions()
         currentJvmOptions.setAllJvmArgs(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"])
 
         when:
@@ -182,7 +192,7 @@ class BuildProcessTest extends Specification {
         given:
         def notDefaultEncoding = ["UTF-8", "US-ASCII"].collect { Charset.forName(it) } find { it != Charset.defaultCharset() }
         def notDefaultLanguage = ["es", "jp"].find { it != Locale.default.language }
-        def currentJvmOptions = new JvmOptions(fileCollectionFactory)
+        def currentJvmOptions = currentJvmOptions()
         currentJvmOptions.setAllJvmArgs(["-Xmx100m", "-XX:SomethingElse", "-Dfoo=bar", "-Dbaz"])
 
         when:

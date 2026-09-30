@@ -41,6 +41,9 @@ dependencies {
     crossVersionTestImplementation(project(":ide"))
     crossVersionTestImplementation(project(":code-quality"))
     crossVersionTestImplementation(project(":signing"))
+    crossVersionTestImplementation(project(":core-api")) {
+        because("RepoScriptBlockUtil exposes RepositoryHandler, which the Groovy compiler loads when a spec calls it")
+    }
 
     integTestImplementation(testFixtures(project(":core")))
     integTestImplementation(testFixtures(project(":diagnostics")))

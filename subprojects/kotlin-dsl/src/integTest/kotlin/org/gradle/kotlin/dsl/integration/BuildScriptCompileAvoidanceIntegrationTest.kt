@@ -1,10 +1,12 @@
 package org.gradle.kotlin.dsl.integration
 
 import org.gradle.integtests.fixtures.BuildOperationsFixture
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.ToBeFixedForConfigurationCache
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.provider.BUILDSCRIPT_COMPILE_AVOIDANCE_ENABLED
 import org.gradle.test.fixtures.Flaky
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.util.Matchers.isEmpty
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.endsWith
@@ -771,7 +773,7 @@ class BuildScriptCompileAvoidanceIntegrationTest : AbstractKotlinIntegrationTest
                     id("java-library")
                 }
                 repositories {
-                    mavenCentral()
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
                 }
             """
         )

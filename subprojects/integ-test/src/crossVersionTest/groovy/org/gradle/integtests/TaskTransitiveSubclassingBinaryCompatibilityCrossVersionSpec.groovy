@@ -17,6 +17,8 @@ package org.gradle.integtests
 
 
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
+import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.TargetVersions
 import spock.lang.Issue
 
@@ -40,7 +42,7 @@ class TaskTransitiveSubclassingBinaryCompatibilityCrossVersionSpec extends Cross
             version = "0.1.1"
 
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
             }
 
             gradlePlugin {

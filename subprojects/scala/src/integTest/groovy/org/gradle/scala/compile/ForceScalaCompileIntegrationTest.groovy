@@ -37,9 +37,7 @@ plugins {
     id 'scala'
 }
 
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
 
 dependencies {
     implementation 'org.scala-lang:scala-library:2.12.11'
@@ -73,9 +71,7 @@ plugins {
     id 'scala'
 }
 
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
 
 dependencies {
     implementation 'org.scala-lang:scala-library:2.12.11'

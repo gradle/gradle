@@ -50,9 +50,7 @@ class ScalaCompileWithJavaLibraryIntegrationTest extends AbstractIntegrationSpec
             tasks.named('compileScala') {
                 classpath = sourceSets.main.compileClasspath
             }
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
             dependencies {
                 implementation("org.scala-lang:scala-library:2.11.12")
             }
@@ -88,9 +86,7 @@ class ScalaCompileWithJavaLibraryIntegrationTest extends AbstractIntegrationSpec
             tasks.named('compileMySourcesScala') {
                 classpath = sourceSets.mySources.compileClasspath
             }
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
             dependencies {
                 mySourcesImplementation("org.scala-lang:scala-library:2.11.12")
             }

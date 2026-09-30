@@ -20,6 +20,8 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.jvm.JavaInfo
 import org.gradle.internal.jvm.Jvm
 import org.gradle.launcher.configuration.BuildLayoutResult
+import org.gradle.process.internal.CurrentProcess
+import org.gradle.process.internal.JvmOptions
 import spock.lang.Issue
 import spock.lang.Specification
 
@@ -39,7 +41,13 @@ class DaemonParametersTest extends Specification {
         parameters.periodicCheckInterval == DaemonParameters.DEFAULT_PERIODIC_CHECK_INTERVAL_MILLIS
         parameters.baseDir == new File(userHomeDir, "daemon")
         parameters.systemProperties.isEmpty()
-        parameters.effectiveJvmArgs.size() == 1 + 3 // + 1 because effective JVM args contains -Dfile.encoding, +3 for locale props
+        parameters.effectiveJvmArgs.size() == expectedImmutableSystemProperties().size()
+    }
+
+    // file.encoding and the locale defaults, plus whatever the JVM running this test was started with
+    private Set<String> expectedImmutableSystemProperties() {
+        new CurrentProcess(TestFiles.fileCollectionFactory()).jvmOptions.immutableSystemProperties.keySet() +
+            [JvmOptions.FILE_ENCODING_KEY, JvmOptions.USER_LANGUAGE_KEY, JvmOptions.USER_COUNTRY_KEY, JvmOptions.USER_VARIANT_KEY]
     }
 
     def "setting jvm to null means use the current jvm"() {

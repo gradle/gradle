@@ -1716,8 +1716,13 @@ All Artifacts:
 
     void 'gives informative error message when settings is not available'() {
         when:
-        DependencyResolutionServices resolutionServices = ProjectBuilder.builder().build().services.get(DependencyResolutionServices)
-        resolutionServices.resolveRepositoryHandler.mavenCentral()
+        def project = ProjectBuilder.builder().build()
+        DependencyResolutionServices resolutionServices = project.services.get(DependencyResolutionServices)
+        // An empty local repository, not Maven Central: all this needs is a repository that reports
+        // the module as missing, and going over the network makes it fail on throttling instead.
+        def emptyRepo = project.file("empty-repo")
+        emptyRepo.mkdirs()
+        resolutionServices.resolveRepositoryHandler.maven { it.url = emptyRepo.toURI() }
 
         Dependency dep = resolutionServices.dependencyHandler.create("dummyGroupId:dummyArtifactId:dummyVersion")
         resolutionServices.configurationContainer.detachedConfiguration(dep).files

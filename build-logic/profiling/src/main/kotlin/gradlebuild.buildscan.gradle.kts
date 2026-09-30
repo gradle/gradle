@@ -21,9 +21,9 @@ import gradlebuild.basics.BuildEnvironment.isGhActions
 import gradlebuild.basics.BuildEnvironment.isTeamCity
 import gradlebuild.basics.BuildEnvironment.isTravis
 import gradlebuild.basics.buildBranch
+import gradlebuild.basics.buildCommitId
 import gradlebuild.basics.environmentVariable
 import gradlebuild.basics.isPromotionBuild
-import gradlebuild.basics.kotlindsl.execAndGetStdout
 import gradlebuild.basics.logicalBranch
 import gradlebuild.basics.testDistributionEnabled
 import org.gradle.api.internal.BuildType
@@ -80,9 +80,8 @@ fun isEc2Agent() = InetAddress.getLocalHost().hostName.startsWith("ip-")
 fun Project.extractCiData() {
     if (isCiServer) {
         buildScan {
-            background {
-                setCompileAllScanSearch(execAndGetStdout("git", "rev-parse", "--verify", "HEAD"))
-            }
+            // Starts no process and captures nothing, both of which the configuration cache rejects.
+            buildCommitId.orNull?.let { setCompileAllScanSearch(it) }
             if (isEc2Agent()) {
                 tag("EC2")
             }

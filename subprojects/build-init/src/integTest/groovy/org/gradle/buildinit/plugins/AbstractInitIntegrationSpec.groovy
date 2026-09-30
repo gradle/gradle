@@ -20,12 +20,15 @@ import org.gradle.buildinit.plugins.fixtures.ScriptDslFixture
 import org.gradle.buildinit.plugins.internal.modifiers.BuildInitDsl
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.test.fixtures.file.TestFile
+import spock.lang.IgnoreIf
 
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.Matchers.containsString
 import static org.hamcrest.Matchers.not
 
+@IgnoreIf(value = { GradleContextualExecuter.configCache && System.getProperty("org.gradle.integtest.mirrors.mavencentral") }, inherited = true, reason = "init resolves its Maven conversion classpath from Maven Central when storing the configuration cache")
 abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
     TestFile containerDir
     TestFile targetDir
