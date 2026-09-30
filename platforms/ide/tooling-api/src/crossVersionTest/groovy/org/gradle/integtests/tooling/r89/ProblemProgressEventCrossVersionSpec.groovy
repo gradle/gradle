@@ -273,30 +273,6 @@ class ProblemProgressEventCrossVersionSpec extends ToolingApiSpecification {
         listener.problems[0].additionalData.asMap['typeName'] == 'MyTask'
     }
 
-    @TargetGradleVersion("=8.6")
-    def "8.6 version doesn't send failure"() {
-        buildFile """
-            tasks.register("foo) {
-        """
-
-        given:
-        def listener = new ProblemProgressListener()
-
-        when:
-        withConnection {
-            it.model(CustomModel)
-                .addProgressListener(listener)
-                .get()
-        }
-
-        then:
-        thrown(BuildException)
-        def problems = listener.problems
-        validateCompilationProblem(problems, buildFile)
-        failureMessage(problems[0].failure) == null
-    }
-
-
     static class ProblemProgressListener implements ProgressListener {
         List<SingleProblemEvent> problems = []
         ProblemSummariesEvent summariesEvent = null

@@ -185,7 +185,7 @@ class ProblemProgressEventCrossVersionSpec extends ToolingApiSpecification {
     def "Can use problems service in model builder and get failure objects"() {
         given:
         buildFile getBuildScriptSampleContent(false, false, targetVersion)
-        def listener = new org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionSpec.ProblemProgressListener()
+        def listener = new org.gradle.integtests.tooling.r87.ProblemsServiceModelBuilderCrossVersionSpec.ProblemProgressListener()
 
         when:
         withConnection {
