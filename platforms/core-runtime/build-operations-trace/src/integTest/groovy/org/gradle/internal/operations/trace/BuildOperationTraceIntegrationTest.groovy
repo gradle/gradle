@@ -151,6 +151,76 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
         "a relative path" | "build/custom"
     }
 
+    def "directory option writes a separate jsonl file for each invocation"() {
+        when:
+        run "help", "-D${BuildOperationTrace.DIR_SYSPROP}=traces"
+
+        then:
+        def first = jsonlTraces("traces")
+        first.size() == 1
+        first[0].length() > 0
+        postBuildOutputContains("Build operation trace:")
+        postBuildOutputContains(first[0].name)
+        testDirectory.listFiles().findAll { it.name.endsWith("-log.txt") } == []
+
+        when:
+        def firstLength = first[0].length()
+        run "help", "-D${BuildOperationTrace.DIR_SYSPROP}=traces"
+
+        then:
+        first[0].length() == firstLength
+        jsonlTraces("traces").size() == 2
+    }
+
+    def "directory option writes tree files next to the session log"() {
+        when:
+        run "help", "-D${BuildOperationTrace.TREE_SYSPROP}=true", "-D${BuildOperationTrace.DIR_SYSPROP}=traces"
+
+        then:
+        def logs = jsonlTraces("traces")
+        logs.size() == 1
+        def baseName = logs[0].name - ".jsonl"
+        file("traces/${baseName}-tree.txt").exists()
+        file("traces/${baseName}-tree.json").exists()
+    }
+
+    def "directory option accepts an absolute path"() {
+        given:
+        def absolutePath = tmpDir.file("custom-traces").absolutePath
+
+        when:
+        run "help", "-D${BuildOperationTrace.DIR_SYSPROP}=$absolutePath"
+
+        then:
+        tmpDir.file("custom-traces").listFiles().findAll { it.name.endsWith(".jsonl") }.size() == 1
+    }
+
+    def "directory option can be set in gradle.properties"() {
+        file("gradle.properties") << "${BuildOperationTrace.DIR_SYSPROP}=traces\n"
+
+        when:
+        run "help"
+
+        then:
+        jsonlTraces("traces").size() == 1
+    }
+
+    def "trace path and trace directory cannot be set together"() {
+        when:
+        fails "help", "-D${BuildOperationTrace.SYSPROP}=trace", "-D${BuildOperationTrace.DIR_SYSPROP}=traces"
+
+        then:
+        failureCauseContains("cannot be used together")
+    }
+
+    def "an empty trace directory is rejected"() {
+        when:
+        fails "help", "-D${BuildOperationTrace.DIR_SYSPROP}="
+
+        then:
+        failureCauseContains("must be a directory path")
+    }
+
     def "trace parameters can be provided in gradle.properties as #description"() {
         file("gradle.properties") << """
             ${BuildOperationTrace.SYSPROP}=$trace
@@ -169,5 +239,9 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
         description       | trace
         "a file name"     | "custom"
         "a relative path" | "build/custom"
+    }
+
+    private List<File> jsonlTraces(String directory) {
+        file(directory).listFiles().findAll { it.name.endsWith(".jsonl") }.sort { it.name }
     }
 }
