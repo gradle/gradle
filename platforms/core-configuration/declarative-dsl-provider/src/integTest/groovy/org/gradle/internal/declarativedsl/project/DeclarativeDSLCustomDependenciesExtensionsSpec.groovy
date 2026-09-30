@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.project
 
 import org.gradle.api.DefaultTask
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.plugins.software.RegistersSoftwareTypes
@@ -839,7 +840,7 @@ final class DeclarativeDSLCustomDependenciesExtensionsSpec extends AbstractInteg
 
             dependencyResolutionManagement {
                 repositories {
-                    mavenCentral()
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
                 }
             }
 

@@ -83,6 +83,11 @@ tasks {
         if (project.isBundleGroovy4) {
             exclude("org/gradle/testkit/runner/enduser/GradleRunnerSamplesEndUserIntegrationTest*") // cannot be parameterized for both Groovy 3 and 4
         }
+        // Debug mode runs the build in the test JVM, where isolating the mirror init script's lifecycle closure needs this.
+        val launcher = javaLauncher
+        jvmArgumentProviders.add(CommandLineArgumentProvider {
+            if (launcher.get().metadata.languageVersion.canCompileOrRun(9)) listOf("--add-opens", "java.base/java.lang.invoke=ALL-UNNAMED") else emptyList()
+        })
     }
 }
 tasks.isolatedProjectsIntegTest {

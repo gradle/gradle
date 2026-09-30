@@ -35,9 +35,7 @@ abstract class AbstractTestTaskIntegrationTest extends AbstractTestingMultiVersi
             allprojects {
                 apply plugin: 'java'
 
-                repositories {
-                    mavenCentral()
-                }
+                ${mavenCentralRepository()}
 
                 dependencies {
                     ${testFrameworkDependencies}

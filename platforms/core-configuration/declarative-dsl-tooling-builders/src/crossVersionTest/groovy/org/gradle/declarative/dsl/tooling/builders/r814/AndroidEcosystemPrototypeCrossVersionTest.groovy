@@ -17,6 +17,7 @@
 package org.gradle.declarative.dsl.tooling.builders.r814
 
 import org.gradle.declarative.dsl.tooling.builders.AbstractDeclarativeDslToolingModelsCrossVersionTest
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -42,8 +43,9 @@ class AndroidEcosystemPrototypeCrossVersionTest extends AbstractDeclarativeDslTo
             """
                 pluginManagement {
                     repositories {
-                        google() // Needed for the Android plugin, applied by the unified plugin
-                        gradlePluginPortal()
+                        // Declarative settings cannot set a repository name, so RepoScriptBlockUtil's definitions do not apply here
+                        maven { url = uri("${RepoScriptBlockUtil.googleMirrorUrl}") } // Needed for the Android plugin, applied by the unified plugin
+                        maven { url = uri("${RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl()}") }
                     }
                 }
 

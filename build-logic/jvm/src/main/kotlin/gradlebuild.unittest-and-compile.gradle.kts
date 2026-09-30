@@ -408,6 +408,10 @@ fun configureTests() {
 
         configureAndroidUserHome()
         filterEnvironmentVariables()
+        if (project.name == "smoke-test") {
+            // Nested builds, e.g. Gradleception, only pass the repository mirrors to their tests on CI
+            System.getenv("CI")?.let { environment("CI", it) }
+        }
 
         maxParallelForks = project.maxParallelForks
 

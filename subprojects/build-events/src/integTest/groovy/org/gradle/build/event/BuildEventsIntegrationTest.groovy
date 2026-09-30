@@ -19,6 +19,7 @@ package org.gradle.build.event
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.DefaultTestExecutionResult
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.IntegTestPreconditions
@@ -333,7 +334,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
         given:
         file("build.gradle") << """
             plugins { id 'groovy-gradle-plugin' }
-            repositories { mavenCentral() }
+            repositories { ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()} }
             dependencies { testImplementation("junit:junit:4.13") }
         """
         def plugin = file('src/main/groovy/my-plugin.gradle')
@@ -379,7 +380,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec {
 
         file("build.gradle") << """
             plugins { id 'groovy-gradle-plugin' }
-            repositories { mavenCentral() }
+            repositories { ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()} }
             dependencies { testImplementation("junit:junit:4.13") }
         """
 

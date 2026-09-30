@@ -33,9 +33,7 @@ abstract class AbstractTestEnvironmentIntegrationTest extends AbstractTestingMul
             allprojects {
                 apply plugin: 'java'
 
-                repositories {
-                    mavenCentral()
-                }
+                ${mavenCentralRepository()}
 
                 dependencies {
                     ${testFrameworkDependencies}

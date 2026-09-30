@@ -32,7 +32,7 @@ class PaparazziPluginSmokeTest extends AbstractSmokeTest implements RunnerFactor
         settingsFile << """
             pluginManagement {
                 repositories {
-                    gradlePluginPortal()
+                    ${gradlePluginRepositoryDefinition()}
                 }
                 ${googleRepository()}
             }

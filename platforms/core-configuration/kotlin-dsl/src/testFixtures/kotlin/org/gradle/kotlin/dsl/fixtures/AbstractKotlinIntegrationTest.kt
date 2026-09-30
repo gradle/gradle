@@ -60,7 +60,7 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
                 settings.pluginManagement {
                     repositories {
                         $testRepositories
-                        gradlePluginPortal()
+                        gradlePluginPortal() // production URL rewritten during tests
                     }
                 }
             }
@@ -154,7 +154,7 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
     val repositoriesBlock
         get() = """
             repositories {
-                gradlePluginPortal()
+                gradlePluginPortal() // production URL rewritten during tests
             }
         """
 

@@ -15,6 +15,7 @@
  */
 
 import org.gradle.api.internal.GradleInternal
+import org.gradle.api.provider.ProviderFactory
 import org.gradle.build.event.BuildEventsListenerRegistry
 import org.gradle.internal.nativeintegration.network.HostnameLookup
 import org.gradle.tooling.events.FinishEvent
@@ -47,7 +48,7 @@ class Helper(private val providers: ProviderFactory) {
     fun isCI() = providers.environmentVariable("CI").isPresent()
 
     fun withMirrors(handler: RepositoryHandler) {
-        if (!isCI()) {
+        if (!isCI() || ignoreMirrors()) {
             return
         }
         handler.all {
@@ -67,7 +68,8 @@ class Helper(private val providers: ProviderFactory) {
     }
 }
 
-with(Helper(providers)) {
+// Kotlin init scripts only expose `providers` from Gradle 9.4 on, and RepositoryMirrors applies this script as one.
+with(Helper((gradle as GradleInternal).services.get(ProviderFactory::class.java))) {
     gradle.lifecycle.beforeProject {
         buildscript.configurations["classpath"].incoming.beforeResolve {
             withMirrors(buildscript.repositories)
@@ -79,5 +81,8 @@ with(Helper(providers)) {
 
     gradle.settingsEvaluated {
         withMirrors(settings.pluginManagement.repositories)
+        // Repositories declared here are never project repositories, so the beforeProject hook
+        // above does not see them. build-logic-settings declares mavenCentral() this way.
+        withMirrors(settings.dependencyResolutionManagement.repositories)
     }
 }

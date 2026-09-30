@@ -17,6 +17,7 @@
 package org.gradle.integtests.environment
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.jvm.Jvm
@@ -242,7 +243,7 @@ org.gradle.java.home=${TextUtil.escapeString(alternateJavaHome.canonicalPath)}
         buildFile << """
             buildscript {
                 repositories {
-                    mavenCentral()
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
                 }
                 dependencies {
                     classpath 'com.github.spotbugs:spotbugs-annotations:4.8.3'

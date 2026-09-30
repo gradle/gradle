@@ -719,6 +719,15 @@ tasks.named<Test>("docsTest") {
     }
 
     filter {
+        // These samples run with their own init script, whose `initscript` classpath resolves commons-math / kotlin-stdlib from Maven Central.
+        // No repository mirror reaches another init script's classpath on this line: upstream mirrors it through a Maven settings.xml mirror
+        // (https://github.com/gradle/gradle/pull/39325), which needs the settings.xml mirror support that only exists from Gradle 9.8.
+        // CI must not contact Maven Central, so they are excluded here.
+        excludeTestsMatching("org.gradle.docs.samples.*.snippet-*external-dependency_*_externalInitDependency*")
+        excludeTestsMatching("org.gradle.docs.samples.*.snippet-*init-kotlin_kotlin_init*")
+    }
+
+    filter {
         // TODO(https://github.com/gradle/gradle/issues/22538)
         excludeTestsMatching("org.gradle.docs.samples.*.snippet-groovy-cross-compilation_*_crossCompilation.sample")
     }

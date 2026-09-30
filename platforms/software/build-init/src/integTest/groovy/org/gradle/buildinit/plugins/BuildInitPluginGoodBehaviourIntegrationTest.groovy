@@ -15,9 +15,19 @@
  */
 package org.gradle.buildinit.plugins
 
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import spock.lang.IgnoreIf
 
+// Same Maven Central classpath limitation as AbstractInitIntegrationSpec
+@IgnoreIf({ RepoScriptBlockUtil.mirrorEnabled && (GradleContextualExecuter.configCache || GradleContextualExecuter.isolatedProjects) })
 class BuildInitPluginGoodBehaviourIntegrationTest extends WellBehavedPluginTest {
+
+    def setup() {
+        mirrorMavenCentralForInit()
+    }
+
     @Override
     def getMainTask() {
         return ["init", "--overwrite"]
