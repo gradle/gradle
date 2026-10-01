@@ -74,7 +74,7 @@ Then register the extra repository in `EXTRA_REPOSITORIES`:
 
 ```groovy
 new ExtraRepository(MirroredRepository.KOTLIN_DEV.name, MirroredRepository.KOTLIN_DEV.mirrorUrl, [/org\.jetbrains\.kotlin(\..+)?/], {
-    KotlinGradlePluginVersions.isKotlinDevVersion(new KotlinGradlePluginVersions().latest)
+    new KotlinGradlePluginVersions().latests.any { KotlinGradlePluginVersions.isKotlinDevVersion(it) }
 })
 ```
 
