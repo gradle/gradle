@@ -115,7 +115,7 @@ class RepoScriptBlockUtil {
      */
     private static final List<ExtraRepository> EXTRA_REPOSITORIES = [
         new ExtraRepository(MirroredRepository.KOTLIN_DEV.name, MirroredRepository.KOTLIN_DEV.mirrorUrl, [/org\.jetbrains\.kotlin(\..+)?/], {
-            KotlinGradlePluginVersions.isKotlinDevVersion(new KotlinGradlePluginVersions().latest)
+            new KotlinGradlePluginVersions().latests.any { KotlinGradlePluginVersions.isKotlinDevVersion(it) }
         })
     ]
 

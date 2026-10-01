@@ -51,4 +51,12 @@ repositories {
             excludeModule("gradle", "gradle")
         }
     }
+    maven {
+        // Declared after Maven Central, so a stable Kotlin never costs a lookup here.
+        name = "Kotlin dev repository"
+        url = uri("https://packages.jetbrains.team/maven/p/kt/dev")
+        content {
+            includeGroupByRegex("org\\.jetbrains\\.kotlin(\\..+)?")
+        }
+    }
 }
