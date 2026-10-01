@@ -10,16 +10,16 @@
       <item index="5" class="java.lang.String" itemvalue="org.gradle.internal.scan.UsedByScanPlugin" />
       <item index="6" class="java.lang.String" itemvalue="org.gradle.internal.service.Provides" />
     </list>
-    <pattern value="org.gradle.internal.service.ServiceRegistrationProvider" hierarchically="true" method="configure" />
+    <pattern value="org.gradle.internal.service.ServiceRegistrationProvider" hierarchically="$CI$" method="configure" />
   </component>
-  <component name="ExternalStorageConfigurationManager" enabled="true" />
+  <component name="ExternalStorageConfigurationManager" enabled="$CI$" />
   <component name="FrameworkDetectionExcludesConfiguration">
     <type id="web" />
   </component>
   <component name="NullableNotNullManager">
     <option name="myDefaultNullable" value="org.jspecify.annotations.Nullable" />
     <option name="myDefaultNotNull" value="org.jspecify.annotations.NonNull" />
-    <option name="myOrdered" value="true" />
+    <option name="myOrdered" value="$CI$" />
     <option name="myNullables">
       <value>
         <list size="18">
@@ -69,5 +69,5 @@
       </value>
     </option>
   </component>
-  <component name="ProjectRootManager" version="2" languageLevel="JDK_25" project-jdk-name="25" project-jdk-type="JavaSDK" />
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_17" project-jdk-name="25" project-jdk-type="JavaSDK" />
 </project>

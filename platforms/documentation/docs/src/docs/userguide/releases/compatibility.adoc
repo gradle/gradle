@@ -113,7 +113,7 @@ Beta and RC versions may or may not work.
 | 2.3.21 | 9.6.0 | 2.2
 | 2.4.0  | 9.7.0 | 2.2
 | 2.4.10 | 9.8.0 | 2.2
-| 2.4.20 | 9.9.0 | 2.2
+| 2.4.21-RC | 9.9.0 | 2.2
 |===
 
 [[groovy_compatibility]]
