@@ -62,6 +62,7 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
                 repositories {
                     ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
                     ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.extraRepositoriesDefinition(GradleDsl.KOTLIN)}
                 }
             }
         """.stripIndent()

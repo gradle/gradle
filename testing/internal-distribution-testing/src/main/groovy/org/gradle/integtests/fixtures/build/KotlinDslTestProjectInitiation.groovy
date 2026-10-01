@@ -53,6 +53,7 @@ trait KotlinDslTestProjectInitiation {
             pluginManagement {
                 repositories {
                     ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.extraRepositoriesDefinition(GradleDsl.KOTLIN)}
                 }
             }
             ${getBuildScriptDependency(settingsJar)}

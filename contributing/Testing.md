@@ -89,6 +89,9 @@ A registered repository reaches test builds two ways, neither of which requires 
 - The repository blocks this class produces, such as `mavenCentralRepository()` and `extraRepositoriesDefinition()`, and the `repositoriesBlock` of the Kotlin DSL test fixtures.
   Tooling API cross version tests (see below) need these, as they do not run through an executer and so cannot be given an init script.
 
+The single-repository helpers, `mavenCentralRepositoryDefinition()` and the like, name one repository each and so do not carry the extra ones.
+A Tooling API test that builds its own `repositories` block out of them has to add `extraRepositoriesDefinition()` alongside.
+
 While a repository is active, tests asserting on the repositories a build uses can fail, for example those checking a plugin-resolution failure message or a resolve build operation.
 
 # Cross Version Tests
