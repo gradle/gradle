@@ -117,6 +117,27 @@ User-declared `Wrapper` tasks now also write the default network timeout, retry 
 
 See the [Preserving Existing Wrapper Properties](userguide/gradle_wrapper.html#sec:preserving_wrapper_properties) section in the Gradle User Manual for more details.
 
+#### Providers for values that are already known
+
+Build logic often has a value at hand and needs to pass it to an API that accepts a [`Provider`](javadoc/org/gradle/api/provider/Provider.html).
+Previously, this required wrapping the value in a `Callable` with `providers.provider { value }`, and there was no direct way to create a provider that has no value.
+
+[`ProviderFactory`](javadoc/org/gradle/api/provider/ProviderFactory.html) now has three incubating methods for these cases:
+
+* [`present(value)`](javadoc/org/gradle/api/provider/ProviderFactory.html#present(T)) returns a provider that always has the given value.
+* [`absent()`](javadoc/org/gradle/api/provider/ProviderFactory.html#absent()) returns a provider that never has a value.
+* [`presentIfNotNull(value)`](javadoc/org/gradle/api/provider/ProviderFactory.html#presentIfNotNull(T)) returns a provider that has the given value when it is not `null`, and has no value otherwise.
+
+```kotlin
+val name: PresentProvider<String> = providers.present("my-lib")
+val missing: Provider<String> = providers.absent()
+val description: Provider<String> = providers.presentIfNotNull(project.description)
+```
+
+Unlike `provider(Callable)`, these methods do not compute the value on demand, so prefer them when the value is already known.
+
+`present(value)` returns the new [`PresentProvider`](javadoc/org/gradle/api/provider/PresentProvider.html) type, a `Provider` that is guaranteed to have a value: its `get()` never fails and its `getOrNull()` never returns `null`.
+
 ### Dependency management enhancements
 Gradle provides a flexible [dependency management](userguide/getting_started_dep_man.html) engine for declaring, resolving, and verifying the dependencies your build needs.
 
