@@ -138,6 +138,8 @@ Unlike `provider(Callable)`, these methods do not compute the value on demand, s
 
 `present(value)` returns the new [`PresentProvider`](javadoc/org/gradle/api/provider/PresentProvider.html) type, a `Provider` that is guaranteed to have a value: its `get()` never fails and its `getOrNull()` never returns `null`.
 
+See the [Lazy Objects API Reference](userguide/lazy_configuration.html#lazy_objects_api_reference) section in the Gradle User Manual for more details.
+
 ### Dependency management enhancements
 Gradle provides a flexible [dependency management](userguide/getting_started_dep_man.html) engine for declaring, resolving, and verifying the dependencies your build needs.
 

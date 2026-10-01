@@ -552,6 +552,9 @@ Factories;;
 * link:{javadocPath}/org/gradle/api/provider/Provider.html#map-org.gradle.api.Transformer-[Provider.map(Transformer)].
 * link:{javadocPath}/org/gradle/api/provider/Provider.html#flatMap-org.gradle.api.Transformer-[Provider.flatMap(Transformer)].
 * link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:provider(java.util.concurrent.Callable)[ProviderFactory.provider(Callable)]. Always prefer one of the other factory methods over this method.
+* link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:present(java.lang.Object)[ProviderFactory.present(T)] incubating-label:[]. Returns a link:{javadocPath}/org/gradle/api/provider/PresentProvider.html[`PresentProvider`] that always has the given value. Prefer this over `provider(Callable)` when the value is already known, as it is not computed on demand.
+* link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:absent()[ProviderFactory.absent()] incubating-label:[]. Returns a provider that never has a value.
+* link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:presentIfNotNull(java.lang.Object)[ProviderFactory.presentIfNotNull(T)] incubating-label:[]. Returns a provider that has the given value when it is not `null`, and no value otherwise.
 
 Use these types for _mutable_ values:
 
