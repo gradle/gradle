@@ -43,6 +43,11 @@ trait CommonPluginValidationTrait {
             repositories {
                 ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
             }
+
+            // On a JDK newer than Kotlin supports as a target, the Java and Kotlin targets differ, which would be reported as a problem
+            tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
+                jvmTargetValidationMode.set(org.jetbrains.kotlin.gradle.dsl.jvm.JvmTargetValidationMode.IGNORE)
+            }
         """
         source("src/main/kotlin/MyTask.kt")
     }

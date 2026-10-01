@@ -419,7 +419,7 @@ fun ApiTypeUsage.toCollectionOfKotlinClasses() =
 private
 fun ApiTypeUsage.singleTypeArgumentRawToStarProjection(): List<ApiTypeUsage> =
     if (isRaw) singletonListOfStarProjectionTypeUsage
-    else typeArguments.also { it.single() }
+    else listOf(typeArguments.single())
 
 
 private

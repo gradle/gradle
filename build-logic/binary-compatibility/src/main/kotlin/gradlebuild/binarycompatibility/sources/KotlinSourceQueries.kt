@@ -182,7 +182,7 @@ fun CtField.isGeneratedObjectInstanceField(ktFile: KtFile, declaringClass: CtCla
 
 private
 fun CtField.isGeneratedCompanionField(ktFile: KtFile, declaringClass: CtClass): Boolean =
-    (ktFile.ktClassOf(declaringClass) as? KtClassOrObject)
+    ktFile.ktClassOf(declaringClass)
         ?.companionObjects?.any { (it.name ?: "Companion") == name } == true
 
 

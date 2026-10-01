@@ -59,8 +59,7 @@ val MemberValue.intValue: Int
                 value = node.value
             }
         })
-        if (value == null) throw annotationMemberValueNotFound(typeOf<Int>())
-        return value!!
+        return value ?: throw annotationMemberValueNotFound(typeOf<Int>())
     }
 
 
@@ -73,8 +72,7 @@ val MemberValue.stringValue: String
                 value = node.value
             }
         })
-        if (value == null) throw annotationMemberValueNotFound(typeOf<String>())
-        return value!!
+        return value ?: throw annotationMemberValueNotFound(typeOf<String>())
     }
 
 
@@ -87,8 +85,7 @@ val MemberValue.intArrayValue: IntArray
                 value = node.value.map { it.intValue }.toIntArray()
             }
         })
-        if (value == null) throw annotationMemberValueNotFound(typeOf<IntArray>())
-        return value!!
+        return value ?: throw annotationMemberValueNotFound(typeOf<IntArray>())
     }
 
 
@@ -101,8 +98,7 @@ val MemberValue.stringArrayValue: Array<String>
                 value = node.value.map { it.stringValue }.toTypedArray()
             }
         })
-        if (value == null) throw annotationMemberValueNotFound(typeOf<Array<String>>())
-        return value!!
+        return value ?: throw annotationMemberValueNotFound(typeOf<Array<String>>())
     }
 
 

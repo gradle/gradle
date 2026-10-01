@@ -48,7 +48,7 @@ class KotlinDslPluginCustomKotlinOptionsIntegrationTest : AbstractKotlinIntegrat
             """.trimIndent()
         )
         withBuildScript("println(MyDataObject.other)")
-        executer.expectExternalDeprecatedMessage("    Language version 2.1 is deprecated and its support will be removed in a future version of Kotlin. Update the version to 2.2.")
+        executer.expectExternalDeprecatedMessage("    Language version 2.1 is deprecated and its support will be removed in a future version of Kotlin. Update the version to 2.3.")
         buildAndFail("help").apply {
             assertOutputContainsPattern("""The feature "multi dollar interpolation" is only available since language version 2.2\s+Location: .*?MyDataObject.kt:3""")
         }
@@ -56,8 +56,8 @@ class KotlinDslPluginCustomKotlinOptionsIntegrationTest : AbstractKotlinIntegrat
         buildSrcBuildScript.appendText("""
             tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompile>().configureEach {
                 compilerOptions {
-                    apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
-                    languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_2)
+                    apiVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_3)
+                    languageVersion.set(org.jetbrains.kotlin.gradle.dsl.KotlinVersion.KOTLIN_2_3)
                 }
             }
         """)
