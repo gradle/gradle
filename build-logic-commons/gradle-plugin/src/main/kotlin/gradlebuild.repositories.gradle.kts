@@ -57,4 +57,12 @@ repositories {
             excludeModule("gradle", "gradle")
         }
     }
+    maven {
+        // Declared after Maven Central. Thus a stable Kotlin never causes a lookup in this repository.
+        name = "Kotlin dev repository"
+        url = uri("https://packages.jetbrains.team/maven/p/kt/dev")
+        content {
+            includeGroupByRegex("org\\.jetbrains\\.kotlin(\\..+)?")
+        }
+    }
 }
