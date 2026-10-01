@@ -113,7 +113,7 @@ class RepoScriptBlockUtil {
     ].findAll() as List<ExtraRepository>).asImmutable()
 
     private static boolean kotlinDevVersionTested() {
-        KotlinGradlePluginVersions.isKotlinDevVersion(new KotlinGradlePluginVersions().latest)
+        new KotlinGradlePluginVersions().latests.any { KotlinGradlePluginVersions.isKotlinDevVersion(it) }
     }
 
     private static File extraRepositoriesInitScriptFile
