@@ -66,6 +66,7 @@ import org.objectweb.asm.Type;
 import java.io.Closeable;
 import java.io.File;
 import java.net.URI;
+import java.util.Map;
 import java.util.Optional;
 
 import static com.google.common.base.Preconditions.checkNotNull;
@@ -79,6 +80,8 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
     private static final String CLASSPATH_PROPERTY_NAME = "classpath";
     private static final String TEMPLATE_ID_PROPERTY_NAME = "templateId";
     private static final String SOURCE_HASH_PROPERTY_NAME = "sourceHash";
+    private static final String OUTPUT_LAYOUT_PROPERTY_NAME = "outputLayout";
+    private static final String OUTPUT_LAYOUT = "instrumented-jar";
     private final ScriptCompilationHandler scriptCompilationHandler;
     private final ClassLoaderHierarchyHasher classLoaderHierarchyHasher;
     private final CachedClasspathTransformer classpathTransformer;
@@ -276,6 +279,7 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
             visitor.visitInputProperty(TEMPLATE_ID_PROPERTY_NAME, () -> templateId);
             visitor.visitInputProperty(SOURCE_HASH_PROPERTY_NAME, () -> sourceHashCode);
             visitor.visitInputProperty(CLASSPATH_PROPERTY_NAME, () -> classLoaderHierarchyHasher.getClassLoaderHash(classLoader));
+            visitor.visitInputProperty(OUTPUT_LAYOUT_PROPERTY_NAME, () -> OUTPUT_LAYOUT);
         }
 
         @Override
@@ -295,19 +299,25 @@ public class GroovyScriptClassCompiler implements ScriptClassCompiler, Closeable
         }
 
         @Override
+        protected void compileAndInstrument(File workspace) {
+            // Compile into memory and write only the instrumented classes, as a single jar
+            Map<String, byte[]> classes = scriptCompilationHandler.compileToMemory(source, classLoader, metadataDir(workspace), operation, scriptBaseClass, verifier);
+            instrumentToJar(classes, instrumentedOutput(workspace), propertyUpgradeReport(workspace));
+        }
+
+        @Override
         public File compile(File workspace) {
-            File classesDir = classesDir(workspace);
-            scriptCompilationHandler.compileToDir(source, classLoader, classesDir, metadataDir(workspace), operation, scriptBaseClass, verifier);
-            return classesDir;
+            throw new UnsupportedOperationException("Groovy scripts are compiled into memory");
         }
 
         @Override
         public File instrumentedOutput(File workspace) {
-            return new File(workspace, "instrumented/" + operation.getId());
+            return new File(workspace, "instrumented/" + operation.getId() + ".jar");
         }
 
-        private File classesDir(File workspace) {
-            return new File(workspace, "classes/" + operation.getId());
+        @Override
+        protected TreeType instrumentedOutputType() {
+            return TreeType.FILE;
         }
 
         private static File metadataDir(File workspace) {
