@@ -91,7 +91,10 @@ A registered repository reaches test builds two ways:
   It is opt-in because the build sees the script, e.g. as build operations, which breaks tests asserting on those.
   Use it for a test whose build needs the repository but declares its repositories some other way, e.g. a bare `mavenCentral()` or the implicit Plugin Portal.
 
-While a repository is active, tests asserting on the repositories a build uses can fail, for example those checking a plugin-resolution failure message or a resolve build operation.
+In a Tooling API test, declare repositories with the block helpers, `gradlePluginAndMavenCentralRepositories()` or `mavenCentralRepository()`, which include the extra ones.
+The single-repository helpers, `mavenCentralRepositoryDefinition()` and the like, name one repository each, so a block built out of them misses the extra repositories.
+
+While a repository is active, tests asserting on the repositories a build uses can fail, for example those checking a plugin-resolution failure message.
 
 # Cross Version Tests
 
