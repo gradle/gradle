@@ -59,10 +59,7 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         // writes defaultSettingsScript, so that is the field that has to carry the mirrors.
         defaultSettingsScript = """
             pluginManagement {
-                repositories {
-                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                }
+                ${RepoScriptBlockUtil.gradlePluginAndMavenCentralRepositories(GradleDsl.KOTLIN)}
             }
         """.stripIndent()
         // Required for the lenient classpath mode
