@@ -61,9 +61,9 @@ Those types combine the resolutions added to them directly with the ones contrib
 Add resolutions to these types with `addResolution(String)` instead.
 
 [[kotlin_2_4_10]]
-==== Upgrade to Kotlin 2.4.20
+==== Upgrade to Kotlin 2.4.21-RC
 
-The embedded Kotlin has been upgraded from 2.4.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.20[Kotlin 2.4.20].
+The embedded Kotlin has been upgraded from 2.4.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.21-RC[Kotlin 2.4.21-RC].
 
 [[configuration_cache_and_problems_report_data_format]]
 ==== Configuration Cache and Problems report data format changes
