@@ -72,7 +72,7 @@ class KotlinDslPluginForOldestKotlinVersionTest : AbstractKotlinIntegrationTest(
         withBuildScript("""plugins { id("some") }""")
         // emitted by both compilePluginsBlocks and compileKotlin
         repeat(2) {
-            executer.expectExternalDeprecatedMessage("    Language version $oldestKotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin. Update the version to 2.2.")
+            executer.expectExternalDeprecatedMessage("    Language version $oldestKotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin. Update the version to 2.3.")
         }
         build("help").apply {
             assertThat(output, containsString("some!"))
