@@ -104,7 +104,7 @@ class KotlinGradlePluginVersions {
     }
 
     /**
-     * Dev builds carry a trailing build number, e.g. {@code 2.4.20-RC-197}, and are only published to the Kotlin dev repository.
+     * A dev build has a build number at the end, for example {@code 2.4.20-RC-197}. Only the Kotlin dev repository has dev builds.
      */
     static boolean isKotlinDevVersion(String version) {
         version ==~ /.+-\d+$/

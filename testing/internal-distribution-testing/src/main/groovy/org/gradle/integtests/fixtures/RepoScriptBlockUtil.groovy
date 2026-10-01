@@ -107,12 +107,13 @@ class RepoScriptBlockUtil {
     }
 
     /**
-     * A repository that test builds need on top of the ones they declare, typically because a tested
-     * dependency version is not published to the public repositories. Only the matching groups are looked up in it.
+     * A repository for dependency versions under test that are not in the public repositories.
+     * Test builds get it in addition to the repositories that they declare. See {@link RepoScriptBlockUtil#EXTRA_REPOSITORIES}.
      */
     static final class ExtraRepository {
         final String name
         final String url
+        /** Gradle searches this repository only for the groups that match these regexes. */
         final List<String> groupRegexes
 
         ExtraRepository(String name, String url, List<String> groupRegexes) {
@@ -123,19 +124,20 @@ class RepoScriptBlockUtil {
     }
 
     /**
-     * Register extra repositories here, no test needs a repository declaration of its own. See contributing/Testing.md.
-     * A repository is in the list only while tests need it.
+     * Repositories for dependency versions not in the public repositories. Register an extra repository here,
+     * not in the tests. See contributing/Testing.md.
+     * Each entry has a condition, which the tests check when they start. A false condition gives {@code null}, and the list drops it.
+     * Thus, builds get a repository only while a version under test needs it.
      *
-     * They are included in the repository blocks produced by this class (see {@link #extraRepositoriesDefinition}),
-     * and injected by an init script (see {@link #extraRepositoriesInitScript}) into every smoke test build and into
-     * the builds of a {@code GradleExecuter} that asks for them with {@code withExtraRepositories()}.
+     * The repositories blocks of this class declare these repositories (see {@link #extraRepositoriesDefinition}).
+     * An init script declares them in every executer build, smoke test build and performance test build (see {@link #extraRepositoriesInitScript}).
      */
     private static final List<ExtraRepository> EXTRA_REPOSITORIES = ([
         kotlinDevVersionTested() ? new ExtraRepository(MirroredRepository.KOTLIN_DEV.name, MirroredRepository.KOTLIN_DEV.mirrorUrl, [/org\.jetbrains\.kotlin(\..+)?/]) : null
     ].findAll() as List<ExtraRepository>).asImmutable()
 
     private static boolean kotlinDevVersionTested() {
-        KotlinGradlePluginVersions.isKotlinDevVersion(new KotlinGradlePluginVersions().latest)
+        new KotlinGradlePluginVersions().latests.any { KotlinGradlePluginVersions.isKotlinDevVersion(it) }
     }
 
     private static File extraRepositoriesInitScriptFile
@@ -156,12 +158,13 @@ class RepoScriptBlockUtil {
     }
 
     /**
-     * The Plugin Portal and Maven Central, which is what a build applying {@code kotlin-dsl} resolves from.
+     * A repository block with the Plugin Portal and Maven Central. A build that applies {@code kotlin-dsl} resolves its dependencies from these repositories.
      */
     static String gradlePluginAndMavenCentralRepositories(GradleDsl dsl = GROOVY) {
         repositoriesBlock(dsl, gradlePluginRepositoryDefinition(dsl), mavenCentralRepositoryDefinition(dsl))
     }
 
+    // Tooling API builds get no init script, so every repositories block of this class also declares the extra repositories.
     private static String repositoriesBlock(GradleDsl dsl, String... definitions) {
         return """
             repositories {
@@ -171,12 +174,22 @@ class RepoScriptBlockUtil {
         """
     }
 
+    /**
+     * Declarations of the extra repositories, see {@link #EXTRA_REPOSITORIES}.
+     * The repositories blocks of this class, for example {@link #mavenCentralRepository}, include them.
+     * The {@code ...RepositoryDefinition()} methods declare one repository without them.
+     *
+     * <p>{@code GradleExecuter} builds get the extra repositories from an init script anyway. Tooling API builds get no init script:
+     * in them, declare the repositories with a repositories block of this class, or add these declarations.</p>
+     */
     static String extraRepositoriesDefinition(GradleDsl dsl = GROOVY) {
         EXTRA_REPOSITORIES.collect { extraRepositoryDefinition(dsl, it) }.join("")
     }
 
     static String extraRepositoryDefinition(GradleDsl dsl = GROOVY, ExtraRepository repository) {
         def includes = repository.groupRegexes.collect { "includeGroupByRegex(\"${escapeBackslashes(it)}\")" }.join("\n")
+        // Repository content filtering exists since Gradle 5.1. Cross-version tests run builds on Gradle 4.0 and later.
+        // Kotlin DSL builds under test run on Gradle 5.1 or later, so the Kotlin variant needs no version check.
         if (dsl == KOTLIN) {
             """
                     maven {
@@ -192,8 +205,10 @@ class RepoScriptBlockUtil {
                     maven {
                         name = '${repository.name}'
                         url = '${repository.url}'
-                        content {
-                            ${includes}
+                        if (org.gradle.util.GradleVersion.current() >= org.gradle.util.GradleVersion.version('5.1')) {
+                            content {
+                                ${includes}
+                            }
                         }
                     }
                 """
@@ -204,14 +219,17 @@ class RepoScriptBlockUtil {
         regex.replace('\\', '\\\\')
     }
 
+    /** One repository declaration, without the extra repositories (see {@link #extraRepositoriesDefinition}). */
     static String mavenCentralRepositoryDefinition(GradleDsl dsl = GROOVY) {
         MirroredRepository.MAVEN_CENTRAL.getRepositoryDefinition(dsl)
     }
 
+    /** One repository declaration, without the extra repositories (see {@link #extraRepositoriesDefinition}). */
     static String lightbendMavenRepositoryDefinition(GradleDsl dsl = GROOVY) {
         MirroredRepository.LIGHTBEND_MAVEN.getRepositoryDefinition(dsl)
     }
 
+    /** One repository declaration, without the extra repositories (see {@link #extraRepositoriesDefinition}). */
     static String lightbendIvyRepositoryDefinition(GradleDsl dsl = GROOVY) {
         MirroredRepository.LIGHTBEND_IVY.getRepositoryDefinition(dsl)
     }
@@ -220,6 +238,7 @@ class RepoScriptBlockUtil {
         MirroredRepository.GOOGLE.mirrorUrl
     }
 
+    /** One repository declaration, without the extra repositories (see {@link #extraRepositoriesDefinition}). */
     static String googleRepositoryDefinition(GradleDsl dsl = GROOVY) {
         MirroredRepository.GOOGLE.getRepositoryDefinition(dsl)
     }
@@ -228,6 +247,7 @@ class RepoScriptBlockUtil {
         MirroredRepository.GRADLE.mirrorUrl
     }
 
+    /** One repository declaration, without the extra repositories (see {@link #extraRepositoriesDefinition}). */
     static String gradleRepositoryDefinition(GradleDsl dsl = GROOVY) {
         MirroredRepository.GRADLE.getRepositoryDefinition(dsl)
     }
@@ -236,12 +256,13 @@ class RepoScriptBlockUtil {
         MirroredRepository.GRADLE_PLUGIN.mirrorUrl
     }
 
+    /** One repository declaration, without the extra repositories (see {@link #extraRepositoriesDefinition}). */
     static String gradlePluginRepositoryDefinition(GradleDsl dsl = GROOVY) {
         MirroredRepository.GRADLE_PLUGIN.getRepositoryDefinition(dsl)
     }
 
     /**
-     * The init script adding the extra repositories to a build, or {@code null} when there is none.
+     * Returns the init script that adds the extra repositories to a build. Returns {@code null} if there are no extra repositories.
      */
     static synchronized File extraRepositoriesInitScriptFile() {
         if (EXTRA_REPOSITORIES.empty) {
@@ -257,87 +278,10 @@ class RepoScriptBlockUtil {
     }
 
     static String extraRepositoriesInitScript(List<ExtraRepository> repositories = EXTRA_REPOSITORIES) {
-        def declarations = repositories.collect { ExtraRepository repository ->
-            def includes = repository.groupRegexes.collect { "includeGroupByRegex('${escapeBackslashes(it)}')" }.join("\n")
-            """
-                    if (!repos.any { it instanceof MavenArtifactRepository && normalizeUrl(it.url) == normalizeUrl('${repository.url}') }) {
-                        repos.maven {
-                            name = '${repository.name}'
-                            url = '${repository.url}'
-                            if (SUPPORTS_CONTENT_FILTERING) {
-                                content {
-                                    ${includes}
-                                }
-                            }
-                        }
-                    }
-            """
-        }.join("")
-        return """
-            import org.gradle.util.GradleVersion
-
-            apply plugin: ExtraRepositoriesPlugin
-
-            class ExtraRepositoriesPlugin implements Plugin<Gradle> {
-
-                static final boolean SUPPORTS_CONTENT_FILTERING = GradleVersion.current() >= GradleVersion.version("5.1")
-
-                void apply(Gradle gradle) {
-                    if (GradleVersion.current() >= GradleVersion.version("6.0")) {
-                        gradle.beforeSettings { Settings settings ->
-                            def repos = settings.pluginManagement.repositories
-                            ExtraRepositoriesPlugin.addTo(repos)
-                            // The default plugin repository only applies while none is declared. Settings plugins resolve
-                            // while the settings script still runs, so it has to go as soon as the build declares one.
-                            def portal = repos.gradlePluginPortal()
-                            repos.whenObjectAdded { if (!it.is(portal)) repos.remove(portal) }
-                        }
-                    }
-                    if (GradleVersion.current() >= GradleVersion.version("6.8")) {
-                        gradle.settingsEvaluated { Settings settings ->
-                            ExtraRepositoriesPlugin.addUnlessEmpty(settings.dependencyResolutionManagement.repositories)
-                        }
-                    }
-                    def projectClosure = { Project project ->
-                        project.buildscript.configurations["classpath"].incoming.beforeResolve {
-                            ExtraRepositoriesPlugin.addUnlessEmpty(project.buildscript.repositories)
-                        }
-                        // Added on first resolution rather than eagerly, so builds that never resolve don't see them
-                        def declareOnResolve = { Configuration configuration ->
-                            configuration.incoming.beforeResolve {
-                                ExtraRepositoriesPlugin.addUnlessEmpty(project.repositories)
-                            }
-                        }
-                        if (GradleVersion.current() >= GradleVersion.version("4.9")) {
-                            project.configurations.configureEach(declareOnResolve)
-                        } else {
-                            project.configurations.all(declareOnResolve)
-                        }
-                    }
-                    if (GradleVersion.current() >= GradleVersion.version("8.8")) {
-                        gradle.lifecycle.beforeProject(projectClosure)
-                    } else {
-                        gradle.allprojects(projectClosure)
-                    }
-                }
-
-                // a repository declared where there was none would replace the settings repositories
-                static void addUnlessEmpty(RepositoryHandler repos) {
-                    if (!repos.isEmpty()) {
-                        addTo(repos)
-                    }
-                }
-
-                static void addTo(RepositoryHandler repos) {
-                    ${declarations}
-                }
-
-                static String normalizeUrl(Object url) {
-                    String result = url.toString().replace('https://', 'http://')
-                    return result.endsWith("/") ? result : result + "/"
-                }
-            }
-        """
+        def data = repositories.collect { [name: it.name, url: it.url, groupRegexes: it.groupRegexes] }
+        // Gradle does not accept a package statement in an init script. Keep the line empty, so line numbers in errors match the file.
+        def source = RepoScriptBlockUtil.getResource("ExtraRepositories.groovy").getText().replaceFirst(/(?m)^package .*$/, "")
+        return source + "\nExtraRepositories.declareIn(gradle, ${data.inspect()})\n"
     }
 
     static File createMirrorInitScript() {
