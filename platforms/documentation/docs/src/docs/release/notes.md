@@ -98,6 +98,8 @@ problems.reporter.report(problems.groups.compilation.java.problemId("Unused impo
 problems.reporter.report(problems.groups.transformation.group("KMP").problemId("Bundle failed")) {}
 ```
 
+Gradle's deprecation warnings are reported into `Gradle > Deprecation`, named after the deprecation message, for example `The buildNeeded task has been deprecated.` instead of `deprecation:the-buildneeded-task-has-been-deprecated`.
+
 Predefined groups are documented with a description of what belongs in them, giving consumers of problem reports a documented set of group names to navigate, filter, and aggregate the problems plugins report.
 On the console, problems now show the chain of groups they belong to, for example `Unused import (in Compilation > Java)`.
 The existing `ProblemGroup.create()` and `ProblemId.create()` methods keep working; migrating to the predefined groups is recommended.
