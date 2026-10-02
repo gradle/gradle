@@ -10,7 +10,7 @@
 <meta name="twitter:description" content="We are excited to announce Gradle @version@.">
 <meta name="twitter:image" content="https://gradle.org/assets/images/releases/gradle-default.png">
 
-Gradle @version@ is the first patch release for Gradle 9.8.0. (released [@releaseDate@](https://gradle.org/releases/)).
+Gradle @version@ is the first patch release for Gradle 9.8.0 (released [@releaseDate@](https://gradle.org/releases/)).
 
 The following issues were resolved:
 
