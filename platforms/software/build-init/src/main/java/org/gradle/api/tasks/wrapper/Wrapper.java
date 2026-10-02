@@ -149,17 +149,16 @@ public abstract class Wrapper extends DefaultTask {
 
     private void validateDistributionUrl(File uriRoot) {
         if (distributionUrlConfigured && getValidateDistributionUrl().get()) {
-            String url = getDistributionUrl();
-            URI uri = getDistributionUri(uriRoot, url);
+            URI uri = getDistributionUri(uriRoot, getDistributionUrl());
             if (uri.getScheme().equals("file")) {
                 if (!Files.exists(Paths.get(uri).toAbsolutePath())) {
-                    throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url));
+                    throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, WrapperDistributionUrlConverter.safeUriDisplay(uri)));
                 }
             } else if (uri.getScheme().startsWith("http") && !isOffline) {
                 try {
                     new Download(new Logger(true), "gradlew", Download.UNKNOWN_VERSION).sendHeadRequest(uri);
                 } catch (Exception e) {
-                    throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, url), e);
+                    throw new UncheckedIOException(String.format(DISTRIBUTION_URL_EXCEPTION_MESSAGE, WrapperDistributionUrlConverter.safeUriDisplay(uri)), e);
                 }
             }
         }
@@ -169,7 +168,7 @@ public abstract class Wrapper extends DefaultTask {
         try {
             return WrapperDistributionUrlConverter.convertDistributionUrl(url, uriRoot);
         } catch (URISyntaxException e) {
-            throw new GradleException("Distribution URL String cannot be parsed: " + url, e);
+            throw new GradleException("Distribution URL String cannot be parsed. Please check the value set with --gradle-distribution-url.", e);
         }
     }
 

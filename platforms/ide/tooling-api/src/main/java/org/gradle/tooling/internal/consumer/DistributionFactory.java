@@ -28,6 +28,7 @@ import org.gradle.tooling.GradleConnectionException;
 import org.gradle.tooling.internal.protocol.InternalBuildProgressListener;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.DistributionLocator;
+import org.gradle.util.internal.WrapperDistributionUrlConverter;
 import org.gradle.wrapper.WrapperConfiguration;
 import org.gradle.wrapper.WrapperExecutor;
 
@@ -107,7 +108,7 @@ public class DistributionFactory {
 
         @Override
         public String getDisplayName() {
-            return "Gradle distribution '" + wrapperConfiguration.getDistribution() + "'";
+            return "Gradle distribution '" + WrapperDistributionUrlConverter.safeUriDisplay(wrapperConfiguration.getDistribution()) + "'";
         }
 
         @Override
@@ -124,11 +125,11 @@ public class DistributionFactory {
                     });
                     installDir = installer.install(ConnectionConfigurationUtil.determineRealUserHomeDir(connectionParameters), ConnectionConfigurationUtil.determineRootDir(connectionParameters), wrapperConfiguration, ConnectionConfigurationUtil.determineSystemProperties(connectionParameters));
                 } catch (CancellationException e) {
-                    throw new BuildCancelledException(String.format("Distribution download cancelled. Using distribution from '%s'.", wrapperConfiguration.getDistribution()), e);
+                    throw new BuildCancelledException(String.format("Distribution download cancelled. Using distribution from '%s'.", WrapperDistributionUrlConverter.safeUriDisplay(wrapperConfiguration.getDistribution())), e);
                 } catch (FileNotFoundException e) {
                     throw new IllegalArgumentException(String.format("The specified %s does not exist.", getDisplayName()), e);
                 } catch (Exception e) {
-                    throw new GradleConnectionException(String.format("Could not install Gradle distribution from '%s'.", wrapperConfiguration.getDistribution()), e);
+                    throw new GradleConnectionException(String.format("Could not install Gradle distribution from '%s'.", WrapperDistributionUrlConverter.safeUriDisplay(wrapperConfiguration.getDistribution())), e);
                 }
                 installedDistribution = new InstalledDistribution(installDir, getDisplayName(), getDisplayName());
             }

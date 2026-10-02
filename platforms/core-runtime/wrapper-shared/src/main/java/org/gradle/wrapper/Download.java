@@ -171,7 +171,7 @@ public class Download implements IDownload {
         try {
             return new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), uri.getQuery(), uri.getFragment());
         } catch (URISyntaxException e) {
-            throw new RuntimeException("Failed to parse URI", e);
+            throw new RuntimeException("Failed to parse wrapper URI", e);
         }
     }
 
