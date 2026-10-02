@@ -104,6 +104,9 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
                     .details(usage.getRemovalDetails())
                     .documentedAt(usage.getDocumentationUrl())
                     .diagnostics(diagnostics)
+                    // The deprecation logger owns the console output of deprecations: it logs or summarizes them
+                    // according to the warning mode, so problem renderers must not print them again.
+                    .writtenToConsole()
                     .additionalDataInternal(DeprecationDataSpec.class, new Action<DeprecationDataSpec>() {
                         @Override
                         public void execute(DeprecationDataSpec data) {
