@@ -25,6 +25,9 @@ import java.lang.annotation.Annotation;
  * additional metadata about the type, such as which services it requires, and may be faster at creating instances due to the extra context it holds.
  */
 public interface InstanceFactory<T> {
+    // TODO: nested managed types are not considered by requiresService and
+    //  serviceInjectionTriggeredByAnnotation.
+
     /**
      * Is the given service required to be injected by type?
      */
