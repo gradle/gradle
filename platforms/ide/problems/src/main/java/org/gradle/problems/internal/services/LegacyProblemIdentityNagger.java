@@ -39,8 +39,11 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class LegacyProblemIdentityNagger {
 
-    public static final String PROBLEM_ID = "legacy-problem-identity";
-    public static final String PROBLEM_ID_DISPLAY_NAME = "Problem reported with a group created through ProblemGroup.create()";
+    /**
+     * The name of the deprecation problem the nag reports, one for the whole family so that reports and tests can
+     * recognize it.
+     */
+    public static final String PROBLEM_NAME = "Problem reported with a group created through ProblemGroup.create()";
 
     /**
      * The upgrading guide anchor every nag of this family links to; test harnesses recognize the family by it.
@@ -51,7 +54,7 @@ public class LegacyProblemIdentityNagger {
 
     /**
      * The nag reports a deprecation problem, which re-enters the summarizer on the same thread. That problem lives in
-     * Gradle's own deprecation group and is exempt anyway; the guard keeps the recursion out regardless of the gate.
+     * the predefined Gradle > Deprecation group and never nags; the guard keeps the recursion out regardless.
      */
     private final ThreadLocal<Boolean> nagging = ThreadLocal.withInitial(() -> false);
 
@@ -70,9 +73,7 @@ public class LegacyProblemIdentityNagger {
                     + "' with a group created through ProblemGroup.create().")
                 .withAdvice("Create the group from the predefined hierarchy instead, for example "
                     + "problems.getGroups().getOthers().group(\"" + legacy.getName() + "\").")
-                // one problem id for the whole family, so that reports and tests can recognize it
-                .withProblemId(PROBLEM_ID)
-                .withProblemIdDisplayName(PROBLEM_ID_DISPLAY_NAME)
+                .withProblemIdDisplayName(PROBLEM_NAME)
                 .willBeRemovedInGradle10()
                 .withUpgradeGuideSection(9, UPGRADE_GUIDE_SECTION)
                 .nagUser();

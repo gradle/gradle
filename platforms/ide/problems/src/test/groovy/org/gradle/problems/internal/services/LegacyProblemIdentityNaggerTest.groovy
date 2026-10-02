@@ -61,7 +61,7 @@ class LegacyProblemIdentityNaggerTest extends Specification {
         id << [
             ProblemId.create("no-matches", "No matches", GradleCoreProblemGroup.taskSelection()),
             ProblemId.create("missing-annotation", "Missing annotation", GradleCoreProblemGroup.validation().property()),
-            ProblemId.create("feature", "Feature", GradleCoreProblemGroup.deprecation()),
+            ProblemId.create("target-type-mismatch", "Unexpected plugin type", GradleCoreProblemGroup.pluginApplication()),
             // children Gradle creates below its own roots, like validation > configuration-cache
             ProblemId.create("cc", "CC", ProblemGroup.create("configuration-cache", "configuration cache validation", GradleCoreProblemGroup.validation().thisGroup())),
             // roots created outside GradleCoreProblemGroup

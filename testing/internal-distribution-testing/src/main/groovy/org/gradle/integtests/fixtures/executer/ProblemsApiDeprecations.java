@@ -32,7 +32,7 @@ public final class ProblemsApiDeprecations {
     /**
      * The id of the problem the deprecation logger reports for the legacy identity deprecation.
      */
-    public static final String LEGACY_IDENTITY_PROBLEM_FQID = "deprecation:legacy-problem-identity";
+    public static final String LEGACY_IDENTITY_PROBLEM_FQID = "Gradle:Deprecation:Problem reported with a group created through ProblemGroup.create()";
 
     private ProblemsApiDeprecations() {
     }

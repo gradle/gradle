@@ -18,7 +18,7 @@ package org.gradle.internal.deprecation
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.api.problems.internal.GradleCoreProblemGroup
+import org.gradle.api.problems.internal.GradleProblemGroupInternal
 import org.gradle.api.problems.internal.ProblemInternal
 import org.gradle.internal.Describables
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
@@ -71,7 +71,7 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         handler.init(WarningMode.All, progressBroadcaster, problems, problemStream)
     }
 
-    def 'reports deprecations as problems already written to the console'() {
+    def 'reports deprecations as problems in Gradle > Deprecation, already written to the console'() {
         given:
         useStackTrace()
 
@@ -80,7 +80,11 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
 
         then:
         problems.assertProblemEmittedOnce { ProblemInternal problem ->
-            problem.isWrittenToConsole() && problem.contextualLabel == 'feature'
+            def id = problem.definition.id
+            problem.isWrittenToConsole() &&
+                problem.contextualLabel == 'feature' &&
+                id.name == 'id display name' &&
+                id.group == ((GradleProblemGroupInternal) problems.groups.gradle).deprecation
         }
     }
 
@@ -538,6 +542,6 @@ feature1 removal""")
     }
 
     private static DeprecatedFeatureUsage deprecatedFeatureUsage(String summary, Class<?> calledFrom = LoggingDeprecatedFeatureHandlerTest) {
-        new DeprecatedFeatureUsage(summary, "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id display name", GradleCoreProblemGroup.deprecation().toString(), calledFrom)
+        new DeprecatedFeatureUsage(summary, "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id display name", "id display name", calledFrom)
     }
 }

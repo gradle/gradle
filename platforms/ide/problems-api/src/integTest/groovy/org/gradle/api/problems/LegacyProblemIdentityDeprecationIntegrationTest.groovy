@@ -19,6 +19,7 @@ package org.gradle.api.problems
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
+import org.gradle.integtests.fixtures.executer.ProblemsApiDeprecations
 import spock.lang.Issue
 
 import static org.gradle.api.problems.fixtures.ReportingScript.getProblemReportingScript
@@ -65,11 +66,11 @@ class LegacyProblemIdentityDeprecationIntegrationTest extends AbstractIntegratio
         findReceivedProblem { it.fqid == 'generic:other' }
 
         and: "each nag is also reported as a deprecation problem"
-        def nag = findReceivedProblem { it.fqid == 'deprecation:legacy-problem-identity' && it.contextualLabel.contains("'type (in generic)'") }
+        def nag = findReceivedProblem { it.fqid == ProblemsApiDeprecations.LEGACY_IDENTITY_PROBLEM_FQID && it.contextualLabel.contains("'type (in generic)'") }
         nag.contextualLabel == "Reporting problem 'type (in generic)' with a group created through ProblemGroup.create(). This behavior has been deprecated."
         nag.details == "This is scheduled to be removed in Gradle 10."
         nag.solutions == ['Create the group from the predefined hierarchy instead, for example problems.getGroups().getOthers().group("generic").']
-        findReceivedProblem { it.fqid == 'deprecation:legacy-problem-identity' && it.contextualLabel.contains("'other (in generic)'") }
+        findReceivedProblem { it.fqid == ProblemsApiDeprecations.LEGACY_IDENTITY_PROBLEM_FQID && it.contextualLabel.contains("'other (in generic)'") }
     }
 
     def "a legacy sub-group below a predefined group nags as well"() {
@@ -90,7 +91,7 @@ class LegacyProblemIdentityDeprecationIntegrationTest extends AbstractIntegratio
         then:
         receivedProblems.size() == 2
         findReceivedProblem { it.fqid == 'Compilation:Java:Lint:Unused import' }
-        findReceivedProblem { it.fqid == 'deprecation:legacy-problem-identity' }
+        findReceivedProblem { it.fqid == ProblemsApiDeprecations.LEGACY_IDENTITY_PROBLEM_FQID }
     }
 
     def "problems from the predefined hierarchy do not nag"() {

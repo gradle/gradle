@@ -28,10 +28,9 @@ public abstract class GradleCoreProblemGroup {
      * <p>
      * TODO(#38670): remove entries as the areas migrate: validation (validation, plugin-application, scripts, problems-api),
      * dependencies (dependency-version-catalog, dependency-variant-resolution, configuration-usage),
-     * runtime (deprecation, task-selection, daemon-toolchain, packaging, jvm-toolchain).
+     * runtime (task-selection, daemon-toolchain, packaging, jvm-toolchain).
      */
     private static final ImmutableSet<String> LEGACY_ROOT_NAMES = ImmutableSet.of(
-        "deprecation",
         "validation",
         "plugin-application",
         "task-selection",
@@ -57,7 +56,6 @@ public abstract class GradleCoreProblemGroup {
         return LEGACY_ROOT_NAMES.contains(root.getName());
     }
 
-    private static final ProblemGroup DEPRECATION_PROBLEM_GROUP = ProblemGroup.create("deprecation", "Deprecation");
     private static final DefaultValidationProblemGroup VALIDATION_PROBLEM_GROUP = new DefaultValidationProblemGroup();
     private static final ProblemGroup PLUGIN_APPLICATION_PROBLEM_GROUP = ProblemGroup.create("plugin-application", "Plugin application");
     private static final ProblemGroup TASK_SELECTION_PROBLEM_GROUP = ProblemGroup.create("task-selection", "Task selection");
@@ -67,10 +65,6 @@ public abstract class GradleCoreProblemGroup {
     private static final DaemonToolchainProblemGroup DAEMON_TOOLCHAIN_PROBLEM_GROUP = new DefaultDaemonToolchainProblemGroup();
     private static final ProblemGroup SCRIPTS_PROBLEM_GROUP = ProblemGroup.create("scripts", "Scripts");
     private static final DefaultPackagingProblemGroup PACKAGING_PROBLEM_GROUP = new DefaultPackagingProblemGroup();
-
-    public static ProblemGroup deprecation() {
-        return DEPRECATION_PROBLEM_GROUP;
-    }
 
     public static ValidationProblemGroup validation() {
         return VALIDATION_PROBLEM_GROUP;
