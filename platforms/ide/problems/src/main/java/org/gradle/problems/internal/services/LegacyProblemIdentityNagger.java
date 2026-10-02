@@ -39,6 +39,14 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class LegacyProblemIdentityNagger {
 
+    public static final String PROBLEM_ID = "legacy-problem-identity";
+    public static final String PROBLEM_ID_DISPLAY_NAME = "Problem reported with a group created through ProblemGroup.create()";
+
+    /**
+     * The upgrading guide anchor every nag of this family links to; test harnesses recognize the family by it.
+     */
+    public static final String UPGRADE_GUIDE_SECTION = "problems_api_legacy_identity";
+
     private final Set<ProblemId> nagged = ConcurrentHashMap.newKeySet();
 
     /**
@@ -52,29 +60,39 @@ public class LegacyProblemIdentityNagger {
             return;
         }
         ProblemId id = problem.getDefinition().getId();
-        DefaultProblemGroup legacy = legacyRootOf(id.getGroup());
-        if (legacy == null) {
-            return;
-        }
-        if (GradleCoreProblemGroup.isGradleOwnedLegacyChain(id.getGroup())) {
-            // Gradle's own producers that stage 2 has not migrated yet; see GradleCoreProblemGroup.LEGACY_ROOT_NAMES.
-            return;
-        }
-        if (!nagged.add(id)) {
+        DefaultProblemGroup legacy = legacyGroupToReplace(id);
+        if (legacy == null || !nagged.add(id)) {
             return;
         }
         nagging.set(true);
         try {
             DeprecationLogger.deprecateBehaviour("Reporting problem '" + ProblemGroupRenderer.render(id)
-                    + "' with a group created through ProblemGroup.create()")
+                    + "' with a group created through ProblemGroup.create().")
                 .withAdvice("Create the group from the predefined hierarchy instead, for example "
                     + "problems.getGroups().getOthers().group(\"" + legacy.getName() + "\").")
+                // one problem id for the whole family, so that reports and tests can recognize it
+                .withProblemId(PROBLEM_ID)
+                .withProblemIdDisplayName(PROBLEM_ID_DISPLAY_NAME)
                 .willBeRemovedInGradle10()
-                .withUpgradeGuideSection(9, "problems_api_legacy_identity")
+                .withUpgradeGuideSection(9, UPGRADE_GUIDE_SECTION)
                 .nagUser();
         } finally {
             nagging.set(false);
         }
+    }
+
+    /**
+     * The group the producer has to replace, or {@code null} when the id needs no nag: its groups all come from the
+     * predefined hierarchy, or its chain belongs to one of Gradle's own producers that stage 2 has not migrated yet
+     * (see {@code GradleCoreProblemGroup.LEGACY_ROOT_NAMES}).
+     */
+    @Nullable
+    static DefaultProblemGroup legacyGroupToReplace(ProblemId id) {
+        DefaultProblemGroup legacy = legacyRootOf(id.getGroup());
+        if (legacy == null || GradleCoreProblemGroup.isGradleOwnedLegacyChain(id.getGroup())) {
+            return null;
+        }
+        return legacy;
     }
 
     /**

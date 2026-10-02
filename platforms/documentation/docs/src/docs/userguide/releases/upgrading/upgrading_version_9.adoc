@@ -183,6 +183,32 @@ Optional inputs are not affected by this change and continue to ignore absent pr
 
 === Deprecations
 
+[[problems_api_legacy_identity]]
+==== Deprecation of problem groups created outside the predefined hierarchy
+
+The incubating Problems API provides a <<reporting_problems.adoc#sec:predefined_problem_groups,predefined hierarchy of problem groups>>, available from the `Problems` service as `problems.groups`.
+Reporting a problem whose group was created with `ProblemGroup.create()` instead is deprecated and emits a deprecation warning once per problem id.
+`ProblemGroup.create()` and `ProblemId.create()` are scheduled for removal in Gradle 10.
+
+Create the group from the predefined hierarchy and the id from the group:
+
+[source,kotlin]
+----
+// before
+val group = ProblemGroup.create("sample-group", "Sample Group")
+val id = ProblemId.create("missing-recipient", "Recipient not set", group)
+
+// after
+val group = problems.groups.others.group("Sample Group")
+val id = group.problemId("Recipient not set")
+----
+
+Pick the predefined root group that matches what the problem is about, for example `problems.groups.compilation`, and create a sub-group of it or report into one of its predefined sub-groups; `others` is for problems that fit no other root.
+The name of a predefined id is also its display name, and group names are limited to letters, digits, spaces and the characters `-_.+/&'#`.
+
+Gradle's own problems that still use groups outside the hierarchy are exempt from the warning until they are migrated.
+Like every deprecation, the warning fails the build under `--warning-mode=fail`.
+
 [[kotlin_dsl_scripts_model_explicit_scripts]]
 ==== Deprecation of restricting the `KotlinDslScriptsModel` to explicit scripts
 
