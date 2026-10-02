@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r980
 
+import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -49,8 +50,9 @@ class ProblemReportingFromEventListenerCrossVersionSpec extends ToolingApiSpecif
 
                 @Override
                 void onFinish(FinishEvent event) {
-                    ProblemGroup problemGroup = ProblemGroup.create("issues", "issues")
-                    ProblemId id = ProblemId.create("finished", "task finished", problemGroup)
+                    ProblemId id = ${ProblemsApiGroovyScriptUtils.hasPredefinedGroups(targetVersion)
+                        ? 'problems.groups.others.group("issues").problemId("task finished")'
+                        : 'ProblemId.create("finished", "task finished", ProblemGroup.create("issues", "issues"))'}
                     problems.reporter.report(id) {}
                 }
             }
@@ -74,7 +76,7 @@ class ProblemReportingFromEventListenerCrossVersionSpec extends ToolingApiSpecif
         then:
         listener.problems.size() == 1
         verifyAll(listener.problems[0]) {
-            definition.id.name == 'finished'
+            definition.id.name == (ProblemsApiGroovyScriptUtils.hasPredefinedGroups(targetVersion) ? 'task finished' : 'finished')
             definition.id.displayName == 'task finished'
             definition.id.group.name == 'issues'
             definition.id.group.displayName == 'issues'

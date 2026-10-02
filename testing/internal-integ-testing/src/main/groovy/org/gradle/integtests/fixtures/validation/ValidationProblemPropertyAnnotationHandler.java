@@ -17,7 +17,7 @@ package org.gradle.integtests.fixtures.validation;
 
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
-import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.properties.PropertyVisitor;
@@ -68,7 +68,8 @@ class ValidationProblemPropertyAnnotationHandler extends AbstractPropertyAnnotat
         @Override
         public void execute(TypeAwareProblemBuilder problem) {
             TypeAwareProblemBuilder builder = problem.forProperty(propertyName);
-            builder.id("test-problem", "test problem", ProblemGroup.create("root", "root"))
+            // the fixture stands in for one of Gradle's own annotation handlers, so it reports into Gradle's validation group
+            builder.id("test-problem", "test problem", GradleCoreProblemGroup.validation().type())
                 .documentedAt(Documentation.userManual("id", "section"))
                 .details("This is a test.");
         }
