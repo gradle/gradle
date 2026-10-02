@@ -120,18 +120,18 @@ See the [Preserving Existing Wrapper Properties](userguide/gradle_wrapper.html#s
 #### Providers for values that are already known
 
 Build logic often has a value at hand and needs to pass it to an API that accepts a [`Provider`](javadoc/org/gradle/api/provider/Provider.html).
-Previously, this required wrapping the value in a `Callable` with `providers.provider { value }`, and there was no direct way to create a provider that has no value.
+Previously, this required wrapping the value in a `Callable` with `providers.provider { value }`, or `providers.provider { null }` for a provider that has no value.
 
 [`ProviderFactory`](javadoc/org/gradle/api/provider/ProviderFactory.html) now has three incubating methods for these cases:
 
-* [`present(value)`](javadoc/org/gradle/api/provider/ProviderFactory.html#present(T)) returns a provider that always has the given value.
 * [`absent()`](javadoc/org/gradle/api/provider/ProviderFactory.html#absent()) returns a provider that never has a value.
+* [`present(value)`](javadoc/org/gradle/api/provider/ProviderFactory.html#present(T)) returns a provider that always has the given value.
 * [`presentIfNotNull(value)`](javadoc/org/gradle/api/provider/ProviderFactory.html#presentIfNotNull(T)) returns a provider that has the given value when it is not `null`, and has no value otherwise.
 
 ```kotlin
-val name: PresentProvider<String> = providers.present("my-lib")
 val missing: Provider<String> = providers.absent()
-val description: Provider<String> = providers.presentIfNotNull(project.description)
+val name: PresentProvider<String> = providers.present("my-lib")
+val value: Provider<String> = providers.presentIfNotNull(nullableValue)
 ```
 
 Unlike `provider(Callable)`, these methods do not compute the value on demand, so prefer them when the value is already known.
