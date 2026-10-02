@@ -77,7 +77,8 @@ class DefaultProblemReporterTest extends Specification {
             [],
             'description',
             new RuntimeException('cause'),
-            null
+            null,
+            false
         )
 
         expect:
@@ -130,7 +131,8 @@ class DefaultProblemReporterTest extends Specification {
             [],
             'description',
             new RuntimeException('cause'),
-            null
+            null,
+            false
         )
     }
 }

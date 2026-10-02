@@ -38,6 +38,17 @@ public class DefaultProblem implements Serializable, ProblemInternal {
     private final String details;
     private final Throwable exception;
     private final AdditionalData additionalData;
+    private final boolean writtenToConsole;
+
+    public DefaultProblem(
+        ProblemDefinition problemDefinition,
+        @Nullable String contextualLabel,
+        List<String> solutions,
+        List<ProblemLocation> originLocations,
+        List<ProblemLocation> contextualLocations
+    ) {
+        this(problemDefinition, contextualLabel, solutions, originLocations, contextualLocations, null, null, null, false);
+    }
 
     public DefaultProblem(
         ProblemDefinition problemDefinition,
@@ -47,7 +58,8 @@ public class DefaultProblem implements Serializable, ProblemInternal {
         List<ProblemLocation> contextualLocations,
         @Nullable String details,
         @Nullable Throwable exception,
-        @Nullable AdditionalData additionalData
+        @Nullable AdditionalData additionalData,
+        boolean writtenToConsole
     ) {
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
@@ -57,6 +69,7 @@ public class DefaultProblem implements Serializable, ProblemInternal {
         this.details = details;
         this.exception = exception;
         this.additionalData = additionalData;
+        this.writtenToConsole = writtenToConsole;
     }
 
     @Override
@@ -98,6 +111,11 @@ public class DefaultProblem implements Serializable, ProblemInternal {
     }
 
     @Override
+    public boolean isWrittenToConsole() {
+        return writtenToConsole;
+    }
+
+    @Override
     @Nullable
     public AdditionalData getAdditionalData() {
         return additionalData;
@@ -123,12 +141,13 @@ public class DefaultProblem implements Serializable, ProblemInternal {
             equal(originLocations, that.originLocations) &&
             equal(details, that.details) &&
             equal(exception, that.exception) &&
-            equal(additionalData, that.additionalData);
+            equal(additionalData, that.additionalData) &&
+            writtenToConsole == that.writtenToConsole;
     }
 
     @Override
     public int hashCode() {
-        return Objects.hashCode(problemDefinition, contextualLabel, solutions, originLocations, details, exception, additionalData);
+        return Objects.hashCode(problemDefinition, contextualLabel, solutions, originLocations, details, exception, additionalData, writtenToConsole);
     }
 
     @Override

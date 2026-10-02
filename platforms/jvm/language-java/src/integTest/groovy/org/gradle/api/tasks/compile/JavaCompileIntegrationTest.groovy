@@ -933,7 +933,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         fails 'compileJava'
 
         then:
-        failureHasCause("Java compilation initialization error")
+        failureHasCause("Compiler initialization failed")
         failureCauseContains("Cannot specify -sourcepath or --source-path via `CompileOptions.compilerArgs`. Use the `CompileOptions.sourcepath` property instead.")
     }
 
@@ -953,7 +953,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         fails 'compileJava'
 
         then:
-        failureHasCause("Java compilation initialization error")
+        failureHasCause("Compiler initialization failed")
         failureCauseContains("Cannot specify -processorpath or --processor-path via `CompileOptions.compilerArgs`. Use the `CompileOptions.annotationProcessorPath` property instead.")
     }
 
@@ -973,7 +973,7 @@ class JavaCompileIntegrationTest extends AbstractIntegrationSpec {
         fails 'compileJava'
 
         then:
-        failureHasCause("Java compilation initialization error")
+        failureHasCause("Compiler initialization failed")
         failureCauseContains("Cannot specify -J flags via `CompileOptions.compilerArgs`. Use the `CompileOptions.forkOptions.jvmArgs` property instead.")
     }
 

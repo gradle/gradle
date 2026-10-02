@@ -53,6 +53,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
     private Throwable exception;
     private AdditionalData additionalData;
     private boolean collectStackLocation = false;
+    private boolean writtenToConsole = false;
     private ProblemDiagnostics diagnostics;
 
     public DefaultProblemBuilder(
@@ -78,6 +79,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         this.docLink = problem.getDefinition().getDocumentationLink();
         this.exception = problem.getException();
         this.additionalData = problem.getAdditionalData();
+        this.writtenToConsole = problem.isWrittenToConsole();
     }
 
     @Override
@@ -109,7 +111,8 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             contextLocations,
             details,
             exception,
-            additionalData
+            additionalData,
+            writtenToConsole
         );
     }
 
@@ -190,10 +193,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             contextualLabel,
             ImmutableList.<String>of(),
             problemLocations,
-            ImmutableList.<ProblemLocation>of(),
-            null,
-            null,
-            null
+            ImmutableList.<ProblemLocation>of()
         );
     }
 
@@ -380,6 +380,12 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
     @Override
     public ProblemBuilderInternal withException(Throwable t) {
         this.exception = t;
+        return this;
+    }
+
+    @Override
+    public ProblemBuilderInternal writtenToConsole() {
+        this.writtenToConsole = true;
         return this;
     }
 

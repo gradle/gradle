@@ -75,7 +75,7 @@ public class CompilationFailedException extends RuntimeException implements Comp
     private static String exceptionMessage(String prefix, List<ProblemInternal> problems, String diagnosticCounts) {
         StringWriter result = new StringWriter();
         result.append(prefix);
-        ProblemWriter.simple().write(problems, result);
+        ProblemWriter.detailsOnly().write(problems, result);
         result.append(System.lineSeparator());
         result.append(diagnosticCounts);
         return result.toString();

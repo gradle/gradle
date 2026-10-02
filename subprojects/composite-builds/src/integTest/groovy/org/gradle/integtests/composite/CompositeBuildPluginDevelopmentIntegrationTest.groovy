@@ -111,7 +111,7 @@ class CompositeBuildPluginDevelopmentIntegrationTest extends AbstractCompositeBu
         and:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'compilation:groovy-dsl:compilation-failed'
+            fqid == 'Gradle:DSL Evaluation:Script compilation failed'
             contextualLabel == "Could not compile build file '${buildA.buildFile.absolutePath}'."
             oneLocation(LineInFileLocation).path == buildA.buildFile.absolutePath
         }
