@@ -51,7 +51,6 @@ import org.gradle.api.tasks.diagnostics.internal.graph.DependencyGraphsRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.NodeRenderer;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.DependencyReportHeader;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
-import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RequestedVersion;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.Section;
 import org.gradle.api.tasks.diagnostics.internal.insight.DependencyInsightReporter;
 import org.gradle.api.tasks.diagnostics.internal.text.StyledTable;
@@ -529,8 +528,6 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
             if (dependency instanceof DependencyReportHeader) {
                 AttributeContainer dependencyAttributes = ((DependencyReportHeader) dependency).getAttributes();
                 return concat(configurationAttributes, dependencyAttributes);
-            } else if (dependency instanceof RequestedVersion) {
-                return ((RequestedVersion) dependency).getAttributes();
             }
             return configurationAttributes;
         }

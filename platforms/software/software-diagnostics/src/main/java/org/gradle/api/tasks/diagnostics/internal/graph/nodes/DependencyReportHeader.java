@@ -74,10 +74,10 @@ public class DependencyReportHeader extends AbstractRenderableDependency {
     /**
      * The attributes declared on the dependency declaration itself, which are not necessarily
      * present on the consuming configuration.
-     *
-     * <p>Every {@link ComponentSelector} carries these, so this must not be restricted to any
+     * <p>
+     * Every {@link ComponentSelector} carries these, so this must not be restricted to any
      * particular selector type: project dependencies can declare attributes just as module
-     * dependencies can.</p>
+     * dependencies can.
      */
     public AttributeContainer getAttributes() {
         return dependency.getRequested().getAttributes();
