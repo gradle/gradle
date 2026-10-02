@@ -124,4 +124,21 @@ class ProblemNamesTest extends Specification {
         "a" * 2001            | "longer than 2000 characters, but was 2001 characters long"
         "\uD83D\uDE80" * 2001 | "longer than 2000 characters, but was 2001 characters long"  // 4002 UTF-16 units; the message counts code points
     }
+
+    def "normalizes free text into a valid problem name: #description"() {
+        expect:
+        ProblemNames.normalizeProblemName(text) == expected
+        ProblemNames.validateProblemName(expected) == expected
+
+        where:
+        description                        | text                                      | expected
+        "surrounding whitespace"           | "  Unused import  "                       | "Unused import"
+        "line breaks and tabs"             | "first line\nsecond\tline"                | "first line second line"
+        "format characters"                | "soft\u00ADhyphen \uFEFFbom"              | "soft hyphen  bom"
+        "paragraph separator"              | "one\u2029two"                            | "one two"
+        "supplementary format character"   | "tag\uDB40\uDC01here"                     | "tag here"
+        "unpaired surrogate"               | "lost\uD83Dhalf"                          | "lost half"
+        "emoji with zero width joiner"     | "\uD83D\uDC68\u200D\uD83D\uDCBB codes"    | "\uD83D\uDC68\u200D\uD83D\uDCBB codes"
+        "too long"                         | "x" * 2001                                | "x" * 2000
+    }
 }

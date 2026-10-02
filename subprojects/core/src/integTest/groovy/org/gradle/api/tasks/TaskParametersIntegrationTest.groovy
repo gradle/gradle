@@ -437,7 +437,7 @@ task someTask {
         executedAndNotSkipped(":invalid")
         verifyAll(receivedProblem(0)) {
             severity == Severity.WARNING
-            fqid == 'deprecation:type-invalidtask-property-inputfile-test-problem-reason-this-is-a-test-this-behavior-has-been-deprecated'
+            fqid == "Gradle:Deprecation:Type 'InvalidTask' property 'inputFile' test problem. Reason: This is a test. This behavior has been deprecated."
             contextualLabel == "Type 'InvalidTask' property 'inputFile' test problem. Reason: This is a test. This behavior has been deprecated."
             details == 'This will fail with an error in Gradle 10.'
             solutions == ['Execution optimizations are disabled to ensure correctness.']
@@ -445,7 +445,7 @@ task someTask {
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.WARNING
-            fqid == 'deprecation:type-invalidtask-property-inputfile-test-problem-reason-this-is-a-test-this-behavior-has-been-deprecated'
+            fqid == "Gradle:Deprecation:Type 'InvalidTask' property 'inputFile' test problem. Reason: This is a test. This behavior has been deprecated."
             contextualLabel == "Type 'InvalidTask' property 'inputFile' test problem. Reason: This is a test. This behavior has been deprecated."
             details == 'This will fail with an error in Gradle 10.'
             solutions == ['Execution optimizations are disabled to ensure correctness.']

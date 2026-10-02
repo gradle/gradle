@@ -25,11 +25,11 @@ import static com.google.common.base.Preconditions.checkArgument;
 /**
  * The rules for names of groups and problems created through the predefined-group API.
  */
-final class ProblemNames {
+public final class ProblemNames {
 
-    static final int MAX_GROUP_NAME_LENGTH = 50;
-    static final int MAX_PROBLEM_NAME_LENGTH = 2000;
-    static final String UNDEFINED_NAME = "Undefined";
+    public static final int MAX_GROUP_NAME_LENGTH = 50;
+    public static final int MAX_PROBLEM_NAME_LENGTH = 2000;
+    public static final String UNDEFINED_NAME = "Undefined";
     /**
      * The punctuation allowed in group names, as found in category names such as {@code C++}, {@code C#}, {@code CI/CD} and in
      * the dashed or dotted ids plugins use today.
@@ -55,7 +55,7 @@ final class ProblemNames {
      * @return the validated name
      * @throws IllegalArgumentException if the name violates the rules
      */
-    static String validateGroupName(@Nullable String name) {
+    public static String validateGroupName(@Nullable String name) {
         String validated = validateName("Problem group name", name, MAX_GROUP_NAME_LENGTH);
         checkArgument(Normalizer.isNormalized(validated, Normalizer.Form.NFC), "Problem group name must be in Unicode normalization form NFC: '%s'", validated);
         int first = validated.codePointAt(0);
@@ -98,8 +98,31 @@ final class ProblemNames {
      * @return the validated name
      * @throws IllegalArgumentException if the name violates the rules
      */
-    static String validateProblemName(@Nullable String name) {
+    public static String validateProblemName(@Nullable String name) {
         return validateName("Problem name", name, MAX_PROBLEM_NAME_LENGTH);
+    }
+
+    /**
+     * Turns free text into a valid problem name: code points that {@link #validateProblemName} rejects (control, format, line
+     * and paragraph separator characters, unpaired surrogates) become spaces, surrounding whitespace is removed, and the name is
+     * cut to {@value #MAX_PROBLEM_NAME_LENGTH} code points. For producers whose problem names come from messages they do not control.
+     *
+     * @return a name {@link #validateProblemName} accepts, or an empty string if nothing is left
+     */
+    public static String normalizeProblemName(String text) {
+        StringBuilder normalized = new StringBuilder(text.length());
+        int i = 0;
+        while (i < text.length()) {
+            int codePoint = text.codePointAt(i);
+            boolean rejected = Character.getType(codePoint) == Character.SURROGATE || isControlOrFormat(codePoint);
+            normalized.appendCodePoint(rejected ? ' ' : codePoint);
+            i += Character.charCount(codePoint);
+        }
+        String result = normalized.toString().trim();
+        if (result.codePointCount(0, result.length()) > MAX_PROBLEM_NAME_LENGTH) {
+            result = result.substring(0, result.offsetByCodePoints(0, MAX_PROBLEM_NAME_LENGTH));
+        }
+        return result;
     }
 
     private static String validateName(String what, @Nullable String name, int maxLength) {
