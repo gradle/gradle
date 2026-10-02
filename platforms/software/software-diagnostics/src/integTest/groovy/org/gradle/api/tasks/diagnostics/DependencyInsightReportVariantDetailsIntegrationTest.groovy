@@ -23,6 +23,7 @@ import org.gradle.api.tasks.diagnostics.internal.text.StyledTable
 import org.gradle.api.tasks.diagnostics.internal.text.StyledTableUtil
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.logging.text.StyledTextOutput
+import org.gradle.util.internal.ToBeImplemented
 
 import static org.gradle.api.tasks.diagnostics.DependencyInsightReportVariantDetailsIntegrationTest.AttributeValueTuple.of
 
@@ -599,6 +600,61 @@ org:testB:+ -> 1.0
 \\--- conf
 """
 
+    }
+
+    @ToBeImplemented("The 'Requested' column should show the dependency-level attribute value 'dep_value', not the configuration-level 'conf_value'")
+    def "does not report attributes declared on a project dependency"() {
+        given:
+        settingsFile << "include 'producer'"
+
+        file('producer/build.gradle') << """
+            def CUSTOM_ATTRIBUTE = Attribute.of('custom', String)
+
+            configurations {
+                consumable('confValueElements') {
+                    attributes.attribute(CUSTOM_ATTRIBUTE, 'conf_value')
+                }
+                consumable('depValueElements') {
+                    attributes.attribute(CUSTOM_ATTRIBUTE, 'dep_value')
+                }
+            }
+        """
+
+        buildFile << """
+            def CUSTOM_ATTRIBUTE = Attribute.of('custom', String)
+            dependencies.attributesSchema.attribute(CUSTOM_ATTRIBUTE)
+
+            configurations {
+                conf {
+                    attributes.attribute(CUSTOM_ATTRIBUTE, 'conf_value')
+                }
+            }
+            dependencies {
+                conf(project(':producer')) {
+                    attributes {
+                        attribute(CUSTOM_ATTRIBUTE, 'dep_value')
+                    }
+                }
+            }
+        """
+
+        when:
+        run 'dependencyInsight', '--dependency', ':producer', '--configuration', 'conf'
+
+        then:
+        // The dependency-level attribute drives variant selection correctly: 'depValueElements' is selected.
+        // But the 'Requested' column shows 'conf_value' from the configuration, reporting a mismatch that
+        // did not actually happen. It should read 'dep_value'.
+        outputContains """
+project ':producer'
+  Variant depValueElements:
+    | Attribute Name | Provided  | Requested  |
+    |----------------|-----------|------------|
+    | custom         | dep_value | conf_value |
+
+project ':producer'
+\\--- conf
+"""
     }
 
     private String variantOf(String name, Map<String, AttributeValueTuple> attributes) {
