@@ -46,12 +46,15 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         def problem = Iterables.getOnlyElement(filteredProblemDetails(buildOperations))
         with(problem) {
             this.with(definition) {
-                name == 'type'
+                name == 'label'
                 displayName == 'label'
                 this.with(group) {
-                    displayName == 'group label'
-                    name == 'generic'
-                    parent == null
+                    displayName == 'Generic'
+                    name == 'Generic'
+                    this.with(parent) {
+                        name == 'Others'
+                        parent == null
+                    }
                 }
                 documentationLink == null
             }
@@ -87,12 +90,15 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         def problem = Iterables.getOnlyElement(filteredProblemDetails(buildOperations))
         with(problem) {
             this.with(definition) {
-                name == 'type'
+                name == 'label'
                 displayName == 'label'
                 this.with(group) {
-                    displayName == 'group label'
-                    name == 'generic'
-                    parent == null
+                    displayName == 'Generic'
+                    name == 'Generic'
+                    this.with(parent) {
+                        name == 'Others'
+                        parent == null
+                    }
                 }
                 documentationLink == null
             }
@@ -124,9 +130,9 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         def location4 = file('src/main/java/SourceFile4.java').absolutePath
 
         withReportProblemTask """
-            ${ProblemGroup.name} problemGroupParent = ${ProblemGroup.name}.create("parent", "parent group label");
-            ${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("problem group", "problem group label", problemGroupParent);
-            ${ProblemId.name} problemId = ${ProblemId.name}.create("type", "label", problemGroup)
+            def problemGroupParent = problems.getGroups().getOthers().group("parent")
+            def problemGroup = problemGroupParent.group("problem group")
+            def problemId = problemGroup.problemId("label")
             problems.getReporter().report(problemId) {
                 it.contextualLabel("contextual label")
                   .documentedAt("https://example.org/doc")
@@ -150,15 +156,15 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         def problem = Iterables.getOnlyElement(filteredProblemDetails(buildOperations))
         with(problem) {
             this.with(definition) {
-                name == 'type'
+                name == 'label'
                 displayName == 'label'
                 this.with(group) {
-                    displayName == 'problem group label'
+                    displayName == 'problem group'
                     name == 'problem group'
                     this.with(parent) {
-                        displayName == 'parent group label'
+                        displayName == 'parent'
                         name == 'parent'
-                        parent == null
+                        parent.name == 'Others'
                     }
                 }
                 this.with(documentationLink) {
@@ -232,12 +238,15 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
         def problem = Iterables.getOnlyElement(filteredProblemDetails(buildOperations))
         with(problem) {
             this.with(definition) {
-                name == 'type'
+                name == 'label'
                 displayName == 'label'
                 this.with(group) {
-                    displayName == 'group label'
-                    name == 'generic'
-                    parent == null
+                    displayName == 'Generic'
+                    name == 'Generic'
+                    this.with(parent) {
+                        name == 'Others'
+                        parent == null
+                    }
                 }
                 documentationLink == null
             }
@@ -260,8 +269,8 @@ class ProblemsApiBuildOperationIntegrationTest extends AbstractIntegrationSpec {
     }
 
     static String problemIdScript() {
-        """${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("generic", "group label");
-           ${ProblemId.name} problemId = ${ProblemId.name}.create("type", "label", problemGroup)"""
+        """def problemGroup = problems.getGroups().getOthers().group("Generic")
+           def problemId = problemGroup.problemId("label")"""
     }
 
     static Collection<Map<String, ?>> filteredProblemDetails(BuildOperationsFixture buildOperations) {

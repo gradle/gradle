@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r814
 
+import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -105,7 +106,7 @@ class ProblemProgressEventCrossVersionSpec extends ToolingApiSpecification {
                 @Override
                 public void execute() {
                     try {
-                        ProblemId problemId = ProblemId.create("type", "label", ProblemGroup.create("generic", "Generic"));
+                        ProblemId problemId = ${ProblemsApiGroovyScriptUtils.createIdExpression(targetVersion)};
                         getProblems().getReporter().report(
                             problemId,
                             problem -> problem

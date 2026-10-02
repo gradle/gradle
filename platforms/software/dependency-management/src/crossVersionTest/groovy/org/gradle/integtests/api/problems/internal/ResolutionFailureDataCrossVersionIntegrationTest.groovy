@@ -97,11 +97,12 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
         return listener.problems
     }
 
-    String id(GradleVersion targetVersion) {
+    // Mirrors org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils, which is not on this module's classpath.
+    static String id(GradleVersion targetVersion) {
         if (targetVersion < GradleVersion.version("8.13")) {
             'id("type", "label")'
         } else {
-            'id(org.gradle.api.problems.ProblemId.create("type", "label", org.gradle.api.problems.ProblemGroup.create("generic", "Generic")))'
+            "id(${idExpression(targetVersion)})"
         }
     }
 
@@ -113,7 +114,18 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
         } else if (targetVersion < GradleVersion.version("8.13")) {
             'getReporter().reporting '
         } else {
-            'getReporter().report(org.gradle.api.problems.ProblemId.create("type", "label", org.gradle.api.problems.ProblemGroup.create("generic", "Generic"))) '
+            "getReporter().report(${idExpression(targetVersion)}) "
+        }
+    }
+
+    /**
+     * From 9.9 on the id comes from the predefined hierarchy; the legacy ProblemGroup.create() identity is deprecated there.
+     */
+    private static String idExpression(GradleVersion targetVersion) {
+        if (targetVersion >= GradleVersion.version("9.9")) {
+            'getProblems().getGroups().getOthers().group("Generic").problemId("label")'
+        } else {
+            'org.gradle.api.problems.ProblemId.create("type", "label", org.gradle.api.problems.ProblemGroup.create("generic", "Generic"))'
         }
     }
 

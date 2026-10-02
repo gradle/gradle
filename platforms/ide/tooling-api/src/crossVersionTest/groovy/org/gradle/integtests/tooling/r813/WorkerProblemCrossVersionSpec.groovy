@@ -16,6 +16,7 @@
 
 package org.gradle.integtests.tooling.r813
 
+import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -112,7 +113,7 @@ class WorkerProblemCrossVersionSpec extends ToolingApiSpecification {
 
                 @Override
                 public void execute() {
-                    ProblemId problemId = ProblemId.create("name", "Display name", ProblemGroup.create("generic", "Generic"));
+                    ProblemId problemId = ${ProblemsApiGroovyScriptUtils.createIdExpression(targetVersion, "name", "Display name")};
                     $problemInternalClassName p = getProblems().getInternalReporter().internalCreate(problem -> {
                         $problemSpecInternalClassName spec = problem.contextualLabel("Tooling API client should receive this problem")
                         .id(problemId);
@@ -152,7 +153,7 @@ class WorkerProblemCrossVersionSpec extends ToolingApiSpecification {
         }
 
         then:
-        def event = problemProgressListener.problemEvents.find { it.problem.definition.id.name == 'name' }
+        def event = problemProgressListener.problemEvents.find { it.problem.definition.id.displayName == 'Display name' }
         event.problem.definition.id.displayName == 'Display name'
         event.problem.contextualLabel.contextualLabel == 'Tooling API client should receive this problem'
         event.problem.getAdditionalData().get(SomeData).getName() == 'someData'
