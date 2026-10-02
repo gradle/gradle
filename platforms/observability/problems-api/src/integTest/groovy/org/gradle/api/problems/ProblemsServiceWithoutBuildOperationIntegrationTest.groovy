@@ -29,7 +29,6 @@ class ProblemsServiceWithoutBuildOperationIntegrationTest extends AbstractIntegr
     def "problem reported from a thread without a current build operation is not lost"() {
         given:
         settingsFile """
-            import org.gradle.api.problems.ProblemGroup
             import org.gradle.api.problems.ProblemId
             import org.gradle.api.problems.Problems
             import org.gradle.api.services.BuildService
@@ -45,8 +44,7 @@ class ProblemsServiceWithoutBuildOperationIntegrationTest extends AbstractIntegr
 
                 @Override
                 void onFinish(FinishEvent event) {
-                    ProblemGroup problemGroup = ProblemGroup.create("issues", "issues")
-                    ProblemId id = ProblemId.create("finished", "task finished", problemGroup)
+                    ProblemId id = problems.groups.others.group("issues").problemId("task finished")
                     problems.reporter.report(id) {}
                 }
             }
@@ -63,7 +61,7 @@ class ProblemsServiceWithoutBuildOperationIntegrationTest extends AbstractIntegr
 
         then:
         verifyAll(receivedProblem) {
-            definition.id.fqid == 'issues:finished'
+            definition.id.fqid == 'Others:issues:task finished'
             definition.id.displayName == 'task finished'
         }
 
