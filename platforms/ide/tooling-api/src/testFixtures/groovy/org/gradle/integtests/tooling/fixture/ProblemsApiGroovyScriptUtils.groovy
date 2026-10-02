@@ -20,7 +20,21 @@ import org.gradle.util.GradleVersion
 
 class ProblemsApiGroovyScriptUtils {
 
-    static String report(GradleVersion targetVersion, String idName = 'id', String idDisplayName = 'shortProblemMessage') {
+    /**
+     * The first version with the predefined problem group hierarchy ({@code Problems.getGroups()}). From this version on the
+     * scripts create ids below {@code Others > Generic}, named after the former display name, because the legacy
+     * {@code ProblemGroup.create()} identity is deprecated. A predefined id has no separate display name, so the former name is dropped.
+     */
+    static final GradleVersion PREDEFINED_GROUPS_VERSION = GradleVersion.version("9.9")
+
+    static boolean hasPredefinedGroups(GradleVersion targetVersion) {
+        targetVersion >= PREDEFINED_GROUPS_VERSION
+    }
+
+    /**
+     * @param problems the expression the script reaches the Problems service with, for example {@code getProblems()} in a task or {@code problemsService} in a model builder
+     */
+    static String report(GradleVersion targetVersion, String idName = 'id', String idDisplayName = 'shortProblemMessage', String problems = 'getProblems()') {
         if (targetVersion < GradleVersion.version("8.6")) {
             'create'
         } else if (targetVersion < GradleVersion.version("8.11")) {
@@ -28,17 +42,17 @@ class ProblemsApiGroovyScriptUtils {
         } else if (targetVersion < GradleVersion.version("8.13")) {
             'getReporter().reporting '
         } else {
-            "getReporter().report(org.gradle.api.problems.ProblemId.create(\"$idName\", \"$idDisplayName\", org.gradle.api.problems.ProblemGroup.create(\"generic\", \"Generic\"))) "
+            "getReporter().report(${createIdExpression(targetVersion, idName, idDisplayName, problems)}) "
         }
     }
 
-    static String id(GradleVersion targetVersion, String name = 'type', String displayName = 'label') {
+    static String id(GradleVersion targetVersion, String name = 'type', String displayName = 'label', String problems = 'getProblems()') {
         if (targetVersion < GradleVersion.version("8.8")) {
             "label(\"$displayName\").category(\"$name\")"
         } else if (targetVersion < GradleVersion.version("8.13")) {
             "id(\"$name\", \"$displayName\")"
         } else {
-            "id(${createIdExpression(name, displayName)})"
+            "id(${createIdExpression(targetVersion, name, displayName, problems)})"
         }
     }
 
@@ -52,7 +66,14 @@ class ProblemsApiGroovyScriptUtils {
         }
     }
 
-    static String createIdExpression(String name = 'type', String displayName = 'label') {
-        "org.gradle.api.problems.ProblemId.create(\"$name\", \"$displayName\", org.gradle.api.problems.ProblemGroup.create(\"generic\", \"Generic\"))"
+    /**
+     * An expression creating the problem id; {@code problems} is how the script reaches the Problems service.
+     */
+    static String createIdExpression(GradleVersion targetVersion, String name = 'type', String displayName = 'label', String problems = 'getProblems()') {
+        if (hasPredefinedGroups(targetVersion)) {
+            "${problems}.getGroups().getOthers().group(\"Generic\").problemId(\"$displayName\")"
+        } else {
+            "org.gradle.api.problems.ProblemId.create(\"$name\", \"$displayName\", org.gradle.api.problems.ProblemGroup.create(\"generic\", \"Generic\"))"
+        }
     }
 }
