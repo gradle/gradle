@@ -30,7 +30,10 @@ import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Modifier;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 class IdentityClassGenerator implements ClassGenerator {
     @Override
@@ -77,6 +80,11 @@ class IdentityClassGenerator implements ClassGenerator {
                         @Override
                         public boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> serviceAnnotation) {
                             return false;
+                        }
+
+                        @Override
+                        public Map<Class<?>, Set<Class<?>>> injectedServicesByDeclaringType(ConstructorSelector nestedConstructorSelector) {
+                            return Collections.emptyMap();
                         }
 
                         @Override

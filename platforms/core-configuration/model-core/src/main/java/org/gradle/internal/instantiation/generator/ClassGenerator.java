@@ -25,6 +25,8 @@ import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
 
 interface ClassGenerator {
     /**
@@ -73,6 +75,14 @@ interface ClassGenerator {
          * Does this constructor use a service injected via the given annotation?
          */
         boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> serviceAnnotation);
+
+        /**
+         * Returns the services injected into this constructor's type and its nested managed types,
+         * keyed by declaring type.
+         *
+         * @param nestedConstructorSelector selects the constructor a nested managed type is created with
+         */
+        Map<Class<?>, Set<Class<?>>> injectedServicesByDeclaringType(ConstructorSelector nestedConstructorSelector);
 
         Class<?>[] getParameterTypes();
 

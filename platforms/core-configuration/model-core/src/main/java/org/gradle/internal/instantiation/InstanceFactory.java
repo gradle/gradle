@@ -19,6 +19,8 @@ package org.gradle.internal.instantiation;
 import org.gradle.internal.service.ServiceLookup;
 
 import java.lang.annotation.Annotation;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * Creates instances of the given type. This is similar to {@link org.gradle.internal.reflect.Instantiator}, but produces instances of the given type only. This allows it to provides some
@@ -26,7 +28,7 @@ import java.lang.annotation.Annotation;
  */
 public interface InstanceFactory<T> {
     // TODO: nested managed types are not considered by requiresService and
-    //  serviceInjectionTriggeredByAnnotation.
+    //  serviceInjectionTriggeredByAnnotation, unlike by injectedServicesByDeclaringType.
 
     /**
      * Is the given service required to be injected by type?
@@ -37,6 +39,23 @@ public interface InstanceFactory<T> {
      * Is any service injection triggered by the given annotation?
      */
     boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> injectAnnotation);
+
+    /**
+     * Returns the services injected into the type and its nested managed types, keyed by declaring type.
+     *
+     * <p>For example, the result for {@code Params} is {@code {Params=[ObjectFactory], Inner=[ProviderFactory]}}:</p>
+     * <pre>
+     * interface Params {
+     *     {@literal @}Inject ObjectFactory getObjects();
+     *     {@literal @}Nested Inner getInner();
+     * }
+     *
+     * interface Inner {
+     *     {@literal @}Inject ProviderFactory getProviders();
+     * }
+     * </pre>
+     */
+    Map<Class<?>, Set<Class<?>>> injectedServicesByDeclaringType();
 
     /**
      * Creates a new instance from the given services and parameters.

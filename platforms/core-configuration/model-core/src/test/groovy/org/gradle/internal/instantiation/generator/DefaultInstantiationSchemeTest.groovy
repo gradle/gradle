@@ -16,6 +16,10 @@
 
 package org.gradle.internal.instantiation.generator
 
+import org.gradle.api.file.ConfigurableFileCollection
+import org.gradle.api.provider.ListProperty
+import org.gradle.api.provider.Property
+import org.gradle.api.tasks.Nested
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
 import org.gradle.internal.service.DefaultServiceRegistry
@@ -43,6 +47,51 @@ class DefaultInstantiationSchemeTest extends Specification {
 
         then:
         value.prop == "value"
+    }
+
+    def "reports the services injected into properties"() {
+        expect:
+        scheme.forType(WithServices).injectedServicesByDeclaringType() == [(WithServices): [String] as Set]
+    }
+
+    def "reports the services injected into the constructor"() {
+        expect:
+        scheme.forType(WithConstructorServices).injectedServicesByDeclaringType() == [(WithConstructorServices): [String, Number] as Set]
+    }
+
+    def "reports constructor parameters under the declaring type with its property injections for #type.simpleName"() {
+        expect:
+        scheme.forType(type).injectedServicesByDeclaringType() == injectedServicesByDeclaringType
+
+        where:
+        type                               | injectedServicesByDeclaringType
+        WithConstructorAndPropertyServices | [(WithConstructorAndPropertyServices): [String, Number] as Set]
+        WithNestedConstructorServices      | [(WithConstructorServices): [String, Number] as Set]
+    }
+
+    def "reports the services injected through nested managed types"() {
+        expect:
+        scheme.forType(WithNested).injectedServicesByDeclaringType() == [(WithServices): [String] as Set]
+    }
+
+    def "reports the services injected directly and through nested managed types, the declaring type first"() {
+        expect:
+        scheme.forType(WithDirectAndNested).injectedServicesByDeclaringType().entrySet().toList() == [(WithDirectAndNested): [Number] as Set, (WithServices): [String] as Set].entrySet().toList()
+    }
+
+    def "inspects a type nesting itself once"() {
+        expect:
+        scheme.forType(SelfNesting).injectedServicesByDeclaringType() == [(SelfNesting): [String] as Set]
+    }
+
+    def "does not inspect the values of managed properties"() {
+        expect:
+        scheme.forType(WithManagedProperties).injectedServicesByDeclaringType() == [:]
+    }
+
+    def "reports the injected services of a type independently of the services available"() {
+        expect:
+        scheme.withServices(Stub(ServiceLookup)).forType(WithServices).injectedServicesByDeclaringType() == [(WithServices): [String] as Set]
     }
 
     def "can create instances without invoking their constructor to use for deserialization"() {
@@ -81,5 +130,57 @@ class DefaultInstantiationSchemeTest extends Specification {
     static abstract class WithServices {
         @Inject
         abstract String getProp()
+    }
+
+    static class WithConstructorServices {
+        @Inject
+        WithConstructorServices(String prop, Number other) {
+        }
+    }
+
+    static abstract class WithConstructorAndPropertyServices {
+        @Inject
+        WithConstructorAndPropertyServices(String prop) {
+        }
+
+        @Inject
+        abstract Number getNumber()
+    }
+
+    static abstract class WithNestedConstructorServices {
+        @Nested
+        abstract WithConstructorServices getNested()
+    }
+
+    static abstract class WithNested {
+        @Nested
+        abstract WithServices getNested()
+    }
+
+    interface WithDirectAndNested {
+        @Inject
+        Number getNumber()
+
+        @Nested
+        WithServices getNested()
+    }
+
+    interface SelfNesting {
+        @Nested
+        SelfNesting getNested()
+
+        @Inject
+        String getProp()
+    }
+
+    interface WithManagedProperties {
+        Property<String> getProp()
+
+        ListProperty<String> getList()
+
+        ConfigurableFileCollection getFiles()
+
+        @Nested
+        Property<String> getNestedProp()
     }
 }
