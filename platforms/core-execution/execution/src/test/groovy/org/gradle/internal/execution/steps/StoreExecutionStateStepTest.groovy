@@ -71,10 +71,11 @@ class StoreExecutionStateStepTest extends StepSpec<MutableCachingContext> implem
         })
 
         _ * context.cachingState >> CachingState.enabled(new SimpleBuildCacheKey(cacheKey), beforeExecutionState)
+        _ * context.previousExecutionState >> Optional.empty()
         _ * delegateResult.execution >> Try.successful(Mock(Execution))
 
         then:
-        interaction { expectStore(true, outputFilesProducedByWork) }
+        interaction { expectStore(true, outputFilesProducedByWork, Optional.empty()) }
         0 * _
     }
 
@@ -96,12 +97,13 @@ class StoreExecutionStateStepTest extends StepSpec<MutableCachingContext> implem
         _ * context.previousExecutionState >> Optional.empty()
 
         then:
-        interaction { expectStore(false, outputFilesProducedByWork) }
+        interaction { expectStore(false, outputFilesProducedByWork, Optional.empty()) }
         0 * _
     }
 
     def "output snapshots are stored after failed execution with changed outputs"() {
         def previousExecutionState = Mock(PreviousExecutionState)
+        def expectedState = Optional.of(previousExecutionState)
 
         when:
         def result = step.execute(work, context)
@@ -117,11 +119,11 @@ class StoreExecutionStateStepTest extends StepSpec<MutableCachingContext> implem
         })
         _ * context.cachingState >> CachingState.enabled(new SimpleBuildCacheKey(cacheKey), beforeExecutionState)
         _ * delegateResult.execution >> Try.failure(new RuntimeException("execution error"))
-        _ * context.previousExecutionState >> Optional.of(previousExecutionState)
+        _ * context.previousExecutionState >> expectedState
         1 * previousExecutionState.outputFilesProducedByWork >> snapshotsOf([:])
 
         then:
-        interaction { expectStore(false, outputFilesProducedByWork) }
+        interaction { expectStore(false, outputFilesProducedByWork, expectedState) }
         0 * _
     }
 
@@ -158,9 +160,10 @@ class StoreExecutionStateStepTest extends StepSpec<MutableCachingContext> implem
         0 * _
     }
 
-    void expectStore(boolean successful, ImmutableSortedMap<String, FileSystemSnapshot> finalOutputs) {
-        1 * executionHistoryStore.store(
+    void expectStore(boolean successful, ImmutableSortedMap<String, FileSystemSnapshot> finalOutputs, Optional<PreviousExecutionState> expectedState) {
+        1 * executionHistoryStore.storeIfUnchanged(
             identity.uniqueId,
+            expectedState,
             { AfterExecutionState executionState ->
                 executionState.outputFilesProducedByWork == finalOutputs
                 executionState.originMetadata == originMetadata

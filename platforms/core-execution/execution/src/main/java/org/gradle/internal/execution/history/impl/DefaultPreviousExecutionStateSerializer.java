@@ -61,6 +61,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
 
     @Override
     public PreviousExecutionState read(Decoder decoder) throws Exception {
+        String executionHistoryEntryId = decoder.readString();
         OriginMetadata originMetadata = originMetadataSerializer.read(decoder);
 
         HashCode cacheKey = hashCodeSerializer.read(decoder);
@@ -83,6 +84,7 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
         boolean successful = decoder.readBoolean();
 
         return new DefaultPreviousExecutionState(
+            executionHistoryEntryId,
             originMetadata,
             cacheKey,
             taskImplementation,
@@ -96,6 +98,11 @@ public class DefaultPreviousExecutionStateSerializer extends AbstractSerializer<
 
     @Override
     public void write(Encoder encoder, PreviousExecutionState execution) throws Exception {
+        if (!(execution instanceof DefaultPreviousExecutionState)) {
+            throw new IllegalArgumentException("Execution history serializer requires DefaultPreviousExecutionState");
+        }
+        DefaultPreviousExecutionState persistedState = (DefaultPreviousExecutionState) execution;
+        encoder.writeString(persistedState.getExecutionHistoryEntryId());
         originMetadataSerializer.write(encoder, execution.getOriginMetadata());
 
         hashCodeSerializer.write(encoder, execution.getCacheKey());
