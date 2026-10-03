@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,16 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.internal.resolver;
+package org.gradle.api.internal.artifacts.result.artifact;
 
-import java.io.File;
+/**
+ * An edge in an {@link ArtifactGraph} that failed to resolve to a target node.
+ */
+non-sealed public interface UnresolvedArtifactEdge extends ArtifactEdge {
 
-public class NullGradleApiSourcesResolver implements GradleApiSourcesResolver {
+    /**
+     * The failure describing why this edge failed to attach.
+     */
+    Throwable getFailure();
 
-    public static final GradleApiSourcesResolver INSTANCE = new NullGradleApiSourcesResolver();
-
-    private NullGradleApiSourcesResolver() {
-    }
-
-    @Override
-    public File resolveLocalGroovySources(String jarName) {
-        return null;
-    }
 }

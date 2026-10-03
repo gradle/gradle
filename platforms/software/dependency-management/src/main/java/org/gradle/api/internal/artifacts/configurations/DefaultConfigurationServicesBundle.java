@@ -20,6 +20,7 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
@@ -58,6 +59,7 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
     private final AttributeDesugaring attributeDesugaring;
     private final ResolveExceptionMapper exceptionMapper;
     private final ProviderFactory providerFactory;
+    private final ResolvedArtifactSetResolver artifactSetResolver;
     private final ProjectLeaseRegistry projectLeaseRegistry;
     private final DependencyManagementInstanceIdentity instanceIdentity;
 
@@ -76,6 +78,7 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
         AttributeDesugaring attributeDesugaring,
         ResolveExceptionMapper exceptionMapper,
         ProviderFactory providerFactory,
+        ResolvedArtifactSetResolver artifactSetResolver,
         ProjectLeaseRegistry projectLeaseRegistry,
         DependencyManagementInstanceIdentity instanceIdentity
     ) {
@@ -92,6 +95,7 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
         this.attributeDesugaring = attributeDesugaring;
         this.exceptionMapper = exceptionMapper;
         this.providerFactory = providerFactory;
+        this.artifactSetResolver = artifactSetResolver;
         this.projectLeaseRegistry = projectLeaseRegistry;
         this.instanceIdentity = instanceIdentity;
     }
@@ -160,6 +164,12 @@ public final class DefaultConfigurationServicesBundle implements ConfigurationSe
     public ProviderFactory getProviderFactory() {
         return providerFactory;
     }
+
+    @Override
+    public ResolvedArtifactSetResolver getArtifactSetResolver() {
+        return artifactSetResolver;
+    }
+
 
     @Override
     public ProjectLeaseRegistry getProjectLeaseRegistry() {
