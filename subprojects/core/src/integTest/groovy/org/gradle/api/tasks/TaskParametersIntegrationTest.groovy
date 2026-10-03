@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.api.problems.Severity
+import org.gradle.api.problems.internal.TaskLocation
 import org.gradle.api.file.FileCollection
 import org.gradle.api.provider.ListProperty
 import org.gradle.api.provider.MapProperty
@@ -463,6 +464,7 @@ task someTask {
                 'typeName': 'InvalidTask',
                 'propertyName': 'inputFile',
             ]
+            oneLocation(TaskLocation).buildTreePath == ':invalid'
         }
     }
 
