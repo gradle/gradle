@@ -17,7 +17,9 @@ package org.gradle.api.execution;
 
 import groovy.lang.Closure;
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.api.Task;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -192,4 +194,44 @@ public interface TaskExecutionGraph {
      * @since 4.6
      */
     Set<Task> getDependencies(Task task);
+
+    /**
+     * Returns a provider that tells whether the task with the given path is part of this build's task graph.
+     *
+     * <p>The provider can only be queried once the task graph is ready, which means during task execution,
+     * for example from {@link Task#onlyIf(org.gradle.api.specs.Spec)} or as a task input.
+     * Querying it during configuration fails.</p>
+     *
+     * <p>The configuration cache stores the provider as a question, not as an answer:
+     * when the configuration is reused, the provider is answered again against the task graph of the current build.</p>
+     *
+     * <p>The task may belong to any project of this build.</p>
+     *
+     * @param taskPath the absolute path of the task, for example {@code ":app:test"}
+     * @return a provider that is {@code true} if the task is part of the task graph
+     * @throws IllegalArgumentException if the path is not absolute
+     * @since 9.9.0
+     */
+    @Incubating
+    Provider<Boolean> isScheduled(String taskPath);
+
+    /**
+     * Returns a provider that tells whether any task of the given type, in any project of this build, is part of this build's task graph.
+     *
+     * <p>Tasks are matched by the fully qualified name of the type they were registered with, including its supertypes and interfaces.
+     * This means that the same task type loaded by different class loaders, for example by the same plugin applied to several projects
+     * with different build script classpaths, still matches.</p>
+     *
+     * <p>The provider can only be queried once the task graph is ready, which means during task execution.
+     * Querying it during configuration fails.</p>
+     *
+     * <p>The configuration cache stores the provider as a question, not as an answer:
+     * when the configuration is reused, the provider is answered again against the task graph of the current build.</p>
+     *
+     * @param taskType the task type to look for
+     * @return a provider that is {@code true} if at least one task of the given type is part of the task graph
+     * @since 9.9.0
+     */
+    @Incubating
+    Provider<Boolean> anyScheduled(Class<? extends Task> taskType);
 }

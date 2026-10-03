@@ -46,6 +46,7 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         internalGraphListeners,
         taskExecutionListeners,
         listenerRegistrationListener,
+        new ScheduledTasks(),
     )
 
     def "is empty when no tasks have been added"() {
@@ -116,7 +117,8 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
             graphListeners,
             internalGraphListeners,
             taskExecutionListeners,
-            listenerRegistrationListener
+            listenerRegistrationListener,
+            new ScheduledTasks()
         )
         TaskExecutionGraphListener listener = Mock(TaskExecutionGraphListener)
 
@@ -143,7 +145,8 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
             graphListeners,
             internalGraphListeners,
             taskExecutionListeners,
-            listenerRegistrationListener
+            listenerRegistrationListener,
+            new ScheduledTasks()
         )
         def closure = Mock(Closure)
         def action = Mock(Action)
