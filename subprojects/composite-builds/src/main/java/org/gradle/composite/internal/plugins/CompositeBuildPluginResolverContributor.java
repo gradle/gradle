@@ -194,6 +194,11 @@ public class CompositeBuildPluginResolverContributor implements PluginResolverCo
         public void applyTo(PluginManagerInternal pluginManager) {
             pluginManager.apply(pluginId.getId());
         }
+
+        @Override
+        public boolean isLocal() {
+            return true;
+        }
     }
 
 }
