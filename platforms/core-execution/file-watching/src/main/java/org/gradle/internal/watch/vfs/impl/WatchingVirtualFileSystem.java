@@ -35,6 +35,7 @@ import org.gradle.internal.watch.WatchingNotSupportedException;
 import org.gradle.internal.watch.registry.FileWatcherRegistry;
 import org.gradle.internal.watch.registry.FileWatcherRegistryFactory;
 import org.gradle.internal.watch.registry.WatchMode;
+import org.gradle.internal.watch.registry.WatcherVerificationResult;
 import org.gradle.internal.watch.registry.impl.FileSystemWatchingDocumentationIndex;
 import org.gradle.internal.watch.registry.impl.SnapshotCollectingDiffListener;
 import org.gradle.internal.watch.vfs.BuildFinishedFileSystemWatchingBuildOperationType;
@@ -120,6 +121,16 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
         warningLogger = watchMode.loggerForWarnings(LOGGER);
         stateInvalidatedAtStartOfBuild = false;
         reasonForNotWatchingFiles = null;
+        // Outside the lock on purpose: the watcher consumer thread needs the same lock to deliver the
+        // probe event, so waiting for it here would starve the proof this asks for.
+        // One observation of the field: the consumer thread nulls it on a watching error, so a
+        // second read could hand a null to a call this one has already null-checked. A registry
+        // closed just after this read still verifies; the result is then discarded by the checks
+        // inside the lock, which costs a scan rather than an answer.
+        FileWatcherRegistry registryToVerify = watchRegistry;
+        WatcherVerificationResult verification = registryToVerify == null || !watchMode.isEnabled()
+            ? WatcherVerificationResult.EMPTY
+            : registryToVerify.verifyWatcherIsCurrent(root);
         updateRootUnderLock(currentRoot -> buildOperationRunner.call(new CallableBuildOperation<SnapshotHierarchy>() {
             @Override
             public SnapshotHierarchy call(BuildOperationContext context) {
@@ -150,7 +161,7 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                         if (hasDroppedStateBecauseOfErrorsReceivedWhileWatching(statistics) || !couldDetectUnsupportedFileSystems) {
                             newRoot = stopWatchingAndInvalidateHierarchyAfterError(currentRoot);
                         } else {
-                            newRoot = watchRegistry.updateVfsOnBuildStarted(currentRoot, watchMode, unsupportedFileSystems);
+                            newRoot = watchRegistry.updateVfsOnBuildStarted(currentRoot, watchMode, unsupportedFileSystems, verification);
                         }
                         stateInvalidatedAtStartOfBuild = newRoot != currentRoot;
                         statisticsSinceLastBuild = new DefaultFileSystemWatchingStatistics(statistics, newRoot);
@@ -329,7 +340,8 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
                     new InvalidateVfsChangeHandler(),
                     new BroadcastingChangeHandler()
                 )));
-            SnapshotHierarchy newRoot = watchRegistry.updateVfsOnBuildStarted(currentRoot.empty(), watchMode, unsupportedFileSystems);
+            // Watching has just started over an empty root, so there is no retained state to verify.
+            SnapshotHierarchy newRoot = watchRegistry.updateVfsOnBuildStarted(currentRoot.empty(), watchMode, unsupportedFileSystems, WatcherVerificationResult.EMPTY);
             watchableHierarchiesRegisteredEarly.forEach(watchableHierarchy -> watchRegistry.registerWatchableHierarchy(watchableHierarchy, newRoot));
             watchableHierarchiesRegisteredEarly.clear();
             return newRoot;
@@ -388,6 +400,17 @@ public class WatchingVirtualFileSystem extends AbstractVirtualFileSystem impleme
     private class BroadcastingChangeHandler implements FileWatcherRegistry.ChangeHandler {
         @Override
         public void handleChange(FileWatcherRegistry.Type type, Path path) {
+            FileWatcherRegistry registry = watchRegistry;
+            String location = path.toString();
+            if (registry != null && (registry.isProbeFile(location) || registry.isProbeDirectory(location))) {
+                // Gradle arms a probe at the start of every build, so broadcasting its own write
+                // would let a continuous build retrigger itself. The virtual file system is still
+                // invalidated for it, which is why this filter sits on the broadcast leg alone.
+                // Logged because a silent drop is indistinguishable from an event that never came,
+                // both when diagnosing a build and when testing this filter.
+                LOGGER.debug("{} to watch probe artifact {} not broadcast to file change listeners", type, location);
+                return;
+            }
             fileChangeListeners.broadcastChange(type, path);
         }
 
