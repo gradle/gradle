@@ -20,6 +20,7 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
+import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
@@ -30,6 +31,8 @@ import org.gradle.api.internal.file.FileTreeInternal;
 import org.gradle.api.internal.file.SubtractingFileCollection;
 import org.gradle.api.internal.file.UnionFileCollection;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
+import org.gradle.api.internal.provider.OutputProperties;
+import org.gradle.api.internal.provider.ProducerAware;
 import org.gradle.api.internal.provider.PropertyHost;
 import org.gradle.api.internal.provider.ValueState;
 import org.gradle.api.internal.provider.ValueSupplier;
@@ -65,10 +68,16 @@ import java.util.function.Supplier;
 /**
  * A {@link org.gradle.api.file.FileCollection} which resolves a set of paths relative to a {@link org.gradle.api.internal.file.FileResolver}.
  */
-public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, OwnerAware, HasConfigurableValueInternal, LazyGroovySupport {
+public class DefaultConfigurableFileCollection extends CompositeFileCollection implements ConfigurableFileCollection, Managed, OwnerAware, ProducerAware, HasConfigurableValueInternal, LazyGroovySupport {
     private static final EmptyCollector EMPTY_COLLECTOR = new EmptyCollector();
+    private static final DisplayName DEFAULT_DISPLAY_NAME = Describables.of("this file collection");
     private final PathSet filesWrapper;
     private DisplayName displayName;
+    /**
+     * The model object that declares this collection as an output property, if any. Its task produces the contents of this collection.
+     */
+    @Nullable
+    private ModelObject producer;
     private final PathToFileResolver resolver;
     private final TaskDependencyFactory dependencyFactory;
     private final PropertyHost host;
@@ -399,7 +408,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     private String displayNameForThisCollection() {
-        return displayName == null ? "this file collection" : displayName.getDisplayName();
+        return displayName().getDisplayName();
+    }
+
+    private DisplayName displayName() {
+        return displayName == null ? DEFAULT_DISPLAY_NAME : displayName;
     }
 
     @Override
@@ -451,6 +464,10 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
+        Task producerTask = OutputProperties.producerTaskOf(producer, displayName());
+        if (producerTask != null) {
+            context.add(producerTask);
+        }
         context.add(buildDependency);
         super.visitDependencies(context);
     }
@@ -508,6 +525,12 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public void attachOwner(@Nullable ModelObject owner, DisplayName displayName) {
         this.displayName = displayName;
+    }
+
+    @Override
+    public void attachProducer(ModelObject owner) {
+        OutputProperties.assertCanAttachProducer(producer, owner, displayName());
+        producer = owner;
     }
 
     public PathToFileResolver getResolver() {
