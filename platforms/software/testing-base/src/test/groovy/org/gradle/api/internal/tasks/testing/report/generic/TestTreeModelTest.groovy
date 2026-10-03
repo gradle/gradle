@@ -32,10 +32,12 @@ import java.nio.file.Path
  * Tests for {@link TestTreeModel}, specifically the merging behavior in finalizePath().
  *
  * <p>When a test group (e.g. a test class) is emitted multiple times within the same root,
- * some executions may have no children (e.g. when all methods are skipped). These childless
- * executions appear as leaves and must be merged into any existing non-leaf entry for the same
- * node, rather than being added as separate entries. True leaf retries (where all entries are
- * leaves) should still be preserved as separate entries.</p>
+ * some executions may have no children (e.g. when all methods are skipped, or a worker is
+ * lost before any method reports). These childless executions appear as leaves and must be
+ * merged into a non-leaf entry for the same node, regardless of whether that non-leaf entry
+ * already exists or arrives later -- otherwise every childless execution before the first
+ * execution with children would survive as its own entry. True leaf retries (where all
+ * entries are leaves) should still be preserved as separate entries.</p>
  */
 class TestTreeModelTest extends Specification {
 
@@ -93,6 +95,77 @@ class TestTreeModelTest extends Specification {
             def suite2 = descriptor("MySuite", root, "com.example.MySuite")
             writer.started(suite2, new TestStartEvent(300))
             writer.completed(suite2, successResult(300, 400), new TestCompleteEvent(400))
+
+            writer.completed(root, successResult(100, 400), new TestCompleteEvent(400))
+        }
+
+        when:
+        TestTreeModelResultsProvider.useResultsFrom(tempDir.resolve("store")) { provider ->
+            provider.visitClasses { }
+        }
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "merges multiple childless executions into a later execution with children"() {
+        given:
+        def store = writeStore { writer ->
+            def root = descriptor("root", null)
+
+            def suite1 = descriptor("MySuite", root, "com.example.MySuite")
+            writer.started(root, new TestStartEvent(100))
+            writer.started(suite1, new TestStartEvent(100))
+            writer.completed(suite1, successResult(100, 200), new TestCompleteEvent(200))
+
+            def suite2 = descriptor("MySuite", root, "com.example.MySuite")
+            writer.started(suite2, new TestStartEvent(200))
+            writer.completed(suite2, successResult(200, 300), new TestCompleteEvent(300))
+
+            def suite3 = descriptor("MySuite", root, "com.example.MySuite")
+            def testA = descriptor("testA", suite3, "com.example.MySuite")
+            writer.started(suite3, new TestStartEvent(300))
+            writer.started(testA, new TestStartEvent(300))
+            writer.completed(testA, successResult(300, 400), new TestCompleteEvent(400))
+            writer.completed(suite3, successResult(300, 400), new TestCompleteEvent(400))
+
+            writer.completed(root, successResult(100, 400), new TestCompleteEvent(400))
+        }
+
+        when:
+        def model = TestTreeModel.loadModelFromStores([store])
+
+        then:
+        model.children.size() == 1
+        def suiteNode = model.children[0]
+        suiteNode.path.name == "MySuite"
+        suiteNode.perRootInfo[0].size() == 1
+        !suiteNode.perRootInfo[0][0].isLeaf()
+        suiteNode.perRootInfo[0][0].results.size() == 3
+        suiteNode.children.size() == 1
+        suiteNode.children[0].path.name == "testA"
+    }
+
+    def "report generation does not crash when execution with children follows multiple childless executions"() {
+        given:
+        def storeDir = writeStore { writer ->
+            def root = descriptor("root", null)
+
+            def suite1 = descriptor("MySuite", root, "com.example.MySuite")
+            writer.started(root, new TestStartEvent(100))
+            writer.started(suite1, new TestStartEvent(100))
+            writer.completed(suite1, successResult(100, 200), new TestCompleteEvent(200))
+
+            def suite2 = descriptor("MySuite", root, "com.example.MySuite")
+            writer.started(suite2, new TestStartEvent(200))
+            writer.completed(suite2, successResult(200, 300), new TestCompleteEvent(300))
+
+            def suite3 = descriptor("MySuite", root, "com.example.MySuite")
+            def testA = descriptor("testA", suite3, "com.example.MySuite")
+            writer.started(suite3, new TestStartEvent(300))
+            writer.started(testA, new TestStartEvent(300))
+            writer.completed(testA, successResult(300, 400), new TestCompleteEvent(400))
+            writer.completed(suite3, successResult(300, 400), new TestCompleteEvent(400))
 
             writer.completed(root, successResult(100, 400), new TestCompleteEvent(400))
         }
