@@ -58,6 +58,9 @@ fun consumableVariant(reportType: String, artifact: Provider<RegularFile>) = con
         attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.DOCUMENTATION))
         attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("next-major-removal-report-$reportType"))
     }
+    // TODO(mlopatkin): extending `implementation` mirrors `runtimeElements` incompletely (it misses `runtimeOnly`),
+    //  so consumers do not see projects such as :problems. Drop the extendsFrom and have consumers reselect this
+    //  variant over the runtime graph instead, as gradlebuild.package-info-data.gradle.kts does.
     extendsFrom(configurations.implementation.get())
     outgoing.artifact(artifact)
 }

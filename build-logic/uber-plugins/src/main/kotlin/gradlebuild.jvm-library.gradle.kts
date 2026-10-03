@@ -29,6 +29,7 @@ plugins {
     id("gradlebuild.distribution-testing")
     id("gradlebuild.incubation-report")
     id("gradlebuild.removal-report")
+    id("gradlebuild.package-info-data")
     id("gradlebuild.strict-compile")
     id("gradlebuild.code-quality")
     id("gradlebuild.integration-tests")
