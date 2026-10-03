@@ -107,6 +107,16 @@ public interface GradleInternal extends Gradle, PluginAwareInternal {
      */
     BuildListener getBuildListenerBroadcaster();
 
+    /**
+     * Fires {@link BuildListener#settingsEvaluated(org.gradle.api.initialization.Settings)} for this build.
+     *
+     * <p>Callbacks registered via {@link Gradle#settingsEvaluated(org.gradle.api.Action)} or
+     * {@link Gradle#settingsEvaluated(groovy.lang.Closure)} while the notification is in progress are also fired
+     * before this method returns, so a {@code settingsEvaluated} callback can register further
+     * {@code settingsEvaluated} callbacks, similar to nested {@link org.gradle.api.Project#afterEvaluate(org.gradle.api.Action)}.</p>
+     */
+    void notifySettingsEvaluated(SettingsInternal settings);
+
     @UsedByScanPlugin
     ServiceRegistry getServices();
 

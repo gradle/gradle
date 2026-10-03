@@ -339,6 +339,9 @@ include::sample[dir="snippets/reference/runtime-configuration/callbacks/kotlin",
 include::sample[dir="snippets/reference/runtime-configuration/callbacks/groovy",files="callbacks.init.gradle[tags=settingsevaluated]"]
 ====
 
+NOTE: A callback registered from within a `settingsEvaluated` callback is executed in the same lifecycle phase, after all previously registered callbacks finish.
+This matches the behavior of nested link:{javadocPath}/org/gradle/api/Project.html#afterEvaluate(org.gradle.api.Action)[`Project.afterEvaluate`].
+
 [[projects_loaded]]
 ==== `projectsLoaded`
 
