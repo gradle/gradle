@@ -18,6 +18,7 @@ package org.gradle.api.provider
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.process.ShellScript
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class ValueSourceIntegrationTest extends AbstractIntegrationSpec {
@@ -88,5 +89,116 @@ class ValueSourceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains("ValueSource result = Hello, world")
+    }
+    @ToBeImplemented("A @Nested type cycle should be reported, not exhaust the stack")
+    @Issue("https://github.com/gradle/gradle/issues/39202")
+    def "value source parameters with a @Nested type cycle report the cycle"() {
+        given:
+        buildFile """
+            import org.gradle.api.provider.*
+
+            interface SelfNested {
+                @Nested SelfNested getSelf()
+                Property<String> getName()
+            }
+
+            interface Params extends ValueSourceParameters {
+                @Nested SelfNested getNested()
+            }
+
+            abstract class Probe implements ValueSource<String, Params> {
+                @Override String obtain() { return "ok" }
+            }
+
+            println("probe = " + providers.of(Probe) {}.get())
+        """
+
+        when:
+        fails("help")
+
+        then:
+        outputDoesNotContain("probe = ok")
+
+        // The reported location is the use site, not the declaration that forms the cycle
+        and:
+        failure.assertHasFileName("Build file '${buildFile}'")
+        failure.assertHasLineNumber(17)
+
+        // Only the generated class is named
+        and:
+        failureCauseContains("Could not isolate value")
+        failureCauseContains("of type Params")
+        result.error.contains("Params_Decorated")
+
+        and:
+        result.error.contains("java.lang.StackOverflowError (no error message)")
+    }
+
+    @ToBeImplemented("A @Nested type cycle should be reported, not exhaust the stack")
+    @Issue("https://github.com/gradle/gradle/issues/39202")
+    def "value source parameters that directly nest themselves report the cycle"() {
+        given:
+        buildFile """
+            import org.gradle.api.provider.*
+
+            interface Params extends ValueSourceParameters {
+                @Nested Params getSelf()
+            }
+
+            abstract class Probe implements ValueSource<String, Params> {
+                @Override String obtain() { return "ok" }
+            }
+
+            println("probe = " + providers.of(Probe) {}.get())
+        """
+
+        when:
+        fails("help")
+
+        then:
+        outputDoesNotContain("probe = ok")
+
+        and:
+        failureCauseContains("Could not isolate value")
+        failureCauseContains("of type Params")
+        result.error.contains("java.lang.StackOverflowError (no error message)")
+    }
+
+    @ToBeImplemented("A @Nested type cycle should be reported, not exhaust the stack")
+    @Issue("https://github.com/gradle/gradle/issues/39202")
+    def "stack trace of a @Nested type cycle failure is unusable"() {
+        given:
+        buildFile """
+            import org.gradle.api.provider.*
+
+            interface SelfNested {
+                @Nested SelfNested getSelf()
+                Property<String> getName()
+            }
+
+            interface Params extends ValueSourceParameters {
+                @Nested SelfNested getNested()
+            }
+
+            abstract class Probe implements ValueSource<String, Params> {
+                @Override String obtain() { return "ok" }
+            }
+
+            println("probe = " + providers.of(Probe) {}.get())
+        """
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        fails("help", "--stacktrace")
+
+        then:
+        def frames = result.error.readLines().findAll { it.trim().startsWith("at ") }
+        frames.size() > 500
+        frames.count { it.contains("AbstractValueProcessor.processManaged") } > 100
+
+        // The declared type surfaces only through generated frames, which carry no source location
+        and:
+        frames.any { it.contains("SelfNested_Decorated") }
+        frames.findAll { it.contains("SelfNested_Decorated") }.every { it.contains("Unknown Source") }
     }
 }
