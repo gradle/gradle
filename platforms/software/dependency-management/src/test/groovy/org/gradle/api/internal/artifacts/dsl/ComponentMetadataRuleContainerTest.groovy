@@ -65,6 +65,28 @@ class ComponentMetadataRuleContainerTest extends Specification {
         rules[0].classRules().containsAll([rule1, rule2])
     }
 
+    def 'repeated snapshots of the same rules are equal'() {
+        given:
+        container.addRule(Mock(SpecRuleAction))
+        container.addClassRule(configurableRule())
+
+        expect:
+        container.asImmutable() == container.asImmutable()
+        container.asImmutable().hashCode() == container.asImmutable().hashCode()
+    }
+
+    def 'snapshots with different rules are not equal'() {
+        given:
+        def other = new ComponentMetadataRuleContainer()
+        container.addRule(Mock(SpecRuleAction))
+        other.addRule(Mock(SpecRuleAction))
+
+        expect:
+        container.asImmutable() != other.asImmutable()
+        container.asImmutable() != ImmutableComponentMetadataRules.EMPTY
+        ImmutableComponentMetadataRules.EMPTY == ImmutableComponentMetadataRules.EMPTY
+    }
+
     private SpecConfigurableRule configurableRule() {
         Mock(SpecConfigurableRule) {
             getConfigurableRule() >> Stub(ConfigurableRule)

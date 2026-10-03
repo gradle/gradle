@@ -198,6 +198,40 @@ public class DefaultCacheExpirationControl implements CacheExpirationControl {
         return artifactCacheRules;
     }
 
+    /**
+     * Two instances are equal when they have the same rules and timeouts. Equality of the
+     * rules is based on action identity, so instances produced by repeated snapshots of the
+     * same cache policy compare equal.
+     */
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (!(o instanceof DefaultCacheExpirationControl that)) {
+            return false;
+        }
+        return keepDynamicVersionsFor == that.keepDynamicVersionsFor
+            && keepChangingModulesFor == that.keepChangingModulesFor
+            && offline == that.offline
+            && refresh == that.refresh
+            && dependencyCacheRules.equals(that.dependencyCacheRules)
+            && moduleCacheRules.equals(that.moduleCacheRules)
+            && artifactCacheRules.equals(that.artifactCacheRules);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = dependencyCacheRules.hashCode();
+        result = 31 * result + moduleCacheRules.hashCode();
+        result = 31 * result + artifactCacheRules.hashCode();
+        result = 31 * result + Long.hashCode(keepDynamicVersionsFor);
+        result = 31 * result + Long.hashCode(keepChangingModulesFor);
+        result = 31 * result + Boolean.hashCode(offline);
+        result = 31 * result + Boolean.hashCode(refresh);
+        return result;
+    }
+
     private static abstract class AbstractResolutionControl<A, B> implements ResolutionControl<A, B>, Expiry {
 
         private final A request;
