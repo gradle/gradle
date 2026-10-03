@@ -18,7 +18,8 @@ package org.gradle.internal.deprecation
 
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
-import org.gradle.api.problems.internal.GradleCoreProblemGroup
+import org.gradle.api.problems.internal.GradleProblemGroupInternal
+import org.gradle.api.problems.internal.ProblemInternal
 import org.gradle.internal.Describables
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
@@ -38,6 +39,7 @@ import org.gradle.problems.ProblemDiagnostics
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory
 import org.gradle.problems.buildtree.ProblemStream
 import org.gradle.util.SetSystemProperties
+import org.gradle.util.TestProblems
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.TextUtil
 import org.junit.Rule
@@ -61,10 +63,29 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final BuildOperationProgressEventEmitter progressBroadcaster = new DefaultBuildOperationProgressEventEmitter(
         clock, currentBuildOperationRef, buildOperationListener)
 
+    final TestProblems problems = TestUtil.problemsService()
+
     def setup() {
         _ * diagnosticsFactory.newStream() >> problemStream
         _ * diagnosticsFactory.newUnlimitedStream() >> problemStream
-        handler.init(WarningMode.All, progressBroadcaster, TestUtil.problemsService(), problemStream)
+        handler.init(WarningMode.All, progressBroadcaster, problems, problemStream)
+    }
+
+    def 'reports deprecations as problems in Gradle > Deprecation, already written to the console'() {
+        given:
+        useStackTrace()
+
+        when:
+        handler.featureUsed(deprecatedFeatureUsage('feature'))
+
+        then:
+        problems.assertProblemEmittedOnce { ProblemInternal problem ->
+            def id = problem.definition.id
+            problem.isWrittenToConsole() &&
+                problem.contextualLabel == 'feature' &&
+                id.name == 'id display name' &&
+                id.group == ((GradleProblemGroupInternal) problems.groups.gradle).deprecation
+        }
     }
 
     def 'logs each deprecation warning only once'() {
@@ -521,6 +542,6 @@ feature1 removal""")
     }
 
     private static DeprecatedFeatureUsage deprecatedFeatureUsage(String summary, Class<?> calledFrom = LoggingDeprecatedFeatureHandlerTest) {
-        new DeprecatedFeatureUsage(summary, "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id display name", GradleCoreProblemGroup.deprecation().toString(), calledFrom)
+        new DeprecatedFeatureUsage(summary, "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id display name", "id display name", calledFrom)
     }
 }

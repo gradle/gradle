@@ -35,6 +35,7 @@ import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.integtests.fixtures.executer.ProblemsApiDeprecations
 import org.gradle.integtests.fixtures.executer.UnderDevelopmentGradleDistribution
 import org.gradle.integtests.fixtures.problems.KnownProblemIds
 import org.gradle.integtests.fixtures.problems.ReceivedProblem
@@ -85,6 +86,7 @@ abstract class AbstractIntegrationSpec extends Specification implements CommonTe
     boolean ignoreCleanupAssertions
 
     private boolean enableProblemsApiCheck = false
+    private boolean expectLegacyProblemIdentityDeprecations = false
     protected BuildOperationsFixture buildOperationsFixture = null
 
     GradleExecuter getExecuter() {
@@ -775,12 +777,24 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         if (!enableProblemsApiCheck) {
             throw new IllegalStateException('Problems API check is not enabled')
         }
+        // a local, because a closure in this class cannot read a private field through a subclass instance
+        boolean includeLegacyIdentityDeprecations = expectLegacyProblemIdentityDeprecations
         return buildOperationsFixture.getRecords().collectMany { operation ->
             operation.progress(DefaultProblemProgressDetails.class).collect {
                 def problemDetails = it.details.get("problem") as Map<String, Object>
                 return new ReceivedProblem(operation.id, problemDetails)
-            }.findAll { isRealProblem(it) }
+            }.findAll { isRealProblem(it) && (includeLegacyIdentityDeprecations || it.fqid != ProblemsApiDeprecations.LEGACY_IDENTITY_PROBLEM_FQID) }
         }
+    }
+
+    /**
+     * Stops tolerating the deprecations emitted for problems reported with a legacy {@code ProblemGroup.create()} identity:
+     * the warnings must then be expected explicitly, and the deprecation problems they report are part of the collected problems.
+     * By default both are filtered, because third-party plugins under test still report through the legacy API.
+     */
+    def expectLegacyProblemIdentityDeprecations() {
+        expectLegacyProblemIdentityDeprecations = true
+        executer.disableLegacyProblemIdentityDeprecationFiltering()
     }
 
     static boolean isRealProblem(ReceivedProblem problem) {
@@ -789,7 +803,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         // However, since it isn't we do not know if the test has disabled the filtering of
         // these deprecation logs from the normal deprecation checks.
         // So, just ignore them all the time, even if the test has requested to not ignore these warnings.
-        if (problem.fqid == 'deprecation:executing-gradle-on-jvm-versions-and-lower') {
+        if (problem.fqid.startsWith('Gradle:Deprecation:Executing Gradle on JVM versions ')) {
             return false
         }
         // Filter out Kotlin DSL JDK incompatibility warnings that don't matter in practice

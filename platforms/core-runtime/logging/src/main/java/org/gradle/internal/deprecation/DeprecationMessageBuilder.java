@@ -179,7 +179,9 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         if (problemId == null) {
-            setProblemId(DeprecationMessageBuilder.createDefaultDeprecationId(createDefaultDeprecationIdDisplayName()));
+            // Deprecations are problems in the predefined Gradle > Deprecation group, whose problem names are sentences:
+            // the display name is the name.
+            setProblemId(problemIdDisplayName);
         }
 
         return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType, problemIdDisplayName, problemId);
@@ -260,9 +262,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
             if (problemIdDisplayName == null) {
                 setProblemIdDisplayName(summary);
-            }
-            if (problemId == null) {
-                setProblemId(DeprecationMessageBuilder.createDefaultDeprecationId(createDefaultDeprecationIdDisplayName()));
             }
 
             return super.build();
