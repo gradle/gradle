@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.serialization.codecs
 
 import org.gradle.api.internal.StartParameterInternal
+import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
 import org.gradle.internal.cc.base.problems.AbstractProblemsListener
@@ -33,6 +34,7 @@ import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.extensions.stdlib.useToRun
 import org.gradle.internal.io.NullOutputStream
+import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.FlushableEncoder
 import org.gradle.internal.serialize.beans.services.DefaultBeanStateWriterLookup
@@ -203,7 +205,10 @@ abstract class AbstractUserTypeCodecTest {
     fun userTypesCodec() = codecs().userTypesCodec()
 
     internal
-    fun codecs(): ConfigurationCacheCodecs = DefaultConfigurationCacheCodecs(
+    fun codecs(
+        attributesFactory: AttributesFactory = mock(),
+        calculatedValueContainerFactory: CalculatedValueContainerFactory = mock()
+    ): ConfigurationCacheCodecs = DefaultConfigurationCacheCodecs(
         modelParameters(),
         directoryFileTreeFactory = mock(),
         fileCollectionFactory = mock(),
@@ -222,10 +227,10 @@ abstract class AbstractUserTypeCodecTest {
         managedFactoryRegistry = mock(),
         parameterScheme = mock(),
         actionScheme = mock(),
-        attributesFactory = mock(),
+        attributesFactory = attributesFactory,
         attributeDesugaring = mock(),
         attributeSchemaFactory = mock(),
-        calculatedValueContainerFactory = mock(),
+        calculatedValueContainerFactory = calculatedValueContainerFactory,
         patternSetFactory = mock(),
         fileOperations = mock(),
         fileFactory = mock(),
