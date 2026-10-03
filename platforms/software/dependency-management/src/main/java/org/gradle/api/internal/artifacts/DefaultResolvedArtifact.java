@@ -36,11 +36,11 @@ import java.io.File;
 public class DefaultResolvedArtifact implements ResolvedArtifact {
 
     private final ComponentArtifactIdentifier id;
-    private final CalculatedValue<File> fileSource;
-    private final ModuleVersionIdentifier owner;
+    private final CalculatedValue<@Nullable File> fileSource;
+    private final @Nullable ModuleVersionIdentifier owner;
     private final IvyArtifactName artifactName;
 
-    public DefaultResolvedArtifact(ComponentArtifactIdentifier id, CalculatedValue<File> fileSource, @Nullable ModuleVersionIdentifier owner, IvyArtifactName artifactName) {
+    public DefaultResolvedArtifact(ComponentArtifactIdentifier id, CalculatedValue<@Nullable File> fileSource, @Nullable ModuleVersionIdentifier owner, IvyArtifactName artifactName) {
         this.id = id;
         this.fileSource = fileSource;
         this.owner = owner;
@@ -50,7 +50,11 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
     @Override
     public File getFile() {
         fileSource.finalizeIfNotAlready();
-        return fileSource.get();
+        File file = fileSource.get();
+        if (file == null) {
+            throw new IllegalStateException("Artifact file is not present.");
+        }
+        return file;
     }
 
     @Override

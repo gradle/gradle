@@ -19,6 +19,7 @@ package org.gradle.internal.model;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 import java.util.function.Supplier;
 
@@ -30,13 +31,13 @@ public interface CalculatedValueFactory {
     /**
      * Creates a calculated value that has no dependencies and that does not access any mutable model state.
      */
-    <T> CalculatedValue<T> create(DisplayName displayName, Supplier<? extends T> supplier);
+    <T extends @Nullable Object> CalculatedValue<T> create(DisplayName displayName, Supplier<? extends T> supplier);
 
     /**
      * A convenience to create a calculated value that has already been produced.
      * <p>
      * For example, the value might have been restored from the configuration cache.
      */
-    <T> CalculatedValue<T> create(DisplayName displayName, T value);
+    <T extends @Nullable Object> CalculatedValue<T> create(DisplayName displayName, T value);
 
 }
