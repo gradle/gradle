@@ -24,12 +24,14 @@ import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationContext;
+import org.gradle.internal.operations.CallableBuildOperation;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.scripts.CompileScriptBuildOperationType;
 
 import java.io.File;
+import java.util.Map;
 
 public class BuildOperationBackedScriptCompilationHandler implements ScriptCompilationHandler {
 
@@ -57,13 +59,34 @@ public class BuildOperationBackedScriptCompilationHandler implements ScriptCompi
 
             @Override
             public BuildOperationDescriptor.Builder description() {
-                String stage = transformer.getStage();
-                String name = "Compile " + source.getShortDisplayName() + " (" + stage + ")";
-                return BuildOperationDescriptor.displayName(name)
-                    .name(name)
-                    .details(new Details(stage));
+                return compileDescription(source, transformer);
             }
         });
+    }
+
+    @Override
+    public Map<String, byte[]> compileToMemory(ScriptSource source, ClassLoader classLoader, File metadataDir, CompileOperation<?> transformer, Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier) {
+        return buildOperationRunner.call(new CallableBuildOperation<Map<String, byte[]>>() {
+            @Override
+            public Map<String, byte[]> call(BuildOperationContext context) {
+                Map<String, byte[]> classes = delegate.compileToMemory(source, classLoader, metadataDir, transformer, scriptBaseClass, verifier);
+                context.setResult(RESULT);
+                return classes;
+            }
+
+            @Override
+            public BuildOperationDescriptor.Builder description() {
+                return compileDescription(source, transformer);
+            }
+        });
+    }
+
+    private static BuildOperationDescriptor.Builder compileDescription(ScriptSource source, CompileOperation<?> transformer) {
+        String stage = transformer.getStage();
+        String name = "Compile " + source.getShortDisplayName() + " (" + stage + ")";
+        return BuildOperationDescriptor.displayName(name)
+            .name(name)
+            .details(new Details(stage));
     }
 
     @Override
