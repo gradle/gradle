@@ -91,7 +91,7 @@ public final class TestEventReporterAsListener implements TestListenerInternal, 
                     reporter.failed(Instant.ofEpochMilli(completeEvent.getEndTime()), testResult.getFailures());
                     break;
                 case SKIPPED:
-                    reporter.skipped(Instant.ofEpochMilli(completeEvent.getEndTime()), testResult.getAssumptionFailure());
+                    reporter.skipped(Instant.ofEpochMilli(completeEvent.getEndTime()), testResult.getAssumptionFailure(), testResult.getSkipReason());
                     break;
                 default:
                     throw new IllegalArgumentException("Unknown result type: " + testResult.getResultType());
