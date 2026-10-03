@@ -229,7 +229,6 @@ abstract class AbstractUserTypeCodecTest {
         patternSetFactory = mock(),
         fileOperations = mock(),
         fileFactory = mock(),
-        includedTaskGraph = mock(),
         buildStateRegistry = mock(),
         documentationRegistry = mock(),
         javaSerializationEncodingLookup = JavaSerializationEncodingLookup(ObjectOpener.agentless()),
