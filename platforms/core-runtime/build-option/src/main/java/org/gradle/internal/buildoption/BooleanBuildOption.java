@@ -35,6 +35,10 @@ public abstract class BooleanBuildOption<T> extends AbstractBuildOption<T, Boole
         this(property, (String) null);
     }
 
+    public BooleanBuildOption(String property, String deprecatedProperty) {
+        super(property, deprecatedProperty);
+    }
+
     public BooleanBuildOption(String property, BooleanCommandLineOptionConfiguration... commandLineOptionConfigurations) {
         this(property, null, commandLineOptionConfigurations);
     }
