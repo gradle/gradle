@@ -72,4 +72,49 @@ class ConfigurationCacheProjectLayoutIntegrationTest extends AbstractConfigurati
         'dir'  | 'dir(computedDirName).map { it.file("answer.txt") }'
         'file' | 'file(computedDirName.map { "$it/answer.txt" })'
     }
+
+    def "#desc derived from a build property can be used as a value source parameter"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile """
+            abstract class LocationName implements ValueSource<String, Parameters> {
+                interface Parameters extends ValueSourceParameters {
+                    Property<FileSystemLocation> getLocation()
+                }
+                @Override String obtain() {
+                    return parameters.location.get().asFile.name
+                }
+            }
+
+            def location = layout.$provider
+            def locationName = providers.of(LocationName) {
+                parameters.location = location
+            }
+
+            tasks.register('answer') {
+                doLast {
+                    println("location: " + locationName.get())
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun 'answer'
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains "location: $expected"
+
+        when:
+        configurationCacheRun 'answer'
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains "location: $expected"
+
+        where:
+        desc   | provider                                                                              | expected
+        'file' | 'file(providers.gradleProperty("location").orElse("input.txt").map { new File(it) })' | 'input.txt'
+        'dir'  | 'dir(providers.gradleProperty("location").orElse("input-dir").map { new File(it) })'  | 'input-dir'
+    }
 }
