@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
@@ -1037,5 +1038,153 @@ The following types/formats are supported:
         then:
         result.assertTasksScheduled(":a", ":b", ":c")
         file("out.txt").text == "a1=22,a2=25,b=10"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22799")
+    def "ad hoc input property with value of #description derived from task output file property implies dependency on the task"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            def task = tasks.create("a", FileProducer) {
+                output = file("file.txt")
+                content = "12"
+            }
+            tasks.register("b") {
+                inputs.property("value", ${provider}).optional(true)
+            }
+        """
+
+        when:
+        run("b", "--dry-run")
+
+        then:
+        outputContains(":a SKIPPED")
+        outputContains(":b SKIPPED")
+
+        where:
+        description              | provider
+        "file contents as text"  | "providers.fileContents(task.output).asText"
+        "file contents as bytes" | "providers.fileContents(task.output).asBytes"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22799")
+    def "task input property with value of file contents derived from task output file property reads the file after the task runs"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            abstract class ValuePrinter extends DefaultTask {
+                @Input
+                abstract Property<String> getValue()
+                @TaskAction
+                def go() {
+                    println("value=" + value.get())
+                }
+            }
+
+            def task = tasks.create("a", FileProducer) {
+                output = file("file.txt")
+                content = "12"
+            }
+            tasks.register("b", ValuePrinter) {
+                value = providers.fileContents(task.output).asText
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksScheduled(":a", ":b")
+        outputContains("value=12")
+    }
+
+    @ToBeImplemented
+    @Issue("https://github.com/gradle/gradle/issues/22799")
+    def "ad hoc input property with value of custom value source derived from task output file property implies dependency on the task"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            abstract class FileLength implements ValueSource<Integer, Params> {
+                interface Params extends ValueSourceParameters {
+                    RegularFileProperty getFile()
+                }
+                Integer obtain() {
+                    def file = parameters.file.get().asFile
+                    return file.file ? file.length() : null
+                }
+            }
+
+            def task = tasks.create("a", FileProducer) {
+                output = file("file.txt")
+                content = "12"
+            }
+            tasks.register("b") {
+                inputs.property("value", providers.of(FileLength) { parameters.file = task.output }).optional(true)
+            }
+        """
+
+        when:
+        run("b", "--dry-run")
+
+        then:
+        outputContains(":b SKIPPED")
+        outputDoesNotContain(":a SKIPPED")
+        // Must be:
+        // outputContains(":a SKIPPED")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/22799")
+    def "ad hoc input property with value of #description with name derived from task output file property implies dependency on the task"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            def task = tasks.create("a", FileProducer) {
+                output = file("file.txt")
+                content = "12"
+            }
+            def name = task.output.map { it.asFile.text }
+            tasks.register("b") {
+                inputs.property("value", ${provider}).optional(true)
+            }
+        """
+
+        when:
+        run("b", "--dry-run")
+
+        then:
+        outputContains(":a SKIPPED")
+        outputContains(":b SKIPPED")
+
+        where:
+        description                         | provider
+        "environment variable"              | "providers.environmentVariable(name)"
+        "environment variables prefixed by" | "providers.environmentVariablesPrefixedBy(name)"
+        "system property"                   | "providers.systemProperty(name)"
+        "system properties prefixed by"     | "providers.systemPropertiesPrefixedBy(name)"
+        "Gradle property"                   | "providers.gradleProperty(name)"
+        "Gradle properties prefixed by"     | "providers.gradlePropertiesPrefixedBy(name)"
+    }
+
+    @ToBeImplemented
+    @Issue("https://github.com/gradle/gradle/issues/22799")
+    def "ad hoc input property with value of credentials with identity derived from task output file property implies dependency on the task"() {
+        taskTypeWithOutputFileProperty()
+        buildFile << """
+            def task = tasks.create("a", FileProducer) {
+                output = file("file.txt")
+                content = "12"
+            }
+            def name = task.output.map { it.asFile.text }
+            tasks.register("b") {
+                inputs.property("value", providers.credentials(PasswordCredentials, name)).optional(true)
+            }
+        """
+
+        when:
+        fails("b", "--dry-run")
+
+        then:
+        failureDescriptionContains("Could not determine the dependencies of task ':b'.")
+        failureHasCause("Querying the mapped value of task ':a' property 'output' before task ':a' has completed is not supported")
+        // Must be:
+        // succeeds("b", "--dry-run")
+        // outputContains(":a SKIPPED")
+        // outputContains(":b SKIPPED")
     }
 }
