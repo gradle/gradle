@@ -24,5 +24,8 @@ import org.gradle.process.ProcessExecutionException;
 public interface ExecAction extends ExecSpec {
     ExecHandle buildHandle();
     ExecResult execute() throws ProcessExecutionException;
+
+    org.gradle.process.ExecHandle executeAsync() throws ProcessExecutionException;
+
     ExecAction listener(ExecHandleListener listener);
 }
