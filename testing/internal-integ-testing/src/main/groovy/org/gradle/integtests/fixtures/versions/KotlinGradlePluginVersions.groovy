@@ -114,6 +114,7 @@ class KotlinGradlePluginVersions {
     static final VersionNumber KOTLIN_2_3_21 = VersionNumber.parse('2.3.21')
     static final VersionNumber KOTLIN_2_4_0 = VersionNumber.parse('2.4.0')
     static final VersionNumber KOTLIN_2_4_20 = VersionNumber.parse('2.4.20')
+    static final VersionNumber KOTLIN_2_5_0 = VersionNumber.parse('2.5.0')
 
     static void assumeCurrentJavaVersionIsSupportedBy(String kotlinVersion) {
         assumeCurrentJavaVersionIsSupportedBy(VersionNumber.parse(kotlinVersion))
@@ -162,6 +163,9 @@ class KotlinGradlePluginVersions {
         }
         if (kotlinVersion.baseVersion < KOTLIN_2_4_0) {
             return JavaVersion.VERSION_25
+        }
+        if (kotlinVersion.baseVersion < KOTLIN_2_5_0) {
+            return JavaVersion.VERSION_26
         }
         return null
     }
