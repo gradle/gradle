@@ -19,12 +19,22 @@ package org.gradle.launcher.daemon.server.api;
 import org.gradle.initialization.BuildCancellationToken;
 
 public interface DaemonStateControl {
+
     /**
-     * <p>Requests that the daemon stop, but wait until the daemon is idle. The stop will happen asynchronously, and this method does not block.
-     *
-     * <p>The daemon will stop accepting new work, so that subsequent calls to {@link #runCommand} will fail with {@link DaemonUnavailableException}.
+     * Requests that the daemon stop, but wait until the daemon is idle. The stop will happen asynchronously, and this method does not block.
+     * <p>
+     * The daemon will stop accepting new work, so that subsequent calls to {@link #runCommand} will fail with {@link DaemonUnavailableException}.
+     * <p>
+     * The stop is announced to the user at lifecycle level, along with the supplied reason.
      */
     void requestStop(String reason);
+
+    /**
+     * Requests that the daemon stop, exactly as per {@link #requestStop(String)}, except the stop is not announced to the user.
+     * <p>
+     * Useful when a stop is expected and would otherwise be noise, like in the single-use daemon scenario.
+     */
+    void requestQuietStop();
 
     /**
      * Requests a forceful stops of the daemon. Does not wait until the daemon is idle to begin stopping. The stop will happen asynchronously, and this method does not block.

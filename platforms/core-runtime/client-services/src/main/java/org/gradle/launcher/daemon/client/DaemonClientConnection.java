@@ -37,18 +37,33 @@ public class DaemonClientConnection implements Connection<Message> {
     private final RemoteConnection<Message> connection;
     private final DaemonConnectDetails daemon;
     private final StaleAddressDetector staleAddressDetector;
+    private final @Nullable DaemonHandle daemonHandle;
     private boolean hasReceived;
     private final Lock dispatchLock = new ReentrantLock();
     private boolean suspect;
 
-    public DaemonClientConnection(RemoteConnection<Message> connection, DaemonConnectDetails daemon, StaleAddressDetector staleAddressDetector) {
+    public DaemonClientConnection(
+        RemoteConnection<Message> connection,
+        DaemonConnectDetails daemon,
+        StaleAddressDetector staleAddressDetector,
+        @Nullable DaemonHandle daemonHandle
+    ) {
         this.connection = connection;
         this.daemon = daemon;
         this.staleAddressDetector = staleAddressDetector;
+        this.daemonHandle = daemonHandle;
     }
 
     public DaemonConnectDetails getDaemon() {
         return daemon;
+    }
+
+    /**
+     * The handle to the connected daemon, when this process started the daemon for this
+     * connection. Null when the daemon was already running.
+     */
+    public @Nullable DaemonHandle getDaemonHandle() {
+        return daemonHandle;
     }
 
     @Override

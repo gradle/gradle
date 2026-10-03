@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -33,11 +32,13 @@ import org.gradle.launcher.exec.BuildActionResult;
 
 import java.io.InputStream;
 import java.util.UUID;
+import java.util.concurrent.TimeUnit;
 
 public class SingleUseDaemonClient extends DaemonClient {
+
     public static final String MESSAGE = "To honour the JVM settings for this build a single-use Daemon process will be forked.";
+
     private static final Logger LOGGER = Logging.getLogger(SingleUseDaemonClient.class);
-    private final DocumentationRegistry documentationRegistry;
 
     public SingleUseDaemonClient(
         DaemonConnector connector,
@@ -46,20 +47,31 @@ public class SingleUseDaemonClient extends DaemonClient {
         InputStream buildStandardInput,
         GlobalUserInputReceiver userInput,
         IdGenerator<UUID> idGenerator,
-        DocumentationRegistry documentationRegistry,
         ProcessEnvironment processEnvironment
     ) {
         super(connector, outputEventListener, compatibilitySpec, buildStandardInput, userInput, idGenerator, processEnvironment);
-        this.documentationRegistry = documentationRegistry;
     }
 
     @Override
     public BuildActionResult execute(BuildAction action, BuildActionParameters parameters, ClientBuildRequestContext buildRequestContext) {
-        LOGGER.lifecycle(MESSAGE + " {}", documentationRegistry.getDocumentationRecommendationFor("on this", "gradle_daemon", "sec:disabling_the_daemon"));
-
         DaemonClientConnection daemonConnection = getConnector().startSingleUseDaemon();
-        Build build = new Build(getIdGenerator().generateId(), daemonConnection.getDaemon().getToken(), action, buildRequestContext.getClient(), buildRequestContext.getStartTime(), buildRequestContext.isInteractiveConsole(), parameters);
-
-        return executeBuild(build, daemonConnection, buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer());
+        try {
+            Build build = new Build(getIdGenerator().generateId(), daemonConnection.getDaemon().getToken(), action, buildRequestContext.getClient(), buildRequestContext.getStartTime(), buildRequestContext.isInteractiveConsole(), parameters);
+            return executeBuild(build, daemonConnection, buildRequestContext.getCancellationToken(), buildRequestContext.getEventConsumer());
+        } finally {
+            // The daemon stops itself after a single build, so wait for its termination before
+            // returning. Otherwise, an embedded daemon's teardown races this process' exit. The
+            // connection must be closed first, so the daemon is not kept alive by this client.
+            daemonConnection.stop();
+            awaitDaemonTermination(daemonConnection);
+        }
     }
+
+    private static void awaitDaemonTermination(DaemonClientConnection daemonConnection) {
+        DaemonHandle daemonHandle = daemonConnection.getDaemonHandle();
+        if (daemonHandle != null && !daemonHandle.awaitTermination(1, TimeUnit.MINUTES)) {
+            LOGGER.warn("Timeout waiting for the single-use daemon to stop after the build.");
+        }
+    }
+
 }

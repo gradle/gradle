@@ -19,10 +19,7 @@ import org.gradle.api.Action
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.cli.CommandLineParser
 import org.gradle.initialization.layout.BuildLayoutFactory
-import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.Actions
-import org.gradle.internal.installation.CurrentGradleInstallation
-import org.gradle.internal.installation.GradleInstallation
 import org.gradle.internal.jvm.Jvm
 import org.gradle.internal.logging.LoggingManagerFactory
 import org.gradle.internal.logging.LoggingManagerInternal
@@ -48,7 +45,6 @@ import org.gradle.process.internal.JvmOptions
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
-import org.gradle.tooling.internal.provider.RunInProcess
 import org.gradle.util.SetSystemProperties
 import org.gradle.util.UsesNativeServices
 import org.junit.Rule
@@ -118,7 +114,8 @@ class BuildActionsFactoryTest extends Specification {
         def action = convert('--no-daemon', 'args')
 
         then:
-        isInProcess action
+        // The build runs in a single-use daemon embedded in the current process
+        isSingleUseDaemon action
     }
 
     def "shows status of daemons"() {
@@ -195,8 +192,7 @@ class BuildActionsFactoryTest extends Specification {
             basicServices.get(FileCollectionFactory.class))
         buildEnvironmentConfigurationConverter.configure(parser)
         def cl = parser.parse(args)
-        def installation = new CurrentGradleInstallation(new GradleInstallation(IntegrationTestBuildContext.INSTANCE.gradleHomeDir))
-        return new BuildActionsFactory(loggingServices, basicServices, installation) {
+        return new BuildActionsFactory(loggingServices, basicServices) {
             @Override
             protected boolean canUseCurrentProcess(DaemonParameters daemonParameters, DaemonRequestContext requestContext) {
                 return useCurrentProcess
@@ -208,12 +204,6 @@ class BuildActionsFactoryTest extends Specification {
         def runnable = unwrapAction(action)
         def executor = unwrapExecutor(runnable)
         assert executor instanceof DaemonClient
-    }
-
-    void isInProcess(def action) {
-        def runnable = unwrapAction(action)
-        def executor = unwrapExecutor(runnable)
-        assert executor instanceof RunInProcess
     }
 
     void isSingleUseDaemon(def action) {

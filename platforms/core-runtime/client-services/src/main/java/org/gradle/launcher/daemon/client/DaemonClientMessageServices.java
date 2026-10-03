@@ -37,7 +37,6 @@ import org.gradle.internal.time.Time;
 import org.gradle.launcher.daemon.protocol.DaemonMessageSerializer;
 import org.gradle.launcher.daemon.registry.DaemonDir;
 import org.gradle.launcher.daemon.registry.DaemonRegistry;
-import org.gradle.launcher.daemon.startup.DaemonStartupInfo;
 import org.jspecify.annotations.NullMarked;
 
 import java.util.UUID;
@@ -105,7 +104,7 @@ public class DaemonClientMessageServices implements ServiceRegistrationProvider 
 
     private static class UnavailableDaemonStarter implements DaemonStarter {
         @Override
-        public DaemonStartupInfo startDaemon(boolean singleRun) {
+        public DaemonHandle startDaemon(boolean singleRun) {
             throw new UnsupportedOperationException("Daemons cannot be started with this client.");
         }
     }

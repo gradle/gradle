@@ -16,7 +16,6 @@
 
 package org.gradle.launcher.daemon.client;
 
-import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.specs.ExplainingSpec;
 import org.gradle.api.internal.specs.ExplainingSpecs;
 import org.gradle.internal.id.IdGenerator;
@@ -35,8 +34,8 @@ import java.util.UUID;
  */
 public class SingleUseDaemonClientServices extends DaemonClientServicesSupport {
 
-    public SingleUseDaemonClientServices(InputStream buildStandardInput) {
-        super(buildStandardInput);
+    public SingleUseDaemonClientServices(InputStream buildStandardInput, boolean embedded) {
+        super(buildStandardInput, embedded);
     }
 
     @Provides
@@ -46,10 +45,10 @@ public class SingleUseDaemonClientServices extends DaemonClientServicesSupport {
         OutputEventListener outputEventListener,
         GlobalUserInputReceiver globalUserInputReceiver,
         IdGenerator<UUID> idGenerator,
-        DocumentationRegistry documentationRegistry,
         ProcessEnvironment processEnvironment
     ) {
         ExplainingSpec<DaemonContext> matchNone = ExplainingSpecs.satisfyNone();
-        return new SingleUseDaemonClient(daemonConnector, outputEventListener, matchNone, getBuildStandardInput(), globalUserInputReceiver, idGenerator, documentationRegistry, processEnvironment);
+        return new SingleUseDaemonClient(daemonConnector, outputEventListener, matchNone, getBuildStandardInput(), globalUserInputReceiver, idGenerator, processEnvironment);
     }
+
 }

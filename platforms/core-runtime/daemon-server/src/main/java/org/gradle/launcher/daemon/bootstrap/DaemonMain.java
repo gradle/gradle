@@ -16,38 +16,23 @@
 package org.gradle.launcher.daemon.bootstrap;
 
 import com.google.common.io.Files;
-import org.gradle.api.logging.LogLevel;
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
-import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.instrumentation.agent.AgentInitializer;
-import org.gradle.internal.logging.LoggingManagerFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.services.LoggingServiceRegistry;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.nativeintegration.services.NativeServices.NativeServicesMode;
-import org.gradle.internal.remote.Address;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.bootstrap.EntryPoint;
 import org.gradle.launcher.bootstrap.ExecutionListener;
-import org.gradle.launcher.daemon.context.DaemonContext;
-import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
-import org.gradle.launcher.daemon.server.Daemon;
-import org.gradle.launcher.daemon.server.DaemonLogFile;
-import org.gradle.launcher.daemon.server.DaemonProcessState;
-import org.gradle.launcher.daemon.server.DaemonStopState;
-import org.gradle.launcher.daemon.server.MasterExpirationStrategy;
-import org.gradle.launcher.daemon.server.expiry.DaemonExpirationStrategy;
 import org.gradle.launcher.daemon.startup.DaemonServerConfiguration;
 import org.gradle.launcher.daemon.startup.DaemonStartupCommunication;
-import org.gradle.launcher.daemon.startup.DaemonStartupInfo;
 import org.gradle.process.internal.shutdown.ShutdownHooks;
 
 import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.PrintStream;
+import java.nio.charset.StandardCharsets;
 
 import static java.nio.file.Files.newOutputStream;
 
@@ -58,10 +43,6 @@ import static java.nio.file.Files.newOutputStream;
  * unexpected client disconnection) the process will exit with 1.
  */
 public class DaemonMain extends EntryPoint {
-    private static final Logger LOGGER = Logging.getLogger(DaemonMain.class);
-
-    private PrintStream originalOut;
-    private PrintStream originalErr;
 
     @Override
     protected void doAction(String[] args, ExecutionListener listener) {
@@ -70,40 +51,25 @@ public class DaemonMain extends EntryPoint {
             invalidArgs();
         }
 
+        PrintStream originalOut = System.out;
+        PrintStream originalErr = System.err;
+
         // Read configuration from stdin
         DaemonServerConfiguration parameters = DaemonStartupCommunication.readDaemonServerConfiguration(System.in);
         NativeServices.initializeOnDaemon(parameters.getGradleUserHomeDir(), NativeServicesMode.fromSystemProperties());
         ServiceRegistry loggingRegistry = LoggingServiceRegistry.newCommandLineProcessLogging();
-        LoggingManagerInternal loggingManager = loggingRegistry.get(LoggingManagerFactory.class).createLoggingManager();
 
-        DaemonProcessState daemonProcessState = new DaemonProcessState(parameters, loggingRegistry, loggingManager);
-        ServiceRegistry daemonServices = daemonProcessState.getServices();
-        File daemonLog = daemonServices.get(DaemonLogFile.class).getFile();
+        // A forked daemon relies on the process exiting to clean up after a forced stop
+        boolean closeServicesOnForcedStop = false;
 
-        // Any logging prior to this point will not end up in the daemon log file.
-        initialiseLogging(loggingManager, daemonLog);
-
-        // Detach the process from the parent terminal/console
-        ProcessEnvironment processEnvironment = daemonServices.get(ProcessEnvironment.class);
-        processEnvironment.maybeDetachProcess();
-
-        LOGGER.debug("Assuming the daemon was started with following jvm opts: {}", parameters.getJvmOptions());
-
-        daemonServices.get(AgentInitializer.class).maybeConfigureInstrumentationAgent();
-
-        Daemon daemon = daemonServices.get(Daemon.class);
-        daemon.start();
-
-        try {
-            DaemonContext daemonContext = daemonServices.get(DaemonContext.class);
-            Long pid = daemonContext.getPid();
-            daemonStarted(pid, daemon.getUid(), daemon.getAddress(), daemonLog);
-            DaemonExpirationStrategy expirationStrategy = daemonServices.get(MasterExpirationStrategy.class);
-            DaemonStopState stopState = daemon.stopOnExpiration(expirationStrategy, parameters.getPeriodicCheckIntervalMs());
-            daemonProcessState.stopped(stopState);
-        } finally {
-            CompositeStoppable.stoppable(daemon, daemonProcessState).stop();
-        }
+        DaemonServerBootstrap.run(
+            parameters,
+            originalOut,
+            originalErr,
+            loggingRegistry,
+            closeServicesOnForcedStop,
+            new ForkedDaemonServerEnvironment()
+        );
     }
 
     private static void invalidArgs() {
@@ -112,73 +78,64 @@ public class DaemonMain extends EntryPoint {
         System.exit(1);
     }
 
-    protected void daemonStarted(Long pid, String uid, Address address, File daemonLog) {
-        // directly printing to the stream to avoid log level filtering.
-        DaemonStartupCommunication.writeDaemonStartupInfo(originalOut, new DaemonStartupInfo(uid, address, new DaemonDiagnostics(daemonLog, pid)));
-        try {
-            originalOut.close();
-            originalErr.close();
-        } finally {
-            originalOut = null;
-            originalErr = null;
-        }
-    }
-
-    protected void initialiseLogging(LoggingManagerInternal loggingManager, File daemonLog) {
-        PrintStream log = createLogFile(daemonLog);
-        reducePermissionsOnDaemonLog(daemonLog);
-
-        ShutdownHooks.addShutdownHook(new Runnable() {
-            @Override
-            public void run() {
-                // just in case we have a bug related to logging,
-                // printing some exit info directly to file:
-                log.println(DaemonMessages.DAEMON_VM_SHUTTING_DOWN);
-            }
-        });
-
-        // close all streams and redirect IO
-        redirectOutputsAndInput(log);
-
-        // after redirecting we need to add the new std out/err to the renderer singleton
-        // so that logging gets its way to the daemon log:
-        loggingManager.attachSystemOutAndErr();
-
-        // Making the daemon infrastructure log with DEBUG. This is only for the infrastructure!
-        // Each build request carries it's own log level and it is used during the execution of the build (see LogToClient)
-        loggingManager.setLevelInternal(LogLevel.DEBUG);
-
-        loggingManager.start();
-    }
-
-    private static PrintStream createLogFile(File daemonLog) {
-        try {
-            Files.createParentDirs(daemonLog);
-            // Note that DaemonDiagnostics class reads this log.
-            return new PrintStream(newOutputStream(daemonLog.toPath()), true, "UTF-8");
-        } catch (Exception e) {
-            throw new RuntimeException("Unable to create daemon log file", e);
-        }
-    }
-
     /**
-     * Set the permissions for the daemon log to be only readable/writable by the current user.
+     * A forked daemon owns its whole process. It creates the daemon log file, redirects the
+     * process' system streams to it, attaches the logging manager to the redirected streams,
+     * and detaches the process from the parent terminal.
      */
-    private static void reducePermissionsOnDaemonLog(File daemonLog) {
-        //noinspection ResultOfMethodCallIgnored
-        daemonLog.setReadable(false, false);
-        //noinspection ResultOfMethodCallIgnored
-        daemonLog.setReadable(true);
-        //noinspection ResultOfMethodCallIgnored
-        daemonLog.setExecutable(false);
+    private static class ForkedDaemonServerEnvironment implements DaemonServerEnvironment {
+
+        @Override
+        public void beforeStart(LoggingManagerInternal loggingManager, File daemonLog, ServiceRegistry daemonServices) {
+            PrintStream log = createLogFile(daemonLog);
+            reducePermissionsOnDaemonLog(daemonLog);
+
+            ShutdownHooks.addShutdownHook(() -> {
+                // Just in case we have a bug related to logging,
+                // printing some exit info directly to file.
+                log.println(DaemonMessages.DAEMON_VM_SHUTTING_DOWN);
+            });
+
+            // Close all streams and redirect IO.
+            redirectOutputsAndInput(log);
+
+            // After redirecting we need to add the new std out/err to the renderer singleton
+            // so that logging gets its way to the daemon log.
+            loggingManager.attachSystemOutAndErr();
+
+            // Detach the process from the parent terminal/console.
+            ProcessEnvironment processEnvironment = daemonServices.get(ProcessEnvironment.class);
+            processEnvironment.maybeDetachProcess();
+        }
+
+        private static PrintStream createLogFile(File daemonLog) {
+            try {
+                Files.createParentDirs(daemonLog);
+                // Note that DaemonDiagnostics class reads this log.
+                return new PrintStream(newOutputStream(daemonLog.toPath()), true, StandardCharsets.UTF_8);
+            } catch (Exception e) {
+                throw new RuntimeException("Unable to create daemon log file", e);
+            }
+        }
+
+        /**
+         * Set the permissions for the daemon log to be only readable/writable by the current user.
+         */
+        private static void reducePermissionsOnDaemonLog(File daemonLog) {
+            //noinspection ResultOfMethodCallIgnored
+            daemonLog.setReadable(false, false);
+            //noinspection ResultOfMethodCallIgnored
+            daemonLog.setReadable(true);
+            //noinspection ResultOfMethodCallIgnored
+            daemonLog.setExecutable(false);
+        }
+
+        private static void redirectOutputsAndInput(PrintStream printStream) {
+            System.setOut(printStream);
+            System.setErr(printStream);
+            System.setIn(new ByteArrayInputStream(new byte[0]));
+        }
+
     }
 
-    private void redirectOutputsAndInput(PrintStream printStream) {
-        this.originalOut = System.out;
-        this.originalErr = System.err;
-
-        System.setOut(printStream);
-        System.setErr(printStream);
-        System.setIn(new ByteArrayInputStream(new byte[0]));
-    }
 }

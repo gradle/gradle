@@ -128,11 +128,18 @@ public class DaemonStateCoordinator implements Stoppable, DaemonStateControl {
     }
 
     @Override
-    public void requestStop(String reason) {
+    public void requestQuietStop() {
+        requestStop(null);
+    }
+
+    @Override
+    public void requestStop(@Nullable String reason) {
         lock.lock();
         try {
             if (state != DaemonState.StopRequested && state != DaemonState.Stopped && state != DaemonState.ForceStopped) {
-                LOGGER.lifecycle(DAEMON_WILL_STOP_MESSAGE + reason);
+                if (reason != null) {
+                    LOGGER.lifecycle(DAEMON_WILL_STOP_MESSAGE + reason);
+                }
                 if (state == DaemonState.Busy) {
                     LOGGER.debug("Stop as soon as idle requested. The daemon is busy");
                     beginStopping();
