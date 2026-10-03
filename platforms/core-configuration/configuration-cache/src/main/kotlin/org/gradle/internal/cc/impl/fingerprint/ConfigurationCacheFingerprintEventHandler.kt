@@ -51,6 +51,7 @@ import org.gradle.tooling.provider.model.internal.ToolingModelProjectDependencyL
 import java.io.Closeable
 import java.io.File
 import java.util.EnumSet
+import java.util.Properties
 
 /**
  * A dispatcher for various fingerprint-related events.
@@ -60,10 +61,10 @@ import java.util.EnumSet
  * See the implementation comments for the justification.
  */
 @ServiceScope(Scope.BuildTree::class)
-internal class ConfigurationCacheFingerprintEventHandler(
+internal open class ConfigurationCacheFingerprintEventHandler(
     private val workInputListeners: WorkInputListeners,
     private val scriptFileResolverListeners: ScriptFileResolverListeners,
-    private val inputTrackingState: InputTrackingState
+    protected val inputTrackingState: InputTrackingState
 ) :
 // For these listeners this class is the only "real" implementation.
 // Event sources get our instance through ServiceRegistry.
@@ -160,6 +161,10 @@ internal class ConfigurationCacheFingerprintEventHandler(
 
     override fun systemPropertiesCleared(consumer: String?) {
         delegate?.systemPropertiesCleared()
+    }
+
+    override fun systemPropertiesReplaced(properties: Properties, consumer: String?) {
+        delegate?.systemPropertiesReplaced(properties, consumer)
     }
 
     override fun envVariableRead(key: String, value: String?, consumer: String?) {

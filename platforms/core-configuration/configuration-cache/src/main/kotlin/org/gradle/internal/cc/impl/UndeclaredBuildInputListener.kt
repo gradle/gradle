@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.File
+import java.util.Properties
 
 
 /**
@@ -40,6 +41,8 @@ interface UndeclaredBuildInputListener {
     fun systemPropertyRemoved(key: Any, consumer: String?)
 
     fun systemPropertiesCleared(consumer: String?)
+
+    fun systemPropertiesReplaced(properties: Properties, consumer: String?)
 
     fun envVariableRead(key: String, value: String?, consumer: String?)
 

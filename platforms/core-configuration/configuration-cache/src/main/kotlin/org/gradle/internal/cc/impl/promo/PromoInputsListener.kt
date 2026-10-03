@@ -21,6 +21,7 @@ import org.gradle.internal.cc.impl.ConfigurationCacheInputsListener
 import org.gradle.internal.cc.impl.Workarounds
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheProblemsListener
 import java.io.File
+import java.util.Properties
 
 /**
  * This class is used to intercept instrumented calls when configuration cache is not enabled.
@@ -39,6 +40,8 @@ internal class PromoInputsListener(
     override fun systemPropertyRemoved(key: Any, consumer: String) = Unit
 
     override fun systemPropertiesCleared(consumer: String) = Unit
+
+    override fun systemPropertiesReplaced(properties: Properties, consumer: String) = Unit
 
     override fun envVariableQueried(key: String, value: String?, consumer: String) = Unit
 
