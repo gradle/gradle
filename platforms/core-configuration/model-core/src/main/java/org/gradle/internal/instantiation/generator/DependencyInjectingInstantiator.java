@@ -30,6 +30,8 @@ import org.jspecify.annotations.Nullable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Type;
+import java.util.Map;
+import java.util.Set;
 
 /**
  * An {@link Instantiator} that applies dependency injection, delegating to a {@link ConstructorSelector} to decide which constructor to use to create instances.
@@ -79,6 +81,11 @@ class DependencyInjectingInstantiator implements InstanceGenerator {
             @Override
             public boolean requiresService(Class<?> serviceType) {
                 return constructor.requiresService(serviceType);
+            }
+
+            @Override
+            public Map<Class<?>, Set<Class<?>>> injectedServicesByDeclaringType() {
+                return constructor.injectedServicesByDeclaringType(constructorSelector);
             }
 
             @Override
