@@ -757,15 +757,22 @@ ${prefix}${nestedType.typeName} get${JavaSources.capitalize(nestedType.name)}();
         def buildModelPropertyGetters = buildModel.properties.collect { property ->
             "${JavaSources.renderAnnotations(property.allAnnotations)}${JavaSources.getPropertyReturnType(property)} get${JavaSources.capitalize(property.name)}();"
         }.join("\n")
+        def buildModelNestedTypesGetters = buildModel.nestedTypes.collect { property ->
+            NestedRenderer.renderSubAccessor(property, false)
+        }.join("\n")
 
         def implInterface = ""
         if (buildModel.implementationClassName) {
             def implPropertyGetters = buildModel.properties.collect { property ->
                 "${JavaSources.renderAnnotations(property.allAnnotations)}${JavaSources.getPropertyReturnType(property)} get${JavaSources.capitalize(property.name)}();"
             }.join("\n")
+            def implNestedTypesGetters = buildModel.nestedTypes.collect { property ->
+                NestedRenderer.renderSubAccessor(property, true)
+            }.join("\n")
             implInterface = """
 public interface ${buildModel.implementationClassName} extends ${buildModel.className} {
 ${implPropertyGetters}
+${implNestedTypesGetters}
 }
 """
         }
@@ -773,6 +780,7 @@ ${implPropertyGetters}
         return """
 public interface ${buildModel.className} extends BuildModel {
 ${buildModelPropertyGetters}
+${buildModelNestedTypesGetters}
 }
 ${implInterface}
 """
