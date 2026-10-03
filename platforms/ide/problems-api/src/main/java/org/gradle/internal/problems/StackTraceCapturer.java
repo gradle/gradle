@@ -48,6 +48,31 @@ final class StackTraceCapturer {
         return null;
     }
 
+    /// Captures a partial stack that locates the calling thread, sparing the full budget.
+    ///
+    /// For a caller that reports no stack, so spending a full capture would deny one to a problem that does
+    /// report it. Past the bounded budget there is no location, as with [#captureLocation()].
+    @Nullable
+    Throwable captureLocationOnly() {
+        if (remainingBounded.getAndDecrement() > 0) {
+            return boundedCallerStackCapturer.captureCallerStack();
+        }
+        return null;
+    }
+
+    /// Captures a stack that locates the calling thread, and is never refused.
+    ///
+    /// For a problem that cannot be reported without a location. A full capture while the budget allows,
+    /// so such a problem is described as well as any other; past it a bounded capture, which is cheap
+    /// enough to take unconditionally and so cannot run out.
+    @Nullable
+    Throwable captureLocationAlways() {
+        if (remainingFull.getAndDecrement() > 0) {
+            return new Exception();
+        }
+        return boundedCallerStackCapturer.captureCallerStack();
+    }
+
     /// Captures an exception for the caller to retain, while the full budget lasts.
     ///
     /// There is no bounded fallback: a bounded capture locates the call without being an exception anyone

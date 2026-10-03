@@ -29,12 +29,17 @@ import java.util.List;
 /// many of each a stream allows is decided by [ProblemDiagnosticsFactory] when it creates the stream, so
 /// a caller cannot assume a stack or a location is present.
 ///
-/// | Method | Stack describes | Retains exception | Falls back to a partial capture |
-/// |---|---|---|---|
-/// | [#forCurrentCaller()] | calling thread | no | yes |
-/// | [#forCurrentCaller(StackTraceTransformer)] | calling thread | no | yes |
-/// | [#forCurrentCallerWithException] | calling thread | while full captures last | yes |
-/// | [#forThrownException] | the given exception | yes | never limited |
+/// A caller that does not need a full stack says so, and the stream spends the cheaper budget instead.
+/// A caller whose problem must be located whatever the budget says so too, and is never refused.
+///
+/// | Method | Stack describes | Retains exception | Spends the full budget | Falls back to a partial capture |
+/// |---|---|---|---|---|
+/// | [#forCurrentCaller()] | calling thread | no | yes | yes |
+/// | [#forCurrentCaller(StackTraceTransformer)] | calling thread | no | yes | yes |
+/// | [#forCurrentCallerLocationOnly] | calling thread | no | never | always |
+/// | [#forCurrentCallerAlwaysLocated] | calling thread | no | yes | yes, and never limited |
+/// | [#forCurrentCallerWithException] | calling thread | while full captures last | yes | yes |
+/// | [#forThrownException] | the given exception | yes | no | never limited |
 @ServiceScope(Scope.BuildTree.class)
 public interface ProblemStream {
 
@@ -46,6 +51,19 @@ public interface ProblemStream {
     /// This exists only because callers still sanitize for themselves. Move sanitizing behind this service
     /// and remove this method.
     ProblemDiagnostics forCurrentCaller(StackTraceTransformer transformer);
+
+    /// Locates the calling thread without a full stack, for a problem that reports no stack of its own.
+    ///
+    /// Only the partial-capture budget is spent, so a caller that would discard a full stack anyway does not
+    /// deny one to a problem that reports it. Past that budget there is no location, as with [#forCurrentCaller()].
+    ProblemDiagnostics forCurrentCallerLocationOnly();
+
+    /// Locates the calling thread whatever the budgets say, for a problem that must always be located.
+    ///
+    /// Never refused, so reserve it for problems that cannot be reported without a location. A full capture
+    /// while the budget allows, so such a problem is described as well as any other; past it a partial
+    /// capture, which still locates it.
+    ProblemDiagnostics forCurrentCallerAlwaysLocated();
 
     /// As [#forCurrentCaller()], but also retains an exception for the caller to rethrow.
     ///
