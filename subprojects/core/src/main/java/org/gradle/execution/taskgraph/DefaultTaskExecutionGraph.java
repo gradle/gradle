@@ -17,6 +17,7 @@
 package org.gradle.execution.taskgraph;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
@@ -48,6 +49,7 @@ import org.slf4j.LoggerFactory;
 import java.util.Collections;
 import java.util.List;
 import java.util.Set;
+import java.util.Map;
 
 @SuppressWarnings("deprecation")
 @NullMarked
@@ -64,6 +66,8 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
     private @Nullable FinalizedExecutionPlan executionPlan;
     private List<Task> allTasks = Collections.emptyList();
+    private volatile @Nullable Map<String, Task> allTaskPaths = null;
+    private final Object allTaskPathsLock = new Object();
     private boolean hasFiredWhenReady;
 
     public DefaultTaskExecutionGraph(
@@ -233,13 +237,25 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
             // TODO: Deprecate calling this method before whenReady is called
             return null;
         }
-
-        for (Task task : executionPlan.getContents().getTasks()) {
-            if (task.getPath().equals(path)) {
-                return task;
+        Map<String, Task> taskPaths = allTaskPaths;
+        if (taskPaths == null) {
+            synchronized (allTaskPathsLock) {
+                taskPaths = allTaskPaths;
+                if (taskPaths == null) {
+                    if (executionPlan.getContents().getTasks().isEmpty()) {
+                        taskPaths = ImmutableMap.of();
+                    } else {
+                        ImmutableMap.Builder<String, Task> builder = ImmutableMap.builder();
+                        for (Task task : executionPlan.getContents().getTasks()) {
+                            builder.put(task.getPath(), task);
+                        }
+                        taskPaths = builder.buildOrThrow();
+                    }
+                    allTaskPaths = taskPaths;
+                }
             }
         }
-        return null;
+        return taskPaths.get(path);
     }
 
     @Override
@@ -280,6 +296,9 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         taskListeners.removeAll();
         executionPlan = null;
         allTasks = Collections.emptyList();
+        synchronized (allTaskPathsLock) {
+            allTaskPaths = null;
+        }
     }
 
     @Override
