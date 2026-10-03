@@ -16,6 +16,10 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.integtests.fixtures.AvailableJavaHomes
+import org.gradle.test.precondition.Requires
+import org.gradle.test.preconditions.IntegTestPreconditions
+
 class ConfigurationCacheGradlePropertiesFileIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
 
     def configurationCache = newConfigurationCacheFixture()
@@ -267,5 +271,91 @@ class ConfigurationCacheGradlePropertiesFileIntegrationTest extends AbstractConf
 
         and:
         outputContains "configuration cache cannot be reused because system property 'foo' has changed."
+    }
+
+    @Requires([
+        IntegTestPreconditions.NotEmbeddedExecutor,
+        IntegTestPreconditions.Java17HomeAvailable,
+        IntegTestPreconditions.Java21HomeAvailable
+    ])
+    def "changing '#property' #effect CC"() {
+        given:
+        settingsFile.touch()
+
+        when:
+        propertiesFile.writeProperties((property): before.toString())
+
+        and:
+        configurationCacheRun 'help'
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        propertiesFile.writeProperties((property): after.toString())
+
+        and:
+        configurationCacheRun 'help'
+
+        then:
+        if (invalidates) {
+            configurationCache.assertStateStored()
+        } else {
+            configurationCache.assertStateLoaded()
+        }
+
+        where:
+        property                              | before     | after       | invalidates
+        'org.gradle.caching'                  | true       | false       | false
+        'org.gradle.caching.debug'            | true       | false       | false
+
+        // <NA>
+        // org.gradle.configuration-cache=(true,false)
+        // </NA>
+
+        'org.gradle.configureondemand'        | true       | false       | false
+        'org.gradle.console'                  | 'auto'     | 'plain'     | false
+
+        // <NA>
+        // org.gradle.continue=(true,false)
+        // </NA>
+
+        'org.gradle.daemon'                   | true       | false       | false
+        'org.gradle.daemon.idletimeout'       | 1000       | 2000        | false
+
+        // <Hard to test>
+        // org.gradle.debug=(true,false)
+        // </Hard to test>
+
+        'org.gradle.java.home'                | java17()   | java21()    | true
+
+        // <Requires toolchains / tested separately>
+        // org.gradle.java.installations.auto-detect=(true,false)
+        // org.gradle.java.installations.auto-download=(true,false)
+        // org.gradle.java.installations.paths=(list of JDK installations)
+        // org.gradle.java.installations.fromEnv=(list of environment variables)
+        // </Requires toolchains / tested separately>
+
+        'org.gradle.jvmargs'                  | '-Xmx256m' | '-Xmx512m'  | false
+        'org.gradle.logging.level'            | 'warn'     | 'lifecycle' | false
+        'org.gradle.parallel'                 | true       | false       | false
+        'org.gradle.priority'                 | 'low'      | 'normal'    | false
+        'org.gradle.projectcachedir'          | '.gradle'  | '.custom'   | true
+        'org.gradle.problems.report'          | true       | false       | false
+        'org.gradle.unsafe.isolated-projects' | true       | false       | true
+        'org.gradle.vfs.verbose'              | true       | false       | false
+        'org.gradle.vfs.watch'                | true       | false       | false
+        'org.gradle.warning.mode'             | 'all'      | 'fail'      | false
+        'org.gradle.workers.max'              | 2          | 4           | false
+
+        effect = invalidates ? 'invalidates' : 'does not invalidate'
+    }
+
+    private String java21() {
+        AvailableJavaHomes.getJdk21().javaHome.absolutePath
+    }
+
+    private String java17() {
+        AvailableJavaHomes.getJdk17().javaHome.absolutePath
     }
 }
