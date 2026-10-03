@@ -21,6 +21,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.OutputFile;
 import org.gradle.api.tasks.TaskAction;
 import org.gradle.nativeplatform.Linkage;
@@ -67,7 +68,7 @@ public abstract class GenerateSwiftPackageManagerManifest extends DefaultTask {
      *
      * @since 4.6
      */
-    @Input
+    @Nested
     public abstract Property<Package> getPackage();
 
     /**
