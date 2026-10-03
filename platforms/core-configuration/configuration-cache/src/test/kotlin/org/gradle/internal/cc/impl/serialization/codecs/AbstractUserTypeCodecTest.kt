@@ -238,6 +238,7 @@ abstract class AbstractUserTypeCodecTest {
         taskDependencyFactory = mock(),
         moduleIdentifierFactory = mock(),
         objectOpener = ObjectOpener.agentless(),
+        userCodeApplicationContext = mock(),
         startParameter = StartParameterInternal()
     )
 

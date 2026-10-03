@@ -55,11 +55,13 @@ dependencies {
         because("Required for @org.junit.Rule, used in ToolingApiSpecification")
     }
 
+    integTestImplementation(projects.enterpriseOperations)
     integTestImplementation(projects.jvmServices)
-    integTestImplementation(projects.persistentCache)
     integTestImplementation(projects.kotlinDslToolingModels)
+    integTestImplementation(projects.persistentCache)
     integTestImplementation(testFixtures(projects.buildProcessServices))
     integTestImplementation(testFixtures(projects.launcher))
+    integTestImplementation(testFixtures(projects.time))
     integTestImplementation(testFixtures(projects.toolchainsJvmShared))
 
     crossVersionTestImplementation(projects.jvmServices)

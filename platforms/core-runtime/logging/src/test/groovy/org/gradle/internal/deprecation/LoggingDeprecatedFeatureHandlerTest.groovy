@@ -20,6 +20,9 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.api.logging.configuration.WarningMode
 import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.internal.Describables
+import org.gradle.internal.code.DefaultUserCodeApplicationContext
+import org.gradle.internal.code.UserCodeApplicationContext
+import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.featurelifecycle.DeprecatedUsageProgressDetails
 import org.gradle.internal.featurelifecycle.LoggingDeprecatedFeatureHandler
 import org.gradle.internal.logging.CollectingTestOutputEventListener
@@ -60,11 +63,14 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
     final CurrentBuildOperationRef currentBuildOperationRef = new CurrentBuildOperationRef()
     final BuildOperationProgressEventEmitter progressBroadcaster = new DefaultBuildOperationProgressEventEmitter(
         clock, currentBuildOperationRef, buildOperationListener)
+    final userCodeApplicationContext = new DefaultUserCodeApplicationContext(System::nanoTime).tap {
+        it.startTrackingApplications()
+    }
 
     def setup() {
         _ * diagnosticsFactory.newStream() >> problemStream
         _ * diagnosticsFactory.newUnlimitedStream() >> problemStream
-        handler.init(WarningMode.All, progressBroadcaster, TestUtil.problemsService(), problemStream)
+        handler.init(WarningMode.All, progressBroadcaster, TestUtil.problemsService(), problemStream, userCodeApplicationContext)
     }
 
     def 'logs each deprecation warning only once'() {
@@ -208,7 +214,7 @@ feature1 removal""")
         useStackTrace()
 
         when:
-        handler.init(type, progressBroadcaster, TestUtil.problemsService(), problemStream)
+        handler.init(type, progressBroadcaster, TestUtil.problemsService(), problemStream, userCodeApplicationContext)
         handler.featureUsed(deprecatedFeatureUsage('feature1'))
 
         then:
@@ -498,6 +504,27 @@ feature1 removal""")
 
         then:
         1 * buildOperationListener.progress(_, _) >> { progressFired(it[1], 'feature2') }
+    }
+
+    def 'deprecated usages expose the id of the user code application they occurred in'() {
+        given:
+        useStackTrace()
+        useStackTrace()
+        currentBuildOperationRef.set(new DefaultBuildOperationRef(new OperationIdentifier(1), null))
+
+        when:
+        userCodeApplicationContext.apply(Stub(UserCodeSource), UserCodeApplicationContext.Target.Other.INSTANCE) {
+            handler.featureUsed(deprecatedFeatureUsage('feature1'))
+        }
+
+        then:
+        1 * buildOperationListener.progress(_, _) >> { assert it[1].details.currentCodeApplicationId == 1L }
+
+        when:
+        handler.featureUsed(deprecatedFeatureUsage('feature2'))
+
+        then:
+        1 * buildOperationListener.progress(_, _) >> { assert it[1].details.currentCodeApplicationId == null }
     }
 
     private void useStackTrace(List<StackTraceElement> stackTrace = []) {

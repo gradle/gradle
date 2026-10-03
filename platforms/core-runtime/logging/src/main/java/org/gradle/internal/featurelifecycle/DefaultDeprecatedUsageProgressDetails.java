@@ -22,6 +22,7 @@ import org.gradle.internal.SystemProperties;
 import org.gradle.internal.deprecation.DeprecatedFeatureUsage;
 import org.gradle.internal.operations.trace.CustomOperationTraceSerialization;
 import org.gradle.problems.ProblemDiagnostics;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.LinkedHashMap;
@@ -33,10 +34,12 @@ public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsagePro
     @VisibleForTesting
     public final DeprecatedFeatureUsage featureUsage;
     private final ProblemDiagnostics diagnostics;
+    private final @Nullable Long currentCodeApplicationId;
 
-    public DefaultDeprecatedUsageProgressDetails(DeprecatedFeatureUsage featureUsage, ProblemDiagnostics diagnostics) {
+    public DefaultDeprecatedUsageProgressDetails(DeprecatedFeatureUsage featureUsage, ProblemDiagnostics diagnostics, @Nullable Long currentCodeApplicationId) {
         this.featureUsage = featureUsage;
         this.diagnostics = diagnostics;
+        this.currentCodeApplicationId = currentCodeApplicationId;
     }
 
     @Override
@@ -71,19 +74,25 @@ public class DefaultDeprecatedUsageProgressDetails implements DeprecatedUsagePro
     }
 
     @Override
+    public @Nullable Long getCurrentCodeApplicationId() {
+        return currentCodeApplicationId;
+    }
+
+    @Override
     public List<StackTraceElement> getStackTrace() {
         return diagnostics.getStack();
     }
 
     @Override
     public Object getCustomOperationTraceSerializableModel() {
-        Map<String, Object> deprecation = new LinkedHashMap<String, Object>();
+        Map<String, @Nullable Object> deprecation = new LinkedHashMap<>();
         deprecation.put("summary", getSummary());
         deprecation.put("removalDetails", getRemovalDetails());
         deprecation.put("advice", getAdvice());
         deprecation.put("contextualAdvice", getContextualAdvice());
         deprecation.put("documentationUrl", getDocumentationUrl());
         deprecation.put("type", getType());
+        deprecation.put("currentCodeApplicationId", getCurrentCodeApplicationId());
         StringBuilder sb = new StringBuilder();
         for (StackTraceElement ste : getStackTrace()) {
             sb.append(ste.toString());

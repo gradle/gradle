@@ -71,6 +71,16 @@ public interface UserCodeApplicationContext {
     void gradleRuntime(Runnable runnable);
 
     /**
+     * Returns the application with the given ID, registering a new application with that ID, source,
+     * and target if one does not exist in the current recording.
+     * <p>
+     * Used to restore application references stored in the configuration cache.
+     *
+     * @throws IllegalStateException If recording is not in progress.
+     */
+    Application restoreApplication(long id, UserCodeSource source, Target target);
+
+    /**
      * Returns a handle to the current application, or null if no
      * application is currently being applied on this thread.
      */
@@ -101,6 +111,11 @@ public interface UserCodeApplicationContext {
          * Returns details describing the source of the user code.
          */
         UserCodeSource getSource();
+
+        /**
+         * Returns the target this application was applied to.
+         */
+        Target getTarget();
 
         /**
          * Executes code owned by this application. While the code is running, and while no other
@@ -162,9 +177,9 @@ public interface UserCodeApplicationContext {
     enum CodeType {
 
         /**
-         * Code that does not belong to any other type.
+         * Code executed synchronously while the application is being applied.
          */
-        GENERAL,
+        MAIN,
 
         /**
          * Callbacks executed against a domain object collection.
@@ -174,7 +189,17 @@ public interface UserCodeApplicationContext {
         /**
          * Asynchronous listener callbacks.
          */
-        LISTENER
+        LISTENER,
+
+        /**
+         * Code executed as part of a task action.
+         */
+        TASK_ACTION,
+
+        /**
+         * Code executed to build a tooling model.
+         */
+        TOOLING_MODEL_BUILDER,
 
     }
 

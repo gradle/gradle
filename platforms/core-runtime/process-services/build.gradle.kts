@@ -30,6 +30,7 @@ dependencies {
     implementation(libs.slf4jApi)
 
     testImplementation(projects.io)
+    testImplementation(testFixtures(projects.baseServices))
     testImplementation(testFixtures(projects.core)) {
         because("Provides TestFiles, TestUtil, UsesNativeServices, and NoOpProblemDiagnosticsFactory used by process unit tests")
     }

@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMap;
 import org.gradle.api.Action;
 import org.gradle.api.specs.Spec;
+import org.jctools.maps.NonBlockingHashMapLong;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -113,10 +114,18 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
             throw new IllegalStateException("Cannot apply user code application outside of a user code application timing");
         }
 
-        UserCodeApplicationId id = new UserCodeApplicationId(recording.nextId());
-        DefaultApplication newApplication = new DefaultApplication(id, source);
-        recording.registerApplication(target, newApplication);
-        newApplication.reapplyAction(action, id, CodeType.GENERAL);
+        Application application = recording.registerApplication(source, target);
+        application.reapplyAction(action, application.getId(), CodeType.MAIN);
+    }
+
+    @Override
+    public Application restoreApplication(long id, UserCodeSource source, Target target) {
+        RecordingState recording = this.recording;
+        if (recording == null) {
+            throw new IllegalStateException("Cannot restore a user code application outside of a user code application recording");
+        }
+
+        return recording.restoreApplication(id, source, target);
     }
 
     @Override
@@ -181,14 +190,18 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
 
         private final UserCodeApplicationId id;
         private final UserCodeSource source;
+        private final Target target;
 
-        private final AtomicLong generalDurationNs = new AtomicLong(0);
+        private final AtomicLong mainDurationNs = new AtomicLong(0);
         private final AtomicLong callbackDurationNs = new AtomicLong(0);
         private final AtomicLong listenerDurationNs = new AtomicLong(0);
+        private final AtomicLong taskActionDurationNs = new AtomicLong(0);
+        private final AtomicLong toolingModelBuilderDurationNs = new AtomicLong(0);
 
-        public DefaultApplication(UserCodeApplicationId id, UserCodeSource source) {
+        public DefaultApplication(UserCodeApplicationId id, UserCodeSource source, Target target) {
             this.id = id;
             this.source = source;
+            this.target = target;
         }
 
         @Override
@@ -199,6 +212,11 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
         @Override
         public UserCodeSource getSource() {
             return source;
+        }
+
+        @Override
+        public Target getTarget() {
+            return target;
         }
 
         @Override
@@ -260,9 +278,11 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
             return new DefaultApplicationSnapshot(
                 id,
                 source,
-                generalDurationNs.get(),
+                mainDurationNs.get(),
                 callbackDurationNs.get(),
-                listenerDurationNs.get()
+                listenerDurationNs.get(),
+                taskActionDurationNs.get(),
+                toolingModelBuilderDurationNs.get()
             );
         }
 
@@ -271,9 +291,11 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
          */
         private void accumulateTime(long durationNs, CodeType codeType) {
             switch (codeType) {
-                case GENERAL: generalDurationNs.addAndGet(durationNs); break;
+                case MAIN: mainDurationNs.addAndGet(durationNs); break;
                 case COLLECTION_CALLBACK: callbackDurationNs.addAndGet(durationNs); break;
                 case LISTENER: listenerDurationNs.addAndGet(durationNs); break;
+                case TASK_ACTION: taskActionDurationNs.addAndGet(durationNs); break;
+                case TOOLING_MODEL_BUILDER: toolingModelBuilderDurationNs.addAndGet(durationNs); break;
                 default: throw new IllegalArgumentException("Unknown code type: " + codeType);
             }
         }
@@ -330,22 +352,28 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
 
         private final UserCodeApplicationId id;
         private final UserCodeSource source;
-        private final long generalDurationNs;
+        private final long mainDurationNs;
         private final long callbackDurationNs;
         private final long listenerDurationNs;
+        private final long taskActionDurationNs;
+        private final long toolingModelBuilderDurationNs;
 
         public DefaultApplicationSnapshot(
             UserCodeApplicationId id,
             UserCodeSource source,
-            long generalDurationNs,
+            long mainDurationNs,
             long callbackDurationNs,
-            long listenerDurationNs
+            long listenerDurationNs,
+            long taskActionDurationNs,
+            long toolingModelBuilderDurationNs
         ) {
             this.id = id;
             this.source = source;
-            this.generalDurationNs = generalDurationNs;
+            this.mainDurationNs = mainDurationNs;
             this.callbackDurationNs = callbackDurationNs;
             this.listenerDurationNs = listenerDurationNs;
+            this.taskActionDurationNs = taskActionDurationNs;
+            this.toolingModelBuilderDurationNs = toolingModelBuilderDurationNs;
         }
 
         @Override
@@ -360,15 +388,21 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
 
         @Override
         public long getTotalDurationNs() {
-            return generalDurationNs + callbackDurationNs + listenerDurationNs;
+            return mainDurationNs +
+                callbackDurationNs +
+                listenerDurationNs +
+                taskActionDurationNs +
+                toolingModelBuilderDurationNs;
         }
 
         @Override
         public long getDurationNsForType(CodeType codeType) {
             switch (codeType) {
-                case GENERAL: return generalDurationNs;
+                case MAIN: return mainDurationNs;
                 case COLLECTION_CALLBACK: return callbackDurationNs;
                 case LISTENER: return listenerDurationNs;
+                case TASK_ACTION: return taskActionDurationNs;
+                case TOOLING_MODEL_BUILDER: return toolingModelBuilderDurationNs;
                 default: throw new IllegalArgumentException("Unknown code type: " + codeType);
             }
         }
@@ -378,7 +412,7 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
     /**
      * Tracks all user code applications that have been applied while a recording is in progress.
      */
-    private static class RecordingState {
+    private class RecordingState {
 
         /**
          * Monotonic counter for generating unique application IDs.
@@ -388,25 +422,81 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
         /**
          * All known user code applications, mapped by the target they were applied to.
          */
-        private final ConcurrentHashMap<Target, CopyOnReadArrayList<DefaultApplication>> applications = new ConcurrentHashMap<>();
+        private final ConcurrentHashMap<Target, CopyOnReadArrayList<DefaultApplication>> applicationsByTarget = new ConcurrentHashMap<>();
 
         /**
-         * Return an ID, unique to this recording, to identify a new user code application.
+         * All known user code applications, indexed by their ID.
          */
-        public long nextId() {
-            return counter.incrementAndGet();
+        private final NonBlockingHashMapLong<DefaultApplication> applicationsById = new NonBlockingHashMapLong<>();
+
+        /**
+         * Register a new user code application of the given source, applied to the given target.
+         */
+        public DefaultApplication registerApplication(UserCodeSource source, Target target) {
+            long id = counter.incrementAndGet();
+            DefaultApplication application = new DefaultApplication(new UserCodeApplicationId(id), source, target);
+            applicationsById.put(id, application);
+            addToTarget(application);
+            return application;
         }
 
         /**
-         * Register a new user code application applied to the given target.
+         * Return the application with the given ID, registering a new application with that ID,
+         * if one does not exist already.
          */
-        public void registerApplication(Target target, DefaultApplication application) {
+        public Application restoreApplication(long id, UserCodeSource source, Target target) {
+            DefaultApplication known = applicationsById.get(id);
+            if (known != null) {
+                return ensureSameApplication(known, id, source, target);
+            }
+
+            DefaultApplication application = new DefaultApplication(new UserCodeApplicationId(id), source, target);
+            DefaultApplication raced = applicationsById.putIfAbsent(id, application);
+            if (raced != null) {
+                // Another thread restored the same application first.
+                return ensureSameApplication(raced, id, source, target);
+            }
+
+            addToTarget(application);
+
+            // Advance the counter to past this ID, so that code applied after this point in the build is
+            // not given it.
+            counter.accumulateAndGet(id, Math::max);
+
+            return application;
+        }
+
+        /**
+         * Returns the known application, asserting that it has the given source and target.
+         * <p>
+         * This prevents:
+         * <ul>
+         *     <li> An application registered prior to or during restoration claiming the same ID
+         *     as an application to be restored. </li>
+         *     <li> Two applications from different invocations aliasing the same ID, a scenario
+         *     which may occur with Incremental IP. </li>
+         * </ul>
+         * We do not currently expect either of these scenarios to occur, but this check is intended
+         * to catch any such cases if they do occur.
+         */
+        private DefaultApplication ensureSameApplication(DefaultApplication known, long id, UserCodeSource source, Target target) {
+            if (!known.getSource().equals(source) || !known.getTarget().equals(target)) {
+                throw new IllegalStateException(
+                    "Cannot restore user code application: " + source.getDisplayName() + ". " +
+                        "ID " + id + " is already used by an application of " + known.getSource().getDisplayName() + "."
+                );
+            }
+
+            return known;
+        }
+
+        private void addToTarget(DefaultApplication application) {
             // Applications are generally only applied to a given target from a single thread.
             // Application timings are generally only read after the application has been applied.
             // We use a CopyOnReadArrayList rather than a CopyOnWriteArrayList to avoid the overhead
             // of copying the list upon registration, as we do not expect concurrent access to the
             // list to be common.
-            applications.computeIfAbsent(target, k -> new CopyOnReadArrayList<>()).add(application);
+            applicationsByTarget.computeIfAbsent(application.getTarget(), k -> new CopyOnReadArrayList<>()).add(application);
         }
 
         /**
@@ -417,7 +507,7 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
          * while this method is executing may or may not be included in the returned list.
          */
         public ImmutableList<ApplicationSnapshot> getApplicationsFor(Target target) {
-            CopyOnReadArrayList<DefaultApplication> list = applications.get(target);
+            CopyOnReadArrayList<DefaultApplication> list = applicationsByTarget.get(target);
             return list != null ? list.map(DefaultApplication::snapshot) : ImmutableList.of();
         }
 
@@ -429,8 +519,8 @@ public class DefaultUserCodeApplicationContext implements UserCodeApplicationCon
          * while this method is executing may or may not be included in the returned map.
          */
         private ImmutableMap<Target, ImmutableList<ApplicationSnapshot>> getAllApplications() {
-            ImmutableMap.Builder<Target, ImmutableList<ApplicationSnapshot>> result = ImmutableMap.builderWithExpectedSize(this.applications.size());
-            for (Map.Entry<Target, CopyOnReadArrayList<DefaultApplication>> entry : this.applications.entrySet()) {
+            ImmutableMap.Builder<Target, ImmutableList<ApplicationSnapshot>> result = ImmutableMap.builderWithExpectedSize(this.applicationsByTarget.size());
+            for (Map.Entry<Target, CopyOnReadArrayList<DefaultApplication>> entry : this.applicationsByTarget.entrySet()) {
                 result.put(entry.getKey(), entry.getValue().map(DefaultApplication::snapshot));
             }
             return result.build();

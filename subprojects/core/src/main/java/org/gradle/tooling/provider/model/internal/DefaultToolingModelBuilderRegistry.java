@@ -357,7 +357,7 @@ public class DefaultToolingModelBuilderRegistry implements ToolingModelBuilderRe
 
         @Override
         public Object build(@Nullable Object parameter) {
-            return registeredBy.reapplySupplier(() -> delegate.build(parameter), UserCodeApplicationContext.CodeType.GENERAL);
+            return registeredBy.reapplySupplier(() -> delegate.build(parameter), UserCodeApplicationContext.CodeType.TOOLING_MODEL_BUILDER);
         }
     }
 

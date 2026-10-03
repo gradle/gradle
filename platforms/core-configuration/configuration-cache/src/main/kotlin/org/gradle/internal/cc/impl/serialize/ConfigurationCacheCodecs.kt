@@ -44,6 +44,7 @@ import org.gradle.api.tasks.util.internal.PatternSetFactory
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildModelParameters
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.execution.InputFingerprinter
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.instantiation.InstantiatorFactory
@@ -102,6 +103,7 @@ import org.gradle.internal.serialize.codecs.core.TaskNodeCodec
 import org.gradle.internal.serialize.codecs.core.TaskReferenceCodec
 import org.gradle.internal.serialize.codecs.core.UnsupportedFingerprintBuildServiceProviderCodec
 import org.gradle.internal.serialize.codecs.core.UnsupportedFingerprintFlowProviders
+import org.gradle.internal.serialize.codecs.core.UserCodeApplicationCodec
 import org.gradle.internal.serialize.codecs.core.UserCodeSourceCodec
 import org.gradle.internal.serialize.codecs.core.ValueSourceProviderCodec
 import org.gradle.internal.serialize.codecs.core.WorkNodeActionCodec
@@ -210,6 +212,7 @@ class DefaultConfigurationCacheCodecs(
     transformStepNodeFactory: TransformStepNodeFactory,
     problems: ProblemsInternal,
     private val objectOpener: ObjectOpener,
+    userCodeApplicationContext: UserCodeApplicationContext,
     startParameter: StartParameterInternal
 ) : ConfigurationCacheCodecs {
 
@@ -299,6 +302,7 @@ class DefaultConfigurationCacheCodecs(
 
             bind(TaskReferenceCodec)
             bind(UserCodeSourceCodec)
+            bind(UserCodeApplicationCodec(userCodeApplicationContext))
 
             bind(IsolatedManagedValueCodec(managedFactoryRegistry))
             bind(IsolatedImmutableManagedValueCodec(managedFactoryRegistry))

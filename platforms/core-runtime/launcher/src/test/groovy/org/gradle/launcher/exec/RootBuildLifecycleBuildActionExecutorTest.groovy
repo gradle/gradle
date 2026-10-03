@@ -24,6 +24,7 @@ import org.gradle.internal.buildtree.BuildActionRunner
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeLifecycleListener
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.invocation.BuildAction
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter
 import org.gradle.internal.work.ProjectParallelExecutionController
@@ -55,6 +56,7 @@ class RootBuildLifecycleBuildActionExecutorTest extends Specification {
             Stub(BuildOperationProgressEventEmitter),
             Stub(ProblemStream),
             buildStateRegistry,
+            Stub(UserCodeApplicationContext),
             buildActionRunner
         )
 
@@ -80,6 +82,7 @@ class RootBuildLifecycleBuildActionExecutorTest extends Specification {
             Stub(BuildOperationProgressEventEmitter),
             Stub(ProblemStream),
             buildStateRegistry,
+            Stub(UserCodeApplicationContext),
             Mock(BuildActionRunner)
         )
 
