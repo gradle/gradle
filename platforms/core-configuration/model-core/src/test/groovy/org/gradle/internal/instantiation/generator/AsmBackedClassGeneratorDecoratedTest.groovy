@@ -24,7 +24,9 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.logging.LogLevel
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.ExtensionAware
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.provider.Property
+import org.gradle.api.provider.Provider
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.BiAction
 import org.gradle.internal.Describables
@@ -211,7 +213,7 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         def attempts = []
         def roleHandler = new PropertyRoleAnnotationHandler() {
             Set<Class<? extends Annotation>> getAnnotationTypes() { [Producer] as Set }
-            void applyRoleTo(ModelObject owner, Object target) {
+            Object applyRoleTo(ModelObject owner, Object target) {
                 attempts << target
                 throw new IllegalStateException("cannot apply the role")
             }
@@ -231,6 +233,29 @@ class AsmBackedClassGeneratorDecoratedTest extends AbstractClassGeneratorSpec {
         then: "the failure surfaces - only the getter invocation is meant to be tolerated"
         thrown(IllegalStateException)
         attempts.size() == 1
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25645")
+    def "overridden getter returns the value returned by the role handler"() {
+        given: "a role handler that decorates the value"
+        def targets = []
+        def roleHandler = new PropertyRoleAnnotationHandler() {
+            Set<Class<? extends Annotation>> getAnnotationTypes() { [Producer] as Set }
+            Object applyRoleTo(ModelObject owner, Object target) {
+                targets << target
+                return (target as Provider<String>).map { it + " decorated" }
+            }
+        }
+        def generator = AsmBackedClassGenerator.decorateAndInject([], roleHandler, [], new TestCrossBuildInMemoryCacheFactory(), 0)
+        def bean = create(generator, HasRoleAnnotatedProviderGetter)
+
+        when:
+        def value = bean.someValue
+
+        then: "the getter exposes the decorated value, and the original value was handed to the handler"
+        value.get() == "original decorated"
+        targets.size() == 1
+        targets[0].get() == "original"
     }
 
     def "can attach nested extensions to object"() {
@@ -845,6 +870,14 @@ class HasReadOnlyProperty {
 interface HasRoleAnnotatedManagedProperty {
     @Producer
     Property<String> getSomeValue()
+}
+
+class HasRoleAnnotatedProviderGetter {
+    // Not a Property: the value cannot record the role itself, so the generated getter returns what the role handler returns
+    @Producer
+    Provider<String> getSomeValue() {
+        return Providers.of("original")
+    }
 }
 
 class HasFailingAndWorkingPropertyGetters {

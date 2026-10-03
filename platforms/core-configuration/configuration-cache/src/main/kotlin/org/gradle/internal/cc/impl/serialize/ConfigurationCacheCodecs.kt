@@ -66,7 +66,9 @@ import org.gradle.internal.serialize.codecs.core.DirectoryPropertyCodec
 import org.gradle.internal.serialize.codecs.core.FileCollectionCodec
 import org.gradle.internal.serialize.codecs.core.FileTreeCodec
 import org.gradle.internal.serialize.codecs.core.FileValueSnapshotCodec
+import org.gradle.api.internal.provider.ProducerBackedProvider
 import org.gradle.internal.serialize.codecs.core.FixedValueReplacingProviderCodec
+import org.gradle.internal.serialize.codecs.core.ProducerBackedProviderCodec
 import org.gradle.internal.serialize.codecs.core.FlowProvidersCodec
 import org.gradle.internal.serialize.codecs.core.GradlePropertiesCodec
 import org.gradle.internal.serialize.codecs.core.IntegerValueSnapshotCodec
@@ -401,6 +403,7 @@ class DefaultConfigurationCacheCodecs(
         bind(DirectoryPropertyCodec(filePropertyFactory, nestedCodec))
         bind(RegularFilePropertyCodec(filePropertyFactory, nestedCodec))
         bind(PropertyCodec(propertyFactory, nestedCodec))
+        bind(ProducerBackedProvider::class.java, ProducerBackedProviderCodec(nestedCodec))
         bind(ProviderCodec(nestedCodec))
     }
 

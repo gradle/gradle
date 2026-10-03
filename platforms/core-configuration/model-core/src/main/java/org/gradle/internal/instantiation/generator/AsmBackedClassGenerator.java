@@ -509,7 +509,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
         private static final String RETURN_META_CLASS = getMethodDescriptor(META_CLASS_TYPE);
         private static final String RETURN_VOID_FROM_META_CLASS = getMethodDescriptor(Type.VOID_TYPE, META_CLASS_TYPE);
         private static final String GET_DECLARED_METHOD_DESCRIPTOR = getMethodDescriptor(METHOD_TYPE, STRING_TYPE, CLASS_ARRAY_TYPE);
-        private static final String RETURN_VOID_FROM_OBJECT_MODEL_OBJECT = getMethodDescriptor(VOID_TYPE, OBJECT_TYPE, MODEL_OBJECT_TYPE);
+        private static final String RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT = getMethodDescriptor(OBJECT_TYPE, OBJECT_TYPE, MODEL_OBJECT_TYPE);
         private static final String RETURN_VOID_FROM_DEFAULT_PROPERTY_SERVICE_LOOKUP_STRING = getMethodDescriptor(VOID_TYPE, DEFAULT_PROPERTY_TYPE, SERVICE_LOOKUP_TYPE, STRING_TYPE);
         private static final String RETURN_VOID_FROM_MODEL_OBJECT_DISPLAY_NAME = getMethodDescriptor(VOID_TYPE, MODEL_OBJECT_TYPE, DISPLAY_NAME_TYPE);
         private static final String RETURN_VOID_FROM_EXCEPTION_MODEL_OBJECT_STRING = getMethodDescriptor(VOID_TYPE, EXCEPTION_TYPE, MODEL_OBJECT_TYPE, STRING_TYPE);
@@ -1218,7 +1218,6 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                 }
 
                 if (applyRole) {
-                    _DUP();
                     applyRole();
                 }
 
@@ -1294,29 +1293,29 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
 
             /**
              * Attaches the owner to the property value on the top of the stack, and applies the property's role
-             * if it has one. Leaves a single value on the stack.
+             * if it has one. Leaves a single value on the stack: the value returned by the role handler, which may
+             * decorate the original value.
              */
             private void attachOwnerToValueOnStack(AttachedProperty attached) {
-                boolean applyRole = attached.applyRole;
-                if (applyRole) {
-                    _DUP();
-                }
                 _ALOAD(0);
                 _LDC(attached.property.getName());
                 _INVOKESTATIC(MANAGED_OBJECT_FACTORY_TYPE, "attachOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING);
-                if (applyRole) {
+                if (attached.applyRole) {
                     applyRole();
                 }
             }
 
-            // Caller should place property value on the top of the stack
+            /**
+             * Caller should place property value on the top of the stack. Replaces it with the value returned by the
+             * role handler, which is the same value or a decorated one.
+             */
             protected void applyRole() {
-                // GENERATE getFactory().applyRole(<value>)
+                // GENERATE getFactory().applyRole(<value>, this)
                 _ALOAD(0);
                 _INVOKEVIRTUAL(generatedType, FACTORY_METHOD, RETURN_MANAGED_OBJECT_FACTORY);
                 _SWAP();
                 _ALOAD(0);
-                _INVOKEVIRTUAL(MANAGED_OBJECT_FACTORY_TYPE, "applyRole", RETURN_VOID_FROM_OBJECT_MODEL_OBJECT);
+                _INVOKEVIRTUAL(MANAGED_OBJECT_FACTORY_TYPE, "applyRole", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT);
             }
 
             // Caller should place property value on the top of the stack
@@ -1598,9 +1597,9 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
                     _INVOKESTATIC(MANAGED_OBJECT_FACTORY_TYPE, "attachOwner", RETURN_OBJECT_FROM_OBJECT_MODEL_OBJECT_STRING);
                     _POP();
                     if (applyRole) {
-                        // GENERATE ManagedObjectFactory.applyRole(<value>)
-                        _DUP();
+                        // GENERATE value = (<type>) getFactory().applyRole(<value>, this)
                         applyRole();
+                        _CHECKCAST(returnType);
                     }
                 }
 
