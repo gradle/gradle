@@ -18,6 +18,7 @@ package org.gradle.api.specs;
 import org.gradle.util.TestUtil;
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -57,5 +58,17 @@ public class AndSpecTest extends AbstractCompositeSpecTest {
         AndSpec<Object> spec = new AndSpec<Object>(createAtomicElements(true));
         spec = spec.and(TestUtil.toClosure("{ false }"));
         assertFalse(spec.isSatisfiedBy(new Object()));
+    }
+
+    @Test
+    public void emptyIsEqualToNewSpecWithoutMembers() {
+        assertEquals(new AndSpec<Object>(), AndSpec.empty());
+    }
+
+    @Test
+    public void toStringListsMemberSpecs() {
+        assertEquals("AndSpec[]", AndSpec.empty().toString());
+        AndSpec<Object> spec = new AndSpec<Object>(Specs.satisfyAll(), Specs.satisfyNone());
+        assertEquals("AndSpec[SATISFIES_ALL, SATISFIES_NONE]", spec.toString());
     }
 }
