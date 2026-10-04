@@ -17,7 +17,6 @@ package org.gradle.api.specs;
 
 import com.google.common.collect.ObjectArrays;
 import groovy.lang.Closure;
-import org.gradle.api.Incubating;
 import org.gradle.api.specs.internal.ClosureSpec;
 import org.gradle.internal.Cast;
 import org.jspecify.annotations.Nullable;
@@ -83,7 +82,6 @@ public class AndSpec<T> extends CompositeSpec<T> {
      * @since 7.6
      */
     @Nullable
-    @Incubating
     public Spec<? super T> findUnsatisfiedSpec(T object) {
         Spec<? super T>[] specs = getSpecsArray();
         for (Spec<? super T> spec : specs) {

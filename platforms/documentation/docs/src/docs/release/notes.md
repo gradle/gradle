@@ -185,6 +185,11 @@ The remaining incubating parts of the API for [custom `dependencies` blocks](use
 * [`DependencyConstraintFactory`](javadoc/org/gradle/api/artifacts/dsl/DependencyConstraintFactory.html)
 * [`PlatformDependencyModifiers`](javadoc/org/gradle/api/plugins/jvm/PlatformDependencyModifiers.html) and [`TestFixturesDependencyModifiers`](javadoc/org/gradle/api/plugins/jvm/TestFixturesDependencyModifiers.html)
 
+### `AndSpec.findUnsatisfiedSpec`
+
+[`AndSpec.findUnsatisfiedSpec(T)`](javadoc/org/gradle/api/specs/AndSpec.html#findUnsatisfiedSpec(T)) has been promoted.
+Use it to find the first member spec that an object does not satisfy.
+
 ## Documentation and training
 
 <!--

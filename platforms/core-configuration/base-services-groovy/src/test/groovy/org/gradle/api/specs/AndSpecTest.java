@@ -20,6 +20,8 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertSame;
 import static org.junit.Assert.assertTrue;
 
 public class AndSpecTest extends AbstractCompositeSpecTest {
@@ -58,6 +60,22 @@ public class AndSpecTest extends AbstractCompositeSpecTest {
         AndSpec<Object> spec = new AndSpec<Object>(createAtomicElements(true));
         spec = spec.and(TestUtil.toClosure("{ false }"));
         assertFalse(spec.isSatisfiedBy(new Object()));
+    }
+
+    @Test
+    public void findsFirstUnsatisfiedSpecWithoutEvaluatingLaterOnes() {
+        Spec<Object>[] elements = createAtomicElements(true, false, false);
+        Spec<Object> notEvaluated = o -> {
+            throw new AssertionError("evaluated a spec after the first unsatisfied one");
+        };
+        AndSpec<Object> spec = new AndSpec<Object>(elements[0], elements[1], elements[2], notEvaluated);
+        assertSame(elements[1], spec.findUnsatisfiedSpec(new Object()));
+    }
+
+    @Test
+    public void findsNoUnsatisfiedSpecWhenAllAreSatisfied() {
+        assertNull(new AndSpec<Object>(createAtomicElements(true, true)).findUnsatisfiedSpec(new Object()));
+        assertNull(AndSpec.empty().findUnsatisfiedSpec(new Object()));
     }
 
     @Test
