@@ -3346,7 +3346,7 @@ Please replace it by its equivalent `JvmVendorSpec.IBM` to avoid warnings and po
 Following the <<upgrading_version_7.adoc#configuring_custom_build_layout_7,related previous deprecation>> of the behaviour in Gradle 7.1, it is now also deprecated to use related link:{javadocPath}/org/gradle/StartParameter.html[StartParameter] and link:{javadocPath}/org/gradle/api/tasks/GradleBuild.html[GradleBuild] properties.
 These properties will be removed in Gradle 9.0.0.
 
-Setting custom build file using link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html#org.gradle.api.tasks.GradleBuild:buildFile[buildFile] property in link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task has been deprecated.
+Setting custom build file using link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[buildFile] property in link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task has been deprecated.
 
 Please use the link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html#org.gradle.api.tasks.GradleBuild:dir[dir] property instead to specify the root of the nested build.
 Alternatively, consider using one of the recommended alternatives for link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task.

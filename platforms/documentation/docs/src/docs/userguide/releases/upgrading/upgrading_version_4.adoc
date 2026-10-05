@@ -120,7 +120,7 @@ Running Gradle & build environment::
  * The `-u`/`--no-search-upward` command-line option has been removed — make sure all your builds have a _settings.gradle_ file.
  * The `--recompile-scripts` command-line option has been removed.
  * You can no longer have a Gradle build nested in a subdirectory of another Gradle build unless the nested build has a _settings.gradle_ file.
- * The `DirectoryBuildCache.setTargetSizeInMB(long)` method has been removed — use link:{groovyDslPath}/org.gradle.caching.local.DirectoryBuildCache.html#org.gradle.caching.local.DirectoryBuildCache:removeUnusedEntriesAfterDays[DirectoryBuildCache.removeUnusedEntriesAfterDays] instead.
+ * The `DirectoryBuildCache.setTargetSizeInMB(long)` method has been removed — use link:{groovyDslPath}/org.gradle.caching.local.DirectoryBuildCache.html[DirectoryBuildCache.removeUnusedEntriesAfterDays] instead.
  * The `org.gradle.readLoggingConfigFile` system property no longer does anything — update affected tests to work with your `java.util.logging` settings.
 Working with files::
  * You can no longer cast `FileCollection` objects to other types using the `as` keyword or the `asType()` method.
@@ -279,7 +279,7 @@ The full list of built-in tasks that should not be replaced is:
 
  * Gradle will now, by convention, look for Checkstyle configuration files in the root project's _config/checkstyle_ directory.
 +
-Checkstyle configuration files in subprojects — the old by-convention location — will be ignored unless you explicitly configure their path via link:{groovyDslPath}/org.gradle.api.plugins.quality.CheckstyleExtension.html#org.gradle.api.plugins.quality.CheckstyleExtension:configDir[checkstyle.configDir] or link:{groovyDslPath}/org.gradle.api.plugins.quality.CheckstyleExtension.html#org.gradle.api.plugins.quality.CheckstyleExtension:config[checkstyle.config].
+Checkstyle configuration files in subprojects — the old by-convention location — will be ignored unless you explicitly configure their path via link:{groovyDslPath}/org.gradle.api.plugins.quality.CheckstyleExtension.html[checkstyle.configDir] or link:{groovyDslPath}/org.gradle.api.plugins.quality.CheckstyleExtension.html#org.gradle.api.plugins.quality.CheckstyleExtension:config[checkstyle.config].
  * The structure of Gradle's <<#rel4.7:plain_console_output,plain console output>> has changed, which may break tools that scrape that output.
  * The APIs of many native tasks related to compilation, linking and installation <<rel:4.6:native_task_api_changes,have changed in breaking ways>>.
  * [Kotlin DSL] Delegated properties used to access Gradle's build properties — defined in _gradle.properties_ for example — must now be explicitly typed.

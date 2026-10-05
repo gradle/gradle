@@ -254,7 +254,7 @@ Read the <<building_swift_projects.adoc#sec:introducing_build_variants-swift,int
 Some of the most common configuration options are shown below.
 
 [horizontal]
-link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html#org.gradle.nativeplatform.test.xctest.tasks.XCTest:binResultDir[binResultDir]:: `layout.buildDirectory.dir("test-results/xctest/__$variant__/")`
+link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html#org.gradle.nativeplatform.test.xctest.tasks.XCTest:binaryResultsDirectory[binResultDir]:: `layout.buildDirectory.dir("test-results/xctest/__$variant__/")`
 
 link:{groovyDslPath}/org.gradle.nativeplatform.test.xctest.tasks.XCTest.html#org.gradle.nativeplatform.test.xctest.tasks.XCTest:ignoreFailures[ignoreFailures]:: `false`
 
