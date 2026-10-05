@@ -16,25 +16,21 @@
 
 package org.gradle.problems.internal.rendering;
 
-import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.ProblemInternal;
 
 import java.io.PrintWriter;
 
-class DefaultProblemWriter implements SelectiveProblemWriter {
+/**
+ * Renders a problem with its header, body, and locations.
+ */
+class DefaultProblemWriter {
 
     // The header and the body are rendered separately to simulate how to enforce unified headers for contributed renderers.
     private static final PartialProblemWriter HEADER_WRITER = new ProblemHeaderWriter();
     private static final PartialProblemWriter BODY_WRITER = new ProblemBodyWriter();
 
-    @Override
     public void write(ProblemInternal problem, RenderOptions options, PrintWriter output) {
         HEADER_WRITER.write(problem, options, output);
         BODY_WRITER.write(problem, options, output);
-    }
-
-    @Override
-    public boolean accepts(ProblemId problemId) {
-        return true;
     }
 }

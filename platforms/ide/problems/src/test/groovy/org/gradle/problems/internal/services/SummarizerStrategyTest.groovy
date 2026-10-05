@@ -39,7 +39,8 @@ class SummarizerStrategyTest extends ConcurrentSpecification {
             [],
             'description',
             new RuntimeException('cause'),
-            null
+            null,
+            false
         )
     }
 

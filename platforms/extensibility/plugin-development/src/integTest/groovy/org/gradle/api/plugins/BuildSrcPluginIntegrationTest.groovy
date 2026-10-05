@@ -132,8 +132,8 @@ class BuildSrcPluginIntegrationTest extends AbstractIntegrationSpec {
         failureDescriptionContains("Could not compile build file '$buildFile.canonicalPath'.")
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'compilation:groovy-dsl:compilation-failed'
-            definition.id.displayName == 'Groovy DSL script compilation problem'
+            fqid == 'Gradle:DSL Evaluation:Script compilation failed'
+            definition.id.displayName == 'Script compilation failed'
             contextualLabel == "Could not compile build file '$buildFile.canonicalPath'."
             oneLocation(LineInFileLocation).path == buildFile.canonicalPath
         }

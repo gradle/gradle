@@ -102,6 +102,12 @@ Predefined groups are documented with a description of what belongs in them, giv
 On the console, problems now show the chain of groups they belong to, for example `Unused import (in Compilation > Java)`.
 The existing `ProblemGroup.create()` and `ProblemId.create()` methods keep working; migrating to the predefined groups is recommended.
 
+Gradle's own compilation problems now use the predefined groups: Java compiler diagnostics and compiler initialization failures report into `Compilation > Java`, a missing `tools.jar` for the Groovy compiler into `Compilation > Groovy`, and Groovy DSL script compilation failures into `Gradle > DSL Evaluation`.
+Both the group and the name of these problem ids changed, so Tooling API and report consumers that match on the old ids need to update.
+For example, `compilation:java:initialization-failed` is now `Compilation:Java:Compiler initialization failed`.
+The console heading for a failed compiler start changes with it, from `Java compilation initialization error` to `Compiler initialization failed`.
+Java compiler diagnostics are named after the kind of diagnostic, for example `Cannot find symbol` instead of the javac code `compiler.err.cant.resolve.location`; the compiler's message stays in the problem's contextual label.
+
 See the [Predefined Problem Groups](userguide/reporting_problems.html#sec:predefined_problem_groups) section in the Gradle User Manual for more details.
 
 ### Build authoring improvements

@@ -165,6 +165,12 @@ class ReceivedProblem implements ProblemInternal {
        additionalData
     }
 
+    @Override
+    boolean isWrittenToConsole() {
+        // The console flag is internal to the daemon and not part of the reported problem event.
+        false
+    }
+
 
     @Override
     ReceivedException getException() {
