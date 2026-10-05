@@ -37,6 +37,16 @@ class JUnit5PlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpe
                 testImplementation 'com.tngtech.archunit:archunit-junit5:${LATEST_ARCHUNIT_VERSION}'
             }
         """
+        // Every rule below is declared with allowEmptyShould(true). ArchUnit cannot read the class files
+        // of the newest JVMs this build tests against: on Java 27 it imports no classes at all, and does
+        // so silently, with no warning even under --warning-mode=all. A rule that checked nothing then
+        // fails by default, which would fail these tests for a reason that has nothing to do with Gradle.
+        //
+        // Tolerating an empty import is deliberate, and is done INSTEAD of putting a @Requires JDK ceiling
+        // on this class, so that the filtering coverage keeps running on the newest JVMs. These tests
+        // assert which test paths execute, not what the rules find, and a rule is discovered and filtered
+        // by reflection over its field rather than by importing classes. Filtering therefore works on
+        // every JVM, including the ones where ArchUnit's own analysis does not.
         file('src/test/java/sample/ArchRulesTest.java') << '''
             package sample;
 
@@ -50,10 +60,10 @@ class JUnit5PlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpe
             @AnalyzeClasses(packages = "sample")
             public class ArchRulesTest {
                 @ArchTest
-                static final ArchRule firstRule = classes().should().bePublic();
+                static final ArchRule firstRule = classes().should().bePublic().allowEmptyShould(true);
 
                 @ArchTest
-                static final ArchRule secondRule = classes().should().bePublic();
+                static final ArchRule secondRule = classes().should().bePublic().allowEmptyShould(true);
 
                 @ArchTest
                 static final ArchTests nested = ArchTests.in(NestedRules.class);
@@ -69,7 +79,7 @@ class JUnit5PlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpe
 
             public class NestedRules {
                 @ArchTest
-                static final ArchRule nestedRule = classes().should().bePublic();
+                static final ArchRule nestedRule = classes().should().bePublic().allowEmptyShould(true);
             }
         '''
         file('src/test/java/sample/OtherArchRulesTest.java') << '''
@@ -84,7 +94,7 @@ class JUnit5PlatformFilteringIntegrationTest extends JUnitPlatformIntegrationSpe
             @AnalyzeClasses(packages = "sample")
             public class OtherArchRulesTest {
                 @ArchTest
-                static final ArchRule otherRule = classes().should().bePublic();
+                static final ArchRule otherRule = classes().should().bePublic().allowEmptyShould(true);
             }
         '''
         file('src/test/java/sample/JupiterTest.java') << '''
