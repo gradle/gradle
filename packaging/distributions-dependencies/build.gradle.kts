@@ -70,7 +70,7 @@ dependencies {
         api(libs.commonsHttpclient)     { version { strictly("4.5.14") } }
         api(libs.commonsIo)             { version { strictly("2.15.1") }}
         api(libs.commonsLang)           { version { strictly("2.6") }}
-        api(libs.commonsLang3)          { version { strictly("3.14.0") }}
+        api(libs.commonsLang3)          { version { strictly("3.18.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.eclipseSisuPlexus)     { version { strictly("0.3.5"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.errorProneAnnotations) { version { strictly("2.36.0") } } // don't forget to upgrade errorprone in gradlebuild.code-quality.gradle.kts
@@ -122,12 +122,12 @@ dependencies {
         api(libs.jclToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.jcommander)            { version { strictly("1.78") }}
         api(libs.jetbrainsAnnotations)  { version { strictly("24.0.1") }}
-        api(libs.jgit)                  { version { strictly("5.13.3.202401111512-r"); because("6.x requires Java 11") }}
-        api(libs.jgitSsh)               { version { strictly("5.13.3.202401111512-r") }}
+        api(libs.jgit)                  { version { strictly("5.13.5.202508271544-r"); because("6.x requires Java 11") }}
+        api(libs.jgitSsh)               { version { strictly("5.13.5.202508271544-r") }}
         api(libs.joda)                  { version { strictly("2.12.2") }}
         api(libs.joptSimple)            { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
         api(libs.jsch)                  { version { strictly("0.2.16") }}
-        api(libs.jsoup)                 { version { strictly("1.15.3") }}
+        api(libs.jsoup)                 { version { strictly("1.23.2") }}
         api(libs.jsr305)                { version { strictly("3.0.2") }}
         api(libs.julToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.junit)                 { version { strictly("4.13.2") }}

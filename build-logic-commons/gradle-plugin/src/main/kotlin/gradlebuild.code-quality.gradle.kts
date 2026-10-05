@@ -124,6 +124,9 @@ dependencies {
         checkstyle("commons-beanutils:commons-beanutils:1.11.0") {
             because("Bump version brought in transitively by Checkstyle, to resolve CVE-2025-48734")
         }
+        checkstyle("com.google.guava:guava:33.4.6-jre") {
+            because("Bump version brought in transitively by Checkstyle, to resolve CVE-2023-2976")
+        }
     }
 
     components {
@@ -136,7 +139,7 @@ dependencies {
 fun configFile(fileName: String) = resources.text.fromFile(rules.asFileTree.filter { it.name == fileName })
 
 checkstyle {
-    toolVersion = "8.12"
+    toolVersion = "8.29"
     config = configFile("checkstyle.xml")
     val projectDirectory = layout.projectDirectory
     configDirectory = rules.elements.map {

@@ -65,6 +65,15 @@ dependencies {
         "checkAsciidoctorSampleContents"("commons-io:commons-io:2.19.0") {
             because("Bump version brought in transitively by Exemplar, to resolve CVE-2024-47554")
         }
+        "checkAsciidoctorSampleContents"("org.apache.commons:commons-lang3:3.18.0") {
+            because("Bump version brought in transitively by Exemplar, to resolve CVE-2025-48924")
+        }
+        "checkAsciidoctorSampleContents"("junit:junit:4.13.2") {
+            because("Bump version brought in transitively by Exemplar, to resolve CVE-2020-15250")
+        }
+        "dokkatooHtmlGeneratorClasspath"("org.jsoup:jsoup:1.23.2") {
+            because("Bump version brought in transitively by Dokka, to resolve CVE-2026-71497")
+        }
     }
 
     testImplementation(project(":base-services"))

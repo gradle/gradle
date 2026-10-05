@@ -149,7 +149,7 @@ class PerformanceTestPlugin : Plugin<Project> {
             if (project.name != "enterprise-plugin-performance") {
                 "performanceTestImplementation"(project(":internal-performance-testing"))
             }
-            junit("junit:junit:4.13")
+            junit("junit:junit:4.13.2")
         }
     }
 
