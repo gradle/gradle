@@ -297,7 +297,7 @@ These options are intended as temporary workarounds and will be removed in futur
 
 Build logic or plugin implementations can detect whether the Configuration Cache is enabled for a given build and adjust behavior accordingly.
 
-The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getActive--[active] status of the Configuration Cache is provided in the corresponding link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache--[build feature].
+The link:{javadocPath}/org/gradle/api/configuration/BuildFeature.html#getActive()[active] status of the Configuration Cache is provided in the corresponding link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html#getConfigurationCache()[build feature].
 You can access it by <<service_injection.adoc#service_injection, injecting>> the link:{javadocPath}/org/gradle/api/configuration/BuildFeatures.html[`BuildFeatures`] service into your code.
 
 This information can be used to:

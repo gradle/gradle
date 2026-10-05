@@ -140,7 +140,7 @@ Applying this plugin also wires up two dependencies for you automatically:
 [[sec:java_test_fixtures_consuming]]
 == Consuming test fixtures
 
-Reference the fixtures of another project (or an external module) with the link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html#testFixtures-java.lang.Object-[DependencyHandler.testFixtures(Object)] method:
+Reference the fixtures of another project (or an external module) with the link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html#testFixtures(java.lang.Object)[DependencyHandler.testFixtures(Object)] method:
 
 [.multi-language-sample]
 =====
