@@ -99,7 +99,7 @@ The console heading for a failed compiler start changes accordingly, from `Java 
 ==== Dependency problem ids moved to the predefined problem groups
 
 Gradle's own version catalog and dependency resolution problems now report into the <<reporting_problems.adoc#sec:predefined_problem_groups,predefined problem groups>> instead of the legacy `dependency-version-catalog` and `dependency-variant-resolution` groups.
-Version catalog problems report into `Dependencies > Declaration`, variant selection failures into `Dependencies > Graph Resolution`, and artifact selection failures into `Dependencies > Artifact Resolution`.
+Version catalog problems report into `Dependencies > Declaration`, failures while resolving the dependency graph, such as selecting a version, a variant, or a capability, into `Dependencies > Graph Resolution`, and artifact selection failures into `Dependencies > Artifact Resolution`.
 Each problem is now named by its former display name, and the names of version catalog problems mention the version catalog.
 
 [cols="1,1"]

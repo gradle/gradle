@@ -126,7 +126,7 @@ For example, `compilation:java:initialization-failed` is now `Compilation:Java:C
 The console heading for a failed compiler start changes with it, from `Java compilation initialization error` to `Compiler initialization failed`.
 Java compiler diagnostics are named after the kind of diagnostic, for example `Cannot find symbol` instead of the javac code `compiler.err.cant.resolve.location`; the compiler's message stays in the problem's contextual label.
 
-Gradle's own dependency problems use the predefined groups as well: version catalog problems report into `Dependencies > Declaration`, and variant and artifact selection failures into `Dependencies > Graph Resolution` and `Dependencies > Artifact Resolution`.
+Gradle's own dependency problems use the predefined groups as well: version catalog problems report into `Dependencies > Declaration`, failures while resolving the dependency graph, such as selecting a version, a variant, or a capability, into `Dependencies > Graph Resolution`, and artifact selection failures into `Dependencies > Artifact Resolution`.
 They are now named by their former display names, and version catalog problem names mention the version catalog, for example `dependency-version-catalog:toml-syntax-error` is now `Dependencies:Declaration:Version catalog TOML syntax error`.
 See the [upgrade guide](userguide/upgrading_version_9.html#dependency_problem_ids_moved_to_predefined_groups) for the complete list.
 
