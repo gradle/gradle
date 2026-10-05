@@ -929,7 +929,7 @@ This may break plugins that relied on the previous behaviour.
 [[v5_changes_to_specifying_operating_system_for_native_projects]]
 ==== Changes to specifying operating system for native projects
 
-The incubating `operatingSystems` property on native components has been replaced with the link:{javadocPath}/org/gradle/language/cpp/CppComponent.html#getTargetMachines()[targetMachines] property.
+The incubating `operatingSystems` property on native components has been replaced with the link:{javadocPath}/org/gradle/language/ComponentWithTargetMachines.html#getTargetMachines()[targetMachines] property.
 
 [[v5_changes_for_archive_tasks]]
 ==== Changes for archive tasks (`Zip`, `Jar`, `War`, `Ear`, `Tar`)

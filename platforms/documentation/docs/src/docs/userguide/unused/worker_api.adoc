@@ -291,7 +291,7 @@ link:{javadocPath}/org/gradle/workers/WorkerExecutor.html#processIsolation(org.g
 This states that the work should be run with a maximum isolation level by executing the work in a separate process. +
 The classloader of the process will use the classpath from the classloader that the unit of work was loaded from as well as any additional classpath entries added through link:{javadocPath}/org/gradle/workers/ClassLoaderWorkerSpec.html#getClasspath()[`ClassLoaderWorkerSpec.getClasspath()`].
 Furthermore, the process will be a _worker daemon_ that will stay alive and can be reused for future work items with the same requirements.
-This process can be configured with different settings than the Gradle JVM using link:{javadocPath}/org/gradle/workers/ProcessWorkerSpec.html#forkOptions(org.gradle.api.Action)[ProcessWorkerSpec.forkOptions(org.gradle.api.Action)].
+This process can be configured with different settings than the Gradle JVM using link:{javadocPath}/org/gradle/workers/ForkingWorkerSpec.html#forkOptions(org.gradle.api.Action)[ProcessWorkerSpec.forkOptions(org.gradle.api.Action)].
 
 [[worker-daemons]]
 === Worker Daemons
@@ -306,7 +306,7 @@ include::sample[dir="snippets/unused/worker-api/workerDaemon/groovy",files="buil
 When a unit of work for a worker daemon is submitted, Gradle will first look to see if a compatible, idle daemon already exists.
 If so, it will send the unit of work to the idle daemon, marking it as busy.
 If not, it will start a new daemon.
-When evaluating compatibility, Gradle looks at a number of criteria, all of which can be controlled through link:{javadocPath}/org/gradle/workers/ProcessWorkerSpec.html#forkOptions(org.gradle.api.Action)[ProcessWorkerSpec.forkOptions(org.gradle.api.Action)].
+When evaluating compatibility, Gradle looks at a number of criteria, all of which can be controlled through link:{javadocPath}/org/gradle/workers/ForkingWorkerSpec.html#forkOptions(org.gradle.api.Action)[ProcessWorkerSpec.forkOptions(org.gradle.api.Action)].
 
 By default, a worker daemon starts with a maximum heap of 512MB.
 This can be changed by adjusting the workers' fork options.

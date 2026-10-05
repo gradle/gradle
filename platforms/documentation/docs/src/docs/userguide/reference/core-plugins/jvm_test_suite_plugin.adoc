@@ -374,7 +374,7 @@ Attributes
 Artifacts
     - build/test-results/test/binary (artifactType = directory)
 ----
-<1> TestSuiteName attribute; value is derived from link:{javadocPath}/org/gradle/testing/base/TestSuite.html#getName()[TestSuite#getName()].
+<1> TestSuiteName attribute; value is derived from link:{javadocPath}/org/gradle/api/Named.html#getName()[TestSuite#getName()].
 
 [NOTE]
 ====

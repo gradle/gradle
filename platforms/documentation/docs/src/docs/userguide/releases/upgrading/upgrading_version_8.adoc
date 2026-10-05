@@ -544,9 +544,9 @@ This change impacts:
 [[deprecated_fork_options_java_home]]
 ==== Deprecated javaHome property of ForkOptions
 
-The link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getJavaHome()-[javaHome] property of the `ForkOptions` type has been deprecated and will be removed in Gradle 9.0.0.
+The link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getJavaHome()[javaHome] property of the `ForkOptions` type has been deprecated and will be removed in Gradle 9.0.0.
 
-Use <<toolchains.adoc#sec:consuming,JVM Toolchains>>, or the link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getExecutable()-[executable] property instead.
+Use <<toolchains.adoc#sec:consuming,JVM Toolchains>>, or the link:{javadocPath}/org/gradle/api/tasks/compile/ForkOptions.html#getExecutable()[executable] property instead.
 
 NOTE: This deprecation was later link:#undeprecated_fork_options_java_home[removed], and for Gradle versions starting with 8.14, these methods will no longer throw deprecation warnings.
 
@@ -655,7 +655,7 @@ This approach will not fetch project instances from different builds.
 [[deprecate_legacy_configuration_get_files]]
 ==== Deprecated `ResolvedConfiguration.getFiles()` and `LenientConfiguration.getFiles()`
 
-The link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html#getFiles()[ResolvedConfiguration.getFiles()] and link:{javadocPath}/org/gradle/api/artifacts/LenientConfiguration.html#getFiles()[LenientConfiguration.getFiles()] methods have been deprecated and will be removed in Gradle 9.0.0.
+The link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html[ResolvedConfiguration.getFiles()] and link:{javadocPath}/org/gradle/api/artifacts/LenientConfiguration.html[LenientConfiguration.getFiles()] methods have been deprecated and will be removed in Gradle 9.0.0.
 
 These deprecated methods do not track task dependencies, unlike their replacements.
 
@@ -773,8 +773,8 @@ The affected properties are:
 
 These methods on link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html[Javadoc] have been deprecated and will be removed in Gradle 9.0.0.
 
-- link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html#isVerbose()[isVerbose()] is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#isVerbose()[getOptions().isVerbose()]
-- Calling link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html#setVerbose(boolean)[setVerbose(boolean)] with `true` is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#verbose()[getOptions().verbose()]
+- link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html[isVerbose()] is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#isVerbose()[getOptions().isVerbose()]
+- Calling link:{javadocPath}/org/gradle/api/tasks/javadoc/Javadoc.html[setVerbose(boolean)] with `true` is replaced by link:{javadocPath}/org/gradle/external/javadoc/MinimalJavadocOptions.html#verbose()[getOptions().verbose()]
 - Calling `setVerbose(false)` did nothing.
 
 [[changes_8.10]]
@@ -1126,12 +1126,12 @@ A new API for defining file permissions has been added in Gradle 8.3, see:
 
 The new API has now been promoted to stable, and the old methods have been deprecated:
 
-- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#getFileMode()[CopyProcessingSpec.getFileMode]
-- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#setFileMode(java.lang.Integer)[CopyProcessingSpec.setFileMode]
-- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#getDirMode()[CopyProcessingSpec.getDirMode]
-- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html#setDirMode(java.lang.Integer)[CopyProcessingSpec.setDirMode]
-- link:{javadocPath}/org/gradle/api/file/FileTreeElement.html#getMode()[FileTreeElement.getMode]
-- link:{javadocPath}/org/gradle/api/file/FileCopyDetails.html#setMode(int)[FileCopyDetails.setMode]
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html[CopyProcessingSpec.getFileMode]
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html[CopyProcessingSpec.setFileMode]
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html[CopyProcessingSpec.getDirMode]
+- link:{javadocPath}/org/gradle/api/file/CopyProcessingSpec.html[CopyProcessingSpec.setDirMode]
+- link:{javadocPath}/org/gradle/api/file/FileTreeElement.html[FileTreeElement.getMode]
+- link:{javadocPath}/org/gradle/api/file/FileCopyDetails.html[FileCopyDetails.setMode]
 
 [[directory_build_cache_retention_deprecated]]
 ==== Deprecated setting retention period directly on local build cache ====
@@ -1168,7 +1168,7 @@ beforeSettings {
 }
 ----
 
-Calling link:{javadocPath}/org/gradle/caching/local/DirectoryBuildCache.html#setRemoveUnusedEntriesAfterDays(int)[buildCache.local.removeUnusedEntriesAfterDays] is deprecated, and this method will be removed in Gradle 9.0.0.
+Calling link:{javadocPath}/org/gradle/caching/local/DirectoryBuildCache.html[buildCache.local.removeUnusedEntriesAfterDays] is deprecated, and this method will be removed in Gradle 9.0.0.
 If set to a non-default value, this deprecated setting will take precedence over `Settings.caches.buildCache.setRemoveUnusedEntriesAfterDays()`.
 
 [[gradle_enterprise_extension_deprecated]]
@@ -3230,7 +3230,7 @@ Eager population of the publication can happen if the following methods are call
 * Ivy
 ** link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getArtifacts()[IvyPublication.getArtifacts()]
 ** link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#getConfigurations()[IvyPublication.getConfigurations()]
-** link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#configurations(Action)--[IvyPublication.configurations(Action)]
+** link:{javadocPath}/org/gradle/api/publish/ivy/IvyPublication.html#configurations(org.gradle.api.Action)[IvyPublication.configurations(Action)]
 
 Previously, the following code did not generate warnings, but it created inconsistencies between published artifacts:
 
@@ -3351,7 +3351,7 @@ Setting custom build file using link:{groovyDslPath}/org.gradle.api.tasks.Gradle
 Please use the link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html#org.gradle.api.tasks.GradleBuild:dir[dir] property instead to specify the root of the nested build.
 Alternatively, consider using one of the recommended alternatives for link:{groovyDslPath}/org.gradle.api.tasks.GradleBuild.html[GradleBuild] task.
 
-Setting custom build layout using link:{javadocPath}/org/gradle/StartParameter.html[StartParameter] methods link:{javadocPath}/org/gradle/StartParameter.html#setBuildFile(java.io.File)[setBuildFile(File)] and link:{javadocPath}/org/gradle/StartParameter.html#setSettingsFile(java.io.File)[setSettingsFile(File)] as well as the counterpart getters link:{javadocPath}/org/gradle/StartParameter.html#getBuildFile()[getBuildFile()] and link:{javadocPath}/org/gradle/StartParameter.html#getSettingsFile()[getSettingsFile()] have been deprecated.
+Setting custom build layout using link:{javadocPath}/org/gradle/StartParameter.html[StartParameter] methods link:{javadocPath}/org/gradle/StartParameter.html[setBuildFile(File)] and link:{javadocPath}/org/gradle/StartParameter.html[setSettingsFile(File)] as well as the counterpart getters link:{javadocPath}/org/gradle/StartParameter.html[getBuildFile()] and link:{javadocPath}/org/gradle/StartParameter.html[getSettingsFile()] have been deprecated.
 
 Please use standard locations for settings and build files:
 
@@ -3427,7 +3427,7 @@ This is done to reduce confusion about what such relative paths should resolve a
 [[task_convention]]
 ==== Calling `Task.getConvention()`, `Task.getExtensions()` from a task action
 
-Calling `Task.getConvention()`, link:{javadocPath}/org/gradle/api/Task.html#getExtensions()[Task.getExtensions()] from a task action at execution time is now deprecated and will be made an error in Gradle 9.0.0.
+Calling `Task.getConvention()`, link:{javadocPath}/org/gradle/api/plugins/ExtensionAware.html#getExtensions()[Task.getExtensions()] from a task action at execution time is now deprecated and will be made an error in Gradle 9.0.0.
 
 See the <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types,configuration cache chapter>> for details on how to migrate these usages to APIs that are supported by the configuration cache.
 
