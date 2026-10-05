@@ -23,8 +23,6 @@ public abstract class GradleCoreProblemGroup {
     private static final DefaultValidationProblemGroup VALIDATION_PROBLEM_GROUP = new DefaultValidationProblemGroup();
     private static final ProblemGroup PLUGIN_APPLICATION_PROBLEM_GROUP = ProblemGroup.create("plugin-application", "Plugin application");
     private static final ProblemGroup TASK_SELECTION_PROBLEM_GROUP = ProblemGroup.create("task-selection", "Task selection");
-    private static final ProblemGroup VERSION_CATALOG_PROBLEM_GROUP = ProblemGroup.create("dependency-version-catalog", "Version catalog");
-    private static final ProblemGroup VARIANT_RESOLUTION_PROBLEM_GROUP = ProblemGroup.create("dependency-variant-resolution", "Variant resolution");
     private static final ProblemGroup CONFIGURATION_USAGE_PROBLEM_GROUP = ProblemGroup.create("configuration-usage", "Configuration usage");
     private static final DaemonToolchainProblemGroup DAEMON_TOOLCHAIN_PROBLEM_GROUP = new DefaultDaemonToolchainProblemGroup();
     private static final ProblemGroup SCRIPTS_PROBLEM_GROUP = ProblemGroup.create("scripts", "Scripts");
@@ -40,14 +38,6 @@ public abstract class GradleCoreProblemGroup {
 
     public static ProblemGroup taskSelection() {
         return TASK_SELECTION_PROBLEM_GROUP;
-    }
-
-    public static ProblemGroup versionCatalog() {
-        return VERSION_CATALOG_PROBLEM_GROUP;
-    }
-
-    public static ProblemGroup variantResolution() {
-        return VARIANT_RESOLUTION_PROBLEM_GROUP;
     }
 
     public static ProblemGroup configurationUsage() {
