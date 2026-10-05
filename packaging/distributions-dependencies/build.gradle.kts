@@ -23,7 +23,7 @@ val antVersion = "1.10.15"
 // when upgrading ASM.
 val asmVersion = "9.8"
 val awsS3Version = "1.12.780"
-val bouncycastleVersion = "1.84"
+val bouncycastleVersion = "1.85"
 val jacksonVersion = "2.18.6"
 val jaxbVersion = "3.0.0"
 val junit5Version = "5.8.2"
@@ -207,7 +207,7 @@ dependencies {
         api(libs.mavenResolverSupplier)         { version { strictly(mavenResolverVersion) }}
         api(libs.mavenResolverTransportFile)    { version { strictly(mavenResolverVersion) }}
         api(libs.mavenResolverTransportHttp)    { version { strictly(mavenResolverVersion) }}
-        api(libs.mina)                  { version { strictly("2.0.17") }}
+        api(libs.mina)                  { version { strictly("2.0.31") }}
         api(libs.mockitoCore)           { version { strictly("3.7.7") }}
         api(libs.mockitoKotlin)         { version { strictly("1.6.0") }}
         api(libs.mockitoKotlin2)        { version { strictly("2.2.0") }}

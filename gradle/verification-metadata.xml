@@ -1184,8 +1184,8 @@
             <pgp value="6A814B1F869C2BBEAB7CB7271A2A1C94BDE89688"/>
          </artifact>
       </component>
-      <component group="org.apache.mina" name="mina-core" version="2.0.17">
-         <artifact name="mina-core-2.0.17.jar">
+      <component group="org.apache.mina" name="mina-core" version="2.0.31">
+         <artifact name="mina-core-2.0.31.jar">
             <pgp value="4D2DB2916149BAA9D0C92F3731474E5E7C6B7034"/>
          </artifact>
       </component>
@@ -1350,8 +1350,8 @@
             <pgp value="7C669810892CBD3148FA92995B05CCDE140C2876"/>
          </artifact>
       </component>
-      <component group="org.freemarker" name="freemarker" version="2.3.32">
-         <artifact name="freemarker-2.3.32.jar">
+      <component group="org.freemarker" name="freemarker" version="2.3.35">
+         <artifact name="freemarker-2.3.35.jar">
             <pgp value="13AC2213964ABE1D1C147C0E1939A2520BAB1D90"/>
          </artifact>
       </component>

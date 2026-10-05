@@ -63,8 +63,6 @@ dependencies {
     testImplementation(project(":base-services"))
     testImplementation(project(":core"))
     testImplementation(libs.jsoup)
-    testImplementation("org.gebish:geb-spock:2.2")
-    testImplementation("org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2")
     testImplementation(libs.commonsHttpclient)
     testImplementation(libs.httpmime)
 
