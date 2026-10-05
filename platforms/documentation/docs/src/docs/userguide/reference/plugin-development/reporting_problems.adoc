@@ -275,7 +275,7 @@ Execution failed for task ':myFailingTask'.
 > Run with --scan to generate a Build Scan (powered by Develocity).
 BUILD FAILED in 0ms  // <5>
 ----
-<1> The display name of the problem ID.
+<1> The name of the problem.
 <2> The contextual label (or the supplied exception's message if the contextual label is missing).
 <3> The content of the `details` property.
 <4> The solutions or recommended actions.

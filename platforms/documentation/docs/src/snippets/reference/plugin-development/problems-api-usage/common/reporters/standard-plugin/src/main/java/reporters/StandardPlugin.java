@@ -4,7 +4,6 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.Severity;
 
 import javax.inject.Inject;
@@ -14,7 +13,6 @@ import javax.inject.Inject;
  */
 public class StandardPlugin implements Plugin<Project> {
 
-    public static final ProblemGroup PROBLEM_GROUP = ProblemGroup.create("sample-group", "Sample Group");
 
     private final Problems problems;
 
@@ -27,7 +25,7 @@ public class StandardPlugin implements Plugin<Project> {
     public void apply(Project project) {
         project.getTasks().register("myFailingTask", FailingTask.class);
         // tag::problems-api-report[]
-        ProblemId problemId = ProblemId.create("adhoc-plugin-deprecation", "Plugin is deprecated", PROBLEM_GROUP);
+        ProblemId problemId = problems.getGroups().getOthers().group("Sample Group").problemId("Plugin is deprecated");
         problems.getReporter().report(problemId, problem -> problem
                 .contextualLabel("The 'standard-plugin' is deprecated")
                 .documentedAt("https://github.com/gradle/gradle/README.md")
