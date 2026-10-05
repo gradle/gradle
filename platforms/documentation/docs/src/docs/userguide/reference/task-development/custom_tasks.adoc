@@ -94,7 +94,7 @@ Currently, Gradle does not use task history from a different version.
 
 In these cases, Gradle will report all input files as `ADDED`, and the `getFileChanges()` method will return details for all the files that comprise the given input property.
 
-You can check if the task execution is incremental or not with the link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges.html##org.gradle.work.InputChanges:incremental[`InputChanges.isIncremental()`] method.
+You can check if the task execution is incremental or not with the link:{groovyDslPath}/org.gradle.work.InputChanges.html#org.gradle.work.InputChanges:incremental[`InputChanges.isIncremental()`] method.
 
 [[sec:an_incremental_task_in_action]]
 === An incremental task in action
