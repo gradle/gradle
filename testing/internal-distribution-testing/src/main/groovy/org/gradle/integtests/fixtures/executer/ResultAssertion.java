@@ -195,8 +195,17 @@ public class ResultAssertion implements Action<ExecutionResult> {
             } else if (line.startsWith("Problem found: ")) {
                 // A problem reported through the Problems API and printed by the console emitter, which never prints
                 // Gradle's own deprecations. Its id and group names may contain "deprecated", e.g. KGP's
-                // "deprecated-kotlin-version-kotlin-dsl", without the line being a deprecation warning.
+                // "deprecated-kotlin-version-kotlin-dsl", without the line being a deprecation warning. The label,
+                // details and solutions follow on indented lines and may contain the word as well, unless a test expects
+                // one of them as an external deprecation message, e.g. a Kotlin compiler warning KGP reports as a problem.
                 i++;
+                while (i < lines.size() && !lines.get(i).isEmpty() && Character.isWhitespace(lines.get(i).charAt(0))) {
+                    if (removeFirstExpectedDeprecationWarning(lines, i)) {
+                        i += lastMatchedDeprecationWarning.getNumLines();
+                    } else {
+                        i++;
+                    }
+                }
             } else if (line.matches("\\s*WARNING:.*")) {
                 // A JDK warning, ignore unless checkJdkWarnings is enabled
                 if (checkJdkWarnings) {
