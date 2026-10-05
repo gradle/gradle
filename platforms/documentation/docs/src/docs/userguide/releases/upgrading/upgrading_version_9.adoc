@@ -154,7 +154,7 @@ Two cases are unaffected:
 [[required_input_files_absent_nested_providers]]
 ==== Required input file properties reject absent providers nested in collections
 
-Required task input file properties now fail validation when a provider nested in a plain collection or array (such as a `List` passed to link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#files(java.lang.Object...)[`TaskInputs.files(...)`]) has no value.
+Required task input file properties now fail validation when a provider nested in a plain collection or array (such as a `List` passed to link:{javadocPath}/org/gradle/api/tasks/TaskInputs.html#files(java.lang.Object++...++)[`TaskInputs.files(...)`]) has no value.
 This applies to `TaskInputs.files(...)` declarations and to required link:{javadocPath}/org/gradle/api/tasks/InputFiles.html[`@InputFiles`] properties whose value is such a collection or array.
 Gradle reports the failure as the <<validation_problems.adoc#value_not_set, Required value isn't set>> validation problem.
 
@@ -1261,7 +1261,7 @@ Please refer to the <<configuration_cache_requirements.adoc#config_cache:require
 [[task_in_task_dependency_closure]]
 ==== Deprecation of accessing `Task` in `dependsOn` closures
 
-Using the `Task` argument provided to closures passed to the link:{javadocPath}/org/gradle/api/Task.html#dependsOn(java.lang.Object...)[`Task.dependsOn`] method has been deprecated.
+Using the `Task` argument provided to closures passed to the link:{javadocPath}/org/gradle/api/Task.html#dependsOn(java.lang.Object++...++)[`Task.dependsOn`] method has been deprecated.
 Starting in Gradle 10, closures passed to `Task.dependsOn` will no longer receive a `Task` argument.
 
 The following code will not be permitted starting in Gradle 10:
@@ -2162,7 +2162,7 @@ dependencies {
 ==== Deprecation of `ModuleVersionSelector` to `ModuleComponentSelector` conversion
 
 The conversion of `ModuleVersionSelector` to `ModuleComponentSelector` (used in
-link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#force(java.lang.Object...)[`ResolutionStrategy.force(...)`],
+link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#force(java.lang.Object++...++)[`ResolutionStrategy.force(...)`],
 link:{javadocPath}/org/gradle/api/artifacts/DependencyResolveDetails.html#useTarget(java.lang.Object)[`DependencyResolveDetails.useTarget(Object)`], and
 link:{javadocPath}/org/gradle/plugin/management/PluginResolveDetails.html#useModule(java.lang.Object)[`PluginResolveDetails.useModule(Object)`]
 ) has been deprecated and will be removed in Gradle 10.0.0.
