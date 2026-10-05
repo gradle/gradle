@@ -234,7 +234,6 @@ Class 'org.gradle.launcher.daemon.context.DefaultDaemonContext$Serializer' from 
 Class 'org.gradle.launcher.daemon.server.DaemonServices' from platform 'core' imports class 'org.gradle.jvm.toolchain.JavaLanguageVersion' from a forbidden platform 'jvm'
 Class 'org.gradle.launcher.daemon.toolchain.DaemonClientToolchainServices' from platform 'core' imports class 'org.gradle.internal.jvm.inspection.DefaultJavaInstallationRegistry' from a forbidden platform 'jvm'
 Class 'org.gradle.launcher.daemon.toolchain.DaemonClientToolchainServices' from platform 'core' imports class 'org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector' from a forbidden platform 'jvm'
-Class 'org.gradle.launcher.daemon.toolchain.DaemonClientToolchainServices' from platform 'core' imports class 'org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter' from a forbidden platform 'jvm'
 Class 'org.gradle.launcher.daemon.toolchain.DaemonClientToolchainServices' from platform 'core' imports class 'org.gradle.internal.resource.transport.http.ApacheCommonsHttpClientFactory' from a forbidden platform 'software'
 Class 'org.gradle.launcher.daemon.toolchain.DaemonClientToolchainServices' from platform 'core' imports class 'org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier' from a forbidden platform 'jvm'
 Class 'org.gradle.launcher.daemon.toolchain.DaemonClientToolchainServices' from platform 'core' imports class 'org.gradle.jvm.toolchain.internal.DefaultOsXJavaHomeCommand' from a forbidden platform 'jvm'

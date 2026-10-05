@@ -23,7 +23,9 @@ import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+import spock.lang.Issue
 
 class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
@@ -290,6 +292,44 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
             severity == Severity.WARNING
             contextualLabel == "Path for java installation '${emptyDir.absolutePath}' (Gradle property 'org.gradle.java.installations.paths') does not contain a java executable"
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39358")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "SDKMAN_CANDIDATES_DIR must reach the daemon")
+    def "auto-detected installation missing java executable is not reported as a problem"() {
+        enableProblemsApiCheck()
+
+        def sdkmanCandidates = file("sdkman-candidates")
+        def brokenJdk = sdkmanCandidates.file("java/broken-jdk").createDir()
+
+        buildFile << """
+            import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
+
+            abstract class ShowPlugin implements Plugin<Project> {
+                @Inject
+                abstract JavaInstallationRegistry getRegistry()
+
+                void apply(Project project) {
+                    project.tasks.register("show") {
+                       registry.listInstallations().each { println it.location }
+                    }
+                }
+            }
+
+            apply plugin: ShowPlugin
+        """
+
+        when:
+        result = executer
+            .withEnvironmentVars([SDKMAN_CANDIDATES_DIR: sdkmanCandidates.absolutePath])
+            .withArgument("-Dorg.gradle.java.installations.auto-detect=true")
+            .withArgument("--info")
+            .withTasks("show")
+            .run()
+
+        then:
+        outputContains("Path for java installation '${brokenJdk.absolutePath}' (SDKMAN!) auto-detected does not contain a java executable")
+        receivedProblems.empty
     }
 
     @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
