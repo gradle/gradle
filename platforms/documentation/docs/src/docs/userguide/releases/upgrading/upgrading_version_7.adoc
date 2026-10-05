@@ -810,7 +810,7 @@ Documentation on configuring plugin publication can be found both link:https://p
 [[v7_updates_to_attribute_disambiguation_rules_methods]]
 === Updates to Attribute Disambiguation Rules related methods
 
-The `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(List)--[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#getAttributeDisambiguationPrecedence()--[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
+The `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(java.util.List)[AttributeSchema.setAttributeDisambiguationPrecedence(List)]` and `link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#getAttributeDisambiguationPrecedence()[AttributeSchema.getAttributeDisambiguationPrecedence()]` methods now accept and return `List` instead of `Collection` to better indicate that the order of the elements in those collection is significant.
 
 [[strict-kotlin-dsl-precompiled-scripts-accessors]]
 === Strict Kotlin DSL precompiled script plugins accessors generation
@@ -1426,7 +1426,7 @@ If the set of attributes is shared across configurations, consider adding an add
 [[for_use_at_configuration_time_deprecation]]
 ==== `Provider#forUseAtConfigurationTime()` has been deprecated
 
-link:{javadocPath}/org/gradle/api/provider/Provider.html#forUseAtConfigurationTime()[Provider#forUseAtConfigurationTime] is now deprecated and scheduled for removal in Gradle 9.0.0.
+link:{javadocPath}/org/gradle/api/provider/Provider.html[Provider#forUseAtConfigurationTime] is now deprecated and scheduled for removal in Gradle 9.0.0.
 Clients should simply remove the call.
 
 The call was mandatory on providers of external values such as link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:systemProperty(java.lang.String)[system properties], link:{groovyDslPath}/org.gradle.api.provider.ProviderFactory.html#org.gradle.api.provider.ProviderFactory:environmentVariable(java.lang.String)[environment variables],
@@ -1440,7 +1440,7 @@ The `Provider` based APIs are still the recommended way to connect external valu
 [[v7_configurable_report_set_destination_deprecated]]
 ==== `ConfigurableReport#setDestination(org.gradle.api.provider.Provider<java.io.File>)` has been deprecated
 
-link:{javadocPath}/org/gradle/api/reporting/ConfigurableReport.html#setDestination(org.gradle.api.provider.Provider)[`ConfigurableReport#setDestination(org.gradle.api.provider.Provider<java.io.File>)`] is now deprecated and scheduled for removal in Gradle 8.0.
+link:{javadocPath}/org/gradle/api/reporting/ConfigurableReport.html[`ConfigurableReport#setDestination(org.gradle.api.provider.Provider<java.io.File>)`] is now deprecated and scheduled for removal in Gradle 8.0.
 
 Use link:{javadocPath}/org/gradle/api/reporting/Report.html#getOutputLocation()[`Report#getOutputLocation().set(...)`] instead.
 
@@ -1750,13 +1750,13 @@ property instead to specify the root of the nested build.
 
 Setting custom build layout using
 link:{javadocPath}/org/gradle/StartParameter.html[StartParameter] methods
-link:{javadocPath}/org/gradle/StartParameter.html#setBuildFile(java.io.File)[setBuildFile(File)]
+link:{javadocPath}/org/gradle/StartParameter.html[setBuildFile(File)]
 and
-link:{javadocPath}/org/gradle/StartParameter.html#setSettingsFile(java.io.File)[setSettingsFile(File)]
+link:{javadocPath}/org/gradle/StartParameter.html[setSettingsFile(File)]
 as well as the counterpart getters
-link:{javadocPath}/org/gradle/StartParameter.html#getBuildFile()[getBuildFile()]
+link:{javadocPath}/org/gradle/StartParameter.html[getBuildFile()]
 and
-link:{javadocPath}/org/gradle/StartParameter.html#getSettingsFile()[getSettingsFile()]
+link:{javadocPath}/org/gradle/StartParameter.html[getSettingsFile()]
 have been deprecated.
 
 Please use standard locations for settings and build files:
@@ -1828,7 +1828,7 @@ Existing clients should migrate to the <<publishing_maven.adoc#publishing_maven,
 The concept of conventions is outdated and superseded by extensions.
 To reflect this in the Gradle API, the following elements are now deprecated:
 
-- link:{javadocPath}/org/gradle/api/Project.html#getConvention()[org.gradle.api.Project.getConvention()]
+- link:{javadocPath}/org/gradle/api/Project.html[org.gradle.api.Project.getConvention()]
 - `org.gradle.api.internal.HasConvention` (deprecated)
 
 The internal usages of conventions have been also cleaned up (see the deprecated items below).

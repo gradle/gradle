@@ -333,7 +333,7 @@ Other notations, such as comma-separated lists or multiple values separated by a
 Describes an option with a file system element. +
 Passing the option on the command line also requires a value representing a path, e.g., `--output-file=file.txt` or `--output-dir outputDir`. +
 Relative paths are resolved relative to the project directory of the project that owns this property instance.
-See link:{javadocPath}/org/gradle/api/file/FileSystemLocationProperty.html#set-java.io.File[`FileSystemLocationProperty.set()`].
+See link:{javadocPath}/org/gradle/api/file/FileSystemLocationProperty.html#set(java.io.File)[`FileSystemLocationProperty.set()`].
 
 [[sec:documenting_available_task_option_values]]
 === Documenting available values for an option

@@ -187,7 +187,7 @@ Kotlin DSL::
 Both changes could cause script compilation errors. See the https://github.com/gradle/kotlin-dsl-samples/releases/tag/v1.0.2#breaking-changes[Gradle Kotlin DSL release notes] for more information and how to fix builds broken by the changes described above.
 
 Miscellaneous::
- * The `ConfigurableReport.setDestination(Object)` method has been removed — use link:{javadocPath}/org/gradle/api/reporting/ConfigurableReport.html#setDestination(java.io.File)[ConfigurableReport.setDestination(File)] instead.
+ * The `ConfigurableReport.setDestination(Object)` method has been removed — use link:{javadocPath}/org/gradle/api/reporting/ConfigurableReport.html[ConfigurableReport.setDestination(File)] instead.
  * The `Signature.setFile(File)` method has been removed — Gradle does not support changing the output file for the generated signature.
  * The read-only `Signature.toSignArtifact` property has been removed — it should never have been part of the public API.
  * The `@DeferredConfigurable` annotation has been removed.
@@ -360,9 +360,9 @@ You can bypass the toolchain discovery by specifying the installation directory 
 [[potential_breaking_changes_4_3]]
 === Potential breaking changes
 
- * link:{javadocPath}/org/gradle/api/DefaultTask.html#newOutputDirectory()[DefaultTask.newOutputDirectory()] now returns a `DirectoryProperty` instead of a `DirectoryVar`.
- * link:{javadocPath}/org/gradle/api/DefaultTask.html#newOutputFile()[DefaultTask.newOutputFile()] now returns a `RegularFileProperty` instead of a `RegularFileVar`.
- * link:{javadocPath}/org/gradle/api/DefaultTask.html#newInputFile()[DefaultTask.newInputFile()] now returns a `RegularFileProperty` instead of a `RegularFileVar`.
+ * link:{javadocPath}/org/gradle/api/DefaultTask.html[DefaultTask.newOutputDirectory()] now returns a `DirectoryProperty` instead of a `DirectoryVar`.
+ * link:{javadocPath}/org/gradle/api/DefaultTask.html[DefaultTask.newOutputFile()] now returns a `RegularFileProperty` instead of a `RegularFileVar`.
+ * link:{javadocPath}/org/gradle/api/DefaultTask.html[DefaultTask.newInputFile()] now returns a `RegularFileProperty` instead of a `RegularFileVar`.
  * link:{javadocPath}/org/gradle/api/file/ProjectLayout.html#getBuildDirectory()[ProjectLayout.buildDirectory] now returns a `DirectoryProperty` instead of a `DirectoryVar`.
  * link:{groovyDslPath}/org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.html#org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask:compilerArgs[AbstractNativeCompileTask.compilerArgs] is now of type `ListProperty<String>` instead of `List<String>`.
  * link:{groovyDslPath}/org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask.html#org.gradle.language.nativeplatform.tasks.AbstractNativeCompileTask:objectFileDir[AbstractNativeCompileTask.objectFileDir] is now of type `DirectoryProperty` instead of `File`.

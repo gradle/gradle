@@ -1181,7 +1181,7 @@ Please refer to the <<configuration_cache_requirements.adoc#config_cache:require
 [[task_extensions]]
 ==== Deprecation of accessing extensions from a task action
 
-Calling link:{javadocPath}/org/gradle/api/Task.html#getExtensions()[`Task.getExtensions()`] from a task action at execution time is now deprecated and will become an error in Gradle 10.
+Calling link:{javadocPath}/org/gradle/api/plugins/ExtensionAware.html#getExtensions()[`Task.getExtensions()`] from a task action at execution time is now deprecated and will become an error in Gradle 10.
 
 This method can still be used during configuration time.
 
@@ -2452,7 +2452,7 @@ configurations.dependencyScope("implementation") {
 [[reporting_extension_file]]
 ==== Deprecation of `ReportingExtension.file(String)`
 
-The link:{javadocPath}/org/gradle/api/reporting/ReportingExtension.html#file(String)[`file()` method] on `ReportingExtension` has been deprecated and will be removed in Gradle 10.0.0.
+The link:{javadocPath}/org/gradle/api/reporting/ReportingExtension.html#file(java.lang.String)[`file()` method] on `ReportingExtension` has been deprecated and will be removed in Gradle 10.0.0.
 
 Instead, use `ReportingExtension.getBaseDirectory()` with `file(String)` or `dir(String)`.
 
