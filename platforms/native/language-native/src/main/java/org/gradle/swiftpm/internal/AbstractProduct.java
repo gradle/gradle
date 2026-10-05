@@ -18,11 +18,10 @@ package org.gradle.swiftpm.internal;
 
 import org.gradle.swiftpm.Product;
 
-import java.io.Serializable;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 
-public abstract class AbstractProduct implements Product, Serializable {
+public abstract class AbstractProduct implements Product {
     private final String name;
     private final DefaultTarget target;
 

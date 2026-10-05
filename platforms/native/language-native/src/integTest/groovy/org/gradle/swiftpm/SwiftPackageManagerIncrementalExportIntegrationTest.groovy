@@ -16,7 +16,6 @@
 
 package org.gradle.swiftpm
 
-import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class SwiftPackageManagerIncrementalExportIntegrationTest extends AbstractSwiftPackageManagerExportIntegrationTest {

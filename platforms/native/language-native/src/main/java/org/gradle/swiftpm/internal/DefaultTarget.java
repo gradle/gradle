@@ -16,15 +16,14 @@
 
 package org.gradle.swiftpm.internal;
 
-import com.google.common.collect.ImmutableSet;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
-import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 
+import org.gradle.api.file.FileCollection;
 import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.InputFiles;
 import org.gradle.api.tasks.Internal;
@@ -32,15 +31,15 @@ import org.gradle.api.tasks.Optional;
 import org.gradle.api.tasks.PathSensitive;
 import org.gradle.api.tasks.PathSensitivity;
 
-public class DefaultTarget implements Serializable {
+public class DefaultTarget {
     private final String name;
     private final File path;
-    private final Iterable<File> sourceFiles;
+    private final FileCollection sourceFiles;
     private final List<String> requiredTargets = new ArrayList<String>();
     private final List<String> requiredProducts = new ArrayList<String>();
     private File publicHeaderDir;
 
-    public DefaultTarget(String name, File path, Iterable<File> sourceFiles) {
+    public DefaultTarget(String name, File path, FileCollection sourceFiles) {
         this.name = name;
         this.path = path;
         this.sourceFiles = sourceFiles;
@@ -58,7 +57,7 @@ public class DefaultTarget implements Serializable {
 
     @InputFiles
     @PathSensitive(PathSensitivity.RELATIVE)
-    public Iterable<File> getSourceFiles() {
+    public FileCollection getSourceFiles() {
         return sourceFiles;
     }
 

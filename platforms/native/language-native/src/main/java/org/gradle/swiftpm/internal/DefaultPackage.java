@@ -20,7 +20,6 @@ import org.gradle.language.swift.SwiftVersion;
 import org.gradle.swiftpm.Package;
 import org.jspecify.annotations.Nullable;
 
-import java.io.Serializable;
 import java.util.List;
 import java.util.Set;
 
@@ -28,7 +27,7 @@ import org.gradle.api.tasks.Input;
 import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.Optional;
 
-public class DefaultPackage implements Package, Serializable {
+public class DefaultPackage implements Package {
     private final Set<AbstractProduct> products;
     private final List<Dependency> dependencies;
     private final List<DefaultTarget> targets;
