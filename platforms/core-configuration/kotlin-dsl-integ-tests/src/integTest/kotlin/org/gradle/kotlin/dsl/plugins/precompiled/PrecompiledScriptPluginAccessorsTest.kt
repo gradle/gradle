@@ -53,13 +53,11 @@ import org.mockito.kotlin.inOrder
 import org.mockito.kotlin.mock
 import spock.lang.Issue
 import java.io.File
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest() {
 
-    @ToBeFixedForIsolatedProjects(because = "precompiled script plugins cross-project")
     @Test
     fun `cannot use type-safe accessors for extensions contributed in afterEvaluate`() {
         withFolders {
@@ -90,16 +88,11 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
                 include("producer", "consumer")
             """
         )
-        withKotlinDslPlugin().appendText(
+        withKotlinDslPluginIn("producer")
+        withKotlinDslPluginIn("consumer").appendText(
             """
-                subprojects {
-                    apply(plugin = "org.gradle.kotlin.kotlin-dsl")
-                    $repositoriesBlock
-                }
-                project(":consumer") {
-                    dependencies {
-                        implementation(project(":producer"))
-                    }
+                dependencies {
+                    implementation(project(":producer"))
                 }
             """
         )
@@ -449,7 +442,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         }
 
         assertThat(
-            build("tasks").output,
+            build(":foo:help", ":bar:help").output,
             allOf(
                 containsString("*using app from local-app in foo*"),
                 containsString("*using lib from local-lib in bar*")
@@ -583,7 +576,7 @@ class PrecompiledScriptPluginAccessorsTest : AbstractPrecompiledScriptPluginTest
         }
 
         assertThat(
-            build("tasks").output,
+            build(":lib:help", ":app:help").output,
             allOf(
                 containsString("*using app from app/model in app*"),
                 containsString("*using lib from lib/model in lib*")
