@@ -53,6 +53,52 @@ public final class ClassMethodNameFilter implements PostDiscoveryFilter {
         return FilterResult.includedIf(shouldRun(descriptor), () -> "Method or class match", () -> "Method or class mismatch");
     }
 
+    /**
+     * Decides whether a single test should run, based on the names it can be matched by.
+     * <p>
+     * {@link #apply(TestDescriptor)} only reaches this method for descriptors without children, and
+     * only after {@link #classMatch(TestDescriptor)} failed to find an including ancestor. The
+     * decision therefore rests on this descriptor alone.
+     * <p>
+     * A descriptor backed by a {@link MethodSource} is matched by its declaring class and method name,
+     * as described on {@link #shouldRun(TestDescriptor, MethodSource)}.
+     * <p>
+     * Anything else is a test the engine did not declare as a method: an ArchUnit rule held in a field,
+     * a Spek scope, or any other custom or absent test source. There is no method name to match, so the
+     * test is matched by the nearest ancestor carrying a {@link ClassSource} (its own, if it has one)
+     * paired with the name it is reported under, {@link TestDescriptor#getLegacyReportingName()}.
+     * Either pair including the test is enough:
+     * <ul>
+     *   <li>{@code (className, null)} matches a pattern naming only the class, so
+     *       {@code --tests "ArchRulesTest"} selects every non-method test in it.</li>
+     *   <li>{@code (className, reportingName)} matches a pattern naming both, so
+     *       {@code --tests "ArchRulesTest.firstRule"} selects one rule and
+     *       {@code excludeTestsMatching "*firstRule"} skips it.</li>
+     * </ul>
+     * <p>
+     * The reporting name is whatever the engine chose, not always a simple identifier. ArchUnit reports
+     * a rule grouped with {@code ArchTests.in(NestedRules.class)} as {@code "NestedRules > nestedRule"},
+     * so the pattern that selects it is {@code ArchRulesTest.NestedRules > nestedRule}. The field
+     * holding the set is never part of it.
+     * <p>
+     * Despite the name, {@link TestDescriptor#getLegacyReportingName()} is the right name to match on
+     * and is not deprecated; "legacy" refers only to the Ant-style JUnit 4 XML format it was built to
+     * feed, which is what Gradle writes. It derives from code identifiers and ignores
+     * {@code @DisplayName}, so a cosmetic annotation cannot break a filter, and it is the same name
+     * Gradle puts in its test reports, so a name copied from a report can be pasted into
+     * {@code --tests}. {@link TestDescriptor#getDisplayName()} is unsuitable: its own contract says
+     * display names must never be parsed.
+     * <p>
+     * {@link TestSelectionMatcher#matchesTest(String, String)} applies includes and excludes together,
+     * so both pairs are exclude-aware. It treats a {@code null} method name as excluded as soon as the
+     * class name <em>may</em> match an exclude, which is why the second pair can still include a test
+     * when only a sibling is excluded.
+     * <p>
+     * A descriptor with no {@link ClassSource} above it cannot be judged by name and is included. Tests
+     * that an engine registers only while a class executes, as Kotest does, do not exist yet when this
+     * filter runs; only their spec class is seen, as a childless {@link ClassSource} leaf, so they can
+     * be selected by that class alone.
+     */
     private boolean shouldRun(TestDescriptor descriptor) {
         Optional<MethodSource> methodSource = methodSource(descriptor);
         if (methodSource.isPresent()) {

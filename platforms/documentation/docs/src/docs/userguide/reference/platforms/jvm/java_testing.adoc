@@ -131,7 +131,9 @@ Not every JUnit Platform test is declared as a method, and how a test is declare
 Engines such as https://www.archunit.org/[ArchUnit] declare tests on fields, for example a rule annotated with `@ArchTest`.
 Gradle matches these by their enclosing class and the name they are reported with, in the same way it matches methods by class and method name.
 `--tests "ArchRulesTest.firstRule"` runs that rule on its own, and `excludeTestsMatching "*firstRule"` skips it.
-Rules grouped with `ArchTests.in(...)` are reported as `EnclosingClass > ruleName` and are matched by that reported name, not by the name of the field that holds the set.
+Rules grouped with `ArchTests.in(...)` are reported as `GroupedClass > ruleName`, after the class passed to `ArchTests.in(...)`.
+For a set held in a field `nested` of `ArchRulesTest` that wraps `NestedRules`, the pattern is `ArchRulesTest.NestedRules > nestedRule`: the enclosing class, then the reported name.
+The name of the field that holds the set never appears in the pattern.
 
 Engines that register their tests only while a class is executing, such as https://kotest.io/[Kotest], are a different case.
 Gradle applies filters after test discovery, before those tests exist, so you can select or exclude them only by their spec class.

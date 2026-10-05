@@ -85,7 +85,7 @@ Previously, such tests were always executed, so requesting a single test with `-
 Gradle matches such tests by their enclosing test class and the name they are reported with, in the same way that test methods are matched by class and method name.
 For a rule declared in a field `firstRule` of `ArchRulesTest`, `--tests "ArchRulesTest.firstRule"` runs only that rule and `excludeTestsMatching "*firstRule"` skips it.
 Rules grouped in an `ArchTests` set are reported as `RuleSet > rule`, so they are matched by that name, not by the field name alone.
-Tests that an engine registers only while executing, as [Kotest](https://kotest.io/[Kotest]) does, are not visible to the filter and can only be selected by their spec class.
+Tests that an engine registers only while executing, as [Kotest](https://kotest.io/) does, are not visible to the filter and can only be selected by their spec class.
 
 This also affects the [Test Retry plugin](https://github.com/gradle/test-retry-gradle-plugin), which uses test filters to select the tests to run again.
 Previously, all such tests were retried whenever any test in the task was retried, even if they had passed.

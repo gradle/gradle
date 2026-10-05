@@ -197,7 +197,8 @@ To keep such a test running under a filter, name it or its class in the pattern:
 
 * `--tests "ArchRulesTest"` runs every rule declared in `ArchRulesTest`.
 * `--tests "ArchRulesTest.firstRule"` runs the rule declared in the `firstRule` field on its own.
-* Rules grouped with `ArchTests.in(...)` are reported as `EnclosingClass > ruleName`, so match that reported name rather than the field that holds the set.
+* Rules grouped with `ArchTests.in(...)` are reported as `GroupedClass > ruleName`, after the class passed to `ArchTests.in(...)` and not the field that holds the set.
+For a set held in a field `nested` of `ArchRulesTest` that wraps `NestedRules`, `--tests "ArchRulesTest.NestedRules > nestedRule"` runs that rule.
 
 Tests that an engine registers only while a class is executing, as link:https://kotest.io/[Kotest] does, are not affected by this change.
 Gradle applies filters before those tests exist, so they can still only be selected by their spec class.

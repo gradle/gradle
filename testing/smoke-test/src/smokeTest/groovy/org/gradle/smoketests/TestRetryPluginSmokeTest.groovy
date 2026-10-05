@@ -105,6 +105,7 @@ class TestRetryPluginSmokeTest extends AbstractSmokeTest {
         given:
         buildFile << """
             dependencies {
+                // Keep in sync with JUnitCoverage
                 testImplementation("org.junit.jupiter:junit-jupiter:5.14.2")
                 testImplementation("com.tngtech.archunit:archunit-junit5:1.4.2")
                 testRuntimeOnly("org.junit.platform:junit-platform-launcher")
