@@ -57,8 +57,15 @@ class GradleSnippetsTestingPluginTest extends Specification {
         file("java/multiProject/kotlin/settings.gradle.kts") << 'include("app")\n'
         file("java/multiProject/tests-common/sanityCheck.sample.conf") << "executable: gradle\nargs: help\n"
 
+        // An acronym in the directory name, which is split as one word
+        file("reference/constraintsFromBOM/kotlin/build.gradle.kts") << "\n"
+
+        // A snippet named after an untested top-level directory, which is still a snippet
+        file("optimizing/integration-tests/kotlin/build.gradle.kts") << "\n"
+
         // Directories that are not snippets
         file("unused/old/kotlin/build.gradle.kts") << "\n"
+        file("integration-tests/groovy/build.gradle") << "\n"
         file("notes/readme.txt") << "not a snippet\n"
     }
 
@@ -67,7 +74,12 @@ class GradleSnippetsTestingPluginTest extends Specification {
         run("installSnippetsForTest")
 
         then:
-        installed.list().sort() == ["snippet-java-multi-project", "snippet-tasks-hello"]
+        installed.list().sort() == [
+            "snippet-java-multi-project",
+            "snippet-optimizing-integration-tests",
+            "snippet-reference-constraints-from-bom",
+            "snippet-tasks-hello",
+        ]
         new File(installed, "snippet-tasks-hello").list().sort() == ["groovy", "kotlin"]
         new File(installed, "snippet-java-multi-project").list() as List == ["kotlin"]
     }
