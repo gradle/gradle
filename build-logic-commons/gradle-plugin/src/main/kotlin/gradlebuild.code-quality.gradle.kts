@@ -62,6 +62,9 @@ project.plugins.withType<JavaBasePlugin> {
             // 2.31.0 is the latest version that works with JDK 11
             extension.enabled.filter { it }.map { "com.google.errorprone:error_prone_core:2.31.0" }
         )
+        project.dependencies.constraints.add(annotationProcessorConfigurationName, "com.google.protobuf:protobuf-java:3.25.5") {
+            because("Bump version brought in transitively by Error Prone, to resolve CVE-2024-7254")
+        }
 
         project.tasks.named<JavaCompile>(this.compileJavaTaskName) {
             options.errorprone {
@@ -116,6 +119,12 @@ dependencies {
     }
     codenarc("org.codenarc:CodeNarc:$codenarcVersion")
     codenarc(embeddedKotlin("stdlib"))
+
+    constraints {
+        checkstyle("commons-beanutils:commons-beanutils:1.11.0") {
+            because("Bump version brought in transitively by Checkstyle, to resolve CVE-2025-48734")
+        }
+    }
 
     components {
         withModule<CodeNarcRule>("org.codenarc:CodeNarc") {

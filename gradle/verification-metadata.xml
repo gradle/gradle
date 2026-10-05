@@ -382,6 +382,11 @@
             <sha256 value="0addec670fedcd3f113c5c8091d783280d23f75e3acb841b61a9cdb079376a08" origin="Verified" reason="Artifact is not signed"/>
          </artifact>
       </component>
+      <component group="at.yawk.lz4" name="lz4-java" version="1.11.4">
+         <artifact name="lz4-java-1.11.4.jar">
+            <pgp value="C5D9B9B0683DBD130CA4B8C7BF3FE5E70418D06D"/>
+         </artifact>
+      </component>
       <component group="cglib" name="cglib-nodep" version="2.1_3">
          <artifact name="cglib-nodep-2.1_3.jar">
             <sha256 value="e77f0b091a800acd15217bbc3c3629c1af0925b55b271fc5d0586422985639bb" origin="Verified" reason="Artifact is not signed"/>
@@ -788,6 +793,11 @@
             <pgp value="6D98490C6F1ACDDD448E45954F77679369475BAA"/>
          </artifact>
       </component>
+      <component group="commons-beanutils" name="commons-beanutils" version="1.11.0">
+         <artifact name="commons-beanutils-1.11.0.jar">
+            <pgp value="2DB4F1EF0FA761ECC4EA935C86FDC7E2A11262CB"/>
+         </artifact>
+      </component>
       <component group="commons-codec" name="commons-codec" version="1.15">
          <artifact name="commons-codec-1.15.jar">
             <pgp value="BC87A3FD0A54480F0BADBEBD21939FF0CA2A6567"/>
@@ -867,6 +877,11 @@
       <component group="io.airlift" name="aircompressor" version="0.27">
          <artifact name="aircompressor-0.27.jar">
             <pgp value="9E93DB1192CEE3D3B581AABB37E9D58EA4598641"/>
+         </artifact>
+      </component>
+      <component group="io.airlift" name="aircompressor" version="2.0.3">
+         <artifact name="aircompressor-2.0.3.jar">
+            <pgp value="64EE0DF33CBEB345471E1233824B40F0D3D8E241"/>
          </artifact>
       </component>
       <component group="io.airlift" name="slice" version="0.29">
@@ -1244,6 +1259,11 @@
             <pgp value="BE685132AFD2740D9095F9040CC0B712FEE75827"/>
          </artifact>
       </component>
+      <component group="org.assertj" name="assertj-core" version="3.27.7">
+         <artifact name="assertj-core-3.27.7.jar">
+            <pgp value="BE685132AFD2740D9095F9040CC0B712FEE75827"/>
+         </artifact>
+      </component>
       <component group="org.brotli" name="dec" version="0.1.2">
          <artifact name="dec-0.1.2.jar">
             <pgp value="3A4D86C56CA99373B6D8953DBE84D764623A3644"/>
@@ -1302,6 +1322,11 @@
       <component group="org.codehaus.plexus" name="plexus-sec-dispatcher" version="2.0">
          <artifact name="plexus-sec-dispatcher-2.0.jar">
             <pgp value="F3D15B8FF9902805DE4BE6B18DC6F3D0ABDBD017"/>
+         </artifact>
+      </component>
+      <component group="org.codehaus.plexus" name="plexus-utils" version="3.6.1">
+         <artifact name="plexus-utils-3.6.1.jar">
+            <pgp value="32118CF76C9EC5D918E54967CA80D1F0EB6CA4BA"/>
          </artifact>
       </component>
       <component group="org.codehaus.woodstox" name="stax2-api" version="4.2.1">
@@ -1668,6 +1693,16 @@
       <component group="xalan" name="xalan" version="2.7.1">
          <artifact name="xalan-2.7.1.jar">
             <sha256 value="55a2e95144acf1abe44fea91c2948525c9b1f00fcaa1d10e753e92872ffbdd1e" origin="Verified" reason="Artifact is not signed"/>
+         </artifact>
+      </component>
+      <component group="xalan" name="serializer" version="2.7.3">
+         <artifact name="serializer-2.7.3.jar">
+            <pgp value="2DB4F1EF0FA761ECC4EA935C86FDC7E2A11262CB"/>
+         </artifact>
+      </component>
+      <component group="xalan" name="xalan" version="2.7.3">
+         <artifact name="xalan-2.7.3.jar">
+            <pgp value="2DB4F1EF0FA761ECC4EA935C86FDC7E2A11262CB"/>
          </artifact>
       </component>
       <component group="xerces" name="xercesImpl" version="2.12.2">

@@ -24,7 +24,7 @@ val antVersion = "1.10.15"
 val asmVersion = "9.8"
 val awsS3Version = "1.12.780"
 val bouncycastleVersion = "1.85"
-val jacksonVersion = "2.18.6"
+val jacksonVersion = "2.18.11"
 val jaxbVersion = "3.0.0"
 val junit5Version = "5.8.2"
 val mavenVersion = "3.9.5"
@@ -56,7 +56,7 @@ dependencies {
         api(libs.asmCommons)            { version { strictly(asmVersion) }}
         api(libs.asmTree)               { version { strictly(asmVersion) }}
         api(libs.asmUtil)               { version { strictly(asmVersion) }}
-        api(libs.assertj)               { version { strictly("3.23.1") }}
+        api(libs.assertj)               { version { strictly("3.27.7") }}
         api(libs.awsS3Core)             { version { strictly(awsS3Version) }}
         api(libs.awsS3Kms)              { version { strictly(awsS3Version) }}
         api(libs.awsS3S3)               { version { strictly(awsS3Version) }}
@@ -152,7 +152,7 @@ dependencies {
         api(libs.plexusInterpolation)   { version { strictly("1.26"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.plexusClassworlds)     { version { strictly("2.7.0"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.plexusSecDispatcher)   { version { strictly("2.0"); because("transitive dependency of Maven modules to process POM metadata") }}
-        api(libs.plexusUtils)           { version { strictly("3.5.1"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusUtils)           { version { strictly("3.6.1"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.plist)                 { version { strictly("1.27") }}
         api(libs.servletApi)            { version { strictly("3.1.0") }}
         api(libs.slf4jApi)              { version { strictly(slf4jVersion) }}
@@ -173,7 +173,7 @@ dependencies {
         api(libs.zinc)                  { version { strictly("1.10.4") } }
 
         // test only
-        api(libs.aircompressor)         { version { strictly("0.27") }}
+        api(libs.aircompressor)         { version { strictly("2.0.3") }}
         api(libs.archunit)              { version { strictly(archunitVersion) }}
         api(libs.archunitJunit5)        { version { strictly(archunitVersion) }}
         api(libs.archunitJunit5Api)     { version { strictly(archunitVersion) }}
@@ -228,7 +228,7 @@ dependencies {
         api(libs.testcontainers)        { version { strictly("1.20.4") }}
         api(libs.testcontainersSpock)   { version { strictly("1.20.4") }}
         api(libs.typesafeConfig)        { version { strictly("1.3.3") }}
-        api(libs.xerces)                { version { strictly("2.12.0") }}
+        api(libs.xerces)                { version { strictly("2.12.2") }}
         api(libs.xmlunit)               { version { strictly("1.6") }}
     }
 }

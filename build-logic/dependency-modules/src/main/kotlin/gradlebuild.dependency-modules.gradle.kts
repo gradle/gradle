@@ -37,6 +37,7 @@ dependencies {
         readCapabilitiesFromJson()
 
         withModule<ReplaceCglibNodepWithCglibRule>("org.spockframework:spock-core")
+        withModule<ReplaceLz4WithMaintainedForkRule>("org.openjdk.jmc:common")
         // Prevent Spock from pulling in Groovy and third-party dependencies - see https://github.com/spockframework/spock/issues/899
         withLibraryDependencies<DependencyRemovalByNameRule>(
             "org.spockframework:spock-core",
@@ -253,6 +254,19 @@ abstract class ReplaceCglibNodepWithCglibRule : ComponentMetadataRule {
                     add("${it.group}:cglib:3.2.7")
                 }
                 removeAll { it.name == "cglib-nodep" }
+            }
+        }
+    }
+}
+
+// org.lz4:lz4-java is abandoned and has unfixed CVEs; at.yawk.lz4 is its maintained drop-in fork
+abstract class ReplaceLz4WithMaintainedForkRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withDependencies {
+                if (removeAll { it.group == "org.lz4" && it.name == "lz4-java" }) {
+                    add("at.yawk.lz4:lz4-java:1.11.4")
+                }
             }
         }
     }

@@ -52,13 +52,20 @@ dependencies {
     // generate Javadoc for the full Gradle distribution
     runtimeOnly(project(":distributions-full"))
 
-    userGuideTask("xalan:xalan:2.7.1")
-    userGuideTask("xerces:xercesImpl:2.11.0")
+    userGuideTask("xalan:xalan:2.7.3")
+    userGuideTask("xalan:serializer:2.7.3") // xalan 2.7.3 no longer declares it as a dependency
+    userGuideTask("xerces:xercesImpl:2.12.2")
     userGuideTask("net.sf.xslthl:xslthl:2.0.1")
 
     userGuideStyleSheets("net.sf.docbook:docbook-xsl:1.75.2:resources@zip")
 
     jquery("jquery:jquery.min:3.5.1@js")
+
+    constraints {
+        "checkAsciidoctorSampleContents"("commons-io:commons-io:2.19.0") {
+            because("Bump version brought in transitively by Exemplar, to resolve CVE-2024-47554")
+        }
+    }
 
     testImplementation(project(":base-services"))
     testImplementation(project(":core"))
