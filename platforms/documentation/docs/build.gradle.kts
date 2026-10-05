@@ -341,6 +341,8 @@ tasks.withType<CheckLinks>().configureEach {
 }
 
 tasks.register("checkLinks") {
+    group = "verification"
+    description = "Checks the user manual for dead internal and external links."
     dependsOn(tasks.withType<CheckLinks>())
     dependsOn("checkDeadInternalLinks")
     dependsOn("checkDeadExternalLinks")

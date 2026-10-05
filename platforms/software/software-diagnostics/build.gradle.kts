@@ -79,6 +79,8 @@ gradleModule {
 }
 
 val reportResources = tasks.register<Copy>("reportResources") {
+    group = "build"
+    description = "Copies the JavaScript resources used by the HTML dependency report into the generated resources directory."
     from(implementationResources)
     into(layout.buildDirectory.file("generated-resources/report-resources/org/gradle/api/tasks/diagnostics/htmldependencyreport"))
     rename { oldName ->

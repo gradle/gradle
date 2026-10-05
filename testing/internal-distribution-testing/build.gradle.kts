@@ -87,6 +87,8 @@ dependencies {
 }
 
 val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {
+    group = "build"
+    description = "Generates the properties file listing all previously released Gradle versions."
     destFile = layout.buildDirectory.file("generated-resources/all-released-versions/all-released-versions.properties")
     versions = gradleModule.identity.releasedVersions.map {
         it.allPreviousVersions.joinToString(" ") { it.version }
@@ -96,6 +98,8 @@ val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsIn
 }
 
 val copyTestedVersionsInfo = tasks.register<Copy>("copyTestedVersionsInfo") {
+    group = "build"
+    description = "Copies the AGP, Kotlin and smoke-tested plugin version properties into the generated resources directory."
     from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
     from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/kotlin-versions.properties"))
     from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/smoke-tested-plugins.properties"))
@@ -103,6 +107,8 @@ val copyTestedVersionsInfo = tasks.register<Copy>("copyTestedVersionsInfo") {
 }
 
 val generateLanguageAnnotations = tasks.register<GenerateLanguageAnnotations>("generateLanguageAnnotations") {
+    group = "build"
+    description = "Generates the Groovy language annotations used by integration test fixtures."
     classpath.from(configurations.integTestDistributionRuntimeClasspath)
     packageName = "org.gradle.integtests.fixtures"
     destDir = layout.buildDirectory.dir("generated/sources/language-annotations/groovy/main")
@@ -110,7 +116,7 @@ val generateLanguageAnnotations = tasks.register<GenerateLanguageAnnotations>("g
 
 sourceSets.main {
     groovy.srcDir(generateLanguageAnnotations.flatMap { it.destDir })
-    output.dir(prepareVersionsInfo.map { it.destFile.get().asFile.parentFile })
+    output.dir(prepareVersionsInfo.flatMap { it.destFile }.map { it.asFile.parentFile })
     output.dir(copyTestedVersionsInfo)
 }
 
