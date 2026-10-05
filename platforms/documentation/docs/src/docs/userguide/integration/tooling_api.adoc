@@ -224,7 +224,7 @@ A single action passed to link:{javadocPath}/org/gradle/tooling/ProjectConnectio
 
 A build action can request that tasks run as part of the same Gradle invocation:
 
-* link:{javadocPath}/org/gradle/tooling/BuildActionExecuter.html#forTasks(java.lang.String...)[`BuildActionExecuter.forTasks(...)`] schedules tasks that run before the action executes.
+* link:{javadocPath}/org/gradle/tooling/BuildActionExecuter.html#forTasks(java.lang.String++...++)[`BuildActionExecuter.forTasks(...)`] schedules tasks that run before the action executes.
 Passing an empty array runs the build's default tasks.
 Omitting the call (or passing `null`) skips task execution entirely.
 * For a phased build action, the scheduled tasks run after the `projectsLoaded` action and before the `buildFinished` action.
