@@ -63,9 +63,6 @@ class KnownProblemIds {
         'validation:type-validation': 'Gradle type validation',
         'validation:configuration-cache': 'Configuration cache',
 
-        // dependency resolution failures
-        'dependency-variant-resolution': 'Dependency variant resolution',
-
         // DCL
         'scripts:dcl-schema': 'DCL Schema issues',
 
@@ -77,6 +74,8 @@ class KnownProblemIds {
         'Compilation': 'Compilation',
         'Dependencies': 'Dependencies',
         'Dependencies:Declaration': 'Declaration',
+        'Dependencies:Graph Resolution': 'Graph Resolution',
+        'Dependencies:Artifact Resolution': 'Artifact Resolution',
         'Compilation:Groovy': 'Groovy',
         'Compilation:Java': 'Java',
         'Compilation:Java:Undefined': 'Undefined',
@@ -202,23 +201,23 @@ class KnownProblemIds {
         'validation:invalid-java-toolchain': ["Running task ValidatePlugins with Java Toolchain lower than ${SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION}"],
 
         // dependency resolution failures
-        'dependency-variant-resolution:configuration-not-compatible': ['Configuration selected by name is not compatible'],
-        'dependency-variant-resolution:configuration-not-consumable': ['Configuration selected by name is not consumable'],
-        'dependency-variant-resolution:configuration-does-not-exist': ['Configuration selected by name does not exist'],
-        'dependency-variant-resolution:ambiguous-variants': ['Multiple variants exist that would match the request'],
-        'dependency-variant-resolution:no-compatible-variants': ['No variants exist that would match the request'],
-        'dependency-variant-resolution:no-variants-with-matching-capabilities': ['No variants exist with capabilities that would match the request'],
-        'dependency-variant-resolution:no-version-satisfies' : ['No version satisfies the constraints'],
-        'dependency-variant-resolution:capability-conflict' : ['Module rejected due to a capability conflict'],
+        'Dependencies:Graph Resolution:Configuration selected by name is not compatible': ['Configuration selected by name is not compatible'],
+        'Dependencies:Graph Resolution:Configuration selected by name is not consumable': ['Configuration selected by name is not consumable'],
+        'Dependencies:Graph Resolution:Configuration selected by name does not exist': ['Configuration selected by name does not exist'],
+        'Dependencies:Graph Resolution:Multiple variants exist that would match the request': ['Multiple variants exist that would match the request'],
+        'Dependencies:Graph Resolution:No variants exist that would match the request': ['No variants exist that would match the request'],
+        'Dependencies:Graph Resolution:No variants exist with capabilities that would match the request': ['No variants exist with capabilities that would match the request'],
+        'Dependencies:Graph Resolution:No version satisfies the constraints' : ['No version satisfies the constraints'],
+        'Dependencies:Graph Resolution:Module rejected due to a capability conflict' : ['Module rejected due to a capability conflict'],
 
-        'dependency-variant-resolution:ambiguous-artifact-transform': ['Multiple artifacts transforms exist that would satisfy the request'],
-        'dependency-variant-resolution:no-compatible-artifact': ['No artifacts exist that would match the request'],
-        'dependency-variant-resolution:ambiguous-artifacts': ['Multiple artifacts exist that would match the request'],
-        'dependency-variant-resolution:unknown-artifact-selection-failure': ['Unknown artifact selection failure'],
+        'Dependencies:Artifact Resolution:Multiple artifact transforms exist that would satisfy the request': ['Multiple artifact transforms exist that would satisfy the request'],
+        'Dependencies:Artifact Resolution:No artifacts exist that would match the request': ['No artifacts exist that would match the request'],
+        'Dependencies:Artifact Resolution:Multiple artifacts exist that would match the request': ['Multiple artifacts exist that would match the request'],
+        'Dependencies:Artifact Resolution:Unknown artifact selection failure': ['Unknown artifact selection failure'],
 
-        'dependency-variant-resolution:incompatible-multiple-nodes': ['Incompatible nodes of a single component were selected'],
+        'Dependencies:Graph Resolution:Incompatible nodes of a single component were selected': ['Incompatible nodes of a single component were selected'],
 
-        'dependency-variant-resolution:unknown-resolution-failure': ['Unknown resolution failure'],
+        'Dependencies:Graph Resolution:Unknown resolution failure': ['Unknown resolution failure'],
 
         // DCL schema building issues:
         // The messages might be reworded, keeping them as a wildcard for now
