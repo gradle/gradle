@@ -249,6 +249,11 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
                 TestSelectionMatcher matcher = new TestSelectionMatcher(filterSpec, testDefinitionDirs);
 
                 DelegatingByTypeFilter delegatingFilter = new DelegatingByTypeFilter(new ClassMethodNameFilter(matcher));
+                // FilePathFilter matches a file against the directories it was selected from, and excludes any
+                // file that lies under none of them. Those directories only exist when there are directory
+                // selectors, so registering it unconditionally would exclude every file-based test in a
+                // class-based run. Without it, file-based descriptors fall to ClassMethodNameFilter and are
+                // matched by their enclosing class, like any other test not declared as a method.
                 if (hasDirectorySelectors()) {
                     FilePathFilter fileFilter = new FilePathFilter(matcher);
                     delegatingFilter.addDelegate(FileSource.class, fileFilter);

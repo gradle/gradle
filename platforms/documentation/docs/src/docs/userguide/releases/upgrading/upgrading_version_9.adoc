@@ -200,6 +200,11 @@ To keep such a test running under a filter, name it or its class in the pattern:
 * Rules grouped with `ArchTests.in(...)` are reported as `GroupedClass > ruleName`, after the class passed to `ArchTests.in(...)` and not the field that holds the set.
 For a set held in a field `nested` of `ArchRulesTest` that wraps `NestedRules`, `--tests "ArchRulesTest.NestedRules > nestedRule"` runs that rule.
 
+WARNING: For a test that is not declared as a method, the name after the class is the name its engine reports, not a method name Gradle derives.
+Engines own these names and may change them in any release, including a patch release.
+A pattern like `ArchRulesTest.NestedRules > nestedRule` can therefore stop matching, or start matching something else, when you upgrade ArchUnit or Spek, with no deprecation warning from Gradle.
+Prefer naming the enclosing class alone where that is specific enough, and treat a pattern that names an individual non-method test as something to re-check on every engine upgrade.
+
 Tests that an engine registers only while a class is executing, as link:https://kotest.io/[Kotest] does, are not affected by this change.
 Gradle applies filters before those tests exist, so they can still only be selected by their spec class.
 

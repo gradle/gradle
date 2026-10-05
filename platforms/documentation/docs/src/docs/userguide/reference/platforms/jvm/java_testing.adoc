@@ -135,6 +135,9 @@ Rules grouped with `ArchTests.in(...)` are reported as `GroupedClass > ruleName`
 For a set held in a field `nested` of `ArchRulesTest` that wraps `NestedRules`, the pattern is `ArchRulesTest.NestedRules > nestedRule`: the enclosing class, then the reported name.
 The name of the field that holds the set never appears in the pattern.
 
+WARNING: The part after the class is the name the engine reports, and engines may change these names in any release.
+A pattern naming an individual non-method test can stop matching when you upgrade the engine, so prefer naming the enclosing class where that is specific enough.
+
 Engines that register their tests only while a class is executing, such as https://kotest.io/[Kotest], are a different case.
 Gradle applies filters after test discovery, before those tests exist, so you can select or exclude them only by their spec class.
 
