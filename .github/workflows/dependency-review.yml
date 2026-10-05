@@ -1,0 +1,39 @@
+name: Dependency vulnerability report
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+    - ov7a/dependency-review
+
+permissions:
+  contents: write
+
+jobs:
+  dependency-report:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v7
+    - uses: actions/setup-java@v6
+      with:
+        distribution: temurin
+        java-version: 11
+
+    - name: Generate and submit dependency graph
+      uses: gradle/actions/dependency-submission@v6.4.0
+      with:
+        build-scan-publish: false
+        additional-arguments: --no-configuration-cache --dependency-verification=lenient
+
+    - name: Perform dependency review
+      uses: actions/dependency-review-action@v5
+      with:
+        # Root commit with an empty tree, so every dependency of the checked-out ref is reported as added
+        base-ref: b2400f1e93e6bda656bf9baba9b00a67c62181db
+        head-ref: ${{ github.sha }}
+        # The snapshot submitted by the previous step may not be processed yet
+        retry-on-snapshot-warnings: true
+        fail-on-severity: low
+        license-check: false
+        show-openssf-scorecard: false
+        show-patched-versions: true
