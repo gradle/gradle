@@ -36,6 +36,7 @@ import java.io.OutputStream;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static java.util.stream.Collectors.toCollection;
@@ -92,17 +93,26 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
     }
 
     private GradleExecuter createExecuter(List<String> args, List<String> flags) {
-        WarningMode warningMode = flags.stream()
+        Optional<WarningMode> explicitWarningMode = flags.stream()
             .filter(it -> it.startsWith(WARNING_MODE_FLAG_PREFIX))
             .map(it -> WarningMode.valueOf(capitalize(it.replace(WARNING_MODE_FLAG_PREFIX, "").toLowerCase())))
-            .findFirst().orElse(WarningMode.Fail);
+            .findFirst();
         List<String> filteredFlags = flags.stream()
             .filter(it -> !it.startsWith(WARNING_MODE_FLAG_PREFIX) && !it.equals(NO_STACKTRACE_CHECK) && !it.startsWith(SAMPLE_ENV_PREFIX))
             .collect(toCollection(ArrayList::new));
         filteredFlags.add(getAvailableJdksFlag());
-        GradleExecuter executer = gradle.inDirectory(workingDir).ignoreMissingSettingsFile()
-            .noDeprecationChecks()
-            .withWarningMode(warningMode)
+        GradleExecuter executer = gradle.inDirectory(workingDir).ignoreMissingSettingsFile();
+        if (explicitWarningMode.isPresent()) {
+            // The sample decides how deprecations are treated, typically because it demonstrates deprecated behavior.
+            executer.noDeprecationChecks().withWarningMode(explicitWarningMode.get());
+        } else {
+            // By default a sample must not use deprecated features. The executer checks the output for deprecation
+            // warnings rather than the build running with --warning-mode=fail, so that the deprecations it tolerates
+            // (the daemon JVM version, problems reported by third-party plugins through the legacy Problems API) do
+            // not fail the sample's build.
+            executer.withWarningMode(WarningMode.All);
+        }
+        executer
             .withToolchainDetectionEnabled()
             .withArguments(filteredFlags)
             .withArgument("--no-problems-report")
