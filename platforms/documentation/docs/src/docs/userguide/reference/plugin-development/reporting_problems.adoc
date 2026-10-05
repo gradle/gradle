@@ -16,7 +16,7 @@
 = Reporting Plugin Problems with the Problems API
 :keywords: problems, api, problem
 
-Gradle’s Problems API lets plugins report rich, structured information about issues that occur during a failing build.
+Gradle’s Problems API lets plugins report rich, structured information about issues that occur during a build, both warnings and failures.
 
 The following example shows how a plugin can report a problem:
 
@@ -28,6 +28,20 @@ include::sample[dir="snippets/reference/plugin-development/problemReporting/kotl
 <3> Report a recoverable problem so the build can continue.
 <4> Add optional extra data to the problem.
 
+[[sec:where_problems_appear]]
+== Where reported problems appear
+
+Gradle delivers reported problems to several places:
+
+- The <<sec:generated_html_report,HTML Problems Report>> lists all reported problems.
+On the command line, this is where warnings appear by default; the console shows only the location of the report at the end of the build.
+- The console always shows failures.
+Warnings are printed as well when running with `--warning-mode=all`, see <<sec:console_rendering,Console rendering>>.
+With `--warning-mode=none`, the console does not show the location of the report either.
+- <<tooling_api_clients,Tooling API clients>>, such as IDEs, receive problems as events.
+
+Repeated instances of the same problem are summarized, see <<sec:problem_summarization,Problem Summarization>>.
+
 [[sec:problems_api_usage]]
 == Problems API Usage
 
@@ -37,10 +51,7 @@ The following simple plugin adds a `greet` task, applied by the `consumer` build
 - It reports a warning if no recipient is set: `./gradlew :consumer:greet --warning-mode=all`
 - It fails if the recipient is `fail`: `./gradlew :consumer:greet -Precipient=fail`
 
-Reported problems are listed in the <<sec:generated_html_report,HTML Problems Report>>.
-By default, the console shows only the location of that report for warnings.
-Run with `--warning-mode=all` to also print warnings to the console, see <<sec:console_rendering,Console rendering>>.
-Failures are always printed to the console:
+The warning is printed to the console only with `--warning-mode=all`, see <<sec:where_problems_appear,Where reported problems appear>>:
 
 ====
 include::sample[dir="snippets/reference/plugin-development/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[]"]
@@ -198,7 +209,7 @@ Run with `--warning-mode=all` or `--warning-mode=fail` to infer a location for e
 - The report is skipped if no problems are found.
 - Disable report generation with the `--no-problems-report` flag.
 
-Console output includes a link to the report, unless `--warning-mode=none` is set:
+Console output includes a link to the report:
 
 [source,text]
 ----
