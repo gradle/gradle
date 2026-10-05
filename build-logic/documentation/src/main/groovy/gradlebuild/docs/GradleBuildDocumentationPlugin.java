@@ -21,8 +21,12 @@ import com.google.gson.JsonParser;
 import gradlebuild.basics.BuildEnvironmentKt;
 import gradlebuild.basics.PublicApi;
 import gradlebuild.basics.PublicKotlinDslApi;
-import org.asciidoctor.gradle.jvm.AsciidoctorJExtension;
-import org.asciidoctor.gradle.jvm.AsciidoctorTask;
+import org.asciidoctor.gradle.model5.core.AsciidoctorModelExtension;
+import org.asciidoctor.gradle.model5.jvm.JvmModel;
+import org.asciidoctor.gradle.model5.jvm.extensions.AsciidoctorjGenericExtension;
+import org.asciidoctor.gradle.model5.jvm.formatters.AsciidoctorjHtml5;
+import org.asciidoctor.gradle.model5.jvm.plugins.AsciidoctorjBasePlugin;
+import org.asciidoctor.gradle.model5.jvm.toolchains.AsciidoctorjToolchain;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.Configuration;
@@ -51,6 +55,30 @@ import java.util.regex.Pattern;
 
 public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> {
 
+    /**
+     * The AsciidoctorJ toolchain that renders Gradle's documentation.
+     */
+    public static final String ASCIIDOCTORJ_TOOLCHAIN = "asciidoctorj";
+
+    /**
+     * The HTML output formatter registered on {@link #ASCIIDOCTORJ_TOOLCHAIN}.
+     */
+    public static final String HTML_FORMATTER = "html";
+
+    /**
+     * Any Asciidoctor warning fails the multi-page user manual.
+     */
+    public static final Pattern FATAL_WARNINGS = Pattern.compile(".*");
+
+    /**
+     * Like {@link #FATAL_WARNINGS}, but for the single-page user manual, which combines pages that are written and
+     * linked to as standalone pages. Their IDs can clash there (e.g. {@code task_dependencies} in the upgrading guides for
+     * Gradle 7 and 9, which deprecation messages link to), so duplicate IDs are only fatal in the multi-page manual.
+     */
+    public static final Pattern FATAL_WARNINGS_SINGLE_PAGE = Pattern.compile("^(?!id assigned to .+ already in use: ).*");
+
+    private static final String GRADLE_EXTENSIONS = "gradleDocs";
+
     @Inject
     protected abstract ProviderFactory getProviders();
 
@@ -71,15 +99,14 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
                 .map(GradleBuildDocumentationPlugin::findLatestGradle8Version)
         );
 
-        project.apply(target -> target.plugin("org.asciidoctor.jvm.convert"));
+        // The user manual plugin renders through this toolchain
+        configureAsciidoctorJ(project);
 
         project.apply(target -> target.plugin(GradleReleaseNotesPlugin.class));
         project.apply(target -> target.plugin(GradleJavadocsPlugin.class));
         project.apply(target -> target.plugin(GradleKotlinDslReferencePlugin.class));
         project.apply(target -> target.plugin(GradleDslReferencePlugin.class));
         project.apply(target -> target.plugin(GradleUserManualPlugin.class));
-
-        configureAsciidoctorJ(project, tasks);
 
         addUtilityTasks(project, tasks, extension);
 
@@ -97,23 +124,35 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
         throw new IllegalStateException("No 8.x release found in released-versions.json");
     }
 
-    private void configureAsciidoctorJ(Project project, TaskContainer tasks) {
+    /**
+     * Sets up the AsciidoctorJ toolchain ({@link #ASCIIDOCTORJ_TOOLCHAIN}) of the Asciidoctor Gradle plugin's model5 DSL,
+     * with Gradle's own Asciidoctor extensions and an HTML output formatter ({@link #HTML_FORMATTER}).
+     */
+    private static void configureAsciidoctorJ(Project project) {
+        project.getPluginManager().apply(AsciidoctorjBasePlugin.class);
         VersionCatalog buildLibs = project.getExtensions().getByType(VersionCatalogsExtension.class).named("buildLibs");
-        AsciidoctorJExtension asciidoctorj = project.getExtensions().getByType(AsciidoctorJExtension.class);
-        asciidoctorj.setVersion(buildLibs.findVersion("asciidoctor").get().getRequiredVersion());
-        asciidoctorj.getModules().getPdf().setVersion(buildLibs.findVersion("asciidoctorPdf").get().getRequiredVersion());
-        // TODO: gif are not supported in pdfs, see also https://github.com/gradle/gradle/issues/24193
-        // TODO: tables are not handled properly in pdfs
-        asciidoctorj.getFatalWarnings().add(Pattern.compile(
-            "^(?!GIF image format not supported|dropping cells from incomplete row detected end of table|.*Asciidoctor PDF does not support table cell content that exceeds the height of a single page).*"
-        ));
+        AsciidoctorModelExtension asciidoc = project.getExtensions().getByType(AsciidoctorModelExtension.class);
 
-        tasks.withType(AsciidoctorTask.class).configureEach(task -> {
-            AsciidoctorJExtension taskDoctorj = task.getExtensions().getByType(AsciidoctorJExtension.class);
-            taskDoctorj.docExtensions(
-                project.getDependencies().create(project.project(":docs-asciidoctor-extensions")),
-                project.getDependencies().create(project.files("src/main/resources"))
-            );
+        AsciidoctorjToolchain toolchain = asciidoc.getToolchains().create(ASCIIDOCTORJ_TOOLCHAIN, AsciidoctorjToolchain.class);
+        toolchain.useAsciidoctorj(buildLibs.findVersion("asciidoctor").get().getRequiredVersion());
+        // head.html, header.html and footer.html, read from the classpath by HeaderInjectingPostprocessor
+        toolchain.classpath(project.files("src/main/resources"));
+
+        // Render in a worker process, as the classic plugin did with ExecutionMode.OUT_OF_PROCESS
+        toolchain.getRegisteredOutputFormatters().register(HTML_FORMATTER, AsciidoctorjHtml5.class,
+            html -> html.useProcessIsolation(forkOptions -> { }));
+
+        toolchain.getAsciidocExtensions().register(GRADLE_EXTENSIONS, AsciidoctorjGenericExtension.class, extension -> {
+            // Added lazily, so that applying this plugin doesn't require the project to exist, e.g. in build-logic tests
+            project.getConfigurations()
+                .getByName(JvmModel.nameForExtensionConfiguration(ASCIIDOCTORJ_TOOLCHAIN, GRADLE_EXTENSIONS))
+                .getDependencies()
+                .addLater(project.provider(() -> project.getDependencies().project(Collections.singletonMap("path", ":docs-asciidoctor-extensions"))));
+            // The extensions declare an API dependency on AsciidoctorJ. model5 resolves extensions separately from the
+            // engine, so keep AsciidoctorJ and JRuby coming only from the toolchain to avoid two versions on the classpath.
+            project.getConfigurations()
+                .getByName(JvmModel.nameForExtensionConfigurationResolvable(ASCIIDOCTORJ_TOOLCHAIN, GRADLE_EXTENSIONS))
+                .exclude(Collections.singletonMap("group", "org.asciidoctor"));
         });
     }
 
