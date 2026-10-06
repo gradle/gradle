@@ -69,6 +69,7 @@ class KnownProblemIds {
         // predefined groups (org.gradle.api.problems.ProblemGroups) used from integration tests
         'Gradle': 'Gradle',
         'Gradle:Build Definition': 'Build Definition',
+        'Gradle:Build Logic': 'Build Logic',
         'Gradle:Deprecation': 'Deprecation',
         'Gradle:DSL Evaluation': 'DSL Evaluation',
         'Gradle:Plugin Validation': 'Plugin Validation',
@@ -168,12 +169,9 @@ class KnownProblemIds {
         'task-selection:empty-segments': ['Empty segments'],
         'validation:property-validation:cannot-write-output': ['Property is not writable'],
         'validation:property-validation:cannot-write-to-reserved-location': ['Cannot write to reserved location'],
-        'validation:property-validation:implicit-dependency': ['Property has implicit dependency'],
         'validation:property-validation:input-file-does-not-exist': ['Input file does not exist'],
         'validation:property-validation:unexpected-input-file-type': ['Unexpected input file type'],
         'validation:property-validation:unsupported-notation': ['Property has unsupported value'],
-        'validation:property-validation:unknown-implementation': ['Unknown property implementation'],
-        'validation:property-validation:unknown-implementation-nested': ['Unknown property implementation'],
         'validation:property-validation:value-not-set': ['Value not set'],
         'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache': ['cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'],
         // Dynamic fqid until the CC class-encoding failure path emits a stable problem ID.
@@ -207,6 +205,13 @@ class KnownProblemIds {
         'Gradle:Plugin Validation:Unsupported nested map key': ['Unsupported nested map key'],
         'Gradle:Plugin Validation:Unsupported value type': ['Unsupported value type'],
         'Gradle:Plugin Validation:Unsupported value type for @Input annotation': ['Unsupported value type for @Input annotation'],
+
+        // Build Logic
+        'Gradle:Build Logic:Missing project feature annotation': ['Missing project feature annotation'],
+        'Gradle:Build Logic:Property cannot carry dependency': ['Property cannot carry dependency'],
+        'Gradle:Build Logic:Property has implicit dependency': ['Property has implicit dependency'],
+        'Gradle:Build Logic:Unknown implementation': ['Unknown implementation'],
+        'Gradle:Build Logic:Unknown property implementation': ['Unknown property implementation'],
 
         // dependency resolution failures
         'Dependencies:Graph Resolution:Configuration selected by name is not compatible': ['Configuration selected by name is not compatible'],

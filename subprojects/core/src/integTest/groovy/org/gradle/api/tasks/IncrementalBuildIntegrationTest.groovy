@@ -1095,14 +1095,14 @@ task b(dependsOn: a)
         failureDescriptionStartsWith("Some problems were found with the configuration of task ':customTask' (type 'CustomTask').")
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unknown-implementation'
-            definition.id.displayName == 'Unknown property implementation'
+            fqid == 'Gradle:Build Logic:Unknown implementation'
+            definition.id.displayName == 'Unknown implementation'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unknown-implementation'
-            definition.id.displayName == 'Unknown property implementation'
+            fqid == 'Gradle:Build Logic:Unknown implementation'
+            definition.id.displayName == 'Unknown implementation'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
         }
     }
@@ -1150,8 +1150,8 @@ task b(dependsOn: a)
         failureDescriptionStartsWith("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unknown-implementation'
-            definition.id.displayName == 'Unknown property implementation'
+            fqid == 'Gradle:Build Logic:Unknown implementation'
+            definition.id.displayName == 'Unknown implementation'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
         }
     }

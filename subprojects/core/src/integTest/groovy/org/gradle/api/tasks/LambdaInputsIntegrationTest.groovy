@@ -107,7 +107,7 @@ class LambdaInputsIntegrationTest extends AbstractIntegrationSpec implements Val
         failureDescriptionStartsWith("A problem was found with the configuration of task ':myTask' (type 'TaskWithConsumerProperty').")
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unknown-implementation-nested'
+            fqid == 'Gradle:Build Logic:Unknown property implementation'
             definition.id.displayName == 'Unknown property implementation'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
         }

@@ -16,9 +16,9 @@
 
 package org.gradle.internal.reflect.validation;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.problems.GradleProblemGroup;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemBuilderInternal;
 import org.gradle.api.problems.internal.TypeValidationData;
@@ -26,12 +26,18 @@ import org.gradle.api.problems.internal.TypeValidationDataSpec;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Arrays;
-import java.util.List;
 import java.util.Optional;
 
 @NullMarked
 public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder implements TypeAwareProblemBuilder {
+
+    // Names of the Build Logic problems whose message does not mention the type of the work.
+    // The producers use these constants, so the names cannot drift apart.
+    public static final String UNKNOWN_IMPLEMENTATION = "Unknown implementation";
+    public static final String UNKNOWN_PROPERTY_IMPLEMENTATION = "Unknown property implementation";
+    public static final String IMPLICIT_DEPENDENCY = "Property has implicit dependency";
+
+    private static final ImmutableSet<String> TYPE_IRRELEVANT_PROBLEMS = ImmutableSet.of(UNKNOWN_IMPLEMENTATION, UNKNOWN_PROPERTY_IMPLEMENTATION, IMPLICIT_DEPENDENCY);
 
     private final GradleProblemGroup gradleGroup;
 
@@ -85,13 +91,8 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
         return problem.toBuilder(getInfrastructure()).contextualLabel(prefix + text).build();
     }
 
-    private static boolean isTypeIrrelevantInErrorMessage(ProblemId problemId) {
-        if (!problemId.getGroup().equals(GradleCoreProblemGroup.validation().property())) {
-            return false;
-        } else {
-            List<String> candidates = Arrays.asList("unknown-implementation", "unknown-implementation-nested", "implicit-dependency");
-            return candidates.contains(problemId.getName());
-        }
+    private boolean isTypeIrrelevantInErrorMessage(ProblemId problemId) {
+        return problemId.getGroup().equals(gradleGroup.getBuildLogic()) && TYPE_IRRELEVANT_PROBLEMS.contains(problemId.getName());
     }
 
     public static String introductionFor(Optional<TypeValidationData> additionalData, boolean typeIrrelevantInErrorMessage) {

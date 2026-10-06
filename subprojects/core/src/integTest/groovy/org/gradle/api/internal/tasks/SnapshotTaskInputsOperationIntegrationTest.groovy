@@ -174,8 +174,8 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         and:
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unknown-implementation'
-            definition.id.displayName == 'Unknown property implementation'
+            fqid == 'Gradle:Build Logic:Unknown implementation'
+            definition.id.displayName == 'Unknown implementation'
             contextualLabel == 'Additional action of task \':customTask\' was loaded with an unknown classloader (class \'CustomTask_Decorated\').'
             details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
@@ -186,8 +186,8 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unknown-implementation'
-            definition.id.displayName == 'Unknown property implementation'
+            fqid == 'Gradle:Build Logic:Unknown implementation'
+            definition.id.displayName == 'Unknown implementation'
             contextualLabel == 'Implementation of task \':customTask\' was loaded with an unknown classloader (class \'CustomTask_Decorated\').'
             details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
@@ -228,8 +228,8 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         and:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unknown-implementation'
-            definition.id.displayName == 'Unknown property implementation'
+            fqid == 'Gradle:Build Logic:Unknown implementation'
+            definition.id.displayName == 'Unknown implementation'
             contextualLabel == 'Additional action of task \':customTask\' was loaded with an unknown classloader (class \'A\').'
             details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
@@ -541,7 +541,7 @@ class SnapshotTaskInputsOperationIntegrationTest extends AbstractIntegrationSpec
         and:
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unknown-implementation-nested'
+            fqid == 'Gradle:Build Logic:Unknown property implementation'
             definition.id.displayName == 'Unknown property implementation'
             contextualLabel == "Property 'bean' was loaded with an unknown classloader (class 'A')."
             details == 'Gradle cannot track the implementation for classes loaded with an unknown classloader.'

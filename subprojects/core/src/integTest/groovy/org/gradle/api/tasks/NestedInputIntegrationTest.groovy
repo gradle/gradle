@@ -1071,19 +1071,19 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             failureDescriptionStartsWith("Configuration cache problems found in this build")
             verifyAll(receivedProblem(0)) {
                 severity == Severity.ERROR
-                fqid.startsWith('validation:configuration-cache:class-nestedbean-cannot-be-encoded')
-                originLocations == []
+                fqid == 'Gradle:Build Logic:Unknown property implementation'
+                definition.id.displayName == 'Unknown property implementation'
+                definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
             }
             verifyAll(receivedProblem(1)) {
                 severity == Severity.ERROR
-                fqid == 'validation:property-validation:unknown-implementation-nested'
-                definition.id.displayName == 'Unknown property implementation'
-                definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
+                fqid.startsWith('validation:configuration-cache:class-nestedbean-cannot-be-encoded')
+                originLocations == []
             }
         } else {
             verifyAll(receivedProblem) {
                 severity == Severity.ERROR
-                fqid == 'validation:property-validation:unknown-implementation-nested'
+                fqid == 'Gradle:Build Logic:Unknown property implementation'
                 definition.id.displayName == 'Unknown property implementation'
                 definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
             }
