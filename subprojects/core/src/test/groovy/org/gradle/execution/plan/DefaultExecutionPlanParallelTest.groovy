@@ -2525,7 +2525,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
         }
 
         @Override
-        String toString() {
+        String getDisplayName() {
             return name
         }
 

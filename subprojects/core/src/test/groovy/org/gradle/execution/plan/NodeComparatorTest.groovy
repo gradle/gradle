@@ -136,7 +136,7 @@ class NodeComparatorTest extends Specification {
             }
 
             @Override
-            String toString() {
+            String getDisplayName() {
                 "CreationOrderedNode($order)"
             }
         }

@@ -167,7 +167,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         }
 
         @Override
-        public void scheduleTasks(Collection<TaskInternal> tasksToBuild) {
+        public void queueTasks(Collection<TaskInternal> tasksToBuild) {
             for (TaskInternal task : tasksToBuild) {
                 // This check should live lower down, and should have some kind of synchronization around it, as other threads may be
                 // running tasks at the same time

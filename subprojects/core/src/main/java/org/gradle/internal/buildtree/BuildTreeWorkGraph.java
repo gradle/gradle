@@ -57,9 +57,10 @@ public interface BuildTreeWorkGraph {
         void withWorkGraph(BuildState target, Consumer<? super BuildLifecycleController.WorkGraphBuilder> action);
 
         /**
-         * Adds the given tasks and their dependencies to the work graph.
+         * Queues the given tasks for execution. The tasks and their dependencies are added to the work graph
+         * when the work graph is populated.
          */
-        void scheduleTasks(Collection<TaskInternal> tasksToBuild);
+        void queueTasks(Collection<TaskInternal> tasksToBuild);
 
         /**
          * Adds add task filter to the given build.

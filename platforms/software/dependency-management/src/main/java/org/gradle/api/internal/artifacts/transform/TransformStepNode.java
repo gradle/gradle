@@ -192,8 +192,8 @@ public abstract class TransformStepNode extends CreationOrderedNode implements T
     }
 
     @Override
-    public String toString() {
-        return transformStep.getDisplayName();
+    public String getDisplayName() {
+        return "Transform " + artifact.getId().getDisplayName() + " with " + transformStep.getDisplayName();
     }
 
     public TransformStep getTransformStep() {

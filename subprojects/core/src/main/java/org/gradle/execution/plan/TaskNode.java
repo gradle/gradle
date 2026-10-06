@@ -35,7 +35,6 @@ public abstract class TaskNode extends Node {
 
     /**
      * Registers an action to invoke when this node completes (as per {@link Node#isComplete()}).
-     * Does nothing if this node has already completed.
      */
     public void onComplete(Runnable action) {
         synchronized (this) {

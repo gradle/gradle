@@ -18,6 +18,8 @@ package org.gradle.composite.internal;
 
 import org.gradle.api.CircularReferenceException;
 import org.gradle.api.Task;
+import org.gradle.api.internal.artifacts.transform.TransformStepNode;
+import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.Node;
@@ -34,8 +36,11 @@ import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.work.WorkerLeaseService;
+import org.gradle.util.Path;
 
 import java.io.StringWriter;
+import java.util.ArrayDeque;
+import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
@@ -43,12 +48,14 @@ import java.util.Set;
 import java.util.concurrent.ExecutorService;
 import java.util.function.BiConsumer;
 import java.util.function.Consumer;
+import java.util.function.Predicate;
 
 class DefaultBuildController implements BuildController {
     private enum State {
         DiscoveringTasks, ReadyToRun, RunningTasks, Finished
     }
 
+    private final Path buildPath;
     private final BuildWorkGraph workGraph;
     private final Set<Node> scheduled = new LinkedHashSet<>();
     private final Set<Node> queuedForExecution = new LinkedHashSet<>();
@@ -58,12 +65,14 @@ class DefaultBuildController implements BuildController {
 
     public DefaultBuildController(BuildState build, WorkerLeaseService workerLeaseService) {
         this.workerLeaseService = workerLeaseService;
+        this.buildPath = build.getIdentityPath();
         this.workGraph = build.getWorkGraph().newWorkGraph();
     }
 
     @Override
     public void queueForExecution(Node node) {
         assertInState(State.DiscoveringTasks);
+        assertBelongsToThisBuild(node);
         queuedForExecution.add(node);
     }
 
@@ -132,6 +141,17 @@ class DefaultBuildController implements BuildController {
         workGraph.stop();
     }
 
+    private void assertBelongsToThisBuild(Node node) {
+        ProjectInternal owningProject = node.getOwningProject();
+        if (owningProject == null) {
+            throw new IllegalArgumentException("Cannot queue " + node + " for execution in build " + buildPath + ", as it does not belong to any build.");
+        }
+        Path owningBuild = owningProject.getProjectIdentity().getBuildPath();
+        if (!owningBuild.equals(buildPath)) {
+            throw new IllegalArgumentException("Cannot queue " + node + " for execution in build " + buildPath + ", as it belongs to build " + owningBuild + ".");
+        }
+    }
+
     private void assertInState(State expectedState) {
         if (state != expectedState) {
             throw new IllegalStateException("Build is in unexpected state: " + state);
@@ -150,20 +170,55 @@ class DefaultBuildController implements BuildController {
             List<Set<Node>> cycles = graphWalker.findCycles();
             Set<Node> cycle = cycles.get(0);
 
-            DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<>((node, output, alreadySeen) -> output.withStyle(StyledTextOutput.Style.Identifier).text(node.toString()), (node, values, connectedNodes) -> visitDependenciesOf(node, dep -> {
-                // Only report task nodes involved in cycles, as they are more actionable and don't leak
-                // internal node types to users.
-                if (dep instanceof TaskNode && cycle.contains(dep)) {
-                    connectedNodes.add(dep);
-                }
-            }));
+            // If the cycle has no reportable nodes, report all of its nodes.
+            Predicate<Node> isReported = cycle.stream().anyMatch(DefaultBuildController::isReportableInCycle)
+                ? DefaultBuildController::isReportableInCycle
+                : node -> true;
+            // Report the cycle starting from the first reportable node.
+            Node root = isReported.test(task) ? task : cycle.stream().filter(isReported).findFirst().orElse(task);
+
+            DirectedGraphRenderer<Node> graphRenderer = new DirectedGraphRenderer<>(
+                (node, output, alreadySeen) -> output.withStyle(StyledTextOutput.Style.Identifier).text(node.getDisplayName()),
+                (node, values, connectedNodes) -> visitReportedDependenciesOf(node, cycle, isReported, connectedNodes::add)
+            );
             StringWriter writer = new StringWriter();
-            graphRenderer.renderTo(task, writer);
+            graphRenderer.renderTo(root, writer);
             throw new CircularReferenceException(String.format("Circular dependency between the following tasks:%n%s", writer));
         }
         visitDependenciesOf(task, dep -> checkForCyclesFor(dep, visited, visiting));
         visiting.remove(task);
         visited.add(task);
+    }
+
+    /**
+     * Only report task and transform nodes involved in cycles, as they are more actionable and don't leak
+     * internal node types to users.
+     */
+    private static boolean isReportableInCycle(Node node) {
+        return node instanceof TaskNode || node instanceof TransformStepNode;
+    }
+
+    /**
+     * Visits the reported nodes in the given cycle that the given node depends on, either directly or
+     * through nodes in the cycle that are not reported.
+     */
+    private static void visitReportedDependenciesOf(Node node, Set<Node> cycle, Predicate<Node> isReported, Consumer<? super Node> visitor) {
+        Set<Node> seen = new HashSet<>();
+        Deque<Node> queue = new ArrayDeque<>();
+        visitDependenciesOf(node, queue::add);
+        while (!queue.isEmpty()) {
+            Node dep = queue.removeFirst();
+            if (!cycle.contains(dep) || !seen.add(dep)) {
+                continue;
+            }
+            if (isReported.test(dep)) {
+                visitor.accept(dep);
+            } else {
+                // Skip over the unreported node, searching its dependencies instead, so that the
+                // given node is connected to the reported nodes that it reaches through this node.
+                visitDependenciesOf(dep, queue::add);
+            }
+        }
     }
 
     private static void visitDependenciesOf(Node node, Consumer<? super Node> visitor) {

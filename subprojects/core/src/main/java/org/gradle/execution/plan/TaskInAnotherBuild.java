@@ -204,7 +204,7 @@ public abstract class TaskInAnotherBuild extends TaskNode {
     }
 
     @Override
-    public String toString() {
+    public String getDisplayName() {
         return "other build task " + taskIdentityPath;
     }
 

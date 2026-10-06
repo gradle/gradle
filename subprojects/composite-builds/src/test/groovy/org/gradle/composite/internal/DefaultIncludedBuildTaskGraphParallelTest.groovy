@@ -599,7 +599,7 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
         }
 
         @Override
-        String toString() {
+        String getDisplayName() {
             return displayName
         }
 

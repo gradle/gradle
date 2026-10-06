@@ -16,6 +16,8 @@
 
 package org.gradle.composite.internal
 
+import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.execution.plan.Node
 import org.gradle.execution.plan.PlanExecutor
 import org.gradle.internal.build.BuildIdentity
@@ -162,4 +164,28 @@ class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTe
         def e = thrown(IllegalStateException)
         e.message == "Work graph is in an unexpected state: Finished, expected: Preparing"
     }
+
+    def "cannot queue a node that belongs to another build"() {
+        given:
+        def id = new BuildIdentity(Path.path(":b6"))
+        def build = build(id)
+        def project = Stub(ProjectInternal) {
+            getProjectIdentity() >> ProjectIdentity.forRootProject(Path.path(":other"), "other")
+        }
+        def node = Stub(Node) {
+            getOwningProject() >> project
+        }
+
+        when:
+        graph.withNewWorkGraph { g ->
+            g.scheduleWork {
+                graph.queueForExecution(build, node)
+            }
+        }
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Cannot queue ${node} for execution in build :b6, as it belongs to build :other."
+    }
+
 }

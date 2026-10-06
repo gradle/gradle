@@ -88,7 +88,7 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
     private <T> T doBuild(List<TaskInternal> tasks, Supplier<T> continuationUnderLock) {
         buildTreeWorkGraphController.withNewWorkGraph(graph -> {
             graph
-                .scheduleWork(builder -> builder.scheduleTasks(tasks))
+                .scheduleWork(builder -> builder.queueTasks(tasks))
                 .runWork()
                 .rethrow();
             return null;
