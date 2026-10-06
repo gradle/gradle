@@ -56,7 +56,16 @@ include::sample[dir="snippets/reference/plugin-development/reportingProblems/kot
 include::sample[dir="snippets/reference/plugin-development/reportingProblems/groovy",files="plugin/src/main/groovy/org/example/HelloProblemsPlugin.groovy[]"]
 ====
 
-It prints a greeting when used correctly:
+How it works:
+
+1. **Injects the `Problems` service** into the task.
+2. **Creates a `ProblemGroup`** to group related problems.
+3. **Creates a `ProblemId`** for each distinct issue.
+4. **Reports warnings** with the `ProblemReporter.report()` when the build can continue.
+5. **Throws structured failures** with `ProblemReporter.throwing()` when the build must stop.
+6. **Optionally attaches `AdditionalData`** to `ProblemSpec` so advanced tools can show extra info.
+
+The `greet` task prints a greeting when used correctly:
 
 [source,bash]
 ----
@@ -100,15 +109,6 @@ $ ./gradlew :consumer:greet -Precipient=fail
 ----
 include::{snippetsPath}/reference/plugin-development/reportingProblems/tests/greetFail.out[]
 ----
-
-How it works:
-
-1. **Injects the `Problems` service** into the task.
-2. **Creates a `ProblemGroup`** to group related problems.
-3. **Creates a `ProblemId`** for each distinct issue.
-4. **Reports warnings** with the `ProblemReporter.report()` when the build can continue.
-5. **Throws structured failures** with `ProblemReporter.throwing()` when the build must stop.
-6. **Optionally attaches `AdditionalData`** to `ProblemSpec` so advanced tools can show extra info.
 
 [[injecting_the_problems_service]]
 === Injecting the `Problems` service
