@@ -63,9 +63,6 @@ class KnownProblemIds {
         'validation:type-validation': 'Gradle type validation',
         'validation:configuration-cache': 'Configuration cache',
 
-        // DCL
-        'scripts:dcl-schema': 'DCL Schema issues',
-
         // predefined groups (org.gradle.api.problems.ProblemGroups) used from integration tests
         'Gradle': 'Gradle',
         'Gradle:Build Definition': 'Build Definition',
@@ -215,6 +212,30 @@ class KnownProblemIds {
         'Gradle:Build Definition:Using task ValidatePlugins without applying the Java Toolchain plugin': ['Using task ValidatePlugins without applying the Java Toolchain plugin'],
         'Gradle:Build Definition:Value not set': ['Value not set'],
 
+        // Build Logic: DCL schema building issues
+        'Gradle:Build Logic:A hidden declaration is used in definition': ['A hidden declaration is used in definition'],
+        'Gradle:Build Logic:Declaration is both visible and hidden': ['Declaration is both visible and hidden'],
+        'Gradle:Build Logic:Illegal usage of type parameter bound by class': ['Illegal usage of type parameter bound by class'],
+        'Gradle:Build Logic:Illegal variance in parameterized type usage': ['Illegal variance in parameterized type usage'],
+        'Gradle:Build Logic:Non-classifiable type': ['Non-classifiable type'],
+        'Gradle:Build Logic:Non-public members in safe feature API': ['Non-public members in safe feature API'],
+        'Gradle:Build Logic:Schema building failure': ['Schema building failure'],
+        'Gradle:Build Logic:Unit-adding function with lambda': ['Unit-adding function with lambda'],
+        'Gradle:Build Logic:Unrecognized member': ['Unrecognized member'],
+        'Gradle:Build Logic:Unsafe Java bean property in safe feature API': ['Unsafe Java bean property in safe feature API'],
+        'Gradle:Build Logic:Unsafe hidden members in safe feature API': ['Unsafe hidden members in safe feature API'],
+        'Gradle:Build Logic:Unsafe injected service property in safe feature API': ['Unsafe injected service property in safe feature API'],
+        'Gradle:Build Logic:Unsafe non-abstract member in safe feature API': ['Unsafe non-abstract member in safe feature API'],
+        'Gradle:Build Logic:Unsafe non-interface type in safe feature API': ['Unsafe non-interface type in safe feature API'],
+        'Gradle:Build Logic:Unsafe non-pure function in safe feature API': ['Unsafe non-pure function in safe feature API'],
+        'Gradle:Build Logic:Unsupported generic container type': ['Unsupported generic container type'],
+        'Gradle:Build Logic:Unsupported map factory': ['Unsupported map factory'],
+        'Gradle:Build Logic:Unsupported nullable read-only property': ['Unsupported nullable read-only property'],
+        'Gradle:Build Logic:Unsupported nullable type': ['Unsupported nullable type'],
+        'Gradle:Build Logic:Unsupported pair factory': ['Unsupported pair factory'],
+        'Gradle:Build Logic:Unsupported type parameter as container type': ['Unsupported type parameter as container type'],
+        'Gradle:Build Logic:Unsupported vararg type': ['Unsupported vararg type'],
+
         // dependency resolution failures
         'Dependencies:Graph Resolution:Configuration selected by name is not compatible': ['Configuration selected by name is not compatible'],
         'Dependencies:Graph Resolution:Configuration selected by name is not consumable': ['Configuration selected by name is not consumable'],
@@ -234,29 +255,6 @@ class KnownProblemIds {
 
         'Dependencies:Graph Resolution:Unknown resolution failure': ['Unknown resolution failure'],
 
-        // DCL schema building issues:
-        // The messages might be reworded, keeping them as a wildcard for now
-        'scripts:dcl-schema:declaration-visible-and-hidden': ['.*'],
-        'scripts:dcl-schema:declaration-hidden-type-used-in-definition': ['.*'],
-        'scripts:dcl-schema:illegal-usage-of-type-parameter-bound-by-class': ['.*'],
-        'scripts:dcl-schema:illegal-variance-in-parameterized-type-usage': ['.*'],
-        'scripts:dcl-schema:non-classifiable-type': ['.*'],
-        'scripts:dcl-schema:unit-adding-function-with-lambda': ['.*'],
-        'scripts:dcl-schema:unrecognized-member': ['.*'],
-        'scripts:dcl-schema:unsupported-generic-container-type': ['.*'],
-        'scripts:dcl-schema:unsupported-map-factory': ['.*'],
-        'scripts:dcl-schema:unsupported-nullable-read-only-property': ['.*'],
-        'scripts:dcl-schema:unsupported-nullable-type': ['.*'],
-        'scripts:dcl-schema:unsupported-pair-factory': ['.*'],
-        'scripts:dcl-schema:unsupported-type-parameter-as-container-type': ['.*'],
-        'scripts:dcl-schema:unsupported-vararg-type': ['.*'],
-        'scripts:dcl-schema:unsafe-non-interface-type': ['.*'],
-        'scripts:dcl-schema:unsafe-non-abstract-member': ['.*'],
-        'scripts:dcl-schema:unsafe-inject-property': ['.*'],
-        'scripts:dcl-schema:unsafe-java-bean-property': ['.*'],
-        'scripts:dcl-schema:unsafe-non-pure-function': ['.*'],
-        'scripts:dcl-schema:unsafe-because-has-hidden-members': ['.*'],
-        'scripts:dcl-schema:unsafe-because-has-non-public-members': ['.*'],
 
         // integration test problems
         'Gradle:Deprecation:Some indirect deprecation': ['Some indirect deprecation'],
