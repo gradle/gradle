@@ -29,20 +29,27 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.result.ArtifactResolutionResult;
 import org.gradle.api.artifacts.result.ArtifactResult;
 import org.gradle.api.artifacts.result.ComponentArtifactsResult;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.component.Artifact;
+import org.gradle.api.internal.artifacts.DependencyManagementParameters;
+import org.gradle.api.internal.artifacts.DependencyManagementServices;
+import org.gradle.api.internal.artifacts.query.ArtifactResolutionQueryFactory;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.Describables;
 import org.gradle.internal.jvm.JavaModuleDetector;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.jvm.JvmLibrary;
 import org.gradle.language.base.artifact.SourcesArtifact;
 import org.gradle.language.java.artifact.JavadocArtifact;
+import org.jspecify.annotations.NullMarked;
 
+import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayList;
 import java.util.Collection;
@@ -61,34 +68,43 @@ import static org.gradle.api.internal.artifacts.dsl.dependencies.DependencyFacto
  * Adapts Gradle's dependency resolution engine to the special needs of the IDE plugins.
  * Allows adding and subtracting {@link Configuration}s, working in offline mode and downloading sources/javadoc.
  */
+@NullMarked
+@ServiceScope(Scope.Project.class)
 public class IdeDependencySet {
-    private final DependencyHandler dependencyHandler;
+
     private final JavaModuleDetector javaModuleDetector;
-    private final Collection<Configuration> plusConfigurations;
-    private final Collection<Configuration> minusConfigurations;
-    private final boolean inferModulePath;
+    private final ArtifactResolutionQueryFactory resolutionQueryFactory;
     private final GradleApiSourcesResolver gradleApiSourcesResolver;
-    private final Collection<Configuration> testConfigurations;
 
-    public IdeDependencySet(DependencyHandler dependencyHandler, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver) {
-        this(dependencyHandler, javaModuleDetector, plusConfigurations, minusConfigurations, inferModulePath, gradleApiSourcesResolver, Collections.emptySet());
-    }
-
-    public IdeDependencySet(DependencyHandler dependencyHandler, JavaModuleDetector javaModuleDetector, Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, boolean inferModulePath, GradleApiSourcesResolver gradleApiSourcesResolver, Collection<Configuration> testConfigurations) {
-        this.dependencyHandler = dependencyHandler;
+    @Inject
+    public IdeDependencySet(
+        JavaModuleDetector javaModuleDetector,
+        ArtifactResolutionQueryFactory resolutionQueryFactory,
+        DependencyManagementServices dependencyManagementServices
+    ) {
         this.javaModuleDetector = javaModuleDetector;
-        this.plusConfigurations = plusConfigurations;
-        this.minusConfigurations = minusConfigurations;
-        this.inferModulePath = inferModulePath;
-        this.gradleApiSourcesResolver = gradleApiSourcesResolver;
-        this.testConfigurations = testConfigurations;
+        this.resolutionQueryFactory = resolutionQueryFactory;
+        this.gradleApiSourcesResolver = new GradleApiSourcesResolver(
+            dependencyManagementServices.newDetachedResolver(DependencyManagementParameters.forDetachedJvmEnvironment(Describables.of("Gradle API Sources")))
+        );
     }
 
-    public void visit(IdeDependencyVisitor visitor) {
+    /**
+     * Visits the resolved artifacts of the given plus configurations, without artifacts
+     * present in the given minus configurations. Artifacts resolved only from test
+     * configurations are marked as test-only.
+     */
+    public void visit(
+        Collection<Configuration> plusConfigurations,
+        Collection<Configuration> minusConfigurations,
+        Collection<Configuration> testConfigurations,
+        boolean inferModulePath,
+        IdeDependencyVisitor visitor
+    ) {
         if (plusConfigurations.isEmpty()) {
             return;
         }
-        new IdeDependencyResult().visit(visitor);
+        new IdeDependencyResult(plusConfigurations, minusConfigurations, testConfigurations, inferModulePath).visit(visitor);
     }
 
     /*
@@ -100,10 +116,23 @@ public class IdeDependencySet {
      * We should fix this, as other IDE vendors will face the same problem.
      */
     private class IdeDependencyResult {
+
+        private final Collection<Configuration> plusConfigurations;
+        private final Collection<Configuration> minusConfigurations;
+        private final Collection<Configuration> testConfigurations;
+        private final boolean inferModulePath;
+
         private final Map<ComponentArtifactIdentifier, ResolvedArtifactResult> resolvedArtifacts = new LinkedHashMap<>();
         private final SetMultimap<ComponentArtifactIdentifier, Configuration> configurations = MultimapBuilder.hashKeys().linkedHashSetValues().build();
         private final Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = new LinkedHashMap<>();
         private final Table<ModuleComponentIdentifier, Class<? extends Artifact>, Set<ResolvedArtifactResult>> auxiliaryArtifacts = HashBasedTable.create();
+
+        private IdeDependencyResult(Collection<Configuration> plusConfigurations, Collection<Configuration> minusConfigurations, Collection<Configuration> testConfigurations, boolean inferModulePath) {
+            this.plusConfigurations = plusConfigurations;
+            this.minusConfigurations = minusConfigurations;
+            this.testConfigurations = testConfigurations;
+            this.inferModulePath = inferModulePath;
+        }
 
         public void visit(IdeDependencyVisitor visitor) {
             resolvePlusConfigurations(visitor);
@@ -181,7 +210,7 @@ public class IdeDependencySet {
                 return;
             }
 
-            ArtifactResolutionResult result = dependencyHandler.createArtifactResolutionQuery()
+            ArtifactResolutionResult result = resolutionQueryFactory.createArtifactResolutionQuery()
                 .forComponents(componentIdentifiers)
                 .withArtifacts(JvmLibrary.class, types)
                 .execute();
@@ -226,7 +255,7 @@ public class IdeDependencySet {
             for (ResolvedArtifactResult artifact : resolvedArtifacts.values()) {
                 ComponentIdentifier componentIdentifier = artifact.getId().getComponentIdentifier();
                 boolean testOnly = isTestConfiguration(configurations.get(artifact.getId()));
-                boolean asModule = isModule(testOnly, artifact.getFile());
+                boolean asModule = isModule(testOnly, artifact.getFile(), inferModulePath);
                 if (componentIdentifier instanceof ProjectComponentIdentifier) {
                     visitor.visitProjectDependency(artifact, testOnly, asModule);
                 } else {
@@ -246,37 +275,38 @@ public class IdeDependencySet {
             }
         }
 
-        private boolean isModule(boolean testOnly, File artifact) {
-            // Test code is not treated as modules, as Eclipse does not support compiling two modules in one project anyway.
-            // See also: https://bugs.eclipse.org/bugs/show_bug.cgi?id=520667
-            //
-            // We assume that a test-only dependency is not a module, which corresponds to how Eclipse does test running for modules:
-            // It patches the main module with the tests and expects test dependencies to be part of the unnamed module (classpath).
-            return javaModuleDetector.isModule(inferModulePath && !testOnly, artifact);
-        }
-
-        private boolean isLocalGroovyDependency(ResolvedArtifactResult artifact) {
-            String artifactFileName = artifact.getFile().getName();
-            String componentIdentifier = artifact.getId().getComponentIdentifier().getDisplayName();
-            return (componentIdentifier.equals(GRADLE_API.displayName)
-                    || componentIdentifier.equals(GRADLE_TEST_KIT.displayName)
-                    || componentIdentifier.equals(LOCAL_GROOVY.displayName))
-                && artifactFileName.startsWith("groovy-");
-        }
-
-        private boolean shouldDownloadSources(IdeDependencyVisitor visitor) {
-            return !visitor.isOffline() && visitor.downloadSources();
-        }
-
         private boolean isTestConfiguration(Set<Configuration> configurations) {
             return testConfigurations.containsAll(configurations);
         }
 
         private void visitUnresolvedDependencies(IdeDependencyVisitor visitor) {
             for (UnresolvedDependencyResult unresolvedDependency : unresolvedDependencies.values()) {
-                visitor.visitUnresolvedDependency(unresolvedDependency);
+                visitor.visitUnresolvedDependency(unresolvedDependency.getAttempted(), unresolvedDependency.getFailure());
             }
         }
+
+    }
+
+    private boolean isModule(boolean testOnly, File artifact, boolean inferModulePath) {
+        // Test code is not treated as modules, as Eclipse does not support compiling two modules in one project anyway.
+        // See also: https://bugs.eclipse.org/bugs/show_bug.cgi?id=520667
+        //
+        // We assume that a test-only dependency is not a module, which corresponds to how Eclipse does test running for modules:
+        // It patches the main module with the tests and expects test dependencies to be part of the unnamed module (classpath).
+        return javaModuleDetector.isModule(inferModulePath && !testOnly, artifact);
+    }
+
+    private static boolean isLocalGroovyDependency(ResolvedArtifactResult artifact) {
+        String artifactFileName = artifact.getFile().getName();
+        String componentIdentifier = artifact.getId().getComponentIdentifier().getDisplayName();
+        return (componentIdentifier.equals(GRADLE_API.displayName)
+            || componentIdentifier.equals(GRADLE_TEST_KIT.displayName)
+            || componentIdentifier.equals(LOCAL_GROOVY.displayName))
+            && artifactFileName.startsWith("groovy-");
+    }
+
+    private static boolean shouldDownloadSources(IdeDependencyVisitor visitor) {
+        return !visitor.isOffline() && visitor.downloadSources();
     }
 
     private static final Spec<ComponentIdentifier> NOT_A_MODULE = new Spec<ComponentIdentifier>() {
