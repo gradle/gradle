@@ -16,7 +16,7 @@ dependencies {
     implementation(projects.jvm)
     implementation(projects.kotlinDsl)
 
-    implementation(buildLibs.kgp)
+    implementation(buildLibs.kotlinGradlePlugin)
 
     implementation(buildLibs.gson)
     implementation(libs.asm)

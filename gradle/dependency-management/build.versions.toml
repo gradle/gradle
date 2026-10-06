@@ -60,7 +60,7 @@ junit = { group = "junit", name = "junit", version = "4.13.2!!" } # keep JUnit 4
 junitBom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
 junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 junitPlatform = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit" }
-kgp = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin"}
+kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin"}
 kotlinCompilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable"}
 kotlinJvmAbiGenEmbeddable = { group = "org.jetbrains.kotlin", name = "jvm-abi-gen-embeddable"}
 kotlinMetadata = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm"}

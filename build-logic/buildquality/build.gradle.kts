@@ -23,7 +23,7 @@ dependencies {
     implementation(buildLibs.javaParserSymbolSolver) {
         exclude(group = "com.google.guava")
     }
-    implementation(buildLibs.kgp)
+    implementation(buildLibs.kotlinGradlePlugin)
     compileOnly(buildLibs.kotlinCompilerEmbeddable) {
         because("Required by IncubatingApiReportTask and Gradle10RemovalReportTask")
     }

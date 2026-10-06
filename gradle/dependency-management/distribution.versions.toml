@@ -10,8 +10,8 @@ commonsIo = "2.20.0!!"
 commonsLang = "3.20.0!!"
 configurationCacheReport = "1.35!!"
 fastutil = "8.5.2!!"
-gcs = "v1-rev20220705-1.32.1!!"
-googleApiClient = "1.34.0!!" # our GCS version requires 1.34.0
+googleApiClient = "1.34.0!!" # our googleApiServicesStorage version requires 1.34.0
+googleApiServicesStorage = "v1-rev20220705-1.32.1!!"
 googleHttpClient = "1.42.2!!" # Covers googleHttpClient, googleHttpClientGson, googleHttpClientApacheV2, our Google API Client version requires it
 googleOauthClient = "1.34.1!!" # our Google API Client version requires 1.34.1
 gradleFileEvents = "0.2.8!!"
@@ -57,9 +57,9 @@ antLauncher = { group = "org.apache.ant", name = "ant-launcher", version.ref = "
 asm = { group = "org.ow2.asm", name = "asm", version.ref = "asm" }
 asmCommons = { group = "org.ow2.asm", name = "asm-commons", version.ref = "asm" }
 asmTree = { group = "org.ow2.asm", name = "asm-tree", version.ref = "asm" }
+awsS3 = { group = "com.amazonaws", name = "aws-java-sdk-s3", version.ref = "awsS3" }
 awsS3Core = { group = "com.amazonaws", name = "aws-java-sdk-core", version.ref = "awsS3" }
 awsS3Kms = { group = "com.amazonaws", name = "aws-java-sdk-kms", version.ref = "awsS3" }
-awsS3S3 = { group = "com.amazonaws", name = "aws-java-sdk-s3", version.ref = "awsS3" }
 awsS3Sts = { group = "com.amazonaws", name = "aws-java-sdk-sts", version.ref = "awsS3" }
 bouncycastlePgp = { group = "org.bouncycastle", name = "bcpg-jdk18on", version.ref = "bouncycastle" }
 bouncycastleProvider = { group = "org.bouncycastle", name = "bcprov-jdk18on", version.ref = "bouncycastle" }
@@ -72,8 +72,8 @@ configurationCacheReport = { group = "org.gradle.buildtool.internal", name = "co
 configurationCacheReportFixtures = { group = "org.gradle.buildtool.internal", name = "configuration-cache-report-fixtures", version.ref = "configurationCacheReport" }
 errorProneAnnotations = { group = "com.google.errorprone", name = "error_prone_annotations", version.ref = "errorProne" }
 fastutil = { group = "it.unimi.dsi", name = "fastutil", version.ref = "fastutil" }
-gcs = { group = "com.google.apis", name = "google-api-services-storage", version.ref = "gcs" }
 googleApiClient = { group = "com.google.api-client", name = "google-api-client", version.ref = "googleApiClient" }
+googleApiServicesStorage = { group = "com.google.apis", name = "google-api-services-storage", version.ref = "googleApiServicesStorage" }
 googleHttpClient = { group = "com.google.http-client", name = "google-http-client", version.ref = "googleHttpClient" }
 googleHttpClientApacheV2 = { group = "com.google.http-client", name = "google-http-client-apache-v2", version.ref = "googleHttpClient" }
 googleHttpClientGson = { group = "com.google.http-client", name = "google-http-client-gson", version.ref = "googleHttpClient" }

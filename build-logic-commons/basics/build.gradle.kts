@@ -23,7 +23,7 @@ dependencies {
     compileOnly(buildLibs.kotlinCompilerEmbeddable) {
         because("Required by KotlinSourceParser")
     }
-    implementation(buildLibs.kgp) {
+    implementation(buildLibs.kotlinGradlePlugin) {
         because("For manually defined KotlinSourceSet accessor - sourceSets.main.get().kotlin")
     }
 
