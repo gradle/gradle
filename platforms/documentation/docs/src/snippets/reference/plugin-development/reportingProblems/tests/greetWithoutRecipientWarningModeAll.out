@@ -1,5 +1,5 @@
 > Task :consumer:greet
-Problem found: Recipient not set (id: org.example.hello-problems:missing-recipient)
+Problem found: Recipient not set (in Others > Hello Problems)
   No recipient configured
     For more information, please refer to https://gradle.org/hello-problems#recipient.
     Possible solution: Set the recipient: tasks.greet { recipient = "World" }.
