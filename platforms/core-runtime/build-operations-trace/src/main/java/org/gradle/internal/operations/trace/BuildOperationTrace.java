@@ -100,6 +100,7 @@ import static org.gradle.internal.Cast.uncheckedCast;
  * To keep one file per build session, use {@code -Dorg.gradle.internal.operations.trace.dir=«directory»} instead.
  * Each session writes {@code «directory»/«utc-timestamp»-«id».jsonl}, so a later session does not replace an earlier one.
  * Setting both options fails the build.
+ * Either option accepts {@code false}, which unsets it, so a value in {@code gradle.properties} can be turned off for one run.
  * <p>
  * The «path-base» param is optional.
  * If invoked as {@code -Dorg.gradle.internal.operations.trace}, a base value of {@code "operations"} will be used.
@@ -137,6 +138,7 @@ public class BuildOperationTrace implements Stoppable {
     /**
      * Directory that receives one trace file per build session.
      * Cannot be combined with {@link #SYSPROP}.
+     * {@code false} unsets this option.
      */
     public static final String DIR_SYSPROP = SYSPROP + ".dir";
 
@@ -210,8 +212,8 @@ public class BuildOperationTrace implements Stoppable {
 
     @Nullable
     private static TraceTarget resolveTraceTarget(InternalOptions internalOptions, File userActionRootDir) {
-        String basePath = internalOptions.getValueOrNull(TRACE_OPTION);
-        String directory = internalOptions.getValueOrNull(TRACE_DIR_OPTION);
+        String basePath = configuredTraceValue(internalOptions.getValueOrNull(TRACE_OPTION));
+        String directory = configuredTraceValue(internalOptions.getValueOrNull(TRACE_DIR_OPTION));
         if (basePath != null && directory != null) {
             throw new InvalidUserDataException(
                 "The system properties '" + SYSPROP + "' and '" + DIR_SYSPROP + "' cannot be used together. Set only one of them."
@@ -224,13 +226,25 @@ public class BuildOperationTrace implements Stoppable {
             Path dir = userActionRootDir.toPath().resolve(directory);
             return new TraceTarget(dir.resolve(newTraceFileBaseName()), true);
         }
-        if (basePath == null || basePath.equals("false")) {
+        if (basePath == null) {
             return null;
         }
 
         Path base = userActionRootDir.toPath();
         Path resolved = basePath.isEmpty() ? base.resolve("operations") : base.resolve(basePath);
         return new TraceTarget(resolved, false);
+    }
+
+    /**
+     * {@code false} unsets the option. This happens before the conflict check, so a value in
+     * {@code gradle.properties} can be turned off for one run, or replaced by the other option.
+     */
+    @Nullable
+    private static String configuredTraceValue(@Nullable String value) {
+        if (value == null || value.equals("false")) {
+            return null;
+        }
+        return value;
     }
 
     /**

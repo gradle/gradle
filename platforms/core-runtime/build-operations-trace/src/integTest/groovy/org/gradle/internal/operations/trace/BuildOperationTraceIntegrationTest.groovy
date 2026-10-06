@@ -213,6 +213,53 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
         failureCauseContains("cannot be used together")
     }
 
+    def "false trace value does not block the directory option"() {
+        file("gradle.properties") << "${BuildOperationTrace.SYSPROP}=false\n"
+
+        when:
+        run "help", "-D${BuildOperationTrace.DIR_SYSPROP}=traces"
+
+        then:
+        jsonlTraces("traces").size() == 1
+        testDirectory.listFiles().findAll { it.name.endsWith("-log.txt") } == []
+    }
+
+    def "false clears a persistent trace directory for one run"() {
+        file("gradle.properties") << "${BuildOperationTrace.DIR_SYSPROP}=traces\n"
+
+        when:
+        run "help", "-D${BuildOperationTrace.DIR_SYSPROP}=false"
+
+        then:
+        !file("traces").exists()
+        !file("false").exists()
+        testDirectory.listFiles().findAll { it.name.endsWith("-log.txt") || it.name.endsWith(".jsonl") } == []
+        outputDoesNotContain("Build operation trace:")
+        postBuildOutputDoesNotContain("Build operation trace:")
+    }
+
+    def "false trace directory lets one run use the single-file trace"() {
+        file("gradle.properties") << "${BuildOperationTrace.DIR_SYSPROP}=traces\n"
+
+        when:
+        run "help", "-D${BuildOperationTrace.DIR_SYSPROP}=false", "-D${BuildOperationTrace.SYSPROP}=custom"
+
+        then:
+        file("custom-log.txt").exists()
+        !file("traces").exists()
+        !file("false").exists()
+    }
+
+    def "trace directory false does not write into a directory named false"() {
+        when:
+        run "help", "-D${BuildOperationTrace.DIR_SYSPROP}=false"
+
+        then:
+        !file("false").exists()
+        outputDoesNotContain("Build operation trace:")
+        postBuildOutputDoesNotContain("Build operation trace:")
+    }
+
     def "an empty trace directory is rejected"() {
         when:
         fails "help", "-D${BuildOperationTrace.DIR_SYSPROP}="
