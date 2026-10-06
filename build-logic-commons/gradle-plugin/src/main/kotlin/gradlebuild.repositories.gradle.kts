@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.googleApisJs
+
 repositories {
+    // Serves the jquery and flot JavaScript artifacts bundled into generated reports.
+    // The helper applies its own content filter, so this repository is only ever
+    // consulted for those two groups.
+    googleApisJs()
     maven {
         name = "Gradle public repository"
         url = uri("https://repo.gradle.org/gradle/public")
