@@ -17,9 +17,28 @@
 package org.gradle.internal.reflect.validation
 
 import org.gradle.api.problems.internal.DefaultTypeValidationData
+import org.gradle.internal.reflect.DefaultTypeValidationContext
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class DefaultTypeAwareProblemBuilderTest extends Specification {
+
+    def "exposes the Gradle root group of the problems service"() {
+        given:
+        def problems = TestUtil.problemsService()
+        def context = DefaultTypeValidationContext.withRootType(String, false, problems)
+        def exposed = null
+
+        when:
+        context.visitTypeError { TypeAwareProblemBuilder problem ->
+            exposed = problem.gradleGroup
+            problem.id(exposed.pluginValidation.problemId("Test problem"))
+        }
+
+        then:
+        exposed.is(problems.groups.gradle)
+        context.errors.size() == 1
+    }
 
     def "render introduction without type"() {
         given:

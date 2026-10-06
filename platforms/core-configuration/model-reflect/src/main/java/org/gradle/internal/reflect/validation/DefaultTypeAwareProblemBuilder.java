@@ -16,6 +16,7 @@
 
 package org.gradle.internal.reflect.validation;
 
+import org.gradle.api.problems.GradleProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemInternal;
@@ -32,8 +33,16 @@ import java.util.Optional;
 @NullMarked
 public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder implements TypeAwareProblemBuilder {
 
-    public DefaultTypeAwareProblemBuilder(ProblemBuilderInternal problemBuilder) {
+    private final GradleProblemGroup gradleGroup;
+
+    public DefaultTypeAwareProblemBuilder(ProblemBuilderInternal problemBuilder, GradleProblemGroup gradleGroup) {
         super(problemBuilder);
+        this.gradleGroup = gradleGroup;
+    }
+
+    @Override
+    public GradleProblemGroup getGradleGroup() {
+        return gradleGroup;
     }
 
     @Override
