@@ -38,7 +38,7 @@ val tomljVersion = "1.0.0"
 val archunitVersion = "1.2.0"
 val bytebuddyVersion = "1.10.20"
 val jettyVersion = "9.4.36.v20210114"
-val sshdVersion = "2.12.1"
+val sshdVersion = "2.15.0"
 
 // For the junit-bom
 javaPlatform.allowDependencies()
@@ -132,6 +132,10 @@ dependencies {
         api(libs.julToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.junit)                 { version { strictly("4.13.2") }}
         api(libs.junit5JupiterApi)      { version { strictly(junit5Version) }}
+        api("org.junit.jupiter:junit-jupiter") { version { strictly(junit5Version) }}
+        api("org.junit.jupiter:junit-jupiter-engine") { version { strictly(junit5Version) }}
+        api("org.junit.jupiter:junit-jupiter-params") { version { strictly(junit5Version) }}
+        api("org.junit.platform:junit-platform-commons") { version { strictly("1.8.2") }}
         api(libs.junit5Vintage)         { version { strictly(junit5Version) }}
         api(libs.junitPlatform)         { version { strictly("1.8.2") }}
         api(libs.junitPlatformEngine)   { version { strictly("1.8.2") }}
