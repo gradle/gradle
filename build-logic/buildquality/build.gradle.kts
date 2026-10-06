@@ -17,11 +17,13 @@ dependencies {
     implementation(projects.dependencyModules)
 
     implementation(buildLibs.codenarc) {
+        // Groovy comes from the Gradle distribution, so none of CodeNarc's Groovy
+        // distribution is wanted. The exclusion is group-wide on purpose: narrowing it
+        // to today's modules would silently let a future CodeNarc Groovy artifact back in.
         exclude(group = "org.apache.groovy")
-        exclude(group = "org.codehaus.groovy")
     }
     implementation(buildLibs.javaParserSymbolSolver) {
-        exclude(group = "com.google.guava")
+        exclude(group = "com.google.guava", module = "guava")
     }
     implementation(buildLibs.kotlinGradlePlugin)
     compileOnly(buildLibs.kotlinCompilerEmbeddable) {
