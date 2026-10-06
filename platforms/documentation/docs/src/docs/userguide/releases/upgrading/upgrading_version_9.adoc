@@ -181,6 +181,35 @@ To fix this, make sure every provider in the collection has a value.
 If the input is genuinely optional, declare it as such with link:{javadocPath}/org/gradle/api/tasks/TaskInputFilePropertyBuilder.html#optional()[`optional()`] on the `TaskInputs.files(...)` registration, or with link:{javadocPath}/org/gradle/api/tasks/Optional.html[`@Optional`] on the `@InputFiles` property.
 Optional inputs are not affected by this change and continue to ignore absent providers.
 
+[[filters_apply_to_non_method_tests]]
+==== Test filters apply to tests that are not declared as methods
+
+Some JUnit Platform engines declare tests on something other than a method.
+link:https://www.archunit.org/[ArchUnit] declares rules on fields, and link:https://www.spekframework.org/[Spek] declares scopes.
+Gradle previously ran such tests unconditionally, whatever <<java_testing.adoc#test_filtering,test filters>> were in effect.
+They are now matched by their enclosing class and the name they are reported with, in the same way as test methods.
+
+A filtered run that used to include these tests by accident no longer does.
+For example, `gradle test --tests "SomeUnrelatedTest"` previously ran every ArchUnit rule in the source set as well, and now runs only `SomeUnrelatedTest`.
+Review the `--tests` arguments, `filter` blocks and `include`/`exclude` patterns in your build and CI configuration, because a filtered run may now execute fewer tests than before.
+
+To keep such a test running under a filter, name it or its class in the pattern:
+
+* `--tests "ArchRulesTest"` runs every rule declared in `ArchRulesTest`.
+* `--tests "ArchRulesTest.firstRule"` runs the rule declared in the `firstRule` field on its own.
+* Rules grouped with `ArchTests.in(...)` are reported as `GroupedClass > ruleName`, after the class passed to `ArchTests.in(...)` and not the field that holds the set.
+For a set held in a field `nested` of `ArchRulesTest` that wraps `NestedRules`, `--tests "ArchRulesTest.NestedRules > nestedRule"` runs that rule.
+
+WARNING: For a test that is not declared as a method, the name after the class is the name its engine reports, not a method name Gradle derives.
+Engines own these names and may change them in any release, including a patch release.
+A pattern like `ArchRulesTest.NestedRules > nestedRule` can therefore stop matching, or start matching something else, when you upgrade ArchUnit or Spek, with no deprecation warning from Gradle.
+Prefer naming the enclosing class alone where that is specific enough, and treat a pattern that names an individual non-method test as something to re-check on every engine upgrade.
+
+Tests that an engine registers only while a class is executing, as link:https://kotest.io/[Kotest] does, are not affected by this change.
+Gradle applies filters before those tests exist, so they can still only be selected by their spec class.
+
+See <<java_testing.adoc#filtering_non_method_tests,Test filtering>> for details.
+
 === Deprecations
 
 [[kotlin_dsl_scripts_model_explicit_scripts]]
