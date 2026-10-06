@@ -61,6 +61,7 @@ dependencies {
     runtimeOnly(project(":distributions-full"))
 
     userGuideTask(buildLibs.xalan)
+    userGuideTask(buildLibs.xalanSerializer)
     userGuideTask(buildLibs.xerces)
     userGuideTask(buildLibs.xslthl)
 
@@ -80,6 +81,18 @@ dependencies {
     docsTestRuntimeOnly(testLibs.junitPlatform)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
+
+    constraints {
+        "dokkaHtmlGeneratorRuntime"(buildLibs.jsoup) {
+            because("Bump version brought in transitively by Dokka, to resolve CVE-2026-71497")
+        }
+        "checkAsciidoctorSampleContents"(buildLibs.commonsLang3) {
+            because("Bump version brought in transitively by Exemplar, to resolve CVE-2025-48924")
+        }
+        "dokkaHtmlGeneratorRuntime"(buildLibs.freemarker) {
+            because("Bump version brought in transitively by Dokka, to resolve CVE-2026-84939")
+        }
+    }
 }
 
 jvmCompile {
