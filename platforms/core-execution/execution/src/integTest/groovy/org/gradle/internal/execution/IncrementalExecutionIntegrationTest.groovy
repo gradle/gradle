@@ -19,9 +19,7 @@ package org.gradle.internal.execution
 import com.google.common.collect.ImmutableList
 import com.google.common.collect.Iterables
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.cache.Cache
 import org.gradle.cache.ManualEvictionInMemoryCache
 import org.gradle.caching.internal.controller.BuildCacheController
@@ -251,7 +249,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
                 context
                     .forType(UnitOfWork, false)
                     .visitPropertyWarning {
-                        it.id(ProblemId.create("test-problem", "Validation problem", GradleCoreProblemGroup.validation().type()))
+                        it.id(problems.groups.gradle.pluginValidation.problemId("Validation problem"))
                             .documentedAt(Documentation.userManual("id", "section"))
                             .details("Test")
                     }
@@ -569,7 +567,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             .withValidator { validationContext ->
                 validationContext.forType(Object, true).visitTypeError {
                     it.withAnnotationType(Object)
-                        .id(ProblemId.create("test-problem", "Validation error", GradleCoreProblemGroup.validation().type()))
+                        .id(problems.groups.gradle.pluginValidation.problemId("Validation error"))
                         .documentedAt(Documentation.userManual("id", "section"))
                         .details("Test")
                 }
@@ -584,7 +582,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
         thrown WorkValidationException
         verifyAll(problems.singleEmittedProblem()) {
             it.definition.severity == Severity.ERROR
-            it.definition.id.name == 'test-problem'
+            it.definition.id.name == 'Validation error'
             it.definition.id.displayName == 'Validation error'
             it.contextualLabel == "Type 'java.lang.Object' Validation error"
             it.details == 'Test'

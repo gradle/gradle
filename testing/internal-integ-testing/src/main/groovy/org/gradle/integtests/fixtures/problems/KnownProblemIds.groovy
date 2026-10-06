@@ -59,8 +59,6 @@ class KnownProblemIds {
         // Sub-groups
         'packaging:signing': 'Signing',
         'daemon-toolchain:configuration-generation' : 'Gradle configuration generation',
-        'validation:property-validation': 'Property validation problems',
-        'validation:type-validation': 'Gradle type validation',
         'validation:configuration-cache': 'Configuration cache',
 
         // predefined groups (org.gradle.api.problems.ProblemGroups) used from integration tests
