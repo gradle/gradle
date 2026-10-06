@@ -19,6 +19,7 @@ package util
 import common.BuildToolBuildJvm
 import common.Os
 import common.VersionedSettingsBranch
+import common.buildToolGradleParameters
 import common.gradleWrapper
 import common.javaHome
 import common.requiresOs
@@ -49,6 +50,7 @@ object PublishKotlinDslPlugin : BuildType({
         gradleWrapper {
             name = "Publish Kotlin DSL Plugin"
             tasks = "clean :kotlin-dsl-plugins:publishPlugins"
+            gradleParams = buildToolGradleParameters(isContinue = false).joinToString(" ")
         }
     }
 })
