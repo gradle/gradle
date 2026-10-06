@@ -52,7 +52,7 @@ public class DefaultResolvedArtifact implements ResolvedArtifact {
         fileSource.finalizeIfNotAlready();
         File file = fileSource.get();
         if (file == null) {
-            throw new IllegalStateException("Artifact file is not present.");
+            throw new IllegalStateException("Optional artifact " + id.getDisplayName() + " does not exist and has no file.");
         }
         return file;
     }

@@ -44,7 +44,7 @@ public final class ParallelResolveArtifactSet {
             return;
         }
 
-        List<ResolvedArtifactSet.Artifacts> results = new ArrayList<>();
+        List<ResolvedArtifactSet.Artifacts> finalizedArtifacts = new ArrayList<>();
         buildOperationExecutor.runAll(queue ->
             artifacts.visit(new ResolvedArtifactSet.Visitor() {
                 @Override
@@ -59,13 +59,13 @@ public final class ParallelResolveArtifactSet {
                     // work submitted by `Artifact#startFinalization`: artifact transforms in this set that have not
                     // yet executed run here on-demand, and being CPU-bound they must stay lease-constrained.
                     artifacts.startFinalization(queue, visitor.requireArtifactFiles());
-                    results.add(artifacts);
+                    finalizedArtifacts.add(artifacts);
                 }
             })
         );
 
-        for (ResolvedArtifactSet.Artifacts result : results) {
-            result.visit(visitor);
+        for (ResolvedArtifactSet.Artifacts finalizedArtifact : finalizedArtifacts) {
+            finalizedArtifact.visit(visitor);
         }
     }
 

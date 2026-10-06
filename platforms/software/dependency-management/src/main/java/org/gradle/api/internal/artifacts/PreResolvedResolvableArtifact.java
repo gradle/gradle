@@ -76,14 +76,14 @@ public class PreResolvedResolvableArtifact implements ResolvableArtifact {
     }
 
     @Override
-    public CalculatedValue<File> getFileSource() {
+    public CalculatedValue<@Nullable File> getFileSource() {
         return fileSource;
     }
 
     @Override
     public File getFile() {
         if (file == null) {
-            throw new IllegalStateException(String.format("Optional artifact %s does not exist and has no file.", artifactId.getDisplayName()));
+            throw new IllegalStateException("Optional artifact " + artifactId.getDisplayName() + " does not exist and has no file.");
         }
         return file;
     }

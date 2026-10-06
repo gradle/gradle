@@ -37,9 +37,10 @@ import java.util.Set;
 /**
  * Visitor that collects legacy {@link ResolvedArtifact} instances, intended to be exposed
  * on legacy dependency resolution APIs.
- * <p>
- * Avoid new usages of this visitor.
+ *
+ * @deprecated Only intended for implementing legacy resolution APIs. Use {@link ResolvedArtifactCollectingVisitor} instead.
  */
+@Deprecated
 public class ArtifactCollectingVisitor implements ArtifactVisitor {
 
     private final Set<ResolvedArtifact> artifacts = new LinkedHashSet<>();

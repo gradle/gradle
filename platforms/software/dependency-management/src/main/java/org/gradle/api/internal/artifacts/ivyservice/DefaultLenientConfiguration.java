@@ -178,6 +178,7 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public Set<ResolvedArtifact> getArtifacts() {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
         artifactSetResolver.visitArtifacts(getSelectedArtifacts().getArtifacts(), visitor, resolutionHost);
@@ -186,6 +187,7 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
             Collection<Throwable> lenientFailures = allFailures.stream()
                 // Ignore artifacts that cannot be resolved. Unexpected non-artifact
                 // failures should still be elevated to the user.
+                // TODO: Filtering by exception type is hacky. We should find a better way to do this.
                 .filter(failure -> !(failure instanceof ArtifactResolveException))
                 .toList();
             if (!lenientFailures.isEmpty()) {

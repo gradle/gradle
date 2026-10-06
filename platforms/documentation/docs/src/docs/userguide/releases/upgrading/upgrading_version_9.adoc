@@ -210,6 +210,17 @@ Gradle applies filters before those tests exist, so they can still only be selec
 
 See <<java_testing.adoc#filtering_non_method_tests,Test filtering>> for details.
 
+[[resolved_configuration_downloads_artifacts_in_parallel]]
+==== `ResolvedConfiguration` downloads artifacts in parallel
+
+Querying the artifacts of the legacy link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html[`ResolvedConfiguration`] API now downloads the files of all returned artifacts in parallel.
+Previously, each artifact's file was downloaded only when `ResolvedArtifact.getFile()` was called.
+
+As a result, these APIs now fail if any resolved artifact of the configuration cannot be downloaded, instead of failing later when the file of that artifact is accessed.
+Artifact files may also be downloaded that were not downloaded before, if the build queries these APIs without accessing every file.
+
+This change makes the artifact download behavior of `ResolvedConfiguration` consistent with `LenientConfiguration`, `FileCollection`, `ArtifactCollection`, and `ArtifactView`.
+
 === Deprecations
 
 [[kotlin_dsl_scripts_model_explicit_scripts]]

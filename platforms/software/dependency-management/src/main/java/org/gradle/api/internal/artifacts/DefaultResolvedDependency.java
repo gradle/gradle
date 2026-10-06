@@ -123,6 +123,7 @@ public class DefaultResolvedDependency implements ResolvedDependency {
         return sort(getArtifactsForIncomingEdge(parent));
     }
 
+    @SuppressWarnings("deprecation")
     private Set<ResolvedArtifact> sort(ResolvedArtifactSet artifacts) {
         ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
         ParallelResolveArtifactSet.visitInParallel(artifacts, buildOperationExecutor, visitor);
