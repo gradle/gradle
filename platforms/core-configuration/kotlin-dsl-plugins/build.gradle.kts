@@ -6,7 +6,7 @@ plugins {
 description = "Kotlin DSL Gradle Plugins deployed to the Plugin Portal"
 
 // Published to the Gradle Plugin Portal under its own coordinates
-val portalVersion = "6.7.12"
+val portalVersion = "6.7.13"
 gradleModule {
     identity {
         group = "org.gradle.kotlin"
