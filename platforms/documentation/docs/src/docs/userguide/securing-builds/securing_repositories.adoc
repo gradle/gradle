@@ -204,7 +204,7 @@ This is the safe default, since you want publishes to hit the real destination, 
 === Require HTTPS
 
 Since Gradle 7, plaintext HTTP repositories are rejected by default.
-When Gradle encounters a repository whose URL is not HTTPS (or an equivalent secure scheme), it throws `InsecureProtocolException` and refuses to resolve dependencies from it.
+When Gradle encounters a repository whose URL is not HTTPS (or an equivalent secure scheme), it throws link:{javadocPath}/org/gradle/api/InvalidUserCodeException.html[`InvalidUserCodeException`] and refuses to resolve dependencies from it.
 
 The relevant flag is `allowInsecureProtocol` on any `MavenArtifactRepository` or `IvyArtifactRepository`.
 Its default is `false`.

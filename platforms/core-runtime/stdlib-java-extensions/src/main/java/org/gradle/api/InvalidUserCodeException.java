@@ -43,6 +43,11 @@ public class InvalidUserCodeException extends GradleException {
 
     /**
      * Constructor that allows adding potential resolutions to this exception.
+     * <p>
+     * Note that {@code new InvalidUserCodeException(message, null)} is ambiguous, because {@code null} matches both
+     * this constructor and {@link #InvalidUserCodeException(String, Throwable)}. See
+     * {@link GradleException#GradleException(String, Iterable)} for how each language behaves and how to
+     * disambiguate.
      *
      * @since 9.9.0
      */

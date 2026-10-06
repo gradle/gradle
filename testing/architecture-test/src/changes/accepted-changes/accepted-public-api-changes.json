@@ -7,18 +7,6 @@
             "changes": [
                 "org.gradle.internal.exceptions.ResolutionProvider"
             ]
-        },
-        {
-            "type": "org.gradle.api.GradleException",
-            "member": "Constructor org.gradle.api.GradleException(java.lang.String,java.lang.Iterable)",
-            "acceptation": "Making GradleException implement ResolutionProvider",
-            "changes": []
-        },
-        {
-            "type": "org.gradle.api.GradleException",
-            "member": "Constructor org.gradle.api.GradleException(java.lang.String,java.lang.Throwable,java.lang.Iterable)",
-            "acceptation": "Making GradleException implement ResolutionProvider",
-            "changes": []
         }
     ]
 }

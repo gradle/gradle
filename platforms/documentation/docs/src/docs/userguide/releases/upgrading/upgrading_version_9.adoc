@@ -41,6 +41,31 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+[[gradle_exception_resolutions_constructor]]
+==== Passing a null cause to `GradleException` is now ambiguous
+
+`GradleException` and `InvalidUserCodeException` gained a constructor that takes resolution suggestions, `(String message, Iterable<String> resolutions)`, alongside the existing `(String message, Throwable cause)`.
+A `null` second argument now matches both, so calls that pass a literal or possibly-null cause are ambiguous:
+
+[source,groovy]
+----
+throw new GradleException("Something failed.", null)
+----
+
+How this surfaces depends on the language:
+
+* Java and Kotlin reject the call at compile time, as an ambiguous reference or an overload resolution ambiguity.
+* Groovy resolves overloads from the runtime types, so it selects the resolutions constructor and fails with a `NullPointerException` naming the ambiguity.
+Because the dispatch depends on the runtime value, a call such as `new GradleException(message, e.cause)` succeeds whenever the nested cause is present and fails only when it is absent.
+
+Pass no second argument when there is no cause, or cast to select the constructor you want:
+
+[source,groovy]
+----
+throw new GradleException("Something failed.")
+throw new GradleException("Something failed.", (Throwable) null)
+----
+
 [[kotlin_2_4_10]]
 ==== Upgrade to Kotlin 2.4.20
 

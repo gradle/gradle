@@ -23,9 +23,18 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Objects;
 
 /**
- * <p><code>GradleException</code> is the base class of all exceptions thrown by Gradle.</p>
+ * The base class of all exceptions thrown by Gradle.
+ * <p>
+ * Implements {@link ResolutionProvider} as of Gradle 9.9, to make it simple to provide a list of resolutions
+ * for any exception.
+ * <p>
+ * Deliberately calls {@code super(X, Y, Z...)} constructors instead of using a telescoping constructor pattern,
+ * since passing an explicit null cause counts as initializing it, which makes any later
+ * {@link #initCause(Throwable)} call throw {@link IllegalStateException}.
+ *
  * @since 0.7
  */
 @NullMarked
@@ -45,25 +54,36 @@ public class GradleException extends RuntimeException implements ResolutionProvi
      * @since 0.7
      */
     public GradleException(String message) {
-        this(message, (Throwable) null);
+        super(message);
     }
 
     /**
      * Creates a new {@code GradleException}.
+     * <p>
+     * Passing {@code null} as the cause is ambiguous with {@link #GradleException(String, Iterable)}; see that
+     * constructor for how to disambiguate. Prefer {@link #GradleException(String)} when there is no cause.
      *
      * @since 0.7
      */
     public GradleException(String message, @Nullable Throwable cause) {
-        this(message, cause, Collections.emptyList());
+        super(message, cause);
     }
 
     /**
      * Creates a new {@code GradleException} carrying the given resolution suggestions.
+     * <p>
+     * Note that {@code new GradleException(message, null)} is ambiguous, because {@code null} matches both this
+     * constructor and {@link #GradleException(String, Throwable)}. Java and Kotlin reject such a call at compile
+     * time. Groovy resolves overloads from the runtime types, so it selects this constructor and then fails with a
+     * {@link NullPointerException}. Either use {@link #GradleException(String)} when there is no cause, or cast the
+     * argument - {@code new GradleException(message, (Throwable) null)}.
      *
      * @since 9.9.0
      */
+    @Incubating
     public GradleException(String message, Iterable<String> resolutions) {
-        this(message, null, resolutions);
+        super(message);
+        requireResolutions(resolutions).forEach(this.resolutions::add);
     }
 
     /**
@@ -71,9 +91,24 @@ public class GradleException extends RuntimeException implements ResolutionProvi
      *
      * @since 9.9.0
      */
+    @Incubating
     public GradleException(String message, @Nullable Throwable cause, Iterable<String> resolutions) {
         super(message, cause);
-        resolutions.forEach(this.resolutions::add);
+        requireResolutions(resolutions).forEach(this.resolutions::add);
+    }
+
+    /**
+     * Fails with a message that names the overload ambiguity, rather than with the bare
+     * {@link NullPointerException} that dereferencing the argument would produce. Reaching here almost always
+     * means a caller passed a {@code null} cause from a language that resolves overloads at run time.
+     */
+    private static Iterable<String> requireResolutions(Iterable<String> resolutions) {
+        return Objects.requireNonNull(
+            resolutions,
+            "resolutions must not be null. A null second argument is ambiguous between "
+                + "GradleException(String, Throwable) and GradleException(String, Iterable); "
+                + "cast it to pick one, for example new GradleException(message, (Throwable) null)."
+        );
     }
 
     /**
@@ -82,7 +117,7 @@ public class GradleException extends RuntimeException implements ResolutionProvi
      * @since 9.9.0
      */
     @Incubating
-    public final void addResolution(String resolution) {
+    public void addResolution(String resolution) {
         resolutions.add(resolution);
     }
 
@@ -92,10 +127,19 @@ public class GradleException extends RuntimeException implements ResolutionProvi
      * @since 9.9.0
      */
     @Incubating
-    public final void clearResolutions() {
+    public void clearResolutions() {
         resolutions.clear();
     }
 
+    /**
+     * Gets the resolutions.
+     * <p>
+     * This is left non-{@code final} to allow {@link org.gradle.internal.exceptions.DefaultMultiCauseException DefaultMultiCauseException}
+     * to override it.
+     *
+     * @since 9.9.0
+     */
+    @Incubating
     @Override
     public List<String> getResolutions() {
         return Collections.unmodifiableList(new ArrayList<>(resolutions));

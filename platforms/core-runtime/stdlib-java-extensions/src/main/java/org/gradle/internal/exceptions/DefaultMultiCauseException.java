@@ -17,8 +17,8 @@ package org.gradle.internal.exceptions;
 
 import org.gradle.api.GradleException;
 import org.gradle.internal.Factory;
+import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
-import org.jspecify.annotations.NonNull;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -30,8 +30,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.concurrent.CopyOnWriteArrayList;
 
+@NullMarked
 public class DefaultMultiCauseException extends GradleException implements MultiCauseException, NonGradleCauseExceptionsHolder {
-    private final List<Throwable> causes = new CopyOnWriteArrayList<Throwable>();
+    private final List<Throwable> causes = new CopyOnWriteArrayList<>();
     private final List<String> causeResolutions = new ArrayList<>();
     private transient ThreadLocal<Boolean> hideCause = threadLocal();
     private transient @Nullable Factory<String> messageFactory;
@@ -112,14 +113,24 @@ public class DefaultMultiCauseException extends GradleException implements Multi
 
     @Override
     public synchronized Throwable initCause(Throwable throwable) {
-        return initCauses(Collections.singletonList(throwable));
+        initCauses(Collections.singletonList(throwable));
+        return this;
     }
 
-    public Throwable initCauses(Iterable<? extends Throwable> causes) {
+    /**
+     * Replaces this exception's causes, along with the resolutions contributed by the previous ones.
+     * <p>
+     * A cause's resolutions are copied once, here, rather than read on every {@link #getResolutions()} call.
+     * That is what lets {@link #clearResolutions()} work at all - resolutions re-read from the causes on each
+     * call could never be cleared. The trade-off is that a cause is treated as a snapshot: a resolution added
+     * to a cause <em>after</em> it has been attached here does not reach this exception. Call this method again
+     * to pick up such a late addition, or add the resolution to this exception directly with
+     * {@link #addResolution(String)}.
+     */
+    public void initCauses(Iterable<? extends Throwable> causes) {
         this.causes.clear();
         this.causeResolutions.clear();
         addCauses(causes);
-        return this;
     }
 
     private void addCauses(Iterable<? extends Throwable> causes) {
@@ -132,15 +143,37 @@ public class DefaultMultiCauseException extends GradleException implements Multi
     private void addResolutionsFrom(Throwable cause) {
         if (cause instanceof ResolutionProvider) {
             List<String> fromCause = ((ResolutionProvider) cause).getResolutions();
-            if (fromCause != null) {
-                causeResolutions.addAll(fromCause);
-            }
+            causeResolutions.addAll(fromCause);
         }
     }
 
-    @NonNull
+    /**
+     * Clears both the resolutions added directly to this exception and those contributed by its causes.
+     * <p>
+     * Unlike {@link #getResolutions()}, this is deliberately left non-{@code final}. {@code getResolutions()}
+     * predates the addition of {@code clearResolutions()}, so making <em>it</em> {@code final} can only break a
+     * subclass that genuinely overrode it - which is exactly the hazard that needs closing, since such an override
+     * would silently turn {@link #addResolution(String)} and this method into no-ops. {@code clearResolutions()}
+     * is a new name, and public API types such as {@code org.gradle.api.artifacts.ResolveException} and
+     * {@code org.gradle.api.ProjectConfigurationException} extend this class.
+     * Making a new name {@code final} would stop any already-compiled subclass that happens to declare a method
+     * with that name from loading at all - a binary break for third parties, with nothing gained in return.
+     */
     @Override
-    public List<String> getResolutions() {
+    public void clearResolutions() {
+        causeResolutions.clear();
+        super.clearResolutions();
+    }
+
+    /**
+     * Returns the resolutions added directly to this exception, followed by those contributed by its causes.
+     * <p>
+     * This is {@code final} because a subclass that overrode it the old way - computing resolutions from the causes
+     * itself - would silently turn {@link #addResolution(String)} and {@link #clearResolutions()} into no-ops.
+     * Subclasses that need only the directly-added resolutions can use {@link #getDirectResolutions()}.
+     */
+    @Override
+    public final List<String> getResolutions() {
         List<String> combined = new ArrayList<>(super.getResolutions());
         combined.addAll(causeResolutions);
         return Collections.unmodifiableList(combined);
