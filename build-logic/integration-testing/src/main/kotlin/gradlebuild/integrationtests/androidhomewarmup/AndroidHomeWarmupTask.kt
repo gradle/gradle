@@ -102,6 +102,7 @@ abstract class AndroidHomeWarmupTask : DefaultTask() {
             |android {
             |    namespace = "org.gradle.android.warmup"
             |    compileSdk = ${version.compileSdk}
+            |    buildToolsVersion = "${version.buildTools}"
             |    defaultConfig {
             |        applicationId = "org.gradle.android.warmup"
             |        minSdk = ${version.minSdk}

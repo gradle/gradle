@@ -54,6 +54,15 @@ androidHomeWarmup {
         listOf(
             // Build-tools 35.0.0 (used by AGP >= 8.8)
             SdkVersion(compileSdk = 36, buildTools = "35.0.0", agpVersion = "8.13.1"),
+
+            // Build-tools 34.0.0 (used by AGP 8.2 to 8.7)
+            SdkVersion(compileSdk = 30, buildTools = "34.0.0", agpVersion = "8.7.3"),
+
+            // Build-tools 33.0.1 (used by AGP 8.1)
+            SdkVersion(compileSdk = 30, buildTools = "33.0.1", agpVersion = "8.1.4"),
+
+            // Build-tools 30.0.3 (used by AGP < 8.1)
+            SdkVersion(compileSdk = 30, buildTools = "30.0.3", agpVersion = "8.0.2"),
         ),
     )
 }
