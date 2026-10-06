@@ -53,16 +53,6 @@ include::sample[dir="snippets/best-practices/useTestKit-avoid/groovy",files="bui
 
 ==== Do This Instead
 
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/useTestKit-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/useTestKit-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
-
 In this updated version of the build, the custom types are defined in an included `build-logic` <<best_practices_structuring_builds.adoc#favor_composite_builds, composite build>>, which now includes a basic set of functional tests using Gradle TestKit.
 
 While these custom types are written in Java for demonstration purposes, they could just as easily be implemented in Groovy or Kotlin.

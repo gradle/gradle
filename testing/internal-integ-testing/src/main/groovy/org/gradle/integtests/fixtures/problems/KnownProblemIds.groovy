@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.problems
 
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
+import org.gradle.api.problems.ProblemGroup
 import org.gradle.internal.jvm.SupportedJavaVersions
 
 class KnownProblemIds {
@@ -33,21 +34,15 @@ class KnownProblemIds {
         def definitionWithMatchingDisplayName = knownDefinition.find { definition.id.displayName ==~ it }
         assert definitionWithMatchingDisplayName != null, "Unexpected display name for problem: '${definition.id.displayName}"
 
-        def groupFqid = groupOf(definition.id.fqid)
-        while (groupFqid != null) {
-            def group = KNOWN_GROUPS[groupFqid]
-            assert group != null: "Unknown problem group: ${groupFqid}"
-            groupFqid = groupOf(groupFqid)
+        // Walk the group objects rather than splitting the fqid: problem names may contain ':'
+        for (def group = definition.id.group; group != null; group = group.parent) {
+            def groupFqid = fqidOf(group)
+            assert KNOWN_GROUPS[groupFqid] != null: "Unknown problem group: ${groupFqid}"
         }
     }
 
-    private static def groupOf(String fqid) {
-        int idx = fqid.lastIndexOf(':')
-        if (idx > 0) {
-            return fqid.substring(0, idx)
-        } else {
-            return null
-        }
+    private static String fqidOf(ProblemGroup group) {
+        group.parent == null ? group.name : fqidOf(group.parent) + ':' + group.name
     }
 
     private static final Map<String, String> KNOWN_GROUPS = [
@@ -55,7 +50,6 @@ class KnownProblemIds {
         'problems-api': 'Problems API',
         'validation': 'Validation',
         'configuration-usage': 'Configuration usage',
-        'compilation': 'Compilation',
         'daemon-toolchain' : 'Daemon toolchain',
         'jvm-toolchain': 'JVM Toolchain',
         'dependency-version-catalog': 'Version catalog',
@@ -66,8 +60,6 @@ class KnownProblemIds {
 
         // Sub-groups
         'packaging:signing': 'Signing',
-        'compilation:groovy-dsl': 'Groovy DSL script compilation',
-        'compilation:java': 'Java compilation',
         'daemon-toolchain:configuration-generation' : 'Gradle configuration generation',
         'validation:property-validation': 'Property validation problems',
         'validation:type-validation': 'Gradle type validation',
@@ -78,6 +70,23 @@ class KnownProblemIds {
 
         // DCL
         'scripts:dcl-schema': 'DCL Schema issues',
+
+        // predefined groups (org.gradle.api.problems.ProblemGroups) used from integration tests
+        'Gradle': 'Gradle',
+        'Gradle:Build Definition': 'Build Definition',
+        'Gradle:DSL Evaluation': 'DSL Evaluation',
+        'Compilation': 'Compilation',
+        'Compilation:Groovy': 'Groovy',
+        'Compilation:Java': 'Java',
+        'Compilation:Java:Undefined': 'Undefined',
+        'Compilation:java': 'java',
+        'Compilation:Kotlin': 'Kotlin',
+        'Compilation:Undefined': 'Undefined',
+        'Transformation': 'Transformation',
+        'Transformation:KMP': 'KMP',
+        'Transformation:KMP:JavaScript': 'JavaScript',
+        'Others': 'Others',
+        'Others:Undefined': 'Undefined',
 
         // groups from integration tests
         'generic': 'Generic',
@@ -93,15 +102,25 @@ class KnownProblemIds {
      * Both the key and value is handled as a regular expression if the value is too dynamic.
      */
     private static final HashMap<String, List<String>> KNOWN_DEFINITIONS = [
+        // predefined groups (org.gradle.api.problems.ProblemGroups) used from integration tests
+        'Compilation:Java:Unused import': ['Unused import'],
+        'Compilation:java:Unused import': ['Unused import'],
+        'Compilation:Kotlin:Unused import': ['Unused import'],
+        'Compilation:Undefined:Unknown compiler': ['Unknown compiler'],
+        'Compilation:Java:Undefined:Unknown compiler': ['Unknown compiler'],
+        'Gradle:Build Definition:Deprecated plugin applied': ['Deprecated plugin applied'],
+        'Gradle:DSL Evaluation:Script compilation failed': ['Script compilation failed'],
+        'Transformation:KMP:JavaScript:Bundle failed': ['Bundle failed'],
+        'Transformation:KMP:Compilation failed': ['Compilation failed'],
+        'Others:Undefined:Something odd': ['Something odd'],
         'problems-api:missing-id': ['Problem id must be specified'],
         'problems-api:unsupported-additional-data': ['Unsupported additional data type'],
         'configuration-usage:name-not-allowed': ['Configuration name not allowed'],
-        'compilation:groovy-dsl:compilation-failed': ['Groovy DSL script compilation problem'],
-        // Flexible java compilation categories
-        // The end of the category is matched with a regex, as there are many possible endings (and also changes with JDK versions)
-        // See compiler.java for the full list of diagnostic codes we use as categories (we replace the dots with dashes)
-        'compilation:java:compiler.*' : ['.*'],
-        'compilation:java:initialization-failed': ['Java compilation initialization error'],
+        'Compilation:Java:Compiler initialization failed': ['Compiler initialization failed'],
+        'Compilation:Groovy:tools.jar is missing': ['tools.jar is missing'],
+        // Java compiler diagnostics are named after javac's message templates, an open set that changes with the JDK
+        // version; see JavacDiagnosticNames in java-compiler-worker.
+        'Compilation:Java:.+' : ['.*'],
         'daemon-toolchain:configuration-generation:task-configuration' : ['Invalid task configuration'],
         'dependency-version-catalog:accessor-name-clash': [VersionCatalogProblemId.ACCESSOR_NAME_CLASH.displayName],
         'jvm-toolchain:invalid-jvm-installation': ['Invalid JVM installation'],

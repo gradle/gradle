@@ -83,6 +83,9 @@ public interface ProblemBuilderInternal extends ProblemSpecInternal {
     ProblemBuilderInternal withException(Throwable t);
 
     @Override
+    ProblemBuilderInternal writtenToConsole();
+
+    @Override
     @Deprecated
     ProblemBuilderInternal severity(Severity severity);
 

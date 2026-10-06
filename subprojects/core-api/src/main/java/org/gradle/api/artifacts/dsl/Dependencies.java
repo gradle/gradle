@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.dsl;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.Project;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.ExternalModuleDependency;
@@ -169,7 +168,6 @@ public interface Dependencies {
      * @return the new dependency constraint
      * @since 8.7
      */
-    @Incubating
     @HiddenInDefinition
     default Provider<? extends DependencyConstraint> constraint(Provider<? extends MinimalExternalModuleDependency> dependencyConstraint) {
         return dependencyConstraint.map(getDependencyConstraintFactory()::create);
@@ -182,7 +180,6 @@ public interface Dependencies {
      * @return the new dependency constraint
      * @since 8.7
      */
-    @Incubating
     @HiddenInDefinition
     default Provider<? extends DependencyConstraint> constraint(ProviderConvertible<? extends MinimalExternalModuleDependency> dependencyConstraint) {
         return constraint(dependencyConstraint.asProvider());

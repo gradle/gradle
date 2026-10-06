@@ -16,6 +16,7 @@
 
 package org.gradle.problems.internal.rendering;
 
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.ProblemInternal;
 
 import java.io.PrintWriter;
@@ -34,12 +35,16 @@ class ProblemHeaderWriter implements PartialProblemWriter {
     }
 
     private String headerFor(RenderOptions options, ProblemInternal problem) {
+        ProblemId id = problem.getDefinition().getId();
         StringBuilder result = new StringBuilder(options.getPrefix());
-        result.append(problem.getDefinition().getId().getDisplayName());
+        result.append(ProblemGroupRenderer.renderProblemName(id.getDisplayName()));
         if (options.isRenderId()) {
-            result.append(" (id: ");
-            result.append(problem.getDefinition().getId());
-            result.append(")");
+            // The display name is shown already, so only add the id name when it differs, then the group chain.
+            result.append(" (");
+            if (!id.getName().equals(id.getDisplayName())) {
+                result.append("id: ").append(ProblemGroupRenderer.renderProblemName(id.getName())).append(", ");
+            }
+            result.append("in ").append(ProblemGroupRenderer.render(id.getGroup())).append(")");
         }
         return result.toString();
     }

@@ -34,24 +34,18 @@ interface GreetProblemData : AdditionalData {
 /**
  * Custom task that uses the Gradle Problems API.
  */
-abstract class GreetTask : DefaultTask() {
+// tag::problems-service[]
+abstract class GreetTask @Inject constructor(private val problems: Problems) : DefaultTask() {
+// end::problems-service[]
 
     @get:Input
     @get:Optional
     abstract val recipient: Property<String>
 
-// tag::problems-service[]
-    @get:Inject
-    abstract val problems: Problems
-// end::problems-service[]
-
 // tag::problems-id[]
-    private val GROUP: ProblemGroup =
-        ProblemGroup.create("org.example.hello-problems", "Hello Problems")
-    private val WARN_ID: ProblemId =
-        ProblemId.create("missing-recipient", "Recipient not set", GROUP)
-    private val FAIL_ID: ProblemId =
-        ProblemId.create("forbidden-recipient", "Forbidden recipient 'fail'", GROUP)
+    private val problemGroup = problems.groups.others.group("Hello Problems")
+    private val warnId = problemGroup.problemId("Recipient not set")
+    private val failId = problemGroup.problemId("Forbidden recipient 'fail'")
 // end::problems-id[]
 
     @TaskAction
@@ -64,7 +58,7 @@ abstract class GreetTask : DefaultTask() {
         // Warning: missing recipient -> provide a helpful suggestion
         if (name.isEmpty()) {
 // tag::problems-report[]
-            reporter.report(WARN_ID) {
+            reporter.report(warnId) {
 // tag::problems-spec[]
                 details("No recipient configured")
                 solution("""Set the recipient: tasks.greet { recipient = "World" }""")
@@ -80,7 +74,7 @@ abstract class GreetTask : DefaultTask() {
         // Fatal: a specific value is disallowed to show throwing()
         else if (name.equals("fail", ignoreCase = true)) {
 // tag::problems-throw[]
-            throw reporter.throwing(GradleException("forbidden value"), FAIL_ID) {
+            throw reporter.throwing(GradleException("forbidden value"), failId) {
                 details("Recipient 'fail' is not allowed")
                 solution("""Choose another value, e.g. recipient = "World".""")
                 documentedAt("https://gradle.org/hello-problems#forbidden")

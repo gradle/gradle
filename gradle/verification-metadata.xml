@@ -535,6 +535,7 @@
             <trusting group="org.gradle"/>
             <trusting group="org.gradle.exemplar"/>
             <trusting group="org.gradle.profiler"/>
+            <trusting group="^com[.]gradle($|([.].*))" regex="true"/>
             <trusting group="^org[.]gradle($|([.].*))" regex="true"/>
          </trusted-key>
          <trusted-key id="F42B96B8648B5C4A1C43A62FBB2914C1FA0811C3" group="net.bytebuddy"/>

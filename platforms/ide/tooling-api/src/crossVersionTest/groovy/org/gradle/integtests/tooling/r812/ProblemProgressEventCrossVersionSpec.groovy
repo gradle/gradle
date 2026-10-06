@@ -35,6 +35,7 @@ import org.gradle.tooling.events.problems.LineInFileLocation
 import org.gradle.tooling.events.problems.Problem
 import org.gradle.tooling.events.problems.Severity
 import org.gradle.tooling.events.problems.SingleProblemEvent
+import org.gradle.util.GradleVersion
 
 import static org.gradle.integtests.tooling.r86.ProblemProgressEventCrossVersionSpec.getProblemReportTaskString
 import static org.gradle.integtests.tooling.r86.ProblemsServiceModelBuilderCrossVersionSpec.getBuildScriptSampleContent
@@ -185,7 +186,7 @@ class ProblemProgressEventCrossVersionSpec extends ToolingApiSpecification {
     def "Can use problems service in model builder and get failure objects"() {
         given:
         buildFile getBuildScriptSampleContent(false, false, targetVersion)
-        def listener = new org.gradle.integtests.tooling.r87.ProblemProgressEventCrossVersionSpec.ProblemProgressListener()
+        def listener = new org.gradle.integtests.tooling.r87.ProblemsServiceModelBuilderCrossVersionSpec.ProblemProgressListener()
 
         when:
         withConnection {
@@ -206,10 +207,19 @@ class ProblemProgressEventCrossVersionSpec extends ToolingApiSpecification {
         javaHome << AvailableJavaHomes.getSupportedDaemonJdks()
     }
 
-    static void validateCompilationProblem(List<SingleProblemEvent> problems, TestFile buildFile) {
-        problems.size() == 1
-        problems[0].definition.id.displayName == "Could not compile build file '$buildFile.absolutePath'."
-        problems[0].definition.id.group.name == 'compilation'
+    void validateCompilationProblem(List<SingleProblemEvent> problems, TestFile buildFile) {
+        assert problems.size() == 1
+        def problem = problems[0]
+        assert problem.contextualLabel.contextualLabel == "Could not compile build file '$buildFile.absolutePath'."
+        if (targetVersion >= GradleVersion.version("9.9")) {
+            assert problem.definition.id.displayName == 'Script compilation failed'
+            assert problem.definition.id.group.name == 'DSL Evaluation'
+            assert problem.definition.id.group.parent.name == 'Gradle'
+        } else {
+            assert problem.definition.id.displayName == 'Groovy DSL script compilation problem'
+            assert problem.definition.id.group.name == 'groovy-dsl'
+            assert problem.definition.id.group.parent.name == 'compilation'
+        }
     }
 
     def "Property validation failure should produce problem report with domain-specific additional data"() {
@@ -268,7 +278,11 @@ class ProblemProgressEventCrossVersionSpec extends ToolingApiSpecification {
         then:
         thrown(BuildException)
         def problems = listener.problems
-        validateCompilationProblem(problems, buildFile)
+        problems.size() == 1
+        // An 8.6 payload carries a label and a category, not an id: the client derives both the contextual label and
+        // the id display name from the label.
+        problems[0].contextualLabel.contextualLabel == "Could not compile build file '$buildFile.absolutePath'."
+        problems[0].definition.id.displayName == "Could not compile build file '$buildFile.absolutePath'."
         problems[0].failure == null
     }
 

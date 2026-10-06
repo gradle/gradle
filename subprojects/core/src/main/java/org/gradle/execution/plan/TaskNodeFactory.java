@@ -20,14 +20,13 @@ package org.gradle.execution.plan;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.Task;
-import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.plugins.PluginManagerInternal;
-import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.PluginContainer;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.internal.Cast;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -52,19 +51,19 @@ public class TaskNodeFactory {
     private final Map<Task, TaskNode> nodes = new ConcurrentHashMap<>();
     private final BuildTreeWorkGraphController workGraphController;
     private final ProblemsInternal problems;
-    private final GradleInternal thisBuild;
+    private final BuildIdentity buildIdentity;
     private final DefaultTypeOriginInspectorFactory typeOriginInspectorFactory;
     private final Function<LocalTaskNode, ResolveMutationsNode> resolveMutationsNodeFactory;
 
     public TaskNodeFactory(
-        GradleInternal thisBuild,
+        BuildIdentity buildIdentity,
         BuildTreeWorkGraphController workGraphController,
         NodeValidator nodeValidator,
         BuildOperationRunner buildOperationRunner,
         ExecutionNodeAccessHierarchies accessHierarchies,
         ProblemsInternal problems
     ) {
-        this.thisBuild = thisBuild;
+        this.buildIdentity = buildIdentity;
         this.workGraphController = workGraphController;
         this.problems = problems;
         this.typeOriginInspectorFactory = new DefaultTypeOriginInspectorFactory();
@@ -85,7 +84,7 @@ public class TaskNodeFactory {
     }
 
     private TaskNode createTaskNode(TaskInternal task) {
-        boolean sameBuild = ((ProjectInternal) task.getProject()).getGradle().getIdentityPath().equals(thisBuild.getIdentityPath());
+        boolean sameBuild = task.getTaskIdentity().getProjectIdentity().getBuildPath().equals(buildIdentity.getBuildPath());
         if (sameBuild) {
             return new LocalTaskNode(task, new DefaultWorkValidationContext(typeOriginInspectorFactory.forTask(task), problems), resolveMutationsNodeFactory);
         }

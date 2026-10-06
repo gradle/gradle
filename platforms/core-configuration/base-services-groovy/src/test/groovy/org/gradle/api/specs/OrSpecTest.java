@@ -17,6 +17,7 @@ package org.gradle.api.specs;
 
 import org.junit.Test;
 
+import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 
@@ -43,5 +44,29 @@ public class OrSpecTest extends AbstractCompositeSpecTest {
     @Test
     public void isSatisfiedByWithAllFalse() {
         assertFalse(new OrSpec(createAtomicElements(false, false, false)).isSatisfiedBy(new Object()));
+    }
+
+    @Test
+    public void emptyLosesVacuousTruthAsReceiver() {
+        Spec<Object> unsatisfied = createAtomicElements(false)[0];
+        assertFalse(OrSpec.<Object>empty().or(unsatisfied).isSatisfiedBy(new Object()));
+    }
+
+    @Test
+    public void emptyKeepsVacuousTruthAsMember() {
+        Spec<Object> unsatisfied = createAtomicElements(false)[0];
+        assertTrue(new OrSpec<Object>(unsatisfied).or(OrSpec.<Object>empty()).isSatisfiedBy(new Object()));
+    }
+
+    @Test
+    public void emptyIsEqualToNewSpecWithoutMembers() {
+        assertEquals(new OrSpec<Object>(), OrSpec.empty());
+    }
+
+    @Test
+    public void toStringListsMemberSpecs() {
+        assertEquals("OrSpec[]", OrSpec.empty().toString());
+        OrSpec<Object> spec = new OrSpec<Object>(AndSpec.empty(), Specs.satisfyNone());
+        assertEquals("OrSpec[AndSpec[], SATISFIES_NONE]", spec.toString());
     }
 }

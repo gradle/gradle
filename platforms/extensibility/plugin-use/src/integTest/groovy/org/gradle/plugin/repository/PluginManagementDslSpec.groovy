@@ -141,7 +141,7 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
 
         and:
         verifyAll(receivedProblem) {
-            fqid == 'compilation:groovy-dsl:compilation-failed'
+            fqid == 'Gradle:DSL Evaluation:Script compilation failed'
             contextualLabel == "Could not compile build file '${buildFile.absolutePath}'."
         }
     }
@@ -164,7 +164,7 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
 
         and:
         verifyAll(receivedProblem) {
-            fqid == 'compilation:groovy-dsl:compilation-failed'
+            fqid == 'Gradle:DSL Evaluation:Script compilation failed'
             contextualLabel == "Could not compile initialization script '${initScript.absolutePath}'."
         }
     }
@@ -186,7 +186,7 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
 
         and:
         verifyAll(receivedProblem) {
-            fqid == 'compilation:groovy-dsl:compilation-failed'
+            fqid == 'Gradle:DSL Evaluation:Script compilation failed'
             contextualLabel == "Could not compile settings file '${settingsFile.absolutePath}'."
         }
     }
@@ -208,7 +208,7 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
 
         and:
         verifyAll(receivedProblem) {
-            fqid == 'compilation:groovy-dsl:compilation-failed'
+            fqid == 'Gradle:DSL Evaluation:Script compilation failed'
             contextualLabel == "Could not compile settings file '${settingsFile.absolutePath}'."
         }
     }
@@ -230,7 +230,7 @@ class PluginManagementDslSpec extends AbstractIntegrationSpec {
 
         and:
         verifyAll(receivedProblem) {
-            fqid == 'compilation:groovy-dsl:compilation-failed'
+            fqid == 'Gradle:DSL Evaluation:Script compilation failed'
             contextualLabel == "Could not compile settings file '${settingsFile.absolutePath}'."
         }
     }

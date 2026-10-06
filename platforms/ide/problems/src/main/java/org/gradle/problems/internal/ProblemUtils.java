@@ -14,23 +14,22 @@
  * limitations under the License.
  */
 
-package org.gradle.problems.internal.rendering;
+package org.gradle.problems.internal;
 
-import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.ProblemGroup;
+import org.gradle.api.problems.internal.ProblemGroupInternal;
 import org.gradle.api.problems.internal.ProblemInternal;
 
-import java.io.PrintWriter;
+public class ProblemUtils {
 
-class JavaCompilationWriter implements SelectiveProblemWriter {
-
-    @Override
-    public void write(ProblemInternal problem, RenderOptions options, PrintWriter output) {
-        output.print(problem.getDetails());
-    }
-
-    @Override
-    public boolean accepts(ProblemId problemId) {
-        return problemId.getGroup().equals(GradleCoreProblemGroup.compilation().java()) && !problemId.getName().equals("initialization-failed");
+    public static boolean isInGroup(ProblemInternal problem, ProblemGroup targetGroup) {
+        ProblemGroupInternal group = ProblemGroupInternal.of(problem.getDefinition().getId().getGroup());
+        while (group != null) {
+            if (group.equals(targetGroup)) {
+                return true;
+            }
+            group = group.getParentInternal();
+        }
+        return false;
     }
 }

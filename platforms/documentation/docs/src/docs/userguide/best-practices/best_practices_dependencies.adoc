@@ -55,16 +55,6 @@ Use a centralized `libs.versions.toml` file in your `gradle/` directory:
 include::sample[dir="snippets/best-practices/useVersionCatalogs-do/common",files="gradle/libs.versions.toml[]"]
 ====
 
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/useVersionCatalogs-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/useVersionCatalogs-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
-
 ====
 include::sample[dir="snippets/best-practices/useVersionCatalogs-do/kotlin",files="build.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/best-practices/useVersionCatalogs-do/groovy",files="build.gradle[tags=do-this]"]
@@ -127,16 +117,6 @@ Example: For `org.owasp:dependency-check-gradle`, use `dependency-check-plugin`
 include::sample[dir="snippets/best-practices/versionCatalogNaming-do/common",files="gradle/libs.versions.toml[]"]
 ====
 
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/versionCatalogNaming-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/versionCatalogNaming-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
-
 ====
 include::sample[dir="snippets/best-practices/versionCatalogNaming-do/kotlin",files="build.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/best-practices/versionCatalogNaming-do/groovy",files="build.gradle[tags=do-this]"]
@@ -180,16 +160,6 @@ include::sample[dir="snippets/best-practices/settingsRepositories-avoid/groovy",
 
 Instead, you should set them up in `settings.gradle.kts` like this:
 
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/settingsRepositories-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/settingsRepositories-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
-
 ====
 include::sample[dir="snippets/best-practices/settingsRepositories-do/kotlin",files="settings.gradle.kts[tags=do-this]"]
 include::sample[dir="snippets/best-practices/settingsRepositories-do/groovy",files="settings.gradle[tags=do-this]"]
@@ -223,16 +193,6 @@ include::sample[dir="snippets/best-practices/kotlinStdLib-avoid/groovy",files="b
 <1> *`stdlib` is explicitly depended upon*: This project contains an implicit dependency on the Kotlin standard library, which is required to compile its source code.
 
 ==== Do This Instead
-
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/kotlinStdLib-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/kotlinStdLib-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
 
 ====
 include::sample[dir="snippets/best-practices/kotlinStdLib-do/kotlin",files="build.gradle.kts[tags=do-this]"]
@@ -274,16 +234,6 @@ include::sample[dir="snippets/best-practices/avoidDuplicateDependencies-avoid/gr
 
 ==== Do This Instead
 
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidDuplicateDependencies-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidDuplicateDependencies-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
-
 ====
 include::sample[dir="snippets/best-practices/avoidDuplicateDependencies-do/kotlin",files="build.gradle.kts[]"]
 include::sample[dir="snippets/best-practices/avoidDuplicateDependencies-do/groovy",files="build.gradle[]"]
@@ -321,16 +271,6 @@ include::sample[dir="snippets/best-practices/useGavString-avoid/groovy",files="b
 <2> Other modifiers methods and constraints like `exclude` are not included in this recommendation and can use named argument notation as needed
 
 ==== Do This Instead
-
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/useGavString-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/useGavString-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
 
 ====
 include::sample[dir="snippets/best-practices/useGavString-do/kotlin",files="build.gradle.kts[tags=do-this]"]
@@ -388,16 +328,6 @@ include::sample[dir="snippets/best-practices/contentFiltering-avoid/groovy",file
 
 Use content filtering to ensure that the proper repositories are searched first for the expected artifacts:
 
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/contentFiltering-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/contentFiltering-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
-
 ====
 include::sample[dir="snippets/best-practices/contentFiltering-do/kotlin",files="settings.gradle.kts[tags=content-filtering-do]"]
 include::sample[dir="snippets/best-practices/contentFiltering-do/groovy",files="settings.gradle[tags=content-filtering-do]"]
@@ -405,16 +335,6 @@ include::sample[dir="snippets/best-practices/contentFiltering-do/groovy",files="
 
 In many cases, it is better to use exclusive content filtering, as it ensures that dependencies _can only be found in the expected repository_.
 If they are not present there, they will not be found at all.
-
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/contentFilteringExclusive-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/contentFilteringExclusive-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
 
 ====
 include::sample[dir="snippets/best-practices/contentFilteringExclusive-do/kotlin",files="settings.gradle.kts[tags=content-filtering-do]"]
@@ -468,16 +388,6 @@ If future dependencies rely on `org.ow2.asm:asm-util`, they may fail at compile 
 ==== Do This Instead
 
 Exclude transitive dependencies as narrowly as possible, ideally on individual dependencies:
-
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/applyExclusionsNarrowly-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/applyExclusionsNarrowly-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
 
 ====
 include::sample[dir="snippets/best-practices/applyExclusionsNarrowly-do/kotlin",files="build.gradle.kts[tags=do-this]"]
@@ -561,16 +471,6 @@ Resolving configurations by name should be avoided.
 ==== Do This Instead
 
 Always declare attributes on consumable and resolvable configurations:
-
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidConfigurationsWithoutAttributes-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/avoidConfigurationsWithoutAttributes-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
 
 In `producer/build.gradle(.kts)`:
 

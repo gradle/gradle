@@ -165,6 +165,12 @@ class ReceivedProblem implements ProblemInternal {
        additionalData
     }
 
+    @Override
+    boolean isWrittenToConsole() {
+        // The console flag is internal to the daemon and not part of the reported problem event.
+        false
+    }
+
 
     @Override
     ReceivedException getException() {
@@ -290,12 +296,19 @@ class ReceivedProblem implements ProblemInternal {
     static class ReceivedProblemGroup extends ProblemGroup {
         private final String name
         private final String displayName
+        private final String description
         private final ReceivedProblemGroup parent
 
         ReceivedProblemGroup(Map<String, Object> group) {
             name = group['name'] as String
             displayName = group['displayName'] as String
+            description = group['description'] as String
             parent = group['parent'] ? new ReceivedProblemGroup(group['parent'] as Map<String, Object>) : null
+        }
+
+        /** Description of a predefined group as written by the build operation trace; not part of the public ProblemGroup API. */
+        String getDescription() {
+            description
         }
 
         @Override

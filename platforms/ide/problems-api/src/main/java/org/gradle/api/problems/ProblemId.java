@@ -25,15 +25,15 @@ import org.gradle.api.problems.internal.DefaultProblemId;
  * Problem IDs are defined with a name and with group hierarchy. For example, in the domain of Java compilation problems, the id object for unused variable warnings would be:
  * <pre>
  * ProblemId(name: unused-variable, displayName: Unused Variable, group:
- *     ProblemGroup(name: java, displayName: Java compilation, parent:
- *         ProblemGroup(name: compilation, displayName: Compilation, parent: null)))
+ *     ProblemGroup(name: Java, displayName: Java, parent:
+ *         ProblemGroup(name: Compilation, displayName: Compilation, parent: null)))
  * </pre>
- * From the name fields a fully qualified name can be inferred: {@code compilation:java:unused-variable}.
+ * From the name fields a fully qualified name can be inferred: {@code Compilation:Java:unused-variable}.
  * Also, the display names are intended for display on some user interface. Consumers of problem reports can build a tree representation of problems:
  * <pre>
  * (Problem view)
  * Compilation
- *     Java compilation
+ *     Java
  *         Foo.java#L10: unused variable a
  *         Foo.java#L20: unused variable b
 
@@ -83,7 +83,7 @@ public abstract class ProblemId {
     /**
      * Creates a new problem id.
      *
-     * @param name the name of the problem. The convention is to use kebab-case (ie lower case with hyphens). Cannot be blank (i.e., {@code null}, empty string, or only whitespaces).
+     * @param name the name of the problem. Cannot be blank (i.e., {@code null}, empty string, or only whitespaces).
      * @param displayName the user-friendly display name of the problem. Cannot be blank (i.e., {@code null}, empty string, or only whitespaces).
      * @param group the group to which the problem belongs. Cannot be null.
      * @return the new problem id
