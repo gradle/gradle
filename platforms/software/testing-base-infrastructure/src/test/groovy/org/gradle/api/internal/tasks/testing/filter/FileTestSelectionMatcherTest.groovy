@@ -293,6 +293,37 @@ class FileTestSelectionMatcherTest extends Specification {
         matcherWithoutDot.matchesFile(excluded) // This is a side effect of the include
     }
 
+    def "canMatchFile tells a file under a root from one outside every root"() {
+        def root = temp.createDir("root")
+        def included = root.file("included.test").touch()
+        def subIncluded = root.file("sub/included.test").touch()
+        def outside = temp.createDir("outside-root").file("outside.test").touch()
+
+        expect:
+        def matcher = createMatcher(["included"], [], root)
+        matcher.canMatchFile(included)
+        matcher.canMatchFile(subIncluded)
+        // matchesFile reports this as not matching, but it is not this matcher's to judge
+        !matcher.canMatchFile(outside)
+        !matcher.matchesFile(outside)
+    }
+
+    def "canMatchFile is false for every file when there are no roots"() {
+        def file = temp.createDir("root").file("some.test").touch()
+
+        expect:
+        !createMatcher(["some"], []).canMatchFile(file)
+    }
+
+    def "canMatchFile matches the inclusion a file that cannot be resolved gets from matchesFile"() {
+        def missing = temp.testDirectory.file("root/does-not-exist.test")
+
+        expect:
+        def matcher = createMatcher([], [], temp.createDir("root"))
+        matcher.canMatchFile(missing)
+        matcher.matchesFile(missing)
+    }
+
     private FileTestSelectionMatcher createMatcher(Collection<String> includes, Collection<String> excludes, TestFile... roots) {
         def classTestSelectionMatcher = new ClassTestSelectionMatcher(includes, excludes, [])
         def matcher = new FileTestSelectionMatcher(classTestSelectionMatcher, roots.collect { it.toPath().toRealPath() })

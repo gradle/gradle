@@ -57,16 +57,46 @@ class FileTestSelectionMatcher {
             Path path = file.toPath().toRealPath();
             for (Path root : roots) {
                 if (path.startsWith(root)) {
-                    String relativePath = TextUtil.normaliseFileSeparators(root.relativize(path).toString());
-                    String withoutExtension = removeExtension(relativePath);
-                    String packagified = withoutExtension.replaceAll("/", ".");
-                    return classTestSelectionMatcher.matchesTest(packagified, "");
+                    return classTestSelectionMatcher.matchesTest(quasiClassName(root, path), "");
                 }
             }
             return false;
         } catch (IOException e) {
             return true;
         }
+    }
+
+    /**
+     * Whether this matcher can render an opinion on the given file, which it can only do for a file
+     * under one of its search roots.
+     *
+     * <p>A file under none of them is not this matcher's to judge: it was not selected from any of
+     * the directories the roots describe, so there is no relative path to turn into a name.
+     * {@link #matchesFile(File)} reports such a file as not matching rather than as unjudged, so a
+     * caller that wants to hand it to a different matcher instead must ask this first.
+     */
+    public boolean canMatchFile(File file) {
+        try {
+            Path path = file.toPath().toRealPath();
+            for (Path root : roots) {
+                if (path.startsWith(root)) {
+                    return true;
+                }
+            }
+            return false;
+        } catch (IOException e) {
+            // Consistent with matchesFile, which includes a file whose real path it cannot read.
+            return true;
+        }
+    }
+
+    /**
+     * The name a file is judged by: its path relative to the root containing it, with the extension
+     * stripped and separators turned into dots, so that it looks like a class name.
+     */
+    private static String quasiClassName(Path root, Path path) {
+        String relativePath = TextUtil.normaliseFileSeparators(root.relativize(path).toString());
+        return removeExtension(relativePath).replaceAll("/", ".");
     }
 
     private static String removeExtension(String relativePath) {

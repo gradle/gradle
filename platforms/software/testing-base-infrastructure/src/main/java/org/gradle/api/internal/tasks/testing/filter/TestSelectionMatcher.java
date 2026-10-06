@@ -65,6 +65,17 @@ public class TestSelectionMatcher {
     }
 
     /**
+     * Returns true if the given file lies under one of the roots this matcher was given, and can
+     * therefore be matched by path at all. {@link #matchesFile(File)} reports a file under none of
+     * them as not matching, so ask this first to tell "does not match" from "not mine to judge".
+     *
+     * @see FileTestSelectionMatcher#canMatchFile(File)
+     */
+    public boolean canMatchFile(File file) {
+        return fileTestSelectionMatcher.canMatchFile(file);
+    }
+
+    /**
      * Returns true if the given class and method matches any include pattern and is not discarded by any exclude pattern.
      *
      * @see ClassTestSelectionMatcher

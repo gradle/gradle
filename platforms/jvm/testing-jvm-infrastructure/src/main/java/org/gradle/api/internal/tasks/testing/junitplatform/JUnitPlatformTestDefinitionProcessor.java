@@ -37,7 +37,6 @@ import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 import org.junit.platform.engine.DiscoverySelector;
 import org.junit.platform.engine.TestExecutionResult;
-import org.junit.platform.engine.discovery.DirectorySelector;
 import org.junit.platform.engine.discovery.DiscoverySelectors;
 import org.junit.platform.engine.support.descriptor.DirectorySource;
 import org.junit.platform.engine.support.descriptor.FileSource;
@@ -248,24 +247,21 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
             if (isNotEmpty(filterSpec)) {
                 TestSelectionMatcher matcher = new TestSelectionMatcher(filterSpec, testDefinitionDirs);
 
-                DelegatingByTypeFilter delegatingFilter = new DelegatingByTypeFilter(new ClassMethodNameFilter(matcher));
-                // FilePathFilter matches a file against the directories it was selected from, and excludes any
-                // file that lies under none of them. Those directories only exist when there are directory
-                // selectors, so registering it unconditionally would exclude every file-based test in a
-                // class-based run. Without it, file-based descriptors fall to ClassMethodNameFilter and are
-                // matched by their enclosing class, like any other test not declared as a method.
-                if (hasDirectorySelectors()) {
-                    FilePathFilter fileFilter = new FilePathFilter(matcher);
-                    delegatingFilter.addDelegate(FileSource.class, fileFilter);
-                    delegatingFilter.addDelegate(DirectorySource.class, fileFilter);
-                }
+                ClassMethodNameFilter classFilter = new ClassMethodNameFilter(matcher);
+                DelegatingByTypeFilter delegatingFilter = new DelegatingByTypeFilter(classFilter);
+
+                // FilePathFilter matches a file against the test definition directories it was selected
+                // from. A file under none of them has no such path, so FilePathFilter defers to the class
+                // filter for it rather than excluding it for failing to match a path it never had. That
+                // makes this registration safe whether or not the run has directory selectors, and keeps
+                // the verdict a property of the descriptor rather than of how the rest of the task happens
+                // to be configured.
+                FilePathFilter fileFilter = new FilePathFilter(matcher, classFilter);
+                delegatingFilter.addDelegate(FileSource.class, fileFilter);
+                delegatingFilter.addDelegate(DirectorySource.class, fileFilter);
 
                 requestBuilder.filters(delegatingFilter);
             }
-        }
-
-        private boolean hasDirectorySelectors() {
-            return selectors.stream().anyMatch(it -> it instanceof DirectorySelector);
         }
 
         private void addEnginesFilter(LauncherDiscoveryRequestBuilder requestBuilder) {
