@@ -882,7 +882,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         and:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:missing-java-toolchain-plugin'
+            fqid == 'Gradle:Build Definition:Using task ValidatePlugins without applying the Java Toolchain plugin'
             contextualLabel == 'Using task ValidatePlugins without applying the Java Toolchain plugin is not supported.'
             definition.documentationLink.url.endsWith("/userguide/upgrading_major_version_9.html#validate_plugins_without_java_toolchain_90")
         }
@@ -930,7 +930,7 @@ class ValidatePluginsPart2IntegrationTest extends AbstractIntegrationSpec implem
         and:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:invalid-java-toolchain'
+            fqid == 'Gradle:Build Definition:Running task ValidatePlugins with an unsupported Java Toolchain'
             contextualLabel == "Running task ValidatePlugins with Java Toolchain lower than ${SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION} is not supported."
             definition.documentationLink.url.endsWith("/userguide/upgrading_version_9.html#validate_plugins_java_version")
         }

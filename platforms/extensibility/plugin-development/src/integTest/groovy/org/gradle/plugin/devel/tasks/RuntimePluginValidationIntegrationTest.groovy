@@ -553,7 +553,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
         failure.assertHasDescription("A problem was found with the configuration of task ':run' (type 'MyTask').")
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:value-not-set'
+            fqid == 'Gradle:Build Definition:Value not set'
             definition.id.displayName == 'Value not set'
             contextualLabel == "Type 'MyTask' property 'message' doesn't have a configured value"
             details == "This property isn't marked as optional and no value has been configured"

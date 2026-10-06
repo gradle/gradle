@@ -150,7 +150,7 @@ task work {
         failure.assertHasDescription("A problem was found with the configuration of task ':work' (type 'DefaultTask').")
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:input-file-does-not-exist'
+            fqid == 'Gradle:Build Definition:Input file does not exist'
             definition.id.displayName == 'Input file does not exist'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#input_file_does_not_exist"
         }

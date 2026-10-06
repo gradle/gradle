@@ -167,18 +167,10 @@ class KnownProblemIds {
         'task-selection:empty-path': ['Empty path'],
         'task-selection:missing-task-name': ['Missing task name'],
         'task-selection:empty-segments': ['Empty segments'],
-        'validation:property-validation:cannot-write-output': ['Property is not writable'],
-        'validation:property-validation:cannot-write-to-reserved-location': ['Cannot write to reserved location'],
-        'validation:property-validation:input-file-does-not-exist': ['Input file does not exist'],
-        'validation:property-validation:unexpected-input-file-type': ['Unexpected input file type'],
-        'validation:property-validation:unsupported-notation': ['Property has unsupported value'],
-        'validation:property-validation:value-not-set': ['Value not set'],
         'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache': ['cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'],
         // Dynamic fqid until the CC class-encoding failure path emits a stable problem ID.
         'validation:configuration-cache:class-.*-cannot-be-encoded-because.*': ['(?s)Class .* cannot be encoded because.*'],
         'validation:configuration-cache:configuration-cache-warn-mode': ['Configuration Cache warn mode is enabled'],
-        'validation:missing-java-toolchain-plugin': ['Using task ValidatePlugins without applying the Java Toolchain plugin'],
-        'validation:invalid-java-toolchain': ["Running task ValidatePlugins with Java Toolchain lower than ${SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION}"],
 
         // Plugin Validation
         'Gradle:Plugin Validation:@ServiceReference property is not a build service': ['@ServiceReference property is not a build service'],
@@ -212,6 +204,16 @@ class KnownProblemIds {
         'Gradle:Build Logic:Property has implicit dependency': ['Property has implicit dependency'],
         'Gradle:Build Logic:Unknown implementation': ['Unknown implementation'],
         'Gradle:Build Logic:Unknown property implementation': ['Unknown property implementation'],
+
+        // Build Definition
+        'Gradle:Build Definition:Cannot write to reserved location': ['Cannot write to reserved location'],
+        'Gradle:Build Definition:Input file does not exist': ['Input file does not exist'],
+        'Gradle:Build Definition:Property has unsupported value': ['Property has unsupported value'],
+        'Gradle:Build Definition:Property is not writable': ['Property is not writable'],
+        'Gradle:Build Definition:Unexpected input file type': ['Unexpected input file type'],
+        'Gradle:Build Definition:Running task ValidatePlugins with an unsupported Java Toolchain': ['Running task ValidatePlugins with an unsupported Java Toolchain'],
+        'Gradle:Build Definition:Using task ValidatePlugins without applying the Java Toolchain plugin': ['Using task ValidatePlugins without applying the Java Toolchain plugin'],
+        'Gradle:Build Definition:Value not set': ['Value not set'],
 
         // dependency resolution failures
         'Dependencies:Graph Resolution:Configuration selected by name is not compatible': ['Configuration selected by name is not compatible'],

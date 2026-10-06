@@ -444,6 +444,36 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
+            fqid == 'Gradle:Build Definition:Value not set'
+            definition.id.displayName == 'Value not set'
+            contextualLabel == "Property 'fileInput' doesn't have a configured value"
+            details == "This property isn't marked as optional and no value has been configured"
+            solutions == ["Assign a value to 'fileInput'", "Mark property 'fileInput' as optional"]
+            additionalData.asMap == ['propertyName': 'fileInput']
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
+        }
+        verifyAll(receivedProblem(1)) {
+            severity == Severity.ERROR
+            fqid == 'Gradle:Build Definition:Value not set'
+            definition.id.displayName == 'Value not set'
+            contextualLabel == "Property 'incrementalNonFileInput' doesn't have a configured value"
+            details == "This property isn't marked as optional and no value has been configured"
+            solutions == ["Assign a value to 'incrementalNonFileInput'", "Mark property 'incrementalNonFileInput' as optional"]
+            additionalData.asMap == ['propertyName': 'incrementalNonFileInput']
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
+        }
+        verifyAll(receivedProblem(2)) {
+            severity == Severity.ERROR
+            fqid == 'Gradle:Build Definition:Value not set'
+            definition.id.displayName == 'Value not set'
+            contextualLabel == "Property 'missingInput' doesn't have a configured value"
+            details == "This property isn't marked as optional and no value has been configured"
+            solutions == ["Assign a value to 'missingInput'", "Mark property 'missingInput' as optional"]
+            additionalData.asMap == ['propertyName': 'missingInput']
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
+        }
+        verifyAll(receivedProblem(3)) {
+            severity == Severity.ERROR
             fqid == 'Gradle:Plugin Validation:Incompatible annotations'
             definition.id.displayName == 'Incompatible annotations'
             contextualLabel == "Property 'incrementalNonFileInput' is annotated with @Incremental but that is not allowed for 'Input' properties"
@@ -452,7 +482,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'incrementalNonFileInput']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#incompatible_annotations"
         }
-        verifyAll(receivedProblem(1)) {
+        verifyAll(receivedProblem(4)) {
             severity == Severity.ERROR
             fqid == 'Gradle:Plugin Validation:Incorrect use of @Input annotation'
             definition.id.displayName == 'Incorrect use of @Input annotation'
@@ -466,7 +496,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'fileInput']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#incorrect_use_of_input_annotation"
         }
-        verifyAll(receivedProblem(2)) {
+        verifyAll(receivedProblem(5)) {
             severity == Severity.ERROR
             fqid == 'Gradle:Plugin Validation:Invalid annotation in context'
             definition.id.displayName == 'Invalid annotation in context'
@@ -479,7 +509,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'outputDirectory', 'parentPropertyName': 'nested']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#annotation_invalid_in_context"
         }
-        verifyAll(receivedProblem(3)) {
+        verifyAll(receivedProblem(6)) {
             severity == Severity.ERROR
             fqid == 'Gradle:Plugin Validation:Invalid annotation in context'
             definition.id.displayName == 'Invalid annotation in context'
@@ -492,7 +522,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'outputDir']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#annotation_invalid_in_context"
         }
-        verifyAll(receivedProblem(4)) {
+        verifyAll(receivedProblem(7)) {
             severity == Severity.ERROR
             fqid == 'Gradle:Plugin Validation:Missing annotation'
             definition.id.displayName == 'Missing annotation'
@@ -502,7 +532,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'extension']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#missing_annotation"
         }
-        verifyAll(receivedProblem(5)) {
+        verifyAll(receivedProblem(8)) {
             severity == Severity.ERROR
             fqid == 'Gradle:Plugin Validation:Missing annotation'
             definition.id.displayName == 'Missing annotation'
@@ -512,7 +542,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'stringProperty', 'parentPropertyName': 'nested']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#missing_annotation"
         }
-        verifyAll(receivedProblem(6)) {
+        verifyAll(receivedProblem(9)) {
             severity == Severity.ERROR
             fqid == 'Gradle:Plugin Validation:Missing normalization'
             definition.id.displayName == 'Missing normalization'
@@ -522,7 +552,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'inputFile', 'parentPropertyName': 'nested']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#missing_normalization_annotation"
         }
-        verifyAll(receivedProblem(7)) {
+        verifyAll(receivedProblem(10)) {
             severity == Severity.ERROR
             fqid == 'Gradle:Plugin Validation:Missing normalization'
             definition.id.displayName == 'Missing normalization'
@@ -532,7 +562,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'noPathSensitivity']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#missing_normalization_annotation"
         }
-        verifyAll(receivedProblem(8)) {
+        verifyAll(receivedProblem(11)) {
             severity == Severity.ERROR
             fqid == 'Gradle:Plugin Validation:Missing normalization'
             definition.id.displayName == 'Missing normalization'
@@ -542,7 +572,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'noPathSensitivityDir']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#missing_normalization_annotation"
         }
-        verifyAll(receivedProblem(9)) {
+        verifyAll(receivedProblem(12)) {
             severity == Severity.ERROR
             fqid == 'Gradle:Plugin Validation:Missing normalization'
             definition.id.displayName == 'Missing normalization'
@@ -552,7 +582,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'noPathSensitivityFile']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#missing_normalization_annotation"
         }
-        verifyAll(receivedProblem(10)) {
+        verifyAll(receivedProblem(13)) {
             severity == Severity.ERROR
             fqid == 'Gradle:Plugin Validation:Property declared to be sensitive to absolute paths'
             definition.id.displayName == 'Property declared to be sensitive to absolute paths'
@@ -561,36 +591,6 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             solutions == ['Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath']
             additionalData.asMap == ['propertyName': 'absolutePathSensitivity']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#cacheable_transform_cant_use_absolute_sensitivity"
-        }
-        verifyAll(receivedProblem(11)) {
-            severity == Severity.ERROR
-            fqid == 'validation:property-validation:value-not-set'
-            definition.id.displayName == 'Value not set'
-            contextualLabel == "Property 'fileInput' doesn't have a configured value"
-            details == "This property isn't marked as optional and no value has been configured"
-            solutions == ["Assign a value to 'fileInput'", "Mark property 'fileInput' as optional"]
-            additionalData.asMap == ['propertyName': 'fileInput']
-            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
-        }
-        verifyAll(receivedProblem(12)) {
-            severity == Severity.ERROR
-            fqid == 'validation:property-validation:value-not-set'
-            definition.id.displayName == 'Value not set'
-            contextualLabel == "Property 'incrementalNonFileInput' doesn't have a configured value"
-            details == "This property isn't marked as optional and no value has been configured"
-            solutions == ["Assign a value to 'incrementalNonFileInput'", "Mark property 'incrementalNonFileInput' as optional"]
-            additionalData.asMap == ['propertyName': 'incrementalNonFileInput']
-            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
-        }
-        verifyAll(receivedProblem(13)) {
-            severity == Severity.ERROR
-            fqid == 'validation:property-validation:value-not-set'
-            definition.id.displayName == 'Value not set'
-            contextualLabel == "Property 'missingInput' doesn't have a configured value"
-            details == "This property isn't marked as optional and no value has been configured"
-            solutions == ["Assign a value to 'missingInput'", "Mark property 'missingInput' as optional"]
-            additionalData.asMap == ['propertyName': 'missingInput']
-            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
         }
     }
 

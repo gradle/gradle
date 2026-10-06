@@ -26,7 +26,6 @@ import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Property;
@@ -127,13 +126,10 @@ public abstract class ValidatePlugins extends DefaultTask {
                 if (getLauncher().isPresent()) {
                     JavaLauncher launcher = getLauncher().get();
                     if (!launcher.getMetadata().getLanguageVersion().canCompileOrRun(SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION)) {
-                        ProblemId problemId = ProblemId.create(
-                            "invalid-java-toolchain",
-                            "Running task ValidatePlugins with Java Toolchain lower than " + SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION,
-                            GradleCoreProblemGroup.validation().thisGroup()
-                        );
-                        ProblemReporter problemReporter = getServices().get(Problems.class).getReporter();
-                        GradleException exception = new GradleException(problemId.getDisplayName() + " is not supported.");
+                        Problems problems = getServices().get(Problems.class);
+                        ProblemId problemId = problems.getGroups().getGradle().getBuildDefinition().problemId("Running task ValidatePlugins with an unsupported Java Toolchain");
+                        ProblemReporter problemReporter = problems.getReporter();
+                        GradleException exception = new GradleException("Running task ValidatePlugins with Java Toolchain lower than " + SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION + " is not supported.");
                         throw problemReporter.throwing(
                             exception,
                             problemReporter.create(problemId, problemSpec -> {
@@ -145,13 +141,10 @@ public abstract class ValidatePlugins extends DefaultTask {
                     }
                     spec.getForkOptions().setExecutable(launcher.getExecutablePath());
                 } else {
-                    ProblemId problemId = ProblemId.create(
-                        "missing-java-toolchain-plugin",
-                        "Using task ValidatePlugins without applying the Java Toolchain plugin",
-                        GradleCoreProblemGroup.validation().thisGroup()
-                    );
-                    ProblemReporter problemReporter = getServices().get(Problems.class).getReporter();
-                    GradleException exception = new GradleException(problemId.getDisplayName() + " is not supported.");
+                    Problems problems = getServices().get(Problems.class);
+                    ProblemId problemId = problems.getGroups().getGradle().getBuildDefinition().problemId("Using task ValidatePlugins without applying the Java Toolchain plugin");
+                    ProblemReporter problemReporter = problems.getReporter();
+                    GradleException exception = new GradleException("Using task ValidatePlugins without applying the Java Toolchain plugin is not supported.");
                     throw problemReporter.throwing(
                         exception,
                         problemReporter.create(problemId, problemSpec -> {
