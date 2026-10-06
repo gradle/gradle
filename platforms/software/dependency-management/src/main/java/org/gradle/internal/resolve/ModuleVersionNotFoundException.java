@@ -19,7 +19,6 @@ import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.internal.Factory;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.logging.text.TreeFormatter;
 
 import java.util.ArrayList;
@@ -28,14 +27,11 @@ import java.util.Iterator;
 
 public class ModuleVersionNotFoundException extends ModuleVersionResolveException {
     /**
-     * This is used by {@link ModuleVersionResolveException#withIncomingPaths(java.util.Collection)}.
+     * This is also looked up reflectively by {@link ModuleVersionResolveException#createCopy()}, so it must
+     * keep this exact signature.
      */
-    @SuppressWarnings({"UnusedDeclaration", "this-escape"})
-    public ModuleVersionNotFoundException(ComponentSelector selector, Factory<String> message, Collection<String> resolutions) {
+    public ModuleVersionNotFoundException(ComponentSelector selector, Factory<String> message) {
         super(selector, message);
-        for (String resolution : resolutions) {
-            addResolution(resolution);
-        }
     }
 
     @SuppressWarnings("this-escape")
@@ -165,15 +161,5 @@ public class ModuleVersionNotFoundException extends ModuleVersionResolveExceptio
         boolean isIvy = singleLocation.contains("ivy-") && singleLocation.endsWith(".xml");
         boolean isModule = singleLocation.endsWith(".module");
         return isPom ? "Maven POM" : (isIvy ? "ivy.xml" : (isModule ? "Gradle module" : null));
-    }
-
-    @Override
-    protected ModuleVersionResolveException createCopy() {
-        try {
-            String message = getMessage();
-            return getClass().getConstructor(ComponentSelector.class, Factory.class, Collection.class).newInstance(getSelector(), (Factory<String>) () -> message, getDirectResolutions());
-        } catch (Exception e) {
-            throw UncheckedException.throwAsUncheckedException(e);
-        }
     }
 }

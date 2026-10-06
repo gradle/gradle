@@ -179,7 +179,7 @@ Required by:
         resolutions.size() == 2
     }
 
-    def "createCopy transfers only directly-added resolutions, not cause-contributed ones"() {
+    def "createCopy carries no resolutions, leaving withIncomingPaths to transfer them"() {
         given:
         def exception = new ModuleVersionNotFoundException(newId("a", "b", "c"), ["http://somewhere/a.pom"])
         def cause = new GradleException("cause")
@@ -196,12 +196,10 @@ Required by:
         def copy = exception.createCopy()
 
         then:
-        // The copy carries the directly-added Maven POM hint only.
-        // The cause-contributed 'causeResolution' must NOT leak into the copy's direct field —
-        // otherwise a follow-up initCauses call (as withIncomingPaths does) would duplicate it.
-        copy.getResolutions().size() == 1
-        copy.getResolutions().findAll { it.contains("Maven POM") }.size() == 1
-        copy.getResolutions().findAll { it == "causeResolution" }.size() == 0
+        // createCopy() deliberately knows nothing about resolutions. withIncomingPaths() restores
+        // the cause-contributed ones via initCauses() and the directly-added ones via addResolution().
+        // Were createCopy() to transfer either set, withIncomingPaths() would duplicate them.
+        copy.getResolutions().isEmpty()
     }
 
     def "formats message for selector and locations when versions are rejected by attribute matching"() {

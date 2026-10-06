@@ -98,6 +98,9 @@ public class ModuleVersionResolveException extends DefaultMultiCauseExceptionNoS
         ModuleVersionResolveException copy = createCopy();
         copy.paths.addAll(paths);
         copy.initCauses(getCauses());
+        // Only the directly-added resolutions. initCauses() above rebuilds the cause-contributed
+        // ones from the causes, so transferring those as well would duplicate them.
+        getDirectResolutions().forEach(copy::addResolution);
         copy.setStackTrace(getStackTrace());
         return copy;
     }
