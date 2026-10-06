@@ -230,6 +230,213 @@ Update that matching logic to the new group and name, as described in <<reportin
 
 The display name of the ambiguous artifact transform failure is corrected from `Multiple artifacts transforms exist that would satisfy the request` to `Multiple artifact transforms exist that would satisfy the request`.
 
+[[validation_problem_ids_moved_to_predefined_groups]]
+==== Validation problem ids moved to the predefined problem groups
+
+Gradle's own validation problems now report into the <<reporting_problems.adoc#sec:predefined_problem_groups,predefined problem groups>> instead of the legacy `validation:property-validation`, `validation:type-validation` and `scripts:dcl-schema` groups.
+Problems about input, output, and caching annotations report into `Gradle > Plugin Validation`.
+Problems about how build logic uses the build model, such as an implementation that cannot be tracked, a missing task dependency, or a type that cannot be part of a Declarative schema, report into `Gradle > Build Logic`.
+Problems about a missing or unusable property value report into `Gradle > Build Definition`.
+Each problem is now named by its former display name, with a few names reworded to describe the problem:
+
+[cols="1,1"]
+|===
+|Before |After
+
+|`scripts:dcl-schema:dcl-schema-building-failure`
+|`Gradle:Build Logic:Schema building failure`
+
+|`scripts:dcl-schema:declaration-hidden-type-used-in-definition`
+|`Gradle:Build Logic:A hidden declaration is used in definition`
+
+|`scripts:dcl-schema:declaration-visible-and-hidden`
+|`Gradle:Build Logic:Declaration is both visible and hidden`
+
+|`scripts:dcl-schema:illegal-usage-of-type-parameter-bound-by-class`
+|`Gradle:Build Logic:Illegal usage of type parameter bound by class`
+
+|`scripts:dcl-schema:illegal-variance-in-parameterized-type-usage`
+|`Gradle:Build Logic:Illegal variance in parameterized type usage`
+
+|`scripts:dcl-schema:non-classifiable-type`
+|`Gradle:Build Logic:Non-classifiable type`
+
+|`scripts:dcl-schema:unit-adding-function-with-lambda`
+|`Gradle:Build Logic:Unit-adding function with lambda`
+
+|`scripts:dcl-schema:unrecognized-member`
+|`Gradle:Build Logic:Unrecognized member`
+
+|`scripts:dcl-schema:unsafe-because-has-hidden-members`
+|`Gradle:Build Logic:Unsafe hidden members in safe feature API`
+
+|`scripts:dcl-schema:unsafe-because-has-non-public-members`
+|`Gradle:Build Logic:Non-public members in safe feature API`
+
+|`scripts:dcl-schema:unsafe-inject-property`
+|`Gradle:Build Logic:Unsafe injected service property in safe feature API`
+
+|`scripts:dcl-schema:unsafe-java-bean-property`
+|`Gradle:Build Logic:Unsafe Java bean property in safe feature API`
+
+|`scripts:dcl-schema:unsafe-non-abstract-member`
+|`Gradle:Build Logic:Unsafe non-abstract member in safe feature API`
+
+|`scripts:dcl-schema:unsafe-non-interface-type`
+|`Gradle:Build Logic:Unsafe non-interface type in safe feature API`
+
+|`scripts:dcl-schema:unsafe-non-pure-function`
+|`Gradle:Build Logic:Unsafe non-pure function in safe feature API`
+
+|`scripts:dcl-schema:unsupported-generic-container-type`
+|`Gradle:Build Logic:Unsupported generic container type`
+
+|`scripts:dcl-schema:unsupported-map-factory`
+|`Gradle:Build Logic:Unsupported map factory`
+
+|`scripts:dcl-schema:unsupported-nullable-read-only-property`
+|`Gradle:Build Logic:Unsupported nullable read-only property`
+
+|`scripts:dcl-schema:unsupported-nullable-type`
+|`Gradle:Build Logic:Unsupported nullable type`
+
+|`scripts:dcl-schema:unsupported-pair-factory`
+|`Gradle:Build Logic:Unsupported pair factory`
+
+|`scripts:dcl-schema:unsupported-type-parameter-as-container-type`
+|`Gradle:Build Logic:Unsupported type parameter as container type`
+
+|`scripts:dcl-schema:unsupported-vararg-type`
+|`Gradle:Build Logic:Unsupported vararg type`
+
+|`validation:invalid-java-toolchain`
+|`Gradle:Build Definition:Running task ValidatePlugins with an unsupported Java Toolchain`
+
+|`validation:missing-java-toolchain-plugin`
+|`Gradle:Build Definition:Using task ValidatePlugins without applying the Java Toolchain plugin`
+
+|`validation:property-validation:annotation-invalid-in-context`
+|`Gradle:Plugin Validation:Invalid annotation in context`
+
+|`validation:property-validation:artifact-transform-should-not-declare-output`
+|`Gradle:Plugin Validation:Artifact transform should not declare output`
+
+|`validation:property-validation:cacheable-transform-cant-use-absolute-sensitivity`
+|`Gradle:Plugin Validation:Property declared to be sensitive to absolute paths`
+
+|`validation:property-validation:cannot-use-optional-on-primitive-types`
+|`Gradle:Plugin Validation:Primitive property annotated with @Optional`
+
+|`validation:property-validation:cannot-write-output`
+|`Gradle:Build Definition:Property is not writable`
+
+|`validation:property-validation:cannot-write-to-reserved-location`
+|`Gradle:Build Definition:Cannot write to reserved location`
+
+|`validation:property-validation:conflicting-annotations`
+|`Gradle:Plugin Validation:Conflicting annotations`
+
+|`validation:property-validation:ignored-annotations-on-field`
+|`Gradle:Plugin Validation:Incorrect annotations on field`
+
+|`validation:property-validation:ignored-property-must-not-be-annotated`
+|`Gradle:Plugin Validation:Ignored property has other annotations`
+
+|`validation:property-validation:implicit-dependency`
+|`Gradle:Build Logic:Property has implicit dependency`
+
+|`validation:property-validation:incompatible-annotations`
+|`Gradle:Plugin Validation:Incompatible annotations`
+
+|`validation:property-validation:incorrect-use-of-input-annotation`
+|`Gradle:Plugin Validation:Incorrect use of @Input annotation`
+
+|`validation:property-validation:input-file-does-not-exist`
+|`Gradle:Build Definition:Input file does not exist`
+
+|`validation:property-validation:invalid-dependency`
+|`Gradle:Build Logic:Property cannot carry dependency`
+
+|`validation:property-validation:missing-annotation`
+|`Gradle:Plugin Validation:Missing annotation`
+
+|`validation:property-validation:missing-normalization-annotation`
+|`Gradle:Plugin Validation:Missing normalization`
+
+|`validation:property-validation:mutable-type-with-setter`
+|`Gradle:Plugin Validation:Mutable type with setter`
+
+|`validation:property-validation:nested-map-unsupported-key-type`
+|`Gradle:Plugin Validation:Unsupported nested map key`
+
+|`validation:property-validation:nested-type-unsupported`
+|`Gradle:Plugin Validation:Nested type unsupported`
+
+|`validation:property-validation:private-getter-must-not-be-annotated`
+|`Gradle:Plugin Validation:Private property with wrong annotation`
+
+|`validation:property-validation:private-method-must-not-be-annotated`
+|`Gradle:Plugin Validation:Private method with wrong annotation`
+
+|`validation:property-validation:redundant-getters`
+|`Gradle:Plugin Validation:Property has redundant getters`
+
+|`validation:property-validation:service-reference-must-be-a-build-service`
+|`Gradle:Plugin Validation:@ServiceReference property is not a build service`
+
+|`validation:property-validation:unexpected-input-file-type`
+|`Gradle:Build Definition:Unexpected input file type`
+
+|`validation:property-validation:unknown-implementation`
+|`Gradle:Build Logic:Unknown implementation`
+
+|`validation:property-validation:unknown-implementation-nested`
+|`Gradle:Build Logic:Unknown property implementation`
+
+|`validation:property-validation:unsupported-notation`
+|`Gradle:Build Definition:Property has unsupported value`
+
+|`validation:property-validation:unsupported-value-type`
+|`Gradle:Plugin Validation:Unsupported value type`
+
+|`validation:property-validation:unsupported-value-type-for-input`
+|`Gradle:Plugin Validation:Unsupported value type for @Input annotation`
+
+|`validation:property-validation:value-not-set`
+|`Gradle:Build Definition:Value not set`
+
+|`validation:type-validation:annotation-invalid-in-context`
+|`Gradle:Plugin Validation:Invalid annotation in context`
+
+|`validation:type-validation:conflicting-annotations`
+|`Gradle:Plugin Validation:Conflicting annotations`
+
+|`validation:type-validation:ignored-annotations-on-method`
+|`Gradle:Plugin Validation:Ignored annotations on method`
+
+|`validation:type-validation:ignored-annotations-on-property`
+|`Gradle:Plugin Validation:Ignored annotations on property`
+
+|`validation:type-validation:incompatible-annotations`
+|`Gradle:Plugin Validation:Incompatible annotations`
+
+|`validation:type-validation:invalid-use-of-type-annotation`
+|`Gradle:Plugin Validation:Incorrect use of type annotation`
+
+|`validation:type-validation:missing-software-type`
+|`Gradle:Build Logic:Missing project feature annotation`
+
+|`validation:type-validation:not-cacheable-without-reason`
+|`Gradle:Plugin Validation:Not cacheable without reason`
+|===
+
+The two `ValidatePlugins` problems about the Java toolchain were reported directly into the legacy `validation` group.
+`annotation-invalid-in-context`, `incompatible-annotations` and `conflicting-annotations` existed in both legacy validation groups and are now one problem id each.
+
+This affects Tooling API clients, Build Scans, and any tooling that matches problems by id.
+Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
+The messages of these problems, their solutions, and their documentation links are unchanged.
+
 [[relocated_root_project_settings_kept]]
 ==== Builds that move the root project directory now load their settings file
 
