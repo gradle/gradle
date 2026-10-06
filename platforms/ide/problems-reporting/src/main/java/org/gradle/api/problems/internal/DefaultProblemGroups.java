@@ -31,9 +31,10 @@ import org.gradle.api.problems.ProvisioningProblemGroup;
 import org.gradle.api.problems.DeliveryProblemGroup;
 import org.gradle.api.problems.OthersProblemGroup;
 import org.gradle.api.problems.ProblemGroup;
-import org.gradle.api.problems.ProblemGroups;
+import org.gradle.api.problems.ProblemId;
 import org.jspecify.annotations.Nullable;
 
+import java.io.InvalidObjectException;
 import java.util.Arrays;
 import java.util.List;
 
@@ -42,7 +43,7 @@ import java.util.List;
  * {@code Problems} services in a process; group equality is structural (name and parent), so instance identity does not matter
  * across processes.
  */
-final class DefaultProblemGroups implements ProblemGroups {
+final class DefaultProblemGroups implements ProblemGroupsInternal {
 
     public static final DefaultProblemGroups INSTANCE = new DefaultProblemGroups();
 
@@ -131,6 +132,41 @@ final class DefaultProblemGroups implements ProblemGroups {
     @Nullable
     public ResolvableProblemGroup findRoot(String name) {
         return rootsByName.get(name);
+    }
+
+    /**
+     * Resolves a path of group names, root group first, against the predefined hierarchy: predefined groups come back as the
+     * canonical instances and user-defined groups are re-created below them.
+     */
+    ResolvableProblemGroup resolve(List<String> path) throws InvalidObjectException {
+        if (path.isEmpty()) {
+            throw new InvalidObjectException("A problem group path must name at least a root group");
+        }
+        ResolvableProblemGroup current = findRoot(path.get(0));
+        if (current == null) {
+            throw new InvalidObjectException("Unknown predefined root problem group '" + path.get(0) + "'");
+        }
+
+        try {
+            for (int i = 1; i < path.size(); i++) {
+                current = current.resolveChild(path.get(i));
+            }
+        } catch (IllegalArgumentException e) {
+            // an invalid name of a user group fails like every other bad path: as a corrupt serialized form
+            InvalidObjectException invalid = new InvalidObjectException(e.getMessage());
+            invalid.initCause(e);
+            throw invalid;
+        }
+        return current;
+    }
+
+    @Override
+    public ProblemId problemId(List<String> groupPath, String name) {
+        try {
+            return resolve(groupPath).problemId(name);
+        } catch (InvalidObjectException e) {
+            throw new IllegalArgumentException(e.getMessage(), e);
+        }
     }
 
 }

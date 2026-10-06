@@ -163,7 +163,10 @@ public abstract class ValidatePlugins extends DefaultTask {
             });
         getWorkerExecutor().await();
 
-        ValidationProblemSerialization.SerializationResult parsedProblems = ValidationProblemSerialization.deserialize(new String(readAllBytes(getOutputFile().get().getAsFile().toPath()), UTF_8));
+        ValidationProblemSerialization.SerializationResult parsedProblems = ValidationProblemSerialization.deserialize(
+            new String(readAllBytes(getOutputFile().get().getAsFile().toPath()), UTF_8),
+            getServices().get(ProblemsInternal.class).getGroups()
+        );
         List<? extends ProblemInternal> warnings = parsedProblems.getWarnings();
         List<? extends ProblemInternal> errors = parsedProblems.getErrors();
 

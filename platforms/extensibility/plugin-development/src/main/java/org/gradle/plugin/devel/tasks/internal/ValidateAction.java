@@ -28,6 +28,7 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemSpec;
+import org.gradle.api.problems.internal.ProblemGroupsInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
@@ -76,16 +77,16 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
         Params params = getParameters();
 
         params.getClasses().getAsFileTree().visit(new ValidationProblemCollector(taskValidationWarnings, taskValidationErrors, params, getProblems()));
-        storeResults(taskValidationWarnings, taskValidationErrors, params.getOutputFile());
+        storeResults(taskValidationWarnings, taskValidationErrors, params.getOutputFile(), getProblems().getGroups());
     }
 
-    private static void storeResults(List<Problem> warnings, List<Problem> errors, RegularFileProperty outputFile) {
+    private static void storeResults(List<Problem> warnings, List<Problem> errors, RegularFileProperty outputFile, ProblemGroupsInternal groups) {
         if (outputFile.isPresent()) {
             File output = outputFile.get().getAsFile();
             try {
                 //noinspection ResultOfMethodCallIgnored
                 output.createNewFile();
-                Files.asCharSink(output, StandardCharsets.UTF_8).write(ValidationProblemSerialization.serialize(warnings, errors));
+                Files.asCharSink(output, StandardCharsets.UTF_8).write(ValidationProblemSerialization.serialize(warnings, errors, groups));
             } catch (IOException ex) {
                 throw new java.io.UncheckedIOException(ex);
             }

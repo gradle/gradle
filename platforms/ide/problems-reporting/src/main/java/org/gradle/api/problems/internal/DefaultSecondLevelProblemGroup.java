@@ -79,11 +79,7 @@ final class DefaultSecondLevelProblemGroup extends SecondLevelProblemGroup imple
 
     @Override
     public ThirdLevelProblemGroup group(String name) {
-        String validated = ProblemNames.validateGroupName(name);
-        if (validated.equalsIgnoreCase(ProblemNames.UNDEFINED_NAME)) {
-            throw new IllegalArgumentException("'" + ProblemNames.UNDEFINED_NAME + "' is a reserved problem group name, use getUndefined() instead");
-        }
-        return new DefaultThirdLevelProblemGroup(validated, this);
+        return new DefaultThirdLevelProblemGroup(ProblemNames.validateUserGroupName(name), this);
     }
 
     @Override
@@ -103,7 +99,7 @@ final class DefaultSecondLevelProblemGroup extends SecondLevelProblemGroup imple
 
     @Override
     public ResolvableProblemGroup resolveChild(String name) {
-        return name.equals(ProblemNames.UNDEFINED_NAME) ? resolveUndefined() : new DefaultThirdLevelProblemGroup(name, this);
+        return name.equals(ProblemNames.UNDEFINED_NAME) ? resolveUndefined() : new DefaultThirdLevelProblemGroup(ProblemNames.validateUserGroupName(name), this);
     }
 
     @Override
