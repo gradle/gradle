@@ -40,7 +40,6 @@ import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JavaInstallationCapability;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadata;
 import org.gradle.internal.jvm.inspection.JvmInstallationMetadataComparator;
-import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.jvm.toolchain.internal.AsdfInstallationSupplier;
@@ -469,7 +468,7 @@ public abstract class AvailableJavaHomes {
         JvmMetadataDetector metadataDetector = new CachingJvmMetadataDetector(defaultJvmMetadataDetector);
         ToolchainConfiguration toolchainConfiguration = new DefaultToolchainConfiguration();
 
-        final List<JvmInstallationMetadata> jvms = new DefaultJavaInstallationRegistry(toolchainConfiguration, defaultInstallationSuppliers(toolchainConfiguration), metadataDetector, null, OperatingSystem.current(), null, new IdentityFileResolver(), Collections::emptySet, new JvmInstallationProblemReporter(), null)
+        final List<JvmInstallationMetadata> jvms = new DefaultJavaInstallationRegistry(toolchainConfiguration, defaultInstallationSuppliers(toolchainConfiguration), metadataDetector, null, OperatingSystem.current(), null, new IdentityFileResolver(), Collections::emptySet, null)
             .toolchains()
             .stream()
             .map(x -> x.metadata)

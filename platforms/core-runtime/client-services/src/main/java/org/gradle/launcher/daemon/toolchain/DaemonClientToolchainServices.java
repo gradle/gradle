@@ -48,7 +48,6 @@ import org.gradle.internal.hash.DefaultStreamHasher;
 import org.gradle.internal.jvm.inspection.DefaultJavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
-import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter;
 import org.gradle.internal.jvm.inspection.JvmMetadataDetector;
 import org.gradle.internal.logging.progress.ProgressLoggerFactory;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
@@ -146,7 +145,7 @@ public class DaemonClientToolchainServices implements ServiceRegistrationProvide
         Deleter deleter = new DefaultDeleter(clock::getCurrentTime, fileSystem::isSymlink, os.isWindows());
         FileOperations fileOperations = new DefaultFileOperations(fileResolver, DirectInstantiator.INSTANCE, directoryFileTreeFactory, new DefaultFileHasher(new DefaultStreamHasher()), DefaultResourceHandler.Factory.from(fileResolver, null, fileSystem, temporaryFileProvider, null), fileCollectionFactory, propertyFactory, filePropertyFactory, filePropertyFactory, fileSystem, PatternSet::new, deleter, documentationRegistry, DefaultTaskDependencyFactory.withNoAssociatedProject(), new DefaultProviderFactory(), decompressionCoordinator, temporaryFileProvider);
         JdkCacheDirectory jdkCacheDirectory = new DefaultJdkCacheDirectory(gradleUserHomeDirProvider, fileOperations, fileLockManager, new DefaultJvmMetadataDetector(execHandleFactory, gradleUserHomeTemporaryFileProvider), gradleUserHomeTemporaryFileProvider);
-        JavaInstallationRegistry javaInstallationRegistry = new DefaultJavaInstallationRegistry(toolchainConfiguration, installationSuppliers, jvmMetadataDetector, null, OperatingSystem.current(), progressLoggerFactory, fileResolver, jdkCacheDirectory, new JvmInstallationProblemReporter(), null);
+        JavaInstallationRegistry javaInstallationRegistry = new DefaultJavaInstallationRegistry(toolchainConfiguration, installationSuppliers, jvmMetadataDetector, null, OperatingSystem.current(), progressLoggerFactory, fileResolver, jdkCacheDirectory, null);
         JavaToolchainHttpRedirectVerifierFactory redirectVerifierFactory = new JavaToolchainHttpRedirectVerifierFactory();
         HttpClientFactory httpClientFactory = new ApacheCommonsHttpClientFactory(new DocumentationRegistry());
         ExternalResourceFactory externalResourceFactory = new DaemonToolchainExternalResourceFactory(
