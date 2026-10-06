@@ -444,43 +444,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:annotation-invalid-in-context'
-            definition.id.displayName == 'Invalid annotation in context'
-            contextualLabel == "Property 'nested.outputDirectory' is annotated with invalid property type @OutputDirectory"
-            details == "The '@OutputDirectory' annotation cannot be used in this context"
-            solutions == [
-                'Remove the property',
-                'Use a different annotation, e.g one of @Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested, @ReplacedBy or @ServiceReference',
-            ]
-            additionalData.asMap == ['propertyName': 'outputDirectory', 'parentPropertyName': 'nested']
-            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#annotation_invalid_in_context"
-        }
-        verifyAll(receivedProblem(1)) {
-            severity == Severity.ERROR
-            fqid == 'validation:property-validation:annotation-invalid-in-context'
-            definition.id.displayName == 'Invalid annotation in context'
-            contextualLabel == "Property 'outputDir' is annotated with invalid property type @OutputDirectory"
-            details == "The '@OutputDirectory' annotation cannot be used in this context"
-            solutions == [
-                'Remove the property',
-                'Use a different annotation, e.g one of @Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested, @ReplacedBy or @ServiceReference',
-            ]
-            additionalData.asMap == ['propertyName': 'outputDir']
-            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#annotation_invalid_in_context"
-        }
-        verifyAll(receivedProblem(2)) {
-            severity == Severity.ERROR
-            fqid == 'validation:property-validation:cacheable-transform-cant-use-absolute-sensitivity'
-            definition.id.displayName == 'Property declared to be sensitive to absolute paths'
-            contextualLabel == "Property 'absolutePathSensitivity' is declared to be sensitive to absolute paths"
-            details == 'This is not allowed for cacheable transforms'
-            solutions == ['Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath']
-            additionalData.asMap == ['propertyName': 'absolutePathSensitivity']
-            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#cacheable_transform_cant_use_absolute_sensitivity"
-        }
-        verifyAll(receivedProblem(3)) {
-            severity == Severity.ERROR
-            fqid == 'validation:property-validation:incompatible-annotations'
+            fqid == 'Gradle:Plugin Validation:Incompatible annotations'
             definition.id.displayName == 'Incompatible annotations'
             contextualLabel == "Property 'incrementalNonFileInput' is annotated with @Incremental but that is not allowed for 'Input' properties"
             details == "This modifier is used in conjunction with a property of type 'Input' but this doesn't have semantics"
@@ -488,9 +452,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'incrementalNonFileInput']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#incompatible_annotations"
         }
-        verifyAll(receivedProblem(4)) {
+        verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:incorrect-use-of-input-annotation'
+            fqid == 'Gradle:Plugin Validation:Incorrect use of @Input annotation'
             definition.id.displayName == 'Incorrect use of @Input annotation'
             contextualLabel == "Property 'fileInput' has @Input annotation used on property of type 'File'"
             details == "A property of type 'File' annotated with @Input cannot determine how to interpret the file"
@@ -502,9 +466,35 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'fileInput']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#incorrect_use_of_input_annotation"
         }
-        verifyAll(receivedProblem(5)) {
+        verifyAll(receivedProblem(2)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Invalid annotation in context'
+            definition.id.displayName == 'Invalid annotation in context'
+            contextualLabel == "Property 'nested.outputDirectory' is annotated with invalid property type @OutputDirectory"
+            details == "The '@OutputDirectory' annotation cannot be used in this context"
+            solutions == [
+                'Remove the property',
+                'Use a different annotation, e.g one of @Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested, @ReplacedBy or @ServiceReference',
+            ]
+            additionalData.asMap == ['propertyName': 'outputDirectory', 'parentPropertyName': 'nested']
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#annotation_invalid_in_context"
+        }
+        verifyAll(receivedProblem(3)) {
+            severity == Severity.ERROR
+            fqid == 'Gradle:Plugin Validation:Invalid annotation in context'
+            definition.id.displayName == 'Invalid annotation in context'
+            contextualLabel == "Property 'outputDir' is annotated with invalid property type @OutputDirectory"
+            details == "The '@OutputDirectory' annotation cannot be used in this context"
+            solutions == [
+                'Remove the property',
+                'Use a different annotation, e.g one of @Console, @Inject, @Input, @InputDirectory, @InputFile, @InputFiles, @Internal, @Nested, @ReplacedBy or @ServiceReference',
+            ]
+            additionalData.asMap == ['propertyName': 'outputDir']
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#annotation_invalid_in_context"
+        }
+        verifyAll(receivedProblem(4)) {
+            severity == Severity.ERROR
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             definition.id.displayName == 'Missing annotation'
             contextualLabel == "Property 'extension' is missing an input annotation"
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
@@ -512,9 +502,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'extension']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#missing_annotation"
         }
-        verifyAll(receivedProblem(6)) {
+        verifyAll(receivedProblem(5)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             definition.id.displayName == 'Missing annotation'
             contextualLabel == "Property 'nested.stringProperty' is missing an input annotation"
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
@@ -522,9 +512,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'stringProperty', 'parentPropertyName': 'nested']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#missing_annotation"
         }
-        verifyAll(receivedProblem(7)) {
+        verifyAll(receivedProblem(6)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-normalization-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing normalization'
             definition.id.displayName == 'Missing normalization'
             contextualLabel == "Property 'nested.inputFile' is annotated with @InputFile but missing a normalization strategy"
             details == "If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly"
@@ -532,9 +522,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'inputFile', 'parentPropertyName': 'nested']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#missing_normalization_annotation"
         }
-        verifyAll(receivedProblem(8)) {
+        verifyAll(receivedProblem(7)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-normalization-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing normalization'
             definition.id.displayName == 'Missing normalization'
             contextualLabel == "Property 'noPathSensitivity' is annotated with @InputFiles but missing a normalization strategy"
             details == "If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly"
@@ -542,9 +532,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'noPathSensitivity']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#missing_normalization_annotation"
         }
-        verifyAll(receivedProblem(9)) {
+        verifyAll(receivedProblem(8)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-normalization-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing normalization'
             definition.id.displayName == 'Missing normalization'
             contextualLabel == "Property 'noPathSensitivityDir' is annotated with @InputDirectory but missing a normalization strategy"
             details == "If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly"
@@ -552,15 +542,25 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'noPathSensitivityDir']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#missing_normalization_annotation"
         }
-        verifyAll(receivedProblem(10)) {
+        verifyAll(receivedProblem(9)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-normalization-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing normalization'
             definition.id.displayName == 'Missing normalization'
             contextualLabel == "Property 'noPathSensitivityFile' is annotated with @InputFile but missing a normalization strategy"
             details == "If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly"
             solutions == ['Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath']
             additionalData.asMap == ['propertyName': 'noPathSensitivityFile']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#missing_normalization_annotation"
+        }
+        verifyAll(receivedProblem(10)) {
+            severity == Severity.ERROR
+            fqid == 'Gradle:Plugin Validation:Property declared to be sensitive to absolute paths'
+            definition.id.displayName == 'Property declared to be sensitive to absolute paths'
+            contextualLabel == "Property 'absolutePathSensitivity' is declared to be sensitive to absolute paths"
+            details == 'This is not allowed for cacheable transforms'
+            solutions == ['Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath']
+            additionalData.asMap == ['propertyName': 'absolutePathSensitivity']
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#cacheable_transform_cant_use_absolute_sensitivity"
         }
         verifyAll(receivedProblem(11)) {
             severity == Severity.ERROR
@@ -717,7 +717,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause('A problem was found with the configuration of the artifact transform parameter MakeGreen.Parameters.')
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:annotation-invalid-in-context'
+            fqid == 'Gradle:Plugin Validation:Invalid annotation in context'
             definition.id.displayName == 'Invalid annotation in context'
             contextualLabel == "Property 'bad' is annotated with invalid property type @${ann.simpleName}"
             details == "The '@${ann.simpleName}' annotation cannot be used in this context"
@@ -839,7 +839,17 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
 
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:annotation-invalid-in-context'
+            fqid == 'Gradle:Plugin Validation:Conflicting annotations'
+            definition.id.displayName == 'Conflicting annotations'
+            contextualLabel == "Property 'conflictingAnnotations' has conflicting type annotations declared: @InputFile, @InputArtifact, @InputArtifactDependencies"
+            details == 'The different annotations have different semantics and Gradle cannot determine which one to pick'
+            solutions == ['Choose between one of the conflicting annotations']
+            additionalData.asMap == ['propertyName': 'conflictingAnnotations']
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#conflicting_annotations"
+        }
+        verifyAll(receivedProblem(1)) {
+            severity == Severity.ERROR
+            fqid == 'Gradle:Plugin Validation:Invalid annotation in context'
             definition.id.displayName == 'Invalid annotation in context'
             contextualLabel == "Property 'conflictingAnnotations' is annotated with invalid property type @InputFile"
             details == "The '@InputFile' annotation cannot be used in this context"
@@ -850,9 +860,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'conflictingAnnotations']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#annotation_invalid_in_context"
         }
-        verifyAll(receivedProblem(1)) {
+        verifyAll(receivedProblem(2)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:annotation-invalid-in-context'
+            fqid == 'Gradle:Plugin Validation:Invalid annotation in context'
             definition.id.displayName == 'Invalid annotation in context'
             contextualLabel == "Property 'inputFile' is annotated with invalid property type @InputFile"
             details == "The '@InputFile' annotation cannot be used in this context"
@@ -863,29 +873,9 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'inputFile']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#annotation_invalid_in_context"
         }
-        verifyAll(receivedProblem(2)) {
-            severity == Severity.ERROR
-            fqid == 'validation:property-validation:cacheable-transform-cant-use-absolute-sensitivity'
-            definition.id.displayName == 'Property declared to be sensitive to absolute paths'
-            contextualLabel == "Property 'absolutePathSensitivityDependencies' is declared to be sensitive to absolute paths"
-            details == 'This is not allowed for cacheable transforms'
-            solutions == ['Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath']
-            additionalData.asMap == ['propertyName': 'absolutePathSensitivityDependencies']
-            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#cacheable_transform_cant_use_absolute_sensitivity"
-        }
         verifyAll(receivedProblem(3)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:conflicting-annotations'
-            definition.id.displayName == 'Type has conflicting annotation'
-            contextualLabel == "Property 'conflictingAnnotations' has conflicting type annotations declared: @InputFile, @InputArtifact, @InputArtifactDependencies"
-            details == 'The different annotations have different semantics and Gradle cannot determine which one to pick'
-            solutions == ['Choose between one of the conflicting annotations']
-            additionalData.asMap == ['propertyName': 'conflictingAnnotations']
-            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#conflicting_annotations"
-        }
-        verifyAll(receivedProblem(4)) {
-            severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             definition.id.displayName == 'Missing annotation'
             contextualLabel == "Property 'notAnnotated' is missing an input annotation"
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
@@ -893,15 +883,25 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
             additionalData.asMap == ['propertyName': 'notAnnotated']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#missing_annotation"
         }
-        verifyAll(receivedProblem(5)) {
+        verifyAll(receivedProblem(4)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-normalization-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing normalization'
             definition.id.displayName == 'Missing normalization'
             contextualLabel == "Property 'noPathSensitivity' is annotated with @InputArtifact but missing a normalization strategy"
             details == "If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly"
             solutions == ['Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath']
             additionalData.asMap == ['propertyName': 'noPathSensitivity']
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#missing_normalization_annotation"
+        }
+        verifyAll(receivedProblem(5)) {
+            severity == Severity.ERROR
+            fqid == 'Gradle:Plugin Validation:Property declared to be sensitive to absolute paths'
+            definition.id.displayName == 'Property declared to be sensitive to absolute paths'
+            contextualLabel == "Property 'absolutePathSensitivityDependencies' is declared to be sensitive to absolute paths"
+            details == 'This is not allowed for cacheable transforms'
+            solutions == ['Use a different normalization strategy via @PathSensitive, @Classpath or @CompileClasspath']
+            additionalData.asMap == ['propertyName': 'absolutePathSensitivityDependencies']
+            definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#cacheable_transform_cant_use_absolute_sensitivity"
         }
     }
 
@@ -984,7 +984,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasCause('A problem was found with the configuration of MakeGreen.')
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:annotation-invalid-in-context'
+            fqid == 'Gradle:Plugin Validation:Invalid annotation in context'
             definition.id.displayName == 'Invalid annotation in context'
             contextualLabel == "Property 'bad' is annotated with invalid property type @${ann.simpleName}"
             details == "The '@${ann.simpleName}' annotation cannot be used in this context"
@@ -1223,7 +1223,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasDescription("A problem was found with the configuration of task ':broken' (type 'MyTask').")
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:type-validation:invalid-use-of-type-annotation'
+            fqid == 'Gradle:Plugin Validation:Incorrect use of type annotation'
             definition.id.displayName == 'Incorrect use of type annotation'
             contextualLabel == "Type 'MyTask' is incorrectly annotated with @CacheableTransform"
             details == 'This annotation only makes sense on TransformAction types'
@@ -1259,7 +1259,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         failure.assertHasDescription("Some problems were found with the configuration of task ':broken' (type 'MyTask').")
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:type-validation:invalid-use-of-type-annotation'
+            fqid == 'Gradle:Plugin Validation:Incorrect use of type annotation'
             definition.id.displayName == 'Incorrect use of type annotation'
             contextualLabel == "Type 'Options' is incorrectly annotated with @CacheableTask"
             details == 'This annotation only makes sense on Task types'
@@ -1269,7 +1269,7 @@ class ArtifactTransformValuesInjectionIntegrationTest extends AbstractDependency
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
-            fqid == 'validation:type-validation:invalid-use-of-type-annotation'
+            fqid == 'Gradle:Plugin Validation:Incorrect use of type annotation'
             definition.id.displayName == 'Incorrect use of type annotation'
             contextualLabel == "Type 'Options' is incorrectly annotated with @CacheableTransform"
             details == 'This annotation only makes sense on TransformAction types'

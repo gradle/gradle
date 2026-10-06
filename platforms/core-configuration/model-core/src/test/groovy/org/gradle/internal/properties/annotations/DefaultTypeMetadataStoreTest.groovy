@@ -533,8 +533,13 @@ class DefaultTypeMetadataStoreTest extends Specification implements ValidationMe
     }
 
     private List<String> collectProblems(TypeMetadata metadata) {
-        def validationContext = DefaultTypeValidationContext.withoutRootType(false, TestUtil.problemsService())
+        def problems = TestUtil.problemsService()
+        def validationContext = DefaultTypeValidationContext.withoutRootType(false, problems)
         metadata.visitValidationFailures(null, validationContext)
+        // the handlers stubbed by this test report into the legacy group; everything else comes from the store
+        assert (validationContext.warnings + validationContext.errors)
+            .findAll { it.definition.id.group != GradleCoreProblemGroup.validation().thisGroup() }
+            .every { it.definition.id.group == problems.groups.gradle.pluginValidation }
         return validationContext.warnings.collect { normaliseLineSeparators(renderMinimalInformationAbout(it)) } + validationContext.errors.collect { normaliseLineSeparators(renderMinimalInformationAbout(it)) }
     }
 

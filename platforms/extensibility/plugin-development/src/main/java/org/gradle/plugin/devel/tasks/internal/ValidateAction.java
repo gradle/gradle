@@ -28,7 +28,6 @@ import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemSpec;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.CacheableTask;
@@ -36,7 +35,6 @@ import org.gradle.api.tasks.UntrackedTask;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.model.internal.asm.AsmConstants;
-import org.gradle.util.internal.TextUtil;
 import org.gradle.work.DisableCachingByDefault;
 import org.gradle.workers.WorkAction;
 import org.gradle.workers.WorkParameters;
@@ -191,7 +189,7 @@ public abstract class ValidateAction implements WorkAction<ValidateAction.Params
                 validationContext.visitTypeError(problem -> {
                         ProblemSpec builder = problem
                             .withAnnotationType(topLevelBean)
-                            .id(TextUtil.screamingSnakeToKebabCase(ValidationTypes.NOT_CACHEABLE_WITHOUT_REASON), "Not cacheable without reason", GradleCoreProblemGroup.validation().type())
+                            .id(problem.getGradleGroup().getPluginValidation().problemId("Not cacheable without reason"))
                             .contextualLabel("must be annotated either with " + cacheableAnnotation + " or with " + disableCachingAnnotation)
                             .documentedAt(userManual("validation_problems", "disable_caching_by_default"))
                             .details("The " + workType + " author should make clear why a " + workType + " is not cacheable")

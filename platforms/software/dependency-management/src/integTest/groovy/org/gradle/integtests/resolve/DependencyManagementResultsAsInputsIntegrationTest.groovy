@@ -191,7 +191,7 @@ class DependencyManagementResultsAsInputsIntegrationTest extends AbstractHttpDep
         receivedProblems.size().times { index ->
             verifyAll(receivedProblem(index)) {
                 severity == Severity.ERROR
-                fqid == 'validation:property-validation:unsupported-value-type'
+                fqid == 'Gradle:Plugin Validation:Unsupported value type'
                 definition.id.displayName == 'Unsupported value type'
                 contextualLabel ==~ expectedContextualLabelPattern
                 details == expectedDetails

@@ -17,6 +17,7 @@
 package org.gradle.internal.reflect;
 
 import org.gradle.api.Action;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.problems.internal.TypeValidationDataSpec;
@@ -30,6 +31,11 @@ import java.util.Optional;
 import java.util.function.Supplier;
 
 abstract public class ProblemRecordingTypeValidationContext implements TypeValidationContext {
+    /**
+     * The name of the problem reported for a file input without a declared normalization.
+     */
+    public static final String MISSING_NORMALIZATION = "Missing normalization";
+
     private final Class<?> rootType;
     private final Supplier<Optional<PluginId>> pluginId;
     private final ProblemsInternal problems;
@@ -82,6 +88,14 @@ abstract public class ProblemRecordingTypeValidationContext implements TypeValid
             .map(PluginId::getId)
             .ifPresent(id -> problemBuilder.additionalDataInternal(TypeValidationDataSpec.class, data -> data.pluginId(id)));
         return problemBuilder;
+    }
+
+    /**
+     * Whether the problem only matters for work that is cacheable, and is dropped for other work.
+     */
+    protected boolean onlyAffectsCacheableWork(ProblemInternal problem) {
+        ProblemId missingNormalization = problems.getGroups().getGradle().getPluginValidation().problemId(MISSING_NORMALIZATION);
+        return missingNormalization.equals(problem.getDefinition().getId());
     }
 
     abstract protected void recordError(ProblemInternal problem);

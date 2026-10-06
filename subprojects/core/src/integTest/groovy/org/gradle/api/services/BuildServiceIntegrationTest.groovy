@@ -621,8 +621,8 @@ service: closed with value 10001
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:service-reference-must-be-a-build-service'
-            definition.id.displayName == 'Property has @ServiceReference annotation'
+            fqid == 'Gradle:Plugin Validation:@ServiceReference property is not a build service'
+            definition.id.displayName == '@ServiceReference property is not a build service'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#service_reference_must_be_a_build_service"
         }
     }

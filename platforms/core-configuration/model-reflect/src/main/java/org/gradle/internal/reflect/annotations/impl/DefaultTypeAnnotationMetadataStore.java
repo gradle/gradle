@@ -26,9 +26,7 @@ import com.google.common.collect.ListMultimap;
 import com.google.common.collect.MultimapBuilder;
 import com.google.common.collect.Ordering;
 import com.google.common.collect.SetMultimap;
-import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Action;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.cache.Cache;
 import org.gradle.cache.internal.ClassCacheFactory;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -42,7 +40,6 @@ import org.gradle.internal.reflect.annotations.TypeAnnotationMetadataStore;
 import org.gradle.internal.reflect.validation.ReplayingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeAwareProblemBuilder;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
-import org.gradle.util.internal.TextUtil;
 
 import javax.inject.Inject;
 import java.lang.annotation.Annotation;
@@ -349,7 +346,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 previouslySeenBuilder.visitPropertyError(problem ->
                     problem
                         .forProperty(propertyName)
-                        .id(TextUtil.screamingSnakeToKebabCase(REDUNDANT_GETTERS), "Property has redundant getters", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
+                        .id(problem.getGradleGroup().getPluginValidation().problemId("Property has redundant getters")) // TODO (donat) missing test coverage
                         .contextualLabel(
                             String.format(
                                 "has redundant getters: '%s()' and '%s()'",
@@ -397,7 +394,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                 // valid in this context, we'll need to handle it in some way to avoid the problem being generated.
                 validationContext.visitTypeError(problem ->
                     problem.withAnnotationType(declaredField.getDeclaringClass())
-                        .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", GradleCoreProblemGroup.validation().type())
+                        .id(problem.getGradleGroup().getPluginValidation().problemId("Ignored annotations on property"))
                         .contextualLabel(
                             String.format(
                                 "field '%s()' should not be annotated with: %s",
@@ -450,7 +447,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
                     validationContext.visitTypeError(problem ->
                         problem
                             .withAnnotationType(type)
-                            .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_FIELD), "Incorrect annotations on field", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
+                            .id(problem.getGradleGroup().getPluginValidation().problemId("Incorrect annotations on field")) // TODO (donat) missing test coverage
                             .contextualLabel(
                                 String.format(
                                     "field '%s' without corresponding getter has been annotated with %s",
@@ -542,7 +539,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             metadataBuilder.visitPropertyError(problem ->
                 problem
                     .forProperty(propertyName)
-                    .id(TextUtil.screamingSnakeToKebabCase(PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED), "Private property with wrong annotation", GradleCoreProblemGroup.validation().property())
+                    .id(problem.getGradleGroup().getPluginValidation().problemId("Private property with wrong annotation"))
                     .contextualLabel(String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
                     .documentedAt(userManual("validation_problems", PRIVATE_GETTER_MUST_NOT_BE_ANNOTATED.toLowerCase(Locale.ROOT)))
                     .details("Annotations on private getters are ignored")
@@ -595,7 +592,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             metadataBuilder.visitFunctionProblem(problem ->
                 problem
                     .forFunction(method.getName())
-                    .id(TextUtil.screamingSnakeToKebabCase(PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED), "Private method with wrong annotation", GradleCoreProblemGroup.validation().property())
+                    .id(problem.getGradleGroup().getPluginValidation().problemId("Private method with wrong annotation"))
                     .contextualLabel(String.format("is private and annotated with %s", simpleAnnotationNames(annotations.keySet().stream())))
                     .documentedAt(userManual("validation_problems", PRIVATE_METHOD_MUST_NOT_BE_ANNOTATED.toLowerCase(Locale.ROOT)))
                     .details("Annotations on private methods are ignored")
@@ -617,7 +614,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             validationContext.visitPropertyError(problem ->
                 problem
                     .forProperty(propertyName)
-                    .id(TextUtil.screamingSnakeToKebabCase(MUTABLE_TYPE_WITH_SETTER), "Mutable type with setter", GradleCoreProblemGroup.validation().property())
+                    .id(problem.getGradleGroup().getPluginValidation().problemId("Mutable type with setter"))
                     .contextualLabel(String.format("of mutable type '%s' is writable", setterType.getName()))
                     .documentedAt(userManual("validation_problems", MUTABLE_TYPE_WITH_SETTER.toLowerCase(Locale.ROOT)))
                     .details("Properties of type '" + setterType.getName() + "' are already mutable")
@@ -651,7 +648,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         if (!annotationTypes.isEmpty()) {
             validationContext.visitTypeError(problem ->
                 problem.withAnnotationType(method.getDeclaringClass())
-                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_METHOD), "Ignored annotations on method", GradleCoreProblemGroup.validation().type())
+                    .id(problem.getGradleGroup().getPluginValidation().problemId("Ignored annotations on method"))
                     .contextualLabel(
                         String.format(
                             "%s '%s()' should not be annotated with: %s",
@@ -673,7 +670,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         if (!annotationTypes.isEmpty()) {
             validationContext.visitTypeError(problem ->
                 problem.withAnnotationType(method.getDeclaringClass())
-                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", GradleCoreProblemGroup.validation().type())
+                    .id(problem.getGradleGroup().getPluginValidation().problemId("Ignored annotations on property"))
                     .contextualLabel(
                         String.format(
                             "%s '%s()' should not be annotated with: %s",
@@ -693,7 +690,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
         if (!annotationTypes.isEmpty()) {
             validationContext.visitTypeError(problem ->
                 problem.withAnnotationType(method.getDeclaringClass())
-                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_ANNOTATIONS_ON_PROPERTY), "Ignored annotations on property", GradleCoreProblemGroup.validation().type())
+                    .id(problem.getGradleGroup().getPluginValidation().problemId("Ignored annotations on property"))
                     .contextualLabel(
                         String.format(
                             "%s '%s()' should not be annotated with: %s",
@@ -888,7 +885,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             visitPropertyError(problem ->
                 problem
                     .forProperty(propertyName)
-                    .id(TextUtil.screamingSnakeToKebabCase(IGNORED_PROPERTY_MUST_NOT_BE_ANNOTATED), "Has wrong combination of annotations", GradleCoreProblemGroup.validation().property())
+                    .id(problem.getGradleGroup().getPluginValidation().problemId("Ignored property has other annotations"))
                     .contextualLabel(
                         String.format(
                             "annotated with @%s should not be also annotated with %s",
@@ -912,7 +909,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             visitPropertyError(problem ->
                 problem
                     .forProperty(propertyName)
-                    .id(TextUtil.screamingSnakeToKebabCase(CONFLICTING_ANNOTATIONS), StringUtils.capitalize(category.getDisplayName()) + " has conflicting annotation", GradleCoreProblemGroup.validation().property())
+                    .id(problem.getGradleGroup().getPluginValidation().problemId("Conflicting annotations"))
                     .contextualLabel(
                         String.format(
                             "has conflicting %s annotations %s: %s",
@@ -956,7 +953,7 @@ public class DefaultTypeAnnotationMetadataStore implements TypeAnnotationMetadat
             visitFunctionProblem(problem ->
                 problem
                     .forFunction(getMethod().getName())
-                    .id(TextUtil.screamingSnakeToKebabCase(CONFLICTING_ANNOTATIONS), StringUtils.capitalize(category.getDisplayName()) + " has conflicting annotation", GradleCoreProblemGroup.validation().type())
+                    .id(problem.getGradleGroup().getPluginValidation().problemId("Conflicting annotations"))
                     .contextualLabel(
                         String.format(
                             "has conflicting %s annotations %s: %s",

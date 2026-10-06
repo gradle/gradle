@@ -53,7 +53,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
         assertValidationFailsWith(5)
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'tree.left.left.nonAnnotated\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -70,7 +70,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'tree.left.nonAnnotated\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -87,7 +87,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
         }
         verifyAll(receivedProblem(2)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'tree.left.right.nonAnnotated\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -104,7 +104,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
         }
         verifyAll(receivedProblem(3)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'tree.nonAnnotated\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -121,7 +121,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
         }
         verifyAll(receivedProblem(4)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'tree.right.nonAnnotated\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -203,7 +203,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
         assertValidationFailsWith(4)
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:incorrect-use-of-input-annotation'
+            fqid == 'Gradle:Plugin Validation:Incorrect use of @Input annotation'
             contextualLabel == 'Type \'MyTask\' property \'file\' has @Input annotation used on property of type \'File\''
             details == 'A property of type \'File\' annotated with @Input cannot determine how to interpret the file'
             solutions == [
@@ -220,7 +220,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:incorrect-use-of-input-annotation'
+            fqid == 'Gradle:Plugin Validation:Incorrect use of @Input annotation'
             contextualLabel == 'Type \'MyTask\' property \'fileCollection\' has @Input annotation used on property of type \'FileCollection\''
             details == 'A property of type \'FileCollection\' annotated with @Input cannot determine how to interpret the file'
             solutions == [
@@ -237,7 +237,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
         }
         verifyAll(receivedProblem(2)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:incorrect-use-of-input-annotation'
+            fqid == 'Gradle:Plugin Validation:Incorrect use of @Input annotation'
             contextualLabel == 'Type \'MyTask\' property \'filePath\' has @Input annotation used on property of type \'Path\''
             details == 'A property of type \'Path\' annotated with @Input cannot determine how to interpret the file'
             solutions == [
@@ -254,7 +254,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
         }
         verifyAll(receivedProblem(3)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:incorrect-use-of-input-annotation'
+            fqid == 'Gradle:Plugin Validation:Incorrect use of @Input annotation'
             contextualLabel == 'Type \'MyTask\' property \'fileTree\' has @Input annotation used on property of type \'FileTree\''
             details == 'A property of type \'FileTree\' annotated with @Input cannot determine how to interpret the file'
             solutions == [
@@ -383,7 +383,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
         assertValidationFailsWith(8)
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'doubleIterableOptions.$0.$0.notAnnotated\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -400,7 +400,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'iterableMappedOptions.$0.alma.$0.notAnnotated\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -417,7 +417,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
         }
         verifyAll(receivedProblem(2)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'iterableOptions.$0.notAnnotated\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -434,7 +434,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
         }
         verifyAll(receivedProblem(3)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'mappedOptions.alma.notAnnotated\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -451,7 +451,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
         }
         verifyAll(receivedProblem(4)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'namedIterable.tibor$0.notAnnotated\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -468,7 +468,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
         }
         verifyAll(receivedProblem(5)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'options.notAnnotated\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -485,7 +485,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
         }
         verifyAll(receivedProblem(6)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'optionsList.$0.notAnnotated\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -502,7 +502,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
         }
         verifyAll(receivedProblem(7)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'providedOptions.notAnnotated\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
