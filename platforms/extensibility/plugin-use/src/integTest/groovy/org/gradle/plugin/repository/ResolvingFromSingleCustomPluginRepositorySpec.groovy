@@ -30,6 +30,11 @@ import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 @LeaksFileHandles
 class ResolvingFromSingleCustomPluginRepositorySpec extends AbstractDependencyResolutionTest {
+
+    def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
+    }
+
     private static final String MAVEN = 'maven'
     private static final String IVY = 'ivy'
 

@@ -32,6 +32,11 @@ import spock.lang.Shared
 
 @LeaksFileHandles
 class ResolvingFromMultipleCustomPluginRepositorySpec extends AbstractDependencyResolutionTest {
+
+    def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
+    }
+
     public static final String MAVEN = 'maven'
     public static final String IVY = 'ivy'
 

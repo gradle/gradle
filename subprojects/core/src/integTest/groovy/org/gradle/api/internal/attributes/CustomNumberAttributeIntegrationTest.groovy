@@ -39,6 +39,10 @@ import org.gradle.integtests.fixtures.BuildOperationsFixture
  */
 final class CustomNumberAttributeIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
+    }
+
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     private static final String CUSTOM_NUMBER = """

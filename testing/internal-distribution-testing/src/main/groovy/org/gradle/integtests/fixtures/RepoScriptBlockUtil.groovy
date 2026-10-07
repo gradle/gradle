@@ -104,9 +104,8 @@ class RepoScriptBlockUtil {
      * Register extra repositories here, no test needs a repository declaration of its own. See contributing/Testing.md.
      * A repository is in the list only while tests need it.
      *
-     * They are included in the repository blocks produced by this class (see {@link #extraRepositoriesDefinition}),
-     * and injected by an init script (see {@link #extraRepositoriesInitScript}) into every smoke test build and into
-     * the builds of a {@code GradleExecuter} that asks for them with {@code withExtraRepositories()}.
+     * The repository blocks of this class contain these repositories (see {@link #extraRepositoriesDefinition}).
+     * An init script also adds them to every test build (see {@link #extraRepositoriesInitScript}).
      */
     private static final List<ExtraRepository> EXTRA_REPOSITORIES = ([
         kotlinDevVersionTested() ? new ExtraRepository(MirroredRepository.KOTLIN_DEV.name, MirroredRepository.KOTLIN_DEV.mirrorUrl, [/org\.jetbrains\.kotlin(\..+)?/]) : null
@@ -219,7 +218,7 @@ class RepoScriptBlockUtil {
     }
 
     /**
-     * The init script adding the extra repositories to a build, or {@code null} when there is none.
+     * Returns the init script that adds the extra repositories to a build. Returns {@code null} if there are no extra repositories.
      */
     static synchronized File extraRepositoriesInitScriptFile() {
         if (EXTRA_REPOSITORIES.empty) {

@@ -22,6 +22,10 @@ import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 class ApplyPluginBuildOperationIntegrationTest extends AbstractIntegrationSpec {
 
+    def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
+    }
+
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 
     def "captures plugin application events"() {

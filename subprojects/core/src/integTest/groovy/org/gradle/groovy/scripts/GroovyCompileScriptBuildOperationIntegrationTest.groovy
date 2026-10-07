@@ -27,6 +27,7 @@ class GroovyCompileScriptBuildOperationIntegrationTest extends AbstractIntegrati
     final static String BODY = "BODY"
 
     def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
         executer.requireOwnGradleUserHomeDir()
     }
 

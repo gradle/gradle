@@ -178,7 +178,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean disableToolchainDownload = true;
     private boolean disableToolchainDetection = true;
     private boolean disablePluginRepositoryMirror = false;
-    private boolean extraRepositories = false;
+    private boolean extraRepositoriesDisabled = false;
 
     private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings = new ArrayList<>();
     private boolean eagerClassLoaderCreationChecksOn = true;
@@ -481,8 +481,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         if (disablePluginRepositoryMirror) {
             executer.withPluginRepositoryMirrorDisabled();
         }
-        if (extraRepositories) {
-            executer.withExtraRepositories();
+        if (extraRepositoriesDisabled) {
+            executer.withoutExtraRepositories();
         }
 
         return executer;
@@ -981,8 +981,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
-    public GradleExecuter withExtraRepositories() {
-        extraRepositories = true;
+    public GradleExecuter withoutExtraRepositories() {
+        extraRepositoriesDisabled = true;
         return this;
     }
 
@@ -1103,10 +1103,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             allArgs.add("--init-script");
             allArgs.add(initScript.getAbsolutePath());
         }
-        File extraRepositoriesInitScript = extraRepositories ? RepoScriptBlockUtil.extraRepositoriesInitScriptFile() : null;
-        if (extraRepositoriesInitScript != null) {
-            allArgs.add("--init-script");
-            allArgs.add(extraRepositoriesInitScript.getAbsolutePath());
+        File extraRepositoriesInitScript = RepoScriptBlockUtil.extraRepositoriesInitScriptFile();
+        if (extraRepositoriesInitScript != null && !extraRepositoriesDisabled) {
+            // Give the option and its value as one argument. The wrapper stops its own parsing at the separate value
+            // of an unknown option. Then the wrapper does not see later options, for example --gradle-user-home.
+            allArgs.add("--init-script=" + extraRepositoriesInitScript.getAbsolutePath());
         }
         if (quiet) {
             allArgs.add("--quiet");
