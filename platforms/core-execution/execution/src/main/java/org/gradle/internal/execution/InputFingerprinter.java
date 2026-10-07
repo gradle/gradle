@@ -30,7 +30,6 @@ import java.util.function.Consumer;
 @ServiceScope(Scope.BuildSession.class)
 public interface InputFingerprinter {
     Result fingerprintInputProperties(
-        ImmutableSortedMap<String, ValueSnapshot> previousValueSnapshots,
         ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousFingerprints,
         ImmutableSortedMap<String, ValueSnapshot> knownCurrentValueSnapshots,
         ImmutableSortedMap<String, CurrentFileCollectionFingerprint> knownCurrentFingerprints,

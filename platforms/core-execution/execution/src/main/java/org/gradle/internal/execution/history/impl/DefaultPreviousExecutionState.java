@@ -19,14 +19,21 @@ package org.gradle.internal.execution.history.impl;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
+import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.PreviousExecutionState;
+import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
+import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
+import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
+import static com.google.common.collect.Maps.transformValues;
+
 public class DefaultPreviousExecutionState extends AbstractInputExecutionState<FileCollectionFingerprint> implements PreviousExecutionState {
+    private final ImmutableSortedMap<String, HashCode> inputPropertyHashes;
     private final ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork;
     private final OriginMetadata originMetadata;
     private final boolean successful;
@@ -37,16 +44,50 @@ public class DefaultPreviousExecutionState extends AbstractInputExecutionState<F
         HashCode cacheKey,
         ImplementationSnapshot implementation,
         ImmutableList<ImplementationSnapshot> additionalImplementations,
-        ImmutableSortedMap<String, ValueSnapshot> inputProperties,
+        ImmutableSortedMap<String, HashCode> inputPropertyHashes,
         ImmutableSortedMap<String, FileCollectionFingerprint> inputFileProperties,
         ImmutableSortedMap<String, FileSystemSnapshot> outputFilesProducedByWork,
         boolean successful
     ) {
-        super(implementation, additionalImplementations, inputProperties, inputFileProperties);
+        super(implementation, additionalImplementations, inputFileProperties);
+        this.inputPropertyHashes = inputPropertyHashes;
         this.outputFilesProducedByWork = outputFilesProducedByWork;
         this.originMetadata = originMetadata;
         this.successful = successful;
         this.cacheKey = cacheKey;
+    }
+
+    /**
+     * Converts the state captured during this execution into the form kept in the execution history:
+     * input values are reduced to their hashes and file fingerprints to their serializable form.
+     */
+    public static DefaultPreviousExecutionState from(AfterExecutionState executionState) {
+        return new DefaultPreviousExecutionState(
+            executionState.getOriginMetadata(),
+            executionState.getCacheKey(),
+            executionState.getImplementation(),
+            executionState.getAdditionalImplementations(),
+            hashInputProperties(executionState.getInputProperties()),
+            prepareForSerialization(executionState.getInputFileProperties()),
+            executionState.getOutputFilesProducedByWork(),
+            executionState.isSuccessful()
+        );
+    }
+
+    private static ImmutableSortedMap<String, HashCode> hashInputProperties(ImmutableSortedMap<String, ValueSnapshot> inputProperties) {
+        return copyOfSorted(transformValues(inputProperties, Hashing::hashHashable));
+    }
+
+    private static ImmutableSortedMap<String, FileCollectionFingerprint> prepareForSerialization(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints) {
+        return copyOfSorted(transformValues(
+            fingerprints,
+            value -> value.archive(SerializableFileCollectionFingerprint::new)
+        ));
+    }
+
+    @Override
+    public ImmutableSortedMap<String, HashCode> getInputPropertyHashes() {
+        return inputPropertyHashes;
     }
 
     @Override

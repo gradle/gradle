@@ -16,21 +16,15 @@
 
 package org.gradle.internal.execution;
 
-import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultPreviousExecutionState;
-import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
-import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Optional;
 
-import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
-import static com.google.common.collect.Maps.transformValues;
 
 public class TestExecutionHistoryStore implements ExecutionHistoryStore {
 
@@ -43,28 +37,12 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
 
     @Override
     public void store(String key, AfterExecutionState executionState) {
-        executionHistory.put(key, new DefaultPreviousExecutionState(
-            executionState.getOriginMetadata(),
-            executionState.getCacheKey(),
-            executionState.getImplementation(),
-            executionState.getAdditionalImplementations(),
-            executionState.getInputProperties(),
-            prepareForSerialization(executionState.getInputFileProperties()),
-            executionState.getOutputFilesProducedByWork(),
-            executionState.isSuccessful()
-        ));
+        executionHistory.put(key, DefaultPreviousExecutionState.from(executionState));
     }
 
     @Override
     public void remove(String key) {
         executionHistory.remove(key);
-    }
-
-    private static ImmutableSortedMap<String, FileCollectionFingerprint> prepareForSerialization(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints) {
-        return copyOfSorted(transformValues(
-            fingerprints,
-            value -> value.archive(SerializableFileCollectionFingerprint::new)
-        ));
     }
 
     public Map<String, PreviousExecutionState> getExecutionHistory() {
