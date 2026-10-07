@@ -285,6 +285,27 @@ Attribute types support most Java primitive classes; such as `String`, `Boolean`
 Or anything extending `org.gradle.api.Named`.
 Plain Java `Enum` types (that do not implement `Named`) are **not** supported as attribute value types — resolution and publishing paths that desugar attributes require the value type to implement `Named`.
 
+When Gradle reduces a `Named` attribute value to a String — to match it against a published value, to report it in a resolution result, to cache it, or to publish it — it uses `getName()`.
+If you write your own `Named` implementation, **never give it a `toString()` that returns something other than its `getName()`**.
+Nothing enforces this, and a value that breaks it still resolves and publishes correctly, so the only thing you gain is a diagnostic that disagrees with itself: build scans, `dependencyInsight` output, and error messages render the value one way while matching and published metadata use the other.
+You will eventually spend an afternoon chasing a variant mismatch that was never there.
+
+The trap is easy to fall into with an `enum` implementing `Named`, because `Enum` supplies a `toString()` for you:
+
+[source,groovy]
+----
+enum MyType implements Named {
+    TYPE_A, TYPE_B
+
+    // Don't do this: getName() is "type_a" but the inherited toString() is "TYPE_A"
+    @Override
+    String getName() { return name().toLowerCase() }
+}
+----
+
+Either return `name()` from `getName()`, or override `toString()` to return `getName()` as well.
+A value created via the _object factory_ (see below) never has this problem, because the instance Gradle generates returns the name from both methods.
+
 Attributes should always be declared in the _attribute schema_ found on the `dependencies` handler:
 
 ====
