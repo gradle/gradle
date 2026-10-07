@@ -64,6 +64,7 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
         wireInArtificialSourceSet(project, extension);
         setStyling(project, extension);
         overrideDokkaVersion(project, extension);
+        overrideFreemarkerVersion(project);
         setMemoryForWorkers(project);
     }
 
@@ -86,6 +87,11 @@ public class GradleKotlinDslReferencePlugin implements Plugin<Project> {
         Property<String> dokkaVersionOverride = extension.getKotlinDslReference().getDokkaVersionOverride();
         Property<String> defaultDokkaVersion = getDokkatooExtension(project).getVersions().getJetbrainsDokka();
         defaultDokkaVersion.set(dokkaVersionOverride.convention(defaultDokkaVersion.get()));
+    }
+
+    // Dokka 1.9.20 defaults to FreeMarker 2.3.32, affected by CVE-2026-84939
+    private static void overrideFreemarkerVersion(Project project) {
+        getDokkatooExtension(project).getVersions().getFreemarker().set("2.3.35");
     }
 
     /**

@@ -23,8 +23,8 @@ val antVersion = "1.10.15"
 // when upgrading ASM.
 val asmVersion = "9.8"
 val awsS3Version = "1.12.780"
-val bouncycastleVersion = "1.84"
-val jacksonVersion = "2.18.6"
+val bouncycastleVersion = "1.85"
+val jacksonVersion = "2.18.11"
 val jaxbVersion = "3.0.0"
 val junit5Version = "5.8.2"
 val mavenVersion = "3.9.5"
@@ -38,7 +38,7 @@ val tomljVersion = "1.0.0"
 val archunitVersion = "1.2.0"
 val bytebuddyVersion = "1.10.20"
 val jettyVersion = "9.4.36.v20210114"
-val sshdVersion = "2.12.1"
+val sshdVersion = "2.15.0"
 
 // For the junit-bom
 javaPlatform.allowDependencies()
@@ -56,7 +56,7 @@ dependencies {
         api(libs.asmCommons)            { version { strictly(asmVersion) }}
         api(libs.asmTree)               { version { strictly(asmVersion) }}
         api(libs.asmUtil)               { version { strictly(asmVersion) }}
-        api(libs.assertj)               { version { strictly("3.23.1") }}
+        api(libs.assertj)               { version { strictly("3.27.7") }}
         api(libs.awsS3Core)             { version { strictly(awsS3Version) }}
         api(libs.awsS3Kms)              { version { strictly(awsS3Version) }}
         api(libs.awsS3S3)               { version { strictly(awsS3Version) }}
@@ -70,7 +70,7 @@ dependencies {
         api(libs.commonsHttpclient)     { version { strictly("4.5.14") } }
         api(libs.commonsIo)             { version { strictly("2.15.1") }}
         api(libs.commonsLang)           { version { strictly("2.6") }}
-        api(libs.commonsLang3)          { version { strictly("3.14.0") }}
+        api(libs.commonsLang3)          { version { strictly("3.18.0") }}
         api(libs.commonsMath)           { version { strictly("3.6.1") }}
         api(libs.eclipseSisuPlexus)     { version { strictly("0.3.5"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.errorProneAnnotations) { version { strictly("2.36.0") } } // don't forget to upgrade errorprone in gradlebuild.code-quality.gradle.kts
@@ -122,16 +122,20 @@ dependencies {
         api(libs.jclToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.jcommander)            { version { strictly("1.78") }}
         api(libs.jetbrainsAnnotations)  { version { strictly("24.0.1") }}
-        api(libs.jgit)                  { version { strictly("5.13.3.202401111512-r"); because("6.x requires Java 11") }}
-        api(libs.jgitSsh)               { version { strictly("5.13.3.202401111512-r") }}
+        api(libs.jgit)                  { version { strictly("5.13.5.202508271544-r"); because("6.x requires Java 11") }}
+        api(libs.jgitSsh)               { version { strictly("5.13.5.202508271544-r") }}
         api(libs.joda)                  { version { strictly("2.12.2") }}
         api(libs.joptSimple)            { version { strictly("5.0.4"); because("needed to create profiler in Gradle profiler API") }}
         api(libs.jsch)                  { version { strictly("0.2.16") }}
-        api(libs.jsoup)                 { version { strictly("1.15.3") }}
+        api(libs.jsoup)                 { version { strictly("1.23.2") }}
         api(libs.jsr305)                { version { strictly("3.0.2") }}
         api(libs.julToSlf4j)            { version { strictly(slf4jVersion) }}
         api(libs.junit)                 { version { strictly("4.13.2") }}
         api(libs.junit5JupiterApi)      { version { strictly(junit5Version) }}
+        api("org.junit.jupiter:junit-jupiter") { version { strictly(junit5Version) }}
+        api("org.junit.jupiter:junit-jupiter-engine") { version { strictly(junit5Version) }}
+        api("org.junit.jupiter:junit-jupiter-params") { version { strictly(junit5Version) }}
+        api("org.junit.platform:junit-platform-commons") { version { strictly("1.8.2") }}
         api(libs.junit5Vintage)         { version { strictly(junit5Version) }}
         api(libs.junitPlatform)         { version { strictly("1.8.2") }}
         api(libs.junitPlatformEngine)   { version { strictly("1.8.2") }}
@@ -152,7 +156,7 @@ dependencies {
         api(libs.plexusInterpolation)   { version { strictly("1.26"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.plexusClassworlds)     { version { strictly("2.7.0"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.plexusSecDispatcher)   { version { strictly("2.0"); because("transitive dependency of Maven modules to process POM metadata") }}
-        api(libs.plexusUtils)           { version { strictly("3.5.1"); because("transitive dependency of Maven modules to process POM metadata") }}
+        api(libs.plexusUtils)           { version { strictly("3.6.1"); because("transitive dependency of Maven modules to process POM metadata") }}
         api(libs.plist)                 { version { strictly("1.27") }}
         api(libs.servletApi)            { version { strictly("3.1.0") }}
         api(libs.slf4jApi)              { version { strictly(slf4jVersion) }}
@@ -173,7 +177,7 @@ dependencies {
         api(libs.zinc)                  { version { strictly("1.10.4") } }
 
         // test only
-        api(libs.aircompressor)         { version { strictly("0.27") }}
+        api(libs.aircompressor)         { version { strictly("2.0.3") }}
         api(libs.archunit)              { version { strictly(archunitVersion) }}
         api(libs.archunitJunit5)        { version { strictly(archunitVersion) }}
         api(libs.archunitJunit5Api)     { version { strictly(archunitVersion) }}
@@ -207,7 +211,7 @@ dependencies {
         api(libs.mavenResolverSupplier)         { version { strictly(mavenResolverVersion) }}
         api(libs.mavenResolverTransportFile)    { version { strictly(mavenResolverVersion) }}
         api(libs.mavenResolverTransportHttp)    { version { strictly(mavenResolverVersion) }}
-        api(libs.mina)                  { version { strictly("2.0.17") }}
+        api(libs.mina)                  { version { strictly("2.0.31") }}
         api(libs.mockitoCore)           { version { strictly("3.7.7") }}
         api(libs.mockitoKotlin)         { version { strictly("1.6.0") }}
         api(libs.mockitoKotlin2)        { version { strictly("2.2.0") }}
@@ -228,7 +232,7 @@ dependencies {
         api(libs.testcontainers)        { version { strictly("1.20.4") }}
         api(libs.testcontainersSpock)   { version { strictly("1.20.4") }}
         api(libs.typesafeConfig)        { version { strictly("1.3.3") }}
-        api(libs.xerces)                { version { strictly("2.12.0") }}
+        api(libs.xerces)                { version { strictly("2.12.2") }}
         api(libs.xmlunit)               { version { strictly("1.6") }}
     }
 }

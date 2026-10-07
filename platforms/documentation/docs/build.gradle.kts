@@ -52,19 +52,33 @@ dependencies {
     // generate Javadoc for the full Gradle distribution
     runtimeOnly(project(":distributions-full"))
 
-    userGuideTask("xalan:xalan:2.7.1")
-    userGuideTask("xerces:xercesImpl:2.11.0")
+    userGuideTask("xalan:xalan:2.7.3")
+    userGuideTask("xalan:serializer:2.7.3") // xalan 2.7.3 no longer declares it as a dependency
+    userGuideTask("xerces:xercesImpl:2.12.2")
     userGuideTask("net.sf.xslthl:xslthl:2.0.1")
 
     userGuideStyleSheets("net.sf.docbook:docbook-xsl:1.75.2:resources@zip")
 
     jquery("jquery:jquery.min:3.5.1@js")
 
+    constraints {
+        "checkAsciidoctorSampleContents"("commons-io:commons-io:2.19.0") {
+            because("Bump version brought in transitively by Exemplar, to resolve CVE-2024-47554")
+        }
+        "checkAsciidoctorSampleContents"("org.apache.commons:commons-lang3:3.18.0") {
+            because("Bump version brought in transitively by Exemplar, to resolve CVE-2025-48924")
+        }
+        "checkAsciidoctorSampleContents"("junit:junit:4.13.2") {
+            because("Bump version brought in transitively by Exemplar, to resolve CVE-2020-15250")
+        }
+        "dokkatooHtmlGeneratorClasspath"("org.jsoup:jsoup:1.23.2") {
+            because("Bump version brought in transitively by Dokka, to resolve CVE-2026-71497")
+        }
+    }
+
     testImplementation(project(":base-services"))
     testImplementation(project(":core"))
     testImplementation(libs.jsoup)
-    testImplementation("org.gebish:geb-spock:2.2")
-    testImplementation("org.seleniumhq.selenium:selenium-htmlunit-driver:2.42.2")
     testImplementation(libs.commonsHttpclient)
     testImplementation(libs.httpmime)
 

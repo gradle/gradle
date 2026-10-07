@@ -3,9 +3,11 @@ import gradlebuild.basics.buildCommitId
 import gradlebuild.integrationtests.addDependenciesAndConfigurations
 import gradlebuild.integrationtests.tasks.SmokeTest
 import gradlebuild.performance.generator.tasks.RemoteProject
+import gradlebuild.integrationtests.androidhomewarmup.SdkVersion
 
 plugins {
     id("gradlebuild.internal.java")
+    id("gradlebuild.android-home-warmup")
 }
 
 val smokeTestSourceSet = sourceSets.create("smokeTest") {
@@ -44,6 +46,25 @@ dependencies {
     smokeTestImplementation(testFixtures(projects.modelReflect))
 
     smokeTestDistributionRuntimeOnly(projects.distributionsFull)
+}
+
+androidHomeWarmup {
+    rootProjectDir = project.layout.projectDirectory.dir("../..")
+    sdkVersions.set(
+        listOf(
+            // Build-tools 35.0.0 (used by AGP >= 8.8)
+            SdkVersion(compileSdk = 36, buildTools = "35.0.0", agpVersion = "8.13.1"),
+
+            // Build-tools 34.0.0 (used by AGP 8.2 to 8.7)
+            SdkVersion(compileSdk = 30, buildTools = "34.0.0", agpVersion = "8.7.3"),
+
+            // Build-tools 33.0.1 (used by AGP 8.1)
+            SdkVersion(compileSdk = 30, buildTools = "33.0.1", agpVersion = "8.1.4"),
+
+            // Build-tools 30.0.3 (used by AGP < 8.1)
+            SdkVersion(compileSdk = 30, buildTools = "30.0.3", agpVersion = "8.0.2"),
+        ),
+    )
 }
 
 tasks {
@@ -115,6 +136,8 @@ tasks {
                 excludeTestsMatching(santaTrackerTestPattern)
             }
         }
+        
+        dependsOn("androidHomeWarmup")
     }
 
     register<SmokeTest>("configCacheSmokeTest") {
@@ -127,6 +150,8 @@ tasks {
                 excludeTestsMatching(santaTrackerTestPattern)
             }
         }
+
+        dependsOn("androidHomeWarmup")
     }
 
     register<SmokeTest>("gradleBuildSmokeTest") {
@@ -156,6 +181,8 @@ tasks {
                 includeTestsMatching(santaTrackerTestPattern)
             }
         }
+
+        dependsOn("androidHomeWarmup")
     }
 
     register<SmokeTest>("configCacheSantaTrackerSmokeTest") {
@@ -169,6 +196,8 @@ tasks {
                 includeTestsMatching(santaTrackerTestPattern)
             }
         }
+
+        dependsOn("androidHomeWarmup")
     }
 }
 

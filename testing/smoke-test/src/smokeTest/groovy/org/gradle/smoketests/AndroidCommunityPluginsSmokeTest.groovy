@@ -118,7 +118,7 @@ class AndroidCommunityPluginsSmokeTest extends AbstractPluginValidatingSmokeTest
                 android {
                     namespace = "org.gradle.smoke.test"
                     compileSdk = 24
-                    buildToolsVersion = '${TestedVersions.androidTools}'
+                    buildToolsVersion = '${AGP_VERSIONS.getBuildToolsVersionFor(ANDROID_PLUGIN_VERSION_FOR_TESTS)}'
                     defaultConfig {
                         versionCode = 1
                     }

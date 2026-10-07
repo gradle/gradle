@@ -34,6 +34,10 @@ dependencies {
     implementation(libs.guava)
     implementation(libs.jgitSsh) {
         exclude("org.apache.sshd", "sshd-osgi") // Because it duplicates sshd-core and sshd-commons contents
+        exclude("net.i2p.crypto", "eddsa")
+    }
+    runtimeOnly(libs.bouncycastleProvider) {
+        because("Apache SSHD needs it for Ed25519 keys, as net.i2p.crypto:eddsa is excluded")
     }
 
     testImplementation(projects.native)
@@ -47,6 +51,7 @@ dependencies {
     testFixturesImplementation(libs.jgit)
     testFixturesImplementation(libs.jgitSsh) {
         exclude("org.apache.sshd", "sshd-osgi") // Because it duplicates sshd-core and sshd-commons contents
+        exclude("net.i2p.crypto", "eddsa")
     }
     testFixturesImplementation(libs.commonsIo)
     testFixturesImplementation(libs.commonsHttpclient)
@@ -58,4 +63,8 @@ dependencies {
 }
 tasks.isolatedProjectsIntegTest {
     enabled = false
+}
+
+configurations.testRuntimeClasspath {
+    exclude("net.i2p.crypto", "eddsa") // Test fixtures bring it in via Apache SSHD; tests must see the shipped classpath
 }

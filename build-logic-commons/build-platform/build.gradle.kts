@@ -66,6 +66,9 @@ dependencies {
         api("org.spockframework:spock-junit4:$spockVersion")
         api("org.asciidoctor:asciidoctorj:2.5.13")
         api("org.asciidoctor:asciidoctorj-api:2.5.13")
+        api("org.apache.commons:commons-lang3:3.18.0") {
+            because("Bump version brought in transitively by junit-xml-parser, to resolve CVE-2025-48924")
+        }
         api("dev.adamko.dokkatoo:dokkatoo-plugin:2.3.1")
         api("org.jetbrains.dokka:dokka-core:1.9.20")
         api("com.fasterxml.woodstox:woodstox-core:6.4.0") {
@@ -75,10 +78,10 @@ dependencies {
         api("org.codehaus.groovy:groovy:$groovyVersion")
         api("org.codehaus.groovy.modules.http-builder:http-builder:0.7.2") // TODO maybe change group name when upgrading to Groovy 4
         api("org.codenarc:CodeNarc:$codenarcVersion")
-        api("org.eclipse.jgit:org.eclipse.jgit:5.13.3.202401111512-r")
+        api("org.eclipse.jgit:org.eclipse.jgit:5.13.5.202508271544-r")
         api("org.javassist:javassist:3.30.2-GA")
         api("org.jetbrains.kotlinx:kotlinx-metadata-jvm:0.9.0")
-        api("org.jsoup:jsoup:1.15.3")
+        api("org.jsoup:jsoup:1.23.2")
         api("org.junit.jupiter:junit-jupiter:5.8.2")
         api("org.junit.vintage:junit-vintage-engine:5.8.2")
         api("org.openmbee.junit:junit-xml-parser:1.0.0")

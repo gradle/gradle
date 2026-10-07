@@ -11,6 +11,13 @@ gradlePlugin {
             implementationClass = "gradlebuild.integrationtests.ide.AndroidStudioProvisioningPlugin"
         }
     }
+
+    plugins {
+        register("androidHomeWarmup") {
+            id = "gradlebuild.android-home-warmup"
+            implementationClass = "gradlebuild.integrationtests.androidhomewarmup.AndroidHomeWarmupPlugin"
+        }
+    }
 }
 
 dependencies {

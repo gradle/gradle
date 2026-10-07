@@ -370,7 +370,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         """
             android {
                 compileSdk = 30
-                buildToolsVersion = "${TestedVersions.androidTools}"
+                buildToolsVersion = "${AGP_VERSIONS.getBuildToolsVersionFor(agpVersion)}"
 
                 namespace = "${appPackage}"
                 defaultConfig {
@@ -420,7 +420,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
                 android {
                     namespace = "org.gradle.android.example.app"
                     compileSdk = 24
-                    buildToolsVersion = '${TestedVersions.androidTools}'
+                    buildToolsVersion = '${AGP_VERSIONS.getBuildToolsVersionFor(version)}'
                 }
             """
         }
