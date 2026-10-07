@@ -19,6 +19,9 @@ package org.gradle.internal.cc.impl
 import groovy.lang.Closure
 import groovy.lang.GroovyRuntimeException
 import groovy.lang.Script
+import java.io.File
+import java.net.URI
+import java.util.concurrent.Callable
 import org.gradle.api.Action
 import org.gradle.api.PathValidation
 import org.gradle.api.Project
@@ -58,6 +61,7 @@ import org.gradle.configuration.project.ProjectConfigurationActionContainer
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.groovy.scripts.ScriptSource
 import org.gradle.internal.build.BuildProjectRegistry
+import org.gradle.internal.buildoption.InternalOptions
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.ALLPROJECTS
 import org.gradle.internal.cc.impl.CrossProjectModelAccessPattern.CHILD
@@ -76,10 +80,13 @@ import org.gradle.internal.service.ServiceRegistry
 import org.gradle.invocation.GradleLifecycleActionExecutor
 import org.gradle.model.internal.registry.ModelRegistry
 import org.gradle.util.Path
-import java.io.File
-import java.net.URI
-import java.util.concurrent.Callable
 
+
+/**
+ * Opt-in while the ecosystem migrates: reports every read of the task graph from project configuration,
+ * pointing at the lazy task graph queries instead.
+ */
+private val REPORT_TASK_GRAPH_READS_FLAG = InternalOptions.ofBoolean("org.gradle.internal.isolated-projects.report-task-graph-reads", false)
 
 internal
 class ProblemReportingCrossProjectModelAccess(
@@ -89,7 +96,8 @@ class ProblemReportingCrossProjectModelAccess(
     private val instantiator: Instantiator,
     private val projectStateLookup: ProjectStateLookup,
     projectRegistry: BuildProjectRegistry,
-    gradleLifecycleActionExecutor: GradleLifecycleActionExecutor
+    gradleLifecycleActionExecutor: GradleLifecycleActionExecutor,
+    private val internalOptions: InternalOptions
 ) : CrossProjectModelAccess {
 
     private val delegate = DefaultCrossProjectModelAccess(projectRegistry, instantiator, gradleLifecycleActionExecutor)
@@ -138,7 +146,10 @@ class ProblemReportingCrossProjectModelAccess(
     }
 
     override fun taskGraphForProject(referrer: ProjectIdentity, taskGraph: TaskExecutionGraphInternal): TaskExecutionGraphInternal {
-        return CrossProjectConfigurationReportingTaskExecutionGraph(taskGraph, referrer, ipProblems, this, coupledProjectsListener, projectStateLookup)
+        return CrossProjectConfigurationReportingTaskExecutionGraph(
+            taskGraph, referrer, ipProblems, this, coupledProjectsListener, projectStateLookup,
+            reportConfigurationTimeReads = internalOptions.getBoolean(REPORT_TASK_GRAPH_READS_FLAG)
+        )
     }
 
     override fun parentProjectDynamicInheritedScope(referrer: ProjectState): HierarchicalDynamicObject? {
