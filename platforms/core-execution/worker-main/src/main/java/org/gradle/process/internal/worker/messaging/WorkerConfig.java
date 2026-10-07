@@ -32,6 +32,7 @@ public class WorkerConfig {
     private final boolean publishJvmMemoryInfo;
     private final String gradleUserHomeDirPath;
     private final MultiChoiceAddress serverAddress;
+    private final byte[] connectionToken;
     private final long workerId;
     private final String displayName;
     private final Action<? super WorkerProcessContext> workerAction;
@@ -42,6 +43,7 @@ public class WorkerConfig {
         boolean publishJvmMemoryInfo,
         String gradleUserHomeDirPath,
         MultiChoiceAddress serverAddress,
+        byte[] connectionToken,
         long workerId,
         String displayName,
         Action<? super WorkerProcessContext> workerAction,
@@ -51,6 +53,7 @@ public class WorkerConfig {
         this.publishJvmMemoryInfo = publishJvmMemoryInfo;
         this.gradleUserHomeDirPath = gradleUserHomeDirPath;
         this.serverAddress = serverAddress;
+        this.connectionToken = connectionToken;
         this.workerId = workerId;
         this.displayName = displayName;
         this.workerAction = workerAction;
@@ -79,6 +82,10 @@ public class WorkerConfig {
 
     public MultiChoiceAddress getServerAddress() {
         return serverAddress;
+    }
+
+    public byte[] getConnectionToken() {
+        return connectionToken;
     }
 
     public long getWorkerId() {

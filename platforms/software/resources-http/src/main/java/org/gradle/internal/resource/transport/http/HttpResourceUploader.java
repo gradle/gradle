@@ -18,6 +18,7 @@ package org.gradle.internal.resource.transport.http;
 
 import com.google.common.collect.ImmutableMap;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.HttpErrorStatusCodeException;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 

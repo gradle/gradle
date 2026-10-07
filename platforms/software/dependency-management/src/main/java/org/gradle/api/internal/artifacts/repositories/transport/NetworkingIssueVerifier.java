@@ -20,16 +20,13 @@ import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpStatus;
 import org.apache.http.NoHttpResponseException;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException;
+import org.gradle.internal.resource.HttpErrorStatusCodeException;
 
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
 import java.util.List;
 
 public class NetworkingIssueVerifier {
-
-    // Too many requests (not available through HttpStatus.XXX)
-    private static final int SC_TOO_MANY_REQUESTS = 429;
 
     /**
      * Determines if an error should cause a retry. We will currently retry:
@@ -62,8 +59,8 @@ public class NetworkingIssueVerifier {
         return false;
     }
 
-    private static boolean isTransientClientError(int statusCode) {
-        return statusCode == HttpStatus.SC_REQUEST_TIMEOUT || statusCode == SC_TOO_MANY_REQUESTS;
+    public static boolean isTransientClientError(int statusCode) {
+        return statusCode == HttpStatus.SC_REQUEST_TIMEOUT || statusCode == HttpStatus.SC_TOO_MANY_REQUESTS;
     }
 
     public static <E extends Throwable> boolean isLikelyPermanentNetworkIssue(E failure) {

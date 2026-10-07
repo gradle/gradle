@@ -55,6 +55,7 @@ dependencies {
         applyRule<DependencyRemovalByNameRule>("org.gradle:sample-discovery", setOf("asciidoctorj", "asciidoctorj-api"))
 
         withModule<RemoveXmlApisRule>("jaxen:jaxen")
+        withModule<ReplaceLz4WithMaintainedForkRule>("org.openjdk.jmc:common")
         withModule<RemoveXmlApisRule>("jdom:jdom")
         withModule<RemoveXmlApisRule>("xalan:xalan")
         withModule<RemoveXmlApisRule>("jaxen:jaxen")
@@ -293,6 +294,19 @@ abstract class GroovyTargetJvmVersionRule : ComponentMetadataRule {
     }
 }
 
+
+// org.lz4:lz4-java is abandoned and has unfixed CVEs; at.yawk.lz4 is its maintained drop-in fork
+abstract class ReplaceLz4WithMaintainedForkRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withDependencies {
+                if (removeAll { it.group == "org.lz4" && it.name == "lz4-java" }) {
+                    add("at.yawk.lz4:lz4-java:1.11.4")
+                }
+            }
+        }
+    }
+}
 
 /**
  * The JDK now provides these.

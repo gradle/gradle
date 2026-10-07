@@ -36,7 +36,6 @@ import java.nio.ByteBuffer;
 import java.nio.channels.ClosedChannelException;
 import java.nio.channels.ServerSocketChannel;
 import java.nio.channels.SocketChannel;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.UUID;
@@ -59,7 +58,7 @@ public class TcpIncomingConnector implements IncomingConnector {
     }
 
     @Override
-    public ConnectionAcceptor accept(Action<ConnectCompletion> action, boolean allowRemote) {
+    public ConnectionAcceptor accept(Action<ConnectCompletion> action, boolean allowRemote, byte[] connectionToken) {
         final ServerSocketChannel serverSocket;
         int localPort;
         try {
@@ -76,7 +75,7 @@ public class TcpIncomingConnector implements IncomingConnector {
         LOGGER.debug("Listening on {}.", address);
 
         final ManagedExecutor executor = executorFactory.create("Incoming " + (allowRemote ? "remote" : "local")+ " TCP Connector on port " + localPort);
-        executor.execute(new Receiver(serverSocket, action, allowRemote));
+        executor.execute(new Receiver(serverSocket, action, allowRemote, connectionToken));
 
         return new ConnectionAcceptor() {
             @Override
@@ -101,11 +100,13 @@ public class TcpIncomingConnector implements IncomingConnector {
         private final ServerSocketChannel serverSocket;
         private final Action<ConnectCompletion> action;
         private final boolean allowRemote;
+        private final byte[] connectionToken;
 
-        public Receiver(ServerSocketChannel serverSocket, Action<ConnectCompletion> action, boolean allowRemote) {
+        public Receiver(ServerSocketChannel serverSocket, Action<ConnectCompletion> action, boolean allowRemote, byte[] connectionToken) {
             this.serverSocket = serverSocket;
             this.action = action;
             this.allowRemote = allowRemote;
+            this.connectionToken = connectionToken;
         }
 
         @Override
@@ -123,7 +124,7 @@ public class TcpIncomingConnector implements IncomingConnector {
                         }
                         try {
                             SocketBlockingUtil.configureNonblocking(socket);
-                            waitForConnectionPreamble(socket);
+                            waitForHandshake(socket);
                         } catch (IOException e) {
                             LOGGER.error("Failed connection handshake with {}.", remoteSocketAddress, e);
                             socket.close();
@@ -148,8 +149,8 @@ public class TcpIncomingConnector implements IncomingConnector {
             }
         }
 
-        private void waitForConnectionPreamble(SocketChannel socket) throws IOException, InterruptedException {
-            ByteBuffer buffer = ByteBuffer.allocate(CONNECTION_PREAMBLE.length);
+        private void waitForHandshake(SocketChannel socket) throws IOException, InterruptedException {
+            ByteBuffer buffer = ByteBuffer.allocate(CONNECTION_PREAMBLE.length + connectionToken.length);
             long deadline = System.nanoTime() + TimeUnit.SECONDS.toNanos(acceptTimeoutSeconds);
             while (buffer.hasRemaining() && System.nanoTime() < deadline) {
                 int read = socket.read(buffer);
@@ -160,8 +161,12 @@ public class TcpIncomingConnector implements IncomingConnector {
                     Thread.sleep(1);
                 }
             }
-            if (!Arrays.equals(buffer.array(), CONNECTION_PREAMBLE)) {
+            byte[] handshake = buffer.array();
+            if (!ByteBuffer.wrap(handshake, 0, CONNECTION_PREAMBLE.length).equals(ByteBuffer.wrap(CONNECTION_PREAMBLE))) {
                 throw new IOException("Did not receive connection preamble within " + acceptTimeoutSeconds + "s");
+            }
+            if (!ByteBuffer.wrap(handshake, CONNECTION_PREAMBLE.length, connectionToken.length).equals(ByteBuffer.wrap(connectionToken))) {
+                throw new IOException("Peer did not present the expected connection token");
             }
         }
 

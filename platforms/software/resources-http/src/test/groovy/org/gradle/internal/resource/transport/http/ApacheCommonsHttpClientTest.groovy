@@ -26,6 +26,7 @@ import org.apache.http.impl.client.HttpClientBuilder
 import org.apache.http.protocol.HttpContext
 import org.apache.http.ssl.SSLContexts
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.internal.resource.HttpErrorStatusCodeException
 import org.gradle.util.SetSystemProperties
 import org.junit.Rule
 import spock.lang.Specification

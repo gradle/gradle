@@ -27,6 +27,7 @@ public interface MessagingClient {
      * Creates a connection to the given address. Blocks until the connection has been established.
      *
      * @param address The address to connect to.
+     * @param connectionToken The token to present to the peer.
      */
-    ObjectConnection getConnection(Address address);
+    ObjectConnection getConnection(Address address, byte[] connectionToken);
 }

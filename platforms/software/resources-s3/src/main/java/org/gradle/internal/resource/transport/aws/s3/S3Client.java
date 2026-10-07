@@ -210,15 +210,19 @@ public class S3Client {
             .withPrefix(s3BucketKey)
             .withMaxKeys(1000)
             .withDelimiter("/");
-        ObjectListing objectListing = amazonS3Client.listObjects(listObjectsRequest);
-        ImmutableList.Builder<String> builder = ImmutableList.builder();
-        builder.addAll(resourceResolver.resolveResourceNames(objectListing));
-
-        while (objectListing.isTruncated()) {
-            objectListing = amazonS3Client.listNextBatchOfObjects(objectListing);
+        try {
+            ObjectListing objectListing = amazonS3Client.listObjects(listObjectsRequest);
+            ImmutableList.Builder<String> builder = ImmutableList.builder();
             builder.addAll(resourceResolver.resolveResourceNames(objectListing));
+
+            while (objectListing.isTruncated()) {
+                objectListing = amazonS3Client.listNextBatchOfObjects(objectListing);
+                builder.addAll(resourceResolver.resolveResourceNames(objectListing));
+            }
+            return builder.build();
+        } catch (AmazonServiceException e) {
+            throw ResourceExceptions.getFailed(parent, e.getStatusCode(), e);
         }
-        return builder.build();
     }
 
     private S3Object doGetS3Object(URI uri, boolean isLightWeight) {
@@ -240,7 +244,7 @@ public class S3Client {
             if (null != errorCode && errorCode.equalsIgnoreCase("NoSuchKey")) {
                 return null;
             }
-            throw ResourceExceptions.getFailed(uri, e);
+            throw ResourceExceptions.getFailed(uri, e.getStatusCode(), e);
         }
     }
 
