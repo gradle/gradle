@@ -92,6 +92,7 @@ public class DeprecationLogger {
     public static DeprecationMessageBuilder<?> deprecate(final String feature) {
         DeprecationMessageBuilder<?> builder = new DeprecationMessageBuilder();
         builder.setSummary(feature + " has been deprecated.");
+        builder.setProblemName(feature);
         return builder;
     }
 

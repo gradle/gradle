@@ -41,6 +41,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     private DocLink documentation = null;
     private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
 
+    @Nullable
     protected String problemName;
 
     public static WithDocumentation withDocumentation(ProblemInternal warning, WithDeprecationTimeline withDeprecationTimeline) {
@@ -55,9 +56,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     /**
      * The problem name used when none is set explicitly.
      * <p>
-     * The name identifies the deprecated feature, not its usage: builders whose subject is data of the build
-     * (a configuration name, a task path) leave that data out, and call sites that interpolate such data into
-     * a free-text subject must set a name through {@link #withProblemName(String)}.
+     * The name identifies the kind of problem, not its usage: the typed builders name the kind of deprecated
+     * feature, the free-text builders use their subject as given. Call sites that interpolate data of the build
+     * (a configuration name, a task path, a user's property) into a free-text subject must set a name through
+     * {@link #withProblemName(String)}.
      */
     @Nullable
     protected String createDefaultProblemName() {
@@ -258,6 +260,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
+        protected String createDefaultProblemName() {
+            return subject;
+        }
+
+        @Override
         String formatSummary(String subject) {
             return String.format("%s has been deprecated.", subject);
         }
@@ -272,6 +279,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         DeprecateNamedParameter(String parameter) {
             super(parameter);
+        }
+
+        @Override
+        protected String createDefaultProblemName() {
+            return "Named parameter usage";
         }
 
         @Override
@@ -334,6 +346,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
+        protected String createDefaultProblemName() {
+            return "Property usage";
+        }
+
+        @Override
         String formatSummary(String property) {
             return String.format("The %s property has been deprecated.", property);
         }
@@ -357,6 +374,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         @Override
         String formatSubject() {
             return systemProperty;
+        }
+
+        @Override
+        protected String createDefaultProblemName() {
+            return "System property usage";
         }
 
         @Override
@@ -408,8 +430,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         @Override
         protected String createDefaultProblemName() {
-            // the configuration name is data of the build
-            return String.format("The configuration has been deprecated for %s.", deprecationType.displayName());
+            return "Configuration usage";
         }
 
         @Override
@@ -485,6 +506,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
+        protected String createDefaultProblemName() {
+            return "Method usage";
+        }
+
+        @Override
         String formatSummary(String method) {
             return String.format("The %s method has been deprecated.", method);
         }
@@ -506,6 +532,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
+        protected String createDefaultProblemName() {
+            return "Method usage";
+        }
+
+        @Override
         String formatSummary(String invocation) {
             return String.format("Using method %s has been deprecated.", invocation);
         }
@@ -523,6 +554,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
+        protected String createDefaultProblemName() {
+            return "Type usage";
+        }
+
+        @Override
         String formatSummary(String type) {
             return String.format("The %s type has been deprecated.", type);
         }
@@ -536,6 +572,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     public static class DeprecateTask extends WithReplacement<String, DeprecateTask> {
         DeprecateTask(String task) {
             super(task);
+        }
+
+        @Override
+        protected String createDefaultProblemName() {
+            return "Task usage";
         }
 
         @Override
@@ -559,8 +600,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         @Override
         protected String createDefaultProblemName() {
-            // the task path is data of the build
-            return String.format("The task type %s has been deprecated.", formatSubject());
+            return "Task type usage";
         }
 
         @Override
@@ -580,6 +620,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         DeprecatePlugin(String plugin) {
             super(plugin);
+        }
+
+        @Override
+        protected String createDefaultProblemName() {
+            return "Plugin usage";
         }
 
         @Override
@@ -607,6 +652,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
+        protected String createDefaultProblemName() {
+            return "Internal API usage";
+        }
+
+        @Override
         String formatSummary(String api) {
             return String.format("Internal API %s has been deprecated.", api);
         }
@@ -623,6 +673,11 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
 
         public DeprecateBehaviour(String behaviour) {
             this.behaviour = behaviour;
+        }
+
+        @Override
+        protected String createDefaultProblemName() {
+            return behaviour;
         }
 
         @Override

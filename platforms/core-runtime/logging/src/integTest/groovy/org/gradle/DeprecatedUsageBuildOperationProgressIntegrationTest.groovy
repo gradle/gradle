@@ -170,7 +170,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         and:
         verifyAll(receivedProblem(0)) {
-            fqid == 'Gradle:Deprecation:Custom Task action has been deprecated.'
+            fqid == 'Gradle:Deprecation:Custom Task action'
             contextualLabel == 'Custom Task action has been deprecated.'
             solutions == [
                 'Use task type X instead.',
@@ -178,33 +178,33 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
             ]
         }
         verifyAll(receivedProblem(1)) {
-            fqid == 'Gradle:Deprecation:Init script has been deprecated.'
+            fqid == 'Gradle:Deprecation:Init script'
             contextualLabel == 'Init script has been deprecated.'
         }
         verifyAll(receivedProblem(2)) {
-            fqid == 'Gradle:Deprecation:Init script has been deprecated.'
+            fqid == 'Gradle:Deprecation:Init script'
             contextualLabel == 'Init script has been deprecated.'
         }
         verifyAll(receivedProblem(3)) {
-            fqid == 'Gradle:Deprecation:Plugin has been deprecated.'
+            fqid == 'Gradle:Deprecation:Plugin'
             contextualLabel == 'Plugin has been deprecated.'
         }
         verifyAll(receivedProblem(4)) {
-            fqid == 'Gradle:Deprecation:Plugin script has been deprecated.'
+            fqid == 'Gradle:Deprecation:Plugin script'
             contextualLabel == 'Plugin script has been deprecated.'
         }
         verifyAll(receivedProblem(5)) {
-            fqid == 'Gradle:Deprecation:Some indirect deprecation has been deprecated.'
+            fqid == 'Gradle:Deprecation:Some indirect deprecation'
             contextualLabel == 'Some indirect deprecation has been deprecated.'
             solutions == [ 'Some advice.' ]
         }
         verifyAll(receivedProblem(6)) {
-            fqid == 'Gradle:Deprecation:Some invocation feature has been deprecated.'
+            fqid == 'Gradle:Deprecation:Some invocation feature'
             contextualLabel == 'Some invocation feature has been deprecated.'
             solutions == [ 'Don\'t do custom invocation.' ]
         }
         verifyAll(receivedProblem(7)) {
-            fqid == 'Gradle:Deprecation:Typed task has been deprecated.'
+            fqid == 'Gradle:Deprecation:Typed task'
             contextualLabel == 'Typed task has been deprecated.'
             details.startsWith('This is scheduled to be removed in Gradle ')
             additionalData.asMap == ['type': 'USER_CODE_DIRECT']
@@ -212,7 +212,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         if (getReceivedProblems().size() == 9) {
             //The deduplication based on hash seems to miss it some times. I assume because of slightly different stack traces
             verifyAll(receivedProblem(8)) {
-                fqid == 'Gradle:Deprecation:Typed task has been deprecated.'
+                fqid == 'Gradle:Deprecation:Typed task'
                 contextualLabel == 'Typed task has been deprecated.'
                 details.startsWith('This is scheduled to be removed in Gradle ')
                 additionalData.asMap == ['type': 'USER_CODE_DIRECT']
@@ -244,7 +244,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         and:
         verifyAll(receivedProblem) {
-            fqid == 'Gradle:Deprecation:BuildSrc script has been deprecated.'
+            fqid == 'Gradle:Deprecation:BuildSrc script'
             contextualLabel == 'BuildSrc script has been deprecated.'
         }
     }
@@ -297,11 +297,11 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
 
         and:
         verifyAll(receivedProblem(0)) {
-            fqid == 'Gradle:Deprecation:Included build script has been deprecated.'
+            fqid == 'Gradle:Deprecation:Included build script'
             contextualLabel == 'Included build script has been deprecated.'
         }
         verifyAll(receivedProblem(1)) {
-            fqid == 'Gradle:Deprecation:Included build task has been deprecated.'
+            fqid == 'Gradle:Deprecation:Included build task'
             contextualLabel == 'Included build task has been deprecated.'
         }
     }

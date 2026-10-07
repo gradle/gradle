@@ -607,7 +607,7 @@ Problem found: Project is a prototype (id: prototype-project, in sample-problems
         expect:
         succeeds("help")
         verifyAll(receivedProblem) {
-            it.definition.id.fqid == 'Gradle:Deprecation:Feature has been deprecated.'
+            it.definition.id.fqid == 'Gradle:Deprecation:Feature'
         }
     }
 
