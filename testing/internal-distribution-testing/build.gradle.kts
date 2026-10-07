@@ -86,10 +86,14 @@ dependencies {
     javadocReferences(testFixtures(projects.toolingApi))
 }
 
+// Declared separately from the task so the source set can register it as an output directory
+// without querying the task's output property, which is not allowed before the task has run.
+val allReleasedVersionsDir = layout.buildDirectory.dir("generated-resources/all-released-versions")
+
 val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {
     group = "build"
     description = "Generates the properties file listing all previously released Gradle versions."
-    destFile = layout.buildDirectory.file("generated-resources/all-released-versions/all-released-versions.properties")
+    destFile = allReleasedVersionsDir.map { it.file("all-released-versions.properties") }
     versions = gradleModule.identity.releasedVersions.map {
         it.allPreviousVersions.joinToString(" ") { it.version }
     }
@@ -116,7 +120,7 @@ val generateLanguageAnnotations = tasks.register<GenerateLanguageAnnotations>("g
 
 sourceSets.main {
     groovy.srcDir(generateLanguageAnnotations.flatMap { it.destDir })
-    output.dir(prepareVersionsInfo.flatMap { it.destFile }.map { it.asFile.parentFile })
+    output.dir(mapOf("builtBy" to prepareVersionsInfo), allReleasedVersionsDir)
     output.dir(copyTestedVersionsInfo)
 }
 
