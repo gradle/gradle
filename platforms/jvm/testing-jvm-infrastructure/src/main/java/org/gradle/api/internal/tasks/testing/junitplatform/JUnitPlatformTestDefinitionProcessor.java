@@ -242,6 +242,29 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
             return requestBuilder.build();
         }
 
+        /**
+         * Builds the post-discovery filter that applies this task's include and exclude patterns, and
+         * adds it to the discovery request. Nothing is added when there are no patterns to apply.
+         * <p>
+         * Every descriptor is routed by the type of its {@link org.junit.platform.engine.TestSource}:
+         * <p>
+         * <ul>
+         *   <li>A {@link FileSource} or {@link DirectorySource} goes to {@link FilePathFilter}, which
+         *       matches it by its path relative to the test definition directory it was selected from.
+         *   <li>Everything else, including a descriptor with no source at all, goes to
+         *       {@link ClassMethodNameFilter}, which matches it by class and method name, or by its
+         *       enclosing class when the engine did not declare it as a method.
+         * </ul>
+         * <p>
+         * The two are chained rather than kept separate: a file-based test that lies under none of the
+         * test definition directories has no path to be matched by, and {@link FilePathFilter} hands it to
+         * the class filter instead of excluding it. That is why the file filter is registered whether or
+         * not this run has any directory selectors — the verdict follows from the descriptor itself rather
+         * than from how the rest of the task happens to be configured.
+         *
+         * @see FilePathFilter
+         * @see ClassMethodNameFilter
+         */
         private void addTestNameFilters(LauncherDiscoveryRequestBuilder requestBuilder) {
             TestFilterSpec filterSpec = spec.getFilter();
             if (isNotEmpty(filterSpec)) {
@@ -250,12 +273,6 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
                 ClassMethodNameFilter classFilter = new ClassMethodNameFilter(matcher);
                 DelegatingByTypeFilter delegatingFilter = new DelegatingByTypeFilter(classFilter);
 
-                // FilePathFilter matches a file against the test definition directories it was selected
-                // from. A file under none of them has no such path, so FilePathFilter defers to the class
-                // filter for it rather than excluding it for failing to match a path it never had. That
-                // makes this registration safe whether or not the run has directory selectors, and keeps
-                // the verdict a property of the descriptor rather than of how the rest of the task happens
-                // to be configured.
                 FilePathFilter fileFilter = new FilePathFilter(matcher, classFilter);
                 delegatingFilter.addDelegate(FileSource.class, fileFilter);
                 delegatingFilter.addDelegate(DirectorySource.class, fileFilter);

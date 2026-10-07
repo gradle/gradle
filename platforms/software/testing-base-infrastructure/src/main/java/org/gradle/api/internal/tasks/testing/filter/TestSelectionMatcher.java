@@ -22,6 +22,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * Entry point for matching test descriptors against include and exclude patterns.
@@ -65,14 +66,17 @@ public class TestSelectionMatcher {
     }
 
     /**
-     * Returns true if the given file lies under one of the roots this matcher was given, and can
-     * therefore be matched by path at all. {@link #matchesFile(File)} reports a file under none of
-     * them as not matching, so ask this first to tell "does not match" from "not mine to judge".
+     * Returns the name the given file can be matched by, to be passed to
+     * {@link #matchesTest(String, String)} with an empty method name, or empty when the file has no
+     * such name and cannot be matched by path at all.
      *
-     * @see FileTestSelectionMatcher#canMatchFile(File)
+     * <p>{@link #matchesFile(File)} answers both cases with false, so a caller that needs to tell
+     * "does not match" from "not mine to judge" has to ask for the name instead.
+     *
+     * @see FileTestSelectionMatcher#nameFor(File)
      */
-    public boolean canMatchFile(File file) {
-        return fileTestSelectionMatcher.canMatchFile(file);
+    public Optional<String> nameForFile(File file) {
+        return fileTestSelectionMatcher.nameFor(file);
     }
 
     /**

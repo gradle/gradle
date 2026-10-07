@@ -22,11 +22,13 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 /**
  * Filtering of Cucumber scenarios reached through a JUnit Platform {@code @Suite} entry point.
  * <p>
- * The suite class is the only thing Gradle selects, so the run has no directory selectors and
- * {@code FilePathFilter} is not registered. The feature and scenario descriptors below it carry a
- * {@code FileSource} or a {@code ClasspathResourceSource}, neither of which has a dedicated filter in
- * such a run, so they are judged by {@code ClassMethodNameFilter} against the suite class that encloses
- * them. Selecting or excluding the suite class therefore selects or excludes its scenarios as a group.
+ * The suite class is the only thing Gradle selects, so the feature files below it lie under none of the
+ * task's test definition directories — there are none to begin with, unless the build configures them for
+ * something else. The scenario descriptors therefore have no path to be matched by: a
+ * {@code ClasspathResourceSource} never had one, and a {@code FileSource} has one only relative to a
+ * definition directory that contains it. Both end up judged by {@code ClassMethodNameFilter} against the
+ * suite class that encloses them, a {@code FileSource} by way of {@code FilePathFilter}'s fallback.
+ * Selecting or excluding the suite class therefore selects or excludes its scenarios as a group.
  */
 class CucumberSuiteFilteringIntegrationTest extends AbstractIntegrationSpec implements VerifiesGenericTestReportResults {
     private static final String RAN_MARKER = "RAN SCENARIO: "
@@ -115,6 +117,7 @@ Feature: Goodbye World
         succeeds("test", "--tests", "RunCukesTest")
 
         then:
+        assertRanScenarios("Say hello", "Say goodbye")
         resultsFor().assertTestPathsExecuted(
             ":RunCukesTest:feature_classpath_features/goodbye.feature:Say goodbye",
             ":RunCukesTest:feature_classpath_features/helloworld.feature:Say hello",
@@ -129,6 +132,7 @@ Feature: Goodbye World
         succeeds("test", "--tests", "JupiterTest.someMethod")
 
         then:
+        assertDidNotRunAnyScenarios()
         resultsFor().assertTestPathsExecuted(":JupiterTest:someMethod()")
     }
 
@@ -147,6 +151,7 @@ Feature: Goodbye World
         succeeds("test")
 
         then:
+        assertDidNotRunAnyScenarios()
         resultsFor().assertTestPathsExecuted(
             ":JupiterTest:someMethod()",
             ":JupiterTest:otherMethod()",
@@ -161,8 +166,7 @@ Feature: Goodbye World
         succeeds("test", "--tests", "RunCukesTest")
 
         then:
-        outputContains("${RAN_MARKER}Say hello")
-        outputContains("${RAN_MARKER}Say goodbye")
+        assertRanScenarios("Say hello", "Say goodbye")
     }
 
     def "selecting an unrelated test excludes scenarios selected from a directory"() {
@@ -173,7 +177,7 @@ Feature: Goodbye World
         succeeds("test", "--tests", "JupiterTest.someMethod")
 
         then:
-        outputDoesNotContain(RAN_MARKER)
+        assertDidNotRunAnyScenarios()
         resultsFor().assertTestPathsExecuted(":JupiterTest:someMethod()")
     }
 
@@ -185,6 +189,48 @@ Feature: Goodbye World
     def "scenarios selected from a directory survive a filter when unrelated definition dirs are configured"() {
         given:
         directorySuite()
+        definitionDirFeature()
+
+        when:
+        succeeds("test", "--tests", "RunCukesTest")
+
+        then: "the suite's own features have no path to be matched by, so its class selects them"
+        assertRanScenarios("Say hello", "Say goodbye")
+
+        and: "the definition dir feature does have a path, and this filter names none that matches it"
+        outputDoesNotContain("${RAN_MARKER}Unrelated scenario")
+    }
+
+    /**
+     * The other half of the two-tier rule: a feature that does lie under a test definition directory is
+     * still selected by its path there, and naming it does not drag in a suite's out-of-tree scenarios.
+     */
+    def "a filter naming a definition dir feature selects it and not the suite's scenarios"() {
+        given:
+        directorySuite()
+        definitionDirFeature()
+
+        when:
+        succeeds("test", "--tests", "unrelated")
+
+        then:
+        assertRanScenarios("Unrelated scenario")
+
+        and:
+        outputDoesNotContain("${RAN_MARKER}Say hello")
+        outputDoesNotContain("${RAN_MARKER}Say goodbye")
+    }
+
+    /**
+     * A feature under a configured test definition directory, so that it is matched by its path relative
+     * to that directory rather than by an enclosing class.
+     * <p>
+     * The Cucumber engine has to be included at the top level for this to be discovered at all. The
+     * suite's {@code @IncludeEngines("cucumber")} only applies to the suite's own nested discovery, so
+     * without this the directory selector that {@code testDefinitionDirs} contributes reaches no engine
+     * that reads {@code .feature} files and the feature is silently never found.
+     */
+    private definitionDirFeature() {
         file("src/test/definitions/unrelated.feature") << """
 Feature: Unrelated
 
@@ -194,19 +240,12 @@ Feature: Unrelated
 """
         buildFile << """
             test {
+                useJUnitPlatform {
+                    includeEngines("cucumber")
+                }
                 testDefinitionDirs.from("src/test/definitions")
             }
         """
-
-        when:
-        succeeds("test", "--tests", "RunCukesTest")
-
-        then:
-        outputContains("${RAN_MARKER}Say hello")
-        outputContains("${RAN_MARKER}Say goodbye")
-
-        and: "the features under the definition dirs are matched by path, and this filter names no path"
-        outputDoesNotContain("${RAN_MARKER}Unrelated scenario")
     }
 
     /**
@@ -229,15 +268,16 @@ Feature: Unrelated
 
     /**
      * The same features reached by directory instead, which is what gives the descriptors a
-     * {@code FileSource}. The directory is the suite's own selector, not the test task's, so the run
-     * still has no directory selectors and {@code FilePathFilter} is still absent.
+     * {@code FileSource}. The directory is the suite's own selector, not the task's, so the features
+     * still lie under none of the task's test definition directories. These descriptors do reach
+     * {@code FilePathFilter}, and reach {@code ClassMethodNameFilter} through its fallback.
      * <p>
      * Scenarios reached this way are verified through the marker the step definitions print rather than
      * through their reported test path. A file-based test is reported under its path relative to the
-     * task's {@code testDefinitionDirs}, and a class-based run has none to relativize against, so the
-     * name falls back to the absolute file URL of the feature, which differs on every machine.
-     * Configuring {@code testDefinitionDirs} to make it relative would add the directory selectors this
-     * test exists to do without.
+     * task's {@code testDefinitionDirs}, and these features lie under none of them, so the name falls
+     * back to the absolute file URL of the feature, which differs on every machine. Pointing
+     * {@code testDefinitionDirs} at the suite's own directory to make it relative would make the
+     * features matchable by path and stop exercising the fallback these tests are here for.
      */
     private directorySuite() {
         file("src/test/java/RunCukesTest.java") << """
@@ -251,5 +291,13 @@ Feature: Unrelated
             public class RunCukesTest {
             }
         """
+    }
+
+    private void assertRanScenarios(String... scenarioNames) {
+        Arrays.asList(scenarioNames).each { outputContains("$RAN_MARKER$it") }
+    }
+
+    private void assertDidNotRunAnyScenarios() {
+        outputDoesNotContain(RAN_MARKER)
     }
 }

@@ -100,6 +100,19 @@ class FilePathFilterTest extends Specification {
         result.reason.get() == NEVER_REASON
     }
 
+    def "a missing file is handed to the fallback rather than matched by path"() {
+        given:
+        def root = temp.createDir("definitions")
+        def missing = root.file("hello.feature")
+
+        when: "its real path cannot be read, so it cannot be placed under the root"
+        def result = apply([commandLine: ['hello']], leaf(FileSource.from(missing)), root, NEVER)
+
+        then: "the fallback decides, rather than the filter claiming a match it cannot substantiate"
+        !result.included()
+        result.reason.get() == NEVER_REASON
+    }
+
     def "a descriptor with no source is rejected"() {
         when:
         apply([commandLine: ['anything']], leaf(null), temp.createDir("definitions"), NEVER)
