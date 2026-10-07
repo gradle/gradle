@@ -16,6 +16,7 @@
 
 package org.gradle.architecture.test;
 
+import com.tngtech.archunit.base.DescribedPredicate;
 import com.tngtech.archunit.core.domain.JavaClass;
 import com.tngtech.archunit.core.domain.JavaConstructor;
 import com.tngtech.archunit.core.domain.JavaConstructorCall;
@@ -32,8 +33,7 @@ import java.util.List;
 import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.constructors;
 
 /**
- * Validates that a {@link GradleException} subclass whose only constructor argument is a message does not route
- * that constructor through one that takes a cause.
+ * Validates that a {@link GradleException} subclass does not initialize its cause unless it was given one.
  * <p>
  * {@link Throwable#initCause(Throwable)} refuses to run twice, and it decides whether the cause has already been
  * set by comparing the field against the throwable itself rather than against {@code null}. The constructors that
@@ -51,19 +51,44 @@ import static com.tngtech.archunit.lang.syntax.ArchRuleDefinition.constructors;
  *     {@code initCause(...)}; that call now throws, the failure is swallowed as a debug log, and the exception
  *     arrives as a {@code PlaceholderException} without its real type or its resolutions.</li>
  * </ul>
+ * <p>
+ * A constructor that accepts a cause is free to pass it on - that is the caller's choice, made explicitly. The rule
+ * covers the constructors that were given no cause to pass, whatever their other parameters: a
+ * {@code (String, Iterable<String>)} constructor handing {@code super(message, null, resolutions)} a null cause is
+ * the same defect as a {@code (String)} constructor delegating to {@code this(message, null)}.
  */
 @AnalyzeClasses(packages = "org.gradle")
 public class ExceptionCauseInitializationTest {
 
     @ArchTest
-    public static final ArchRule message_only_constructors_do_not_initialize_the_cause =
+    public static final ArchRule constructors_given_no_cause_do_not_initialize_one =
         constructors()
             .that().areDeclaredInClassesThat().areAssignableTo(GradleException.class)
-            .and().haveRawParameterTypes(String.class)
+            .and(doNotAcceptACause())
             .should(notChainToAConstructorThatTakesACause())
             .because("initializing the cause - even to null - makes any later initCause(...) call throw, "
                 + "which breaks the common new SomeException(message).initCause(failure) pattern and stops "
                 + "ExceptionPlaceholder reconstructing the exception with its real type");
+
+    /**
+     * Selects the constructors the rule applies to: those handed no cause of any shape, so they have nothing
+     * legitimate to pass to a cause-taking constructor.
+     * <p>
+     * Varargs and array parameters count as accepting a cause, so that a {@code (String, Throwable...)} constructor
+     * is left alone. Generic parameters such as {@code Iterable<? extends Throwable>} cannot be recognised here,
+     * because the raw parameter type erases to {@code Iterable} and is indistinguishable from an
+     * {@code Iterable<String>} of resolutions. Those constructors are therefore covered by the rule, which is
+     * correct for the ones in this codebase: they record their causes through {@code initCauses(...)} after calling
+     * a cause-free super constructor.
+     */
+    private static DescribedPredicate<JavaConstructor> doNotAcceptACause() {
+        return new DescribedPredicate<JavaConstructor>("do not accept a cause") {
+            @Override
+            public boolean test(JavaConstructor constructor) {
+                return constructor.getRawParameterTypes().stream().noneMatch(ExceptionCauseInitializationTest::isCause);
+            }
+        };
+    }
 
     private static ArchCondition<JavaConstructor> notChainToAConstructorThatTakesACause() {
         return new ArchCondition<JavaConstructor>("not chain to a constructor that takes a cause") {
@@ -93,5 +118,12 @@ public class ExceptionCauseInitializationTest {
 
     private static boolean takesACause(List<JavaClass> parameterTypes) {
         return parameterTypes.stream().anyMatch(parameterType -> parameterType.isAssignableTo(Throwable.class));
+    }
+
+    private static boolean isCause(JavaClass parameterType) {
+        if (parameterType.isArray()) {
+            return parameterType.getComponentType().isAssignableTo(Throwable.class);
+        }
+        return parameterType.isAssignableTo(Throwable.class);
     }
 }

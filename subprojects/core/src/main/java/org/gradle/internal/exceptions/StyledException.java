@@ -64,6 +64,15 @@ public class StyledException extends GradleException {
         styledMessage = message;
     }
 
+    @SuppressWarnings("this-escape")
+    public StyledException(String message, List<String> resolutions) {
+        // Does not delegate to the cause-taking constructor: passing an explicit null cause counts as initializing
+        // it, which makes any later initCause(...) call throw IllegalStateException.
+        super(unstyled(message));
+        resolutions.forEach(this::addResolution);
+        styledMessage = message;
+    }
+
     public static String style(StyledTextOutput.Style style, String text) {
         if (text == null) {
             return null;

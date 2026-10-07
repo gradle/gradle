@@ -53,8 +53,13 @@ public abstract class AbstractResolutionFailureException extends StyledException
 
     protected final ResolutionFailure failure;
 
+    @SuppressWarnings("this-escape")
     public AbstractResolutionFailureException(String message, ResolutionFailure failure, List<String> resolutions) {
-        this(message, failure, resolutions, null);
+        // Does not delegate to the cause-taking constructor: passing an explicit null cause counts as initializing
+        // it, which makes any later initCause(...) call throw IllegalStateException.
+        super(message, resolutions);
+        this.failure = failure;
+        LOGGER.info("Variant Selection Exception: {} caused by Resolution Failure: {}", this.getClass().getName(), getFailure().getClass().getName());
     }
 
     @SuppressWarnings("this-escape")
