@@ -19,8 +19,8 @@ package org.gradle.internal.execution.history.changes;
 import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.Describable;
+import org.gradle.internal.execution.history.InputValueHash;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
 
@@ -37,7 +37,7 @@ class InputValueChanges implements ChangeContainer {
             ValueSnapshot currentSnapshot = entry.getValue();
             HashCode previousHash = previousHashes.get(propertyName);
             if (previousHash != null) {
-                if (!Hashing.hashHashable(currentSnapshot).equals(previousHash)) {
+                if (!InputValueHash.of(currentSnapshot).equals(previousHash)) {
                     changedBuilder.put(
                         propertyName,
                         currentSnapshot instanceof ImplementationSnapshot ? "Implementation" : "Value");
