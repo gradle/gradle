@@ -226,7 +226,15 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
 
     protected
     fun withKotlinBuildSrc() {
-        withDefaultSettingsIn("buildSrc")
+        withSettingsIn(
+            "buildSrc",
+            """
+            pluginManagement {
+                $repositoriesBlock
+            }
+            $defaultSettingsScript
+            """
+        )
         withBuildScriptIn(
             "buildSrc",
             """
