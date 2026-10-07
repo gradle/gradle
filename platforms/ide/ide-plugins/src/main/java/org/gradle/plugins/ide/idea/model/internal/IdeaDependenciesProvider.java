@@ -20,20 +20,16 @@ import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier;
-import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
-import org.gradle.api.artifacts.result.UnresolvedDependencyResult;
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.internal.deprecation.DeprecationLogger;
-import org.gradle.internal.jvm.JavaModuleDetector;
 import org.gradle.plugins.ide.idea.model.Dependency;
 import org.gradle.plugins.ide.idea.model.FilePath;
 import org.gradle.plugins.ide.idea.model.IdeaModule;
 import org.gradle.plugins.ide.idea.model.Path;
 import org.gradle.plugins.ide.idea.model.SingleEntryModuleLibrary;
 import org.gradle.plugins.ide.internal.IdeArtifactRegistry;
-import org.gradle.plugins.ide.internal.resolver.GradleApiSourcesResolver;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencySet;
 import org.gradle.plugins.ide.internal.resolver.IdeDependencyVisitor;
 import org.gradle.plugins.ide.internal.resolver.UnresolvedIdeDependencyHandler;
@@ -55,13 +51,11 @@ public class IdeaDependenciesProvider {
     private final ModuleDependencyBuilder moduleDependencyBuilder;
     private final IdeaDependenciesOptimizer optimizer;
     private final ProjectComponentIdentifier currentProjectId;
-    private final GradleApiSourcesResolver gradleApiSourcesResolver;
 
-    public IdeaDependenciesProvider(ProjectInternal project, IdeArtifactRegistry artifactRegistry, GradleApiSourcesResolver gradleApiSourcesResolver) {
+    public IdeaDependenciesProvider(ProjectInternal project, IdeArtifactRegistry artifactRegistry) {
         moduleDependencyBuilder = new ModuleDependencyBuilder(artifactRegistry);
         currentProjectId = project.getOwner().getComponentIdentifier();
         optimizer = new IdeaDependenciesOptimizer();
-        this.gradleApiSourcesResolver = gradleApiSourcesResolver;
     }
 
     public Set<Dependency> provide(final IdeaModule ideaModule) {
@@ -90,27 +84,28 @@ public class IdeaDependenciesProvider {
 
     private Set<Dependency> getDependencies(IdeaModule ideaModule) {
         Set<Dependency> dependencies = new LinkedHashSet<>();
-        Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = new LinkedHashMap<>();
+        Map<ComponentSelector, Throwable> unresolvedDependencies = new LinkedHashMap<>();
         for (GeneratedIdeaScope scope : GeneratedIdeaScope.values()) {
             IdeaDependenciesVisitor visitor = visitDependencies(ideaModule, scope);
             dependencies.addAll(visitor.getDependencies());
             unresolvedDependencies.putAll(visitor.getUnresolvedDependencies());
         }
         optimizer.optimizeDeps(dependencies);
-        new UnresolvedIdeDependencyHandler().log(unresolvedDependencies.values());
+        for (Map.Entry<ComponentSelector, Throwable> dep : unresolvedDependencies.entrySet()) {
+            UnresolvedIdeDependencyHandler.log(dep.getKey(), dep.getValue());
+        }
         return dependencies;
     }
 
     private IdeaDependenciesVisitor visitDependencies(IdeaModule ideaModule, GeneratedIdeaScope scope) {
         ProjectInternal projectInternal = (ProjectInternal) ideaModule.getProject();
-        final DependencyHandler handler = projectInternal.getDependencies();
         final Collection<Configuration> plusConfigurations = getPlusConfigurations(ideaModule, scope);
         final Collection<Configuration> minusConfigurations = getMinusConfigurations(ideaModule, scope);
-        final JavaModuleDetector javaModuleDetector = projectInternal.getServices().get(JavaModuleDetector.class);
 
         final IdeaDependenciesVisitor visitor = new IdeaDependenciesVisitor(ideaModule, scope.name());
         return projectInternal.getOwner().fromMutableState(p -> {
-            new IdeDependencySet(handler, javaModuleDetector, plusConfigurations, minusConfigurations, false, gradleApiSourcesResolver).visit(visitor);
+            IdeDependencySet ideDependencySet = projectInternal.getServices().get(IdeDependencySet.class);
+            ideDependencySet.visit(plusConfigurations, minusConfigurations, Collections.emptySet(), false, visitor);
             return visitor;
         });
     }
@@ -146,7 +141,7 @@ public class IdeaDependenciesProvider {
         private final List<Dependency> projectDependencies = new LinkedList<>();
         private final List<Dependency> moduleDependencies = new LinkedList<>();
         private final List<Dependency> fileDependencies = new LinkedList<>();
-        private final Map<ComponentSelector, UnresolvedDependencyResult> unresolvedDependencies = new LinkedHashMap<>();
+        private final Map<ComponentSelector, Throwable> unresolvedDependencies = new LinkedHashMap<>();
 
         private IdeaDependenciesVisitor(IdeaModule ideaModule, String scope) {
             this.ideaModule = ideaModule;
@@ -216,10 +211,10 @@ public class IdeaDependenciesProvider {
          * and could be shown in a notification. The command line warning should probably be omitted in that case.
          */
         @Override
-        public void visitUnresolvedDependency(UnresolvedDependencyResult unresolvedDependency) {
-            File unresolvedFile = unresolvedIdeDependencyHandler.asFile(unresolvedDependency, ideaModule.getContentRoot());
+        public void visitUnresolvedDependency(ComponentSelector requested, Throwable failure) {
+            File unresolvedFile = unresolvedIdeDependencyHandler.asFile(ideaModule.getContentRoot(), requested);
             fileDependencies.add(new SingleEntryModuleLibrary(toPath(ideaModule, unresolvedFile), scope));
-            unresolvedDependencies.put(unresolvedDependency.getAttempted(), unresolvedDependency);
+            unresolvedDependencies.put(requested, failure);
         }
 
         /*
@@ -236,7 +231,7 @@ public class IdeaDependenciesProvider {
             return dependencies;
         }
 
-        public Map<ComponentSelector, UnresolvedDependencyResult> getUnresolvedDependencies() {
+        public Map<ComponentSelector, Throwable> getUnresolvedDependencies() {
             return unresolvedDependencies;
         }
     }
