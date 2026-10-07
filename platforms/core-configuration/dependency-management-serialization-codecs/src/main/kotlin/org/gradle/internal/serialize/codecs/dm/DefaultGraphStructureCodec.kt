@@ -24,9 +24,11 @@ import it.unimi.dsi.fastutil.ints.IntList
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.artifacts.component.ComponentSelector
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
+import org.gradle.api.internal.artifacts.NamedVariantIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasonInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.DefaultGraphStructure
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure
+import org.gradle.internal.component.model.VariantIdentifier
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
@@ -50,6 +52,18 @@ class DefaultGraphStructureCodec(
     suspend fun WriteContext.writeNodes(nodes: DefaultGraphStructure.DefaultNodes) {
         writeSmallInt(nodes.root())
         writeIntList(nodes.owners())
+        writeCollection(nodes.variantNames()) {
+            writeString(it)
+        }
+        writeCollection(nodes.variantIds()) {
+            when (it) {
+                is NamedVariantIdentifier -> {
+                    write(it.componentId)
+                    writeString(it.name)
+                }
+                else -> error("Unknown variant identifier type: $it")
+            }
+        }
         writeCollection(nodes.attributes()) { attributes ->
             immutableAttributesCodec.run {
                 encode(attributes)
@@ -59,9 +73,6 @@ class DefaultGraphStructureCodec(
             immutableCapabilitiesCodec.run {
                 encode(capabilities)
             }
-        }
-        writeCollection(nodes.variantNames()) {
-            writeString(it)
         }
         write(nodes.externalVariantIndices())
     }
@@ -115,6 +126,14 @@ class DefaultGraphStructureCodec(
     suspend fun ReadContext.readNodes() : DefaultGraphStructure.DefaultNodes {
         val root = readSmallInt()
         val owners = readIntList()
+        val variantNames = readImmutableList {
+            readString()
+        }
+        val variantIds = readImmutableList<VariantIdentifier> {
+            val componentId = read() as ComponentIdentifier
+            val name = readString()
+            NamedVariantIdentifier(componentId, name)
+        }
         val attributes = readImmutableList {
             immutableAttributesCodec.run {
                 decode()
@@ -125,11 +144,8 @@ class DefaultGraphStructureCodec(
                 decode()
             }
         }
-        val variantNames = readImmutableList {
-            readString()
-        }
         val externalVariantIndices = read() as Int2IntMap
-        return DefaultGraphStructure.DefaultNodes(root, owners, attributes, capabilities, variantNames, externalVariantIndices)
+        return DefaultGraphStructure.DefaultNodes(root, owners, variantNames, variantIds, attributes, capabilities, externalVariantIndices)
     }
 
     private

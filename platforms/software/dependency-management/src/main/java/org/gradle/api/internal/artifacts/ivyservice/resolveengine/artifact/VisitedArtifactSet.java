@@ -30,9 +30,9 @@ public interface VisitedArtifactSet {
     SelectedArtifactSet select(ArtifactSelectionSpec spec);
 
     /**
-     * Legacy method of artifact selection, intended for use by
-     * {@link org.gradle.api.artifacts.LenientConfiguration}.
+     * Selects artifacts from this set that match the given criteria.
+     * Implementations are lazy, so that the selection happens only when the contents are queried.
      */
-    SelectedArtifactResults selectLegacy(ArtifactSelectionSpec spec);
+    SelectedArtifactResults select(ArtifactSelectionSpec spec, boolean lenient);
 
 }
