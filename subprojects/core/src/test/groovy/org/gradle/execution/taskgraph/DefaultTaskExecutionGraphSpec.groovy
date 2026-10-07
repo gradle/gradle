@@ -49,25 +49,49 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
     )
 
     def "is empty when no tasks have been added"() {
+        Task a = createTask("a")
+
         expect:
         !taskGraph.hasTask(":a")
+        !taskGraph.hasTask(a)
+        taskGraph.findTask(":a") == null
         taskGraph.allTasks.empty
     }
 
-    def "retains all tasks list after execute until next execution"() {
+    def "can query tasks of populated plan"() {
         Task a = createTask("a")
         Task b = createTask("b")
         Task c = createTask("c")
 
         when:
         populate([a, b])
-        taskGraph.allTasks
+
+        then:
+        taskGraph.hasTask(":a")
+        taskGraph.hasTask(a)
+        taskGraph.findTask(":a") == a
+        taskGraph.hasTask(":b")
+        taskGraph.hasTask(b)
+        taskGraph.findTask(":b") == b
+        !taskGraph.hasTask(":c")
+        !taskGraph.hasTask(c)
+        taskGraph.findTask(":c") == null
+    }
+
+    def "retains tasks after execute until next execution"() {
+        Task a = createTask("a")
+        Task b = createTask("b")
+        Task c = createTask("c")
+
+        when:
+        populate([a, b])
+        taskGraph.hasTask(":a")
         taskGraph.depopulate()
 
         then:
-        // tests existing behaviour, not desired behaviour
-        !taskGraph.hasTask(":a")
-        !taskGraph.hasTask(a)
+        taskGraph.hasTask(":a")
+        taskGraph.hasTask(a)
+        taskGraph.findTask(":a") == a
         taskGraph.allTasks == [a, b]
 
         when:
@@ -76,7 +100,26 @@ class DefaultTaskExecutionGraphSpec extends AbstractExecutionPlanSpec {
         then:
         !taskGraph.hasTask(":a")
         !taskGraph.hasTask(a)
+        taskGraph.findTask(":a") == null
+        taskGraph.hasTask(":c")
+        taskGraph.hasTask(c)
+        taskGraph.findTask(":c") == c
         taskGraph.allTasks == [c]
+    }
+
+    def "discards tasks on reset"() {
+        Task a = createTask("a")
+
+        when:
+        populate([a])
+        taskGraph.hasTask(":a")
+        taskGraph.resetState()
+
+        then:
+        !taskGraph.hasTask(":a")
+        !taskGraph.hasTask(a)
+        taskGraph.findTask(":a") == null
+        taskGraph.allTasks.empty
     }
 
     def "allTasks returns tasks from populated plan"() {
