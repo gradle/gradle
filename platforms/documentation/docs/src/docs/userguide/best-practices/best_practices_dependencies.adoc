@@ -572,7 +572,7 @@ include::sample[dir="snippets/best-practices/preferStringAttributes-do/groovy",f
 Both builds declare the same attribute, match on the same value, and print `my-format = json`.
 The `String` version does it without a supporting type.
 
-=== Enums Are Not an Exception
+==== Enums Are Not an Exception
 
 An `enum` implementing `Named` is the most tempting reason to reach for a `Named` type, because putting state and behavior on the enum lets one type serve both as the value matched during dependency resolution and as the thing that value names.
 It can be made to work, and it avoids the `ObjectFactory` ceremony, since an enum constant is already an instance.
@@ -596,27 +596,19 @@ include::sample[dir="snippets/best-practices/preferStringAttributesEnum-avoid/gr
 A consumer matches on `"TYPE_A"` and can only reach `getExtension()` if it happens to have its own copy of the enum type on its classpath to look the constant back up by name.
 Within a single build that constraint may be acceptable; across a publication boundary the extra members are simply not there, so none of that behavior can be part of the contract you publish.
 
-==== Mutable State on the Enum Is Silently Dropped
+==== Mutable State on an Enum is Silently Dropped
 
 The example above keeps `extension` `final`, so its value is fixed by the enum's own initializers and is reconstructed wherever the constant is.
 A *mutable* field assigned per constant during configuration behaves far worse, because an attribute value is stored as nothing more than its type name and its constant name.
 
-[source,groovy]
-----
-enum MyFormat implements Named {
-    TYPE_A, TYPE_B
+====
+include::sample[dir="snippets/best-practices/preferStringAttributesMutableEnum-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/preferStringAttributesMutableEnum-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
 
-    String extension = "unset"       // <1>
-
-    @Override
-    String getName() { return name() }
-}
-
-MyFormat.TYPE_A.extension = "txt-a"  // <2>
-----
-
-<1> A mutable field, defaulted by the enum's initializer.
-<2> Assigned during the configuration phase, not by the initializer.
+<1> *A mutable field*, defaulted by the enum's own initializer.
+<2> *Assigned during the configuration phase*, not by the initializer.
+<3> *The attribute value is read back and its mutable state captured* for use during task execution.
 
 With the <<configuration_cache.adoc#config_cache,Configuration Cache>> enabled, the value read back from the attribute depends on whether the daemon that serves the build still happens to have the enum class loaded:
 
@@ -642,8 +634,11 @@ Nothing warns you, because from Gradle's point of view the attribute round-tripp
 Mutable state on an enum used as an attribute value is therefore **never safe**, and immutable state is usable only inside the declaring build.
 If you accept those limits deliberately, a `Named` enum can work.
 
-The simpler default is to keep the two responsibilities separate: declare the attribute as a `String` or as a numeric type.
+[TIP]
+====
+The simpler default is to keep the two responsibilities separate: declare an attribute as a `String` or as a numeric type.
 If your build also needs a type that maps names to behavior, let that type exist on its own terms rather than as the attribute's value type.
+====
 
 === References
 
