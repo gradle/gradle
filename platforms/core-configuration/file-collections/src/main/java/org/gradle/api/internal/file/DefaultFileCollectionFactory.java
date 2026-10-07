@@ -41,6 +41,8 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.nativeintegration.filesystem.FileSystem;
+import org.jetbrains.annotations.Contract;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.OutputStream;
@@ -182,7 +184,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
     }
 
     private FileCollectionInternal resolving(String displayName, ProviderResolutionStrategy providerResolutionStrategy, Object sources) {
-        if (isEmptyArray(sources)) {
+        if (isEmpty(sources)) {
             return FileCollectionFactory.empty(displayName);
         }
         return new ResolvingFileCollection(displayName, fileResolver, taskDependencyFactory, patternSetFactory, providerResolutionStrategy, sources);
@@ -202,7 +204,7 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         if (sources instanceof FileCollectionInternal) {
             return (FileCollectionInternal) sources;
         }
-        if (isEmptyArray(sources)) {
+        if (isEmpty(sources)) {
             return FileCollectionFactory.empty();
         }
         return resolving(FileCollectionInternal.DEFAULT_COLLECTION_DISPLAY_NAME, providerResolutionStrategy, sources);
@@ -332,7 +334,9 @@ public class DefaultFileCollectionFactory implements FileCollectionFactory {
         }
     }
 
-    private boolean isEmptyArray(Object sources) {
-        return sources.getClass().isArray() && Array.getLength(sources) == 0;
+    @Contract("null -> true")
+    private static boolean isEmpty(@Nullable Object sources) {
+        // Groovy passes a lone `null` argument as a null varargs array
+        return sources == null || (sources.getClass().isArray() && Array.getLength(sources) == 0);
     }
 }
