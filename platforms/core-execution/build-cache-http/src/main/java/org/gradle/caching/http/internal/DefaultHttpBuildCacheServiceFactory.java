@@ -120,13 +120,13 @@ public class DefaultHttpBuildCacheServiceFactory implements BuildCacheServiceFac
                 url,
                 allowInsecureProtocol,
                 () -> {
-                    throw new InvalidUserCodeException(
-                        "Using insecure protocols with remote build cache, without explicit opt-in, is unsupported.",
-                        Arrays.asList(
-                            "Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols.",
-                            Documentation.dslReference(HttpBuildCache.class, "allowInsecureProtocol").getConsultDocumentationMessage()
-                        )
-                    );
+                    InvalidUserCodeException failure = new InvalidUserCodeException(
+                        "Using insecure protocols with remote build cache, without explicit opt-in, is unsupported.");
+                    Arrays.asList(
+                        "Switch remote build cache to a secure protocol (like HTTPS) or allow insecure protocols.",
+                        Documentation.dslReference(HttpBuildCache.class, "allowInsecureProtocol").getConsultDocumentationMessage()
+                    ).forEach(failure::addResolution);
+                    throw failure;
                 },
                 redirect -> {
                     throw new IllegalStateException("Redirects are unsupported by the build cache.");

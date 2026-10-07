@@ -37,7 +37,6 @@ import org.gradle.internal.verifier.HttpRedirectVerifierFactory;
 import org.gradle.util.internal.GUtil;
 
 import java.net.URI;
-import java.util.Arrays;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
@@ -118,24 +117,25 @@ public class DefaultObjectConfigurationAction implements ObjectConfigurationActi
             scriptUri,
             false,
             () -> {
-                throw new InvalidUserCodeException(
+                throw insecureScriptPluginFailure(
                     String.format("Applying script plugins from insecure URIs, without explicit opt-in, is unsupported. The provided URI '%s' uses an insecure protocol (HTTP). ", scriptUri),
-                    Arrays.asList(
-                        String.format("Use '%s' instead or try 'apply from: resources.text.fromInsecureUri(\"%s\")'. ", GUtil.toSecureUrl(scriptUri), scriptUri),
-                        Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage()
-                    )
+                    String.format("Use '%s' instead or try 'apply from: resources.text.fromInsecureUri(\"%s\")'. ", GUtil.toSecureUrl(scriptUri), scriptUri)
                 );
             },
             redirect -> {
-                throw new InvalidUserCodeException(
+                throw insecureScriptPluginFailure(
                     String.format("Applying script plugins from an insecure redirect, without explicit opt-in, is unsupported. '%s' redirects to insecure '%s'. ", scriptUri, redirect),
-                    Arrays.asList(
-                        "Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object).",
-                        Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage()
-                    )
+                    "Switch to HTTPS or use TextResourceFactory.fromInsecureUri(Object)."
                 );
             }
         );
+    }
+
+    private static InvalidUserCodeException insecureScriptPluginFailure(String message, String firstResolution) {
+        InvalidUserCodeException failure = new InvalidUserCodeException(message);
+        failure.addResolution(firstResolution);
+        failure.addResolution(Documentation.dslReference(TextResourceFactory.class, "fromInsecureUri(java.lang.Object)").getConsultDocumentationMessage());
+        return failure;
     }
 
     private void applyScript(Object script) {
