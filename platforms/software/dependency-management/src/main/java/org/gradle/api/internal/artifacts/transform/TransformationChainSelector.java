@@ -53,9 +53,10 @@ import java.util.Optional;
      * would satisfy the request.  If there is a single result, it uses that one.  If there are multiple
      * results, it attempts to disambiguate them.  If there are none, it returns {@link Optional#empty()}.
      *
+     * @param reportAttributes the attributes to report if the chains are ambiguous
      * @return result of selection, as described
      */
-    public Optional<TransformedVariant> selectTransformationChain(ResolvedVariantSet producer, ImmutableAttributes targetAttributes, AttributeMatcher attributeMatcher) {
+    public Optional<TransformedVariant> selectTransformationChain(ResolvedVariantSet producer, ImmutableAttributes targetAttributes, ImmutableAttributes reportAttributes, AttributeMatcher attributeMatcher) {
         // It's important to note that this produces all COMPATIBLE chains, meaning it's MORE PERMISSIVE than it
         // needs to be.  For example, if libraryelements=classes is requested, and there are 2 chains available
         // that will result in variants that only differ in libraryelements=classes and libraryelements=jar, and
@@ -64,7 +65,7 @@ import java.util.Optional;
         if (candidateChains.size() == 1) {
             return Optional.of(candidateChains.get(0));
         } else if (candidateChains.size() > 1) {
-            TransformationChainsDisambiguator transformationChainsDisambiguator = new TransformationChainsDisambiguator(failureHandler, producer, targetAttributes, attributeMatcher, candidateChains);
+            TransformationChainsDisambiguator transformationChainsDisambiguator = new TransformationChainsDisambiguator(failureHandler, producer, targetAttributes, reportAttributes, attributeMatcher, candidateChains);
             return transformationChainsDisambiguator.disambiguate();
         } else {
             return Optional.empty();

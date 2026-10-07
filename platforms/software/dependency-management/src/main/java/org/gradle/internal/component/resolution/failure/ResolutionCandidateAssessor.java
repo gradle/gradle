@@ -20,6 +20,7 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Sets;
 import org.gradle.api.Describable;
 import org.gradle.api.attributes.Attribute;
+import org.gradle.api.attributes.FallbackVariant;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
@@ -131,7 +132,8 @@ public final class ResolutionCandidateAssessor {
                 }
             } else if (consumerEntry != null) {
                 onlyOnConsumer.add(new AssessedAttribute<>(attribute, Cast.uncheckedCast(consumerEntry.getIsolatedValue()), null));
-            } else if (producerEntry != null) {
+            } else if (producerEntry != null && !attributeName.equals(FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE.getName())) {
+                // Gradle tags fallback-variant itself, so a consumer never forgot to request it
                 onlyOnProducer.add(new AssessedAttribute<>(attribute, null, Cast.uncheckedCast(producerEntry.getIsolatedValue())));
             }
         }
