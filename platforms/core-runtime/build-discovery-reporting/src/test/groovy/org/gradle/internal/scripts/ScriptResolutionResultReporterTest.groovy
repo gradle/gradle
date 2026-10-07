@@ -34,7 +34,7 @@ class ScriptResolutionResultReporterTest extends Specification {
         def ignoredFile = Mock(File) {
             getName() >> "bob"
         }
-        def result = new ScriptResolutionResult(directory, "script", selectedFile, [ignoredFile])
+        def result = new ScriptResolutionResult(directory, "script", selectedFile, , [ignoredFile])
         def problemReporter = Mock(ProblemReporter)
         def scriptResolutionReporter = new ScriptResolutionResultReporter(problemReporter)
 
@@ -68,7 +68,7 @@ class ScriptResolutionResultReporterTest extends Specification {
         def ignoredFile2 = Mock(File) {
             getName() >> "charlie"
         }
-        def result = new ScriptResolutionResult(directory, "script", selectedFile, [ignoredFile1, ignoredFile2])
+        def result = new ScriptResolutionResult(directory, "script", selectedFile, , [ignoredFile1, ignoredFile2])
         def problemReporter = Mock(ProblemReporter)
         def scriptResolutionReporter = new ScriptResolutionResultReporter(problemReporter)
 
