@@ -85,7 +85,9 @@ public interface ConfigurationMetadata {
      *
      * This is used to create a ComponentArtifactMetadata from an artifact declared as part of a dependency.
      * The reason to do this lookup is that for a local component artifact, the file is part of the artifact metadata.
-     * (For external module components, we just instantiate a new artifact metadata).
+     * For an external module component, if the requested artifact matches a URL-backed artifact declared by
+     * the variant, with the same name and file name, the declared artifact is returned, so the same file has
+     * one identity no matter how it was requested. Otherwise, a new artifact is created.
      */
     ComponentArtifactMetadata artifact(IvyArtifactName artifact);
 

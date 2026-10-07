@@ -26,7 +26,6 @@ import org.gradle.internal.Factory;
 import org.gradle.internal.component.model.ComponentConfigurationIdentifier;
 import org.gradle.internal.component.model.DefaultVariantMetadata;
 import org.gradle.internal.component.model.ExcludeMetadata;
-import org.gradle.internal.component.model.IvyArtifactName;
 import org.gradle.internal.component.model.ModuleConfigurationMetadata;
 import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.component.model.VariantResolveMetadata;
@@ -185,11 +184,6 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
     }
 
     @Override
-    public ModuleComponentArtifactMetadata artifact(IvyArtifactName artifact) {
-        return new DefaultModuleComponentArtifactMetadata(componentId, artifact);
-    }
-
-    @Override
     public ImmutableAttributes getAttributes() {
         return attributes;
     }
@@ -209,7 +203,8 @@ public abstract class AbstractConfigurationMetadata implements ModuleConfigurati
         }
     }
 
-    protected ModuleComponentIdentifier getComponentId() {
+    @Override
+    public ModuleComponentIdentifier getComponentId() {
         return componentId;
     }
 

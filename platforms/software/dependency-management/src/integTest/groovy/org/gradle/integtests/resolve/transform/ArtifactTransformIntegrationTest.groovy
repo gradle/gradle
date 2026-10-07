@@ -3339,6 +3339,49 @@ Found the following transformation chains:
         outputContains("capabilities: [[lib], [lib-test-fixtures]]")
     }
 
+    def "explicitly requested artifact of external module is deduplicated with the same declared artifact"() {
+        given:
+        mavenRepo.module("org", "bar", "1.0")
+            .adhocVariants()
+            .variant("compile", [usage: "api"])
+            .withModuleMetadata()
+            .publish()
+        buildFile.text = """
+            $consumerBuildScript
+
+            repositories {
+                maven { url = '${mavenRepo.uri}' }
+            }
+
+            dependencies {
+                compile 'org:bar:1.0'
+                compile 'org:bar:1.0@jar'
+            }
+
+            ${declareTransform('FileSizer')}
+
+            tasks.register("resolve") {
+                def artifacts = configurations.compile.incoming.artifacts
+                def transformed = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                inputs.files artifacts.artifactFiles
+                inputs.files transformed.artifactFiles
+                doLast {
+                    println "artifacts: " + artifacts.collect { it.file.name }
+                    println "transformed: " + transformed.collect { it.file.name }
+                }
+            }
+        """
+
+        when:
+        run "resolve"
+
+        then:
+        outputContains("artifacts: [bar-1.0.jar]")
+        outputContains("transformed: [bar-1.0.jar.txt]")
+    }
+
     private static String getConsumerBuildScript() {
         """
             def usage = Attribute.of('usage', String)
