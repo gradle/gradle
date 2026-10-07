@@ -49,6 +49,8 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
 
     private static final String SAMPLE_ENV_PREFIX = "-Dorg.gradle.sampletest.env.";
 
+    private static final String PROBLEMS_REPORT_FLAG = "--problems-report";
+
     /**
      * The id of the Gradle test worker this JVM is, as set by {@code org.gradle.api.internal.tasks.testing.worker.TestWorker}.
      * Declared here rather than referenced, as that class is not on the docsTest classpath.
@@ -100,12 +102,15 @@ class IntegrationTestSamplesExecutor extends CommandExecutor {
             .filter(it -> !it.startsWith(WARNING_MODE_FLAG_PREFIX) && !it.equals(NO_STACKTRACE_CHECK) && !it.startsWith(SAMPLE_ENV_PREFIX))
             .collect(toCollection(ArrayList::new));
         filteredFlags.add(getAvailableJdksFlag());
+        if (!flags.contains(PROBLEMS_REPORT_FLAG)) {
+            // Samples opt in to the report explicitly when they document its console output
+            filteredFlags.add("--no-problems-report");
+        }
         GradleExecuter executer = gradle.inDirectory(workingDir).ignoreMissingSettingsFile()
             .noDeprecationChecks()
             .withWarningMode(warningMode)
             .withToolchainDetectionEnabled()
             .withArguments(filteredFlags)
-            .withArgument("--no-problems-report")
             .withTasks(args);
 
         if (flags.contains("--build-cache")) {

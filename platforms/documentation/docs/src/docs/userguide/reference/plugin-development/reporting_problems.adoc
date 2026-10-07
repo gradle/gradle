@@ -16,7 +16,7 @@
 = Reporting Plugin Problems with the Problems API
 :keywords: problems, api, problem
 
-Gradle’s Problems API lets plugins report rich, structured information about issues that occur during a failing build.
+Gradle’s Problems API lets plugins report rich, structured information about issues that occur during a build, both warnings and failures.
 
 The following example shows how a plugin can report a problem:
 
@@ -28,16 +28,28 @@ include::sample[dir="snippets/reference/plugin-development/problemReporting/kotl
 <3> Report a recoverable problem so the build can continue.
 <4> Add optional extra data to the problem.
 
+[[sec:where_problems_appear]]
+== Where reported problems appear
+
+Gradle delivers reported problems to several places:
+
+- The <<sec:generated_html_report,HTML Problems Report>> lists all reported problems.
+On the command line, this is where warnings appear by default; the console shows only the location of the report at the end of the build.
+- The console always shows failures.
+Warnings are printed as well when running with `--warning-mode=all`, see <<sec:console_rendering,Console rendering>>.
+With `--warning-mode=none`, the console does not show the location of the report either.
+- <<tooling_api_clients,Tooling API clients>>, such as IDEs, receive problems as events.
+
+Report a problem once, through the Problems API only.
+Do not log it again with the task's logger: with `--warning-mode=all` and in IDEs, the user would see it twice.
+
+The <<sec:problems_api_usage,example below>> shows the console output for each case.
+Repeated instances of the same problem are summarized, see <<sec:problem_summarization,Problem Summarization>>.
+
 [[sec:problems_api_usage]]
 == Problems API Usage
 
-The following simple plugin adds a `greet` task:
-
-- It prints a `Hello World` greeting when used correctly: `./gradlew greet -Precipient=World`
-- It warns if no recipient is set: `./gradlew greet`
-- It fails if the recipient is `fail`: `./gradlew greet -Precipient=fail`
-
-The details of the failure will be provided in the <<sec:generated_html_report,HTML Problems Report>>:
+The following simple plugin adds a `greet` task, applied by the `consumer` build of the sample:
 
 ====
 include::sample[dir="snippets/reference/plugin-development/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[]"]
@@ -51,6 +63,51 @@ How it works:
 - **<<reporting_a_recoverable_problem,Reports warnings>>** with `ProblemReporter.report()` when the build can continue.
 - **<<reporting_a_fatal_problem,Throws structured failures>>** with `ProblemReporter.throwing()` when the build must stop.
 - **<<add_data_using_problem_spec,Optionally attaches `AdditionalData`>>** to `ProblemSpec` so advanced tools can show extra info.
+
+The `greet` task prints a greeting when used correctly:
+
+[source,bash]
+----
+$ ./gradlew :consumer:greet -Precipient=World
+----
+[source,text]
+----
+include::{snippetsPath}/reference/plugin-development/reportingProblems/tests/greet.out[]
+----
+
+It reports a warning if no recipient is set.
+By default, the console only shows the location of the HTML Problems Report:
+
+[source,bash]
+----
+$ ./gradlew :consumer:greet
+----
+[source,text]
+----
+include::{snippetsPath}/reference/plugin-development/reportingProblems/tests/greetWithoutRecipient.out[]
+----
+
+With `--warning-mode=all`, the warning is printed to the console as well:
+
+[source,bash]
+----
+$ ./gradlew :consumer:greet --warning-mode=all
+----
+[source,text]
+----
+include::{snippetsPath}/reference/plugin-development/reportingProblems/tests/greetWithoutRecipientWarningModeAll.out[]
+----
+
+It fails if the recipient is `fail`:
+
+[source,bash]
+----
+$ ./gradlew :consumer:greet -Precipient=fail
+----
+[source,text]
+----
+include::{snippetsPath}/reference/plugin-development/reportingProblems/tests/greetFail.out[]
+----
 
 [[injecting_the_problems_service]]
 === Injecting the `Problems` service
@@ -117,7 +174,8 @@ This throws an exception tied to a rich problem report so Gradle clients can dis
 [[add_data_using_problem_spec]]
 === Add data using `ProblemSpec`
 
-When reporting a problem, you can provide a wide variety of metadata such as descriptions, severity, solutions, and additional data:
+When reporting a problem, you can provide a wide variety of metadata such as descriptions, solutions, and additional data.
+The severity follows from the reporting mode: `report()` reports a warning, `throwing()` an error.
 
 ====
 include::sample[dir="snippets/reference/plugin-development/reportingProblems/kotlin",files="plugin/src/main/kotlin/org/example/HelloProblemsPlugin.kt[tags=problems-spec]"]
@@ -307,14 +365,7 @@ Run with `--warning-mode=all` or `--warning-mode=fail` to infer a location for e
 - The report is skipped if no problems are found.
 - Disable report generation with the `--no-problems-report` flag.
 
-Console output includes a link to the report:
-
-[source,text]
-----
-[Incubating] Problem report is available at: <project-dir>/build/reports/problems/problems-report.html
-
-BUILD SUCCESSFUL in 1s
-----
+Console output includes a link to the report, see the <<sec:problems_api_usage,example output>> above.
 
 image::problems-report-html.png[]
 
