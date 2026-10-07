@@ -649,9 +649,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         ResolverResults newState;
         if (!domainObjectContext.getModel().hasMutableState()) {
             Documentation userGuideLink = Documentation.userManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors");
-            throw new GradleException(
-                "Resolution of the " + displayName.getDisplayName() + " was attempted without an exclusive lock. This is unsafe and not allowed.",
-                Collections.singletonList("For more information, please refer to " + userGuideLink.getUrl() + " in the Gradle documentation."));
+            GradleException failure = new GradleException(
+                "Resolution of the " + displayName.getDisplayName() + " was attempted without an exclusive lock. This is unsafe and not allowed.");
+            failure.addResolution("For more information, please refer to " + userGuideLink.getUrl() + " in the Gradle documentation.");
+            throw failure;
         } else {
             newState = resolveExclusivelyIfRequired();
         }

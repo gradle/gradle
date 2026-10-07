@@ -31,7 +31,6 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -87,8 +86,8 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
                 exclusiveTaskInvoked.ifPresent(builtInCommand -> {
                     GradleException ex = new GradleException(
                             "Executing other tasks along with the '" + builtInCommand.getDisplayName() + "' task is not allowed. " +
-                            "The '" + builtInCommand.getDisplayName() + "' task must be run by itself.",
-                            Collections.singletonList("Remove all other tasks from the command line when running init."));
+                            "The '" + builtInCommand.getDisplayName() + "' task must be run by itself.");
+                    ex.addResolution("Remove all other tasks from the command line when running init.");
                     ProblemId id = ProblemId.create("init invocation problem", "Init invocation problem", GradleCoreProblemGroup.taskSelection());
                     throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
                         spec.contextualLabel(ex.getMessage());

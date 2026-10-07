@@ -47,13 +47,14 @@ public class HtmlTestReportPathBuilder {
             List<SafeFileLocationUtils.Segment> segments = buildSegments(tree.getPath(), true);
             SafeFileLocationUtils.PathLimitCheckResult checkResult = pathLimitChecker.check(segments);
             if (checkResult == SafeFileLocationUtils.PathLimitCheckResult.UNSHRINKABLE) {
-                throw new GradleException(
-                    "Cannot shrink report path below required limit. Path that could not be shrunk (relative to the report directory): " + SafeFileLocationUtils.toSafeFilePath(segments),
-                    Arrays.asList(
-                        "Use a shorter report directory path.",
-                        "Reduce nesting in your tests.",
-                        "Disable the HTML report for this task."
-                    ));
+                GradleException failure = new GradleException(
+                    "Cannot shrink report path below required limit. Path that could not be shrunk (relative to the report directory): " + SafeFileLocationUtils.toSafeFilePath(segments));
+                Arrays.asList(
+                    "Use a shorter report directory path.",
+                    "Reduce nesting in your tests.",
+                    "Disable the HTML report for this task."
+                ).forEach(failure::addResolution);
+                throw failure;
             }
             return checkResult == SafeFileLocationUtils.PathLimitCheckResult.EXCEEDS_LIMIT;
         }

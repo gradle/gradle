@@ -26,8 +26,11 @@ import java.util.Arrays;
 
 @Contextual
 public class ToolchainDownloadException extends GradleException {
+    @SuppressWarnings("this-escape")
     public ToolchainDownloadException(JavaToolchainSpec spec, String url, @Nullable String cause) {
-        super(getMessage(spec, url, cause), Arrays.asList(ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION, ToolchainProvisioningException.DOWNLOAD_REPOSITORIES_RESOLUTION));
+        super(getMessage(spec, url, cause));
+        Arrays.asList(ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION, ToolchainProvisioningException.DOWNLOAD_REPOSITORIES_RESOLUTION)
+            .forEach(this::addResolution);
     }
 
     public ToolchainDownloadException(JavaToolchainSpec spec, URI uri, Throwable cause) {

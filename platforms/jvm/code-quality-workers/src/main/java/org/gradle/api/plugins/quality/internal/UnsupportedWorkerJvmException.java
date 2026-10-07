@@ -33,8 +33,9 @@ public class UnsupportedWorkerJvmException extends GradleException {
 
     @SuppressWarnings("this-escape")
     public UnsupportedWorkerJvmException(String toolName, VersionNumber toolVersion) {
-        super(String.format("%s %s is not compatible with the configured JVM (%s).", toolName, toolVersion, JavaVersion.current()),
-            Arrays.asList("Find a compatible version of Checkstyle at https://checkstyle.org/releasenotes.html.", "Configure the toolchain used by Checkstyle at " + CHECKSTYLE_USER_MANUAL + "."));
+        super(String.format("%s %s is not compatible with the configured JVM (%s).", toolName, toolVersion, JavaVersion.current()));
+        Arrays.asList("Find a compatible version of Checkstyle at https://checkstyle.org/releasenotes.html.", "Configure the toolchain used by Checkstyle at " + CHECKSTYLE_USER_MANUAL + ".")
+            .forEach(this::addResolution);
         // TODO: Make this a general purpose exception.
     }
 }

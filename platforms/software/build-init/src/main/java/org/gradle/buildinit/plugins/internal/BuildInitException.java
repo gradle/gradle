@@ -28,7 +28,9 @@ public class BuildInitException extends GradleException {
         this(message, Collections.emptyList());
     }
 
+    @SuppressWarnings("this-escape")
     public BuildInitException(String message, Iterable<String> resolutions) {
-        super(message, resolutions);
+        super(message);
+        resolutions.forEach(this::addResolution);
     }
 }

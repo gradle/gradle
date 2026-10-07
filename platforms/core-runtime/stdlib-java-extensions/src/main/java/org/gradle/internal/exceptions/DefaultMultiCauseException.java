@@ -59,7 +59,8 @@ public class DefaultMultiCauseException extends GradleException implements Multi
 
     @SuppressWarnings("this-escape")
     public DefaultMultiCauseException(String message, Iterable<? extends Throwable> causes, List<String> resolutions) {
-        super(message, resolutions);
+        super(message);
+        resolutions.forEach(this::addResolution);
         this.message = message;
         initCauses(causes);
     }

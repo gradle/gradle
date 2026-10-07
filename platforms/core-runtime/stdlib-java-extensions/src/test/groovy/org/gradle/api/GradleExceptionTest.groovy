@@ -17,20 +17,26 @@ package org.gradle.api
 
 import spock.lang.Specification
 
+/**
+ * Unit tests for {@link GradleException}.
+ */
 class GradleExceptionTest extends Specification {
     def "constructor carries the given resolutions"() {
+        given:
+        def cause = new RuntimeException('cause')
+
         when:
-        def exception = new GradleException('failure', ['resolution1', 'resolution2'])
+        def exception = new GradleException('failure', cause, ['resolution1', 'resolution2'])
 
         then:
         exception.message == 'failure'
-        exception.cause == null
+        exception.cause == cause
         exception.resolutions == ['resolution1', 'resolution2']
     }
 
     def "clearResolutions removes the resolutions given to the constructor"() {
         given:
-        def exception = new GradleException('failure', ['resolution'])
+        def exception = new GradleException('failure', new RuntimeException('cause'), ['resolution'])
 
         when:
         exception.clearResolutions()
@@ -42,7 +48,7 @@ class GradleExceptionTest extends Specification {
     def "resolutions are immutable once the constructor has returned"() {
         given:
         def resolutions = ['resolution']
-        def exception = new GradleException('failure', resolutions)
+        def exception = new GradleException('failure', new RuntimeException('cause'), resolutions)
 
         when:
         resolutions.add('added later')
@@ -51,28 +57,30 @@ class GradleExceptionTest extends Specification {
         exception.resolutions == ['resolution']
     }
 
-    def "a null second argument reports the overload ambiguity"() {
-        // Groovy resolves overloads from the runtime types, so a null cause selects the (String, Iterable)
-        // constructor rather than failing to compile as it would in Java and Kotlin. Build scripts are Groovy,
-        // so this is the path a user hits by writing `throw new GradleException(message, e.cause)` where the
-        // nested cause happens to be absent.
+    def "a null second argument is unambiguously the cause"() {
+        // There is no (String, Iterable) overload, so a null second argument cannot be ambiguous. Groovy resolves
+        // overloads from the runtime types, which is why this is worth pinning: it is the path a build script takes
+        // when it writes `throw new GradleException(message, e.cause)` and the nested cause happens to be absent.
         when:
-        new GradleException('failure', null)
-
-        then:
-        def e = thrown(NullPointerException)
-        e.message.contains('resolutions must not be null')
-        e.message.contains('(Throwable) null')
-    }
-
-    def "casting the null cause disambiguates"() {
-        when:
-        def exception = new GradleException('failure', (Throwable) null)
+        def exception = new GradleException('failure', null)
 
         then:
         exception.message == 'failure'
         exception.cause == null
         exception.resolutions.empty
+    }
+
+    def "resolutions can be attached without a cause"() {
+        // The replacement for the removed (String, Iterable) constructor, which leaves the cause attachable.
+        given:
+        def exception = new GradleException('failure')
+
+        when:
+        exception.addResolution('resolution')
+
+        then:
+        exception.resolutions == ['resolution']
+        exception.cause == null
     }
 
     def "a cause can still be attached with initCause"() {
@@ -85,12 +93,24 @@ class GradleExceptionTest extends Specification {
 
         then:
         exception.cause == cause
-        exception.resolutions == expectedResolutions
 
         where:
-        constructed                                   | expectedResolutions
-        new GradleException()                         | []
-        new GradleException('failure')                | []
-        new GradleException('failure', ['resolution']) | ['resolution']
+        constructed << [
+            new GradleException(),
+            new GradleException('failure'),
+        ]
+    }
+
+    def "passing a null cause alongside resolutions blocks initCause"() {
+        // Documented consequence of the surviving three-argument constructor: an explicitly null cause still
+        // counts as initialized. Callers that need an attachable cause use addResolution instead.
+        given:
+        def exception = new GradleException('failure', null, ['resolution'])
+
+        when:
+        exception.initCause(new RuntimeException('cause'))
+
+        then:
+        thrown(IllegalStateException)
     }
 }

@@ -33,7 +33,6 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -124,9 +123,9 @@ public class DefaultAdhocSoftwareComponent implements AdhocComponentWithVariants
      */
     protected void checkNotObserved() {
         if (cachedVariants != null) {
-            throw new GradleException(
-                "Gradle Module Metadata can't be modified after an eagerly populated publication.",
-                Collections.singletonList(Documentation.upgradeMinorGuide(8, "gmm_modification_after_publication_populated").getConsultDocumentationMessage()));
+            GradleException failure = new GradleException("Gradle Module Metadata can't be modified after an eagerly populated publication.");
+            failure.addResolution(Documentation.upgradeMinorGuide(8, "gmm_modification_after_publication_populated").getConsultDocumentationMessage());
+            throw failure;
         }
     }
 

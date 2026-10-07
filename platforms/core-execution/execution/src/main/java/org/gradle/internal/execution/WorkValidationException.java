@@ -32,8 +32,10 @@ import static org.gradle.internal.RenderingUtils.oxfordJoin;
 @Contextual
 public class WorkValidationException extends GradleException {
 
+    @SuppressWarnings("this-escape")
     private WorkValidationException(String message, List<String> resolutions) {
-        super(message, resolutions);
+        super(message);
+        resolutions.forEach(this::addResolution);
     }
 
     public static WorkValidationException withSummaryForPlugin(int problemCount, List<String> resolutions) {

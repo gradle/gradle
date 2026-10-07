@@ -37,7 +37,8 @@ public final class VariantTransformConfigurationException extends GradleExceptio
 
     @SuppressWarnings("this-escape")
     public VariantTransformConfigurationException(String message, DocumentationRegistry documentationRegistry) {
-        super(message, buildStandardResolutions(documentationRegistry));
+        super(message);
+        buildStandardResolutions(documentationRegistry).forEach(this::addResolution);
     }
 
     private static List<String> buildStandardResolutions(DocumentationRegistry documentationRegistry) {

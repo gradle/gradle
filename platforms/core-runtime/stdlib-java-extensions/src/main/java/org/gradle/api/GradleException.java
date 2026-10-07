@@ -59,9 +59,6 @@ public class GradleException extends RuntimeException implements ResolutionProvi
 
     /**
      * Creates a new {@code GradleException}.
-     * <p>
-     * Passing {@code null} as the cause is ambiguous with {@link #GradleException(String, Iterable)}; see that
-     * constructor for how to disambiguate. Prefer {@link #GradleException(String)} when there is no cause.
      *
      * @since 0.7
      */
@@ -72,43 +69,21 @@ public class GradleException extends RuntimeException implements ResolutionProvi
     /**
      * Creates a new {@code GradleException} carrying the given resolution suggestions.
      * <p>
-     * Note that {@code new GradleException(message, null)} is ambiguous, because {@code null} matches both this
-     * constructor and {@link #GradleException(String, Throwable)}. Java and Kotlin reject such a call at compile
-     * time. Groovy resolves overloads from the runtime types, so it selects this constructor and then fails with a
-     * {@link NullPointerException}. Either use {@link #GradleException(String)} when there is no cause, or cast the
-     * argument - {@code new GradleException(message, (Throwable) null)}.
-     *
-     * @since 9.9.0
-     */
-    @Incubating
-    public GradleException(String message, Iterable<String> resolutions) {
-        super(message);
-        requireResolutions(resolutions).forEach(this.resolutions::add);
-    }
-
-    /**
-     * Creates a new {@code GradleException} carrying the given resolution suggestions.
+     * There is deliberately no {@code (String, Iterable)} overload. It would make
+     * {@code new GradleException(message, null)} ambiguous with {@link #GradleException(String, Throwable)}:
+     * Java and Kotlin would reject such a call at compile time, and Groovy, which resolves overloads from the
+     * runtime types, would select the resolutions constructor and fail on the null. To attach resolutions
+     * without a cause, use {@link #GradleException(String)} followed by {@link #addResolution(String)}.
+     * <p>
+     * Note that passing a {@code null} cause here still counts as initializing it, so a later
+     * {@link #initCause(Throwable)} call on the result throws {@link IllegalStateException}.
      *
      * @since 9.9.0
      */
     @Incubating
     public GradleException(String message, @Nullable Throwable cause, Iterable<String> resolutions) {
         super(message, cause);
-        requireResolutions(resolutions).forEach(this.resolutions::add);
-    }
-
-    /**
-     * Fails with a message that names the overload ambiguity, rather than with the bare
-     * {@link NullPointerException} that dereferencing the argument would produce. Reaching here almost always
-     * means a caller passed a {@code null} cause from a language that resolves overloads at run time.
-     */
-    private static Iterable<String> requireResolutions(Iterable<String> resolutions) {
-        return Objects.requireNonNull(
-            resolutions,
-            "resolutions must not be null. A null second argument is ambiguous between "
-                + "GradleException(String, Throwable) and GradleException(String, Iterable); "
-                + "cast it to pick one, for example new GradleException(message, (Throwable) null)."
-        );
+        Objects.requireNonNull(resolutions, "resolutions must not be null").forEach(this.resolutions::add);
     }
 
     /**

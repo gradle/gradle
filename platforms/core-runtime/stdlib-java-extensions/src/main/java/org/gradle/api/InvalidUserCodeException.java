@@ -18,6 +18,8 @@ package org.gradle.api;
 
 import org.gradle.internal.exceptions.Contextual;
 
+import java.util.Objects;
+
 /**
  * A <code>InvalidUserCodeException</code> is thrown when user-provided code cannot be executed.
  * @since 1.4
@@ -45,15 +47,25 @@ public class InvalidUserCodeException extends GradleException {
      * Constructor that allows adding potential resolutions to this exception.
      * <p>
      * Note that {@code new InvalidUserCodeException(message, null)} is ambiguous, because {@code null} matches both
-     * this constructor and {@link #InvalidUserCodeException(String, Throwable)}. See
-     * {@link GradleException#GradleException(String, Iterable)} for how each language behaves and how to
-     * disambiguate.
+     * this constructor and {@link #InvalidUserCodeException(String, Throwable)}. Java and Kotlin reject such a call
+     * at compile time. Groovy resolves overloads from the runtime types, so it selects this constructor and then
+     * fails with a {@link NullPointerException}. Either use {@link #InvalidUserCodeException(String)} when there is
+     * no cause, or cast the argument - {@code new InvalidUserCodeException(message, (Throwable) null)}.
      *
      * @since 9.9.0
      */
     @Incubating
+    @SuppressWarnings("this-escape")
     public InvalidUserCodeException(String message, Iterable<String> resolutions) {
-        super(message, resolutions);
+        // Calls super(message) rather than delegating to a cause-taking constructor, since passing an explicit
+        // null cause counts as initializing it and makes any later initCause(...) call throw.
+        super(message);
+        Objects.requireNonNull(
+            resolutions,
+            "resolutions must not be null. A null second argument is ambiguous between "
+                + "InvalidUserCodeException(String, Throwable) and InvalidUserCodeException(String, Iterable); "
+                + "cast it to pick one, for example new InvalidUserCodeException(message, (Throwable) null)."
+        ).forEach(this::addResolution);
     }
 
     /**

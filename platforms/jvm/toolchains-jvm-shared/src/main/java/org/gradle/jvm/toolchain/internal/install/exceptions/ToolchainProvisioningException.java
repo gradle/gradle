@@ -39,7 +39,7 @@ public class ToolchainProvisioningException extends GradleException {
             "Cannot find a Java installation on your machine (%s) matching: %s. %s",
             OperatingSystem.current(),
             specification,
-            cause),
-            Arrays.asList(resolutions));
+            cause));
+        Arrays.asList(resolutions).forEach(this::addResolution);
     }
 }
