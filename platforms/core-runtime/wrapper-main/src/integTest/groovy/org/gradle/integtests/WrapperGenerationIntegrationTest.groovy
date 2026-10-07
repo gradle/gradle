@@ -36,7 +36,7 @@ import java.util.jar.Manifest
 import static org.hamcrest.CoreMatchers.containsString
 
 class WrapperGenerationIntegrationTest extends AbstractIntegrationSpec {
-    private static final HashCode EXPECTED_WRAPPER_JAR_HASH = HashCode.fromString("238e777fcddd7e34f9708186085def2abd6e08e658505b38718d79d74c21abd5")
+    private static final HashCode EXPECTED_WRAPPER_JAR_HASH = HashCode.fromString("3b8a25775a69158b5ad2b1d17a80a88dc7b40a352a73eb27d06c612a7ce68e98")
 
     def "generated wrapper scripts use correct line separators"() {
         buildFile << """
@@ -495,7 +495,7 @@ distributionBase=PROJECT
 
         then:
         Throwable throwable = thrown(UnexpectedBuildFailure.class)
-        assert throwable.message.contains("Test of distribution url ${url} failed. Please check the values set with --gradle-distribution-url and --gradle-version.")
+        assert throwable.message.contains("Test of distribution url ${target.toURI().toASCIIString()} failed. Please check the values set with --gradle-distribution-url and --gradle-version.")
         file("gradle/wrapper/gradle-wrapper.properties").assertDoesNotExist()
     }
 

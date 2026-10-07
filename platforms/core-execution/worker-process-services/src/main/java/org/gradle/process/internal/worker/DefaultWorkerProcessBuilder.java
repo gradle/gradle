@@ -49,6 +49,7 @@ import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
+import java.security.SecureRandom;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
@@ -224,6 +225,10 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
     public WorkerProcess build() {
         final WorkerJvmMemoryStatus memoryStatus = shouldPublishJvmMemoryInfo ? new WorkerJvmMemoryStatus() : null;
         final DefaultWorkerProcess workerProcess = new DefaultWorkerProcess(connectTimeoutSeconds, TimeUnit.SECONDS, memoryStatus);
+
+        byte[] connectionToken = new byte[16];
+        new SecureRandom().nextBytes(connectionToken);
+
         ConnectionAcceptor acceptor = server.accept(connection ->
             workerProcess.onConnect(connection, () -> {
                 DefaultWorkerLoggingProtocol defaultWorkerLoggingProtocol = new DefaultWorkerLoggingProtocol(outputEventListener);
@@ -234,7 +239,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
                     connection.useParameterSerializers(WorkerJvmMemoryInfoSerializer.create());
                     connection.addIncoming(WorkerJvmMemoryInfoProtocol.class, memoryStatus);
                 }
-            }));
+            }), connectionToken);
         workerProcess.startAccepting(acceptor);
         Address localAddress = acceptor.getAddress();
 
@@ -254,7 +259,7 @@ public class DefaultWorkerProcessBuilder implements WorkerProcessBuilder {
         int javaVersionMajor = jvmVersionDetector.getJavaVersionMajor(javaCommand.getExecutable());
 
         boolean java9Compatible = javaVersionMajor >= 9;
-        workerImplementationFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, implementationModulePath, localAddress, javaCommand, shouldPublishJvmMemoryInfo, java9Compatible);
+        workerImplementationFactory.prepareJavaCommand(id, displayName, this, implementationClassPath, implementationModulePath, localAddress, connectionToken, javaCommand, shouldPublishJvmMemoryInfo, java9Compatible);
 
         if (addJpmsCompatibilityFlags) {
             javaCommand.jvmArgs(JpmsConfiguration.forWorkerProcesses(javaVersionMajor, nativeServicesMode.isPotentiallyEnabled()));

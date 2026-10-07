@@ -28,7 +28,8 @@ public interface IncomingConnector {
      *
      * @param action the action to execute on incoming connection. The supplied action is not required to be thread-safe.
      * @param allowRemote If true, only allow connections from remote machines. If false, allow only from the local machine.
+     * @param connectionToken the token a peer must present during the connection handshake.
      * @return the address of the endpoint which the connector is listening on.
      */
-    ConnectionAcceptor accept(Action<ConnectCompletion> action, boolean allowRemote);
+    ConnectionAcceptor accept(Action<ConnectCompletion> action, boolean allowRemote, byte[] connectionToken);
 }

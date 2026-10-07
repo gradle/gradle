@@ -19,6 +19,7 @@ package org.gradle.internal.resource.transport.http
 import com.google.common.collect.ImmutableMap
 import org.apache.http.impl.client.HttpClientBuilder
 import org.gradle.api.internal.DocumentationRegistry
+import org.gradle.internal.resource.HttpErrorStatusCodeException
 import org.gradle.test.fixtures.server.http.HttpRequest
 import org.gradle.test.fixtures.server.http.HttpResponse
 import org.gradle.test.fixtures.server.http.HttpServer
