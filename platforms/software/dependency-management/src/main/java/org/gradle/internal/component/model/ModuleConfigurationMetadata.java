@@ -16,8 +16,13 @@
 
 package org.gradle.internal.component.model;
 
+import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
+import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ExternalModuleVariantGraphResolveMetadata;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleDependencyMetadata;
+import org.gradle.internal.component.external.model.UrlBackedArtifactMetadata;
 
 import java.util.List;
 
@@ -25,5 +30,21 @@ public interface ModuleConfigurationMetadata extends ConfigurationMetadata, Conf
 
     @Override
     List<? extends ModuleDependencyMetadata> getDependencies();
+
+    ModuleComponentIdentifier getComponentId();
+
+    @Override
+    default ModuleComponentArtifactMetadata artifact(IvyArtifactName artifact) {
+        ModuleComponentIdentifier componentId = getComponentId();
+        String fileName = DefaultModuleComponentArtifactIdentifier.fileName(componentId, artifact);
+        for (ComponentArtifactMetadata declared : getArtifacts()) {
+            if (declared instanceof UrlBackedArtifactMetadata urlBacked) {
+                if (urlBacked.getName().equals(artifact) && urlBacked.getId().getFileName().equals(fileName)) {
+                    return urlBacked;
+                }
+            }
+        }
+        return new DefaultModuleComponentArtifactMetadata(componentId, artifact);
+    }
 
 }

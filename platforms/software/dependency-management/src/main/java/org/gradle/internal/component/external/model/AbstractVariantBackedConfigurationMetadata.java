@@ -140,8 +140,8 @@ class AbstractVariantBackedConfigurationMetadata implements ModuleConfigurationM
     }
 
     @Override
-    public ComponentArtifactMetadata artifact(IvyArtifactName artifact) {
-        return new DefaultModuleComponentArtifactMetadata(componentId, artifact);
+    public ModuleComponentIdentifier getComponentId() {
+        return componentId;
     }
 
     @Override

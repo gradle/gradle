@@ -43,6 +43,10 @@ public class DefaultModuleComponentArtifactIdentifier implements ModuleComponent
 
     @Override
     public String getFileName() {
+        return fileName(componentIdentifier, name);
+    }
+
+    public static String fileName(ModuleComponentIdentifier componentIdentifier, IvyArtifactName name) {
         String classifier = StringUtils.isNotEmpty(name.getClassifier()) ? "-" + name.getClassifier() : "";
         String extension = StringUtils.isNotEmpty(name.getExtension()) ? "." + name.getExtension() : "";
         return name.getName() + "-" + componentIdentifier.getVersion() + classifier + extension;

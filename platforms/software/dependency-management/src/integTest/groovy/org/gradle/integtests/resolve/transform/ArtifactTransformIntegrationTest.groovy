@@ -845,8 +845,7 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
         executed(":lib:jar1", ":app:resolve")
 
         and:
-        // The identifier's original filename should reference the filename from the source variant, not simply the prior transformed variant in the chain
-        outputContains("ids: [lib1.jar -> lib1.jar.blue.red (project ':lib')]")
+        outputContains("ids: [lib1.jar (project ':lib') -> lib1.jar.blue.red]")
         outputContains("variants: [{artifactType=jar, color=red, javaVersion=7, usage=api}]")
         // Should belong to same component as the originals
         outputContains("artifacts: [lib1.jar.blue.red (project ':lib')]")
@@ -3131,6 +3130,293 @@ Found the following transformation chains:
         failure.assertHasCause("Could not access project ':lib-build:producer'. No task declared this project as part of an input, so it was not scheduled. Properly declare all task inputs (including the result of any dependency resolutions) to ensure this project is scheduled for execution.")
         failure.assertHasResolution("Declare the files or artifacts produced by the configuration using the transform as a task input to properly wire it into the execution plan.")
         failure.assertHasResolution("Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#undeclared_artifact_transform_input")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38831")
+    def "transformed artifacts of one project with same file name are not deduplicated"() {
+        given:
+        file("lib/build.gradle") << """
+            $producerBuildScript
+
+            def f1 = file("a/lib.jar")
+            def f2 = file("b/lib.jar")
+            [f1, f2]*.parentFile*.mkdirs()
+            f1.text = "1234"
+            f2.text = "123"
+            artifacts {
+                compile f1
+                compile f2
+            }
+        """
+        buildFile.text = """
+            $consumerBuildScript
+
+            dependencies {
+                compile project(':lib')
+            }
+
+            ${declareTransform('FileSizer')}
+
+            tasks.register("resolve") {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                inputs.files artifacts.artifactFiles
+                doLast {
+                    println "artifacts: " + artifacts.collect { it.file.name }
+                    println "content: " + artifacts.collect { it.file.text }
+                }
+            }
+        """
+
+        when:
+        run "resolve"
+
+        then:
+        outputContains("artifacts: [lib.jar.txt, lib.jar.txt]")
+        outputContains("content: [4, 3]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38831")
+    def "transformed classes directories with same name are not deduplicated"() {
+        given:
+        file("lib/src/main/java/Foo.java") << "class Foo {}"
+        file("lib/other/main/Other.class") << "other"
+        file("lib/build.gradle") << """
+            apply plugin: 'java-library'
+            sourceSets.main.output.classesDirs.from(file('other/main'))
+        """
+        buildFile.text = """
+            apply plugin: 'java'
+
+            def artifactType = Attribute.of('artifactType', String)
+
+            $fileSizer
+
+            dependencies {
+                implementation project(':lib')
+                registerTransform(FileSizer) {
+                    from.attribute(artifactType, 'java-classes-directory')
+                    to.attribute(artifactType, 'size')
+                }
+            }
+
+            tasks.register("resolve") {
+                def artifacts = configurations.compileClasspath.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                inputs.files artifacts.artifactFiles
+                doLast {
+                    println "artifacts: " + artifacts.collect { it.file.name }
+                }
+            }
+        """
+
+        when:
+        run "resolve"
+
+        then:
+        output.count("Transforming main to main.txt") == 2
+        outputContains("artifacts: [main.txt, main.txt]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/17213")
+    def "transformed artifacts with different input names and same output name are not deduplicated"() {
+        given:
+        file("lib/build.gradle") << """
+            $producerBuildScript
+
+            def f1 = file("first.jar")
+            def f2 = file("second.jar")
+            f1.text = "first"
+            f2.text = "second"
+            artifacts {
+                compile f1
+                compile f2
+            }
+        """
+        buildFile.text = """
+            $consumerBuildScript
+
+            dependencies {
+                compile project(':lib')
+            }
+
+            abstract class DirMaker implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    def output = outputs.dir("main")
+                    new File(output, "a.txt").text = input.name
+                }
+            }
+
+            ${declareTransform('DirMaker')}
+
+            tasks.register("resolve") {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                inputs.files artifacts.artifactFiles
+                doLast {
+                    println "files: " + artifacts.artifactFiles.files.size()
+                    println "artifacts: " + artifacts.artifacts.size()
+                    println "content: " + artifacts.collect { new File(it.file, "a.txt").text }
+                }
+            }
+        """
+
+        when:
+        run "resolve"
+
+        then:
+        outputContains("files: 2")
+        outputContains("artifacts: 2")
+        outputContains("content: [first.jar, second.jar]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/18458")
+    def "transformed artifacts with same name and different capabilities are not deduplicated"() {
+        given:
+        file("lib/build.gradle") << """
+            $producerBuildScript
+
+            group = 'org.test'
+            version = '1.0'
+            def f1 = file("a/a.jar")
+            def f2 = file("b/a.jar")
+            [f1, f2]*.parentFile*.mkdirs()
+            f1.text = "1234"
+            f2.text = "123"
+            configurations {
+                consumable('testFixturesElements') {
+                    attributes.attribute(usage, 'api')
+                    outgoing.capability("org.test:lib-test-fixtures:1.0")
+                }
+            }
+            artifacts {
+                compile f1
+                testFixturesElements f2
+            }
+        """
+        buildFile.text = """
+            $consumerBuildScript
+
+            dependencies {
+                compile project(':lib')
+                compile(project(':lib')) {
+                    capabilities {
+                        requireCapability("org.test:lib-test-fixtures")
+                    }
+                }
+            }
+
+            ${declareTransform('FileSizer')}
+
+            tasks.register("resolve") {
+                def artifacts = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                inputs.files artifacts.artifactFiles
+                doLast {
+                    println "files: " + artifacts.artifactFiles.files.size()
+                    println "artifacts: " + artifacts.collect { it.file.name }
+                    println "content: " + artifacts.collect { it.file.text }
+                    println "capabilities: " + artifacts.collect { it.variant.capabilities.collect { it.name } }
+                }
+            }
+        """
+
+        when:
+        run "resolve"
+
+        then:
+        outputContains("files: 2")
+        outputContains("artifacts: [a.jar.txt, a.jar.txt]")
+        outputContains("content: [4, 3]")
+        outputContains("capabilities: [[lib], [lib-test-fixtures]]")
+    }
+
+    def "explicitly requested artifact of external module is deduplicated with the same declared artifact"() {
+        given:
+        mavenRepo.module("org", "bar", "1.0")
+            .adhocVariants()
+            .variant("compile", [usage: "api"])
+            .withModuleMetadata()
+            .publish()
+        buildFile.text = """
+            $consumerBuildScript
+
+            repositories {
+                maven { url = '${mavenRepo.uri}' }
+            }
+
+            dependencies {
+                compile 'org:bar:1.0'
+                compile 'org:bar:1.0@jar'
+            }
+
+            ${declareTransform('FileSizer')}
+
+            tasks.register("resolve") {
+                def artifacts = configurations.compile.incoming.artifacts
+                def transformed = configurations.compile.incoming.artifactView {
+                    attributes { it.attribute(artifactType, 'size') }
+                }.artifacts
+                inputs.files artifacts.artifactFiles
+                inputs.files transformed.artifactFiles
+                doLast {
+                    println "artifacts: " + artifacts.collect { it.file.name }
+                    println "transformed: " + transformed.collect { it.file.name }
+                }
+            }
+        """
+
+        when:
+        run "resolve"
+
+        then:
+        outputContains("artifacts: [bar-1.0.jar]")
+        outputContains("transformed: [bar-1.0.jar.txt]")
+    }
+
+    private static String getConsumerBuildScript() {
+        """
+            def usage = Attribute.of('usage', String)
+            def artifactType = Attribute.of('artifactType', String)
+
+            dependencies {
+                attributesSchema {
+                    attribute(usage)
+                }
+            }
+            configurations {
+                compile {
+                    attributes { attribute usage, 'api' }
+                }
+            }
+
+            $fileSizer
+        """
+    }
+
+    private static String getProducerBuildScript() {
+        """
+            def usage = Attribute.of('usage', String)
+
+            dependencies {
+                attributesSchema {
+                    attribute(usage)
+                }
+            }
+            configurations {
+                consumable('compile') {
+                    attributes.attribute(usage, 'api')
+                }
+            }
+        """
     }
 
     def declareTransform(String transformImplementation) {
