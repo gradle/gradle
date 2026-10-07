@@ -313,7 +313,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         51.times {
             buildFile """
                 org.gradle.internal.deprecation.DeprecationLogger.deprecate('Thing $it')
-                                                                 .withProblemIdDisplayName('Thing has been deprecated.')
+                                                                 .withProblemName('Thing has been deprecated.')
                                                                  .willBeRemovedInGradle10()
                                                                  .withUserManual("feature_lifecycle", "sec:deprecated")
                                                                  .nagUser();
@@ -356,7 +356,7 @@ class DeprecatedUsageBuildOperationProgressIntegrationTest extends AbstractInteg
         100.times {
             buildFile """
                 org.gradle.internal.deprecation.DeprecationLogger.deprecate('Thing $it')
-                                                                .withProblemIdDisplayName('Thing has been deprecated.')
+                                                                .withProblemName('Thing has been deprecated.')
                                                                 .willBeRemovedInGradle10()
                                                                 .withUserManual("feature_lifecycle", "sec:deprecated")
                                                                 .nagUser();

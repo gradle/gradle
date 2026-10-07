@@ -101,7 +101,7 @@ public class DefaultTaskInputFilePropertyRegistration extends AbstractTaskFilePr
             return withInternalNormalizer(InputNormalizer.COMPILE_CLASSPATH);
         } else {
             DeprecationLogger.deprecateBehaviour(String.format("Setting normalizer of type '%s' on property '%s'.", normalizer.getCanonicalName(), getPropertyName()))
-                .withProblemIdDisplayName("Custom normalizer set on an input file property")
+                .withProblemName("Custom normalizer set on an input file property")
                 .willBecomeAnErrorInGradle10()
                 .undocumented() // TODO: We don't seem to have any user manual documentation for this API
                 .nagUser();

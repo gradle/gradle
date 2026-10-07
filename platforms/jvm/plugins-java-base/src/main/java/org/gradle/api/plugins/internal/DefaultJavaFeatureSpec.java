@@ -86,7 +86,7 @@ public class DefaultJavaFeatureSpec implements FeatureSpec {
 
         if (SourceSet.isMain(sourceSet)) {
             DeprecationLogger.deprecateBehaviour(String.format("The '%s' feature was created using the main source set.", name))
-                .withProblemIdDisplayName("Feature created from the main source set")
+                .withProblemName("Feature created from the main source set")
                 .withAdvice("The main source set is reserved for production code and should not be used for features. Use another source set instead.")
                 .willBecomeAnErrorInGradle10()
                 .withUpgradeGuideSection(8, "deprecate_register_feature_main_source_set")

@@ -149,7 +149,7 @@ class KnownProblemIds {
         'Gradle:Deprecation:Plugin script has been deprecated.': ['Plugin script has been deprecated.'],
         'Gradle:Deprecation:The configuration has been deprecated for consumption.': ['The configuration has been deprecated for consumption.'],
         'Gradle:Deprecation:Configurations should not act as both a resolution root and a variant simultaneously.': ['Configurations should not act as both a resolution root and a variant simultaneously.'],
-        'Gradle:Deprecation:Properties should be assigned using the \'propName = value\' syntax. Setting a property via the Gradle-generated \'propName value\' or \'propName\\(value\\)\' syntax in Groovy DSL has been deprecated.': ['Properties should be assigned using the \'propName = value\' syntax. Setting a property via the Gradle-generated \'propName value\' or \'propName\\(value\\)\' syntax in Groovy DSL has been deprecated.'],
+        'Gradle:Deprecation:Property set via the Gradle-generated \'propName value\' or \'propName\\(value\\)\' syntax in Groovy DSL': ['Property set via the Gradle-generated \'propName value\' or \'propName\\(value\\)\' syntax in Groovy DSL'],
         'Gradle:Deprecation:Querying the output of an artifact transform from a task action without declaring it as a task input has been deprecated.': ['Querying the output of an artifact transform from a task action without declaring it as a task input has been deprecated.'],
         'Gradle:Deprecation:The RepositoryHandler.jcenter\\(\\) method has been deprecated.': ['The RepositoryHandler.jcenter\\(\\) method has been deprecated.'],
         'root:test-problem': ['test problem'],

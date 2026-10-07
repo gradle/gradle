@@ -41,8 +41,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     private DocLink documentation = null;
     private DeprecatedFeatureUsage.Type usageType = DeprecatedFeatureUsage.Type.USER_CODE_DIRECT;
 
-    protected String problemIdDisplayName;
-    protected String problemId;
+    protected String problemName;
 
     public static WithDocumentation withDocumentation(ProblemInternal warning, WithDeprecationTimeline withDeprecationTimeline) {
         DocLink docLink = warning.getDefinition().getDocumentationLink();
@@ -58,10 +57,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
      * <p>
      * The name identifies the deprecated feature, not its usage: builders whose subject is data of the build
      * (a configuration name, a task path) leave that data out, and call sites that interpolate such data into
-     * a free-text subject must set a name through {@link #withProblemIdDisplayName(String)}.
+     * a free-text subject must set a name through {@link #withProblemName(String)}.
      */
     @Nullable
-    protected String createDefaultDeprecationIdDisplayName() {
+    protected String createDefaultProblemName() {
         return summary;
     }
 
@@ -78,14 +77,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     @SuppressWarnings("unchecked")
-    public T withProblemIdDisplayName(String problemIdDisplayName) {
-        this.problemIdDisplayName = problemIdDisplayName;
-        return (T) this;
-    }
-
-    @SuppressWarnings("unchecked")
-    public T withProblemId(String problemId) {
-        this.problemId = problemId;
+    public T withProblemName(String problemName) {
+        this.problemName = problemName;
         return (T) this;
     }
 
@@ -172,8 +165,8 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         this.documentation = documentation;
     }
 
-    void setProblemIdDisplayName(@Nullable String problemIdDisplayName) {
-        this.problemIdDisplayName = problemIdDisplayName;
+    void setProblemName(@Nullable String problemName) {
+        this.problemName = problemName;
     }
 
     void setDeprecationTimeline(DeprecationTimeline deprecationTimeline) {
@@ -181,21 +174,10 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     }
 
     DeprecationMessage build() {
-        if (problemIdDisplayName == null) {
-            setProblemIdDisplayName(createDefaultDeprecationIdDisplayName());
+        if (problemName == null) {
+            setProblemName(createDefaultProblemName());
         }
-
-        if (problemId == null) {
-            // Deprecations are problems in the predefined Gradle > Deprecation group, whose problem names are sentences:
-            // the display name is the name.
-            setProblemId(problemIdDisplayName);
-        }
-
-        return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType, problemIdDisplayName, problemId);
-    }
-
-    public void setProblemId(String problemId) {
-        this.problemId = problemId;
+        return new DeprecationMessage(summary, deprecationTimeline.toString(), advice, context, documentation, usageType, problemName);
     }
 
     public static class WithDeprecationTimeline extends Documentation.AbstractBuilder<WithDocumentation> {
@@ -425,7 +407,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
-        protected String createDefaultDeprecationIdDisplayName() {
+        protected String createDefaultProblemName() {
             // the configuration name is data of the build
             return String.format("The configuration has been deprecated for %s.", deprecationType.displayName());
         }
@@ -576,7 +558,7 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
-        protected String createDefaultDeprecationIdDisplayName() {
+        protected String createDefaultProblemName() {
             // the task path is data of the build
             return String.format("The task type %s has been deprecated.", formatSubject());
         }

@@ -249,7 +249,7 @@ public abstract class ValueState<S> {
             } else if ((flags & WARN_ON_UPGRADED_PROPERTY_CHANGES) != 0) {
                 String shownDisplayName = displayName.getDisplayName();
                 DeprecationLogger.deprecateBehaviour("Changing property value of " + shownDisplayName + " at execution time.")
-                    .withProblemIdDisplayName("Property value changed at execution time")
+                    .withProblemName("Property value changed at execution time")
                     // this should only happen in Gradle 10, when Provider API migration will come to the mainline,
                     // so forbidding it must wait until Gradle 11
                     .startingWithGradle11("changing property value of " + shownDisplayName + " at execution time will become an error")

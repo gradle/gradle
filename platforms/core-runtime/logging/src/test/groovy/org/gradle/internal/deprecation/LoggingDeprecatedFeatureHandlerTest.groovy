@@ -417,7 +417,7 @@ feature1 removal""")
         useStackTrace(fakeStackTrace)
 
         when:
-        handler.featureUsed(new DeprecatedFeatureUsage(new DeprecatedFeatureUsage('fake', "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id display name", "id", LoggingDeprecatedFeatureHandlerTest)))
+        handler.featureUsed(new DeprecatedFeatureUsage(new DeprecatedFeatureUsage('fake', "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id display name", LoggingDeprecatedFeatureHandlerTest)))
         def events = outputEventListener.events
 
         then:
@@ -443,7 +443,7 @@ feature1 removal""")
         useStackTrace()
 
         when:
-        handler.featureUsed(new DeprecatedFeatureUsage('fake', "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id display name", "id", LoggingDeprecatedFeatureHandlerTest))
+        handler.featureUsed(new DeprecatedFeatureUsage('fake', "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id display name", LoggingDeprecatedFeatureHandlerTest))
         def events = outputEventListener.events
 
         then:
@@ -542,6 +542,6 @@ feature1 removal""")
     }
 
     private static DeprecatedFeatureUsage deprecatedFeatureUsage(String summary, Class<?> calledFrom = LoggingDeprecatedFeatureHandlerTest) {
-        new DeprecatedFeatureUsage(summary, "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id display name", "id display name", calledFrom)
+        new DeprecatedFeatureUsage(summary, "removal", null, null, null, DeprecatedFeatureUsage.Type.USER_CODE_DIRECT, "id display name", calledFrom)
     }
 }

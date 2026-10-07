@@ -108,7 +108,7 @@ public class DependencyVerificationsXmlReader {
             DeprecationLogger.deprecateBehaviour("The dependency verification metadata declares a duplicate " + entry + " that differs only by its origin or reason.")
                 .withContext("Trust entries are identified by their coordinates, so such duplicates are redundant: only the first one is kept and the duplicate, including its origin and reason, is removed the next time the metadata file is written (for example with --write-verification-metadata).")
                 .withAdvice("Keep a single entry per set of coordinates, with the origin and reason you want to retain.")
-                .withProblemIdDisplayName("Duplicate trust entry declared in dependency verification metadata")
+                .withProblemName("Duplicate trust entry declared in dependency verification metadata")
                 .willBecomeAnErrorInGradle10()
                 .undocumented()
                 .nagUser();

@@ -221,7 +221,7 @@ public class JavaToolchainQueryService {
         boolean autoDetectedToolchain = javaHome.isAutoProvisioned();
         if (autoDetectedToolchain && installService.isAutoDownloadEnabled() && !installService.hasConfiguredToolchainRepositories()) {
             DeprecationLogger.deprecateBehaviour(String.format("Using toolchain '%s' installed via auto-provisioning without toolchain repositories.", candidate.metadata.getDisplayName()))
-                .withProblemIdDisplayName("Auto-provisioned toolchain used without toolchain repositories")
+                .withProblemName("Auto-provisioned toolchain used without toolchain repositories")
                 .withAdvice("Add toolchain repositories to this build.")
                 .withContext("Builds may fail when this toolchain is not available in other environments.")
                 .willBecomeAnErrorInGradle10()

@@ -91,7 +91,7 @@ class DeprecationMessagesTest extends Specification {
         given:
         def builder = new DeprecationMessageBuilder()
         builder.setSummary(summary)
-        builder.withProblemIdDisplayName(deprecationDisplayName)
+        builder.withProblemName(deprecationDisplayName)
 
         when:
         builder.willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
