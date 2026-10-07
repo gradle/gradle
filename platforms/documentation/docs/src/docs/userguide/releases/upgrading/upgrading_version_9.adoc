@@ -72,6 +72,38 @@ Because these transformations now run at execution time, the Configuration Cache
 A transformation that references objects the Configuration Cache cannot store, such as the `Project` or an extension, now fails with a Configuration Cache problem.
 To fix it, follow the guidance for <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types,types that must not be referenced>> and for <<configuration_cache_requirements.adoc#config_cache:requirements:use_project_during_execution,using the `Project` object at execution time>>.
 
+[[named_attribute_value_desugared_by_name]]
+==== `Named` attribute values are reported by `getName()` rather than `toString()`
+
+When Gradle reduces a non-`String` attribute value to a String — to report it in a resolution result, to cache it, or to publish it — a value implementing link:{javadocPath}/org/gradle/api/Named.html[`Named`] now contributes `getName()`.
+It previously contributed `toString()` in resolution results and in the cached form of those results.
+
+`getName()` is the representation the rest of Gradle already derived: attribute matching compares it, and Gradle Module Metadata publishes it.
+Reporting `toString()` meant a resolution result could describe a value differently from both the match that selected it and the metadata published for it.
+
+This only changes behavior for a hand-written `Named` implementation whose `toString()` returns something other than its `getName()`.
+A value created through link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#named(java.lang.Class,java.lang.String)[`ObjectFactory.named`] is unaffected, because the instance Gradle generates returns the name from both methods.
+The most likely affected shape is an `enum` implementing `Named` that overrides `getName()` while leaving `toString()` at `Enum`'s default of returning `name()`:
+
+[source,groovy]
+----
+enum MyType implements Named {
+    TYPE_A
+
+    @Override
+    String getName() { return name().toLowerCase() }   // "type_a"
+    // toString() is still "TYPE_A"
+}
+----
+
+Such a value was reported as `TYPE_A` and published as `type_a`; both are now `type_a`.
+
+If your build asserts on an attribute value read from a `ResolutionResult`, from `ResolvedVariantResult.getAttributes()`, or from a build operation, update the expected value to the `getName()` form.
+Do not reintroduce the old string by overriding `getName()` to return `toString()` — see <<variant_attributes.adoc#sec:creating-attributes, Creating attributes>> for why the two must agree.
+
+A plain `Enum` that does not implement `Named` is still reduced by `name()`, as before.
+That type remains deprecated — see <<#unsupported_attribute_value_type, unsupported attribute value types>>.
+
 [[changes_9.9.0]]
 == Upgrading from 9.8.0 and earlier
 
