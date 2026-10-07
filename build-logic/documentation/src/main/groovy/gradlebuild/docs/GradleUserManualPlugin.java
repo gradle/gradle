@@ -119,6 +119,9 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             }
 
             task.setExecutionMode(ExecutionMode.OUT_OF_PROCESS);
+            // Includes in the top-level document and private docinfo files are resolved against the base dir,
+            // so it must be the (flattened) source directory. This used to be set by the org.gradle.samples plugin.
+            task.baseDirFollowsSourceFile();
             task.outputOptions(options -> {
                 options.setSeparateOutputDirs(false);
                 options.setBackends(singletonList("html5"));
@@ -305,7 +308,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.getJavadocRoot().convention(layout.getBuildDirectory().dir("javadoc"));
             task.getReleaseNotesFile().convention(layout.getProjectDirectory().file("src/docs/release/notes.md"));
             task.dependsOn(tasks.named("javadocAll"));
-            task.dependsOn(tasks.named("assembleSamples"));
         });
 
         tasks.register("checkDeadExternalLinks", FindBrokenExternalLinks.class, task -> {
