@@ -3135,18 +3135,21 @@ Found the following transformation chains:
     @Issue("https://github.com/gradle/gradle/issues/38831")
     def "transformed artifacts of one project with same file name are not deduplicated"() {
         given:
-        buildFile << """
-            project(':lib') {
-                def f1 = file("a/lib.jar")
-                def f2 = file("b/lib.jar")
-                [f1, f2]*.parentFile*.mkdirs()
-                f1.text = "1234"
-                f2.text = "123"
-                artifacts {
-                    compile f1
-                    compile f2
-                }
+        file("lib/build.gradle") << """
+            $producerBuildScript
+
+            def f1 = file("a/lib.jar")
+            def f2 = file("b/lib.jar")
+            [f1, f2]*.parentFile*.mkdirs()
+            f1.text = "1234"
+            f2.text = "123"
+            artifacts {
+                compile f1
+                compile f2
             }
+        """
+        buildFile.text = """
+            $consumerBuildScript
 
             dependencies {
                 compile project(':lib')
@@ -3179,13 +3182,16 @@ Found the following transformation chains:
         given:
         file("lib/src/main/java/Foo.java") << "class Foo {}"
         file("lib/other/main/Other.class") << "other"
-        buildFile << """
+        file("lib/build.gradle") << """
+            apply plugin: 'java-library'
+            sourceSets.main.output.classesDirs.from(file('other/main'))
+        """
+        buildFile.text = """
             apply plugin: 'java'
 
-            project(':lib') {
-                apply plugin: 'java-library'
-                sourceSets.main.output.classesDirs.from(file('other/main'))
-            }
+            def artifactType = Attribute.of('artifactType', String)
+
+            $fileSizer
 
             dependencies {
                 implementation project(':lib')
@@ -3217,17 +3223,20 @@ Found the following transformation chains:
     @Issue("https://github.com/gradle/gradle/issues/17213")
     def "transformed artifacts with different input names and same output name are not deduplicated"() {
         given:
-        buildFile << """
-            project(':lib') {
-                def f1 = file("first.jar")
-                def f2 = file("second.jar")
-                f1.text = "first"
-                f2.text = "second"
-                artifacts {
-                    compile f1
-                    compile f2
-                }
+        file("lib/build.gradle") << """
+            $producerBuildScript
+
+            def f1 = file("first.jar")
+            def f2 = file("second.jar")
+            f1.text = "first"
+            f2.text = "second"
+            artifacts {
+                compile f1
+                compile f2
             }
+        """
+        buildFile.text = """
+            $consumerBuildScript
 
             dependencies {
                 compile project(':lib')
@@ -3271,28 +3280,29 @@ Found the following transformation chains:
     @Issue("https://github.com/gradle/gradle/issues/18458")
     def "transformed artifacts with same name and different capabilities are not deduplicated"() {
         given:
-        buildFile << """
-            project(':lib') {
-                group = 'org.test'
-                version = '1.0'
-                def f1 = file("a/a.jar")
-                def f2 = file("b/a.jar")
-                [f1, f2]*.parentFile*.mkdirs()
-                f1.text = "1234"
-                f2.text = "123"
-                configurations {
-                    testFixturesElements {
-                        canBeConsumed = true
-                        canBeResolved = false
-                        attributes { attribute usage, 'api' }
-                        outgoing.capability("org.test:lib-test-fixtures:1.0")
-                    }
-                }
-                artifacts {
-                    compile f1
-                    testFixturesElements f2
+        file("lib/build.gradle") << """
+            $producerBuildScript
+
+            group = 'org.test'
+            version = '1.0'
+            def f1 = file("a/a.jar")
+            def f2 = file("b/a.jar")
+            [f1, f2]*.parentFile*.mkdirs()
+            f1.text = "1234"
+            f2.text = "123"
+            configurations {
+                consumable('testFixturesElements') {
+                    attributes.attribute(usage, 'api')
+                    outgoing.capability("org.test:lib-test-fixtures:1.0")
                 }
             }
+            artifacts {
+                compile f1
+                testFixturesElements f2
+            }
+        """
+        buildFile.text = """
+            $consumerBuildScript
 
             dependencies {
                 compile project(':lib')
@@ -3327,6 +3337,43 @@ Found the following transformation chains:
         outputContains("artifacts: [a.jar.txt, a.jar.txt]")
         outputContains("content: [4, 3]")
         outputContains("capabilities: [[lib], [lib-test-fixtures]]")
+    }
+
+    private static String getConsumerBuildScript() {
+        """
+            def usage = Attribute.of('usage', String)
+            def artifactType = Attribute.of('artifactType', String)
+
+            dependencies {
+                attributesSchema {
+                    attribute(usage)
+                }
+            }
+            configurations {
+                compile {
+                    attributes { attribute usage, 'api' }
+                }
+            }
+
+            $fileSizer
+        """
+    }
+
+    private static String getProducerBuildScript() {
+        """
+            def usage = Attribute.of('usage', String)
+
+            dependencies {
+                attributesSchema {
+                    attribute(usage)
+                }
+            }
+            configurations {
+                consumable('compile') {
+                    attributes.attribute(usage, 'api')
+                }
+            }
+        """
     }
 
     def declareTransform(String transformImplementation) {
