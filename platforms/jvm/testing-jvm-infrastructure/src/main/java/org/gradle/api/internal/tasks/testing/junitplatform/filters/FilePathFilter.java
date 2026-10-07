@@ -27,6 +27,7 @@ import org.junit.platform.engine.support.descriptor.FileSystemSource;
 import org.junit.platform.launcher.PostDiscoveryFilter;
 
 import java.io.File;
+import java.util.Optional;
 
 /**
  * A JUnit Platform {@link PostDiscoveryFilter} filter that includes or excludes
@@ -36,14 +37,18 @@ import java.io.File;
  * {@code src/test/definitions/sub/foo.test} has a relative path of {@code sub/foo.test}
  * relative to the {@code directory src/test/definitions}.
  * <p>
- * Only a file under one of those directories has such a relative path. A file-based test that
- * lies under none of them was reached some other way, typically through a class-based entry point
- * such as a JUnit Platform {@code @Suite} selecting feature files of its own, and there is no path
- * to judge it by. Rather than exclude it for failing to match a path it never had, this filter
- * hands it to the fallback filter, which matches it the way it matches any other test that is not
- * declared as a method.
+ * Only a file under one of those directories has such a relative path. A file-based test that lies
+ * under none of them was reached some other way, typically through a class-based entry point such
+ * as a JUnit Platform {@code @Suite} selecting feature files of its own, and there is no path to
+ * judge it by. Excluding it for failing to match a path it never had would make it unselectable:
+ * no pattern could bring it back, not even one naming its own entry point class. So this filter
+ * asks for the name first, and hands a file it has no name for to the fallback filter, which
+ * matches it by its enclosing class, the way it matches any other test not declared as a method.
+ * <p>
+ * The result is a two-tier rule. A file-based test under one of the directories is selected by its
+ * path relative to that directory; one outside them is selected by the class that encloses it.
  *
- * @see TestSelectionMatcher#matchesFile(File)
+ * @see TestSelectionMatcher#nameForFile(File)
  */
 @NullMarked
 public final class FilePathFilter implements PostDiscoveryFilter {
@@ -52,7 +57,7 @@ public final class FilePathFilter implements PostDiscoveryFilter {
 
     /**
      * @param matcher the include and exclude patterns, along with the directories to match paths against
-     * @param fallback the filter to consult for a file that lies under none of those directories
+     * @param fallback the filter to consult for a file that has no name relative to those directories
      */
     public FilePathFilter(TestSelectionMatcher matcher, PostDiscoveryFilter fallback) {
         this.matcher = matcher;
@@ -61,11 +66,13 @@ public final class FilePathFilter implements PostDiscoveryFilter {
 
     @Override
     public FilterResult apply(TestDescriptor descriptor) {
-        File file = getFile(descriptor);
-        if (!matcher.canMatchFile(file)) {
+        // One lookup decides both whether this filter can judge the file and what it is judged by,
+        // so the verdict cannot straddle a change to the file between two separate questions.
+        Optional<String> name = matcher.nameForFile(getFile(descriptor));
+        if (!name.isPresent()) {
             return fallback.apply(descriptor);
         } else {
-            return FilterResult.includedIf(matcher.matchesFile(file), () -> "File match", () -> "File mismatch");
+            return FilterResult.includedIf(matcher.matchesTest(name.get(), ""), () -> "File match", () -> "File mismatch");
         }
     }
 

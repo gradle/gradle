@@ -141,6 +141,11 @@ A pattern naming an individual non-method test can stop matching when you upgrad
 Engines that register their tests only while a class is executing, such as https://kotest.io/[Kotest], are a different case.
 Gradle applies filters after test discovery, before those tests exist, so you can select or exclude them only by their spec class.
 
+Tests that live in a file rather than in a class, such as a https://cucumber.io/[Cucumber] scenario in a `.feature` file, are matched one of two ways depending on how they were found.
+
+1. A file under one of the directories listed in `testDefinitionDirs` is matched by its path relative to that directory, with the extension dropped and the separators turned into dots, so `src/test/definitions/checkout/cart.feature` is selected by `--tests "checkout.cart"`.
+2. A file that lies under none of those directories has no such path — it was reached some other way, for example through a JUnit Platform `@Suite` class that selects feature files itself — and is matched by its enclosing class instead, exactly like the ArchUnit case above.
+
 The following two sections look at the specific cases of simple class/method names and fully-qualified names.
 
 [[simple_name_pattern]]
