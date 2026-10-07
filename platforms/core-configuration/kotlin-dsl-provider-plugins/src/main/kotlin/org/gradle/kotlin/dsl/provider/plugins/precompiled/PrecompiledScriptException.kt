@@ -20,12 +20,21 @@ import org.gradle.api.GradleException
 import org.gradle.internal.exceptions.Contextual
 import org.gradle.internal.exceptions.LocationAwareException
 import java.lang.reflect.InvocationTargetException
-import java.util.Collections
 
 
 @Contextual
 class PrecompiledScriptException
-internal constructor(message: String, cause: Throwable? = null, resolution: String? = null) : GradleException(message, reduceCause(cause), if (resolution != null) Collections.singletonList(resolution) else Collections.emptyList())
+internal constructor(
+    message: String,
+    cause: Throwable? = null,
+    resolution: String? = null
+) : GradleException(message, reduceCause(cause)) {
+    init {
+        if (resolution != null) {
+            addResolution(resolution)
+        }
+    }
+}
 
 
 private

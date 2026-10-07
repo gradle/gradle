@@ -168,7 +168,6 @@ public class GradleVersionResolver {
      * an invalid version is specified.
      */
     public static final class WrapperVersionException extends GradleException {
-        @SuppressWarnings("this-escape")
         public WrapperVersionException(String message, @Nullable Throwable cause) {
             super(message, cause, Arrays.asList(suggestActualVersion(), suggestDynamicVersions()));
         }

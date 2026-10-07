@@ -41,33 +41,24 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
-[[invalid_user_code_exception_resolutions_constructor]]
-==== Passing a null cause to `InvalidUserCodeException` is now ambiguous
+[[gradle_exception_carries_resolutions]]
+==== `GradleException` now carries resolution suggestions
 
-`InvalidUserCodeException` gained a constructor that takes resolution suggestions, `(String message, Iterable<String> resolutions)`, alongside the existing `(String message, Throwable cause)`.
-A `null` second argument matches both, so calls that pass a literal or possibly-null cause are ambiguous:
+link:{javadocPath}/org/gradle/api/GradleException.html[`GradleException`] now supplies the resolution suggestions that Gradle prints beneath a failure, rather than leaving that to a handful of individual exception types.
+It implements the internal `org.gradle.internal.exceptions.ResolutionProvider` interface, which those types previously implemented one by one, and so gains `getResolutions()` from it, alongside the new `addResolution(String)` and `clearResolutions()`.
 
-[source,groovy]
-----
-throw new InvalidUserCodeException("Something failed.", null)
-----
+This is additive for anyone throwing or catching Gradle's exceptions.
+It matters only if you subclass `GradleException`, or one of its subtypes:
 
-How this surfaces depends on the language:
+* If you implement `ResolutionProvider` on that subclass yourself, you no longer need to: the interface is inherited. Your `getResolutions()` has to stay compatible with the inherited one.
+* A `getResolutions()` that returns anything other than `List<String>` no longer compiles, because it cannot override the inherited method.
+* An `addResolution` or `clearResolutions` that clashes by name but not by signature has the same problem.
 
-* Java and Kotlin reject the call at compile time, as an ambiguous reference or an overload resolution ambiguity.
-* Groovy resolves overloads from the runtime types, so it selects the resolutions constructor and fails with a `NullPointerException` naming the ambiguity.
-Because the dispatch depends on the runtime value, a call such as `new InvalidUserCodeException(message, e.cause)` succeeds whenever the nested cause is present and fails only when it is absent.
+Rename the conflicting member, or drop it in favour of the inherited one.
 
-Pass no second argument when there is no cause, or cast to select the constructor you want:
-
-[source,groovy]
-----
-throw new InvalidUserCodeException("Something failed.")
-throw new InvalidUserCodeException("Something failed.", (Throwable) null)
-----
-
-`GradleException` itself takes no such pair: resolutions can only be supplied alongside an explicit cause, with `(String message, Throwable cause, Iterable<String> resolutions)`.
-To attach resolutions without a cause, construct the exception and call `addResolution(String)`.
+Subclasses of `ResolveException` and `ProjectConfigurationException` additionally can no longer override `getResolutions()`.
+Those types combine the resolutions added to them directly with the ones contributed by their causes, and an override would silently discard the former.
+Add resolutions with `addResolution(String)` instead.
 
 [[kotlin_2_4_10]]
 ==== Upgrade to Kotlin 2.4.20

@@ -30,12 +30,10 @@ import java.util.List;
 public final class VariantTransformConfigurationException extends GradleException {
     private static final String RUN_REPORT_SUGGESTION = "Run the 'artifactTransforms' report task to view details about registered transforms.";
 
-    @SuppressWarnings("this-escape")
     public VariantTransformConfigurationException(String message, Throwable cause, DocumentationRegistry documentationRegistry) {
         super(message, cause, buildStandardResolutions(documentationRegistry));
     }
 
-    @SuppressWarnings("this-escape")
     public VariantTransformConfigurationException(String message, DocumentationRegistry documentationRegistry) {
         super(message);
         buildStandardResolutions(documentationRegistry).forEach(this::addResolution);

@@ -38,7 +38,6 @@ public class TypedResolveException extends ResolveException {
     /**
      * Creates a new instance with resolutions.
      */
-    @SuppressWarnings("this-escape")
     public TypedResolveException(String type, String displayName, Iterable<? extends Throwable> failures, List<String> resolutions) {
         super(buildMessage(type, displayName), failures, resolutions);
         this.type = type;
