@@ -281,12 +281,14 @@ include::sample[dir="snippets/reference/dependency-management/controlling-depend
 include::sample[dir="snippets/reference/dependency-management/controlling-dependency-resolution/attributeMatching/groovy",files="build.gradle[tags=define_attribute]"]
 ====
 
-An attribute value type must be one of `String`, `Boolean`, any subtype of `Number` (including `Integer`), or anything extending `org.gradle.api.Named`.
+An attribute value type must be one of `String`, `Boolean`, any subtype of `Number`, or anything extending `org.gradle.api.Named`.
 Plain Java `Enum` types (that do not implement `Named`) are **not** supported as attribute value types — resolution and publishing paths that desugar attributes require the value type to implement `Named`.
 
 Whichever of these types you choose, the value is reduced to a plain string whenever it leaves the build: a `Named` value is published to Gradle Module Metadata as its `getName()`, and values reported in resolution results are desugared to their string form.
-A `Named` type therefore does not restrict which values are legal — `objects.named` accepts any string — and it does not survive publication, since consumers of your module see only that string.
+A `Named` type therefore does not survive publication, since consumers of your module see only the serialized string.
+
 What `Named` does offer is a type you can attach members to, at the cost of a type that every build script using the attribute must be able to see.
+`Named` types used as attributes should **never** include state, as this state will **not** survive serialization.
 
 [TIP]
 ====
