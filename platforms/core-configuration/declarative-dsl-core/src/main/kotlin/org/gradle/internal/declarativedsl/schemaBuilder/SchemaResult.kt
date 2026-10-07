@@ -121,8 +121,9 @@ sealed interface SchemaBuildingIssue {
             illegalUsageTags: Iterable<DiscoveryTag>
         ) : this(
             hiddenClass.let { it.qualifiedName ?: it.simpleName } ?: "unknown",
-            hiddenBecauseTags.map { discoveryTagDescription(it, hiddenClass) },
-            illegalUsageTags.map { discoveryTagDescription(it, hiddenClass) }
+            // Sorted, as the discovery order follows Kotlin reflection, which differs between Kotlin versions
+            hiddenBecauseTags.map { discoveryTagDescription(it, hiddenClass) }.sorted(),
+            illegalUsageTags.map { discoveryTagDescription(it, hiddenClass) }.sorted()
         )
     }
 
