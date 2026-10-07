@@ -12,9 +12,16 @@
 
 Gradle @version@ is the first patch release for Gradle 9.8.0 (released [@releaseDate@](https://gradle.org/releases/)).
 
+This release addresses three high rated vulnerabilities:
+- [Unauthenticated worker-to-daemon channel deserializes untrusted Java objects](https://github.com/gradle/gradle/security/advisories/GHSA-mvvg-497x-hmj8)
+- [Deserialization of untrusted Java objects before authentication in the client - daemon communication](https://github.com/gradle/gradle/security/advisories/GHSA-xwqc-3h47-hg64)
+- [Failure to disable repositories failing to establish an SSL connection can expose builds to malicious artifacts](https://github.com/gradle/gradle/security/advisories/GHSA-j5m7-59rp-24f5)
+
 The following issues were resolved:
 
-* TODO
+- [Gradle 9.8.0 complains again about invalid Toolchains on Debian / Ubuntu packaged systems](https://github.com/gradle/gradle/issues/39358)
+- [Gradle 9.8.0 removes root java.util.logging handlers installed by a custom LogManager (breaks Quarkus test log capture)](https://github.com/gradle/gradle/issues/39359)
+- [Dependency resolution regression](https://github.com/gradle/gradle/issues/39365)
 
 We recommend upgrading to Gradle @version@.
 
