@@ -6,7 +6,6 @@ description = "Process execution abstractions."
 
 dependencies {
     api(projects.concurrent)
-    api(projects.baseServices)
     api(projects.coreApi)
     api(projects.modelCore)
     api(projects.processServicesApi)
