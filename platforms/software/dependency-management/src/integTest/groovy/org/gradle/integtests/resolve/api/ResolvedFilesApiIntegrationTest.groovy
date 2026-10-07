@@ -286,8 +286,6 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         buildFile << """
             $header
 
-            def flavor = Attribute.of('flavor', String)
-
             dependencies {
                 compile project(':a')
             }
@@ -330,10 +328,12 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
           - Provides flavor 'free' but the consumer didn't ask for it
+          - Provides org.gradle.fallback-variant 'false' but the consumer didn't ask for it
   - Configuration ':a:compile' variant 'paid' declares attribute 'usage' with value 'compile':
       - Unmatched attributes:
           - Provides artifactType 'jar' but the consumer didn't ask for it
-          - Provides flavor 'paid' but the consumer didn't ask for it""")
+          - Provides flavor 'paid' but the consumer didn't ask for it
+          - Provides org.gradle.fallback-variant 'false' but the consumer didn't ask for it""")
 
         where:
         expression << ALL_EXPRESSIONS
@@ -394,12 +394,15 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
         """
 
         expect:
+        // The empty primary of :a and :b (secondary variants free/paid + empty primary) gets
+        // auto-tagged with org.gradle.fallback-variant=true. The augmented pass rejects both
+        // secondaries on flavor and prunes the primary on the fallback-variant attribute, so the
+        // un-augmented (fallback) selection pass runs for both projects, firing the deprecation.
+        // Downstream, the external test:test:1.2 and things.jar dependencies still fail on
+        // artifactType, which is what this test is asserting.
+        executer.expectDocumentedDeprecationWarning(fallbackDeprecation(":a"))
+        executer.expectDocumentedDeprecationWarning(fallbackDeprecation(":b"))
         fails("show")
-        failure.assertHasCause("""No variants of project ':a' match the consumer attributes:
-  - Configuration ':a:compile' variant 'free' declares attribute 'usage' with value 'compile':
-      - Incompatible because this component declares attribute 'artifactType' with value 'jar', attribute 'flavor' with value 'free' and the consumer needed attribute 'artifactType' with value 'dll', attribute 'flavor' with value 'preview'
-  - Configuration ':a:compile' variant 'paid' declares attribute 'usage' with value 'compile':
-      - Incompatible because this component declares attribute 'artifactType' with value 'jar', attribute 'flavor' with value 'paid' and the consumer needed attribute 'artifactType' with value 'dll', attribute 'flavor' with value 'preview'""")
 
         // Eager expressions (Set<File>) resolve all transitive dependencies and report all failures.
         // Lazy FileCollection expressions only report the direct dependency failure.
@@ -419,7 +422,7 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
           - Doesn't say anything about usage (required 'compile')""")
         } else {
             // Lazy FileCollection expressions resolve the project dependency graph but not external or file dependencies
-            failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
+            failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
         }
 
         where:
@@ -608,6 +611,14 @@ class ResolvedFilesApiIntegrationTest extends AbstractHttpDependencyResolutionTe
 
         where:
         expression << ALL_EXPRESSIONS
+    }
+
+    private static String fallbackDeprecation(String projectPath) {
+        "Resolving artifacts for project '$projectPath' required a fallback selection pass because no variant satisfied the request. " +
+            "This behavior has been deprecated. This will fail with an error in Gradle 10. " +
+            "To match a variant tagged 'org.gradle.fallback-variant=true', request 'org.gradle.fallback-variant=true' explicitly on the consumer. " +
+            "Otherwise, expose a variant that carries the attributes this request needs. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#variants_with_no_artifacts"
     }
 
     private String freeAndPaidFlavoredJars(String prefix) {
