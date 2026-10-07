@@ -986,6 +986,20 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         return this;
     }
 
+    private boolean needsExtraRepositories() {
+        if (extraRepositories) {
+            return true;
+        }
+        File userHome = getGradleUserHomeDir();
+        Set<File> excluded = userHome == null ? Collections.emptySet() : Collections.singleton(userHome);
+        File testDirectory = testDirectoryProvider.getTestDirectory();
+        if (RepoScriptBlockUtil.extraRepositoriesNeededBy(testDirectory, excluded)) {
+            return true;
+        }
+        File workingDir = getWorkingDir();
+        return !workingDir.toPath().startsWith(testDirectory.toPath()) && RepoScriptBlockUtil.extraRepositoriesNeededBy(workingDir, excluded);
+    }
+
     @Override
     public GradleExecuter ignoreCleanupAssertions() {
         this.ignoreCleanupAssertions = true;
@@ -1103,10 +1117,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             allArgs.add("--init-script");
             allArgs.add(initScript.getAbsolutePath());
         }
-        File extraRepositoriesInitScript = extraRepositories ? RepoScriptBlockUtil.extraRepositoriesInitScriptFile() : null;
-        if (extraRepositoriesInitScript != null) {
-            allArgs.add("--init-script");
-            allArgs.add(extraRepositoriesInitScript.getAbsolutePath());
+        File extraRepositoriesInitScript = RepoScriptBlockUtil.extraRepositoriesInitScriptFile();
+        if (extraRepositoriesInitScript != null && needsExtraRepositories()) {
+            // One argument: the wrapper's own parsing stops at an unknown option's separate value, missing e.g. --gradle-user-home
+            allArgs.add("--init-script=" + extraRepositoriesInitScript.getAbsolutePath());
         }
         if (quiet) {
             allArgs.add("--quiet");
