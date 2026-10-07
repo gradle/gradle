@@ -144,6 +144,7 @@ public class DesugaringAttributeContainerSerializer implements AttributeContaine
             Class<?> enumType = ((Enum<?>) value).getDeclaringClass();
             DeprecationLogger.deprecate("Serializing the value of attribute '" + attribute.getName() + "', of the enum type '" + enumType.getName() + "', which does not implement " + Named.class.getName())
                 .withContext("The value is serialized as the name of the enum constant, so any other state the constant carries is lost, and the value cannot be read back if the constant is renamed. Attribute values must be of type String, Boolean, a subtype of Number, or implement " + Named.class.getName() + ".")
+                .withProblemIdDisplayName("Enum attribute value does not implement " + Named.class.getSimpleName())
                 .willBecomeAnErrorInGradle10()
                 .withUpgradeGuideSection(9, "unsupported_attribute_value_type")
                 .nagUser();

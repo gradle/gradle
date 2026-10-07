@@ -53,6 +53,13 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         return withDeprecationTimeline.undocumented();
     }
 
+    /**
+     * The problem name used when none is set explicitly.
+     * <p>
+     * The name identifies the deprecated feature, not its usage: builders whose subject is data of the build
+     * (a configuration name, a task path) leave that data out, and call sites that interpolate such data into
+     * a free-text subject must set a name through {@link #withProblemIdDisplayName(String)}.
+     */
     @Nullable
     protected String createDefaultDeprecationIdDisplayName() {
         return summary;
@@ -259,11 +266,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
             if (replacement != null) {
                 setAdvice(formatAdvice(replacement));
             }
-
-            if (problemIdDisplayName == null) {
-                setProblemIdDisplayName(summary);
-            }
-
             return super.build();
         }
     }
@@ -271,11 +273,6 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
     public static class DeprecateAction extends WithReplacement<String, DeprecateAction> {
         DeprecateAction(String subject) {
             super(subject);
-        }
-
-        @Override
-        protected String createDefaultDeprecationIdDisplayName() {
-            return subject;
         }
 
         @Override
@@ -428,6 +425,12 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         }
 
         @Override
+        protected String createDefaultDeprecationIdDisplayName() {
+            // the configuration name is data of the build
+            return String.format("The configuration has been deprecated for %s.", deprecationType.displayName());
+        }
+
+        @Override
         String formatSummary(String configuration) {
             return String.format("The %s configuration has been deprecated for %s.", configuration, deprecationType.displayName());
         }
@@ -570,6 +573,12 @@ public class DeprecationMessageBuilder<T extends DeprecationMessageBuilder<T>> {
         DeprecateTaskType(String task, String path) {
             super(task);
             this.path = path;
+        }
+
+        @Override
+        protected String createDefaultDeprecationIdDisplayName() {
+            // the task path is data of the build
+            return String.format("The task type %s has been deprecated.", formatSubject());
         }
 
         @Override

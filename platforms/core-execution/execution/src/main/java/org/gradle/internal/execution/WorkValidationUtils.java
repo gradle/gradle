@@ -47,6 +47,8 @@ public class WorkValidationUtils {
     public static void reportAsDeprecation(Iterable<? extends ProblemInternal> problems) {
         problems.forEach(warning ->
             withDocumentation(warning, deprecateBehaviour(singleLineWarning(warning))
+                // the validation problem already has an identity; the rendered line carries the type and property
+                .withProblemIdDisplayName(warning.getDefinition().getId().getDisplayName())
                 .withContext("Execution optimizations are disabled to ensure correctness.")
                 .willBecomeAnErrorInGradle10())
                 .nagUser()

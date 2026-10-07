@@ -78,6 +78,7 @@ public class Attribute<T> implements Named {
             } else {
                 DeprecationLogger.deprecate("Using type '" + type.getName() + "' as a value type for attribute '" + name + "'")
                     .withContext("Attribute values must be of type String, Boolean, a subtype of Number, or implement " + Named.class.getName() + ". Using an unsupported type may cause failures during dependency resolution, publishing, or configuration cache serialization.")
+                    .withProblemIdDisplayName("Unsupported type used as an attribute value type")
                     .willBecomeAnErrorInGradle10()
                     .withUpgradeGuideSection(9, "unsupported_attribute_value_type")
                     .nagUser();

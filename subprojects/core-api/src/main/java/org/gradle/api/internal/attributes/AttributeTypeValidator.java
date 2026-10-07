@@ -132,6 +132,7 @@ public final class AttributeTypeValidator {
         if (!isSupportedAttributeType(typeArg)) {
             DeprecationLogger.deprecate("Using type '" + typeArg.getName() + "' as the type parameter of attribute rule '" + ruleClass.getName() + "'")
                 .withContext("Attribute values must be of type String, Boolean, a subtype of Number, or implement " + Named.class.getName() + ". Using an unsupported type may cause failures during dependency resolution, publishing, or configuration cache serialization.")
+                .withProblemIdDisplayName("Unsupported type used as the type parameter of an attribute rule")
                 .willBecomeAnErrorInGradle10()
                 .withUpgradeGuideSection(9, "unsupported_attribute_value_type")
                 .nagUser();

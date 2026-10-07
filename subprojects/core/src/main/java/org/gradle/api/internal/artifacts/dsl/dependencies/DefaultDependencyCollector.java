@@ -76,6 +76,7 @@ public abstract class DefaultDependencyCollector implements DependencyCollector 
             ((AbstractModuleDependency) mutable).addMutationValidator(dep -> {
                 if (((PropertyInternal<?>) getDependencies()).isFinalized()) {
                     DeprecationLogger.deprecateAction("Mutating dependency " + dep + " after it has been finalized")
+                        .withProblemIdDisplayName("Dependency mutated after finalization")
                         .willBecomeAnErrorInGradle10()
                         .withUpgradeGuideSection(8, "dependency_mutate_dependency_collector_after_finalize")
                         .nagUser();

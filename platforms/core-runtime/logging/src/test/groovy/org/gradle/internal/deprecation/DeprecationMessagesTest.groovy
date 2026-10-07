@@ -102,6 +102,21 @@ class DeprecationMessagesTest extends Specification {
         problemsService.assertProblemEmittedOnce({ it.definition.id.displayName == 'summary deprecation' })
     }
 
+    def "problem name leaves out data of the build"() {
+        when:
+        builder.willBeRemovedInGradle10().undocumented().nagUser()
+
+        then:
+        problemsService.assertProblemEmittedOnce({ it.definition.id.name == expectedName && it.contextualLabel == expectedLabel })
+
+        where:
+        builder                                                                 | expectedName                                                                           | expectedLabel
+        DeprecationLogger.deprecateConfiguration("compile").forConsumption()    | "The configuration has been deprecated for consumption."                               | "The compile configuration has been deprecated for consumption."
+        DeprecationLogger.deprecateTaskType(AbstractArchiveTask, ":app:thing") | "The task type org.gradle.api.tasks.bundling.AbstractArchiveTask has been deprecated." | "The task type org.gradle.api.tasks.bundling.AbstractArchiveTask (used by the :app:thing task) has been deprecated."
+        DeprecationLogger.deprecateProperty(AbstractArchiveTask, "archiveName") | "The AbstractArchiveTask.archiveName property has been deprecated."                    | "The AbstractArchiveTask.archiveName property has been deprecated."
+        DeprecationLogger.deprecateAction("Doing a thing")                      | "Doing a thing has been deprecated."                                                   | "Doing a thing has been deprecated."
+    }
+
     def "logs deprecation message with advice"() {
         given:
         def builder = new DeprecationMessageBuilder()
