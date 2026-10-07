@@ -59,17 +59,28 @@ class FilePathFilterTest extends Specification {
         excludes(leaf(DirectorySource.from(sub)), root, commandLine: ['other'])
     }
 
-    def "a file under no definition dir is handed to the fallback rather than excluded"() {
+    def "a file under no definition dir is handed to the fallback when a class encloses it"() {
         given:
         def outside = temp.createDir("elsewhere").file("hello.feature").touch()
 
-        when: "the path cannot be matched, so the filter must not rule on it"
-        def descriptor = leaf(FileSource.from(outside))
-        def result = apply([commandLine: ['anything']], descriptor, temp.createDir("definitions"), NEVER)
+        when: "the path cannot be matched, so the filter must not rule on it itself"
+        def result = apply([commandLine: ['anything']], underClass(leaf(FileSource.from(outside))), temp.createDir("definitions"), NEVER)
 
         then: "the fallback decided, even though it excludes"
         !result.included()
         result.reason.get() == NEVER_REASON
+    }
+
+    def "a file with neither a path nor an enclosing class is excluded without consulting the fallback"() {
+        given:
+        def outside = temp.createDir("elsewhere").file("hello.feature").touch()
+
+        when: "nothing names this test, so an including fallback must not be allowed to run it"
+        def result = apply([commandLine: ['anything']], leaf(FileSource.from(outside)), temp.createDir("definitions"), ALWAYS)
+
+        then:
+        !result.included()
+        result.reason.get() != ALWAYS_REASON
     }
 
     def "a file under no definition dir is matched by its enclosing class when that is the fallback"() {
@@ -93,7 +104,7 @@ class FilePathFilterTest extends Specification {
         def feature = temp.createDir("features").file("hello.feature").touch()
 
         when:
-        def result = apply([commandLine: ['hello']], leaf(FileSource.from(feature)), null, NEVER)
+        def result = apply([commandLine: ['hello']], underClass(leaf(FileSource.from(feature))), null, NEVER)
 
         then: "not matched by path, even though the path would have matched under a definition dir"
         !result.included()
@@ -106,7 +117,7 @@ class FilePathFilterTest extends Specification {
         def missing = root.file("hello.feature")
 
         when: "its real path cannot be read, so it cannot be placed under the root"
-        def result = apply([commandLine: ['hello']], leaf(FileSource.from(missing)), root, NEVER)
+        def result = apply([commandLine: ['hello']], underClass(leaf(FileSource.from(missing))), root, NEVER)
 
         then: "the fallback decides, rather than the filter claiming a match it cannot substantiate"
         !result.included()
@@ -130,9 +141,19 @@ class FilePathFilterTest extends Specification {
     }
 
     private static final String NEVER_REASON = "fallback consulted"
+    private static final String ALWAYS_REASON = "fallback consulted and included"
 
     /** A fallback that always excludes, so that consulting it is distinguishable from matching a path. */
     private static final PostDiscoveryFilter NEVER = { TestDescriptor it -> FilterResult.excluded(NEVER_REASON) }
+
+    /** A fallback that always includes, so that NOT consulting it is distinguishable from consulting it. */
+    private static final PostDiscoveryFilter ALWAYS = { TestDescriptor it -> FilterResult.included(ALWAYS_REASON) }
+
+    /** Puts a class-sourced container above the descriptor, as an engine does for a suite entry point. */
+    private static TestDescriptor underClass(TestDescriptor descriptor) {
+        container(ClassSource.from('RunCukesTest')).addChild(descriptor)
+        return descriptor
+    }
 
     private boolean includes(Map<String, List<String>> filter, TestDescriptor descriptor, File root) {
         assert applyWithClassFallback(filter, descriptor, root).included()

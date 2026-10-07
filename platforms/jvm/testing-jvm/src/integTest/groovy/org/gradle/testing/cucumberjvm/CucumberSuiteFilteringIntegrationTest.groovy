@@ -202,10 +202,16 @@ Feature: Goodbye World
     }
 
     /**
-     * The other half of the two-tier rule: a feature that does lie under a test definition directory is
-     * still selected by its path there, and naming it does not drag in a suite's out-of-tree scenarios.
+     * The other tier of the rule: a feature that does lie under a test definition directory is still
+     * selected by its path there. This passes before the filters were chained as well as after, and is
+     * here to catch the chaining breaking path matching, not to demonstrate the fix.
+     * <p>
+     * It deliberately does not also assert that the suite's scenarios stay out. They would, but not for
+     * any reason to do with these filters: {@code --tests "unrelated"} does not match {@code RunCukesTest},
+     * so the suite class is pruned before a worker is given it and its scenarios are never discovered.
+     * Asserting their absence here would pass no matter what the post-discovery filters did.
      */
-    def "a filter naming a definition dir feature selects it and not the suite's scenarios"() {
+    def "a filter naming a definition dir feature selects it by path"() {
         given:
         directorySuite()
         definitionDirFeature()
@@ -215,10 +221,6 @@ Feature: Goodbye World
 
         then:
         assertRanScenarios("Unrelated scenario")
-
-        and:
-        outputDoesNotContain("${RAN_MARKER}Say hello")
-        outputDoesNotContain("${RAN_MARKER}Say goodbye")
     }
 
     /**
