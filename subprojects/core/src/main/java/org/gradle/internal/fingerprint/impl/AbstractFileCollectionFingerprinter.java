@@ -21,6 +21,7 @@ import org.gradle.internal.execution.FileCollectionFingerprinter;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.RootFingerprintInterner;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -32,14 +33,16 @@ import org.jspecify.annotations.Nullable;
 public abstract class AbstractFileCollectionFingerprinter implements FileCollectionFingerprinter {
 
     private final FingerprintingStrategy fingerprintingStrategy;
+    private final RootFingerprintInterner rootFingerprintInterner;
 
-    public AbstractFileCollectionFingerprinter(FingerprintingStrategy fingerprintingStrategy) {
+    public AbstractFileCollectionFingerprinter(FingerprintingStrategy fingerprintingStrategy, RootFingerprintInterner rootFingerprintInterner) {
         this.fingerprintingStrategy = fingerprintingStrategy;
+        this.rootFingerprintInterner = rootFingerprintInterner;
     }
 
     @Override
     public CurrentFileCollectionFingerprint fingerprint(FileSystemSnapshot snapshot, @Nullable FileCollectionFingerprint previousFingerprint) {
-        return DefaultCurrentFileCollectionFingerprint.from(snapshot, fingerprintingStrategy, previousFingerprint);
+        return DefaultCurrentFileCollectionFingerprint.from(snapshot, fingerprintingStrategy, rootFingerprintInterner, previousFingerprint);
     }
 
     @Override

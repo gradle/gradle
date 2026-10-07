@@ -17,14 +17,17 @@
 package org.gradle.internal.execution.history.changes
 
 import com.google.common.collect.ImmutableList
+import com.google.common.collect.ImmutableMap
 import com.google.common.collect.ImmutableMultimap
 import com.google.common.collect.Iterables
 import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint
 import org.gradle.internal.file.FileType
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
+import org.gradle.internal.fingerprint.RootFingerprint
 import org.gradle.internal.fingerprint.impl.DefaultFileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
+import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.TestHashCodes
 import spock.lang.Specification
 
@@ -298,8 +301,8 @@ class FingerprintCompareStrategyTest extends Specification {
 
     def changes(FingerprintCompareStrategy strategy, Map<String, FileSystemLocationFingerprint> current, Map<String, FileSystemLocationFingerprint> previous) {
         def strategyConfigurationHash = TestHashCodes.hashCodeFrom(5432)
-        def currentFingerprint = new SerializableFileCollectionFingerprint(current, ImmutableMultimap.of("some", TestHashCodes.hashCodeFrom(1234)), strategyConfigurationHash)
-        def previousFingerprint = new SerializableFileCollectionFingerprint(previous, ImmutableMultimap.of("some", TestHashCodes.hashCodeFrom(4321)), strategyConfigurationHash)
+        def currentFingerprint = fingerprintOf(current, TestHashCodes.hashCodeFrom(1234), strategyConfigurationHash)
+        def previousFingerprint = fingerprintOf(previous, TestHashCodes.hashCodeFrom(4321), strategyConfigurationHash)
         changes(strategy, currentFingerprint, previousFingerprint)
     }
 
@@ -338,5 +341,10 @@ class FingerprintCompareStrategyTest extends Specification {
     def modified(Map<String, String> paths, FileType previous = FileType.RegularFile, FileType current = FileType.RegularFile) {
         def singleEntry = Iterables.getOnlyElement(paths.entrySet())
         DefaultFileChange.modified(singleEntry.key, "test", previous, current, singleEntry.value)
+    }
+
+    private static FileCollectionFingerprint fingerprintOf(Map<String, FileSystemLocationFingerprint> fingerprints, HashCode rootHash, HashCode strategyConfigurationHash) {
+        def root = new RootFingerprint("some", rootHash, ImmutableMap.copyOf(fingerprints))
+        new SerializableFileCollectionFingerprint(ImmutableList.of(root), strategyConfigurationHash, TestHashCodes.hashCodeFrom(1))
     }
 }

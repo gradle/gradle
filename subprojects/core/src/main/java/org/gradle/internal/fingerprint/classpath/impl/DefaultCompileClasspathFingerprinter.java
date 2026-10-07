@@ -22,16 +22,17 @@ import org.gradle.api.internal.changedetection.state.CachingResourceHasher;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.FileNormalizer;
+import org.gradle.internal.fingerprint.RootFingerprintInterner;
 import org.gradle.internal.fingerprint.classpath.CompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.AbstractFileCollectionFingerprinter;
 
 public class DefaultCompileClasspathFingerprinter extends AbstractFileCollectionFingerprinter implements CompileClasspathFingerprinter {
-    public DefaultCompileClasspathFingerprinter(ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
+    public DefaultCompileClasspathFingerprinter(RootFingerprintInterner rootFingerprintInterner, ResourceSnapshotterCacheService cacheService, StringInterner stringInterner) {
         super(ClasspathFingerprintingStrategy.compileClasspath(
             new CachingResourceHasher(AbiExtractingClasspathResourceHasher.DEFAULT, cacheService),
             cacheService,
             stringInterner
-        ));
+        ), rootFingerprintInterner);
     }
 
     @Override

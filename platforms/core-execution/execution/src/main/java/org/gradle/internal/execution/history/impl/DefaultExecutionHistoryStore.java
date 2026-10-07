@@ -25,6 +25,10 @@ import org.gradle.cache.internal.InMemoryCacheDecoratorFactory;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.history.PreviousExecutionState;
+import org.gradle.internal.fingerprint.FileCollectionFingerprint;
+import org.gradle.internal.fingerprint.RootFingerprint;
+import org.gradle.internal.fingerprint.RootFingerprintInterner;
+import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.HashCodeSerializer;
 
 import java.util.Optional;
@@ -33,33 +37,58 @@ import java.util.function.Supplier;
 public class DefaultExecutionHistoryStore implements ExecutionHistoryStore {
 
     private final IndexedCache<String, PreviousExecutionState> store;
+    private final RootFingerprintForest rootFingerprints;
 
     public DefaultExecutionHistoryStore(
         Supplier<PersistentCache> cache,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-        Interner<String> stringInterner
+        Interner<String> stringInterner,
+        RootFingerprintInterner rootFingerprintInterner
     ) {
+        CacheDecorator inMemoryCacheDecorator = inMemoryCacheDecoratorFactory.decorator(10000, false);
+
+        IndexedCache<HashCode, RootFingerprint> rootFingerprintCache = cache.get().createIndexedCache(
+            IndexedCacheParameters.of("inputFingerprints", new HashCodeSerializer(), new RootFingerprintSerializer(stringInterner))
+                .withCacheDecorator(inMemoryCacheDecorator)
+        );
+        this.rootFingerprints = new DefaultRootFingerprintForest(rootFingerprintCache, rootFingerprintInterner);
+
         DefaultPreviousExecutionStateSerializer serializer = new DefaultPreviousExecutionStateSerializer(
-            new FileCollectionFingerprintSerializer(stringInterner),
+            new FileCollectionFingerprintSerializer(stringInterner, rootFingerprints),
             new FileSystemSnapshotSerializer(stringInterner),
             new HashCodeSerializer()
         );
-
-        CacheDecorator inMemoryCacheDecorator = inMemoryCacheDecoratorFactory.decorator(10000, false);
         this.store = cache.get().createIndexedCache(
             IndexedCacheParameters.of("executionHistory", String.class, serializer)
-            .withCacheDecorator(inMemoryCacheDecorator)
+                .withCacheDecorator(inMemoryCacheDecorator)
         );
     }
 
     @Override
     public Optional<PreviousExecutionState> load(String key) {
-        return Optional.ofNullable(store.getIfPresent(key));
+        PreviousExecutionState previousExecutionState = store.getIfPresent(key);
+        if (previousExecutionState == null) {
+            return Optional.empty();
+        }
+        try {
+            for (FileCollectionFingerprint fingerprint : previousExecutionState.getInputFileProperties().values()) {
+                fingerprint.getRootFingerprints();
+            }
+        } catch (MissingRootFingerprintException e) {
+            // The entry refers to a root fingerprint that is no longer stored, so it is unusable
+            store.remove(key);
+            return Optional.empty();
+        }
+        return Optional.of(previousExecutionState);
     }
 
     @Override
     public void store(String key, AfterExecutionState executionState) {
-        store.put(key, DefaultPreviousExecutionState.from(executionState));
+        DefaultPreviousExecutionState previousExecutionState = DefaultPreviousExecutionState.from(executionState);
+        for (FileCollectionFingerprint fingerprint : previousExecutionState.getInputFileProperties().values()) {
+            rootFingerprints.store(fingerprint);
+        }
+        store.put(key, previousExecutionState);
     }
 
     @Override

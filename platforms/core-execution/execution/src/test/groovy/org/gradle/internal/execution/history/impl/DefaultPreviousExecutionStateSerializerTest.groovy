@@ -31,7 +31,7 @@ import java.time.Duration
 class DefaultPreviousExecutionStateSerializerTest extends SerializerSpec {
     def stringInterner = new StringInterner()
     def serializer = new DefaultPreviousExecutionStateSerializer(
-        new FileCollectionFingerprintSerializer(stringInterner),
+        new FileCollectionFingerprintSerializer(stringInterner, new TestRootFingerprintForest()),
         new FileSystemSnapshotSerializer(stringInterner),
         new HashCodeSerializer()
     )

@@ -18,12 +18,13 @@ package org.gradle.internal.fingerprint.impl;
 
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.FileNormalizer;
+import org.gradle.internal.fingerprint.RootFingerprintInterner;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
 
 public class IgnoredPathFileCollectionFingerprinter extends AbstractFileCollectionFingerprinter {
 
-    public IgnoredPathFileCollectionFingerprinter(FileSystemLocationSnapshotHasher normalizedContentHasher) {
-        super(new IgnoredPathFingerprintingStrategy(normalizedContentHasher));
+    public IgnoredPathFileCollectionFingerprinter(RootFingerprintInterner rootFingerprintInterner, FileSystemLocationSnapshotHasher normalizedContentHasher) {
+        super(new IgnoredPathFingerprintingStrategy(normalizedContentHasher), rootFingerprintInterner);
     }
 
     @Override

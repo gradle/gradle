@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.LineEndingSensitivity
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter
+import org.gradle.internal.fingerprint.impl.DefaultRootFingerprintInterner
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.serialize.HashCodeSerializer
 import org.gradle.test.fixtures.file.CleanupTestDirectory
@@ -49,6 +50,7 @@ class DefaultClasspathFingerprinterTest extends Specification {
     TestInMemoryIndexedCache<HashCode, HashCode> resourceHashesCache = new TestInMemoryIndexedCache<>(new HashCodeSerializer())
     def cacheService = new DefaultResourceSnapshotterCacheService(resourceHashesCache)
     def fingerprinter = new DefaultClasspathFingerprinter(
+        new DefaultRootFingerprintInterner(),
         cacheService,
         ResourceFilter.FILTER_NOTHING,
         ResourceEntryFilter.FILTER_NOTHING,

@@ -45,6 +45,7 @@ import org.gradle.internal.file.DefaultReservedFileSystemLocationRegistry;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.ReservedFileSystemLocation;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
+import org.gradle.internal.fingerprint.RootFingerprintInterner;
 import org.gradle.internal.fingerprint.impl.FileCollectionFingerprinterRegistrations;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -126,11 +127,13 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
 
     @Provides
     FileCollectionFingerprinterRegistrations createFileCollectionFingerprinterRegistrations(
+        RootFingerprintInterner rootFingerprintInterner,
         StringInterner stringInterner,
         ResourceSnapshotterCacheService resourceSnapshotterCacheService,
         InputNormalizationHandlerInternal inputNormalizationHandler
     ) {
         return new FileCollectionFingerprinterRegistrations(
+            rootFingerprintInterner,
             stringInterner,
             resourceSnapshotterCacheService,
             inputNormalizationHandler.getRuntimeClasspath().getClasspathResourceFilter(),

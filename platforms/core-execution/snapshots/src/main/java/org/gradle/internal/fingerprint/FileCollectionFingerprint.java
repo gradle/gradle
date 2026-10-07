@@ -16,8 +16,10 @@
 
 package org.gradle.internal.fingerprint;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSortedMap;
+import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
 
 import java.util.Map;
@@ -37,6 +39,18 @@ public interface FileCollectionFingerprint {
      */
     ImmutableMultimap<String, HashCode> getRootHashes();
 
+    /**
+     * The fingerprints of each root, in the order of the roots.
+     *
+     * Root fingerprints are shared between fingerprints, see {@link RootFingerprintInterner}.
+     */
+    ImmutableList<RootFingerprint> getRootFingerprints();
+
+    /**
+     * Returns the combined hash of the fingerprints.
+     */
+    HashCode getHash();
+
     boolean wasCreatedWithStrategy(FingerprintingStrategy strategy);
 
     FileCollectionFingerprint EMPTY = new FileCollectionFingerprint() {
@@ -48,6 +62,16 @@ public interface FileCollectionFingerprint {
         @Override
         public ImmutableMultimap<String, HashCode> getRootHashes() {
             return ImmutableMultimap.of();
+        }
+
+        @Override
+        public ImmutableList<RootFingerprint> getRootFingerprints() {
+            return ImmutableList.of();
+        }
+
+        @Override
+        public HashCode getHash() {
+            return EmptyCurrentFileCollectionFingerprint.SIGNATURE;
         }
 
         @Override

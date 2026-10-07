@@ -16,7 +16,9 @@
 
 package org.gradle.kotlin.dsl.normalization
 
+import com.google.common.collect.ImmutableList
 import com.google.common.collect.ImmutableMultimap
+import java.io.File
 import org.gradle.internal.execution.FileCollectionFingerprinter
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint
 import org.gradle.internal.fingerprint.FileCollectionFingerprint
@@ -24,6 +26,7 @@ import org.gradle.internal.fingerprint.FileNormalizer
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint
 import org.gradle.internal.fingerprint.FingerprintingStrategy
 import org.gradle.internal.fingerprint.FingerprintingStrategy.COMPILE_CLASSPATH_IDENTIFIER
+import org.gradle.internal.fingerprint.RootFingerprint
 import org.gradle.internal.fingerprint.impl.EmptyCurrentFileCollectionFingerprint
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hashing
@@ -33,7 +36,6 @@ import org.gradle.internal.snapshot.RegularFileSnapshot
 import org.gradle.internal.snapshot.SnapshotVisitResult
 import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
 import org.gradle.kotlin.dsl.support.BtaClasspathSnapshotter
-import java.io.File
 
 
 internal
@@ -117,6 +119,10 @@ class CurrentFileCollectionFingerprintImpl(private val fingerprints: Map<String,
     }
 
     override fun getRootHashes(): ImmutableMultimap<String, HashCode> {
+        throw UnsupportedOperationException("Not implemented")
+    }
+
+    override fun getRootFingerprints(): ImmutableList<RootFingerprint> {
         throw UnsupportedOperationException("Not implemented")
     }
 

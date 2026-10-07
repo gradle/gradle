@@ -78,6 +78,7 @@ import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsFinished
 import org.gradle.internal.execution.steps.legacy.MarkSnapshottingInputsStartedStep;
 import org.gradle.internal.execution.timeout.TimeoutHandler;
 import org.gradle.internal.file.Deleter;
+import org.gradle.internal.fingerprint.RootFingerprintInterner;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
@@ -106,12 +107,14 @@ public class ExecutionBuildServices implements ServiceRegistrationProvider {
     ExecutionHistoryStore createExecutionHistoryStore(
         ExecutionHistoryCacheAccess executionHistoryCacheAccess,
         InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory,
-        StringInterner stringInterner
+        StringInterner stringInterner,
+        RootFingerprintInterner rootFingerprintInterner
     ) {
         return new DefaultExecutionHistoryStore(
             executionHistoryCacheAccess,
             inMemoryCacheDecoratorFactory,
-            stringInterner
+            stringInterner,
+            rootFingerprintInterner
         );
     }
 

@@ -16,11 +16,13 @@
 
 package org.gradle.internal.fingerprint.impl;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableMultimap;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileSystemLocationFingerprint;
 import org.gradle.internal.fingerprint.FingerprintingStrategy;
+import org.gradle.internal.fingerprint.RootFingerprint;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
@@ -30,7 +32,7 @@ import java.util.Map;
 
 public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollectionFingerprint {
 
-    private static final HashCode SIGNATURE = Hashing.signature(EmptyCurrentFileCollectionFingerprint.class);
+    public static final HashCode SIGNATURE = Hashing.signature(EmptyCurrentFileCollectionFingerprint.class);
 
     private final String identifier;
 
@@ -61,6 +63,11 @@ public class EmptyCurrentFileCollectionFingerprint implements CurrentFileCollect
     @Override
     public ImmutableMultimap<String, HashCode> getRootHashes() {
         return ImmutableMultimap.of();
+    }
+
+    @Override
+    public ImmutableList<RootFingerprint> getRootFingerprints() {
+        return ImmutableList.of();
     }
 
     @Override

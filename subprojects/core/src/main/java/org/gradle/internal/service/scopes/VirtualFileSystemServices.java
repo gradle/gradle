@@ -62,9 +62,11 @@ import org.gradle.internal.file.FileMetadataAccessor;
 import org.gradle.internal.file.FileSystemDefaultExcludesProvider;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.fingerprint.RootFingerprintInterner;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.DefaultFileCollectionSnapshotter;
+import org.gradle.internal.fingerprint.impl.DefaultRootFingerprintInterner;
 import org.gradle.internal.fingerprint.impl.FileCollectionFingerprinterRegistrations;
 import org.gradle.internal.hash.DefaultFileHasher;
 import org.gradle.internal.hash.FileHasher;
@@ -150,6 +152,11 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
         @Provides
         DirectorySnapshotterStatistics.Collector createDirectorySnapshotterStatisticsCollector() {
             return new DirectorySnapshotterStatistics.Collector();
+        }
+
+        @Provides
+        RootFingerprintInterner createRootFingerprintInterner() {
+            return new DefaultRootFingerprintInterner();
         }
     }
 
@@ -298,8 +305,8 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
         }
 
         @Provides
-        ClasspathFingerprinter createClasspathFingerprinter(ResourceSnapshotterCacheService resourceSnapshotterCacheService, StringInterner stringInterner) {
-            return new DefaultClasspathFingerprinter(resourceSnapshotterCacheService, ResourceFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING, PropertiesFileFilter.FILTER_NOTHING, stringInterner, LineEndingSensitivity.DEFAULT);
+        ClasspathFingerprinter createClasspathFingerprinter(RootFingerprintInterner rootFingerprintInterner, ResourceSnapshotterCacheService resourceSnapshotterCacheService, StringInterner stringInterner) {
+            return new DefaultClasspathFingerprinter(rootFingerprintInterner, resourceSnapshotterCacheService, ResourceFilter.FILTER_NOTHING, ResourceEntryFilter.FILTER_NOTHING, PropertiesFileFilter.FILTER_NOTHING, stringInterner, LineEndingSensitivity.DEFAULT);
         }
 
         @Provides
@@ -390,10 +397,12 @@ public class VirtualFileSystemServices extends AbstractGradleModuleServices {
 
         @Provides
         FileCollectionFingerprinterRegistrations createFileCollectionFingerprinterRegistrations(
+            RootFingerprintInterner rootFingerprintInterner,
             StringInterner stringInterner,
             ResourceSnapshotterCacheService resourceSnapshotterCacheService
         ) {
             return new FileCollectionFingerprinterRegistrations(
+                rootFingerprintInterner,
                 stringInterner,
                 resourceSnapshotterCacheService,
                 ResourceFilter.FILTER_NOTHING,

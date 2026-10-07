@@ -32,7 +32,7 @@ class AbsolutePathFileCollectionFingerprinterTest extends Specification {
     def virtualFileSystem = TestFiles.virtualFileSystem()
     def fileSystemAccess = TestFiles.fileSystemAccess(virtualFileSystem)
     def snapshotter = new DefaultFileCollectionSnapshotter(fileSystemAccess, TestFiles.fileSystem())
-    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(DirectorySensitivity.DEFAULT, FileSystemLocationSnapshotHasher.DEFAULT)
+    def fingerprinter = new AbsolutePathFileCollectionFingerprinter(new DefaultRootFingerprintInterner(), DirectorySensitivity.DEFAULT, FileSystemLocationSnapshotHasher.DEFAULT)
     def listener = Mock(ChangeListener)
 
     @Rule

@@ -24,6 +24,7 @@ import org.gradle.api.internal.changedetection.state.RuntimeClasspathResourceHas
 import org.gradle.internal.execution.model.InputNormalizer;
 import org.gradle.internal.fingerprint.FileNormalizer;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.fingerprint.RootFingerprintInterner;
 import org.gradle.internal.fingerprint.classpath.ClasspathFingerprinter;
 import org.gradle.internal.fingerprint.impl.AbstractFileCollectionFingerprinter;
 
@@ -31,6 +32,7 @@ import java.util.Map;
 
 public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerprinter implements ClasspathFingerprinter {
     public DefaultClasspathFingerprinter(
+        RootFingerprintInterner rootFingerprintInterner,
         ResourceSnapshotterCacheService cacheService,
         ResourceFilter classpathResourceFilter,
         ResourceEntryFilter manifestAttributeResourceEntryFilter,
@@ -47,7 +49,8 @@ public class DefaultClasspathFingerprinter extends AbstractFileCollectionFingerp
                 cacheService,
                 stringInterner,
                 lineEndingSensitivity
-            )
+            ),
+            rootFingerprintInterner
         );
     }
 

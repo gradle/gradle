@@ -27,6 +27,7 @@ import org.gradle.internal.execution.FileCollectionFingerprinter;
 import org.gradle.internal.execution.impl.FingerprinterRegistration;
 import org.gradle.internal.fingerprint.DirectorySensitivity;
 import org.gradle.internal.fingerprint.LineEndingSensitivity;
+import org.gradle.internal.fingerprint.RootFingerprintInterner;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultClasspathFingerprinter;
 import org.gradle.internal.fingerprint.classpath.impl.DefaultCompileClasspathFingerprinter;
 import org.gradle.internal.fingerprint.hashing.FileSystemLocationSnapshotHasher;
@@ -50,6 +51,7 @@ public class FileCollectionFingerprinterRegistrations {
     private final Set<FingerprinterRegistration> registrants;
 
     public FileCollectionFingerprinterRegistrations(
+        RootFingerprintInterner rootFingerprintInterner,
         StringInterner stringInterner,
         ResourceSnapshotterCacheService resourceSnapshotterCacheService,
         ResourceFilter resourceFilter,
@@ -57,12 +59,13 @@ public class FileCollectionFingerprinterRegistrations {
         Map<String, ResourceEntryFilter> propertiesFileFilters
         ) {
 
-        List<? extends FileCollectionFingerprinter> insensitiveFingerprinters = insensitiveFingerprinters(resourceSnapshotterCacheService, stringInterner);
+        List<? extends FileCollectionFingerprinter> insensitiveFingerprinters = insensitiveFingerprinters(rootFingerprintInterner, resourceSnapshotterCacheService, stringInterner);
         this.registrants =
             withAllLineEndingSensitivities(lineEndingSensitivity -> {
                 FileSystemLocationSnapshotHasher normalizedContentHasher = normalizedContentHasher(lineEndingSensitivity, resourceSnapshotterCacheService);
 
                 List<? extends FileCollectionFingerprinter> directoryInsensitiveFingerprinters = directoryInsensitiveFingerprinters(
+                    rootFingerprintInterner,
                     lineEndingSensitivity,
                     normalizedContentHasher,
                     resourceSnapshotterCacheService,
@@ -78,6 +81,7 @@ public class FileCollectionFingerprinterRegistrations {
                         directorySensitivity,
                         Stream.of(
                             fullySensitiveFingerprinters(
+                                rootFingerprintInterner,
                                 directorySensitivity,
                                 stringInterner,
                                 normalizedContentHasher
@@ -94,14 +98,15 @@ public class FileCollectionFingerprinterRegistrations {
      * These fingerprinters are fully sensitive to both line endings and empty directories
      */
     private static List<? extends FileCollectionFingerprinter> fullySensitiveFingerprinters(
+        RootFingerprintInterner rootFingerprintInterner,
         DirectorySensitivity directorySensitivity,
         StringInterner stringInterner,
         FileSystemLocationSnapshotHasher normalizedContentHasher
     ) {
         return ImmutableList.of(
-            new AbsolutePathFileCollectionFingerprinter(directorySensitivity, normalizedContentHasher),
-            new RelativePathFileCollectionFingerprinter(stringInterner, directorySensitivity, normalizedContentHasher),
-            new NameOnlyFileCollectionFingerprinter(directorySensitivity, normalizedContentHasher)
+            new AbsolutePathFileCollectionFingerprinter(rootFingerprintInterner, directorySensitivity, normalizedContentHasher),
+            new RelativePathFileCollectionFingerprinter(rootFingerprintInterner, stringInterner, directorySensitivity, normalizedContentHasher),
+            new NameOnlyFileCollectionFingerprinter(rootFingerprintInterner, directorySensitivity, normalizedContentHasher)
         );
     }
 
@@ -109,6 +114,7 @@ public class FileCollectionFingerprinterRegistrations {
      * These fingerprinters are sensitive to line endings but not empty directories
      */
     private static List<? extends FileCollectionFingerprinter> directoryInsensitiveFingerprinters(
+        RootFingerprintInterner rootFingerprintInterner,
         LineEndingSensitivity lineEndingSensitivity,
         FileSystemLocationSnapshotHasher normalizedContentHasher,
         ResourceSnapshotterCacheService resourceSnapshotterCacheService,
@@ -118,8 +124,9 @@ public class FileCollectionFingerprinterRegistrations {
         StringInterner stringInterner
     ) {
         return ImmutableList.of(
-            new IgnoredPathFileCollectionFingerprinter(normalizedContentHasher),
+            new IgnoredPathFileCollectionFingerprinter(rootFingerprintInterner, normalizedContentHasher),
             new DefaultClasspathFingerprinter(
+                rootFingerprintInterner,
                 resourceSnapshotterCacheService,
                 resourceFilter,
                 metaInfFilter,
@@ -133,9 +140,9 @@ public class FileCollectionFingerprinterRegistrations {
     /**
      * These fingerprinters do not care about line ending or directory sensitivity at all
      */
-    private static List<? extends FileCollectionFingerprinter> insensitiveFingerprinters(ResourceSnapshotterCacheService resourceSnapshotterCacheService, StringInterner stringInterner) {
+    private static List<? extends FileCollectionFingerprinter> insensitiveFingerprinters(RootFingerprintInterner rootFingerprintInterner, ResourceSnapshotterCacheService resourceSnapshotterCacheService, StringInterner stringInterner) {
         return Collections.singletonList(
-            new DefaultCompileClasspathFingerprinter(resourceSnapshotterCacheService, stringInterner)
+            new DefaultCompileClasspathFingerprinter(rootFingerprintInterner, resourceSnapshotterCacheService, stringInterner)
         );
     }
 
