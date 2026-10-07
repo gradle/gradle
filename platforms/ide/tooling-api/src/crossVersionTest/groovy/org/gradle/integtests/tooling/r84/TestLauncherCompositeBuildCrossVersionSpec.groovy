@@ -17,6 +17,7 @@
 package org.gradle.integtests.tooling.r84
 
 import org.apache.commons.io.output.TeeOutputStream
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -300,12 +301,12 @@ class TestLauncherCompositeBuildCrossVersionSpec extends ToolingApiSpecification
     }
 
     private void javaLibraryWithTests(TestFile projectDir) {
-        projectDir.file('build.gradle') << '''
+        projectDir.file('build.gradle') << """
             plugins {
                 id 'java-library'
             }
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
             }
             testing {
                 suites {
@@ -319,7 +320,7 @@ class TestLauncherCompositeBuildCrossVersionSpec extends ToolingApiSpecification
                     showStandardStreams = true
                 }
             }
-        '''
+        """
         writeTestClass(projectDir, 'TestClass1')
         writeTestClass(projectDir, 'TestClass2')
     }

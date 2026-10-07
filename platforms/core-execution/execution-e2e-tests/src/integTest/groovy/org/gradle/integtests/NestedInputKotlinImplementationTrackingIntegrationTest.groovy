@@ -17,6 +17,8 @@
 package org.gradle.integtests
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.DirectoryBuildCacheFixture
 import org.gradle.integtests.fixtures.KotlinDslTestUtil
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
@@ -112,7 +114,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
             import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
             }
 
             gradlePlugin {

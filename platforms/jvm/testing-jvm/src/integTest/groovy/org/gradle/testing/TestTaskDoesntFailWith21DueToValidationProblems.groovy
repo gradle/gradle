@@ -17,6 +17,7 @@
 package org.gradle.testing
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -56,7 +57,7 @@ class TestTaskDoesntFailWith21DueToValidationProblems extends AbstractIntegratio
             }
 
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
                 maven {
                     url = 'https://repo.gradle.org/gradle/libs-releases/'
                 }

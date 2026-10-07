@@ -17,6 +17,8 @@
 package org.gradle.plugin.devel.tasks
 
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 
 trait CommonPluginValidationTrait {
     TestFile getJavaTaskSource() {
@@ -39,7 +41,7 @@ trait CommonPluginValidationTrait {
             }
 
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
             }
         """
         source("src/main/kotlin/MyTask.kt")

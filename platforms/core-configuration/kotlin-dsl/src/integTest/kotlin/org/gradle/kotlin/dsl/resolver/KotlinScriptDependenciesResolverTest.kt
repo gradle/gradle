@@ -18,6 +18,7 @@
 
 package org.gradle.kotlin.dsl.resolver
 
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.Flaky
@@ -330,7 +331,8 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         mapOf(
             "projectRoot" to projectRoot,
             "gradleHome" to buildContext.gradleHomeDir,
-            "gradleUserHome" to buildContext.gradleUserHomeDir.canonicalPath
+            "gradleUserHome" to buildContext.gradleUserHomeDir.canonicalPath,
+            "gradleOptions" to listOf("-Dorg.gradle.internal.plugins.portal.url.override=${RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl()}")
         ) + (
             if (IntegrationTestBuildContext.isEmbedded()) emptyMap() else mapOf("gradleHome" to distribution.gradleHomeDir)
             ) + entries.toMap()
