@@ -17,6 +17,7 @@
 package org.gradle.internal.resource.transport.http
 
 import org.gradle.internal.resource.ExternalResourceName
+import org.gradle.internal.resource.HttpErrorStatusCodeException
 import org.gradle.internal.resource.ReadableContent
 import spock.lang.Specification
 
