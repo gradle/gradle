@@ -65,7 +65,7 @@ public class ResolvedArtifactSetResolver {
         buildOperationRunner.run(new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
-                ParallelResolveArtifactSet.wrap(artifacts, buildOperationExecutor).visit(visitor);
+                ParallelResolveArtifactSet.visitInParallel(artifacts, buildOperationExecutor, visitor);
                 dependencyVerificationOverride.artifactsAccessed(resolutionHost.getDisplayName());
                 context.setResult(new ResolveArtifactsBuildOperationType.Result() {});
             }

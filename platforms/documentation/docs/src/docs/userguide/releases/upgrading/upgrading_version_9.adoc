@@ -210,6 +210,38 @@ Gradle applies filters before those tests exist, so they can still only be selec
 
 See <<java_testing.adoc#filtering_non_method_tests,Test filtering>> for details.
 
+[[legacy_apis_download_artifacts_in_parallel]]
+==== Legacy dependency resolution APIs download artifacts eagerly
+
+The following methods of the legacy link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html[`ResolvedConfiguration`] and link:{javadocPath}/org/gradle/api/artifacts/ResolvedDependency.html[`ResolvedDependency`] APIs now download the files of all returned artifacts in parallel before returning:
+
+- link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html#getResolvedArtifacts()[`ResolvedConfiguration.getResolvedArtifacts()`]
+- link:{javadocPath}/org/gradle/api/artifacts/ResolvedDependency.html#getModuleArtifacts()[`ResolvedDependency.getModuleArtifacts()`]
+- link:{javadocPath}/org/gradle/api/artifacts/ResolvedDependency.html#getAllModuleArtifacts()[`ResolvedDependency.getAllModuleArtifacts()`]
+
+Previously, these methods returned artifacts without downloading them, and each artifact's file was downloaded one at a time when link:{javadocPath}/org/gradle/api/artifacts/ResolvedArtifact.html#getFile()[`ResolvedArtifact.getFile()`] was called.
+link:{javadocPath}/org/gradle/api/artifacts/LenientConfiguration.html#getArtifacts()[`LenientConfiguration.getArtifacts()`] already downloaded the files of the returned artifacts, and now downloads them in parallel as well.
+
+This change makes the artifact download behavior of `ResolvedConfiguration` and `ResolvedDependency` consistent with `LenientConfiguration`, `FileCollection`, `ArtifactCollection`, and `ArtifactView`.
+
+As a result:
+
+- These methods now fail if any artifact they return cannot be downloaded, instead of failing later when the file of that artifact is accessed.
+- Builds that call these methods without accessing every file may now download artifacts not downloaded previously.
+
+To mitigate this change, consider the following:
+
+- To inspect the dependency graph without downloading any artifacts, use the <<graph_resolution.adoc#sec:resolved-dep-graph,`ResolutionResult`>> API.
+- To download the artifacts of only some dependencies, use an <<artifact_views.adoc#sec:filtering_selected_artifacts,`ArtifactView`>> with a component filter.
+- If you cannot migrate away from the legacy APIs, call `ResolvedDependency.getModuleArtifacts()` only on the dependencies whose artifacts you need, instead of calling `ResolvedConfiguration.getResolvedArtifacts()` or `ResolvedDependency.getAllModuleArtifacts()`.
+- To ignore artifacts that cannot be downloaded, use a <<artifact_views.adoc#sec:performing_lenient_artifact_selection,lenient `ArtifactView`>> or `LenientConfiguration.getArtifacts()`, which omit such artifacts from the result instead of failing.
+
+Neither the legacy APIs nor `ArtifactView` can download a single artifact of a dependency in isolation.
+
+In general, the `ResolvedConfiguration`, `LenientConfiguration`, `ResolvedDependency`, and `ResolvedArtifact` APIs are discouraged.
+They are not compatible with the <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types,Configuration Cache>> and, unlike the modern APIs, do not carry the task dependencies required to build the artifacts they return.
+Prefer the `ResolutionResult`, `ArtifactView`, link:{javadocPath}/org/gradle/api/file/FileCollection.html[`FileCollection`], and link:{javadocPath}/org/gradle/api/artifacts/ArtifactCollection.html[`ArtifactCollection`] APIs, described in <<artifact_resolution.adoc#sec:available_apis,Artifact Resolution>>.
+
 === Deprecations
 
 [[kotlin_dsl_scripts_model_explicit_scripts]]

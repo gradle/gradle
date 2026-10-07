@@ -24,6 +24,7 @@ import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
+import org.jspecify.annotations.Nullable;
 
 import java.util.function.Supplier;
 
@@ -50,16 +51,16 @@ public class CalculatedValueContainerFactory implements CalculatedValueFactory {
     }
 
     @Override
-    public <T> CalculatedValueContainer<T, ValueCalculator<T>> create(DisplayName displayName, Supplier<? extends T> supplier) {
+    public <T extends @Nullable Object> CalculatedValueContainer<T, ValueCalculator<T>> create(DisplayName displayName, Supplier<? extends T> supplier) {
         return new CalculatedValueContainer<>(displayName, new SupplierBackedCalculator<>(supplier), projectLeaseRegistry, globalContext);
     }
 
     @Override
-    public <T> CalculatedValueContainer<T, ValueCalculator<T>> create(DisplayName displayName, T value) {
+    public <T extends @Nullable Object> CalculatedValueContainer<T, ValueCalculator<T>> create(DisplayName displayName, T value) {
         return new CalculatedValueContainer<>(displayName, value);
     }
 
-    private static class SupplierBackedCalculator<T> implements ValueCalculator<T> {
+    private static class SupplierBackedCalculator<T extends @Nullable Object> implements ValueCalculator<T> {
         private final Supplier<T> supplier;
 
         public SupplierBackedCalculator(Supplier<? extends T> supplier) {

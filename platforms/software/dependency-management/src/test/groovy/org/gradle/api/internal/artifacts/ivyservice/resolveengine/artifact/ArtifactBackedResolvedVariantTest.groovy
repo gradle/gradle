@@ -168,6 +168,9 @@ class ArtifactBackedResolvedVariantTest extends Specification {
 
     def "visits local artifacts"() {
         def visitor = Mock(ResolvedArtifactSet.TransformSourceVisitor)
+        def source1 = Stub(CalculatedValue) {
+            isFinalized() >> false
+        }
         def set1 = of([artifact1, artifact2])
         def set2 = of([artifact1])
 
@@ -177,6 +180,7 @@ class ArtifactBackedResolvedVariantTest extends Specification {
         then:
         1 * artifact1.id >> new ComponentFileArtifactIdentifier(Stub(ProjectComponentIdentifier), "some-file")
         1 * artifact2.id >> new ComponentFileArtifactIdentifier(Stub(ModuleComponentIdentifier), "some-file")
+        _ * artifact1.fileSource >> source1
         1 * visitor.visitArtifact(artifact1)
         0 * _
 
@@ -185,7 +189,49 @@ class ArtifactBackedResolvedVariantTest extends Specification {
 
         then:
         1 * artifact1.id >> new ComponentFileArtifactIdentifier(Stub(ProjectComponentIdentifier), "some-file")
+        _ * artifact1.fileSource >> source1
         1 * visitor.visitArtifact(artifact1)
+        0 * _
+    }
+
+    def "does not visit local artifacts that are known to not exist"() {
+        def visitor = Mock(ResolvedArtifactSet.TransformSourceVisitor)
+        def source1 = Stub(CalculatedValue) {
+            isFinalized() >> true
+            getValue() >> Try.successful(null)
+            get() >> null
+        }
+        def set1 = of([artifact1])
+
+        when:
+        set1.artifacts.visitTransformSources(visitor)
+
+        then:
+        1 * artifact1.id >> new ComponentFileArtifactIdentifier(Stub(ProjectComponentIdentifier), "some-file")
+        _ * artifact1.fileSource >> source1
+        0 * _
+    }
+
+    def "does not visit artifacts that do not exist when files are required"() {
+        def visitor = Mock(ResolvedArtifactSet.Visitor)
+        def artifactVisitor = Mock(ArtifactVisitor)
+        def source1 = Mock(CalculatedValue)
+        def set1 = of([artifact1])
+
+        when:
+        set1.artifacts.visit(visitor)
+
+        then:
+        _ * artifact1.id >> Stub(ComponentArtifactIdentifier)
+        1 * artifact1.resolveSynchronously >> false
+        _ * artifact1.fileSource >> source1
+        1 * source1.finalizeIfNotAlready()
+        _ * source1.value >> Try.successful(null)
+        1 * visitor.visitArtifacts(_) >> { ResolvedArtifactSet.Artifacts artifacts ->
+            artifacts.startFinalization(queue, true)
+            artifacts.visit(artifactVisitor)
+        }
+        1 * artifactVisitor.requireArtifactFiles() >> true
         0 * _
     }
 

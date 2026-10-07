@@ -479,30 +479,26 @@ public abstract class ExternalResourceResolver implements ConfiguredModuleCompon
 
         @Override
         public void resolveArtifact(ComponentArtifactMetadata artifact, ModuleSources moduleSources, BuildableArtifactFileResolveResult result) {
-            if (artifact.isOptionalArtifact() && artifact instanceof ModuleComponentArtifactMetadata) {
-                if (!createArtifactResolver(moduleSources).artifactExists((ModuleComponentArtifactMetadata) artifact, new DefaultResourceAwareResolveResult())) {
-                    result.notFound(artifact.getId());
-                    return;
-                }
-            } else if (artifact.getAlternativeArtifact().isPresent()) {
-                DefaultResourceAwareResolveResult checkForArtifact = new DefaultResourceAwareResolveResult();
-                if (!createArtifactResolver(moduleSources).artifactExists((ModuleComponentArtifactMetadata) artifact, checkForArtifact)) {
-                    checkForArtifact.getAttempted().forEach(result::attempted);
-                    resolveArtifact(artifact.getAlternativeArtifact().get(), moduleSources, result);
-                    return;
-                }
-            }
+            LocallyAvailableExternalResource artifactResource;
             try {
                 ExternalResourceArtifactResolver resolver = createArtifactResolver(moduleSources);
                 ModuleComponentArtifactMetadata moduleArtifact = (ModuleComponentArtifactMetadata) artifact;
-                LocallyAvailableExternalResource artifactResource = resolver.resolveArtifact(moduleArtifact, result);
-                if (artifactResource == null) {
-                    result.notFound(artifact.getId());
-                } else {
-                    result.resolved(artifactResource.getFile());
-                }
+                artifactResource = resolver.resolveArtifact(moduleArtifact, result);
             } catch (Exception e) {
                 result.failed(new ArtifactResolveException(artifact.getId(), e));
+                return;
+            }
+
+            if (artifactResource != null) {
+                result.resolved(artifactResource.getFile());
+                return;
+            }
+
+            ComponentArtifactMetadata alternative = artifact.getAlternativeArtifact().orElse(null);
+            if (alternative != null) {
+                resolveArtifact(alternative, moduleSources, result);
+            } else {
+                result.notFound(artifact.getId());
             }
         }
 
