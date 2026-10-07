@@ -21,6 +21,7 @@ import org.jspecify.annotations.NullMarked;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
 import org.junit.platform.engine.TestSource;
+import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.DirectorySource;
 import org.junit.platform.engine.support.descriptor.FileSource;
 import org.junit.platform.engine.support.descriptor.FileSystemSource;
@@ -47,6 +48,10 @@ import java.util.Optional;
  * <p>
  * The result is a two-tier rule. A file-based test under one of the directories is selected by its
  * path relative to that directory; one outside them is selected by the class that encloses it.
+ * <p>
+ * A file with neither — outside every directory and with no class anywhere above it — is excluded.
+ * Nothing names such a test, so handing it to the fallback would include it and leave no pattern
+ * able to exclude it again. See {@link #hasEnclosingClass(TestDescriptor)}.
  *
  * @see TestSelectionMatcher#nameForFile(File)
  */
@@ -69,11 +74,31 @@ public final class FilePathFilter implements PostDiscoveryFilter {
         // One lookup decides both whether this filter can judge the file and what it is judged by,
         // so the verdict cannot straddle a change to the file between two separate questions.
         Optional<String> name = matcher.nameForFile(getFile(descriptor));
-        if (!name.isPresent()) {
+        if (name.isPresent()) {
+            return FilterResult.includedIf(matcher.matchesTest(name.get(), ""), () -> "File match", () -> "File mismatch");
+        } else if (hasEnclosingClass(descriptor)) {
             return fallback.apply(descriptor);
         } else {
-            return FilterResult.includedIf(matcher.matchesTest(name.get(), ""), () -> "File match", () -> "File mismatch");
+            return FilterResult.excluded("Neither a file path nor an enclosing class to match against");
         }
+    }
+
+    /**
+     * Whether this descriptor, or any ancestor of it, is backed by a class.
+     *
+     * <p>Only then can the fallback filter render an informed opinion on a file this filter has no
+     * name for. Without one, nothing names the test at all: not a path, since it lies under none of
+     * the test definition directories, and not a class. The fallback would include it and no
+     * pattern could exclude it, leaving a filtered run executing a test that no filter can address,
+     * so it is excluded here instead.
+     */
+    private static boolean hasEnclosingClass(TestDescriptor descriptor) {
+        for (Optional<TestDescriptor> current = Optional.of(descriptor); current.isPresent(); current = current.get().getParent()) {
+            if (current.get().getSource().filter(ClassSource.class::isInstance).isPresent()) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private static File getFile(TestDescriptor descriptor) {

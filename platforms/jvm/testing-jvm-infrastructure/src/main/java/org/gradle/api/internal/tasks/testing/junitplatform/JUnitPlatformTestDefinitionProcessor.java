@@ -250,7 +250,9 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
          * <p>
          * <ul>
          *   <li>A {@link FileSource} or {@link DirectorySource} goes to {@link FilePathFilter}, which
-         *       matches it by its path relative to the test definition directory it was selected from.
+         *       matches it by its path relative to whichever of this task's test definition directories
+         *       contains it. That need not be the directory the file was selected from: a suite that
+         *       selects a directory of its own contributes no test definition directory.
          *   <li>Everything else, including a descriptor with no source at all, goes to
          *       {@link ClassMethodNameFilter}, which matches it by class and method name, or by its
          *       enclosing class when the engine did not declare it as a method.
@@ -259,8 +261,8 @@ public final class JUnitPlatformTestDefinitionProcessor extends AbstractJUnitTes
          * The two are chained rather than kept separate: a file-based test that lies under none of the
          * test definition directories has no path to be matched by, and {@link FilePathFilter} hands it to
          * the class filter instead of excluding it. That is why the file filter is registered whether or
-         * not this run has any directory selectors — the verdict follows from the descriptor itself rather
-         * than from how the rest of the task happens to be configured.
+         * not this run has any directory selectors — whether it has an opinion is now settled per
+         * descriptor, rather than once for the whole run by how the task happens to be configured.
          *
          * @see FilePathFilter
          * @see ClassMethodNameFilter
