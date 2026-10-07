@@ -20,11 +20,11 @@ import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.history.AfterExecutionState;
+import org.gradle.internal.execution.history.InputValueHash;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.internal.snapshot.impl.ImplementationSnapshot;
@@ -75,7 +75,7 @@ public class DefaultPreviousExecutionState extends AbstractInputExecutionState<F
     }
 
     private static ImmutableSortedMap<String, HashCode> hashInputProperties(ImmutableSortedMap<String, ValueSnapshot> inputProperties) {
-        return copyOfSorted(transformValues(inputProperties, Hashing::hashHashable));
+        return copyOfSorted(transformValues(inputProperties, InputValueHash::of));
     }
 
     private static ImmutableSortedMap<String, FileCollectionFingerprint> prepareForSerialization(ImmutableSortedMap<String, CurrentFileCollectionFingerprint> fingerprints) {

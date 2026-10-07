@@ -18,9 +18,9 @@ package org.gradle.internal.execution.history.changes
 
 import com.google.common.collect.ImmutableSortedMap
 import org.gradle.api.Describable
+import org.gradle.internal.execution.history.InputValueHash
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.hash.Hasher
-import org.gradle.internal.hash.Hashing
 import org.gradle.internal.hash.TestHashCodes
 import org.gradle.internal.snapshot.ValueSnapshot
 import org.gradle.internal.snapshot.ValueSnapshotter
@@ -56,6 +56,14 @@ class InputValueChangesTest extends Specification {
         ) == ["Implementation of input property 'prop' has changed for task ':test'"]
     }
 
+    def "not up-to-date when type of the value changed but its content is the same"() {
+        expect:
+        changesBetween(
+            [prop: hashOf(value("value"))],
+            [prop: new OtherTypeValueSnapshot("value")]
+        ) == ["Value of input property 'prop' has changed for task ':test'"]
+    }
+
     def "ignores added and removed properties"() {
         expect:
         changesBetween(
@@ -82,7 +90,7 @@ class InputValueChangesTest extends Specification {
     }
 
     private static HashCode hashOf(ValueSnapshot snapshot) {
-        Hashing.hashHashable(snapshot)
+        InputValueHash.of(snapshot)
     }
 
     private static ValueSnapshot value(String value) {
@@ -91,6 +99,12 @@ class InputValueChangesTest extends Specification {
 
     private static ValueSnapshot implementation(String className, HashCode classLoaderHash) {
         new ClassImplementationSnapshot(className, classLoaderHash)
+    }
+
+    private static class OtherTypeValueSnapshot extends TestValueSnapshot {
+        OtherTypeValueSnapshot(String value) {
+            super(value)
+        }
     }
 
     private static class TestValueSnapshot implements ValueSnapshot {
