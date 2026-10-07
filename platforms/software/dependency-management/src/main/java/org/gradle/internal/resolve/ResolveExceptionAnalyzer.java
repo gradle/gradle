@@ -16,30 +16,40 @@
 package org.gradle.internal.resolve;
 
 import com.google.common.base.Throwables;
-import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException;
+import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.MetaDataParseException;
+import org.gradle.api.internal.artifacts.repositories.transport.NetworkingIssueVerifier;
+import org.gradle.internal.resource.HttpErrorStatusCodeException;
 
-import java.io.InterruptedIOException;
-import java.net.UnknownHostException;
+import javax.annotation.Nullable;
 
 public class ResolveExceptionAnalyzer {
 
     public static boolean isCriticalFailure(Throwable throwable) {
-        Throwable rootCause = Throwables.getRootCause(throwable);
-        return isTimeoutException(rootCause) || isUnrecoverable5xxStatusCode(rootCause) || isUnknownHostException(rootCause);
+        HttpErrorStatusCodeException httpError = findCause(HttpErrorStatusCodeException.class, throwable);
+        if (httpError != null) {
+            return indicatesUnusableRepository(httpError);
+        }
+        if (isUnusableMetadata(throwable)) {
+            return false;
+        }
+        return true;
     }
 
-    private static boolean isUnknownHostException(Throwable rootCause) {
-        return rootCause instanceof UnknownHostException;
+    private static boolean isUnusableMetadata(Throwable throwable) {
+        return findCause(MetaDataParseException.class, throwable) != null;
     }
 
-    /**
-     * See <a href="http://hc.apache.org/httpclient-3.x/exception-handling.html">HTTPClient exception handling</a> for more information.
-     */
-    private static boolean isTimeoutException(Throwable rootCause) {
-        return rootCause instanceof InterruptedIOException;
+    private static boolean indicatesUnusableRepository(HttpErrorStatusCodeException httpError) {
+        return httpError.isServerError() || NetworkingIssueVerifier.isTransientClientError(httpError.getStatusCode());
     }
 
-    private static boolean isUnrecoverable5xxStatusCode(Throwable rootCause) {
-        return rootCause instanceof HttpErrorStatusCodeException && ((HttpErrorStatusCodeException) rootCause).isServerError();
+    @Nullable
+    private static <T> T findCause(Class<T> type, Throwable throwable) {
+        for (Throwable cause : Throwables.getCausalChain(throwable)) {
+            if (type.isInstance(cause)) {
+                return type.cast(cause);
+            }
+        }
+        return null;
     }
 }

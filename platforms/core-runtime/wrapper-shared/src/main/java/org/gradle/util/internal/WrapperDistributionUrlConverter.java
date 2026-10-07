@@ -39,13 +39,37 @@ public class WrapperDistributionUrlConverter {
      * @throws URISyntaxException If the url is not a valid URI.
      */
     public static URI convertDistributionUrl(String distributionUrl, File fileRoot) throws URISyntaxException {
-        URI source = new URI(distributionUrl);
+        URI source = parse(distributionUrl);
         if (source.getScheme() == null) {
             //  No scheme means someone passed a relative url.
             //  In our context only file relative urls make sense.
             return new File(fileRoot, source.getSchemeSpecificPart()).toURI();
         } else {
             return source;
+        }
+    }
+
+    private static URI parse(String distributionUrl) throws URISyntaxException {
+        try {
+            return new URI(distributionUrl);
+        } catch (URISyntaxException e) {
+            throw new URISyntaxException("<distribution url>", e.getReason());
+        }
+    }
+
+    public static String safeUriDisplay(URI uri) {
+        // host may be unparsable
+        String authority = uri.getAuthority();
+        if (authority != null) {
+            int userInfoEnd = authority.lastIndexOf('@');
+            if (userInfoEnd >= 0) {
+                authority = "***" + authority.substring(userInfoEnd);
+            }
+        }
+        try {
+            return new URI(uri.getScheme(), authority, uri.getPath(), uri.getQuery(), uri.getFragment()).toASCIIString();
+        } catch (URISyntaxException e) {
+            throw new RuntimeException("Failed to parse wrapper URI", e);
         }
     }
 }

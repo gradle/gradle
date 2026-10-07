@@ -18,7 +18,7 @@ package org.gradle.api.internal.artifacts.repositories.transport
 
 import org.apache.http.conn.HttpHostConnectException
 import org.gradle.api.UncheckedIOException
-import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
+import org.gradle.internal.resource.HttpErrorStatusCodeException
 import spock.lang.Specification
 
 import java.util.concurrent.Callable

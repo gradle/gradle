@@ -19,6 +19,7 @@ package org.gradle.internal.resource.transport.http;
 import org.apache.http.client.methods.HttpPut;
 import org.apache.http.entity.ContentType;
 import org.gradle.internal.resource.ExternalResourceName;
+import org.gradle.internal.resource.HttpErrorStatusCodeException;
 import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.transfer.ExternalResourceUploader;
 

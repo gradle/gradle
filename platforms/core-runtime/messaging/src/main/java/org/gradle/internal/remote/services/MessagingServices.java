@@ -62,7 +62,8 @@ public class MessagingServices implements ServiceRegistrationProvider {
         return new TcpIncomingConnector(
                 executorFactory,
                 inetAddressFactory,
-                idGenerator
+                idGenerator,
+                10
         );
     }
 

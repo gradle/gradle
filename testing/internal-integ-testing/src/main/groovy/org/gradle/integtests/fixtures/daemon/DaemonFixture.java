@@ -79,6 +79,11 @@ public interface DaemonFixture {
      */
     void changeTokenVisibleToClient();
 
+    /**
+     * Returns the authentication token this daemon expects a client to present.
+     */
+    byte[] getToken();
+
     void assertRegistryNotWorldReadable();
 
     /**

@@ -20,7 +20,7 @@ import org.apache.http.ConnectionClosedException;
 import org.apache.http.HttpStatus;
 import org.apache.http.NoHttpResponseException;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException;
+import org.gradle.internal.resource.HttpErrorStatusCodeException;
 
 import java.net.SocketException;
 import java.net.SocketTimeoutException;
@@ -62,7 +62,7 @@ public class NetworkingIssueVerifier {
         return false;
     }
 
-    private static boolean isTransientClientError(int statusCode) {
+    public static boolean isTransientClientError(int statusCode) {
         return statusCode == HttpStatus.SC_REQUEST_TIMEOUT || statusCode == SC_TOO_MANY_REQUESTS;
     }
 
