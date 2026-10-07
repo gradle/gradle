@@ -237,6 +237,10 @@ class RepoScriptBlockUtil {
         MirroredRepository.GRADLE_PLUGIN.mirrorUrl
     }
 
+    static String kotlinDevRepositoryMirrorUrl() {
+        MirroredRepository.KOTLIN_DEV.mirrorUrl
+    }
+
     static String gradlePluginRepositoryDefinition(GradleDsl dsl = GROOVY) {
         MirroredRepository.GRADLE_PLUGIN.getRepositoryDefinition(dsl)
     }
