@@ -16,9 +16,45 @@
 
 package org.gradle.api.problems.internal;
 
+import com.google.common.collect.ImmutableSet;
 import org.gradle.api.problems.ProblemGroup;
 
 public abstract class GradleCoreProblemGroup {
+
+    /**
+     * Root names of the legacy groups Gradle itself still reports into. Problems in these chains are exempt from the
+     * report-time deprecation nag for the legacy identity API until the corresponding stage 2 area PR migrates them to
+     * the predefined hierarchy. Each area PR removes its names; the set disappears with this class.
+     * <p>
+     * TODO(#38670): remove entries as the areas migrate: validation (validation, plugin-application, scripts, problems-api),
+     * dependencies (dependency-version-catalog, dependency-variant-resolution, configuration-usage),
+     * runtime (task-selection, daemon-toolchain, packaging, jvm-toolchain).
+     */
+    private static final ImmutableSet<String> LEGACY_ROOT_NAMES = ImmutableSet.of(
+        "validation",
+        "plugin-application",
+        "task-selection",
+        "dependency-version-catalog",
+        "dependency-variant-resolution",
+        "configuration-usage",
+        "daemon-toolchain",
+        "scripts",
+        "packaging",
+        // created outside this class
+        "jvm-toolchain",
+        "problems-api"
+    );
+
+    /**
+     * Whether the group chain ends in one of Gradle's own legacy root groups, see {@link #LEGACY_ROOT_NAMES}.
+     */
+    public static boolean isGradleOwnedLegacyChain(ProblemGroup group) {
+        ProblemGroupInternal root = ProblemGroupInternal.of(group);
+        while (root.getParentInternal() != null) {
+            root = root.getParentInternal();
+        }
+        return LEGACY_ROOT_NAMES.contains(root.getName());
+    }
 
     private static final DefaultValidationProblemGroup VALIDATION_PROBLEM_GROUP = new DefaultValidationProblemGroup();
     private static final ProblemGroup PLUGIN_APPLICATION_PROBLEM_GROUP = ProblemGroup.create("plugin-application", "Plugin application");

@@ -18,6 +18,7 @@ package org.gradle.integtests.api.problems.internal
 
 import org.gradle.api.problems.internal.ResolutionFailureData
 import org.gradle.integtests.fixtures.GroovyBuildScriptLanguage
+import org.gradle.integtests.tooling.fixture.ProblemsApiGroovyScriptUtils
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -97,24 +98,12 @@ class ResolutionFailureDataCrossVersionIntegrationTest extends ToolingApiSpecifi
         return listener.problems
     }
 
-    String id(GradleVersion targetVersion) {
-        if (targetVersion < GradleVersion.version("8.13")) {
-            'id("type", "label")'
-        } else {
-            'id(org.gradle.api.problems.ProblemId.create("type", "label", org.gradle.api.problems.ProblemGroup.create("generic", "Generic")))'
-        }
+    static String id(GradleVersion targetVersion) {
+        ProblemsApiGroovyScriptUtils.id(targetVersion, "type", "label")
     }
 
     static String report(GradleVersion targetVersion) {
-        if (targetVersion < GradleVersion.version("8.6")) {
-            'create'
-        } else if (targetVersion < GradleVersion.version("8.11")) {
-            'forNamespace("org.example.plugin").reporting '
-        } else if (targetVersion < GradleVersion.version("8.13")) {
-            'getReporter().reporting '
-        } else {
-            'getReporter().report(org.gradle.api.problems.ProblemId.create("type", "label", org.gradle.api.problems.ProblemGroup.create("generic", "Generic"))) '
-        }
+        ProblemsApiGroovyScriptUtils.report(targetVersion, "type", "label")
     }
 
     def withReportProblemTask(@GroovyBuildScriptLanguage String taskActionMethodBody) {

@@ -172,7 +172,7 @@ class BuildFailureProblemsCrossVersionSpec extends ToolingApiSpecification {
         GradleConnectionException e = thrown(GradleConnectionException)
         def problem = e.failures[0]?.causes[0]?.causes[0]?.problems[0]
         problem != null
-        problem.definition.id.name == 'type'
+        problem.definition.id.name == (ProblemsApiGroovyScriptUtils.hasPredefinedGroups(targetVersion) ? 'label' : 'type')
         problem.definition.id.displayName == 'label'
         problem.failure.message == 'Exception message'
     }
@@ -181,7 +181,7 @@ class BuildFailureProblemsCrossVersionSpec extends ToolingApiSpecification {
     private String throwAsProblem(String exception) {
         if (targetVersion >= GradleVersion.version('8.13')) {
             """
-                getProblems().getReporter().throwing($exception, ${ProblemsApiGroovyScriptUtils.createIdExpression()}, problem ->
+                getProblems().getReporter().throwing($exception, ${ProblemsApiGroovyScriptUtils.createIdExpression(targetVersion)}, problem ->
                     problem.stackLocation()
                 );
             """

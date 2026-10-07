@@ -55,7 +55,7 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
         failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'SomeTask').")
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'root:test-problem'
+            fqid == 'validation:type-validation:test-problem'
             definition.id.displayName == 'test problem'
             contextualLabel == "In plugin 'test.gradle.demo.plugin' type 'SomeTask' property 'input' test problem"
             details == 'This is a test.'
@@ -117,7 +117,7 @@ class TaskFromPluginValidationIntegrationTest extends AbstractIntegrationSpec im
         failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'SomeTask').")
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'root:test-problem'
+            fqid == 'validation:type-validation:test-problem'
             definition.id.displayName == 'test problem'
             contextualLabel == "In plugin 'org.gradle.demo.plugin' type 'org.gradle.demo.plugin.SomeTask' property 'input' test problem"
             details == 'This is a test.'

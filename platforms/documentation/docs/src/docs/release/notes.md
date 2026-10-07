@@ -99,6 +99,7 @@ problems.reporter.report(problems.groups.transformation.group("KMP").problemId("
 ```
 
 Gradle's deprecation warnings are reported into `Gradle > Deprecation`, named after the deprecation message, for example `The buildNeeded task has been deprecated.` instead of `deprecation:the-buildneeded-task-has-been-deprecated`.
+Reporting a problem whose group was created with `ProblemGroup.create()` now emits a deprecation warning; see the [upgrading guide](userguide/upgrading_version_9.html#problems_api_legacy_identity).
 
 Predefined groups are documented with a description of what belongs in them, giving consumers of problem reports a documented set of group names to navigate, filter, and aggregate the problems plugins report.
 On the console, problems now show the chain of groups they belong to, for example `Unused import (in Compilation > Java)`.

@@ -56,6 +56,25 @@ public abstract class ExpectedDeprecationWarning {
     }
 
     /**
+     * Matches any single deprecation line that contains the given fragment. Meant for deprecation families whose exact
+     * wording varies per usage, such as the problem identity deprecations, which embed the reported problem id.
+     */
+    public static ExpectedDeprecationWarning withLineContaining(String fragment) {
+        Preconditions.checkArgument(fragment != null && !fragment.isEmpty(), "fragment must not be null or empty");
+        return new ExpectedDeprecationWarning(1) {
+            @Override
+            protected boolean matchesNextLines(String nextLines) {
+                return nextLines.contains(fragment);
+            }
+
+            @Override
+            public String toString() {
+                return "a deprecation line containing '" + fragment + "'";
+            }
+        };
+    }
+
+    /**
      * Get the number of lines that the expected message spans.
      *
      * @return the number of lines in this message

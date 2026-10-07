@@ -16,7 +16,6 @@
 
 package org.gradle.internal.enterprise
 
-import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 
@@ -34,8 +33,7 @@ class DevelocityPluginEndOfBuildCallbackIntegrationTest extends AbstractIntegrat
 
         buildFile """
             ${getProblemReportingScript """
-                ${ProblemGroup.name} problemGroup = ${ProblemGroup.name}.create("generic", "group label");
-                ${ProblemId.name} problemId = ${ProblemId.name}.create("type", "label", problemGroup)
+                ${ProblemId.name} problemId = problems.getGroups().getOthers().group("Generic").problemId("label")
                 problems.getReporter().throwing(new RuntimeException('failed'), problemId) {}
             """}
 
@@ -65,7 +63,7 @@ class DevelocityPluginEndOfBuildCallbackIntegrationTest extends AbstractIntegrat
 
         then:
         plugin.assertEndOfBuildWithFailure(output, "org.gradle.internal.exceptions.LocationAwareException: Build file")
-        receivedProblem.fqid == 'generic:type'
+        receivedProblem.fqid == 'Others:Generic:label'
 
         when:
         fails failingTaskName
@@ -74,7 +72,7 @@ class DevelocityPluginEndOfBuildCallbackIntegrationTest extends AbstractIntegrat
         // Note: we test less of the exception here because it's different in a build where configuration came from cache
         // In the non cache case, the exception points to the build file. In the from cache case it does not.
         plugin.assertEndOfBuildWithFailure(output, "org.gradle.internal.exceptions.LocationAwareException")
-        receivedProblem.fqid == 'generic:type'
+        receivedProblem.fqid == 'Others:Generic:label'
     }
 
     def "end of build listener may fail with an exception"() {

@@ -45,6 +45,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     private final ProblemReportCreator problemReportCreator;
     private final SummarizerStrategy summarizerStrategy;
     private final TaskIdentityProvider taskProvider;
+    private final LegacyProblemIdentityNagger legacyIdentityNagger = new LegacyProblemIdentityNagger();
 
     public static final InternalOption<Integer> THRESHOLD_OPTION = InternalOptions.ofInt("org.gradle.internal.problem.summary.threshold", 15);
     public static final int THRESHOLD_DEFAULT_VALUE = THRESHOLD_OPTION.getDefaultValue();
@@ -85,6 +86,8 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
             for (ProblemEmitter problemEmitter : problemEmitters) {
                 problemEmitter.emit(problem, id);
             }
+            // After the emitters, so the problem's own events precede the deprecation it may trigger.
+            legacyIdentityNagger.nag(problem);
         }
     }
 
