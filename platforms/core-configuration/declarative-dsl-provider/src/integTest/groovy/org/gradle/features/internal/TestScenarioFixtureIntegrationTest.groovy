@@ -21,8 +21,6 @@ import org.gradle.features.internal.builders.TypeShape
 import org.gradle.features.registration.TaskRegistrar
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
 /**
  * Integration tests that verify the {@link TestScenarioFixture} DSL generates
@@ -31,7 +29,6 @@ import org.gradle.test.preconditions.JdkVersionTestPreconditions
  * <p>Each test generates plugin source files in both Java and Kotlin, includes the
  * plugin build, and verifies the expected class files exist after compilation.</p>
  */
-@Requires(JdkVersionTestPreconditions.Jdk23OrEarlier) // Kotlin does not support JDK 24 yet
 class TestScenarioFixtureIntegrationTest extends AbstractIntegrationSpec implements TestScenarioFixture {
 
     def "simple project type compiles (#lang)"() {
