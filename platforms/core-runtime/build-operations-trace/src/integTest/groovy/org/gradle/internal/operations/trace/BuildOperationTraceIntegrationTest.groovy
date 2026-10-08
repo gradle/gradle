@@ -169,7 +169,12 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         first[0].length() == firstLength
-        jsonlTraces("traces").size() == 2
+        def traces = jsonlTraces("traces")
+        traces.size() == 2
+
+        and: "the timestamp leads the name, so sorting by name is chronological"
+        traces*.name == traces*.name.sort(false)
+        traces[0].name == first[0].name
     }
 
     def "directory option writes tree files next to the session log"() {
@@ -289,6 +294,9 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private List<File> jsonlTraces(String directory) {
-        file(directory).listFiles().findAll { it.name.endsWith(".jsonl") }.sort { it.name }
+        def traces = file(directory).listFiles().findAll { it.name.endsWith(".jsonl") }
+        // «utc-timestamp»-«id».jsonl, where the timestamp is a fixed-width yyyyMMdd-HHmmss-SSS
+        traces.each { assert it.name ==~ /\d{8}-\d{6}-\d{3}-[0-9a-z]+\.jsonl/ }
+        traces.sort { it.name }
     }
 }
