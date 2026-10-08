@@ -19,7 +19,7 @@ plugins {
     // end::plugin-init[]
      */
     // tag::publish[]
-    id("org.jetbrains.kotlin.jvm") version "2.4.21-RC"
+    id("org.jetbrains.kotlin.jvm") version "2.4.21"
     // tag::plugin-init[]
 }
 // end::plugin-init[]
