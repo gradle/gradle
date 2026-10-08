@@ -16,10 +16,14 @@
 
 package org.gradle.internal.execution.history;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hasher;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.snapshot.ValueSnapshot;
+
+import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
+import static com.google.common.collect.Maps.transformValues;
 
 /**
  * Hashes a non-file input value for the execution history.
@@ -38,5 +42,9 @@ public final class InputValueHash {
         hasher.putString(snapshot.getClass().getName());
         snapshot.appendToHasher(hasher);
         return hasher.hash();
+    }
+
+    public static ImmutableSortedMap<String, HashCode> ofAll(ImmutableSortedMap<String, ValueSnapshot> snapshots) {
+        return copyOfSorted(transformValues(snapshots, InputValueHash::of));
     }
 }
