@@ -30,7 +30,11 @@ public class TaskInstantiationException extends GradleException {
      * @since 1.0
      */
     public TaskInstantiationException(String message) {
-        this(message, null);
+        // Deliberately calls super(message) and not this(message, null): passing an explicit null cause counts as
+        // initializing it, which makes any later initCause(...) call throw IllegalStateException. Among other things
+        // that would stop this type surviving a trip between processes, since ExceptionPlaceholder reconstructs an
+        // exception by calling its single-String constructor and then initCause(...).
+        super(message);
     }
 
     /**

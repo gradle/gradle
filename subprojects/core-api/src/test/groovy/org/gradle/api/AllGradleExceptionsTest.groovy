@@ -18,19 +18,21 @@ package org.gradle.api
 
 import org.junit.Test
 
-import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertEquals
 
 class AllGradleExceptionsTest {
-    static final List EXCEPTION_CLASSES = [UnknownTaskException, UnknownProjectException, InvalidUserDataException, GradleException, CircularReferenceException]
+    private static final List EXCEPTION_CLASSES = [UnknownTaskException, UnknownProjectException, InvalidUserDataException, GradleException, CircularReferenceException]
 
-    @Test public void testWithMessage() {
+    @Test
+    void testWithMessage() {
         String expectedMessage = 'somemessage'
         checkException([expectedMessage]) { GradleException exception ->
             assertEquals(expectedMessage, exception.message)
         }
     }
 
-    @Test public void testWithMessageAndCause() {
+    @Test
+    void testWithMessageAndCause() {
         String expectedMessage = 'somemessage'
         Throwable expectedCause = new Throwable()
         checkException([expectedMessage, expectedCause]) { GradleException exception ->
@@ -41,10 +43,8 @@ class AllGradleExceptionsTest {
 
     void checkException(List constructorArgs, Closure testClosure) {
         EXCEPTION_CLASSES.each { Class clazz ->
-            GradleException exception = clazz.newInstance(constructorArgs as Object[])
+            GradleException exception = clazz.newInstance(constructorArgs as Object[]) as GradleException
             testClosure(exception)
         }
-
     }
-
 }

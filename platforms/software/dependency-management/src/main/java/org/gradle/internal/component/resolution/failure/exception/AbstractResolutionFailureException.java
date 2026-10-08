@@ -16,7 +16,6 @@
 
 package org.gradle.internal.component.resolution.failure.exception;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -49,31 +48,28 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
  * {@link VariantSelectionByAttributesException} subtypes.  All subtypes should remain immutable.
  */
 @Contextual
-public abstract class AbstractResolutionFailureException extends StyledException implements ResolutionProvider, ReportableAsProblem {
+public abstract class AbstractResolutionFailureException extends StyledException implements ReportableAsProblem {
     protected static final Logger LOGGER = Logging.getLogger(AbstractResolutionFailureException.class);
 
-    private final ImmutableList<String> resolutions;
     protected final ResolutionFailure failure;
 
+    @SuppressWarnings("this-escape")
     public AbstractResolutionFailureException(String message, ResolutionFailure failure, List<String> resolutions) {
-        this(message, failure, resolutions, null);
+        // Does not delegate to the cause-taking constructor: passing an explicit null cause counts as initializing
+        // it, which makes any later initCause(...) call throw IllegalStateException.
+        super(message, resolutions);
+        this.failure = failure;
+        LOGGER.info("Variant Selection Exception: {} caused by Resolution Failure: {}", this.getClass().getName(), getFailure().getClass().getName());
     }
 
     @SuppressWarnings("this-escape")
     public AbstractResolutionFailureException(String message, ResolutionFailure failure, List<String> resolutions, @Nullable Throwable cause) {
-        super(message, cause);
+        super(message, cause, resolutions);
         this.failure = failure;
-        this.resolutions = ImmutableList.copyOf(resolutions);
-
         LOGGER.info("Variant Selection Exception: {} caused by Resolution Failure: {}", this.getClass().getName(), getFailure().getClass().getName());
     }
 
     public abstract ResolutionFailure getFailure();
-
-    @Override
-    public ImmutableList<String> getResolutions() {
-        return resolutions;
-    }
 
     @Override
     public AbstractResolutionFailureException reportAsProblem(ProblemsInternal problemsService) {

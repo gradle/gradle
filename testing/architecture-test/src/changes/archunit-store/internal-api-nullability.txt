@@ -1322,8 +1322,6 @@ Class <org.gradle.internal.exception.ExceptionAnalyser> is not annotated (direct
 Class <org.gradle.internal.exceptions.CompilationFailedIndicator> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (CompilationFailedIndicator.java:0)
 Class <org.gradle.internal.exceptions.ContextAwareException> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (ContextAwareException.java:0)
 Class <org.gradle.internal.exceptions.Contextual> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (Contextual.java:0)
-Class <org.gradle.internal.exceptions.DefaultMultiCauseException$HideStacktrace> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DefaultMultiCauseException.java:0)
-Class <org.gradle.internal.exceptions.DefaultMultiCauseException> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DefaultMultiCauseException.java:0)
 Class <org.gradle.internal.exceptions.DefaultMultiCauseExceptionNoStackTrace> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DefaultMultiCauseExceptionNoStackTrace.java:0)
 Class <org.gradle.internal.exceptions.DiagnosticsVisitor> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (DiagnosticsVisitor.java:0)
 Class <org.gradle.internal.exceptions.FailureResolutionAware$Context> is not annotated (directly or via an enclosing element) with @org.jspecify.annotations.NullMarked in (FailureResolutionAware.java:0)

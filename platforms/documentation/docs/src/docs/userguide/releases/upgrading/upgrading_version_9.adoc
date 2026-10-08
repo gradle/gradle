@@ -41,6 +41,25 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
+[[gradle_exception_carries_resolutions]]
+==== `GradleException` now carries resolution suggestions
+
+link:{javadocPath}/org/gradle/api/GradleException.html[`GradleException`] now supplies the resolution suggestions that Gradle prints beneath a failure, rather than leaving that to a handful of exception subtypes.
+
+It does this by implementing the internal `org.gradle.internal.exceptions.ResolutionProvider` interface, which subtypes previously implemented directly.
+`GradleException` gains `getResolutions()` from it, alongside the new `addResolution(String)` and `clearResolutions()`.
+
+This matters only if you had already subclassed `GradleException`, or one of its public subtypes:
+
+* If you directly implemented `ResolutionProvider` on a subclass yourself, you no longer need to as the interface is inherited.
+* If you added a `getResolutions()` method to a subtype that returns anything other than `List<String>`, this no longer compiles.
+* Similarly, if you added a `addResolution(String)` or `clearResolutions()` method to subtypes, they must return `void`.
+* Custom implementations of `addResolution(String)`, `getResolutions()`, `clearResolutions()` should honor the implicit contract between these methods.
+
+Subclasses of `ResolveException` and `ProjectConfigurationException` additionally can no longer override `getResolutions()`.
+Those types combine the resolutions added to them directly with the ones contributed by their causes, and an override would silently discard the former.
+Add resolutions to these types with `addResolution(String)` instead.
+
 [[kotlin_2_4_10]]
 ==== Upgrade to Kotlin 2.4.20
 
