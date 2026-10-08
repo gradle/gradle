@@ -29,8 +29,6 @@ import org.gradle.features.internal.TestScenarioFixture
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.plugin.PluginBuilder
 import org.gradle.test.fixtures.server.http.MavenHttpPluginRepository
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
 import org.hamcrest.Matchers
 import org.junit.Rule
@@ -275,7 +273,6 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         outputContains("Binding FeatureDefinition")
     }
 
-    @Requires(JdkVersionTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
     def "can declare and configure a custom project feature in Kotlin"() {
         PluginBuilder pluginBuilder = testScenario {
             language KOTLIN
@@ -1212,7 +1209,6 @@ class ProjectFeatureDeclarationIntegrationTest extends AbstractIntegrationSpec i
         )
     }
 
-    @Requires(JdkVersionTestPreconditions.Jdk23OrEarlier) // Because Kotlin does not support 24 yet and falls back to 23 causing inconsistent JVM targets
     def "can declare and configure a custom project feature in Kotlin that has no build model"() {
         PluginBuilder pluginBuilder = testScenario {
             language KOTLIN
