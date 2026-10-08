@@ -1188,6 +1188,10 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         if (getUserHomeDir() != null) {
             properties.put("user.home", getUserHomeDir().getAbsolutePath());
+            // The Kotlin daemon keeps its run files under <user.home>/.kotlin/daemon. A user home inside the
+            // test directory would put them there too, and a daemon outliving the test leaves them behind
+            // for the test files cleanup check, so keep them in the shared integration test user home.
+            properties.put("kotlin.daemon.custom.run.files.path.for.tests", buildContext.getGradleUserHomeDir().file("kotlin-daemon").getAbsolutePath());
         } else if (args.stream().noneMatch(arg -> arg.startsWith("-Dmaven.repo.local="))) {
             // Isolate the Maven local repository for builds that neither set their own user home nor already
             // isolate maven.repo.local. `mavenLocal()` resolves to <user.home>/.m2/repository when
