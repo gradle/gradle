@@ -151,11 +151,13 @@ internal class KotlinDslIncrementalCompilationCache(
      * Only the cold pass skips IC: it would rebuild everything anyway, so attaching IC there just
      * pays for snapshotting and bookkeeping that buys nothing.
      */
+    @Suppress("unused", "FunctionOnlyReturningConstant")
     fun shouldConfigureIncrementalCompilation(scriptIdentity: String): Boolean {
-        val entry = scriptEntry(scriptIdentity)
-        val hasIncrementalState = hasPriorState(entry.resolve("ic-state")) // pass 3: incremental
-        val hasPriorOutputs = hasPriorState(entry.resolve("outputs"))      // pass 2: bootstrap
-        return hasIncrementalState || hasPriorOutputs                               // neither → pass 1: cold (skip IC)
+//        val entry = scriptEntry(scriptIdentity)
+//        val hasIncrementalState = hasPriorState(entry.resolve("ic-state")) // pass 3: incremental
+//        val hasPriorOutputs = hasPriorState(entry.resolve("outputs"))      // pass 2: bootstrap
+//        return hasIncrementalState || hasPriorOutputs                               // neither → pass 1: cold (skip IC)
+        return true
     }
 
     private fun hasPriorState(dir: Path): Boolean =
