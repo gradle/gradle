@@ -710,8 +710,7 @@ my-other-lib = {group = "org.gradle.test", name="lib2", version.ref="rich"}
             definition.id.displayName == 'Import of external version catalog file failed'
             contextualLabel == 'In version catalog libs, import of external catalog file failed'
             details == "File \'${file('missing.toml').absolutePath}\' doesn\'t exist"
-            definition.documentationLink.url
-            ('catalog_file_does_not_exist')
+            definition.documentationLink.url == docUrlFor('catalog_file_does_not_exist')
             solutions == ['Make sure that the catalog file \'missing.toml\' exists before importing it']
         }
     }
@@ -787,8 +786,7 @@ lib = {group = "org.gradle.test", name="lib", version.ref="commons-lib"}
             definition.id.displayName == 'Version catalog TOML syntax error'
             contextualLabel == "Unexpected '/', expected a newline or end-of-input"
             details == 'TOML syntax invalid'
-            definition.documentationLink.url
-            ('toml_syntax_error')
+            definition.documentationLink.url == docUrlFor('toml_syntax_error')
             solutions == ['Fix the TOML file according to the syntax described at https://toml.io']
             oneLocation(FileLocation).path == tomlFile.absolutePath
         }
@@ -817,8 +815,7 @@ key2=
             definition.id.displayName == 'Version catalog TOML syntax error'
             contextualLabel == 'Unexpected end of line, expected \', ", \'\'\', """, a number, a boolean, a date/time, an array, or a table'
             details == 'TOML syntax invalid'
-            definition.documentationLink.url
-            ('toml_syntax_error')
+            definition.documentationLink.url == docUrlFor('toml_syntax_error')
             solutions == ['Fix the TOML file according to the syntax described at https://toml.io']
             oneLocation(FileLocation).path == tomlFile.absolutePath
         }
@@ -828,8 +825,7 @@ key2=
             definition.id.displayName == 'Version catalog TOML syntax error'
             contextualLabel == 'Unexpected end of line, expected \', ", \'\'\', """, a number, a boolean, a date/time, an array, or a table'
             details == 'TOML syntax invalid'
-            definition.documentationLink.url
-            ('toml_syntax_error')
+            definition.documentationLink.url == docUrlFor('toml_syntax_error')
             solutions == ['Fix the TOML file according to the syntax described at https://toml.io']
             oneLocation(FileLocation).path == tomlFile.absolutePath
         }
@@ -877,8 +873,7 @@ dependencyResolutionManagement {
             definition.id.displayName == 'Importing multiple version catalog files is not supported'
             contextualLabel == 'In version catalog testLibs, importing multiple files is not supported'
             details == 'The import consists of multiple files'
-            definition.documentationLink.url
-            ('too_many_import_files')
+            definition.documentationLink.url == docUrlFor('too_many_import_files')
             solutions == ['Only import a single file']
         }
     }
@@ -905,8 +900,7 @@ dependencyResolutionManagement {
             definition.id.displayName == 'No version catalog files were resolved to be imported'
             contextualLabel == 'In version catalog testLibs, no files were resolved to be imported'
             details == 'The imported dependency doesn\'t resolve into any file'
-            definition.documentationLink.url
-            ('no_import_files')
+            definition.documentationLink.url == docUrlFor('no_import_files')
             solutions == ['Check the import statement, it should resolve into a single file']
         }
     }
@@ -950,8 +944,7 @@ dependencyResolutionManagement {
             definition.id.displayName == "Multiple 'from' invocations in version catalog"
             contextualLabel == 'In version catalog testLibs, you can only call the \'from\' method a single time'
             details == 'The method was called more than once'
-            definition.documentationLink.url
-            ('too_many_import_invocation')
+            definition.documentationLink.url == docUrlFor('too_many_import_invocation')
             solutions == ['Remove further usages of the method call']
         }
     }
@@ -1059,8 +1052,7 @@ my-lib = "org.gradle.test:lib"
             definition.id.displayName == 'Invalid version catalog dependency notation'
             contextualLabel == "In version catalog libs, on alias 'my-lib' notation 'org.gradle.test:lib' is not a valid dependency notation"
             details == 'When using a string to declare library coordinates, you must use a valid dependency notation'
-            definition.documentationLink.url
-            ('invalid_dependency_notation')
+            definition.documentationLink.url == docUrlFor('invalid_dependency_notation')
             solutions == [
                 'Make sure that the coordinates consist of 3 parts separated by colons, e.g.: my.group:artifact:1.2',
                 'To declare without a version, use \'my-lib.module\' instead, i.e.: my-lib.module = "org.gradle.test:lib"',
@@ -1084,8 +1076,7 @@ my-lib = "org.gradle.test"
             definition.id.displayName == 'Invalid version catalog dependency notation'
             contextualLabel == "In version catalog libs, on alias 'my-lib' notation 'org.gradle.test' is not a valid dependency notation"
             details == 'When using a string to declare library coordinates, you must use a valid dependency notation'
-            definition.documentationLink.url
-            ('invalid_dependency_notation')
+            definition.documentationLink.url == docUrlFor('invalid_dependency_notation')
             solutions == ['Make sure that the coordinates consist of 3 parts separated by colons, e.g.: my.group:artifact:1.2']
         }
     }
@@ -1107,8 +1098,7 @@ my-lib = "org.gradle.test:lib:1.0:classifier"
             definition.id.displayName == 'Invalid version catalog dependency notation'
             contextualLabel == "In version catalog libs, on alias 'my-lib' notation 'org.gradle.test:lib:1.0:classifier' is not a valid dependency notation"
             details == 'When using a string to declare library coordinates, you must use a valid dependency notation'
-            definition.documentationLink.url
-            ('invalid_dependency_notation')
+            definition.documentationLink.url == docUrlFor('invalid_dependency_notation')
             solutions == ['Make sure that the coordinates consist of 3 parts separated by colons, e.g.: my.group:artifact:1.2']
         }
     }
@@ -1167,8 +1157,7 @@ flyway.core = { module = "org.flywaydb:flyway-core" }
             definition.id.displayName == 'Version catalog TOML syntax error'
             contextualLabel == "In version catalog libs, entry 'flyway.core' is not a valid alias"
             details == 'Dots (.) in TOML keys create nested entries and cannot be used in alias names'
-            definition.documentationLink.url
-            ('toml_syntax_error')
+            definition.documentationLink.url == docUrlFor('toml_syntax_error')
             solutions == ["Use '-' or '_' separators instead of '.' or a nested entry, e.g. 'flyway-core'"]
         }
     }
@@ -1193,8 +1182,7 @@ flyway.postgresql = { module = "org.flywaydb:flyway-database-postgresql" }
             definition.id.displayName == 'Version catalog TOML syntax error'
             contextualLabel == "In version catalog libs, entries 'flyway.core' and 'flyway.postgresql' are not valid aliases"
             details == 'Dots (.) in TOML keys create nested entries and cannot be used in alias names'
-            definition.documentationLink.url
-            ('toml_syntax_error')
+            definition.documentationLink.url == docUrlFor('toml_syntax_error')
             solutions == ["Use '-' or '_' separators instead of '.' or a nested entry, e.g. 'flyway-core'"]
         }
     }
@@ -1218,8 +1206,7 @@ kotlin.jvm = "org.jetbrains.kotlin.jvm:1.9.0"
             definition.id.displayName == 'Version catalog TOML syntax error'
             contextualLabel == "In version catalog libs, entry 'kotlin.jvm' is not a valid alias"
             details == 'Dots (.) in TOML keys create nested entries and cannot be used in alias names'
-            definition.documentationLink.url
-            ('toml_syntax_error')
+            definition.documentationLink.url == docUrlFor('toml_syntax_error')
             solutions == ["Use '-' or '_' separators instead of '.' or a nested entry, e.g. 'kotlin-jvm'"]
         }
     }
