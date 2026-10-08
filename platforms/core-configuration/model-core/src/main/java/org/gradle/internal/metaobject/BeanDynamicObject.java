@@ -282,6 +282,7 @@ public class BeanDynamicObject extends AbstractDynamicObject {
             MetaMethod metaMethod = lookupMethod(metaClass, "is" + StringUtils.capitalize(name), MetaClassHelper.EMPTY_CLASS_ARRAY);
             if (metaMethod != null && metaMethod.getReturnType().equals(Boolean.class)) {
                 DeprecationLogger.deprecateAction("Referencing property '" + name + "' that was declared with an 'is-' method with a Boolean type on " + getDisplayName())
+                    .withProblemName("Boolean property with an 'is-' method referenced")
                     .withAdvice("Access the property using " + metaMethod.getName() + "() explicitly, rename " + metaMethod.getName() + ", or change the return type to boolean.")
                     .startingWithGradle10("this property will no longer be treated like a property")
                     .withUpgradeGuideSection(8, "groovy_boolean_properties")

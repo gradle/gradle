@@ -20,7 +20,6 @@ import org.gradle.api.problems.ProblemGroup;
 
 public abstract class GradleCoreProblemGroup {
 
-    private static final ProblemGroup DEPRECATION_PROBLEM_GROUP = ProblemGroup.create("deprecation", "Deprecation");
     private static final DefaultValidationProblemGroup VALIDATION_PROBLEM_GROUP = new DefaultValidationProblemGroup();
     private static final ProblemGroup PLUGIN_APPLICATION_PROBLEM_GROUP = ProblemGroup.create("plugin-application", "Plugin application");
     private static final ProblemGroup TASK_SELECTION_PROBLEM_GROUP = ProblemGroup.create("task-selection", "Task selection");
@@ -30,10 +29,6 @@ public abstract class GradleCoreProblemGroup {
     private static final DaemonToolchainProblemGroup DAEMON_TOOLCHAIN_PROBLEM_GROUP = new DefaultDaemonToolchainProblemGroup();
     private static final ProblemGroup SCRIPTS_PROBLEM_GROUP = ProblemGroup.create("scripts", "Scripts");
     private static final DefaultPackagingProblemGroup PACKAGING_PROBLEM_GROUP = new DefaultPackagingProblemGroup();
-
-    public static ProblemGroup deprecation() {
-        return DEPRECATION_PROBLEM_GROUP;
-    }
 
     public static ValidationProblemGroup validation() {
         return VALIDATION_PROBLEM_GROUP;

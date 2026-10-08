@@ -83,6 +83,7 @@ public class DefaultGradleEnterprisePluginCheckInService implements GradleEnterp
 
         if (isAffectedByParentPropertyLookup(pluginBaseVersion)) {
             DeprecationLogger.deprecateIndirectUsage("Usage of the Develocity plugin " + pluginVersion)
+                .withProblemName("Unsupported Develocity plugin version used")
                 .withAdvice("Upgrade to version " + FIRST_PLUGIN_VERSION_WITHOUT_PARENT_PROPERTY_LOOKUP + " or later of the Develocity plugin.")
                 .willBecomeAnErrorInGradle10()
                 .withUpgradeGuideSection(9, "deprecated_develocity_plugin_pre_4_0")

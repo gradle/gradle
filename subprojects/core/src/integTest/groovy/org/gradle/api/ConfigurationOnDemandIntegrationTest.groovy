@@ -400,8 +400,8 @@ project(':api') {
         receivedProblems.size().times { i ->
             verifyAll(receivedProblem(i)) {
                 severity == Severity.WARNING
-                fqid == 'deprecation:the-buildneeded-task-has-been-deprecated'
-                definition.id.displayName == 'The buildNeeded task has been deprecated.'
+                fqid == 'Gradle:Deprecation:Task usage'
+                definition.id.displayName == 'Task usage'
                 contextualLabel == 'The buildNeeded task has been deprecated.'
                 details == 'This is scheduled to be removed in Gradle 10.'
                 solutions == []
@@ -435,8 +435,8 @@ project(':api') {
         receivedProblems.size().times { i ->
             verifyAll(receivedProblem(i)) {
                 severity == Severity.WARNING
-                fqid == 'deprecation:the-builddependents-task-has-been-deprecated'
-                definition.id.displayName == 'The buildDependents task has been deprecated.'
+                fqid == 'Gradle:Deprecation:Task usage'
+                definition.id.displayName == 'Task usage'
                 contextualLabel == 'The buildDependents task has been deprecated.'
                 details == 'This is scheduled to be removed in Gradle 10.'
                 solutions == []
@@ -642,7 +642,7 @@ allprojects {
         outputContains("The Foo says Moo!!!")
         receivedProblems.size().times { i ->
             verifyAll(receivedProblem(i)) {
-                fqid == 'deprecation:implicit-lookup-of-properties-in-parent-projects'
+                fqid == 'Gradle:Deprecation:Implicit lookup of properties in parent projects'
             }
         }
     }

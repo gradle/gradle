@@ -198,8 +198,7 @@ public class MissingTaskDependencyDetector {
                     consumer,
                     producer
                 ))
-                .withProblemIdDisplayName("Implicit dependency between tasks in different builds")
-                .withProblemId("implicit-dependency-between-tasks-in-different-builds")
+                .withProblemName("Implicit dependency between tasks in different builds")
                 .willBecomeAnErrorInGradle10()
                 .withUserManual("validation_problems", IMPLICIT_DEPENDENCY.toLowerCase(Locale.ROOT))
                 .nagUser();

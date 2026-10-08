@@ -1346,6 +1346,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         } else if (isExclusivelyDeprecatedUsage(properUsages)) {
             DeprecationLogger.deprecateAction(String.format("Calling %s on %s", methodName, this))
                 .withContext("This configuration does not allow this method to be called.")
+                .withProblemName("Method not allowed for the configuration's usage")
                 .willBecomeAnErrorInGradle10()
                 .withUpgradeGuideSection(8, "configurations_allowed_usage")
                 .nagUser();
@@ -1510,6 +1511,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private void warnAboutChangingUsage(String methodName, boolean newValue) {
         DeprecationLogger.deprecateAction(String.format("Calling %s(%b) on %s", methodName, newValue, this))
             .withContext("This configuration's role was set upon creation and its usage should not be changed.")
+            .withProblemName("Usage changed on a configuration with a fixed role")
             .willBecomeAnErrorInGradle10()
             .withUpgradeGuideSection(8, "configurations_allowed_usage")
             .nagUser();

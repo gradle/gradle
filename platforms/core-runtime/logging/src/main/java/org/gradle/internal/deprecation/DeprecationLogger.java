@@ -90,7 +90,10 @@ public class DeprecationLogger {
     @CheckReturnValue
     @SuppressWarnings("rawtypes")
     public static DeprecationMessageBuilder<?> deprecate(final String feature) {
-        return new ExplicitDeprecationMessageBuilder(feature);
+        DeprecationMessageBuilder<?> builder = new DeprecationMessageBuilder();
+        builder.setSummary(feature + " has been deprecated.");
+        builder.setProblemName(feature);
+        return builder;
     }
 
     /**
@@ -334,22 +337,5 @@ public class DeprecationLogger {
 
     private synchronized static void nagUserWith(DeprecatedFeatureUsage usage) {
         DEPRECATED_FEATURE_HANDLER.featureUsed(usage);
-    }
-
-    private static class ExplicitDeprecationMessageBuilder extends DeprecationMessageBuilder<ExplicitDeprecationMessageBuilder> {
-        private final String feature;
-
-        public ExplicitDeprecationMessageBuilder(String feature) {
-            this.feature = feature;
-            setSummary(feature + " has been deprecated.");
-        }
-
-        @Override
-        DeprecationMessage build() {
-            if(problemId == null) {
-                setProblemId(createDefaultDeprecationId(feature));
-            }
-            return super.build();
-        }
     }
 }

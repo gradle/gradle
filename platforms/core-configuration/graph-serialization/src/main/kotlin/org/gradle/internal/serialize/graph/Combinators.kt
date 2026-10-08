@@ -405,6 +405,7 @@ fun warnAboutCustomImplementation(actualType: Class<*>, kind: String, supportedT
             "Serializing a custom $kind type '${actualType.name}', a subtype of '${baseType.name}', " +
                 "which will be restored as a standard $kind, losing any custom state and behavior."
         )
+        .withProblemName("Custom $kind type restored as a standard $kind")
         .willBecomeAnErrorInGradle10()
         .withUserManual("configuration_cache_requirements", "config_cache:requirements:custom_collection_types")
         .nagUser()

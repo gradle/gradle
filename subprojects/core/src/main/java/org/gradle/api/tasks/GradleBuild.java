@@ -178,6 +178,7 @@ public abstract class GradleBuild extends ConventionTask {
             if (!(propertyValue instanceof String)) {
                 // TODO: Remove non-String project properties support in Gradle 10 - https://github.com/gradle/gradle/issues/34454
                 DeprecationLogger.deprecateBehaviour(String.format("Using non-String project properties: property '%s' has value of type %s.", propertyName, propertyValue.getClass().getName()))
+                    .withProblemName("Project property has a non-String value")
                     .willBecomeAnErrorInGradle10()
                     .withUpgradeGuideSection(9, "deprecated-gradle-build-non-string-properties")
                     .nagUser();
