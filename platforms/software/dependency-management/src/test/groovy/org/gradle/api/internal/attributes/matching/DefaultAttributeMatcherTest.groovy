@@ -598,6 +598,31 @@ class DefaultAttributeMatcherTest extends Specification {
         "multiple values for attribute"   | true
     }
 
+    static class ChooseConsumerValue implements AttributeDisambiguationRule<String> {
+        @Override
+        void execute(MultipleCandidatesDetails<String> details) {
+            details.closestMatch(details.consumerValue)
+        }
+    }
+
+    def "ignores values chosen by a disambiguation rule which are not candidate values"() {
+        given:
+        def usage = Attribute.of("usage", String)
+        def matcher = newMatcher {
+            attribute(usage).disambiguationRules.add(ChooseConsumerValue)
+            accept(usage, 'java-api', 'java-runtime')
+            accept(usage, 'java-api', 'legacy')
+            prefer(usage, 'java-runtime')
+        }
+
+        def runtime = candidate(usage: 'java-runtime')
+        def legacy = candidate(usage: 'legacy')
+        def requested = attributes(usage: 'java-api')
+
+        expect:
+        matcher.matchMultipleCandidates([runtime, legacy], requested) == [runtime]
+    }
+
     def "prefers a shorter match with compatible requested values and more than one extra attribute (type: #type)"() {
         given:
         def matcher = newMatcher {

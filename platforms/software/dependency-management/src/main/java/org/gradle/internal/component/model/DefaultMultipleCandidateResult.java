@@ -72,6 +72,11 @@ public class DefaultMultipleCandidateResult<T> implements MultipleCandidatesResu
 
     @Override
     public void closestMatch(T candidate) {
+        if (!candidateValues.contains(candidate)) {
+            // Only candidate values can be chosen. Ignore anything else, as if the rule had not chosen it.
+            // TODO: Deprecate and eventually forbid this behavior.
+            return;
+        }
         if (singleMatch == null) {
             if (multipleMatches == null) {
                 singleMatch = candidate;
