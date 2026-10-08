@@ -35,17 +35,17 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest {
 
         then:
         thrown(InvalidUserDataException)
-        problems.assertProblemEmittedOnce({
+        verifyAll(problems.singleEmittedProblem()) {
             it.definition.id.displayName == 'Invalid dependency notation'
             it.definition.severity == Severity.ERROR
-            it.contextualLabel == "In version catalog libs, on alias 'foo' notation '' is not a valid dependency notation"
+            it.contextualLabel == "In version catalog libs, on alias 'foo' notation '${notation}' is not a valid dependency notation"
             it.details == "The 'to(String)' method only supports 'group:artifact:version' coordinates"
             it.solutions == [
                 "Make sure that the coordinates consist of 3 parts separated by colons, eg: my.group:artifact:1.2",
                 "Use the to(group, name) method instead"
             ]
             it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#invalid_dependency_notation')
-        })
+        }
 
         where:
         notation << ["", "a", "a:", "a:b", ":b", "a:b:", ":::", "a:b:c:d"]
@@ -60,14 +60,14 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest {
 
         then:
         thrown(InvalidUserDataException)
-        problems.assertProblemEmittedOnce({
+        verifyAll(problems.singleEmittedProblem()) {
             it.definition.id.displayName == 'Invalid alias notation'
             it.definition.severity == Severity.ERROR
             it.contextualLabel == "In version catalog libs, invalid library alias '${notation}'"
-            it.details == "Library aliases must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+"
+            it.details == "library aliases must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+"
             it.solutions == ["Make sure the alias matches the [a-z]([a-zA-Z0-9_.\\-])+ regular expression"]
             it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#invalid_alias_notation')
-        })
+        }
 
         where:
         notation << ["", "a", "1a", "A", "Aa", "abc\$", "abc&"]
@@ -82,14 +82,14 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest {
 
         then:
         thrown(InvalidUserDataException)
-        problems.assertProblemEmittedOnce({
+        verifyAll(problems.singleEmittedProblem()) {
             it.definition.id.displayName == 'Reserved alias name'
             it.definition.severity == Severity.ERROR
             it.contextualLabel == "In version catalog libs, alias '${name}' is a reserved alias"
             it.details == "Prefix for dependency shouldn't be equal to '${prefix}'"
             it.solutions == ["Use a different alias which prefix is not equal to 'bundles', 'plugins', or 'versions'"]
             it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#reserved_alias_name')
-        })
+        }
 
         where:
         name          | prefix
@@ -162,14 +162,14 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest {
 
         then:
         thrown(InvalidUserDataException)
-        problems.assertProblemEmittedOnce({
+        verifyAll(problems.singleEmittedProblem()) {
             it.definition.id.displayName == 'Invalid alias notation'
             it.definition.severity == Severity.ERROR
             it.contextualLabel == "In version catalog libs, invalid bundle alias '${notation}'"
-            it.details == "Bundle aliases must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+"
+            it.details == "bundle aliases must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+"
             it.solutions == ["Make sure the alias matches the [a-z]([a-zA-Z0-9_.\\-])+ regular expression"]
             it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#invalid_alias_notation')
-        })
+        }
 
         where:
         notation << ["", "a", "1a", "A", "Aa", "abc\$", "abc&"]
@@ -227,14 +227,14 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest {
 
         then:
         thrown(InvalidUserDataException)
-        problems.assertProblemEmittedOnce({
+        verifyAll(problems.singleEmittedProblem()) {
             it.definition.id.displayName == 'Bundle declares dependency on non-existent alias'
             it.definition.severity == Severity.ERROR
             it.contextualLabel == "In version catalog libs, a bundle with name 'toto' declares a dependency on 'foo' which doesn't exist"
             it.details == "Bundles can only contain references to existing library aliases."
             it.solutions == ["Make sure that the library alias 'foo' is declared", "Remove 'foo' from bundle 'toto'."]
             it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#undefined_alias_reference')
-        })
+        }
     }
 
     def "normalizes alias separators to dot"() {
@@ -391,14 +391,14 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest {
 
         then:
         thrown(InvalidUserDataException)
-        problems.assertProblemEmittedOnce({
+        verifyAll(problems.singleEmittedProblem()) {
             it.definition.id.displayName == 'Undefined version reference'
             it.definition.severity == Severity.ERROR
             it.contextualLabel == "In version catalog libs, version reference 'nope' doesn't exist"
             it.details == "Dependency 'org:foo' references version 'nope' which doesn't exist"
             it.solutions == ["Declare 'nope' in the catalog", "Use one of the following existing versions: 'v1' or 'v2'"]
             it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#undefined_version_reference')
-        })
+        }
     }
 
     def "has all defined aliases"() {

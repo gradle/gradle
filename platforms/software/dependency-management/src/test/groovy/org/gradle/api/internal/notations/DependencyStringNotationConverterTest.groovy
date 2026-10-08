@@ -224,7 +224,7 @@ class DependencyStringNotationConverterTest extends Specification {
 
         then:
         thrown(InvalidUserDataException)
-        problems.assertProblemEmittedOnce {
+        verifyAll(problems.singleEmittedProblem()) {
             it.definition.id.displayName == 'Invalid version notation'
             it.definition.severity == Severity.ERROR
             it.contextualLabel == 'The strict version modifier (!!) must be appended to a valid version number'

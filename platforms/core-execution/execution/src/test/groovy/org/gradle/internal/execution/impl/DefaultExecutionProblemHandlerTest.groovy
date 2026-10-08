@@ -68,7 +68,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
         then:
         def ex = thrown(WorkValidationException)
         ex.message == "A problem was found with the configuration of job ':test' (type 'DefaultExecutionProblemHandlerTest.JobType')."
-        problems.assertProblemEmittedOnce({
+        verifyAll(problems.singleEmittedProblem()) {
             it.definition.severity == Severity.ERROR
             it.definition.id.name == 'test-problem'
             it.definition.id.displayName == 'Validation error'
@@ -77,7 +77,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
             it.definition.documentationLink.url.endsWith('/userguide/id.html#section')
             it.solutions == []
             it.originLocations == []
-        })
+        }
         0 * _
     }
 
@@ -147,7 +147,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
         1 * warningReporter.recordValidationWarnings(identity, work, { List<Problem> warnings ->
             convertToSingleLine(renderMinimalInformationAbout(warnings.first() as ProblemInternal, false, false)) == expectedWarning
         })
-        problems.assertProblemEmittedOnce({
+        verifyAll(problems.singleEmittedProblem()) {
             it.definition.severity == Severity.WARNING
             it.definition.id.name == 'test-problem'
             it.definition.id.displayName == 'Validation warning'
@@ -156,7 +156,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
             it.definition.documentationLink.url.endsWith('/userguide/id.html#section')
             it.solutions == []
             it.originLocations == []
-        })
+        }
 
         then:
         1 * virtualFileSystem.invalidateAll()

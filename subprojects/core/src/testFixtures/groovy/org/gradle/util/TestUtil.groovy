@@ -87,7 +87,6 @@ import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.testfixtures.internal.ProjectBuilderImpl
-import org.spockframework.lang.Wildcard
 
 import javax.annotation.Nullable
 import java.util.function.Supplier
@@ -443,16 +442,9 @@ class TestProblems implements ProblemsInternal {
         delegate.getProblemBuilder()
     }
 
-    void assertProblemEmittedOnce(Object expectedProblem) {
+    Problem singleEmittedProblem() {
         assert summarizer.emitted.size() == 1
-        def actualProblem = summarizer.emitted[0]
-        if (expectedProblem instanceof Closure) {
-            assert expectedProblem.call(actualProblem)
-        } else if (expectedProblem instanceof Problem) {
-            assert expectedProblem == actualProblem
-        } else {
-            assert expectedProblem instanceof Wildcard
-        }
+        summarizer.emitted[0]
     }
 
     void assertNoProblemsEmitted() {

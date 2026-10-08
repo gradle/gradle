@@ -71,7 +71,7 @@ class DeprecationMessagesTest extends Specification {
         then:
         expectMessage "$summary This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/feature_lifecycle.html#sec:deprecated in the Gradle documentation."
 
-        problemsService.assertProblemEmittedOnce({ it.definition.id.displayName == 'Summary is deprecated.' })
+        problemsService.singleEmittedProblem().definition.id.displayName == 'Summary is deprecated.'
     }
 
     def "logs deprecation message scheduled for removal in Gradle 11"() {
@@ -99,7 +99,7 @@ class DeprecationMessagesTest extends Specification {
         then:
         expectMessage "$summary This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/feature_lifecycle.html#sec:deprecated in the Gradle documentation."
 
-        problemsService.assertProblemEmittedOnce({ it.definition.id.displayName == 'summary deprecation' })
+        problemsService.singleEmittedProblem().definition.id.displayName == 'summary deprecation'
     }
 
     def "problem name leaves out data of the build"() {
@@ -107,7 +107,10 @@ class DeprecationMessagesTest extends Specification {
         builder.willBeRemovedInGradle10().undocumented().nagUser()
 
         then:
-        problemsService.assertProblemEmittedOnce({ it.definition.id.name == expectedName && it.contextualLabel == expectedLabel })
+        verifyAll(problemsService.singleEmittedProblem()) {
+            it.definition.id.name == expectedName
+            it.contextualLabel == expectedLabel
+        }
 
         where:
         builder                                                                    | expectedName          | expectedLabel

@@ -79,12 +79,11 @@ class LoggingDeprecatedFeatureHandlerTest extends Specification {
         handler.featureUsed(deprecatedFeatureUsage('feature'))
 
         then:
-        problems.assertProblemEmittedOnce { ProblemInternal problem ->
-            def id = problem.definition.id
-            problem.isWrittenToConsole() &&
-                problem.contextualLabel == 'feature' &&
-                id.name == 'id display name' &&
-                id.group == ((GradleProblemGroupInternal) problems.groups.gradle).deprecation
+        verifyAll(problems.singleEmittedProblem()) { ProblemInternal problem ->
+            problem.isWrittenToConsole()
+            problem.contextualLabel == 'feature'
+            problem.definition.id.name == 'id display name'
+            problem.definition.id.group == ((GradleProblemGroupInternal) problems.groups.gradle).deprecation
         }
     }
 
