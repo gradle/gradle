@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures
 
 import groovy.transform.CompileStatic
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.dsl.GradleDsl
 
@@ -93,11 +94,19 @@ class RepoScriptBlockUtil {
         final String url
         /** Gradle searches this repository only for the groups that match these regexes. */
         final List<String> groupRegexes
+        /**
+         * The versions of the plugins in this repository, by plugin ID.
+         * If a build on the Gradle version under test requests one of these plugins at the default {@code kotlin-dsl} version,
+         * the build gets the version from this map.
+         * Only the init script adds such a repository, because a repository block cannot contain this rule.
+         */
+        final Map<String, String> pluginVersions
 
-        ExtraRepository(String name, String url, List<String> groupRegexes) {
+        ExtraRepository(String name, String url, List<String> groupRegexes, Map<String, String> pluginVersions = [:]) {
             this.name = name
             this.url = url
             this.groupRegexes = groupRegexes
+            this.pluginVersions = pluginVersions
         }
     }
 
@@ -110,11 +119,25 @@ class RepoScriptBlockUtil {
      * An init script declares them in every executer build, smoke test build and performance test build (see {@link #extraRepositoriesInitScript}).
      */
     private static final List<ExtraRepository> EXTRA_REPOSITORIES = ([
-        kotlinDevVersionTested() ? new ExtraRepository(MirroredRepository.KOTLIN_DEV.name, MirroredRepository.KOTLIN_DEV.mirrorUrl, [/org\.jetbrains\.kotlin(\..+)?/]) : null
+        kotlinDevVersionTested() ? new ExtraRepository(MirroredRepository.KOTLIN_DEV.name, MirroredRepository.KOTLIN_DEV.mirrorUrl, [/org\.jetbrains\.kotlin(\..+)?/]) : null,
+        // The published Kotlin DSL plugins are built with an older Kotlin than the Kotlin under test.
+        // Thus builds that apply them use the plugins built from this source.
+        // Only the projects that publish these plugins to their local test repository have this entry.
+        locallyBuiltKotlinDslPluginVersions() ? new ExtraRepository("LOCALLY_BUILT_KOTLIN_DSL_PLUGINS", IntegrationTestBuildContext.INSTANCE.localRepository.toURI().toString(), [/org\.gradle\.kotlin(\..+)?/], locallyBuiltKotlinDslPluginVersions()) : null
     ].findAll() as List<ExtraRepository>).asImmutable()
 
     private static boolean kotlinDevVersionTested() {
         new KotlinGradlePluginVersions().latests.any { KotlinGradlePluginVersions.isKotlinDevVersion(it) }
+    }
+
+    private static Map<String, String> locallyBuiltKotlinDslPluginVersions() {
+        def resource = RepoScriptBlockUtil.getResource("/future-plugin-versions.properties")
+        if (resource == null || IntegrationTestBuildContext.INSTANCE.localRepository == null) {
+            return [:]
+        }
+        def properties = new Properties()
+        resource.withInputStream { properties.load(it) }
+        return properties.collectEntries { key, value -> [(key as String): value as String] } as Map<String, String>
     }
 
     private static File extraRepositoriesInitScriptFile
@@ -151,7 +174,7 @@ class RepoScriptBlockUtil {
     }
 
     static String extraRepositoriesDefinition(GradleDsl dsl = GROOVY) {
-        EXTRA_REPOSITORIES.collect { extraRepositoryDefinition(dsl, it) }.join("")
+        EXTRA_REPOSITORIES.findAll { it.pluginVersions.isEmpty() }.collect { extraRepositoryDefinition(dsl, it) }.join("")
     }
 
     static String extraRepositoryDefinition(GradleDsl dsl = GROOVY, ExtraRepository repository) {
@@ -219,6 +242,10 @@ class RepoScriptBlockUtil {
         MirroredRepository.GRADLE_PLUGIN.mirrorUrl
     }
 
+    static String kotlinDevRepositoryMirrorUrl() {
+        MirroredRepository.KOTLIN_DEV.mirrorUrl
+    }
+
     static String gradlePluginRepositoryDefinition(GradleDsl dsl = GROOVY) {
         MirroredRepository.GRADLE_PLUGIN.getRepositoryDefinition(dsl)
     }
@@ -240,10 +267,11 @@ class RepoScriptBlockUtil {
     }
 
     static String extraRepositoriesInitScript(List<ExtraRepository> repositories = EXTRA_REPOSITORIES) {
-        def data = repositories.collect { [name: it.name, url: it.url, groupRegexes: it.groupRegexes] }
+        def data = repositories.collect { [name: it.name, url: it.url, groupRegexes: it.groupRegexes, pluginVersions: it.pluginVersions] }
+        def gradleHomeUnderTest = IntegrationTestBuildContext.INSTANCE.gradleHomeDir?.canonicalPath
         // Gradle does not accept a package statement in an init script. Keep the line empty, so line numbers in errors match the file.
         def source = RepoScriptBlockUtil.getResource("ExtraRepositories.groovy").getText().replaceFirst(/(?m)^package .*$/, "")
-        return source + "\nExtraRepositories.declareIn(gradle, ${data.inspect()})\n"
+        return source + "\nExtraRepositories.declareIn(gradle, ${gradleHomeUnderTest.inspect()}, ${data.inspect()})\n"
     }
 
     static File createMirrorInitScript() {

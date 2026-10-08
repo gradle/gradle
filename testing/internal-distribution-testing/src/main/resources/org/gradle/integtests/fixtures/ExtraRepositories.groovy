@@ -11,14 +11,17 @@ import org.gradle.util.GradleVersion
 // This file is a resource, not compiled code, so nothing refers to the class.
 // RepoScriptBlockUtil.extraRepositoriesInitScript reads it as text and adds a call to declareIn with the extra repositories.
 // The result is the init script that declares the extra repositories in test builds.
-// Each repository is a map with the keys 'name', 'url' and 'groupRegexes'.
+// Each repository is a map with the keys 'name', 'url', 'groupRegexes' and 'pluginVersions'.
 // All methods are static and get the repositories as an argument: Gradle isolates the actions for projects, so they must not capture an object.
 @SuppressWarnings("unused")
 class ExtraRepositories {
 
     static final boolean SUPPORTS_CONTENT_FILTERING = GradleVersion.current() >= GradleVersion.version("5.1")
 
-    static void declareIn(Gradle gradle, List<Map<String, Object>> repositories) {
+    static void declareIn(Gradle gradle, String gradleHomeUnderTest, List<Map<String, Object>> allRepositories) {
+        // Only builds on the Gradle version under test use the repositories with plugin versions.
+        boolean underTest = gradleHomeUnderTest != null && gradle.gradleHomeDir?.canonicalPath == gradleHomeUnderTest
+        def repositories = underTest ? allRepositories : allRepositories.findAll { (it.pluginVersions as Map).isEmpty() }
         declareInPluginManagement(gradle, repositories)
         declareInDependencyResolutionManagement(gradle, repositories)
         declareInProjects(gradle, repositories)
@@ -31,6 +34,7 @@ class ExtraRepositories {
         gradle.beforeSettings { Settings settings ->
             def repos = settings.pluginManagement.repositories
             ExtraRepositories.declare(repos, repositories)
+            ExtraRepositories.usePluginVersions(settings, repositories)
             // By default, Gradle searches the Gradle Plugin Portal for plugins. A declared plugin repository turns that default off, so declare the Gradle Plugin Portal too.
             // When the build declares its own plugin repository, remove the Gradle Plugin Portal at once. Settings plugins resolve while the settings script runs.
             def portal = repos.gradlePluginPortal()
@@ -68,6 +72,21 @@ class ExtraRepositories {
             gradle.lifecycle.beforeProject(projectClosure)
         } else {
             gradle.allprojects(projectClosure)
+        }
+    }
+
+    // Change only the requests for the default `kotlin-dsl` version. Keep explicit versions.
+    static void usePluginVersions(Settings settings, List<Map<String, Object>> repositories) {
+        Map<String, String> versions = repositories.collectEntries { it.pluginVersions as Map<String, String> }
+        if (versions.isEmpty()) {
+            return
+        }
+        def defaultVersion = Class.forName('org.gradle.kotlin.dsl.support.KotlinDslPluginsKt').getMethod('getExpectedKotlinDslPluginsVersion').invoke(null)
+        settings.pluginManagement.resolutionStrategy.eachPlugin { details ->
+            def version = versions[details.requested.id.id]
+            if (version != null && details.requested.version == defaultVersion) {
+                details.useVersion(version)
+            }
         }
     }
 

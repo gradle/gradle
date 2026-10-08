@@ -72,6 +72,11 @@ class Gradleception(
      */
         val dogfoodTimestamp1 = "19800101010101+0000"
         val dogfoodTimestamp2 = "19800202020202+0000"
+        // The builds that the built Gradle runs use the Kotlin DSL plugins built from this checkout
+        // (see embedded-kotlin.settings.gradle.kts). The plugins are copied out of the build directory,
+        // because the later steps clean it.
+        val kotlinDslPluginsRepository = "%teamcity.build.checkoutDir%/kotlin-dsl-plugins-repository"
+        val kotlinDslPluginsRepositoryParameter = "-Pgradlebuild.kotlinDslPluginsRepository=$kotlinDslPluginsRepository"
         val buildScanTagForType = buildScanTagParam("Gradleception")
         val buildScanTagForGroovyMajor = buildScanTagParam("Groovy$bundleGroovyMajor")
         val buildScanTags =
@@ -127,9 +132,18 @@ class Gradleception(
                 }
                 gradleWrapper {
                     name = "BUILD_GRADLE_DISTRIBUTION"
-                    tasks = "clean :distributions-full:install"
+                    tasks = "clean :distributions-full:install :kotlin-dsl-plugins:publishPluginsToTestRepository"
                     gradleParams =
                         "-Pgradle_installPath=dogfood-first -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp1 $defaultParameters"
+                }
+
+                script {
+                    name = "COPY_KOTLIN_DSL_PLUGINS_REPOSITORY"
+                    scriptContent =
+                        """
+                        rm -rf $kotlinDslPluginsRepository
+                        cp -r platforms/core-configuration/kotlin-dsl-plugins/build/repository $kotlinDslPluginsRepository
+                        """.trimIndent()
                 }
 
                 localGradle {
@@ -137,7 +151,7 @@ class Gradleception(
                     tasks = "clean :distributions-full:install"
                     gradleHome = "%teamcity.build.checkoutDir%/dogfood-first"
                     gradleParams =
-                        "-Pgradle_installPath=dogfood-second -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp2 $defaultParameters"
+                        "-Pgradle_installPath=dogfood-second -PignoreIncomingBuildReceipt=true -PbuildTimestamp=$dogfoodTimestamp2 $kotlinDslPluginsRepositoryParameter $defaultParameters"
                 }
 
                 localGradle {
@@ -148,7 +162,7 @@ class Gradleception(
                             " ",
                         )} -PflakyTests=${FlakyTestStrategy.EXCLUDE} --no-configuration-cache"
                     gradleHome = "%teamcity.build.checkoutDir%/dogfood-second"
-                    gradleParams = defaultParameters
+                    gradleParams = "$kotlinDslPluginsRepositoryParameter $defaultParameters"
                 }
             },
         )

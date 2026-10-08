@@ -100,6 +100,20 @@ Builds get an extra repository in two ways:
 
 When you add a repository to the list, tests that assert on the repositories of a build can fail. Call `executer.withoutExtraRepositories()` in them.
 
+## Use the Kotlin DSL plugins built from this source
+
+A build that applies `kotlin-dsl` without a version gets the published plugin.
+The published plugin is built with the Kotlin of an earlier Gradle version.
+The embedded Kotlin can differ from this Kotlin, for example after a Kotlin version bump.
+Then these builds show a warning about an unsupported Kotlin compiler version, and tests that assert on clean output fail.
+
+To use the plugins built from this source in the tests of a project, apply `gradlebuild.kotlin-dsl-plugin-bundle-integ-tests` to the project.
+This plugin publishes the Kotlin DSL plugins to the local repository of the integration tests and cross version tests.
+There, they are registered as an extra repository (see above).
+The init script changes requests for the default `kotlin-dsl` version to the locally built version.
+It does this only in builds that mention `kotlin-dsl` or `embedded-kotlin` and run the distribution under test. It keeps explicit versions.
+Tooling API tests must give the init script to their builds. The Kotlin DSL model specs that extend `AbstractKotlinScriptModelCrossVersionTest` do this.
+
 # Cross Version Tests
 
 Some tests in the Gradle codebase are executed with a wide range of supported Gradle versions.
