@@ -623,6 +623,34 @@ class DefaultAttributeMatcherTest extends Specification {
         matcher.matchMultipleCandidates([runtime, legacy], requested) == [runtime]
     }
 
+    def "disambiguation rule can choose a single compatible value over candidates lacking the attribute (#description)"() {
+        given:
+        def usage = Attribute.of("usage", String)
+        def other = Attribute.of("other", String)
+        def matcher = newMatcher {
+            attribute(usage)
+            attribute(other)
+            accept(usage, 'java-api', 'java-runtime')
+            accept(usage, 'java-api', 'legacy')
+            accept(other, 'foo', 'bar')
+            prefer(usage, 'java-runtime')
+        }
+
+        def runtime = candidate(usage: 'java-runtime')
+        def lacksUsage = candidate(other: 'bar')
+        def legacy = candidate(usage: 'legacy')
+        def requested = attributes(usage: 'java-api', other: 'foo')
+
+        expect:
+        def candidates = [runtime, lacksUsage] + (withLegacy ? [legacy] : [])
+        matcher.matchMultipleCandidates(candidates, requested) == [runtime]
+
+        where:
+        description                       | withLegacy
+        "single value for attribute"      | false
+        "multiple values for attribute"   | true
+    }
+
     def "prefers a shorter match with compatible requested values and more than one extra attribute (type: #type)"() {
         given:
         def matcher = newMatcher {

@@ -32,7 +32,7 @@ public class DefaultMultipleCandidateResult<T> implements MultipleCandidatesResu
     private Set<T> multipleMatches;
 
     public DefaultMultipleCandidateResult(@Nullable T consumerValue, Set<T> candidateValues) {
-        if (candidateValues.isEmpty() || (consumerValue != null && candidateValues.size() == 1)) {
+        if (candidateValues.isEmpty()) {
             throw new IllegalArgumentException("Insufficient number of candidate values: " + candidateValues.size());
         }
         for (T candidateValue : candidateValues) {
