@@ -156,25 +156,22 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
         run "help", "-D${BuildOperationTrace.DIR_SYSPROP}=traces"
 
         then:
-        def first = jsonlTraces("traces")
-        first.size() == 1
-        first[0].length() > 0
-        postBuildOutputContains("Build operation trace:")
-        postBuildOutputContains(first[0].name)
-        testDirectory.listFiles().findAll { it.name.endsWith("-log.txt") } == []
+        def first = jsonlTraces("traces").first()
+        postBuildOutputContains("Build operation trace: ${first}")
+        file("traces").listFiles().name == [first.name]
+        first.length() > 0
 
         when:
-        def firstLength = first[0].length()
+        def firstContent = first.text
         run "help", "-D${BuildOperationTrace.DIR_SYSPROP}=traces"
 
         then:
-        first[0].length() == firstLength
         def traces = jsonlTraces("traces")
         traces.size() == 2
-
-        and: "the timestamp leads the name, so sorting by name is chronological"
-        traces*.name == traces*.name.sort(false)
-        traces[0].name == first[0].name
+        def second = traces[1]
+        postBuildOutputContains("Build operation trace: ${second}")
+        file("traces").listFiles().name.sort() == [first.name, second.name]
+        first.text == firstContent
     }
 
     def "directory option writes tree files next to the session log"() {
@@ -294,7 +291,7 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private List<File> jsonlTraces(String directory) {
-        def traces = file(directory).listFiles().findAll { it.name.endsWith(".jsonl") }
+        List<File> traces = file(directory).listFiles().findAll { it.name.endsWith(".jsonl") }
         // «utc-timestamp»-«id».jsonl, where the timestamp is a fixed-width yyyyMMdd-HHmmss-SSS
         traces.each { assert it.name ==~ /\d{8}-\d{6}-\d{3}-[0-9a-z]+\.jsonl/ }
         traces.sort { it.name }
