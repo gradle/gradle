@@ -49,8 +49,12 @@ link:{javadocPath}/org/gradle/api/GradleException.html[`GradleException`] now su
 It does this by implementing the internal `org.gradle.internal.exceptions.ResolutionProvider` interface, which subtypes previously implemented directly.
 `GradleException` gains `getResolutions()` from it, alongside the new `addResolution(String)` and `clearResolutions()`.
 
-This matters only if you had already subclassed `GradleException`, or one of its public subtypes.
-If you implemented `ResolutionProvider` on a subclass yourself, you no longer need to as the interface is inherited.
+This matters only if you had already subclassed `GradleException`, or one of its public subtypes:
+
+* If you directly implemented `ResolutionProvider` on a subclass yourself, you no longer need to as the interface is inherited.
+* If you added a `getResolutions()` method to a subtype that returns anything other than `List<String>`, this no longer compiles.
+* Similarly, if you added a `addResolution(String)` or `clearResolutions()` method to subtypes, they must return `void`.
+* Custom implementations of `addResolution(String)`, `getResolutions()`, `clearResolutions()` should honor the implicit contract between these methods.
 
 Subclasses of `ResolveException` and `ProjectConfigurationException` additionally can no longer override `getResolutions()`.
 Those types combine the resolutions added to them directly with the ones contributed by their causes, and an override would silently discard the former.

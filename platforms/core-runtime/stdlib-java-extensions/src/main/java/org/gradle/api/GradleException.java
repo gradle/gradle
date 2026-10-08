@@ -34,6 +34,9 @@ import java.util.Objects;
  * Deliberately calls {@code super(X, Y, Z...)} constructors instead of using a telescoping constructor pattern,
  * since passing an explicit null cause counts as initializing it, which makes any later
  * {@link #initCause(Throwable)} call throw {@link IllegalStateException}.
+ * <p>
+ * Resolutions are tracked as an internal, mutable list, so that nested catch blocks can provide and modify
+ * resolutions with additional context.
  *
  * @since 0.7
  */
@@ -97,7 +100,7 @@ public class GradleException extends RuntimeException implements ResolutionProvi
     }
 
     /**
-     * Clears the resolutions.
+     * Clears the resolutions from this exception.
      *
      * @since 9.9.0
      */
