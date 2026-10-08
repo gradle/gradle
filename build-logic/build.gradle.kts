@@ -7,14 +7,20 @@ plugins {
 description = "Provides plugins that are used by Gradle subprojects"
 
 tasks.register("check") {
+    group = "verification"
+    description = "Runs the check task of every build-logic subproject."
     dependsOn(subprojects.map { "${it.name}:check" })
 }
 
 tasks.register("test") {
+    group = "verification"
+    description = "Runs the test task of every build-logic subproject."
     dependsOn(subprojects.map { "${it.name}:test" })
 }
 
 tasks.register("clean") {
+    group = "verification"
+    description = "Verifies that org.gradle.jvmargs is identical in the root and build-logic gradle.properties files."
     val buildLogicPropertiesFile = layout.projectDirectory.file("gradle.properties")
     val rootPropertiesFile = layout.projectDirectory.file("../gradle.properties")
     doLast {

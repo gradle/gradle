@@ -38,6 +38,8 @@ dependencies {
 // This is required for the separate promotion build and should be adjusted there in the future
 val buildEnvironmentExtension = extensions.getByType(BuildEnvironmentExtension::class)
 tasks.register<Copy>("copyDistributionsToRootBuild") {
+    group = "distribution"
+    description = "Copies the built distributions into the root build's distributions directory for the promotion build."
     dependsOn("buildDists")
     from(layout.buildDirectory.dir("distributions"))
     into(buildEnvironmentExtension.rootProjectBuildDir.dir("distributions"))

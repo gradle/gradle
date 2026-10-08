@@ -73,6 +73,8 @@ dependencies {
 }
 
 val reportResources = tasks.register<Copy>("reportResources") {
+    group = "build"
+    description = "Copies the JavaScript resources used by performance test reports into the generated resources directory."
     from(reports)
     into(layout.buildDirectory.file("generated-resources/report-resources/org/gradle/reporting"))
 }
