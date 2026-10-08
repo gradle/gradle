@@ -20,14 +20,12 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.fixtures.file.TestFile
-import org.gradle.test.fixtures.Flaky
 
 import static org.hamcrest.CoreMatchers.hasItems
 import static org.hamcrest.CoreMatchers.startsWith
 import static org.hamcrest.MatcherAssert.assertThat
 
 @TargetGradleVersion(">=5.4")
-@Flaky(because = 'https://github.com/gradle/gradle-private/issues/3414')
 class PrecompiledScriptPluginModelCrossVersionSpec extends AbstractKotlinScriptModelCrossVersionTest {
 
     @LeaksFileHandles("Kotlin Compiler Daemon working directory")
