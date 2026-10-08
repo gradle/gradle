@@ -651,6 +651,39 @@ class DefaultAttributeMatcherTest extends Specification {
         "multiple values for attribute"   | true
     }
 
+    def "disambiguation rules are only presented with values of remaining candidates (#description)"() {
+        given:
+        def x = Attribute.of("x", String)
+        def y = Attribute.of("y", String)
+        def matcher = newMatcher {
+            attribute(x)
+            attribute(y)
+            attributeDisambiguationPrecedence(*precedence.collect { Attribute.of(it, String) })
+            accept(x, 'requested', 'a')
+            accept(x, 'requested', 'b')
+            accept(y, 'requested', 'p')
+            accept(y, 'requested', 'q')
+            accept(y, 'requested', 'r')
+            prefer(x, 'a')
+            prefer(y, 'r')
+            prefer(y, 'p')
+        }
+
+        def ap = candidate(x: 'a', y: 'p')
+        def aq = candidate(x: 'a', y: 'q')
+        def br = candidate(x: 'b', y: 'r')
+        def requested = attributes(x: 'requested', y: 'requested')
+
+        expect:
+        // 'br' is removed by disambiguating 'x', so 'r' must not be chosen when disambiguating 'y'
+        matcher.matchMultipleCandidates([ap, aq, br], requested) == [ap]
+
+        where:
+        description                       | precedence
+        "with known precedence"           | ["x", "y"]
+        "with unknown precedence"         | ["x"]
+    }
+
     def "prefers a shorter match with compatible requested values and more than one extra attribute (type: #type)"() {
         given:
         def matcher = newMatcher {

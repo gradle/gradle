@@ -176,15 +176,15 @@ If multiple candidates remain, Gradle attempts **disambiguation**:
 * *Requested attributes* are link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(java.util.List)[**sorted by precedence**].
 * FOR each *requested attribute* **in precedence order**:
 ** IF **a link:{javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html[disambiguation rule] exists**, apply it.
-** IF no value is chosen by a rule and **the requested value is one of the values** of the compatible candidates, it is chosen.
+** IF no value is chosen by a rule and **the requested value is one of the values** of the remaining candidates, it is chosen.
 ** IF **a value is chosen**, candidates with a different value, or without a value for the attribute, are eliminated.
 * IF **only one candidate remains**, that candidate wins.
 
-If **multiple candidates still remain**, Gradle processes **unordered attributes** (those not in the precedence list):
+If **multiple candidates still remain**, Gradle processes **unordered attributes** (those not in the precedence list) against the candidates remaining after the ordered attributes:
 
 * FOR each *requested attribute* **without precedence order**:
 ** IF **a disambiguation rule exists**, apply it.
-** IF no value is chosen by a rule and **the requested value is one of the values** of the compatible candidates, it is chosen.
+** IF no value is chosen by a rule and **the requested value is one of the values** of these candidates, it is chosen.
 ** IF **a value is chosen**, candidates with a different value, or without a value for the attribute, are eliminated.
 * IF **only one candidate remains**, that candidate wins.
 * IF *no candidates remain*, Gradle falls back to the most compatible candidates (step 2).
@@ -206,7 +206,7 @@ First, Gradle processes **prioritized extra attributes**:
 * IF **only one candidate remains**, that candidate wins.
 * IF *no candidates remain*, Gradle falls back to the original compatible candidates (step 1).
 
-Then, Gradle processes **unordered extra attributes**:
+Then, Gradle processes **unordered extra attributes** against the candidates remaining after the ordered attributes:
 
 * FOR each remaining *extra attribute* *without defined precedence*:
 ** IF **a disambiguation rule exists**, apply it.
