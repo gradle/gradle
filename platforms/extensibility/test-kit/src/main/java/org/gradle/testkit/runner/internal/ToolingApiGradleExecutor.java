@@ -20,6 +20,7 @@ import com.google.common.io.FileBackedOutputStream;
 import org.apache.commons.io.output.TeeOutputStream;
 import org.gradle.internal.SystemProperties;
 import org.gradle.testkit.runner.BuildTask;
+import org.gradle.testkit.runner.ConfigurationCacheOutcome;
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException;
 import org.gradle.testkit.runner.TaskOutcome;
 import org.gradle.testkit.runner.UnsupportedFeatureException;
@@ -35,6 +36,12 @@ import org.gradle.tooling.UnsupportedVersionException;
 import org.gradle.tooling.events.OperationType;
 import org.gradle.tooling.events.ProgressEvent;
 import org.gradle.tooling.events.ProgressListener;
+import org.gradle.tooling.events.configuration.ConfigurationCacheEntryOutcomeResult;
+import org.gradle.tooling.events.configuration.ConfigurationCacheEntryReusedResult;
+import org.gradle.tooling.events.configuration.ConfigurationCacheEntryStoreFailedResult;
+import org.gradle.tooling.events.configuration.ConfigurationCacheEntryStoreSkippedResult;
+import org.gradle.tooling.events.configuration.ConfigurationCacheEntryStoredResult;
+import org.gradle.tooling.events.configuration.ConfigurationCacheFinishEvent;
 import org.gradle.tooling.events.task.TaskFailureResult;
 import org.gradle.tooling.events.task.TaskFinishEvent;
 import org.gradle.tooling.events.task.TaskOperationResult;
@@ -48,6 +55,8 @@ import org.gradle.tooling.model.build.BuildEnvironment;
 import org.gradle.util.GradleVersion;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.wrapper.GradleUserHomeLookup;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -102,6 +111,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         final OutputStream syncOutput = new SynchronizedOutputStream(outputBuffer);
 
         final List<BuildTask> tasks = new ArrayList<BuildTask>();
+        final ConfigurationCacheOutcomeListener configurationCacheOutcomeListener = new ConfigurationCacheOutcomeListener();
 
         maybeRegisterCleanup();
 
@@ -136,6 +146,8 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             }
 
             launcher.addProgressListener(new TaskExecutionProgressListener(tasks), OperationType.TASK);
+            // Older target versions simply ignore this subscription and never send the event
+            launcher.addProgressListener(configurationCacheOutcomeListener, OperationType.CONFIGURATION_CACHE);
 
             launcher.withArguments(parameters.getBuildArgs().toArray(new String[0]));
             launcher.setJvmArguments(parameters.getJvmArgs().toArray(new String[0]));
@@ -154,7 +166,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         } catch (UnsupportedVersionException e) {
             throw new InvalidRunnerConfigurationException("The build could not be executed due to a feature not being supported by the target Gradle version", e);
         } catch (BuildException t) {
-            return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), outputBuffer.asByteSource(), tasks, t);
+            return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), outputBuffer.asByteSource(), tasks, configurationCacheOutcomeListener.getOutcome(), t);
         } catch (GradleConnectionException t) {
             StringBuilder message = new StringBuilder("An error occurred executing build with ");
             if (parameters.getBuildArgs().isEmpty()) {
@@ -187,7 +199,7 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
             }
         }
 
-        return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), outputBuffer.asByteSource(), tasks);
+        return new GradleExecutionResult(new BuildOperationParameters(targetGradleVersion, parameters.isEmbedded()), outputBuffer.asByteSource(), tasks, configurationCacheOutcomeListener.getOutcome(), null);
     }
 
     private static void warnIfUnsupportedVersion(GradleVersion targetGradleVersion) {
@@ -218,6 +230,37 @@ public class ToolingApiGradleExecutor implements GradleExecutor {
         gradleConnector.daemonMaxIdleTime(120, TimeUnit.SECONDS);
         gradleConnector.embedded(embedded);
         return gradleConnector;
+    }
+
+    @NullMarked
+    private static class ConfigurationCacheOutcomeListener implements ProgressListener {
+        private @Nullable ConfigurationCacheOutcome outcome;
+
+        @Override
+        public void statusChanged(ProgressEvent event) {
+            if (event instanceof ConfigurationCacheFinishEvent) {
+                outcome = toOutcome(((ConfigurationCacheFinishEvent) event).getResult());
+            }
+        }
+
+        private static ConfigurationCacheOutcome toOutcome(ConfigurationCacheEntryOutcomeResult result) {
+            if (result instanceof ConfigurationCacheEntryStoredResult) {
+                return ConfigurationCacheOutcome.stored();
+            } else if (result instanceof ConfigurationCacheEntryReusedResult) {
+                return ConfigurationCacheOutcome.reused();
+            } else if (result instanceof ConfigurationCacheEntryStoreSkippedResult) {
+                return ConfigurationCacheOutcome.storeSkipped();
+            } else if (result instanceof ConfigurationCacheEntryStoreFailedResult) {
+                return ConfigurationCacheOutcome.storeFailed();
+            } else {
+                return ConfigurationCacheOutcome.undetermined();
+            }
+        }
+
+        @Nullable
+        ConfigurationCacheOutcome getOutcome() {
+            return outcome;
+        }
     }
 
     private static class TaskExecutionProgressListener implements ProgressListener {

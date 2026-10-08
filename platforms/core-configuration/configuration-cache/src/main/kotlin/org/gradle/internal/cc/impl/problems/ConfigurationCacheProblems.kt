@@ -43,6 +43,7 @@ import org.gradle.internal.cc.impl.ConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.DefaultConfigurationCacheDegradationController
 import org.gradle.internal.cc.impl.TooManyConfigurationCacheProblemsException
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
+import org.gradle.internal.cc.operations.emitConfigurationCacheEntryOutcomeOperation
 import org.gradle.internal.configuration.problems.CommonReport
 import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
@@ -58,9 +59,11 @@ import org.gradle.internal.deprecation.DeprecationMessageBuilder
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.extensions.stdlib.maybeUnwrapInvocationTargetException
+import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
+import org.gradle.operations.configuration.ConfigurationCacheEntryOutcomeBuildOperationType.Outcome
 import org.gradle.problems.buildtree.ProblemReporter
 import org.gradle.problems.buildtree.ProblemReporter.ProblemConsumer
 import java.io.File
@@ -134,7 +137,10 @@ class ConfigurationCacheProblems(
     val buildStateRegistry: BuildStateRegistry,
 
     private
-    val degradationController: DefaultConfigurationCacheDegradationController
+    val degradationController: DefaultConfigurationCacheDegradationController,
+
+    private
+    val buildOperationRunner: BuildOperationRunner
 ) : AbstractProblemsListener(), IsolatedProjectsProblemsListener, ProblemReporter, AutoCloseable {
 
     private
@@ -153,7 +159,17 @@ class ConfigurationCacheProblems(
     val isIsolatedProjectsDangerouslyIgnoreProblems: Boolean = startParameter.isIsolatedProjectsDangerouslyIgnoreProblems
 
     private
-    var seenSerializationErrorOnStore = false
+    var storeSerializationError: Throwable? = null
+
+    private
+    val seenSerializationErrorOnStore: Boolean
+        get() = storeSerializationError != null
+
+    private
+    var entryCommitted = false
+
+    private
+    var reportedFailure: Throwable? = null
 
     private
     var reusedProjects = 0
@@ -201,8 +217,16 @@ class ConfigurationCacheProblems(
         cacheActionDescription = actionDescription
     }
 
-    fun onStoreSerializationError() {
-        seenSerializationErrorOnStore = true
+    fun onStoreSerializationError(error: Throwable) {
+        storeSerializationError = error
+    }
+
+    fun onEntryCommitted() {
+        entryCommitted = true
+    }
+
+    fun onEntryDiscarded() {
+        entryCommitted = false
     }
 
     fun projectStateStats(reusedProjects: Int, updatedProjects: Int) {
@@ -447,7 +471,10 @@ class ConfigurationCacheProblems(
                 log(summary.textForConsole(details.cacheAction, htmlReportFile))
             }
 
-            else -> validationFailures.accept(failure)
+            else -> {
+                reportedFailure = failure
+                validationFailures.accept(failure)
+            }
         }
     }
 
@@ -520,6 +547,11 @@ class ConfigurationCacheProblems(
             val reusedProjectsString = reusedProjects.counter("project")
             val updatedProjectsString = updatedProjects.counter("project")
             when {
+                !::cacheAction.isInitialized && hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCountString)
+                !::cacheAction.isInitialized && hasProblems -> log("Configuration cache problems found ({}).", problemCountString)
+                !::cacheAction.isInitialized -> {
+                    // not storing or loading and no problems to report
+                }
                 seenSerializationErrorOnStore && deferredProblemCount == 0 -> log("Configuration cache entry discarded due to serialization error.")
                 seenSerializationErrorOnStore -> log("Configuration cache entry discarded with {}.", problemCountString)
                 cacheAction == Store && shouldDegradeGracefully() -> log("Configuration cache disabled${degradationSummary()}")
@@ -533,15 +565,41 @@ class ConfigurationCacheProblems(
                 cacheAction is Load && !hasProblems -> log("Configuration cache entry reused.")
                 cacheAction is Load -> log("Configuration cache entry reused with {}.", problemCountString)
                 cacheAction == SkipStore -> log("Configuration cache disabled as cache is in read-only mode.")
-                hasTooManyProblems -> log("Too many configuration cache problems found ({}).", problemCountString)
-                hasProblems -> log("Configuration cache problems found ({}).", problemCountString)
-                // else not storing or loading and no problems to report
             }
+            emitEntryOutcome(summary)
             if (isIsolatedProjectsDangerouslyIgnoreProblems) {
                 logger.warn(isolatedProjectsDangerouslyIgnoreProblemsBanner())
             }
         }
     }
+
+    private
+    fun emitEntryOutcome(summary: Summary) {
+        val outcome = entryOutcome(summary)
+        val storeFailure = if (outcome == Outcome.STORE_FAILED) storeFailure(summary) else null
+        buildOperationRunner.emitConfigurationCacheEntryOutcomeOperation(outcome, summary.consoleProblemCount, storeFailure)
+    }
+
+    private
+    fun entryOutcome(summary: Summary): Outcome = when {
+        !::cacheAction.isInitialized -> Outcome.UNDETERMINED
+        cacheAction is Load -> Outcome.REUSED
+        cacheAction == SkipStore -> Outcome.STORE_SKIPPED
+        entryCommitted -> Outcome.STORED
+        storeFailure(summary) != null -> Outcome.STORE_FAILED
+        isStoreSkippedOnPurpose(summary) -> Outcome.STORE_SKIPPED
+        // The build failed before the entry could be stored
+        else -> Outcome.STORE_FAILED
+    }
+
+    private
+    fun storeFailure(summary: Summary): Throwable? =
+        storeSerializationError ?: reportedFailure ?: queryFailure(summary)
+
+    private
+    fun isStoreSkippedOnPurpose(summary: Summary) =
+        shouldDegradeGracefully() || incompatibleTasks.isNotEmpty() ||
+            summary.consoleProblemCount > 0 && isIsolatedProjectsDangerouslyIgnoreProblems
 
     private
     fun degradationSummary(): String {
