@@ -586,7 +586,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             it.definition.severity == Severity.ERROR
             it.definition.id.name == 'test-problem'
             it.definition.id.displayName == 'Validation error'
-            it.contextualLabel == null
+            it.contextualLabel == "Type 'java.lang.Object' Validation error"
             it.details == 'Test'
             it.definition.documentationLink.url.endsWith('/userguide/id.html#section')
             it.solutions == []

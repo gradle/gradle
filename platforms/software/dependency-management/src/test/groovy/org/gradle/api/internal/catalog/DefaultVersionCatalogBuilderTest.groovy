@@ -38,7 +38,7 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest {
         verifyAll(problems.singleEmittedProblem()) {
             it.definition.id.displayName == 'Invalid dependency notation'
             it.definition.severity == Severity.ERROR
-            it.contextualLabel == "In version catalog libs, on alias 'foo' notation '' is not a valid dependency notation"
+            it.contextualLabel == "In version catalog libs, on alias 'foo' notation '${notation}' is not a valid dependency notation"
             it.details == "The 'to(String)' method only supports 'group:artifact:version' coordinates"
             it.solutions == [
                 "Make sure that the coordinates consist of 3 parts separated by colons, eg: my.group:artifact:1.2",
@@ -64,7 +64,7 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest {
             it.definition.id.displayName == 'Invalid alias notation'
             it.definition.severity == Severity.ERROR
             it.contextualLabel == "In version catalog libs, invalid library alias '${notation}'"
-            it.details == "Library aliases must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+"
+            it.details == "library aliases must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+"
             it.solutions == ["Make sure the alias matches the [a-z]([a-zA-Z0-9_.\\-])+ regular expression"]
             it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#invalid_alias_notation')
         }
@@ -166,7 +166,7 @@ class DefaultVersionCatalogBuilderTest extends AbstractVersionCatalogTest {
             it.definition.id.displayName == 'Invalid alias notation'
             it.definition.severity == Severity.ERROR
             it.contextualLabel == "In version catalog libs, invalid bundle alias '${notation}'"
-            it.details == "Bundle aliases must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+"
+            it.details == "bundle aliases must match the following regular expression: [a-z]([a-zA-Z0-9_.\\-])+"
             it.solutions == ["Make sure the alias matches the [a-z]([a-zA-Z0-9_.\\-])+ regular expression"]
             it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#invalid_alias_notation')
         }

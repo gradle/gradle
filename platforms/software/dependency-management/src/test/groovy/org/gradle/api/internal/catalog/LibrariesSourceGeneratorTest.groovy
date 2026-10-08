@@ -180,7 +180,7 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest {
         thrown(InvalidUserDataException)
         verifyAll(problems.singleEmittedProblem()) {
             it.definition.id.displayName == 'Accessor name clash'
-            it.contextualLabel == "In version catalog lib, dependencies groovy.json and groovyJson are mapped to the same accessor name getGroovyJson()"
+            it.contextualLabel == "In version catalog lib, library aliases groovy.json and groovyJson are mapped to the same accessor name getGroovyJson()"
             it.details == "A name clash was detected"
             it.solutions == ["Use a different alias for groovy.json and groovyJson"]
             it.definition.documentationLink.url.endsWith('userguide/version_catalog_problems.html#accessor_name_clash')
