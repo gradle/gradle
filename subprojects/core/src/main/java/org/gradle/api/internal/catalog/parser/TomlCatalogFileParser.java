@@ -152,8 +152,7 @@ public class TomlCatalogFileParser {
             .id(catalogProblemId.problemId(getInternalProblems().getGroups()))
             .contextualLabel(label)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)));
-        ProblemSpecInternal definingCategory = locationDefiner.apply(definingLocation);
-        return definingCategory;
+        return locationDefiner.apply(definingLocation);
     }
 
     private void assertNoParseErrors(TomlParseResult result) {
