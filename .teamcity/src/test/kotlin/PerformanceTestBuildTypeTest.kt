@@ -16,6 +16,7 @@
 
 import common.Os
 import common.PLUGINS_PORTAL_URL_OVERRIDE
+import common.REPOSITORY_MIRRORS_INIT_SCRIPT
 import common.VersionedSettingsBranch
 import configurations.BaseGradleBuildType
 import configurations.PerformanceTest
@@ -100,6 +101,7 @@ class PerformanceTestBuildTypeTest {
                 "-Dorg.gradle.workers.max=%maxParallelForks%",
                 "-PmaxParallelForks=%maxParallelForks%",
                 PLUGINS_PORTAL_URL_OVERRIDE,
+                REPOSITORY_MIRRORS_INIT_SCRIPT,
                 "-Dscan.value.tcPipeline=master",
                 "-s",
                 "%additional.gradle.parameters%",
@@ -177,6 +179,7 @@ class PerformanceTestBuildTypeTest {
                 "-Dorg.gradle.workers.max=%maxParallelForks%",
                 "-PmaxParallelForks=%maxParallelForks%",
                 PLUGINS_PORTAL_URL_OVERRIDE,
+                REPOSITORY_MIRRORS_INIT_SCRIPT,
                 "-Dscan.value.tcPipeline=master",
                 "-s",
                 "%additional.gradle.parameters%",
