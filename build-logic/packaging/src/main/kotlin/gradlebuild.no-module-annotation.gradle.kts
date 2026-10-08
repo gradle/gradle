@@ -47,10 +47,11 @@ plugins.withId("java-base") {
     afterEvaluate {
         // Without afterEvaluate, configurations.all runs before the configurations' roles are set.
         // This is yet another reason we need configuration factory methods.
+        val jspecify = versionCatalogs.named("libs").findLibrary("jspecify").get().get()
         configurations.all {
             if (isCanBeResolved && !isCanBeConsumed) {
                 resolutionStrategy.dependencySubstitution {
-                    substitute(module("org.jspecify:jspecify")).using(variant(module("org.jspecify:jspecify:1.0.0")) {
+                    substitute(module("${jspecify.group}:${jspecify.name}")).using(variant(module("${jspecify.group}:${jspecify.name}:${jspecify.versionConstraint.requiredVersion}")) {
                         attributes {
                             attribute(noModuleAnnotation, true)
                         }
