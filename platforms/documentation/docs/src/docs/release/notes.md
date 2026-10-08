@@ -12,8 +12,13 @@
 
 Gradle @version@ is the sixth patch release for Gradle 8.14 (released [@releaseDate@](https://gradle.org/releases/)).
 
-It fixes the following issues:
-* TODO
+This release addresses three high rated vulnerabilities:
+- [Unauthenticated worker-to-daemon channel deserializes untrusted Java objects](https://github.com/gradle/gradle/security/advisories/GHSA-mvvg-497x-hmj8)
+- [Deserialization of untrusted Java objects before authentication in the client - daemon communication](https://github.com/gradle/gradle/security/advisories/GHSA-xwqc-3h47-hg64)
+- [Failure to disable repositories failing to establish an SSL connection can expose builds to malicious artifacts](https://github.com/gradle/gradle/security/advisories/GHSA-j5m7-59rp-24f5)
+
+The following issues were resolved:
+- [Please upgrade dependencies to address CVEs in release8x](https://github.com/gradle/gradle/issues/38600)
 
 Issues fixed in the fifth patch release:
 
