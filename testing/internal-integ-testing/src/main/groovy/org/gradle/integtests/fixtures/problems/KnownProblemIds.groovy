@@ -52,7 +52,6 @@ class KnownProblemIds {
         'configuration-usage': 'Configuration usage',
         'daemon-toolchain' : 'Daemon toolchain',
         'jvm-toolchain': 'JVM Toolchain',
-        'dependency-version-catalog': 'Version catalog',
         'packaging': 'Packaging',
         'plugin-application': 'Plugin application',
         'task-selection': 'Task selection',
@@ -64,9 +63,6 @@ class KnownProblemIds {
         'validation:type-validation': 'Gradle type validation',
         'validation:configuration-cache': 'Configuration cache',
 
-        // dependency resolution failures
-        'dependency-variant-resolution': 'Dependency variant resolution',
-
         // DCL
         'scripts:dcl-schema': 'DCL Schema issues',
 
@@ -76,6 +72,10 @@ class KnownProblemIds {
         'Gradle:Deprecation': 'Deprecation',
         'Gradle:DSL Evaluation': 'DSL Evaluation',
         'Compilation': 'Compilation',
+        'Dependencies': 'Dependencies',
+        'Dependencies:Declaration': 'Declaration',
+        'Dependencies:Graph Resolution': 'Graph Resolution',
+        'Dependencies:Artifact Resolution': 'Artifact Resolution',
         'Compilation:Groovy': 'Groovy',
         'Compilation:Java': 'Java',
         'Compilation:Java:Undefined': 'Undefined',
@@ -122,18 +122,19 @@ class KnownProblemIds {
         // version; see JavacDiagnosticNames in java-compiler-worker.
         'Compilation:Java:.+' : ['.*'],
         'daemon-toolchain:configuration-generation:task-configuration' : ['Invalid task configuration'],
-        'dependency-version-catalog:accessor-name-clash': [VersionCatalogProblemId.ACCESSOR_NAME_CLASH.displayName],
+        'Dependencies:Declaration:Version catalog accessor name clash': [VersionCatalogProblemId.ACCESSOR_NAME_CLASH.name],
         'jvm-toolchain:invalid-jvm-installation': ['Invalid JVM installation'],
-        'dependency-version-catalog:alias-not-finished': [VersionCatalogProblemId.ALIAS_NOT_FINISHED.displayName],
-        'dependency-version-catalog:invalid-dependency-notation': [VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION.displayName],
-        'dependency-version-catalog:invalid-toml-definition': [VersionCatalogProblemId.INVALID_TOML_DEFINITION.displayName],
-        'dependency-version-catalog:invalid-version-notation': [VersionCatalogProblemId.INVALID_VERSION_NOTATION.displayName],
-        'dependency-version-catalog:reserved-alias-name': [VersionCatalogProblemId.RESERVED_ALIAS_NAME.displayName],
-        'dependency-version-catalog:catalog-file-does-not-exist': [VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST.displayName],
-        'dependency-version-catalog:toml-syntax-error': [VersionCatalogProblemId.TOML_SYNTAX_ERROR.displayName],
-        'dependency-version-catalog:too-many-import-files': [VersionCatalogProblemId.TOO_MANY_IMPORT_FILES.displayName],
-        'dependency-version-catalog:too-many-import-invocation': [VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION.displayName],
-        'dependency-version-catalog:no-import-files': [VersionCatalogProblemId.NO_IMPORT_FILES.displayName],
+        'Dependencies:Declaration:Version catalog alias builder not finished': [VersionCatalogProblemId.ALIAS_NOT_FINISHED.name],
+        'Dependencies:Declaration:Invalid version catalog dependency notation': [VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION.name],
+        'Dependencies:Declaration:Invalid version catalog TOML definition': [VersionCatalogProblemId.INVALID_TOML_DEFINITION.name],
+        'Dependencies:Declaration:Invalid version notation in version catalog': [VersionCatalogProblemId.INVALID_VERSION_NOTATION.name],
+        'Dependencies:Declaration:Invalid version notation': ['Invalid version notation'],
+        'Dependencies:Declaration:Reserved version catalog alias name': [VersionCatalogProblemId.RESERVED_ALIAS_NAME.name],
+        'Dependencies:Declaration:Import of external version catalog file failed': [VersionCatalogProblemId.CATALOG_FILE_DOES_NOT_EXIST.name],
+        'Dependencies:Declaration:Version catalog TOML syntax error': [VersionCatalogProblemId.TOML_SYNTAX_ERROR.name],
+        'Dependencies:Declaration:Importing multiple version catalog files is not supported': [VersionCatalogProblemId.TOO_MANY_IMPORT_FILES.name],
+        "Dependencies:Declaration:Multiple 'from' invocations in version catalog": [VersionCatalogProblemId.TOO_MANY_IMPORT_INVOCATION.name],
+        'Dependencies:Declaration:No version catalog files were resolved to be imported': [VersionCatalogProblemId.NO_IMPORT_FILES.name],
         'Gradle:Deprecation:Implicit dependency between tasks in different builds': ['Implicit dependency between tasks in different builds'],
         'Gradle:Deprecation:Implicit lookup of methods in parent projects': ['Implicit lookup of methods in parent projects'],
         'Gradle:Deprecation:Implicit lookup of properties in parent projects': ['Implicit lookup of properties in parent projects'],
@@ -200,23 +201,23 @@ class KnownProblemIds {
         'validation:invalid-java-toolchain': ["Running task ValidatePlugins with Java Toolchain lower than ${SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION}"],
 
         // dependency resolution failures
-        'dependency-variant-resolution:configuration-not-compatible': ['Configuration selected by name is not compatible'],
-        'dependency-variant-resolution:configuration-not-consumable': ['Configuration selected by name is not consumable'],
-        'dependency-variant-resolution:configuration-does-not-exist': ['Configuration selected by name does not exist'],
-        'dependency-variant-resolution:ambiguous-variants': ['Multiple variants exist that would match the request'],
-        'dependency-variant-resolution:no-compatible-variants': ['No variants exist that would match the request'],
-        'dependency-variant-resolution:no-variants-with-matching-capabilities': ['No variants exist with capabilities that would match the request'],
-        'dependency-variant-resolution:no-version-satisfies' : ['No version satisfies the constraints'],
-        'dependency-variant-resolution:capability-conflict' : ['Module rejected due to a capability conflict'],
+        'Dependencies:Graph Resolution:Configuration selected by name is not compatible': ['Configuration selected by name is not compatible'],
+        'Dependencies:Graph Resolution:Configuration selected by name is not consumable': ['Configuration selected by name is not consumable'],
+        'Dependencies:Graph Resolution:Configuration selected by name does not exist': ['Configuration selected by name does not exist'],
+        'Dependencies:Graph Resolution:Multiple variants exist that would match the request': ['Multiple variants exist that would match the request'],
+        'Dependencies:Graph Resolution:No variants exist that would match the request': ['No variants exist that would match the request'],
+        'Dependencies:Graph Resolution:No variants exist with capabilities that would match the request': ['No variants exist with capabilities that would match the request'],
+        'Dependencies:Graph Resolution:No version satisfies the constraints' : ['No version satisfies the constraints'],
+        'Dependencies:Graph Resolution:Module rejected due to a capability conflict' : ['Module rejected due to a capability conflict'],
 
-        'dependency-variant-resolution:ambiguous-artifact-transform': ['Multiple artifacts transforms exist that would satisfy the request'],
-        'dependency-variant-resolution:no-compatible-artifact': ['No artifacts exist that would match the request'],
-        'dependency-variant-resolution:ambiguous-artifacts': ['Multiple artifacts exist that would match the request'],
-        'dependency-variant-resolution:unknown-artifact-selection-failure': ['Unknown artifact selection failure'],
+        'Dependencies:Artifact Resolution:Multiple artifact transforms exist that would satisfy the request': ['Multiple artifact transforms exist that would satisfy the request'],
+        'Dependencies:Artifact Resolution:No artifacts exist that would match the request': ['No artifacts exist that would match the request'],
+        'Dependencies:Artifact Resolution:Multiple artifacts exist that would match the request': ['Multiple artifacts exist that would match the request'],
+        'Dependencies:Artifact Resolution:Unknown artifact selection failure': ['Unknown artifact selection failure'],
 
-        'dependency-variant-resolution:incompatible-multiple-nodes': ['Incompatible nodes of a single component were selected'],
+        'Dependencies:Graph Resolution:Incompatible nodes of a single component were selected': ['Incompatible nodes of a single component were selected'],
 
-        'dependency-variant-resolution:unknown-resolution-failure': ['Unknown resolution failure'],
+        'Dependencies:Graph Resolution:Unknown resolution failure': ['Unknown resolution failure'],
 
         // DCL schema building issues:
         // The messages might be reworded, keeping them as a wildcard for now

@@ -114,6 +114,122 @@ Update that matching logic to the new group and name, as described in <<reportin
 
 The console heading for a failed compiler start changes accordingly, from `Java compilation initialization error` to `Compiler initialization failed`.
 
+[[dependency_problem_ids_moved_to_predefined_groups]]
+==== Dependency problem ids moved to the predefined problem groups
+
+Gradle's own version catalog and dependency resolution problems now report into the <<reporting_problems.adoc#sec:predefined_problem_groups,predefined problem groups>> instead of the legacy `dependency-version-catalog` and `dependency-variant-resolution` groups.
+Version catalog problems report into `Dependencies > Declaration`, failures while resolving the dependency graph, such as selecting a version, a variant, or a capability, into `Dependencies > Graph Resolution`, and artifact selection failures into `Dependencies > Artifact Resolution`.
+Each problem is now named by its former display name, and the names of version catalog problems mention the version catalog.
+
+[cols="1,1"]
+|===
+|Before |After
+
+|`dependency-version-catalog:accessor-name-clash`
+|`Dependencies:Declaration:Version catalog accessor name clash`
+
+|`dependency-version-catalog:alias-not-finished`
+|`Dependencies:Declaration:Version catalog alias builder not finished`
+
+|`dependency-version-catalog:catalog-file-does-not-exist`
+|`Dependencies:Declaration:Import of external version catalog file failed`
+
+|`dependency-version-catalog:invalid-alias-notation`
+|`Dependencies:Declaration:Invalid version catalog alias notation`
+
+|`dependency-version-catalog:invalid-dependency-notation`
+|`Dependencies:Declaration:Invalid version catalog dependency notation`
+
+|`dependency-version-catalog:invalid-module-notation`
+|`Dependencies:Declaration:Invalid version catalog module notation`
+
+|`dependency-version-catalog:invalid-plugin-notation`
+|`Dependencies:Declaration:Invalid version catalog plugin notation`
+
+|`dependency-version-catalog:invalid-toml-definition`
+|`Dependencies:Declaration:Invalid version catalog TOML definition`
+
+|`dependency-version-catalog:invalid-version-notation`
+|`Dependencies:Declaration:Invalid version notation in version catalog` in a version catalog, `Dependencies:Declaration:Invalid version notation` in a dependency string notation such as `"org:foo:!!1.0"`
+
+|`dependency-version-catalog:no-import-files`
+|`Dependencies:Declaration:No version catalog files were resolved to be imported`
+
+|`dependency-version-catalog:reserved-alias-name`
+|`Dependencies:Declaration:Reserved version catalog alias name`
+
+|`dependency-version-catalog:toml-syntax-error`
+|`Dependencies:Declaration:Version catalog TOML syntax error`
+
+|`dependency-version-catalog:too-many-entries`
+|`Dependencies:Declaration:Too many entries in version catalog`
+
+|`dependency-version-catalog:too-many-import-files`
+|`Dependencies:Declaration:Importing multiple version catalog files is not supported`
+
+|`dependency-version-catalog:too-many-import-invocation`
+|`Dependencies:Declaration:Multiple 'from' invocations in version catalog`
+
+|`dependency-version-catalog:undefined-alias-reference`
+|`Dependencies:Declaration:Version catalog bundle declares dependency on non-existent alias`
+
+|`dependency-version-catalog:undefined-version-reference`
+|`Dependencies:Declaration:Undefined version reference in version catalog`
+
+|`dependency-version-catalog:unsupported-file-format`
+|`Dependencies:Declaration:Unsupported version catalog file format`
+
+|`dependency-version-catalog:unsupported-format-version`
+|`Dependencies:Declaration:Unsupported version catalog format version`
+
+|`dependency-variant-resolution:ambiguous-artifact-transform`
+|`Dependencies:Artifact Resolution:Multiple artifact transforms exist that would satisfy the request`
+
+|`dependency-variant-resolution:ambiguous-artifacts`
+|`Dependencies:Artifact Resolution:Multiple artifacts exist that would match the request`
+
+|`dependency-variant-resolution:ambiguous-variants`
+|`Dependencies:Graph Resolution:Multiple variants exist that would match the request`
+
+|`dependency-variant-resolution:capability-conflict`
+|`Dependencies:Graph Resolution:Module rejected due to a capability conflict`
+
+|`dependency-variant-resolution:configuration-does-not-exist`
+|`Dependencies:Graph Resolution:Configuration selected by name does not exist`
+
+|`dependency-variant-resolution:configuration-not-compatible`
+|`Dependencies:Graph Resolution:Configuration selected by name is not compatible`
+
+|`dependency-variant-resolution:configuration-not-consumable`
+|`Dependencies:Graph Resolution:Configuration selected by name is not consumable`
+
+|`dependency-variant-resolution:incompatible-multiple-nodes`
+|`Dependencies:Graph Resolution:Incompatible nodes of a single component were selected`
+
+|`dependency-variant-resolution:no-compatible-artifact`
+|`Dependencies:Artifact Resolution:No artifacts exist that would match the request`
+
+|`dependency-variant-resolution:no-compatible-variants`
+|`Dependencies:Graph Resolution:No variants exist that would match the request`
+
+|`dependency-variant-resolution:no-variants-with-matching-capabilities`
+|`Dependencies:Graph Resolution:No variants exist with capabilities that would match the request`
+
+|`dependency-variant-resolution:no-version-satisfies`
+|`Dependencies:Graph Resolution:No version satisfies the constraints`
+
+|`dependency-variant-resolution:unknown-artifact-selection-failure`
+|`Dependencies:Artifact Resolution:Unknown artifact selection failure`
+
+|`dependency-variant-resolution:unknown-resolution-failure`
+|`Dependencies:Graph Resolution:Unknown resolution failure`
+|===
+
+This affects Tooling API clients, Build Scans, and any tooling that matches problems by id.
+Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
+
+The display name of the ambiguous artifact transform failure is corrected from `Multiple artifacts transforms exist that would satisfy the request` to `Multiple artifact transforms exist that would satisfy the request`.
+
 [[relocated_root_project_settings_kept]]
 ==== Builds that move the root project directory now load their settings file
 

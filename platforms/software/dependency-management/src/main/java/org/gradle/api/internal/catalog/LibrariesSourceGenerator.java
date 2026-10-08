@@ -28,7 +28,6 @@ import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemSpecInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
@@ -61,7 +60,6 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.A
 import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.TOO_MANY_ENTRIES;
 import static org.gradle.internal.RenderingUtils.oxfordJoin;
 import static org.gradle.internal.deprecation.Documentation.userManual;
-import static org.gradle.util.internal.TextUtil.screamingSnakeToKebabCase;
 
 public class LibrariesSourceGenerator extends AbstractSourceGenerator {
 
@@ -512,9 +510,9 @@ public class LibrariesSourceGenerator extends AbstractSourceGenerator {
         throw problemsService.getReporter().throwing(new InvalidUserDataException(), problem);
     }
 
-    private static ProblemSpecInternal configureVersionCatalogError(ProblemSpecInternal spec, String message, VersionCatalogProblemId catalogProblemId) {
+    private ProblemSpecInternal configureVersionCatalogError(ProblemSpecInternal spec, String message, VersionCatalogProblemId catalogProblemId) {
         return spec
-            .id(screamingSnakeToKebabCase(catalogProblemId.name()), catalogProblemId.getDisplayName(), GradleCoreProblemGroup.versionCatalog())
+            .id(catalogProblemId.problemId(problemsService.getGroups()))
             .contextualLabel(message)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)));
     }

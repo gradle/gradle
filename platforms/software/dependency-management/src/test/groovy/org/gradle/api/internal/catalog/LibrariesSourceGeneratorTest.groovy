@@ -179,7 +179,7 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest {
         then:
         thrown(InvalidUserDataException)
         verifyAll(problems.singleEmittedProblem()) {
-            it.definition.id.displayName == 'Accessor name clash'
+            it.definition.id == problems.groups.dependencies.declaration.problemId('Version catalog accessor name clash')
             it.contextualLabel == "In version catalog lib, library aliases groovy.json and groovyJson are mapped to the same accessor name getGroovyJson()"
             it.details == "A name clash was detected"
             it.solutions == ["Use a different alias for groovy.json and groovyJson"]
@@ -202,7 +202,7 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest {
         def emitted = problems.emitted
         emitted.size() == 2
         verifyAll {
-            emitted.every { it.definition.id.displayName == 'Accessor name clash' }
+            emitted.every { it.definition.id == problems.groups.dependencies.declaration.problemId('Version catalog accessor name clash') }
             emitted.every { it.details == 'A name clash was detected' }
             emitted*.contextualLabel.toSet().containsAll([
                 "In version catalog lib, library aliases groovy.json and groovyJson are mapped to the same accessor name getGroovyJson()",
@@ -226,7 +226,7 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest {
         then:
         thrown(InvalidUserDataException)
         verifyAll(problems.singleEmittedProblem()) {
-            it.definition.id.displayName == 'Accessor name clash'
+            it.definition.id == problems.groups.dependencies.declaration.problemId('Version catalog accessor name clash')
             it.contextualLabel == "In version catalog lib, dependency bundles one.cool and oneCool are mapped to the same accessor name getOneCoolBundle()"
             it.details == "A name clash was detected"
             it.solutions == ["Use a different alias for one.cool and oneCool"]
@@ -275,7 +275,7 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest {
         then:
         thrown(InvalidUserDataException)
         verifyAll(problems.singleEmittedProblem()) {
-            it.definition.id.displayName == 'Reserved alias name'
+            it.definition.id == problems.groups.dependencies.declaration.problemId('Reserved version catalog alias name')
             it.contextualLabel == "In version catalog lib, alias '${reservedName}' is a reserved alias"
             it.details == "Prefix for dependency shouldn't be equal to '${prefix}'"
             it.solutions == ["Use a different alias which prefix is not equal to 'bundles', 'plugins', or 'versions'"]
@@ -304,7 +304,7 @@ class LibrariesSourceGeneratorTest extends AbstractVersionCatalogTest {
         then:
         thrown(InvalidUserDataException)
         verifyAll(problems.singleEmittedProblem()) {
-            it.definition.id.displayName == 'Too many entries'
+            it.definition.id == problems.groups.dependencies.declaration.problemId('Too many entries in version catalog')
             it.contextualLabel == "In version catalog lib, version catalog model contains too many entries (32000)"
             it.details == "The maximum number of aliases in a catalog is 30000"
             it.solutions == ["Reduce the number of aliases defined in this catalog", "Split the catalog into multiple catalogs"]
