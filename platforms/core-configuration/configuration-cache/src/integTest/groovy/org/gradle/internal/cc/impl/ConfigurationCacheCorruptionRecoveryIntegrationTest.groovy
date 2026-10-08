@@ -18,6 +18,8 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.util.internal.TextUtil
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.equalTo
@@ -38,12 +40,13 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
     private static final String CORRUPT_ON_CHECK = "The configuration cache entry could not be checked because it was corrupted and will be discarded."
     private static final String ENABLE_INTEGRITY_CHECK = "-D$INTEGRITY_CHECKS=true"
     private static final byte[] CORRUPT_MARKER = "corrupt".bytes
+    private static final String DISABLE_ENCRYPTION = "-Dorg.gradle.internal.configuration-cache.encryption=false"
 
     def configurationCache = newConfigurationCacheFixture()
 
-    def "recovers from #corruptState (IP: #ipEnabled)"() {
+    def "recovers from a corrupted #hint (IP: #ipEnabled)"() {
         given:
-        assumeClassLoaderScopesAreFingerprinted(ipEnabled, corruptState)
+        assumeClassLoaderScopesAreFingerprinted(ipEnabled, hint)
         enableProblemsApiCheck()
         withIsolatedProjects(ipEnabled)
         buildFile """
@@ -60,7 +63,7 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
         outputContains("Hello")
 
         when:
-        "$corruptState"()
+        corruptState(this)
         configurationCacheRun("hello")
 
         then:
@@ -80,11 +83,11 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
         receivedProblems.empty
 
         where:
-        corruptState               | expectedMessage
-        "corruptWorkState"         | CORRUPT_ON_LOAD
-        "corruptMetadata"          | CORRUPT_ON_CHECK
-        "corruptFingerprint"       | CORRUPT_ON_CHECK
-        "corruptClassLoaderScopes" | CORRUPT_ON_CHECK
+        hint             | corruptState                      | expectedMessage
+        "work graph"     | { it.corruptWorkState() }         | CORRUPT_ON_LOAD
+        "entry metadata" | { it.corruptMetadata() }          | CORRUPT_ON_CHECK
+        "fingerprint"    | { it.corruptFingerprint() }       | CORRUPT_ON_CHECK
+        "scope tree"     | { it.corruptClassLoaderScopes() } | CORRUPT_ON_CHECK
 
         combined:
         ipEnabled << [false, true]
@@ -138,9 +141,9 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
         ipEnabled << [false, true]
     }
 
-    def "fails the build on #corruptState when recovery is disabled (IP: #ipEnabled)"() {
+    def "fails the build on a corrupted #hint when recovery is disabled (IP: #ipEnabled)"() {
         given:
-        assumeClassLoaderScopesAreFingerprinted(ipEnabled, corruptState)
+        assumeClassLoaderScopesAreFingerprinted(ipEnabled, hint)
         enableProblemsApiCheck()
         withIsolatedProjects(ipEnabled)
         // to keep original stack traces
@@ -158,7 +161,7 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
         configurationCache.assertStateStored()
 
         when:
-        "$corruptState"()
+        corruptState(this)
         configurationCacheFails(DISABLE_CC_RECOVERY, "hello")
 
         then:
@@ -171,11 +174,11 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
         hasCorruptedState()
 
         where:
-        corruptState               | expectedMessage     | expectedFailure
-        "corruptWorkState"         | UNREADABLE_ON_LOAD  | startsWith("reached end of stream after reading 7 bytes; 16 bytes expected")
-        "corruptMetadata"          | UNREADABLE_ON_CHECK | equalTo("Index 99 out of bounds for length 0")
-        "corruptFingerprint"       | UNREADABLE_ON_CHECK | equalTo("reached end of stream after reading 7 bytes; 16 bytes expected")
-        "corruptClassLoaderScopes" | UNREADABLE_ON_CHECK | equalTo("Index 114 out of bounds for length 0")
+        hint             | corruptState                      | expectedMessage     | expectedFailure
+        "work graph"     | { it.corruptWorkState() }         | UNREADABLE_ON_LOAD  | startsWith("reached end of stream after reading 7 bytes; 16 bytes expected")
+        "entry metadata" | { it.corruptMetadata() }          | UNREADABLE_ON_CHECK | equalTo("Index 99 out of bounds for length 0")
+        "fingerprint"    | { it.corruptFingerprint() }       | UNREADABLE_ON_CHECK | equalTo("reached end of stream after reading 7 bytes; 16 bytes expected")
+        "scope tree"     | { it.corruptClassLoaderScopes() } | UNREADABLE_ON_CHECK | equalTo("Index 114 out of bounds for length 0")
 
         combined:
         ipEnabled << [false, true]
@@ -252,6 +255,127 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
         outputContains("someProperty = second")
     }
 
+    @ToBeImplemented
+    def "configuration after recovery does not see system properties replayed from the discarded entry"() {
+        given:
+        enableProblemsApiCheck()
+        buildFile """
+            println "my.prop before = " + System.getProperty("my.prop")
+            System.setProperty("my.prop", "set-by-script")
+            tasks.register("hello") {
+                doLast { println "Hello" }
+            }
+        """
+
+        when:
+        configurationCacheRun("hello")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("my.prop before = null")
+
+        when:
+        corruptWorkState()
+        configurationCacheRun("hello")
+
+        then:
+        verifyAll(receivedProblem) {
+            fqid == DISCARDED_PROBLEM_ID
+            contextualLabel == CORRUPT_ON_LOAD
+        }
+        // TODO: the fingerprint check replays System.setProperty and the rollback keeps the value.
+        //  Should be "my.prop before = null".
+        outputContains("my.prop before = set-by-script")
+
+        when:
+        configurationCacheRun("hello")
+
+        then:
+        // TODO: the entry stored after recovery recorded the replayed value, so it is not reused.
+        //  Should be configurationCache.assertStateLoaded().
+        configurationCache.assertStateStored()
+        outputContains("system property 'my.prop' has changed")
+        outputContains("my.prop before = null")
+    }
+
+    def "recovers from a corrupted fingerprint when encryption is disabled"() {
+        given:
+        enableProblemsApiCheck()
+        buildFile """
+            tasks.register("hello") {
+                doLast { println "Hello" }
+            }
+        """
+
+        when:
+        configurationCacheRun(DISABLE_ENCRYPTION, "hello")
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        corruptFingerprint()
+        configurationCacheRun(DISABLE_ENCRYPTION, "hello")
+
+        then:
+        verifyAll(receivedProblem) {
+            fqid == DISCARDED_PROBLEM_ID
+            contextualLabel == CORRUPT_ON_CHECK
+        }
+        outputContains("Hello")
+        assertNoCorruptedState()
+
+        when:
+        configurationCacheRun(DISABLE_ENCRYPTION, "hello")
+
+        then:
+        configurationCache.assertStateLoaded()
+    }
+
+    def "fails without discarding the entry when build logic throws an Error while loading the work graph"() {
+        given:
+        def trigger = file("trigger.txt")
+        buildFile """
+            class FailsOnceOnLoad implements java.io.Serializable {
+                private void readObject(java.io.ObjectInputStream ois) {
+                    def trigger = new File("${TextUtil.normaliseFileSeparators(trigger.absolutePath)}")
+                    if (trigger.exists()) {
+                        trigger.delete()
+                        throw new AssertionError("BOOM from readObject")
+                    }
+                }
+            }
+            abstract class HelloTask extends DefaultTask {
+                @Internal final prop = new FailsOnceOnLoad()
+                @TaskAction void run() { println "Hello" }
+            }
+            tasks.register("hello", HelloTask)
+        """
+
+        when:
+        configurationCacheRun("hello")
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("Hello")
+
+        when:
+        trigger.text = ""
+        executer.withStackTraceChecksDisabled()
+        configurationCacheFails("hello")
+
+        then:
+        failureDescriptionContains("BOOM from readObject")
+        outputDoesNotContain("Hello")
+
+        when: "the entry was kept, so it is reused once the build logic stops failing"
+        configurationCacheRun("hello")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("Hello")
+    }
+
     def "recovers from a corrupted work graph when encryption is enabled"() {
         given:
         enableProblemsApiCheck()
@@ -289,9 +413,9 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
         outputContains("Hello")
     }
 
-    def "fails the build on #corruptState when integrity check is enabled (IP: #ipEnabled)"() {
+    def "fails the build on a corrupted #hint when integrity check is enabled (IP: #ipEnabled)"() {
         given:
-        assumeClassLoaderScopesAreFingerprinted(ipEnabled, corruptState)
+        assumeClassLoaderScopesAreFingerprinted(ipEnabled, hint)
         withIsolatedProjects(ipEnabled)
         buildFile """
             tasks.register("hello") {
@@ -306,7 +430,7 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
         configurationCache.assertStateStored()
 
         when:
-        "$corruptState"()
+        corruptState(this)
         configurationCacheFails(ENABLE_INTEGRITY_CHECK, "hello")
 
         then:
@@ -314,15 +438,19 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
         hasCorruptedState()
 
         where:
-        corruptState << ["corruptWorkState", "corruptMetadata", "corruptFingerprint", "corruptClassLoaderScopes"]
+        hint             | corruptState
+        "work graph"     | { it.corruptWorkState() }
+        "entry metadata" | { it.corruptMetadata() }
+        "fingerprint"    | { it.corruptFingerprint() }
+        "scope tree"     | { it.corruptClassLoaderScopes() }
 
         combined:
         ipEnabled << [false, true]
     }
 
-    private static void assumeClassLoaderScopesAreFingerprinted(boolean ipEnabled, String corruptState) {
+    private static void assumeClassLoaderScopesAreFingerprinted(boolean ipEnabled, String hint) {
         assumeFalse("Isolated Projects does not fingerprint classloader scopes, so it stores no such file",
-            ipEnabled && corruptState == "corruptClassLoaderScopes")
+            ipEnabled && hint == "scope tree")
     }
 
     private void withIsolatedProjects(boolean enabled) {

@@ -102,6 +102,13 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         configurationCacheFails(integrityCheck, "ok")
 
         then:
+        // TODO The description leaks serialization internals at the user. It should attribute the failure to
+        //  the value source without naming the beans and fields the value happens to be stored in.
+        failureDescriptionStartsWith(
+            'Could not load the value of field `value` of `org.gradle.internal.Try$Success` bean found in ' +
+                'field `value` of `org.gradle.api.internal.provider.DefaultValueSourceProviderFactory$DefaultObtainedValue` ' +
+                'bean found in class `PoisonValueSource`.'
+        )
         failureCauseContains("cannot deserialize Poison")
         outputDoesNotContain("ok")
     }
