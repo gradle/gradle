@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures
 
 import groovy.transform.CompileStatic
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.versions.KotlinGradlePluginVersions
 import org.gradle.test.fixtures.dsl.GradleDsl
 
@@ -103,15 +104,22 @@ class RepoScriptBlockUtil {
          * Whether every build with a Kotlin DSL script needs this repository, whatever its scripts mention.
          */
         final boolean neededByKotlinDslBuilds
+        /**
+         * Plugin versions this repository serves, by plugin id. A build on the Gradle version under test that requests
+         * one of these plugins at the version Gradle applies for {@code kotlin-dsl} gets the version given here instead.
+         * Such a repository is only added by the init script, as a repository block cannot carry that rule.
+         */
+        final Map<String, String> pluginVersions
         private final Closure<Boolean> active
 
-        ExtraRepository(String name, String url, List<String> groupRegexes, Pattern neededWhenBuildMentions = null, boolean neededByKotlinDslBuilds = false, Closure<Boolean> active = { true }) {
+        ExtraRepository(String name, String url, List<String> groupRegexes, Pattern neededWhenBuildMentions = null, boolean neededByKotlinDslBuilds = false, Closure<Boolean> active = { true }, Map<String, String> pluginVersions = [:]) {
             this.name = name
             this.url = url
             this.groupRegexes = groupRegexes
             this.neededWhenBuildMentions = neededWhenBuildMentions
             this.neededByKotlinDslBuilds = neededByKotlinDslBuilds
             this.active = active
+            this.pluginVersions = pluginVersions
         }
 
         boolean isActive() {
@@ -130,8 +138,23 @@ class RepoScriptBlockUtil {
         // Kotlin DSL scripts pin the Kotlin libraries on their classpath to the embedded Kotlin version
         new ExtraRepository(MirroredRepository.KOTLIN_DEV.name, MirroredRepository.KOTLIN_DEV.mirrorUrl, [/org\.jetbrains\.kotlin(\..+)?/], ~/(?i)kotlin/, true, {
             new KotlinGradlePluginVersions().latests.any { KotlinGradlePluginVersions.isKotlinDevVersion(it) }
-        })
+        }),
+        // The published Kotlin DSL plugins are built with an older Kotlin than the one under test, so builds that apply them
+        // use the ones built from this source instead, in the projects that publish them to their local repository for tests
+        new ExtraRepository("LOCALLY_BUILT_KOTLIN_DSL_PLUGINS", IntegrationTestBuildContext.INSTANCE.localRepository?.toURI()?.toString(), [/org\.gradle\.kotlin(\..+)?/], ~/kotlin-dsl|embedded-kotlin/, false, {
+            !locallyBuiltKotlinDslPluginVersions().isEmpty()
+        }, locallyBuiltKotlinDslPluginVersions())
     ]
+
+    private static Map<String, String> locallyBuiltKotlinDslPluginVersions() {
+        def resource = RepoScriptBlockUtil.getResource("/future-plugin-versions.properties")
+        if (resource == null || IntegrationTestBuildContext.INSTANCE.localRepository == null) {
+            return [:]
+        }
+        def properties = new Properties()
+        resource.withInputStream { properties.load(it) }
+        return properties.collectEntries { key, value -> [(key as String): value as String] } as Map<String, String>
+    }
 
     private static final List<String> BUILD_FILE_SUFFIXES = [".gradle", ".gradle.kts", ".gradle.dcl", ".toml"]
     private static final Set<String> NON_BUILD_DIRECTORIES = ["build", ".gradle", ".kotlin", "node_modules"] as Set
@@ -173,7 +196,7 @@ class RepoScriptBlockUtil {
     }
 
     static String extraRepositoriesDefinition(GradleDsl dsl = GROOVY) {
-        activeExtraRepositories.collect { extraRepositoryDefinition(dsl, it) }.join("")
+        activeExtraRepositories.findAll { it.pluginVersions.isEmpty() }.collect { extraRepositoryDefinition(dsl, it) }.join("")
     }
 
     static String extraRepositoryDefinition(GradleDsl dsl = GROOVY, ExtraRepository repository) {
@@ -306,8 +329,9 @@ class RepoScriptBlockUtil {
     static String extraRepositoriesInitScript(List<ExtraRepository> repositories = activeExtraRepositories) {
         def declarations = repositories.collect { ExtraRepository repository ->
             def includes = repository.groupRegexes.collect { "includeGroupByRegex('${escapeBackslashes(it)}')" }.join("\n")
+            def condition = repository.pluginVersions.isEmpty() ? "" : "UNDER_TEST && "
             """
-                    if (!repos.any { it instanceof MavenArtifactRepository && normalizeUrl(it.url) == normalizeUrl('${repository.url}') }) {
+                    if (${condition}!repos.any { it instanceof MavenArtifactRepository && normalizeUrl(it.url) == normalizeUrl('${repository.url}') }) {
                         repos.maven {
                             name = '${repository.name}'
                             url = '${repository.url}'
@@ -320,6 +344,8 @@ class RepoScriptBlockUtil {
                     }
             """
         }.join("")
+        def pluginVersions = repositories.collectEntries { it.pluginVersions }
+        def pluginVersionsLiteral = pluginVersions.isEmpty() ? "[:]" : "[" + pluginVersions.collect { id, version -> "'${id}': '${version}'" }.join(", ") + "]"
         return """
             import org.gradle.util.GradleVersion
 
@@ -328,12 +354,15 @@ class RepoScriptBlockUtil {
             class ExtraRepositoriesPlugin implements Plugin<Gradle> {
 
                 static final boolean SUPPORTS_CONTENT_FILTERING = GradleVersion.current() >= GradleVersion.version("5.1")
+                static boolean UNDER_TEST
 
                 void apply(Gradle gradle) {
+                    UNDER_TEST = gradle.gradleHomeDir?.canonicalPath == '${escapeBackslashes(String.valueOf(IntegrationTestBuildContext.INSTANCE.gradleHomeDir?.canonicalPath))}'
                     if (GradleVersion.current() >= GradleVersion.version("6.0")) {
                         gradle.beforeSettings { Settings settings ->
                             def repos = settings.pluginManagement.repositories
                             ExtraRepositoriesPlugin.addTo(repos)
+                            ExtraRepositoriesPlugin.usePluginVersions(settings)
                             // The default plugin repository only applies while none is declared. Settings plugins resolve
                             // while the settings script still runs, so it has to go as soon as the build declares one.
                             def portal = repos.gradlePluginPortal()
@@ -364,6 +393,21 @@ class RepoScriptBlockUtil {
                 static void addUnlessEmpty(RepositoryHandler repos) {
                     if (!repos.isEmpty()) {
                         addTo(repos)
+                    }
+                }
+
+                // Only requests at the version Gradle applies for `kotlin-dsl` by default, explicit versions are left alone
+                static void usePluginVersions(Settings settings) {
+                    Map<String, String> versions = ${pluginVersionsLiteral}
+                    if (!UNDER_TEST || versions.isEmpty()) {
+                        return
+                    }
+                    def defaultVersion = Class.forName('org.gradle.kotlin.dsl.support.KotlinDslPluginsKt').getMethod('getExpectedKotlinDslPluginsVersion').invoke(null)
+                    settings.pluginManagement.resolutionStrategy.eachPlugin { details ->
+                        def version = versions[details.requested.id.id]
+                        if (version != null && details.requested.version == defaultVersion) {
+                            details.useVersion(version)
+                        }
                     }
                 }
 
