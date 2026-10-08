@@ -304,7 +304,7 @@ class MultipleCandidateMatcher {
         }
 
         Set<Object> matches = unsafeDisambiguate(requestedAttributes.get(a), requestedAttributeValues[a], candidateValues);
-        if (matches != null && matches.size() < candidateValues.size()) {
+        if (matches != null) {
             // Remove any candidates which do not satisfy the disambiguation rule.
             for (int c = remaining.nextSetBit(0); c >= 0; c = remaining.nextSetBit(c + 1)) {
                 if (!matches.contains(getCandidateValue(c, a))) {

@@ -511,6 +511,45 @@ class DefaultAttributeMatcherTest extends Specification {
         matches == [candidate1]
     }
 
+    static class AllButDebug implements AttributeDisambiguationRule<String> {
+        @Override
+        void execute(MultipleCandidatesDetails<String> details) {
+            details.candidateValues.each {
+                if (it != "debug") {
+                    details.closestMatch(it)
+                }
+            }
+        }
+    }
+
+    def "removes candidates lacking a requested attribute when a rule chooses every candidate value (#description)"() {
+        given:
+        def flavor = Attribute.of("flavor", String)
+        def other = Attribute.of("other", String)
+        def matcher = newMatcher {
+            attribute(flavor).disambiguationRules.add(AllButDebug)
+            attribute(other)
+            accept(flavor, 'release', 'staging')
+            accept(flavor, 'release', 'debug')
+            accept(other, 'foo', 'bar')
+        }
+
+        def release = candidate(flavor: 'release')
+        def staging = candidate(flavor: 'staging')
+        def lacksFlavor = candidate(other: 'bar')
+        def debug = candidate(flavor: 'debug')
+        def requested = attributes(flavor: 'release', other: 'foo')
+
+        expect:
+        def candidates = [release, staging, lacksFlavor] + (withDebug ? [debug] : [])
+        matcher.matchMultipleCandidates(candidates, requested) == [release, staging]
+
+        where:
+        description                       | withDebug
+        "rule chooses every value"        | false
+        "rule rejects one of the values"  | true
+    }
+
     def "prefers a shorter match with compatible requested values and more than one extra attribute (type: #type)"() {
         given:
         def matcher = newMatcher {

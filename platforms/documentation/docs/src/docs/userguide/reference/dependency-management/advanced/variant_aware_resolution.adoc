@@ -176,6 +176,7 @@ If multiple candidates remain, Gradle attempts **disambiguation**:
 * *Requested attributes* are link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html#setAttributeDisambiguationPrecedence(java.util.List)[**sorted by precedence**].
 * FOR each *requested attribute* **in precedence order**:
 ** IF **a link:{javadocPath}/org/gradle/api/attributes/AttributeDisambiguationRule.html[disambiguation rule] exists**, apply it.
+** IF **a value is chosen**, candidates with a different value, or without a value for the attribute, are eliminated.
 ** IF **a requested attribute has the same value across all remaining candidates**, ignore it.
 * IF **only one candidate remains**, that candidate wins.
 
@@ -183,6 +184,7 @@ If **multiple candidates still remain**, Gradle processes **unordered attributes
 
 * FOR each *requested attribute* **without precedence order**:
 ** IF **a disambiguation rule exists**, apply it.
+** IF **a value is chosen**, candidates with a different value, or without a value for the attribute, are eliminated.
 ** IF **a requested attribute has the same value across all remaining candidates**, ignore it.
 * IF **only one candidate remains**, that candidate wins.
 * IF *no candidates remain*, Gradle falls back to the most compatible candidates (step 2).
@@ -199,18 +201,16 @@ If multiple candidates still remain, Gradle considers **extra attributes**:
 First, Gradle processes **prioritized extra attributes**:
 
 * FOR each *extra attribute* in *precedence order*:
-** IF some candidates have the attribute and others don’t:
-*** Candidates *that lack the extra attribute* are preferred.
-*** Candidates *with the extra attribute* are eliminated.
+** IF **a disambiguation rule exists**, apply it.
+** IF **a value is chosen**, candidates with a different value, or without a value for the attribute, are eliminated.
 * IF **only one candidate remains**, that candidate wins.
 * IF *no candidates remain*, Gradle falls back to the original compatible candidates (step 1).
 
 Then, Gradle processes **unordered extra attributes**:
 
 * FOR each remaining *extra attribute* *without defined precedence*:
-** IF the attribute is present in only some candidates:
-*** Candidates without the attribute are preferred.
-*** Candidates with the extra attribute are eliminated.
+** IF **a disambiguation rule exists**, apply it.
+** IF **a value is chosen**, candidates with a different value, or without a value for the attribute, are eliminated.
 * IF **only one candidate remains**, that candidate wins.
 * IF *no candidates remain*, Gradle falls back to the original compatible candidates (step 1).
 
