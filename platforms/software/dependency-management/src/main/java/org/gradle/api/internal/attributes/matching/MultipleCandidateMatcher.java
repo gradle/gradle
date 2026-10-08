@@ -299,7 +299,12 @@ class MultipleCandidateMatcher {
 
     private void disambiguateRequestedAttribute(int a) {
         Set<Object> candidateValues = getCandidateValues(compatible, c -> getCandidateValue(c, a));
-        if (candidateValues.size() <= 1) {
+
+        // We continue disambiguation for attributes with only one value since we may have some candidates with
+        // no value for this attribute in addition to those with a value. Since we do not include `null` in the
+        // candidate values, we must continue to execute the disambiguation in case the single value is chosen
+        // and thus removes the candidates which do not have a value for this attribute.
+        if (candidateValues.isEmpty()) {
             return;
         }
 

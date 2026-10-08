@@ -62,7 +62,8 @@ public class DefaultAttributeSelectionSchema implements AttributeSelectionSchema
     @Override
     public <T> Set<T> disambiguate(Attribute<T> attribute, @Nullable T requested, Set<T> candidates) {
         ImmutableList<Action<? super MultipleCandidatesDetails<T>>> rules = schema.disambiguationRules(attribute);
-        if (!rules.isEmpty()) {
+        // Disambiguation rules are not presented with a single candidate value for a requested attribute
+        if (!rules.isEmpty() && (requested == null || candidates.size() > 1)) {
             DefaultMultipleCandidateResult<T> result = new DefaultMultipleCandidateResult<>(requested, candidates);
             for (Action<? super MultipleCandidatesDetails<T>> rule : rules) {
                 rule.execute(result);

@@ -249,7 +249,7 @@ class DefaultAttributeMatcherTest extends Specification {
         expect:
         matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4, candidate5, candidate6], requested) == [candidate5]
         matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4, candidate6], requested) == [candidate1, candidate3, candidate4, candidate6]
-        matcher.matchMultipleCandidates([candidate1, candidate2, candidate4, candidate6], requested) == [candidate1, candidate4, candidate6]
+        matcher.matchMultipleCandidates([candidate1, candidate2, candidate4, candidate6], requested) == [candidate1, candidate6]
         matcher.matchMultipleCandidates([candidate2, candidate3, candidate4], requested) == [candidate3]
     }
 
@@ -548,6 +548,54 @@ class DefaultAttributeMatcherTest extends Specification {
         description                       | withDebug
         "rule chooses every value"        | false
         "rule rejects one of the values"  | true
+    }
+
+    def "prefers a match with least number of unmatched attributes"() {
+        given:
+        def matcher = newMatcher {
+            def usage = Attribute.of("usage", String)
+            attribute(usage)
+            attribute(Attribute.of("other1", String))
+            attribute(Attribute.of("other2", String))
+            accept(usage, 'java-api', 'java-runtime')
+        }
+
+        def candidate1 = candidate(usage: 'java-api', other2: 'foo')
+        def candidate2 = candidate(usage: 'java-runtime', other2: 'foo')
+        def candidate3 = candidate(usage: 'java-api', other1: 'foo', other2: 'foo')
+        def candidate4 = candidate(usage: 'java-runtime', other1: 'foo', other2: 'foo')
+        def requested = attributes(usage: 'java-api', other1: 'foo')
+
+        expect:
+        def matches = matcher.matchMultipleCandidates([candidate1, candidate2, candidate3, candidate4], requested)
+        matches == [candidate3] // variants lacking a requested attribute are filtered out when disambiguating
+    }
+
+    def "removes candidates lacking a requested attribute whether other candidates have one value or several (#description)"() {
+        given:
+        def usage = Attribute.of("usage", String)
+        def other = Attribute.of("other", String)
+        def matcher = newMatcher {
+            attribute(usage)
+            attribute(other)
+            accept(usage, 'java-api', 'java-runtime')
+            accept(other, 'foo', 'bar')
+        }
+
+        def lacksOther = candidate(usage: 'java-api')
+        def peer = candidate(usage: 'java-runtime', other: 'foo')
+        def best = candidate(usage: 'java-api', other: 'foo')
+        def compatibleOther = candidate(usage: 'java-api', other: 'bar')
+        def requested = attributes(usage: 'java-api', other: 'foo')
+
+        expect:
+        def candidates = [lacksOther, peer, best] + (withCompatibleOther ? [compatibleOther] : [])
+        matcher.matchMultipleCandidates(candidates, requested) == [best]
+
+        where:
+        description                       | withCompatibleOther
+        "single value for attribute"      | false
+        "multiple values for attribute"   | true
     }
 
     def "prefers a shorter match with compatible requested values and more than one extra attribute (type: #type)"() {
