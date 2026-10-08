@@ -582,7 +582,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
 
         then:
         thrown WorkValidationException
-        problems.assertProblemEmittedOnce({
+        verifyAll(problems.singleEmittedProblem()) {
             it.definition.severity == Severity.ERROR
             it.definition.id.name == 'test-problem'
             it.definition.id.displayName == 'Validation error'
@@ -591,7 +591,7 @@ class IncrementalExecutionIntegrationTest extends Specification implements Valid
             it.definition.documentationLink.url.endsWith('/userguide/id.html#section')
             it.solutions == []
             it.originLocations == []
-        })
+        }
     }
 
     def "results are loaded from identity cache"() {
