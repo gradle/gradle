@@ -24,6 +24,7 @@ junit5ForTests = "5.12.2!!"
 junitForTests = "4.13.2!!"
 junitPlatformForTests = "1.12.2!!"
 littleproxy = "2.2.1!!"
+lz4 = "1.11.4!!"
 mockitoCore = "5.23.0!!"
 mockitoKotlin = "6.3.0!!"
 mockwebserver = "4.12.0!!"
@@ -78,6 +79,7 @@ junitPlatform = { group = "org.junit.platform", name = "junit-platform-launcher"
 junitPlatformEngine = { group = "org.junit.platform", name = "junit-platform-engine", version.ref = "junitPlatformForTests" }
 kotlinxCoroutinesDebug = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-debug", version.ref = "kotlinCoroutines" }
 littleproxy = { group = "io.github.littleproxy", name = "littleproxy", version.ref = "littleproxy" }
+lz4 = { group = "at.yawk.lz4", name = "lz4-java", version.ref = "lz4" }
 mavenResolverConnectorBasic = { group = "org.apache.maven.resolver", name = "maven-resolver-connector-basic", version.ref = "mavenResolver" }
 mavenResolverImpl = { group = "org.apache.maven.resolver", name = "maven-resolver-impl", version.ref = "mavenResolver" }
 mavenResolverProvider = { group = "org.apache.maven", name = "maven-resolver-provider", version.ref = "maven" }
