@@ -1077,7 +1077,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             }
             verifyAll(receivedProblem(1)) {
                 severity == Severity.ERROR
-                fqid.startsWith('validation:configuration-cache:class-nestedbean-cannot-be-encoded')
+                fqid.startsWith('Gradle:Configuration Cache:Class ') && fqid.contains('NestedBean') && fqid.contains(' cannot be encoded')
                 originLocations == []
             }
         } else {

@@ -50,14 +50,15 @@ class KnownProblemIds {
         'validation': 'Validation',
 
         // Sub-groups
-        'validation:configuration-cache': 'Configuration cache',
 
         // predefined groups (org.gradle.api.problems.ProblemGroups) used from integration tests
         'Gradle': 'Gradle',
         'Gradle:Build Definition': 'Build Definition',
         'Gradle:Build Logic': 'Build Logic',
+        'Gradle:Configuration Cache': 'Configuration Cache',
         'Gradle:Deprecation': 'Deprecation',
         'Gradle:Invocation': 'Invocation',
+        'Gradle:Isolated Projects': 'Isolated Projects',
         'Gradle:DSL Evaluation': 'DSL Evaluation',
         'Gradle:Plugin Validation': 'Plugin Validation',
         'Compilation': 'Compilation',
@@ -158,11 +159,11 @@ class KnownProblemIds {
         'root:test-problem': ['test problem'],
         'Gradle:Invocation:Task not found': ['Task not found'],
         'Gradle:Invocation:Project not found': ['Project not found'],
-        'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection': ['error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''],
-        'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-provider-defaultmapproperty': ['error writing value of type \'org.gradle.api.internal.provider.DefaultMapProperty\''],
-        'validation:configuration-cache:registration-of-listener-on-gradle-buildfinished-is-unsupported': ['registration of listener on \'Gradle.buildFinished\' is unsupported'],
-        'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported-with-the-configuration-cache': ['invocation of \'Task.project\' at execution time is unsupported with the configuration cache.'],
-        'validation:configuration-cache:isolated-projects-dangerously-ignoring-problems': ['Isolated Projects problems are dangerously ignored'],
+        "\\QGradle:Configuration Cache:error writing value of type 'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection'\\E": ["\\Qerror writing value of type 'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection'\\E"],
+        "\\QGradle:Configuration Cache:error writing value of type 'org.gradle.api.internal.provider.DefaultMapProperty'\\E": ["\\Qerror writing value of type 'org.gradle.api.internal.provider.DefaultMapProperty'\\E"],
+        "\\QGradle:Configuration Cache:registration of listener on 'Gradle.buildFinished' is unsupported\\E": ["\\Qregistration of listener on 'Gradle.buildFinished' is unsupported\\E"],
+        "\\QGradle:Configuration Cache:invocation of 'Task.project' at execution time is unsupported with the configuration cache.\\E": ["\\Qinvocation of 'Task.project' at execution time is unsupported with the configuration cache.\\E"],
+        'Gradle:Isolated Projects:Isolated Projects problems are dangerously ignored': ['Isolated Projects problems are dangerously ignored'],
         'Packaging:Signing:No configured signatory': ['No configured signatory'],
         'Gradle:Build Definition:Plugin applied to the wrong target': ['Plugin applied to the wrong target'],
         'Gradle:Invocation:Ambiguous task name': ['Ambiguous task name'],
@@ -173,10 +174,10 @@ class KnownProblemIds {
         'Gradle:Invocation:Missing task name': ['Missing task name'],
         'Gradle:Invocation:Task path with empty segments': ['Task path with empty segments'],
         'Gradle:Invocation:Exclusive task run with other tasks': ['Exclusive task run with other tasks'],
-        'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache': ['cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'],
-        // Dynamic fqid until the CC class-encoding failure path emits a stable problem ID.
-        'validation:configuration-cache:class-.*-cannot-be-encoded-because.*': ['(?s)Class .* cannot be encoded because.*'],
-        'validation:configuration-cache:configuration-cache-warn-mode': ['Configuration Cache warn mode is enabled'],
+        "\\QGradle:Configuration Cache:cannot serialize object of type 'org.gradle.api.DefaultTask', a subtype of 'org.gradle.api.Task', as these are not supported with the configuration cache.\\E": ["\\Qcannot serialize object of type 'org.gradle.api.DefaultTask', a subtype of 'org.gradle.api.Task', as these are not supported with the configuration cache.\\E"],
+        // Named after the message, which names the class
+        'Gradle:Configuration Cache:Class .* cannot be encoded because.*': ['Class .* cannot be encoded because.*'],
+        'Gradle:Configuration Cache:Configuration Cache warn mode is enabled': ['Configuration Cache warn mode is enabled'],
 
         // Plugin Validation
         'Gradle:Plugin Validation:@ServiceReference property is not a build service': ['@ServiceReference property is not a build service'],
