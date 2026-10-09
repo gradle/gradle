@@ -104,7 +104,7 @@ class DefaultConfigurationCacheHost internal constructor(
                 dir,
                 projectDescriptorRegistry,
                 fileResolver,
-                service<Problems>().reporter
+                service<Problems>()
             )
             buildDirs[projectPath] = buildDir
         }
