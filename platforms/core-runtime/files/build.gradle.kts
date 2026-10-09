@@ -8,9 +8,9 @@ description = "Base tools to work with files"
 dependencies {
     api(projects.stdlibJavaExtensions)
 
+    api(libs.guava)
     api(libs.jsr305)
 
-    implementation(libs.guava)
     implementation(libs.slf4jApi)
 
     compileOnly(libs.jspecify)

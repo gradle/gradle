@@ -71,13 +71,13 @@ public class DefaultFileSystemAccess implements FileSystemAccess, FileSystemDefa
         VirtualFileSystem virtualFileSystem,
         WriteListener writeListener,
         DirectorySnapshotterStatistics.Collector statisticsCollector,
-        String... defaultExcludes
+        ImmutableList<String> defaultExcludes
     ) {
         this.stringInterner = stringInterner;
         this.stat = stat;
         this.writeListener = writeListener;
         this.statisticsCollector = statisticsCollector;
-        this.defaultExcludes = ImmutableList.copyOf(defaultExcludes);
+        this.defaultExcludes = defaultExcludes;
         this.directorySnapshotter = new DirectorySnapshotter(hasher, stringInterner, this.defaultExcludes, statisticsCollector);
         this.hasher = hasher;
         this.virtualFileSystem = virtualFileSystem;

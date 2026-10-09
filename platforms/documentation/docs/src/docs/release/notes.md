@@ -171,6 +171,28 @@ See the [Lazy Objects API Reference](userguide/lazy_configuration.html#lazy_obje
 ### Dependency management enhancements
 Gradle provides a flexible [dependency management](userguide/getting_started_dep_man.html) engine for declaring, resolving, and verifying the dependencies your build needs.
 
+#### `Settings.fileSystemDefaultExcludes` for configuring default file-system excludes
+
+Gradle's [file operations](userguide/working_with_files.html#sec:file_trees) (copy, archive, file collections) automatically exclude common version-control directories and OS metadata files.
+
+Previously, customizing these patterns required importing and mutating [`org.apache.tools.ant.DirectoryScanner`](https://javadoc.io/static/org.apache.ant/ant/1.10.17/org/apache/tools/ant/DirectoryScanner.html), a process-global, static-mutable API inherited from [Apache Ant](https://ant.apache.org/).
+This coupling — a process-global, static-mutable API — has been a long-standing source of bugs and complexity: keeping it working with the configuration cache and file-system watching required
+dedicated plumbing.
+
+Gradle now provides a [`fileSystemDefaultExcludes`](javadoc/org/gradle/api/initialization/Settings.html#getFileSystemDefaultExcludes--) property on [`Settings`](javadoc/org/gradle/api/initialization/Settings.html), giving build authors a safe and idiomatic way to configure these patterns:
+
+```kotlin
+// settings.gradle.kts
+fileSystemDefaultExcludes {
+    add("**/node_modules")       // add a custom exclude
+    remove("**/.gitignore")      // remove a built-in exclude
+}
+```
+
+The legacy `DirectoryScanner` mutation is now deprecated and will be removed in Gradle 10.
+
+See the [Working with Files](userguide/working_with_files.html#sec:change_default_excludes) section in the Gradle User Manual for more information.
+
 ### Platform and toolchain management
 Gradle provides comprehensive support for [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
 

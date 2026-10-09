@@ -16,6 +16,7 @@
 
 package org.gradle.internal.vfs.impl
 
+import com.google.common.collect.ImmutableList
 import org.gradle.api.internal.cache.StringInterner
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.internal.file.FileException
@@ -53,7 +54,8 @@ abstract class AbstractFileSystemAccessTest extends Specification {
         fileSystem::stat,
         TestFiles.virtualFileSystem(),
         updateListener,
-        statisticsCollector
+        statisticsCollector,
+        ImmutableList.of()
     )
 
     void allowFileSystemAccess(boolean allow) {

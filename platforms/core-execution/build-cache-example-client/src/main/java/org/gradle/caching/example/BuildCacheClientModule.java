@@ -16,6 +16,7 @@
 
 package org.gradle.caching.example;
 
+import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Interner;
 import com.google.common.collect.Interners;
 import com.google.inject.AbstractModule;
@@ -488,7 +489,8 @@ class BuildCacheClientModule extends AbstractModule {
             stat,
             virtualFileSystem,
             locations -> locations.forEach(System.out::println),
-            statisticsCollector
+            statisticsCollector,
+            ImmutableList.of()
         );
     }
 }
