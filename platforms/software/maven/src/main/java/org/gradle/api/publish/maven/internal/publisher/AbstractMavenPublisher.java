@@ -23,6 +23,7 @@ import org.apache.maven.artifact.repository.metadata.io.xpp3.MetadataXpp3Writer;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceResolver;
 import org.gradle.api.internal.artifacts.repositories.transport.NetworkOperationBackOffAndRetry;
 import org.gradle.api.publish.maven.MavenArtifact;
+import org.gradle.api.publish.maven.internal.artifact.MavenArtifactInternal;
 import org.gradle.internal.Factory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.hash.HashCode;
@@ -103,11 +104,24 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
 
     private static void publishArtifactsAndMetadata(MavenNormalizedPublication publication, ModuleArtifactPublisher artifactPublisher) {
         if (publication.getMainArtifact() != null) {
-            artifactPublisher.publish(null, publication.getMainArtifact().getExtension(), publication.getMainArtifact().getFile());
+            artifactPublisher.publish(null, publication.getMainArtifact().getExtension(), publication.getMainArtifact().getFile(), true);
         }
-        artifactPublisher.publish(null, "pom", publication.getPomArtifact().getFile());
+        artifactPublisher.publish(null, "pom", publication.getPomArtifact().getFile(), true);
         for (MavenArtifact artifact : publication.getAdditionalArtifacts()) {
-            artifactPublisher.publish(artifact.getClassifier(), artifact.getExtension(), artifact.getFile());
+            final boolean enableChecksumFileGeneration = isChecksumFileGenerationEnabled(artifact);
+            artifactPublisher.publish(artifact.getClassifier(), artifact.getExtension(), artifact.getFile(), enableChecksumFileGeneration);
+        }
+    }
+
+    /**
+     * Signature files (e.g. {@code .asc}, {@code .sig}) are themselves integrity artifacts, so we do not
+     * publish checksums for them. This matches the behavior of the Maven publishing tooling.
+     */
+    private static boolean isChecksumFileGenerationEnabled(MavenArtifact artifact) {
+        if (artifact instanceof MavenArtifactInternal) {
+            return ((MavenArtifactInternal) artifact).getEnableChecksumFileGeneration();
+        } else {
+            throw new IllegalArgumentException("Unknown artifact type: " + artifact.getClass());
         }
     }
 
@@ -259,7 +273,7 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
         /**
          * Publishes a single module artifact, based on classifier and extension.
          */
-        void publish(@Nullable String classifier, String extension, File content) {
+        void publish(@Nullable String classifier, String extension, File content, boolean enableChecksumFileGeneration) {
             StringBuilder path = new StringBuilder(128);
             path.append(groupPath).append('/');
             path.append(artifactId).append('/');
@@ -275,25 +289,19 @@ abstract class AbstractMavenPublisher implements MavenPublisher {
 
             ExternalResourceName externalResource = new ExternalResourceName(rootUri, path.toString());
             publish(externalResource, content);
-        }
-
-        void publish(ExternalResourceName externalResource, File content) {
-            if (!localRepo) {
-                LOGGER.info("Uploading {} to {}", externalResource.getShortDisplayName(), externalResource.getPath());
-            }
-            putResource(externalResource, new FileReadableContent(content));
-            if (!localRepo && !isSignatureFile(externalResource)) {
+            if (!localRepo && enableChecksumFileGeneration) {
                 publishChecksums(externalResource, content);
             }
         }
 
-        /**
-         * Signature files (e.g. {@code .asc}, {@code .sig}) are themselves integrity artifacts, so we do not
-         * publish checksums for them. This matches the behavior of the Maven publishing tooling.
-         */
-        private static boolean isSignatureFile(ExternalResourceName destination) {
-            String path = destination.getPath();
-            return path.endsWith(".asc") || path.endsWith(".sig");
+        void publish(
+            ExternalResourceName externalResource,
+            File content
+        ) {
+            if (!localRepo) {
+                LOGGER.info("Uploading {} to {}", externalResource.getShortDisplayName(), externalResource.getPath());
+            }
+            putResource(externalResource, new FileReadableContent(content));
         }
 
         private void publishChecksums(ExternalResourceName destination, File content) {
