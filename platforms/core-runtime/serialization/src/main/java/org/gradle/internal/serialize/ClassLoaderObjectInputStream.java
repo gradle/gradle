@@ -36,6 +36,7 @@ public class ClassLoaderObjectInputStream extends ObjectInputStream {
 
     @Override
     protected Class<?> resolveClass(ObjectStreamClass desc) throws IOException, ClassNotFoundException {
+        UnsafeDeserializationClasses.checkNotBlocked(desc.getName());
         try {
             return Class.forName(desc.getName(), false, loader);
         } catch (ClassNotFoundException e) {
@@ -53,6 +54,14 @@ public class ClassLoaderObjectInputStream extends ObjectInputStream {
                 throw e;
             }
         }
+    }
+
+    @Override
+    protected Class<?> resolveProxyClass(String[] interfaces) throws IOException, ClassNotFoundException {
+        for (String iface : interfaces) {
+            UnsafeDeserializationClasses.checkNotBlocked(iface);
+        }
+        return super.resolveProxyClass(interfaces);
     }
 
     /**
