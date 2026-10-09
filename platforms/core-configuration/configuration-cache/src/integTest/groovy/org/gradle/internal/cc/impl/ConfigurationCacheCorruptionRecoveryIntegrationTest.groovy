@@ -19,7 +19,6 @@ package org.gradle.internal.cc.impl
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
-import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
 import static org.hamcrest.CoreMatchers.equalTo
@@ -255,7 +254,6 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
         outputContains("someProperty = second")
     }
 
-    @ToBeImplemented
     def "configuration after recovery does not see system properties replayed from the discarded entry"() {
         given:
         enableProblemsApiCheck()
@@ -283,19 +281,14 @@ class ConfigurationCacheCorruptionRecoveryIntegrationTest extends AbstractConfig
             fqid == DISCARDED_PROBLEM_ID
             contextualLabel == CORRUPT_ON_LOAD
         }
-        // TODO: the fingerprint check replays System.setProperty and the rollback keeps the value.
-        //  Should be "my.prop before = null".
-        outputContains("my.prop before = set-by-script")
+        outputContains("my.prop before = null")
 
         when:
         configurationCacheRun("hello")
 
         then:
-        // TODO: the entry stored after recovery recorded the replayed value, so it is not reused.
-        //  Should be configurationCache.assertStateLoaded().
-        configurationCache.assertStateStored()
-        outputContains("system property 'my.prop' has changed")
-        outputContains("my.prop before = null")
+        configurationCache.assertStateLoaded()
+        outputDoesNotContain("system property 'my.prop' has changed")
     }
 
     def "recovers from a corrupted fingerprint when encryption is disabled"() {

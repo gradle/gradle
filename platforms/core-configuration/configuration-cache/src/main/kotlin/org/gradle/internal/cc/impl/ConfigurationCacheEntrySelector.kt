@@ -58,6 +58,13 @@ internal class ConfigurationCacheEntrySelector(
     val isRecoveryEnabled: Boolean
         get() = startParameter.isRecoverFromCacheCorruption && !startParameter.isIntegrityCheckEnabled
 
+    /**
+     * The system properties as they were before the check replayed those of the entry being reused.
+     * Held only while that entry can still be rolled back by [rollbackPropertiesOfReusedEntry].
+     */
+    private
+    var systemPropertiesBeforeReusedEntry: Properties? = null
+
     private
     val isIntegrityCheckEnabled: Boolean
         get() = startParameter.isIntegrityCheckEnabled
@@ -135,6 +142,10 @@ internal class ConfigurationCacheEntrySelector(
             // so the Gradle properties files along with any Gradle property defining
             // system properties and environment variables are added to the new fingerprint.
             rollbackProperties(systemPropertiesSnapshot.uncheckedCast())
+        } else if (isRecoveryEnabled) {
+            // The entry was accepted, but loading it can still fail and send the build back to
+            // configuring, which must not see the properties the check replayed.
+            systemPropertiesBeforeReusedEntry = systemPropertiesSnapshot.uncheckedCast()
         }
         return result.getOrThrow()
     }
@@ -209,13 +220,15 @@ internal class ConfigurationCacheEntrySelector(
         buildDirs.forEach(virtualFileSystem::registerWatchableHierarchy)
     }
 
-    fun unloadProperties() {
-        gradlePropertiesController.unloadAll()
+    fun rollbackPropertiesOfReusedEntry() {
+        val systemPropertiesSnapshot = systemPropertiesBeforeReusedEntry ?: System.getProperties()
+        systemPropertiesBeforeReusedEntry = null
+        rollbackProperties(systemPropertiesSnapshot)
     }
 
     private
     fun rollbackProperties(systemPropertiesSnapshot: Properties) {
-        unloadProperties()
+        gradlePropertiesController.unloadAll()
         System.setProperties(systemPropertiesSnapshot)
     }
 }

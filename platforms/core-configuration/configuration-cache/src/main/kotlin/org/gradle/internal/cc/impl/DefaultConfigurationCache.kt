@@ -331,7 +331,7 @@ class DefaultConfigurationCache internal constructor(
         loadedSideEffects.clear()
         cacheEntryRequiresCommit = false
         entryDiscardRequested = false
-        entrySelector.unloadProperties()
+        entrySelector.rollbackPropertiesOfReusedEntry()
         scopeRegistryListener.reattach()
         // The same entry id is kept, so the unreadable files are overwritten when the new entry is stored.
         beginEntry(
