@@ -147,7 +147,7 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
 
     private List<Filter> buildFilters(String testClassName, Runner filteredRunner) {
         List<Filter> filters = new ArrayList<>();
-        if (categoryFilter != null) {
+        if (categoryFilter != null && excludesAnything(filteredRunner.getDescription(), categoryFilter)) {
             filters.add(categoryFilter);
         }
 
@@ -229,6 +229,21 @@ public class JUnitTestExecutor implements TestDefinitionConsumer<ClassTestDefini
         if (failed) {
             throw new GradleException("JUnit Categories defined but declared JUnit version does not support Categories.");
         }
+    }
+
+    // Some runners treat any filter() call as "only a subset of my tests are running" and change
+    // behavior accordingly, even if the filter wouldn't have excluded anything.
+    // See https://github.com/gradle/gradle/issues/10694.
+    private boolean excludesAnything(Description description, Filter filter) {
+        if (!filter.shouldRun(description)) {
+            return true;
+        }
+        for (Description child : description.getChildren()) {
+            if (excludesAnything(child, filter)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     private boolean allTestsFiltered(Runner runner, List<Filter> filters) {
