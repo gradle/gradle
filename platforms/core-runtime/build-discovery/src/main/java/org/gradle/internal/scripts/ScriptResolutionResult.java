@@ -32,7 +32,7 @@ public class ScriptResolutionResult {
 
     /**
      * The base name of the script.
-     * E.g. `build`, `script`, or `init`
+     * E.g. `build`, `settings`, or `init`
      */
     private final String basename;
 
@@ -43,15 +43,21 @@ public class ScriptResolutionResult {
     private final File selectedCandidate;
 
     /**
+     * The list of considered but not present script files.
+     */
+    private final List<File> missingCandidates;
+
+    /**
      * The list of ignored script files.
      * Empty if no other script files were found.
      */
     private final List<File> ignoredCandidates;
 
-    public ScriptResolutionResult(File directory, String basename, @Nullable File selectedCandidate, List<File> ignoredCandidates) {
+    public ScriptResolutionResult(File directory, String basename, @Nullable File selectedCandidate, List<File> missingCandidates, List<File> ignoredCandidates) {
         this.directory = directory;
         this.basename = basename;
         this.selectedCandidate = selectedCandidate;
+        this.missingCandidates = Collections.unmodifiableList(missingCandidates);
         this.ignoredCandidates = Collections.unmodifiableList(ignoredCandidates);
     }
 
@@ -64,6 +70,18 @@ public class ScriptResolutionResult {
         return selectedCandidate != null;
     }
 
+    /**
+     * Scripts considered for selection, but not found.
+     * <p>
+     * If any of these candidates are present during another invocation, the first one will take precedence over the others.
+     */
+    public List<File> getMissingCandidates() {
+        return missingCandidates;
+    }
+
+    /**
+     * Scripts that would be considered for selection if the selected script was missing.
+     */
     public List<File> getIgnoredCandidates() {
         return ignoredCandidates;
     }
@@ -79,6 +97,6 @@ public class ScriptResolutionResult {
     public static ScriptResolutionResult fromSingleFile(String basename, File scriptFile) {
         Objects.requireNonNull(basename);
         Objects.requireNonNull(scriptFile);
-        return new ScriptResolutionResult(scriptFile.getParentFile(), basename, scriptFile, Collections.emptyList());
+        return new ScriptResolutionResult(scriptFile.getParentFile(), basename, scriptFile, Collections.emptyList(), Collections.emptyList());
     }
 }
