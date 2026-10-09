@@ -51,7 +51,6 @@ class KnownProblemIds {
         'daemon-toolchain' : 'Daemon toolchain',
         'jvm-toolchain': 'JVM Toolchain',
         'packaging': 'Packaging',
-        'plugin-application': 'Plugin application',
 
         // Sub-groups
         'packaging:signing': 'Signing',
@@ -87,7 +86,6 @@ class KnownProblemIds {
         'generic': 'Generic',
         'issues': 'issues',
         'sample-problems': 'Sample Problems',
-        'scripts': 'Scripts',
         'root': 'root',
     ]
 
@@ -165,7 +163,7 @@ class KnownProblemIds {
         'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported-with-the-configuration-cache': ['invocation of \'Task.project\' at execution time is unsupported with the configuration cache.'],
         'validation:configuration-cache:isolated-projects-dangerously-ignoring-problems': ['Isolated Projects problems are dangerously ignored'],
         'packaging:signing:no-configured-signatory': ['No configured signatory'],
-        'plugin-application:target-type-mismatch': ['Plugin applied to the wrong target'],
+        'Gradle:Build Definition:Plugin applied to the wrong target': ['Plugin applied to the wrong target'],
         'Gradle:Invocation:Ambiguous task name': ['Ambiguous task name'],
         'Gradle:Invocation:Ambiguous project name': ['Ambiguous project name'],
         'Gradle:Invocation:Task selection failed': ['Task selection failed'],
@@ -289,6 +287,6 @@ class KnownProblemIds {
         'generic:type11': ['inner'],
         'generic:type12': ['outer'],
         'sample-problems:prototype-project': ['Project is a prototype'],
-        'scripts:multiple-scripts': ['Multiple script files in one directory'],
+        'Gradle:Build Definition:Multiple script files in one directory': ['Multiple script files in one directory'],
     ]
 }

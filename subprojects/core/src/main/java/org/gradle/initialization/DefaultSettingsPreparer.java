@@ -204,7 +204,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
         StartParameterInternal startParameter = gradle.getStartParameter();
         BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(startParameter.toBuildLayoutConfiguration());
         if (buildLayout.getSettingsFileResolution() != null) {
-            ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(problems.getReporter());
+            ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(problems);
             reporter.reportResolutionProblemsOf(buildLayout.getSettingsFileResolution());
         }
 
@@ -256,7 +256,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
     ) {
         ScriptResolutionResult resolutionResult = buildLayout.getSettingsFileResolution();
         if (resolutionResult != null) {
-            new ScriptResolutionResultReporter(problems.getReporter()).reportResolutionProblemsOf(resolutionResult);
+            new ScriptResolutionResultReporter(problems).reportResolutionProblemsOf(resolutionResult);
         }
 
         SettingsState state = settingsProcessor.process(gradle, buildLayout, classLoaderScope, startParameter);
