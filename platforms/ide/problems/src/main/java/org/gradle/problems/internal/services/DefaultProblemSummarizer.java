@@ -79,8 +79,9 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
 
     @Override
     public void emit(ProblemInternal problem, @Nullable OperationIdentifier id) {
+        // Attach the task location before the deduplication check so that identical problems reported by different tasks are not treated as duplicates.
+        problem = maybeAddTaskLocation(problem, id);
         if (summarizerStrategy.shouldEmit(problem)) {
-            problem = maybeAddTaskLocation(problem, id);
             problemReportCreator.addProblem(problem);
             for (ProblemEmitter problemEmitter : problemEmitters) {
                 problemEmitter.emit(problem, id);
