@@ -40,6 +40,22 @@ final class ProblemNames {
     }
 
     /**
+     * Validates the name of a group that a plugin creates below a predefined group, see {@link #validateGroupName(String)}:
+     * the reserved {@value #UNDEFINED_NAME} name is rejected in any letter case, since the synthetic group of that name
+     * exists at every level and is reached through {@code getUndefined()}.
+     *
+     * @return the validated name
+     * @throws IllegalArgumentException if the name violates the rules or is reserved
+     */
+    static String validateUserGroupName(@Nullable String name) {
+        String validated = validateGroupName(name);
+        if (validated.equalsIgnoreCase(UNDEFINED_NAME)) {
+            throw new IllegalArgumentException("'" + UNDEFINED_NAME + "' is a reserved problem group name, use getUndefined() instead");
+        }
+        return validated;
+    }
+
+    /**
      * Validates a group name created through the predefined-group API. A group name is a category: besides the rules shared
      * with problem names, it
      * <ul>

@@ -95,6 +95,7 @@ dependencies {
     testFixturesImplementation(projects.logging)
     testFixturesImplementation(libs.gson)
     testFixturesImplementation(projects.baseServices)
+    testFixturesImplementation(testFixtures(projects.core))
 }
 
 gradleModule {

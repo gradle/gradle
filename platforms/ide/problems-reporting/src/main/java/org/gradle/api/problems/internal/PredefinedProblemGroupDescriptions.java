@@ -27,7 +27,7 @@ public final class PredefinedProblemGroupDescriptions {
     public static final String GRADLE = "Initialization, configuration, and execution of the Gradle runtime, integration of built-in and third-party plugins with Gradle.";
     public static final String GRADLE_BUILD_CACHE = "Caching of build outputs, including cache key calculation, local and remote cache storage, cache entry retrieval, or cache configuration.";
     public static final String GRADLE_BUILD_DEFINITION = "Configuration of settings and projects, including missing, invalid, or conflicting property values and declarations.";
-    public static final String GRADLE_BUILD_LOGIC = "Gradle plugin code interacting with the build model, including registration and configuration of tasks, declaration of their inputs, outputs, cacheability, or calling other plugins' API.";
+    public static final String GRADLE_BUILD_LOGIC = "Build logic in plugins and build scripts interacting with the build model, including registration and configuration of tasks, declaration of their inputs, outputs, cacheability, or calling other plugins' API.";
     public static final String GRADLE_CONFIGURATION_CACHE = "Caching of the configuration phase, including configuration inputs, serialization of the task graph, or reports of task incompatibilities.";
     public static final String GRADLE_DEPRECATION = "Usage of deprecated Gradle and plugins APIs, features, or behaviors scheduled for removal in a future version.";
     public static final String GRADLE_DSL_EVALUATION = "Parsing, compilation, and application of Gradle DSL files.";

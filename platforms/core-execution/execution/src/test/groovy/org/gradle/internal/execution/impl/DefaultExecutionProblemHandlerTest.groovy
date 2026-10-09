@@ -17,9 +17,7 @@
 package org.gradle.internal.execution.impl
 
 import org.gradle.api.problems.Problem
-import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.Severity
-import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.ProblemInternal
 import org.gradle.internal.execution.Identity
 import org.gradle.internal.execution.UnitOfWork
@@ -57,7 +55,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
         validationContext.forType(JobType, true).visitTypeError {
             it
                 .withAnnotationType(Object)
-                .id(ProblemId.create("test-problem", "Validation error", GradleCoreProblemGroup.validation().type()))
+                .id(problems.groups.gradle.pluginValidation.problemId("Validation error"))
                 .documentedAt(userManual("id", "section"))
                 .details("Test")
         }
@@ -70,7 +68,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
         ex.message == "A problem was found with the configuration of job ':test' (type 'DefaultExecutionProblemHandlerTest.JobType')."
         verifyAll(problems.singleEmittedProblem()) {
             it.definition.severity == Severity.ERROR
-            it.definition.id.name == 'test-problem'
+            it.definition.id.name == 'Validation error'
             it.definition.id.displayName == 'Validation error'
             it.contextualLabel == "Type 'java.lang.Object' Validation error"
             it.details == 'Test'
@@ -87,14 +85,14 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
         validationContext.forType(JobType, true).visitTypeError {
             it
                 .withAnnotationType(Object)
-                .id(ProblemId.create("test-problem-1", "Validation error #1", GradleCoreProblemGroup.validation().type()))
+                .id(problems.groups.gradle.pluginValidation.problemId("Validation error #1"))
                 .documentedAt(userManual("id", "section"))
                 .details("Test")
         }
         validationContext.forType(SecondaryJobType, true).visitTypeError {
             it
                 .withAnnotationType(Object)
-                .id(ProblemId.create("test-problem-2", "Validation error #2", GradleCoreProblemGroup.validation().type()))
+                .id(problems.groups.gradle.pluginValidation.problemId("Validation error #2"))
                 .documentedAt(userManual("id", "section"))
                 .details("Test")
         }
@@ -108,7 +106,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
         problems.emitted.size() == 2
         verifyAll(problems.emitted[0]) {
             definition.severity == Severity.ERROR
-            definition.id.name == 'test-problem-1'
+            definition.id.name == 'Validation error #1'
             definition.id.displayName == 'Validation error #1'
             contextualLabel == "Type 'java.lang.Object' Validation error #1"
             details == 'Test'
@@ -118,7 +116,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
         }
         verifyAll(problems.emitted[1]) {
             definition.severity == Severity.ERROR
-            definition.id.name == 'test-problem-2'
+            definition.id.name == 'Validation error #2'
             definition.id.displayName == 'Validation error #2'
             contextualLabel == "Type 'java.lang.Object' Validation error #2"
             details == 'Test'
@@ -136,7 +134,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
         validationContext.forType(JobType, true).visitTypeWarning {
             it
                 .withAnnotationType(Object)
-                .id(ProblemId.create("test-problem", "Validation warning", GradleCoreProblemGroup.validation().type()))
+                .id(problems.groups.gradle.pluginValidation.problemId("Validation warning"))
                 .documentedAt(userManual("id", "section"))
                 .details("Test")
         }
@@ -149,7 +147,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
         })
         verifyAll(problems.singleEmittedProblem()) {
             it.definition.severity == Severity.WARNING
-            it.definition.id.name == 'test-problem'
+            it.definition.id.name == 'Validation warning'
             it.definition.id.displayName == 'Validation warning'
             it.contextualLabel == "Type 'java.lang.Object' Validation warning"
             it.details == 'Test'
@@ -174,14 +172,14 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
         typeContext.visitTypeError {
             it
                 .withAnnotationType(Object)
-                .id(ProblemId.create("test-problem", "Validation problem", GradleCoreProblemGroup.validation().type()))
+                .id(problems.groups.gradle.pluginValidation.problemId("Validation problem"))
                 .documentedAt(userManual("id", "section"))
                 .details("Test")
         }
         typeContext.visitTypeWarning {
             it
                 .withAnnotationType(Object)
-                .id(ProblemId.create("test-problem", "Validation problem", GradleCoreProblemGroup.validation().type()))
+                .id(problems.groups.gradle.pluginValidation.problemId("Validation problem"))
                 .documentedAt(userManual("id", "section"))
                 .details("Test")
         }
@@ -198,7 +196,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
         problems.emitted.size() == 2
         verifyAll(problems.emitted[0]) {
             definition.severity == Severity.WARNING
-            definition.id.name == 'test-problem'
+            definition.id.name == 'Validation problem'
             definition.id.displayName == 'Validation problem'
             contextualLabel == "Type 'java.lang.Object' Validation problem"
             details == 'Test'
@@ -208,7 +206,7 @@ class DefaultExecutionProblemHandlerTest extends Specification implements Valida
         }
         verifyAll(problems.emitted[1]) {
             definition.severity == Severity.ERROR
-            definition.id.name == 'test-problem'
+            definition.id.name == 'Validation problem'
             definition.id.displayName == 'Validation problem'
             contextualLabel == "Type 'java.lang.Object' Validation problem"
             details == 'Test'

@@ -21,7 +21,6 @@ import org.gradle.api.flow.FlowParameters
 import org.gradle.api.internal.parameters.NoneParameters
 import org.gradle.api.internal.tasks.AbstractTaskDependencyResolveContext
 import org.gradle.api.internal.tasks.properties.InspectionSchemeFactory
-import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.ProblemInternal
 import org.gradle.api.problems.internal.ProblemReporterInternal
 import org.gradle.api.problems.internal.ProblemsInternal
@@ -82,7 +81,7 @@ class FlowParametersInstantiator(
                             override fun add(dependency: Any) {
                                 errors.add(
                                     problemReporterInternal.internalCreate {
-                                        id("invalid-dependency", "Property cannot carry dependency", GradleCoreProblemGroup.validation().property())
+                                        id(problemsService.groups.gradle.buildLogic.problemId("Property cannot carry dependency"))
                                         contextualLabel("Property '$propertyName' cannot carry a dependency on $dependency as these are not yet supported.")
                                     }
                                 )

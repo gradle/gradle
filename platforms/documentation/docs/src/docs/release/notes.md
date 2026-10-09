@@ -130,6 +130,10 @@ Gradle's own dependency problems use the predefined groups as well: version cata
 They are now named by their former display names, and version catalog problem names mention the version catalog, for example `dependency-version-catalog:toml-syntax-error` is now `Dependencies:Declaration:Version catalog TOML syntax error`.
 See the [upgrade guide](userguide/upgrading_version_9.html#dependency_problem_ids_moved_to_predefined_groups) for the complete list.
 
+Gradle's own validation problems use the predefined groups as well: problems about input, output, and caching annotations report into `Gradle > Plugin Validation`, problems about how build logic uses the build model, including types that cannot be part of a Declarative schema, into `Gradle > Build Logic`, and missing or unusable property values into `Gradle > Build Definition`.
+They are now named by their former display names, with a few names reworded to describe the problem, for example `validation:property-validation:value-not-set` is now `Gradle:Build Definition:Value not set`.
+See the [upgrade guide](userguide/upgrading_version_9.html#validation_problem_ids_moved_to_predefined_groups) for the complete list.
+
 See the [Predefined Problem Groups](userguide/reporting_problems.html#sec:predefined_problem_groups) section in the Gradle User Manual for more details.
 
 ### Build authoring improvements

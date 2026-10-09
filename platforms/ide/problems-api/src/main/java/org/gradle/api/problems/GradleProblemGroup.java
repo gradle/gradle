@@ -69,8 +69,8 @@ public abstract class GradleProblemGroup extends ProblemGroup {
     /**
      * The {@code Build Logic} sub-group.
      * <p>
-     * Gradle plugin code interacting with the build model, including registration and configuration of tasks,
-     * declaration of their inputs, outputs, cacheability, or calling other plugins' API.
+     * Build logic in plugins and build scripts interacting with the build model, including registration and
+     * configuration of tasks, declaration of their inputs, outputs, cacheability, or calling other plugins' API.
      *
      * @since 9.9.0
      */

@@ -22,7 +22,6 @@ import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.WorkValidationUtils;
-import org.gradle.internal.reflect.DefaultTypeValidationContext;
 import org.gradle.internal.reflect.ProblemRecordingTypeValidationContext;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.plugin.use.PluginId;
@@ -58,7 +57,7 @@ public class DefaultWorkValidationContext implements WorkValidationContext {
         return new ProblemRecordingTypeValidationContext(type, pluginId, getProblemsService()) {
             @Override
             protected void recordError(ProblemInternal problem) {
-                if (DefaultTypeValidationContext.onlyAffectsCacheableWork(problem.getDefinition().getId()) && !cacheable) {
+                if (onlyAffectsCacheableWork(problem) && !cacheable) {
                     return;
                 }
                 errors.add(problem);

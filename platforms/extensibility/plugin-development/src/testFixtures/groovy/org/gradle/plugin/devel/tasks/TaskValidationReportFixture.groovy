@@ -19,6 +19,7 @@ package org.gradle.plugin.devel.tasks
 import groovy.transform.CompileStatic
 import org.gradle.internal.reflect.validation.TypeValidationProblemRenderer
 import org.gradle.plugin.devel.tasks.internal.ValidationProblemSerialization
+import org.gradle.util.TestUtil
 
 @CompileStatic
 class TaskValidationReportFixture {
@@ -36,7 +37,7 @@ class TaskValidationReportFixture {
             }
             .join(PROBLEM_SEPARATOR)
             .replaceAll("\n+", "\n")
-        def problems = ValidationProblemSerialization.deserialize(reportFile.text)
+        def problems = ValidationProblemSerialization.deserialize(reportFile.text, TestUtil.problemsService().groups)
         def warnings = problems.getWarnings()
         def errors = problems.getErrors()
 

@@ -87,17 +87,9 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         failure.assertHasDescription("A problem was found with the configuration of task ':test' (type 'DefaultTask').")
 
         and:
-        if (GradleContextualExecuter.configCache) {
-            verifyAll(receivedProblem(0)) {
-                severity == Severity.ERROR
-                fqid == 'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache'
-                contextualLabel == 'cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'
-                originLocations == []
-            }
-        }
-        verifyAll(receivedProblem(GradleContextualExecuter.configCache ? 1 : 0)) {
+        verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unsupported-notation'
+            fqid == 'Gradle:Build Definition:Property has unsupported value'
             definition.id.displayName == 'Property has unsupported value'
             contextualLabel == 'Property \'input\' has unsupported value \'task \':dependencyTask\'\''
             details == "Type 'DefaultTask' cannot be converted to a $targetType"
@@ -116,6 +108,14 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
                 'typeName': 'org.gradle.api.DefaultTask',
                 'propertyName': 'input',
             ]
+        }
+        if (GradleContextualExecuter.configCache) {
+            verifyAll(receivedProblem(1)) {
+                severity == Severity.ERROR
+                fqid == 'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache'
+                contextualLabel == 'cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'
+                originLocations == []
+            }
         }
 
         where:
@@ -154,17 +154,9 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         failure.assertHasDescription("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
 
         and:
-        if (GradleContextualExecuter.configCache) {
-            verifyAll(receivedProblem(0)) {
-                severity == Severity.ERROR
-                fqid == 'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache'
-                contextualLabel == 'cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'
-                originLocations == []
-            }
-        }
-        verifyAll(receivedProblem(GradleContextualExecuter.configCache ? 1 : 0)) {
+        verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unsupported-notation'
+            fqid == 'Gradle:Build Definition:Property has unsupported value'
             definition.id.displayName == 'Property has unsupported value'
             contextualLabel == 'Type \'CustomTask\' property \'input\' has unsupported value \'task \':dependencyTask\'\''
             details == "Type 'DefaultTask' cannot be converted to a $targetType"
@@ -183,6 +175,14 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
                 'typeName': 'CustomTask',
                 'propertyName': 'input',
             ]
+        }
+        if (GradleContextualExecuter.configCache) {
+            verifyAll(receivedProblem(1)) {
+                severity == Severity.ERROR
+                fqid == 'validation:configuration-cache:cannot-serialize-object-of-type-org-gradle-api-defaulttask-a-subtype-of-org-gradle-api-task-as-these-are-not-supported-with-the-configuration-cache'
+                contextualLabel == 'cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'
+                originLocations == []
+            }
         }
 
         where:
@@ -264,7 +264,7 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:value-not-set'
+            fqid == 'Gradle:Build Definition:Value not set'
             definition.id.displayName == 'Value not set'
             details == 'This property isn\'t marked as optional and no value has been configured'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"

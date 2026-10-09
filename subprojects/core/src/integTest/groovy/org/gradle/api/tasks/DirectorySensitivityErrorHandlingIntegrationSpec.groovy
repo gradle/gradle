@@ -44,7 +44,7 @@ class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrati
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:incompatible-annotations'
+            fqid == 'Gradle:Plugin Validation:Incompatible annotations'
             definition.id.displayName == 'Incompatible annotations'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#incompatible_annotations"
         }
@@ -70,7 +70,7 @@ class DirectorySensitivityErrorHandlingIntegrationSpec extends AbstractIntegrati
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:incompatible-annotations'
+            fqid == 'Gradle:Plugin Validation:Incompatible annotations'
             definition.id.displayName == 'Incompatible annotations'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#incompatible_annotations"
         }

@@ -43,7 +43,7 @@ import java.util.Locale;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.internal.execution.model.annotations.ModifierAnnotationCategory.NORMALIZATION;
 import static org.gradle.internal.reflect.DefaultTypeValidationContext.MISSING_NORMALIZATION_ANNOTATION;
-import static org.gradle.internal.reflect.DefaultTypeValidationContext.MISSING_NORMALIZATION_ID;
+import static org.gradle.internal.reflect.ProblemRecordingTypeValidationContext.MISSING_NORMALIZATION;
 
 public abstract class AbstractInputFilePropertyAnnotationHandler extends AbstractInputPropertyAnnotationHandler {
 
@@ -115,7 +115,7 @@ public abstract class AbstractInputFilePropertyAnnotationHandler extends Abstrac
                 String propertyName = propertyMetadata.getPropertyName();
                 problem
                     .forProperty(propertyName)
-                    .id(MISSING_NORMALIZATION_ID.getName(), MISSING_NORMALIZATION_ID.getDisplayName(), MISSING_NORMALIZATION_ID.getGroup()) // TODO (donat) missing test coverage
+                    .id(problem.getGradleGroup().getPluginValidation().problemId(MISSING_NORMALIZATION)) // TODO (donat) missing test coverage
                     .contextualLabel(String.format("is annotated with @%s but missing a normalization strategy", getAnnotationType().getSimpleName()))
                     .documentedAt(userManual("validation_problems", MISSING_NORMALIZATION_ANNOTATION.toLowerCase(Locale.ROOT)))
                     .details("If you don't declare the normalization, outputs can't be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly")

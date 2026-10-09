@@ -533,7 +533,7 @@ service: closed with value 10001
         failureDescriptionContains("A problem was found with the configuration of task ':missingRequiredService' (type 'Consumer').")
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:value-not-set'
+            fqid == 'Gradle:Build Definition:Value not set'
             definition.id.displayName == 'Value not set'
             details == "This property isn't marked as optional and no value has been configured"
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
@@ -621,8 +621,8 @@ service: closed with value 10001
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:service-reference-must-be-a-build-service'
-            definition.id.displayName == 'Property has @ServiceReference annotation'
+            fqid == 'Gradle:Plugin Validation:@ServiceReference property is not a build service'
+            definition.id.displayName == '@ServiceReference property is not a build service'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#service_reference_must_be_a_build_service"
         }
     }

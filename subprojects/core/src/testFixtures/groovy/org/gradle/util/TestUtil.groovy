@@ -43,12 +43,12 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.problems.Problem
-import org.gradle.api.problems.ProblemGroups
 import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.DeprecationData
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
 import org.gradle.api.problems.internal.ProblemBuilderInternal
+import org.gradle.api.problems.internal.ProblemGroupsInternal
 import org.gradle.api.problems.internal.ProblemInternal
 import org.gradle.api.problems.internal.ProblemReporterInternal
 import org.gradle.api.problems.internal.ProblemSummarizer
@@ -423,7 +423,7 @@ class TestProblems implements ProblemsInternal {
     }
 
     @Override
-    ProblemGroups getGroups() {
+    ProblemGroupsInternal getGroups() {
         delegate.groups
     }
 
