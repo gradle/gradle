@@ -46,11 +46,6 @@ class KnownProblemIds {
     }
 
     private static final Map<String, String> KNOWN_GROUPS = [
-        // Top level
-        'validation': 'Validation',
-
-        // Sub-groups
-
         // predefined groups (org.gradle.api.problems.ProblemGroups) used from integration tests
         'Gradle': 'Gradle',
         'Gradle:Build Definition': 'Build Definition',
