@@ -35,15 +35,17 @@ import org.gradle.api.problems.ProblemId;
 import org.jspecify.annotations.Nullable;
 
 import java.io.InvalidObjectException;
+import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
 /**
  * The predefined problem group hierarchy. Stateless apart from the root singletons, so a single instance is shared by all
  * {@code Problems} services in a process; group equality is structural (name and parent), so instance identity does not matter
  * across processes.
  */
-final class DefaultProblemGroups implements ProblemGroupsInternal {
+public final class DefaultProblemGroups implements ProblemGroupsInternal {
 
     public static final DefaultProblemGroups INSTANCE = new DefaultProblemGroups();
 
@@ -158,6 +160,43 @@ final class DefaultProblemGroups implements ProblemGroupsInternal {
             throw invalid;
         }
         return current;
+    }
+
+    @Override
+    public ProblemId canonical(ProblemId id) {
+        List<ProblemGroup> rootToLeaf = new ArrayList<>();
+        for (ProblemGroup current = id.getGroup(); current != null; current = current.getParent()) {
+            rootToLeaf.add(0, current);
+        }
+        ProblemGroup canonicalParent = null;
+        boolean changed = false;
+        for (ProblemGroup group : rootToLeaf) {
+            ProblemGroup canonicalGroup = group;
+            // only the legacy factories create DefaultProblemGroup; the predefined hierarchy never does
+            if (group instanceof DefaultProblemGroup) {
+                ProblemGroup predefined = predefinedGroup(canonicalParent, group.getName());
+                if (predefined != null) {
+                    canonicalGroup = predefined;
+                } else if (changed) {
+                    canonicalGroup = new DefaultProblemGroup(group.getName(), group.getDisplayName(), canonicalParent);
+                }
+            }
+            changed |= canonicalGroup != group;
+            canonicalParent = canonicalGroup;
+        }
+        return changed ? new DefaultProblemId(id.getName(), id.getDisplayName(), Objects.requireNonNull(canonicalParent)) : id;
+    }
+
+    @Nullable
+    private ProblemGroup predefinedGroup(@Nullable ProblemGroup parent, String name) {
+        ResolvableProblemGroup predefined;
+        if (parent == null) {
+            predefined = findRoot(name);
+        } else {
+            predefined = parent instanceof ResolvableProblemGroup ? ((ResolvableProblemGroup) parent).findPredefinedChild(name) : null;
+        }
+        // every Gradle-owned implementation extends ProblemGroup
+        return (ProblemGroup) predefined;
     }
 
     @Override

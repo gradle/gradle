@@ -96,6 +96,12 @@ final class PredefinedTransformationProblemGroup extends TransformationProblemGr
     }
 
     @Override
+    @Nullable
+    public ResolvableProblemGroup findPredefinedChild(String name) {
+        return children.find(name);
+    }
+
+    @Override
     public boolean equals(@Nullable Object o) {
         return ProblemGroupInternal.structurallyEquals(this, o);
     }
