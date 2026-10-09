@@ -78,7 +78,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         }
         if (GradleContextualExecuter.configCache) {
             verifyAll(receivedProblem(1)) {
-                fqid == 'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection'
+                fqid == "Gradle:Configuration Cache:error writing value of type 'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection'"
                 contextualLabel == 'error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
                 additionalData.asMap == [ 'trace' : 'task `:forceResolution` of type `Build_gradle$ForceResolution`' ]
             }
@@ -216,7 +216,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         }
         if (GradleContextualExecuter.configCache) {
             verifyAll(receivedProblem(1)) {
-                fqid == 'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection'
+                fqid == "Gradle:Configuration Cache:error writing value of type 'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection'"
                 contextualLabel == 'error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
                 additionalData.asMap == ['trace': 'task `:forceResolution` of type `Build_gradle$ForceResolution`']
             }
@@ -285,7 +285,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
         }
         if (GradleContextualExecuter.configCache) {
             verifyAll(receivedProblem(1)) {
-                fqid == 'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection'
+                fqid == "Gradle:Configuration Cache:error writing value of type 'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection'"
                 contextualLabel == 'error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''
                 additionalData.asMap == ['trace': 'task `:forceResolution` of type `Build_gradle$ForceResolution`']
             }
