@@ -24,6 +24,8 @@ import org.gradle.test.fixtures.file.TestFile
 abstract class AbstractConfigurationCacheOptInFeatureIntegrationTest extends AbstractIntegrationSpec {
     static final String WARN_PROBLEMS_CLI_OPT = "--${StartParameterBuildOptions.ConfigurationCacheProblemsOption.LONG_OPTION}=warn"
 
+    static final String DISABLE_CC_RECOVERY = "-Dorg.gradle.internal.configuration-cache.recover-from-corruption=false"
+
     protected ConfigurationCacheProblemsExecutionResultFixture problems
 
     def setup() {

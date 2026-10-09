@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
+import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import spock.lang.Issue
 
@@ -65,6 +66,51 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
         and: "the full stack trace of the underlying failure is available at the info level"
         outputContains("Configuration cache entry discarded because a fingerprint value could not be loaded")
         outputContains("java.lang.RuntimeException: cannot deserialize Poison")
+    }
+
+    def "value source whose value cannot be deserialized fails the build when integrity check is enabled"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        def integrityCheck = "-D${StartParameterBuildOptions.ConfigurationCacheIntegrityCheckOption.PROPERTY_NAME}=true"
+        buildFile("""
+            import org.gradle.api.provider.*
+            import java.io.*
+
+            class Poison implements Serializable {
+                private void readObject(ObjectInputStream ois) throws IOException {
+                    throw new RuntimeException("cannot deserialize Poison")
+                }
+            }
+
+            abstract class PoisonValueSource implements ValueSource<Poison, ValueSourceParameters.None> {
+                @Override Poison obtain() { return new Poison() }
+            }
+
+            providers.of(PoisonValueSource) {}.get()
+
+            tasks.register("ok") { doLast { println "ok" } }
+        """)
+
+        when:
+        configurationCacheRun(integrityCheck, "ok")
+
+        then:
+        configurationCache.assertStateStored()
+
+        when:
+        executer.withStackTraceChecksDisabled()
+        configurationCacheFails(integrityCheck, "ok")
+
+        then:
+        // TODO The description leaks serialization internals at the user. It should attribute the failure to
+        //  the value source without naming the beans and fields the value happens to be stored in.
+        failureDescriptionStartsWith(
+            'Could not load the value of field `value` of `org.gradle.internal.Try$Success` bean found in ' +
+                'field `value` of `org.gradle.api.internal.provider.DefaultValueSourceProviderFactory$DefaultObtainedValue` ' +
+                'bean found in class `PoisonValueSource`.'
+        )
+        failureCauseContains("cannot deserialize Poison")
+        outputDoesNotContain("ok")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/30182")

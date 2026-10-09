@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.logging.Logging
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.execution.EntryTaskSelector
+import org.gradle.internal.Either
 import org.gradle.internal.Try
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.ExecutionResult
@@ -26,6 +27,7 @@ import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeWorkController
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
 import org.gradle.internal.buildtree.BuildTreeWorkPreparer
+import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.impl.heap.HeapDumper
 import java.time.LocalDateTime
 import java.time.format.DateTimeFormatter
@@ -52,28 +54,32 @@ class ConfigurationCacheAwareBuildTreeWorkController(
                 addFinalization(rootBuildState, selector::postProcessExecutionPlan)
             }
         }
-        val cachedExecutionResult = loadAndRun(scheduleTaskSelectorPostProcessing)
-        if (cachedExecutionResult != null) {
-            return cachedExecutionResult
-        }
         return Try.ofFailable {
-            scheduleStoreAndRun(scheduleTaskSelectorPostProcessing, taskSelector)
+            val cachedExecutionResult = loadAndRun(scheduleTaskSelectorPostProcessing, taskSelector)
+            cachedExecutionResult ?: scheduleStoreAndRun(scheduleTaskSelectorPostProcessing, taskSelector)
         }.getOrMapFailure { ExecutionResult.failed(it) }
     }
 
     private fun loadAndRun(
-        scheduleTaskSelectorPostProcessing: BuildTreeWorkGraphBuilder?
-    ): ExecutionResult<Void>? =
-        workGraph.withNewWorkGraph { graph ->
+        scheduleTaskSelectorPostProcessing: BuildTreeWorkGraphBuilder?,
+        taskSelector: EntryTaskSelector?
+    ): ExecutionResult<Void>? {
+        val loadOutcome: Either<Throwable, ExecutionResult<Void>>? = workGraph.withNewWorkGraph { graph ->
             when (val outcome = cache.maybeLoadRequestedTasks(graph, scheduleTaskSelectorPostProcessing)) {
                 is BuildTreeConfigurationCache.LoadOutcome.Reused -> {
                     maybeDumpHeap("cc-hit")
-                    workExecutor.execute(outcome.graph)
+                    Either.right(workExecutor.execute(outcome.graph))
                 }
 
                 BuildTreeConfigurationCache.LoadOutcome.Missed -> null
+
+                is BuildTreeConfigurationCache.LoadOutcome.Discarded -> Either.left(outcome.failure)
             }
         }
+        return loadOutcome?.getRightOr { failure ->
+            rescheduleAfterDiscardedEntry(scheduleTaskSelectorPostProcessing, taskSelector, failure)
+        }
+    }
 
     private fun scheduleStoreAndRun(
         scheduleTaskSelectorPostProcessing: BuildTreeWorkGraphBuilder?,
@@ -98,6 +104,21 @@ class ConfigurationCacheAwareBuildTreeWorkController(
 
         maybeDumpHeap("cc-miss-store")
         return storeAndReload(scheduleTaskSelectorPostProcessing)
+    }
+
+    private fun rescheduleAfterDiscardedEntry(
+        scheduleTaskSelectorPostProcessing: BuildTreeWorkGraphBuilder?,
+        taskSelector: EntryTaskSelector?,
+        originalFailure: Throwable
+    ): ExecutionResult<Void> {
+        buildRegistry.resetModels()
+        val executionResult = try {
+            scheduleStoreAndRun(scheduleTaskSelectorPostProcessing, taskSelector)
+        } catch (failure: Throwable) {
+            logger.info("Discarding the configuration cache entry after a failed load", failure)
+            return ExecutionResult.failed(originalFailure)
+        }
+        return executionResult
     }
 
     private fun storeAndReload(scheduleTaskSelectorPostProcessing: BuildTreeWorkGraphBuilder?): ExecutionResult<Void> {
