@@ -81,8 +81,8 @@ class ConfigurationCacheProblemsTapi813PlusCrossVersionTest extends ToolingApiSp
         listener.problems.size() == 1
         verifyAll(listener.problems[0]) {
             definition.id.displayName == "registration of listener on 'Gradle.buildFinished' is unsupported"
-            definition.id.group.displayName == "configuration cache validation"
-            definition.id.group.name == "configuration-cache"
+            definition.id.group.displayName == (reportsIntoPredefinedGroups ? "Configuration Cache" : "configuration cache validation")
+            definition.id.group.name == (reportsIntoPredefinedGroups ? "Configuration Cache" : "configuration-cache")
             definition.severity == Severity.ERROR
             (originLocations[0] as LineInFileLocation).path == "build file 'build.gradle'" // FIXME: the path should not contain a prefix nor extra quotes
             if (targetVersion.baseVersion < GradleVersion.version("8.14")) {
@@ -95,5 +95,9 @@ class ConfigurationCacheProblemsTapi813PlusCrossVersionTest extends ToolingApiSp
             additionalData instanceof DefaultAdditionalData
             additionalData.asMap.isEmpty()
         }
+    }
+
+    private boolean getReportsIntoPredefinedGroups() {
+        targetVersion.baseVersion >= GradleVersion.version("9.9")
     }
 }
