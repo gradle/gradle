@@ -107,9 +107,9 @@ class SchemaSupertypeMemberVisibilityTest {
             |    - in the supertypes of '${UsesHiddenType::class.qualifiedName}'
             |    - type '${HiddenSup::class.qualifiedName}' is annotated as hidden
             |  Illegal usages:
-            |    - referenced from member '${UsesHiddenType::hidden}'
             |    - referenced from member '${UsesHiddenType::boxOfHidden}'
             |    - referenced from member '${UsesHiddenType::moreHidden}'
+            |    - referenced from member '${UsesHiddenType::hidden}'
         """.trimMargin(), exception.message)
     }
 
@@ -125,9 +125,9 @@ class SchemaSupertypeMemberVisibilityTest {
             |    - in the supertypes of '${OtherSub::class.qualifiedName}'
             |    - in the supertypes of '${Sub::class.qualifiedName}'
             |  Illegal usages:
-            |    - referenced from member '${UsesHiddenUnannotatedSupertypeType::unannotatedSupSupSup}'
             |    - in the supertypes of '${UnannotatedBoxOfSupSup::class.qualifiedName}'
             |    - in the supertypes of '${UnannotatedSupSup::class.qualifiedName}'
+            |    - referenced from member '${UsesHiddenUnannotatedSupertypeType::unannotatedSupSupSup}'
         """.trimMargin(), exception.message)
     }
 }
