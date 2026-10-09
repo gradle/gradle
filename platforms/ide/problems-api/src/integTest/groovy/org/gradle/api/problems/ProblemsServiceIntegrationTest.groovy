@@ -318,8 +318,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem) {
-            definition.id.fqid == 'problems-api:unsupported-additional-data'
-            definition.id.displayName == 'Unsupported additional data type'
+            definition.id.fqid == 'Gradle:Build Logic:Unsupported additional data type in reported problem'
+            definition.id.displayName == 'Unsupported additional data type in reported problem'
             with(oneLocation(StackTraceLocation).fileLocation as LineInFileLocation) {
                 length == -1
                 column == -1

@@ -47,7 +47,6 @@ class KnownProblemIds {
 
     private static final Map<String, String> KNOWN_GROUPS = [
         // Top level
-        'problems-api': 'Problems API',
         'validation': 'Validation',
         'configuration-usage': 'Configuration usage',
         'daemon-toolchain' : 'Daemon toolchain',
@@ -110,8 +109,9 @@ class KnownProblemIds {
         'Transformation:KMP:JavaScript:Bundle failed': ['Bundle failed'],
         'Transformation:KMP:Compilation failed': ['Compilation failed'],
         'Others:Undefined:Something odd': ['Something odd'],
-        'problems-api:missing-id': ['Problem id must be specified'],
-        'problems-api:unsupported-additional-data': ['Unsupported additional data type'],
+        'Gradle:Build Logic:Reported problem has no id': ['Reported problem has no id'],
+        'Gradle:Build Logic:Reported problem id has no group': ['Reported problem id has no group'],
+        'Gradle:Build Logic:Unsupported additional data type in reported problem': ['Unsupported additional data type in reported problem'],
         'configuration-usage:name-not-allowed': ['Configuration name not allowed'],
         'Compilation:Java:Compiler initialization failed': ['Compiler initialization failed'],
         'Compilation:Groovy:tools.jar is missing': ['tools.jar is missing'],
@@ -156,7 +156,7 @@ class KnownProblemIds {
         'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported-with-the-configuration-cache': ['invocation of \'Task.project\' at execution time is unsupported with the configuration cache.'],
         'validation:configuration-cache:isolated-projects-dangerously-ignoring-problems': ['Isolated Projects problems are dangerously ignored'],
         'packaging:signing:no-configured-signatory': ['No configured signatory'],
-        'plugin-application:target-type-mismatch': ['Unexpected plugin type'],
+        'plugin-application:target-type-mismatch': ['Plugin applied to the wrong target'],
         'task-selection:ambiguous-matches': ['Ambiguous matches'],
         'task-selection:selection-failed': ['Selection failed'],
         'task-selection:empty-path': ['Empty path'],
@@ -277,6 +277,6 @@ class KnownProblemIds {
         'generic:type11': ['inner'],
         'generic:type12': ['outer'],
         'sample-problems:prototype-project': ['Project is a prototype'],
-        'scripts:multiple-scripts': ['Multiple scripts'],
+        'scripts:multiple-scripts': ['Multiple script files in one directory'],
     ]
 }

@@ -155,7 +155,8 @@ class DefaultProblemBuilderStackCapTest extends Specification {
             Mock(PayloadSerializer),
             Mock(IsolatableFactory),
             Mock(IsolatableToBytesSerializer),
-            problemStream
+            problemStream,
+            null
         ))
     }
 }
