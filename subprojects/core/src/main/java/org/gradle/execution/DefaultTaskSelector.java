@@ -95,7 +95,7 @@ public abstract class DefaultTaskSelector implements TaskSelector {
 
         if (context.getOriginalPath().asString().equals(taskName)) {
             String message = matcher.formatErrorMessage("Task", searchContext);
-            throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message), matcher.problemId(), spec -> {
+            throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message), matcher.problemId(getProblemsService().getGroups().getGradle().getInvocation(), "task"), spec -> {
                 configureProblem(spec, context);
                 spec.contextualLabel(message);
             });
@@ -103,7 +103,7 @@ public abstract class DefaultTaskSelector implements TaskSelector {
         String message = String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(),
             matcher.formatErrorMessage("task", searchContext));
 
-        throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message) /* this instead of cause */, matcher.problemId(), spec ->
+        throw getProblemsService().getInternalReporter().throwing(new TaskSelectionException(message) /* this instead of cause */, matcher.problemId(getProblemsService().getGroups().getGradle().getInvocation(), "task"), spec ->
             configureProblem(spec, context)
                 .contextualLabel(message)
         );
