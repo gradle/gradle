@@ -70,6 +70,13 @@ public abstract class Either<L, R> {
     public abstract <U> U fold(Function<? super L, ? extends U> l, Function<? super R, ? extends U> r);
 
     /**
+     * Return the right value, or the result of applying the given function to the left one.
+     */
+    public final R getRightOr(Function<? super L, ? extends R> l) {
+        return fold(l, r -> r);
+    }
+
+    /**
      * Apply the respective consumer.
      */
     public abstract void apply(Consumer<? super L> l, Consumer<? super R> r);

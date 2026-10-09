@@ -97,6 +97,13 @@ class EitherTest extends Specification {
         right.fold({ assert false }, { assert it == RIGHT; RIGHT2 }) == RIGHT2
     }
 
+    def "getRightOr() works"() {
+        expect:
+        left.getRightOr({ assert it == LEFT; RIGHT2 }) == RIGHT2
+
+        right.getRightOr({ assert false }) == RIGHT
+    }
+
     def "apply() works"() {
         def signal = new RuntimeException()
 

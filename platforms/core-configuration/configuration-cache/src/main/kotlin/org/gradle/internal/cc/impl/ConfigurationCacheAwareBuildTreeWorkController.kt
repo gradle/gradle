@@ -19,6 +19,7 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.logging.Logging
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.execution.EntryTaskSelector
+import org.gradle.internal.Either
 import org.gradle.internal.Try
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.build.ExecutionResult
@@ -62,20 +63,23 @@ class ConfigurationCacheAwareBuildTreeWorkController(
     private fun loadAndRun(
         scheduleTaskSelectorPostProcessing: BuildTreeWorkGraphBuilder?,
         taskSelector: EntryTaskSelector?
-    ): ExecutionResult<Void>? =
-        workGraph.withNewWorkGraph { graph ->
+    ): ExecutionResult<Void>? {
+        val loadOutcome: Either<Throwable, ExecutionResult<Void>>? = workGraph.withNewWorkGraph { graph ->
             when (val outcome = cache.maybeLoadRequestedTasks(graph, scheduleTaskSelectorPostProcessing)) {
                 is BuildTreeConfigurationCache.LoadOutcome.Reused -> {
                     maybeDumpHeap("cc-hit")
-                    workExecutor.execute(outcome.graph)
+                    Either.right(workExecutor.execute(outcome.graph))
                 }
 
                 BuildTreeConfigurationCache.LoadOutcome.Missed -> null
 
-                is BuildTreeConfigurationCache.LoadOutcome.Discarded ->
-                    rescheduleAfterDiscardedEntry(scheduleTaskSelectorPostProcessing, taskSelector, outcome.failure)
+                is BuildTreeConfigurationCache.LoadOutcome.Discarded -> Either.left(outcome.failure)
             }
         }
+        return loadOutcome?.getRightOr { failure ->
+            rescheduleAfterDiscardedEntry(scheduleTaskSelectorPostProcessing, taskSelector, failure)
+        }
+    }
 
     private fun scheduleStoreAndRun(
         scheduleTaskSelectorPostProcessing: BuildTreeWorkGraphBuilder?,
