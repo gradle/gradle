@@ -20,6 +20,7 @@ package org.gradle.api.internal.artifacts.configurations
 import org.gradle.api.artifacts.ConfigurablePublishArtifact
 import org.gradle.api.artifacts.PublishArtifact
 import org.gradle.api.attributes.Attribute
+import org.gradle.api.attributes.FallbackVariant
 import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParser
@@ -123,12 +124,22 @@ class DefaultConfigurationPublicationsTest extends Specification {
 
         expect:
         def variants = getOutgoingVariants(publications)
-        variants.size() == 1
+        variants.size() == 2
 
-        def child = variants.first()
-        child.displayName.displayName == "<config> variant 'child'"
-        child.attributes == AttributeTestUtil.attributes(["thing": "value"])
-        child.artifacts == variantDef.artifacts
+        def child1 = variants.first() // Implicit variant
+        child1.displayName.displayName == '<config>'
+        child1.attributes == AttributeTestUtil.attributesTyped([
+            (FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE): AttributeTestUtil.named(FallbackVariant, FallbackVariant.TRUE)
+        ])
+        child1.artifacts == [] as Set
+
+        def child2 = variants[1]
+        child2.displayName.displayName == "<config> variant 'child'"
+        child2.attributes == AttributeTestUtil.attributesTyped([
+            (Attribute.of("thing", String)): "value",
+            (FallbackVariant.FALLBACK_VARIANT_ATTRIBUTE): AttributeTestUtil.named(FallbackVariant, FallbackVariant.FALSE)
+        ])
+        child2.artifacts == variantDef.artifacts
     }
 
     def "converts to OutgoingVariant when explicit variant and artifacts defined"() {
