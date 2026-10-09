@@ -59,6 +59,7 @@ class S3ClientTest extends Specification {
             assert putObjectRequest.key == 'maven/snapshot/myFile.txt'
             assert putObjectRequest.cannedAcl == CannedAccessControlList.BucketOwnerFullControl
             assert putObjectRequest.metadata.contentLength == 12
+            assert putObjectRequest.requestClientOptions.readLimit == 13
         }
     }
 
@@ -97,6 +98,7 @@ class S3ClientTest extends Specification {
             assert uploadPartRequest.partNumber == 1
             assert uploadPartRequest.fileOffset == 0
             assert uploadPartRequest.partSize == 7
+            assert uploadPartRequest.requestClientOptions.readLimit == 8
             uploadPartResult
         } >> { args ->
             UploadPartRequest uploadPartRequest = args[0]
@@ -105,6 +107,7 @@ class S3ClientTest extends Specification {
             assert uploadPartRequest.partNumber == 2
             assert uploadPartRequest.fileOffset == 0
             assert uploadPartRequest.partSize == 5
+            assert uploadPartRequest.requestClientOptions.readLimit == 6
             uploadPartResult
         }
         1 * amazonS3Client.completeMultipartUpload(*_) >> { args ->
