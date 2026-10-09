@@ -17,6 +17,8 @@
 package org.gradle.launcher.daemon.server.expiry;
 
 import com.google.common.base.Joiner;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -28,6 +30,7 @@ import static org.gradle.launcher.daemon.server.expiry.DaemonExpirationStatus.hi
  * Expires the daemon if any of the children would expire the daemon.
  */
 public class AnyDaemonExpirationStrategy implements DaemonExpirationStrategy {
+    private static final Logger LOGGER = Logging.getLogger(AnyDaemonExpirationStrategy.class);
     private Iterable<DaemonExpirationStrategy> expirationStrategies;
 
     public AnyDaemonExpirationStrategy(List<DaemonExpirationStrategy> expirationStrategies) {
@@ -41,7 +44,12 @@ public class AnyDaemonExpirationStrategy implements DaemonExpirationStrategy {
         List<String> reasons = new ArrayList<>();
 
         for (DaemonExpirationStrategy expirationStrategy : expirationStrategies) {
-            expirationResult = expirationStrategy.checkExpiration();
+            try {
+                expirationResult = expirationStrategy.checkExpiration();
+            } catch (Exception e) {
+                LOGGER.error("Problem in daemon expiration strategy " + expirationStrategy.getClass().getName() + ". Continuing with other strategies.", e);
+                continue;
+            }
             if (expirationResult.getStatus() != DO_NOT_EXPIRE) {
                 reasons.add(expirationResult.getReason());
                 expirationStatus = highestPriorityOf(expirationResult.getStatus(), expirationStatus);
