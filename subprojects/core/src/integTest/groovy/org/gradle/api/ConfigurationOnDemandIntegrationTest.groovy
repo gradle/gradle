@@ -537,8 +537,8 @@ project(':b') {
         fixture.assertProjectsConfigured(":", ":a", ":c", ':c:child')
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'task-selection:selection-failed'
-            definition.id.displayName == 'Selection failed'
+            fqid == 'Gradle:Invocation:Task selection failed'
+            definition.id.displayName == 'Task selection failed'
             contextualLabel == "Task 'two' not found in project ':c' and its subprojects."
             details == null
             solutions == []
@@ -575,8 +575,8 @@ allprojects {
         fixture.assertProjectsConfigured(":", ":a", ":c", ':c:child')
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'task-selection:selection-failed'
-            definition.id.displayName == 'Selection failed'
+            fqid == 'Gradle:Invocation:Task selection failed'
+            definition.id.displayName == 'Task selection failed'
             contextualLabel == "Task 'two' not found in project ':c' and its subprojects."
             details == null
             solutions == []

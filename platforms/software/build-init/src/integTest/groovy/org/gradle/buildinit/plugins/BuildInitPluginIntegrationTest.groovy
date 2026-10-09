@@ -38,12 +38,16 @@ class BuildInitPluginIntegrationTest extends AbstractInitIntegrationSpec {
 
     @SuppressWarnings('GroovyAssignabilityCheck')
     def "init must be only task requested #args"() {
+        given:
+        enableProblemsApiCheck()
+
         when:
         fails(args)
 
         then:
         failureDescriptionContains("Executing other tasks along with the 'init' task is not allowed. The 'init' task must be run by itself.")
         failure.assertHasResolution("Remove all other tasks from the command line when running init.")
+        receivedProblem.fqid == 'Gradle:Invocation:Exclusive task run with other tasks'
 
         where:
         args << [
