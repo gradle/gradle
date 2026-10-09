@@ -31,7 +31,7 @@ import org.gradle.internal.service.scopes.ServiceScope
 internal
 class IdeaIoSystemPropertyInitializer : BuildTreeLifecycleListener {
 
-    override fun afterStart() {
+    override fun afterBuildTreeStart() {
         org.jetbrains.kotlin.cli.common.environment.setIdeaIoUseFallback()
     }
 }
