@@ -16,6 +16,7 @@
 
 package org.gradle.internal.resource.transport.http
 
+import org.apache.http.HttpHeaders
 import org.apache.http.HttpRequest
 import org.apache.http.RequestLine
 import org.apache.http.client.methods.CloseableHttpResponse
@@ -30,7 +31,7 @@ class AlwaysFollowAndPreserveMethodRedirectStrategyTest extends Specification {
 
     def "should consider all requests redirectable"() {
         expect:
-        new AllowFollowForMutatingMethodRedirectStrategy().isRedirectable(method)
+        new AlwaysFollowAndPreserveMethodRedirectStrategy().isRedirectable(method)
 
         where:
         method << HTTP_METHODS
@@ -41,7 +42,8 @@ class AlwaysFollowAndPreserveMethodRedirectStrategyTest extends Specification {
         HttpRequest request = Mock()
         CloseableHttpResponse response = Mock()
         HttpContext context = Mock()
-        response.getFirstHeader("location") >> new BasicHeader('location', 'http://redirectTo')
+        response.getFirstHeader(HttpHeaders.LOCATION) >>
+            new BasicHeader(HttpHeaders.LOCATION, 'http://redirectTo')
         request.getRequestLine() >> Mock(RequestLine) {
             getMethod() >> httpMethod
         }
@@ -55,5 +57,29 @@ class AlwaysFollowAndPreserveMethodRedirectStrategyTest extends Specification {
 
         where:
         httpMethod << HTTP_METHODS + HTTP_METHODS.collect { it.toLowerCase() }
+    }
+
+    def "should keep the escaping of the location for http method [#httpMethod]"() {
+        setup:
+        def location = 'http://redirectTo/module/1.0%2Bdev/module.pom'
+        HttpRequest request = Mock()
+        CloseableHttpResponse response = Mock()
+        HttpContext context = Mock()
+        response.getFirstHeader(HttpHeaders.LOCATION) >>
+            new BasicHeader(HttpHeaders.LOCATION, location)
+        request.getRequestLine() >> Mock(RequestLine) {
+            getMethod() >> httpMethod
+        }
+        request.getParams() >> Mock(HttpParams)
+
+        when:
+        def redirect = new AlwaysFollowAndPreserveMethodRedirectStrategy()
+            .getRedirect(request, response, context)
+
+        then:
+        redirect.URI.toASCIIString() == location
+
+        where:
+        httpMethod << HTTP_METHODS
     }
 }
