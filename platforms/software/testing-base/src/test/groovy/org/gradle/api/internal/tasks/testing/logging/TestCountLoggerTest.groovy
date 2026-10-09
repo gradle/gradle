@@ -168,8 +168,8 @@ class TestCountLoggerTest extends Specification {
     private result(boolean failed = false, int failureCount = 1) {
         if (failed) {
             List<TestFailure> failures = (1..failureCount).collect {Mock(TestFailure) }
-            return new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, failures, null)
+            return new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, failures, null, null)
         }
-        return new DefaultTestResult(TestResult.ResultType.SUCCESS, 0, 0, 1, 1, 0, [], null)
+        return new DefaultTestResult(TestResult.ResultType.SUCCESS, 0, 0, 1, 1, 0, [], null, null)
     }
 }

@@ -50,7 +50,7 @@ class SimpleTestEventLoggerTest extends Specification {
         def logger = new SimpleTestEventLogger(textOutputFactory)
 
         def descriptor = new DefaultTestDescriptor(0, "Class", "method", "Class", "method()")
-        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new AssertionFailureDetails("message", "Exception", "stack", null, null), [])], null)
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new AssertionFailureDetails("message", "Exception", "stack", null, null), [])], null, null)
         def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
 
         when:
@@ -70,7 +70,7 @@ method() {failure}FAILED{normal}
         def logger = new SimpleTestEventLogger(textOutputFactory)
 
         def descriptor = new DefaultTestDescriptor(0, "Class", "method", "Class", "method()")
-        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new DefaultTestFailureDetails("message", "TestFrameworkException", "stack"), [])], null)
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new DefaultTestFailureDetails("message", "TestFrameworkException", "stack"), [])], null, null)
         def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
 
         when:
@@ -89,7 +89,7 @@ method() {failure}FAILED{normal}
         def logger = new SimpleTestEventLogger(textOutputFactory)
 
         def descriptor = new DefaultTestDescriptor(0, "Class", "method", "Class", "method()")
-        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new FileComparisonFailureDetails("message", "TestFrameworkException", "stack", "expected", "actual", new byte[0], new byte[0]), [])], null)
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 0, 0, 0, [new DefaultTestFailure(null, new FileComparisonFailureDetails("message", "TestFrameworkException", "stack", "expected", "actual", new byte[0], new byte[0]), [])], null, null)
         def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
 
         when:
@@ -109,7 +109,7 @@ method() {failure}FAILED{normal}
         def logger = new SimpleTestEventLogger(textOutputFactory)
 
         def descriptor = new DefaultTestSuiteDescriptor(0, "Root")
-        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, totalCount, successes, failures, [], null)
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, totalCount, successes, failures, [], null, null)
         def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
 
         when:
@@ -135,7 +135,7 @@ method() {failure}FAILED{normal}
 
         def parent = new DefaultTestSuiteDescriptor(0, "Root")
         def descriptor = new DecoratingTestDescriptor(new DefaultTestSuiteDescriptor(1, "Child"), parent)
-        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, [], null)
+        def result = new DefaultTestResult(TestResult.ResultType.FAILURE, 0, 0, 1, 0, 1, [], null, null)
         def complete = new TestCompleteEvent(0, TestResult.ResultType.FAILURE)
 
         when:
@@ -149,7 +149,7 @@ method() {failure}FAILED{normal}
         def logger = new SimpleTestEventLogger(textOutputFactory)
 
         def descriptor = new DefaultTestDescriptor(0, "Class", "method", "Class", "method()")
-        def result = new DefaultTestResult(TestResult.ResultType.SKIPPED, 0, 0, 0, 0, 0, [], null)
+        def result = new DefaultTestResult(TestResult.ResultType.SKIPPED, 0, 0, 0, 0, 0, [], null, null)
         def complete = new TestCompleteEvent(0, TestResult.ResultType.SKIPPED)
 
         when:
@@ -163,7 +163,7 @@ method() {failure}FAILED{normal}
         def logger = new SimpleTestEventLogger(textOutputFactory)
 
         def descriptor = new DefaultTestDescriptor(0, "Class", "method", "Class", "method()")
-        def result = new DefaultTestResult(TestResult.ResultType.SUCCESS, 0, 0, 0, 0, 0, [], null)
+        def result = new DefaultTestResult(TestResult.ResultType.SUCCESS, 0, 0, 0, 0, 0, [], null, null)
         def complete = new TestCompleteEvent(0, TestResult.ResultType.SUCCESS)
 
         when:
