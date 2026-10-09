@@ -36,7 +36,7 @@ class NoSigningCredentialsIntegrationSpec extends SigningIntegrationSpec {
 
         and:
         verifyAll(receivedProblem) {
-            definition.id.fqid == 'packaging:signing:no-configured-signatory'
+            definition.id.fqid == 'Packaging:Signing:No configured signatory'
             definition.id.displayName == 'No configured signatory'
             contextualLabel == "Cannot perform signing task ':signJar' because it has no configured signatory"
             solutions == ["Configure a signatory in the 'signing {}' block."]
