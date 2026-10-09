@@ -43,7 +43,11 @@ class FilteringProviderTest extends Specification {
 
         then:
         def ex = thrown(InvalidUserCodeException)
-        ex.message == "Querying the filtered value of <prop> before <task> has completed is not supported"
+        ex.message == "Querying the filtered value of <prop> before <task> has completed is not supported. " +
+            "The filtered value may depend on the content produced by <task>, so it can only be calculated after <task> has completed. " +
+            "To use the value in another task, declare it as an input of that task, so that the task runs after <task>. " +
+            "To use the value in the actions of <task>, query the property with 'get()' and transform the result. " +
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
     }
 
     def "fails when calling get() before producer task has completed"() {
@@ -56,7 +60,11 @@ class FilteringProviderTest extends Specification {
 
         then:
         def ex = thrown(InvalidUserCodeException)
-        ex.message == "Querying the filtered value of <prop> before <task> has completed is not supported"
+        ex.message == "Querying the filtered value of <prop> before <task> has completed is not supported. " +
+            "The filtered value may depend on the content produced by <task>, so it can only be calculated after <task> has completed. " +
+            "To use the value in another task, declare it as an input of that task, so that the task runs after <task>. " +
+            "To use the value in the actions of <task>, query the property with 'get()' and transform the result. " +
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
     }
 
     def "does not fail when calling get() after producer task has completed"() {
@@ -81,7 +89,11 @@ class FilteringProviderTest extends Specification {
 
         then:
         def ex = thrown(InvalidUserCodeException)
-        ex.message == "Querying the filtered value of <prop> before <task> has completed is not supported"
+        ex.message == "Querying the filtered value of <prop> before <task> has completed is not supported. " +
+            "The filtered value may depend on the content produced by <task>, so it can only be calculated after <task> has completed. " +
+            "To use the value in another task, declare it as an input of that task, so that the task runs after <task>. " +
+            "To use the value in the actions of <task>, query the property with 'get()' and transform the result. " +
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
     }
 
     def "fails when calling getOrElse() before producer task has completed"() {
@@ -94,7 +106,11 @@ class FilteringProviderTest extends Specification {
 
         then:
         def ex = thrown(InvalidUserCodeException)
-        ex.message == "Querying the filtered value of <prop> before <task> has completed is not supported"
+        ex.message == "Querying the filtered value of <prop> before <task> has completed is not supported. " +
+            "The filtered value may depend on the content produced by <task>, so it can only be calculated after <task> has completed. " +
+            "To use the value in another task, declare it as an input of that task, so that the task runs after <task>. " +
+            "To use the value in the actions of <task>, query the property with 'get()' and transform the result. " +
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
     }
 
     def "fails when querying chained mapping before producer task has completed"() {
@@ -107,7 +123,11 @@ class FilteringProviderTest extends Specification {
 
         then:
         def ex = thrown(InvalidUserCodeException)
-        ex.message == "Querying the filtered value of filter(java.lang.String <prop>) before <task> has completed is not supported"
+        ex.message == "Querying the filtered value of filter(java.lang.String <prop>) before <task> has completed is not supported. " +
+            "The filtered value may depend on the content produced by <task>, so it can only be calculated after <task> has completed. " +
+            "To use the value in another task, declare it as an input of that task, so that the task runs after <task>. " +
+            "To use the value in the actions of <task>, query the property with 'get()' and transform the result. " +
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
     }
 
     def "fails when querying orElse() mapping before producer task has completed"() {
@@ -120,7 +140,11 @@ class FilteringProviderTest extends Specification {
 
         then:
         def ex = thrown(InvalidUserCodeException)
-        ex.message == "Querying the filtered value of <prop> before <task> has completed is not supported"
+        ex.message == "Querying the filtered value of <prop> before <task> has completed is not supported. " +
+            "The filtered value may depend on the content produced by <task>, so it can only be calculated after <task> has completed. " +
+            "To use the value in another task, declare it as an input of that task, so that the task runs after <task>. " +
+            "To use the value in the actions of <task>, query the property with 'get()' and transform the result. " +
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
     }
 
     Property<String> propertyWithProducer() {

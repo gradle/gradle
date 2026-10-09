@@ -94,9 +94,14 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     protected void beforeRead(EvaluationScopeContext context) {
         provider.getProducer().visitContentProducerTasks(producer -> {
             if (!producer.getState().getExecuted()) {
-                throw new InvalidUserCodeException(
-                    String.format("Querying the mapped value of %s before %s has completed is not supported", provider, producer)
-                );
+                throw new InvalidUserCodeException(String.format(
+                    "Querying the mapped value of %s before %s has completed is not supported. " +
+                        "The mapped value may depend on the content produced by %s, so it can only be calculated after %s has completed. " +
+                        "To use the value in another task, declare it as an input of that task, so that the task runs after %s. " +
+                        "To use the value in the actions of %s, query the property with 'get()' and transform the result. " +
+                        "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead.",
+                    provider, producer, producer, producer, producer, producer
+                ));
             }
         });
     }
