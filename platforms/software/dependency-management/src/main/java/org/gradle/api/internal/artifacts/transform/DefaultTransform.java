@@ -310,7 +310,6 @@ public class DefaultTransform implements Transform {
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
             ImmutableSortedMap.of(),
-            ImmutableSortedMap.of(),
             visitor -> propertyWalker.visitProperties(parameterObject, validationContext, new PropertyVisitor() {
                 @Override
                 public void visitInputProperty(

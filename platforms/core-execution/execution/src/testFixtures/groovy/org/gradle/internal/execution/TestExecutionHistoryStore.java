@@ -19,6 +19,7 @@ package org.gradle.internal.execution;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.execution.history.AfterExecutionState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.InputValueHash;
 import org.gradle.internal.execution.history.PreviousExecutionState;
 import org.gradle.internal.execution.history.impl.DefaultPreviousExecutionState;
 import org.gradle.internal.execution.history.impl.SerializableFileCollectionFingerprint;
@@ -31,6 +32,7 @@ import java.util.Optional;
 
 import static com.google.common.collect.ImmutableSortedMap.copyOfSorted;
 import static com.google.common.collect.Maps.transformValues;
+
 
 public class TestExecutionHistoryStore implements ExecutionHistoryStore {
 
@@ -48,7 +50,7 @@ public class TestExecutionHistoryStore implements ExecutionHistoryStore {
             executionState.getCacheKey(),
             executionState.getImplementation(),
             executionState.getAdditionalImplementations(),
-            executionState.getInputProperties(),
+            InputValueHash.ofAll(executionState.getInputProperties()),
             prepareForSerialization(executionState.getInputFileProperties()),
             executionState.getOutputFilesProducedByWork(),
             executionState.isSuccessful()

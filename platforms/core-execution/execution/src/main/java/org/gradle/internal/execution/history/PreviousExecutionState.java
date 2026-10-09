@@ -26,6 +26,13 @@ import org.gradle.internal.hash.HashCode;
 public interface PreviousExecutionState extends ExecutionInputState, ExecutionOutputState {
 
     /**
+     * Hashes of the non-file inputs.
+     *
+     * Only the hash of each value is kept, so that the history does not retain the serialized value itself.
+     */
+    ImmutableSortedMap<String, HashCode> getInputPropertyHashes();
+
+    /**
      * Returns the cache key from the previous execution.
      */
     HashCode getCacheKey();
