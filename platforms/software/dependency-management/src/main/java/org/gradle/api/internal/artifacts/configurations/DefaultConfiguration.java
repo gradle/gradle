@@ -79,7 +79,6 @@ import org.gradle.api.internal.initialization.ResettableConfiguration;
 import org.gradle.api.internal.project.ProjectDomainObjectContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
@@ -1327,7 +1326,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
                 )
             );
 
-            ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
+            ProblemId id = configurationServices.getProblems().getGroups().getGradle().getBuildLogic().problemId("Configuration method call not allowed");
             throw configurationServices.getProblems().getInternalReporter().throwing(ex, id, spec -> {
                 spec.contextualLabel(
                     String.format(
@@ -1522,7 +1521,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
     private void failDueToChangingUsage(String methodName, boolean newValue) {
         GradleException ex = new GradleException(String.format("Calling %s(%b) on %s is not allowed.  This configuration's role was set upon creation and its usage should not be changed.", methodName, newValue, this));
-        ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
+        ProblemId id = configurationServices.getProblems().getGroups().getGradle().getBuildLogic().problemId("Configuration method call not allowed");
         throw configurationServices.getProblems().getInternalReporter().throwing(ex, id, spec -> {
             spec.contextualLabel(ex.getMessage());
         });
@@ -1681,7 +1680,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             .map(ConfigurationInternal::getDisplayName)
             .collect(Collectors.joining(", "));
         GradleException ex = new GradleException(getDisplayName() + " cannot extend " + summarizedExtensionTargets);
-        ProblemId id = ProblemId.create("extend-detached-not-allowed", "Extending a detachedConfiguration is not allowed", GradleCoreProblemGroup.configurationUsage());
+        ProblemId id = configurationServices.getProblems().getGroups().getGradle().getBuildLogic().problemId("Detached configuration cannot extend other configurations");
         throw configurationServices.getProblems().getInternalReporter().throwing(ex, id, spec -> {
             spec.contextualLabel(ex.getMessage());
         });

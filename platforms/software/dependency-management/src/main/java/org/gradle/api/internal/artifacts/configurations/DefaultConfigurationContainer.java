@@ -36,7 +36,6 @@ import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Actions;
@@ -154,7 +153,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     private RuntimeException failOnAttemptToAdd(String behavior) {
         GradleException ex = new GradleException(behavior);
-        ProblemId id = ProblemId.create("method-not-allowed", "Method call not allowed", GradleCoreProblemGroup.configurationUsage());
+        ProblemId id = problemsService.getGroups().getGradle().getBuildLogic().problemId("Configuration method call not allowed");
         throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
             spec.contextualLabel(ex.getMessage());
         });
@@ -318,7 +317,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
 
     private RuntimeException failOnReservedName(String confName) {
         GradleException ex = new GradleException("The configuration " + confName + " was created explicitly. This configuration name is reserved for creation by Gradle.");
-        ProblemId id = ProblemId.create("unexpected configuration usage", "Unexpected configuration usage", GradleCoreProblemGroup.configurationUsage());
+        ProblemId id = problemsService.getGroups().getGradle().getBuildDefinition().problemId("Reserved configuration name used");
         throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
             spec.contextualLabel(ex.getMessage());
         });
@@ -367,7 +366,7 @@ public class DefaultConfigurationContainer extends AbstractValidatingNamedDomain
     private void validateNameIsAllowed(String name) {
         if (RESERVED_NAMES_FOR_DETACHED_CONFS.matcher(name).matches()) {
             GradleException ex = new GradleException(String.format("Creating a configuration with a name that starts with 'detachedConfiguration' is not allowed.  Use a different name for the configuration '%s'", name));
-            ProblemId id = ProblemId.create("name-not-allowed", "Configuration name not allowed", GradleCoreProblemGroup.configurationUsage());
+            ProblemId id = problemsService.getGroups().getGradle().getBuildDefinition().problemId("Configuration name not allowed");
             throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
                 spec.contextualLabel(ex.getMessage());
             });

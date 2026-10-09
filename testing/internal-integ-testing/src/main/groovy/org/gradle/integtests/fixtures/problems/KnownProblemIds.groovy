@@ -112,7 +112,11 @@ class KnownProblemIds {
         'Gradle:Build Logic:Reported problem has no id': ['Reported problem has no id'],
         'Gradle:Build Logic:Reported problem id has no group': ['Reported problem id has no group'],
         'Gradle:Build Logic:Unsupported additional data type in reported problem': ['Unsupported additional data type in reported problem'],
-        'configuration-usage:name-not-allowed': ['Configuration name not allowed'],
+        'Gradle:Build Definition:Configuration name not allowed': ['Configuration name not allowed'],
+        'Gradle:Build Definition:Reserved configuration name used': ['Reserved configuration name used'],
+        'Gradle:Build Definition:Configuring project with invalid directory': ['Configuring project with invalid directory'],
+        'Gradle:Build Logic:Configuration method call not allowed': ['Configuration method call not allowed'],
+        'Gradle:Build Logic:Detached configuration cannot extend other configurations': ['Detached configuration cannot extend other configurations'],
         'Compilation:Java:Compiler initialization failed': ['Compiler initialization failed'],
         'Compilation:Groovy:tools.jar is missing': ['tools.jar is missing'],
         // Java compiler diagnostics are named after javac's message templates, an open set that changes with the JDK

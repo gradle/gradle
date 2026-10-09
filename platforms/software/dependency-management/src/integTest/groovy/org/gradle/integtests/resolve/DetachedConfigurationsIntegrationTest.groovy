@@ -180,7 +180,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem(0)) {
-            fqid == 'configuration-usage:name-not-allowed'
+            fqid == 'Gradle:Build Definition:Configuration name not allowed'
             contextualLabel == "Creating a configuration with a name that starts with 'detachedConfiguration' is not allowed.  Use a different name for the configuration '$name'"
         }
 
@@ -289,7 +289,7 @@ class DetachedConfigurationsIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         failure.assertHasDescription("A problem occurred evaluating root project '${buildFile.parentFile.name}'.")
-        failure.assertHasCause("""Extending a detachedConfiguration is not allowed
+        failure.assertHasCause("""Detached configuration cannot extend other configurations
   configuration ':detachedConfiguration1' cannot extend $description""")
 
         where:
