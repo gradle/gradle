@@ -24,11 +24,9 @@ import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFai
 /**
  * {@link AdditionalData} data for a {@link Problem} that represents a resolution failure.
  * <p>
- * Serialized to JSON as a map with the following keys:
+ * Serialized to JSON as a map with the following key:
  * <ul>
  * <li>RequestTarget - a description of the target of the resolution request that failed</li>
- * <li>ProblemId - the id of the problem</li>
- * <li>ProblemDisplayName - a human-readable description of the problem</li>
  * </ul>
  */
 public interface ResolutionFailureData extends GeneralData {
@@ -41,10 +39,6 @@ public interface ResolutionFailureData extends GeneralData {
 
     @Override
     default ImmutableMap<String, String> getAsMap() {
-        return ImmutableMap.<String, String>builder()
-            .put("requestTarget", getResolutionFailure().describeRequestTarget())
-            .put("problemId", getResolutionFailure().getProblemId().name())
-            .put("problemDisplayName", getResolutionFailure().getProblemId().getDisplayName())
-            .build();
+        return ImmutableMap.of("requestTarget", getResolutionFailure().describeRequestTarget());
     }
 }
