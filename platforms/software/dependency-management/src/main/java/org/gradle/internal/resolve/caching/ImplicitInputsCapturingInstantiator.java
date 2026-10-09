@@ -25,7 +25,6 @@ import org.gradle.internal.service.UnknownServiceException;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
 
-import java.lang.annotation.Annotation;
 import java.lang.reflect.Type;
 
 /**
@@ -92,11 +91,6 @@ public class ImplicitInputsCapturingInstantiator implements Instantiator {
         @Override
         public Object get(Type serviceType) throws UnknownServiceException, ServiceLookupException {
             return delegate.get(serviceType);
-        }
-
-        @Override
-        public Object get(Type serviceType, Class<? extends Annotation> annotatedWith) throws UnknownServiceException, ServiceLookupException {
-            return delegate.get(serviceType, annotatedWith);
         }
 
         @Override
