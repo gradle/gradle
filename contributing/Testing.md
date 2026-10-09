@@ -64,6 +64,41 @@ For example:
     def "can use exec in settings"() { ... }
 ``` 
 
+## Add a repository when a dependency is not published to the public ones
+
+Sometimes a version under test is not available from Maven Central or the Plugin Portal, e.g. a Kotlin dev build.
+Instead of declaring the repository in every affected test, register it once in [RepoScriptBlockUtil](../testing/internal-distribution-testing/src/main/groovy/org/gradle/integtests/fixtures/RepoScriptBlockUtil.groovy).
+
+First add the mirror to the `MirroredRepository` enum in that file, so CI can mirror it.
+Then register the extra repository in `EXTRA_REPOSITORIES`:
+
+```groovy
+new ExtraRepository(MirroredRepository.KOTLIN_DEV.name, MirroredRepository.KOTLIN_DEV.mirrorUrl, [/org\.jetbrains\.kotlin(\..+)?/], ~/(?i)kotlin/, true, {
+    new KotlinGradlePluginVersions().latests.any { KotlinGradlePluginVersions.isKotlinDevVersion(it) }
+})
+```
+
+The group regexes become a content filter, so the repository is only consulted for the dependencies it serves.
+The pattern marks the builds that need the repository: those whose scripts or version catalogs contain a match.
+The flag after it marks every Kotlin DSL build as needing it too, as their scripts get the Kotlin libraries at the embedded version.
+The closure decides whether the repository is used at all.
+All three are optional; without the pattern and the flag every build gets the repository.
+
+A registered repository reaches test builds two ways:
+
+- The repository blocks this class produces, such as `mavenCentralRepository()` and `extraRepositoriesDefinition()`, and the `repositoriesBlock` of the Kotlin DSL test fixtures.
+  Builds declaring their repositories with these get the extra ones without further changes, whether they run through an executer or the Tooling API.
+- An init script, passed to every smoke test build, and to each build started through a `GradleExecuter` that needs it by the pattern or the flag.
+  It adds the repository to the settings `pluginManagement` and `dependencyResolutionManagement` blocks, and to buildscript and project repositories that already contain one.
+  Adding a repository to a project that declares none would stop that project from using the settings repositories.
+  It is limited to the builds that need it because the build sees the script, e.g. as build operations, which breaks tests asserting on those.
+  A test whose build needs the repository without mentioning a match can call `executer.withExtraRepositories()`.
+
+In a Tooling API test, declare repositories with the block helpers, `gradlePluginAndMavenCentralRepositories()` or `mavenCentralRepository()`, which include the extra ones.
+The single-repository helpers, `mavenCentralRepositoryDefinition()` and the like, name one repository each, so a block built out of them misses the extra repositories.
+
+While a repository is active, tests asserting on the repositories a build uses can fail, for example those checking a plugin-resolution failure message.
+
 # Cross Version Tests
 
 Some tests in the Gradle codebase are executed with a wide range of supported Gradle versions.

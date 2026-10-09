@@ -178,6 +178,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean disableToolchainDownload = true;
     private boolean disableToolchainDetection = true;
     private boolean disablePluginRepositoryMirror = false;
+    private boolean extraRepositories = false;
 
     private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings = new ArrayList<>();
     private boolean eagerClassLoaderCreationChecksOn = true;
@@ -479,6 +480,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         if (disablePluginRepositoryMirror) {
             executer.withPluginRepositoryMirrorDisabled();
+        }
+        if (extraRepositories) {
+            executer.withExtraRepositories();
         }
 
         return executer;
@@ -977,6 +981,26 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
+    public GradleExecuter withExtraRepositories() {
+        extraRepositories = true;
+        return this;
+    }
+
+    private boolean needsExtraRepositories() {
+        if (extraRepositories) {
+            return true;
+        }
+        File userHome = getGradleUserHomeDir();
+        Set<File> excluded = userHome == null ? Collections.emptySet() : Collections.singleton(userHome);
+        File testDirectory = testDirectoryProvider.getTestDirectory();
+        if (RepoScriptBlockUtil.extraRepositoriesNeededBy(testDirectory, excluded)) {
+            return true;
+        }
+        File workingDir = getWorkingDir();
+        return !workingDir.toPath().startsWith(testDirectory.toPath()) && RepoScriptBlockUtil.extraRepositoriesNeededBy(workingDir, excluded);
+    }
+
+    @Override
     public GradleExecuter ignoreCleanupAssertions() {
         this.ignoreCleanupAssertions = true;
         return this;
@@ -1092,6 +1116,11 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         for (File initScript : initScripts) {
             allArgs.add("--init-script");
             allArgs.add(initScript.getAbsolutePath());
+        }
+        File extraRepositoriesInitScript = RepoScriptBlockUtil.extraRepositoriesInitScriptFile();
+        if (extraRepositoriesInitScript != null && needsExtraRepositories()) {
+            allArgs.add("--init-script");
+            allArgs.add(extraRepositoriesInitScript.getAbsolutePath());
         }
         if (quiet) {
             allArgs.add("--quiet");

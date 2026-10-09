@@ -28,6 +28,7 @@ class KotlinDslScriptsModelCrossVersionSpec extends AbstractKotlinScriptModelCro
     def "kotlin-dsl project with pre-compiled script plugins should import without errors"() {
 
         given:
+        withDefaultSettings()
         withBuildScript """
             plugins { `kotlin-dsl` }
             $repositoriesBlock
