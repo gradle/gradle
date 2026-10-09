@@ -16,6 +16,7 @@ dependencies {
     api(projects.declarativeDslApi)
     api(projects.fileTemp)
     api(projects.hashing)
+    api(projects.serialization)
     api(projects.serviceLookup)
     api(projects.stdlibJavaExtensions)
 

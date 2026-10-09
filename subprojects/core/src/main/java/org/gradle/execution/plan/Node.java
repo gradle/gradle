@@ -637,7 +637,14 @@ public abstract class Node {
         return Collections.emptyList();
     }
 
+    /**
+     * The display name of this node for use in user-facing messages.
+     */
+    public abstract String getDisplayName();
+
     @Override
-    public abstract String toString();
+    public String toString() {
+        return getDisplayName();
+    }
 
 }
