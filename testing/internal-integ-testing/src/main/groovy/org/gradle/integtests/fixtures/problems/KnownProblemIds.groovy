@@ -48,7 +48,6 @@ class KnownProblemIds {
     private static final Map<String, String> KNOWN_GROUPS = [
         // Top level
         'validation': 'Validation',
-        'configuration-usage': 'Configuration usage',
         'daemon-toolchain' : 'Daemon toolchain',
         'jvm-toolchain': 'JVM Toolchain',
         'packaging': 'Packaging',
@@ -117,6 +116,11 @@ class KnownProblemIds {
         'Gradle:Build Definition:Configuring project with invalid directory': ['Configuring project with invalid directory'],
         'Gradle:Build Logic:Configuration method call not allowed': ['Configuration method call not allowed'],
         'Gradle:Build Logic:Detached configuration cannot extend other configurations': ['Detached configuration cannot extend other configurations'],
+        'Gradle:Build Definition:Duplicate project feature registration': ['Duplicate project feature registration'],
+        'Gradle:Build Logic:Project feature binds to BuildModel\\.None': ['Project feature binds to BuildModel\\.None'],
+        'Gradle:Build Logic:Safe project feature definition has an implementation type': ['Safe project feature definition has an implementation type'],
+        'Gradle:Build Logic:Project feature apply action uses an unknown service': ['Project feature apply action uses an unknown service'],
+        'Gradle:Build Logic:Safe project feature apply action uses an unsafe service': ['Safe project feature apply action uses an unsafe service'],
         'Compilation:Java:Compiler initialization failed': ['Compiler initialization failed'],
         'Compilation:Groovy:tools.jar is missing': ['tools.jar is missing'],
         // Java compiler diagnostics are named after javac's message templates, an open set that changes with the JDK

@@ -23,9 +23,8 @@ import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.initialization.Settings;
 import org.gradle.api.internal.tasks.properties.InspectionScheme;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemInternal;
-import org.gradle.api.problems.internal.ProblemReporterInternal;
+import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.reflect.TypeOf;
 import org.gradle.features.annotations.BindsProjectFeature;
 import org.gradle.features.annotations.BindsProjectType;
@@ -66,12 +65,12 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
     @SuppressWarnings("unused")
     private final InspectionScheme inspectionScheme;
     private final Instantiator instantiator;
-    private final ProblemReporterInternal problemReporter;
+    private final ProblemsInternal problemsService;
 
-    public DefaultProjectFeatureDeclarations(InspectionScheme inspectionScheme, Instantiator instantiator, ProblemReporterInternal problemReporter) {
+    public DefaultProjectFeatureDeclarations(InspectionScheme inspectionScheme, Instantiator instantiator, ProblemsInternal problemsService) {
         this.inspectionScheme = inspectionScheme;
         this.instantiator = instantiator;
-        this.problemReporter = problemReporter;
+        this.problemsService = problemsService;
     }
 
     @Override
@@ -111,8 +110,8 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
         if (binding.targetDefinitionType() instanceof TargetTypeInformation.BuildModelTargetTypeInformation &&
             ((TargetTypeInformation.BuildModelTargetTypeInformation<?>) binding.targetDefinitionType()).getBuildModelType().equals(BuildModel.None.class)) {
 
-            ProblemInternal bindingTypeProblem = problemReporter.internalCreate(builder -> builder
-                .id("bind=to-build-model-none", "Project features binds to BuildModel.None", GradleCoreProblemGroup.configurationUsage())
+            ProblemInternal bindingTypeProblem = problemsService.getInternalReporter().internalCreate(builder -> builder
+                .id(problemsService.getGroups().getGradle().getBuildLogic().problemId("Project feature binds to BuildModel.None"))
                 .details("A project feature cannot bind to 'BuildModel.None' as its target build model type.")
                 .contextualLabel("Project feature '" + projectFeatureName + "' is bound to 'BuildModel.None'")
                 .solution("Bind to a target definition type instead.")
@@ -137,8 +136,8 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
             List<ProblemInternal> problems = new ArrayList<>();
             existingPluginClasses.forEach(existingPluginClass -> {
                 problems.add(
-                    problemReporter.internalCreate(builder -> builder
-                        .id("duplicate-project-feature-registration", "Duplicate project feature registration", GradleCoreProblemGroup.configurationUsage())
+                    problemsService.getInternalReporter().internalCreate(builder -> builder
+                        .id(problemsService.getGroups().getGradle().getBuildDefinition().problemId("Duplicate project feature registration"))
                         .details("A project feature or type with a given name must bind to a unique target type.")
                         .contextualLabel("Project feature '" + projectFeatureName + "' is registered by both '" + pluginClass.getName() + "' and '" + existingPluginClass.getName() + "' but their bindings have overlapping target types.")
                         .solution("Remove one of the plugins from the build.")
@@ -209,8 +208,8 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
     private void validateDefinitionSafety(ProjectFeatureBindingDeclaration<?, ?> binding) {
         List<ProblemInternal> problems = new ArrayList<>();
         if (binding.getDefinitionImplementationType().isPresent() && !binding.getDefinitionImplementationType().get().equals(binding.getDefinitionType())) {
-            problems.add(problemReporter.internalCreate(builder -> builder
-                .id("unsafe-definition-implementation-type", "Definition implementation type specified for safe definition", GradleCoreProblemGroup.configurationUsage())
+            problems.add(problemsService.getInternalReporter().internalCreate(builder -> builder
+                .id(problemsService.getGroups().getGradle().getBuildLogic().problemId("Safe project feature definition has an implementation type"))
                 .details("Safe definitions must not specify an implementation type.")
                 .contextualLabel("Project feature '" + binding.getName() + "' has a definition with type '" + binding.getDefinitionType().getSimpleName() + "' which was declared safe but has an implementation type '" + binding.getDefinitionImplementationType().get().getSimpleName() + "'")
                 .solution("Mark the definition as unsafe.")
@@ -218,7 +217,7 @@ public class DefaultProjectFeatureDeclarations implements ProjectFeatureDeclarat
             ));
         }
 
-        problemReporter.report(problems);
+        problemsService.getInternalReporter().report(problems);
 
         throwTypeValidationException("Project feature '" + binding.getName() + "' has a definition type which was declared safe but has the following issues:", problems);
     }
