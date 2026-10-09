@@ -19,6 +19,7 @@ package org.gradle.api.problems.internal;
 import com.google.common.base.Objects;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.ProblemDefinition;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -124,6 +125,21 @@ public class DefaultProblem implements Serializable, ProblemInternal {
     @Override
     public ProblemBuilderInternal toBuilder(ProblemsInfrastructure infrastructure) {
         return new DefaultProblemBuilder(this, infrastructure);
+    }
+
+    @Override
+    public ProblemInternal withId(ProblemId id) {
+        return new DefaultProblem(
+            new DefaultProblemDefinition(id, problemDefinition.getSeverity(), problemDefinition.getDocumentationLink()),
+            contextualLabel,
+            solutions,
+            originLocations,
+            contextualLocations,
+            details,
+            exception,
+            additionalData,
+            writtenToConsole
+        );
     }
 
     @Override

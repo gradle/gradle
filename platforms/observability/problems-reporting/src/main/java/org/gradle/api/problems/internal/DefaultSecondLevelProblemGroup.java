@@ -103,6 +103,12 @@ final class DefaultSecondLevelProblemGroup extends SecondLevelProblemGroup imple
     }
 
     @Override
+    @Nullable
+    public ResolvableProblemGroup findPredefinedChild(String name) {
+        return name.equals(ProblemNames.UNDEFINED_NAME) ? resolveUndefined() : null;
+    }
+
+    @Override
     public boolean equals(@Nullable Object o) {
         return ProblemGroupInternal.structurallyEquals(this, o);
     }
