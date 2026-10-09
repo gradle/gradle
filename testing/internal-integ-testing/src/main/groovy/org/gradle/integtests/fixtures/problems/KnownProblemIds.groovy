@@ -48,13 +48,10 @@ class KnownProblemIds {
     private static final Map<String, String> KNOWN_GROUPS = [
         // Top level
         'validation': 'Validation',
-        'daemon-toolchain' : 'Daemon toolchain',
-        'jvm-toolchain': 'JVM Toolchain',
         'packaging': 'Packaging',
 
         // Sub-groups
         'packaging:signing': 'Signing',
-        'daemon-toolchain:configuration-generation' : 'Gradle configuration generation',
         'validation:configuration-cache': 'Configuration cache',
 
         // predefined groups (org.gradle.api.problems.ProblemGroups) used from integration tests
@@ -80,6 +77,8 @@ class KnownProblemIds {
         'Transformation:KMP': 'KMP',
         'Transformation:KMP:JavaScript': 'JavaScript',
         'Others': 'Others',
+        'Provisioning': 'Provisioning',
+        'Provisioning:Tools and Toolchains': 'Tools and Toolchains',
         'Others:Undefined': 'Undefined',
 
         // groups from integration tests
@@ -124,9 +123,10 @@ class KnownProblemIds {
         // Java compiler diagnostics are named after javac's message templates, an open set that changes with the JDK
         // version; see JavacDiagnosticNames in java-compiler-worker.
         'Compilation:Java:.+' : ['.*'],
-        'daemon-toolchain:configuration-generation:task-configuration' : ['Invalid task configuration'],
+        'Provisioning:Tools and Toolchains:No toolchain download repositories configured': ['No toolchain download repositories configured'],
+        'Provisioning:Tools and Toolchains:Toolchain not resolvable for requested platforms': ['Toolchain not resolvable for requested platforms'],
         'Dependencies:Declaration:Version catalog accessor name clash': [VersionCatalogProblemId.ACCESSOR_NAME_CLASH.name],
-        'jvm-toolchain:invalid-jvm-installation': ['Invalid JVM installation'],
+        'Provisioning:Tools and Toolchains:Invalid JVM installation': ['Invalid JVM installation'],
         'Dependencies:Declaration:Version catalog alias builder not finished': [VersionCatalogProblemId.ALIAS_NOT_FINISHED.name],
         'Dependencies:Declaration:Invalid version catalog dependency notation': [VersionCatalogProblemId.INVALID_DEPENDENCY_NOTATION.name],
         'Dependencies:Declaration:Invalid version catalog TOML definition': [VersionCatalogProblemId.INVALID_TOML_DEFINITION.name],
@@ -159,6 +159,7 @@ class KnownProblemIds {
         'Gradle:Invocation:Task not found': ['Task not found'],
         'Gradle:Invocation:Project not found': ['Project not found'],
         'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-file-collections-defaultconfigurablefilecollection': ['error writing value of type \'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection\''],
+        'validation:configuration-cache:error-writing-value-of-type-org-gradle-api-internal-provider-defaultmapproperty': ['error writing value of type \'org.gradle.api.internal.provider.DefaultMapProperty\''],
         'validation:configuration-cache:registration-of-listener-on-gradle-buildfinished-is-unsupported': ['registration of listener on \'Gradle.buildFinished\' is unsupported'],
         'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported-with-the-configuration-cache': ['invocation of \'Task.project\' at execution time is unsupported with the configuration cache.'],
         'validation:configuration-cache:isolated-projects-dangerously-ignoring-problems': ['Isolated Projects problems are dangerously ignored'],
