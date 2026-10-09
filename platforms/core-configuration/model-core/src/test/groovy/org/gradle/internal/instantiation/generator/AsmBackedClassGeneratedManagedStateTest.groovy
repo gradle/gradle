@@ -18,6 +18,7 @@ package org.gradle.internal.instantiation.generator
 
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.Describables
+import org.gradle.internal.instantiation.ClassGenerationException
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
 import org.gradle.internal.state.DefaultManagedFactoryRegistry
 import org.gradle.internal.state.Managed
@@ -28,7 +29,17 @@ import org.gradle.util.TestUtil
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractBeanWithInheritedFields
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractClassWithTypeParamProperty
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractCovariantUpgradedPropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractCovariantUpgradedPropertyBeanWithInheritedAnnotation
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractCovariantReadOnlyPropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedFileCollectionBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedProviderPropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractPropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBean
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBeanRedeclaringGetter
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractUpgradedPropertyBeanWithEagerSetterInSubclass
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractLazyPropertyBeanWithEagerSetter
+import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.AbstractLazyPropertyBeanWithEagerSetterInSubclass
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.Bean
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.BeanWithAbstractProperty
 import static org.gradle.internal.instantiation.generator.AsmBackedClassGeneratorTest.BrokenConstructor
@@ -62,9 +73,95 @@ class AsmBackedClassGeneratedManagedStateTest extends AbstractClassGeneratorSpec
         def bean = create(BeanWithAbstractProperty)
 
         expect:
+        bean instanceof Managed
         bean.name == null
         bean.setName("name")
         bean.name == "name"
+    }
+
+    def canConstructInstanceOfAbstractClassWithUpgradedPropertyAndEagerSetter() {
+        def bean = create(AbstractUpgradedPropertyBean)
+
+        expect:
+        bean instanceof Managed
+        bean.prop.toString() == "property 'prop'"
+        !bean.prop.present
+
+        bean.setProp("value")
+        bean.prop.get() == "value"
+    }
+
+    def canConstructInstanceOfAbstractClassWithCovariantUpgradedPropertyAndEagerSetter() {
+        def bean = create(AbstractCovariantUpgradedPropertyBean)
+
+        expect:
+        bean instanceof Managed
+        !bean.prop.present
+
+        bean.setProp("value")
+        bean.prop.get() == "value"
+    }
+
+    def "claims property with a forwarder setter that takes the property type"() {
+        def bean = create(AbstractUpgradedFileCollectionBean)
+        def file = tmpDir.file("some-file")
+
+        expect:
+        bean instanceof Managed
+        bean.files.toString() == "property 'files'"
+        bean.files.files.empty
+
+        // the setter's own body runs, rather than being replaced by managed state
+        bean.setFiles(TestUtil.objectFactory().fileCollection().from(file))
+        bean.files.files == [file] as Set
+    }
+
+    def "does not claim property with a forwarder setter when the property type cannot be created"() {
+        when:
+        create(AbstractUpgradedProviderPropertyBean)
+
+        then:
+        def e = thrown(ClassGenerationException)
+        e.cause.message.contains("Cannot have abstract method AbstractUpgradedProviderPropertyBean.getProp()")
+    }
+
+    def "claims property when @ReplacesEagerProperty is inherited from a super-interface getter"() {
+        def bean = create(type)
+
+        expect:
+        bean instanceof Managed
+        !bean.prop.present
+
+        bean.setProp("value")
+        bean.prop.get() == "value"
+
+        where:
+        type << [AbstractCovariantUpgradedPropertyBeanWithInheritedAnnotation, AbstractUpgradedPropertyBeanRedeclaringGetter]
+    }
+
+    def "claims property when @ReplacesEagerProperty is on a superclass getter and the forwarder setter is in a subclass"() {
+        def bean = create(AbstractUpgradedPropertyBeanWithEagerSetterInSubclass)
+
+        expect:
+        bean instanceof Managed
+        !bean.prop.present
+
+        bean.setProp("value")
+        bean.prop.get() == "value"
+    }
+
+    def "does not claim property with a concrete forwarder setter when the getter is not annotated with @ReplacesEagerProperty"() {
+        when:
+        create(type)
+
+        then:
+        def e = thrown(ClassGenerationException)
+        e.cause.message.contains("Cannot have abstract method ${declaringType.simpleName}.getProp()")
+
+        where:
+        type                                                          | declaringType
+        AbstractLazyPropertyBeanWithEagerSetter            | AbstractLazyPropertyBeanWithEagerSetter
+        AbstractLazyPropertyBeanWithEagerSetterInSubclass  | AbstractPropertyBean
     }
 
     def canUnpackAndRecreateAbstractClassWithAbstractPropertyGetterAndSetter() {
