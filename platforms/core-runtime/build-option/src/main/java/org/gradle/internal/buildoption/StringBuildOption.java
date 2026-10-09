@@ -18,6 +18,7 @@ package org.gradle.internal.buildoption;
 
 import org.gradle.cli.CommandLineParser;
 import org.gradle.cli.ParsedCommandLine;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Map;
 
@@ -29,19 +30,27 @@ import java.util.Map;
 public abstract class StringBuildOption<T> extends AbstractBuildOption<T, CommandLineOptionConfiguration> {
 
     public StringBuildOption(String property) {
-        super(property);
+        this(property, (String) null);
+    }
+
+    public StringBuildOption(String property, String deprecatedProperty) {
+        super(property, deprecatedProperty);
     }
 
     public StringBuildOption(String property, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
-        super(property, commandLineOptionConfigurations);
+        this(property, null, commandLineOptionConfigurations);
+    }
+
+    public StringBuildOption(@Nullable String property, @Nullable String deprecatedProperty, CommandLineOptionConfiguration... commandLineOptionConfigurations) {
+        super(property, deprecatedProperty, commandLineOptionConfigurations);
     }
 
     @Override
     public void applyFromProperty(Map<String, String> properties, T settings) {
-        String value = properties.get(property);
-
+        OptionValue<String> propertyValue = getFromProperties(properties);
+        String value = propertyValue.getValue();
         if (value != null) {
-            applyTo(value, settings, Origin.forGradleProperty(property));
+            applyTo(value, settings, propertyValue.getOrigin());
         }
     }
 
@@ -62,5 +71,5 @@ public abstract class StringBuildOption<T> extends AbstractBuildOption<T, Comman
         }
     }
 
-    public abstract void applyTo(String value, T settings, Origin origin);
+    public abstract void applyTo(String value, T settings, @Nullable Origin origin);
 }

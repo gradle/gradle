@@ -105,6 +105,7 @@ public abstract class AbstractBuildOption<T, V extends CommandLineOptionConfigur
         if (deprecatedProperty != null) {
             value = properties.get(deprecatedProperty);
             if (value != null) {
+                DeprecatedBuildOptionUsageRegistry.record(deprecatedProperty, property);
                 return new OptionValue<String>(value, Origin.forGradleProperty(deprecatedProperty));
             }
         }
