@@ -115,7 +115,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
 
         @Provides
         void configure(ServiceRegistration registration, PluginScheme pluginScheme, InstantiatorFactory instantiatorFactory, ProblemsInternal problemsService) {
-            DefaultProjectFeatureDeclarations projectFeatureRegistry = new DefaultProjectFeatureDeclarations(pluginScheme.getInspectionScheme(), instantiatorFactory.injectScheme().instantiator(), problemsService.getInternalReporter());
+            DefaultProjectFeatureDeclarations projectFeatureRegistry = new DefaultProjectFeatureDeclarations(pluginScheme.getInspectionScheme(), instantiatorFactory.injectScheme().instantiator(), problemsService);
             registration.add(ProjectFeatureDeclarations.class, projectFeatureRegistry);
         }
 
@@ -199,7 +199,7 @@ public class PluginUseServices extends AbstractGradleModuleServices {
             return instantiatorFactory.inject(services).newInstance(DefaultProjectFeatureApplicator.class,
                 project.getClassLoaderScope(),
                 project.getObjects(),
-                problems.getInternalReporter(),
+                problems,
                 services
             );
         }

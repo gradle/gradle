@@ -21,6 +21,8 @@ import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.Maps;
 import org.gradle.api.problems.SecondLevelProblemGroup;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.InvalidObjectException;
 import java.util.Arrays;
 
@@ -40,6 +42,11 @@ final class PredefinedChildren {
      */
     ImmutableList<ResolvableProblemGroup> all() {
         return byName.values().asList();
+    }
+
+    @Nullable
+    ResolvableProblemGroup find(String name) {
+        return byName.get(name);
     }
 
     /**

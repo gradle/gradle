@@ -437,6 +437,122 @@ This affects Tooling API clients, Build Scans, and any tooling that matches prob
 Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
 The messages of these problems, their solutions, and their documentation links are unchanged.
 
+[[runtime_problem_ids_moved_to_predefined_groups]]
+==== Runtime problem ids moved to the predefined problem groups
+
+The remaining problems Gradle reports now use the <<reporting_problems.adoc#sec:predefined_problem_groups,predefined problem groups>>, and the legacy groups `configuration-usage`, `daemon-toolchain`, `jvm-toolchain`, `packaging`, `plugin-application`, `problems-api`, `scripts`, `task-selection` and `validation` are gone.
+Problems with the requested tasks report into `Gradle > Invocation`.
+Configuration Cache problems report into `Gradle > Configuration Cache` and Isolated Projects problems into `Gradle > Isolated Projects`; they shared the legacy `validation:configuration-cache` group before.
+Problems with the configured build, such as a reserved configuration name, a missing project directory, or several build scripts in one directory, report into `Gradle > Build Definition`.
+Problems with how build logic uses the build model, including the contract of project features and misuse of the Problems API itself, report into `Gradle > Build Logic`.
+JVM toolchain problems report into `Provisioning > Tools and Toolchains` and signing problems into `Packaging > Signing`.
+Each problem is now named by its former display name, with a few exceptions:
+
+* Configuration Cache and Isolated Projects problems are named after the first line of their message, instead of the message in kebab case.
+* Task selection problems name what was selected, and a project that cannot be selected in a task path has its own name, for example `Task not found` and `Project not found` instead of `No matches`.
+* Names that relied on their legacy group for context now carry it, for example `Configuration method call not allowed` instead of `Method call not allowed`, and `Reported problem has no id` instead of `Problem id must be specified`.
+* `init invocation problem` is now `Exclusive task run with other tasks`.
+* `Project features binds to BuildModel.None` is now `Project feature binds to BuildModel.None`.
+* The `updateDaemonJvm` task configuration problem is split into two problems, one for missing toolchain download repositories and one for repositories that cannot resolve the requested toolchain.
+
+[cols="1,1"]
+|===
+|Before |After
+
+|`configuration-usage:configuring-project-with-invalid-directory`
+|`Gradle:Build Definition:Configuring project with invalid directory`
+
+|`configuration-usage:duplicate-project-feature-registration`
+|`Gradle:Build Definition:Duplicate project feature registration`
+
+|`configuration-usage:name-not-allowed`
+|`Gradle:Build Definition:Configuration name not allowed`
+
+|`configuration-usage:unexpected configuration usage`
+|`Gradle:Build Definition:Reserved configuration name used`
+
+|`configuration-usage:bind=to-build-model-none`
+|`Gradle:Build Logic:Project feature binds to BuildModel.None`
+
+|`configuration-usage:extend-detached-not-allowed`
+|`Gradle:Build Logic:Detached configuration cannot extend other configurations`
+
+|`configuration-usage:method-not-allowed`
+|`Gradle:Build Logic:Configuration method call not allowed`
+
+|`configuration-usage:safe-apply-action-uses-unsafe-service`
+|`Gradle:Build Logic:Safe project feature apply action uses an unsafe service`
+
+|`configuration-usage:unsafe-apply-action-uses-unknown-service`
+|`Gradle:Build Logic:Project feature apply action uses an unknown service`
+
+|`configuration-usage:unsafe-definition-implementation-type`
+|`Gradle:Build Logic:Safe project feature definition has an implementation type`
+
+|`daemon-toolchain:configuration-generation:task-configuration`
+|`Provisioning:Tools and Toolchains:No toolchain download repositories configured` or `Provisioning:Tools and Toolchains:Toolchain not resolvable for requested platforms`
+
+|`jvm-toolchain:invalid-jvm-installation`
+|`Provisioning:Tools and Toolchains:Invalid JVM installation`
+
+|`packaging:signing:no-configured-signatory`
+|`Packaging:Signing:No configured signatory`
+
+|`plugin-application:target-type-mismatch`
+|`Gradle:Build Definition:Plugin applied to the wrong target`
+
+|`problems-api:missing-id`
+|`Gradle:Build Logic:Reported problem has no id`
+
+|`problems-api:missing-parent`
+|`Gradle:Build Logic:Reported problem id has no group`
+
+|`problems-api:unsupported-additional-data`
+|`Gradle:Build Logic:Unsupported additional data type in reported problem`
+
+|`scripts:multiple-scripts`
+|`Gradle:Build Definition:Multiple script files in one directory`
+
+|`task-selection:ambiguous-matches`
+|`Gradle:Invocation:Ambiguous task name` or `Gradle:Invocation:Ambiguous project name`
+
+|`task-selection:empty-path`
+|`Gradle:Invocation:Empty task path`
+
+|`task-selection:empty-segments`
+|`Gradle:Invocation:Task path with empty segments`
+
+|`task-selection:init invocation problem`
+|`Gradle:Invocation:Exclusive task run with other tasks`
+
+|`task-selection:missing-task-name`
+|`Gradle:Invocation:Missing task name`
+
+|`task-selection:no-matches`
+|`Gradle:Invocation:Task not found` or `Gradle:Invocation:Project not found`
+
+|`task-selection:selection-failed`
+|`Gradle:Invocation:Task selection failed` or `Gradle:Invocation:Project selection failed`
+
+|`validation:configuration-cache:configuration-cache-warn-mode`
+|`Gradle:Configuration Cache:Configuration Cache warn mode is enabled`
+
+|`validation:configuration-cache:isolated-projects-dangerously-ignoring-problems`
+|`Gradle:Isolated Projects:Isolated Projects problems are dangerously ignored`
+
+|`validation:configuration-cache:<message as kebab case>`, for a Configuration Cache problem
+|`Gradle:Configuration Cache:<first line of the message>`
+
+|`validation:configuration-cache:<message as kebab case>`, for an Isolated Projects problem
+|`Gradle:Isolated Projects:<first line of the message>`
+|===
+
+This affects Tooling API clients, Build Scans, and any tooling that matches problems by id.
+Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
+The messages of these problems, their solutions, and their documentation links are unchanged.
+
+Problems reported with groups created through `ProblemGroup.create()` whose names match a predefined group, for example `ProblemGroup.create("Java", "Java", problems.getGroups().getCompilation())`, are now reported with that predefined group, including its description.
+
 [[relocated_root_project_settings_kept]]
 ==== Builds that move the root project directory now load their settings file
 
@@ -585,6 +701,13 @@ They are not compatible with the <<configuration_cache_requirements.adoc#config_
 Prefer the `ResolutionResult`, `ArtifactView`, link:{javadocPath}/org/gradle/api/file/FileCollection.html[`FileCollection`], and link:{javadocPath}/org/gradle/api/artifacts/ArtifactCollection.html[`ArtifactCollection`] APIs, described in <<artifact_resolution.adoc#sec:available_apis,Artifact Resolution>>.
 
 === Deprecations
+
+[[deprecated_update_daemon_jvm_task_configuration_problem_id]]
+==== Deprecation of `UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID`
+
+Gradle no longer reports problems with the id `UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID`.
+The `updateDaemonJvm` task reports its configuration problems in `Provisioning > Tools and Toolchains`, as `No toolchain download repositories configured` and `Toolchain not resolvable for requested platforms`, see <<runtime_problem_ids_moved_to_predefined_groups,Runtime problem ids moved to the predefined problem groups>>.
+The constant is deprecated and will be removed in Gradle 10.
 
 [[kotlin_dsl_scripts_model_explicit_scripts]]
 ==== Deprecation of restricting the `KotlinDslScriptsModel` to explicit scripts

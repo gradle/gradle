@@ -18,8 +18,8 @@ package org.gradle.buildconfiguration.tasks;
 
 import org.gradle.api.DefaultTask;
 import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.provider.MapProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.SetProperty;
@@ -59,8 +59,16 @@ public abstract class UpdateDaemonJvm extends DefaultTask {
      * The problem id for task configuration problems.
      *
      * @since 8.13
+     * @deprecated Gradle no longer reports problems with this id. It reports task configuration problems in the predefined
+     * group {@code Provisioning > Tools and Toolchains}, as {@code No toolchain download repositories configured} and
+     * {@code Toolchain not resolvable for requested platforms}. This constant will be removed in Gradle 10.
      */
-    public static final ProblemId TASK_CONFIGURATION_PROBLEM_ID = ProblemId.create("task-configuration", "Invalid task configuration", GradleCoreProblemGroup.daemonToolchain().configurationGeneration());
+    @Deprecated
+    public static final ProblemId TASK_CONFIGURATION_PROBLEM_ID = ProblemId.create(
+        "task-configuration",
+        "Invalid task configuration",
+        ProblemGroup.create("configuration-generation", "Gradle configuration generation", ProblemGroup.create("daemon-toolchain", "Daemon toolchain"))
+    );
 
     private final DaemonJvmPropertiesModifier daemonJvmPropertiesModifier;
 

@@ -193,7 +193,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'task-selection:no-matches'
+            fqid == 'Gradle:Invocation:Task not found'
             contextualLabel == "Task 'someTest' not found in root project 'test' and its subprojects. Some candidates are: 'someTask', 'someTaskA', 'someTaskB'."
             additionalData.asMap == ['requestedPath' : 'someTest']
         }
@@ -211,7 +211,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'task-selection:no-matches'
+            fqid == 'Gradle:Invocation:Task not found'
             contextualLabel == "Cannot locate tasks that match ':someTest' as task 'someTest' not found in root project 'test'. Some candidates are: 'someTask'."
             additionalData.asMap == ['requestedPath' : ':someTest']
         }
@@ -229,7 +229,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'task-selection:no-matches'
+            fqid == 'Gradle:Invocation:Task not found'
             contextualLabel == "Cannot locate tasks that match 'a:someTest' as task 'someTest' not found in project ':a'. Some candidates are: 'someTask', 'someTaskA'."
             additionalData.asMap == ['requestedPath' : 'a:someTest']
         }
@@ -270,7 +270,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         )
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'task-selection:ambiguous-matches'
+            fqid == 'Gradle:Invocation:Ambiguous task name'
             contextualLabel == 'Task \'soTa\' is ambiguous in root project \'test\' and its subprojects. Candidates are: \'someTaskA\', \'someTaskAll\', \'someTaskB\'.'
             additionalData.asMap == ['requestedPath' : 'soTa']
         }
@@ -289,7 +289,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         )
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'task-selection:ambiguous-matches'
+            fqid == 'Gradle:Invocation:Ambiguous task name'
             contextualLabel == 'Cannot locate tasks that match \'a:soTa\' as task \'soTa\' is ambiguous in project \':a\'. Candidates are: \'someTaskA\', \'someTaskAll\'.'
             additionalData.asMap == ['requestedPath' : 'a:soTa']
         }
@@ -323,7 +323,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         and:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'task-selection:no-matches'
+            fqid == 'Gradle:Invocation:Project not found'
             contextualLabel == 'Cannot locate tasks that match \'prog:someTask\' as project \'prog\' not found in root project \'test\'. Some candidates are: \'projA\', \'projB\'.'
             additionalData.asMap == ['requestedPath' : 'prog:someTask']
         }
@@ -357,7 +357,7 @@ class TaskErrorExecutionIntegrationTest extends AbstractIntegrationSpec implemen
         and:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'task-selection:ambiguous-matches'
+            fqid == 'Gradle:Invocation:Ambiguous project name'
             contextualLabel == 'Cannot locate tasks that match \'proj:someTask\' as project \'proj\' is ambiguous in root project \'test\'. Candidates are: \'projA\', \'projB\'.'
             additionalData.asMap == ['requestedPath' : 'proj:someTask']
         }

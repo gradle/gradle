@@ -234,7 +234,7 @@ public class ProjectBuilderImpl {
     ) {
         ProjectIdentity identity = ProjectIdentity.forRootProject(buildPath, projectName);
         ScriptFileResolver scriptFileResolver = buildServices.get(ScriptFileResolver.class);
-        ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(buildServices.get(Problems.class).getReporter());
+        ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(buildServices.get(Problems.class));
         File buildFile = ScriptFileUtil.resolveBuildFile(projectDir, scriptFileResolver, reporter::reportResolutionProblemsOf);
         return new ProjectBuilderProjectDescriptor(identity, projectDir, buildFile, null);
     }
@@ -248,7 +248,7 @@ public class ProjectBuilderImpl {
         Path projectPath = parentIdentity.getProjectPath().child(projectName);
         ProjectIdentity identity = ProjectIdentity.forSubproject(parentIdentity.getBuildPath(), projectPath);
         ScriptFileResolver scriptFileResolver = parent.getServices().get(ScriptFileResolver.class);
-        ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(parent.getServices().get(Problems.class).getReporter());
+        ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(parent.getServices().get(Problems.class));
         File buildFile = ScriptFileUtil.resolveBuildFile(projectDir, scriptFileResolver, reporter::reportResolutionProblemsOf);
         return new ProjectBuilderProjectDescriptor(identity, projectDir, buildFile, parentIdentity);
     }

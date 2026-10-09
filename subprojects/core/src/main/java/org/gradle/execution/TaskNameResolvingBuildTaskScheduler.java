@@ -20,7 +20,6 @@ import org.gradle.api.GradleException;
 import org.gradle.api.Task;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.execution.commandline.CommandLineTaskParser;
@@ -88,7 +87,7 @@ public class TaskNameResolvingBuildTaskScheduler implements BuildTaskScheduler {
                             "Executing other tasks along with the '" + builtInCommand.getDisplayName() + "' task is not allowed. " +
                             "The '" + builtInCommand.getDisplayName() + "' task must be run by itself.");
                     ex.addResolution("Remove all other tasks from the command line when running init.");
-                    ProblemId id = ProblemId.create("init invocation problem", "Init invocation problem", GradleCoreProblemGroup.taskSelection());
+                    ProblemId id = problemsService.getGroups().getGradle().getInvocation().problemId("Exclusive task run with other tasks");
                     throw problemsService.getInternalReporter().throwing(ex, id, spec -> {
                         spec.contextualLabel(ex.getMessage());
                     });

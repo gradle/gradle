@@ -24,6 +24,7 @@ import org.gradle.api.problems.ProblemDefinition
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.ProblemInternal
 import org.gradle.api.problems.internal.ProblemReporterInternal
+import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.features.annotations.BindsProjectFeature
 import org.gradle.features.annotations.BindsProjectType
 import org.gradle.features.binding.BuildModel
@@ -44,8 +45,11 @@ class DefaultProjectFeatureDeclarationsTest extends Specification {
     def metadataStore = Mock(TypeMetadataStore)
     def inspectionScheme = Mock(InspectionScheme)
     def problemReporter = Mock(ProblemReporterInternal)
+    def problems = Stub(ProblemsInternal) {
+        getInternalReporter() >> problemReporter
+    }
     def instantiator = Mock(Instantiator)
-    def declarations = new DefaultProjectFeatureDeclarations(inspectionScheme, instantiator, problemReporter)
+    def declarations = new DefaultProjectFeatureDeclarations(inspectionScheme, instantiator, problems)
     def pluginId = "com.example.test"
     def bindsProjectTypeAnnotation = Mock(BindsProjectType)
     def bindsProjectFeatureAnnotation = Mock(BindsProjectFeature)

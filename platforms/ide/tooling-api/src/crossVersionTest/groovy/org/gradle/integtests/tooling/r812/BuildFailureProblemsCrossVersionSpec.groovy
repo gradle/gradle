@@ -68,7 +68,7 @@ class BuildFailureProblemsCrossVersionSpec extends ToolingApiSpecification {
         e.failures.size() == 1
         e.failures[0] instanceof Failure
         (e.failures[0].causes[0]).problems[0].contextualLabel.contextualLabel == "Task 'doesNotExist' not found in root project 'root'."
-        (e.failures[0].causes[0]).problems[0].definition.id.displayName == 'Selection failed'
+        (e.failures[0].causes[0]).problems[0].definition.id.displayName == taskSelectionFailedName
     }
 
     def "failure does not contains report from the previous build"() {
@@ -96,7 +96,7 @@ class BuildFailureProblemsCrossVersionSpec extends ToolingApiSpecification {
         e.failures.size() == 1
         e.failures[0] instanceof Failure
         e.failures[0].causes[0].problems[0].contextualLabel.contextualLabel == "Task 'doesNotExist2' not found in root project 'root'."
-        e.failures[0].causes[0].problems[0].definition.id.displayName == 'Selection failed'
+        e.failures[0].causes[0].problems[0].definition.id.displayName == taskSelectionFailedName
     }
 
     def "failure from worker using process isolation"() {
@@ -194,5 +194,9 @@ class BuildFailureProblemsCrossVersionSpec extends ToolingApiSpecification {
                 );
             """
         }
+    }
+
+    private String getTaskSelectionFailedName() {
+        targetVersion.baseVersion >= GradleVersion.version("9.9") ? 'Task selection failed' : 'Selection failed'
     }
 }

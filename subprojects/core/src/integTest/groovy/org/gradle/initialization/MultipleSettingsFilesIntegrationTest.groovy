@@ -59,8 +59,8 @@ class MultipleSettingsFilesIntegrationTest extends AbstractIntegrationSpec {
         then:
         // Verify that a problem was reported
         verifyAll(receivedProblem) {
-            definition.id.fqid == 'scripts:multiple-scripts'
-            definition.id.displayName == 'Multiple scripts'
+            definition.id.fqid == 'Gradle:Build Definition:Multiple script files in one directory'
+            definition.id.displayName == 'Multiple script files in one directory'
             contextualLabel == "Multiple settings script files were found in directory '${testDirectory}'"
             details.contains("Selected 'settings.gradle'")
             details.contains("ignoring 'settings.gradle.kts'")
@@ -104,8 +104,8 @@ class MultipleSettingsFilesIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         verifyAll(receivedProblem) {
-            definition.id.fqid == 'scripts:multiple-scripts'
-            definition.id.displayName == 'Multiple scripts'
+            definition.id.fqid == 'Gradle:Build Definition:Multiple script files in one directory'
+            definition.id.displayName == 'Multiple script files in one directory'
             contextualLabel == "Multiple settings script files were found in directory '${testDirectory}'"
             details.contains("Selected 'settings.gradle'")
             details.contains("'settings.gradle.kts'")
@@ -143,7 +143,7 @@ class MultipleSettingsFilesIntegrationTest extends AbstractIntegrationSpec {
 
         and:
         // Still reports the problem
-        receivedProblem.definition.id.fqid == 'scripts:multiple-scripts'
+        receivedProblem.definition.id.fqid == 'Gradle:Build Definition:Multiple script files in one directory'
     }
 
     def "warns in composite build when included build has multiple settings files"() {
@@ -172,8 +172,8 @@ class MultipleSettingsFilesIntegrationTest extends AbstractIntegrationSpec {
         then:
         // Should have a problem for the included build
         verifyAll(receivedProblem) {
-            definition.id.fqid == 'scripts:multiple-scripts'
-            definition.id.displayName == 'Multiple scripts'
+            definition.id.fqid == 'Gradle:Build Definition:Multiple script files in one directory'
+            definition.id.displayName == 'Multiple script files in one directory'
             contextualLabel.contains("Multiple settings script files were found in directory")
             contextualLabel.contains("included")
             details.contains("Selected 'settings.gradle'")
@@ -198,7 +198,7 @@ class MultipleSettingsFilesIntegrationTest extends AbstractIntegrationSpec {
         then:
         // Even though Kotlin file might work fine, if both exist, a warning should be shown
         verifyAll(receivedProblem) {
-            definition.id.fqid == 'scripts:multiple-scripts'
+            definition.id.fqid == 'Gradle:Build Definition:Multiple script files in one directory'
             details.contains("Selected 'settings.gradle'")
         }
     }

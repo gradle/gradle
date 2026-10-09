@@ -21,6 +21,7 @@ import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.Problems;
+import org.gradle.api.problems.SecondLevelProblemGroup;
 import org.gradle.buildconfiguration.tasks.UpdateDaemonJvm;
 import org.gradle.configuration.project.ProjectConfigureAction;
 import org.gradle.internal.Pair;
@@ -92,6 +93,7 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
     ) {
         return SerializableLambdas.bifunction((platforms, versionVendorNative) -> {
             ProblemReporter reporter = problems.getReporter();
+            SecondLevelProblemGroup toolsAndToolchains = problems.getGroups().getProvisioning().getToolsAndToolchains();
             JvmVendorSpec vendor = versionVendorNative.getLeft().getRight();
             JavaToolchainSpec toolchainSpec = objects.newInstance(DefaultToolchainSpec.class);
             toolchainSpec.getLanguageVersion().set(versionVendorNative.getLeft().getLeft());
@@ -107,7 +109,7 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
 
             if (!resolverService.hasConfiguredToolchainRepositories()) {
                 UnconfiguredToolchainRepositoriesResolver exception = new UnconfiguredToolchainRepositoriesResolver();
-                throw reporter.throwing(exception, reporter.create(UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID, problemSpec -> {
+                throw reporter.throwing(exception, reporter.create(toolsAndToolchains.problemId("No toolchain download repositories configured"), problemSpec -> {
                     problemSpec.solution("Configure toolchain download repositories in your build settings.");
                     problemSpec.documentedAt(Documentation.userManual("toolchains", "sub:download_repositories").getUrl());
                 }));
@@ -120,7 +122,7 @@ public class DaemonJvmPropertiesConfigurator implements ProjectConfigureAction {
                 .collect(Collectors.toMap(Map.Entry::getKey, e -> e.getValue().get()));
             if (platformToDownloadUri.isEmpty()) {
                 IllegalStateException exception = new IllegalStateException("Toolchain resolvers did not return download URLs providing a JDK matching " + toolchainSpec + " for any of the requested platforms " + platforms);
-                throw reporter.throwing(exception, reporter.create(UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID, problemSpec -> {
+                throw reporter.throwing(exception, reporter.create(toolsAndToolchains.problemId("Toolchain not resolvable for requested platforms"), problemSpec -> {
                     problemSpec.solution("Use a toolchain download repository capable of resolving the toolchain spec for the given platforms.");
                     problemSpec.documentedAt(Documentation.userManual("gradle_daemon", "sec:daemon_jvm_provisioning").getUrl());
                 }));
