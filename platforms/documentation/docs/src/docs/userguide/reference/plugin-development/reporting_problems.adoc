@@ -292,6 +292,33 @@ Problem names are sentences and are less restricted: they must not be blank, mus
 Keep group names short and noun-based, so they read well as categories in a report.
 Formulate problem names as a single, concise sentence describing the problem, without embedding contextual details such as file names or values; those belong in the problem's label, details, and locations.
 
+[[sec:groups_gradle_reports_into]]
+=== Groups Gradle reports into
+
+Gradle itself reports problems into these predefined groups:
+
+[cols="1,3", options="header"]
+|===
+|Group |Problems Gradle reports there
+|`Gradle > Build Definition` |Missing, invalid, or conflicting values in the configured build, such as a reserved configuration name, a project without a directory, a plugin applied to the wrong target, or several build scripts in one directory
+|`Gradle > Build Logic` |Build logic using the build model incorrectly, such as untracked implementations, missing task dependencies, disallowed configuration calls, project feature contract violations, and misuse of the Problems API
+|`Gradle > Configuration Cache` |Configuration Cache problems
+|`Gradle > Deprecation` |Deprecation warnings
+|`Gradle > DSL Evaluation` |Groovy DSL script compilation failures
+|`Gradle > Invocation` |Requested tasks or projects that cannot be selected
+|`Gradle > Isolated Projects` |Isolated Projects problems
+|`Gradle > Plugin Validation` |Misuse of input, output, and caching annotations
+|`Compilation > Groovy` |A Groovy compiler daemon JDK without `tools.jar`
+|`Compilation > Java` |Java compiler diagnostics and compiler failures
+|`Dependencies > Declaration` |Version catalog problems
+|`Dependencies > Graph Resolution` |Failures selecting versions, variants, or capabilities
+|`Dependencies > Artifact Resolution` |Failures selecting artifacts
+|`Packaging > Signing` |Signing tasks without a signatory
+|`Provisioning > Tools and Toolchains` |Unusable JVM installations and Daemon JVM toolchains that cannot be provisioned
+|===
+
+A group created with `ProblemGroup.create()` whose names match a predefined group, such as `ProblemGroup.create("Java", "Java", problems.groups.compilation)`, is reported as that predefined group, with its description.
+
 [[sec:problem_summarization]]
 == Problem Summarization
 
