@@ -17,6 +17,8 @@
 package org.gradle.declarative.dsl.tooling.builders.r814
 
 import org.gradle.declarative.dsl.tooling.builders.AbstractDeclarativeDslToolingModelsCrossVersionTest
+import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.declarative.dsl.tooling.models.DeclarativeSchemaModel
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
@@ -45,8 +47,8 @@ class AndroidEcosystemPrototypeCrossVersionTest extends AbstractDeclarativeDslTo
             """
                 pluginManagement {
                     repositories {
-                        google() // Needed for the Android plugin, applied by the unified plugin
-                        gradlePluginPortal()
+                        ${RepoScriptBlockUtil.googleRepositoryDefinition(GradleDsl.KOTLIN)} // Needed for the Android plugin, applied by the unified plugin
+                        ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
                     }
                 }
 

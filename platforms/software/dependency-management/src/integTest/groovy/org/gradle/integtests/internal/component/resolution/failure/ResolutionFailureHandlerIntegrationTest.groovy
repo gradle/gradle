@@ -932,9 +932,7 @@ class ResolutionFailureHandlerIntegrationTest extends AbstractIntegrationSpec {
 
     private void setupConflictingVersionConstraints() {
         buildKotlinFile << """
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository(GradleDsl.KOTLIN)}
 
             configurations {
                 dependencyScope("deps")

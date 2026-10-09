@@ -44,6 +44,21 @@ import java.util.Locale
 
 const val PLUGINS_PORTAL_URL_OVERRIDE = "-Dorg.gradle.internal.plugins.portal.url.override=%gradle.plugins.portal.url%"
 
+/**
+ * The repository mirrors script, applied as an init script so it reaches every build in the composite.
+ *
+ * gradle/gradle's own builds apply `gradle/shared-with-buildSrc/mirrors.settings.gradle.kts` from their settings
+ * scripts, but the `xdcl/` included build (and its `buildSrc`) comes from another repository and declares
+ * `mavenCentral()` / `gradlePluginPortal()` on its own, so on CI it resolved from the real repositories. An init
+ * script is applied to the root build, every included build and every `buildSrc`, and the script only touches
+ * `gradle`, so it works in either role. It reads `CI`, `REPO_MIRROR_URLS` and `IGNORE_MIRROR` itself and the
+ * URL rewrite is idempotent, so the builds that already apply it as a settings script are unaffected.
+ *
+ * Absolute path: Gradleception and the smoke tests run some steps from copied working directories.
+ */
+const val REPOSITORY_MIRRORS_INIT_SCRIPT =
+    "--init-script=%teamcity.build.checkoutDir%/gradle/shared-with-buildSrc/mirrors.settings.gradle.kts"
+
 fun BuildSteps.customGradle(
     init: GradleBuildStep.() -> Unit,
     custom: GradleBuildStep.() -> Unit,
@@ -267,6 +282,7 @@ fun buildToolGradleParameters(
         "-Dorg.gradle.workers.max=$maxParallelForks",
         "-PmaxParallelForks=$maxParallelForks",
         PLUGINS_PORTAL_URL_OVERRIDE,
+        REPOSITORY_MIRRORS_INIT_SCRIPT,
         buildScanCustomValueParam("tcPipeline", VersionedSettingsBranch.fromDslContext().branchName),
         "-s",
         "%additional.gradle.parameters%",

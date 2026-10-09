@@ -43,7 +43,7 @@ class Helper(private val providers: ProviderFactory) {
     fun isCI() = providers.environmentVariable("CI").isPresent()
 
     fun withMirrors(handler: RepositoryHandler) {
-        if (!isCI()) {
+        if (!isCI() || ignoreMirrors()) {
             return
         }
         handler.all {
@@ -78,5 +78,8 @@ with(Helper(providers)) {
 
     gradle.settingsEvaluated {
         withMirrors(settings.pluginManagement.repositories)
+        // Repositories declared here are never project repositories, so the beforeProject hook
+        // above does not see them. build-logic-settings declares mavenCentral() this way.
+        withMirrors(settings.dependencyResolutionManagement.repositories)
     }
 }

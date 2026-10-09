@@ -34,7 +34,8 @@ class DeclarativeAgpSmokeSpec extends AbstractIntegrationSpec {
         Assume.assumeTrue("Java version >= 11 required by AGP dependencies", Jvm.current().javaVersionMajor >= 11)
 
         executer.usingInitScript(agpVersions.createAgpNightlyRepositoryInitScript())
-
+        // Declarative settings scripts only accept the named repository calls, so the mirrors are applied by init script
+        executer.withRepositoryMirrors()
         given:
         file("gradle.properties") << "android.experimental.declarative=true"
 

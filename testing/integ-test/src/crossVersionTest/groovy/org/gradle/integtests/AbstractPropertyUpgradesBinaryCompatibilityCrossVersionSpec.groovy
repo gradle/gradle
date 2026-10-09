@@ -16,6 +16,8 @@
 package org.gradle.integtests
 
 import org.gradle.api.internal.classpath.RuntimeApiInfo
+import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.configuration.DefaultImportsReader
 import org.gradle.integtests.fixtures.CrossVersionIntegrationSpec
 import org.gradle.internal.classpath.DefaultClassPath
@@ -131,7 +133,7 @@ abstract class AbstractPropertyUpgradesBinaryCompatibilityCrossVersionSpec exten
                 `kotlin-dsl`
             }
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
             }
         """
 

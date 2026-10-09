@@ -17,6 +17,8 @@
 package org.gradle.integtests.tooling.r940
 
 import org.gradle.integtests.tooling.TestEventsFixture
+import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.tooling.fixture.ProgressEvents
 import org.gradle.integtests.tooling.fixture.TextUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
@@ -69,7 +71,7 @@ abstract class AbstractResourceBasedTestingCrossVersionSpec extends ToolingApiSp
             }
 
             repositories {
-                mavenCentral()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
             }
 
             dependencies {

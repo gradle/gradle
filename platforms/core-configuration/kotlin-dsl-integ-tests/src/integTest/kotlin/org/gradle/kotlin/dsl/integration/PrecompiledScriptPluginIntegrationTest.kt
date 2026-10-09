@@ -4,9 +4,11 @@ import org.gradle.api.DefaultTask
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.tasks.TaskAction
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.kotlin.dsl.fixtures.classEntriesFor
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
@@ -177,7 +179,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
                             `kotlin-dsl`
                         }
                         repositories {
-                            gradlePluginPortal()
+                            ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
                             maven {
                                 url = uri("../external-plugin/maven-repo")
                             }
@@ -365,7 +367,9 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
                         rootProject.name = "my-repro-project-build-logic"
 
                         pluginManagement.includeBuild("meta")
-                        dependencyResolutionManagement.repositories.gradlePluginPortal()
+                        dependencyResolutionManagement.repositories {
+                            ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                        }
                     """
                 )
 
@@ -395,7 +399,7 @@ class PrecompiledScriptPluginIntegrationTest : AbstractKotlinIntegrationTest() {
 
                             dependencyResolutionManagement.repositories {
                                 $testRepositories
-                                gradlePluginPortal()
+                                ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
                             }
                         """
                     )
