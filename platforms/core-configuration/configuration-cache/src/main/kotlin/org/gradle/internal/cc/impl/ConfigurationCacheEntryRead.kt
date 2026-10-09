@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("MatchingDeclarationName")
+
 package org.gradle.internal.cc.impl
 
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheThrowable

@@ -272,8 +272,8 @@ class DefaultConfigurationCache internal constructor(
         return try {
             val finalizedGraph = loadWorkGraph(graph, graphBuilder, false).graph
             BuildTreeConfigurationCache.LoadOutcome.Reused(finalizedGraph)
-        } catch (failure: Throwable) {
-            if (!isRecoveryEnabled) {
+        } catch (failure: Exception) {
+            if (!startParameter.isRecoveryEnabled) {
                 problems.onEntryUnreadable("The configuration cache entry could not be loaded.", failure)
                 throw failure
             }
@@ -320,12 +320,6 @@ class DefaultConfigurationCache internal constructor(
     override fun loadRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeConfigurationCache.LoadRequestedTasksResult {
         return loadWorkGraph(graph, graphBuilder, true)
     }
-
-    /**
-     * Whether a corrupted entry may be discarded and stored again instead of failing the build.
-     */
-    private val isRecoveryEnabled: Boolean
-        get() = startParameter.isRecoverFromCacheCorruption && !startParameter.isIntegrityCheckEnabled
 
     private fun rollbackFromFailedLoad() {
         loadedSideEffects.clear()
@@ -379,7 +373,7 @@ class DefaultConfigurationCache internal constructor(
         val result = try {
             action()
         } catch (e: Throwable) {
-            if (isRecoveryEnabled) {
+            if (startParameter.isRecoveryEnabled) {
                 entryDiscardRequested = true
             }
             throw e

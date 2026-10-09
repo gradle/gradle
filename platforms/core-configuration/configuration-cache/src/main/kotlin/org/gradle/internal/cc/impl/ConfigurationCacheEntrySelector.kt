@@ -54,10 +54,6 @@ internal class ConfigurationCacheEntrySelector(
     private val isolateOwner: IsolateOwner,
     private val problems: ConfigurationCacheProblems
 ) {
-    private
-    val isRecoveryEnabled: Boolean
-        get() = startParameter.isRecoverFromCacheCorruption && !startParameter.isIntegrityCheckEnabled
-
     /**
      * The system properties as they were before the check replayed those of the entry being reused.
      * Held only while that entry can still be rolled back by [rollbackPropertiesOfReusedEntry].
@@ -87,7 +83,7 @@ internal class ConfigurationCacheEntrySelector(
                 checkedFingerprint(candidateEntry)
             }.value
         } catch (failure: ConfigurationCacheEntryReadException) {
-            if (!isRecoveryEnabled) {
+            if (!startParameter.isRecoveryEnabled) {
                 problems.onEntryUnreadable("The configuration cache entry could not be checked because it was corrupted.", failure)
                 throw failure.cause ?: failure
             }
@@ -142,7 +138,7 @@ internal class ConfigurationCacheEntrySelector(
             // so the Gradle properties files along with any Gradle property defining
             // system properties and environment variables are added to the new fingerprint.
             rollbackProperties(systemPropertiesSnapshot.uncheckedCast())
-        } else if (isRecoveryEnabled) {
+        } else if (startParameter.isRecoveryEnabled) {
             // The entry was accepted, but loading it can still fail and send the build back to
             // configuring, which must not see the properties the check replayed.
             systemPropertiesBeforeReusedEntry = systemPropertiesSnapshot.uncheckedCast()
@@ -204,7 +200,8 @@ internal class ConfigurationCacheEntrySelector(
         fingerprintFile: ConfigurationCacheStateFile,
         action: suspend ReadContext.(ConfigurationCacheFingerprintController.Host) -> T
     ): T {
-        // Opening the decoder eagerly reads (and decrypts) the file header
+        // Opening the decoder reads the encryption header (IV bytes),
+        // see org.gradle.util.internal.SupportedEncryptionAlgorithm.DefaultEncryptionAlgorithm.decryptedStream
         val decoder = readStoredState(isIntegrityCheckEnabled) {
             cacheIO.decoderFor(fingerprintFile.stateType, fingerprintFile::inputStream)
         }

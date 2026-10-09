@@ -72,8 +72,14 @@ class ConfigurationCacheStartParameter internal constructor(
      *
      * The default is `true`.
      */
-    val isRecoverFromCacheCorruption: Boolean =
+    private val isRecoverFromCacheCorruption: Boolean =
         internalOptions.getBoolean("org.gradle.internal.configuration-cache.recover-from-corruption", true)
+
+    /**
+     * Whether a corrupted entry may be discarded and stored again instead of failing the build.
+     */
+    val isRecoveryEnabled: Boolean
+        get() = isRecoverFromCacheCorruption && !isIntegrityCheckEnabled
 
     /**
      * Whether shareable objects in the configuration cache should be shared
