@@ -78,7 +78,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         hasScript(":core", scripts)
         hasScript(":module1", scripts)
         eachScriptIsUnique(scripts)
-        getCompileBuildFileOperationsCount() == 4 // classpath + body for settings and for the 2 identical scripts
+        getCompileBuildFileOperationsCount() == 2 // body for settings and for the 2 identical scripts, which have no script blocks for the classpath pass
     }
 
     @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
@@ -101,7 +101,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         run 'help'
 
         then:
-        getCompileBuildFileOperationsCount() == 4 // classpath + body for settings and for the 2 identical scripts
+        getCompileBuildFileOperationsCount() == 2 // body for settings and for the 2 identical scripts, which have no script blocks for the classpath pass
 
         when:
         def before = scriptDetails()
@@ -139,7 +139,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         hasScript(":core", scripts)
         hasScript(":module1", scripts)
         eachScriptIsUnique(scripts)
-        getCompileBuildFileOperationsCount() == 4 // classpath and body for settings and for the 2 identical scripts
+        getCompileBuildFileOperationsCount() == 2 // body for settings and for the 2 identical scripts
     }
 
     def "can have two build files with different contents and same file name"() {
@@ -164,7 +164,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         hasScript(":core", scripts)
         hasScript(":module1", scripts)
         eachScriptIsUnique(scripts)
-        getCompileBuildFileOperationsCount() == 6 // classpath + body for settings and for each build.gradle file
+        getCompileBuildFileOperationsCount() == 3 // body for settings and for each build.gradle file
     }
 
     @Flaky(because = "https://github.com/gradle/gradle-private/issues/5065")
@@ -184,7 +184,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         run 'help'
 
         then:
-        getCompileBuildFileOperationsCount() == 4 // classpath + body for settings and for each build.gradle file
+        getCompileBuildFileOperationsCount() == 2 // body for settings and for the identical build.gradle files
 
         when:
         def before = scriptDetails()
@@ -194,7 +194,118 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         then:
         def scripts = scriptDetails()
         scriptsAreReused(before, scripts)
-        getCompileBuildFileOperationsCount() == 2 // classpath + body changed build.gradle file
+        getCompileBuildFileOperationsCount() == 1 // body of the changed build.gradle file
+    }
+
+    def "does not recompile the plugins block when only the rest of the build file changes"() {
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+            plugins {
+                id 'base'
+            }
+            ${instrument("project.path")}
+        """
+
+        when:
+        run 'help'
+
+        then:
+        compileStagesOf("build file 'build.gradle'") == ['BODY', 'CLASSPATH']
+
+        when:
+        buildFile << """
+            tasks.register('other')
+        """
+        run 'help'
+
+        then:
+        compileStagesOf("build file 'build.gradle'") == ['BODY']
+
+        when:
+        buildFile.text = buildFile.text.replace("id 'base'", "id 'java-base'")
+        run 'help'
+
+        then:
+        compileStagesOf("build file 'build.gradle'") == ['BODY', 'CLASSPATH']
+    }
+
+    def "build files with the same plugins block share the compiled plugins block"() {
+        given:
+        def pluginsBlock = """plugins {
+    id 'base'
+}
+"""
+        createDirs('a', 'b')
+        settingsFile << "include 'a', 'b'"
+        file('a/build.gradle') << pluginsBlock + "description = 'a'"
+        file('b/build.gradle') << pluginsBlock + "tasks.register('b')"
+
+        when:
+        run 'help'
+
+        then:
+        (compileStagesOf("build file 'a/build.gradle'") + compileStagesOf("build file 'b/build.gradle'")).sort() == ['BODY', 'BODY', 'CLASSPATH']
+    }
+
+    def "does not compile the initial pass of a build file without script blocks"() {
+        given:
+        settingsFile << "rootProject.name = 'test'"
+        buildFile << """
+            import java.util.concurrent.Callable
+            ${instrument("project.path")}
+        """
+
+        when:
+        run 'help'
+
+        then:
+        compileStagesOf("build file 'build.gradle'") == ['BODY']
+        compileStagesOf("settings file 'settings.gradle'") == ['BODY']
+    }
+
+    def "reports errors of the initial pass at the original location"() {
+        given:
+        buildFile << """
+            // a comment that is dropped from the initial pass
+
+            plugins {
+                id 'base'
+                println 'not allowed'
+            }
+            description = 'x'
+        """
+
+        when:
+        fails 'help'
+
+        then:
+        failure.assertHasLineNumber(6)
+        failure.assertHasErrorOutput("only id(String), alias(Provider), or alias(ProviderConvertible) method calls allowed in plugins {} script block")
+    }
+
+    def "reduced initial pass does not hide the check that plugins block comes first"() {
+        given:
+        buildFile << """
+            description = 'x'
+            plugins {
+                id 'base'
+            }
+        """
+
+        when:
+        fails 'help'
+
+        then:
+        failure.assertHasLineNumber(3)
+        failure.assertHasErrorOutput("only buildscript {}, pluginManagement {} and other plugins {} script blocks are allowed before plugins {} blocks, no other statements are allowed")
+    }
+
+    List<String> compileStagesOf(String scriptDisplayName) {
+        buildOperations.all(CompileScriptBuildOperationType)
+            .findAll { it.displayName.startsWith("Compile ${scriptDisplayName} ") }
+            .collect { it.details.stage as String }
+            .sort()
     }
 
     def "remapping scripts doesn't mix up classes with same name"() {
@@ -245,7 +356,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         def scripts = scriptDetails()
         scripts.size() == 3
         eachScriptIsUnique(scripts)
-        getCompileBuildFileOperationsCount() == 4 // classpath + body for settings and for the 2 identical scripts
+        getCompileBuildFileOperationsCount() == 2 // body for settings and for the 2 identical scripts
 
         and:
         def module1File = file("module1/module1.gradle")
@@ -285,7 +396,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         hasScript(":", scripts)
         hasScript("shared", scripts)
         eachScriptIsUnique(scripts)
-        getCompileBuildFileOperationsCount() == 4 // classpath + body for each build script
+        getCompileBuildFileOperationsCount() == 2 // body for each build script
     }
 
     def "caches scripts applied from remote locations when remote script changes"() {
@@ -305,7 +416,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
 
         then:
         outputContains 'Echo 0'
-        getCompileBuildFileOperationsCount() == 4 // classpath + body for build.gradle and shared build script
+        getCompileBuildFileOperationsCount() == 2 // body for build.gradle and shared build script
 
         when:
         def before = scriptDetails()
@@ -320,7 +431,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         outputContains 'Echo 1'
         def scripts = scriptDetails()
         scriptHasChanged("shared", before, scripts)
-        getCompileBuildFileOperationsCount() == 2 // classpath + body for shared build script
+        getCompileBuildFileOperationsCount() == 1 // body for shared build script
     }
 
     @Issue("GRADLE-2795")
@@ -364,8 +475,8 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         then:
         def scripts = scriptDetails(fast.output)
         scriptHasChanged(":", before, scripts)
-        getCompileBuildFileOperationsCount(fastBuildOperations) == 2 // classpath + body for fast task
-        getCompileBuildFileOperationsCount() == 2 // classpath + body for long running task
+        getCompileBuildFileOperationsCount(fastBuildOperations) == 1 // body for fast task
+        getCompileBuildFileOperationsCount() == 1 // body for long running task
     }
 
     @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/33875")
@@ -419,7 +530,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         run 'help'
 
         then:
-        getCompileBuildFileOperationsCount() == 6 // classpath and body for settings and two build scripts
+        getCompileBuildFileOperationsCount() == 4 // body for settings and the child build script, classpath and body for the root build script
 
         when:
         def before = scriptDetails()
@@ -451,7 +562,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         def scripts = scriptDetails()
         scripts.size() == 2
         hasScript('init', scripts)
-        getCompileBuildFileOperationsCount() == 4 // classpath and body for build script and init script
+        getCompileBuildFileOperationsCount() == 2 // body for build script and init script
     }
 
     def "same script can be applied from init script, settings script and build script"() {
@@ -482,7 +593,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         scripts.size() == 3 // same script applied 3 times
         scripts.collect { it.className }.unique().size() == 1
         scripts.collect { it.classpath }.unique().size() == 1
-        getCompileBuildFileOperationsCount() == 8 // classpath and body for each script
+        getCompileBuildFileOperationsCount() == 4 // body for each script
     }
 
     def "same script can be applied from identical init script, settings script and build script"() {
@@ -510,7 +621,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         scripts.size() == 3 // same script applied 3 times
         scripts.collect { it.className }.unique().size() == 1
         scripts.collect { it.classpath }.unique().size() == 1
-        getCompileBuildFileOperationsCount() == 8 // classpath and body for the common script + identical script x 3 targets
+        getCompileBuildFileOperationsCount() == 4 // body for the common script + identical script x 3 targets
     }
 
     def "remapped classes have script origin"() {
@@ -605,7 +716,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         }
 
         then:
-        allCompileOperations == 2 * (1 + iterations) // common + 1 build script per iteration
+        allCompileOperations == 1 + 2 * iterations // body of common, classpath and body of 1 build script per iteration
     }
 
     @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
@@ -640,7 +751,7 @@ class CrossBuildScriptCachingIntegrationSpec extends AbstractIntegrationSpec {
         succeeds 'success'
 
         then:
-        getCompileBuildFileOperationsCount() == 6
+        getCompileBuildFileOperationsCount() == 3 // body for buildSrc, build.gradle and main.gradle
 
         when:
         def before = scriptDetails()

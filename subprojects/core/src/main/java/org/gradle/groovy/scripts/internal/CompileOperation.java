@@ -16,6 +16,7 @@
 
 package org.gradle.groovy.scripts.internal;
 
+import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.groovy.scripts.Transformer;
 import org.gradle.internal.serialize.Serializer;
 
@@ -52,5 +53,15 @@ public interface CompileOperation<T> {
     T getExtractedData();
 
     Serializer<T> getDataSerializer();
+
+    /**
+     * The source to compile for the given script.
+     * <p>
+     * An operation that only looks at some parts of a script can return a reduced source. The compiled classes are then
+     * keyed on those parts only, so changes to the rest of the script do not cause recompilation.
+     */
+    default ScriptSource getSourceToCompile(ScriptSource source) {
+        return source;
+    }
 
 }

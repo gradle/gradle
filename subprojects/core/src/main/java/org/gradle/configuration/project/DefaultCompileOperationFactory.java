@@ -26,8 +26,8 @@ import org.gradle.groovy.scripts.internal.BuildScriptDataSerializer;
 import org.gradle.groovy.scripts.internal.BuildScriptTransformer;
 import org.gradle.groovy.scripts.internal.CompileOperation;
 import org.gradle.groovy.scripts.internal.FactoryBackedCompileOperation;
+import org.gradle.groovy.scripts.internal.InitialPassCompileOperation;
 import org.gradle.groovy.scripts.internal.InitialPassStatementTransformer;
-import org.gradle.groovy.scripts.internal.NoDataCompileOperation;
 import org.gradle.groovy.scripts.internal.SubsetScriptTransformer;
 
 public class DefaultCompileOperationFactory implements CompileOperationFactory {
@@ -47,7 +47,7 @@ public class DefaultCompileOperationFactory implements CompileOperationFactory {
         InitialPassStatementTransformer initialPassStatementTransformer = new InitialPassStatementTransformer(initialPassScriptTarget, documentationRegistry);
         SubsetScriptTransformer initialTransformer = new SubsetScriptTransformer(initialPassStatementTransformer);
         String id = INTERNER.intern("cp_" + initialPassScriptTarget.getId());
-        return new NoDataCompileOperation(id, CLASSPATH_COMPILE_STAGE, initialTransformer);
+        return new InitialPassCompileOperation(id, CLASSPATH_COMPILE_STAGE, initialTransformer);
     }
 
     @Override
