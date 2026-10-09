@@ -48,10 +48,8 @@ class KnownProblemIds {
     private static final Map<String, String> KNOWN_GROUPS = [
         // Top level
         'validation': 'Validation',
-        'packaging': 'Packaging',
 
         // Sub-groups
-        'packaging:signing': 'Signing',
         'validation:configuration-cache': 'Configuration cache',
 
         // predefined groups (org.gradle.api.problems.ProblemGroups) used from integration tests
@@ -77,6 +75,8 @@ class KnownProblemIds {
         'Transformation:KMP': 'KMP',
         'Transformation:KMP:JavaScript': 'JavaScript',
         'Others': 'Others',
+        'Packaging': 'Packaging',
+        'Packaging:Signing': 'Signing',
         'Provisioning': 'Provisioning',
         'Provisioning:Tools and Toolchains': 'Tools and Toolchains',
         'Others:Undefined': 'Undefined',
@@ -163,7 +163,7 @@ class KnownProblemIds {
         'validation:configuration-cache:registration-of-listener-on-gradle-buildfinished-is-unsupported': ['registration of listener on \'Gradle.buildFinished\' is unsupported'],
         'validation:configuration-cache:invocation-of-task-project-at-execution-time-is-unsupported-with-the-configuration-cache': ['invocation of \'Task.project\' at execution time is unsupported with the configuration cache.'],
         'validation:configuration-cache:isolated-projects-dangerously-ignoring-problems': ['Isolated Projects problems are dangerously ignored'],
-        'packaging:signing:no-configured-signatory': ['No configured signatory'],
+        'Packaging:Signing:No configured signatory': ['No configured signatory'],
         'Gradle:Build Definition:Plugin applied to the wrong target': ['Plugin applied to the wrong target'],
         'Gradle:Invocation:Ambiguous task name': ['Ambiguous task name'],
         'Gradle:Invocation:Ambiguous project name': ['Ambiguous project name'],
