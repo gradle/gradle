@@ -30,7 +30,7 @@ import org.gradle.work.DisableCachingByDefault
 @DisableCachingByDefault(because = "Not worth caching")
 abstract class CleanAcceptedApiChanges extends DefaultTask {
 
-    @PathSensitive(PathSensitivity.ABSOLUTE)
+    @PathSensitive(PathSensitivity.RELATIVE)
     @InputDirectory
     abstract DirectoryProperty getJsonFileDirectory()
 

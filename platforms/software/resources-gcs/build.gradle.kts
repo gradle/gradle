@@ -10,7 +10,7 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.resources)
 
-    api(libs.gcs)
+    api(libs.googleApiServicesStorage)
     api(libs.jspecify)
 
     implementation(projects.stdlibJavaExtensions)
