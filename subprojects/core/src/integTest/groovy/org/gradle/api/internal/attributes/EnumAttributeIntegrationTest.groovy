@@ -33,7 +33,11 @@ import spock.lang.Issue
  * deprecation-warning behavior and the underlying failure modes that motivated the deprecation.
  * <p>
  * A Named-implementing enum ({@code enum X implements Named}) delegating {@code getName()} to the
- * built-in {@code name()} is the supported way to use an enum as an attribute value.
+ * built-in {@code name()} is the supported way to use an enum as an attribute value. Supported is
+ * not the same as recommended: only the name survives publication, so any state or behavior on the
+ * enum is reachable solely from the build that declared it. The user guide recommends {@code String}
+ * for custom attribute values — see the "Favor {@code String} Values for Custom Attributes" best
+ * practice. The coverage here documents what Gradle must keep working, not what builds should do.
  * <p>
  * Each test in the "enums succeed" region is parameterized with two enum flavors:
  * <ul>
