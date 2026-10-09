@@ -22,6 +22,7 @@ import java.io.File;
 import java.nio.file.Path;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.Optional;
 
 /**
  * Entry point for matching test descriptors against include and exclude patterns.
@@ -58,10 +59,31 @@ public class TestSelectionMatcher {
     /**
      * Returns true if the given file matches any given include patterns and is not discarded by any exclude patterns.
      *
+     * <p>A file that cannot be matched by path at all, because it lies under none of this matcher's
+     * roots, is reported as not matching. Callers that need to tell that apart from a file that was
+     * judged and found not to match want {@link #nameForFile(File)} instead, and every production
+     * caller does: this method has no callers outside tests, which use it as the combination of
+     * {@link #nameForFile(File)} and {@link #matchesTest(String, String)} that documents the
+     * quasi-class-name matching rules.
+     *
      * @see FileTestSelectionMatcher
      */
     public boolean matchesFile(File file) {
         return fileTestSelectionMatcher.matchesFile(file);
+    }
+
+    /**
+     * Returns the name the given file can be matched by, to be passed to
+     * {@link #matchesTest(String, String)} with an empty method name, or empty when the file has no
+     * such name and cannot be matched by path at all.
+     *
+     * <p>{@link #matchesFile(File)} answers both cases with false, so a caller that needs to tell
+     * "does not match" from "not mine to judge" has to ask for the name instead.
+     *
+     * @see FileTestSelectionMatcher#nameFor(File)
+     */
+    public Optional<String> nameForFile(File file) {
+        return fileTestSelectionMatcher.nameFor(file);
     }
 
     /**
