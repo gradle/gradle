@@ -31,7 +31,9 @@ import org.gradle.internal.logging.events.TextQuestionPromptEvent
 import org.gradle.internal.logging.events.UserInputRequestEvent
 import org.gradle.internal.logging.events.UserInputResumeEvent
 import org.gradle.internal.logging.events.YesNoQuestionPromptEvent
+import org.gradle.internal.classloader.SystemClassLoaderSpec
 import org.gradle.internal.serialize.DefaultSerializer
+import org.gradle.tooling.internal.provider.serialization.ClassLoaderDetails
 import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.serialize.PlaceholderException
 import org.gradle.internal.serialize.Serializer
@@ -86,13 +88,13 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         result.value.failure == null
         result.value.exception == null
 
-        def buildResult = BuildActionResult.of(new SerializedPayload("header", ["hi".bytes]))
+        def buildResult = BuildActionResult.of(new SerializedPayload(sampleHeader(), ["hi".bytes]))
         def message2 = new Success(buildResult)
         def result2 = serialize(message2, serializer)
         result2 instanceof Success
         result2.value instanceof BuildActionResult
         !result2.value.wasCancelled()
-        result2.value.result.header == "header"
+        assertSampleHeader(result2.value.result.header)
         result2.value.result.serializedModel.size() == 1
         result2.value.failure == null
         result2.value.exception == null
@@ -116,7 +118,7 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         result4.value.failure == null
         result4.value.exception instanceof RuntimeException
 
-        def buildFailedWithSerializedFailure = BuildActionResult.failed(new SerializedPayload("header", ["hi".bytes]))
+        def buildFailedWithSerializedFailure = BuildActionResult.failed(new SerializedPayload(sampleHeader(), ["hi".bytes]))
         def message5 = new Success(buildFailedWithSerializedFailure)
         def result5 = serialize(message5, serializer)
         result5 instanceof Success
@@ -355,6 +357,16 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         def result = serialize(new OutputMessage(event), serializer)
         assert result instanceof OutputMessage
         return result.event
+    }
+
+    private static Map<Short, ClassLoaderDetails> sampleHeader() {
+        [(1 as short): new ClassLoaderDetails(UUID.randomUUID(), SystemClassLoaderSpec.INSTANCE)]
+    }
+
+    private static void assertSampleHeader(header) {
+        assert header instanceof Map
+        assert header.size() == 1
+        assert (header.values() as List)[0].spec instanceof SystemClassLoaderSpec
     }
 
     private static class TestAction implements BuildAction, Serializable {
