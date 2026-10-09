@@ -15,6 +15,7 @@
  */
 package org.gradle.api.internal.attributes;
 
+import org.gradle.api.Named;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.attributes.Attribute;
@@ -56,11 +57,35 @@ public class AttributeDesugaring {
                     mutable.attribute(desugared, value);
                 } else {
                     desugared = Cast.uncheckedCast(Attribute.of(attribute.getName(), String.class));
-                    mutable.attribute(desugared, value.toString());
+                    mutable.attribute(desugared, desugarValue(value));
                 }
             }
             return mutable.asImmutable();
         });
+    }
+
+    /**
+     * Reduces an attribute value to a String, so that a desugared value describes the same thing
+     * attribute matching compared.
+     * <p>
+     * For a {@link Named} value that form is {@link Named#getName()}, as used by
+     * {@code DefaultImmutableAttributesEntry#desugar} when it coerces a typed value for matching and
+     * by {@code ModuleMetadataSpecBuilder#attributeValueFor} when it publishes one.
+     * <p>
+     * {@link Enum#name()} is used for a plain (non-{@link Named}) {@link Enum}, which
+     * {@code Attribute.of} deprecates rather than rejects until Gradle 10. An enum may override
+     * {@link Object#toString()}, in which case it is neither the form the other reducers write nor
+     * the one {@code CoercingStringValueSnapshot} coerces back via {@code Enum.valueOf}.
+     */
+    private static String desugarValue(Object value) {
+        if (value instanceof Named) {
+            return ((Named) value).getName();
+        } else if (value instanceof Enum) {
+            // TODO: Remove support for raw Enums in Gradle 10.0.0
+            return ((Enum<?>) value).name();
+        } else {
+            return value.toString();
+        }
     }
 
     public ComponentSelector desugarSelector(ComponentSelector selector) {

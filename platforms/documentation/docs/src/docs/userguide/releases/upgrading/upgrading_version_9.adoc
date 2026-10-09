@@ -377,6 +377,38 @@ In general, the `ResolvedConfiguration`, `LenientConfiguration`, `ResolvedDepend
 They are not compatible with the <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types,Configuration Cache>> and, unlike the modern APIs, do not carry the task dependencies required to build the artifacts they return.
 Prefer the `ResolutionResult`, `ArtifactView`, link:{javadocPath}/org/gradle/api/file/FileCollection.html[`FileCollection`], and link:{javadocPath}/org/gradle/api/artifacts/ArtifactCollection.html[`ArtifactCollection`] APIs, described in <<artifact_resolution.adoc#sec:available_apis,Artifact Resolution>>.
 
+[[named_attribute_value_desugared_by_name]]
+==== `Named` attribute values are reported by `getName()` rather than `toString()`
+
+When Gradle reduces a non-`String` attribute value to a String — to report it in a resolution result, to cache it, or to publish it — a value implementing link:{javadocPath}/org/gradle/api/Named.html[`Named`] now contributes `getName()`.
+It previously contributed `toString()` in resolution results and in the cached form of those results.
+
+`getName()` is the representation the rest of Gradle already derived: attribute matching compares it, and Gradle Module Metadata publishes it.
+Reporting `toString()` meant a resolution result could describe a value differently from both the match that selected it and the metadata published for it.
+
+This only changes behavior for a hand-written `Named` implementation whose `toString()` returns something other than its `getName()`.
+A value created through link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#named(java.lang.Class,java.lang.String)[`ObjectFactory.named`] is unaffected, because the instance Gradle generates returns the name from both methods.
+The most likely affected shape is an `enum` implementing `Named` that overrides `getName()` while leaving `toString()` at `Enum`'s default of returning `name()`:
+
+[source,groovy]
+----
+enum MyType implements Named {
+    TYPE_A
+
+    @Override
+    String getName() { return name().toLowerCase() }   // "type_a"
+    // toString() is still "TYPE_A"
+}
+----
+
+Such a value was reported as `TYPE_A` and published as `type_a`; both are now `type_a`.
+
+If your build asserts on an attribute value read from a `ResolutionResult`, from `ResolvedVariantResult.getAttributes()`, or from a build operation, update the expected value to the `getName()` form.
+Do not reintroduce the old string by overriding `getName()` to return `toString()` — see <<variant_attributes.adoc#sec:creating-attributes, Creating attributes>> for why the two must agree.
+
+A plain `Enum` that does not implement `Named` is still reduced by `name()`, as before.
+That type remains deprecated — see <<#unsupported_attribute_value_type, unsupported attribute value types>>.
+
 === Deprecations
 
 [[kotlin_dsl_scripts_model_explicit_scripts]]
