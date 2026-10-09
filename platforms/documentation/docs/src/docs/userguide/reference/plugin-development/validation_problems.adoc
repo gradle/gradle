@@ -570,3 +570,32 @@ Fix it by wrapping the value in a supported nested container:
 * `MapProperty<K, V>` where `V` has annotated properties
 
 Or move the annotation off the nested property and onto the specific properties you care about.
+
+[[output_provider_without_producer]]
+=== Output provider is not associated with its producing task
+
+A task declares an output property whose type is a plain `Provider`, for example `Provider<RegularFile>`, but the provider does not know that the task produces its value.
+Other tasks that consume the provider, for example through `TaskProvider.flatMap()`, do not get an implicit dependency on the producing task and may run before it.
+
+Gradle associates the value of an output property with its task when the value is returned from a getter that Gradle can override, on a property that has no setter.
+A final getter, such as a Kotlin `val`, cannot be overridden, and a property with a setter may be replaced at any time, so their values stay unassociated.
+
+In Kotlin, mark the property `open`:
+
+[source,kotlin]
+----
+@get:OutputFile
+open val outputFile: Provider<RegularFile> = outputDir.map { it.file("result.txt") }
+----
+
+In Groovy, mark the field `final`, which gives it a non-final getter and no setter:
+
+[source,groovy]
+----
+@OutputFile
+final Provider<RegularFile> outputFile = outputDir.map { it.file("result.txt") }
+----
+
+In Java, make sure the getter is not `final` and that there is no setter for the property.
+
+Alternatively, declare the property with a `Property` type such as `RegularFileProperty`, `DirectoryProperty` or `ConfigurableFileCollection`, which records the producing task automatically; call `finalizeValue()` in the constructor if the value must stay read-only.

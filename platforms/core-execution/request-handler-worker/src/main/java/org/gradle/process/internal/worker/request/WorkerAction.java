@@ -195,10 +195,11 @@ public class WorkerAction implements Action<WorkerProcessContext>, Serializable,
         }
 
         @Override
-        public void applyRoleTo(ModelObject owner, Object target) {
+        public Object applyRoleTo(ModelObject owner, Object target) {
             if (target instanceof PropertyInternal) {
                 ((PropertyInternal<?>) target).attachProducer(owner);
             }
+            return target;
         }
     }
 
