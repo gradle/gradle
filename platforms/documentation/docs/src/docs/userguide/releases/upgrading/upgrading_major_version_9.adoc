@@ -933,7 +933,7 @@ To control cache cleanup behavior in Gradle 9.0.0 and later, use an <<directory_
 [[removal_of_build_cache_local_remove_unused_entries_after_days]]
 === Removal of `buildCache.local.removeUnusedEntriesAfterDays`
 
-In Gradle 9.0.0, the property link:{javadocPath}/org/gradle/caching/local/DirectoryBuildCache.html#setRemoveUnusedEntriesAfterDays-int-[`buildCache.local.removeUnusedEntriesAfterDays`] has been removed.
+In Gradle 9.0.0, the property link:{javadocPath}/org/gradle/caching/local/DirectoryBuildCache.html[`buildCache.local.removeUnusedEntriesAfterDays`] has been removed.
 
 This property was previously used to configure the retention period for the local build cache.
 
@@ -962,7 +962,7 @@ abstract class MyExtension {
 }
 ----
 +
-Gradle automatically generates a `Closure`-taking method at runtime for each method with an `Action` as a single argument as long as the object is created with link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object...)[ObjectFactory#newInstance].
+Gradle automatically generates a `Closure`-taking method at runtime for each method with an `Action` as a single argument as long as the object is created with link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#newInstance(java.lang.Class,java.lang.Object++...++)[ObjectFactory#newInstance].
 +
 As a last resort, to apply some configuration represented by a Groovy Closure, a plugin can use
 link:{javadocPath}/org/gradle/api/Project.html#configure(java.lang.Object,groovy.lang.Closure)[Project#configure].

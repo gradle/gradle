@@ -27,6 +27,7 @@ import org.gradle.api.file.DirectoryProperty;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceSetContainer;
@@ -61,7 +62,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         generateDefaultImports(project, tasks, extension);
         generateUserManual(project, tasks, layout, extension);
 
-        checkXrefLinksInUserManualAreValid(layout, tasks, extension);
+        checkXrefLinksInUserManualAreValid(layout, tasks, project.getObjects(), extension);
     }
 
     public static List<String> getDefaultExcludedPackages() {
@@ -298,11 +299,14 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         });
     }
 
-    private void checkXrefLinksInUserManualAreValid(ProjectLayout layout, TaskContainer tasks, GradleDocumentationExtension extension) {
+    private void checkXrefLinksInUserManualAreValid(ProjectLayout layout, TaskContainer tasks, ObjectFactory objects, GradleDocumentationExtension extension) {
+        Provider<Directory> dslHtmlDirectory = tasks.named("dslHtml", Docbook2Xhtml.class).flatMap(Docbook2Xhtml::getDestinationDirectory);
         TaskProvider<FindBrokenInternalLinks> checkDeadInternalLinks = tasks.register("checkDeadInternalLinks", FindBrokenInternalLinks.class, task -> {
             task.getReportFile().convention(layout.getBuildDirectory().file("reports/dead-internal-links.txt"));
             task.getDocumentationRoot().convention(extension.getUserManual().getStagedDocumentation()); // working/usermanual/raw/
             task.getJavadocRoot().convention(layout.getBuildDirectory().dir("javadoc"));
+            // The DSL reference is not generated in quick feedback mode
+            task.getDslRoot().convention(extension.getQuickFeedback().flatMap(quick -> quick ? objects.directoryProperty() : dslHtmlDirectory));
             task.getReleaseNotesFile().convention(layout.getProjectDirectory().file("src/docs/release/notes.md"));
             task.dependsOn(tasks.named("javadocAll"));
             task.dependsOn(tasks.named("assembleSamples"));

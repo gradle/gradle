@@ -139,7 +139,7 @@ include::sample[dir="snippets/reference/dependency-management/publishing/conditi
 
 The publishing plugins will create tasks that allow you to publish either of the publications to either repository. They also attach those tasks to the `publish` aggregate task. But let's say you want to restrict the binary-only publication to the external repository and the binary-with-sources publication to the internal one. To do that, you need to make the publishing _conditional_.
 
-Gradle allows you to skip any task you want based on a condition via the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(java.lang.String,org.gradle.api.specs.Spec)[Task.onlyIf(String, org.gradle.api.specs.Spec)] method. The following sample demonstrates how to implement the constraints we just mentioned:
+Gradle allows you to skip any task you want based on a condition via the link:{groovyDslPath}/org.gradle.api.Task.html#org.gradle.api.Task:onlyIf(java.lang.String,%20org.gradle.api.specs.Spec)[Task.onlyIf(String, org.gradle.api.specs.Spec)] method. The following sample demonstrates how to implement the constraints we just mentioned:
 
 ====
 include::sample[dir="snippets/reference/dependency-management/publishing/conditional-publishing/kotlin",files="build.gradle.kts[tags=task-config]"]
@@ -164,14 +164,14 @@ include::sample[dir="snippets/reference/dependency-management/publishing/conditi
 include::sample[dir="snippets/reference/dependency-management/publishing/conditional-publishing/groovy",files="build.gradle[tags=shorthand-tasks]"]
 ====
 
-This particular sample automatically handles the introduction or removal of the relevant publishing tasks by using link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[TaskCollection.withType(java.lang.Class)] with the link:{groovyDslPath}/org.gradle.api.publish.maven.tasks.PublishToMavenRepository.html[PublishToMavenRepository] task type. You can do the same with link:{groovyDslPath}/org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.html[PublishToIvyRepository] if you're publishing to Ivy-compatible repositories.
+This particular sample automatically handles the introduction or removal of the relevant publishing tasks by using link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType(java.lang.Class)[TaskCollection.withType(java.lang.Class)] with the link:{groovyDslPath}/org.gradle.api.publish.maven.tasks.PublishToMavenRepository.html[PublishToMavenRepository] task type. You can do the same with link:{groovyDslPath}/org.gradle.api.publish.ivy.tasks.PublishToIvyRepository.html[PublishToIvyRepository] if you're publishing to Ivy-compatible repositories.
 
 [[sec:configuring_publishing_tasks]]
 == Configuring publishing tasks
 
 The publishing plugins create their non-aggregate tasks after the project has been evaluated, which means you cannot directly reference them from your build script. If you would like to configure any of these tasks, you should use deferred task configuration. This can be done in a number of ways via the project's `tasks` collection.
 
-For example, imagine you want to change where the `generatePomFileFor__PubName__Publication` tasks write their POM files. You can do this by using the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType-java.lang.Class-[TaskCollection.withType(java.lang.Class)] method, as demonstrated by this sample:
+For example, imagine you want to change where the `generatePomFileFor__PubName__Publication` tasks write their POM files. You can do this by using the link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#withType(java.lang.Class)[TaskCollection.withType(java.lang.Class)] method, as demonstrated by this sample:
 
 ====
 include::sample[dir="snippets/reference/dependency-management/publishing/javaLibrary/kotlin",files="build.gradle.kts[tags=configure-generate-task]"]

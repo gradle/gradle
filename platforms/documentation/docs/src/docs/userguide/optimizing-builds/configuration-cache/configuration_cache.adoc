@@ -342,7 +342,7 @@ To reduce the risk of exposing sensitive values through the Configuration Cache:
 The content of this file is *not* serialized into the cache entry — only the file's fingerprint is recorded.
 This is the recommended approach for repository credentials and other secrets.
 - **Use the Gradle credentials API for repository authentication.**
-Declaring credential types via the link:{javadocPath}/org/gradle/api/artifacts/repositories/AuthenticationSupported.html#credentials-java.lang.Class-[repository credentials API] lets Gradle look up values from Gradle properties at build time, keeping them out of your build scripts.
+Declaring credential types via the link:{javadocPath}/org/gradle/api/artifacts/repositories/AuthenticationSupported.html#credentials(java.lang.Class)[repository credentials API] lets Gradle look up values from Gradle properties at build time, keeping them out of your build scripts.
 See <<supported_repository_protocols.adoc#sec:handling-credentials, Handling credentials>> for details.
 - **Mark non-essential fields as `transient`.**
 Java's `transient` keyword excludes a field from Configuration Cache serialization.

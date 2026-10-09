@@ -112,7 +112,7 @@ To review the two options:
 | 1. *Strict version (link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html[`strictly()`])*
 | The version is enforced but can trigger resolution failures if conflicts exist.
 
-| 2. *Forced version (link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#force(java.lang.Object...)[`force()`])*
+| 2. *Forced version (link:{javadocPath}/org/gradle/api/artifacts/ResolutionStrategy.html#force(java.lang.Object++...++)[`force()`])*
 | The version is forcibly applied at the configuration level, overriding all other constraints.
 |===
 

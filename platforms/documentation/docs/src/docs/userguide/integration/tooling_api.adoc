@@ -69,7 +69,7 @@ include::sample[dir="snippets/integration/runBuild/groovy",files="build.gradle[t
 
 The main entry point to the Tooling API is the link:{javadocPath}/org/gradle/tooling/GradleConnector.html[GradleConnector].
 You can navigate from there to find code samples and explore the available Tooling API models.
-You can use link:{javadocPath}/org/gradle/tooling/GradleConnector.html#connect--[GradleConnector.connect()] to create a link:{javadocPath}/org/gradle/tooling/ProjectConnection.html[ProjectConnection].
+You can use link:{javadocPath}/org/gradle/tooling/GradleConnector.html#connect()[GradleConnector.connect()] to create a link:{javadocPath}/org/gradle/tooling/ProjectConnection.html[ProjectConnection].
 A `ProjectConnection` connects to a single Gradle project.
 Using the connection you can execute tasks, tests and retrieve models relative to this project.
 
@@ -224,7 +224,7 @@ A single action passed to link:{javadocPath}/org/gradle/tooling/ProjectConnectio
 
 A build action can request that tasks run as part of the same Gradle invocation:
 
-* link:{javadocPath}/org/gradle/tooling/BuildActionExecuter.html#forTasks(java.lang.String...)[`BuildActionExecuter.forTasks(...)`] schedules tasks that run before the action executes.
+* link:{javadocPath}/org/gradle/tooling/BuildActionExecuter.html#forTasks(java.lang.String++...++)[`BuildActionExecuter.forTasks(...)`] schedules tasks that run before the action executes.
 Passing an empty array runs the build's default tasks.
 Omitting the call (or passing `null`) skips task execution entirely.
 * For a phased build action, the scheduled tasks run after the `projectsLoaded` action and before the `buildFinished` action.

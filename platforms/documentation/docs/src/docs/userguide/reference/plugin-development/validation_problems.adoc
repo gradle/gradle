@@ -195,7 +195,7 @@ Use a non-absolute normalization instead:
 An artifact transform has a property annotated as an output (`@OutputFile`, `@OutputDirectory`, ...).
 Artifact transforms produce outputs through the link:{javadocPath}/org/gradle/api/artifacts/transform/TransformOutputs.html[`TransformOutputs`] parameter of `transform()`, not through annotated properties.
 
-Remove the output-annotated property and register outputs through link:{javadocPath}/org/gradle/api/artifacts/transform/TransformAction.html#transform-org.gradle.api.artifacts.transform.TransformOutputs-[`TransformAction.transform(TransformOutputs)`] instead.
+Remove the output-annotated property and register outputs through link:{javadocPath}/org/gradle/api/artifacts/transform/TransformAction.html#transform(org.gradle.api.artifacts.transform.TransformOutputs)[`TransformAction.transform(TransformOutputs)`] instead.
 
 [[ignored_annotations_on_field]]
 === Annotations on fields without a getter

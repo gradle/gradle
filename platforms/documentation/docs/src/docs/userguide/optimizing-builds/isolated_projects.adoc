@@ -523,7 +523,7 @@ of a child project lists only the properties defined on that project itself.
 Properties inherited from parent projects are not present in the report.
 This is a consequence of the <<sec:no_implicit_parents_lookup,no implicit parent lookup>> behavior.
 
-Direct uses of link:{javadocPath}/org/gradle/api/Project.html#getProperties--[`Project.getProperties()`]
+Direct uses of link:{javadocPath}/org/gradle/api/Project.html#getProperties()[`Project.getProperties()`]
 continue to be reported as an Isolated Projects violation, as that API is being <<upgrading_version_9.adoc#deprecated_get_properties,phased out>>.
 
 [[sec:migration]]
@@ -928,7 +928,7 @@ These patterns are workarounds for the current implementation limitation listed 
 The previous strategies address configuring other projects; this one addresses _reading_ their state.
 When build logic needs some data from another project, prefer the isolated view over the full `Project`, so that only safe cross-project data is reachable.
 
-You can get a simplified view of a project by calling link:{javadocPath}/org/gradle/api/Project.html#getIsolated--[`project.isolated`],
+You can get a simplified view of a project by calling link:{javadocPath}/org/gradle/api/Project.html#getIsolated()[`project.isolated`],
 which returns link:{javadocPath}/org/gradle/api/project/IsolatedProject.html[`IsolatedProject`] type.
 This works in all contexts and is especially useful when accessing an instance of another project,
 such as `project(":foo").isolated` or `rootProject.isolated`.

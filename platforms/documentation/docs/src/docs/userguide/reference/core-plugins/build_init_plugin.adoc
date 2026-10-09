@@ -261,7 +261,7 @@ NOTE: Due to fundamental differences between Maven and Gradle, not all features 
 [[sec:allow_insecure]]
 ==== The `--insecure-protocol` option
 
-This option tells the conversion process how to handle Maven repositories located at insecure `http` URLs. It is set via the link:{groovyDslPath}/org.gradle.buildinit.tasks.InitBuild.html#org.gradle.buildinit.tasks.InitBuild:getInsecureProtocol[--insecure-protocol] option. The default value is `warn`.
+This option tells the conversion process how to handle Maven repositories located at insecure `http` URLs. It is set via the link:{groovyDslPath}/org.gradle.buildinit.tasks.InitBuild.html#org.gradle.buildinit.tasks.InitBuild:insecureProtocol[--insecure-protocol] option. The default value is `warn`.
 
 Available values are:
 

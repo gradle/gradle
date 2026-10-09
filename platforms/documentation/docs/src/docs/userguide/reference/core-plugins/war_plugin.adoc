@@ -126,7 +126,7 @@ An incubating replacement, `webXmlFile` (a link:{javadocPath}/org/gradle/api/fil
 ====
 
 `webInf`::
-Adds a nested link:{groovyDslPath}/org.gradle.api.file.CopySpec.html[CopySpec] whose contents are copied into the `WEB-INF` directory of the archive.
+Adds a nested link:{javadocPath}/org/gradle/api/file/CopySpec.html[CopySpec] whose contents are copied into the `WEB-INF` directory of the archive.
 
 [[sec:war_customizing]]
 == Customizing
