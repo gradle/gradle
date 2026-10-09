@@ -17,6 +17,7 @@
 package org.gradle.api.tasks
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
@@ -265,6 +266,94 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         then:
         executedAndNotSkipped ":run"
         outputFile.text == "different"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26340")
+    @ToBeFixedForConfigurationCache(because = "the configuration cache drops the producer of a stored provider, so the mapped value is not checked")
+    def "argument provider cannot query value mapped from the task's own output"() {
+        given:
+        buildFile """
+            class OutputFileArgument implements CommandLineArgumentProvider {
+                private final Provider<String> outputFileName
+
+                OutputFileArgument(Provider<String> outputFileName) {
+                    this.outputFileName = outputFileName
+                }
+
+                @Override
+                Iterable<String> asArguments() {
+                    return [outputFileName.get()]
+                }
+            }
+
+            abstract class JavaExecWithOutput extends JavaExec {
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                JavaExecWithOutput() {
+                    argumentProviders.add(new OutputFileArgument(outputFile.map { it.asFile.name }))
+                }
+            }
+
+            task runWithOutput(type: JavaExecWithOutput) {
+                classpath = project.layout.files(compileJava)
+                mainClass = "driver.Driver"
+                outputFile = layout.buildDirectory.file("args.txt")
+            }
+        """
+
+        when:
+        fails "runWithOutput"
+
+        then:
+        failureHasCause(
+            "Querying the mapped value of task ':runWithOutput' property 'outputFile' before task ':runWithOutput' has completed is not supported. " +
+                "The mapped value may depend on the content produced by task ':runWithOutput', so it can only be calculated after task ':runWithOutput' has completed. " +
+                "To use the value in another task, declare it as an input of that task, so that the task runs after task ':runWithOutput'. " +
+                "To use the value in the actions of task ':runWithOutput', query the property with 'get()' and transform the result. " +
+                "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
+        )
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26340")
+    def "argument provider can query location of the task's own output"() {
+        given:
+        buildFile """
+            class OutputFileArgument implements CommandLineArgumentProvider {
+                private final Provider<String> outputFileName
+
+                OutputFileArgument(Provider<String> outputFileName) {
+                    this.outputFileName = outputFileName
+                }
+
+                @Override
+                Iterable<String> asArguments() {
+                    return [outputFileName.get()]
+                }
+            }
+
+            abstract class JavaExecWithOutput extends JavaExec {
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                JavaExecWithOutput() {
+                    argumentProviders.add(new OutputFileArgument(outputFile.locationOnly.map { it.asFile.name }))
+                }
+            }
+
+            task runWithOutput(type: JavaExecWithOutput) {
+                classpath = project.layout.files(compileJava)
+                mainClass = "driver.Driver"
+                outputFile = layout.buildDirectory.file("args.txt")
+            }
+        """
+
+        when:
+        run "runWithOutput"
+
+        then:
+        executedAndNotSkipped ":runWithOutput"
+        assertOutputFileIs("args.txt\n")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/12832")
