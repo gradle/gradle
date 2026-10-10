@@ -104,7 +104,7 @@ public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
 
     @Override
     public ValueProducer getProducer() {
-        return new TasksOnlyProducer(ValueProducer.composite(Iterables.transform(items, item -> Providers.internal(item).getProducer())));
+        return new DependenciesAsContentProducer(ValueProducer.composite(Iterables.transform(items, item -> Providers.internal(item).getProducer())));
     }
 
 }

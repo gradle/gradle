@@ -139,19 +139,19 @@ class ValueProducerTest extends Specification implements ProviderAssertions {
         getDependencies(producer::visitContentDependencies) == [otherTask, work]
     }
 
-    def "tasks only producer visits only tasks, as content"() {
-        def producer = new ValueSupplier.TasksOnlyProducer(new ValueSupplier.PlusProducer(ValueProducer.taskState(task), ValueProducer.from(container(otherTask, work))))
+    def "dependencies as content producer visits all dependencies as content"() {
+        def producer = new ValueSupplier.DependenciesAsContentProducer(new ValueSupplier.PlusProducer(ValueProducer.taskState(task), ValueProducer.from(container(otherTask, work))))
 
         expect:
         producer.known
-        getDependencies(producer::visitDependencies) == [task, otherTask]
-        getDependencies(producer::visitContentDependencies) == [task, otherTask]
+        getDependencies(producer::visitDependencies) == [task, otherTask, work]
+        getDependencies(producer::visitContentDependencies) == [task, otherTask, work]
     }
 
-    def "tasks only producer is known when its delegate is known"() {
+    def "dependencies as content producer is known when its delegate is known"() {
         expect:
-        new ValueSupplier.TasksOnlyProducer(ValueProducer.noProducer()).known
-        !new ValueSupplier.TasksOnlyProducer(ValueProducer.unknown()).known
+        new ValueSupplier.DependenciesAsContentProducer(ValueProducer.noProducer()).known
+        !new ValueSupplier.DependenciesAsContentProducer(ValueProducer.unknown()).known
     }
 
     private ValueProducer producer(String kind) {

@@ -42,7 +42,7 @@ class OrElseProvider<T> extends AbstractMinimalProvider<T> {
     @Override
     public ValueProducer getProducer() {
         try (EvaluationScopeContext context = openScope()) {
-            return new TasksOnlyProducer(new OrElseValueProducer(context, left, right));
+            return new DependenciesAsContentProducer(new OrElseValueProducer(context, left, right));
         }
     }
 

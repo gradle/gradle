@@ -1094,7 +1094,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
     }
     // endregion Multi-project undeclared resolution scenarios
 
-    def "dependency declared using #description of transformed files schedules the transform and its upstream task: #scheduled"() {
+    def "#wiring with #description of transformed files schedules the transform and its upstream task"() {
         settingsFile << "include 'lib'"
         file("lib/build.gradle") << """
             abstract class Producer extends DefaultTask {
@@ -1137,7 +1137,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
             }
             def files = configurations.res.incoming.artifactView { attributes.attribute(artifactType, "upper") }.files
             tasks.register("consumer") {
-                dependsOn(${expression})
+                ${wiring}(${expression})
             }
         """
 
@@ -1145,21 +1145,20 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
         succeeds("consumer")
 
         then:
-        if (scheduled) {
-            executed(":lib:producer")
-            outputContains("Transforming in.txt")
-        } else {
-            notExecuted(":lib:producer")
-            outputDoesNotContain("Transforming in.txt")
-        }
+        executed(":lib:producer")
+        outputContains("Transforming in.txt")
 
         where:
-        description                | expression                                                      | scheduled
-        "elements"                 | "files.elements"                                                | true
-        "mapped elements"          | "files.elements.map { it }"                                     | true
-        "set property of elements" | "objects.setProperty(FileSystemLocation).value(files.elements)" | true
-        // zip and orElse only visit tasks, which drops the transform and the task behind it
-        "zipped elements"          | "files.elements.zip(provider { 1 }) { f, i -> f }"              | false
-        "orElse of elements"       | "files.elements.map { it }.orElse(provider { [] as Set })"      | false
+        wiring         | description                | expression
+        "dependsOn"    | "elements"                 | "files.elements"
+        "dependsOn"    | "mapped elements"          | "files.elements.map { it }"
+        "dependsOn"    | "set property of elements" | "objects.setProperty(FileSystemLocation).value(files.elements)"
+        "dependsOn"    | "zipped elements"          | "files.elements.zip(provider { 1 }) { f, i -> f }"
+        "dependsOn"    | "orElse of elements"       | "files.elements.map { it }.orElse(provider { [] as Set })"
+        "inputs.files" | "elements"                 | "files.elements"
+        "inputs.files" | "mapped elements"          | "files.elements.map { it }"
+        "inputs.files" | "set property of elements" | "objects.setProperty(FileSystemLocation).value(files.elements)"
+        "inputs.files" | "zipped elements"          | "files.elements.zip(provider { 1 }) { f, i -> f }"
+        "inputs.files" | "orElse of elements"       | "files.elements.map { it }.orElse(provider { [] as Set })"
     }
 }

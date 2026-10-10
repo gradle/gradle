@@ -43,7 +43,7 @@ class OrElseFixedValueProvider<T> extends AbstractProviderWithValue<T> {
     @Override
     public ValueProducer getProducer() {
         try (EvaluationScopeContext context = openScope()) {
-            return new TasksOnlyProducer(new OrElseValueProducer(context, provider));
+            return new DependenciesAsContentProducer(new OrElseValueProducer(context, provider));
         }
     }
 
