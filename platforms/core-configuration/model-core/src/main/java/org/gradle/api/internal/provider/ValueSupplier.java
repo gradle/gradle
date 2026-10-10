@@ -17,11 +17,11 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 import org.jspecify.annotations.Nullable;
@@ -55,48 +55,102 @@ public interface ValueSupplier {
      */
     @SuppressWarnings("ClassInitializationDeadlock")
     interface ValueProducer extends TaskDependencyContainer {
-        NoProducer NO_PRODUCER = new NoProducer();
-        UnknownProducer UNKNOWN_PRODUCER = new UnknownProducer();
 
-        default boolean isKnown() {
-            return true;
-        }
+        /**
+         * If true, {@link #visitDependencies(TaskDependencyResolveContext)} and
+         * {@link #visitContentDependencies(TaskDependencyResolveContext)} are
+         * meaningful, though may be empty. If false, the outcome of visiting
+         * dependencies does not reflect the work required to produce the value.
+         */
+        // TODO: This may not be an entirely actionable property. It is more useful
+        // to query whether producer for the value or its contents is definitively empty.
+        // We want know if it is safe to "pull" on this value or interpret its contents
+        // now, or if doing so would return an undefined value, lead to an undefiend state,
+        // or result in a failure.
+        // TODO: Alternatively, it maybe more useful to query the producer to determine
+        // if its value or contents are _ready_. If the work has already been executed,
+        // then it is safe to pull on the value or interpret its contents, regardless of
+        // whether the work set is executed or not. However, this may be a more difficult
+        // property to implement.
+        boolean isKnown();
 
+        /**
+         * {@inheritDoc}
+         * <p>
+         * The dependencies scheduled when this value is included on a work graph. In most
+         * cases this is the same as {@link #visitContentDependencies(TaskDependencyResolveContext)},
+         * but in some cases may contain additional dependencies.
+         * <p>
+         * TODO: The dependencies to schedule should be the same as the dependencies needed
+         * to "pull on" the value. These are only different for task providers, which don't
+         * need to execute dependencies to pull on the provider, but still schedules the task
+         * when the provider is included as a build dependency. We should instead model this
+         * as a non-{@link #isKnown() known} provider.
+         */
         @Override
-        default void visitDependencies(TaskDependencyResolveContext context) {
-            visitProducerTasks(context);
-        }
+        void visitDependencies(TaskDependencyResolveContext context);
 
-        void visitProducerTasks(Action<? super Task> visitor);
+        /**
+         * The dependencies needed to "pull on" the value. If any of these dependencies
+         * have not been executed, the value produced is undefined. Attempting to acquire
+         * the value when these dependencies are not executed should result in an error.
+         */
+        void visitContentDependencies(TaskDependencyResolveContext context);
 
-        default void visitContentProducerTasks(Action<? super Task> visitor) {
-            visitProducerTasks(visitor);
-        }
-
+        /**
+         * Return a producer that requires the work of this producer and the given producer
+         * to produce the value and its contents.
+         */
         default ValueProducer plus(ValueProducer producer) {
-            if (this == NO_PRODUCER) {
-                return producer;
-            }
-            if (producer == NO_PRODUCER) {
+            if (producer == this) {
                 return this;
             }
-            if (producer == this) {
+            // The result is known if either side is known, so the known NoProducer
+            // can only be dropped when the other side is known too.
+            if (this == NoProducer.INSTANCE && producer.isKnown()) {
+                return producer;
+            }
+            if (producer == NoProducer.INSTANCE && isKnown()) {
                 return this;
             }
             return new PlusProducer(this, producer);
         }
 
-        static ValueProducer noProducer() {
-            return NO_PRODUCER;
+        /**
+         * Return a producer known to require the work defined in the given container
+         * to produce the value and its contents.
+         */
+        static ValueProducer from(TaskDependencyContainer container) {
+            return new DelegatingProducer(container);
         }
 
+        /**
+         * Return a producer that requires the work of the given delegate producers
+         * to produce the value and its contents.
+         */
+        static ValueProducer composite(Iterable<ValueProducer> producers) {
+            return new CompositeProducer(producers);
+        }
+
+        /**
+         * Return a producer known to not require any work to produce the value or
+         * its contents.
+         */
+        static ValueProducer noProducer() {
+            return NoProducer.INSTANCE;
+        }
+
+        /**
+         * Return a producer that is not known. The value and its contents may or may
+         * not require work to produce.
+         */
         static ValueProducer unknown() {
-            return UNKNOWN_PRODUCER;
+            return UnknownProducer.INSTANCE;
         }
 
         static ValueProducer externalValue() {
             // At the moment, external values do not differ from values without the producer.
-            return NO_PRODUCER;
+            return NoProducer.INSTANCE;
         }
 
         /**
@@ -112,9 +166,11 @@ public interface ValueSupplier {
         static ValueProducer taskState(Task task) {
             return new TaskProducer(task, false);
         }
+
     }
 
     class TaskProducer implements ValueProducer {
+
         private final Task task;
         private final boolean content;
 
@@ -124,19 +180,54 @@ public interface ValueSupplier {
         }
 
         @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-            visitor.execute(task);
+        public boolean isKnown() {
+            return true;
         }
 
         @Override
-        public void visitContentProducerTasks(Action<? super Task> visitor) {
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            context.add(task);
+        }
+
+        @Override
+        public void visitContentDependencies(TaskDependencyResolveContext context) {
             if (content) {
-                visitor.execute(task);
+                context.add(task);
             }
         }
+
     }
 
+    class DelegatingProducer implements ValueProducer {
+
+        private final TaskDependencyContainer delegate;
+
+        public DelegatingProducer(TaskDependencyContainer delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public boolean isKnown() {
+            return true;
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            delegate.visitDependencies(context);
+        }
+
+        @Override
+        public void visitContentDependencies(TaskDependencyResolveContext context) {
+            delegate.visitDependencies(context);
+        }
+
+    }
+
+    /**
+     * A producer that requires the work of two other producers to produce the value and its contents.
+     */
     class PlusProducer implements ValueProducer {
+
         private final ValueProducer left;
         private final ValueProducer right;
 
@@ -151,27 +242,131 @@ public interface ValueSupplier {
         }
 
         @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-            left.visitProducerTasks(visitor);
-            right.visitProducerTasks(visitor);
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            left.visitDependencies(context);
+            right.visitDependencies(context);
         }
+
+        @Override
+        public void visitContentDependencies(TaskDependencyResolveContext context) {
+            left.visitContentDependencies(context);
+            right.visitContentDependencies(context);
+        }
+
+    }
+
+    /**
+     * Multivalued counterpart to {@link PlusProducer}.
+     */
+    class CompositeProducer implements ValueProducer {
+
+        private final Iterable<ValueProducer> items;
+
+        public CompositeProducer(Iterable<ValueProducer> items) {
+            this.items = items;
+        }
+
+        @Override
+        public boolean isKnown() {
+            for (ValueProducer item : items) {
+                if (item.isKnown()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            for (ValueProducer item : items) {
+                item.visitDependencies(context);
+            }
+        }
+
+        @Override
+        public void visitContentDependencies(TaskDependencyResolveContext context) {
+            for (ValueProducer item : items) {
+                item.visitContentDependencies(context);
+            }
+        }
+
+    }
+
+    /**
+     * Restricts a producer to the tasks among its dependencies, for both
+     * {@link #visitDependencies(TaskDependencyResolveContext)} and
+     * {@link #visitContentDependencies(TaskDependencyResolveContext)}.
+     * <p>
+     * This reproduces the removed {@code visitProducerTasks} method, which {@code zip},
+     * {@code orElse} and {@link MergeProvider} used to compute both sets. Any work that is
+     * not a task is dropped, and so is any task reachable only through such work, for
+     * example the task producing the input of an artifact transform. The delegate's content
+     * dependencies are ignored, so a task provider's task counts as content.
+     */
+    // TODO: Remove. This exists only to preserve behavior while removing visitProducerTasks.
+    class TasksOnlyProducer implements ValueProducer {
+
+        private final ValueProducer delegate;
+
+        public TasksOnlyProducer(ValueProducer delegate) {
+            this.delegate = delegate;
+        }
+
+        @Override
+        public boolean isKnown() {
+            return delegate.isKnown();
+        }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+            for (Task task : TaskDependencyUtil.newTaskResolver().getDependencies(null, delegate)) {
+                context.add(task);
+            }
+        }
+
+        @Override
+        public void visitContentDependencies(TaskDependencyResolveContext context) {
+            visitDependencies(context);
+        }
+
     }
 
     class UnknownProducer implements ValueProducer {
+
+        public static final UnknownProducer INSTANCE = new UnknownProducer();
+
         @Override
         public boolean isKnown() {
             return false;
         }
 
         @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
+        public void visitDependencies(TaskDependencyResolveContext context) {
         }
+
+        @Override
+        public void visitContentDependencies(TaskDependencyResolveContext context) {
+        }
+
     }
 
     class NoProducer implements ValueProducer {
+
+        public static final NoProducer INSTANCE = new NoProducer();
+
         @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
+        public boolean isKnown() {
+            return true;
         }
+
+        @Override
+        public void visitDependencies(TaskDependencyResolveContext context) {
+        }
+
+        @Override
+        public void visitContentDependencies(TaskDependencyResolveContext context) {
+        }
+
     }
 
     /**

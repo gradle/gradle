@@ -16,8 +16,7 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.Action;
-import org.gradle.api.Task;
+import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.internal.evaluation.EvaluationContext;
 import org.gradle.internal.evaluation.EvaluationOwner;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
@@ -26,6 +25,7 @@ import org.jspecify.annotations.Nullable;
 import java.util.Objects;
 
 class OrElseValueProducer implements ValueSupplier.ValueProducer {
+
     private final EvaluationOwner owner;
     private final ProviderInternal<?> left;
     @Nullable
@@ -56,21 +56,37 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
     }
 
     @Override
-    public void visitProducerTasks(Action<? super Task> visitor) {
+    public void visitDependencies(TaskDependencyResolveContext context) {
         try (EvaluationScopeContext ignored = EvaluationContext.current().open(owner)) {
             if (mayHaveValue(left)) {
                 if (leftProducer.isKnown()) {
-                    leftProducer.visitProducerTasks(visitor);
+                    leftProducer.visitDependencies(context);
                 }
                 return;
             }
             if (right != null && rightProducer.isKnown() && mayHaveValue(right)) {
-                rightProducer.visitProducerTasks(visitor);
+                rightProducer.visitDependencies(context);
             }
         }
     }
 
-    private boolean mayHaveValue(ProviderInternal<?> provider) {
+    @Override
+    public void visitContentDependencies(TaskDependencyResolveContext context) {
+        try (EvaluationScopeContext ignored = EvaluationContext.current().open(owner)) {
+            if (mayHaveValue(left)) {
+                if (leftProducer.isKnown()) {
+                    leftProducer.visitContentDependencies(context);
+                }
+                return;
+            }
+            if (right != null && rightProducer.isKnown() && mayHaveValue(right)) {
+                rightProducer.visitContentDependencies(context);
+            }
+        }
+    }
+
+    private static boolean mayHaveValue(ProviderInternal<?> provider) {
         return !provider.calculateExecutionTimeValue().isMissing();
     }
+
 }

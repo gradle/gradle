@@ -17,8 +17,7 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
-import org.gradle.api.Task;
+import com.google.common.collect.Iterables;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.jspecify.annotations.Nullable;
@@ -69,13 +68,12 @@ public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
         return super.calculateExecutionTimeValue();
     }
 
-    private boolean isChangingValue(ProviderInternal<?> provider) {
+    private static boolean isChangingValue(ProviderInternal<?> provider) {
         return provider.calculateExecutionTimeValue().isChangingValue();
     }
 
     @Override
     protected Value<List<R>> calculateOwnValue(ValueConsumer consumer) {
-
         List<Value<? extends R>> values = new ArrayList<>(items.size());
         for (Provider<R> provider : items) {
             Value<? extends R> value = Providers.internal(provider).calculateValue(consumer);
@@ -106,36 +104,7 @@ public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
 
     @Override
     public ValueProducer getProducer() {
-        ImmutableList.Builder<ValueProducer> producers = ImmutableList.builderWithExpectedSize(items.size());
-        for (Provider<R> item : items) {
-            producers.add(Providers.internal(item).getProducer());
-        }
-        return new MergeValueProducer(producers.build());
+        return new TasksOnlyProducer(ValueProducer.composite(Iterables.transform(items, item -> Providers.internal(item).getProducer())));
     }
 
-    private static class MergeValueProducer implements ValueProducer {
-
-        private final List<ValueProducer> items;
-
-        public MergeValueProducer(List<ValueProducer> items) {
-            this.items = items;
-        }
-
-        @Override
-        public boolean isKnown() {
-            for (ValueProducer item : items) {
-                if (item.isKnown()) {
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        @Override
-        public void visitProducerTasks(Action<? super Task> visitor) {
-            for (ValueProducer item : items) {
-                item.visitProducerTasks(visitor);
-            }
-        }
-    }
 }

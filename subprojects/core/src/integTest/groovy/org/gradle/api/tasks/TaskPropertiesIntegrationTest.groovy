@@ -18,6 +18,7 @@ package org.gradle.api.tasks
 
 import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.UnexpectedBuildFailure
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.FailsWith
 import spock.lang.Issue
@@ -110,33 +111,25 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 MyTask() {
                     output.convention("output")
                 }
-
-                @Internal
-                ${ValueSupplier.class.name} getOutputValueSupplier() {
-                    return (${ValueSupplier.class.name}) output
-                }
-
-                @TaskAction
-                void go() {
-                    outputValueSupplier.producer.visitProducerTasks {
-                        println("outside: output is produced by \${it.name}")
-                    }
-                }
             }
 
-            tasks.register("thing", MyTask) {
-                outputValueSupplier.producer.visitProducerTasks {
-                    println("inside: output is produced by \${it.name}")
-                }
+            def taskProvider = tasks.register("thing", MyTask)
+            tasks.register("test") {
+                dependsOn($dependency)
             }
         """
 
         when:
-        succeeds("thing")
+        succeeds("test")
 
         then:
-        outputContains("outside: output is produced by thing")
-        outputContains("inside: output is produced by thing")
+        executed(":thing")
+
+        where:
+        dependency << [
+            "taskProvider.get().output",
+            "taskProvider.flatMap { it.output }"
+        ]
     }
 
     def "reports failure to query non-abstract Property<T> with final getter"() {
@@ -180,36 +173,28 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @OutputFile
-                public final Property<String> getOutput() {
+                public final Property<String> getOutputGetter() {
                     return output
-                }
-
-                @Internal
-                ${ValueSupplier.class.name} getOutputValueSupplier() {
-                    return (${ValueSupplier.class.name}) output
-                }
-
-                @TaskAction
-                void go() {
-                    outputValueSupplier.producer.visitProducerTasks {
-                        println("inside: output is produced by \${it.name}")
-                    }
                 }
             }
 
-            tasks.register("thing", MyTask) {
-                outputValueSupplier.producer.visitProducerTasks {
-                    println("outside: output is produced by \${it.name}")
-                }
+            def taskProvider = tasks.register("thing", MyTask)
+            tasks.register("test") {
+                dependsOn($dependency)
             }
         """
 
         when:
-        succeeds("thing")
+        succeeds("test")
 
         then:
-        outputContains("outside: output is produced by thing")
-        outputContains("inside: output is produced by thing")
+        executed(":thing")
+
+        where:
+        dependency << [
+            "taskProvider.get().outputGetter",
+            "taskProvider.flatMap { it.outputGetter }"
+        ]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/37421")
@@ -297,7 +282,7 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasCause("Cannot query the value of this property because it has no value available.")
     }
 
-    @FailsWith(reason = "non-final getters do not trigger attachOwner/attachProducer logic", value = AssertionError)
+    @FailsWith(reason = "non-final getters do not trigger attachOwner/attachProducer logic. Build attempts to interpret string as a task.", value = UnexpectedBuildFailure)
     def "non-abstract Property<T> with non-final getter carries task dependencies"() {
         given:
         buildFile """
@@ -314,31 +299,28 @@ class TaskPropertiesIntegrationTest extends AbstractIntegrationSpec {
                 }
 
                 @Internal
-                ${ValueSupplier.class.name} getOutputValueSupplier() {
-                    return (${ValueSupplier.class.name}) output
-                }
-
-                @TaskAction
-                void go() {
-                    outputValueSupplier.producer.visitProducerTasks {
-                        println("inside: output is produced by \${it.name}")
-                    }
+                Property<String> getOutputGetter() {
+                    return output
                 }
             }
 
-            tasks.register("thing", MyTask) {
-                outputValueSupplier.producer.visitProducerTasks {
-                    println("outside: output is produced by \${it.name}")
-                }
+            def taskProvider = tasks.register("thing", MyTask)
+            tasks.register("test") {
+                dependsOn($dependency)
             }
         """
 
         when:
-        succeeds("thing")
+        succeeds("test")
 
         then:
-        outputContains("outside: output is produced by thing")
-        outputContains("inside: output is produced by thing")
+        executed(":thing")
+
+        where:
+        dependency << [
+            "taskProvider.get().outputGetter",
+            "taskProvider.flatMap { it.outputGetter }"
+        ]
     }
 
     def "can define task with abstract read-only ConfigurableFileCollection property"() {

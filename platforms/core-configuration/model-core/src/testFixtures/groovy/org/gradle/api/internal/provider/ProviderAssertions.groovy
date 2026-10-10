@@ -16,33 +16,51 @@
 
 package org.gradle.api.internal.provider
 
+import org.gradle.api.Action
 import org.gradle.api.Task
+import org.gradle.api.internal.tasks.CachingTaskDependencyResolveContext
+import org.gradle.api.internal.tasks.TaskDependencyContainer
+import org.gradle.api.internal.tasks.WorkDependencyResolver
 
 trait ProviderAssertions {
+
     void assertHasNoProducer(ProviderInternal<?> provider) {
         def producer = provider.producer
         assert !producer.known
-        producer.visitProducerTasks { assert false }
-        producer.visitContentProducerTasks { assert false }
+        assert getDependencies(producer::visitDependencies) == []
+        assert getDependencies(producer::visitContentDependencies) == []
     }
 
     void assertHasKnownProducer(ProviderInternal<?> provider) {
         def producer = provider.producer
         assert producer.known
-        producer.visitProducerTasks { assert false }
-        producer.visitContentProducerTasks { assert false }
+        assert getDependencies(producer::visitDependencies) == []
+        assert getDependencies(producer::visitContentDependencies) == []
     }
 
-    void assertHasProducer(ProviderInternal<?> provider, Task task, Task... additional) {
+    void assertHasProducer(ProviderInternal<?> provider, Object task, Object... additional) {
         def expected = [task] + (additional as List)
 
         def producer = provider.producer
         assert producer.known
-        def tasks = []
-        producer.visitProducerTasks { tasks.add(it) }
-        assert tasks == expected
-        tasks.clear()
-        producer.visitContentProducerTasks { tasks.add(it) }
-        assert tasks == expected
+        assert getDependencies(producer::visitDependencies) == expected
+        assert getDependencies(producer::visitContentDependencies) == expected
     }
+
+    List<Object> getDependencies(TaskDependencyContainer container) {
+        return new ArrayList<>(new CachingTaskDependencyResolveContext<>([
+            new CollectingWorkDependencyResolver()
+        ]).getDependencies(null, container))
+    }
+
+    private static class CollectingWorkDependencyResolver implements WorkDependencyResolver<Object> {
+
+        @Override
+        boolean resolve(Task task, Object node, Action<? super Object> resolveAction) {
+            resolveAction.execute(node)
+            return true
+        }
+
+    }
+
 }
