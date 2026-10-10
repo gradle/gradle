@@ -24,8 +24,6 @@ import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-import static org.hamcrest.CoreMatchers.containsString
-
 class ProviderIntegrationTest extends AbstractIntegrationSpec {
 
     public static final String DEFAULT_TEXT = 'default'
@@ -382,7 +380,7 @@ The value of this provider is derived from:
         'provider { "baz" }.zip(task.get().outDir) { f, d -> d.file(f) }'          | _
     }
 
-    def "mapped value of #description can be queried before the task has run: #canQuery"() {
+    def "mapped value of #description can be queried before the task has run"() {
         buildFile """
             def thing = tasks.register("thing")
             def other = tasks.register("other")
@@ -390,26 +388,17 @@ The value of this provider is derived from:
         """
 
         when:
-        if (canQuery) {
-            succeeds("help")
-        } else {
-            fails("help")
-        }
+        succeeds("help")
 
         then:
-        if (canQuery) {
-            outputContains("value = ")
-        } else {
-            failure.assertThatCause(containsString("before task ':thing' has completed is not supported"))
-        }
+        outputContains("value = task ':thing'")
 
         where:
-        description                                | expression                                | canQuery
-        "task provider"                            | "thing"                                   | true
-        // Combinators treat the task of a task provider as content
-        "zipped task provider"                     | "thing.zip(provider { 1 }) { t, i -> t }" | false
-        "orElse of task provider"                  | "thing.orElse(other)"                     | false
-        "orElse with fixed value of task provider" | "thing.orElse(other.get())"               | false
+        description                                | expression
+        "task provider"                            | "thing"
+        "zipped task provider"                     | "thing.zip(provider { 1 }) { t, i -> t }"
+        "orElse of task provider"                  | "thing.orElse(other)"
+        "orElse with fixed value of task provider" | "thing.orElse(other.get())"
     }
 
     def "dependency declared using zipped provider of a task name implies dependency on the task"() {

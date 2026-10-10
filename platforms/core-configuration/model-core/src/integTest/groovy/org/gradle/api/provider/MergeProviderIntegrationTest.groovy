@@ -68,7 +68,7 @@ class MergeProviderIntegrationTest extends AbstractIntegrationSpec {
         outputContains('[Hello, World]')
     }
 
-    def "cannot query mapped value of merged task provider before the task has run"() {
+    def "can query mapped value of merged task provider before the task has run"() {
         buildFile << """
             def thing = tasks.register("thing")
             def merged = new org.gradle.api.internal.provider.MergeProvider([thing])
@@ -76,10 +76,9 @@ class MergeProviderIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        fails("help")
+        succeeds("help")
 
         then:
-        // Unlike a task provider, the merge provider treats the task as content
-        failure.assertHasCause("Querying the mapped value of merge([provider(task 'thing', class org.gradle.api.DefaultTask)]) before task ':thing' has completed is not supported")
+        outputContains("value = [thing]")
     }
 }

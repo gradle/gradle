@@ -95,7 +95,7 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
     @Override
     public ValueProducer getProducer() {
         try (EvaluationScopeContext ignored = openScope()) {
-            return new DependenciesAsContentProducer(left.getProducer().plus(right.getProducer()));
+            return left.getProducer().plus(right.getProducer());
         }
     }
 }

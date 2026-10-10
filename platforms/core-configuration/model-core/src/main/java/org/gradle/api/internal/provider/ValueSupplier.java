@@ -291,39 +291,6 @@ public interface ValueSupplier {
 
     }
 
-    /**
-     * Visits all dependencies of a producer as content dependencies.
-     * <p>
-     * This reproduces how {@code zip}, {@code orElse} and {@link MergeProvider} treated
-     * content before {@code visitContentProducerTasks} was removed: they did not forward it,
-     * so a task provider's task counts as content.
-     */
-    // TODO: Remove. This exists only to preserve behavior while removing visitContentProducerTasks.
-    class DependenciesAsContentProducer implements ValueProducer {
-
-        private final ValueProducer delegate;
-
-        public DependenciesAsContentProducer(ValueProducer delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public boolean isKnown() {
-            return delegate.isKnown();
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            delegate.visitDependencies(context);
-        }
-
-        @Override
-        public void visitContentDependencies(TaskDependencyResolveContext context) {
-            delegate.visitDependencies(context);
-        }
-
-    }
-
     class UnknownProducer implements ValueProducer {
 
         public static final UnknownProducer INSTANCE = new UnknownProducer();
