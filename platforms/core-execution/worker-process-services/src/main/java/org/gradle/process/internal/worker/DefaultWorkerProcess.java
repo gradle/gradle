@@ -238,6 +238,11 @@ public class DefaultWorkerProcess implements WorkerProcess {
         return Optional.ofNullable(execHandle.getExecResult());
     }
 
+    @Override
+    public Optional<Integer> getProcessExitValue() {
+        return Optional.ofNullable(execHandle.getProcessExitValue());
+    }
+
     private void cleanup() {
         CompositeStoppable stoppable;
         lock.lock();

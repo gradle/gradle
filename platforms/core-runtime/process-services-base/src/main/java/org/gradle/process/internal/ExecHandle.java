@@ -71,6 +71,9 @@ public interface ExecHandle extends Describable {
     @Nullable
     ExecResult getExecResult();
 
+    @Nullable
+    Integer getProcessExitValue();
+
     void addListener(ExecHandleListener listener);
 
     void removeListener(ExecHandleListener listener);

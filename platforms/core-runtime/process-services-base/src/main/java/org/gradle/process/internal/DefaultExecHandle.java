@@ -398,6 +398,17 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         }
     }
 
+    @Nullable
+    @Override
+    public Integer getProcessExitValue() {
+        lock.lock();
+        try {
+            return execHandleRunner == null ? null : execHandleRunner.getProcessExitValue();
+        } finally {
+            lock.unlock();
+        }
+    }
+
     private ExecResult result() {
         lock.lock();
         try {
