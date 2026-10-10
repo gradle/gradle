@@ -97,7 +97,7 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     }
 
     protected void beforeRead(EvaluationScopeContext context) {
-        TaskDependencyContainer contentDependencies = provider.getProducer()::visitContentDependencies;
+        TaskDependencyContainer contentDependencies = provider.getProducer()::visitGuardedDependencies;
         Set<Task> producerTasks = TaskDependencyUtil.newTaskResolver().getDependencies(null, contentDependencies);
         for (Task producer : producerTasks) {
             if (!producer.getState().getExecuted()) {

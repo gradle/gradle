@@ -71,16 +71,16 @@ class OrElseValueProducer implements ValueSupplier.ValueProducer {
     }
 
     @Override
-    public void visitContentDependencies(TaskDependencyResolveContext context) {
+    public void visitGuardedDependencies(TaskDependencyResolveContext context) {
         try (EvaluationScopeContext ignored = EvaluationContext.current().open(owner)) {
             if (mayHaveValue(left)) {
                 if (leftProducer.isKnown()) {
-                    leftProducer.visitContentDependencies(context);
+                    leftProducer.visitGuardedDependencies(context);
                 }
                 return;
             }
             if (right != null && rightProducer.isKnown() && mayHaveValue(right)) {
-                rightProducer.visitContentDependencies(context);
+                rightProducer.visitGuardedDependencies(context);
             }
         }
     }

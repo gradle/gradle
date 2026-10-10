@@ -56,45 +56,30 @@ public interface ValueSupplier {
     interface ValueProducer extends TaskDependencyContainer {
 
         /**
-         * If true, {@link #visitDependencies(TaskDependencyResolveContext)} and
-         * {@link #visitContentDependencies(TaskDependencyResolveContext)} are
-         * meaningful, though may be empty. If false, the outcome of visiting
-         * dependencies does not reflect the work required to produce the value.
+         * If true, the dependencies visited by this producer are used directly
+         * by consumers that accept dependency notations ({@code dependsOn}, file
+         * collections). If false, this producer reports no dependencies, and
+         * consumers instead interpret the value itself as a dependency.
          */
-        // TODO: This may not be an entirely actionable property. It is more useful
-        // to query whether producer for the value or its contents is definitively empty.
-        // We want know if it is safe to "pull" on this value or interpret its contents
-        // now, or if doing so would return an undefined value, lead to an undefiend state,
-        // or result in a failure.
-        // TODO: Alternatively, it maybe more useful to query the producer to determine
-        // if its value or contents are _ready_. If the work has already been executed,
-        // then it is safe to pull on the value or interpret its contents, regardless of
-        // whether the work set is executed or not. However, this may be a more difficult
-        // property to implement.
         boolean isKnown();
 
         /**
          * {@inheritDoc}
          * <p>
-         * The dependencies scheduled when this value is included on a work graph. In most
-         * cases this is the same as {@link #visitContentDependencies(TaskDependencyResolveContext)},
-         * but in some cases may contain additional dependencies.
-         * <p>
-         * TODO: The dependencies to schedule should be the same as the dependencies needed
-         * to "pull on" the value. These are only different for task providers, which don't
-         * need to execute dependencies to pull on the provider, but still schedules the task
-         * when the provider is included as a build dependency. We should instead model this
-         * as a non-{@link #isKnown() known} provider.
+         * All work needed to produce the value and its contents. This work
+         * determines how this producer is scheduled on the work graph.
          */
         @Override
         void visitDependencies(TaskDependencyResolveContext context);
 
         /**
-         * The dependencies needed to "pull on" the value. If any of these dependencies
-         * have not been executed, the value produced is undefined. Attempting to acquire
-         * the value when these dependencies are not executed should result in an error.
+         * The set of dependencies required to have executed before mapping
+         * and filtering of the value is permitted.
          */
-        void visitContentDependencies(TaskDependencyResolveContext context);
+        // TODO: This method is not sufficient to prevent unsafe reads of values
+        // produced by the underlying producer. The user could just call .get()
+        // on the provider before it is mapped/filtered.
+        void visitGuardedDependencies(TaskDependencyResolveContext context);
 
         /**
          * Return a producer that requires the work of this producer and the given producer
@@ -171,11 +156,11 @@ public interface ValueSupplier {
     class TaskProducer implements ValueProducer {
 
         private final Task task;
-        private final boolean content;
+        private final boolean guarded;
 
-        public TaskProducer(Task task, boolean content) {
+        public TaskProducer(Task task, boolean guarded) {
             this.task = task;
-            this.content = content;
+            this.guarded = guarded;
         }
 
         @Override
@@ -189,8 +174,8 @@ public interface ValueSupplier {
         }
 
         @Override
-        public void visitContentDependencies(TaskDependencyResolveContext context) {
-            if (content) {
+        public void visitGuardedDependencies(TaskDependencyResolveContext context) {
+            if (guarded) {
                 context.add(task);
             }
         }
@@ -216,7 +201,7 @@ public interface ValueSupplier {
         }
 
         @Override
-        public void visitContentDependencies(TaskDependencyResolveContext context) {
+        public void visitGuardedDependencies(TaskDependencyResolveContext context) {
             delegate.visitDependencies(context);
         }
 
@@ -247,9 +232,9 @@ public interface ValueSupplier {
         }
 
         @Override
-        public void visitContentDependencies(TaskDependencyResolveContext context) {
-            left.visitContentDependencies(context);
-            right.visitContentDependencies(context);
+        public void visitGuardedDependencies(TaskDependencyResolveContext context) {
+            left.visitGuardedDependencies(context);
+            right.visitGuardedDependencies(context);
         }
 
     }
@@ -283,9 +268,9 @@ public interface ValueSupplier {
         }
 
         @Override
-        public void visitContentDependencies(TaskDependencyResolveContext context) {
+        public void visitGuardedDependencies(TaskDependencyResolveContext context) {
             for (ValueProducer item : items) {
-                item.visitContentDependencies(context);
+                item.visitGuardedDependencies(context);
             }
         }
 
@@ -305,7 +290,7 @@ public interface ValueSupplier {
         }
 
         @Override
-        public void visitContentDependencies(TaskDependencyResolveContext context) {
+        public void visitGuardedDependencies(TaskDependencyResolveContext context) {
         }
 
     }
@@ -324,7 +309,7 @@ public interface ValueSupplier {
         }
 
         @Override
-        public void visitContentDependencies(TaskDependencyResolveContext context) {
+        public void visitGuardedDependencies(TaskDependencyResolveContext context) {
         }
 
     }

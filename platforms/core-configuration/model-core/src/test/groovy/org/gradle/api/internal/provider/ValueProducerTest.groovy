@@ -37,7 +37,7 @@ class ValueProducerTest extends Specification implements ProviderAssertions {
         expect:
         producer.known
         getDependencies(producer::visitDependencies) == [task]
-        getDependencies(producer::visitContentDependencies) == [task]
+        getDependencies(producer::visitGuardedDependencies) == [task]
     }
 
     def "task state producer does not visit its task as content"() {
@@ -46,7 +46,7 @@ class ValueProducerTest extends Specification implements ProviderAssertions {
         expect:
         producer.known
         getDependencies(producer::visitDependencies) == [task]
-        getDependencies(producer::visitContentDependencies) == []
+        getDependencies(producer::visitGuardedDependencies) == []
     }
 
     def "delegating producer visits the dependencies of its container as content"() {
@@ -55,7 +55,7 @@ class ValueProducerTest extends Specification implements ProviderAssertions {
         expect:
         producer.known
         getDependencies(producer::visitDependencies) == [task, work]
-        getDependencies(producer::visitContentDependencies) == [task, work]
+        getDependencies(producer::visitGuardedDependencies) == [task, work]
     }
 
     def "no producer is known and visits nothing"() {
@@ -64,7 +64,7 @@ class ValueProducerTest extends Specification implements ProviderAssertions {
         expect:
         producer.known
         getDependencies(producer::visitDependencies) == []
-        getDependencies(producer::visitContentDependencies) == []
+        getDependencies(producer::visitGuardedDependencies) == []
     }
 
     def "unknown producer is not known and visits nothing"() {
@@ -73,7 +73,7 @@ class ValueProducerTest extends Specification implements ProviderAssertions {
         expect:
         !producer.known
         getDependencies(producer::visitDependencies) == []
-        getDependencies(producer::visitContentDependencies) == []
+        getDependencies(producer::visitGuardedDependencies) == []
     }
 
     def "plus producer is known when either side is known"() {
@@ -95,7 +95,7 @@ class ValueProducerTest extends Specification implements ProviderAssertions {
 
         expect:
         getDependencies(producer::visitDependencies) == [task, otherTask, work]
-        getDependencies(producer::visitContentDependencies) == [otherTask, work]
+        getDependencies(producer::visitGuardedDependencies) == [otherTask, work]
     }
 
     def "plus drops no producer next to a known producer and does not combine a producer with itself"() {
@@ -136,7 +136,7 @@ class ValueProducerTest extends Specification implements ProviderAssertions {
 
         expect:
         getDependencies(producer::visitDependencies) == [task, otherTask, work]
-        getDependencies(producer::visitContentDependencies) == [otherTask, work]
+        getDependencies(producer::visitGuardedDependencies) == [otherTask, work]
     }
 
     private ValueProducer producer(String kind) {

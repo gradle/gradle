@@ -28,14 +28,14 @@ trait ProviderAssertions {
         def producer = provider.producer
         assert !producer.known
         assert getDependencies(producer::visitDependencies) == []
-        assert getDependencies(producer::visitContentDependencies) == []
+        assert getDependencies(producer::visitGuardedDependencies) == []
     }
 
     void assertHasKnownProducer(ProviderInternal<?> provider) {
         def producer = provider.producer
         assert producer.known
         assert getDependencies(producer::visitDependencies) == []
-        assert getDependencies(producer::visitContentDependencies) == []
+        assert getDependencies(producer::visitGuardedDependencies) == []
     }
 
     void assertHasProducer(ProviderInternal<?> provider, Object task, Object... additional) {
@@ -44,7 +44,7 @@ trait ProviderAssertions {
         def producer = provider.producer
         assert producer.known
         assert getDependencies(producer::visitDependencies) == expected
-        assert getDependencies(producer::visitContentDependencies) == expected
+        assert getDependencies(producer::visitGuardedDependencies) == expected
     }
 
     List<Object> getDependencies(TaskDependencyContainer container) {

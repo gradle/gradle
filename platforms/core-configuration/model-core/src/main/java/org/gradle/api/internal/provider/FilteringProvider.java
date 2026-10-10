@@ -96,7 +96,7 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
     }
 
     protected void beforeRead(EvaluationScopeContext ignored) {
-        TaskDependencyContainer contentDependencies = provider.getProducer()::visitContentDependencies;
+        TaskDependencyContainer contentDependencies = provider.getProducer()::visitGuardedDependencies;
         Set<Task> producerTasks = TaskDependencyUtil.newTaskResolver().getDependencies(null, contentDependencies);
         for (Task producer : producerTasks) {
             if (!producer.getState().getExecuted()) {
