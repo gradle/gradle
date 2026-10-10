@@ -1093,4 +1093,73 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
         """
     }
     // endregion Multi-project undeclared resolution scenarios
+
+    def "dependency declared using #description of transformed files schedules the transform and its upstream task: #scheduled"() {
+        settingsFile << "include 'lib'"
+        file("lib/build.gradle") << """
+            abstract class Producer extends DefaultTask {
+                @OutputFile abstract RegularFileProperty getOut()
+                @TaskAction void go() { out.get().asFile.text = name }
+            }
+            def producer = tasks.register("producer", Producer) {
+                out = layout.buildDirectory.file("in.txt")
+            }
+            configurations {
+                consumable("outgoing") {
+                    attributes.attribute(Attribute.of("color", String), "blue")
+                    outgoing.artifact(producer.flatMap { it.out })
+                }
+            }
+        """
+        buildFile << """
+            abstract class Upper implements TransformAction<org.gradle.api.artifacts.transform.TransformParameters.None> {
+                @InputArtifact abstract Provider<FileSystemLocation> getInputArtifact()
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println("Transforming " + input.name)
+                    outputs.file(input.name + ".upper").text = input.text.toUpperCase()
+                }
+            }
+            def artifactType = Attribute.of('artifactType', String)
+            configurations {
+                dependencyScope("deps")
+                resolvable("res") {
+                    extendsFrom(deps)
+                    attributes.attribute(Attribute.of("color", String), "blue")
+                }
+            }
+            dependencies {
+                registerTransform(Upper) {
+                    from.attribute(artifactType, "txt")
+                    to.attribute(artifactType, "upper")
+                }
+                deps project(":lib")
+            }
+            def files = configurations.res.incoming.artifactView { attributes.attribute(artifactType, "upper") }.files
+            tasks.register("consumer") {
+                dependsOn(${expression})
+            }
+        """
+
+        when:
+        succeeds("consumer")
+
+        then:
+        if (scheduled) {
+            executed(":lib:producer")
+            outputContains("Transforming in.txt")
+        } else {
+            notExecuted(":lib:producer")
+            outputDoesNotContain("Transforming in.txt")
+        }
+
+        where:
+        description                | expression                                                      | scheduled
+        "elements"                 | "files.elements"                                                | true
+        "mapped elements"          | "files.elements.map { it }"                                     | true
+        "set property of elements" | "objects.setProperty(FileSystemLocation).value(files.elements)" | true
+        // zip and orElse only visit tasks, which drops the transform and the task behind it
+        "zipped elements"          | "files.elements.zip(provider { 1 }) { f, i -> f }"              | false
+        "orElse of elements"       | "files.elements.map { it }.orElse(provider { [] as Set })"      | false
+    }
 }
