@@ -33,13 +33,9 @@ import java.util.Set;
 @ServiceScope(Scope.Build.class)
 public interface BuildServiceRegistryInternal extends BuildServiceRegistry {
     /**
-     * @param maxUsages Same semantics as {@link SharedResource#getMaxUsages()}.
-     */
-    BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, BuildServiceParameters parameters, int maxUsages);
-
-    /**
-     * Same as #register(name, implementationType, parameters, maxUsages), but conditional.
+     * Registers a build service with the given name, unless a service with that name is already registered.
      *
+     * @param maxUsages Same semantics as {@link SharedResource#getMaxUsages()}.
      * @return the registered or already existing provider
      */
     BuildServiceProvider<?, ?> registerIfAbsent(String name, Class<? extends BuildService<?>> implementationType, BuildServiceParameters parameters, int maxUsages);
