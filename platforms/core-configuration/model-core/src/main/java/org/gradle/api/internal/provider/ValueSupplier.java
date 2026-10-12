@@ -276,39 +276,6 @@ public interface ValueSupplier {
 
     }
 
-    /**
-     * Visits all dependencies of a producer as guarded dependencies.
-     * <p>
-     * This reproduces how {@code zip}, {@code orElse} and {@link MergeProvider} computed their
-     * guarded dependencies before {@code visitContentProducerTasks} was removed: they did not
-     * forward them, so a task provider's task is guarded.
-     */
-    // TODO: Remove. This exists only to preserve behavior while removing visitContentProducerTasks.
-    class AllDependenciesGuardedProducer implements ValueProducer {
-
-        private final ValueProducer delegate;
-
-        public AllDependenciesGuardedProducer(ValueProducer delegate) {
-            this.delegate = delegate;
-        }
-
-        @Override
-        public boolean isKnown() {
-            return delegate.isKnown();
-        }
-
-        @Override
-        public void visitDependencies(TaskDependencyResolveContext context) {
-            delegate.visitDependencies(context);
-        }
-
-        @Override
-        public void visitGuardedDependencies(TaskDependencyResolveContext context) {
-            delegate.visitDependencies(context);
-        }
-
-    }
-
     class UnknownProducer implements ValueProducer {
 
         public static final UnknownProducer INSTANCE = new UnknownProducer();
