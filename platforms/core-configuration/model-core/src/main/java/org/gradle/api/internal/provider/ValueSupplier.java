@@ -21,7 +21,6 @@ import org.gradle.api.Task;
 import org.gradle.api.Transformer;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
-import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.internal.Cast;
 import org.gradle.internal.DisplayName;
 import org.jspecify.annotations.Nullable;
@@ -278,22 +277,18 @@ public interface ValueSupplier {
     }
 
     /**
-     * Restricts a producer to the tasks among its dependencies, for both
-     * {@link #visitDependencies(TaskDependencyResolveContext)} and
-     * {@link #visitGuardedDependencies(TaskDependencyResolveContext)}.
+     * Visits all dependencies of a producer as guarded dependencies.
      * <p>
-     * This reproduces the removed {@code visitProducerTasks} method, which {@code zip},
-     * {@code orElse} and {@link MergeProvider} used to compute both sets. Any work that is
-     * not a task is dropped, and so is any task reachable only through such work, for
-     * example the task producing the input of an artifact transform. The delegate's guarded
-     * dependencies are ignored, so a task provider's task is guarded.
+     * This reproduces how {@code zip}, {@code orElse} and {@link MergeProvider} computed their
+     * guarded dependencies before {@code visitContentProducerTasks} was removed: they did not
+     * forward them, so a task provider's task is guarded.
      */
-    // TODO: Remove. This exists only to preserve behavior while removing visitProducerTasks.
-    class TasksOnlyProducer implements ValueProducer {
+    // TODO: Remove. This exists only to preserve behavior while removing visitContentProducerTasks.
+    class AllDependenciesGuardedProducer implements ValueProducer {
 
         private final ValueProducer delegate;
 
-        public TasksOnlyProducer(ValueProducer delegate) {
+        public AllDependenciesGuardedProducer(ValueProducer delegate) {
             this.delegate = delegate;
         }
 
@@ -304,14 +299,12 @@ public interface ValueSupplier {
 
         @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
-            for (Task task : TaskDependencyUtil.newTaskResolver().getDependencies(null, delegate)) {
-                context.add(task);
-            }
+            delegate.visitDependencies(context);
         }
 
         @Override
         public void visitGuardedDependencies(TaskDependencyResolveContext context) {
-            visitDependencies(context);
+            delegate.visitDependencies(context);
         }
 
     }
