@@ -21,7 +21,10 @@ import org.gradle.api.tasks.Internal
 import org.gradle.api.tasks.TaskAction
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
+
+import static org.hamcrest.CoreMatchers.containsString
 
 class ProviderIntegrationTest extends AbstractIntegrationSpec {
 
@@ -377,6 +380,68 @@ The value of this provider is derived from:
         'task.get().outDir.zip(provider { "baz" }) { d, f -> d.file(f) }'          | _
         'provider { "baz" }.zip(task.flatMap { it.outDir }) { f, d -> d.file(f) }' | _
         'provider { "baz" }.zip(task.get().outDir) { f, d -> d.file(f) }'          | _
+    }
+
+    def "mapped value of #description can be queried before the task has run: #canQuery"() {
+        buildFile """
+            def thing = tasks.register("thing")
+            def other = tasks.register("other")
+            println("value = " + ${expression}.map { it.toString() }.get())
+        """
+
+        when:
+        if (canQuery) {
+            succeeds("help")
+        } else {
+            fails("help")
+        }
+
+        then:
+        if (canQuery) {
+            outputContains("value = ")
+        } else {
+            failure.assertThatCause(containsString("before task ':thing' has completed is not supported"))
+        }
+
+        where:
+        description                                | expression                                | canQuery
+        "task provider"                            | "thing"                                   | true
+        // Combinators treat the task of a task provider as content
+        "zipped task provider"                     | "thing.zip(provider { 1 }) { t, i -> t }" | false
+        "orElse of task provider"                  | "thing.orElse(other)"                     | false
+        "orElse with fixed value of task provider" | "thing.orElse(other.get())"               | false
+    }
+
+    def "dependency declared using zipped provider of a task name implies dependency on the task"() {
+        buildFile """
+            tasks.register("thing")
+            tasks.register("consumer") {
+                dependsOn(provider { "value" }.zip(provider { "thing" }) { l, name -> name })
+            }
+        """
+
+        when:
+        succeeds("consumer")
+
+        then:
+        result.assertTasksScheduled(":thing", ":consumer")
+    }
+
+    @ToBeImplemented("A value source has a known producer without dependencies, so the zipped provider is known and its value is not interpreted as a dependency")
+    def "dependency declared using zipped provider of a task name and a value source implies dependency on the task"() {
+        buildFile """
+            tasks.register("thing")
+            tasks.register("consumer") {
+                dependsOn(providers.systemProperty("java.version").zip(provider { "thing" }) { l, name -> name })
+            }
+        """
+
+        when:
+        succeeds("consumer")
+
+        then:
+        // TODO: should schedule ":thing", like zipping with any other provider without dependencies
+        result.assertTasksScheduled(":consumer")
     }
 
     def "circular evaluation of mapped provider is detected"() {
