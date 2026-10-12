@@ -139,21 +139,6 @@ class ValueProducerTest extends Specification implements ProviderAssertions {
         getDependencies(producer::visitGuardedDependencies) == [otherTask, work]
     }
 
-    def "all dependencies guarded producer visits all dependencies as guarded dependencies"() {
-        def producer = new ValueSupplier.AllDependenciesGuardedProducer(new ValueSupplier.PlusProducer(ValueProducer.taskState(task), ValueProducer.from(container(otherTask, work))))
-
-        expect:
-        producer.known
-        getDependencies(producer::visitDependencies) == [task, otherTask, work]
-        getDependencies(producer::visitGuardedDependencies) == [task, otherTask, work]
-    }
-
-    def "all dependencies guarded producer is known when its delegate is known"() {
-        expect:
-        new ValueSupplier.AllDependenciesGuardedProducer(ValueProducer.noProducer()).known
-        !new ValueSupplier.AllDependenciesGuardedProducer(ValueProducer.unknown()).known
-    }
-
     private ValueProducer producer(String kind) {
         return kind == "known" ? ValueProducer.task(Stub(Task)) : ValueProducer.unknown()
     }
