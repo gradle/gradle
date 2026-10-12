@@ -16,10 +16,15 @@
 
 package org.gradle.api.internal.provider;
 
+import org.gradle.api.Task;
 import org.gradle.api.Transformer;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
+import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
+
+import java.util.Set;
 
 /**
  * <p>A mapping provider that uses a transform for which {@link MappingProvider} cannot be used.
@@ -91,11 +96,13 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     }
 
     protected void beforeRead(EvaluationScopeContext context) {
-        provider.getProducer().visitContentProducerTasks(producer -> {
+        TaskDependencyContainer guardedDependencies = provider.getProducer()::visitGuardedDependencies;
+        Set<Task> producerTasks = TaskDependencyUtil.newTaskResolver().getDependencies(null, guardedDependencies);
+        for (Task producer : producerTasks) {
             if (!producer.getState().getExecuted()) {
                 throw new ProducerNotCompletedException("mapped", provider, producer);
             }
-        });
+        }
     }
 
     @Override

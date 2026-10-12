@@ -17,17 +17,15 @@
 package org.gradle.api.internal.provider;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.api.Action;
-import org.gradle.api.Task;
-import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
+import com.google.common.collect.Iterables;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 import java.util.function.BiFunction;
 import java.util.function.Function;
-import java.util.stream.Stream;
 
 abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE> extends AbstractMinimalProvider<TYPE> {
+
     // The underlying list is shared by the collectors produced by `plus`, so we don't have to copy the collectors every time.
     // However, this also means that you can only call plus on a given collector once.
     protected final AppendOnceList<COLLECTOR> collectors;
@@ -43,27 +41,7 @@ abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE>
 
     @Override
     public ValueProducer getProducer() {
-        return new ValueProducer() {
-            @Override
-            public void visitProducerTasks(Action<? super Task> visitor) {
-                getProducers().forEach(c -> c.visitProducerTasks(visitor));
-            }
-
-            @Override
-            public boolean isKnown() {
-                return getProducers().anyMatch(ValueProducer::isKnown);
-            }
-
-            @Override
-            public void visitDependencies(TaskDependencyResolveContext context) {
-                getProducers().forEach(c -> c.visitDependencies(context));
-            }
-
-            @Override
-            public void visitContentProducerTasks(Action<? super Task> visitor) {
-                getProducers().forEach(c -> c.visitContentProducerTasks(visitor));
-            }
-        };
+        return ValueProducer.composite(Iterables.transform(collectors, ValueSupplier::getProducer));
     }
 
     @Override
@@ -170,7 +148,4 @@ abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE>
         return null;
     }
 
-    private Stream<ValueProducer> getProducers() {
-        return collectors.stream().map(ValueSupplier::getProducer);
-    }
 }
