@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.NonNull;
@@ -93,14 +92,7 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
     protected void beforeRead(EvaluationScopeContext ignored) {
         provider.getProducer().visitContentProducerTasks(producer -> {
             if (!producer.getState().getExecuted()) {
-                throw new InvalidUserCodeException(String.format(
-                    "Querying the filtered value of %s before %s has completed is not supported. " +
-                        "The filtered value may depend on the content produced by %s, so it can only be calculated after %s has completed. " +
-                        "To use the value in another task, declare it as an input of that task, so that the task runs after %s. " +
-                        "To use the value in the actions of %s, query the property with 'get()' and transform the result. " +
-                        "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead.",
-                    provider, producer, producer, producer, producer, producer
-                ));
+                throw new ProducerNotCompletedException("filtered", provider, producer);
             }
         });
     }

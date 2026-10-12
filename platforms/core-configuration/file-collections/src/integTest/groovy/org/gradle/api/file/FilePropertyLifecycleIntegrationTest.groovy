@@ -21,6 +21,11 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+
 class FilePropertyLifecycleIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
     def "task #annotation file property is implicitly finalized when task starts execution"() {
         buildFile << """
@@ -469,10 +474,16 @@ task thing {
         then:
         failureHasCause(
             "Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported. " +
-                "The mapped value may depend on the content produced by task ':producer', so it can only be calculated after task ':producer' has completed. " +
-                "To use the value in another task, declare it as an input of that task, so that the task runs after task ':producer'. " +
-                "To use the value in the actions of task ':producer', query the property with 'get()' and transform the result. " +
-                "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
+                "The mapped value may depend on the content produced by task ':producer', so it can only be calculated after task ':producer' has completed."
+        )
+        failure.assertHasResolutions(
+            "To use the value in another task, declare it as an input of that task, so that the task runs after task ':producer'.",
+            "To use the value in the actions of task ':producer', query the property with 'get()' and transform the result.",
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
         )
     }
 
@@ -496,10 +507,16 @@ task thing {
         then:
         failureHasCause(
             "Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported. " +
-                "The mapped value may depend on the content produced by task ':producer', so it can only be calculated after task ':producer' has completed. " +
-                "To use the value in another task, declare it as an input of that task, so that the task runs after task ':producer'. " +
-                "To use the value in the actions of task ':producer', query the property with 'get()' and transform the result. " +
-                "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
+                "The mapped value may depend on the content produced by task ':producer', so it can only be calculated after task ':producer' has completed."
+        )
+        failure.assertHasResolutions(
+            "To use the value in another task, declare it as an input of that task, so that the task runs after task ':producer'.",
+            "To use the value in the actions of task ':producer', query the property with 'get()' and transform the result.",
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
         )
     }
 
@@ -520,10 +537,16 @@ task thing {
         then:
         failureHasCause(
             "Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported. " +
-                "The mapped value may depend on the content produced by task ':producer', so it can only be calculated after task ':producer' has completed. " +
-                "To use the value in another task, declare it as an input of that task, so that the task runs after task ':producer'. " +
-                "To use the value in the actions of task ':producer', query the property with 'get()' and transform the result. " +
-                "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
+                "The mapped value may depend on the content produced by task ':producer', so it can only be calculated after task ':producer' has completed."
+        )
+        failure.assertHasResolutions(
+            "To use the value in another task, declare it as an input of that task, so that the task runs after task ':producer'.",
+            "To use the value in the actions of task ':producer', query the property with 'get()' and transform the result.",
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
         )
     }
 
@@ -548,10 +571,16 @@ task thing {
         then:
         failureHasCause(
             "Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported. " +
-                "The mapped value may depend on the content produced by task ':producer', so it can only be calculated after task ':producer' has completed. " +
-                "To use the value in another task, declare it as an input of that task, so that the task runs after task ':producer'. " +
-                "To use the value in the actions of task ':producer', query the property with 'get()' and transform the result. " +
-                "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
+                "The mapped value may depend on the content produced by task ':producer', so it can only be calculated after task ':producer' has completed."
+        )
+        failure.assertHasResolutions(
+            "To use the value in another task, declare it as an input of that task, so that the task runs after task ':producer'.",
+            "To use the value in the actions of task ':producer', query the property with 'get()' and transform the result.",
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
         )
     }
 
@@ -580,10 +609,16 @@ task thing {
         then:
         failureHasCause(
             "Querying the ${kind} value of task ':producer' property 'output' before task ':producer' has completed is not supported. " +
-                "The ${kind} value may depend on the content produced by task ':producer', so it can only be calculated after task ':producer' has completed. " +
-                "To use the value in another task, declare it as an input of that task, so that the task runs after task ':producer'. " +
-                "To use the value in the actions of task ':producer', query the property with 'get()' and transform the result. " +
-                "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
+                "The ${kind} value may depend on the content produced by task ':producer', so it can only be calculated after task ':producer' has completed."
+        )
+        failure.assertHasResolutions(
+            "To use the value in another task, declare it as an input of that task, so that the task runs after task ':producer'.",
+            "To use the value in the actions of task ':producer', query the property with 'get()' and transform the result.",
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
         )
 
         where:
@@ -624,10 +659,16 @@ task thing {
         then:
         failureHasCause(
             "Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported. " +
-                "The mapped value may depend on the content produced by task ':producer', so it can only be calculated after task ':producer' has completed. " +
-                "To use the value in another task, declare it as an input of that task, so that the task runs after task ':producer'. " +
-                "To use the value in the actions of task ':producer', query the property with 'get()' and transform the result. " +
-                "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
+                "The mapped value may depend on the content produced by task ':producer', so it can only be calculated after task ':producer' has completed."
+        )
+        failure.assertHasResolutions(
+            "To use the value in another task, declare it as an input of that task, so that the task runs after task ':producer'.",
+            "To use the value in the actions of task ':producer', query the property with 'get()' and transform the result.",
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
         )
     }
 

@@ -23,6 +23,11 @@ import org.gradle.test.fixtures.file.TestFile
 import org.gradle.util.internal.TextUtil
 import spock.lang.Issue
 
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
+
 class JavaExecIntegrationTest extends AbstractIntegrationSpec {
 
     TestFile mainJavaFile
@@ -308,10 +313,16 @@ class JavaExecIntegrationTest extends AbstractIntegrationSpec {
         then:
         failureHasCause(
             "Querying the mapped value of task ':runWithOutput' property 'outputFile' before task ':runWithOutput' has completed is not supported. " +
-                "The mapped value may depend on the content produced by task ':runWithOutput', so it can only be calculated after task ':runWithOutput' has completed. " +
-                "To use the value in another task, declare it as an input of that task, so that the task runs after task ':runWithOutput'. " +
-                "To use the value in the actions of task ':runWithOutput', query the property with 'get()' and transform the result. " +
-                "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
+                "The mapped value may depend on the content produced by task ':runWithOutput', so it can only be calculated after task ':runWithOutput' has completed."
+        )
+        failure.assertHasResolutions(
+            "To use the value in another task, declare it as an input of that task, so that the task runs after task ':runWithOutput'.",
+            "To use the value in the actions of task ':runWithOutput', query the property with 'get()' and transform the result.",
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
         )
     }
 
