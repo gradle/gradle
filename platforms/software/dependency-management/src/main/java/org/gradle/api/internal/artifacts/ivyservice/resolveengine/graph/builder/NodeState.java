@@ -748,6 +748,12 @@ public class NodeState implements DependencyGraphNode {
     private void requeueChildrenOfEndorsingParent(EdgeState incomingEdge) {
         if (incomingEdge.getDependencyMetadata().isEndorsingStrictVersions()) {
             NodeState sourceNode = incomingEdge.getFrom();
+            StrictVersionConstraints sourceEndorsed = sourceNode.cachedEndorsedStrictVersions;
+            boolean declaresNoStrictVersions = ownStrictVersions != null && ownStrictVersions.isEmpty();
+            boolean sourceEndorsesNothing = sourceEndorsed == null || sourceEndorsed.isEmpty();
+            if (declaresNoStrictVersions && sourceEndorsesNothing) {
+                return;
+            }
             sourceNode.invalidateEndorsedStrictVersions();
             for (EdgeState edge : sourceNode.getOutgoingEdges()) {
                 for (NodeState node : edge.getTargetNodes()) {
