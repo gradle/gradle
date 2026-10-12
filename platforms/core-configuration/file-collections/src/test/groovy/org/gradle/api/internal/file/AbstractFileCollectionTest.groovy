@@ -15,12 +15,12 @@
  */
 package org.gradle.api.internal.file
 
-import org.gradle.api.Action
-import org.gradle.api.Task
 import org.gradle.api.file.FileCollection
+import org.gradle.api.file.FileSystemLocation
 import org.gradle.api.file.FileTree
 import org.gradle.api.file.FileVisitorUtil
-import org.gradle.api.internal.TaskInternal
+import org.gradle.api.internal.provider.ProviderAssertions
+import org.gradle.api.internal.provider.ProviderInternal
 import org.gradle.api.internal.tasks.TaskDependencyInternal
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext
 import org.gradle.api.specs.Spec
@@ -35,9 +35,7 @@ import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
 import static org.hamcrest.core.IsInstanceOf.instanceOf
 
-class AbstractFileCollectionTest extends FileCollectionSpec {
-
-    public final TaskDependencyInternal dependency = Mock(TaskDependencyInternal.class)
+class AbstractFileCollectionTest extends FileCollectionSpec implements ProviderAssertions {
 
     @Override
     AbstractFileCollection containing(File... files) {
@@ -290,56 +288,52 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
     }
 
     void fileTreeHasSameDependenciesAsThis() {
+        Object depTask = Mock(Object)
+        TaskDependencyInternal dependency = Mock(TaskDependencyInternal.class) {
+            visitDependencies(_) >> { TaskDependencyResolveContext c -> c.add(depTask) }
+        }
         TestFileCollectionWithDependency collection = new TestFileCollectionWithDependency(dependency)
         collection.files.add(new File("f1"))
 
         expect:
-        assertHasSameDependencies(collection.getAsFileTree())
-        assertHasSameDependencies(collection.getAsFileTree().matching(TestUtil.TEST_CLOSURE))
+        getDependencies(collection.getAsFileTree()) == [depTask]
+        getDependencies(collection.getAsFileTree().matching(TestUtil.TEST_CLOSURE)) == [depTask]
     }
 
     void filteredCollectionHasSameDependenciesAsThis() {
+        Object depTask = Mock(Object)
+        TaskDependencyInternal dependency = Mock(TaskDependencyInternal.class) {
+            visitDependencies(_) >> { TaskDependencyResolveContext c -> c.add(depTask) }
+        }
         TestFileCollectionWithDependency collection = new TestFileCollectionWithDependency(dependency)
 
         expect:
-        assertHasSameDependencies(collection.filter(TestUtil.toClosure("{true}")))
+        getDependencies(collection.filter(TestUtil.toClosure("{true}"))) == [depTask]
     }
 
     void elementsProviderHasNoDependenciesWhenThisHasNoDependencies() {
         def collection = new TestFileCollection()
-        def action = Mock(Action)
-        def elements = collection.elements
 
         when:
-        def producer = elements.producer
-        producer.visitProducerTasks(action)
+        def elements = elementsOf(collection)
 
         then:
-        producer.known
-        0 * action._
-
-        expect:
+        assertHasKnownProducer(elements)
         !elements.calculateExecutionTimeValue().hasChangingContent()
     }
 
     void elementsProviderHasSameDependenciesAsThis() {
+        def task = Mock(Object)
+        TaskDependencyInternal dependency = Mock(TaskDependencyInternal.class) {
+            visitDependencies(_) >> { TaskDependencyResolveContext c -> c.add(task) }
+        }
         def collection = new TestFileCollectionWithDependency(dependency)
-        def action = Mock(Action)
-        def task = Mock(TaskInternal)
-        _ * dependency.visitDependencies(_) >> { TaskDependencyResolveContext c -> c.add(task) }
-
-        def elements = collection.elements
 
         when:
-        def producer = elements.producer
-        producer.visitProducerTasks(action)
+        def elements = elementsOf(collection)
 
         then:
-        producer.known
-        1 * action.execute(task)
-        0 * action._
-
-        expect:
+        assertHasProducer(elements, task)
         elements.calculateExecutionTimeValue().hasChangingContent()
     }
 
@@ -368,13 +362,8 @@ class AbstractFileCollectionTest extends FileCollectionSpec {
         0 * visitor._
     }
 
-    private void assertHasSameDependencies(FileCollection tree) {
-        final Task task = Mock(Task.class)
-        final Task depTask = Mock(Task.class)
-        1 * dependency.visitDependencies(_) >> { TaskDependencyResolveContext c -> c.add(depTask) }
-        0 * dependency._
-
-        assertThat(tree.getBuildDependencies().getDependencies(task), equalTo((Object) toSet(depTask)))
+    private static ProviderInternal<Set<FileSystemLocation>> elementsOf(TestFileCollection collection) {
+        collection.elements as ProviderInternal<Set<FileSystemLocation>>
     }
 
     static class TestFileCollection extends AbstractFileCollection {
