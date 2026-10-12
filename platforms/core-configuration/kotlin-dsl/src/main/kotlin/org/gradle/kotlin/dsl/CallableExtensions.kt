@@ -22,6 +22,8 @@ import java.util.concurrent.Callable
 /**
  * Enables function invocation syntax on [Callable] references.
  * @see Callable.call
+ *
+ * @since 5.0
  */
 operator fun <V> Callable<V>.invoke(): V =
     call()

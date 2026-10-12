@@ -18,9 +18,11 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 
 import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactMetadata
+import org.gradle.internal.component.external.model.ModuleComponentOptionalArtifactMetadata
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.ComponentArtifactResolveMetadata
 import org.gradle.internal.component.model.DefaultIvyArtifactName
+import org.gradle.internal.resolve.ArtifactNotFoundException
 import org.gradle.internal.component.model.ImmutableModuleSources
 import org.gradle.internal.model.CalculatedValueContainerFactory
 import org.gradle.internal.resolve.result.DefaultBuildableArtifactResolveResult
@@ -90,6 +92,64 @@ class RepositoryChainArtifactResolverTest extends Specification {
         result.result.file == artifactFile
         and:
         0 * _._
+    }
+
+    def "resolves optional artifact that is not found to no file"() {
+        def optionalArtifact = new ModuleComponentOptionalArtifactMetadata(DefaultModuleComponentIdentifier.newId(moduleVersionId), new DefaultIvyArtifactName("name", "jar", "jar", "sources"))
+
+        when:
+        resolver.resolveArtifact(component, optionalArtifact, result)
+
+        then:
+        result.hasResult()
+        0 * _._
+
+        when:
+        def fileSource = result.result.fileSource
+        fileSource.finalizeIfNotAlready()
+
+        then:
+        1 * localAccess2.resolveArtifact(optionalArtifact, moduleSources, _)
+        1 * remoteAccess2.resolveArtifact(optionalArtifact, moduleSources, _) >> {
+            it[2].notFound(optionalArtifact.id)
+        }
+        0 * _._
+
+        and:
+        fileSource.value.successful
+        fileSource.get() == null
+
+        when:
+        result.result.file
+
+        then:
+        thrown(IllegalStateException)
+    }
+
+    def "fails when required artifact is not found"() {
+        when:
+        resolver.resolveArtifact(component, artifact, result)
+
+        then:
+        result.hasResult()
+        0 * _._
+
+        when:
+        def fileSource = result.result.fileSource
+        fileSource.finalizeIfNotAlready()
+
+        then:
+        1 * localAccess2.resolveArtifact(artifact, moduleSources, _)
+        1 * remoteAccess2.resolveArtifact(artifact, moduleSources, _) >> {
+            it[2].attempted("http://somewhere/name.jar")
+            it[2].notFound(artifact.id)
+        }
+        0 * _._
+
+        and:
+        !fileSource.value.successful
+        fileSource.value.failure.get() instanceof ArtifactNotFoundException
+        fileSource.value.failure.get().message.contains("http://somewhere/name.jar")
     }
 
     def "locates artifact with remote access in repository defined by module source"() {

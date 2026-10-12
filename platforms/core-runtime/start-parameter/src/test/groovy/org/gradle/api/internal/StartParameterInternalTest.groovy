@@ -22,6 +22,26 @@ import spock.lang.Specification
 
 class StartParameterInternalTest extends Specification {
 
+    // The running build's start parameter is a StartParameterInternal, so copying it via the public
+    // (deprecated) methods must still nag at runtime even though dispatch lands on the override.
+    @ExpectDeprecation("The StartParameter.newInstance() method has been deprecated")
+    def 'copying the internal start parameter via newInstance is deprecated'() {
+        expect:
+        new StartParameterInternal().newInstance() != null
+    }
+
+    @ExpectDeprecation("The StartParameter.newBuild() method has been deprecated")
+    def 'copying the internal start parameter via newBuild is deprecated'() {
+        expect:
+        new StartParameterInternal().newBuild() != null
+    }
+
+    def 'copying the internal start parameter for internal use does not nag'() {
+        expect:
+        new StartParameterInternal().newInstanceInternal() != null
+        new StartParameterInternal().newBuildInternal() != null
+    }
+
     @ExpectDeprecation("The StartParameter.isConfigurationCacheRequested property has been deprecated")
     def 'can query whether configuration caching is requested'() {
         def parameter = new StartParameterInternal()

@@ -22,6 +22,7 @@ import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.operations.BuildOperationsParameters;
 import org.gradle.internal.operations.DefaultBuildOperationsParameters;
+import org.gradle.internal.operations.trace.BuildOperationJfrEmitter;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
@@ -57,8 +58,9 @@ public class CrossBuildSessionState implements Closeable {
             .parent(parent)
             .provider(new Services(startParameter, userActionRootDir))
             .build();
-        // Trigger listener to wire itself in
+        // Trigger listeners to wire themselves in
         services.get(BuildOperationTrace.class);
+        services.get(BuildOperationJfrEmitter.class);
     }
 
     public ServiceRegistry getServices() {

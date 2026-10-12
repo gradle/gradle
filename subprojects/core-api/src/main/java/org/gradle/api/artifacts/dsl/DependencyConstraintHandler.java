@@ -73,6 +73,7 @@ public interface DependencyConstraintHandler {
      *
      * @param configurationName The name of the configuration.
      * @param dependencyNotation The dependency constraint notation
+     * @since 4.5
      */
     DependencyConstraint add(String configurationName, Object dependencyNotation);
 
@@ -82,6 +83,7 @@ public interface DependencyConstraintHandler {
      * @param configurationName The name of the configuration.
      * @param dependencyNotation The dependency constraint notation
      * @param configureAction The closure to use to configure the dependency constraint.
+     * @since 4.5
      */
     DependencyConstraint add(String configurationName, Object dependencyNotation, Action<? super DependencyConstraint> configureAction);
 
@@ -131,6 +133,7 @@ public interface DependencyConstraintHandler {
      * Creates a dependency constraint without adding it to a configuration.
      *
      * @param dependencyConstraintNotation The dependency constraint notation.
+     * @since 4.5
      */
     DependencyConstraint create(Object dependencyConstraintNotation);
 
@@ -140,6 +143,7 @@ public interface DependencyConstraintHandler {
      *
      * @param dependencyConstraintNotation The dependency constraint notation.
      * @param configureAction The closure to use to configure the dependency.
+     * @since 4.5
      */
     DependencyConstraint create(Object dependencyConstraintNotation, Action<? super DependencyConstraint> configureAction);
 

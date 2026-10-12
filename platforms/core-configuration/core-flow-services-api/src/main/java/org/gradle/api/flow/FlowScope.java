@@ -38,6 +38,7 @@ public interface FlowScope {
      * @param configure configuration for the given {@link FlowAction dataflow action} parameters.
      * @param <P> the parameters defined by the given {@link FlowAction dataflow action} type.
      * @return a {@link Registration} object representing the registered action.
+     * @since 8.1
      */
     <P extends FlowParameters> Registration<P> always(
         Class<? extends FlowAction<P>> action,

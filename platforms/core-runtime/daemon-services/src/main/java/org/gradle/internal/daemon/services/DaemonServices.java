@@ -16,6 +16,7 @@
 
 package org.gradle.internal.daemon.services;
 
+import org.gradle.StartParameter;
 import org.gradle.TaskExecutionRequest;
 import org.gradle.api.internal.initialization.loadercache.ModelClassLoaderFactory;
 import org.gradle.api.internal.tasks.userinput.DefaultUserInputReader;
@@ -32,6 +33,7 @@ import org.gradle.tooling.internal.provider.serialization.DefaultPayloadClassLoa
 import org.gradle.tooling.internal.provider.serialization.PayloadClassLoaderFactory;
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer;
 import org.gradle.tooling.internal.provider.serialization.WellKnownClassLoaderRegistry;
+import org.gradle.util.internal.BuildCommencedTimeProvider;
 
 public class DaemonServices extends AbstractGradleModuleServices {
     @Override
@@ -43,6 +45,19 @@ public class DaemonServices extends AbstractGradleModuleServices {
     @Override
     public void registerGradleUserHomeServices(ServiceRegistration registration) {
         registration.addProvider(new DaemonGradleUserHomeServices());
+    }
+
+    @Override
+    public void registerBuildTreeServices(ServiceRegistration registration) {
+        registration.addProvider(new ServiceRegistrationProvider() {
+            @Provides
+            BuildCommencedTimeProvider createBuildCommencedTimeProvider(StartParameter startParameter) {
+                String offsetStr = startParameter.getSystemPropertiesArgs().get("org.gradle.internal.test.clockoffset");
+                long offset = offsetStr != null ? Long.parseLong(offsetStr) : 0;
+                long commencedTime = offset + System.currentTimeMillis();
+                return new BuildCommencedTimeProvider(commencedTime);
+            }
+        });
     }
 
     private static class DaemonGradleUserHomeServices implements ServiceRegistrationProvider {

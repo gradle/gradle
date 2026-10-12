@@ -33,6 +33,7 @@ public interface JavaToolchainResolverRegistry {
      * Registers a <code>JavaToolchainResolver</code> implementation. The class name should be properly
      * name-spaced, to avoid collisions (if another resolver class with the same fully qualified name
      * is registered, a <code>GradleException</code> will be thrown).
+     * @since 7.6
      */
     <T extends JavaToolchainResolver> void register(Class<T> implementationType);
 

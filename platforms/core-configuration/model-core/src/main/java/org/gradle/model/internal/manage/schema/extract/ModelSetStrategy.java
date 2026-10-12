@@ -17,7 +17,6 @@
 package org.gradle.model.internal.manage.schema.extract;
 
 import org.gradle.api.Action;
-import org.gradle.model.ModelSet;
 import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSetSchema;
@@ -25,12 +24,13 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.List;
 
+@SuppressWarnings("deprecation")
 public class ModelSetStrategy implements ModelSchemaExtractionStrategy {
 
     private final ModelType<?> modelType;
 
     public ModelSetStrategy() {
-        modelType = new ModelType<ModelSet<?>>() {
+        modelType = new ModelType<org.gradle.model.ModelSet<?>>() {
         };
     }
 
@@ -38,18 +38,18 @@ public class ModelSetStrategy implements ModelSchemaExtractionStrategy {
     public <T> void extract(ModelSchemaExtractionContext<T> extractionContext) {
         ModelType<T> type = extractionContext.getType();
         if (modelType.isAssignableFrom(type)) {
-            if (!type.getRawClass().equals(ModelSet.class)) {
-                extractionContext.add(String.format("subtyping %s is not supported", ModelSet.class.getName()));
+            if (!type.getRawClass().equals(org.gradle.model.ModelSet.class)) {
+                extractionContext.add(String.format("subtyping %s is not supported", org.gradle.model.ModelSet.class.getName()));
                 return;
             }
             if (type.isHasWildcardTypeVariables()) {
-                extractionContext.add(String.format("type parameter of %s cannot be a wildcard", ModelSet.class.getName()));
+                extractionContext.add(String.format("type parameter of %s cannot be a wildcard", org.gradle.model.ModelSet.class.getName()));
                 return;
             }
 
             List<ModelType<?>> typeVariables = type.getTypeVariables();
             if (typeVariables.isEmpty()) {
-                extractionContext.add(String.format("type parameter of %s has to be specified", ModelSet.class.getName()));
+                extractionContext.add(String.format("type parameter of %s has to be specified", org.gradle.model.ModelSet.class.getName()));
                 return;
             }
 

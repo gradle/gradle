@@ -251,7 +251,7 @@ public interface JvmInstallationMetadata {
             if (getToolByExecutable("jar").exists()) {
                 capabilities.add(JavaInstallationCapability.JAR_TOOL);
             }
-            if (getToolByExecutable("native-image").exists()) {
+            if (hasNativeImageTool()) {
                 capabilities.add(JavaInstallationCapability.NATIVE_IMAGE);
             }
             boolean isJ9vm = jvmName.contains("J9");
@@ -259,6 +259,21 @@ public interface JvmInstallationMetadata {
                 capabilities.add(JavaInstallationCapability.J9_VIRTUAL_MACHINE);
             }
             return capabilities;
+        }
+
+        /**
+         * Checks for the native-image tool, which may be shipped as either an executable
+         * (native-image / native-image.exe) or a command script (native-image.cmd) on Windows.
+         */
+        private boolean hasNativeImageTool() {
+            if (getToolByExecutable("native-image").exists()) {
+                return true;
+            }
+            // GraalVM and Liberica distributions ship native-image as a .cmd script on Windows
+            if (OperatingSystem.current().isWindows()) {
+                return new File(new File(javaHome.toFile(), "bin"), "native-image.cmd").exists();
+            }
+            return false;
         }
 
         private File getToolByExecutable(String name) {

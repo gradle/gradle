@@ -16,6 +16,7 @@
 package org.gradle.launcher.cli;
 
 import org.gradle.api.Action;
+import org.gradle.api.GradleException;
 import org.gradle.initialization.ReportedException;
 import org.gradle.initialization.exception.InitializationException;
 import org.gradle.internal.exceptions.ContextAwareException;
@@ -46,7 +47,10 @@ public class ExceptionReportingAction implements Action<ExecutionListener> {
             // Exception has already been reported
             executionListener.onFailure(e);
         } catch (ServiceCreationException e) {
-            reporter.execute(new ContextAwareException(new InitializationException(e)));
+            reporter.execute(new ContextAwareException(new InitializationException("Gradle could not start your build.", e)));
+            executionListener.onFailure(e);
+        } catch (GradleException e) {
+            reporter.execute(new ContextAwareException(e));
             executionListener.onFailure(e);
         } catch (Throwable t) {
             reporter.execute(t);

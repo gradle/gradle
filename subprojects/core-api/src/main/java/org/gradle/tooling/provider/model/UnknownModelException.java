@@ -20,8 +20,14 @@ import org.gradle.api.GradleException;
 
 /**
  * Thrown when an unknown tooling model is requested.
+ * @since 1.8
  */
 public class UnknownModelException extends GradleException {
+    /**
+     * Creates a new {@code UnknownModelException}.
+     *
+     * @since 1.8
+     */
     public UnknownModelException(String message) {
         super(message);
     }

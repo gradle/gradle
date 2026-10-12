@@ -22,6 +22,7 @@ class AbstractNativeComponentReportIntegrationTest extends AbstractComponentRepo
     String currentNative = NativePlatformsTestFixture.defaultPlatformName
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         formatter = new NativeComponentReportOutputFormatter(toolChain)
     }
 }

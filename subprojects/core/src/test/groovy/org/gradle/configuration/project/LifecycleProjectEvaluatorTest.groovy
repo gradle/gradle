@@ -16,7 +16,7 @@
 
 package org.gradle.configuration.project
 
-import org.gradle.StartParameter
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.ProjectConfigurationException
 import org.gradle.api.ProjectEvaluationListener
@@ -51,7 +51,7 @@ class LifecycleProjectEvaluatorTest extends Specification {
         project.displayName >> "<project>"
         project.gradle >> gradle
         gradle.getIdentityPath() >> Path.path(":")
-        gradle.startParameter >> new StartParameter()
+        gradle.startParameter >> new StartParameterInternal()
         project.projectPath >> Path.path(":project1")
         project.path >> project.projectPath.toString()
         project.identityPath >> Path.path(":project1")

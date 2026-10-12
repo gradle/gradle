@@ -26,6 +26,7 @@ import spock.lang.Specification
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 import static org.gradle.model.internal.typeregistration.BaseInstanceFactory.ImplementationFactory
 
+@SuppressWarnings("deprecation")
 class BaseInstanceFactoryTest extends Specification {
     static interface ThingSpec {}
     static interface ThingSpecInternal extends ThingSpec {}

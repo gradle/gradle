@@ -17,18 +17,18 @@
 package org.gradle.api.reporting.components.internal;
 
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.platform.base.BinarySpec;
 
 import javax.inject.Inject;
 
-public class BinaryRenderer extends AbstractBinaryRenderer<BinarySpec> {
+@SuppressWarnings("deprecation")
+public class BinaryRenderer extends AbstractBinaryRenderer<org.gradle.platform.base.BinarySpec> {
     @Inject
     public BinaryRenderer(ModelSchemaStore schemaStore) {
         super(schemaStore);
     }
 
     @Override
-    public Class<BinarySpec> getTargetType() {
-        return BinarySpec.class;
+    public Class<org.gradle.platform.base.BinarySpec> getTargetType() {
+        return org.gradle.platform.base.BinarySpec.class;
     }
 }

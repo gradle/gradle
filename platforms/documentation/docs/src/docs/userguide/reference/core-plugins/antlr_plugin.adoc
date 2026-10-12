@@ -15,7 +15,7 @@
 [[antlr_plugin]]
 = The ANTLR Plugin
 
-The ANTLR plugin extends the Java plugin to add support for generating parsers using http://www.antlr.org/[ANTLR].
+The ANTLR plugin extends the <<java_library_plugin.adoc#java_library_plugin,Java Library>> plugin to add support for generating parsers using https://www.antlr.org/[ANTLR].
 
 NOTE: The ANTLR plugin supports ANTLR version 2, 3 and 4.
 
@@ -77,7 +77,7 @@ ANTLR grammar files for the given source set.
 [[sec:antlr_dependency_management]]
 == Dependency management
 
-The ANTLR plugin adds an `antlr` dependency configuration which provides the ANTLR implementation to use. The following example shows how to use ANTLR version 3.
+The ANTLR plugin adds an `antlr` dependency configuration which provides the ANTLR implementation to use. The main feature's `api` configuration extends this configuration, so the declared ANTLR libraries are also available on the project's compile and runtime classpaths. The following example shows how to use ANTLR version 3.
 
 ====
 include::sample[dir="snippets/reference/core-plugins/useAntlrPlugin/kotlin",files="build.gradle.kts[tags=declare-dependency]"]
@@ -91,16 +91,6 @@ If no dependency is declared, `antlr:antlr:2.7.7` will be used as the default. T
 
 `antlr` — link:{groovyDslPath}/org.gradle.api.plugins.antlr.AntlrSourceDirectorySet.html[AntlrSourceDirectorySet]::
 The ANTLR grammar files of this source set. Contains all `.g` or `.g4` files found in the ANTLR source directories, and excludes all other types of files. _Default value is non-null._
-
-[[sec:antlr_convention_properties]]
-== Convention properties (deprecated)
-
-The ANTLR plugin adds one convention property.
-
-`antlr` — link:{groovyDslPath}/org.gradle.api.file.SourceDirectorySet.html[SourceDirectorySet]::
-The ANTLR grammar files of this source set. Contains all `.g` or `.g4` files found in the ANTLR source directories, and excludes all other types of files. _Default value is non-null._
-
-This convention property is *deprecated* and superseded by the extension described above.
 
 [[sec:antlr_source_set_properties]]
 == Source set properties

@@ -77,6 +77,10 @@
                 <td><literal>project.projectDir</literal></td>
             </tr>
             <tr>
+                <td>workingDirectory</td>
+                <td><literal>project.projectDir</literal></td>
+            </tr>
+            <tr>
                 <td>environment</td>
                 <td>Current process' environment</td>
             </tr>

@@ -34,6 +34,7 @@ import java.util.Map;
  *
  * <p>You can obtain a {@code TaskContainer} instance by calling {@link org.gradle.api.Project#getTasks()}, or using the
  * {@code tasks} property in your build script.</p>
+ * @since 0.7
  */
 @HasInternalProtocol
 public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainObjectContainer<Task> {
@@ -44,6 +45,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      *
      * @param path the path of the task to be returned
      * @return The task. Returns null if so such task exists.
+     * @since 0.7
      */
     @Nullable
     Task findByPath(String path);
@@ -56,6 +58,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param path the path of the task to be returned
      * @return The task. Never returns null
      * @throws UnknownTaskException If no task with the given path exists.
+     * @since 0.7
      */
     Task getByPath(String path) throws UnknownTaskException;
 
@@ -107,6 +110,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
      *
      * @deprecated Use {@link #register(String, Action)} or {@link #register(String, Class, Action)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
+     * @since 1.6
      */
     @Deprecated
     Task create(Map<String, ?> options) throws InvalidUserDataException;
@@ -126,6 +130,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
      *
      * @deprecated Use {@link #register(String, Action)} instead. See <a href="https://docs.gradle.org/current/userguide/task_configuration_avoidance.html">documentation</a> for more information.
+     * @since 1.6
      */
     @Deprecated
     Task create(Map<String, ?> options, Closure configureClosure) throws InvalidUserDataException;
@@ -326,6 +331,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param name The name of the task to be created
      * @return The newly created task object
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     * @since 0.7
      */
     Task replace(String name);
 
@@ -340,6 +346,7 @@ public interface TaskContainer extends TaskCollection<Task>, PolymorphicDomainOb
      * @param type The type of task to create.
      * @return The newly created task object
      * @see Project#getProperties()  More information about how tasks are exposed by name in build scripts
+     * @since 0.7
      */
     <T extends Task> T replace(String name, Class<T> type);
 }

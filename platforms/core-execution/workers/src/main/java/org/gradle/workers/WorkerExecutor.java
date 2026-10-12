@@ -99,6 +99,7 @@ public interface WorkerExecutor {
      * tasks from the same project cannot be run in parallel while the task action is still executing.
      *
      * @throws WorkerExecutionException when a failure occurs while executing the work.
+     * @since 3.5
      */
     void await() throws WorkerExecutionException;
 }

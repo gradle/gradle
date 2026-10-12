@@ -16,11 +16,14 @@
 
 package org.gradle.internal.serialize;
 
+import org.jspecify.annotations.Nullable;
+
 import java.io.DataInputStream;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.io.InputStream;
+import java.util.Objects;
 
 /**
  * Utility class which operates directly on Java class files.
@@ -48,7 +51,8 @@ public class JavaClassUtil {
      * @throws IOException If there is an error reading the class file contents.
      */
     public static int getClassMajorVersion(Class<?> javaClass) throws IOException {
-        return getClassMajorVersion(javaClass.getName(), javaClass.getClassLoader());
+        Integer classMajorVersion = getClassMajorVersion(javaClass.getName(), javaClass.getClassLoader());
+        return Objects.requireNonNull(classMajorVersion);
     }
 
     /**
@@ -59,7 +63,7 @@ public class JavaClassUtil {
      *
      * @throws IOException If there is an error reading the class file contents.
      */
-    public static Integer getClassMajorVersion(String name, ClassLoader loader) throws IOException {
+    public static @Nullable Integer getClassMajorVersion(String name, ClassLoader loader) throws IOException {
         InputStream is = loader.getResourceAsStream(name.replace('.', '/') + ".class");
         if (is == null) {
             return null;

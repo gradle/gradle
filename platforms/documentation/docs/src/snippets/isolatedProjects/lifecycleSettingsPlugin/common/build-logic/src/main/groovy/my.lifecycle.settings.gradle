@@ -1,0 +1,3 @@
+gradle.lifecycle.beforeProject {
+    it.apply plugin: 'my.convention'
+}

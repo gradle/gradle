@@ -28,6 +28,7 @@ class CLanguageIncrementalCompileIntegrationTest extends AbstractNativeLanguageI
 
     @Issue("GRADLE-3109")
     def "recompiles source file that includes header file on first line"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         sourceFile << """#include "${otherHeaderFile.name}"
 """

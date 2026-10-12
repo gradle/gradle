@@ -26,6 +26,7 @@ import java.io.File;
 
 /**
  * Fork options for Java compilation. Only take effect if {@code CompileOptions.fork} is {@code true}.
+ * @since 0.7
  */
 public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions {
     private static final long serialVersionUID = 0;
@@ -42,6 +43,7 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
      * Only takes effect if {@code CompileOptions.fork} is {@code true}. Defaults to {@code null}.
      * <p>
      * Setting the executable disables task output caching.
+     * @since 0.7
      */
     @Nullable
     @Optional
@@ -57,6 +59,7 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
      * Only takes effect if {@code CompileOptions.fork} is {@code true}. Defaults to {@code null}.
      * <p>
      * Setting the executable disables task output caching.
+     * @since 0.7
      */
     public void setExecutable(@Nullable String executable) {
         this.executable = executable;
@@ -91,6 +94,7 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
      * Returns the directory used for temporary files that may be created to pass
      * command line arguments to the compiler process. Defaults to {@code null},
      * in which case the directory will be chosen automatically.
+     * @since 0.7
      */
     @Internal
     @Nullable
@@ -103,6 +107,7 @@ public abstract class ForkOptions extends ProviderAwareCompilerDaemonForkOptions
      * Sets the directory used for temporary files that may be created to pass
      * command line arguments to the compiler process. Defaults to {@code null},
      * in which case the directory will be chosen automatically.
+     * @since 0.7
      */
     public void setTempDir(@Nullable String tempDir) {
         this.tempDir = tempDir;

@@ -65,7 +65,20 @@ class PerformanceReportScenarioHistoryExecution {
         return differencePercentage <= 0 && confidencePercentage > ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD
     }
 
+    /**
+     * A weak (>90% confidence) regression signal, used only for the NEARLY-FAILED warning in the report.
+     * Never use this to fail a build - see {@link #regressedSignificantly()}.
+     */
     boolean confidentToSayWorse() {
         return differencePercentage > 0 && confidencePercentage > ENOUGH_REGRESSION_CONFIDENCE_THRESHOLD
+    }
+
+    /**
+     * The exact regression criterion the performance test itself fails on (99.9% confidence, minimum measurable
+     * difference, high-relative-median short cut - see {@link BaselineVersion}). This is the only signal strong
+     * enough to fail the build; anything weaker would fail scenarios whose own test assertion passed.
+     */
+    boolean regressedSignificantly() {
+        return BaselineVersion.significantlyFasterThan(baseVersion, currentVersion)
     }
 }

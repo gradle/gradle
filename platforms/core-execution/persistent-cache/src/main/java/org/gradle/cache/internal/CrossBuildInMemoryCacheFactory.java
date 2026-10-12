@@ -66,8 +66,6 @@ public interface CrossBuildInMemoryCacheFactory extends ClassCacheFactory {
     /**
      * {@inheritDoc}
      * <p>
-     * The current implementation does not remove an entry during a build session that the entry has been used in, but this is not part of the contract.
-     * <p>
      * Note: this should be used to create _only_ global scoped instances.
      */
     @Override

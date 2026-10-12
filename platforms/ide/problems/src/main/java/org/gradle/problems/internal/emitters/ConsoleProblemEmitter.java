@@ -16,12 +16,9 @@
 
 package org.gradle.problems.internal.emitters;
 
-import org.gradle.api.logging.configuration.WarningMode;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.internal.problems.ProblemUtils;
 import org.gradle.problems.internal.rendering.ProblemWriter;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -30,34 +27,21 @@ import org.slf4j.LoggerFactory;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 
+/**
+ * Writes problems to the console as warnings. Only registered when all warnings are requested
+ * ({@link org.gradle.api.logging.configuration.WarningMode#All}).
+ */
 public class ConsoleProblemEmitter implements ProblemEmitter {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ConsoleProblemEmitter.class);
-    private final WarningMode warningMode;
-
-    public ConsoleProblemEmitter(WarningMode warningMode) {
-        this.warningMode = warningMode;
-    }
 
     @Override
     public void emit(ProblemInternal problem, @Nullable OperationIdentifier id) {
-        if (shouldRender(problem)) {
+        // Some producers have already written the problem to the console themselves: the deprecation logger
+        // owns the output of deprecations, and the Java compiler integration mirrors javac's diagnostics.
+        if (!problem.isWrittenToConsole()) {
             render(problem);
         }
-    }
-
-    private boolean shouldRender(ProblemInternal problem) {
-        // only write problem reports if warning mode is set to 'all'
-        if (warningMode != WarningMode.All) {
-            return false;
-        }
-
-        // For now, don't write deprecation and java compilation warnings
-        if (ProblemUtils.isInGroup(problem, GradleCoreProblemGroup.deprecation()) ||
-            ProblemUtils.isInGroup(problem, GradleCoreProblemGroup.compilation().java())) {
-            return false;
-        }
-        return true;
     }
 
     private static void render(ProblemInternal problem) {

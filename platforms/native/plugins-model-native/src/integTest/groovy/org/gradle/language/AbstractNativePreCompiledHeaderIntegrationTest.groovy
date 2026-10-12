@@ -31,6 +31,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     abstract IncrementalHelloWorldApp getApp()
 
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         settingsFile << "rootProject.name = 'test'"
         buildFile << app.pluginScript
         buildFile << app.extraConfiguration
@@ -38,6 +39,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
     @ToBeFixedForConfigurationCache
     def "clean build with PCH does not fail"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         writeStandardSourceFiles()
 
@@ -56,6 +58,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
     @ToBeFixedForConfigurationCache
     def "can set a precompiled header on a source set for a source header in the headers directory" () {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         writeStandardSourceFiles(path)
 
@@ -82,6 +85,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
     @ToBeFixedForConfigurationCache
     def "can set a precompiled header on a source set for a header colocated with the source" () {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         new SourceFile(app.sourceType, "hello.h", app.libraryHeader.content).writeToDir(file("src/hello"))
         app.librarySources.each { it.writeToDir(file("src/hello")) }
@@ -118,6 +122,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
     @ToBeFixedForConfigurationCache
     def "can set a precompiled header on a source set for a source header in include path" () {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         app.libraryHeader.writeToDir(file("src/include"))
         getLibrarySources(path).each { it.writeToDir(file("src/hello")) }
@@ -164,6 +169,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
     @ToBeFixedForConfigurationCache
     def "a precompiled header on a source set gets used for all variants of a binary" () {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         writeStandardSourceFiles()
 
@@ -189,6 +195,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
     @ToBeFixedForConfigurationCache
     def "can set a precompiled header on multiple source sets" () {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         app.headerFiles.each { it.writeToDir(file("src/hello")) }
         app.librarySources.find { it.name == "hello.${app.sourceExtension}" }.writeToDir(file("src/hello"))
@@ -230,6 +237,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
     @ToBeFixedForConfigurationCache
     def "can set a precompiled header on multiple components" () {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         writeStandardSourceFiles()
         app.library.writeSources(file("src/hello2"))
@@ -266,6 +274,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
     @ToBeFixedForConfigurationCache
     def "can have components both with and without precompiled headers" () {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         writeStandardSourceFiles()
         app.libraryHeader.writeToDir(file("src/hello2"))
@@ -307,6 +316,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
     @ToBeFixedForConfigurationCache
     def "can have sources that do not use precompiled header" () {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         writeStandardSourceFiles()
         libraryWithoutPCH.writeToDir(file("src/hello"))
@@ -324,6 +334,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
     @ToBeFixedForConfigurationCache
     def "compiler arguments set on the binary get used for the precompiled header" () {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         writeStandardSourceFiles()
 
@@ -359,6 +370,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
     @ToBeFixedForConfigurationCache
     def "precompiled header compile detects changes in header files" () {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         writeStandardSourceFiles()
 
@@ -384,6 +396,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
     @ToBeFixedForConfigurationCache
     def "produces warning when pch cannot be used" () {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         app.getLibraryHeader().writeToDir(file("src/hello"))
         def helloDotC = app.getLibrarySources().find { it.name.startsWith("hello") }.writeToDir(file("src/hello"))
@@ -404,6 +417,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
 
     @ToBeFixedForConfigurationCache
     def "produces compiler error when specified header is missing" () {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         app.getLibraryHeader().writeToDir(file("src/hello"))
         app.getLibrarySources().find { it.name.startsWith("hello") }.writeToDir(file("src/hello"))
@@ -421,6 +435,7 @@ abstract class AbstractNativePreCompiledHeaderIntegrationTest extends AbstractIn
     @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     @ToBeFixedForConfigurationCache
     def "can build and run an executable with library using pch" () {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         writeStandardSourceFiles()
         app.mainSource.writeToDir(file("src/main"))

@@ -28,6 +28,7 @@ class AssemblyLanguageParallelIntegrationTest extends AbstractNativeSoftwareMode
     }
 
     def "can execute assembler tasks in parallel"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withComponentForApp()
         createTaskThatRunsInParallelUsingCustomToolchainWith("assembleMainExecutableMainAsm")

@@ -33,6 +33,7 @@ dependencies {
     api(projects.serviceProvider)
     api(projects.startParameter)
     api(projects.stdlibJavaExtensions)
+    api(projects.workerShared)
 
     implementation(projects.buildDiscoveryImpl)
     implementation(projects.buildOperationsTrace)

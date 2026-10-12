@@ -342,9 +342,7 @@ class DefaultExceptionAnalyserTest extends Specification {
     }
 
     private Throwable locationAwareException(final Throwable cause) {
-        final Throwable failure = Mock(TestException.class)
-        failure.getCause() >> cause
-        return failure
+        return new TestException(cause != null ? cause : new RuntimeException(), null, null) {}
     }
 
     private ProblemDiagnostics location(String longDisplayName, String fileName, int line) {

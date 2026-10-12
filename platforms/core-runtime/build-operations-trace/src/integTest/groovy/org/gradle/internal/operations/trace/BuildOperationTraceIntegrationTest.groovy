@@ -44,6 +44,47 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
         fixture.only("Configure project :")
     }
 
+    def "trace stays readable when a problem in a predefined group is reported"() {
+        // Predefined problem groups expose their children, and children expose their parent. The trace
+        // serializes progress details by walking getters, so groups need explicit serialization to avoid a cycle.
+        given:
+        buildFile """
+            import org.gradle.api.problems.Problems
+
+            abstract class ReportProblem extends DefaultTask {
+                @Inject
+                abstract Problems getProblems()
+
+                @TaskAction
+                void run() {
+                    problems.reporter.report(problems.groups.compilation.java.problemId("Unused import")) {}
+                }
+            }
+
+            tasks.register("reportProblem", ReportProblem)
+        """
+
+        when:
+        run "reportProblem", "-D${BuildOperationTrace.SYSPROP}=trace"
+
+        then:
+        def tree = BuildOperationTrace.readTree(file("trace").path)
+        def problemEvents = new BuildOperationTreeFixture(tree).records.collectMany { it.progress }
+            .findAll { it.detailsClassName == "org.gradle.api.problems.internal.DefaultProblemProgressDetails" }
+            .collect { it.details.problem }
+        def problem = problemEvents.find { it.definition.id.name == "Unused import" }
+        problem != null
+        def group = problem.definition.id.group
+        group.name == "Java"
+        group.displayName == "Java"
+        group.description == "Java code compilation, including the compiler's configuration, compiler invocation, or compiler plugins."
+        group.parent.name == "Compilation"
+        group.parent.displayName == "Compilation"
+        group.parent.description == "Code compilation, including the compiler's configuration, compiler invocation, or compiler plugins."
+        group.parent.parent == null
+        group.keySet() == ["name", "displayName", "description", "parent"] as Set
+    }
+
     def "produces operations trace when no path is provided"() {
         when:
         run "help", "-D${BuildOperationTrace.SYSPROP}="
@@ -110,6 +151,125 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
         "a relative path" | "build/custom"
     }
 
+    def "directory option writes a separate jsonl file for each invocation"() {
+        when:
+        run "help", "-D${BuildOperationTrace.DIR_SYSPROP}=traces"
+
+        then:
+        def first = jsonlTraces("traces").first()
+        postBuildOutputContains("Build operation trace: ${first}")
+        file("traces").listFiles().name == [first.name]
+        first.length() > 0
+
+        when:
+        def firstContent = first.text
+        run "help", "-D${BuildOperationTrace.DIR_SYSPROP}=traces"
+
+        then:
+        def traces = jsonlTraces("traces")
+        traces.size() == 2
+        def second = traces[1]
+        postBuildOutputContains("Build operation trace: ${second}")
+        file("traces").listFiles().name.sort() == [first.name, second.name]
+        first.text == firstContent
+    }
+
+    def "directory option writes tree files next to the session log"() {
+        when:
+        run "help", "-D${BuildOperationTrace.TREE_SYSPROP}=true", "-D${BuildOperationTrace.DIR_SYSPROP}=traces"
+
+        then:
+        def logs = jsonlTraces("traces")
+        logs.size() == 1
+        def baseName = logs[0].name - ".jsonl"
+        file("traces/${baseName}-tree.txt").exists()
+        file("traces/${baseName}-tree.json").exists()
+    }
+
+    def "directory option accepts an absolute path"() {
+        given:
+        def absolutePath = tmpDir.file("custom-traces").absolutePath
+
+        when:
+        run "help", "-D${BuildOperationTrace.DIR_SYSPROP}=$absolutePath"
+
+        then:
+        tmpDir.file("custom-traces").listFiles().findAll { it.name.endsWith(".jsonl") }.size() == 1
+    }
+
+    def "directory option can be set in gradle.properties"() {
+        file("gradle.properties") << "${BuildOperationTrace.DIR_SYSPROP}=traces\n"
+
+        when:
+        run "help"
+
+        then:
+        jsonlTraces("traces").size() == 1
+    }
+
+    def "trace path and trace directory cannot be set together"() {
+        when:
+        fails "help", "-D${BuildOperationTrace.SYSPROP}=trace", "-D${BuildOperationTrace.DIR_SYSPROP}=traces"
+
+        then:
+        failureCauseContains("cannot be used together")
+    }
+
+    def "false trace value does not block the directory option"() {
+        file("gradle.properties") << "${BuildOperationTrace.SYSPROP}=false\n"
+
+        when:
+        run "help", "-D${BuildOperationTrace.DIR_SYSPROP}=traces"
+
+        then:
+        jsonlTraces("traces").size() == 1
+        testDirectory.listFiles().findAll { it.name.endsWith("-log.txt") } == []
+    }
+
+    def "false clears a persistent trace directory for one run"() {
+        file("gradle.properties") << "${BuildOperationTrace.DIR_SYSPROP}=traces\n"
+
+        when:
+        run "help", "-D${BuildOperationTrace.DIR_SYSPROP}=false"
+
+        then:
+        !file("traces").exists()
+        !file("false").exists()
+        testDirectory.listFiles().findAll { it.name.endsWith("-log.txt") || it.name.endsWith(".jsonl") } == []
+        outputDoesNotContain("Build operation trace:")
+        postBuildOutputDoesNotContain("Build operation trace:")
+    }
+
+    def "false trace directory lets one run use the single-file trace"() {
+        file("gradle.properties") << "${BuildOperationTrace.DIR_SYSPROP}=traces\n"
+
+        when:
+        run "help", "-D${BuildOperationTrace.DIR_SYSPROP}=false", "-D${BuildOperationTrace.SYSPROP}=custom"
+
+        then:
+        file("custom-log.txt").exists()
+        !file("traces").exists()
+        !file("false").exists()
+    }
+
+    def "trace directory false does not write into a directory named false"() {
+        when:
+        run "help", "-D${BuildOperationTrace.DIR_SYSPROP}=false"
+
+        then:
+        !file("false").exists()
+        outputDoesNotContain("Build operation trace:")
+        postBuildOutputDoesNotContain("Build operation trace:")
+    }
+
+    def "an empty trace directory is rejected"() {
+        when:
+        fails "help", "-D${BuildOperationTrace.DIR_SYSPROP}="
+
+        then:
+        failureCauseContains("must be a directory path")
+    }
+
     def "trace parameters can be provided in gradle.properties as #description"() {
         file("gradle.properties") << """
             ${BuildOperationTrace.SYSPROP}=$trace
@@ -128,5 +288,12 @@ class BuildOperationTraceIntegrationTest extends AbstractIntegrationSpec {
         description       | trace
         "a file name"     | "custom"
         "a relative path" | "build/custom"
+    }
+
+    private List<File> jsonlTraces(String directory) {
+        List<File> traces = file(directory).listFiles().findAll { it.name.endsWith(".jsonl") }
+        // «utc-timestamp»-«id».jsonl, where the timestamp is a fixed-width yyyyMMdd-HHmmss-SSS
+        traces.each { assert it.name ==~ /\d{8}-\d{6}-\d{3}-[0-9a-z]+\.jsonl/ }
+        traces.sort { it.name }
     }
 }

@@ -32,6 +32,7 @@ import java.util.Set;
 public interface CompilationDetails {
     /**
      * Returns the details of the compilation task for this binary. This is the task that should be run to produce the object files, but may not necessarily be the task that compiles the source files. For example, the task may perform some post processing of the object files.
+     * @since 4.10
      */
     Task getCompileTask();
 
@@ -39,52 +40,62 @@ public interface CompilationDetails {
      * Returns the compiler executable that is used to compile this binary.
      *
      * @return The compiler executable or {@code null} if the compiler for this binary is not available.
+     * @since 4.10
      */
     @Nullable
     File getCompilerExecutable();
 
     /**
      * Returns the working directory that the compiler is invoked from when compiling the source of this binary.
+     * @since 4.10
      */
     File getCompileWorkingDir();
 
     /**
      * Returns the framework search paths for this binary.
+     * @since 4.10
      */
     List<File> getFrameworkSearchPaths();
 
     /**
      * Returns the system search paths for this binary.
+     * @since 4.10
      */
     List<File> getSystemHeaderSearchPaths();
 
     /**
      * Returns the user search paths for this binary. This includes the header directories for the binary itself, plus any dependencies of the binary.
+     * @since 4.10
      */
     List<File> getUserHeaderSearchPaths();
 
     /**
      * Returns the source files for this binary.
+     * @since 4.10
      */
     DomainObjectSet<? extends SourceFile> getSources();
 
     /**
      * Returns the header directories for this binary. These are also included in the result of {@link #getUserHeaderSearchPaths()}.
+     * @since 4.10
      */
     Set<File> getHeaderDirs();
 
     /**
      * Returns the macro define directives for this binary.
+     * @since 4.10
      */
     DomainObjectSet<? extends MacroDirective> getMacroDefines();
 
     /**
      * Returns the macro undefine directives for this binary.
+     * @since 4.10
      */
     Set<String> getMacroUndefines();
 
     /**
      * Returns any additional compiler arguments not included in the search paths and macro directives of this binary.
+     * @since 4.10
      */
     List<String> getAdditionalArgs();
 }

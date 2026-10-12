@@ -34,6 +34,7 @@ class AssemblyLanguageIntegrationTest extends AbstractNativeLanguageIntegrationT
     }
 
     def "build fails when assemble fails"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {
@@ -60,6 +61,7 @@ pushl
     }
 
     def "can manually define Assembler source sets"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         helloWorldApp.mainSource.writeToDir(file("src/main"))
         helloWorldApp.getLibraryHeader().writeToDir(file("src/main"))

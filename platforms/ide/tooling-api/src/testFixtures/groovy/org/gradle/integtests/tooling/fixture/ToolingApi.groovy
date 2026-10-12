@@ -54,6 +54,7 @@ class ToolingApi implements TestRule {
     private boolean useSeparateDaemonBaseDir
     private boolean requiresDaemon
     private boolean requireIsolatedDaemons
+    private boolean allowDaemonJvmOverride = true
     private ConnectorFactory connectorFactory = new SharedConnectorFactory()
     private context = IntegrationTestBuildContext.INSTANCE
     private GradleVersion toolingApiVersion
@@ -246,7 +247,19 @@ class ToolingApi implements TestRule {
             error = new TeeOutputStream(stderr, System.err)
         }
 
-        return new ToolingApiConnector(connector, getJvmOverride(dist)?.javaHome, output, error)
+        def javaHome = allowDaemonJvmOverride ? getJvmOverride(dist)?.javaHome : null
+
+        return new ToolingApiConnector(connector, javaHome, output, error)
+    }
+
+    /**
+     * Specifies that the build itself selects the JVM that runs the daemon, for example via daemon JVM criteria.
+     * <p>
+     * By default the fixture forces the daemon onto a JVM the target distribution supports, see
+     * {@link #getJvmOverride(GradleDistribution)}. That takes precedence over the JVM the build asks for.
+     */
+    void requireDaemonJvmFromBuild() {
+        allowDaemonJvmOverride = false
     }
 
     public static Jvm getJvmOverride(GradleDistribution distribution) {

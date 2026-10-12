@@ -20,6 +20,7 @@ import org.gradle.model.InvalidModelRuleDeclarationException
 import org.gradle.model.RuleSource
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 
+@SuppressWarnings("deprecation")
 class ClassModelRuleSourceValidationTest extends ProjectRegistrySpec {
     def extractor = new ModelRuleExtractor([], proxyFactory, schemaStore, structBindingsStore)
 

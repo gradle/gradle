@@ -43,7 +43,7 @@ class DefaultWorkerProcessBuilderSpec extends Specification {
         }
     }
     def messagingServer = Mock(MessagingServer) {
-        accept(_) >> Stub(ConnectionAcceptor)
+        accept(_, _) >> Stub(ConnectionAcceptor)
     }
     def idGenerator = Mock(IdGenerator) {
         generateId() >> (1 as Long)

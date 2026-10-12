@@ -18,10 +18,10 @@ package org.gradle.internal.cc.impl.promo
 
 import org.gradle.BuildResult
 import org.gradle.api.Task
-import org.gradle.api.execution.TaskExecutionGraph
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.logging.Logging
+import org.gradle.execution.plan.QueryableExecutionPlan
 import org.gradle.initialization.RootBuildLifecycleListener
 import org.gradle.initialization.layout.ResolvedBuildLayout
 import org.gradle.internal.Factory
@@ -55,6 +55,7 @@ internal class ConfigurationCachePromoHandler(
     private val degradationController: DefaultConfigurationCacheDegradationController,
     private val documentationRegistry: DocumentationRegistry
 ) : RootBuildLifecycleListener, ProblemsListener {
+
     private val problems = object {
         @Volatile
         private var _seenProblems = false // if ever, only goes false -> true
@@ -87,7 +88,7 @@ internal class ConfigurationCachePromoHandler(
         rootBuildLayout = rootBuildGradle.serviceOf<ResolvedBuildLayout>()
     }
 
-    private fun onRootBuildTaskGraphIsAboutToExecute(graph: TaskExecutionGraph) {
+    private fun onRootBuildTaskGraphIsAboutToExecute(graph: QueryableExecutionPlan) {
         if (!problems.arePresent()) {
             // Collecting degradation reasons may be somewhat expensive, let's skip it if the build is already incompatible.
             // We can only collect the reasons before the start of the execution phase. CC does that too.
@@ -135,7 +136,8 @@ internal class ConfigurationCachePromoHandler(
 
     override fun onExecutionTimeProblem(problem: PropertyProblem) = onProblem(problem)
 
-    private fun TaskExecutionGraph.hasIncompatibleTasks() = allTasks.any { !(it as TaskInternal).isCompatibleWithConfigurationCache }
+    private fun QueryableExecutionPlan.hasIncompatibleTasks() = tasks.any { !(it as TaskInternal).isCompatibleWithConfigurationCache }
 
     private fun runWithoutBuildDefinition() = rootBuildLayout.isBuildDefinitionMissing
+
 }

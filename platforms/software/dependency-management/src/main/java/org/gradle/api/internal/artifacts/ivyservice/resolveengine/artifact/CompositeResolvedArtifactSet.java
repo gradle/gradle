@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
-import com.google.common.collect.Lists;
-import org.gradle.api.Action;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 
 import java.util.ArrayList;
@@ -53,16 +51,6 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
         return new CompositeResolvedArtifactSet(filtered);
     }
 
-    public static ResolvedArtifactSet reverse(ResolvedArtifactSet artifacts) {
-        if (artifacts == EMPTY) {
-            return artifacts;
-        } else if (artifacts instanceof CompositeResolvedArtifactSet composite) {
-            return new CompositeResolvedArtifactSet(Lists.reverse(composite.sets));
-        } else {
-            return artifacts;
-        }
-    }
-
     @Override
     public void visit(Visitor visitor) {
         for (ResolvedArtifactSet set : sets) {
@@ -74,13 +62,6 @@ public class CompositeResolvedArtifactSet implements ResolvedArtifactSet {
     public void visitTransformSources(TransformSourceVisitor visitor) {
         for (ResolvedArtifactSet set : sets) {
             set.visitTransformSources(visitor);
-        }
-    }
-
-    @Override
-    public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
-        for (ResolvedArtifactSet set : sets) {
-            set.visitExternalArtifacts(visitor);
         }
     }
 

@@ -36,7 +36,10 @@ public class CoercingStringValueSnapshot extends StringValueSnapshot {
             return type.cast(this);
         }
         if (type.isEnum()) {
-            return type.cast(Enum.valueOf(Cast.uncheckedNonnullCast(type.asSubclass(Enum.class)), getValue()));
+            // TODO: Remove support for raw Enums in Gradle 10.0.0
+            // Once every attribute value implements Named, this branch and findEnumConstant below
+            // both go away: an enum type implementing Named is served by the Named branch.
+            return type.cast(findEnumConstant(Cast.uncheckedNonnullCast(type.asSubclass(Enum.class)), getValue()));
         }
         if (Named.class.isAssignableFrom(type)) {
             return type.cast(instantiator.named(type.asSubclass(Named.class), getValue()));
@@ -45,5 +48,26 @@ public class CoercingStringValueSnapshot extends StringValueSnapshot {
             return type.cast(Integer.parseInt(getValue()));
         }
         return null;
+    }
+
+    /**
+     * Resolves an enum constant from the String form a value of that enum type is written as.
+     * <p>
+     * A value is written as {@link Named#getName()} when its type implements {@link Named} and as
+     * {@link Enum#name()} otherwise. An enum type can be both, so a match on {@code getName()} is
+     * attempted first: {@link Enum#valueOf} alone cannot read back an enum whose {@code getName()}
+     * differs from its {@code name()}.
+     */
+    private static <S extends Enum<S>> S findEnumConstant(Class<S> enumType, String value) {
+        if (Named.class.isAssignableFrom(enumType)) {
+            for (S constant : enumType.getEnumConstants()) {
+                if (((Named) constant).getName().equals(value)) {
+                    return constant;
+                }
+            }
+        }
+        // Also covers a Named enum whose getName() does return name(), and reports the unknown
+        // value the same way as before for anything that matches no constant at all.
+        return Enum.valueOf(enumType, value);
     }
 }

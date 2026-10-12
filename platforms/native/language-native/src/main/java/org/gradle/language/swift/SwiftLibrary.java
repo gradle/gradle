@@ -39,6 +39,7 @@ public interface SwiftLibrary extends ProductionSwiftComponent {
 
     /**
      * Returns the API dependencies of this library.
+     * @since 4.2
      */
     Configuration getApiDependencies();
 

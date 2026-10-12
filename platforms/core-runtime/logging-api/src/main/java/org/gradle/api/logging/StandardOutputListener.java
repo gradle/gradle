@@ -18,12 +18,14 @@ package org.gradle.api.logging;
 /**
  * <p>A {@code StandardOutputListener} receives text written by Gradle's logging system to standard output or
  * error.</p>
+ * @since 0.8
  */
 public interface StandardOutputListener {
     /**
      * Called when some output is written by the logging system.
      *
      * @param output The text.
+     * @since 0.8
      */
     void onOutput(CharSequence output);
 }

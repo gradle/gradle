@@ -35,6 +35,7 @@ public interface BuildCacheEntryWriter {
      *
      * @param output output stream to write build cache entry to
      * @throws IOException when an I/O error occurs when writing the cache entry to the given output stream
+     * @since 3.3
      */
     void writeTo(OutputStream output) throws IOException;
 

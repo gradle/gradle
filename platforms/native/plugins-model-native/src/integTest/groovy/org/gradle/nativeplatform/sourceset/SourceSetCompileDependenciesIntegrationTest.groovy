@@ -19,6 +19,7 @@ import org.gradle.nativeplatform.fixtures.AbstractInstalledToolChainIntegrationS
 
 class SourceSetCompileDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         settingsFile << "rootProject.name = 'test'"
 
         file("src/main/headers/funcs.h") << """
@@ -67,6 +68,7 @@ model {
     }
 
     def "dependencies of 2 language source sets are not shared when compiling"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {
@@ -93,6 +95,7 @@ model {
     }
 
     def "dependencies of language source set added to binary are not shared when compiling"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {
@@ -122,6 +125,7 @@ model {
     }
 
     def "dependencies of binary are shared with all source sets when compiling"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
 model {

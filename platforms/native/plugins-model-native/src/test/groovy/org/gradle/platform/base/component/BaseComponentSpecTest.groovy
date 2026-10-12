@@ -23,6 +23,7 @@ import org.gradle.platform.base.ModelInstantiationException
 import org.gradle.platform.base.PlatformBaseSpecification
 import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 
+@SuppressWarnings("deprecation")
 class BaseComponentSpecTest extends PlatformBaseSpecification {
     def componentId = new DefaultComponentSpecIdentifier("p", "c")
 

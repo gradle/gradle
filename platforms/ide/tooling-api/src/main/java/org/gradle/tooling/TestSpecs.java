@@ -33,6 +33,7 @@ public interface TestSpecs {
      *
      * @param taskPath The target task.
      * @return A new test selection.
+     * @since 7.6
      */
     TestSpec forTaskPath(String taskPath);
 }

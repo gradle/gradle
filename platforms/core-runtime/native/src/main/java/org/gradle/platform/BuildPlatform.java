@@ -26,8 +26,18 @@ import org.gradle.api.Incubating;
 @Incubating
 public interface BuildPlatform {
 
+    /**
+     * Returns the operating system.
+     *
+     * @since 7.6
+     */
     OperatingSystem getOperatingSystem();
 
+    /**
+     * Returns the architecture.
+     *
+     * @since 7.6
+     */
     Architecture getArchitecture();
 
 }

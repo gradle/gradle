@@ -33,6 +33,7 @@ import java.util.List;
  *
  * @see ManagedType Create an instance of this as a managed property (preferred).
  * @see org.gradle.api.model.ObjectFactory#namedDomainObjectList(Class) Create an instance of this manually.
+ * @since 1.0
  */
 @ManagedType
 public interface NamedDomainObjectList<T> extends NamedDomainObjectCollection<T>, List<T> {

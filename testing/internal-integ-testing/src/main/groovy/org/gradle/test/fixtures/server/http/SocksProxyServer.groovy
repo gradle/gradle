@@ -17,12 +17,11 @@
 package org.gradle.test.fixtures.server.http
 
 
+import org.bbottema.javasocksproxyserver.RunningSocksServer
 import org.bbottema.javasocksproxyserver.SyncSocksServer
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
-import org.gradle.util.ports.FixedAvailablePortAllocator
-import org.gradle.util.ports.PortAllocator
 import org.junit.rules.ExternalResource
 
 /**
@@ -40,9 +39,7 @@ import org.junit.rules.ExternalResource
  */
 @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "Socks proxy for localhost breaks things")
 class SocksProxyServer extends ExternalResource {
-    private PortAllocator portFinder = FixedAvailablePortAllocator.getInstance()
-    private SyncSocksServer socksServer
-    private int port
+    private RunningSocksServer socksServer
     private RecordingServerSocketFactory recordingServerSocketFactory
 
     @Override
@@ -51,13 +48,13 @@ class SocksProxyServer extends ExternalResource {
     }
 
     void start() {
-        if (port == 0) {
-            port = portFinder.assignPort()
-        }
         this.recordingServerSocketFactory = new RecordingServerSocketFactory()
-        this.socksServer = new SyncSocksServer()
-        socksServer.start(port, recordingServerSocketFactory)
+        this.socksServer = new SyncSocksServer().startServer(0, recordingServerSocketFactory)
         println(this)
+    }
+
+    private int getPort() {
+        socksServer?.port ?: -1
     }
 
     boolean hadConnections() {
@@ -79,7 +76,6 @@ class SocksProxyServer extends ExternalResource {
 
     void stop() {
         socksServer?.stop()
-        portFinder.releasePort(port)
     }
 
     @Override

@@ -44,17 +44,20 @@ import org.gradle.internal.HasInternalProtocol;
  *      }
  *  }
  * </pre>
+ * @since 1.11
  */
 @HasInternalProtocol
 public interface VisualStudioProject extends Named, Buildable {
     /**
      * Configuration for the generated project file.
+     * @since 1.11
      */
     @Incubating
     XmlConfigFile getProjectFile();
 
     /**
      * Configuration for the generated filters file.
+     * @since 1.11
      */
     @Incubating
     XmlConfigFile getFiltersFile();

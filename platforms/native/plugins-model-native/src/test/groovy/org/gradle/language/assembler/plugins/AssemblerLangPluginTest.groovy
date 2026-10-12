@@ -18,6 +18,7 @@ package org.gradle.language.assembler.plugins
 import org.gradle.language.assembler.AssemblerSourceSet
 import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 
+@SuppressWarnings("deprecation")
 class AssemblerLangPluginTest extends AbstractLanguagePluginSpec {
     @Override
     Class getPluginClass() {

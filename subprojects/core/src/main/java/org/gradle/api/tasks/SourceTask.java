@@ -35,6 +35,7 @@ import java.util.Set;
 
 /**
  * A {@code SourceTask} performs some operation on source files.
+ * @since 0.8
  */
 @NullMarked
 @DisableCachingByDefault(because = "Super-class, not to be instantiated directly")
@@ -42,6 +43,11 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
     private ConfigurableFileCollection sourceFiles = getProject().getObjects().fileCollection();
     private final PatternFilterable patternSet;
 
+    /**
+     * Creates a new {@code SourceTask}.
+     *
+     * @since 0.8
+     */
     @SuppressWarnings("this-escape")
     public SourceTask() {
         patternSet = getPatternSetFactory().createPatternSet();
@@ -50,6 +56,11 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
     @Inject
     protected abstract PatternSetFactory getPatternSetFactory();
 
+    /**
+     * Returns the pattern set.
+     *
+     * @since 7.3
+     */
     @Internal
     protected PatternFilterable getPatternSet() {
         return patternSet;
@@ -64,6 +75,7 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
      * </p>
      *
      * @return The source.
+     * @since 0.8
      */
     @InputFiles
     @SkipWhenEmpty
@@ -88,6 +100,7 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
      * Sets the source for this task. The given source object is evaluated as per {@link Project#files(Object...)}.
      *
      * @param source The source.
+     * @since 0.8
      */
     public void setSource(Object source) {
         sourceFiles = getProject().getObjects().fileCollection().from(source);
@@ -98,6 +111,7 @@ public abstract class SourceTask extends ConventionTask implements PatternFilter
      *
      * @param sources The source to add
      * @return this
+     * @since 0.8
      */
     public SourceTask source(@Nullable Object... sources) {
         sourceFiles.from(sources);

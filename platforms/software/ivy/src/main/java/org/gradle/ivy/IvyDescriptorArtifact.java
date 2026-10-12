@@ -20,6 +20,7 @@ import org.gradle.api.component.Artifact;
 
 /**
  * An Ivy descriptor artifact.
+ * @since 2.3
  */
 public interface IvyDescriptorArtifact extends Artifact {
 }

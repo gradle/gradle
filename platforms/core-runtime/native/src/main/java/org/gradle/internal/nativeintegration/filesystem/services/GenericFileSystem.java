@@ -36,10 +36,13 @@ import java.io.IOException;
 import java.nio.charset.StandardCharsets;
 import java.util.Locale;
 import java.util.UUID;
+import org.jspecify.annotations.Nullable;
+import static java.util.Objects.requireNonNull;
 
 class GenericFileSystem implements FileSystem {
     private static final Logger LOGGER = LoggerFactory.getLogger(GenericFileSystem.class);
 
+    @Nullable
     private Boolean caseSensitive;
     private final boolean canCreateSymbolicLink;
     private final TemporaryFileProvider temporaryFileProvider;
@@ -70,7 +73,7 @@ class GenericFileSystem implements FileSystem {
     @Override
     public boolean isCaseSensitive() {
         initializeCaseSensitive();
-        return caseSensitive;
+        return requireNonNull(caseSensitive);
     }
 
     @Override
@@ -158,7 +161,7 @@ class GenericFileSystem implements FileSystem {
     }
 
     private boolean hasContent(File file, String content) throws IOException {
-        return file.exists() && Files.asCharSource(file, StandardCharsets.UTF_8).readFirstLine().equals(content);
+        return file.exists() && requireNonNull(Files.asCharSource(file, StandardCharsets.UTF_8).readFirstLine()).equals(content);
     }
 
     private void checkJavaIoTmpDirExists() throws IOException {

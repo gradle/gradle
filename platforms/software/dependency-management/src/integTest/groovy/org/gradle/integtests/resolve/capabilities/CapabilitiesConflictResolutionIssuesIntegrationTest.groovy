@@ -72,9 +72,9 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         then:
         failure.assertHasCause("Could not resolve org.hamcrest:hamcrest-core:2.2")
         failure.assertHasCause("Module 'org.hamcrest:hamcrest-core' has been rejected")
-        failure.assertHasErrorOutput("Cannot select module with conflict on capability 'org.hamcrest:hamcrest:2.2' also provided by ['org.hamcrest:hamcrest:2.2' (runtime)]")
+        failure.assertHasErrorOutput("Cannot select module because of conflict with org.hamcrest:hamcrest:2.2 (runtime). Both provide capability 'org.hamcrest:hamcrest:2.2'.")
         failure.assertHasCause("Module 'org.hamcrest:hamcrest' has been rejected")
-        failure.assertHasErrorOutput("Cannot select module with conflict on capability 'org.hamcrest:hamcrest:2.2' also provided by ['org.hamcrest:hamcrest-core:2.2' (runtime)]")
+        failure.assertHasErrorOutput("Cannot select module because of conflict with org.hamcrest:hamcrest-core:2.2 (runtime). Both provide capability 'org.hamcrest:hamcrest:2.2'.")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/30969")
@@ -373,12 +373,14 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         resolve.expectGraph(":p1") {
             root(":p1", "test:p1:") {
                 project(":p2", "test:p2:") {
-                    configuration 'runtimeElements'
+                    variant('runtimeElements')
                     project(":shared", "test:shared:") {
+                        variant('onePrefRuntimeElements')
                         artifact(classifier: 'one-preferred')
                         byConflictResolution("Explicit selection of project ':shared' variant onePrefRuntimeElements")
                     }
                     project(":shared", "test:shared:") {
+                        variant('twoPrefRuntimeElements')
                         artifact(classifier: 'two-preferred')
                         byConflictResolution("Explicit selection of project ':shared' variant twoPrefRuntimeElements")
                     }
@@ -390,9 +392,6 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                         'org.gradle.jvm.version': "${JavaVersion.current().majorVersion}",
                         'org.gradle.libraryelements': 'jar',
                         'org.gradle.usage': 'java-runtime'])
-                    project(":shared", "test:shared:") {
-
-                    }
                 }
                 project(":shared", "test:shared:") {
                     variant('twoPrefRuntimeElements', [
@@ -401,6 +400,9 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                         'org.gradle.jvm.version': "${JavaVersion.current().majorVersion}",
                         'org.gradle.libraryelements': 'jar',
                         'org.gradle.usage': 'java-runtime'])
+                    project(":shared", "test:shared:") {
+                        variant('onePrefRuntimeElements')
+                    }
                 }
             }
         }
@@ -835,11 +837,14 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                     byConstraint()
                 }
                 edge('org.apache.sshd:sshd-common', 'org.apache.sshd:sshd-common:2.12.1') {
+                    variant('runtime')
                     module('org.slf4j:jcl-over-slf4j:1.7.32') {
                         byConflictResolution("Explicit selection of org.slf4j:jcl-over-slf4j:1.7.32 variant runtime")
                     }
                 }
                 edge('org.apache.sshd:sshd-common', 'org.apache.sshd:sshd-common:2.12.1') {
+                    variant('platform-runtime')
+                    noArtifacts()
                     constraint('org.apache.httpcomponents:httpclient:4.5.14')
                 }
                 edge('org.apache.httpcomponents:httpclient:4.3.2', 'org.apache.httpcomponents:httpclient:4.5.14') {
@@ -986,8 +991,7 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
                     noArtifacts()
                 }
                 project(":producer", "test:producer:") {
-                    variant('one-preferred', ['org.gradle.usage': 'foo'])
-                    noArtifacts()
+                    variant('one-preferred')
                 }
             }
         }
@@ -1259,6 +1263,253 @@ class CapabilitiesConflictResolutionIssuesIntegrationTest extends AbstractIntegr
         !output.contains("No dependencies")
         output.contains("project ':platform'")
         output.contains("project ':reproducer' (c)")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38361")
+    def "capability conflict winner evicted by a later version conflict re-resolves correctly"() {
+        // ya's dependency on xa:2.0 is not processed until ya wins capY, which happens after capX
+        // has already selected xa:1.0. xa:2.0 then evicts xa:1.0 via version conflict, and xb's
+        // edge (adopted onto xa:1.0 when it lost capX) must re-contest capX against xa:2.0 instead
+        // of following the stale capability replacement back to the evicted xa:1.0.
+        def xa20 = mavenRepo.module("org", "xa", "2.0").publish()
+        mavenRepo.module("org", "xa", "1.0").publish()
+        mavenRepo.module("org", "xb", "1.0").publish()
+        mavenRepo.module("org", "ya", "1.0").dependsOn(xa20).publish()
+        mavenRepo.module("org", "yb", "1.0").publish()
+
+        buildFile << """
+            $common
+
+            dependencies {
+                implementation("org:xa:1.0")
+                implementation("org:xb:1.0")
+                implementation("org:ya:1.0")
+                implementation("org:yb:1.0")
+            }
+        """
+
+        capability("org", "capX") {
+            forModule("org:xa")
+            forModule("org:xb")
+            selectModule("org", "xa")
+        }
+
+        capability("org", "capY") {
+            forModule("org:ya")
+            forModule("org:yb")
+            selectModule("org", "ya")
+        }
+
+        when:
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:xa:1.0", "org:xa:2.0") {
+                    byConflictResolution("between versions 2.0 and 1.0")
+                }
+                edge("org:xb:1.0", "org:xa:2.0") {
+                    byConflictResolution("Explicit selection of org:xa:2.0 variant runtime")
+                }
+                module("org:ya:1.0") {
+                    module("org:xa:2.0")
+                }
+                edge("org:yb:1.0", "org:ya:1.0") {
+                    byConflictResolution("Explicit selection of org:ya:1.0 variant runtime")
+                }
+            }
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38361")
+    def "capability conflict winner evicted by a later version conflict re-resolves multiple losers"() {
+        // As above, but the evicted winner defeated two modules, so two stale capability
+        // replacements must be released and re-contested when it is evicted.
+        def xa20 = mavenRepo.module("org", "xa", "2.0").publish()
+        mavenRepo.module("org", "xa", "1.0").publish()
+        mavenRepo.module("org", "xb", "1.0").publish()
+        mavenRepo.module("org", "xc", "1.0").publish()
+        mavenRepo.module("org", "ya", "1.0").dependsOn(xa20).publish()
+        mavenRepo.module("org", "yb", "1.0").publish()
+
+        buildFile << """
+            $common
+
+            dependencies {
+                implementation("org:xa:1.0")
+                implementation("org:xb:1.0")
+                implementation("org:xc:1.0")
+                implementation("org:ya:1.0")
+                implementation("org:yb:1.0")
+            }
+        """
+
+        capability("org", "capX") {
+            forModule("org:xa")
+            forModule("org:xb")
+            forModule("org:xc")
+            selectModule("org", "xa")
+        }
+
+        capability("org", "capY") {
+            forModule("org:ya")
+            forModule("org:yb")
+            selectModule("org", "ya")
+        }
+
+        when:
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:xa:1.0", "org:xa:2.0") {
+                    byConflictResolution("between versions 2.0 and 1.0")
+                }
+                edge("org:xb:1.0", "org:xa:2.0") {
+                    byConflictResolution("Explicit selection of org:xa:2.0 variant runtime")
+                }
+                edge("org:xc:1.0", "org:xa:2.0") {
+                    byConflictResolution("Explicit selection of org:xa:2.0 variant runtime")
+                }
+                module("org:ya:1.0") {
+                    module("org:xa:2.0")
+                }
+                edge("org:yb:1.0", "org:ya:1.0") {
+                    byConflictResolution("Explicit selection of org:ya:1.0 variant runtime")
+                }
+            }
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38361")
+    def "capability conflict winner evicted by a later module conflict re-resolves correctly"() {
+        // As above, but the capX winner xa is displaced by a module replacement (xz, arriving late
+        // via the capY winner) instead of a version conflict, leaving xb the sole capX provider.
+        // Note: this shape currently resolves correctly even without stale-replacement validation,
+        // because module conflicts are resolved before capability conflicts when the queue drains;
+        // it pins the seam and becomes load-bearing for the validation if that ordering changes.
+        mavenRepo.module("org", "xa", "1.0").publish()
+        mavenRepo.module("org", "xb", "1.0").publish()
+        def xz10 = mavenRepo.module("org", "xz", "1.0").publish()
+        mavenRepo.module("org", "ya", "1.0").dependsOn(xz10).publish()
+        mavenRepo.module("org", "yb", "1.0").publish()
+
+        buildFile << """
+            $common
+
+            dependencies {
+                implementation("org:xa:1.0")
+                implementation("org:xb:1.0")
+                implementation("org:ya:1.0")
+                implementation("org:yb:1.0")
+
+                modules {
+                    module("org:xa") {
+                        replacedBy("org:xz")
+                    }
+                }
+            }
+        """
+
+        capability("org", "capX") {
+            forModule("org:xa")
+            forModule("org:xb")
+            selectModule("org", "xa")
+        }
+
+        capability("org", "capY") {
+            forModule("org:ya")
+            forModule("org:yb")
+            selectModule("org", "ya")
+        }
+
+        when:
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:xa:1.0", "org:xz:1.0") {
+                    selectedByRule("org:xa replaced with org:xz")
+                }
+                module("org:xb:1.0")
+                module("org:ya:1.0") {
+                    module("org:xz:1.0")
+                }
+                edge("org:yb:1.0", "org:ya:1.0") {
+                    byConflictResolution("Explicit selection of org:ya:1.0 variant runtime")
+                }
+            }
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38361")
+    def "capability replacement chain whose end is evicted by a version conflict re-resolves correctly"() {
+        // a loses capX to w1, then w1 loses capY to w2, chaining a -> w1 -> w2:1.0. A later version
+        // conflict (via the capZ winner za) evicts w2:1.0; the stale hop w1 -> w2:1.0 must be
+        // released so w1 re-contests capY against w2:2.0, re-chaining everything onto w2:2.0.
+        def w220 = mavenRepo.module("org", "w2", "2.0").publish()
+        mavenRepo.module("org", "a", "1.0").publish()
+        mavenRepo.module("org", "w1", "1.0").publish()
+        mavenRepo.module("org", "w2", "1.0").publish()
+        mavenRepo.module("org", "za", "1.0").dependsOn(w220).publish()
+        mavenRepo.module("org", "zb", "1.0").publish()
+
+        buildFile << """
+            $common
+
+            dependencies {
+                implementation("org:a:1.0")
+                implementation("org:w1:1.0")
+                implementation("org:w2:1.0")
+                implementation("org:za:1.0")
+                implementation("org:zb:1.0")
+            }
+        """
+
+        capability("org", "capX") {
+            forModule("org:a")
+            forModule("org:w1")
+            selectModule("org", "w1")
+        }
+
+        capability("org", "capY") {
+            forModule("org:w1")
+            forModule("org:w2")
+            selectModule("org", "w2")
+        }
+
+        capability("org", "capZ") {
+            forModule("org:za")
+            forModule("org:zb")
+            selectModule("org", "za")
+        }
+
+        when:
+        succeeds(":checkDeps")
+
+        then:
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:a:1.0", "org:w2:2.0") {
+                    byConflictResolution("Explicit selection of org:w2:2.0 variant runtime")
+                }
+                edge("org:w1:1.0", "org:w2:2.0") {
+                    byConflictResolution("Explicit selection of org:w2:2.0 variant runtime")
+                }
+                edge("org:w2:1.0", "org:w2:2.0") {
+                    byConflictResolution("between versions 2.0 and 1.0")
+                }
+                module("org:za:1.0") {
+                    module("org:w2:2.0")
+                }
+                edge("org:zb:1.0", "org:za:1.0") {
+                    byConflictResolution("Explicit selection of org:za:1.0 variant runtime")
+                }
+            }
+        }
     }
 
     // region test fixtures

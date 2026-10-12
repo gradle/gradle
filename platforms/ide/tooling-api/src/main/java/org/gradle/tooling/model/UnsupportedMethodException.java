@@ -23,14 +23,24 @@ package org.gradle.tooling.model;
  * Typically, to resolve such a problem you change/upgrade the target version of Gradle that
  * the tooling API is connected to. Alternatively, you can handle and ignore this exception.
  *
- * @since 1.0-milestone-8
+ * @since 1.0
  */
 public class UnsupportedMethodException extends UnsupportedOperationException {
 
+    /**
+     * Creates a new {@code UnsupportedMethodException}.
+     *
+     * @since 1.0
+     */
     public UnsupportedMethodException(String s) {
         super(s);
     }
 
+    /**
+     * Creates a new {@code UnsupportedMethodException}.
+     *
+     * @since 1.0
+     */
     public UnsupportedMethodException(String message, Throwable cause) {
         super(message, cause);
     }

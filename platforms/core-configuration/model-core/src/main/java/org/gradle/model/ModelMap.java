@@ -30,8 +30,12 @@ import java.util.Set;
  * Model maps can only contain managed types.
  *
  * @param <T> the contract type for all items
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.5
  */
 @Incubating
+@Deprecated
 public interface ModelMap<T> extends Iterable<T>, ModelElement {
     /**
      * Returns a collection containing the items from this collection which are of the specified type.
@@ -39,6 +43,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      * @param type The type.
      * @param <S> The type.
      * @return The collection.
+     * @since 2.5
      */
     <S> ModelMap<S> withType(Class<S> type);
 
@@ -46,6 +51,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      * Returns the number of items in this collection.
      *
      * @return the size of this collection.
+     * @since 2.5
      */
     int size();
 
@@ -53,6 +59,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      * Returns true if this collection contains no items.
      *
      * @return true if this collection is empty.
+     * @since 2.5
      */
     boolean isEmpty();
 
@@ -61,6 +68,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      *
      * @param name The name of the item.
      * @return The item, or null if no such item.
+     * @since 2.5
      */
     @Nullable
     T get(Object name);
@@ -70,6 +78,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      *
      * @param name The name of the item.
      * @return The item, or null if no such item.
+     * @since 2.5
      */
     @Nullable
     T get(String name);
@@ -79,6 +88,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      *
      * @param name The name of the item.
      * @return true if this collection contains an item with the given name.
+     * @since 2.5
      */
     boolean containsKey(Object name);
 
@@ -87,6 +97,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      *
      * @param item The item.
      * @return true if this collection contains the given item.
+     * @since 2.5
      */
     boolean containsValue(Object item);
 
@@ -94,17 +105,20 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      * Returns the names of the items in this collection.
      *
      * @return The names
+     * @since 2.5
      */
     Set<String> keySet();
 
+    // TODO - exception when no default type
     /**
      * Defines an item with the given name and type T. The item is not created immediately, but is instead created as it is required.
      *
      * @param name The name.
+     * @since 2.5
      */
-    // TODO - exception when no default type
     void create(String name);
 
+    // TODO - exception when no default type
     /**
      * Defines an item with the given name and type T. The item is not created immediately, but is instead created as it is required.
      *
@@ -112,18 +126,20 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      *
      * @param name The name.
      * @param configAction An action that initialises the item. The action is executed when the item is required.
+     * @since 2.5
      */
-    // TODO - exception when no default type
     void create(String name, Action<? super T> configAction);
 
+    // TODO - exception when type cannot be created
     /**
      * Defines an item with the given name and type. The item is not created immediately, but is instead created as it is required.
      *
      * @param name The name.
+     * @since 2.5
      */
-    // TODO - exception when type cannot be created
     <S extends T> void create(String name, Class<S> type);
 
+    // TODO - exception when type cannot be created
     /**
      * Defines an item with the given name and type. The item is not created immediately, but is instead created as it is required.
      *
@@ -131,12 +147,13 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      *
      * @param name The name.
      * @param configAction An action that initialises the item. The action is executed when the item is required.
+     * @since 2.5
      */
-    // TODO - exception when type cannot be created
     <S extends T> void create(String name, Class<S> type, Action<? super S> configAction);
 
     /**
      * Adds an element to this {@code ModelMap}.
+     * @since 2.9
      */
     void put(String name, T instance);
 
@@ -148,6 +165,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      *
      * @param name The name.
      * @param configAction An action that configures the item. The action is executed when the item is required.
+     * @since 2.5
      */
     void named(String name, Action<? super T> configAction);
 
@@ -163,6 +181,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      * </ul>
      * @param name The name.
      * @param ruleSource A rule source class.
+     * @since 2.5
      */
     void named(String name, Class<? extends RuleSource> ruleSource);
 
@@ -172,6 +191,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      * <p>The given action is invoked to configure the item when the item is required. It is called before any actions provided to {@link #create(String, org.gradle.api.Action)}.
      *
      * @param configAction An action that configures the item. The action is executed when the item is required.
+     * @since 2.5
      */
     void beforeEach(Action<? super T> configAction);
 
@@ -182,6 +202,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      *
      * @param type The type of elements to apply the action to.
      * @param configAction An action that configures the item. The action is executed when the item is required.
+     * @since 2.5
      */
     <S> void beforeEach(Class<S> type, Action<? super S> configAction);
 
@@ -192,6 +213,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      * org.gradle.api.Action)}.
      *
      * @param configAction An action that configures the item. The action is executed when the item is required.
+     * @since 2.5
      */
     void all(Action<? super T> configAction);
 
@@ -203,6 +225,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      *
      * @param type The type of elements to apply the action to.
      * @param configAction An action that configures the item. The action is executed when the item is required.
+     * @since 2.5
      */
     <S> void withType(Class<S> type, Action<? super S> configAction);
 
@@ -211,6 +234,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      *
      * @param type the type that the item must be/implement to have the rules applied
      * @param rules rules to apply
+     * @since 2.5
      */
     <S> void withType(Class<S> type, Class<? extends RuleSource> rules);
 
@@ -221,6 +245,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      * org.gradle.api.Action)}, and other mutation methods.
      *
      * @param configAction An action that configures the item. The action is executed when the item is required.
+     * @since 2.5
      */
     void afterEach(Action<? super T> configAction);
 
@@ -232,6 +257,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      *
      * @param type The type of elements to apply the action to.
      * @param configAction An action that configures the item. The action is executed when the item is required.
+     * @since 2.5
      */
     <S> void afterEach(Class<S> type, Action<? super S> configAction);
 
@@ -239,6 +265,7 @@ public interface ModelMap<T> extends Iterable<T>, ModelElement {
      * Returns the items in this collection.
      *
      * @return The items.
+     * @since 2.5
      */
     Collection<T> values();
 }

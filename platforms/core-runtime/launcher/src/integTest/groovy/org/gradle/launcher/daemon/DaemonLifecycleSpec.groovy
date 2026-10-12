@@ -23,7 +23,6 @@ import org.gradle.launcher.daemon.server.api.HandleStop
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.test.preconditions.OsTestPreconditions
-import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
 
 /**
@@ -57,16 +56,26 @@ class DaemonLifecycleSpec extends AbstractDaemonLifecycleSpec {
         stopped()
     }
 
-    //Java 9 and above needs --add-opens to make environment variable mutation work
-    @Requires(JdkVersionTestPreconditions.Jdk8OrEarlier)
     def "existing foreground idle daemons are used"() {
+        // Both the foreground daemon and the client must request the same daemon JVM args,
+        // so the client's build runs in the foreground daemon instead of a forked daemon.
+        List<String> daemonJvmArgs = ["-ea", "-Xms256m", "-Xmx512m"]
+
         when:
+        run {
+            executer.useOnlyRequestedJvmOpts()
+            executer.withBuildJvmOpts(daemonJvmArgs)
+        }
         startForegroundDaemon()
 
         then:
         idle()
 
         when:
+        run {
+            executer.useOnlyRequestedJvmOpts()
+            executer.withBuildJvmOpts(daemonJvmArgs)
+        }
         startBuild()
         waitForBuildToWait()
 

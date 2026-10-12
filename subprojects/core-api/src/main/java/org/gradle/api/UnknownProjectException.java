@@ -18,12 +18,23 @@ package org.gradle.api;
 
 /**
  * <p>An <code>UnknownProjectException</code> is thrown when a project referenced by path cannot be found.</p>
+ * @since 0.7
  */
 public class UnknownProjectException extends UnknownDomainObjectException {
+    /**
+     * Creates a new {@code UnknownProjectException}.
+     *
+     * @since 0.7
+     */
     public UnknownProjectException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code UnknownProjectException}.
+     *
+     * @since 0.7
+     */
     public UnknownProjectException(String message, Throwable cause) {
         super(message, cause);
     }

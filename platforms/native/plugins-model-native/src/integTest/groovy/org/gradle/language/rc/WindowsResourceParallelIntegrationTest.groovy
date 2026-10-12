@@ -28,6 +28,7 @@ class WindowsResourceParallelIntegrationTest extends AbstractNativeSoftwareModel
     HelloWorldApp app = new WindowsResourceHelloWorldApp()
 
     def "can execute compile windows resource tasks in parallel"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withComponentsForAppAndSharedLib()
         createTaskThatRunsInParallelUsingCustomToolchainWith("compileMainLibSharedLibraryMainLibRc")

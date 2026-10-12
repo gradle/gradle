@@ -19,8 +19,14 @@ import org.gradle.api.UnknownDomainObjectException;
 
 /**
  * <p>An {@code UnknownConfigurationException} is thrown when a configuration referenced by name cannot be found.</p>
+ * @since 0.7
  */
 public class UnknownConfigurationException extends UnknownDomainObjectException {
+    /**
+     * Creates a new {@code UnknownConfigurationException}.
+     *
+     * @since 0.7
+     */
     public UnknownConfigurationException(String message) {
         super(message);
     }

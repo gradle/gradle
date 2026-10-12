@@ -27,6 +27,7 @@ import java.util.Collection;
  * <p>A {@code PluginCollection} represents a collection of {@link org.gradle.api.Plugin} instances.</p>
  *
  * @param <T> The type of plugins which this collection contains.
+ * @since 0.7
  */
 public interface PluginCollection<T extends Plugin> extends DomainObjectSet<T> {
     /**
@@ -52,6 +53,7 @@ public interface PluginCollection<T extends Plugin> extends DomainObjectSet<T> {
      *
      * @param action The action to be executed
      * @return the supplied action
+     * @since 0.7
      */
     @SuppressWarnings("UnusedDeclaration")
     Action<? super T> whenPluginAdded(Action<? super T> action);
@@ -61,6 +63,7 @@ public interface PluginCollection<T extends Plugin> extends DomainObjectSet<T> {
      * parameter.
      *
      * @param closure The closure to be called
+     * @since 0.7
      */
     @SuppressWarnings("UnusedDeclaration")
     void whenPluginAdded(Closure closure);

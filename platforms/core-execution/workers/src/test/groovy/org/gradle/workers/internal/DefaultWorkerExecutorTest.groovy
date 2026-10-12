@@ -36,6 +36,7 @@ import org.gradle.workers.WorkAction
 import org.gradle.workers.WorkParameters
 import org.gradle.workers.WorkerSpec
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 
 @UsesNativeServices
@@ -140,6 +141,29 @@ class DefaultWorkerExecutorTest extends Specification {
             assert spec.implementationClass == TestExecutable.class
             return new DefaultWorkResult(true, null)
         }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38455")
+    def "can re-set the working directory to its default value in a process isolation action"() {
+        when:
+        workerExecutor.processIsolation { spec ->
+            spec.forkOptions.workingDir = spec.forkOptions.workingDir
+        }
+
+        then:
+        noExceptionThrown()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38455")
+    def "cannot change the working directory in a process isolation action"() {
+        when:
+        workerExecutor.processIsolation { spec ->
+            spec.forkOptions.workingDir = temporaryFolder.createDir("other")
+        }
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Setting the working directory of a worker is not supported."
     }
 
     def "executor executes a given runnable in-process"() {

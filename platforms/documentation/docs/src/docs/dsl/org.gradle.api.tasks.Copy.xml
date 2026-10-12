@@ -12,6 +12,10 @@
                 <td>destinationDir</td>
                 <td><literal>null</literal></td>
             </tr>
+            <tr>
+                <td>destinationDirectory</td>
+                <td><literal>null</literal></td>
+            </tr>
         </table>
     </section>
     <section>

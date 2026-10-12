@@ -26,7 +26,6 @@ import org.gradle.api.plugins.JavaPluginExtension;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemReporter;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Property;
@@ -80,6 +79,11 @@ import static java.nio.file.Files.readAllBytes;
 @CacheableTask
 public abstract class ValidatePlugins extends DefaultTask {
 
+    /**
+     * Creates a new {@code ValidatePlugins}.
+     *
+     * @since 6.0
+     */
     @SuppressWarnings("this-escape")
     public ValidatePlugins() {
         getEnableStricterValidation().convention(false);
@@ -110,6 +114,11 @@ public abstract class ValidatePlugins extends DefaultTask {
             }));
     }
 
+    /**
+     * Validate task classes.
+     *
+     * @since 6.0
+     */
     @TaskAction
     public void validateTaskClasses() throws IOException {
         getWorkerExecutor()
@@ -117,13 +126,10 @@ public abstract class ValidatePlugins extends DefaultTask {
                 if (getLauncher().isPresent()) {
                     JavaLauncher launcher = getLauncher().get();
                     if (!launcher.getMetadata().getLanguageVersion().canCompileOrRun(SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION)) {
-                        ProblemId problemId = ProblemId.create(
-                            "invalid-java-toolchain",
-                            "Running task ValidatePlugins with Java Toolchain lower than " + SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION,
-                            GradleCoreProblemGroup.validation().thisGroup()
-                        );
-                        ProblemReporter problemReporter = getServices().get(Problems.class).getReporter();
-                        GradleException exception = new GradleException(problemId.getDisplayName() + " is not supported.");
+                        Problems problems = getServices().get(Problems.class);
+                        ProblemId problemId = problems.getGroups().getGradle().getBuildDefinition().problemId("Running task ValidatePlugins with an unsupported Java Toolchain");
+                        ProblemReporter problemReporter = problems.getReporter();
+                        GradleException exception = new GradleException("Running task ValidatePlugins with Java Toolchain lower than " + SupportedJavaVersions.MINIMUM_DAEMON_JAVA_VERSION + " is not supported.");
                         throw problemReporter.throwing(
                             exception,
                             problemReporter.create(problemId, problemSpec -> {
@@ -135,13 +141,10 @@ public abstract class ValidatePlugins extends DefaultTask {
                     }
                     spec.getForkOptions().setExecutable(launcher.getExecutablePath());
                 } else {
-                    ProblemId problemId = ProblemId.create(
-                        "missing-java-toolchain-plugin",
-                        "Using task ValidatePlugins without applying the Java Toolchain plugin",
-                        GradleCoreProblemGroup.validation().thisGroup()
-                    );
-                    ProblemReporter problemReporter = getServices().get(Problems.class).getReporter();
-                    GradleException exception = new GradleException(problemId.getDisplayName() + " is not supported.");
+                    Problems problems = getServices().get(Problems.class);
+                    ProblemId problemId = problems.getGroups().getGradle().getBuildDefinition().problemId("Using task ValidatePlugins without applying the Java Toolchain plugin");
+                    ProblemReporter problemReporter = problems.getReporter();
+                    GradleException exception = new GradleException("Using task ValidatePlugins without applying the Java Toolchain plugin is not supported.");
                     throw problemReporter.throwing(
                         exception,
                         problemReporter.create(problemId, problemSpec -> {
@@ -160,7 +163,10 @@ public abstract class ValidatePlugins extends DefaultTask {
             });
         getWorkerExecutor().await();
 
-        ValidationProblemSerialization.SerializationResult parsedProblems = ValidationProblemSerialization.deserialize(new String(readAllBytes(getOutputFile().get().getAsFile().toPath()), UTF_8));
+        ValidationProblemSerialization.SerializationResult parsedProblems = ValidationProblemSerialization.deserialize(
+            new String(readAllBytes(getOutputFile().get().getAsFile().toPath()), UTF_8),
+            getServices().get(ProblemsInternal.class).getGroups()
+        );
         List<? extends ProblemInternal> warnings = parsedProblems.getWarnings();
         List<? extends ProblemInternal> errors = parsedProblems.getErrors();
 
@@ -198,6 +204,7 @@ public abstract class ValidatePlugins extends DefaultTask {
 
     /**
      * The classes to validate.
+     * @since 6.0
      */
     @InputFiles
     @SkipWhenEmpty
@@ -209,6 +216,7 @@ public abstract class ValidatePlugins extends DefaultTask {
      * The classpath used to load the classes under validation.
      * <p>
      * Includes the classes under validation and both the runtime-scoped dependencies and the compile-scoped ones.
+     * @since 6.0
      */
     @Classpath
     public abstract ConfigurableFileCollection getClasspath();
@@ -225,24 +233,28 @@ public abstract class ValidatePlugins extends DefaultTask {
 
     /**
      * Specifies whether the build should break when plugin verifications fails.
+     * @since 6.0
      */
     @Input
     public abstract Property<Boolean> getIgnoreFailures();
 
     /**
      * Returns whether the build should break when the verifications performed by this task detects a warning.
+     * @since 6.0
      */
     @Input
     public abstract Property<Boolean> getFailOnWarning();
 
     /**
      * Enable the stricter validation for cacheable tasks for all tasks.
+     * @since 6.0
      */
     @Input
     public abstract Property<Boolean> getEnableStricterValidation();
 
     /**
      * Returns the output file to store the report in.
+     * @since 6.0
      */
     @OutputFile
     public abstract RegularFileProperty getOutputFile();

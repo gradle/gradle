@@ -32,6 +32,7 @@ public interface FileSystemLocation {
      * Returns this location as an absolute {@link File}.
      *
      * @return the File
+     * @since 4.2
      */
     @HiddenInDefinition
     File getAsFile();

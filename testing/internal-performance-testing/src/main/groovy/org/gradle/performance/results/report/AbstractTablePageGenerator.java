@@ -189,7 +189,9 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                                 a().classAttr("btn btn-primary btn-sm collapsed").href("#").attr("data-toggle", "collapse", "data-target", "#collapse" + index).text("Detail").end();
                             end();
                             div().classAttr("col-2 p-0");
-                                if(scenario.isBuildFailed()) {
+                                // Key on "no in-pipeline measurement" rather than the (possibly cache-replayed) status,
+                                // so every scenario without data shows a uniform N/A instead of N/A-or-blank.
+                                if(scenario.getCurrentExecutions().isEmpty()) {
                                     text("N/A");
                                 } else {
                                     scenario.getCurrentExecutions().forEach(execution -> {
@@ -206,7 +208,14 @@ public abstract class AbstractTablePageGenerator extends HtmlPageGenerator<Resul
                     div().id("collapse" + index).classAttr("collapse");
                         div().classAttr("card-body");
                             if(scenario.isBuildFailed()) {
-                                pre().text(scenario.getTeamCityExecutions().stream().map(PerformanceTestExecutionResult::getTestFailure).collect(joining("\n"))).end();
+                                String failures = scenario.getTeamCityExecutions().stream().map(PerformanceTestExecutionResult::getTestFailure).collect(joining("\n"));
+                                if (scenario.isFromCache()) {
+                                    // The failure text was recorded by the build that originally produced the cached
+                                    // result, not by this build chain - label it so it is not read as a fresh failure.
+                                    failures = "This scenario was NOT executed in this build chain: the bucket result (including the failure below) "
+                                        + "was restored from the Gradle build cache and was recorded by a previous build.\n\n" + failures;
+                                }
+                                pre().text(failures).end();
                             } else {
                                 renderDetailsTable(scenario);
                             }

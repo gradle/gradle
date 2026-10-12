@@ -16,25 +16,22 @@
 
 package org.gradle.testing.base.internal;
 
-import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.component.BaseComponentSpec;
-import org.gradle.testing.base.TestSuiteSpec;
-
-public class BaseTestSuiteSpec extends BaseComponentSpec implements TestSuiteSpec {
-    private ComponentSpec testedComponent;
+@SuppressWarnings("deprecation")
+public class BaseTestSuiteSpec extends org.gradle.platform.base.component.BaseComponentSpec implements org.gradle.testing.base.TestSuiteSpec {
+    private org.gradle.platform.base.ComponentSpec testedComponent;
 
     @Override
-    public ComponentSpec getTestedComponent() {
+    public org.gradle.platform.base.ComponentSpec getTestedComponent() {
         return testedComponent;
     }
 
     @Override
-    public void setTestedComponent(ComponentSpec testedComponent) {
+    public void setTestedComponent(org.gradle.platform.base.ComponentSpec testedComponent) {
         this.testedComponent = testedComponent;
     }
 
     @Override
-    public void testing(ComponentSpec testedComponent) {
+    public void testing(org.gradle.platform.base.ComponentSpec testedComponent) {
         this.testedComponent = testedComponent;
     }
 

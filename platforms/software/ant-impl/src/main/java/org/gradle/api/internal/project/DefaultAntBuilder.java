@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.project;
 
-import com.google.common.collect.Sets;
 import groovy.lang.GroovyObject;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableMap;
@@ -32,11 +31,10 @@ import org.gradle.api.Transformer;
 import org.gradle.api.UnknownTaskException;
 import org.gradle.api.internal.project.ant.AntLoggingAdapter;
 import org.gradle.api.internal.project.ant.BasicAntBuilder;
-import org.gradle.api.internal.tasks.TaskDependencyInternal;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.tasks.TaskContainer;
 import org.gradle.api.tasks.ant.AntTarget;
 import org.gradle.internal.Transformers;
-import org.jspecify.annotations.Nullable;
 
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
@@ -53,10 +51,12 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
 
     private final Project gradleProject;
     private final AntLoggingAdapter loggingAdapter;
+    private final TaskDependencyFactory taskDependencyFactory;
 
-    public DefaultAntBuilder(Project gradleProject, AntLoggingAdapter loggingAdapter) {
+    public DefaultAntBuilder(Project gradleProject, AntLoggingAdapter loggingAdapter, TaskDependencyFactory taskDependencyFactory) {
         this.gradleProject = gradleProject;
         this.loggingAdapter = loggingAdapter;
+        this.taskDependencyFactory = taskDependencyFactory;
     }
 
     public void propertyMissing(String property, Object newValue) {
@@ -147,19 +147,27 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         for (String name : newAntTargets) {
             final Target target = getAntProject().getTargets().get(name);
             String taskName = taskNamer.transform(target.getName());
+            TaskContainer taskContainer = gradleProject.getTasks();
             @SuppressWarnings("deprecation")
-            final AntTarget task = gradleProject.getTasks().create(taskName, AntTarget.class);
-            configureTask(target, task, baseDir, taskNamer);
+            final AntTarget task = taskContainer.create(taskName, AntTarget.class);
+            configureTask(taskContainer, target, task, baseDir, taskNamer);
         }
     }
 
-    private static void configureTask(Target target, AntTarget task, File baseDir, Transformer<? extends String, ? super String> taskNamer) {
+    private void configureTask(TaskContainer taskContainer, Target target, AntTarget task, File baseDir, Transformer<? extends String, ? super String> taskNamer) {
         task.setTarget(target);
         task.setBaseDir(baseDir);
-
         final List<String> taskDependencyNames = getTaskDependencyNames(target, taskNamer);
-        task.dependsOn(new AntTargetsTaskDependency(taskDependencyNames));
-        addDependencyOrdering(taskDependencyNames, task.getProject().getTasks());
+        task.dependsOn(taskDependencyFactory.visitingDependencies(context -> {
+            for (String dependedOnTaskName : taskDependencyNames) {
+                Task dependency = taskContainer.findByName(dependedOnTaskName);
+                if (dependency == null) {
+                    throw new UnknownTaskException(String.format("Imported Ant target '%s' depends on target or task '%s' which does not exist", task.getName(), dependedOnTaskName));
+                }
+                context.add(dependency);
+            }
+        }));
+        addDependencyOrdering(taskDependencyNames, taskContainer);
     }
 
     private static List<String> getTaskDependencyNames(Target target, Transformer<? extends String, ? super String> taskNamer) {
@@ -202,29 +210,4 @@ public class DefaultAntBuilder extends BasicAntBuilder implements GroovyObject {
         return loggingAdapter.getLifecycleLogLevel();
     }
 
-    private static class AntTargetsTaskDependency implements TaskDependencyInternal {
-        private final List<String> taskDependencyNames;
-
-        public AntTargetsTaskDependency(List<String> taskDependencyNames) {
-            this.taskDependencyNames = taskDependencyNames;
-        }
-
-        @Override
-        public Set<? extends Task> getDependenciesForInternalUse(@Nullable Task task) {
-            Set<Task> tasks = Sets.newHashSetWithExpectedSize(taskDependencyNames.size());
-            for (String dependedOnTaskName : taskDependencyNames) {
-                Task dependency = task.getProject().getTasks().findByName(dependedOnTaskName);
-                if (dependency == null) {
-                    throw new UnknownTaskException(String.format("Imported Ant target '%s' depends on target or task '%s' which does not exist", task.getName(), dependedOnTaskName));
-                }
-                tasks.add(dependency);
-            }
-            return tasks;
-        }
-
-        @Override
-        public Set<? extends Task> getDependencies(Task task) {
-            return getDependenciesForInternalUse(task);
-        }
-    }
 }

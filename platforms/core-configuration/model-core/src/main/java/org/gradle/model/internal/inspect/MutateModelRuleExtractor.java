@@ -17,11 +17,11 @@
 package org.gradle.model.internal.inspect;
 
 import javax.annotation.concurrent.ThreadSafe;
-import org.gradle.model.Mutate;
 import org.gradle.model.internal.core.ModelActionRole;
 
 @ThreadSafe
-public class MutateModelRuleExtractor extends AbstractMutationModelRuleExtractor<Mutate> {
+@SuppressWarnings("deprecation")
+public class MutateModelRuleExtractor extends AbstractMutationModelRuleExtractor<org.gradle.model.Mutate> {
     @Override
     protected ModelActionRole getMutationType() {
         return ModelActionRole.Mutate;

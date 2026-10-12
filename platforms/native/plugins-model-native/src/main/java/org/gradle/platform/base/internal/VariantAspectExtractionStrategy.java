@@ -26,11 +26,11 @@ import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtracti
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaAspectExtractionStrategy;
 import org.gradle.model.internal.manage.schema.extract.ModelSchemaExtractionContext;
 import org.gradle.model.internal.manage.schema.extract.PropertyAccessorExtractionContext;
-import org.gradle.platform.base.Variant;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
+@SuppressWarnings("deprecation")
 public class VariantAspectExtractionStrategy implements ModelSchemaAspectExtractionStrategy {
     @Nullable
     @Override
@@ -39,7 +39,7 @@ public class VariantAspectExtractionStrategy implements ModelSchemaAspectExtract
         for (ModelPropertyExtractionResult<?> propertyResult : propertyResults) {
             ModelProperty<?> property = propertyResult.getProperty();
             for (PropertyAccessorExtractionContext accessor : propertyResult.getAccessors()) {
-                if (accessor.isAnnotationPresent(Variant.class)) {
+                if (accessor.isAnnotationPresent(org.gradle.platform.base.Variant.class)) {
                     if (accessor.getAccessorType() == PropertyAccessorType.SETTER) {
                         throw invalidProperty(extractionContext, property, "@Variant annotation is only allowed on getter methods");
                     }

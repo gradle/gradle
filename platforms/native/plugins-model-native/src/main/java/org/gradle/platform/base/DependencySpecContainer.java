@@ -23,8 +23,12 @@ import java.util.Collection;
 
 /**
  * A container for dependency specifications.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.5
  */
 @Incubating @UnmanagedStruct
+@Deprecated
 public interface DependencySpecContainer {
 
     /**
@@ -33,6 +37,7 @@ public interface DependencySpecContainer {
      * @param path the project path
      *
      * @return a mutable dependency, added to this container
+     * @since 2.5
      */
     ProjectDependencySpecBuilder project(String path);
 
@@ -42,6 +47,7 @@ public interface DependencySpecContainer {
      * @param name of the library
      *
      * @return a mutable dependency, added to this container
+     * @since 2.5
      */
     ProjectDependencySpecBuilder library(String name);
 
@@ -51,6 +57,7 @@ public interface DependencySpecContainer {
      * @param moduleIdOrName of the module
      *
      * @return a mutable module dependency, added to this container
+     * @since 2.10
      */
     ModuleDependencySpecBuilder module(String moduleIdOrName);
 
@@ -60,6 +67,7 @@ public interface DependencySpecContainer {
      * @param name of the module group
      *
      * @return a mutable module dependency, added to this container
+     * @since 2.10
      */
     ModuleDependencySpecBuilder group(String name);
 
@@ -67,6 +75,7 @@ public interface DependencySpecContainer {
      * Returns an immutable view of dependencies stored in this container.
      *
      * @return an immutable view of dependencies. Each dependency in the collection is itself immutable.
+     * @since 2.6
      */
     Collection<DependencySpec> getDependencies();
 
@@ -74,6 +83,7 @@ public interface DependencySpecContainer {
      * Returns true if this container doesn't hold any dependency.
      *
      * @return true if this container doesn't contain any dependency specification.
+     * @since 2.6
      */
     boolean isEmpty();
 }

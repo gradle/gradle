@@ -28,11 +28,13 @@ public interface IvyModuleDescriptorLicense {
 
     /**
      * The name of this license.
+     * @since 4.8
      */
     Property<String> getName();
 
     /**
      * The URL of this license.
+     * @since 4.8
      */
     Property<String> getUrl();
 

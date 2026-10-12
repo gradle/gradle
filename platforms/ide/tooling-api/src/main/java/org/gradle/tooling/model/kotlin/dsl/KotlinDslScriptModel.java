@@ -27,13 +27,38 @@ import java.util.List;
  */
 public interface KotlinDslScriptModel {
 
+    /**
+     * Returns the class path.
+     *
+     * @since 6.0
+     */
     List<File> getClassPath();
 
+    /**
+     * Returns the source path.
+     *
+     * @since 6.0
+     */
     List<File> getSourcePath();
 
+    /**
+     * Returns the implicit imports.
+     *
+     * @since 6.0
+     */
     List<String> getImplicitImports();
 
+    /**
+     * Returns the editor reports.
+     *
+     * @since 6.0
+     */
     List<EditorReport> getEditorReports();
 
+    /**
+     * Returns the exceptions.
+     *
+     * @since 6.0
+     */
     List<String> getExceptions();
 }

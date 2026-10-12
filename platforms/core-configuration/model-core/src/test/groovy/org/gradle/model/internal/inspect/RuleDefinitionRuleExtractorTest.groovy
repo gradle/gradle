@@ -22,6 +22,7 @@ import org.gradle.model.internal.registry.DefaultModelRegistry
 
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 
+@SuppressWarnings("deprecation")
 class RuleDefinitionRuleExtractorTest extends ProjectRegistrySpec {
     def extractor = new ModelRuleExtractor([new RuleDefinitionRuleExtractor()], proxyFactory, schemaStore, structBindingsStore)
 

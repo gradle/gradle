@@ -20,11 +20,13 @@ import java.util.Set;
 
 /**
  * <p>A container for adding exclude rules for dependencies.</p>
+ * @since 0.7
  */
 public interface ExcludeRuleContainer {
     /**
      * Returns all the exclude rules added to this container. If no exclude rules has been added an empty list is
      * returned.
+     * @since 0.7
      */
     Set<ExcludeRule> getRules();
 
@@ -38,6 +40,7 @@ public interface ExcludeRuleContainer {
      * </ul>
      *
      * @param args A map describing the exclude pattern.
+     * @since 0.7
      */
     void add(Map<String, String> args);
 }

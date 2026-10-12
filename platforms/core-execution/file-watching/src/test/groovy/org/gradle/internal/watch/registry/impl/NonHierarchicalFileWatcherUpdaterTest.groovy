@@ -17,6 +17,8 @@
 package org.gradle.internal.watch.registry.impl
 
 import org.gradle.fileevents.FileWatcher
+import org.gradle.internal.file.FileMetadata.AccessType
+import org.gradle.internal.snapshot.MissingFileSnapshot
 import org.gradle.internal.watch.registry.FileWatcherUpdater
 
 class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTest {
@@ -28,6 +30,20 @@ class NonHierarchicalFileWatcherUpdaterTest extends AbstractFileWatcherUpdaterTe
 
     @Override
     int getIfNonHierarchical() { 1 }
+
+    def "removing a snapshot whose directory to watch is outside any watchable hierarchy does not fail"() {
+        def watchableHierarchy = file("watchable")
+        registerWatchableHierarchies([watchableHierarchy])
+        def missingSnapshot = new MissingFileSnapshot(watchableHierarchy.file("sub/missing.txt").absolutePath, AccessType.DIRECT)
+        addSnapshot(missingSnapshot)
+
+        when:
+        invalidate(missingSnapshot)
+
+        then:
+        noExceptionThrown()
+        0 * _
+    }
 
     def "only watches directories in hierarchies to watch"() {
         def watchableHierarchies = ["first", "second", "third"].collect { file(it).createDir() }

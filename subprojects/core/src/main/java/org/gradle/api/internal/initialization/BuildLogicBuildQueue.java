@@ -30,7 +30,7 @@ import java.util.function.Supplier;
 @ServiceScope(Scope.BuildTree.class)
 public interface BuildLogicBuildQueue {
 
-    <T> T build(BuildState requester, List<TaskIdentifier.TaskBasedTaskIdentifier> tasks, Supplier<T> continuationUnderLock);
+    <T> T build(BuildState requester, List<TaskIdentifier> tasks, Supplier<T> continuationUnderLock);
 
     <T> T buildBuildSrc(StandAloneNestedBuild buildSrcBuild, Function<BuildTreeLifecycleController, T> continuationUnderLock);
 }

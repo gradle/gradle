@@ -27,11 +27,13 @@ import org.gradle.api.Incubating;
 public enum KeepAliveMode {
     /**
      * The compiler is kept alive for a session.
+     * @since 7.6
      */
     SESSION,
 
     /**
      * The compiler is kept alive across builds.
+     * @since 7.6
      */
     DAEMON
 }

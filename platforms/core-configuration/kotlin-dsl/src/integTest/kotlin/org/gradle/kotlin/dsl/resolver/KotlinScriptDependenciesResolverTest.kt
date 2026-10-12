@@ -18,6 +18,7 @@
 
 package org.gradle.kotlin.dsl.resolver
 
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
 import org.gradle.test.fixtures.Flaky
@@ -45,7 +46,6 @@ import kotlin.script.dependencies.ScriptContents.Position
 import kotlin.script.dependencies.ScriptDependenciesResolver.ReportSeverity
 
 
-@Category(Flaky::class) // https://github.com/gradle/gradle-private/issues/3717
 class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
 
     @Before
@@ -319,32 +319,6 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         }
     }
 
-    @Test
-    @Requires(TestExecutionPreconditions.NotEmbeddedExecutor::class)
-    fun `report line warning on runtime failure in currently edited script when location aware hints are enabled`() {
-
-        withFile(
-            "gradle.properties",
-            """
-            ${EditorReports.locationAwareEditorHintsPropertyName}=true
-            """
-        )
-        val editedScript = withBuildScript(
-            """
-            configurations.getByName("doNotExists")
-            """
-        )
-
-        resolvedScriptDependencies(editedScript).apply {
-            assertContainsBasicDependencies()
-        }
-
-        recorder.apply {
-            assertLastEventIsInstanceOf(ResolvedDependenciesWithErrors::class)
-            assertSingleLineWarningReport("Configuration with name 'doNotExists' not found.", 1)
-        }
-    }
-
     private
     val recorder = ResolverTestRecorder()
 
@@ -356,7 +330,8 @@ class KotlinScriptDependenciesResolverTest : AbstractKotlinIntegrationTest() {
         mapOf(
             "projectRoot" to projectRoot,
             "gradleHome" to buildContext.gradleHomeDir,
-            "gradleUserHome" to buildContext.gradleUserHomeDir.canonicalPath
+            "gradleUserHome" to buildContext.gradleUserHomeDir.canonicalPath,
+            "gradleOptions" to listOf("-Dorg.gradle.internal.plugins.portal.url.override=${RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl()}")
         ) + (
             if (IntegrationTestBuildContext.isEmbedded()) emptyMap() else mapOf("gradleHome" to distribution.gradleHomeDir)
             ) + entries.toMap()
@@ -484,15 +459,6 @@ class ResolverTestRecorder : ResolverEventLogger, (ReportSeverity, String, Posit
         }
     }
 
-    fun assertSingleLineWarningReport(message: String, line: Int) {
-        assertSingleEditorReport()
-        reports.single().let { report ->
-            assertThat(report.severity, equalTo(ReportSeverity.WARNING))
-            assertThat(report.position, notNullValue())
-            assertThat(report.position!!.line, equalTo(line))
-            assertThat(report.message, equalTo(message))
-        }
-    }
 }
 
 

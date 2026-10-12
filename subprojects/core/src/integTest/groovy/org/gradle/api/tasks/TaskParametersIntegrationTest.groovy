@@ -437,7 +437,8 @@ task someTask {
         executedAndNotSkipped(":invalid")
         verifyAll(receivedProblem(0)) {
             severity == Severity.WARNING
-            fqid == 'deprecation:type-invalidtask-property-inputfile-test-problem-reason-this-is-a-test-this-behavior-has-been-deprecated'
+            fqid == "Gradle:Deprecation:test problem"
+            definition.id.displayName == 'test problem'
             contextualLabel == "Type 'InvalidTask' property 'inputFile' test problem. Reason: This is a test. This behavior has been deprecated."
             details == 'This will fail with an error in Gradle 10.'
             solutions == ['Execution optimizations are disabled to ensure correctness.']
@@ -445,7 +446,8 @@ task someTask {
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.WARNING
-            fqid == 'deprecation:type-invalidtask-property-inputfile-test-problem-reason-this-is-a-test-this-behavior-has-been-deprecated'
+            fqid == "Gradle:Deprecation:test problem"
+            definition.id.displayName == 'test problem'
             contextualLabel == "Type 'InvalidTask' property 'inputFile' test problem. Reason: This is a test. This behavior has been deprecated."
             details == 'This will fail with an error in Gradle 10.'
             solutions == ['Execution optimizations are disabled to ensure correctness.']
@@ -714,7 +716,7 @@ task someTask(type: SomeTask) {
 
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unexpected-input-file-type'
+            fqid == 'Gradle:Build Definition:Unexpected input file type'
             definition.id.displayName == 'Unexpected input file type'
             contextualLabel == "Property \'input\' $fileType \'${unexpected.absolutePath}\' is not a $fileType"
             details == "Expected an input to be a $fileType but it was a ${getOppositeKind(fileType)}"
@@ -752,7 +754,7 @@ task someTask(type: SomeTask) {
 
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:cannot-write-output'
+            fqid == 'Gradle:Build Definition:Property is not writable'
             definition.id.displayName == 'Property is not writable'
             contextualLabel == "Property \'output\' is not writable because \'${outputDir.absolutePath}\' is not a file"
             details == 'Cannot write a file to a location pointing at a directory'
@@ -789,7 +791,7 @@ task someTask(type: SomeTask) {
 
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:cannot-write-output'
+            fqid == 'Gradle:Build Definition:Property is not writable'
             definition.id.displayName == 'Property is not writable'
             contextualLabel == "Property \'output\' is not writable because \'${outputFile.absolutePath}\' is not a directory"
             details == "Expected \'${outputFile.absolutePath}\' to be a directory but it\'s a file"
@@ -830,7 +832,7 @@ task someTask(type: SomeTask) {
 
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:cannot-write-output'
+            fqid == 'Gradle:Build Definition:Property is not writable'
             definition.id.displayName == 'Property is not writable'
             contextualLabel == "Property \'output\' is not writable because \'${outputFile.absolutePath}\' is not a directory"
             details == "Expected the root of the file tree \'${outputFile.absolutePath}\' to be a directory but it\'s a file"

@@ -39,6 +39,7 @@ import org.gradle.api.DomainObjectSet;
  * </pre>
  *
  * @see DomainObjectSet
+ * @since 1.5
  */
 public interface MavenArtifactSet extends DomainObjectSet<MavenArtifact> {
     /**
@@ -47,6 +48,7 @@ public interface MavenArtifactSet extends DomainObjectSet<MavenArtifact> {
      * The semantics of this method are the same as {@link MavenPublication#artifact(Object)}.
      *
      * @param source The source of the artifact content.
+     * @since 1.5
      */
     MavenArtifact artifact(Object source);
 
@@ -57,6 +59,7 @@ public interface MavenArtifactSet extends DomainObjectSet<MavenArtifact> {
      *
      * @param source The source of the artifact.
      * @param config An action or closure to configure the values of the constructed {@link MavenArtifact}.
+     * @since 1.5
      */
      MavenArtifact artifact(Object source, Action<? super MavenArtifact> config);
 }

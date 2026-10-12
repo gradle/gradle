@@ -17,7 +17,53 @@ package org.gradle.api.internal.project;
 
 import org.gradle.api.Project;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.function.Consumer;
+
 public class ProjectOrderingUtil {
+
+    /**
+     * Returns a new collection, containing all direct and transitive child projects of
+     * the given project, in order.
+     * <p>
+     * If you are writing new code and want to use this, consider if you really need to.
+     * Most operations should be scoped to a single project. Why do you need all transitive
+     * subprojects at the same time?
+     */
+    public static List<ProjectState> orderedSubprojectsOf(ProjectState projectState) {
+        List<ProjectState> result = new ArrayList<>();
+        visitSubprojectsUnordered(projectState, result::add);
+        result.sort(ProjectOrderingUtil::compare);
+        return result;
+    }
+
+    /**
+     * Returns a new collection, containing the given project and all direct and transitive child
+     * projects of that project.
+     * <p>
+     * If you are writing new code and want to use this, consider if you really need to.
+     * Most operations should be scoped to a single project. Why do you need all transitive
+     * subprojects at the same time?
+     */
+    public static List<ProjectState> orderedAllProjectsOf(ProjectState projectState) {
+        List<ProjectState> result = new ArrayList<>();
+        visitSubprojectsUnordered(projectState, result::add);
+        result.add(projectState);
+        result.sort(ProjectOrderingUtil::compare);
+        return result;
+    }
+
+    /**
+     * Visits all direct and transitive child projects of this project in no particular order.
+     */
+    private static void visitSubprojectsUnordered(ProjectState project, Consumer<? super ProjectState> visitor) {
+        project.getUnorderedChildProjects().forEach(child -> {
+            visitor.accept(child);
+            visitSubprojectsUnordered(child, visitor);
+        });
+    }
+
     public static int compare(Project left, Project right) {
         return compare(owner(left), owner(right));
     }

@@ -24,5 +24,10 @@ import java.util.Set;
  * @since 4.3
  */
 public interface ComponentWithVariants extends SoftwareComponent {
+    /**
+     * Returns the variants.
+     *
+     * @since 4.3
+     */
     Set<? extends SoftwareComponent> getVariants();
 }

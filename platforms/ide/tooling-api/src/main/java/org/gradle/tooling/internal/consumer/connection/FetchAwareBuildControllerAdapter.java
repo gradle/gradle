@@ -19,6 +19,7 @@ package org.gradle.tooling.internal.consumer.connection;
 import org.gradle.api.Action;
 import org.gradle.tooling.FetchModelResult;
 import org.gradle.tooling.internal.adapter.ProtocolToModelAdapter;
+import org.gradle.tooling.internal.consumer.ClientFailureCache;
 import org.gradle.tooling.internal.consumer.DefaultFetchModelResult;
 import org.gradle.tooling.internal.consumer.versioning.ModelMapping;
 import org.gradle.tooling.internal.consumer.versioning.VersionDetails;
@@ -35,6 +36,7 @@ import java.io.File;
 @NullMarked
 class FetchAwareBuildControllerAdapter extends StreamingAwareBuildControllerAdapter {
     private final InternalFetchAwareBuildController fetch;
+    private final ClientFailureCache failureCache = new ClientFailureCache();
 
     public FetchAwareBuildControllerAdapter(InternalBuildControllerVersion2 buildController, ProtocolToModelAdapter adapter, ModelMapping modelMapping, VersionDetails gradleVersion, File rootDir) {
         super(buildController, adapter, modelMapping, gradleVersion, rootDir);
@@ -58,6 +60,6 @@ class FetchAwareBuildControllerAdapter extends StreamingAwareBuildControllerAdap
     private <T extends Model, M> FetchModelResult<M> adaptResult(@Nullable T target, Class<M> modelType, InternalFetchModelResult<Object> result) {
         Object model = result.getModel();
         M adaptedModel = model != null ? adaptModel(target, modelType, model) : null;
-        return DefaultFetchModelResult.of(adaptedModel, result.getFailures());
+        return DefaultFetchModelResult.of(adaptedModel, result.getFailures(), failureCache);
     }
 }

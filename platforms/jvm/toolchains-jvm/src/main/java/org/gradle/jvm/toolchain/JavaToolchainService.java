@@ -36,6 +36,7 @@ public interface JavaToolchainService {
      *
      * @param config The configuration of the {@code JavaToolchainSpec}
      * @return A {@code Provider<JavaCompiler>}
+     * @since 6.7
      */
     Provider<JavaCompiler> compilerFor(Action<? super JavaToolchainSpec> config);
 
@@ -44,6 +45,7 @@ public interface JavaToolchainService {
      *
      * @param spec The {@code JavaToolchainSpec}
      * @return A {@code Provider<JavaCompiler>}
+     * @since 6.7
      */
     Provider<JavaCompiler> compilerFor(JavaToolchainSpec spec);
 
@@ -52,6 +54,7 @@ public interface JavaToolchainService {
      *
      * @param config The configuration of the {@code JavaToolchainSpec}
      * @return A {@code Provider<JavaLauncher>}
+     * @since 6.7
      */
     Provider<JavaLauncher> launcherFor(Action<? super JavaToolchainSpec> config);
 
@@ -60,6 +63,7 @@ public interface JavaToolchainService {
      *
      * @param spec The {@code JavaToolchainSpec}
      * @return A {@code Provider<JavaLauncher>}
+     * @since 6.7
      */
     Provider<JavaLauncher> launcherFor(JavaToolchainSpec spec);
 
@@ -68,6 +72,7 @@ public interface JavaToolchainService {
      *
      * @param config The configuration of the {@code JavaToolchainSpec}
      * @return A {@code Provider<JavadocTool>}
+     * @since 6.7
      */
     Provider<JavadocTool> javadocToolFor(Action<? super JavaToolchainSpec> config);
 
@@ -76,6 +81,7 @@ public interface JavaToolchainService {
      *
      * @param spec The {@code JavaToolchainSpec}
      * @return A {@code Provider<JavadocTool>}
+     * @since 6.7
      */
     Provider<JavadocTool> javadocToolFor(JavaToolchainSpec spec);
 }

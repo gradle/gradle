@@ -31,6 +31,8 @@ import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.logging.text.TreeFormatter;
+import org.gradle.internal.operations.BuildOperationRef;
+import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.work.WorkerLeaseRegistry.WorkerLease;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -99,7 +101,12 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
 
     @Override
     public <T> ExecutionResult<Void> process(WorkSource<T> workSource, Action<T> worker) {
-        PlanDetails planDetails = new PlanDetails(Cast.uncheckedCast(workSource), Cast.uncheckedCast(worker));
+        BuildOperationRef parentOperation = CurrentBuildOperationRef.instance().get();
+        if (parentOperation == null) {
+            throw new IllegalStateException("No operation is currently running.");
+        }
+
+        PlanDetails planDetails = new PlanDetails(Cast.uncheckedCast(workSource), Cast.uncheckedCast(worker), parentOperation);
         queue.add(planDetails);
 
         maybeStartWorkers(queue, executor);
@@ -186,10 +193,12 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
     private static class PlanDetails {
         final WorkSource<Object> source;
         final Action<Object> worker;
+        private final BuildOperationRef parentOperation;
 
-        public PlanDetails(WorkSource<Object> source, Action<Object> worker) {
+        public PlanDetails(WorkSource<Object> source, Action<Object> worker, BuildOperationRef parentOperation) {
             this.source = source;
             this.worker = worker;
+            this.parentOperation = parentOperation;
         }
     }
 
@@ -197,11 +206,18 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
         final WorkSource.Selection<Object> selection;
         final WorkSource<Object> plan;
         final Action<Object> executor;
+        final BuildOperationRef parentOperation;
 
-        public WorkItem(WorkSource.Selection<Object> selection, WorkSource<Object> plan, Action<Object> executor) {
+        public WorkItem(
+            WorkSource.Selection<Object> selection,
+            WorkSource<Object> plan,
+            Action<Object> executor,
+            BuildOperationRef parentOperation
+        ) {
             this.selection = selection;
             this.plan = plan;
             this.executor = executor;
+            this.parentOperation = parentOperation;
         }
     }
 
@@ -250,7 +266,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                     }
                     // Else, leave the plan in the set of plans so that it can participate in health monitoring. It will be garbage collected once complete
                 } else if (!selection.isNoWorkReadyToStart()) {
-                    return WorkSource.Selection.of(new WorkItem(selection, details.source, details.worker));
+                    return WorkSource.Selection.of(new WorkItem(selection, details.source, details.worker, details.parentOperation));
                 }
             }
             if (nothingMoreToStart()) {
@@ -373,7 +389,7 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
                     }
                     Object selected = workItem.selection.getItem();
                     LOGGER.info("{} ({}) started.", selected, Thread.currentThread());
-                    execute(selected, workItem.plan, workItem.executor);
+                    execute(selected, workItem.plan, workItem.executor, workItem.parentOperation);
                 }
 
                 if (releaseLeaseOnCompletion) {
@@ -451,12 +467,14 @@ public class DefaultPlanExecutor implements PlanExecutor, Stoppable {
             return selected.get();
         }
 
-        private void execute(Object selected, WorkSource<Object> executionPlan, Action<Object> worker) {
+        private void execute(Object selected, WorkSource<Object> executionPlan, Action<Object> worker, BuildOperationRef parentOperation) {
             Throwable failure = null;
             try {
                 stats.startExecute();
                 try {
-                    worker.execute(selected);
+                    CurrentBuildOperationRef.instance().with(parentOperation, () -> {
+                        worker.execute(selected);
+                    });
                 } catch (Throwable t) {
                     failure = t;
                 } finally {

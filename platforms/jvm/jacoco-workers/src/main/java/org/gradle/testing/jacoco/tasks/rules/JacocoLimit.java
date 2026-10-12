@@ -35,6 +35,7 @@ public interface JacocoLimit extends Serializable {
      * The counter that applies to the limit as defined by
      * <a href="http://www.eclemma.org/jacoco/trunk/doc/api/org/jacoco/core/analysis/ICoverageNode.CounterEntity.html">org.jacoco.core.analysis.ICoverageNode.CounterEntity</a>.
      * Valid values are INSTRUCTION, LINE, BRANCH, COMPLEXITY, METHOD and CLASS. Defaults to INSTRUCTION.
+     * @since 3.4
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -44,6 +45,7 @@ public interface JacocoLimit extends Serializable {
      * Sets the counter that applies to the limit.
      *
      * @param counter Counter
+     * @since 3.4
      */
     void setCounter(String counter);
 
@@ -51,6 +53,7 @@ public interface JacocoLimit extends Serializable {
      * The value that applies to the limit as defined by
      * <a href="http://www.eclemma.org/jacoco/trunk/doc/api/org/jacoco/core/analysis/ICounter.CounterValue.html">org.jacoco.core.analysis.ICounter.CounterValue</a>.
      * Valid values are TOTALCOUNT, MISSEDCOUNT, COVEREDCOUNT, MISSEDRATIO and COVEREDRATIO. Defaults to COVEREDRATIO.
+     * @since 3.4
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -60,11 +63,13 @@ public interface JacocoLimit extends Serializable {
      * Sets the value that applies to the limit.
      *
      * @param value Value
+     * @since 3.4
      */
     void setValue(String value);
 
     /**
      * Gets the minimum expected value for limit. Default to null.
+     * @since 3.4
      */
     @Nullable
     @Optional
@@ -76,11 +81,13 @@ public interface JacocoLimit extends Serializable {
      * Sets the minimum expected value for limit.
      *
      * @param minimum Minimum
+     * @since 3.4
      */
     void setMinimum(@Nullable BigDecimal minimum);
 
     /**
      * Gets the maximum expected value for limit. Default to null.
+     * @since 3.4
      */
     @Nullable
     @Optional
@@ -92,6 +99,7 @@ public interface JacocoLimit extends Serializable {
      * Sets the maximum expected value for limit.
      *
      * @param maximum Maximum
+     * @since 3.4
      */
     void setMaximum(@Nullable BigDecimal maximum);
 }

@@ -16,19 +16,22 @@
 package org.gradle.api.internal.artifacts.query;
 
 import org.gradle.api.artifacts.query.ArtifactResolutionQuery;
-import org.gradle.api.internal.artifacts.ComponentMetadataProcessorFactory;
 import org.gradle.api.internal.artifacts.RepositoriesSupplier;
 import org.gradle.api.internal.artifacts.configurations.ResolutionStrategyFactory;
+import org.gradle.api.internal.artifacts.dsl.ComponentMetadataHandlerInternal;
+import org.gradle.api.internal.artifacts.dsl.ComponentMetadataRulesSupplier;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ExternalModuleComponentResolverFactory;
 import org.gradle.api.internal.component.ComponentTypeRegistry;
 
 import javax.inject.Inject;
 
 public class DefaultArtifactResolutionQueryFactory implements ArtifactResolutionQueryFactory {
+
     private final ResolutionStrategyFactory resolutionStrategyFactory;
     private final RepositoriesSupplier repositoriesSupplier;
     private final ExternalModuleComponentResolverFactory ivyFactory;
-    private final ComponentMetadataProcessorFactory componentMetadataProcessorFactory;
+    private final ComponentMetadataRulesSupplier componentMetadataRulesSupplier;
+    private final ComponentMetadataHandlerInternal componentMetadataHandler;
     private final ComponentTypeRegistry componentTypeRegistry;
 
     @Inject
@@ -36,18 +39,28 @@ public class DefaultArtifactResolutionQueryFactory implements ArtifactResolution
         ResolutionStrategyFactory resolutionStrategyFactory,
         RepositoriesSupplier repositoriesSupplier,
         ExternalModuleComponentResolverFactory ivyFactory,
-        ComponentMetadataProcessorFactory componentMetadataProcessorFactory,
+        ComponentMetadataRulesSupplier componentMetadataRulesSupplier,
+        ComponentMetadataHandlerInternal componentMetadataHandler,
         ComponentTypeRegistry componentTypeRegistry
     ) {
         this.resolutionStrategyFactory = resolutionStrategyFactory;
         this.repositoriesSupplier = repositoriesSupplier;
         this.ivyFactory = ivyFactory;
-        this.componentMetadataProcessorFactory = componentMetadataProcessorFactory;
+        this.componentMetadataRulesSupplier = componentMetadataRulesSupplier;
+        this.componentMetadataHandler = componentMetadataHandler;
         this.componentTypeRegistry = componentTypeRegistry;
     }
 
     @Override
     public ArtifactResolutionQuery createArtifactResolutionQuery() {
-        return new DefaultArtifactResolutionQuery(resolutionStrategyFactory, repositoriesSupplier, ivyFactory, componentMetadataProcessorFactory, componentTypeRegistry);
+        return new DefaultArtifactResolutionQuery(
+            resolutionStrategyFactory,
+            repositoriesSupplier,
+            ivyFactory,
+            componentMetadataRulesSupplier,
+            componentMetadataHandler,
+            componentTypeRegistry
+        );
     }
+
 }

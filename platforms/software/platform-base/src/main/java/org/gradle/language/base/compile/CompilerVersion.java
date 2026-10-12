@@ -31,18 +31,21 @@ public interface CompilerVersion {
 
     /**
      * Returns the type of the compiler.
+     * @since 4.4
      */
     @Input
     String getType();
 
     /**
      * Returns the vendor of the compiler.
+     * @since 4.4
      */
     @Input
     String getVendor();
 
     /**
      * Returns the version of the compiler.
+     * @since 4.4
      */
     @Input
     String getVersion();

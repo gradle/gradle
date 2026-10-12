@@ -43,7 +43,7 @@ class ProcessOutputProviderIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        run("-q", ":empty")
+        run(":empty")
 
         then:
         outputContains("--some-arg")
@@ -71,7 +71,7 @@ class ProcessOutputProviderIntegrationTest extends AbstractIntegrationSpec {
         """
 
         when:
-        run("-q", ":empty")
+        run(":empty")
 
         then:
         outputContains("--some-arg")

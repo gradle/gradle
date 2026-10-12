@@ -70,8 +70,10 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
             .filter(watchableHierarchies::shouldWatch)
             .forEach(snapshot -> {
                 String previousWatchedRoot = watchedDirectoryForSnapshot.remove(snapshot.getAbsolutePath());
-                decrement(previousWatchedRoot, changedWatchedDirectories);
-                snapshot.accept(new SubdirectoriesToWatchVisitor(path -> decrement(path, changedWatchedDirectories)));
+                if (previousWatchedRoot != null) {
+                    decrement(previousWatchedRoot, changedWatchedDirectories);
+                    snapshot.accept(new SubdirectoriesToWatchVisitor(path -> decrement(path, changedWatchedDirectories)));
+                }
             });
         addedSnapshots.stream()
             .filter(watchableHierarchies::shouldWatch)
@@ -159,7 +161,7 @@ public class NonHierarchicalFileWatcherUpdater extends AbstractFileWatcherUpdate
                 fileWatcher.startWatching(directoriesToStartWatching);
             }
         } catch (NativeException e) {
-            if (e.getMessage().contains("Already watching path: ")) {
+            if (e.getMessage() != null && e.getMessage().contains("Already watching path: ")) {
                 throw new WatchingNotSupportedException("Unable to watch same file twice via different paths: " + e.getMessage(), e);
             }
             throw e;

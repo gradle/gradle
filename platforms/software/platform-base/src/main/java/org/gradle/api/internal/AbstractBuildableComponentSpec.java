@@ -22,11 +22,13 @@ import org.gradle.api.Task;
 import org.gradle.api.internal.tasks.DefaultTaskDependency;
 import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.internal.tasks.TaskDependencyUtil;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.platform.base.component.internal.AbstractComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.jspecify.annotations.Nullable;
 
+@Deprecated
 public abstract class AbstractBuildableComponentSpec extends AbstractComponentSpec implements BuildableComponentSpec, CheckableComponentSpec {
     private final DefaultTaskDependency buildTaskDependencies = new DefaultTaskDependency();
     private Task buildTask;
@@ -71,7 +73,7 @@ public abstract class AbstractBuildableComponentSpec extends AbstractComponentSp
 
     @Override
     public boolean hasBuildDependencies() {
-        return buildTaskDependencies.getDependenciesForInternalUse(buildTask).size() > 0;
+        return !TaskDependencyUtil.newTaskResolver().getDependencies(buildTask, buildTaskDependencies).isEmpty();
     }
 
     @Nullable

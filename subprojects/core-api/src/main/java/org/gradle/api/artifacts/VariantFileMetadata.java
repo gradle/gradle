@@ -27,6 +27,7 @@ public interface VariantFileMetadata {
      * Get the name of the file.
      *
      * @return the name of the file
+     * @since 6.0
      */
     String getName();
 
@@ -35,6 +36,7 @@ public interface VariantFileMetadata {
      * This is the same as the file name, if the file is located next to the metadata file.
      *
      * @return relative location of the file
+     * @since 6.0
      */
     String getUrl();
 

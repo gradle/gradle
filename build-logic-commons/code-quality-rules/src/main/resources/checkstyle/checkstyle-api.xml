@@ -26,6 +26,13 @@
         <module name="JavadocStyle">
             <property name="checkFirstSentence" value="false"/>
             <property name="checkEmptyJavadoc" value="true"/>
+            <!--
+                ADR 0012 requires @since on every public API element, including enum constants.
+                An enum constant's name is usually self-explanatory, so requiring a prose description
+                in addition to the @since tag adds no value. Exclude ENUM_CONSTANT_DEF (the default
+                token set minus that one) so the empty-description check does not apply to them.
+            -->
+            <property name="tokens" value="ANNOTATION_DEF, ANNOTATION_FIELD_DEF, CLASS_DEF, CTOR_DEF, ENUM_DEF, INTERFACE_DEF, METHOD_DEF, PACKAGE_DEF, VARIABLE_DEF, RECORD_DEF, COMPACT_CTOR_DEF"/>
         </module>
 
         <module name="JavadocType">

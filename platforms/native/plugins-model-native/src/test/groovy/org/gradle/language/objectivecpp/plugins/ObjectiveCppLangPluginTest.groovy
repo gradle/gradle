@@ -19,6 +19,7 @@ package org.gradle.language.objectivecpp.plugins
 import org.gradle.language.objectivecpp.ObjectiveCppSourceSet
 import org.gradle.test.fixtures.plugin.AbstractLanguagePluginSpec
 
+@SuppressWarnings("deprecation")
 class ObjectiveCppLangPluginTest extends AbstractLanguagePluginSpec {
     @Override
     Class getPluginClass() {

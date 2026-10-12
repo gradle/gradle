@@ -22,32 +22,27 @@ import org.gradle.api.artifacts.UnresolvedDependency;
 import org.gradle.api.internal.artifacts.DefaultResolvedDependency;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactSelectionSpec;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.LocalDependencyFiles;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSetResolver;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.SelectedArtifactResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VisitedArtifactSet;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.results.VisitedGraphResults;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
-import org.gradle.api.internal.file.FileCollectionInternal;
-import org.gradle.api.internal.file.FileCollectionStructureVisitor;
-import org.gradle.internal.DisplayName;
-import org.gradle.internal.component.external.model.ImmutableCapabilities;
-import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.internal.operations.BuildOperationExecutor;
 import org.jspecify.annotations.Nullable;
 
+import java.lang.ref.WeakReference;
 import java.util.ArrayList;
-import java.util.Collections;
+import java.util.Collection;
 import java.util.Deque;
 import java.util.LinkedHashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Set;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 import java.util.function.Supplier;
+import org.gradle.internal.resolve.ArtifactResolveException;
 
 public class DefaultLenientConfiguration implements LenientConfigurationInternal {
 
@@ -61,7 +56,16 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
 
     // Selected for the configuration
     private @Nullable SelectedArtifactResults artifactsForThisConfiguration;
-    private @Nullable DefaultResolvedDependency root;
+
+    /**
+     * The resolved dependency graph is a view over the underlying GraphStructure and
+     * provides no additional context. However, we want to avoid having multiple live
+     * instances of the view to avoid additional memory usage and to ensure referenceial
+     * equality of objects in the view, even between different requests for the view.
+     * Only hold a weak reference so the view is GC'd when no longer referenced elsewhere.
+     */
+    private final Lock rootLock = new ReentrantLock();
+    private @Nullable WeakReference<DefaultResolvedDependency> root = null;
 
     public DefaultLenientConfiguration(
         ResolutionHost resolutionHost,
@@ -99,44 +103,59 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     }
 
     private DefaultResolvedDependency getRoot() {
-        if (root == null) {
-            GraphStructure structure = graphStructureSupplier.get();
-            GraphStructure.Nodes nodes = structure.nodes();
-            GraphStructure.Components components = structure.components();
-            GraphStructure.Edges edges = structure.edges();
-            SelectedArtifactResults artifactsByNodeId = getSelectedArtifacts();
-
-            List<DefaultResolvedDependency> allNodes = new ArrayList<>(nodes.count());
-            for (int i = 0; i < nodes.count(); i++) {
-                int owner = nodes.owner(i);
-                ResolvedArtifactSet artifacts = artifactsByNodeId.getArtifactsWithId(i);
-                DefaultResolvedDependency node = new DefaultResolvedDependency(
-                    nodes.variantName(i),
-                    components.moduleVersionId(owner),
-                    buildOperationExecutor,
-                    resolutionHost
-                );
-                node.addModuleArtifacts(artifacts);
-                allNodes.add(node);
-            }
-
-            for (int i = 0; i < nodes.count(); i++) {
-                DefaultResolvedDependency parent = allNodes.get(i);
-                for (int e = edges.start(i); e < edges.end(i); e++) {
-                    if (!edges.constraint(e)) {
-                        int target = edges.targetNode(e);
-                        if (target != -1) {
-                            // Resolved/LenientConfiguration only expose
-                            // successful, non-constraint edges.
-                            parent.addChild(allNodes.get(target));
-                        }
-                    }
+        rootLock.lock();
+        try {
+            if (root != null) {
+                DefaultResolvedDependency value = root.get();
+                if (value != null) {
+                    return value;
                 }
             }
 
-            root = allNodes.get(nodes.root());
+            DefaultResolvedDependency value = buildRoot();
+            this.root = new WeakReference<>(value);
+            return value;
+        } finally {
+            rootLock.unlock();
         }
-        return root;
+    }
+
+    private DefaultResolvedDependency buildRoot() {
+        GraphStructure structure = graphStructureSupplier.get();
+        GraphStructure.Nodes nodes = structure.nodes();
+        GraphStructure.Components components = structure.components();
+        GraphStructure.Edges edges = structure.edges();
+        SelectedArtifactResults artifactsByNodeId = getSelectedArtifacts();
+
+        List<DefaultResolvedDependency> allNodes = new ArrayList<>(nodes.count());
+        for (int i = 0; i < nodes.count(); i++) {
+            int owner = nodes.owner(i);
+            ResolvedArtifactSet artifacts = artifactsByNodeId.getArtifactsWithId(i);
+            DefaultResolvedDependency node = new DefaultResolvedDependency(
+                nodes.variantName(i),
+                components.moduleVersionId(owner),
+                buildOperationExecutor,
+                resolutionHost
+            );
+            node.addModuleArtifacts(artifacts);
+            allNodes.add(node);
+        }
+
+        for (int i = 0; i < nodes.count(); i++) {
+            DefaultResolvedDependency parent = allNodes.get(i);
+            for (int e = edges.start(i); e < edges.end(i); e++) {
+                if (!edges.constraint(e)) {
+                    int target = edges.targetNode(e);
+                    if (target != -1) {
+                        // Resolved/LenientConfiguration only expose
+                        // successful, non-constraint edges.
+                        parent.addChild(allNodes.get(target));
+                    }
+                }
+            }
+        }
+
+        return allNodes.get(nodes.root());
     }
 
     @Override
@@ -159,62 +178,23 @@ public class DefaultLenientConfiguration implements LenientConfigurationInternal
     }
 
     @Override
+    @SuppressWarnings("deprecation")
     public Set<ResolvedArtifact> getArtifacts() {
-        LenientArtifactCollectingVisitor visitor = new LenientArtifactCollectingVisitor();
+        ArtifactCollectingVisitor visitor = new ArtifactCollectingVisitor();
         artifactSetResolver.visitArtifacts(getSelectedArtifacts().getArtifacts(), visitor, resolutionHost);
-        resolutionHost.rethrowFailuresAndReportProblems("artifacts", visitor.getFailures());
-        return visitor.artifacts;
-    }
-
-    private static class LenientArtifactCollectingVisitor implements ArtifactVisitor {
-
-        private final Set<ResolvedArtifact> artifacts = new LinkedHashSet<>();
-        private @Nullable List<Throwable> failures;
-
-        @Override
-        public void visitArtifact(DisplayName artifactSetName, VariantIdentifier sourceVariantId, ImmutableAttributes attributes, ImmutableCapabilities capabilities, ResolvableArtifact artifact) {
-            try {
-                ResolvedArtifact resolvedArtifact = artifact.toPublicView();
-
-                // Attempt to download the file
-                resolvedArtifact.getFile();
-
-                // Only record the artifact if the file is accessible
-                artifacts.add(resolvedArtifact);
-            } catch (org.gradle.internal.resolve.ArtifactResolveException e) {
-                // Ignore
-                // TODO: Would be nice to not use exceptions for control flow
-            } catch (Exception e) {
-                visitFailure(e);
+        List<Throwable> allFailures = visitor.getFailures();
+        if (!allFailures.isEmpty()) {
+            Collection<Throwable> lenientFailures = allFailures.stream()
+                // Ignore artifacts that cannot be resolved. Unexpected non-artifact
+                // failures should still be elevated to the user.
+                // TODO: Filtering by exception type is hacky. We should find a better way to do this.
+                .filter(failure -> !(failure instanceof ArtifactResolveException))
+                .toList();
+            if (!lenientFailures.isEmpty()) {
+                resolutionHost.rethrowFailuresAndReportProblems("artifacts", lenientFailures);
             }
         }
-
-        @Override
-        public FileCollectionStructureVisitor.VisitType prepareForVisit(FileCollectionInternal.Source source) {
-            if (source instanceof LocalDependencyFiles) {
-                return FileCollectionStructureVisitor.VisitType.NoContents;
-            }
-            return FileCollectionStructureVisitor.VisitType.Visit;
-        }
-
-        @Override
-        public boolean requireArtifactFiles() {
-            // This is false so that we can download the artifact in `visitArtifact` and ignore missing files
-            return false;
-        }
-
-        @Override
-        public void visitFailure(Throwable failure) {
-            if (failures == null) {
-                failures = new ArrayList<>();
-            }
-            failures.add(failure);
-        }
-
-        public List<Throwable> getFailures() {
-            return failures != null ? failures : Collections.emptyList();
-        }
-
+        return visitor.getArtifacts();
     }
 
 }

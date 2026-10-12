@@ -21,6 +21,7 @@ package org.gradle.api.reporting;
  *
  * Note this is a legacy type which offers no additional functionality.  Reports
  * should implement {@link Report} directly instead of using this interface.
+ * @since 1.7
  */
 public interface ConfigurableReport extends Report {
     /* intentionally empty */

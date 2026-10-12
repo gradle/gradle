@@ -23,19 +23,38 @@ import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 
 /**
  * Thrown when a model rule, or source of model rules, is declared in an invalid way.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.1
  */
 @Incubating
 @Contextual
+@Deprecated
 public class InvalidModelRuleDeclarationException extends GradleException {
 
+    /**
+     * Creates a new {@code InvalidModelRuleDeclarationException}.
+     *
+     * @since 2.1
+     */
     public InvalidModelRuleDeclarationException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code InvalidModelRuleDeclarationException}.
+     *
+     * @since 2.1
+     */
     public InvalidModelRuleDeclarationException(String message, Throwable cause) {
         super(message, cause);
     }
 
+    /**
+     * Creates a new {@code InvalidModelRuleDeclarationException}.
+     *
+     * @since 2.2
+     */
     public InvalidModelRuleDeclarationException(ModelRuleDescriptor descriptor, Throwable cause) {
         super("Declaration of model rule " + descriptor.toString() + " is invalid.", cause);
         if (cause == null) {
@@ -43,6 +62,11 @@ public class InvalidModelRuleDeclarationException extends GradleException {
         }
     }
 
+    /**
+     * Creates a new {@code InvalidModelRuleDeclarationException}.
+     *
+     * @since 2.3
+     */
     public InvalidModelRuleDeclarationException(ModelRuleDescriptor descriptor, String message) {
         super(String.format("%s is not a valid model rule method: %s", descriptor, message));
     }

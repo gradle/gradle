@@ -26,6 +26,7 @@ import org.gradle.api.file.FileCollection;
 public interface ComponentWithObjectFiles extends ComponentWithNativeRuntime {
     /**
      * Returns the object files created for this component.
+     * @since 4.5
      */
     FileCollection getObjects();
 }

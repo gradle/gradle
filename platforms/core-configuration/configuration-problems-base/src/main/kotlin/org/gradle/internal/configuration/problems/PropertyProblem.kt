@@ -17,10 +17,10 @@
 package org.gradle.internal.configuration.problems
 
 import org.gradle.api.Describable
-import org.gradle.internal.cc.impl.problems.JsonWriter
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.configuration.problems.StructuredMessage.Fragment.Reference
 import org.gradle.internal.configuration.problems.StructuredMessage.Fragment.Text
+import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.internal.problems.failure.Failure
 import org.gradle.problems.Location
 import org.gradle.util.Path
@@ -46,7 +46,6 @@ data class PropertyProblem(
 // TODO:configuration-cache extract interface and move enum back to :configuration-cache
 enum class DocumentationSection(val page: String, val anchor: String) {
     NotYetImplemented("configuration_cache_status", "config_cache:not_yet_implemented"),
-    NotYetImplementedSourceDependencies("configuration_cache_status", "config_cache:not_yet_implemented:source_dependencies"),
     NotYetImplementedJavaSerialization("configuration_cache_status", "config_cache:not_yet_implemented:java_serialization"),
     NotYetImplementedBuildServiceInFingerprint("configuration_cache_status", "config_cache:not_yet_implemented:build_services_in_fingerprint"),
     NotYetImplementedBuildEventListeners("configuration_cache_status", "config_cache:not_yet_implemented:more_build_event_listeners"),
@@ -90,6 +89,13 @@ data class StructuredMessage(val fragments: List<Fragment>) {
             is Reference -> "$quote${fragment.name}$quote"
         }
     }
+
+    /**
+     * Renders a message to stand on its own, such as in an exception message.
+     *
+     * Messages are typically not capitalized, so that they can be part of a longer sentence.
+     */
+    fun renderCapitalized() = render().capitalized()
 
     override fun toString(): String = render()
 
@@ -141,20 +147,6 @@ data class StructuredMessage(val fragments: List<Fragment>) {
         fun build(): StructuredMessage = StructuredMessage(fragments.toList())
     }
 }
-
-fun JsonWriter.writeStructuredMessage(message: StructuredMessage) {
-    jsonObjectList(message.fragments) { fragment ->
-        writeFragment(fragment)
-    }
-}
-
-fun JsonWriter.writeFragment(fragment: StructuredMessage.Fragment) {
-    when (fragment) {
-        is Reference -> property("name", fragment.name)
-        is Text -> property("text", fragment.text)
-    }
-}
-
 
 /**
  * Subtypes are expected to support [PropertyTrace.equals] and [PropertyTrace.hashCode].

@@ -81,6 +81,7 @@ public interface ParameterizedToolingModelBuilder<T> extends ToolingModelBuilder
      * }</pre>
      *
      * @return The type of the parameter.
+     * @since 4.4
      */
     Class<T> getParameterType();
 
@@ -91,6 +92,7 @@ public interface ParameterizedToolingModelBuilder<T> extends ToolingModelBuilder
      * @param parameter The parameter received from the client.
      * @param project The project to create the model for.
      * @return The model, or null if not available.
+     * @since 4.4
      */
     @Nullable
     Object buildAll(String modelName, T parameter, Project project);

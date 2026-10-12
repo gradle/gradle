@@ -21,20 +21,41 @@ import org.jspecify.annotations.Nullable;
  * <code>UncheckedIOException</code> is used to wrap an {@link java.io.IOException} into an unchecked exception.
  *
  * @deprecated Use java.io.UncheckedIOException instead. Will be removed in Gradle 10.
+ * @since 0.7
  */
 @Deprecated
 public class UncheckedIOException extends RuntimeException {
+    /**
+     * Creates a new {@code UncheckedIOException}.
+     *
+     * @since 0.7
+     */
     public UncheckedIOException() {
     }
 
+    /**
+     * Creates a new {@code UncheckedIOException}.
+     *
+     * @since 0.7
+     */
     public UncheckedIOException(@Nullable String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code UncheckedIOException}.
+     *
+     * @since 0.7
+     */
     public UncheckedIOException(@Nullable String message, @Nullable Throwable cause) {
         super(message, cause);
     }
 
+    /**
+     * Creates a new {@code UncheckedIOException}.
+     *
+     * @since 0.7
+     */
     public UncheckedIOException(@Nullable Throwable cause) {
         super(cause);
     }

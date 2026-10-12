@@ -21,6 +21,7 @@ import org.gradle.internal.HasInternalProtocol;
 
 /**
  * <p>A {@code ProjectDependency} is a {@link Dependency} on another project in the current project hierarchy.</p>
+ * @since 0.7
  */
 @HasInternalProtocol
 @DeclarativeWithHiddenMembers

@@ -36,5 +36,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.METHOD, ElementType.FIELD})
 public @interface PathSensitive {
+    /**
+     * Value.
+     *
+     * @since 3.1
+     */
     PathSensitivity value();
 }

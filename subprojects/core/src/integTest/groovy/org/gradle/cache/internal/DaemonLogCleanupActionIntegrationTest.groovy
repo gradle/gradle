@@ -228,7 +228,10 @@ class DaemonLogCleanupActionIntegrationTest extends AbstractIntegrationSpec impl
     }
 
     long justUnderFourteenDays() {
-        exactlyFourteenDaysAgo() + 10000 // 10 seconds newer
+        // One hour newer than the boundary. The margin must comfortably exceed the time between
+        // stamping the file here and the cleanup computing its threshold during the build, or
+        // the file crosses the boundary while the build starts up and gets deleted.
+        exactlyFourteenDaysAgo() + TimeUnit.HOURS.toMillis(1)
     }
 
     @Override

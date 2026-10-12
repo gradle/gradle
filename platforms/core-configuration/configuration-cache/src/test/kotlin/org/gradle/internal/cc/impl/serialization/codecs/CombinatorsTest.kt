@@ -17,6 +17,7 @@
 package org.gradle.internal.cc.impl.serialization.codecs
 
 import org.gradle.internal.cc.base.exceptions.ConfigurationCacheError
+import org.gradle.internal.deprecation.DeprecationLogger
 import org.junit.Test
 
 class CombinatorsTest : AbstractUserTypeCodecTest() {
@@ -31,7 +32,9 @@ class CombinatorsTest : AbstractUserTypeCodecTest() {
             add("some value")
         }
 
-        configurationCacheRoundtripOf(brokenList)
+        DeprecationLogger.whileDisabled {
+            configurationCacheRoundtripOf(brokenList)
+        }
     }
 
     @Test(expected = ConfigurationCacheError::class)
@@ -46,6 +49,8 @@ class CombinatorsTest : AbstractUserTypeCodecTest() {
             put("some", "value")
         }
 
-        configurationCacheRoundtripOf(brokenList)
+        DeprecationLogger.whileDisabled {
+            configurationCacheRoundtripOf(brokenList)
+        }
     }
 }

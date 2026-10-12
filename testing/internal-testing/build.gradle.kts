@@ -40,6 +40,9 @@ dependencies {
 
     runtimeOnly(libs.groovyJson)
     runtimeOnly(testLibs.bytebuddy)
+
+    // Javadoc-only: for groovy.test.NotYetImplemented reference in ToBeImplemented
+    javadocReferences(testLibs.groovyTest)
 }
 
 jvmCompile {

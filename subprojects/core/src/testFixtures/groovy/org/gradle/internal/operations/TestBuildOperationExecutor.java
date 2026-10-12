@@ -44,31 +44,16 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
 
     @Override
     public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction) {
-        runAll(schedulingAction, BuildOperationConstraint.MAX_WORKERS);
-    }
-
-    @Override
-    public <O extends RunnableBuildOperation> void runAll(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
         schedulingAction.execute(new TestBuildOperationQueue<O>(runner));
     }
 
     @Override
     public <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction) {
-        runAllWithAccessToProjectState(schedulingAction, BuildOperationConstraint.MAX_WORKERS);
-    }
-
-    @Override
-    public <O extends RunnableBuildOperation> void runAllWithAccessToProjectState(Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
         runAll(schedulingAction);
     }
 
     @Override
     public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction) {
-        runAll(worker, schedulingAction, BuildOperationConstraint.MAX_WORKERS);
-    }
-
-    @Override
-    public <O extends BuildOperation> void runAll(BuildOperationWorker<O> worker, Action<BuildOperationQueue<O>> schedulingAction, BuildOperationConstraint buildOperationConstraint) {
         throw new UnsupportedOperationException();
     }
 
@@ -86,6 +71,11 @@ public class TestBuildOperationExecutor implements BuildOperationExecutor {
 
         @Override
         public void add(O operation) {
+            runner.run(operation);
+        }
+
+        @Override
+        public void addUnconstrained(O operation) {
             runner.run(operation);
         }
 

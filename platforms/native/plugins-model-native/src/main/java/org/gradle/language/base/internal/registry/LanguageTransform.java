@@ -16,17 +16,15 @@
 
 package org.gradle.language.base.internal.registry;
 
-import org.gradle.language.base.LanguageSourceSet;
 import org.gradle.language.base.internal.SourceTransformTaskConfig;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.TransformationFileType;
 
 import java.util.Map;
 
 /**
  * A registered language transformation.
  */
-public interface LanguageTransform<U extends LanguageSourceSet, V extends TransformationFileType> {
+@SuppressWarnings("deprecation")
+public interface LanguageTransform<U extends org.gradle.language.base.LanguageSourceSet, V extends org.gradle.platform.base.TransformationFileType> {
     /**
      * The language name.
      */
@@ -52,5 +50,5 @@ public interface LanguageTransform<U extends LanguageSourceSet, V extends Transf
      */
     SourceTransformTaskConfig getTransformTask();
 
-    boolean applyToBinary(BinarySpec binary);
+    boolean applyToBinary(org.gradle.platform.base.BinarySpec binary);
 }

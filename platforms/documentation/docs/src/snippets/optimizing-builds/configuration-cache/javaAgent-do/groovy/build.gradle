@@ -1,0 +1,32 @@
+// tag::do[]
+interface VerifyWorkParameters extends WorkParameters { // <3>
+    RegularFileProperty getArtifact()
+}
+
+abstract class VerifyWorkAction implements WorkAction<VerifyWorkParameters> { // <1>
+    @Override
+    void execute() {
+        com.example.signing.SignatureVerifier.verify(parameters.artifact.get().asFile)
+    }
+}
+
+abstract class VerifySignatureTask extends DefaultTask {
+    @InputFile
+    abstract RegularFileProperty getArtifact()
+
+    @Inject
+    abstract WorkerExecutor getWorkerExecutor()
+
+    @TaskAction
+    void run() {
+        def workQueue = workerExecutor.processIsolation() // <2>
+        workQueue.submit(VerifyWorkAction) {
+            artifact = this.artifact
+        }
+    }
+}
+// end::do[]
+
+tasks.register('verify', VerifySignatureTask) {
+    artifact = layout.projectDirectory.file('sample.txt')
+}

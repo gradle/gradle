@@ -29,8 +29,18 @@ import org.gradle.platform.BuildPlatform;
 @Incubating
 public interface JavaToolchainRequest {
 
+    /**
+     * Returns the java toolchain spec.
+     *
+     * @since 7.6
+     */
     JavaToolchainSpec getJavaToolchainSpec();
 
+    /**
+     * Returns the build platform.
+     *
+     * @since 7.6
+     */
     BuildPlatform getBuildPlatform();
 
 }

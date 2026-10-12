@@ -20,6 +20,7 @@ import org.gradle.api.Incubating;
 
 /**
  * The <a href="http://clang.llvm.org">Clang</a> tool chain.
+ * @since 2.2
  */
 @Incubating
 public interface Clang extends GccCompatibleToolChain {

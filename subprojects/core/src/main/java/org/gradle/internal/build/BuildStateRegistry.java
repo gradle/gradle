@@ -16,7 +16,6 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.BuildDefinition;
 import org.gradle.internal.buildtree.NestedBuildTree;
 import org.gradle.internal.classpath.ClassPath;
@@ -55,21 +54,6 @@ public interface BuildStateRegistry {
      * Returns all included builds.
      */
     Collection<? extends IncludedBuildState> getIncludedBuilds();
-
-    /**
-     * Locates a build. Fails if not present.
-     * <p>
-     * Prefer {@link #getBuild(Path)}.
-     */
-    BuildState getBuild(BuildIdentifier buildIdentifier) throws IllegalArgumentException;
-
-    /**
-     * Finds a build. Returns null if there's no build with the given identifier.
-     * <p>
-     * Prefer {@link #findBuild(Path)}.
-     */
-    @Nullable
-    BuildState findBuild(BuildIdentifier buildIdentifier);
 
     /**
      * Locates a build. Fails if not present.
@@ -112,6 +96,13 @@ public interface BuildStateRegistry {
     IncludedBuildState addImplicitIncludedBuild(BuildDefinition buildDefinition);
 
     /**
+     * Creates an implicit included build with a known build path.
+     *
+     * This is used when loaded from the Configuration Cache when the path of the build is already known.
+     */
+    IncludedBuildState addImplicitIncludedBuild(BuildDefinition buildDefinition, Path buildPath);
+
+    /**
      * Locates the buildSrc build for the given build, if present. Returns null if the given build does not have an associated buildSrc build.
      */
     @Nullable
@@ -126,4 +117,9 @@ public interface BuildStateRegistry {
      * Visits all registered builds, ordered by {@link BuildState#getIdentityPath()}
      */
     void visitBuilds(Consumer<? super BuildState> visitor);
+
+    /**
+     * Discards the model of every registered build, so that the build tree can be configured again.
+     */
+    void resetModels();
 }

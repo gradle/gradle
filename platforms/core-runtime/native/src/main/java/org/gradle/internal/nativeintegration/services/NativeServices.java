@@ -77,6 +77,7 @@ import static com.google.common.base.Preconditions.checkNotNull;
  */
 public class NativeServices implements ServiceRegistrationProvider {
     private static final Logger LOGGER = LoggerFactory.getLogger(NativeServices.class);
+    @Nullable
     private static NativeServices instance;
 
     // TODO All this should be static
@@ -88,6 +89,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     private final boolean useNativeIntegrations;
     private final File userHomeDir;
 
+    @Nullable
     private final Native nativeIntegration;
     private final EnumSet<NativeFeatures> enabledFeatures = EnumSet.noneOf(NativeFeatures.class);
 
@@ -305,11 +307,13 @@ public class NativeServices implements ServiceRegistrationProvider {
                 LOGGER.debug("Native-platform is not available.", ex);
                 useNativeIntegrations = false;
             } catch (NativeException ex) {
-                if (ex.getCause() instanceof UnsatisfiedLinkError && ex.getCause().getMessage().toLowerCase(Locale.ROOT).contains("already loaded in another classloader")) {
+                Throwable cause = ex.getCause();
+                String causeMessage = cause == null ? null : cause.getMessage();
+                if (cause instanceof UnsatisfiedLinkError && causeMessage != null && causeMessage.toLowerCase(Locale.ROOT).contains("already loaded in another classloader")) {
                     LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
                     useNativeIntegrations = false;
-                } else if (ex.getMessage().equals("Could not extract native JNI library.")
-                    && ex.getCause().getMessage().contains("native-platform.dll (The process cannot access the file because it is being used by another process)")) {
+                } else if ("Could not extract native JNI library.".equals(ex.getMessage())
+                    && causeMessage != null && causeMessage.contains("native-platform.dll (The process cannot access the file because it is being used by another process)")) {
                     //triggered through tooling API of Gradle <2.3 - native-platform.dll is shared by tooling client (<2.3) and daemon (current) and it is locked by the client (<2.3 issue)
                     LOGGER.debug("Unable to initialize native-platform. Failure: {}", format(ex));
                     useNativeIntegrations = false;
@@ -372,6 +376,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     }
 
     @VisibleForTesting
+    @Nullable
     protected static synchronized Native getNative() {
         return checkNotNull(instance).nativeIntegration;
     }
@@ -398,7 +403,7 @@ public class NativeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected ProcessEnvironment createProcessEnvironment(OperatingSystem operatingSystem) {
-        if (useNativeIntegrations) {
+        if (useNativeIntegrations && nativeIntegration != null) {
             try {
                 net.rubygrapefruit.platform.Process process = nativeIntegration.get(Process.class);
                 return new NativePlatformBackedProcessEnvironment(process);
@@ -416,7 +421,7 @@ public class NativeServices implements ServiceRegistrationProvider {
     }
 
     private ConsoleDetector backingConsoleDetector(OperatingSystem operatingSystem) {
-        if (useNativeIntegrations) {
+        if (useNativeIntegrations && nativeIntegration != null) {
             try {
                 Terminals terminals = nativeIntegration.get(Terminals.class);
                 return new NativePlatformConsoleDetector(terminals);
@@ -441,7 +446,7 @@ public class NativeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected WindowsRegistry createWindowsRegistry(OperatingSystem operatingSystem) {
-        if (useNativeIntegrations && operatingSystem.isWindows()) {
+        if (useNativeIntegrations && nativeIntegration != null && operatingSystem.isWindows()) {
             return nativeIntegration.get(WindowsRegistry.class);
         }
         return notAvailable(WindowsRegistry.class, operatingSystem);
@@ -449,7 +454,7 @@ public class NativeServices implements ServiceRegistrationProvider {
 
     @Provides
     public SystemInfo createSystemInfo(OperatingSystem operatingSystem) {
-        if (useNativeIntegrations) {
+        if (useNativeIntegrations && nativeIntegration != null) {
             try {
                 return nativeIntegration.get(SystemInfo.class);
             } catch (NativeIntegrationUnavailableException e) {
@@ -461,7 +466,7 @@ public class NativeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected Memory createMemory(OperatingSystem operatingSystem) {
-        if (useNativeIntegrations) {
+        if (useNativeIntegrations && nativeIntegration != null) {
             try {
                 return nativeIntegration.get(Memory.class);
             } catch (NativeIntegrationUnavailableException e) {
@@ -473,7 +478,7 @@ public class NativeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected ProcessLauncher createProcessLauncher() {
-        if (useNativeIntegrations) {
+        if (useNativeIntegrations && nativeIntegration != null) {
             try {
                 return nativeIntegration.get(ProcessLauncher.class);
             } catch (NativeIntegrationUnavailableException e) {
@@ -485,7 +490,7 @@ public class NativeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected HostnameLookup createHostnameLookup() {
-        if (useNativeIntegrations) {
+        if (useNativeIntegrations && nativeIntegration != null) {
             try {
                 String hostname = nativeIntegration.get(SystemInfo.class).getHostname();
                 return new FixedHostname(hostname);
@@ -524,7 +529,7 @@ public class NativeServices implements ServiceRegistrationProvider {
 
     @Provides
     protected FileSystems createFileSystems(OperatingSystem operatingSystem) {
-        if (useNativeIntegrations) {
+        if (useNativeIntegrations && nativeIntegration != null) {
             try {
                 return nativeIntegration.get(FileSystems.class);
             } catch (NativeIntegrationUnavailableException e) {

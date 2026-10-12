@@ -16,7 +16,6 @@
 
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.nativeplatform.NativeExecutableBinarySpec;
-
-public interface NativeExecutableBinarySpecInternal extends NativeExecutableBinarySpec, NativeBinarySpecInternal {
+@SuppressWarnings("deprecation")
+public interface NativeExecutableBinarySpecInternal extends org.gradle.nativeplatform.NativeExecutableBinarySpec, NativeBinarySpecInternal {
 }

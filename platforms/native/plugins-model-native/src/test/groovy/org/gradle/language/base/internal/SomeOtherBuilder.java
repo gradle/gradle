@@ -16,7 +16,6 @@
 
 package org.gradle.language.base.internal;
 
-import org.gradle.platform.base.TypeBuilder;
-
-public interface SomeOtherBuilder<T> extends TypeBuilder<T> {
+@SuppressWarnings("deprecation")
+public interface SomeOtherBuilder<T> extends org.gradle.platform.base.TypeBuilder<T> {
 }

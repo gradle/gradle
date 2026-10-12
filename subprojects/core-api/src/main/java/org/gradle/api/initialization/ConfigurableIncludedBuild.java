@@ -42,6 +42,7 @@ public interface ConfigurableIncludedBuild extends IncludedBuild {
      *
      * @see org.gradle.api.artifacts.ResolutionStrategy#dependencySubstitution(Action)
      * @see DependencySubstitutions
+     * @since 3.1
      */
     void dependencySubstitution(Action<? super DependencySubstitutions> action);
 }

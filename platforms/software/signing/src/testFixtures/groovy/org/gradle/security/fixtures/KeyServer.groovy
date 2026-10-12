@@ -16,14 +16,15 @@
 
 package org.gradle.security.fixtures
 
+import org.gradle.test.fixtures.server.http.HttpRequest
+import org.gradle.test.fixtures.server.http.HttpResponse
+
 import org.bouncycastle.bcpg.ArmoredOutputStream
 import org.bouncycastle.openpgp.PGPPublicKey
 import org.gradle.security.internal.Fingerprint
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServer
 
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 import static org.gradle.security.internal.SecuritySupport.toLongIdHexString
 
@@ -36,7 +37,7 @@ class KeyServer extends HttpServer {
         this.baseDirectory = baseDirectory
         allow("/pks/lookup", false, ["GET"], new HttpServer.ActionSupport("Get key") {
             @Override
-            void handle(HttpServletRequest request, HttpServletResponse response) {
+            void handle(HttpRequest request, HttpResponse response) {
                 if (request.queryString.startsWith("op=get&options=mr&search=0x")) {
                     String keyId = request.queryString - "op=get&options=mr&search=0x"
                     if (KeyServer.this.keyFiles.containsKey(keyId)) {

@@ -41,8 +41,6 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.reflect.PropertyAccessorType;
 import org.gradle.internal.reflect.Types.TypeVisitResult;
 import org.gradle.internal.reflect.Types.TypeVisitor;
-import org.gradle.model.Managed;
-import org.gradle.model.Unmanaged;
 import org.gradle.model.internal.manage.schema.CollectionSchema;
 import org.gradle.model.internal.manage.schema.ManagedImplSchema;
 import org.gradle.model.internal.manage.schema.ModelSchema;
@@ -82,6 +80,7 @@ import static org.gradle.internal.reflect.PropertyAccessorType.hasVoidReturnType
 import static org.gradle.internal.reflect.PropertyAccessorType.takesSingleParameter;
 import static org.gradle.internal.reflect.Types.walkTypeHierarchy;
 
+@SuppressWarnings("deprecation")
 public class DefaultStructBindingsStore implements StructBindingsStore {
     private final LoadingCache<CacheKey, StructBindings<?>> bindings = CacheBuilder.newBuilder()
         .weakValues()
@@ -153,7 +152,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
         walkTypeHierarchy(type.getConcreteClass(), new TypeVisitor<T>() {
             @Override
             public TypeVisitResult visitType(Class<? super T> type) {
-                if (type.isAnnotationPresent(Managed.class)) {
+                if (type.isAnnotationPresent(org.gradle.model.Managed.class)) {
                     validateManagedType(problems, type);
                 }
                 validateType(problems, type);
@@ -503,7 +502,7 @@ public class DefaultStructBindingsStore implements StructBindingsStore {
 
     private static boolean isDeclaredAsHavingUnmanagedType(Collection<StructMethodBinding> accessorBindings) {
         for (StructMethodBinding accessorBinding : accessorBindings) {
-            if (accessorBinding.getViewMethod().getMethod().isAnnotationPresent(Unmanaged.class)) {
+            if (accessorBinding.getViewMethod().getMethod().isAnnotationPresent(org.gradle.model.Unmanaged.class)) {
                 return true;
             }
         }

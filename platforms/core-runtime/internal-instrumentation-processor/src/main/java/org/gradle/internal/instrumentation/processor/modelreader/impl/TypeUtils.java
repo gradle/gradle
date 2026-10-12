@@ -34,6 +34,8 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
+import static java.util.Objects.requireNonNull;
+
 public class TypeUtils {
     public static Type extractType(TypeMirror typeMirror) {
         return typeMirror.accept(new TypeMirrorToType(), null);
@@ -118,7 +120,7 @@ public class TypeUtils {
 
     public static String elementQualifiedName(Element element) {
         if (element instanceof ExecutableElement) {
-            String enclosingTypeName = ((TypeElement) element.getEnclosingElement()).getQualifiedName().toString();
+            String enclosingTypeName = ((TypeElement) requireNonNull(element.getEnclosingElement())).getQualifiedName().toString();
             return enclosingTypeName + "." + element.getSimpleName();
         } else if (element instanceof TypeElement) {
             return ((TypeElement) element).getQualifiedName().toString();

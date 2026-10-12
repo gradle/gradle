@@ -19,6 +19,7 @@ package org.gradle.model.internal.registry
 import org.gradle.model.Mutate
 import org.gradle.model.RuleSource
 
+@SuppressWarnings("deprecation")
 class BeanRules extends RuleSource {
     @Mutate
     void values(DefaultModelRegistryTest.Bean b) {

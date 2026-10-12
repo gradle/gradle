@@ -21,13 +21,24 @@ import org.gradle.internal.exceptions.Contextual;
 
 /**
  * <p>A <code>PublishException</code> is thrown when a dependency configuration cannot be published for some reason.</p>
+ * @since 1.0
  */
 @Contextual
 public class PublishException extends GradleException {
+    /**
+     * Creates a new {@code PublishException}.
+     *
+     * @since 1.0
+     */
     public PublishException(String message, Throwable cause) {
         super(message, cause);
     }
 
+    /**
+     * Creates a new {@code PublishException}.
+     *
+     * @since 2.0
+     */
     public PublishException(String message) {
         super(message);
     }

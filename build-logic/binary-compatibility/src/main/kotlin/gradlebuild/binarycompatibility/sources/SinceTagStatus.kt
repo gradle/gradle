@@ -18,7 +18,6 @@ package gradlebuild.binarycompatibility.sources
 
 sealed interface SinceTagStatus {
     data class Present(val version: String): SinceTagStatus
-    data object NotNeeded: SinceTagStatus
     data class Inconsistent(val versions: List<String?>): SinceTagStatus
     data object Missing: SinceTagStatus
 }

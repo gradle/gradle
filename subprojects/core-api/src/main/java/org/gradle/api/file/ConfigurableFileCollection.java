@@ -31,6 +31,7 @@ import java.util.Set;
  *
  * @see ManagedType Create an instance of this as a managed property (preferred).
  * @see org.gradle.api.model.ObjectFactory#fileCollection() Create an instance of this manually.
+ * @since 0.8
  */
 @ManagedType
 @SupportsKotlinAssignmentOverloading
@@ -39,6 +40,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * Returns the set of source paths for this collection. The paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      *
      * @return The set of source paths. Returns an empty set if none.
+     * @since 1.0
      */
     Set<Object> getFrom();
 
@@ -46,6 +48,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * Sets the source paths for this collection. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      *
      * @param paths The paths. {@code null} values are ignored.
+     * @since 1.0
      */
     void setFrom(Iterable<?> paths);
 
@@ -53,6 +56,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * Sets the source paths for this collection. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      *
      * @param paths The paths. {@code null} values are ignored.
+     * @since 1.0
      */
     void setFrom(@Nullable Object... paths);
 
@@ -91,6 +95,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      *
      * @param paths The files to add. {@code null} values are ignored.
      * @return this
+     * @since 0.8
      */
     ConfigurableFileCollection from(@Nullable Object... paths);
 
@@ -98,6 +103,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * Returns the set of tasks which build the files of this collection.
      *
      * @return The set. Returns an empty set when there are no such tasks.
+     * @since 0.8
      */
     Set<Object> getBuiltBy();
 
@@ -106,6 +112,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      *
      * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
      * @return this
+     * @since 0.8
      */
     ConfigurableFileCollection setBuiltBy(Iterable<?> tasks);
 
@@ -114,6 +121,7 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      *
      * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
      * @return this
+     * @since 0.8
      */
     ConfigurableFileCollection builtBy(Object... tasks);
 }

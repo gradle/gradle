@@ -122,7 +122,7 @@ class PathLimitationIntegrationTest extends AbstractWorkerProcessIntegrationSpec
         public void start() {
             WorkerProcessBuilder builder = workerFactory.create(action);
             builder.getJavaCommand().jvmArgs(jvmArgs);
-            builder.getJavaCommand().setWorkingDir(workingDirectory)
+            builder.getJavaCommand().getWorkingDirectory().set(workingDirectory)
 
             proc = builder.build();
             try {

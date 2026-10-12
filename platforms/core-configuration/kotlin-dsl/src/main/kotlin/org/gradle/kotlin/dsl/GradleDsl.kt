@@ -21,6 +21,8 @@ package org.gradle.kotlin.dsl
  * Delimits a Gradle DSL.
  *
  * See [DslMarker]
+ *
+ * @since 4.1
  */
 @DslMarker
 annotation class GradleDsl

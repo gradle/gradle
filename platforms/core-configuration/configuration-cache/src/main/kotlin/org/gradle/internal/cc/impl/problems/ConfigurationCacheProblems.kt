@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl.problems
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Sets.newConcurrentHashSet
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
@@ -47,7 +48,7 @@ import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemReportDetails
-import org.gradle.internal.configuration.problems.ProblemReportDetailsJsonSource
+import org.gradle.internal.configuration.problems.toJsSummary
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -78,6 +79,14 @@ val isolatedProjectsDangerouslyIgnoreProblemsSentences = listOf(
     "Isolated Projects violations are being ignored.",
     "Build outputs may be incorrect and the build may crash unexpectedly.",
     "Use this only to evaluate performance.",
+    "Do not use this to produce artifacts."
+)
+
+val configurationCacheWarnModeSentences = listOf(
+    "Configuration Cache warn mode is ENABLED.",
+    "Configuration Cache constraint violations are being ignored.",
+    "Build outputs may be incorrect and the build may crash unexpectedly.",
+    "Use this only to discover configuration cache incompatibilities.",
     "Do not use this to produce artifacts."
 )
 
@@ -269,22 +278,10 @@ class ConfigurationCacheProblems(
             .mapLocation {
                 trace
             }
+            .informational()
             .documentationSection(DocumentationSection.TaskOptOut).build()
         report.onIncompatibleTask(problem)
         summarizer.onIncompatibleTask()
-    }
-
-    private
-    fun reportDegradingFeature(feature: String) {
-        // we report degrading features as problems
-        val problem = problemFactory
-            .problem {
-                // for now, we don't expect interesting information from degrading features, so only the feature name is displayed
-                text("Feature '$feature' is incompatible with the configuration cache.")
-            }
-            .build()
-        summarizer.onIncompatibleFeature(problem)
-        report.onProblem(problem)
     }
 
     override fun onIsolatedProjectsProblem(problem: PropertyProblem) {
@@ -313,7 +310,9 @@ class ConfigurationCacheProblems(
         }
 
         if (severity == ProblemSeverity.Interrupting) {
-            val exception = problem.exception ?: error("Interrupting problems must have an associated exception. Got: $problem")
+            // The exception is missing once the full stack-capture budget is spent, which is unlikely
+            // for an interrupting problem, since the build stops at the first one.
+            val exception = problem.exception ?: InvalidUserCodeException(problem.message.renderCapitalized())
             throw exception
         }
     }
@@ -358,6 +357,21 @@ class ConfigurationCacheProblems(
             )
             contextualLabel(message)
             documentedAt(isolatedProjectsDangerouslyIgnoreProblemsDocumentation.url)
+        }.also {
+            problemsService.internalReporter.report(it)
+        }
+    }
+
+    private
+    fun reportConfigurationCacheWarnMode() {
+        val message = configurationCacheWarnModeSentences.joinToString(" ")
+        problemsService.internalReporter.internalCreate {
+            id(
+                "configuration-cache-warn-mode",
+                "Configuration Cache warn mode is enabled",
+                configCacheValidation
+            )
+            contextualLabel(message)
         }.also {
             problemsService.internalReporter.report(it)
         }
@@ -410,12 +424,11 @@ class ConfigurationCacheProblems(
      */
     override fun report(reportDir: File, validationFailures: ProblemConsumer) {
         addNotReportedDegradingTasks()
-        addDegradingFeatures()
         val summary = summarizer.get()
         val hasNoProblemsForConsole = summary.consoleProblemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
         val details = detailsFor(summary)
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, ProblemReportDetailsJsonSource(details))
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, details.toJsSummary())
         val areTaskDegradationReasonsPresent = degradationDecision.degradedTaskCount > 0
         if (htmlReportFile == null) {
             // there was nothing to report (no problems, no build configuration inputs)
@@ -445,14 +458,6 @@ class ConfigurationCacheProblems(
             if (!incompatibleTasks.contains(trace)) {
                 reportIncompatibleTask(trace, reasons.joinToString())
             }
-        }
-    }
-
-    private
-    fun addDegradingFeatures() {
-        degradationDecision.onDegradedFeature { feature, _ ->
-            // TODO:configuration-cache consider collecting location information (trace)
-            reportDegradingFeature(feature)
         }
     }
 
@@ -497,6 +502,10 @@ class ConfigurationCacheProblems(
                 logger.warn(isolatedProjectsDangerouslyIgnoreProblemsBanner())
                 reportDangerouslyIgnoringProblems()
             }
+
+            if (isWarningMode) {
+                reportConfigurationCacheWarnMode()
+            }
         }
 
         @Suppress("CyclomaticComplexMethod")
@@ -536,28 +545,21 @@ class ConfigurationCacheProblems(
 
     private
     fun degradationSummary(): String {
-        val degradingFeatures = buildList {
-            degradationDecision.onDegradedFeature { feature, _ -> add(feature) }
-        }
-        return DegradationSummary(degradingFeatures, degradationDecision.degradedTaskCount).render()
+        return DegradationSummary(degradationDecision.degradedTaskCount).render()
     }
 
     @VisibleForTesting
     internal
-    class DegradationSummary(private val degradingFeatures: List<String>, private val degradingTaskCount: Int) {
+    class DegradationSummary(private val degradingTaskCount: Int) {
         init {
-            require(degradingFeatures.isNotEmpty() || degradingTaskCount > 0)
+            require(degradingTaskCount > 0)
         }
 
         fun render(): String {
-            val featuresAsString = degradingFeatures.joinToString().let { "($it)" }
             return " because incompatible " +
                 when {
-                    degradingTaskCount == 1 && degradingFeatures.isEmpty() -> "task was"
-                    degradingTaskCount > 1 && degradingFeatures.isEmpty() -> "tasks were"
-                    degradingTaskCount == 0 && degradingFeatures.isNotEmpty() -> "feature usage $featuresAsString was"
-                    degradingTaskCount == 1 -> "task and feature usage $featuresAsString were"
-                    else -> "tasks and feature usage $featuresAsString were"
+                    degradingTaskCount == 1 -> "task was"
+                    else -> "tasks were"
                 } + " found."
         }
     }

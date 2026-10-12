@@ -20,10 +20,11 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.configuration.WarningMode;
+import org.gradle.api.problems.GradleSecondLevelProblemGroup;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.Problems;
 import org.gradle.api.problems.internal.DeprecationDataSpec;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.internal.GradleProblemGroupInternal;
 import org.gradle.api.problems.internal.ProblemReporterInternal;
 import org.gradle.api.problems.internal.ProblemSpecInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
@@ -45,7 +46,6 @@ import java.util.Locale;
 import java.util.Set;
 import java.util.concurrent.CopyOnWriteArraySet;
 
-import static org.gradle.internal.deprecation.DeprecationMessageBuilder.createDefaultDeprecationId;
 
 public class LoggingDeprecatedFeatureHandler implements FeatureHandler<DeprecatedFeatureUsage> {
     public static final String ORG_GRADLE_DEPRECATION_TRACE_PROPERTY_NAME = "org.gradle.deprecation.trace";
@@ -99,11 +99,14 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
             public void execute(ProblemSpecInternal builder) {
                 ProblemSpecInternal problemSpec = builder
                     // usage.getKind() could be part of the problem ID, however it provides hints on the problem provenance which should be modeled differently, maybe as location data.
-                    .id(getDefaultDeprecationIdDisplayName(usage), usage.getProblemIdDisplayName(), GradleCoreProblemGroup.deprecation())
+                    .id(deprecationGroup().problemId(usage.getProblemName()))
                     .contextualLabel(usage.getSummary())
                     .details(usage.getRemovalDetails())
                     .documentedAt(usage.getDocumentationUrl())
                     .diagnostics(diagnostics)
+                    // The deprecation logger owns the console output of deprecations: it logs or summarizes them
+                    // according to the warning mode, so problem renderers must not print them again.
+                    .writtenToConsole()
                     .additionalDataInternal(DeprecationDataSpec.class, new Action<DeprecationDataSpec>() {
                         @Override
                         public void execute(DeprecationDataSpec data) {
@@ -120,11 +123,9 @@ public class LoggingDeprecatedFeatureHandler implements FeatureHandler<Deprecate
         reporter.report(problem);
     }
 
-    private static String getDefaultDeprecationIdDisplayName(DeprecatedFeatureUsage usage) {
-        if (usage.getProblemId() != null) {
-            return usage.getProblemId();
-        }
-        return createDefaultDeprecationId(usage.getProblemIdDisplayName());
+    private GradleSecondLevelProblemGroup deprecationGroup() {
+        // reserved for the deprecations Gradle reports itself, so it is not on the public GradleProblemGroup
+        return ((GradleProblemGroupInternal) problemsService.getGroups().getGradle()).getDeprecation();
     }
 
     private static void addSolution(@Nullable String advice, ProblemSpecInternal problemSpec) {

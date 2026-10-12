@@ -29,6 +29,7 @@ import gradlebuild.integrationtests.tasks.DistributionTest
 import gradlebuild.integrationtests.tasks.GenerateAutoTestedSamplesTestTask
 import gradlebuild.integrationtests.tasks.IntegrationTest
 import gradlebuild.testing.services.BuildBucketProvider
+import gradlebuild.testing.skipWhenNoFlakyTests
 import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
@@ -190,6 +191,7 @@ fun Project.createTestTask(name: String, executer: String, sourceSet: SourceSet,
         addDebugProperties()
         testClassesDirs = sourceSet.output.classesDirs
         classpath = sourceSet.runtimeClasspath
+        skipWhenNoFlakyTests(sourceSet)
         extraConfig.execute(this)
         if (!integTest.generateDefaultAutoTestedSamplesTest.get()) {
             inputs.dir(layout.projectDirectory.dir("src/main")).withPathSensitivity(PathSensitivity.RELATIVE)

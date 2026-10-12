@@ -18,17 +18,23 @@ package org.gradle.internal.logging.source;
 
 import org.gradle.api.logging.LogLevel;
 import org.gradle.internal.logging.config.LoggingSourceSystem;
+import org.jspecify.annotations.NullMarked;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.bridge.SLF4JBridgeHandler;
 
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Handler;
 import java.util.logging.Level;
-import java.util.logging.LogManager;
 import java.util.logging.Logger;
 
 /**
  * A {@link LoggingSourceSystem} which configures JUL to route logging events to SLF4J.
  */
+@NullMarked
 public class JavaUtilLoggingSystem implements LoggingSourceSystem {
 
     private static final Map<LogLevel, Level> LOG_LEVEL_MAPPING = new HashMap<LogLevel, Level>();
@@ -48,7 +54,8 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
     }
 
     private final Logger logger;
-    private LogLevel requestedLevel;
+    private final SLF4JBridgeHandler bridge = new SLF4JBridgeHandler();
+    private @Nullable LogLevel requestedLevel;
     private boolean installed;
 
     public JavaUtilLoggingSystem() {
@@ -76,49 +83,110 @@ public class JavaUtilLoggingSystem implements LoggingSourceSystem {
 
     @Override
     public void restore(Snapshot state) {
-        SnapshotImpl snapshot = (SnapshotImpl) state;
+        JulSnapshot snapshot = (JulSnapshot) state;
         requestedLevel = snapshot.requestedLevel;
         if (snapshot.installed) {
             install(snapshot.javaUtilLevel);
         } else {
-            uninstall(snapshot.javaUtilLevel);
+            uninstall(snapshot.consoleAndBridgeHandlers, snapshot.javaUtilLevel);
         }
     }
 
     @Override
     public Snapshot snapshot() {
-        return new SnapshotImpl(installed, logger.getLevel(), requestedLevel);
+        return new JulSnapshot(installed, consoleAndBridgeHandlers(), logger.getLevel(), requestedLevel);
     }
 
-    private void uninstall(Level level) {
+    private void uninstall(Iterable<Handler> toRestore, Level level) {
         if (!installed) {
             return;
         }
 
-        LogManager.getLogManager().reset();
+        logger.removeHandler(bridge);
+        addHandlers(toRestore);
+
         logger.setLevel(level);
         installed = false;
     }
 
+    private static boolean contains(Handler[] handlers, Handler handler) {
+        for (Handler candidate : handlers) {
+            if (candidate == handler) {
+                return true;
+            }
+        }
+        return false;
+    }
+
     private void install(Level level) {
         if (!installed) {
-            LogManager.getLogManager().reset();
-            SLF4JBridgeHandler.install();
+            // To avoid duplicate logging events, remove the console handler
+            // installed by default, if present, and remove any slf4j bridge
+            // handlers installed by a parent instance of this logging system.
+            removeHandlers(consoleAndBridgeHandlers());
+            logger.addHandler(bridge);
             installed = true;
         }
 
         logger.setLevel(level);
     }
 
-    private static class SnapshotImpl implements Snapshot {
-        private final boolean installed;
-        private final java.util.logging.Level javaUtilLevel;
-        private final LogLevel requestedLevel;
+    /**
+     * Adds the given handlers to the root logger, skipping any that are already attached.
+     */
+    private void addHandlers(Iterable<Handler> toAdd) {
+        Handler[] attached = logger.getHandlers();
+        for (Handler handler : toAdd) {
+            if (!contains(attached, handler)) {
+                logger.addHandler(handler);
+            }
+        }
+    }
 
-        SnapshotImpl(boolean installed, Level javaUtilLevel, LogLevel requestedLevel) {
+    private void removeHandlers(Iterable<Handler> toRemove) {
+        for (Handler handler : toRemove) {
+            logger.removeHandler(handler);
+        }
+    }
+
+    /**
+     * The set of handlers that are managed by this logging system.
+     * <p>
+     * The ConsoleHandler is installed by the JDK's default LogManager, but may not be present
+     * if the user provided a custom LogManager. The SLF4JBridgeHandler is installed by this
+     * logging system, so by definition is managed by this logging system. Other handlers may be
+     * present but are not managed by this logging system and are therefore left in place
+     * during start and restore operations.
+     */
+    private List<Handler> consoleAndBridgeHandlers() {
+        List<Handler> handlers = new ArrayList<>();
+        for (Handler handler : logger.getHandlers()) {
+            if (handler instanceof ConsoleHandler || handler instanceof SLF4JBridgeHandler) {
+                handlers.add(handler);
+            }
+        }
+        return handlers;
+    }
+
+    private static class JulSnapshot implements Snapshot {
+
+        private final boolean installed;
+        private final List<Handler> consoleAndBridgeHandlers;
+        private final Level javaUtilLevel;
+        private final @Nullable LogLevel requestedLevel;
+
+        JulSnapshot(
+            boolean installed,
+            List<Handler> consoleAndBridgeHandlers,
+            Level javaUtilLevel,
+            @Nullable LogLevel requestedLevel
+        ) {
             this.installed = installed;
+            this.consoleAndBridgeHandlers = consoleAndBridgeHandlers;
             this.javaUtilLevel = javaUtilLevel;
             this.requestedLevel = requestedLevel;
         }
+
     }
+
 }

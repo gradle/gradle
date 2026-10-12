@@ -24,6 +24,7 @@ import static com.google.common.base.Strings.isNullOrEmpty;
 
 /**
  * Link.
+ * @since 1.0
  */
 public class Link {
 
@@ -32,6 +33,11 @@ public class Link {
     private String location;
     private String locationUri;
 
+    /**
+     * Creates a new {@code Link}.
+     *
+     * @since 1.0
+     */
     public Link(String name, String type, String location, String locationUri) {
         Preconditions.checkArgument(!isNullOrEmpty(name));
         Preconditions.checkArgument(!isNullOrEmpty(type));
@@ -43,34 +49,74 @@ public class Link {
         this.locationUri = emptyToNull(locationUri);
     }
 
+    /**
+     * Returns the name.
+     *
+     * @since 1.0
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the name.
+     *
+     * @since 1.0
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Returns the type.
+     *
+     * @since 1.0
+     */
     public String getType() {
         return type;
     }
 
+    /**
+     * Sets the type.
+     *
+     * @since 1.0
+     */
     public void setType(String type) {
         this.type = type;
     }
 
+    /**
+     * Returns the location.
+     *
+     * @since 1.0
+     */
     public String getLocation() {
         return location;
     }
 
+    /**
+     * Sets the location.
+     *
+     * @since 1.0
+     */
     public void setLocation(String location) {
         this.location = location;
     }
 
+    /**
+     * Returns the location uri.
+     *
+     * @since 1.0
+     */
     public String getLocationUri() {
         return locationUri;
     }
 
+    /**
+     * Sets the location uri.
+     *
+     * @since 1.0
+     */
     public void setLocationUri(String locationUri) {
         this.locationUri = locationUri;
     }

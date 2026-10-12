@@ -48,6 +48,9 @@ dependencies {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(projects.distributionsBasics)
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.coreApi)
 }
 
 gradleModule {
@@ -66,6 +69,8 @@ configurations.remove(configurations.apiStubElements.get())
 
 val runtimeApiInfoDir = layout.buildDirectory.dir("generated-resources/runtime-api-info")
 val generateTestKitPackageList = tasks.register<PackageListGenerator>("generateTestKitPackageList") {
+    group = "build"
+    description = "Generates the relocated package list used to shade TestKit classes at runtime."
     classpath.from(configurations.runtimeClasspath.get())
     outputFile = runtimeApiInfoDir.map { it.file("org/gradle/api/internal/runtimeshaded/test-kit-relocated.txt") }
 }
@@ -73,12 +78,6 @@ sourceSets.main {
     resources.srcDir(files(runtimeApiInfoDir) { builtBy(generateTestKitPackageList) })
 }
 
-packageCycles {
-    excludePatterns.add("org/gradle/testkit/runner/internal/**")
-}
-
 tasks.integMultiVersionTest {
     systemProperty("org.gradle.integtest.testkit.compatibility", "all")
 }
-
-

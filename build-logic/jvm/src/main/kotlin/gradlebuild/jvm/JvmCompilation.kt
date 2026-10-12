@@ -16,6 +16,7 @@
 
 package gradlebuild.jvm
 
+import gradlebuild.basics.bundleGroovyMinimumJvm
 import org.gradle.api.Project
 import org.gradle.api.plugins.GroovyBasePlugin
 import org.gradle.api.provider.Property
@@ -106,6 +107,10 @@ abstract class JvmCompilation {
 
     @JvmName("associateGroovy")
     fun Project.associate(groovyCompile: TaskProvider<GroovyCompile>) {
+        // Groovy 5 needs at least Java 11 to run, so we can't target anything older when it's bundled.
+        // With `-DbundleGroovyMajor=5`, Java 8 compilations are bumped to Java 11, and the classes
+        // they produce won't run on Java 8.
+        val groovyJvmVersion = targetJvmVersion.map { maxOf(it, bundleGroovyMinimumJvm) }
         if(!(OperatingSystem.current().isWindows && System.getProperty("os.arch") == "aarch64")) {
             groovyCompile.configure {
                 val javaToolchains = project.the<JavaToolchainService>()
@@ -113,7 +118,7 @@ abstract class JvmCompilation {
                 // JDK we are targeting in order to see the correct standard lib classes
                 // during compilation
                 javaLauncher = javaToolchains.launcherFor {
-                    languageVersion = targetJvmVersion.map { JavaLanguageVersion.of(it) }
+                    languageVersion = groovyJvmVersion.map { JavaLanguageVersion.of(it) }
                 }
             }
         }
@@ -121,7 +126,7 @@ abstract class JvmCompilation {
         // Need to use afterEvaluate since source/target Compatibility are not lazy
         afterEvaluate {
             groovyCompile.configure {
-                val version = targetJvmVersion.get().toString()
+                val version = groovyJvmVersion.get().toString()
                 sourceCompatibility = version
                 targetCompatibility = version
             }

@@ -66,7 +66,7 @@ public class Jdk7Symlink implements Symlink {
             Files.createSymbolicLink(linkFile, sourceFile);
             return true;
         } catch (InternalError e) {
-            if (e.getMessage().contains("Should not get here")) {
+            if (e.getMessage() != null && e.getMessage().contains("Should not get here")) {
                 // probably facing JDK-8046686
                 LOGGER.debug("Unable to create a symlink. Your system is hitting JDK bug id JDK-8046686. Symlink support disabled.", e);
             } else {

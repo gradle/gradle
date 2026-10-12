@@ -30,9 +30,8 @@ import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
+import java.util.Collection;
 import java.util.Set;
-import java.util.function.Consumer;
-import java.util.function.Function;
 
 /**
  * Encapsulates the identity and state of a particular project in a build tree.
@@ -120,12 +119,7 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     /**
      * Returns the direct children of this project in no particular order.
      */
-    Iterable<ProjectState> getUnorderedChildProjects();
-
-    /**
-     * Returns this project and all projects beneath it in the hierarchy.
-     */
-    Set<ProjectState> getAllProjects();
+    Collection<ProjectState> getUnorderedChildProjects();
 
     /**
      * Checks whether this project has child projects.
@@ -184,11 +178,14 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
     ProjectInternal getMutableModelEvenAfterFailure();
 
     /**
-     * Returns the lock that will be acquired when accessing the mutable state of this project via {@link #applyToMutableState(Consumer)} and {@link #fromMutableState(Function)}.
-     * A caller can optionally acquire this lock before calling one of these accessor methods, in order to avoid those methods blocking.
+     * {@inheritDoc}
+     * <p>
+     * When parallel execution is disabled, the lock is shared between all projects within a build,
+     * and each build in the build tree has its own shared lock.
      *
-     * <p>When parallel execution is disabled, the lock is shared between projects within a build, and each build in the build tree has its own shared lock.
+     * @return The lock required to access the project state.
      */
+    @Override
     ResourceLock getAccessLock();
 
     /**

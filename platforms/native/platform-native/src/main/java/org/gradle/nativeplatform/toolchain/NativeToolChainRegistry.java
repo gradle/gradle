@@ -25,6 +25,7 @@ import org.gradle.platform.base.ToolChainRegistry;
 
 /**
  * A container for {@link NativeToolChain}s.
+ * @since 2.2
  */
 @Incubating
 @HasInternalProtocol

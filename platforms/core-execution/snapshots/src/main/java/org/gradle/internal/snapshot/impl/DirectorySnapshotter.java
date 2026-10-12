@@ -38,6 +38,7 @@ import org.gradle.internal.snapshot.SnapshottingFilter;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.CheckReturnValue;
+
 import java.io.File;
 import java.io.IOException;
 import java.io.UncheckedIOException;
@@ -126,6 +127,11 @@ public class DirectorySnapshotter {
             PathVisitor visitor = new PathVisitor(predicate, hasBeenFiltered, hasher, stringInterner, defaultExcludes, collector, EMPTY_SYMBOLIC_LINK_MAPPING, previouslyKnownSnapshots, unfilteredSnapshotRecorder);
             Files.walkFileTree(rootPath, DONT_FOLLOW_SYMLINKS, Integer.MAX_VALUE, visitor);
             FileSystemLocationSnapshot result = visitor.getResult();
+            if (result == null) {
+                // The root is always visited (PathVisitor.shouldVisitDirectory() never filters it),
+                // so a completed walk of an existing directory always produces a result.
+                throw new IllegalStateException(String.format("Snapshotting '%s' did not produce a result. It must be an existing directory.", absolutePath));
+            }
             if (!hasBeenFiltered.get()) {
                 unfilteredSnapshotRecorder.accept(result);
             }
@@ -257,7 +263,7 @@ public class DirectorySnapshotter {
     private static class PathVisitor extends DirectorySnapshotterStatistics.CollectingFileVisitor {
         private final RelativePathTracker pathTracker = new RelativePathTracker();
         private final FilteredTrackingMerkleDirectorySnapshotBuilder builder;
-        private final SnapshottingFilter.DirectoryWalkerPredicate predicate;
+        private final SnapshottingFilter.@Nullable DirectoryWalkerPredicate predicate;
         private final AtomicBoolean hasBeenFiltered;
         private final FileHasher hasher;
         private final Interner<String> stringInterner;
@@ -520,6 +526,7 @@ public class DirectorySnapshotter {
             return intern(lastSep < 0 ? absolutePath : absolutePath.substring(lastSep + 1));
         }
 
+        @Nullable
         public FileSystemLocationSnapshot getResult() {
             return builder.getResult();
         }

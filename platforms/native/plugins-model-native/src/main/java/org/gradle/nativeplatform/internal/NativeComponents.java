@@ -22,20 +22,10 @@ import org.gradle.api.Task;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
-import org.gradle.model.ModelMap;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.gradle.model.internal.type.ModelTypes;
-import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeComponentSpec;
-import org.gradle.nativeplatform.NativeDependencySet;
-import org.gradle.nativeplatform.NativeExecutableFileSpec;
-import org.gradle.nativeplatform.NativeInstallationSpec;
 import org.gradle.nativeplatform.tasks.InstallExecutable;
 import org.gradle.nativeplatform.tasks.LinkExecutable;
-import org.gradle.platform.base.BinaryContainer;
-import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.ComponentSpecContainer;
-import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 import org.gradle.platform.base.internal.BinarySpecInternal;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedResult;
@@ -46,6 +36,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.Callable;
 
+@SuppressWarnings("deprecation")
 public class NativeComponents {
 
     private static final String ASSEMBLE_DEPENDENTS_TASK_NAME = "assembleDependents";
@@ -64,7 +55,7 @@ public class NativeComponents {
 
                 linkTask.lib(new BinaryLibs(binary) {
                     @Override
-                    protected FileCollection getFiles(NativeDependencySet nativeDependencySet) {
+                    protected FileCollection getFiles(org.gradle.nativeplatform.NativeDependencySet nativeDependencySet) {
                         return nativeDependencySet.getLinkFiles();
                     }
                 });
@@ -73,7 +64,7 @@ public class NativeComponents {
         });
     }
 
-    public static void createInstallTask(final NativeBinarySpecInternal binary, final NativeInstallationSpec installation, final NativeExecutableFileSpec executable, final BinaryNamingScheme namingScheme) {
+    public static void createInstallTask(final NativeBinarySpecInternal binary, final org.gradle.nativeplatform.NativeInstallationSpec installation, final org.gradle.nativeplatform.NativeExecutableFileSpec executable, final BinaryNamingScheme namingScheme) {
         binary.getTasks().create(namingScheme.getTaskName("install"), InstallExecutable.class, new Action<InstallExecutable>() {
             @Override
             public void execute(InstallExecutable installTask) {
@@ -86,7 +77,7 @@ public class NativeComponents {
                 //TODO:HH wire binary libs via executable
                 installTask.lib(new BinaryLibs(binary) {
                     @Override
-                    protected FileCollection getFiles(NativeDependencySet nativeDependencySet) {
+                    protected FileCollection getFiles(org.gradle.nativeplatform.NativeDependencySet nativeDependencySet) {
                         return nativeDependencySet.getRuntimeFiles();
                     }
                 });
@@ -97,8 +88,8 @@ public class NativeComponents {
         });
     }
 
-    public static void createBuildDependentComponentsTasks(ModelMap<Task> tasks, ComponentSpecContainer components) {
-        for (final VariantComponentSpec component : components.withType(NativeComponentSpec.class).withType(VariantComponentSpec.class)) {
+    public static void createBuildDependentComponentsTasks(org.gradle.model.ModelMap<Task> tasks, org.gradle.platform.base.ComponentSpecContainer components) {
+        for (final org.gradle.platform.base.VariantComponentSpec component : components.withType(org.gradle.nativeplatform.NativeComponentSpec.class).withType(org.gradle.platform.base.VariantComponentSpec.class)) {
             tasks.create(getAssembleDependentComponentsTaskName(component), DefaultTask.class, new Action<DefaultTask>() {
                 @Override
                 public void execute(DefaultTask assembleDependents) {
@@ -135,8 +126,8 @@ public class NativeComponents {
         });
     }
 
-    public static void wireBuildDependentTasks(final ModelMap<Task> tasks, BinaryContainer binaries, final DependentBinariesResolver dependentsResolver, final ProjectModelResolver projectModelResolver) {
-        final ModelMap<NativeBinarySpecInternal> nativeBinaries = binaries.withType(NativeBinarySpecInternal.class);
+    public static void wireBuildDependentTasks(final org.gradle.model.ModelMap<Task> tasks, org.gradle.platform.base.BinaryContainer binaries, final DependentBinariesResolver dependentsResolver, final ProjectModelResolver projectModelResolver) {
+        final org.gradle.model.ModelMap<NativeBinarySpecInternal> nativeBinaries = binaries.withType(NativeBinarySpecInternal.class);
         for (final BinarySpecInternal binary : nativeBinaries) {
             Task assembleDependents = tasks.get(binary.getNamingScheme().getTaskName(ASSEMBLE_DEPENDENTS_TASK_NAME));
             Task buildDependents = tasks.get(binary.getNamingScheme().getTaskName(BUILD_DEPENDENTS_TASK_NAME));
@@ -172,8 +163,8 @@ public class NativeComponents {
         for (DependentBinariesResolvedResult dependent : result.getChildren()) {
             if (dependent.isBuildable()) {
                 ModelRegistry modelRegistry = projectModelResolver.resolveProjectModel(dependent.getId().getProjectPath());
-                ModelMap<NativeBinarySpecInternal> projectBinaries = modelRegistry.realize("binaries", ModelTypes.modelMap(NativeBinarySpecInternal.class));
-                ModelMap<Task> projectTasks = modelRegistry.realize("tasks", ModelTypes.modelMap(Task.class));
+                org.gradle.model.ModelMap<NativeBinarySpecInternal> projectBinaries = modelRegistry.realize("binaries", ModelTypes.modelMap(NativeBinarySpecInternal.class));
+                org.gradle.model.ModelMap<Task> projectTasks = modelRegistry.realize("tasks", ModelTypes.modelMap(Task.class));
                 NativeBinarySpecInternal dependentBinary = projectBinaries.get(dependent.getProjectScopedName());
                 dependencies.add(projectTasks.get(dependentBinary.getNamingScheme().getTaskName(dependedOnBinaryTaskName)));
             }
@@ -181,30 +172,30 @@ public class NativeComponents {
         return dependencies;
     }
 
-    private static String getAssembleDependentComponentsTaskName(ComponentSpec component) {
+    private static String getAssembleDependentComponentsTaskName(org.gradle.platform.base.ComponentSpec component) {
         return ASSEMBLE_DEPENDENTS_TASK_NAME + StringUtils.capitalize(component.getName());
     }
 
-    private static String getBuildDependentComponentsTaskName(ComponentSpec component) {
+    private static String getBuildDependentComponentsTaskName(org.gradle.platform.base.ComponentSpec component) {
         return BUILD_DEPENDENTS_TASK_NAME + StringUtils.capitalize(component.getName());
     }
 
     public abstract static class BinaryLibs implements Callable<List<FileCollection>> {
-        private final NativeBinarySpec binary;
+        private final org.gradle.nativeplatform.NativeBinarySpec binary;
 
-        public BinaryLibs(NativeBinarySpec binary) {
+        public BinaryLibs(org.gradle.nativeplatform.NativeBinarySpec binary) {
             this.binary = binary;
         }
 
         @Override
         public List<FileCollection> call() throws Exception {
             List<FileCollection> runtimeFiles = new ArrayList<>();
-            for (NativeDependencySet nativeDependencySet : binary.getLibs()) {
+            for (org.gradle.nativeplatform.NativeDependencySet nativeDependencySet : binary.getLibs()) {
                 runtimeFiles.add(getFiles(nativeDependencySet));
             }
             return runtimeFiles;
         }
 
-        protected abstract FileCollection getFiles(NativeDependencySet nativeDependencySet);
+        protected abstract FileCollection getFiles(org.gradle.nativeplatform.NativeDependencySet nativeDependencySet);
     }
 }

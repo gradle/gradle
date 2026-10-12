@@ -17,7 +17,6 @@
 package org.gradle.kotlin.dsl.tooling.fixtures
 
 
-import java.nio.file.Paths
 import org.gradle.tooling.model.kotlin.dsl.EditorReport
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
@@ -25,13 +24,6 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkModel
 
 class KotlinDslModelChecker {
-
-    static void checkScriptModelEditorReportsArePositioned(Map<File, KotlinDslScriptModel> scriptModels, String scriptFileName) {
-        def expectedPath = Paths.get(scriptFileName)
-        def script = scriptModels.keySet().find { it.toPath().endsWith(expectedPath) }
-        assert script != null: "no script model found ending with '$scriptFileName'"
-        assert scriptModels[script].editorReports.any { it.position != null }: "no positioned editor report on '$scriptFileName'"
-    }
 
     static void checkBuildTreeScriptsModels(Map<String, KotlinDslScriptsModel> actual, Map<String, KotlinDslScriptsModel> expected) {
         assert actual.keySet() == expected.keySet()

@@ -17,6 +17,8 @@
 package org.gradle.integtests.tooling.r930
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.tooling.BuildAction
@@ -35,6 +37,7 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
     static final String BROKEN_SETTINGS_CONTENT = "broken settings file content!!!"
     static final String BROKEN_BUILD_CONTENT = "broken build file content!!!"
     static final String ISOLATED_PROJECTS_FLAG = "-Dorg.gradle.internal.isolated-projects.tooling=true"
+    // Only passed to <9.7 targets, which understand only the deprecated property name
     static final String UNSAFE_ISOLATED_PROJECTS_FLAG = "-Dorg.gradle.unsafe.isolated-projects=true"
 
     def setup() {
@@ -54,6 +57,8 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
         }
     }
 
+    // From Gradle 9.7 the captured configuration failures also fail the build, see the r970 spec
+    @TargetGradleVersion('>=9.3.0 <9.7.0')
     def "should fetch root project model when settings #description"() {
         given:
         settingsKotlinFile << """
@@ -71,7 +76,7 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
         result.model.editableBuilds.empty
         result.model.rootProject.projectIdentifier.projectPath == ":"
         // If Settings scripts fails to evaluate the name falls back to directory name
-        result.model.rootProject.name == expectedRootProjectName ?: settingsKotlinFile.parentFile.name
+        result.model.rootProject.name == (expectedRootProjectName ?: settingsKotlinFile.parentFile.name)
         result.model.rootProject.projectIdentifier.buildIdentifier.rootDir == settingsKotlinFile.parentFile
         result.model.projects == [result.model.rootProject] as Set
 
@@ -151,6 +156,8 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
         result.model.editableBuilds == result.model.includedBuilds
     }
 
+    // From Gradle 9.7 the captured configuration failures also fail the build, see the r970 spec
+    @TargetGradleVersion('>=9.3.0 <9.7.0')
     def "should fetch root build and included build with a broken settings convention plugin"() {
         given:
         settingsKotlinFile << """
@@ -175,8 +182,8 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
                 `kotlin-dsl`
             }
             repositories {
-                mavenCentral()
-                gradlePluginPortal()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
             }
         """
         included.file("src/main/kotlin/build-logic.settings.gradle.kts") << """
@@ -205,6 +212,8 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
         result.model.editableBuilds[0].projects == [result.model.editableBuilds[0].rootProject] as Set
     }
 
+    // From Gradle 9.7 the captured configuration failures also fail the build, see the r970 spec
+    @TargetGradleVersion('>=9.3.0 <9.7.0')
     def "should fetch root project and included build models despite broken included settings files"() {
         given:
         createRootProject()
@@ -223,6 +232,8 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
         model.model.includedBuilds[0].buildIdentifier.rootDir == file("included1")
     }
 
+    // From Gradle 9.7 the captured configuration failures also fail the build, see the r970 spec
+    @TargetGradleVersion('>=9.3.0 <9.7.0')
     def "should return failure when caching models with isolated projects"() {
         given:
         def intermediateCaching = [

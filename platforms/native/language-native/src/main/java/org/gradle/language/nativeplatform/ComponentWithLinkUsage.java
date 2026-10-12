@@ -27,6 +27,7 @@ import org.gradle.api.provider.Provider;
 public interface ComponentWithLinkUsage extends ComponentWithNativeRuntime {
     /**
      * Returns the outgoing link elements of this component.
+     * @since 4.5
      */
     Provider<Configuration> getLinkElements();
 }

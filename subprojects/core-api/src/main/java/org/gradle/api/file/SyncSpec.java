@@ -33,6 +33,7 @@ public interface SyncSpec extends CopySpec {
      * Returns the filter that defines which files to preserve in the destination directory.
      *
      * @return the filter defining the files to preserve
+     * @since 7.5
      */
     @Internal
     @NotToBeReplacedByLazyProperty(because = "Read-only nested like property")
@@ -43,6 +44,7 @@ public interface SyncSpec extends CopySpec {
      *
      * @param action Action for configuring the preserve filter
      * @return this
+     * @since 7.5
      */
     SyncSpec preserve(Action<? super PatternFilterable> action);
 

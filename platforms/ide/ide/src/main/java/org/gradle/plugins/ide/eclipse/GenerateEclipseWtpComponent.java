@@ -33,6 +33,7 @@ import javax.inject.Inject;
  * At this moment nearly all configuration is done via {@link EclipseWtpComponent}.
  *
  * @deprecated Will be removed in Gradle 10.
+ * @since 1.0
  */
 @Deprecated
 @DisableCachingByDefault(because = "Not made cacheable, yet")
@@ -40,6 +41,11 @@ public abstract class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpCo
 
     private EclipseWtpComponent component;
 
+    /**
+     * Creates a new {@code GenerateEclipseWtpComponent}.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings("this-escape")
     public GenerateEclipseWtpComponent() {
         DeprecationLogger.whileDisabled(() -> {
@@ -82,12 +88,18 @@ public abstract class GenerateEclipseWtpComponent extends XmlGeneratorTask<WtpCo
 
     /**
      * The Eclipse WTP component model that contains details required to generate the settings file.
+     * @since 1.0
      */
     @Internal
     public EclipseWtpComponent getComponent() {
         return component;
     }
 
+    /**
+     * Sets the component.
+     *
+     * @since 1.0
+     */
     public void setComponent(EclipseWtpComponent component) {
         this.component = component;
     }

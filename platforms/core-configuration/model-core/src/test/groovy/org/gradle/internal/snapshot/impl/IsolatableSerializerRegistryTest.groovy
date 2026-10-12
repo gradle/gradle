@@ -16,6 +16,7 @@
 
 package org.gradle.internal.snapshot.impl
 
+import org.gradle.api.Named
 import org.gradle.api.attributes.Attribute
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.hash.TestHashCodes
@@ -354,7 +355,12 @@ class IsolatableSerializerRegistryTest extends Specification {
         return isolatables as Isolatable<?>[]
     }
 
-    static class SomeType { }
+    static class SomeType implements Named {
+        @Override
+        String getName() {
+            return "name"
+        }
+    }
 
     static class SerializableType implements Serializable {
         final String foo

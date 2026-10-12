@@ -21,11 +21,13 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Represents credentials used to authenticate with Amazon Web Services.
+ * @since 2.4
  */
 public interface AwsCredentials extends Credentials {
 
     /**
      * Returns the access key to use to authenticate with AWS.
+     * @since 2.4
      */
     @Nullable
     @ToBeReplacedByLazyProperty
@@ -33,11 +35,13 @@ public interface AwsCredentials extends Credentials {
 
     /**
      * Sets the access key to use to authenticate with AWS.
+     * @since 2.4
      */
     void setAccessKey(@Nullable String accessKey);
 
     /**
      * Returns the secret key to use to authenticate with AWS.
+     * @since 2.4
      */
     @Nullable
     @ToBeReplacedByLazyProperty
@@ -45,6 +49,7 @@ public interface AwsCredentials extends Credentials {
 
     /**
      * Sets the secret key to use to authenticate with AWS.
+     * @since 2.4
      */
     void setSecretKey(@Nullable String secretKey);
 

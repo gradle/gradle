@@ -25,6 +25,14 @@ import org.gradle.api.Incubating;
  */
 @Incubating
 public enum WelcomeMessageDisplayMode {
-    ONCE, // the default, show the welcome message once per Gradle version
-    NEVER // suppress the welcome message
+    // the default, show the welcome message once per Gradle version
+    /**
+     * @since 7.5
+     */
+    ONCE,
+    // suppress the welcome message
+    /**
+     * @since 7.5
+     */
+    NEVER
 }

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.internal.service.scopes;
 
 import org.gradle.configuration.internal.DefaultListenerBuildOperationDecorator;
@@ -32,15 +31,18 @@ import org.gradle.internal.operations.BuildOperationsParameters;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.operations.DefaultBuildOperationExecutor;
 import org.gradle.internal.operations.DefaultBuildOperationQueueFactory;
+import org.gradle.internal.operations.RootBuildOperationRef;
 import org.gradle.internal.operations.logging.LoggingBuildOperationProgressBroadcaster;
 import org.gradle.internal.operations.notify.BuildOperationNotificationBridge;
 import org.gradle.internal.operations.notify.BuildOperationNotificationValve;
+import org.gradle.internal.operations.trace.BuildOperationJfrEmitter;
 import org.gradle.internal.operations.trace.BuildOperationTrace;
 import org.gradle.internal.resources.DefaultResourceLockCoordinationService;
 import org.gradle.internal.resources.ResourceLockCoordinationService;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.time.Time;
 import org.gradle.internal.work.DefaultResourceLockStatistics;
 import org.gradle.internal.work.DefaultWorkerLeaseService;
 import org.gradle.internal.work.DefaultWorkerLimits;
@@ -78,6 +80,7 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     BuildOperationExecutor createBuildOperationExecutor(
         BuildOperationRunner buildOperationRunner,
         CurrentBuildOperationRef currentBuildOperationRef,
+        ResourceLockCoordinationService coordinationService,
         WorkerLeaseService workerLeaseService,
         ExecutorFactory executorFactory,
         WorkerLimits workerLimits
@@ -87,13 +90,15 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
             currentBuildOperationRef,
             new DefaultBuildOperationQueueFactory(workerLeaseService),
             executorFactory,
+            coordinationService,
+            workerLeaseService,
             workerLimits
         );
     }
 
     @Provides
     UserCodeApplicationContext createUserCodeApplicationContext() {
-        return new DefaultUserCodeApplicationContext();
+        return new DefaultUserCodeApplicationContext(Time::nanoTime);
     }
 
     @Provides
@@ -107,8 +112,18 @@ public class CoreCrossBuildSessionServices implements ServiceRegistrationProvide
     }
 
     @Provides
+    RootBuildOperationRef createRootBuildOperationRef() {
+        return new RootBuildOperationRef();
+    }
+
+    @Provides
     BuildOperationTrace createBuildOperationTrace(InternalOptions internalOptions, CrossBuildSessionParameters parameters, BuildOperationListenerManager buildOperationListenerManager) {
         return new BuildOperationTrace(parameters.getUserActionRootDirectory(), internalOptions, buildOperationListenerManager);
+    }
+
+    @Provides
+    BuildOperationJfrEmitter createBuildOperationJfrEmitter(InternalOptions internalOptions, BuildOperationListenerManager buildOperationListenerManager) {
+        return new BuildOperationJfrEmitter(internalOptions, buildOperationListenerManager);
     }
 
     @Provides

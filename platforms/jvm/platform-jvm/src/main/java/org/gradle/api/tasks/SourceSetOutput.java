@@ -82,6 +82,7 @@ import java.util.Map;
  * </pre>
  *
  * Find more information in {@link #dir(Object)} and {@link #getDirs()}
+ * @since 1.0
  */
 @NotToBeMigratedToLazy
 public interface SourceSetOutput extends FileCollection {
@@ -100,6 +101,7 @@ public interface SourceSetOutput extends FileCollection {
      * See example at {@link SourceSetOutput}
      *
      * @return The dir resources are copied to.
+     * @since 1.0
      */
     @Nullable
     File getResourcesDir();
@@ -120,6 +122,7 @@ public interface SourceSetOutput extends FileCollection {
      * See example at {@link SourceSetOutput}
      *
      * @param resourcesDir the resources dir. Should not be null.
+     * @since 1.0
      */
     void setResourcesDir(Object resourcesDir);
 
@@ -130,6 +133,7 @@ public interface SourceSetOutput extends FileCollection {
      *
      * @param options - use 'builtBy' key to configure the 'builtBy' task of the dir
      * @param dir - will be resolved as {@link org.gradle.api.Project#file(Object)}
+     * @since 1.0
      */
     void dir(Map<String, Object> options, Object dir);
 
@@ -139,6 +143,7 @@ public interface SourceSetOutput extends FileCollection {
      * See example at {@link SourceSetOutput}
      *
      * @param dir - will be resolved as {@link org.gradle.api.Project#file(Object)}
+     * @since 1.0
      */
     void dir(Object dir);
 
@@ -149,6 +154,7 @@ public interface SourceSetOutput extends FileCollection {
      * See example at {@link SourceSetOutput}
      *
      * @return a new instance of registered dirs with resolved files
+     * @since 1.0
      */
     FileCollection getDirs();
 

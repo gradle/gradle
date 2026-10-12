@@ -25,33 +25,67 @@ import java.util.Map;
 
 /**
  * A project facet.
+ *
+ * @deprecated Will be removed in Gradle 10.
+ * @since 1.0
  */
+@Deprecated
 public class Facet {
 
     /**
      * An {@code installed} facet is really present on an Eclipse project whereas facet type {@code fixed} means that
      * this facet is locked and cannot be simply removed. See also
      * <a href="https://eclipse.org/articles/Article-BuildingProjectFacets/tutorial.html#defining.presets">here</a>.
+     * @since 1.0
      */
     @SuppressWarnings("FieldName")
-    public enum FacetType { installed, fixed }
+    public enum FacetType {
+        /**
+         * @since 1.0
+         */
+        installed,
+        /**
+         * @since 1.0
+         */
+        fixed
+    }
 
     private FacetType type;
     private String name;
     private String version;
 
+    /**
+     * Creates a new {@code Facet}.
+     *
+     * @since 1.0
+     */
     public Facet() {
         type = FacetType.installed;
     }
 
+    /**
+     * Creates a new {@code Facet}.
+     *
+     * @since 1.0
+     */
     public Facet(Node node) {
         this(FacetType.valueOf((String) node.name()), (String) node.attribute("facet"), (String) node.attribute("version"));
     }
 
+    /**
+     * Creates a new {@code Facet}.
+     *
+     * @since 1.0
+     */
     public Facet(String name, String version) {
         this(FacetType.installed, name, version);
     }
 
+    /**
+     * Creates a new {@code Facet}.
+     *
+     * @since 1.0
+     */
     public Facet(FacetType type, String name, String version) {
         Preconditions.checkNotNull(type);
         Preconditions.checkNotNull(name);
@@ -65,30 +99,65 @@ public class Facet {
         this.version = version;
     }
 
+    /**
+     * Returns the type.
+     *
+     * @since 1.0
+     */
     public FacetType getType() {
         return type;
     }
 
+    /**
+     * Sets the type.
+     *
+     * @since 1.0
+     */
     public void setType(FacetType type) {
         this.type = type;
     }
 
+    /**
+     * Returns the name.
+     *
+     * @since 1.0
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the name.
+     *
+     * @since 1.0
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Returns the version.
+     *
+     * @since 1.0
+     */
     public String getVersion() {
         return version;
     }
 
+    /**
+     * Sets the version.
+     *
+     * @since 1.0
+     */
     public void setVersion(String version) {
         this.version = version;
     }
 
+    /**
+     * Append node.
+     *
+     * @since 1.0
+     */
     public void appendNode(Node node) {
         Map<String, Object> attributes = new LinkedHashMap<>();
         attributes.put("facet", name);

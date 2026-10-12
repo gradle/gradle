@@ -29,11 +29,13 @@ public interface FileChange {
 
     /**
      * The file, which may no longer exist.
+     * @since 5.4
      */
     File getFile();
 
     /**
      * The type of change to the file.
+     * @since 5.4
      */
     ChangeType getChangeType();
 
@@ -44,6 +46,7 @@ public interface FileChange {
      *     For {@link ChangeType#ADDED} and {@link ChangeType#MODIFIED}, the type of the file which was added/modified is reported.
      *     For {@link ChangeType#REMOVED} the type of the file which was removed is reported.
      * </p>
+     * @since 5.4
      */
     FileType getFileType();
 
@@ -53,6 +56,7 @@ public interface FileChange {
      * <p>
      *    See {@link org.gradle.api.tasks.PathSensitivity}, {@link org.gradle.api.tasks.Classpath} and {@link org.gradle.api.tasks.CompileClasspath} for the different path normalization strategies.
      * </p>
+     * @since 5.4
      */
     String getNormalizedPath();
 }

@@ -599,6 +599,12 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
         return loggingManager;
     }
 
+    @Nullable
+    @Override
+    public LoggingManagerInternal getLoggingManager() {
+        return loggingManager;
+    }
+
     @Override
     public Object property(String propertyName) throws MissingPropertyException {
         assertDynamicObject();
@@ -785,7 +791,7 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             if (application == null) {
                 doExecute(task);
             } else {
-                application.reapply(() -> doExecute(task));
+                application.reapply(() -> doExecute(task), UserCodeApplicationContext.CodeType.GENERAL);
             }
         }
 

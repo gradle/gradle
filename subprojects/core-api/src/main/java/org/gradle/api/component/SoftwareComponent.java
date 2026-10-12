@@ -24,6 +24,7 @@ import org.gradle.internal.HasInternalProtocol;
  * <p>
  * An implementation of this interface may also implement {@link ComponentWithVariants} to provide
  * information about the variants that the component provides.
+ * @since 1.4
  */
 @HasInternalProtocol
 public interface SoftwareComponent extends Named {

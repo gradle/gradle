@@ -24,7 +24,7 @@ package org.gradle.tooling.internal.protocol;
  * <p>Consumer compatibility: This interface is used by all consumer versions from 2.2-rc-1.</p>
  * <p>Provider compatibility: This interface is implemented by all provider versions from 2.2-rc-1.</p>
  *
- * @since 2.2-rc-1
+ * @since 2.2
  */
 public interface StoppableConnection extends InternalProtocolInterface {
     /**
@@ -33,7 +33,7 @@ public interface StoppableConnection extends InternalProtocolInterface {
      * <p>Consumer compatibility: This method is used by all consumer versions from 2.2-rc-1.</p>
      * <p>Provider compatibility: This method is implemented by all provider versions from 2.2-rc-1.</p>
      *
-     * @since 2.2-rc-1
+     * @since 2.2
      */
     void shutdown(ShutdownParameters parameters);
 }

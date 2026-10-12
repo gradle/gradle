@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r16.CustomModel
+import org.gradle.integtests.tooling.r980.FetchFailureDescriptionsAction
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.util.GradleVersion
 
@@ -106,6 +107,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         dsl << [GROOVY, KOTLIN]
     }
 
+    @TargetGradleVersion("<9.7.0")
     def "returns a failure if a model builder throws an exception with #dsl DSL"() {
         given:
         setupInitScriptWithCustomModelBuilder("throw new RuntimeException('broken builder')")
@@ -122,7 +124,29 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         result.failureMessages == ["broken builder"]
     }
 
-    @TargetGradleVersion(">=7.6.6")
+    @ToolingApiVersion(">=9.8.0")
+    @TargetGradleVersion(">=9.3.0 <9.7.0")
+    def "reports node-only failure descriptions as unavailable from an older provider"() {
+        given:
+        setupInitScriptWithCustomModelBuilder("throw new RuntimeException('broken builder', new IllegalStateException('root cause'))")
+
+        when:
+        def failures = succeeds {
+            action(new FetchFailureDescriptionsAction())
+                .withArguments("--init-script=${file('init.gradle').absolutePath}")
+                .run()
+        }
+
+        then:
+        failures.size() == 1
+        def failure = failures.first()
+        failure.message == "broken builder"
+        failure.description.contains("Caused by: java.lang.IllegalStateException: root cause")
+        failure.ownDescription == null
+        failure.causes.first().ownDescription == null
+    }
+
+    @TargetGradleVersion(">=7.6.6 <9.7.0")
     def "returns a failure if project configuration fails due to #description with #dsl DSL"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -189,7 +213,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
         "fetch(target,modelType,parameterType,parameterInitializer)" | new FetchCustomModelAction()
     }
 
-    @TargetGradleVersion(">=7.6.6")
+    @TargetGradleVersion(">=7.6.6 <9.7.0")
     def "'#method' returns the same result as other fetch methods in the presence of project build script failures"() {
         given:
         settingsFile << "rootProject.name = 'root'"
@@ -221,7 +245,7 @@ class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
     }
 
-    @TargetGradleVersion(">=7.6.6")
+    @TargetGradleVersion(">=7.6.6 <9.7.0")
     def "'#method' method returns the same failed result as other fetch methods with #dsl DSL"() {
         given:
         setupInitScriptWithCustomModelBuilder()

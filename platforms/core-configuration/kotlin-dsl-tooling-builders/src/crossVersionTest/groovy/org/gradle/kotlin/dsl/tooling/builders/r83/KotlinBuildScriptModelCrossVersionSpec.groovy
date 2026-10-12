@@ -20,6 +20,7 @@ import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
 import org.gradle.kotlin.dsl.tooling.fixtures.KotlinScriptModelParameters
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
+import org.gradle.util.GradleVersion
 import spock.lang.Issue
 
 @TargetGradleVersion(">=8.3")
@@ -32,6 +33,9 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         // See https://github.com/gradle/gradle/pull/34665
         requireIsolatedUserHome()
         propertiesFile << gradleProperties
+        if (targetVersion >= GradleVersion.version("9.8.0")) {
+            expectImplicitParallelModelBuildingDeprecation()
+        }
 
         expect:
         loadToolingModel(KotlinDslScriptsModel)
@@ -42,6 +46,9 @@ class KotlinBuildScriptModelCrossVersionSpec extends AbstractKotlinScriptModelCr
         given:
         withSingleSubproject()
         propertiesFile << gradleProperties
+        if (targetVersion >= GradleVersion.version("9.8.0")) {
+            expectImplicitParallelModelBuildingDeprecation()
+        }
 
         expect:
         loadToolingModel(KotlinDslScriptsModel)

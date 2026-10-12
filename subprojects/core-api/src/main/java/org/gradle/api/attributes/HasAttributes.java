@@ -28,6 +28,7 @@ public interface HasAttributes {
 
     /**
      * Returns the attributes
+     * @since 3.3
      */
     @HiddenInDefinition
     AttributeContainer getAttributes();

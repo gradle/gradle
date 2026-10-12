@@ -29,6 +29,11 @@ class ModelRuleSamplesIntegrationTest extends AbstractIntegrationSpec {
 
     @UsesSample("integration-tests/modelRules/modelDsl")
     def "dsl creation example works"() {
+        given:
+        // The modelDsl sample applies a RuleSource and uses the model {} DSL; the exact set of
+        // resulting deprecation warnings is a property of the sample, so just suppress the checks.
+        executer.beforeExecute { it.noDeprecationChecks() }
+
         when:
         inDirectory(sample.dir.file('groovy'))
 
@@ -45,5 +50,13 @@ class ModelRuleSamplesIntegrationTest extends AbstractIntegrationSpec {
         output.contains("configuring Person 'people.barry'")
         output.contains("Hello John Smith!")
         output.contains("Hello Barry Barry!")
+    }
+
+    private void expectSoftwareModelDeprecation(String pluginName) {
+        executer.expectDocumentedDeprecationWarning("The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+    }
+
+    private void expectModelDslDeprecation() {
+        executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
     }
 }

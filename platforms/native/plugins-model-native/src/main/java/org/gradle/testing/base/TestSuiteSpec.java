@@ -21,23 +21,30 @@ import org.gradle.platform.base.GeneralComponentSpec;
 
 /**
  * A component representing a suite of tests that will be built and executed together.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.12
  */
 @Incubating
+@Deprecated
 public interface TestSuiteSpec extends GeneralComponentSpec {
     /**
      * The tested component.
+     * @since 2.12
      */
     ComponentSpec getTestedComponent();
 
     /**
      * Sets the tested component.
      * @param testedComponent the component under test
+     * @since 2.12
      */
     void setTestedComponent(ComponentSpec testedComponent);
 
     /**
      * Sets the tested component.
      * @param testedComponent the component under test
+     * @since 2.12
      */
     void testing(ComponentSpec testedComponent);
 }

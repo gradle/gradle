@@ -21,9 +21,9 @@ import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.execution.EntryTaskSelector
 import org.gradle.internal.Try
 import org.gradle.internal.build.BuildStateRegistry
+import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeWorkController
-import org.gradle.internal.buildtree.BuildTreeWorkController.TaskRunResult
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
 import org.gradle.internal.buildtree.BuildTreeWorkPreparer
 import org.gradle.internal.cc.impl.heap.HeapDumper
@@ -46,61 +46,75 @@ class ConfigurationCacheAwareBuildTreeWorkController(
             "$path/${LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMddHHmmss"))}"
         }
 
-    override fun scheduleAndRunRequestedTasks(taskSelector: EntryTaskSelector?): TaskRunResult {
+    override fun scheduleAndRunRequestedTasks(taskSelector: EntryTaskSelector?): ExecutionResult<Void> {
         val scheduleTaskSelectorPostProcessing: BuildTreeWorkGraphBuilder? = taskSelector?.let { selector ->
             { rootBuildState ->
                 addFinalization(rootBuildState, selector::postProcessExecutionPlan)
             }
         }
-        val executionResult: TaskRunResult? = workGraph.withNewWorkGraph { graph ->
-            val result = Try.ofFailable {
-                cache.loadOrScheduleRequestedTasks(
-                    graph = graph,
-                    graphBuilder = scheduleTaskSelectorPostProcessing
-                ) { workPreparer.scheduleRequestedTasks(graph, taskSelector) }
-            }
+        val cachedExecutionResult = loadAndRun(scheduleTaskSelectorPostProcessing)
+        if (cachedExecutionResult != null) {
+            return cachedExecutionResult
+        }
+        return Try.ofFailable {
+            scheduleStoreAndRun(scheduleTaskSelectorPostProcessing, taskSelector)
+        }.getOrMapFailure { ExecutionResult.failed(it) }
+    }
 
-            if (!result.isSuccessful) {
-                return@withNewWorkGraph TaskRunResult.ofScheduleFailure(result.failure.get())
-            }
+    private fun loadAndRun(
+        scheduleTaskSelectorPostProcessing: BuildTreeWorkGraphBuilder?
+    ): ExecutionResult<Void>? =
+        workGraph.withNewWorkGraph { graph ->
+            when (val outcome = cache.maybeLoadRequestedTasks(graph, scheduleTaskSelectorPostProcessing)) {
+                is BuildTreeConfigurationCache.LoadOutcome.Reused -> {
+                    maybeDumpHeap("cc-hit")
+                    workExecutor.execute(outcome.graph)
+                }
 
-            // There are four outcomes:
-            // 1. CC miss, graph has been successfully stored. We don't try to execute the graph directly but store it first, discard, and then reload.
-            // 2. Same as (1) but we also need tooling models. The model builders can be executed after the tasks (if any) in a build action,
-            //    and these builders may access project state as well as the task state. Because of that we execute the prepared graph directly.
-            // 3. CC miss, graph has been configured but the cached state discarded without failing the build (e.g. task.notCompatibleWithCC is used).
-            //    We execute the build immediately using the prepared graph.
-            // 4. CC hit: we've loaded the cached graph. We execute the build immediately using the loaded graph.
-            val workGraph = result.get()
-            if (!workGraph.wasLoadedFromCache && !workGraph.entryDiscarded && !buildModelParameters.isModelBuilding) {
-                // This is the first outcome of the list above.
+                BuildTreeConfigurationCache.LoadOutcome.Missed -> null
+            }
+        }
+
+    private fun scheduleStoreAndRun(
+        scheduleTaskSelectorPostProcessing: BuildTreeWorkGraphBuilder?,
+        taskSelector: EntryTaskSelector?
+    ): ExecutionResult<Void> {
+        val executionResult: ExecutionResult<Void>? = workGraph.withNewWorkGraph { graph ->
+            val outcome = cache.scheduleRequestedTasks(graph) { workPreparer.scheduleRequestedTasks(graph, taskSelector) }
+            // The model builders can be executed after the tasks (if any) in a build action,
+            // and these builders may access project state as well as the task state. Because of that we execute the prepared graph directly.
+            if (outcome is BuildTreeConfigurationCache.ScheduleOutcome.Stored && !buildModelParameters.isModelBuilding) {
+                // CC miss, graph has been successfully stored. We don't try to execute the graph directly but store it first, discard, and then reload.
                 // We don't want to fold the code below here so the "live" graph can be garbage collected before execution.
                 null
             } else {
                 maybeDumpHeap("cc-hit")
-                TaskRunResult.ofExecutionResult(workExecutor.execute(workGraph.graph))
+                workExecutor.execute(outcome.graph)
             }
         }
         if (executionResult != null) {
-            // Load/schedule operation failed or we have executed the work graph already.
             return executionResult
         }
 
         maybeDumpHeap("cc-miss-store")
+        return storeAndReload(scheduleTaskSelectorPostProcessing)
+    }
 
-        // Store and reload the graph for the execution.
+    private fun storeAndReload(scheduleTaskSelectorPostProcessing: BuildTreeWorkGraphBuilder?): ExecutionResult<Void> {
         cache.finalizeCacheEntry()
-        buildRegistry.visitBuilds { build ->
-            build.beforeModelReset().rethrow()
-        }
-        buildRegistry.visitBuilds { build ->
-            build.resetModel()
-        }
+        buildRegistry.resetModels()
 
         return workGraph.withNewWorkGraph { graph ->
-            val finalizedGraph = cache.loadRequestedTasks(graph, scheduleTaskSelectorPostProcessing)
+            val (finalizedGraph, workGraphRestorationFailed) = cache.loadRequestedTasks(graph, scheduleTaskSelectorPostProcessing)
             maybeDumpHeap("cc-miss-load")
-            TaskRunResult.ofExecutionResult(workExecutor.execute(finalizedGraph))
+            if (workGraphRestorationFailed) {
+                // The just-stored graph could not be fully restored, so its state is unreliable and must not be executed.
+                // No tasks run, hence no execution-phase failures here; the restoration problem fails the build through
+                // the configuration cache problem report at the end of the build (ConfigurationCacheProblems.report).
+                ExecutionResult.succeeded()
+            } else {
+                workExecutor.execute(finalizedGraph)
+            }
         }
     }
 

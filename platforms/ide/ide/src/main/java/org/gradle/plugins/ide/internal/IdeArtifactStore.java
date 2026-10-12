@@ -28,18 +28,21 @@ import org.gradle.internal.service.scopes.ServiceScope;
  */
 @ServiceScope(Scope.BuildTree.class)
 public class IdeArtifactStore implements HoldsProjectState {
+    // This map is mutated concurrently while `IdeaPlugin` is applied to projects under IP. Synchronizing access to it
+    // is a temporary solution. We should consider the problem more holistically.
+    // See https://github.com/gradle/gradle/issues/38383
     private final ListMultimap<ProjectComponentIdentifier, IdeProjectMetadata> metadata = ArrayListMultimap.create();
 
-    public void put(ProjectComponentIdentifier projectId, IdeProjectMetadata ideProjectMetadata) {
+    public synchronized void put(ProjectComponentIdentifier projectId, IdeProjectMetadata ideProjectMetadata) {
         metadata.put(projectId, ideProjectMetadata);
     }
 
-    public Iterable<? extends IdeProjectMetadata> get(ProjectComponentIdentifier project) {
+    public synchronized Iterable<? extends IdeProjectMetadata> get(ProjectComponentIdentifier project) {
         return metadata.get(project);
     }
 
     @Override
-    public void discardAll() {
+    public synchronized void discardAll() {
         metadata.clear();
     }
 }

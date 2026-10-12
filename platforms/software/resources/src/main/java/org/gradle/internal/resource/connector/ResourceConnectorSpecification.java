@@ -18,12 +18,13 @@ package org.gradle.internal.resource.connector;
 
 import org.gradle.authentication.Authentication;
 import org.gradle.internal.verifier.HttpRedirectVerifier;
+import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Collections;
 
 public interface ResourceConnectorSpecification {
-    default <T> T getCredentials(Class<T> type) {
+    default <T> @Nullable T getCredentials(Class<T> type) {
         return null;
     }
 

@@ -194,6 +194,23 @@ dependencies {
     buildLibs?.let {
         codenarc(buildLibs.findLibrary("codenarc").get())
         codenarc(buildLibs.findLibrary("kotlinCompilerEmbeddable").get())
+        constraints {
+            checkstyle(buildLibs.findLibrary("commonsLang3").get()) {
+                because("Bump version brought in transitively by Checkstyle, to resolve CVE-2025-48924")
+            }
+            checkstyle(buildLibs.findLibrary("httpclient5").get()) {
+                because("Bump version brought in transitively by Checkstyle, to resolve CVE-2026-64607")
+            }
+            checkstyle(buildLibs.findLibrary("plexusUtils").get()) {
+                because("Checkstyle transitively pulls plexus-utils 3.3.0 which is vulnerable to CVE-2025-67030")
+            }
+            checkstyle(buildLibs.findLibrary("httpcore5H2").get()) {
+                because("Bump version brought in transitively by Checkstyle, to resolve CVE-2026-54428")
+            }
+            checkstyle(buildLibs.findLibrary("httpcore5").get()) {
+                because("Bump version brought in transitively by Checkstyle, to resolve CVE-2026-54399")
+            }
+        }
     }
 }
 
@@ -230,6 +247,7 @@ tasks.withType<CodeNarc>().configureEach {
     if (name.contains("IntegTest")) {
         config = configFile("codenarc-integtests.xml")
     }
+    logging.captureStandardOutput(LogLevel.INFO)
 }
 
 val SourceSet.allGroovy: SourceDirectorySet

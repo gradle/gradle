@@ -89,7 +89,7 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
         def filter = selector.getFilter(new TaskSelector.SelectionContext(Path.path(":a:b"), "type"), project1, "b", true)
 
         then:
-        1 * resolver.tryFindUnqualifiedTaskCheaply("b", project1) >> true
+        1 * resolver.findFirstTaskWithName("b", project1) >> true
         0 * _
 
         and:
@@ -106,7 +106,7 @@ class DefaultTaskSelectorTest extends AbstractProjectBuilderSpec {
         def filter = selector.getFilter(new TaskSelector.SelectionContext(Path.path(":a:b"), "type"), project1, "b", true)
 
         then:
-        1 * resolver.tryFindUnqualifiedTaskCheaply("b", project1) >> false
+        1 * resolver.findFirstTaskWithName("b", project1) >> false
         1 * projectConfigurer.configureHierarchy(project1)
         1 * resolver.selectWithName("b", project1, true) >> selectionResult
         _ * selectionResult.collectTasks(_) >> { it[0] << excluded }

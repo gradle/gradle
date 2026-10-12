@@ -19,12 +19,14 @@ import java.io.File;
 
 /**
  * Represents a source directory.
+ * @since 1.0
  */
 public interface SourceDirectory {
     /**
      * Returns the source directory.
      *
      * @return The source directory.
+     * @since 1.0
      */
     File getDirectory();
 }

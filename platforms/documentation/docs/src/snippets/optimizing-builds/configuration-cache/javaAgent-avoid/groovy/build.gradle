@@ -1,0 +1,17 @@
+// tag::avoid[]
+abstract class VerifySignatureTask extends DefaultTask {
+    @InputFile
+    abstract RegularFileProperty getArtifact()
+
+    @TaskAction
+    void run() {
+        // BAD when the library does bytecode integrity checks on itself:
+        // it sees the Gradle-modified bytecode and fails
+        com.example.signing.SignatureVerifier.verify(artifact.get().asFile)
+    }
+}
+// end::avoid[]
+
+tasks.register('verify', VerifySignatureTask) {
+    artifact = layout.projectDirectory.file('sample.txt')
+}

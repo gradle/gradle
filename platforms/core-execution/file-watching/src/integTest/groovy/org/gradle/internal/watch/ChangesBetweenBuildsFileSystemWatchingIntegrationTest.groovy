@@ -16,10 +16,11 @@
 
 package org.gradle.internal.watch
 
-import org.gradle.testdistribution.LocalOnly
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.executer.ExecutionResult
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.watch.registry.impl.WatchableHierarchies
+import org.gradle.testdistribution.LocalOnly
 import spock.lang.Issue
 
 @LocalOnly
@@ -49,6 +50,38 @@ class ChangesBetweenBuildsFileSystemWatchingIntegrationTest extends AbstractFile
         then:
         outputContains "Hello VFS!"
         executedAndNotSkipped ":compileJava", ":classes", ":run"
+    }
+
+    def "source file changes are recognized when the project cache dir is relocated"() {
+        def cacheDir = file("custom-cache-dir")
+        buildFile << """
+            apply plugin: "application"
+
+            application.mainClass = "Main"
+        """
+        def mainSourceFile = file("src/main/java/Main.java")
+        mainSourceFile.text = sourceFileWithGreeting("Hello World!")
+
+        when:
+        runWithWatchingEnabled("run", "--project-cache-dir", cacheDir.absolutePath)
+        then:
+        outputContains "Hello World!"
+        executedAndNotSkipped ":compileJava", ":classes", ":run"
+
+        when:
+        mainSourceFile.text = sourceFileWithGreeting("Hello VFS!")
+        waitForChangesToBePickedUp()
+        runWithWatchingEnabled("run", "--project-cache-dir", cacheDir.absolutePath)
+        then:
+        outputContains "Hello VFS!"
+        executedAndNotSkipped ":compileJava", ":classes", ":run"
+        cacheDir.isDirectory()
+        if (GradleContextualExecuter.isConfigCache()) {
+            // The configuration cache writes its report under the build root's `.gradle` on the load build.
+            file(".gradle").assertIsDir()
+        } else {
+            file(".gradle").assertDoesNotExist()
+        }
     }
 
     def "buildSrc changes are recognized"() {

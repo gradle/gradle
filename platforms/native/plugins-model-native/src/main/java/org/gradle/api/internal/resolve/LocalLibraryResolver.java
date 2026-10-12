@@ -17,10 +17,10 @@
 package org.gradle.api.internal.resolve;
 
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.platform.base.VariantComponent;
 
 import java.util.Collection;
 
+@SuppressWarnings("deprecation")
 public interface LocalLibraryResolver {
-    Collection<VariantComponent> resolveCandidates(ModelRegistry projectModel, String libraryName);
+    Collection<org.gradle.platform.base.VariantComponent> resolveCandidates(ModelRegistry projectModel, String libraryName);
 }

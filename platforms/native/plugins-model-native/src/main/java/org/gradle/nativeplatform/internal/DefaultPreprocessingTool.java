@@ -16,12 +16,11 @@
 
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.nativeplatform.PreprocessingTool;
-
 import java.util.LinkedHashMap;
 import java.util.Map;
 
-public class DefaultPreprocessingTool extends DefaultTool implements PreprocessingTool {
+@SuppressWarnings("deprecation")
+public class DefaultPreprocessingTool extends DefaultTool implements org.gradle.nativeplatform.PreprocessingTool {
     private final Map<String, String> definitions = new LinkedHashMap<String, String>();
 
     @Override

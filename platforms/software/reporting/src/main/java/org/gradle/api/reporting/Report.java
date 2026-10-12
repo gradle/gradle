@@ -27,9 +27,15 @@ import org.gradle.util.Configurable;
  * A file based report to be created.
  * <p>
  * Tasks that produce reports expose instances of this type for configuration via the {@link Reporting} interface.
+ * @since 1.0
  */
 public interface Report extends Configurable<Report> {
 
+    /**
+     * The namer.
+     *
+     * @since 1.0
+     */
     Namer<Report> NAMER = new Namer<Report>() {
         @Override
         public String determineName(Report report) {
@@ -50,6 +56,7 @@ public interface Report extends Configurable<Report> {
      * </pre>
      *
      * @return The name of this report.
+     * @since 1.0
      */
     @Input
     String getName();
@@ -58,6 +65,7 @@ public interface Report extends Configurable<Report> {
      * A more descriptive name of this report. Used when the report is referenced for end users.
      *
      * @return A more descriptive name of this report.
+     * @since 1.5
      */
     @Input
     String getDisplayName();
@@ -80,6 +88,7 @@ public interface Report extends Configurable<Report> {
 
     /**
      * The type of output the report produces
+     * @since 1.0
      */
     enum OutputType {
 
@@ -87,6 +96,7 @@ public interface Report extends Configurable<Report> {
          * The report outputs a single file.
          * <p>
          * That is, the {@link #getOutputLocation()} points to a single file.
+         * @since 1.0
          */
         FILE,
 
@@ -94,6 +104,7 @@ public interface Report extends Configurable<Report> {
          * The report outputs files into a directory.
          * <p>
          * That is, the {@link #getOutputLocation()} points to a directory.
+         * @since 1.0
          */
         DIRECTORY
     }
@@ -102,6 +113,7 @@ public interface Report extends Configurable<Report> {
      * The type of output that the report generates.
      *
      * @return The type of output that the report generates.
+     * @since 1.0
      */
     @Input
     OutputType getOutputType();

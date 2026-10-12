@@ -16,9 +16,8 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.model.Managed;
-
-@Managed
+@org.gradle.model.Managed
+@SuppressWarnings("deprecation")
 public interface SimpleManagedType {
 
     String getName();

@@ -17,8 +17,10 @@
 package org.gradle.kotlin.dsl.integration.declarative
 
 import org.gradle.features.annotations.RegistersProjectFeatures
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.kotlin.dsl.accessors.DCL_ENABLED_PROPERTY_NAME
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
+import org.gradle.test.fixtures.dsl.GradleDsl
 
 abstract class AbstractDeclarativeKotlinIntegrationTest : AbstractKotlinIntegrationTest() {
     protected val enableDclCliFlag =
@@ -56,7 +58,7 @@ abstract class AbstractDeclarativeKotlinIntegrationTest : AbstractKotlinIntegrat
                 }
 
                 repositories {
-                    mavenCentral()
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
                 }
 
                 gradlePlugin {

@@ -29,6 +29,7 @@ import static org.gradle.api.internal.ConfigurationCacheDegradation.requireDegra
 
 /**
  * A task which executes an Ant target.
+ * @since 0.7
  */
 @DisableCachingByDefault(because = "Gradle would require more information to cache this task")
 public abstract class AntTarget extends ConventionTask {
@@ -36,11 +37,21 @@ public abstract class AntTarget extends ConventionTask {
     private Target target;
     private File baseDir;
 
+    /**
+     * Creates a new {@code AntTarget}.
+     *
+     * @since 0.8
+     */
     @SuppressWarnings("this-escape")
     public AntTarget() {
         requireDegradation(this, "Task is not compatible with the Configuration Cache");
     }
 
+    /**
+     * Execute ant target.
+     *
+     * @since 0.8
+     */
     @TaskAction
     protected void executeAntTarget() {
         File oldBaseDir = target.getProject().getBaseDir();
@@ -54,6 +65,7 @@ public abstract class AntTarget extends ConventionTask {
 
     /**
      * Returns the Ant target to execute.
+     * @since 0.7
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -63,6 +75,7 @@ public abstract class AntTarget extends ConventionTask {
 
     /**
      * Sets the Ant target to execute.
+     * @since 0.7
      */
     public void setTarget(Target target) {
         this.target = target;
@@ -70,6 +83,7 @@ public abstract class AntTarget extends ConventionTask {
 
     /**
      * Returns the Ant project base directory to use when executing the target.
+     * @since 0.7
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -79,6 +93,7 @@ public abstract class AntTarget extends ConventionTask {
 
     /**
      * Sets the Ant project base directory to use when executing the target.
+     * @since 0.7
      */
     public void setBaseDir(File baseDir) {
         this.baseDir = baseDir;

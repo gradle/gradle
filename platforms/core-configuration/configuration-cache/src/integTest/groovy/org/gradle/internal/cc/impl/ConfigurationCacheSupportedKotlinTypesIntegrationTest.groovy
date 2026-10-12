@@ -76,4 +76,129 @@ class ConfigurationCacheSupportedKotlinTypesIntegrationTest extends AbstractConf
         dependency                                     | reference                                             | output
         "org.jetbrains.kotlinx:kotlinx-datetime:0.4.0" | "kotlinx.datetime.LocalDateTime(2025, 1, 1, 1, 1, 1)" | "2025-01-01T01:01:01"
     }
+
+    def "preserves the identity of a Kotlin object declared as #description across configuration cache reuse"() {
+        buildKotlinFile """
+            $declaration
+
+            abstract class FooTask : DefaultTask() {
+                @get:Internal
+                abstract val objectField: Property<Any>
+
+                @TaskAction
+                fun foo() {
+                    println("identity = \${objectField.get() === $reference}")
+                    println("name = \${${reference}.NAME}")
+                }
+            }
+
+            tasks.register("foo", FooTask::class) {
+                objectField = $reference
+            }
+        """
+
+        when:
+        configurationCacheRun "foo"
+
+        then:
+        outputContains("identity = true")
+        outputContains("name = $name")
+
+        when: "the configuration cache entry is reused and the field is deserialized"
+        configurationCacheRun "foo"
+
+        then:
+        outputContains("identity = true")
+        outputContains("name = $name")
+
+        where:
+        description                       | declaration                                                                                      | reference               | name
+        "a sealed object subtype"         | 'sealed class Sealed { object A : Sealed() { const val NAME = "sealed" }; object B : Sealed() }' | "Sealed.A"              | "sealed"
+        "a top-level object"              | 'object TopLevel { const val NAME = "top-level" }'                                               | "TopLevel"              | "top-level"
+        "an extension's companion object" | 'open class MyExtension { companion object { const val NAME = "extension" } }'                   | "MyExtension.Companion" | "extension"
+        "a named companion object"        | 'class Registry { companion object SomeName { const val NAME = "named" } }'                      | "Registry.SomeName"     | "named"
+        "a serializable object"           | 'object Marker : java.io.Serializable { const val NAME = "serializable" }'                       | "Marker"                | "serializable"
+    }
+
+    def "preserves the identity of a Kotlin object that is the task's own companion across configuration cache reuse"() {
+        buildKotlinFile """
+            abstract class FooTask : DefaultTask() {
+                companion object {
+                    const val NAME = "companion"
+                }
+
+                @get:Internal
+                abstract val objectField: Property<Any>
+
+                @TaskAction
+                fun foo() {
+                    println("identity = \${objectField.get() === FooTask.Companion}")
+                    println("name = \${FooTask.Companion.NAME}")
+                }
+            }
+
+            tasks.register("foo", FooTask::class) {
+                objectField = FooTask.Companion
+            }
+        """
+
+        when:
+        configurationCacheRun "foo"
+
+        then:
+        outputContains("identity = true")
+        outputContains("name = companion")
+
+        when: "the configuration cache entry is reused and the field is deserialized"
+        configurationCacheRun "foo"
+
+        then:
+        outputContains("identity = true")
+        outputContains("name = companion")
+    }
+
+    def "preserves the identity of a Kotlin object with custom Java serialization across configuration cache reuse"() {
+        buildKotlinFile """
+            object CustomSerializableObject : java.io.Serializable {
+                const val NAME = "custom"
+
+                private fun writeObject(out: java.io.ObjectOutputStream) {
+                    out.defaultWriteObject()
+                }
+
+                private fun readObject(input: java.io.ObjectInputStream) {
+                    input.defaultReadObject()
+                }
+            }
+
+            abstract class FooTask : DefaultTask() {
+                @get:Internal
+                abstract val objectField: Property<Any>
+
+                @TaskAction
+                fun foo() {
+                    println("identity = \${objectField.get() === CustomSerializableObject}")
+                    println("name = \${CustomSerializableObject.NAME}")
+                }
+            }
+
+            tasks.register("foo", FooTask::class) {
+                objectField = CustomSerializableObject
+            }
+        """
+
+        when:
+        configurationCacheRun "foo"
+
+        then:
+        outputContains("identity = true")
+        outputContains("name = custom")
+
+        when: "the configuration cache entry is reused and the field is deserialized"
+        configurationCacheRun "foo"
+
+        then:
+        outputContains("identity = true")
+        outputContains("name = custom")
+    }
 }

@@ -19,13 +19,15 @@ package org.gradle.api.internal.plugins;
 import org.gradle.api.Plugin;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
-import org.gradle.model.RuleSource;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.deprecation.DeprecationMessageBuilder;
 import org.gradle.model.internal.inspect.ExtractedRuleSource;
 import org.gradle.model.internal.inspect.ModelRuleExtractor;
 import org.gradle.model.internal.inspect.ModelRuleSourceDetector;
 import org.gradle.model.internal.registry.ModelRegistry;
 import org.jspecify.annotations.Nullable;
 
+@SuppressWarnings("deprecation")
 public class RuleBasedPluginTarget implements PluginTarget {
 
     private final ProjectInternal target;
@@ -52,10 +54,18 @@ public class RuleBasedPluginTarget implements PluginTarget {
 
     @Override
     public void applyRules(@Nullable String pluginId, Class<?> clazz) {
+        final DeprecationMessageBuilder.DeprecatePlugin deprecatePlugin;
+        if (pluginId == null) {
+            deprecatePlugin = DeprecationLogger.deprecatePlugin(clazz.getCanonicalName());
+        } else {
+            deprecatePlugin = DeprecationLogger.deprecatePlugin(pluginId);
+        }
+        deprecatePlugin.withContext("Rule-based/software model plugins are no longer supported.").willBeRemovedInGradle10().withUpgradeGuideSection(9, "deprecated_software_model").nagUser();
+
         target.prepareForRuleBasedPlugins();
         ModelRegistry modelRegistry = target.getModelRegistry();
-        Iterable<Class<? extends RuleSource>> declaredSources = ruleDetector.getDeclaredSources(clazz);
-        for (Class<? extends RuleSource> ruleSource : declaredSources) {
+        Iterable<Class<? extends org.gradle.model.RuleSource>> declaredSources = ruleDetector.getDeclaredSources(clazz);
+        for (Class<? extends org.gradle.model.RuleSource> ruleSource : declaredSources) {
             ExtractedRuleSource<?> rules = ruleInspector.extract(ruleSource);
             for (Class<?> dependency : rules.getRequiredPlugins()) {
                 target.getPluginManager().apply(dependency);

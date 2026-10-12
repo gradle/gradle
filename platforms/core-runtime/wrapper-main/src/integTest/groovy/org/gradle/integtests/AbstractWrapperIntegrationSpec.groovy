@@ -21,6 +21,7 @@ import org.gradle.api.Action
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.InProcessGradleExecuter
+import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
 import org.gradle.internal.Actions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.keystore.TestKeyStore
@@ -34,17 +35,21 @@ class AbstractWrapperIntegrationSpec extends AbstractIntegrationSpec {
     }
 
     GradleExecuter prepareWrapper(URI distributionUri = distribution.binDistribution.toURI(), Action<GradleExecuter> action = Actions.doNothing()) {
-        def executer = new InProcessGradleExecuter(distribution, temporaryFolder)
-        executer.beforeExecute(action)
-        executer.withArguments("wrapper", "--gradle-distribution-url", distributionUri.toString())
+        configureWrapperTask(new InProcessGradleExecuter(distribution, temporaryFolder), distributionUri, action)
     }
 
     GradleExecuter prepareWrapper(URI distributionUri = distribution.binDistribution.toURI(), TestKeyStore keyStore) {
-        prepareWrapper(distributionUri) { executer ->
+        // Updating JVM trust store/keystore requires a new JVM process
+        configureWrapperTask(new NoDaemonGradleExecuter(distribution, temporaryFolder), distributionUri) { executer ->
             keyStore.trustStoreArguments.each {
                 executer.withArgument(it)
             }
         }
+    }
+
+    private GradleExecuter configureWrapperTask(GradleExecuter executer, URI distributionUri, Action<GradleExecuter> action) {
+        executer.beforeExecute(action)
+        executer.withArguments("wrapper", "--gradle-distribution-url", distributionUri.toString())
     }
 
     GradleExecuter getWrapperExecuter() {

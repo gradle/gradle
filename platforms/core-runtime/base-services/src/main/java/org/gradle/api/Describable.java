@@ -28,6 +28,7 @@ public interface Describable {
      * Returns the display name of this object. It is strongly encouraged to compute it
      * lazily, and cache the value if it is expensive.
      * @return the display name
+     * @since 3.4
      */
     String getDisplayName();
 }

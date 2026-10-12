@@ -34,6 +34,7 @@ import org.gradle.internal.service.scopes.Scope;
  * and register it via {@link org.gradle.build.event.BuildEventsListenerRegistry}.
  *
  * @deprecated This type is not supported when configuration caching is enabled.
+ * @since 0.7
  */
 @EventScope(Scope.Build.class)
 @Deprecated
@@ -43,6 +44,7 @@ public interface TaskExecutionListener {
      * This method is called immediately before a task is executed.
      *
      * @param task The task about to be executed. Never null.
+     * @since 0.7
      */
     void beforeExecute(Task task);
 
@@ -53,6 +55,7 @@ public interface TaskExecutionListener {
      * @param task The task which was executed. Never null.
      * @param state The task state. If the task failed with an exception, the exception is available in this
      * state. Never null.
+     * @since 0.9
      */
     void afterExecute(Task task, TaskState state);
 }

@@ -23,8 +23,14 @@ import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
  * An object that can be configured with a Groovy closure.
  *
  * @param <T> the closure return type.
+ * @since 0.9
  */
 @HiddenInDefinition
 public interface Configurable<T> {
+    /**
+     * Configure.
+     *
+     * @since 0.9
+     */
     T configure(Closure cl);
 }

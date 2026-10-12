@@ -20,11 +20,18 @@ import org.gradle.language.swift.plugins.SwiftBasePlugin
 import org.gradle.nativeplatform.fixtures.AvailableToolChains
 import org.gradle.nativeplatform.fixtures.ToolChainRequirement
 import org.gradle.nativeplatform.toolchain.Swiftc
+import org.gradle.performance.annotations.RunForExtension
 import org.gradle.test.fixtures.file.TestFile
 
 class SwiftToolchainFixture {
 
     static void configureSwift6Toolchain(CrossVersionPerformanceTestRunner runner, TestFile workDir) {
+        if (RunForExtension.isCollectingScenarioDefinitionsOnly()) {
+            // No build is executed, so no Swift compiler is needed. Requiring one here would break
+            // :performance:verifyPerformanceScenarioDefinitions, and with it ./gradlew sanityCheck,
+            // on every machine without a Swift 6 toolchain.
+            return
+        }
         def swiftc = AvailableToolChains.getToolChain(ToolChainRequirement.SWIFTC_6)
         if (swiftc == null || !swiftc.available) {
             throw new IllegalStateException("Swift 6 toolchain is required for this performance test but was not found on the agent.")

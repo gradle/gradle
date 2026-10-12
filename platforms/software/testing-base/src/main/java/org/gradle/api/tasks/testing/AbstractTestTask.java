@@ -184,6 +184,11 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
     private boolean ignoreFailures;
     private boolean failFast;
 
+    /**
+     * Creates a new {@code AbstractTestTask}.
+     *
+     * @since 4.4
+     */
     @SuppressWarnings("this-escape")
     public AbstractTestTask() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -296,6 +301,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * get that behavior, use {@link Gradle#addListener(Object)}.
      *
      * @param listener The listener to add.
+     * @since 4.4
      */
     public void addTestListener(TestListener listener) {
         testListenerSubscriptions.addListener(listener);
@@ -309,6 +315,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * Registers a output listener with this task. Quicker way of hooking into output events is using the {@link #onOutput(Closure)} method.
      *
      * @param listener The listener to add.
+     * @since 4.4
      */
     public void addTestOutputListener(TestOutputListener listener) {
         testOutputListenerSubscriptions.addListener(listener);
@@ -335,6 +342,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * Gradle#removeListener(Object)}.
      *
      * @param listener The listener to remove.
+     * @since 4.4
      */
     public void removeTestListener(TestListener listener) {
         testListenerSubscriptions.removeListener(listener);
@@ -346,6 +354,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * Gradle#removeListener(Object)}.
      *
      * @param listener The listener to remove.
+     * @since 4.4
      */
     public void removeTestOutputListener(TestOutputListener listener) {
         testOutputListenerSubscriptions.removeListener(listener);
@@ -411,6 +420,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @param closure The closure to call.
      * @deprecated Replace with {@link #addTestOutputListener(TestOutputListener)} and a {@link TestOutputListener}.
+     * @since 4.4
      */
     @Deprecated
     public void onOutput(Closure closure) {
@@ -428,6 +438,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @param closure The closure to call.
      * @deprecated Replace with {@link #addTestListener(TestListener)} and a {@link TestListener}.
+     * @since 4.4
      */
     @Deprecated
     public void beforeSuite(Closure closure) {
@@ -446,6 +457,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @param closure The closure to call.
      * @deprecated Replace with {@link #addTestListener(TestListener)} and a {@link TestListener}.
+     * @since 4.4
      */
     @Deprecated
     public void afterSuite(Closure closure) {
@@ -461,6 +473,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @param closure The closure to call.
      * @deprecated Replace with {@link #addTestListener(TestListener)} and a {@link TestListener}.
+     * @since 4.4
      */
     @Deprecated
     public void beforeTest(Closure closure) {
@@ -476,6 +489,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      *
      * @param closure The closure to call.
      * @deprecated Replace with {@link #addTestListener(TestListener)} and a {@link TestListener}.
+     * @since 4.4
      */
     @Deprecated
     public void afterTest(Closure closure) {
@@ -500,6 +514,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * For further information see {@link TestLoggingContainer}.
      *
      * @return this
+     * @since 4.4
      */
     @Nested
     public TestLoggingContainer getTestLogging() {
@@ -519,6 +534,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * </pre>
      *
      * @param closure configure closure
+     * @since 4.4
      */
     public void testLogging(@DelegatesTo(TestLoggingContainer.class) Closure closure) {
         ConfigureUtil.configure(closure, testLogging);
@@ -537,12 +553,17 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * </pre>
      *
      * @param action configure action
-     * @since 3.5
+     * @since 4.4
      */
     public void testLogging(Action<? super TestLoggingContainer> action) {
         action.execute(testLogging);
     }
 
+    /**
+     * Execute tests.
+     *
+     * @since 4.4
+     */
     @TaskAction
     public void executeTests() {
         LogLevel currentLevel = determineCurrentLogLevel();
@@ -733,6 +754,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * For more information see the user guide chapter on testing.
      *
      * For more information on supported patterns see {@link TestFilter}
+     * @since 4.5
      */
     @Option(option = "tests", description = "Sets test class or method name to be included (in addition to the test task filters), '*' is supported.")
     public AbstractTestTask setTestNameIncludePatterns(List<String> testNamePattern) {
@@ -787,7 +809,7 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
      * Allows filtering tests for execution.
      *
      * @return filter object
-     * @since 1.10
+     * @since 4.5
      */
     @Nested
     public TestFilter getFilter() {

@@ -25,9 +25,6 @@ import org.gradle.internal.util.PropertiesUtils
 import org.gradle.work.DisableCachingByDefault
 import java.net.URI
 import java.util.Properties
-import javax.xml.XMLConstants
-import javax.xml.parsers.DocumentBuilder
-import javax.xml.parsers.DocumentBuilderFactory
 
 @DisableCachingByDefault(because = "Not worth tracking")
 abstract class AbstractVersionsUpdateTask : DefaultTask() {
@@ -61,19 +58,6 @@ abstract class AbstractVersionsUpdateTask : DefaultTask() {
             "File '$docFile' does not contain the expected compatibility line: '$linePrefix'"
         }
     }
-
-    protected
-    fun createSecureDocumentBuilder(): DocumentBuilder =
-        DocumentBuilderFactory.newInstance().apply {
-            setFeature("http://apache.org/xml/features/disallow-doctype-decl", true)
-            setFeature("http://xml.org/sax/features/external-general-entities", false)
-            setFeature("http://xml.org/sax/features/external-parameter-entities", false)
-            setFeature("http://apache.org/xml/features/nonvalidating/load-external-dtd", false)
-            isExpandEntityReferences = false
-            setFeature(XMLConstants.FEATURE_SECURE_PROCESSING, true)
-            setAttribute(XMLConstants.ACCESS_EXTERNAL_DTD, "")
-            setAttribute(XMLConstants.ACCESS_EXTERNAL_SCHEMA, "")
-        }.newDocumentBuilder()
 
     protected
     fun fetchVersionsFromMavenMetadata(url: String): List<String> {

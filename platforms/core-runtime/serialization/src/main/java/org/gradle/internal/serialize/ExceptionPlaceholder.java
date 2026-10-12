@@ -21,6 +21,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.io.StreamByteBuffer;
+import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,16 +42,16 @@ class ExceptionPlaceholder implements Serializable {
     private static final long serialVersionUID = 1L;
     private static final Logger LOGGER = LoggerFactory.getLogger(ExceptionPlaceholder.class);
     private final String type;
-    private byte[] serializedException;
-    private String message;
-    private String toString;
+    private byte @Nullable [] serializedException;
+    private @Nullable String message;
+    private @Nullable String toString;
     private final boolean contextual;
     private final boolean assertionError;
     private final List<ExceptionPlaceholder> causes;
     private final List<ExceptionPlaceholder> suppressed;
     private List<StackTraceElementPlaceholder> stackTrace;
-    private Throwable toStringRuntimeExec;
-    private Throwable getMessageExec;
+    private @Nullable Throwable toStringRuntimeExec;
+    private @Nullable Throwable getMessageExec;
 
     public ExceptionPlaceholder(Throwable original, Function<OutputStream, ExceptionReplacingObjectOutputStream> objectOutputStreamCreator, Set<Throwable> dejaVu) {
         boolean hasCycle = !dejaVu.add(original);
@@ -243,7 +244,9 @@ class ExceptionPlaceholder implements Serializable {
                 }
             }
         } else {
-            placeholder = new DefaultMultiCauseException(message, causes);
+            String baseMessage = getMessageExec != null ? getMessageExec.getMessage() : message;
+            String actualMessage = baseMessage != null ? baseMessage : "Multiple exceptions occurred.";
+            placeholder = new DefaultMultiCauseException(actualMessage, causes);
         }
         placeholder.setStackTrace(convertStackTrace(stackTrace));
         registerSuppressedExceptions(suppressed, placeholder);

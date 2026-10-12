@@ -22,6 +22,7 @@ import org.gradle.internal.instrumentation.extensions.property.PropertyUpgradeAn
 import org.gradle.internal.instrumentation.model.RequestExtra;
 
 import javax.lang.model.element.ExecutableElement;
+import org.jspecify.annotations.Nullable;
 
 class PropertyUpgradeRequestExtra implements RequestExtra {
 
@@ -35,6 +36,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
     private final DeprecationSpec deprecationSpec;
     private final BinaryCompatibility binaryCompatibility;
     private final String interceptedPropertyName;
+    @Nullable
     private final BridgedMethodInfo bridgedMethodInfo;
 
     public PropertyUpgradeRequestExtra(
@@ -48,7 +50,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         TypeName newPropertyType,
         DeprecationSpec deprecationSpec,
         BinaryCompatibility binaryCompatibility,
-        BridgedMethodInfo bridgedMethodInfo
+        @Nullable BridgedMethodInfo bridgedMethodInfo
     ) {
         this.propertyName = propertyName;
         this.methodName = methodName;
@@ -104,6 +106,7 @@ class PropertyUpgradeRequestExtra implements RequestExtra {
         return binaryCompatibility;
     }
 
+    @Nullable
     public BridgedMethodInfo getBridgedMethodInfo() {
         return bridgedMethodInfo;
     }

@@ -44,6 +44,8 @@ pluginManagement {
     }
 }
 
+apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
+
 include("architecture-docs")
 include("build-environment")
 include("configuration-cache-compatibility")

@@ -59,6 +59,29 @@ You enable this with the `--develocity-url` command line option:
  ./gradlew build --develocity-url=https://develocity.example.com
 ----
 
+This triggers auto-application of the Develocity Gradle plugin if it is not already applied.
+Gradle auto-applies a default version of the plugin.
+To use a different version, add the `--develocity-plugin-version` command line option:
+
+[source,text]
+----
+ ./gradlew build --develocity-url=https://develocity.example.com --develocity-plugin-version=4.5.0
+----
+
+The plugin version must be `4.4.0` or higher when a Develocity URL is specified.
+This option is only used when `--develocity-url` or `--scan` triggers auto-application of the plugin.
+
+Both options can also be set with environment variables, which is convenient on CI where you do not control the command line:
+
+[source,bash]
+----
+$ export COM_GRADLE_DEVELOCITY_URL=https://develocity.example.com
+$ export COM_GRADLE_DEVELOCITY_PLUGIN_VERSION=4.5.0
+$ ./gradlew build --scan
+----
+
+The equivalent Gradle properties are `com.gradle.develocity.url` and `com.gradle.develocity.plugin.version`.
+
 Check the https://docs.gradle.com/develocity/gradle/current/gradle-plugin/#publish_no_modify[Develocity Gradle plugin documentation] for more details.
 
 [[sec:captured-information]]

@@ -29,6 +29,7 @@ import java.util.Set;
  *     <li>Returned file sets do not track task dependencies.</li>
  *     <li>The returned types do not reflect the variant-aware nature of the dependency resolution engine.</li>
  * </ul>
+ * @since 1.0
  */
 public interface LenientConfiguration {
 
@@ -61,6 +62,7 @@ public interface LenientConfiguration {
      * Prefer {@link org.gradle.api.artifacts.result.ResolutionResult}.
      *
      * @return only unresolved dependencies
+     * @since 1.0
      */
     Set<UnresolvedDependency> getUnresolvedModuleDependencies();
 

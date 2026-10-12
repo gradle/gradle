@@ -28,12 +28,12 @@ import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
 import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.MetadataResolutionContext
 import org.gradle.api.internal.artifacts.ivyservice.NamespaceId
-import org.gradle.api.internal.artifacts.ivyservice.modulecache.ModuleSourcesSerializer
 import org.gradle.api.specs.Specs
 import org.gradle.cache.internal.DefaultInMemoryCacheDecoratorFactory
 import org.gradle.cache.scopes.GlobalScopedCacheBuilderFactory
 import org.gradle.internal.action.ConfigurableRule
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.NoOpDerivationStrategy
 import org.gradle.internal.component.external.model.ivy.DefaultMutableIvyModuleResolveMetadata
 import org.gradle.internal.component.external.model.maven.DefaultMutableMavenModuleResolveMetadata
 import org.gradle.internal.resolve.caching.ComponentMetadataRuleExecutor
@@ -53,22 +53,21 @@ import javax.xml.namespace.QName
 
 class DefaultComponentMetadataHandlerTest extends Specification {
     private static final String GROUP = "group"
-    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
-
-    // For testing ModuleMetadataProcessor capabilities
     private static final String MODULE = "module"
 
-    // For testing ComponentMetadataHandler capabilities
+    final ImmutableModuleIdentifierFactory moduleIdentifierFactory = new DefaultImmutableModuleIdentifierFactory()
     def executor = new ComponentMetadataRuleExecutor(Stub(GlobalScopedCacheBuilderFactory), Stub(DefaultInMemoryCacheDecoratorFactory), Stub(ValueSnapshotter), Stub(BuildCommencedTimeProvider), Stub(Serializer))
-    def stringInterner = SimpleMapInterner.notThreadSafe()
-    def handler = new DefaultComponentMetadataHandler(TestUtil.instantiatorFactory().decorateLenient(), moduleIdentifierFactory, stringInterner, AttributeTestUtil.attributesFactory(), SnapshotTestUtil.isolatableFactory(), executor, DependencyManagementTestUtil.platformSupport(), TestUtil.problemsService())
+
+    def handler = new DefaultComponentMetadataHandler(SnapshotTestUtil.isolatableFactory(), moduleIdentifierFactory)
+
     RuleActionAdapter adapter = Mock(RuleActionAdapter)
-    def mockedHandler = new DefaultComponentMetadataHandler(TestUtil.instantiatorFactory().decorateLenient(), adapter, moduleIdentifierFactory, stringInterner, AttributeTestUtil.attributesFactory(), SnapshotTestUtil.isolatableFactory(), executor, DependencyManagementTestUtil.platformSupport(), TestUtil.problemsService())
+    def mockedHandler = new DefaultComponentMetadataHandler(adapter, SnapshotTestUtil.isolatableFactory(), moduleIdentifierFactory)
+
     def ruleAction = Stub(RuleAction)
     def mavenMetadataFactory = DependencyManagementTestUtil.mavenMetadataFactory()
     def ivyMetadataFactory = DependencyManagementTestUtil.ivyMetadataFactory()
+
     MetadataResolutionContext context = Mock()
-    ModuleSourcesSerializer moduleSourcesSerializer = new ModuleSourcesSerializer([:])
 
     def 'setup'() {
         TestComponentMetadataRule.instanceCount = 0
@@ -87,10 +86,10 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         1 * adapter.createFromAction(action) >> ruleAction
 
         and:
-        !mockedHandler.metadataRuleContainer.isEmpty()
-        def ruleWrapper = mockedHandler.metadataRuleContainer.iterator().next()
-        ruleWrapper.rule.action == (ruleAction)
-        ruleWrapper.rule.spec == Specs.satisfyAll()
+        !mockedHandler.configuredRules.rules.isEmpty()
+        def ruleWrapper = mockedHandler.configuredRules.rules.first()
+        ruleWrapper.rule().action == (ruleAction)
+        ruleWrapper.rule().spec == Specs.satisfyAll()
     }
 
     def "add closure rule that applies to all components"() {
@@ -103,11 +102,11 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         1 * adapter.createFromClosure(ComponentMetadataDetails, closure) >> ruleAction
 
         and:
-        !mockedHandler.metadataRuleContainer.isEmpty()
-        def ruleWrapper = mockedHandler.metadataRuleContainer.iterator().next()
-        !ruleWrapper.classBased
-        ruleWrapper.rule.action == (ruleAction)
-        ruleWrapper.rule.spec == Specs.satisfyAll()
+        !mockedHandler.configuredRules.rules.isEmpty()
+        def ruleWrapper = mockedHandler.configuredRules.rules.first()
+        ruleWrapper instanceof ImmutableComponentMetadataRules.ImmutableRule.ActionBased
+        ruleWrapper.rule().action == (ruleAction)
+        ruleWrapper.rule().spec == Specs.satisfyAll()
     }
 
     def "add class rule that applies to all components"() {
@@ -115,10 +114,10 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.all(TestComponentMetadataRule)
 
         then:
-        !handler.metadataRuleContainer.isEmpty()
-        def ruleWrapper = handler.metadataRuleContainer.iterator().next()
-        ruleWrapper.classBased
-        def classRule = ruleWrapper.classRules.iterator().next()
+        !handler.configuredRules.rules.isEmpty()
+        def ruleWrapper = handler.configuredRules.rules.first()
+        ruleWrapper instanceof ImmutableComponentMetadataRules.ImmutableRule.ClassBased
+        def classRule = ruleWrapper.classRules().iterator().next()
         classRule.configurableRule instanceof ConfigurableRule
         classRule.spec == Specs.satisfyAll()
         TestComponentMetadataRule.instanceCount == 0
@@ -132,10 +131,10 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         } as Action<ActionConfiguration>)
 
         then:
-        !handler.metadataRuleContainer.isEmpty()
-        def ruleWrapper = handler.metadataRuleContainer.iterator().next()
-        ruleWrapper.classBased
-        def classRule = ruleWrapper.classRules.iterator().next()
+        !handler.configuredRules.rules.isEmpty()
+        def ruleWrapper = handler.configuredRules.rules.first()
+        ruleWrapper instanceof ImmutableComponentMetadataRules.ImmutableRule.ClassBased
+        def classRule = ruleWrapper.classRules().iterator().next()
         classRule.configurableRule instanceof ConfigurableRule
         classRule.spec == Specs.satisfyAll()
         TestComponentMetadataRule.instanceCount == 0
@@ -155,11 +154,11 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         1 * adapter.createFromAction(action) >> ruleAction
 
         and:
-        !mockedHandler.metadataRuleContainer.isEmpty()
-        def ruleWrapper = mockedHandler.metadataRuleContainer.iterator().next()
-        !ruleWrapper.classBased
-        ruleWrapper.rule.action == (ruleAction)
-        ruleWrapper.rule.spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
+        !mockedHandler.configuredRules.rules.isEmpty()
+        def ruleWrapper = mockedHandler.configuredRules.rules.first()
+        ruleWrapper instanceof ImmutableComponentMetadataRules.ImmutableRule.ActionBased
+        ruleWrapper.rule().action == (ruleAction)
+        ruleWrapper.rule().spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
     }
 
     def "add closure rule that applies to module"() {
@@ -173,11 +172,11 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         1 * adapter.createFromClosure(ComponentMetadataDetails, closure) >> ruleAction
 
         and:
-        !mockedHandler.metadataRuleContainer.isEmpty()
-        def ruleWrapper = mockedHandler.metadataRuleContainer.iterator().next()
-        !ruleWrapper.classBased
-        ruleWrapper.rule.action == (ruleAction)
-        ruleWrapper.rule.spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
+        !mockedHandler.configuredRules.rules.isEmpty()
+        def ruleWrapper = mockedHandler.configuredRules.rules.first()
+        ruleWrapper instanceof ImmutableComponentMetadataRules.ImmutableRule.ActionBased
+        ruleWrapper.rule().action == (ruleAction)
+        ruleWrapper.rule().spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
     }
 
     def "add class rule that applies to module"() {
@@ -187,10 +186,10 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.withModule(notation, TestComponentMetadataRule)
 
         then:
-        !handler.metadataRuleContainer.isEmpty()
-        def ruleWrapper = handler.metadataRuleContainer.iterator().next()
-        ruleWrapper.classBased
-        def classRule = ruleWrapper.classRules.iterator().next()
+        !handler.configuredRules.rules.isEmpty()
+        def ruleWrapper = handler.configuredRules.rules.first()
+        ruleWrapper instanceof ImmutableComponentMetadataRules.ImmutableRule.ClassBased
+        def classRule = ruleWrapper.classRules().iterator().next()
         classRule.configurableRule instanceof ConfigurableRule
         classRule.spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
         TestComponentMetadataRule.instanceCount == 0
@@ -206,10 +205,10 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         } as Action<ActionConfiguration>)
 
         then:
-        !handler.metadataRuleContainer.isEmpty()
-        def ruleWrapper = handler.metadataRuleContainer.iterator().next()
-        ruleWrapper.classBased
-        def classRule = ruleWrapper.classRules.iterator().next()
+        !handler.configuredRules.rules.isEmpty()
+        def ruleWrapper = handler.configuredRules.rules.first()
+        ruleWrapper instanceof ImmutableComponentMetadataRules.ImmutableRule.ClassBased
+        def classRule = ruleWrapper.classRules().iterator().next()
         classRule.configurableRule instanceof ConfigurableRule
         classRule.spec.target == DefaultModuleIdentifier.newId(GROUP, MODULE)
         TestComponentMetadataRule.instanceCount == 0
@@ -249,7 +248,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.all { throw failure }
 
         and:
-        handler.createComponentMetadataProcessor(context).processMetadata(metadata.asImmutable())
+        newProcessor(handler, context).processMetadata(metadata.asImmutable())
 
         then:
         InvalidUserCodeException e = thrown()
@@ -267,7 +266,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         handler.all { ComponentMetadataDetails cmd, IvyModuleDescriptor imd -> closuresCalled << 3 }
 
         and:
-        handler.createComponentMetadataProcessor(context).processMetadata(metadata.asImmutable())
+        newProcessor(handler, context).processMetadata(metadata.asImmutable())
 
         then:
         closuresCalled.sort() == [1, 2, 3]
@@ -281,7 +280,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.createComponentMetadataProcessor(context).processMetadata(metadata.asImmutable())
+        newProcessor(handler, context).processMetadata(metadata.asImmutable())
 
         then:
         noExceptionThrown()
@@ -311,7 +310,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.createComponentMetadataProcessor(context).processMetadata(metadata.asImmutable())
+        newProcessor(handler, context).processMetadata(metadata.asImmutable())
 
         then:
         noExceptionThrown()
@@ -342,7 +341,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.createComponentMetadataProcessor(context).processMetadata(metadata.asImmutable())
+        newProcessor(handler, context).processMetadata(metadata.asImmutable())
 
         then:
         noExceptionThrown()
@@ -358,7 +357,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.createComponentMetadataProcessor(context).processMetadata(metadata.asImmutable())
+        newProcessor(handler, context).processMetadata(metadata.asImmutable())
 
         then:
         !invoked
@@ -407,7 +406,7 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         }
 
         when:
-        handler.createComponentMetadataProcessor(context).processMetadata(metadata.asImmutable())
+        newProcessor(handler, context).processMetadata(metadata.asImmutable())
 
         then:
         noExceptionThrown()
@@ -492,4 +491,23 @@ class DefaultComponentMetadataHandlerTest extends Specification {
         metadata.statusScheme = ["integration", "release"]
         return metadata
     }
+
+    def newProcessor(
+        ComponentMetadataHandlerInternal handler,
+        MetadataResolutionContext resolutionContext
+    ) {
+        new DefaultComponentMetadataProcessor.Factory(
+            TestUtil.instantiatorFactory().decorateLenient(),
+            AttributeTestUtil.attributesFactory(),
+            executor,
+            DependencyManagementTestUtil.platformSupport(),
+            SimpleMapInterner.notThreadSafe(),
+            TestUtil.problemsService()
+        ).create(
+            resolutionContext,
+            handler.getConfiguredRules(),
+            NoOpDerivationStrategy.getInstance()
+        )
+    }
+
 }

@@ -819,7 +819,8 @@ task retrieve(type: Sync) {
         and:
         failure.assertHasCause('Could not resolve group:projectA:1.0-SNAPSHOT.')
         failure.assertHasCause("Unable to load Maven meta-data from ${metaData.uri}.")
-        failure.assertHasCause("Could not GET '${metaData.uri}'. Received status code 500 from server")
+        failure.assertHasCause("Could not GET '${metaData.uri}'.")
+        failure.assertHasCause("Received status code 500 from server")
 
         when:
         server.resetExpectations()

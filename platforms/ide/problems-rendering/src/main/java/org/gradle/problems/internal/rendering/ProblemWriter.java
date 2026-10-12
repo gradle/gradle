@@ -24,6 +24,7 @@ import java.io.PrintWriter;
 import java.io.Writer;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -57,10 +58,7 @@ public abstract class ProblemWriter {
      * @return the problem writer
      */
     public static ProblemWriter simple() {
-        return new SimpleProblemWriter(
-            ProblemWriterRegistry.INSTANCE,
-            new RenderOptions("Problem found: ", true)
-        );
+        return new SimpleProblemWriter(new DefaultProblemWriter(), new RenderOptions("Problem found: ", true));
     }
 
     /**
@@ -68,9 +66,17 @@ public abstract class ProblemWriter {
      * @return the problem writer
      */
     public static ProblemWriter grouping() {
-        return new GroupingProblemWriter(
-            ProblemWriterRegistry.INSTANCE,
-            new RenderOptions("", false));
+        return new GroupingProblemWriter(new DefaultProblemWriter(), new RenderOptions("", false));
+    }
+
+    /**
+     * Creates a problem writer that renders each problem as its details only, for problems whose details already carry
+     * the complete rendering, such as the diagnostics of the Java compiler. A problem without details is rendered as its
+     * contextual label, or its display name when it has no label either.
+     * @return the problem writer
+     */
+    public static ProblemWriter detailsOnly() {
+        return new DetailsOnlyProblemWriter();
     }
 
     /**
@@ -78,18 +84,18 @@ public abstract class ProblemWriter {
      */
     private static class SimpleProblemWriter extends ProblemWriter {
 
-        private final ProblemWriterRegistry writerRegistry;
+        private final DefaultProblemWriter problemWriter;
         private final RenderOptions options;
 
-        SimpleProblemWriter(ProblemWriterRegistry writerRegistry, RenderOptions options) {
-            this.writerRegistry = writerRegistry;
+        SimpleProblemWriter(DefaultProblemWriter problemWriter, RenderOptions options) {
+            this.problemWriter = problemWriter;
             this.options = options;
         }
 
         @Override
         public void write(ProblemInternal problem, Writer writer) {
             PrintWriter output = new PrintWriter(writer);
-            writerRegistry.problemWriterFor(problem.getDefinition().getId()).write(problem, options, output);
+            problemWriter.write(problem, options, output);
         }
 
         @Override
@@ -99,8 +105,43 @@ public abstract class ProblemWriter {
             for (ProblemInternal problem : problems) {
                 output.printf(sep);
                 sep = "%n";
-                writerRegistry.problemWriterFor(problem.getDefinition().getId()).write(problem, options, output);
+                problemWriter.write(problem, options, output);
             }
+        }
+    }
+
+    /**
+     * Writes problems as their details only.
+     */
+    private static class DetailsOnlyProblemWriter extends ProblemWriter {
+
+        @Override
+        public void write(ProblemInternal problem, Writer writer) {
+            PrintWriter output = new PrintWriter(writer);
+            output.print(textOf(problem));
+            output.flush();
+        }
+
+        @Override
+        public void write(Collection<ProblemInternal> problems, Writer writer) {
+            PrintWriter output = new PrintWriter(writer);
+            String sep = "";
+            for (ProblemInternal problem : problems) {
+                output.printf(sep);
+                sep = "%n";
+                output.print(textOf(problem));
+            }
+            output.flush();
+        }
+
+        private static String textOf(ProblemInternal problem) {
+            if (problem.getDetails() != null) {
+                return problem.getDetails();
+            }
+            if (problem.getContextualLabel() != null) {
+                return problem.getContextualLabel();
+            }
+            return problem.getDefinition().getId().getDisplayName();
         }
     }
 
@@ -109,11 +150,11 @@ public abstract class ProblemWriter {
      */
     private static class GroupingProblemWriter extends ProblemWriter {
 
-        private final ProblemWriterRegistry problemWriterRegistry;
+        private final DefaultProblemWriter problemWriter;
         private final RenderOptions options;
 
-        GroupingProblemWriter(ProblemWriterRegistry problemWriterRegistry, RenderOptions options) {
-            this.problemWriterRegistry = problemWriterRegistry;
+        GroupingProblemWriter(DefaultProblemWriter problemWriter, RenderOptions options) {
+            this.problemWriter = problemWriter;
             this.options = options;
         }
 
@@ -130,20 +171,25 @@ public abstract class ProblemWriter {
         private void write(Collection<ProblemInternal> problems, PrintWriter output) {
             // Group problems by problem id
             // When generic rendering is addressed, maybe we also group by the whole problem group hierarchy
-            Map<ProblemId, List<ProblemInternal>> problemIdListMap = problems.stream().collect(Collectors.groupingBy(internalProblem -> internalProblem.getDefinition().getId()));
+            Map<ProblemId, List<ProblemInternal>> problemIdListMap = problems.stream().collect(
+                Collectors.groupingBy(
+                    p -> p.getDefinition().getId(),
+                    LinkedHashMap::new, // preserve ordering
+                    Collectors.toList()
+                )
+            );
             String separator = "";
-            for (Map.Entry<ProblemId, List<ProblemInternal>> problemIdListEntry : problemIdListMap.entrySet()) {
-                renderProblemsById(output, problemIdListEntry.getKey(), problemIdListEntry.getValue(), separator);
+            for (List<ProblemInternal> problemsOfOneId : problemIdListMap.values()) {
+                renderProblems(output, problemsOfOneId, separator);
                 separator = "%n";
             }
         }
 
-        private void renderProblemsById(PrintWriter output, ProblemId problemId, List<ProblemInternal> problems, String separator) {
+        private void renderProblems(PrintWriter output, List<ProblemInternal> problems, String separator) {
             String sep = separator;
-            SelectiveProblemWriter renderer = problemWriterRegistry.problemWriterFor(problemId);
             for (ProblemInternal problem : problems) {
                 output.printf(sep);
-                renderer.write(problem, options, output);
+                problemWriter.write(problem, options, output);
                 sep = "%n";
             }
         }

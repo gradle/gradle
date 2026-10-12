@@ -30,7 +30,7 @@ import java.lang.annotation.Target;
  * {@link ComponentType} annotation.
  * Furthermore the plugin creates an instance of SampleComponent named 'sampleComponent'.
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * interface SampleComponent extends ComponentSpec {}
  * class DefaultSampleComponent extends BaseComponentSpec implements SampleComponent {}
  *
@@ -48,9 +48,13 @@ import java.lang.annotation.Target;
  *     }
  * }
  * </pre>
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Incubating
+@Deprecated
 public @interface ComponentType {
 }

@@ -32,6 +32,8 @@ import kotlin.reflect.KProperty
  *
  * @param T the plugin type.
  * @see [PluginAware.apply]
+ *
+ * @since 5.6
  */
 inline fun <reified T : Plugin<Settings>> Settings.apply() =
     (this as PluginAware).apply<T>()
@@ -39,6 +41,8 @@ inline fun <reified T : Plugin<Settings>> Settings.apply() =
 
 /**
  * Locates a property on [Settings].
+ *
+ * @since 4.7
  */
 @Deprecated("Use 'providers.gradleProperty(name)' for Gradle properties or 'extra[name]' for extra properties instead. See the Gradle 9.6 upgrading guide.")
 @Suppress("DEPRECATION")

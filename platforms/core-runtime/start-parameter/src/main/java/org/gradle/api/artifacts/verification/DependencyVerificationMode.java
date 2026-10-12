@@ -33,7 +33,19 @@ package org.gradle.api.artifacts.verification;
  * @since 6.2
  */
 public enum DependencyVerificationMode {
-    STRICT, // the default, fail as soon as possible
-    LENIENT, // do not fail, but report all verification failures on console
-    OFF // verification is disabled
+    // the default, fail as soon as possible
+    /**
+     * @since 6.2
+     */
+    STRICT,
+    // do not fail, but report all verification failures on console
+    /**
+     * @since 6.2
+     */
+    LENIENT,
+    // verification is disabled
+    /**
+     * @since 6.2
+     */
+    OFF
 }

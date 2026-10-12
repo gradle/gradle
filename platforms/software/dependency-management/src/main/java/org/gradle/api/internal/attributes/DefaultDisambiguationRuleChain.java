@@ -79,7 +79,60 @@ public class DefaultDisambiguationRuleChain<T> implements DisambiguationRuleChai
         ConfigurableRule<MultipleCandidatesDetails<T>> rule,
         Instantiator instantiator
     ) {
-        return new InstantiatingAction<>(DefaultConfigurableRules.of(rule), instantiator, new ExceptionHandler<>(rule.getRuleClass()));
+        Class<?> ruleClass = rule.getRuleClass();
+        Action<MultipleCandidatesDetails<T>> delegate =
+            new InstantiatingAction<>(DefaultConfigurableRules.of(rule), instantiator, new ExceptionHandler<>(ruleClass));
+        return new ValidatingAction<>(ruleClass, delegate);
+    }
+
+    /**
+     * Wraps an {@link InstantiatingAction} with a per-class fail-fast check that the rule's
+     * declared type parameter is a supported attribute value type. Implemented as a named
+     * inner class rather than a lambda so it can be serialized by the configuration cache
+     * (lambda-synthesized classes aren't visible to the CC classloader hierarchy).
+     */
+    private static class ValidatingAction<T> implements Action<MultipleCandidatesDetails<T>> {
+        private final Class<?> ruleClass;
+        private final Action<MultipleCandidatesDetails<T>> delegate;
+
+        /**
+         * Throttles the reflective type-parameter validation, which would otherwise run on every
+         * attribute match. Kept as per-instance state (rather than a static across all rules) so it
+         * neither leaks the rule's plugin classloader for the life of the daemon nor suppresses the
+         * deprecation on builds after the first. Transient so a config-cache restore re-validates
+         * rather than inheriting a stale "already validated" flag.
+         */
+        private transient volatile boolean validated;
+
+        ValidatingAction(Class<?> ruleClass, Action<MultipleCandidatesDetails<T>> delegate) {
+            this.ruleClass = ruleClass;
+            this.delegate = delegate;
+        }
+
+        @Override
+        public void execute(MultipleCandidatesDetails<T> details) {
+            if (!validated) {
+                validated = true;
+                AttributeTypeValidator.validateRuleTypeParameter(ruleClass, AttributeDisambiguationRule.class);
+            }
+            delegate.execute(details);
+        }
+
+        @Override
+        public boolean equals(Object o) {
+            if (this == o) {
+                return true;
+            }
+            if (o == null || getClass() != o.getClass()) {
+                return false;
+            }
+            return delegate.equals(((ValidatingAction<?>) o).delegate);
+        }
+
+        @Override
+        public int hashCode() {
+            return delegate.hashCode();
+        }
     }
 
     private static class ExceptionHandler<T> implements InstantiatingAction.ExceptionHandler<MultipleCandidatesDetails<T>> {

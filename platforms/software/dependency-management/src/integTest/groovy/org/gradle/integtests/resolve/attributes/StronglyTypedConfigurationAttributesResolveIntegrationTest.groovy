@@ -28,9 +28,12 @@ class StronglyTypedConfigurationAttributesResolveIntegrationTest extends Abstrac
             interface Flavor extends Named {
             }
 
-            enum BuildType {
+            enum BuildType implements Named {
                 debug,
                 release
+
+                @Override
+                String getName() { return name() }
             }
 
             def flavor = Attribute.of(Flavor)
@@ -925,9 +928,12 @@ All of them match the consumer attributes:
         settingsFile << "include 'a', 'b', 'c'"
 
         def common = """
-            enum Arch {
+            enum Arch implements Named {
                x86,
                arm64
+
+               @Override
+               String getName() { return name() }
             }
             def arch = Attribute.of(Arch)
             def dummy = Attribute.of('dummy', String)

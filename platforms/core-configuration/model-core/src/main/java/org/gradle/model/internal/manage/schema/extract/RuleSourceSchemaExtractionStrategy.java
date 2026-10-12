@@ -16,7 +16,6 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.model.RuleSource;
 import org.gradle.model.internal.manage.schema.ModelProperty;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.RuleSourceSchema;
@@ -25,9 +24,10 @@ import org.gradle.model.internal.type.ModelType;
 
 import java.util.Set;
 
+@SuppressWarnings("deprecation")
 public class RuleSourceSchemaExtractionStrategy extends StructSchemaExtractionStrategySupport {
 
-    private static final ModelType<RuleSource> RULE_SOURCE_MODEL_TYPE = ModelType.of(RuleSource.class);
+    private static final ModelType<org.gradle.model.RuleSource> RULE_SOURCE_MODEL_TYPE = ModelType.of(org.gradle.model.RuleSource.class);
 
     public RuleSourceSchemaExtractionStrategy(ModelSchemaAspectExtractor aspectExtractor) {
         super(aspectExtractor);

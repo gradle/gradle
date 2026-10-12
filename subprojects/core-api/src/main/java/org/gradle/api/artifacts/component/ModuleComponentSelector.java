@@ -40,6 +40,7 @@ public interface ModuleComponentSelector extends ComponentSelector {
      * The name of the module to select the component from.
      *
      * @return Module name
+     * @since 1.10
      */
     String getModule();
 
@@ -47,6 +48,7 @@ public interface ModuleComponentSelector extends ComponentSelector {
      * The version of the module to select the component from.
      *
      * @return Module version
+     * @since 1.10
      */
     String getVersion();
 

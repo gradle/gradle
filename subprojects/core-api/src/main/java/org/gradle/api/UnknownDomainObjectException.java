@@ -18,12 +18,23 @@ package org.gradle.api;
 /**
  * <p>A {@code UnknownDomainObjectException} is the super class of all exceptions thrown when a given domain object
  * cannot be located.</p>
+ * @since 0.7
  */
 public class UnknownDomainObjectException extends GradleException {
+    /**
+     * Creates a new {@code UnknownDomainObjectException}.
+     *
+     * @since 0.7
+     */
     public UnknownDomainObjectException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code UnknownDomainObjectException}.
+     *
+     * @since 0.7
+     */
     public UnknownDomainObjectException(String message, Throwable cause) {
         super(message, cause);
     }

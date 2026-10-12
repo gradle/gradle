@@ -16,8 +16,6 @@
 
 package org.gradle.model.internal.registry;
 
-import org.gradle.model.InvalidModelRuleException;
-import org.gradle.model.ModelRuleBindingException;
 import org.gradle.model.internal.core.ModelNode;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
@@ -28,6 +26,7 @@ import org.gradle.model.internal.report.AmbiguousBindingReporter;
  * <p>
  * A binding represents the knowledge that the model element referenced by the reference is known and can project a view of the reference type.
  */
+@SuppressWarnings("deprecation")
 abstract class ModelBinding {
 
     final BindingPredicate predicate;
@@ -71,7 +70,7 @@ abstract class ModelBinding {
         if (boundTo != null) {
             ModelRuleDescriptor creatorDescriptor = node.getDescriptor();
             ModelPath path = node.getPath();
-            throw new InvalidModelRuleException(referrer, new ModelRuleBindingException(
+            throw new org.gradle.model.InvalidModelRuleException(referrer, new org.gradle.model.ModelRuleBindingException(
                 new AmbiguousBindingReporter(predicate.getReference(), boundTo.getPath(), boundTo.getDescriptor(), path, creatorDescriptor).asString()
             ));
         }

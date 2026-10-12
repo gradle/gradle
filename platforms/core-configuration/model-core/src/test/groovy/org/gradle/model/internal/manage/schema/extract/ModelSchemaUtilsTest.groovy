@@ -22,6 +22,7 @@ import spock.lang.Specification
 
 import javax.annotation.Nullable
 
+@SuppressWarnings("deprecation")
 class ModelSchemaUtilsTest extends Specification {
     def "base object types have no candidate methods"() {
         expect:

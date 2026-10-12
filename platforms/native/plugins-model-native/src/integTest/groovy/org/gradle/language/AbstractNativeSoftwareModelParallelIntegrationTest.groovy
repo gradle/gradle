@@ -29,6 +29,7 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
     abstract HelloWorldApp getApp()
 
     def "can execute link executable tasks in parallel"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withComponentForApp()
         createTaskThatRunsInParallelUsingCustomToolchainWith("linkMainExecutable")
@@ -41,6 +42,7 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
     }
 
     def "can execute link shared library tasks in parallel"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withComponentsForAppAndSharedLib()
         createTaskThatRunsInParallelUsingCustomToolchainWith("linkMainLibSharedLibrary")
@@ -53,6 +55,7 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
     }
 
     def "can execute create static library tasks in parallel"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withComponentsForAppAndStaticLib()
         createTaskThatRunsInParallelUsingCustomToolchainWith("createMainLibStaticLibrary")
@@ -65,6 +68,7 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
     }
 
     def "can execute compile tasks in parallel"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withComponentForApp()
         createTaskThatRunsInParallelUsingCustomToolchainWith("compileMainExecutableMain${app.sourceType.capitalize()}")
@@ -78,6 +82,7 @@ abstract class AbstractNativeSoftwareModelParallelIntegrationTest extends Abstra
 
     @ToBeFixedForConfigurationCache
     def "can execute install task in parallel"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         withComponentForApp()
         createTaskThatRunsInParallelUsingWorkerLeaseInjectionWith("installMainExecutable")

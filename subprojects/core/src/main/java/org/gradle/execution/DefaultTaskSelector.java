@@ -55,7 +55,7 @@ public abstract class DefaultTaskSelector implements TaskSelector {
         if (includeSubprojects) {
             // Try to delay configuring all the subprojects
             project.ensureConfigured();
-            if (taskNameResolver.tryFindUnqualifiedTaskCheaply(taskName, project)) {
+            if (taskNameResolver.findFirstTaskWithName(taskName, project)) {
                 // An exact match in the target project - can just filter tasks by path to avoid configuring subprojects at this point
                 return new TaskPathSpec(project.getMutableModel(), taskName);
             }

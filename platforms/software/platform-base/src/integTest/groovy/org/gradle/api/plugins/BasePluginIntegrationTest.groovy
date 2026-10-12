@@ -16,6 +16,7 @@
 package org.gradle.api.plugins
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.configuration.ConfigurationAPIDeprecations
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.FileSystemTestPreconditions
 
@@ -189,6 +190,7 @@ class BasePluginIntegrationTest extends AbstractIntegrationSpec {
         """
 
         expect:
+        ConfigurationAPIDeprecations.expectSetVisibleMethodDeprecation(executer)
         succeeds("assemble")
 
         and:

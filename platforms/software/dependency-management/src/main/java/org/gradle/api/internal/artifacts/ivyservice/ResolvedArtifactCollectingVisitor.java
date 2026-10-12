@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.result.ResolvedArtifactResult;
 import org.gradle.api.component.Artifact;
@@ -54,7 +53,7 @@ public class ResolvedArtifactCollectingVisitor implements ArtifactVisitor {
         try {
             if (seenArtifacts.add(artifact.getId())) {
                 File file = artifact.getFile();
-                this.artifacts.add(new DefaultResolvedArtifactResult(artifact.getId(), attributeDesugaring.desugar(attributes), ImmutableList.copyOf(capabilities.asSet()), artifactSetName, Artifact.class, file));
+                this.artifacts.add(new DefaultResolvedArtifactResult(artifact.getId(), attributeDesugaring.desugar(attributes), capabilities, artifactSetName, Artifact.class, file));
             }
         } catch (Exception t) {
             failures.add(t);

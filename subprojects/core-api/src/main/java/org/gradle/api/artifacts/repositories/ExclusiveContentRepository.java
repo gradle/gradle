@@ -32,6 +32,7 @@ public interface ExclusiveContentRepository {
      * Declares the repository
      * @param repository the repository for which we declare exclusive content
      * @return this repository descriptor
+     * @since 6.2
      */
     ExclusiveContentRepository forRepository(Factory<? extends ArtifactRepository> repository);
 
@@ -39,6 +40,7 @@ public interface ExclusiveContentRepository {
      * Declares the repository
      * @param repositories the repositories for which we declare exclusive content
      * @return this repository descriptor
+     * @since 6.2
      */
     ExclusiveContentRepository forRepositories(ArtifactRepository... repositories);
 
@@ -46,6 +48,7 @@ public interface ExclusiveContentRepository {
      * Defines the content filter for this repository
      * @param config the configuration of the filter
      * @return this repository descriptor
+     * @since 6.2
      */
     ExclusiveContentRepository filter(Action<? super InclusiveRepositoryContentDescriptor> config);
 }

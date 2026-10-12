@@ -16,23 +16,18 @@
 
 package org.gradle.launcher.daemon.bootstrap;
 
-import org.gradle.api.logging.Logger;
-import org.gradle.api.logging.Logging;
+import org.gradle.internal.Try;
+import org.gradle.launcher.daemon.startup.DaemonStartupCommunication;
+import org.gradle.launcher.daemon.startup.DaemonStartupInfo;
 import org.gradle.process.internal.streams.StreamsHandler;
 
 import java.io.InputStream;
-import java.io.PrintWriter;
-import java.io.StringWriter;
-import java.util.Scanner;
 import java.util.concurrent.Executor;
 
 public class DaemonOutputConsumer implements StreamsHandler {
 
-    private final static Logger LOGGER = Logging.getLogger(DaemonOutputConsumer.class);
-    DaemonStartupCommunication startupCommunication = new DaemonStartupCommunication();
-
-    private String processOutput;
     private InputStream processStdOutput;
+    private Try<DaemonStartupInfo> response;
 
     @Override
     public void connectStreams(Process process, String processName, Executor executor) {
@@ -45,32 +40,14 @@ public class DaemonOutputConsumer implements StreamsHandler {
         if (processStdOutput == null) {
             throw new IllegalStateException("Cannot start consuming daemon output because streams have not been connected first.");
         }
-        LOGGER.debug("Starting consuming the daemon process output.");
-
-        // Wait for the process' stdout to indicate that the process has been started successfully
-        StringWriter output = new StringWriter();
-        try (Scanner scanner = new Scanner(processStdOutput)) {
-            PrintWriter printer = new PrintWriter(output);
-            while (scanner.hasNext()) {
-                String line = scanner.nextLine();
-                LOGGER.debug("Daemon output: {}", line);
-                printer.println(line);
-                if (startupCommunication.containsDebugMessage(line)) {
-                    LOGGER.lifecycle(line);
-                }
-                if (startupCommunication.containsGreeting(line)) {
-                    break;
-                }
-            }
-        }
-        processOutput = output.toString();
+        this.response = Try.ofFailable(() -> DaemonStartupCommunication.readStartupInfoFromDaemonOutput(processStdOutput));
     }
 
-    public String getProcessOutput() {
-        if (processOutput == null) {
-            throw new IllegalStateException("Unable to get process output as consuming has not finished yet.");
+    public Try<DaemonStartupInfo> getResponse() {
+        if (response == null) {
+            throw new IllegalStateException("Unable to get response as consuming has not finished yet.");
         }
-        return processOutput;
+        return response;
     }
 
     @Override
@@ -84,4 +61,5 @@ public class DaemonOutputConsumer implements StreamsHandler {
     @Override
     public void disconnect() {
     }
+
 }

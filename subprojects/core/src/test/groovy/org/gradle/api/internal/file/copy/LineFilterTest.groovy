@@ -15,85 +15,122 @@
  */
 package org.gradle.api.internal.file.copy
 
-import org.gradle.internal.SystemProperties
-import org.junit.Test
+import spock.lang.Specification
 
 import static org.hamcrest.CoreMatchers.equalTo
 import static org.hamcrest.MatcherAssert.assertThat
 
-class LineFilterTest {
-    @Test void testEmptyInput() {
+class LineFilterTest extends Specification {
+    void testEmptyInput() {
         def input = new StringReader("")
         def lineCount = 1
         def filter = new LineFilter(input, { "${lineCount++} - $it" as String })
 
+        expect:
         assertThat(filter.text, equalTo(""))
     }
 
-    @Test void testEmptyLinesWithTrailingEOL() {
-        def input = new StringReader("\n\n")
+    void "testEmptyLines with trailing #platform EOL"() {
+        def input = new StringReader("$originalEol$originalEol")
         def lineCount = 1
         def filter = new LineFilter(input, { "${lineCount++} - $it" as String })
 
-        assertThat(filter.text, equalTo(lines("1 - ", "2 - ", "")))
+        expect:
+        assertThat(filter.text, equalTo(linesWithEol(resultingEol, ["1 - ", "2 - ", ""])))
+
+        where:
+        platform            | originalEol   | resultingEol
+        "Windows"           | "\r\n"        | "\r\n"
+        "Linux"             | "\n"          | "\n"
+        "Classic Mac OS"    | "\r"          | "\n"
     }
 
-    @Test void testSingleLine() {
+    void testSingleLine() {
         def input = new StringReader("one")
         def lineCount = 1
         def filter = new LineFilter(input, { "${lineCount++} - $it" as String })
 
+        expect:
         assertThat(filter.text, equalTo("1 - one"))
     }
 
-    @Test void testWithEmptyReplacementString() {
+    void testWithEmptyReplacementString() {
         def input = new StringReader("one")
-        def filter = new LineFilter(input, {""})
+        def filter = new LineFilter(input, { "" })
 
+        expect:
         assertThat(filter.text, equalTo(""))
     }
 
-    @Test void testCRLFWithTrailingEOL() {
-        def input = new StringReader("one\r\ntwo\r\nthree\r\n")
-        def lineCount = 1
-        def filter = new LineFilter(input,  { "${lineCount++} - $it" as String })
-
-        assertThat(filter.text, equalTo(lines("1 - one", "2 - two", "3 - three", "")))
-    }
-
-    @Test void testLfWithNoTrailingEOL() {
-        def input = new StringReader("one\ntwo\nthree")
-        def lineCount = 1
-        def filter = new LineFilter(input,  { "${lineCount++} - $it" as String })
-
-        assertThat(filter.text, equalTo(lines("1 - one", "2 - two", "3 - three")))
-    }
-
-    @Test void testCRWithNoTrailingEOL() {
-        def input = new StringReader("one\rtwo\rthree")
+    void "test with trailing #platform EOL"() {
+        def input = new StringReader("one${originalEol}two${originalEol}three${originalEol}")
         def lineCount = 1
         def filter = new LineFilter(input, { "${lineCount++} - $it" as String })
 
-        assertThat(filter.text, equalTo(lines("1 - one", "2 - two", "3 - three")))
+        expect:
+        assertThat(filter.text, equalTo(linesWithEol(resultingEol, ["1 - one", "2 - two", "3 - three", ""])))
+
+        where:
+        platform            | originalEol   | resultingEol
+        "Windows"           | "\r\n"        | "\r\n"
+        "Linux"             | "\n"          | "\n"
+        "Classic Mac OS"    | "\r"          | "\n"
     }
 
-    @Test void testClosureReturningNull() {
-        def input = new StringReader("one\ntwo\nthree\n")
+    void testMixedLineEndings() {
+        def input = new StringReader("one\ntwo\r\nthree\nfour\r\n")
         def lineCount = 1
-        def filter = new LineFilter(input,  { lineCount++ % 2 == 0 ? null : it })
+        def filter = new LineFilter(input, { "${lineCount++} - $it" as String })
 
-        assertThat(filter.text, equalTo(lines("one", "three", "")))
+        expect:
+        assertThat(filter.text, equalTo("1 - one\n2 - two\r\n3 - three\n4 - four\r\n"))
     }
 
-    @Test void testClosureAlwaysReturningNull() {
-        def input = new StringReader("one\ntwo\nthree\n")
+    void "test with no trailing #platform EOL"() {
+        def input = new StringReader("one${originalEol}two${originalEol}three")
         def lineCount = 1
-        def filter = new LineFilter(input,  { null })
+        def filter = new LineFilter(input, { "${lineCount++} - $it" as String })
 
-        assertThat(filter.text, equalTo(lines()))
+        expect:
+        assertThat(filter.text, equalTo(linesWithEol(resultingEol, ["1 - one", "2 - two", "3 - three"])))
+
+        where:
+        platform            | originalEol   | resultingEol
+        "Windows"           | "\r\n"        | "\r\n"
+        "Linux"             | "\n"          | "\n"
+        "Classic Mac OS"    | "\r"          | "\n"
     }
 
-    private String lines(String ... lines) {
-        (lines as List).join(SystemProperties.instance.lineSeparator)
+    void "testClosureReturningNull with #platform EOL"() {
+        def input = new StringReader("one${originalEol}two${originalEol}three${originalEol}")
+        def lineCount = 1
+        def filter = new LineFilter(input, { lineCount++ % 2 == 0 ? null : it })
+
+        expect:
+        assertThat(filter.text, equalTo(linesWithEol(resultingEol, ["one", "three", ""])))
+
+        where:
+        platform            | originalEol   | resultingEol
+        "Windows"           | "\r\n"        | "\r\n"
+        "Linux"             | "\n"          | "\n"
+        "Classic Mac OS"    | "\r"          | "\n"
+    }
+
+    void "testClosureAlwaysReturningNull with #platform EOL"() {
+        def input = new StringReader("one${originalEol}two${originalEol}three${originalEol}")
+        def filter = new LineFilter(input, { null })
+
+        expect:
+        assertThat(filter.text, equalTo(""))
+
+        where:
+        platform            | originalEol   | resultingEol
+        "Windows"           | "\r\n"        | "\r\n"
+        "Linux"             | "\n"          | "\n"
+        "Classic Mac OS"    | "\r"          | "\n"
+    }
+
+    private static String linesWithEol(String eol, List<String> lines) {
+        return lines.join(eol)
     }
 }

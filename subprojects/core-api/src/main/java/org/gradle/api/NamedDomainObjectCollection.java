@@ -74,6 +74,7 @@ import java.util.SortedSet;
  * </pre>
  *
  * @param <T> The type of objects in this collection.
+ * @since 0.9
  */
 @HiddenInDefinition
 public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T> {
@@ -100,6 +101,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * An object that represents the naming strategy used to name objects of this collection.
      *
      * @return Object representing the naming strategy.
+     * @since 1.0
      */
     Namer<T> getNamer();
 
@@ -111,6 +113,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * This operation is eager and will cause all elements of the collection to be realized.
      *
      * @return The objects. Returns an empty map if this collection is empty.
+     * @since 0.9
      */
     SortedMap<String, T> getAsMap();
 
@@ -122,6 +125,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * This operation is lazy and pending elements of this collection will not be realized.
      *
      * @return The names. Returns an empty set if this collection is empty.
+     * @since 1.8
      */
     SortedSet<String> getNames();
 
@@ -132,6 +136,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      *
      * @param name The object name
      * @return The object with the given name, or null if there is no such object in this collection.
+     * @since 0.9
      */
     @Nullable
     T findByName(String name);
@@ -144,6 +149,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @param name The object name
      * @return The object with the given name. Never returns null.
      * @throws UnknownDomainObjectException when there is no such object in this collection.
+     * @since 0.9
      */
     T getByName(String name) throws UnknownDomainObjectException;
 
@@ -157,6 +163,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @param configureClosure The closure to use to configure the object.
      * @return The object with the given name, after the configure closure has been applied to it. Never returns null.
      * @throws UnknownDomainObjectException when there is no such object in this collection.
+     * @since 0.9
      */
     T getByName(String name, Closure configureClosure) throws UnknownDomainObjectException;
 
@@ -183,6 +190,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @param name The object name
      * @return The object with the given name. Never returns null.
      * @throws UnknownDomainObjectException when there is no such object in this collection.
+     * @since 0.9
      */
     T getAt(String name) throws UnknownDomainObjectException;
 
@@ -191,6 +199,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      *
      * @param rule The rule to add.
      * @return The added rule.
+     * @since 1.0
      */
     Rule addRule(Rule rule);
 
@@ -201,6 +210,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * @param description The description of the rule.
      * @param ruleAction The closure to execute to apply the rule.
      * @return The added rule.
+     * @since 1.0
      */
     Rule addRule(String description, Closure ruleAction);
 
@@ -219,6 +229,7 @@ public interface NamedDomainObjectCollection<T> extends DomainObjectCollection<T
      * Returns the rules used by this collection.
      *
      * @return The rules, in the order they will be applied.
+     * @since 1.0
      */
     List<Rule> getRules();
 

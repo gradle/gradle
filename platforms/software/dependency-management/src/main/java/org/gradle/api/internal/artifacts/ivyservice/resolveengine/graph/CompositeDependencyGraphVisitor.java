@@ -40,13 +40,6 @@ public class CompositeDependencyGraphVisitor implements DependencyGraphVisitor {
     }
 
     @Override
-    public void visitEdges(DependencyGraphNode node) {
-        for (DependencyGraphVisitor visitor : visitors) {
-            visitor.visitEdges(node);
-        }
-    }
-
-    @Override
     public void finish(RootGraphNode root) {
         for (DependencyGraphVisitor visitor : visitors) {
             visitor.finish(root);

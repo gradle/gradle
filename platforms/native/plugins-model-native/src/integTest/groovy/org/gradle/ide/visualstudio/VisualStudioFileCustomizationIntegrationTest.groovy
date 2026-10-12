@@ -25,6 +25,7 @@ class VisualStudioFileCustomizationIntegrationTest extends AbstractVisualStudioI
     def app = new CppHelloWorldApp()
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         settingsFile << """
             rootProject.name = 'app'
         """

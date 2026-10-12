@@ -19,6 +19,7 @@ package org.gradle.api;
  * A factory for named objects of type {@code T}.
  *
  * @param <T> The type of objects which this factory creates.
+ * @since 0.9.2
  */
 public interface NamedDomainObjectFactory<T> {
     /**
@@ -26,6 +27,7 @@ public interface NamedDomainObjectFactory<T> {
      *
      * @param name The name
      * @return The object.
+     * @since 0.9.2
      */
     T create(String name);
 }

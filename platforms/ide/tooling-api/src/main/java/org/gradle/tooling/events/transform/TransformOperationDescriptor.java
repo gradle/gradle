@@ -29,16 +29,19 @@ public interface TransformOperationDescriptor extends OperationDescriptor {
 
     /**
      * Returns the display name of this transform operation.
+     * @since 5.1
      */
     TransformerDescriptor getTransformer();
 
     /**
      * Returns the subject of this transform operation.
+     * @since 5.1
      */
     SubjectDescriptor getSubject();
 
     /**
      * Returns the dependencies (other transforms and tasks) of this transform operation.
+     * @since 5.1
      */
     Set<? extends OperationDescriptor> getDependencies();
 
@@ -51,6 +54,7 @@ public interface TransformOperationDescriptor extends OperationDescriptor {
 
         /**
          * Returns the display name of this transformer.
+         * @since 5.1
          */
         String getDisplayName();
 
@@ -65,6 +69,7 @@ public interface TransformOperationDescriptor extends OperationDescriptor {
 
         /**
          * Returns the display name of this subject.
+         * @since 5.1
          */
         String getDisplayName();
 

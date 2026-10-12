@@ -24,45 +24,58 @@ import org.gradle.api.Named;
  * @since 5.6
  */
 public interface LibraryElements extends Named {
+    /**
+     * Of.
+     *
+     * @since 5.6
+     */
     Attribute<LibraryElements> LIBRARY_ELEMENTS_ATTRIBUTE = Attribute.of("org.gradle.libraryelements", LibraryElements.class);
 
     /**
      * The JVM classes format
+     * @since 5.6
      */
     String CLASSES = "classes";
 
     /**
      * The JVM archive format
+     * @since 5.6
      */
     String JAR = "jar";
 
     /**
      * JVM resources
+     * @since 5.6
      */
     String RESOURCES = "resources";
 
     /**
      * The JVM class files and resources
+     * @since 5.6
      */
     String CLASSES_AND_RESOURCES = "classes+resources";
 
     /**
      * Header files for C++
+     * @since 5.6
      */
     String HEADERS_CPLUSPLUS = "headers-cplusplus";
 
     /**
      * Link archives for native modules
+     * @since 5.6
      */
     String LINK_ARCHIVE = "link-archive";
 
     /**
      * Objects for native modules
+     * @since 5.6
      */
     String OBJECTS = "objects";
 
     /**
      * Dynamic libraries for native modules
+     * @since 5.6
      */
     String DYNAMIC_LIB = "dynamic-lib";
 }

@@ -42,8 +42,6 @@ dependencies {
     api(libs.groovy)
     api(libs.jacksonAnnotations)
     api(libs.jatl)
-    api(testLibs.jettyServer)
-    api(testLibs.jettyWebApp)
     api(libs.jspecify)
     api(testLibs.junit)
     api(testLibs.spock)
@@ -53,7 +51,6 @@ dependencies {
     implementation(projects.core)
     implementation(projects.internalIntegTesting)
     implementation(projects.languageNative)
-    implementation(projects.projectFeaturesApi)
     implementation(testFixtures(projects.platformNative))
 
     implementation(libs.commonsIo)
@@ -64,12 +61,10 @@ dependencies {
     implementation(libs.slf4jApi)
     implementation(testLibs.commonsMath)
     implementation(testLibs.hikariCP)
-    implementation(testLibs.jettyUtil)
     implementation(testLibs.joptSimple)
     implementation(testLibs.junit5JupiterApi)
 
     runtimeOnly(libs.jclToSlf4j)
-    runtimeOnly(testLibs.jetty)
     runtimeOnly(testLibs.mySqlConnector)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull) {
@@ -78,6 +73,8 @@ dependencies {
 }
 
 val reportResources = tasks.register<Copy>("reportResources") {
+    group = "build"
+    description = "Copies the JavaScript resources used by performance test reports into the generated resources directory."
     from(reports)
     into(layout.buildDirectory.file("generated-resources/report-resources/org/gradle/reporting"))
 }

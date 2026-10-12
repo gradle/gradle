@@ -28,6 +28,7 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.RootGrap
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructure;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.GraphStructureBuilder;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedDependencyGraph;
+import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.resolve.ModuleVersionResolveException;
 import org.jspecify.annotations.Nullable;
@@ -42,8 +43,13 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
 
     private final LongSet visitedComponents = new LongOpenHashSet();
     private final GraphStructureBuilder builder = new GraphStructureBuilder();
+    private final AttributeDesugaring attributeDesugaring;
 
     private @Nullable ImmutableAttributes requestAttributes;
+
+    public InMemoryResolutionResultBuilder(AttributeDesugaring attributeDesugaring) {
+        this.attributeDesugaring = attributeDesugaring;
+    }
 
     @Override
     public void start(RootGraphNode root) {
@@ -52,7 +58,7 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
     }
 
     @Override
-    public void visitEdges(DependencyGraphNode node) {
+    public void visitNode(DependencyGraphNode node) {
         DependencyGraphComponent component = node.getOwner();
         if (visitedComponents.add(component.getResultId())) {
             builder.addComponent(
@@ -91,7 +97,7 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
                     DependencyGraphNode firstTargetNode = targetNodes.get(0);
                     if (!firstTargetNode.getComponent().getModule().isVirtualPlatform()) {
                         builder.addSuccessfulEdge(
-                            edge.getRequested(),
+                            attributeDesugaring.desugarSelector(edge.getRequested()),
                             true,
                             firstTargetNode.getNodeId()
                         );
@@ -100,7 +106,7 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
                     for (DependencyGraphNode targetNode : targetNodes) {
                         if (!targetNode.getComponent().getModule().isVirtualPlatform()) {
                             builder.addSuccessfulEdge(
-                                edge.getRequested(),
+                                attributeDesugaring.desugarSelector(edge.getRequested()),
                                 false,
                                 targetNode.getNodeId()
                             );
@@ -109,7 +115,7 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
                 }
             } else {
                 builder.addFailedEdge(
-                    edge.getRequested(),
+                    attributeDesugaring.desugarSelector(edge.getRequested()),
                     edge.isConstraint(),
                     edge.getReason(),
                     failure

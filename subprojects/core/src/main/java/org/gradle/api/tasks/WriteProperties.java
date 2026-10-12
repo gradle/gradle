@@ -88,6 +88,7 @@ public abstract class WriteProperties extends DefaultTask {
      *
      * @see #properties(Map)
      * @see #property(String, Object)
+     * @since 3.3
      */
     public void setProperties(Map<String, Object> properties) {
         this.properties.clear();
@@ -146,6 +147,7 @@ public abstract class WriteProperties extends DefaultTask {
     /**
      * Returns the line separator to be used when creating the properties file.
      * Defaults to {@literal `\n`}.
+     * @since 3.3
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -155,6 +157,7 @@ public abstract class WriteProperties extends DefaultTask {
 
     /**
      * Sets the line separator to be used when creating the properties file.
+     * @since 3.3
      */
     public void setLineSeparator(String lineSeparator) {
         this.lineSeparator = lineSeparator;
@@ -162,6 +165,7 @@ public abstract class WriteProperties extends DefaultTask {
 
     /**
      * Returns the optional comment to add at the beginning of the properties file.
+     * @since 3.3
      */
     @Nullable
     @Optional
@@ -173,6 +177,7 @@ public abstract class WriteProperties extends DefaultTask {
 
     /**
      * Sets the optional comment to add at the beginning of the properties file.
+     * @since 3.3
      */
     public void setComment(@Nullable String comment) {
         this.comment = comment;
@@ -181,6 +186,7 @@ public abstract class WriteProperties extends DefaultTask {
     /**
      * Returns the encoding used to write the properties file. Defaults to {@literal ISO_8859_1}.
      * If set to anything different, unicode escaping is turned off.
+     * @since 3.3
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -191,6 +197,7 @@ public abstract class WriteProperties extends DefaultTask {
     /**
      * Sets the encoding used to write the properties file. Defaults to {@literal ISO_8859_1}.
      * If set to anything different, unicode escaping is turned off.
+     * @since 3.3
      */
     public void setEncoding(String encoding) {
         this.encoding = encoding;
@@ -204,6 +211,11 @@ public abstract class WriteProperties extends DefaultTask {
     @OutputFile
     abstract public RegularFileProperty getDestinationFile();
 
+    /**
+     * Write properties.
+     *
+     * @since 3.3
+     */
     @TaskAction
     public void writeProperties() throws IOException {
         Charset charset = Charset.forName(getEncoding());

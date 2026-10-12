@@ -17,13 +17,13 @@
 package org.gradle.test.fixtures.keystore
 
 import groovy.transform.CompileStatic
-import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.gradle.api.Action
 import org.gradle.integtests.fixtures.executer.GradleExecuter
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.internal.Actions
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.server.http.HttpServerFixture
+import org.gradle.test.fixtures.server.http.SslConfiguration
 
 import javax.net.ssl.KeyManager
 import javax.net.ssl.KeyManagerFactory
@@ -95,24 +95,24 @@ class TestKeyStore {
 
     void enableSslWithServerCert(
         HttpServerFixture server,
-        Action<SslContextFactory.Server> configureServer = Actions.doNothing()
+        Action<SslConfiguration> configureServer = Actions.doNothing()
     ) {
-        server.enableSsl(trustStore.path, trustStorePassword, null, null, configureServer)
+        server.enableSsl(asServerSSLContext(), false, configureServer)
     }
 
     void enableSslWithServerAndClientCerts(
         HttpServerFixture server,
-        Action<SslContextFactory.Server> configureServer = Actions.doNothing()
+        Action<SslConfiguration> configureServer = Actions.doNothing()
     ) {
-        server.enableSsl(trustStore.path, trustStorePassword, keyStore.path, keyStorePassword, configureServer)
+        server.enableSsl(asServerSSLContext(), true, configureServer)
     }
 
     void enableSslWithServerAndBadClientCert(
         HttpServerFixture server,
-        Action<SslContextFactory.Server> configureServer = Actions.doNothing()
+        Action<SslConfiguration> configureServer = Actions.doNothing()
     ) {
         // intentionally use wrong trust store for server
-        server.enableSsl(trustStore.path, trustStorePassword, trustStore.path, keyStorePassword, configureServer)
+        server.enableSsl(createServerSSLContext(getTrustStore(), getTrustStorePassword(), getTrustStoreType()), true, configureServer)
     }
 
     void configureServerCert(GradleExecuter executer) {
@@ -184,19 +184,16 @@ class TestKeyStore {
     }
 
     SSLContext asServerSSLContext() {
-        return createServerSSLContext(this)
+        return createServerSSLContext(getKeyStore(), getKeyStorePassword(), getKeyStoreType())
     }
 
-    /**
-     * Create the and initialize the SSLContext
-     */
-    private static SSLContext createServerSSLContext(TestKeyStore testKeyStore) {
+    private SSLContext createServerSSLContext(TestFile trustSource, String trustSourcePassword, String trustSourceType) {
         try {
             // Create key manager
-            KeyStore keyStore = KeyStore.getInstance(testKeyStore.getTrustStoreType());
-            char[] keyStorePassword = testKeyStore.getTrustStorePassword().toCharArray();
+            KeyStore keyStore = KeyStore.getInstance(getTrustStoreType());
+            char[] keyStorePassword = getTrustStorePassword().toCharArray();
 
-            testKeyStore.getTrustStore().withInputStream {keyStoreIn ->
+            getTrustStore().withInputStream { keyStoreIn ->
                 keyStore.load(keyStoreIn, keyStorePassword)
             }
 
@@ -204,12 +201,12 @@ class TestKeyStore {
             keyManagerFactory.init(keyStore, keyStorePassword);
             KeyManager[] km = keyManagerFactory.getKeyManagers();
 
-            // Create trust manager
-            KeyStore trustStore = KeyStore.getInstance(testKeyStore.getKeyStoreType());
-            char[] trustStorePassword = testKeyStore.getKeyStorePassword().toCharArray();
+            // Create trust manager from the supplied trust source
+            KeyStore trustStore = KeyStore.getInstance(trustSourceType);
+            char[] trustStorePassword = trustSourcePassword.toCharArray();
 
-            testKeyStore.getKeyStore().withInputStream {keyStoreIn ->
-                trustStore.load(keyStoreIn, trustStorePassword)
+            trustSource.withInputStream { trustStoreIn ->
+                trustStore.load(trustStoreIn, trustStorePassword)
             }
 
             TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance("SunX509");

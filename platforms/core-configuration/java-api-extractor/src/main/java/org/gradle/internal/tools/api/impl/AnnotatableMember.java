@@ -26,6 +26,7 @@ import java.util.TreeSet;
 public abstract class AnnotatableMember extends AccessibleMember {
 
     private final SortedSet<AnnotationMember> annotations = new TreeSet<>();
+    private final SortedSet<AnnotationMember> typeAnnotations = new TreeSet<>();
     @Nullable
     private final String signature;
 
@@ -40,6 +41,14 @@ public abstract class AnnotatableMember extends AccessibleMember {
 
     public void addAnnotation(AnnotationMember annotationMember) {
         annotations.add(annotationMember);
+    }
+
+    public SortedSet<AnnotationMember> getTypeAnnotations() {
+        return ImmutableSortedSet.copyOf(typeAnnotations);
+    }
+
+    public void addTypeAnnotation(TypeAnnotationMember typeAnnotationMember) {
+        typeAnnotations.add(typeAnnotationMember);
     }
 
     @Nullable

@@ -39,6 +39,7 @@ import org.gradle.api.DomainObjectSet;
  * </pre>
  *
  * @see DomainObjectSet
+ * @since 1.5
  */
 public interface IvyArtifactSet extends DomainObjectSet<IvyArtifact> {
     /**
@@ -47,6 +48,7 @@ public interface IvyArtifactSet extends DomainObjectSet<IvyArtifact> {
      * The semantics of this method are the same as {@link IvyPublication#artifact(Object)}.
      *
      * @param source The source of the artifact content.
+     * @since 1.5
      */
     IvyArtifact artifact(Object source);
 
@@ -57,6 +59,7 @@ public interface IvyArtifactSet extends DomainObjectSet<IvyArtifact> {
      *
      * @param source The source of the artifact.
      * @param config An action to configure the values of the constructed {@link IvyArtifact}.
+     * @since 1.5
      */
      IvyArtifact artifact(Object source, Action<? super IvyArtifact> config);
 }

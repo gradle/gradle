@@ -44,6 +44,7 @@ public interface JavaResolutionConsistency {
      *
      * In addition, the compile classpath for each test suite will be
      * configured to be consistent with the main feature's compile classpath.
+     * @since 6.8
      */
     void useCompileClasspathVersions();
 
@@ -58,6 +59,7 @@ public interface JavaResolutionConsistency {
      *
      * Prefer {@link #useCompileClasspathVersions()} unless you have special
      * requirements at runtime.
+     * @since 6.8
      */
     void useRuntimeClasspathVersions();
 }

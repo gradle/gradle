@@ -16,13 +16,16 @@
 
 package org.gradle.jvm.toolchain
 
+import org.gradle.api.problems.Severity
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
+import spock.lang.Issue
 
 class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
 
@@ -173,8 +176,331 @@ class JavaInstallationRegistryIntegrationTest extends AbstractIntegrationSpec {
         outputContains(javaHome)
     }
 
+    def "invalid installation paths are reported as problems via the Problems API"() {
+        enableProblemsApiCheck()
+
+        def missing1 = new File("/nonexistent/jdk1").absolutePath
+        def missing2 = new File("/nonexistent/jdk2").absolutePath
+
+        buildFile << """
+            import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
+
+            abstract class ShowPlugin implements Plugin<Project> {
+                @Inject
+                abstract JavaInstallationRegistry getRegistry()
+
+                void apply(Project project) {
+                    project.tasks.register("show") {
+                       registry.listInstallations().each { println it.location }
+                    }
+                }
+            }
+
+            apply plugin: ShowPlugin
+        """
+
+        when:
+        result = executer
+            .withArgument("-Dorg.gradle.java.installations.paths=${missing1},${missing2}")
+            .withArgument("-Dorg.gradle.java.installations.auto-detect=false")
+            .withTasks("show")
+            .run()
+
+        then:
+        verifyAll(receivedProblem(0)) {
+            fqid == 'jvm-toolchain:invalid-jvm-installation'
+            severity == Severity.WARNING
+            contextualLabel == "Directory '${missing1}' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist"
+        }
+        verifyAll(receivedProblem(1)) {
+            fqid == 'jvm-toolchain:invalid-jvm-installation'
+            severity == Severity.WARNING
+            contextualLabel == "Directory '${missing2}' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist"
+        }
+    }
+
+    def "installation path pointing to a file instead of a directory is reported as a problem"() {
+        enableProblemsApiCheck()
+
+        def notADirectory = file("not-a-jdk.txt")
+        notADirectory.touch()
+
+        buildFile << """
+            import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
+
+            abstract class ShowPlugin implements Plugin<Project> {
+                @Inject
+                abstract JavaInstallationRegistry getRegistry()
+
+                void apply(Project project) {
+                    project.tasks.register("show") {
+                       registry.listInstallations().each { println it.location }
+                    }
+                }
+            }
+
+            apply plugin: ShowPlugin
+        """
+
+        when:
+        result = executer
+            .withArgument("-Dorg.gradle.java.installations.paths=${notADirectory.absolutePath}")
+            .withArgument("-Dorg.gradle.java.installations.auto-detect=false")
+            .withTasks("show")
+            .run()
+
+        then:
+        verifyAll(receivedProblem) {
+            fqid == 'jvm-toolchain:invalid-jvm-installation'
+            severity == Severity.WARNING
+            contextualLabel == "Path for java installation '${notADirectory.absolutePath}' (Gradle property 'org.gradle.java.installations.paths') points to a file, not a directory"
+        }
+    }
+
+    def "installation path missing java executable is reported as a problem"() {
+        enableProblemsApiCheck()
+
+        def emptyDir = file("empty-jdk").createDir()
+
+        buildFile << """
+            import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
+
+            abstract class ShowPlugin implements Plugin<Project> {
+                @Inject
+                abstract JavaInstallationRegistry getRegistry()
+
+                void apply(Project project) {
+                    project.tasks.register("show") {
+                       registry.listInstallations().each { println it.location }
+                    }
+                }
+            }
+
+            apply plugin: ShowPlugin
+        """
+
+        when:
+        result = executer
+            .withArgument("-Dorg.gradle.java.installations.paths=${emptyDir.absolutePath}")
+            .withArgument("-Dorg.gradle.java.installations.auto-detect=false")
+            .withTasks("show")
+            .run()
+
+        then:
+        verifyAll(receivedProblem) {
+            fqid == 'jvm-toolchain:invalid-jvm-installation'
+            severity == Severity.WARNING
+            contextualLabel == "Path for java installation '${emptyDir.absolutePath}' (Gradle property 'org.gradle.java.installations.paths') does not contain a java executable"
+        }
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39358")
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "SDKMAN_CANDIDATES_DIR must reach the daemon")
+    def "auto-detected installation missing java executable is not reported as a problem"() {
+        enableProblemsApiCheck()
+
+        def sdkmanCandidates = file("sdkman-candidates")
+        def brokenJdk = sdkmanCandidates.file("java/broken-jdk").createDir()
+
+        buildFile << """
+            import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
+
+            abstract class ShowPlugin implements Plugin<Project> {
+                @Inject
+                abstract JavaInstallationRegistry getRegistry()
+
+                void apply(Project project) {
+                    project.tasks.register("show") {
+                       registry.listInstallations().each { println it.location }
+                    }
+                }
+            }
+
+            apply plugin: ShowPlugin
+        """
+
+        when:
+        result = executer
+            .withEnvironmentVars([SDKMAN_CANDIDATES_DIR: sdkmanCandidates.absolutePath])
+            .withArgument("-Dorg.gradle.java.installations.auto-detect=true")
+            .withArgument("--info")
+            .withTasks("show")
+            .run()
+
+        then:
+        outputContains("Path for java installation '${brokenJdk.absolutePath}' (SDKMAN!) auto-detected does not contain a java executable")
+        receivedProblems.empty
+    }
+
+    @Requires(InstalledJdkTestPreconditions.JavaHomeWithDifferentVersionAvailable)
+    def "valid installations are still discovered when invalid paths report problems"() {
+        enableProblemsApiCheck()
+
+        def validJavaHome = AvailableJavaHomes.differentVersion.javaHome.absolutePath
+        def missing = new File("/nonexistent/jdk").absolutePath
+
+        buildFile << """
+            import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
+
+            abstract class ShowPlugin implements Plugin<Project> {
+                @Inject
+                abstract JavaInstallationRegistry getRegistry()
+
+                void apply(Project project) {
+                    project.tasks.register("show") {
+                       registry.listInstallations().each { println it.location }
+                    }
+                }
+            }
+
+            apply plugin: ShowPlugin
+        """
+
+        when:
+        result = executer
+            .withArgument("-Dorg.gradle.java.installations.paths=${missing}," + validJavaHome)
+            .withTasks("show")
+            .run()
+
+        then:
+        outputContains(validJavaHome)
+        verifyAll(receivedProblem) {
+            fqid == 'jvm-toolchain:invalid-jvm-installation'
+            severity == Severity.WARNING
+            contextualLabel == "Directory '${missing}' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist"
+        }
+    }
+
+    def "invalid installation paths do not fail the build (regression test for gradle/gradle#34554)"() {
+        def missingDir = new File("/nonexistent/jdk").absolutePath
+        def notADirectory = file("not-a-jdk.txt")
+        notADirectory.touch()
+        def emptyDir = file("empty-jdk").createDir()
+
+        buildFile << """
+            import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
+
+            abstract class ShowPlugin implements Plugin<Project> {
+                @Inject
+                abstract JavaInstallationRegistry getRegistry()
+
+                void apply(Project project) {
+                    project.tasks.register("show") {
+                       registry.listInstallations().each { println it.location }
+                    }
+                }
+            }
+
+            apply plugin: ShowPlugin
+        """
+
+        expect:
+        succeeds(
+            "show",
+            "-Dorg.gradle.java.installations.paths=${missingDir},${notADirectory.absolutePath},${emptyDir.absolutePath}",
+            "-Dorg.gradle.java.installations.auto-detect=false"
+        )
+    }
+
+    def "relative installation path is resolved against the root project dir and reported with the resolved absolute path"() {
+        enableProblemsApiCheck()
+
+        def resolvedAbsolutePath = file("missing-relative-jdk").absolutePath
+
+        buildFile << """
+            import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
+
+            abstract class ShowPlugin implements Plugin<Project> {
+                @Inject
+                abstract JavaInstallationRegistry getRegistry()
+
+                void apply(Project project) {
+                    project.tasks.register("show") {
+                       registry.listInstallations().each { println it.location }
+                    }
+                }
+            }
+
+            apply plugin: ShowPlugin
+        """
+
+        when:
+        result = executer
+            .withArgument("-Dorg.gradle.java.installations.paths=./missing-relative-jdk")
+            .withArgument("-Dorg.gradle.java.installations.auto-detect=false")
+            .withTasks("show")
+            .run()
+
+        then:
+        verifyAll(receivedProblem) {
+            fqid == 'jvm-toolchain:invalid-jvm-installation'
+            severity == Severity.WARNING
+            contextualLabel == "Directory '${resolvedAbsolutePath}' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist"
+        }
+    }
+
+    /**
+     * Documents observed behavior in a composite build with a relative
+     * {@code org.gradle.java.installations.paths} value: even though the
+     * root and included builds have distinct root project directories, the
+     * property is resolved once (against the outer build's root) and only
+     * one Problems-API warning is emitted, using that outer-resolved path.
+     * <p>
+     * This test pins that behavior so any future change to
+     * {@code FileResolver} scoping for the installation registry is
+     * visible. See discussion on gradle/gradle#37254.
+     */
+    def "in a composite build, a relative installation path resolves once against the outer build's root and fires a single warning"() {
+        enableProblemsApiCheck()
+
+        file("included").createDir()
+        def outerResolvedAbsolutePath = file("missing-jdks").absolutePath
+        def wouldHaveBeenIncludedResolvedAbsolutePath = file("included/missing-jdks").absolutePath
+
+        def showPluginScript = """
+            import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
+
+            abstract class ShowPlugin implements Plugin<Project> {
+                @Inject
+                abstract JavaInstallationRegistry getRegistry()
+
+                void apply(Project project) {
+                    project.tasks.register("show") {
+                       registry.listInstallations().each { println it.location }
+                    }
+                }
+            }
+
+            apply plugin: ShowPlugin
+        """
+
+        settingsFile << """
+            includeBuild 'included'
+        """
+        buildFile << showPluginScript
+
+        file("included/settings.gradle") << ""
+        file("included/build.gradle") << showPluginScript
+
+        when:
+        result = executer
+            .withArgument("-Dorg.gradle.java.installations.paths=./missing-jdks")
+            .withArgument("-Dorg.gradle.java.installations.auto-detect=false")
+            .withTasks("show", ":included:show")
+            .run()
+
+        then:
+        receivedProblems.size() == 1
+        verifyAll(receivedProblem) {
+            fqid == 'jvm-toolchain:invalid-jvm-installation'
+            severity == Severity.WARNING
+            contextualLabel == "Directory '${outerResolvedAbsolutePath}' (Gradle property 'org.gradle.java.installations.paths') used for java installations does not exist"
+            // Confirm the included build's own root directory is NOT what the path resolved to.
+            !contextualLabel.contains(wouldHaveBeenIncludedResolvedAbsolutePath)
+        }
+    }
+
     private static String relativePath(TestFile from, String to) {
         from.toPath().relativize(new File(to).toPath()).toString()
     }
-
 }

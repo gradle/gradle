@@ -24,7 +24,17 @@ package org.gradle.tooling.model.kotlin.dsl;
  */
 public interface EditorPosition {
 
+    /**
+     * Returns the line.
+     *
+     * @since 6.0
+     */
     int getLine();
 
+    /**
+     * Returns the column.
+     *
+     * @since 6.0
+     */
     int getColumn();
 }

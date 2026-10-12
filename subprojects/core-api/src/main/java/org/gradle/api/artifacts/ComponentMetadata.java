@@ -23,12 +23,14 @@ import java.util.List;
 /**
  * Provides a read-only view of a resolved component's metadata, which typically originates from
  * a component descriptor (Ivy file, Maven POM).
+ * @since 2.2
  */
 public interface ComponentMetadata extends HasAttributes {
     /**
      * Returns the identifier of the component.
      *
      * @return the identifier of the component.
+     * @since 2.2
      */
     ModuleVersionIdentifier getId();
 
@@ -36,6 +38,7 @@ public interface ComponentMetadata extends HasAttributes {
      * Tells whether the component is changing or immutable.
      *
      * @return whether the component is changing or immutable.
+     * @since 2.2
      */
     boolean isChanging();
 
@@ -51,6 +54,7 @@ public interface ComponentMetadata extends HasAttributes {
      * </ul>
      *
      * @return the status of the component
+     * @since 2.2
      */
     String getStatus();
 
@@ -60,6 +64,7 @@ public interface ComponentMetadata extends HasAttributes {
      * Defaults to {@code ["integration", "milestone", "release"]}.
      *
      * @return the status scheme of the component
+     * @since 2.2
      */
     List<String> getStatusScheme();
 

@@ -775,7 +775,7 @@ public class DefaultTaskContainer extends DefaultTaskCollection<Task> implements
         if (cause instanceof DuplicateTaskException) {
             return (RuntimeException) cause;
         }
-        return new TaskCreationException(String.format("Could not create task '%s'.", project.identityPath(name)), cause);
+        return new TaskCreationException(String.format("Could not create task '%s'.", project.getIdentityPath().child(name)), cause);
     }
 
     private static BuildOperationDescriptor.Builder realizeDescriptor(TaskIdentity<?> identity, boolean replacement, boolean eager) {

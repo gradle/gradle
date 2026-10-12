@@ -18,7 +18,6 @@ package org.gradle.internal.build;
 
 import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.GradleInternal;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.initialization.IncludedBuildSpec;
 import org.gradle.internal.DisplayName;
@@ -38,21 +37,33 @@ import java.util.function.Function;
 @ServiceScope(Scope.Build.class)
 public interface BuildState {
 
-    DisplayName getDisplayName();
+    /**
+     * Returns the immutable identity of this build.
+     */
+    BuildIdentity getBuildIdentity();
+
+    /**
+     * Returns the display name of this build.
+     *
+     * @see BuildIdentity#getDisplayName()
+     */
+    default DisplayName getDisplayName() {
+        return getBuildIdentity();
+    }
 
     /**
      * Returns the identifier for this build. The identifier is fixed for the lifetime of the build.
      * <p>
-     * Prefer {@link #getIdentityPath()}.
+     * Prefer {@link #getBuildIdentity()} or plain {@link #getIdentityPath()}.
      */
-    default BuildIdentifier getBuildIdentifier() {
-        return new DefaultBuildIdentifier(getIdentityPath());
-    }
+    BuildIdentifier getBuildIdentifier();
 
     /**
      * Returns an identifying path for this build in the build tree. This path is fixed for the lifetime of the build.
      */
-    Path getIdentityPath();
+    default Path getIdentityPath() {
+        return getBuildIdentity().getBuildPath();
+    }
 
     /**
      * Get the parent build of this build, if any.
@@ -65,7 +76,18 @@ public interface BuildState {
     boolean isImplicitBuild();
 
     /**
-     * Should this build be imported into an IDE? Some implicit builds, such as source dependency builds, are not intended to be imported into the IDE or editable by users.
+     * Is this a user-facing build whose sources users address and edit directly?
+     *
+     * <p>Returns {@code false} for implicit builds that Gradle manages and reproduces itself and
+     * that are not intended to be edited by users, most notably source-dependency (VCS) builds.
+     *
+     * <p>This governs whether a build takes part in user-facing behavior:
+     * <ul>
+     *     <li>it is exposed to the IDE / Tooling API build model (see {@code DefaultBuildTreeModelCreator} and
+     *         {@code GradleBuildBuilder});</li>
+     *     <li>its tasks can be targeted by task selectors (see {@code DefaultBuildTaskSelector});</li>
+     *     <li>its root directory is registered for file system watching (see {@code VirtualFileSystemServices}).</li>
+     * </ul>
      */
     boolean isImportableBuild();
 

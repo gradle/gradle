@@ -16,24 +16,42 @@
 
 package org.gradle.internal.component.resolution.failure.describer;
 
+import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.DocumentationRegistry;
+import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.internal.component.resolution.failure.exception.AbstractResolutionFailureException;
 import org.gradle.internal.component.resolution.failure.exception.ComponentSelectionException;
 import org.gradle.internal.component.resolution.failure.type.ModuleRejectedFailure;
 
 import javax.inject.Inject;
+import java.util.List;
 
 /**
  * Abstract base class for implementing {@link ResolutionFailureDescriber}s that
  * describe {@link ModuleRejectedFailure}s.
  */
 public abstract class ModuleRejectedFailureDescriber extends AbstractResolutionFailureDescriber<ModuleRejectedFailure> {
+    private static final String CAPABILITY_CONFLICT_DOCS_ID = "component_capabilities";
+    private static final String CAPABILITY_CONFLICT_DOCS_SECTION = "sub:capabilities";
+    private static final String CAPABILITY_CONFLICT_RESOLUTION_DOCS_SECTION = "sec:selecting-between-candidates";
+
     @Inject
     @Override
     protected abstract DocumentationRegistry getDocumentationRegistry();
 
     @Override
     public AbstractResolutionFailureException describeFailure(ModuleRejectedFailure failure) {
-        return new ComponentSelectionException(failure.getLegacyErrorMsg(), failure);
+        return new ComponentSelectionException(failure.getLegacyErrorMsg(), failure, buildResolutions(failure));
+    }
+
+    private List<String> buildResolutions(ModuleRejectedFailure failure) {
+        if (failure.getProblemId() == ResolutionFailureProblemId.CAPABILITY_CONFLICT) {
+            DocumentationRegistry docs = getDocumentationRegistry();
+            return ImmutableList.of(
+                "Capability conflicts are explained in more detail at " + docs.getDocumentationFor(CAPABILITY_CONFLICT_DOCS_ID, CAPABILITY_CONFLICT_DOCS_SECTION) + ".",
+                "Use 'resolutionStrategy.capabilitiesResolution' to choose between conflicting capability providers, as described at " + docs.getDocumentationFor(CAPABILITY_CONFLICT_DOCS_ID, CAPABILITY_CONFLICT_RESOLUTION_DOCS_SECTION) + "."
+            );
+        }
+        return failure.getResolutions();
     }
 }

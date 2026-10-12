@@ -20,6 +20,7 @@ import org.w3c.dom.Element;
 
 /**
  * Provides various ways to access the content of an XML document.
+ * @since 1.0
  */
 public interface XmlProvider {
     /**
@@ -27,6 +28,7 @@ public interface XmlProvider {
      * The returned instance is only valid until one of the other methods on this interface are called.
      *
      * @return A {@code StringBuilder} representation of the XML.
+     * @since 1.0
      */
     StringBuilder asString();
 
@@ -35,6 +37,7 @@ public interface XmlProvider {
      * to the XML. The returned instance is only valid until one of the other methods on this interface are called.
      *
      * @return A {@code Node} representation of the XML.
+     * @since 1.0
      */
     Node asNode();
 
@@ -43,6 +46,7 @@ public interface XmlProvider {
      * to the XML. The returned instance is only valid until one of the other methods on this interface are called.
      *
      * @return An {@code Element} representation of the XML.
+     * @since 1.0
      */
     Element asElement();
 }

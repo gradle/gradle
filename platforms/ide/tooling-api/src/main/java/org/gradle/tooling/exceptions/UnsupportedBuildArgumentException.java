@@ -22,12 +22,23 @@ import org.gradle.tooling.GradleConnectionException;
  * Thrown when the {@link org.gradle.tooling.LongRunningOperation} has been configured
  * with unsupported build arguments. For more information see the
  * {@link org.gradle.tooling.LongRunningOperation#withArguments(String...)} method.
+ * @since 1.0
  */
 public class UnsupportedBuildArgumentException extends GradleConnectionException {
+    /**
+     * Creates a new {@code UnsupportedBuildArgumentException}.
+     *
+     * @since 1.0
+     */
     public UnsupportedBuildArgumentException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code UnsupportedBuildArgumentException}.
+     *
+     * @since 1.0
+     */
     public UnsupportedBuildArgumentException(String message, Throwable cause) {
         super(message, cause);
     }

@@ -22,8 +22,8 @@ import org.gradle.api.internal.initialization.ClassLoaderScope;
 import org.gradle.groovy.scripts.ScriptSource;
 import org.gradle.internal.Cast;
 
-import java.util.HashMap;
 import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * This in-memory cache is responsible for caching compiled build scripts during a build.
@@ -31,11 +31,14 @@ import java.util.Map;
  * which will use the delegate script class compiler in case of a miss. The lookup in this cache is
  * more efficient than looking in the global cache, as we do not check the script's hash code here,
  * assuming that it did not change during the build.
+ *
+ * <p>Instances are build-scoped and {@link #compile} is called concurrently once projects are
+ * configured in parallel, so the cache must be thread-safe.
  */
 public class BuildScopeInMemoryCachingScriptClassCompiler implements ScriptClassCompiler {
     private final CrossBuildInMemoryCachingScriptClassCache cache;
     private final ScriptClassCompiler scriptClassCompiler;
-    private final Map<ScriptCacheKey, CompiledScript<?, ?>> cachedCompiledScripts = new HashMap<>();
+    private final Map<ScriptCacheKey, CompiledScript<?, ?>> cachedCompiledScripts = new ConcurrentHashMap<>();
 
     public BuildScopeInMemoryCachingScriptClassCompiler(CrossBuildInMemoryCachingScriptClassCache cache, ScriptClassCompiler scriptClassCompiler) {
         this.cache = cache;
@@ -47,6 +50,10 @@ public class BuildScopeInMemoryCachingScriptClassCompiler implements ScriptClass
         ScriptCacheKey key = new ScriptCacheKey(source.getClassName(), targetScope.getExportClassLoader(), operation.getId());
         CompiledScript<T, M> compiledScript = Cast.uncheckedCast(cachedCompiledScripts.get(key));
         if (compiledScript == null) {
+            // Deliberately not computeIfAbsent: compiling a script is a long-running operation that
+            // can re-enter script compilation, which must not happen inside a mapping function.
+            // Two threads racing on the same key may both compile, but the delegate cache is itself
+            // thread-safe and returns the same result, so the duplicated work is the only cost.
             compiledScript = cache.getOrCompile(target, source, targetScope, operation, scriptBaseClass, verifier, scriptClassCompiler);
             cachedCompiledScripts.put(key, compiledScript);
         }

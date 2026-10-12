@@ -19,9 +19,6 @@ package org.gradle.api.reporting.dependents.internal;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.AbstractRenderableDependency;
 import org.gradle.api.tasks.diagnostics.internal.graph.nodes.RenderableDependency;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.platform.base.internal.ComponentSpecIdentifier;
 import org.gradle.platform.base.internal.ComponentSpecInternal;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolvedResult;
@@ -32,22 +29,23 @@ import java.util.Set;
 import static com.google.common.base.Preconditions.checkNotNull;
 import static com.google.common.base.Strings.emptyToNull;
 
+@SuppressWarnings("deprecation")
 public class DependentComponentsRenderableDependency extends AbstractRenderableDependency {
 
-    public static DependentComponentsRenderableDependency of(ComponentSpec componentSpec, ComponentSpecInternal internalProtocol) {
+    public static DependentComponentsRenderableDependency of(org.gradle.platform.base.ComponentSpec componentSpec, ComponentSpecInternal internalProtocol) {
         return of(componentSpec, internalProtocol, new LinkedHashSet<>());
     }
 
     @SuppressWarnings("NonApiType") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
-    public static DependentComponentsRenderableDependency of(ComponentSpec componentSpec, ComponentSpecInternal internalProtocol, LinkedHashSet<DependentComponentsRenderableDependency> children) {
+    public static DependentComponentsRenderableDependency of(org.gradle.platform.base.ComponentSpec componentSpec, ComponentSpecInternal internalProtocol, LinkedHashSet<DependentComponentsRenderableDependency> children) {
         ComponentSpecIdentifier id = internalProtocol.getIdentifier();
         String name = DependentComponentsUtils.getBuildScopedTerseName(id);
         String description = componentSpec.getDisplayName();
         boolean buildable = true;
-        if (componentSpec instanceof VariantComponentSpec) {
+        if (componentSpec instanceof org.gradle.platform.base.VariantComponentSpec) {
             // Consider variant aware components with no buildable binaries as non-buildables
-            VariantComponentSpec variantComponentSpec = (VariantComponentSpec) componentSpec;
-            buildable = variantComponentSpec.getBinaries().values().stream().anyMatch(BinarySpec::isBuildable);
+            org.gradle.platform.base.VariantComponentSpec variantComponentSpec = (org.gradle.platform.base.VariantComponentSpec) componentSpec;
+            buildable = variantComponentSpec.getBinaries().values().stream().anyMatch(org.gradle.platform.base.BinarySpec::isBuildable);
         }
         return new DependentComponentsRenderableDependency(id, name, description, buildable, false, children);
     }

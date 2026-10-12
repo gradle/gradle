@@ -29,6 +29,7 @@ public interface ParallelismConfiguration {
      * Returns true if parallel project execution is enabled.
      *
      * @see #getMaxWorkerCount()
+     * @since 4.1
      */
     boolean isParallelProjectExecutionEnabled();
 
@@ -36,6 +37,7 @@ public interface ParallelismConfiguration {
      * Enables/disables parallel project execution.
      *
      * @see #isParallelProjectExecutionEnabled()
+     * @since 4.1
      */
     void setParallelProjectExecutionEnabled(boolean parallelProjectExecution);
 
@@ -54,6 +56,7 @@ public interface ParallelismConfiguration {
      *
      * @return maximum number of concurrent workers, always &gt;= 1.
      * @see java.lang.Runtime#availableProcessors()
+     * @since 4.1
      */
     int getMaxWorkerCount();
 
@@ -62,6 +65,7 @@ public interface ParallelismConfiguration {
      *
      * @throws IllegalArgumentException if {@code maxWorkerCount} is &lt; 1
      * @see #getMaxWorkerCount()
+     * @since 4.1
      */
     void setMaxWorkerCount(int maxWorkerCount);
 

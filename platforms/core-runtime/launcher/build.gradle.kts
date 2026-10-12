@@ -65,6 +65,7 @@ dependencies {
     // Required directly by CliTextPrinter (uses Ant Main and Groovy ReleaseInfo)
     implementation(libs.ant)
     implementation(libs.groovy)
+    implementation(libs.nativePlatform)
 
     runtimeOnly(projects.gradleCliMain)
     runtimeOnly(projects.declarativeDslProvider)
@@ -72,7 +73,6 @@ dependencies {
 
     runtimeOnly(libs.commonsIo)
     runtimeOnly(libs.commonsLang)
-    runtimeOnly(libs.slf4jApi)
 
     runtimeOnly(projects.kotlinDsl) {
         because("KotlinScriptPluginFactory is loaded dynamically at runtime by ScriptPluginFactorySelector")

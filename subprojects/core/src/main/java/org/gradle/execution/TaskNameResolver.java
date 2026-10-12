@@ -34,13 +34,18 @@ public class TaskNameResolver {
     /**
      * Non-exhaustively searches for at least one task with the given name, by not evaluating projects before searching.
      */
-    public boolean tryFindUnqualifiedTaskCheaply(String name, ProjectState project) {
-        // don't evaluate children, see if we know it's without validating it
-        for (ProjectState current : project.getAllProjects()) {
-            if (current.fromMutableState(p -> p.getTasks().getNames().contains(name))) {
+    public boolean findFirstTaskWithName(String name, ProjectState project) {
+        if (project.fromMutableState(p -> p.getTasks().getNames().contains(name))) {
+            return true;
+        }
+
+        // Only evaluate children if we didn't find the task in any parent.
+        for (ProjectState child : project.getUnorderedChildProjects()) {
+            if (findFirstTaskWithName(name, child)) {
                 return true;
             }
         }
+
         return false;
     }
 

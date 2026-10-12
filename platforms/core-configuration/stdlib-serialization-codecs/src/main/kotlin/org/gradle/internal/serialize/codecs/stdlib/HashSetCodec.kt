@@ -20,6 +20,7 @@ import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.logPropertyProblem
+import org.gradle.internal.serialize.graph.warnAboutCustomImplementation
 import org.gradle.internal.serialize.graph.writeCollection
 
 
@@ -29,6 +30,7 @@ import org.gradle.internal.serialize.graph.writeCollection
 object HashSetCodec : Codec<HashSet<Any?>> {
 
     override suspend fun WriteContext.encode(value: HashSet<Any?>) {
+        warnAboutCustomImplementation(value.javaClass, "collection", arrayOf(HashSet::class.java, LinkedHashSet::class.java))
         writeCollectionCheckingForCircularElements(value)
     }
 

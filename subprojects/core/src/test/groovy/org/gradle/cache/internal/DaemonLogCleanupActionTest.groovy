@@ -187,17 +187,22 @@ class DaemonLogCleanupActionTest extends Specification {
         given:
         def versionDir = createDaemonVersionDir("8.0")
         def exactlyFourteenDaysOld = createDaemonLog(versionDir, 1234, exactlyNDaysAgo(DEFAULT_RETENTION_DAYS))
-        def justUnderFourteenDays = createDaemonLog(versionDir, 5678, exactlyNDaysAgo(DEFAULT_RETENTION_DAYS) + 1000) // 1 second newer
+        def justOverFourteenDays = createDaemonLog(versionDir, 5678, exactlyFourteenDaysOld.lastModified() - 1)
+
+        and:
+        def boundary = exactlyFourteenDaysOld.lastModified()
+        assert justOverFourteenDays.lastModified() < boundary
+        def boundaryCleanupAction = new DaemonLogCleanupAction(daemonBaseDir, deleter, { -> boundary })
 
         when:
-        def cleanedUp = cleanupAction.execute(progressMonitor)
+        def cleanedUp = boundaryCleanupAction.execute(progressMonitor)
 
         then:
         cleanedUp
         1 * progressMonitor.incrementDeleted()
         1 * progressMonitor.incrementSkipped()
-        exactlyFourteenDaysOld.assertDoesNotExist()
-        justUnderFourteenDays.assertExists()
+        exactlyFourteenDaysOld.assertExists()
+        justOverFourteenDays.assertDoesNotExist()
     }
 
     private TestFile createDaemonVersionDir(String version) {

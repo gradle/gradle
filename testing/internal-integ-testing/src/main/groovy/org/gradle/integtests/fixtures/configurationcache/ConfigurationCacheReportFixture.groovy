@@ -17,6 +17,7 @@
 package org.gradle.integtests.fixtures.configurationcache
 
 import groovy.json.JsonSlurper
+import org.gradle.problems.internal.report.fixtures.HtmlReportDataReader
 import org.gradle.util.internal.ConfigureUtil
 import org.hamcrest.Matcher
 
@@ -100,37 +101,22 @@ abstract class ConfigurationCacheReportFixture {
 
     private static class ExistingReportFixture extends ConfigurationCacheReportFixture {
         private final File reportFile
-        private final Map<String, Object> jsModel
+        private final Map<String, Object> summary
+        private final List<Map<String, Object>> diagnostics
 
         ExistingReportFixture(File reportFile) {
             this.reportFile = reportFile
-            this.jsModel = readJsModelFrom(reportFile)
+            assertTrue("HTML report HTML file '$reportFile' not found", reportFile.isFile())
+
+            def reader = new HtmlReportDataReader(reportFile)
+            def slurper = new JsonSlurper()
+            this.summary = slurper.parseText(reader.readSummaryJson()) as Map<String, Object>
+            this.diagnostics = slurper.parseText(reader.readDiagnosticsJson()) as List<Map<String, Object>>
         }
 
         @Override
         String toString() {
-            return "CC Report with ${(jsModel.diagnostics as List).size()} entries at $reportFile"
-        }
-
-        protected static Map<String, Object> readJsModelFrom(File reportFile) {
-            assertTrue("HTML report HTML file '$reportFile' not found", reportFile.isFile())
-
-            // ConfigurationCacheReport ensures the pure json model can be read
-            // by looking for `// begin-report-data` and `// end-report-data`
-            def jsonText = linesBetween(reportFile, '// begin-report-data', '// end-report-data')
-            assert jsonText: "malformed report file"
-            new JsonSlurper().parseText(jsonText) as Map<String, Object>
-        }
-
-        private static String linesBetween(File file, String beginLine, String endLine) {
-            return file.withReader('utf-8') { reader ->
-                reader.lines().iterator()
-                    .dropWhile { it != beginLine }
-                    .drop(1)
-                    .takeWhile { it != endLine }
-                    .collect()
-                    .join('\n')
-            }
+            return "CC Report with ${diagnostics.size()} entries at $reportFile"
         }
 
         @Override
@@ -158,7 +144,7 @@ abstract class ConfigurationCacheReportFixture {
                 : []
 
 
-            List<Map<String, Object>> items = (jsModel.diagnostics as List<Map<String, Object>>).findAll { it[kind] != null }
+            List<Map<String, Object>> items = diagnostics.findAll { it[kind] != null }
             List<String> unexpectedItems = items.collect { formatItemForAssert(it, kind) }.reverse()
             for (int i in expectedItems.indices.reverse()) {
                 def expectedItem = expectedItems[i]
@@ -230,13 +216,13 @@ abstract class ConfigurationCacheReportFixture {
             if (spec.enforceTotalProblemCount) {
                 assertThat(
                     "HTML report JS model has wrong number of total problem(s)",
-                    jsModel.totalProblemCount,
+                    summary.totalProblemCount,
                     equalTo(totalProblemCount)
                 )
             } else {
                 assertThat(
                     "HTML report JS model does not have the minimum number of total problem(s)",
-                    jsModel.totalProblemCount,
+                    summary.totalProblemCount,
                     greaterThanOrEqualTo(uniqueProblemCount)
                 )
             }
@@ -280,12 +266,12 @@ abstract class ConfigurationCacheReportFixture {
          * Collects all "diagnostics" that are actual problems.
          */
         private List<Object> problemsFromModel() {
-            return (jsModel.diagnostics as List<Object>)
+            return diagnostics
                 .findAll { it['problem'] != null }
         }
 
         private int numberOfProblemsWithStacktrace() {
-            return (jsModel.diagnostics as List<Object>).count { it['problem'] != null && it['error']?.getAt('parts') != null }
+            return diagnostics.count { it['problem'] != null && it['error']?.getAt('parts') != null }
         }
     }
 

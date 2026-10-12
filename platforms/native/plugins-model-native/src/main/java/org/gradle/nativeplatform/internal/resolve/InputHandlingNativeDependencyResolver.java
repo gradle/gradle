@@ -16,8 +16,7 @@
 
 package org.gradle.nativeplatform.internal.resolve;
 
-import org.gradle.nativeplatform.NativeDependencySet;
-
+@SuppressWarnings("deprecation")
 public class InputHandlingNativeDependencyResolver implements NativeDependencyResolver {
     private final NativeDependencyResolver delegate;
 
@@ -28,8 +27,8 @@ public class InputHandlingNativeDependencyResolver implements NativeDependencyRe
     @Override
     public void resolve(NativeBinaryResolveResult nativeBinaryResolveResult) {
         for (NativeBinaryRequirementResolveResult resolution : nativeBinaryResolveResult.getPendingResolutions()) {
-            if (resolution.getInput() instanceof NativeDependencySet) {
-                resolution.setNativeDependencySet((NativeDependencySet) resolution.getInput());
+            if (resolution.getInput() instanceof org.gradle.nativeplatform.NativeDependencySet) {
+                resolution.setNativeDependencySet((org.gradle.nativeplatform.NativeDependencySet) resolution.getInput());
             }
         }
         delegate.resolve(nativeBinaryResolveResult);

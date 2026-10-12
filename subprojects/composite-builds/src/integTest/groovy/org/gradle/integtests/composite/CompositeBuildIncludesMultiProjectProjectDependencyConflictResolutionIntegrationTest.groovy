@@ -53,7 +53,7 @@ class CompositeBuildIncludesMultiProjectProjectDependencyConflictResolutionInteg
 
     @Override
     String getBuildId() {
-        "((${ProjectInternal.name}) project).getServices().get(${BuildState.name}.class).getBuildIdentifier()"
+        "((${ProjectInternal.name}) project).getServices().get(${BuildState.name}.class).getIdentityPath()"
     }
 
     @Override

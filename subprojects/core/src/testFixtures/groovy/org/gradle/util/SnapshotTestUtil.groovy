@@ -44,7 +44,9 @@ class SnapshotTestUtil {
         return new ClassLoaderHierarchyHasher() {
             @Override
             HashCode getClassLoaderHash(ClassLoader classLoader) {
-                return TestHashCodes.hashCodeFrom(classLoader.hashCode())
+                // classLoader is null for bootstrap-loaded types (e.g. java.lang.Byte, java.math.BigDecimal).
+                // The production hasher handles that case; this test double must too, or isolating such values NPEs.
+                return TestHashCodes.hashCodeFrom(classLoader == null ? 0 : classLoader.hashCode())
             }
         };
     }

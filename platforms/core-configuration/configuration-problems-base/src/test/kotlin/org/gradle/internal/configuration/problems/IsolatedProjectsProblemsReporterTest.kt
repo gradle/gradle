@@ -16,6 +16,7 @@
 
 package org.gradle.internal.configuration.problems
 
+import org.gradle.api.Action
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertSame
@@ -146,7 +147,7 @@ class IsolatedProjectsProblemsReporterTest {
             getStackTrace: Boolean
         ): PropertyProblem = PropertyProblem(PropertyTrace.Unknown, message, exception, null, documentationSection)
 
-        override fun problem(consumer: String?, messageBuilder: StructuredMessage.Builder.() -> Unit): ProblemFactory.Builder =
+        override fun problem(consumer: String?, message: Action<StructuredMessage.Builder>): ProblemFactory.Builder =
             throw UnsupportedOperationException("not used in tests")
     }
 }

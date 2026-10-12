@@ -472,6 +472,8 @@ include::sample[dir="snippets/reference/dependency-management/advanced/performin
 
 NOTE: This example uses incubating APIs.
 
+`ResolutionResult` is Configuration Cache-compatible, so you can also wire it directly into a task input property if you need access to its full API at execution time.
+
 Running this task, we get the following output:
 
 [source,text]

@@ -39,6 +39,7 @@ class CUnitIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def app = new CHelloWorldApp()
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         prebuiltDir.file("cunit/2.1-2/lib/${toolChain.unitTestPlatform}/${cunitLibName}").assumeExists()
         buildFile << """
 apply plugin: 'cunit-test-suite'

@@ -29,6 +29,11 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+import java.util.concurrent.Callable
+import java.util.concurrent.CyclicBarrier
+import java.util.concurrent.Executors
+import java.util.concurrent.TimeUnit
+
 class DefaultClassLoaderScopeTest extends Specification {
 
     ClassLoaderScope root
@@ -417,6 +422,57 @@ class DefaultClassLoaderScopeTest extends Specification {
         and:
         !scope.defines(exportLoader.loadClass(TestClass1.name))
         !scope.defines(exportLoader.loadClass(TestClass2.name))
+    }
+
+    def "concurrent queries of a #description scope all observe the same fully built loaders"() {
+        given:
+        def threads = 8
+        def barrier = new CyclicBarrier(threads)
+        def executor = Executors.newFixedThreadPool(threads)
+        scope.export(classPath("export"))
+        scope.local(classPath("local"))
+        if (locked) {
+            scope.lock()
+        }
+
+        when: "many threads race to trigger the lazy initialization"
+        def results = executor.invokeAll((1..threads).collect { i ->
+            { ->
+                barrier.await(30, TimeUnit.SECONDS)
+                def export
+                def local
+                // Alternate which accessor triggers initialization
+                if (i % 2 == 0) {
+                    export = scope.exportClassLoader
+                    local = scope.localClassLoader
+                } else {
+                    local = scope.localClassLoader
+                    export = scope.exportClassLoader
+                }
+                [export, local]
+            } as Callable
+        })*.get(30, TimeUnit.SECONDS)
+
+        def exports = results*.first()
+        def locals = results*.last()
+
+        then: "no thread ever observes a partially initialized scope"
+        exports.size == threads
+        locals.size == threads
+        exports.every { it != null }
+        locals.every { it != null }
+
+        and: "every thread observes the very same loader instances"
+        exports.every { it === exports.first() }
+        locals.every { it === locals.first() }
+
+        cleanup:
+        executor.shutdownNow()
+
+        where:
+        description   | locked
+        "locked"      | true
+        "unlocked"    | false
     }
 
     void copyTo(Class<?> clazz, TestFile destDir) {

@@ -37,9 +37,9 @@ public class CodePanelRenderer extends ReportRenderer<CodePanelRenderer.Data, Si
     @Override
     public void render(Data data, SimpleHtmlWriter htmlWriter) throws IOException {
         // Wrap in a <span>, to work around CSS problem in IE
-        htmlWriter.startElement("span").attribute("class", "code")
-            .startElement("pre").attribute("id", data.codePanelId).characters(data.text).endElement();
+        htmlWriter.startElement("span").attribute("class", "code");
         addClipboardCopyButton(htmlWriter, data.codePanelId);
+        htmlWriter.startElement("pre").attribute("id", data.codePanelId).characters(data.text).endElement();
         htmlWriter.endElement();
     }
 }

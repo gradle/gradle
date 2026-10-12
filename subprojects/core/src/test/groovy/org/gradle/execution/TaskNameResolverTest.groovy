@@ -268,7 +268,7 @@ class TaskNameResolverTest extends Specification {
         def tasks = projectState.getMutableModel().getTasks()
 
         when:
-        def result = resolver.tryFindUnqualifiedTaskCheaply('task', projectState)
+        def result = resolver.findFirstTaskWithName('task', projectState)
 
         then:
         result
@@ -284,7 +284,7 @@ class TaskNameResolverTest extends Specification {
         def tasks = projectState.getMutableModel().getTasks()
 
         when:
-        def result = resolver.tryFindUnqualifiedTaskCheaply('task', projectState)
+        def result = resolver.findFirstTaskWithName('task', projectState)
 
         then:
         result
@@ -301,7 +301,7 @@ class TaskNameResolverTest extends Specification {
         def tasks = projectState.getMutableModel().getTasks()
 
         when:
-        def result = resolver.tryFindUnqualifiedTaskCheaply('task', projectState)
+        def result = resolver.findFirstTaskWithName('task', projectState)
 
         then:
         !result
@@ -333,18 +333,7 @@ class TaskNameResolverTest extends Specification {
         }
         _ * state.getMutableModel() >> project
         _ * state.fromMutableState(_) >> { args -> args[0].apply(project) }
-        _ * state.getAllProjects() >> {
-            def result = new LinkedHashSet<ProjectState>()
-            collectAll(state, result)
-            result
-        }
         state
     }
 
-    private static void collectAll(ProjectState project, Set<ProjectState> result) {
-        result.add(project)
-        for (ProjectState child : project.getUnorderedChildProjects()) {
-            collectAll(child, result)
-        }
-    }
 }

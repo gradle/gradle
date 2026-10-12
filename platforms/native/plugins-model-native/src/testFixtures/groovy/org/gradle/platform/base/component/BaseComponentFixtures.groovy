@@ -26,6 +26,7 @@ import org.gradle.platform.base.internal.ComponentSpecIdentifier
 import org.gradle.platform.base.internal.ComponentSpecInternal
 import org.gradle.test.fixtures.BaseInstanceFixtureSupport
 
+@SuppressWarnings("deprecation")
 class BaseComponentFixtures {
     static <T extends ComponentSpec, I extends BaseComponentSpec> T create(Class<T> publicType, Class<I> implType, ComponentSpecIdentifier componentId) {
         def node = createNode(publicType, implType, componentId);

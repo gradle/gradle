@@ -23,6 +23,7 @@ description = "Worker RequestHandler that hosts long-running daemon server which
 
 dependencies {
 
+    api(projects.buildOperations)
     api(projects.classloaders)
     api(projects.coreApi)
     api(projects.modelCore)
@@ -35,8 +36,8 @@ dependencies {
     api(libs.inject)
     api(libs.jspecify)
 
+    implementation(projects.ant)
     implementation(projects.baseServices)
-    implementation(projects.buildOperations)
     implementation(projects.buildProcessServices)
     implementation(projects.concurrent)
     implementation(projects.domainObjectCollections)
@@ -45,22 +46,16 @@ dependencies {
     implementation(projects.fileTemp)
     implementation(projects.groovyLoader)
     implementation(projects.hashing)
+    implementation(projects.isolatedAntBuilder)
     implementation(projects.messaging)
     implementation(projects.persistentCache)
-    implementation(projects.processServices)
     implementation(projects.problemsApi)
+    implementation(projects.problemsReporting)
+    implementation(projects.processServices)
     implementation(projects.scopedPersistentCache)
     implementation(projects.serviceRegistryBuilder)
     implementation(projects.workerMain)
-
-    // The worker infrastructure should _not_ depend on :core. :core contains much
-    // of the Gradle daemon implementation, and brings in a much larger classpath
-    // than what the workers require. Furthermore, the daemon and workers have different
-    // JVM version requirements. Depending on :core from here restricts the daemon
-    // from upgrading its target bytecode version.
-    implementation(projects.ant)
-    implementation(projects.antImpl)  // WorkerDaemonServer directly references DefaultIsolatedAntBuilder
-    implementation(projects.core)
+    implementation(projects.workerShared)
 
     implementation(libs.guava)
 
@@ -68,6 +63,9 @@ dependencies {
     testImplementation(testFixtures(projects.hashing))
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.workers)
 }
 
 gradleModule {

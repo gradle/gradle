@@ -24,7 +24,6 @@ import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.dsl.DependencyHandler;
 import org.gradle.api.artifacts.dsl.RepositoryHandler;
 import org.gradle.api.attributes.Attribute;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.configurations.RoleBasedConfigurationContainerInternal;
 import org.gradle.api.internal.file.FileResolver;
@@ -56,7 +55,7 @@ import java.util.Set;
 
 @UsedByScanPlugin("scan, test-retry")
 @ServiceScope(Scope.Project.class)
-public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptServices, DomainObjectContext, ModelRegistryScope, PluginAwareInternal {
+public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptServices, ModelRegistryScope, PluginAwareInternal {
 
     // These constants are defined here and not with the rest of their kind in HelpTasksPlugin because they are referenced
     // in the ‘core’ modules, which don't depend on ‘plugins’ where HelpTasksPlugin is defined.
@@ -158,7 +157,6 @@ public interface ProjectInternal extends Project, ProjectIdentifier, HasScriptSe
 
     void fireDeferredConfiguration();
 
-    @Override
     ProjectIdentity getProjectIdentity();
 
     /**

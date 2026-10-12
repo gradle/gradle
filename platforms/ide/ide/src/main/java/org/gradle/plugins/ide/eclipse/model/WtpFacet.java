@@ -30,18 +30,37 @@ import java.util.List;
 
 /**
  * Creates the .settings/org.eclipse.wst.common.project.facet.core.xml file for WTP projects.
+ *
+ * @deprecated Will be removed in Gradle 10.
+ * @since 1.0
  */
+@Deprecated
 public class WtpFacet extends XmlPersistableConfigurationObject {
     private List<Facet> facets = new ArrayList<>(); // TODO: turn into Set?
 
+    /**
+     * Creates a new {@code WtpFacet}.
+     *
+     * @since 1.0
+     */
     public WtpFacet(XmlTransformer xmlTransformer) {
         super(xmlTransformer);
     }
 
+    /**
+     * Returns the facets.
+     *
+     * @since 1.0
+     */
     public List<Facet> getFacets() {
         return facets;
     }
 
+    /**
+     * Sets the facets.
+     *
+     * @since 1.0
+     */
     public void setFacets(List<Facet> facets) {
         this.facets = facets;
     }
@@ -71,6 +90,11 @@ public class WtpFacet extends XmlPersistableConfigurationObject {
         return "defaultWtpFacet.xml";
     }
 
+    /**
+     * Configure.
+     *
+     * @since 1.0
+     */
     public void configure(List<Facet> facets) {
         this.facets.addAll(facets);
         removeDuplicates();

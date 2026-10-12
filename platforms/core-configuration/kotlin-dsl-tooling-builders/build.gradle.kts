@@ -14,7 +14,6 @@ dependencies {
 
     implementation(projects.classloaders)
     implementation(projects.serviceLookup)
-    implementation(projects.stdlibJavaExtensions)
     implementation(projects.time)
     implementation(projects.kotlinDsl)
     implementation(projects.logging)

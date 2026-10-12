@@ -467,19 +467,22 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
                         if (transitiveDependencyVersion != resolvedVersion) {
                             byAncestor()
                         }
-                        maybeRequested()
-                        maybeByReason("didn't match version 1.3")
+                        if (rejectedVersion != null) {
+                            // A rejected candidate replaces the plain request as the reason
+                            notRequested()
+                            byReason("didn't match version $rejectedVersion")
+                        }
                     }
                 }
             }
         }
 
         where:
-        directDependencyVersion | transitiveDependencyVersion | listVersions | resolvedVersion
-        '[1.0,1.3]'             | '1.2'                       | true         | '1.3' // should probably choose 1.2 instead
-        '1.2'                   | '[1.0,1.3]'                 | false        | '1.2'
-        '[1.0,1.2]'             | '[1.0, 1.3]'                | true         | '1.2'
-        '[1.0,1.3]'             | '[1.0,1.2]'                 | true         | '1.3' // should probably choose 1.2 instead
+        directDependencyVersion | transitiveDependencyVersion | listVersions | resolvedVersion | rejectedVersion
+        '[1.0,1.3]'             | '1.2'                       | true         | '1.3'           | null // should probably choose 1.2 instead
+        '1.2'                   | '[1.0,1.3]'                 | false        | '1.2'           | null // no version listing, so nothing is rejected
+        '[1.0,1.2]'             | '[1.0, 1.3]'                | true         | '1.2'           | '1.3'
+        '[1.0,1.3]'             | '[1.0,1.2]'                 | true         | '1.3'           | null // should probably choose 1.2 instead
     }
 
     def "should not downgrade dependency version when a transitive dependency has strict version"() {
@@ -524,8 +527,8 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path: 'root project 'test'' (conf) --> 'org:foo:17'
-   Dependency path: 'root project 'test'' (conf) --> 'project ':other'' (conf) --> 'org:foo:{strictly 15}'""")
+   Dependency path: root project 'test' (conf) --> 'org:foo:17'
+   Dependency path: root project 'test' (conf) --> project ':other' (conf) --> 'org:foo:{strictly 15}'""")
 
     }
 
@@ -566,8 +569,8 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path: 'root project 'test'' (conf) --> 'org:foo:{strictly 17}'
-   Dependency path: 'root project 'test'' (conf) --> 'org:foo:{strictly 15}'""")
+   Dependency path: root project 'test' (conf) --> 'org:foo:{strictly 17}'
+   Dependency path: root project 'test' (conf) --> 'org:foo:{strictly 15}'""")
 
     }
 
@@ -608,8 +611,8 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path: 'root project 'test'' (conf) --> 'org:foo:17'
-   Dependency path: 'root project 'test'' (conf) --> 'org:bar:1' (runtime) --> 'org:foo:{strictly 15}'""")
+   Dependency path: root project 'test' (conf) --> 'org:foo:17'
+   Dependency path: root project 'test' (conf) --> org:bar:1 (runtime) --> 'org:foo:{strictly 15}'""")
 
     }
 
@@ -664,7 +667,7 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
             root(":", ":test:") {
                 edge('org:foo:{strictly [15,16]}', 'org:foo:16')
                 project(':other', 'test:other:') {
-                    configuration 'conf'
+                    variant('conf')
                     edge('org:foo:{strictly [17,18]}', 'org:foo:16') {
                         notRequested()
                         byAncestor()
@@ -707,8 +710,8 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path: 'root project 'test'' (conf) --> 'org:foo:15'
-   Dependency path: 'root project 'test'' (conf) --> 'org:foo:{strictly [0,1]}'""")
+   Dependency path: root project 'test' (conf) --> 'org:foo:15'
+   Dependency path: root project 'test' (conf) --> 'org:foo:{strictly [0,1]}'""")
     }
 
     void "can reject dependency versions of an external component"() {
@@ -845,8 +848,8 @@ abstract class AbstractRichVersionConstraintsIntegrationTest extends AbstractMod
         then:
         def selected = GradleMetadataResolveRunner.gradleMetadataPublished || GradleMetadataResolveRunner.useMaven() ? 'runtime' : 'default'
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path: 'root project 'test'' (conf) --> 'org:foo:{require 1.0; reject 1.1}'
-   Dependency path: 'root project 'test'' (conf) --> 'org:bar:1.0' ($selected) --> 'org:foo:1.1'""")
+   Dependency path: root project 'test' (conf) --> 'org:foo:{require 1.0; reject 1.1}'
+   Dependency path: root project 'test' (conf) --> org:bar:1.0 ($selected) --> 'org:foo:1.1'""")
     }
 
     def "can reject a version range"() {

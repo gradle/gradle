@@ -35,6 +35,7 @@ import java.lang.annotation.Target;
 public @interface InjectionPointQualifier {
     /**
      * The types which are supported for injection.
+     * @since 5.3
      */
     Class<?>[] supportedTypes() default {};
 

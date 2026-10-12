@@ -55,7 +55,7 @@ package org.gradle.tooling;
  * </pre>
  *
  * @param <T> The type of model to build
- * @since 1.0-milestone-3
+ * @since 1.0
  */
 public interface ModelBuilder<T> extends ConfigurableLauncher<ModelBuilder<T>> {
 
@@ -100,7 +100,7 @@ public interface ModelBuilder<T> extends ConfigurableLauncher<ModelBuilder<T>> {
      * @throws BuildCancelledException When the operation was cancelled before it completed successfully.
      * @throws GradleConnectionException On some other failure using the connection.
      * @throws IllegalStateException When the connection has been closed or is closing.
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     T get() throws GradleConnectionException, IllegalStateException;
 
@@ -113,7 +113,7 @@ public interface ModelBuilder<T> extends ConfigurableLauncher<ModelBuilder<T>> {
      *
      * @param handler The handler to supply the result to.
      * @throws IllegalStateException When the connection has been closed or is closing.
-     * @since 1.0-milestone-3
+     * @since 1.0
      */
     void get(ResultHandler<? super T> handler) throws IllegalStateException;
 }

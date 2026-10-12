@@ -24,16 +24,19 @@ package org.gradle.api.logging.configuration;
 public enum WarningMode {
     /**
      * Show all warnings.
+     * @since 4.5
      */
     All(true),
 
     /**
      * Display a summary at the end of the build instead of rendering all warnings into the console output.
+     * @since 4.5
      */
     Summary(false),
 
     /**
      * No deprecation warnings at all.
+     * @since 4.5
      */
     None(false),
 

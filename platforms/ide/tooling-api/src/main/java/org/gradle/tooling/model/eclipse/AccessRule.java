@@ -34,6 +34,7 @@ public interface AccessRule {
      * </ul>
      *
      * @return The type of this access rule.
+     * @since 3.0
      */
     int getKind();
 
@@ -41,6 +42,7 @@ public interface AccessRule {
      * Returns the file pattern of this access rule.
      *
      * @return The file pattern of this access rule.
+     * @since 3.0
      */
     String getPattern();
 }

@@ -308,6 +308,13 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.dependsOn(tasks.named("assembleSamples"));
         });
 
+        tasks.register("checkDeadExternalLinks", FindBrokenExternalLinks.class, task -> {
+            task.setGroup("verification");
+            task.setDescription("Checks external HTTP(S) links in .adoc and .md documentation files.");
+            task.getReportFile().convention(layout.getBuildDirectory().file("reports/dead-external-links.txt"));
+            task.getDocumentationRoot().convention(layout.getProjectDirectory().dir("src/docs"));
+        });
+
         tasks.named(LifecycleBasePlugin.CHECK_TASK_NAME, task -> task.dependsOn(checkDeadInternalLinks));
     }
 }

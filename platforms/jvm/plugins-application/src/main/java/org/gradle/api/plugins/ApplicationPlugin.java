@@ -59,13 +59,44 @@ import static org.gradle.api.distribution.plugins.DistributionPlugin.TASK_INSTAL
  * <p>The plugin can be configured via the {@link JavaApplication} extension.</p>
  *
  * @see <a href="https://docs.gradle.org/current/userguide/application_plugin.html">Application plugin reference</a>
+ * @since 1.0
  */
 public abstract class ApplicationPlugin implements Plugin<Project> {
+    /**
+     * The application plugin name.
+     *
+     * @since 2.14
+     */
     public static final String APPLICATION_PLUGIN_NAME = "application";
+    /**
+     * The application group.
+     *
+     * @since 2.14
+     */
     public static final String APPLICATION_GROUP = APPLICATION_PLUGIN_NAME;
+    /**
+     * The task run name.
+     *
+     * @since 2.14
+     */
     public static final String TASK_RUN_NAME = "run";
+    /**
+     * The task start scripts name.
+     *
+     * @since 2.14
+     */
     public static final String TASK_START_SCRIPTS_NAME = "startScripts";
+    /**
+     * The task dist zip name.
+     *
+     * @since 2.14
+     */
     public static final String TASK_DIST_ZIP_NAME = "distZip";
+    /**
+     * The task dist tar name.
+     *
+     * @since 2.14
+     */
     public static final String TASK_DIST_TAR_NAME = "distTar";
 
     @Override

@@ -24,30 +24,56 @@ import java.net.URI;
 
 /**
  * Generic resource exception that all other resource-related exceptions inherit from.
+ * @since 1.0
  */
 @Contextual
 public class ResourceException extends GradleException {
     private final URI location;
 
+    /**
+     * Creates a new {@code ResourceException}.
+     *
+     * @since 1.0
+     */
     public ResourceException() {
         location = null;
     }
 
+    /**
+     * Creates a new {@code ResourceException}.
+     *
+     * @since 1.0
+     */
     public ResourceException(String message) {
         super(message);
         location = null;
     }
 
+    /**
+     * Creates a new {@code ResourceException}.
+     *
+     * @since 1.0
+     */
     public ResourceException(String message, Throwable cause) {
         super(message, cause);
         location = null;
     }
 
+    /**
+     * Creates a new {@code ResourceException}.
+     *
+     * @since 2.13
+     */
     public ResourceException(URI location, String message) {
         super(message);
         this.location = location;
     }
 
+    /**
+     * Creates a new {@code ResourceException}.
+     *
+     * @since 2.13
+     */
     public ResourceException(URI location, String message, Throwable cause) {
         super(message, cause);
         this.location = location;
@@ -57,6 +83,7 @@ public class ResourceException extends GradleException {
      * Returns the location of the resource, if known.
      *
      * @return The location, or null if not known.
+     * @since 2.13
      */
     @Nullable
     public URI getLocation() {

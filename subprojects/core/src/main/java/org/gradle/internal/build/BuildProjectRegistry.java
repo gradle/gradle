@@ -18,6 +18,8 @@ package org.gradle.internal.build;
 
 import org.gradle.api.internal.project.ProjectState;
 import org.gradle.internal.Factory;
+import org.gradle.internal.service.scopes.Scope;
+import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
@@ -25,6 +27,7 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+@ServiceScope(Scope.Build.class)
 public interface BuildProjectRegistry {
     /**
      * Returns the root project of this build.

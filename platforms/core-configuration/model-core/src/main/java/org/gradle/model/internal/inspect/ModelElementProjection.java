@@ -17,7 +17,6 @@
 package org.gradle.model.internal.inspect;
 
 import com.google.common.base.Optional;
-import org.gradle.model.ModelElement;
 import org.gradle.model.internal.core.InstanceModelView;
 import org.gradle.model.internal.core.ModelView;
 import org.gradle.model.internal.core.MutableModelNode;
@@ -25,8 +24,9 @@ import org.gradle.model.internal.core.TypeCompatibilityModelProjectionSupport;
 import org.gradle.model.internal.core.rule.describe.ModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
 
-public class ModelElementProjection extends TypeCompatibilityModelProjectionSupport<ModelElement> {
-    private static final ModelType<ModelElement> MODEL_ELEMENT_MODEL_TYPE = ModelType.of(ModelElement.class);
+@SuppressWarnings("deprecation")
+public class ModelElementProjection extends TypeCompatibilityModelProjectionSupport<org.gradle.model.ModelElement> {
+    private static final ModelType<org.gradle.model.ModelElement> MODEL_ELEMENT_MODEL_TYPE = ModelType.of(org.gradle.model.ModelElement.class);
     private final ModelType<?> publicType;
 
     public ModelElementProjection(ModelType<?> publicType) {
@@ -35,8 +35,8 @@ public class ModelElementProjection extends TypeCompatibilityModelProjectionSupp
     }
 
     @Override
-    protected ModelView<ModelElement> toView(final MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
-        return InstanceModelView.of(modelNode.getPath(), MODEL_ELEMENT_MODEL_TYPE, new ModelElement() {
+    protected ModelView<org.gradle.model.ModelElement> toView(final MutableModelNode modelNode, ModelRuleDescriptor ruleDescriptor, boolean writable) {
+        return InstanceModelView.of(modelNode.getPath(), MODEL_ELEMENT_MODEL_TYPE, new org.gradle.model.ModelElement() {
             @Override
             public String toString() {
                 return getDisplayName();

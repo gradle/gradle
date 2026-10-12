@@ -548,6 +548,20 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
         GradleVersion.version(targetDist.version.baseVersion.version)
     }
 
+    /**
+     * Collects the message of the given throwable and of every cause in its cause chain.
+     */
+    protected static List<String> collectCauseMessages(Throwable throwable) {
+        def messages = []
+        Throwable current = throwable
+        int depth = 0
+        while (current != null && depth++ < 50) {
+            messages << current.message
+            current = current.cause
+        }
+        return messages
+    }
+
     protected static String mavenCentralRepository() {
         RepoScriptBlockUtil.mavenCentralRepository()
     }
@@ -562,6 +576,20 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
 
     void expectDocumentedDeprecationWarning(String message) {
         expectedDeprecations << normalizeDeprecationWarning(message)
+    }
+
+    /**
+     * Expects the deprecation for relying on {@code org.gradle.parallel} to implicitly enable parallel
+     * model building, emitted by Gradle 9.8.0 and later during model building. See gradle/gradle#36001.
+     */
+    void expectImplicitParallelModelBuildingDeprecation() {
+        expectDocumentedDeprecationWarning(
+            "Relying on the default value of the 'org.gradle.tooling.parallel' property while 'org.gradle.parallel' is enabled. " +
+                "This behavior has been deprecated. This will fail with an error in Gradle 10. " +
+                "Whether the Tooling API builds project models in parallel (for example, during IDE sync) should be controlled explicitly via 'org.gradle.tooling.parallel'. " +
+                "Set 'org.gradle.tooling.parallel' to 'true' or 'false' explicitly. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate_implicit_parallel_model_building"
+        )
     }
 
     private String normalizeDeprecationWarning(String message) {

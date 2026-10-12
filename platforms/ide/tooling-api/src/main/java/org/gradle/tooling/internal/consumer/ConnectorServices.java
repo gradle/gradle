@@ -57,9 +57,15 @@ public class ConnectorServices {
     }
 
     public static synchronized void close() {
-        if (sharedConnectorFactory != null) {
-            sharedConnectorFactory.close();
+        GradleConnectorFactory factory = sharedConnectorFactory;
+        if (factory != null) {
+            // Drop the reference before closing. The underlying service registry marks itself as
+            // closed before it stops its services, so a failure while stopping them (for example
+            // an interrupt while shutting a hanging daemon connection down) would otherwise leave
+            // a reachable factory backed by a closed registry, failing every later connector
+            // creation with "connector services has been closed."
             sharedConnectorFactory = null;
+            factory.close();
         }
     }
 
@@ -84,8 +90,11 @@ public class ConnectorServices {
      */
     @VisibleForTesting
     public static synchronized void reset() {
-        close();
-        activeConnectors = 0;
+        try {
+            close();
+        } finally {
+            activeConnectors = 0;
+        }
     }
 
     /**

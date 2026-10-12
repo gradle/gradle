@@ -25,6 +25,8 @@ import org.gradle.api.PolymorphicDomainObjectContainer
  * Defines a new object, which will be created when it is required.
  *
  * @see [PolymorphicDomainObjectContainer.register]
+ *
+ * @since 5.6
  */
 @Suppress("extension_shadowed_by_member")
 inline fun <reified T : Any> PolymorphicDomainObjectContainer<in T>.register(name: String): NamedDomainObjectProvider<T> =
@@ -35,6 +37,8 @@ inline fun <reified T : Any> PolymorphicDomainObjectContainer<in T>.register(nam
  * Defines and configure a new object, which will be created when it is required.
  *
  * @see [PolymorphicDomainObjectContainer.register]
+ *
+ * @since 5.6
  */
 inline fun <reified T : Any> PolymorphicDomainObjectContainer<in T>.register(name: String, noinline configuration: T.() -> Unit): NamedDomainObjectProvider<T> =
     register(name, T::class.java, configuration)
@@ -51,6 +55,8 @@ inline fun <reified T : Any> PolymorphicDomainObjectContainer<in T>.register(nam
  * @throws [InvalidUserDataException] if a domain object with the specified name already
  * exists or the container does not support creating a domain object with the specified
  * type
+ *
+ * @since 5.6
  */
 inline fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.create(
     name: String,
@@ -69,6 +75,8 @@ inline fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.create(
  * @throws [InvalidUserDataException] if a domain object with the specified name already
  * exists or the container does not support creating a domain object with the specified
  * type
+ *
+ * @since 5.6
  */
 @Suppress("extension_shadowed_by_member")
 inline fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.create(name: String) =
@@ -85,6 +93,8 @@ inline fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.create(name:
  * exists or the container does not support creating a domain object with the specified
  * type
  * @throws [ClassCastException] if a domain object with the specified name exists with a different type
+ *
+ * @since 5.6
  */
 @Suppress("extension_shadowed_by_member")
 inline fun <reified U : Any> PolymorphicDomainObjectContainer<in U>.maybeCreate(name: String) =

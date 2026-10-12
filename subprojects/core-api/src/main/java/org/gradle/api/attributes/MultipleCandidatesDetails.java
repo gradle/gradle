@@ -40,6 +40,7 @@ public interface MultipleCandidatesDetails<T> {
      * A set of candidate values.
      *
      * @return the set of candidates
+     * @since 3.3
      */
     Set<T> getCandidateValues();
 
@@ -48,6 +49,7 @@ public interface MultipleCandidatesDetails<T> {
      * different values, in which case it indicates that multiple candidates are equally compatible.
      *
      * @param candidate The closest match. Must be present in {@link #getCandidateValues()}.
+     * @since 3.4
      */
     void closestMatch(T candidate);
 

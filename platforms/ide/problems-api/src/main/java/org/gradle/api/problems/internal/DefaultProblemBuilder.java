@@ -53,6 +53,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
     private Throwable exception;
     private AdditionalData additionalData;
     private boolean collectStackLocation = false;
+    private boolean writtenToConsole = false;
     private ProblemDiagnostics diagnostics;
 
     public DefaultProblemBuilder(
@@ -78,6 +79,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         this.docLink = problem.getDefinition().getDocumentationLink();
         this.exception = problem.getException();
         this.additionalData = problem.getAdditionalData();
+        this.writtenToConsole = problem.isWrittenToConsole();
     }
 
     @Override
@@ -109,7 +111,8 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             contextLocations,
             details,
             exception,
-            additionalData
+            additionalData,
+            writtenToConsole
         );
     }
 
@@ -122,15 +125,19 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         if (problemStream == null || (!collectStackLocation && areLocationsProvided())) {
             return null;
         }
-        return problemStream.forCurrentCaller(exceptionForStackLocation(this.severity == Severity.ERROR));
+        Throwable exception = getException();
+        if (exception != null) {
+            return problemStream.forThrownException(exception);
+        }
+        if (this.severity == Severity.ERROR) {
+            // Errors must always have location
+            return problemStream.forThrownException(new RuntimeException());
+        }
+        return problemStream.forCurrentCaller();
     }
 
     private boolean areLocationsProvided() {
         return !(contextLocations.isEmpty() && originLocations.isEmpty());
-    }
-
-    private Throwable exceptionForStackLocation(boolean overruleStacktraceLimit) {
-        return getException() == null && overruleStacktraceLimit ? new RuntimeException() : getException();
     }
 
     private void addLocationsFromDiagnostics(List<ProblemLocation> locations, ProblemDiagnostics diagnostics) {
@@ -186,10 +193,7 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
             contextualLabel,
             ImmutableList.<String>of(),
             problemLocations,
-            ImmutableList.<ProblemLocation>of(),
-            null,
-            null,
-            null
+            ImmutableList.<ProblemLocation>of()
         );
     }
 
@@ -300,10 +304,11 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
 
     @Override
     public ProblemBuilderInternal id(ProblemId problemId) {
-        if (problemId instanceof DefaultProblemId) {
+        ProblemGroup group = cloneGroup(problemId.getGroup());
+        if (problemId instanceof DefaultProblemId && group == problemId.getGroup()) {
             this.id = problemId;
         } else {
-            this.id = cloneId(problemId);
+            this.id = ProblemId.create(problemId.getName(), problemId.getDisplayName(), group);
         }
         return this;
     }
@@ -314,12 +319,14 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         return this;
     }
 
-    private static ProblemId cloneId(ProblemId original) {
-        return ProblemId.create(original.getName(), original.getDisplayName(), cloneGroup(original.getGroup()));
-    }
-
+    /**
+     * Groups owned by Gradle (including the predefined hierarchy) are kept as they are, so that descriptions and identity survive.
+     * Foreign implementations are copied into a Gradle-owned group, so that reported problems only carry known, serializable types.
+     */
     private static ProblemGroup cloneGroup(ProblemGroup original) {
-        return ProblemGroup.create(original.getName(), original.getDisplayName(), original.getParent() == null ? null : cloneGroup(original.getParent()));
+        ProblemGroup owned = DefaultProblemGroup.owned(original);
+        assert owned != null;
+        return owned;
     }
 
     @Override
@@ -373,6 +380,12 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
     @Override
     public ProblemBuilderInternal withException(Throwable t) {
         this.exception = t;
+        return this;
+    }
+
+    @Override
+    public ProblemBuilderInternal writtenToConsole() {
+        this.writtenToConsole = true;
         return this;
     }
 

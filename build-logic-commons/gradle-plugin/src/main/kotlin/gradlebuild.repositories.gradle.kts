@@ -23,8 +23,9 @@ repositories {
             includeGroup("org.gradle.fileevents")
             includeModule("flot", "flot")
             includeModule("org.gradle", "gradle-tooling-api")
-            // The root multiplatform module plus the -jvm module its GMM redirects to.
-            includeModuleByRegex("org\\.gradle\\.buildtool\\.internal", "configuration-cache-report(-jvm)?")
+            // The root multiplatform module plus the -jvm module its GMM redirects to, and the
+            // fixtures library the integration test fixtures read reports with.
+            includeModuleByRegex("org\\.gradle\\.buildtool\\.internal", "configuration-cache-report(-jvm|-fixtures)?")
             includeModule("org.gradle.buildtool.internal", "gradle-ide-starter")
             includeModule("org.gradle.buildtool.internal", "gradle-ide-starter-scenarios")
         }
@@ -42,5 +43,12 @@ repositories {
             includeGroup("io.usethesource")
         }
     }
-    mavenCentral()
+    mavenCentral {
+        content {
+            // The japicmp baseline is served by the Gradle distributions ivy repository declared in
+            // gradlebuild.binary-compatibility. Asking Maven Central for it can only ever 404, and
+            // when the mirror answers 503 under load instead, Gradle disables the whole repository.
+            excludeModule("gradle", "gradle")
+        }
+    }
 }

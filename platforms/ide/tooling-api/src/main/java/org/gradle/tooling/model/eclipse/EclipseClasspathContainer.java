@@ -27,6 +27,7 @@ public interface EclipseClasspathContainer extends EclipseClasspathEntry {
      * Returns the path of this container.
      *
      * @return The path of this container. Does not return null.
+     * @since 3.0
      */
     String getPath();
 
@@ -34,6 +35,7 @@ public interface EclipseClasspathContainer extends EclipseClasspathEntry {
      * Marks this container as exported.
      *
      * @return whether this container needs to be exported.
+     * @since 3.0
      */
     boolean isExported();
 }

@@ -1,5 +1,5 @@
 .table-of-contents a {
-  color: #02303A;
+  color: var(--text-color);
 }
 
 #fixed-issues-list ul,
@@ -10,7 +10,7 @@
 
 #fixed-issues-list li:before,
 .topic ul li:before {
-  color: #02303A;
+  color: var(--text-color);
   content: '\002022';
   font: 0.9em bold sans-serif;
   margin-left: -1em;
@@ -18,7 +18,7 @@
 }
 
 li.mainTopic :before {
-  color: #02303A;
+  color: var(--text-color);
   content: '\002022';
   font: 0.9em bold sans-serif;
   margin-left: -1em;
@@ -26,7 +26,7 @@ li.mainTopic :before {
 }
 
 li.subTopic :before {
-  color: #02303A;
+  color: var(--text-color);
   content: '\002022';
   font: 0.9em bold sans-serif;
   margin-left: 3em;
@@ -66,7 +66,8 @@ a.incubating-marker:hover {
   border: 1px solid rgb(150, 150, 150);
 }
 
-/* Same as code highlighting values in docs.css */
+/* Legacy inline code highlighting for release notes (not highlight.js).
+   Values calibrated so contrast works on both light and dark backgrounds. */
 .java_keyword {
   color: #963;
 }
@@ -84,6 +85,19 @@ a.incubating-marker:hover {
 }
 .java_literal {
   color: #d14;
+}
+
+[data-theme="dark"] .java_keyword {
+  color: #d4a74d;      /* brighter orange for dark bg */
+}
+[data-theme="dark"] .java_comment {
+  color: #7a7a7a;      /* lighter grey for readability */
+}
+[data-theme="dark"] .java_operator {
+  color: #bbb;         /* pale grey — was near-invisible dark grey */
+}
+[data-theme="dark"] .java_literal {
+  color: #ff6b6b;      /* brighter red */
 }
 
 /* Embedded Videos */

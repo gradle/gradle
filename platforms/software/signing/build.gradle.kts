@@ -48,8 +48,6 @@ dependencies {
     testFixturesImplementation(testFixtures(projects.core))
 
     testFixturesImplementation(libs.slf4jApi)
-    testFixturesImplementation(testLibs.jetty)
-    testFixturesImplementation(testLibs.jettyWebApp)
 }
 
 gradleModule {
@@ -64,10 +62,6 @@ gradleModule {
 
 strictCompile {
     ignoreRawTypes() // raw types used in public API
-}
-
-packageCycles {
-    excludePatterns.add("org/gradle/plugins/signing/**")
 }
 
 

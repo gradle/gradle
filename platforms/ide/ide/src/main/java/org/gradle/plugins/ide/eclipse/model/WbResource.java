@@ -26,15 +26,26 @@ import java.util.Map;
 
 /**
  * A wtp descriptor resource entry.
+ * @since 1.0
  */
 public class WbResource implements WbModuleEntry {
     private String deployPath;
     private String sourcePath;
 
+    /**
+     * Creates a new {@code WbResource}.
+     *
+     * @since 2.14
+     */
     public WbResource(Node node) {
         this((String) node.attribute("deploy-path"), (String) node.attribute("source-path"));
     }
 
+    /**
+     * Creates a new {@code WbResource}.
+     *
+     * @since 1.0
+     */
     public WbResource(String deployPath, String sourcePath) {
         Preconditions.checkNotNull(deployPath);
         Preconditions.checkNotNull(sourcePath);
@@ -42,18 +53,38 @@ public class WbResource implements WbModuleEntry {
         this.sourcePath = PathUtil.normalizePath(sourcePath);
     }
 
+    /**
+     * Returns the deploy path.
+     *
+     * @since 1.0
+     */
     public String getDeployPath() {
         return deployPath;
     }
 
+    /**
+     * Sets the deploy path.
+     *
+     * @since 1.0
+     */
     public void setDeployPath(String deployPath) {
         this.deployPath = deployPath;
     }
 
+    /**
+     * Returns the source path.
+     *
+     * @since 1.0
+     */
     public String getSourcePath() {
         return sourcePath;
     }
 
+    /**
+     * Sets the source path.
+     *
+     * @since 1.0
+     */
     public void setSourcePath(String sourcePath) {
         this.sourcePath = sourcePath;
     }

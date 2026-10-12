@@ -28,16 +28,19 @@ import java.io.File;
 public interface IncludedBuild {
     /**
      * The name of the included build.
+     * @since 3.1
      */
     String getName();
 
     /**
      * The root directory of the included build.
+     * @since 3.1
      */
     File getProjectDir();
 
     /**
      * Produces a reference to a task in the included build.
+     * @since 3.1
      */
     TaskReference task(String path);
 }

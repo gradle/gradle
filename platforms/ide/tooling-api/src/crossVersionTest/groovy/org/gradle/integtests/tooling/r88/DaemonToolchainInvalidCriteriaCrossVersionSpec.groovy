@@ -27,6 +27,7 @@ class DaemonToolchainInvalidCriteriaCrossVersionSpec extends ToolingApiSpecifica
 
     def "Given empty daemon-jvm properties file When execute any task Then succeeds using the current java home"() {
         given:
+        targetDist.assumeDaemonWorksWithCurrentJvm()
         buildPropertiesFile.touch()
         captureJavaHome()
 
@@ -71,6 +72,7 @@ class DaemonToolchainInvalidCriteriaCrossVersionSpec extends ToolingApiSpecifica
     @TargetGradleVersion(">=8.13")
     def "Given unexpected toolchain vendor When execute any task Then fails with expected exception message"() {
         given:
+        targetDist.assumeDaemonWorksWithCurrentJvm()
         def properties = new Properties()
         properties.put("toolchainVersion", "17")
         properties.put("toolchainVendor", "unexpectedVendor")
@@ -92,6 +94,7 @@ class DaemonToolchainInvalidCriteriaCrossVersionSpec extends ToolingApiSpecifica
     @TargetGradleVersion(">=8.13")
     def "Given unexpected toolchain implementation When execute any task Then fails with expected exception message"() {
         given:
+        targetDist.assumeDaemonWorksWithCurrentJvm()
         def properties = new Properties()
         properties.put("toolchainVersion", "17")
         properties.put("toolchainVendor", "amazon")

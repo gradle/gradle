@@ -167,6 +167,7 @@ import org.gradle.tooling.events.work.internal.DefaultWorkItemFinishEvent;
 import org.gradle.tooling.events.work.internal.DefaultWorkItemOperationDescriptor;
 import org.gradle.tooling.events.work.internal.DefaultWorkItemStartEvent;
 import org.gradle.tooling.events.work.internal.DefaultWorkItemSuccessResult;
+import org.gradle.tooling.internal.consumer.ClientFailureCache;
 import org.gradle.tooling.internal.consumer.DefaultFailure;
 import org.gradle.tooling.internal.consumer.DefaultFileComparisonTestAssertionFailure;
 import org.gradle.tooling.internal.consumer.DefaultTestAssertionFailure;
@@ -1320,19 +1321,27 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
     }
 
     public static List<Failure> toFailures(@Nullable Collection<? extends InternalFailure> causes) {
+        return toFailures(causes, new ClientFailureCache());
+    }
+
+    public static List<Failure> toFailures(@Nullable Collection<? extends InternalFailure> causes, ClientFailureCache failureCache) {
         if (causes == null) {
             return null;
         }
         List<Failure> failures = new ArrayList<>(causes.size());
         for (InternalFailure cause : causes) {
-            Failure f = toFailure(cause);
-            if (f != null) {
-                failures.add(f);
+            Failure failure = toFailure(cause, failureCache);
+            if (failure != null) {
+                failures.add(failure);
             }
         }
         return failures;
     }
 
+    /*
+     * Kept as a separate conversion for failures nested in problem details. Progress event conversion does not retain
+     * a cache across events, while the fetch path supplies its build action scoped cache.
+     */
     @Nullable
     private static Failure toFailure(InternalBasicProblemDetails problemDetails) {
         if (!(problemDetails instanceof InternalBasicProblemDetailsVersion2)) {
@@ -1343,9 +1352,25 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
 
     @Nullable
     private static Failure toFailure(@Nullable InternalFailure origFailure) {
+        return toFailure(origFailure, new ClientFailureCache());
+    }
+
+    @Nullable
+    private static Failure toFailure(@Nullable InternalFailure origFailure, ClientFailureCache failureCache) {
         if (origFailure == null) {
             return null;
         }
+
+        Failure cached = failureCache.get(origFailure);
+        if (cached != null) {
+            return cached;
+        }
+
+        Failure converted = convertFailure(origFailure, failureCache);
+        return failureCache.intern(origFailure, converted);
+    }
+
+    private static Failure convertFailure(InternalFailure origFailure, ClientFailureCache failureCache) {
         List<InternalBasicProblemDetailsVersion3> problemDetails = new ArrayList<>();
         try {
             problemDetails.addAll(origFailure.getProblems());
@@ -1366,9 +1391,9 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                     assertionFailure.getDescription(),
                     assertionFailure.getExpected(),
                     assertionFailure.getActual(),
-                    toFailures(origFailure.getCauses()),
-                    ((InternalTestAssertionFailure) origFailure).getClassName(),
-                    ((InternalTestAssertionFailure) origFailure).getStacktrace(),
+                    toFailures(origFailure.getCauses(), failureCache),
+                    assertionFailure.getClassName(),
+                    assertionFailure.getStacktrace(),
                     ((InternalFileComparisonTestAssertionFailure) origFailure).getExpectedContent(),
                     ((InternalFileComparisonTestAssertionFailure) origFailure).getActualContent()
                 );
@@ -1379,21 +1404,21 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
                 assertionFailure.getDescription(),
                 assertionFailure.getExpected(),
                 assertionFailure.getActual(),
-                toFailures(origFailure.getCauses()),
-                ((InternalTestAssertionFailure) origFailure).getClassName(),
-                ((InternalTestAssertionFailure) origFailure).getStacktrace()
+                toFailures(origFailure.getCauses(), failureCache),
+                assertionFailure.getClassName(),
+                assertionFailure.getStacktrace()
             );
         } else if (origFailure instanceof InternalTestFrameworkFailure) {
             InternalTestFrameworkFailure frameworkFailure = (InternalTestFrameworkFailure) origFailure;
             return new DefaultTestFrameworkFailure(
                 frameworkFailure.getMessage(),
                 frameworkFailure.getDescription(),
-                toFailures(origFailure.getCauses()),
-                ((InternalTestFrameworkFailure) origFailure).getClassName(),
-                ((InternalTestFrameworkFailure) origFailure).getStacktrace()
+                toFailures(origFailure.getCauses(), failureCache),
+                frameworkFailure.getClassName(),
+                frameworkFailure.getStacktrace()
             );
         }
-        List<Failure> causes = toFailures(origFailure.getCauses());
+        List<Failure> causes = toFailures(origFailure.getCauses(), failureCache);
         try {
             return DefaultFailure.fromOwnDescription(origFailure.getMessage(), origFailure.getOwnDescription(), causes, clientProblems);
         } catch (NoSuchMethodError | AbstractMethodError ignore) {
@@ -1426,4 +1451,5 @@ public class BuildProgressListenerAdapter implements InternalBuildProgressListen
         }
         return AnnotationProcessorResult.Type.UNKNOWN;
     }
+
 }

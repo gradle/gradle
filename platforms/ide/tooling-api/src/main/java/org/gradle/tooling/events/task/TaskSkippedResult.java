@@ -29,6 +29,7 @@ public interface TaskSkippedResult extends TaskOperationResult, SkippedResult {
      * Returns a message describing the reason for skipping the task.
      *
      * @return the message describing the skip reason
+     * @since 2.5
      */
     String getSkipMessage();
 

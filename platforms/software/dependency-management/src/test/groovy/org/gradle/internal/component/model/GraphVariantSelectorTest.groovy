@@ -16,6 +16,7 @@
 
 package org.gradle.internal.component.model
 
+import org.gradle.api.Named
 import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ComponentIdentifier
 import org.gradle.api.attributes.Attribute
@@ -338,12 +339,15 @@ Configuration 'bar':
         return variant
     }
 
-    enum JavaVersion {
+    enum JavaVersion implements Named {
         JAVA5,
         JAVA6,
         JAVA7,
         JAVA8,
         JAVA9
+
+        @Override
+        String getName() { return name() }
     }
 
 }

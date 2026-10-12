@@ -33,6 +33,7 @@ import static org.gradle.internal.instrumentation.api.annotations.ReplacedAccess
 
 /**
  * The base class for all JVM-based language compilation tasks.
+ * @since 0.9
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractCompile extends SourceTask {
@@ -41,6 +42,11 @@ public abstract class AbstractCompile extends SourceTask {
     private String sourceCompatibility;
     private String targetCompatibility;
 
+    /**
+     * Creates a new {@code AbstractCompile}.
+     *
+     * @since 0.9
+     */
     @SuppressWarnings("this-escape")
     public AbstractCompile() {
         this.destinationDirectory = getProject().getObjects().directoryProperty();
@@ -50,6 +56,7 @@ public abstract class AbstractCompile extends SourceTask {
      * Returns the classpath to use to compile the source files.
      *
      * @return The classpath.
+     * @since 0.9
      */
     @Classpath
     @ToBeReplacedByLazyProperty
@@ -61,6 +68,7 @@ public abstract class AbstractCompile extends SourceTask {
      * Sets the classpath to use to compile the source files.
      *
      * @param configuration The classpath. Must not be null, but may be empty.
+     * @since 0.9
      */
     public void setClasspath(FileCollection configuration) {
         this.classpath = configuration;
@@ -88,6 +96,7 @@ public abstract class AbstractCompile extends SourceTask {
      * Returns the Java language level to use to compile the source files.
      *
      * @return The source language level.
+     * @since 0.9
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -99,6 +108,7 @@ public abstract class AbstractCompile extends SourceTask {
      * Sets the Java language level to use to compile the source files.
      *
      * @param sourceCompatibility The source language level. Must not be null.
+     * @since 0.9
      */
     public void setSourceCompatibility(String sourceCompatibility) {
         this.sourceCompatibility = sourceCompatibility;
@@ -108,6 +118,7 @@ public abstract class AbstractCompile extends SourceTask {
      * Returns the target JVM to generate the {@code .class} files for.
      *
      * @return The target JVM.
+     * @since 0.9
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -119,6 +130,7 @@ public abstract class AbstractCompile extends SourceTask {
      * Sets the target JVM to generate the {@code .class} files for.
      *
      * @param targetCompatibility The target JVM. Must not be null.
+     * @since 0.9
      */
     public void setTargetCompatibility(String targetCompatibility) {
         this.targetCompatibility = targetCompatibility;

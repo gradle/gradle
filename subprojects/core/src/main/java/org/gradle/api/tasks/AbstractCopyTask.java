@@ -42,6 +42,7 @@ import org.gradle.api.internal.file.copy.CopySpecResolver;
 import org.gradle.api.internal.file.copy.CopySpecSource;
 import org.gradle.api.internal.file.copy.DefaultCopySpec;
 import org.gradle.api.internal.provider.PropertyFactory;
+import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.specs.Spec;
@@ -66,6 +67,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 /**
  * {@code AbstractCopyTask} is the base class for all copy tasks.
+ * @since 0.9
  */
 @NullMarked
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
@@ -74,6 +76,11 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     private final CopySpecInternal rootSpec;
     private final CopySpecInternal mainSpec;
 
+    /**
+     * Creates a new {@code AbstractCopyTask}.
+     *
+     * @since 0.9
+     */
     @SuppressWarnings("this-escape")
     protected AbstractCopyTask() {
         this.rootSpec = createRootSpec();
@@ -87,11 +94,12 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
             CopySpecResolver resolver = spec.buildResolverRelativeToParent(parentResolver);
             String specPropertyName = specPropertyNameBuilder.toString();
 
-            getInputs().files((Callable<FileTree>) resolver::getSource)
-                .withPropertyName(specPropertyName)
+            TaskInputFilePropertyBuilderInternal sourceProperty =
+                (TaskInputFilePropertyBuilderInternal) getInputs().files((Callable<FileTree>) resolver::getSource);
+            sourceProperty.withPropertyName(specPropertyName)
                 .withPathSensitivity(PathSensitivity.RELATIVE)
-                .ignoreEmptyDirectories(false)
-                .skipWhenEmpty();
+                .skipWhenEmpty(this::shouldSkipWhenSourceIsEmpty)
+                .ignoreEmptyDirectories(false);
 
             getInputs().property(specPropertyName + ".destPath", (Callable<String>) () -> resolver.getDestPath().getPathString());
             getInputs().property(specPropertyName + ".caseSensitive", (Callable<Boolean>) spec::isCaseSensitive);
@@ -110,11 +118,28 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         this.mainSpec = rootSpec.addChild();
     }
 
+    /**
+     * Create root spec.
+     *
+     * @since 1.8
+     */
     protected CopySpecInternal createRootSpec() {
         return getProject().getObjects().newInstance(DefaultCopySpec.class);
     }
 
+    /**
+     * Create copy action.
+     *
+     * @since 1.8
+     */
     protected abstract CopyAction createCopyAction();
+
+    /**
+     * Whether this task should be skipped when its source files are empty.
+     */
+    /* package */ boolean shouldSkipWhenSourceIsEmpty() {
+        return true;
+    }
 
     @Inject
     protected abstract Instantiator getInstantiator();
@@ -140,6 +165,11 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     @Inject
     protected abstract PropertyFactory getPropertyFactory();
 
+    /**
+     * Copy.
+     *
+     * @since 0.9
+     */
     @TaskAction
     protected void copy() {
         CopyActionExecuter copyActionExecuter = createCopyActionExecuter();
@@ -148,6 +178,11 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
         setDidWork(didWork.getDidWork());
     }
 
+    /**
+     * Create copy action executer.
+     *
+     * @since 3.4
+     */
     protected CopyActionExecuter createCopyActionExecuter() {
         Instantiator instantiator = getInstantiator();
         FileSystem fileSystem = getFileSystem();
@@ -159,6 +194,7 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
      * Returns the source files for this task.
      *
      * @return The source files. Never returns null.
+     * @since 0.9
      */
     @Internal
     @NotToBeReplacedByLazyProperty(because = "Read-only nested like property")
@@ -177,6 +213,11 @@ public abstract class AbstractCopyTask extends ConventionTask implements CopySpe
     // ---- Delegate CopySpec methods to rootSpec ----
     // -----------------------------------------------
 
+    /**
+     * Returns the main spec.
+     *
+     * @since 0.9
+     */
     @Internal
     protected CopySpecInternal getMainSpec() {
         return mainSpec;

@@ -20,21 +20,25 @@ import org.gradle.api.Incubating;
 
 /**
  * Provides access to the content of a generated text file.
+ * @since 1.11
  */
 @Incubating
 public interface TextProvider {
     /**
      * The text content.
+     * @since 1.11
      */
     String getText();
 
     /**
      * Replace the content.
+     * @since 1.11
      */
     void setText(String value);
 
     /**
      * Get the content as a {@link StringBuilder}, permitting direct modification.
+     * @since 1.11
      */
     StringBuilder asBuilder();
 }

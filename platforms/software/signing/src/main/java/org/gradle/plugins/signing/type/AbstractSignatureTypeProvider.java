@@ -23,6 +23,7 @@ import java.util.Map;
 
 /**
  * Convenience base class for {@link SignatureTypeProvider} implementations.
+ * @since 1.0
  */
 public abstract class AbstractSignatureTypeProvider implements SignatureTypeProvider {
 
@@ -53,6 +54,11 @@ public abstract class AbstractSignatureTypeProvider implements SignatureTypeProv
         return types.get(extension);
     }
 
+    /**
+     * Register.
+     *
+     * @since 1.0
+     */
     protected void register(SignatureType type) {
         types.put(type.getExtension(), type);
     }

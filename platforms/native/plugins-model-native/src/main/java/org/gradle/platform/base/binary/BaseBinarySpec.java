@@ -56,8 +56,12 @@ import java.util.Set;
 /**
  * Base class that may be used for custom {@link BinarySpec} implementations. However, it is generally better to use an
  * interface annotated with {@link org.gradle.model.Managed} and not use an implementation class at all.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating
+@Deprecated
 public class BaseBinarySpec extends AbstractBuildableComponentSpec implements BinarySpecInternal {
     private static final ModelType<BinaryTasksCollection> BINARY_TASKS_COLLECTION = ModelType.of(BinaryTasksCollection.class);
     private static final ModelType<LanguageSourceSet> LANGUAGE_SOURCE_SET_MODELTYPE = ModelType.of(LanguageSourceSet.class);
@@ -74,7 +78,7 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
     /**
      * Creates a {@link BaseBinarySpec}.
      *
-     * @since 5.6
+     * @since 5.5
      */
     public static <T extends BaseBinarySpec> T create(Class<? extends BinarySpec> publicType, Class<T> implementationType,
                                                       ComponentSpecIdentifier componentId, MutableModelNode modelNode, @Nullable MutableModelNode componentNode,
@@ -92,6 +96,11 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
         }
     }
 
+    /**
+     * Creates a new {@code BaseBinarySpec}.
+     *
+     * @since 2.2
+     */
     @SuppressWarnings("this-escape")
     public BaseBinarySpec() {
         this(NEXT_BINARY_INFO.get());
@@ -155,6 +164,11 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
         return getComponentAs(ComponentSpec.class);
     }
 
+    /**
+     * Returns the component as.
+     *
+     * @since 2.10
+     */
     @Nullable
     protected <T extends ComponentSpec> T getComponentAs(Class<T> componentType) {
         if (componentNode == null) {
@@ -246,12 +260,22 @@ public class BaseBinarySpec extends AbstractBuildableComponentSpec implements Bi
         return getBinaryBuildAbility();
     }
 
+    /**
+     * Returns the binary build ability.
+     *
+     * @since 2.4
+     */
     protected BinaryBuildAbility getBinaryBuildAbility() {
         // Default behavior is to always be buildable.  Binary implementations should define what
         // criteria make them buildable or not.
         return new FixedBuildAbility(true);
     }
 
+    /**
+     * Replace single directory.
+     *
+     * @since 2.11
+     */
     public static void replaceSingleDirectory(Set<File> dirs, File dir) {
         switch (dirs.size()) {
             case 0:

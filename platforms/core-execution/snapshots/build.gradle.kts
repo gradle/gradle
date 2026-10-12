@@ -49,3 +49,7 @@ gradleModule {
 }
 
 
+
+errorprone {
+    nullawayEnabled = true
+}

@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.problems.Severity
 
 import spock.lang.Issue
 
@@ -41,10 +42,9 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
 
             tasks.register("reader") {
                 inputs.files($tasksInput)
-                def inputFiles = inputs.files
                 doLast {
-                    println "names = " + inputFiles.asFileTree.files*.name.sort()
-                    println "contents = " + inputFiles.asFileTree.files.collect { it.text }.sort()
+                    println "names = " + inputs.files.asFileTree.files*.name.sort()
+                    println "contents = " + inputs.files.asFileTree.files.collect { it.text }.sort()
                 }
             }
         """
@@ -83,10 +83,9 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         file("foo/build.gradle") << """
             tasks.register("consumer") {
                 inputs.files(parent.tasks.getByName('producer'))
-                def inputFiles = inputs.files
                 doLast {
-                    println "names = " + inputFiles.files*.name
-                    println "contents = " + inputFiles.files.collect { it.text }
+                    println "names = " + inputs.files.files*.name
+                    println "contents = " + inputs.files.files.collect { it.text }
                 }
             }
         """
@@ -475,11 +474,9 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
 
             tasks.register("task3") {
                 def myTasks = tasks.withType(MyTask)
-                dependsOn(myTasks)
                 inputs.files(myTasks)
-                def inputFiles = inputs.files
                 doLast {
-                    println "inputs = " + inputFiles.files*.name.sort()
+                    println "inputs = " + inputs.files.files*.name.sort()
                 }
             }
         """
@@ -497,6 +494,160 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
         then:
         result.assertTaskExecuted(":task3")
         outputContains("inputs = [task1.txt, task2.txt]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/33318")
+    def "can use TaskCollection from withType wrapped in a list as task input"() {
+        buildFile  """
+            abstract class MyTask extends DefaultTask {
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void run() {
+                    outputFile.get().asFile.text = name
+                }
+            }
+
+            tasks.register("task1", MyTask) {
+                outputFile = layout.buildDirectory.file("task1.txt")
+            }
+            tasks.register("task2", MyTask) {
+                outputFile = layout.buildDirectory.file("task2.txt")
+            }
+
+            tasks.register("task3") {
+                def myTasks = tasks.withType(MyTask)
+                inputs.files([myTasks])
+                doLast {
+                    println "inputs = " + inputs.files.files*.name.sort()
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun "task3"
+
+        then:
+        result.assertTasksExecuted(":task1", ":task2", ":task3")
+        outputContains("inputs = [task1.txt, task2.txt]")
+
+        when:
+        configurationCacheRun "task3"
+
+        then:
+        result.assertTaskExecuted(":task3")
+        outputContains("inputs = [task1.txt, task2.txt]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38410")
+    def "required TaskInputs.files with an absent provider in a list fails after configuration cache reload"() {
+        def configurationCache = newConfigurationCacheFixture()
+        enableProblemsApiCheck()
+
+        buildFile """
+            tasks.register("myTask") {
+                inputs.files($sources).withPropertyName("inputProp")
+                doLast {}
+            }
+        """
+
+        when:
+        configurationCacheFails "myTask"
+
+        then:
+        configurationCache.assertStateStored()
+        failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'DefaultTask').")
+        assertInputPropValueNotSetProblem(configurable)
+
+        when:
+        configurationCacheFails "myTask"
+
+        then:
+        configurationCache.assertStateLoaded()
+        failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'DefaultTask').")
+        assertInputPropValueNotSetProblem(configurable)
+
+        where:
+        sources                         | configurable
+        '[objects.fileProperty()]'      | true
+        '[providers.provider { null }]' | false
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38410")
+    def "required TaskInputs.files keeps present providers in a list with and without configuration cache"() {
+        def configurationCache = newConfigurationCacheFixture()
+        file("input.txt").text = "input"
+
+        buildFile """
+            def presentProvider = objects.fileProperty()
+            presentProvider.set(file("input.txt"))
+
+            tasks.register("myTask") {
+                inputs.files([presentProvider]).withPropertyName("inputProp")
+                doLast {
+                    println("inputs = \${inputs.files.files*.name}")
+                }
+            }
+        """
+
+        when:
+        run "myTask"
+
+        then:
+        outputContains("inputs = [input.txt]")
+
+        when:
+        configurationCacheRun "myTask"
+
+        then:
+        configurationCache.assertStateStored()
+        outputContains("inputs = [input.txt]")
+
+        when:
+        configurationCacheRun "myTask"
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("inputs = [input.txt]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38410")
+    def "required TaskInputs.files ignores an absent provider in a DomainObjectCollection with and without configuration cache"() {
+        def configurationCache = newConfigurationCacheFixture()
+
+        buildFile """
+            def sources = objects.domainObjectSet(Provider)
+            sources.add(objects.fileProperty())
+
+            tasks.register("myTask") {
+                inputs.files($input).withPropertyName("inputProp")
+                doLast {}
+            }
+        """
+
+        when:
+        run "myTask"
+
+        then:
+        executedAndNotSkipped(":myTask")
+
+        when:
+        configurationCacheRun "myTask"
+
+        then:
+        configurationCache.assertStateStored()
+        executedAndNotSkipped(":myTask")
+
+        when:
+        configurationCacheRun "myTask"
+
+        then:
+        configurationCache.assertStateLoaded()
+        executedAndNotSkipped(":myTask")
+
+        where:
+        input << ['sources', '[sources]']
     }
 
     @Issue("https://github.com/gradle/gradle/issues/33318")
@@ -524,7 +675,7 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
                 inputs.files(myConfigs)
                 def inputFiles = inputs.files
                 doLast {
-                    println "inputs = " + inputFiles.files*.name.sort()
+                    println "inputs = " + inputs.files.files*.name.sort()
                 }
             }
         """
@@ -551,9 +702,9 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
             tasks.register("reader") {
                 inputs.file("inputFile.txt").withPropertyName("singleFile")
                 inputs.dir("inputDir").withPropertyName("singleDir")
-                def fileInput = inputs.files.filter { it.name == "inputFile.txt" }
-                def dirInput = inputs.files.filter { it.parentFile?.name == "inputDir" }
                 doLast {
+                    def fileInput = inputs.files.filter { it.name == "inputFile.txt" }
+                    def dirInput = inputs.files.filter { it.parentFile?.name == "inputDir" }
                     println "file = " + fileInput.singleFile.name
                     println "dir contents = " + dirInput.files*.name.sort()
                 }
@@ -595,8 +746,8 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
                 // `selected` exposes DefaultNamedDomainObjectCollection internals (pendingMap) — without the
                 // codec-level wrap this hits ConcurrentModificationException at CC store time.
                 outputs.files(selected)
-                def outFiles = outputs.files
                 doLast {
+                    def outFiles = outputs.files
                     println "outputs = " + outFiles.files*.name.sort()
                 }
             }
@@ -660,6 +811,21 @@ class ConfigurationCacheTaskSerializationIntegrationTest extends AbstractConfigu
             withProblem("cannot serialize Gradle script object references as these are not supported with the configuration cache.") {
                 at(":myTask").at("actions")
             }
+        }
+    }
+
+    private void assertInputPropValueNotSetProblem(boolean configurable) {
+        verifyAll(receivedProblem) {
+            severity == Severity.ERROR
+            fqid == 'Gradle:Build Definition:Value not set'
+            definition.id.displayName == 'Value not set'
+            contextualLabel == "Property 'inputProp' doesn't have a configured value"
+            solutions == [
+                configurable
+                    ? "Assign a value to 'inputProp'"
+                    : "The value of 'inputProp' is calculated, make sure a valid value can be calculated",
+                "Mark property 'inputProp' as optional"
+            ]
         }
     }
 }

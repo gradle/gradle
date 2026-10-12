@@ -16,7 +16,6 @@
 package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.ResolveException;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.ResolvedConfiguration;
@@ -186,7 +185,7 @@ public class ShortCircuitingResolutionExecutor {
         @Override
         public ArtifactSelectionSpec getImplicitSelectionSpec() {
             return new ArtifactSelectionSpec(
-                ImmutableAttributes.EMPTY, Specs.satisfyAll(), false, false, ResolutionStrategy.SortOrder.DEFAULT
+                ImmutableAttributes.EMPTY, Specs.satisfyAll(), false, false
             );
         }
 

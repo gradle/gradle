@@ -24,10 +24,20 @@ import org.gradle.api.InvalidUserDataException;
  * @since 1.5
  */
 public class InvalidIvyPublicationException extends InvalidUserDataException {
+    /**
+     * Creates a new {@code InvalidIvyPublicationException}.
+     *
+     * @since 1.5
+     */
     public InvalidIvyPublicationException(String publicationName, String error) {
         super(formatMessage(publicationName, error));
     }
 
+    /**
+     * Creates a new {@code InvalidIvyPublicationException}.
+     *
+     * @since 1.5
+     */
     public InvalidIvyPublicationException(String publicationName, String error, Throwable cause) {
         super(formatMessage(publicationName, error), cause);
     }

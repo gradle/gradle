@@ -20,14 +20,19 @@ import org.gradle.api.Incubating;
 
 /**
  * A dependency onto a specific binary of a library published by a project.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.11
  */
 @Incubating
+@Deprecated
 public interface LibraryBinaryDependencySpec extends DependencySpec {
 
     /**
      * Returns the project path of the project this dependency refers to.
      *
      * @return the project path
+     * @since 2.11
      */
     String getProjectPath();
 
@@ -36,6 +41,7 @@ public interface LibraryBinaryDependencySpec extends DependencySpec {
      * defines a single library.
      *
      * @return the library name
+     * @since 2.11
      */
     String getLibraryName();
 
@@ -43,6 +49,7 @@ public interface LibraryBinaryDependencySpec extends DependencySpec {
      * Returns the variant of this binary.
      *
      * @return the library variant
+     * @since 2.11
      */
     String getVariant();
 }

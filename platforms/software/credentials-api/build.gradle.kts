@@ -11,6 +11,9 @@ dependencies {
     compileOnly(projects.internalInstrumentationApi) {
         because("Provides @ToBeReplacedByLazyProperty annotation, following the same pattern as core-api")
     }
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.coreApi)
 }
 
 gradleModule {

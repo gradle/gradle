@@ -56,7 +56,6 @@ abstract class MavenConversionIntegrationTest extends AbstractInitIntegrationSpe
          * creating multiple ProjectBuildingRequest.
          * */
         m2.generateUserSettingsFile(m2.mavenRepo())
-        using m2
     }
 
     def "multiModule init with incubating"() {

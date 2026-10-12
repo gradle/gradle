@@ -39,12 +39,9 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         """
 
         when:
-        run "buildSignatures"
+        succeeds(":signArchives", ":signMeta")
 
         then:
-        executedAndNotSkipped ":signArchives", ":signMeta"
-
-        and:
         file("build", "libs", "sign-1.0.jar.asc").text
         file("build", "libs", "sign-1.0-javadoc.jar.asc").text
         file("build", "libs", "sign-1.0-sources.jar.asc").text
@@ -71,12 +68,9 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         """
 
         when:
-        run "buildSignatures"
+        succeeds("signArchives")
 
         then:
-        executedAndNotSkipped ":signArchives"
-
-        and:
         file("build", "libs", "sign-1.0.jar.asc").text
     }
 
@@ -130,12 +124,9 @@ class SigningConfigurationsIntegrationSpec extends SigningIntegrationSpec {
         """
 
         when:
-        run "buildSignatures"
+        succeeds("signJars")
 
         then:
-        executedAndNotSkipped ":signJars"
-
-        and:
         file("build", "libs", "sign-1.0.jar.asc").text
     }
 

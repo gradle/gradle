@@ -107,6 +107,7 @@ import static org.gradle.util.internal.GUtil.isTrue;
  *   options.addStringOption("jaxrscontext", "http://localhost:8080/myapp")
  * }
  * </pre>
+ * @since 0.7
  */
 @SuppressWarnings("this-escape")
 @CacheableTask
@@ -128,6 +129,11 @@ public abstract class Javadoc extends SourceTask {
     @Nullable
     private String executable;
 
+    /**
+     * Creates a new {@code Javadoc}.
+     *
+     * @since 0.8
+     */
     @SuppressWarnings("this-escape")
     public Javadoc() {
         ObjectFactory objectFactory = getObjectFactory();
@@ -142,6 +148,11 @@ public abstract class Javadoc extends SourceTask {
         getJavadocTool().finalizeValueOnRead();
     }
 
+    /**
+     * Generate.
+     *
+     * @since 0.8
+     */
     @TaskAction
     protected void generate() {
         File destinationDir = getDestinationDirectory().get().getAsFile();
@@ -256,6 +267,7 @@ public abstract class Javadoc extends SourceTask {
      * <p>Returns the directory to generate the documentation into.</p>
      *
      * @return The directory.
+     * @since 0.7
      */
     @ReplacedBy("destinationDirectory")
     @Nullable
@@ -264,6 +276,11 @@ public abstract class Javadoc extends SourceTask {
         return getDestinationDirectory().isPresent() ? getDestinationDirectory().get().getAsFile() : null;
     }
 
+    /**
+     * Returns the output directory.
+     *
+     * @since 3.0
+     */
     @OutputDirectory
     protected File getOutputDirectory() {
         File destinationDir = getDestinationDirectory().getAsFile().getOrNull();
@@ -275,6 +292,7 @@ public abstract class Javadoc extends SourceTask {
 
     /**
      * <p>Sets the directory to generate the documentation into.</p>
+     * @since 0.7
      */
     public void setDestinationDir(@Nullable File destinationDir) {
         getDestinationDirectory().set(destinationDir);
@@ -283,6 +301,7 @@ public abstract class Javadoc extends SourceTask {
 
     /**
      * Returns the amount of memory allocated to this task.
+     * @since 0.7
      */
     @Internal
     @Nullable
@@ -295,6 +314,7 @@ public abstract class Javadoc extends SourceTask {
      * Sets the amount of memory allocated to this task.
      *
      * @param maxMemory The amount of memory
+     * @since 0.7
      */
     public void setMaxMemory(@Nullable String maxMemory) {
         this.maxMemory = maxMemory;
@@ -304,6 +324,7 @@ public abstract class Javadoc extends SourceTask {
      * <p>Returns the title for the generated documentation.</p>
      *
      * @return The title, possibly null.
+     * @since 0.7
      */
     @Nullable
     @Optional
@@ -315,6 +336,7 @@ public abstract class Javadoc extends SourceTask {
 
     /**
      * <p>Sets the title for the generated documentation.</p>
+     * @since 0.7
      */
     public void setTitle(@Nullable String title) {
         this.title = title;
@@ -324,6 +346,7 @@ public abstract class Javadoc extends SourceTask {
      * Returns the classpath to use to resolve type references in the source code.
      *
      * @return The classpath.
+     * @since 0.7
      */
     @Classpath
     @ToBeReplacedByLazyProperty
@@ -335,6 +358,7 @@ public abstract class Javadoc extends SourceTask {
      * Sets the classpath to use to resolve type references in this source code.
      *
      * @param classpath The classpath. Must not be null.
+     * @since 0.8
      */
     public void setClasspath(FileCollection classpath) {
         this.classpath = classpath;
@@ -354,6 +378,7 @@ public abstract class Javadoc extends SourceTask {
      * Returns the Javadoc generation options.
      *
      * @return The options. Never returns null.
+     * @since 0.7
      */
     @Nested
     public MinimalJavadocOptions getOptions() {
@@ -364,6 +389,7 @@ public abstract class Javadoc extends SourceTask {
      * Convenience method for configuring Javadoc generation options.
      *
      * @param block The configuration block for Javadoc generation options.
+     * @since 1.0
      */
     public void options(@DelegatesTo(MinimalJavadocOptions.class) Closure<?> block) {
         ConfigureUtil.configure(block, getOptions());
@@ -382,6 +408,7 @@ public abstract class Javadoc extends SourceTask {
     /**
      * Specifies whether this task should fail when errors are encountered during Javadoc generation. When {@code true},
      * this task will fail on Javadoc error. When {@code false}, this task will ignore Javadoc errors.
+     * @since 0.7
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -389,10 +416,20 @@ public abstract class Javadoc extends SourceTask {
         return failOnError;
     }
 
+    /**
+     * Sets the fail on error.
+     *
+     * @since 0.7
+     */
     public void setFailOnError(boolean failOnError) {
         this.failOnError = failOnError;
     }
 
+    /**
+     * Returns the options file.
+     *
+     * @since 0.8
+     */
     @Internal
     @ToBeReplacedByLazyProperty
     public File getOptionsFile() {
@@ -405,6 +442,7 @@ public abstract class Javadoc extends SourceTask {
      *
      * @return The executable. May be null.
      * @see #getJavadocTool()
+     * @since 0.9
      */
     @Nullable
     @Optional
@@ -414,6 +452,11 @@ public abstract class Javadoc extends SourceTask {
         return executable;
     }
 
+    /**
+     * Sets the executable.
+     *
+     * @since 0.9
+     */
     public void setExecutable(@Nullable String executable) {
         this.executable = executable;
     }

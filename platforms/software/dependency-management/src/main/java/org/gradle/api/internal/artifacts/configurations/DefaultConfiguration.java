@@ -51,12 +51,12 @@ import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CompositeDomainObjectSet;
 import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.ConfigurationResolver;
 import org.gradle.api.internal.artifacts.DefaultDependencyConstraintSet;
 import org.gradle.api.internal.artifacts.DefaultDependencySet;
 import org.gradle.api.internal.artifacts.DefaultExcludeRule;
 import org.gradle.api.internal.artifacts.DefaultPublishArtifactSet;
+import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.artifacts.ExcludeRuleNotationConverter;
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper;
 import org.gradle.api.internal.artifacts.ResolverResults;
@@ -76,7 +76,7 @@ import org.gradle.api.internal.file.AbstractFileCollection;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.initialization.ResettableConfiguration;
-import org.gradle.api.internal.project.ProjectIdentity;
+import org.gradle.api.internal.project.ProjectDomainObjectContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.GradleCoreProblemGroup;
@@ -95,10 +95,11 @@ import org.gradle.internal.code.UserCodeApplicationContext;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.event.ListenerBroadcast;
-import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.model.CalculatedModelValue;
 import org.gradle.internal.model.CalculatedValue;
+import org.gradle.internal.model.DefaultCalculatedModelValue;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.CallableBuildOperation;
@@ -109,6 +110,7 @@ import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.ConfigureUtil;
 import org.gradle.util.internal.WrapUtil;
 import org.jspecify.annotations.Nullable;
+
 import javax.inject.Inject;
 import java.io.File;
 import java.util.ArrayDeque;
@@ -131,6 +133,7 @@ import java.util.function.Function;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
+
 import static org.gradle.api.internal.artifacts.configurations.ConfigurationInternal.InternalState.UNRESOLVED;
 import static org.gradle.util.internal.ConfigureUtil.configure;
 
@@ -158,7 +161,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private ListenerBroadcast<DependencyResolutionListener> dependencyResolutionListeners;
 
     private final Path identityPath;
-    private final Path projectPath;
 
     private final String name;
     private final boolean isDetached;
@@ -234,8 +236,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     ) {
         super(configurationServices.getTaskDependencyFactory());
         this.userCodeApplicationContext = userCodeApplicationContext;
-        this.identityPath = domainObjectContext.identityPath(name);
-        this.projectPath = domainObjectContext.projectPath(name);
+        this.identityPath = getIdentityPath(domainObjectContext, name);
         this.name = name;
         this.isDetached = isDetached;
         this.resolver = resolver;
@@ -263,7 +264,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         this.artifacts = new DefaultPublishArtifactSet(Describables.of(displayName, "artifacts"), ownArtifacts, configurationServices.getFileCollectionFactory(), taskDependencyFactory);
 
         this.outgoing = configurationServices.getObjectFactory().newInstance(DefaultConfigurationPublications.class, displayName, artifacts, new AllArtifactsProvider(), configurationAttributes, artifactNotationParser, capabilityNotationParser, configurationServices.getFileCollectionFactory(), configurationServices.getAttributesFactory(), configurationServices.getDomainObjectCollectionFactory(), taskDependencyFactory);
-        this.currentResolveState = domainObjectContext.getModel().newCalculatedValue(Optional.empty());
+        this.currentResolveState = new DefaultCalculatedModelValue<>(domainObjectContext.getModel(), configurationServices.getProjectLeaseRegistry(), Optional.empty());
         this.defaultConfigurationFactory = defaultConfigurationFactory;
 
         this.canBeConsumed = roleAtCreation.isConsumable();
@@ -279,13 +280,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         this.validateExtendedConfiguration = extended -> {
             ConfigurationInternal other = Objects.requireNonNull(Cast.uncheckedCast(extended));
-            if (!domainObjectContext.equals(other.getDomainObjectContext())) {
+            if (!configurationServices.getInstanceIdentity().equals(other.getInstanceIdentity())) {
                 throw new InvalidUserDataException(String.format(
                     "%s in %s cannot extend %s from %s. Configurations can only extend from configurations in the same context.",
                     displayName.getCapitalizedDisplayName(),
-                    DefaultConfiguration.this.domainObjectContext.getDisplayName(),
+                    configurationServices.getInstanceIdentity().getDisplayName(),
                     other.getDisplayName(),
-                    other.getDomainObjectContext().getDisplayName()
+                    other.getInstanceIdentity().getDisplayName()
                 ));
             }
             if (other.getHierarchy().contains(DefaultConfiguration.this)) {
@@ -295,6 +296,13 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             }
         };
         this.extendsFrom = new ExtendedConfigurations(validateExtendedConfiguration, configurationServices.getProviderFactory());
+    }
+
+    private static Path getIdentityPath(DomainObjectContext domainObjectContext, String name) {
+        if (domainObjectContext instanceof ProjectDomainObjectContext pdoc) {
+            return pdoc.getIdentity().getBuildTreePath().child(name);
+        }
+        return Path.path(name);
     }
 
     private static Action<String> validateMutationType(final MutationValidator mutationValidator, final MutationType type) {
@@ -352,7 +360,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Deprecated
     public boolean isVisible() {
         DeprecationLogger.deprecateMethod(Configuration.class, "isVisible")
-            .willBeRemovedInGradle10()
+            .willBeRemovedInGradle11()
             .withUpgradeGuideSection(9, "deprecate-visible-property")
             .nagUser();
         return visible;
@@ -361,8 +369,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     @Deprecated
     public Configuration setVisible(boolean visible) {
+        DeprecationLogger.deprecateMethod(Configuration.class, "setVisible(boolean)")
+            .willBeRemovedInGradle11()
+            .withUpgradeGuideSection(9, "deprecate-visible-property")
+            .nagUser();
         validateMutation(MutationType.BASIC_STATE);
-        // TODO: Create a deprecation warning once https://youtrack.jetbrains.com/issue/KT-78754 is resolved
         this.visible = visible;
         return this;
     }
@@ -587,11 +598,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         }
 
         @Override
-        public ResolutionStrategy.SortOrder getDefaultSortOrder() {
-            return getResolutionStrategy().getSortOrder();
-        }
-
-        @Override
         public ResolutionResultProvider<ResolverResults> getResults() {
             return new ResolverResultsResolutionResultProvider();
         }
@@ -642,7 +648,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         ResolverResults newState;
         if (!domainObjectContext.getModel().hasMutableState()) {
-            throw new IllegalResolutionException("Resolution of the " + displayName.getDisplayName() + " was attempted without an exclusive lock. This is unsafe and not allowed.");
+            Documentation userGuideLink = Documentation.userManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors");
+            GradleException failure = new GradleException(
+                "Resolution of the " + displayName.getDisplayName() + " was attempted without an exclusive lock. This is unsafe and not allowed.");
+            failure.addResolution("For more information, please refer to " + userGuideLink.getUrl() + " in the Gradle documentation.");
+            throw failure;
         } else {
             newState = resolveExclusivelyIfRequired();
         }
@@ -708,18 +718,14 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             @Override
             public BuildOperationDescriptor.Builder description() {
                 String displayName = "Resolve dependencies of " + identityPath;
-                ProjectIdentity projectId = domainObjectContext.getProjectIdentity();
-                String projectPathString = null;
-                if (!domainObjectContext.isScript()) {
-                    if (projectId != null) {
-                        projectPathString = projectId.getProjectPath().asString();
-                    }
-                }
+                String projectPathString = domainObjectContext instanceof ProjectDomainObjectContext pdoc
+                    ? pdoc.getIdentity().getProjectPath().asString()
+                    : null;
                 return BuildOperationDescriptor.displayName(displayName)
                     .progressDisplayName(displayName)
                     .details(new ResolveConfigurationResolutionBuildOperationDetails(
                         getName(),
-                        domainObjectContext.isScript(),
+                        projectPathString == null,
                         getDescription(),
                         domainObjectContext.getBuildPath().asString(),
                         projectPathString,
@@ -1203,6 +1209,11 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     }
 
     @Override
+    public DependencyManagementInstanceIdentity getInstanceIdentity() {
+        return configurationServices.getInstanceIdentity();
+    }
+
+    @Override
     public Configuration resolutionStrategy(Closure closure) {
         configure(closure, getResolutionStrategy());
         return this;
@@ -1261,9 +1272,10 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     @Override
     public ConfigurationIdentity getConfigurationIdentity() {
         String name = getName();
-        ProjectIdentity projectId = domainObjectContext.getProjectIdentity();
-        String projectPath = projectId == null ? null : projectId.getProjectPath().asString();
-        String buildPath = domainObjectContext.getBuildPath().toString();
+        String projectPath = domainObjectContext instanceof ProjectDomainObjectContext pdoc
+            ? pdoc.getIdentity().getProjectPath().asString()
+            : null;
+        String buildPath = domainObjectContext.getBuildPath().asString();
         return new DefaultConfigurationIdentity(buildPath, projectPath, name);
     }
 
@@ -1337,6 +1349,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
         } else if (isExclusivelyDeprecatedUsage(properUsages)) {
             DeprecationLogger.deprecateAction(String.format("Calling %s on %s", methodName, this))
                 .withContext("This configuration does not allow this method to be called.")
+                .withProblemName("Method not allowed for the configuration's usage")
                 .willBecomeAnErrorInGradle10()
                 .withUpgradeGuideSection(8, "configurations_allowed_usage")
                 .nagUser();
@@ -1501,6 +1514,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
     private void warnAboutChangingUsage(String methodName, boolean newValue) {
         DeprecationLogger.deprecateAction(String.format("Calling %s(%b) on %s", methodName, newValue, this))
             .withContext("This configuration's role was set upon creation and its usage should not be changed.")
+            .withProblemName("Usage changed on a configuration with a fixed role")
             .willBecomeAnErrorInGradle10()
             .withUpgradeGuideSection(8, "configurations_allowed_usage")
             .nagUser();
@@ -1688,7 +1702,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public String getPath() {
-            return configuration.projectPath.asString();
+            return configuration.identityPath.asString();
         }
 
         @Override
@@ -1715,7 +1729,7 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public void beforeResolve(Action<? super ResolvableDependencies> action) {
-            configuration.dependencyResolutionListeners.add("beforeResolve", configuration.userCodeApplicationContext.reapplyCurrentLater(action));
+            configuration.dependencyResolutionListeners.add("beforeResolve", decorateResolutionListener(action));
         }
 
         @Override
@@ -1725,7 +1739,19 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
 
         @Override
         public void afterResolve(Action<? super ResolvableDependencies> action) {
-            configuration.dependencyResolutionListeners.add("afterResolve", configuration.userCodeApplicationContext.reapplyCurrentLater(action));
+            configuration.dependencyResolutionListeners.add("afterResolve", decorateResolutionListener(action));
+        }
+
+        /**
+         * Wraps the listener so that it runs within the user code application
+         * that registered it, if any.
+         */
+        private Action<? super ResolvableDependencies> decorateResolutionListener(Action<? super ResolvableDependencies> action) {
+            UserCodeApplicationContext.Application application = configuration.userCodeApplicationContext.current();
+            if (application == null) {
+                return action;
+            }
+            return dependencies -> application.reapplyAction(action, dependencies, UserCodeApplicationContext.CodeType.LISTENER);
         }
 
         @Override
@@ -1874,21 +1900,6 @@ public abstract class DefaultConfiguration extends AbstractFileCollection implem
             return Arrays.stream(properUsages)
                 .map(ProperMethodUsage::buildProperName)
                 .collect(Collectors.joining(", "));
-        }
-    }
-
-    private static final class IllegalResolutionException extends GradleException implements ResolutionProvider {
-        private final String resolution;
-
-        public IllegalResolutionException(String message) {
-            super(message);
-            Documentation userGuideLink = Documentation.userManual("viewing_debugging_dependencies", "sub:resolving-unsafe-configuration-resolution-errors");
-            resolution = "For more information, please refer to " + userGuideLink.getUrl() + " in the Gradle documentation.";
-        }
-
-        @Override
-        public List<String> getResolutions() {
-            return Collections.singletonList(resolution);
         }
     }
 

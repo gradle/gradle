@@ -54,6 +54,7 @@ import org.gradle.tooling.internal.protocol.events.InternalTaskDescriptor;
 import org.gradle.tooling.internal.protocol.events.InternalTaskResult;
 import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
 import java.io.Closeable;
 import java.util.Collection;
 import java.util.Collections;
@@ -78,6 +79,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
     private final Map<Provider<?>, AbstractListener<?>> subscriptions = new LinkedHashMap<>();
     private final ExecutorFactory executorFactory;
 
+    @Inject
     public DefaultBuildEventsListenerRegistry(
         UserCodeApplicationContext applicationContext,
         BuildEventListenerFactory factory,
@@ -130,7 +132,7 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
     }
 
     private ForwardingBuildEventConsumer makeTaskCompletionSubscription(Provider<? extends OperationCompletionListener> listenerProvider) {
-        ForwardingBuildEventConsumer subscription = new ForwardingBuildEventConsumer(getCurrentContext(), listenerProvider, executorFactory);
+        ForwardingBuildEventConsumer subscription = new ForwardingBuildEventConsumer(getCurrentContext(), listenerProvider, executorFactory, applicationContext);
         processIfBuildService(listenerProvider);
 
         for (Object listener : subscription.getListeners()) {
@@ -301,13 +303,14 @@ public class DefaultBuildEventsListenerRegistry implements BuildEventsListenerRe
         public ForwardingBuildEventConsumer(
             @Nullable UserCodeSource registrationPoint,
             Provider<? extends OperationCompletionListener> listenerProvider,
-            ExecutorFactory executorFactory
+            ExecutorFactory executorFactory,
+            UserCodeApplicationContext userCodeApplicationContext
         ) {
             super(registrationPoint, executorFactory);
             this.listenerProvider = listenerProvider;
             BuildEventSubscriptions eventSubscriptions = new BuildEventSubscriptions(Collections.singleton(OperationType.TASK));
             // TODO - share these listeners here and with the tooling api client, where possible
-            listeners = ImmutableList.copyOf(factory.createListeners(eventSubscriptions, this));
+            listeners = ImmutableList.copyOf(factory.createListeners(eventSubscriptions, this, userCodeApplicationContext));
         }
 
         @Override

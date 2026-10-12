@@ -49,16 +49,19 @@ import java.io.File;
  * </pre>
  * <p>
  * When implementing a task that produces reports, the location of where to generate reports should be obtained from {@link #getBaseDirectory()}.
+ * @since 1.0
  */
 public abstract class ReportingExtension {
 
     /**
      * The name of this extension ("{@value}")
+     * @since 1.0
      */
     public static final String NAME = "reporting";
 
     /**
      * The default name of the base directory for all reports, relative to {@link org.gradle.api.file.ProjectLayout#getBuildDirectory()} ({@value}).
+     * @since 1.0
      */
     public static final String DEFAULT_REPORTS_DIR_NAME = "reports";
 
@@ -88,6 +91,7 @@ public abstract class ReportingExtension {
      *
      * @see DirectoryProperty#file(String)
      * @see DirectoryProperty#dir(String)
+     * @since 1.0
      */
     @Deprecated
     public File file(String path) {
@@ -103,6 +107,7 @@ public abstract class ReportingExtension {
      * Provides a default title for API documentation based on the project's name and version.
      *
      * @deprecated Use your own way of generating a title for API documentation.
+     * @since 1.0
      */
     @NotToBeReplacedByLazyProperty(because="this method is deprecated")
     @Deprecated

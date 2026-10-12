@@ -16,31 +16,27 @@
 
 package org.gradle.model.internal.inspect;
 
-import org.gradle.model.Model;
-import org.gradle.model.Mutate;
-import org.gradle.model.RuleInput;
-import org.gradle.model.RuleSource;
-
 import java.util.List;
 
-abstract class AbstractJavaPropertyRules extends RuleSource {
+@SuppressWarnings("deprecation")
+abstract class AbstractJavaPropertyRules extends org.gradle.model.RuleSource {
     AbstractJavaPropertyRules() {
     }
 
-    @RuleInput
+    @org.gradle.model.RuleInput
     abstract String getValue();
     abstract void setValue(String value);
 
-    @RuleInput
+    @org.gradle.model.RuleInput
     protected abstract int getNumber();
     protected abstract void setNumber(int value);
 
-    @Model
+    @org.gradle.model.Model
     String thing(int number) {
         return String.valueOf(number);
     }
 
-    @Mutate
+    @org.gradle.model.Mutate
     protected void change(List<Number> numbers, String string) {
     }
 }

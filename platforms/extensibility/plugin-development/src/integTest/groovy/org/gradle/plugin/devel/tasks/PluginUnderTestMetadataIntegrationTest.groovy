@@ -49,7 +49,7 @@ class PluginUnderTestMetadataIntegrationTest extends AbstractIntegrationSpec imp
         failure.assertHasDescription("A problem was found with the configuration of task ':$TASK_NAME' (type 'PluginUnderTestMetadata').")
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:value-not-set'
+            fqid == 'Gradle:Build Definition:Value not set'
             definition.id.displayName == 'Value not set'
             details == "This property isn't marked as optional and no value has been configured"
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"

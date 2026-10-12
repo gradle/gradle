@@ -16,6 +16,5 @@
 
 package org.gradle.model.internal.manage.schema.extract;
 
-import org.gradle.model.ModelSet;
-
-interface SpecialModelSet<T> extends ModelSet<T> {}
+@SuppressWarnings("deprecation")
+interface SpecialModelSet<T> extends org.gradle.model.ModelSet<T> {}

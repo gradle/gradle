@@ -174,7 +174,7 @@ public class DefaultTestTaskPropertiesService implements TestTaskPropertiesServi
         task.copyTo(forkOptions);
         String executable = forkOptions.getExecutable();
         return new DefaultTestTaskForkOptions(
-            forkOptions.getWorkingDir(),
+            forkOptions.getWorkingDirectory().get().getAsFile(),
             executable,
             detectJavaVersion(executable),
             javaModuleDetector.inferClasspath(testIsModule, task.getClasspath()),

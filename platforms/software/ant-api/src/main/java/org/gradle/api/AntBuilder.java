@@ -22,6 +22,7 @@ import java.util.Map;
 
 /**
  * <p>An {@code AntBuilder} allows you to use Ant from your build script.</p>
+ * @since 0.7
  */
 @NotToBeMigratedToLazy
 public abstract class AntBuilder extends groovy.ant.AntBuilder {
@@ -30,6 +31,7 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
      * changes are reflected in the Ant project.
      *
      * @return The properties. Never returns null.
+     * @since 0.7
      */
     public abstract Map<String, @Nullable Object> getProperties();
 
@@ -38,6 +40,7 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
      * changes are reflected in the Ant project.
      *
      * @return The references. Never returns null.
+     * @since 0.7
      */
     public abstract Map<String, @Nullable Object> getReferences();
 
@@ -45,6 +48,7 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
      * Imports an Ant build into the associated Gradle project.
      *
      * @param antBuildFile The build file. This is resolved as per {@link Project#file(Object)}.
+     * @since 0.7
      */
     public abstract void importBuild(Object antBuildFile);
 
@@ -71,6 +75,7 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
      *
      * @param antBuildFile The build file. This is resolved as per {@link org.gradle.api.Project#file(Object)}.
      * @param taskNamer A transformer that calculates the name of the Gradle task for a corresponding Ant target.
+     * @since 2.2
      */
     public abstract void importBuild(Object antBuildFile, Transformer<? extends @org.jetbrains.annotations.NotNull String, ? super String> taskNamer);
 
@@ -98,6 +103,7 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
      * Returns this AntBuilder. Useful when you need to pass this builder to methods from within closures.
      *
      * @return this
+     * @since 1.0
      */
     public AntBuilder getAnt() {
         return this;
@@ -109,6 +115,7 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
      * higher Gradle log level, it will continue to be logged at that level.
      *
      * @param logLevel The Ant log level to map to the Gradle lifecycle log level
+     * @since 2.14
      */
     public abstract void setLifecycleLogLevel(AntMessagePriority logLevel);
 
@@ -119,6 +126,7 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
      * and "ERROR".
      *
      * @param logLevel The Ant log level to map to the Gradle lifecycle log level
+     * @since 2.14
      */
     public void setLifecycleLogLevel(String logLevel) {
         setLifecycleLogLevel(AntMessagePriority.valueOf(logLevel));
@@ -128,15 +136,41 @@ public abstract class AntBuilder extends groovy.ant.AntBuilder {
      * Returns the Ant message priority that corresponds to the Gradle "lifecycle" log level.
      *
      * @return logLevel The Ant log level that maps to the Gradle lifecycle log level
+     * @since 2.14
      */
     public abstract AntMessagePriority getLifecycleLogLevel();
 
     /**
      * Represents the normal Ant message priorities.
+     * @since 2.14
      */
     public enum AntMessagePriority {
-        DEBUG, VERBOSE, INFO, WARN, ERROR;
+        /**
+         * @since 2.14
+         */
+        DEBUG,
+        /**
+         * @since 2.14
+         */
+        VERBOSE,
+        /**
+         * @since 2.14
+         */
+        INFO,
+        /**
+         * @since 2.14
+         */
+        WARN,
+        /**
+         * @since 2.14
+         */
+        ERROR;
 
+        /**
+         * From.
+         *
+         * @since 2.14
+         */
         public static AntMessagePriority from(int messagePriority) {
             switch (messagePriority) {
                 case org.apache.tools.ant.Project.MSG_ERR:

@@ -45,6 +45,8 @@ interface KotlinScript {
 
     /**
      * Logger for scripts. You can use this in your script to write log messages.
+     *
+     * @since 6.0
      */
     val logger: Logger
 
@@ -52,11 +54,15 @@ interface KotlinScript {
      * The [LoggingManager] which can be used to receive logging and to control the standard output/error capture for
      * this script. By default, `System.out` is redirected to the Gradle logging system at the `QUIET` log level,
      * and `System.err` is redirected at the `ERROR` log level.
+     *
+     * @since 6.0
      */
     val logging: LoggingManager
 
     /**
      * Provides access to resource-specific utility methods, for example factory methods that create various resources.
+     *
+     * @since 6.0
      */
     val resources: ResourceHandler
 
@@ -68,6 +74,8 @@ interface KotlinScript {
      *
      * @param path The path to convert to a relative path.
      * @return The relative path.
+     *
+     * @since 6.0
      */
     fun relativePath(path: Any): String
 
@@ -76,6 +84,8 @@ interface KotlinScript {
      *
      * Evaluates the provided path object as described for [file],
      * with the exception that any URI scheme is supported, not just `file:` URIs.
+     *
+     * @since 6.0
      */
     fun uri(path: Any): URI
 
@@ -108,6 +118,8 @@ interface KotlinScript {
      *
      * @param path The object to resolve as a `File`.
      * @return The resolved file.
+     *
+     * @since 6.0
      */
     fun file(path: Any): File
 
@@ -118,6 +130,8 @@ interface KotlinScript {
      * @param validation The validation to perform on the file.
      * @return The resolved file.
      * @see file
+     *
+     * @since 6.0
      */
     fun file(path: Any, validation: PathValidation): File
 
@@ -163,6 +177,8 @@ interface KotlinScript {
      *
      * @param paths The paths to the files. May be empty.
      * @return The file collection.
+     *
+     * @since 6.0
      */
     fun files(vararg paths: Any): ConfigurableFileCollection
 
@@ -173,6 +189,8 @@ interface KotlinScript {
      * @param configuration The block to use to configure the file collection.
      * @return The file collection.
      * @see files
+     *
+     * @since 6.0
      */
     fun files(paths: Any, configuration: Action<ConfigurableFileCollection>): ConfigurableFileCollection
 
@@ -187,6 +205,8 @@ interface KotlinScript {
      *
      * @param baseDir The base directory of the file tree. Evaluated as per [file].
      * @return The file tree.
+     *
+     * @since 6.0
      */
     fun fileTree(baseDir: Any): ConfigurableFileTree
 
@@ -197,6 +217,8 @@ interface KotlinScript {
      * @param configuration The block to use to configure the file tree.
      * @return The file tree.
      * @see [fileTree]
+     *
+     * @since 6.0
      */
     fun fileTree(baseDir: Any, configuration: Action<ConfigurableFileTree>): ConfigurableFileTree
 
@@ -213,6 +235,8 @@ interface KotlinScript {
      *
      * @param zipPath The ZIP file. Evaluated as per [file].
      * @return The file tree.
+     *
+     * @since 6.0
      */
     fun zipTree(zipPath: Any): FileTree
 
@@ -234,6 +258,8 @@ interface KotlinScript {
      *
      * @param tarPath The TAR file or an instance of [org.gradle.api.resources.Resource].
      * @return The file tree.
+     *
+     * @since 6.0
      */
     fun tarTree(tarPath: Any): FileTree
 
@@ -242,6 +268,8 @@ interface KotlinScript {
      *
      * @param configuration The block to use to configure the [CopySpec].
      * @return `WorkResult` that can be used to check if the copy did any work.
+     *
+     * @since 6.0
      */
     fun copy(configuration: Action<CopySpec>): WorkResult
 
@@ -249,6 +277,8 @@ interface KotlinScript {
      * Creates a {@link CopySpec} which can later be used to copy files or create an archive.
      *
      * @return The created [CopySpec]
+     *
+     * @since 6.0
      */
     fun copySpec(): CopySpec
 
@@ -257,6 +287,8 @@ interface KotlinScript {
      *
      * @param configuration The block to use to configure the [CopySpec].
      * @return The configured [CopySpec]
+     *
+     * @since 6.0
      */
     fun copySpec(configuration: Action<CopySpec>): CopySpec
 
@@ -266,6 +298,8 @@ interface KotlinScript {
      * @param path The path for the directory to be created. Evaluated as per [file].
      * @return The created directory.
      * @throws org.gradle.api.InvalidUserDataException If the path points to an existing file.
+     *
+     * @since 6.0
      */
     fun mkdir(path: Any): File
 
@@ -276,6 +310,8 @@ interface KotlinScript {
      *
      * @param paths Any type of object accepted by [file]
      * @return true if anything got deleted, false otherwise
+     *
+     * @since 6.0
      */
     fun delete(vararg paths: Any): Boolean
 
@@ -284,6 +320,8 @@ interface KotlinScript {
      *
      * @param configuration The block to use to configure the [DeleteSpec].
      * @return `WorkResult` that can be used to check if delete did any work.
+     *
+     * @since 6.0
      */
     fun delete(configuration: Action<DeleteSpec>): WorkResult
 }

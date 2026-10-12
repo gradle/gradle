@@ -122,9 +122,13 @@ abstract class TestFilesCleanupService @Inject constructor(
             val taskPath = event.descriptor.taskPath
             when (event.result) {
                 is TaskSuccessResult -> {
-                    addExecutedTaskPath(taskPath)
-                    if (containsFailedTest(taskPath)) {
-                        addFailedTaskPath(taskPath)
+                    val testResults = readTestResults(taskPath)
+                    // A task that isn't a test task has no result store to inspect, so archive its reports as before.
+                    if (testResults == null || testResults.ranAnyTest) {
+                        addExecutedTaskPath(taskPath)
+                        if (testResults?.containsFailedTest == true) {
+                            addFailedTaskPath(taskPath)
+                        }
                     }
                 }
 
@@ -140,8 +144,43 @@ abstract class TestFilesCleanupService @Inject constructor(
     }
 
     private
-    fun containsFailedTest(taskPath: String): Boolean {
-        return testTaskPathToBinaryResultsDir[taskPath]?.let { containsFailedTest(it.get()) } == true
+    class TestTaskResults(val ranAnyTest: Boolean, val containsFailedTest: Boolean)
+
+    /**
+     * Reads what a test task recorded, or `null` if the task isn't a test task.
+     *
+     * A test task can finish successfully without running a single test, because a filter excluded
+     * every test it would have run. `-PflakyTests=ONLY` does that to almost every task of the flaky
+     * test quarantine build for AllVersionsCrossVersion: it has one task per tested Gradle version
+     * per subproject, over a thousand of them, and only the handful in subprojects that actually
+     * have flaky cross-version tests select anything. The reports of the rest are empty, and
+     * archiving them used to blow past TeamCity's limit on the number of artifacts a build may
+     * publish.
+     *
+     * Note that an empty run is not the same as an empty result store: the store always holds the
+     * root result of a task whose test JVM started, so [SerializableTestResultStore.hasResults] is
+     * true even when nothing ran. The root is the only result written without a parent, and it is
+     * written last, so a result with a parent is an actual test class or test case.
+     */
+    private
+    fun readTestResults(taskPath: String): TestTaskResults? {
+        val binaryResultsDir = testTaskPathToBinaryResultsDir[taskPath] ?: return null
+        val store = SerializableTestResultStore(binaryResultsDir.get().toPath())
+        if (!store.hasResults()) {
+            return TestTaskResults(ranAnyTest = false, containsFailedTest = false)
+        }
+        var ranAnyTest = false
+        var containsFailedTest = false
+        store.forEachResult(SerializableTestResultStore.ResultProcessor { _, parentId, result, _ ->
+            if (parentId != null) {
+                ranAnyTest = true
+            }
+            // A task with a flaky result counts as failed, same as one with a plain failure
+            if (result.resultType == TestResult.ResultType.FAILURE) {
+                containsFailedTest = true
+            }
+        })
+        return TestTaskResults(ranAnyTest, containsFailedTest)
     }
 
     private
@@ -267,22 +306,6 @@ abstract class TestFilesCleanupService @Inject constructor(
         } else {
             prepareReportForCiPublishing(reports)
         }
-    }
-
-    // We count the test task containing flaky result as failed
-    private
-    fun containsFailedTest(testBinaryResultsDir: File): Boolean {
-        var containingFailures = false
-
-        val store = SerializableTestResultStore(testBinaryResultsDir.toPath())
-        if (store.hasResults()) {
-            store.forEachResult { result ->
-                if (result.innerResult.resultType == TestResult.ResultType.FAILURE) {
-                    containingFailures = true
-                }
-            }
-        }
-        return containingFailures
     }
 
     /**

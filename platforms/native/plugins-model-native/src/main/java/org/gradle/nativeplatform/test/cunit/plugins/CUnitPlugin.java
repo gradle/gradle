@@ -46,8 +46,12 @@ import static org.gradle.nativeplatform.test.internal.NativeTestSuites.createNat
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries with CUnit.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating
+@Deprecated
 public abstract class CUnitPlugin implements Plugin<Project> {
 
     @Override
@@ -56,6 +60,11 @@ public abstract class CUnitPlugin implements Plugin<Project> {
         project.getPluginManager().apply(CLangPlugin.class);
     }
 
+    /**
+     * Rules.
+     *
+     * @since 2.2
+     */
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
 
@@ -85,6 +94,11 @@ public abstract class CUnitPlugin implements Plugin<Project> {
             });
         }
 
+        /**
+         * Create c unit launcher tasks.
+         *
+         * @since 2.3
+         */
         @Mutate
         public void createCUnitLauncherTasks(TaskContainer tasks, TestSuiteContainer testSuites) {
             for (final CUnitTestSuiteSpec suite : testSuites.withType(CUnitTestSuiteSpec.class).values()) {

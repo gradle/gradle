@@ -43,6 +43,7 @@ public interface ComponentDependencies {
      * Adds an implementation dependency to this component. An implementation dependency is not visible to consumers that are compiled against this component.
      *
      * @param notation The dependency notation, as per {@link org.gradle.api.artifacts.dsl.DependencyHandler#create(Object)}.
+     * @since 4.6
      */
     void implementation(Object notation);
 
@@ -51,6 +52,7 @@ public interface ComponentDependencies {
      *
      * @param notation The dependency notation, as per {@link org.gradle.api.artifacts.dsl.DependencyHandler#create(Object)}.
      * @param action The action to run to configure the dependency.
+     * @since 4.6
      */
     void implementation(Object notation, Action<? super ExternalModuleDependency> action);
 }

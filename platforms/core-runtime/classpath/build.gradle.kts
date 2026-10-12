@@ -113,11 +113,6 @@ gradleModule {
     }
 }
 
-packageCycles {
-    // Pre-existing cycles between classpath subpackages (classpath ↔ intercept, classpath ↔ transforms)
-    excludePatterns.add("org/gradle/internal/classpath/**")
-}
-
 strictCompile {
     ignoreRawTypes() // raw types used in Groovy MetaClass APIs
     ignoreAnnotationProcessing() // Without this, javac will complain about unclaimed annotations

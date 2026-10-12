@@ -31,6 +31,7 @@ import javax.inject.Inject;
  * At this moment nearly all configuration is done via {@link EclipseClasspath}.
  *
  * @deprecated Will be removed in Gradle 10.
+ * @since 1.0
  */
 @Deprecated
 @DisableCachingByDefault(because = "Not made cacheable, yet")
@@ -38,6 +39,11 @@ public abstract class GenerateEclipseClasspath extends XmlGeneratorTask<Classpat
 
     private EclipseClasspath classpath;
 
+    /**
+     * Creates a new {@code GenerateEclipseClasspath}.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings("this-escape")
     public GenerateEclipseClasspath() {
         getXmlTransformer().setIndentation("\t");
@@ -77,12 +83,18 @@ public abstract class GenerateEclipseClasspath extends XmlGeneratorTask<Classpat
 
     /**
      * The Eclipse Classpath model containing the information required to generate the classpath file.
+     * @since 1.0
      */
     @Internal
     public EclipseClasspath getClasspath() {
         return classpath;
     }
 
+    /**
+     * Sets the classpath.
+     *
+     * @since 1.0
+     */
     public void setClasspath(EclipseClasspath classpath) {
         this.classpath = classpath;
     }

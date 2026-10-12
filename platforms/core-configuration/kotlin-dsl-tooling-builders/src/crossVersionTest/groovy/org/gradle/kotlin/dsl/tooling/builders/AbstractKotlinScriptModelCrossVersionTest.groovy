@@ -17,6 +17,8 @@
 package org.gradle.kotlin.dsl.tooling.builders
 
 import groovy.transform.CompileStatic
+import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.build.KotlinDslTestProjectInitiation
 import org.gradle.integtests.fixtures.build.ProjectSourceRoots
 import org.gradle.integtests.tooling.fixture.TextUtil
@@ -51,6 +53,18 @@ import static org.hamcrest.MatcherAssert.assertThat
 abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpecification implements KotlinDslTestProjectInitiation {
 
     def setup() {
+        // These specs assert on the Kotlin plugin's sources jar, resolved with the buildscript
+        // classpath from pluginManagement. The portal override does not reach the target daemon in
+        // cross-version tests, so a bare gradlePluginPortal() there is the real portal. withDefaultSettings()
+        // writes defaultSettingsScript, so that is the field that has to carry the mirrors.
+        defaultSettingsScript = """
+            pluginManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+        """.stripIndent()
         // Required for the lenient classpath mode
         toolingApi.requireDaemons()
         // Only Kotlin settings scripts
@@ -238,6 +252,18 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
 
     protected static void assertHasExceptionMessage(KotlinDslScriptsModel model, TestFile script, String message) {
         assertThat(model.scriptModels[script].exceptions, hasItem(containsString(message)))
+    }
+
+    protected void maybeExpectExplicitScriptsDeprecation() {
+        if (targetVersion >= GradleVersion.version("9.9")) {
+            expectDocumentedDeprecationWarning(
+                "Requesting the KotlinDslScriptsModel for an explicit set of scripts using the " +
+                    "'org.gradle.tooling.model.kotlin.dsl.scripts' Gradle property. " +
+                    "This behavior has been deprecated. This is scheduled to be removed in Gradle 10. " +
+                    "Consult the upgrading guide for further information: " +
+                    "https://docs.gradle.org/current/userguide/upgrading_version_9.html#kotlin_dsl_scripts_model_explicit_scripts"
+            )
+        }
     }
 
     protected static final class ConfigurationPhaseMonitoringListener implements ProgressListener {

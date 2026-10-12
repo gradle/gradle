@@ -28,6 +28,7 @@ import java.net.URI;
 public interface FileDownloadOperationDescriptor extends OperationDescriptor {
     /**
      * Returns the URI that the file is downloaded from.
+     * @since 7.3
      */
     URI getUri();
 }

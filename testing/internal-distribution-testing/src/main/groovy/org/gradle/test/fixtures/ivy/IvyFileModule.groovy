@@ -643,9 +643,14 @@ class IvyFileModule extends AbstractModule implements IvyModule {
     void assertArtifactsPublished(String... names) {
         def expectedArtifacts = [] as Set
         for (name in names) {
-            expectedArtifacts.addAll([name, "${name}.sha1"])
-            if (withExtraChecksums) {
-                expectedArtifacts.addAll(["${name}.sha256", "${name}.sha512"])
+            if (isSignatureFile(name)) {
+                // Signature files are not published with checksums
+                expectedArtifacts.add(name)
+            } else {
+                expectedArtifacts.addAll([name, "${name}.sha1"])
+                if (withExtraChecksums) {
+                    expectedArtifacts.addAll(["${name}.sha256", "${name}.sha512"])
+                }
             }
         }
 
@@ -653,8 +658,14 @@ class IvyFileModule extends AbstractModule implements IvyModule {
         expectedArtifacts = (expectedArtifacts as List).sort()
         assert publishedArtifacts == expectedArtifacts
         for (name in names) {
-            assertChecksumPublishedFor(moduleDir.file(name))
+            if (!isSignatureFile(name)) {
+                assertChecksumPublishedFor(moduleDir.file(name))
+            }
         }
+    }
+
+    private static boolean isSignatureFile(String name) {
+        return name.endsWith(".asc") || name.endsWith(".sig")
     }
 
     void assertChecksumPublishedFor(TestFile testFile) {

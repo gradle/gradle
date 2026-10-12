@@ -23,6 +23,7 @@ import org.gradle.language.objectivec.ObjectiveCSourceSet
 import org.gradle.language.AbstractNativeComponentPluginTest
 import org.gradle.language.objectivec.tasks.ObjectiveCCompile
 
+@SuppressWarnings("deprecation")
 class ObjectiveCPluginTest extends AbstractNativeComponentPluginTest {
     @Override
     Class<? extends Plugin> getPluginClass() {

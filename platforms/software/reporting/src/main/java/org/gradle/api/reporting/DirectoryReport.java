@@ -24,6 +24,7 @@ import java.io.File;
 
 /**
  * A directory based report to be created.
+ * @since 1.6
  */
 public interface DirectoryReport extends ConfigurableReport {
 
@@ -36,6 +37,7 @@ public interface DirectoryReport extends ConfigurableReport {
      * {@link DirectoryReport#getOutputLocation()}
      * if no entry point defined
      *
+     * @since 1.6
      */
     @Internal
     File getEntryPoint();

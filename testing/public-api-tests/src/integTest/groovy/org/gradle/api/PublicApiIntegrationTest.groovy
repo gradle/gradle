@@ -17,11 +17,14 @@
 package org.gradle.api
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import java.util.zip.ZipFile
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.integtests.fixtures.jvm.JavaToolchainFixture
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.test.preconditions.JdkVersionTestPreconditions
+
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.mavenCentralRepositoryDefinition
 
 
 @Requires([
@@ -59,6 +62,24 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
         """
 
         file("build-logic/src/test/java/org/example/PublishedApiTestPluginTest.java") << pluginTestJava()
+    }
+
+    def "published gradle-public-api jar carries pom.properties with the published coordinates"() {
+        given:
+        def apiJar = new File(apiJarRepoLocation, "org/gradle/experimental/gradle-public-api/${apiJarVersion}/gradle-public-api-${apiJarVersion}.jar")
+        assert apiJar.isFile()
+
+        when:
+        def props = new Properties()
+        new ZipFile(apiJar).withCloseable { zip ->
+            def entry = zip.getEntry("META-INF/maven/org.gradle.experimental/gradle-public-api/pom.properties")
+            assert entry != null
+            zip.getInputStream(entry).withCloseable { props.load(it) }
+        }
+
+        then:
+        props.groupId == "org.gradle.experimental"
+        props.artifactId == "gradle-public-api"
     }
 
     def "can compile Java plugin against public API and apply it"() {
@@ -248,7 +269,7 @@ class PublicApiIntegrationTest extends AbstractIntegrationSpec implements JavaTo
                 maven {
                     url = uri("${apiJarRepoLocation.toURI()}")
                 }
-                mavenCentral()
+                ${mavenCentralRepositoryDefinition()}
             }
         """
     }

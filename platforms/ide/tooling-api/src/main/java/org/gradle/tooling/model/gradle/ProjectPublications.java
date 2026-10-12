@@ -38,6 +38,7 @@ public interface ProjectPublications extends Model, ProjectModel {
 
     /**
      * Returns the publications for this project.
+     * @since 1.12
      */
     DomainObjectSet<? extends GradlePublication> getPublications();
 }

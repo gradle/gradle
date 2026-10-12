@@ -23,6 +23,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * A HTML Report whose generation can be customized with a XSLT stylesheet.
+ * @since 2.13
  */
 public interface CustomizableHtmlReport extends SingleFileReport {
 
@@ -30,6 +31,7 @@ public interface CustomizableHtmlReport extends SingleFileReport {
      * The stylesheet to use to generate the HTML report.
      *
      * @return the stylesheet to use to generate the HTML report
+     * @since 2.13
      */
     @Nullable
     @Optional
@@ -40,6 +42,7 @@ public interface CustomizableHtmlReport extends SingleFileReport {
      * The stylesheet to use to generate the report.
      *
      * @param stylesheet the stylesheet to use to generate the HTML report
+     * @since 2.13
      */
     void setStylesheet(@Nullable TextResource stylesheet);
 

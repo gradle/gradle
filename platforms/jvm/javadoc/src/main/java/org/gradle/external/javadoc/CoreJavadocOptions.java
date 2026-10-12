@@ -39,6 +39,7 @@ import java.util.stream.Collectors;
 
 /**
  * Provides the core Javadoc Options. That is, provides the options which are not doclet specific.
+ * @since 0.7
  */
 public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     private static final String OPTION_OVERVIEW = "overview";
@@ -55,6 +56,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     private static final String OPTION_LOCALE = "locale";
     private static final String OPTION_ENCODING = "encoding";
 
+    /**
+     * The option file.
+     *
+     * @since 3.4
+     */
     protected final JavadocOptionFile optionFile;
 
     private final JavadocOptionFileOption<String> overview;
@@ -82,10 +88,20 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
     @Incubating
     protected final Set<String> knownCoreOptionNames;
 
+    /**
+     * Creates a new {@code CoreJavadocOptions}.
+     *
+     * @since 0.7
+     */
     public CoreJavadocOptions() {
         this(new JavadocOptionFile());
     }
 
+    /**
+     * Creates a new {@code CoreJavadocOptions}.
+     *
+     * @since 0.7
+     */
     @SuppressWarnings("this-escape")
     protected CoreJavadocOptions(JavadocOptionFile optionFile) {
         this.optionFile = optionFile;
@@ -109,6 +125,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         knownCoreOptionNames = Collections.unmodifiableSet(new HashSet<>(optionFile.getOptions().keySet()));
     }
 
+    /**
+     * Creates a new {@code CoreJavadocOptions}.
+     *
+     * @since 3.4
+     */
     protected CoreJavadocOptions(CoreJavadocOptions original, JavadocOptionFile optionFile) {
         this.optionFile = optionFile;
 
@@ -663,6 +684,11 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
         optionFile.write(outputFile);
     }
 
+    /**
+     * Add option.
+     *
+     * @since 0.7
+     */
     public <T> JavadocOptionFileOption<T> addOption(final JavadocOptionFileOption<T> option) {
         if (option instanceof JavadocOptionFileOptionInternal) {
             return optionFile.addOption(Cast.<JavadocOptionFileOptionInternal<T>>uncheckedCast(option));
@@ -684,6 +710,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * </pre>
      * @param option command-line option
      * @return an option object to further configure the value
+     * @since 0.7
      */
     public JavadocOptionFileOption<String> addStringOption(String option) {
         return optionFile.addStringOption(option);
@@ -713,6 +740,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * @param option command-line option
      * @param value the value to supply or {@code null} to suppress the option
      * @return an option object to further configure the value
+     * @since 0.7
      */
     public JavadocOptionFileOption<String> addStringOption(String option, String value) {
         return optionFile.addStringOption(option, value);
@@ -737,6 +765,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * </pre>
      * @param option command-line option identifier
      * @return an option object to further configure the value
+     * @since 0.7
      */
     public <T extends Enum<T>> JavadocOptionFileOption<T> addEnumOption(String option) {
         return optionFile.addEnumOption(option);
@@ -772,6 +801,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * @param option command-line option identifier
      * @param value the option to supply or {@code null} to suppress the option
      * @return an option object to further configure the value
+     * @since 0.7
      */
     public <T extends Enum<T>> JavadocOptionFileOption<T> addEnumOption(String option, T value) {
         return optionFile.addEnumOption(option, value);
@@ -789,6 +819,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * </pre>
      * @param option command-line option
      * @return an option object to further configure the value
+     * @since 0.7
      */
     public JavadocOptionFileOption<List<File>> addPathOption(String option) {
         return optionFile.addPathOption(option);
@@ -810,6 +841,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * @param option command-line option
      * @param joinBy separator
      * @return an option object to further configure the value
+     * @since 0.7
      */
     public JavadocOptionFileOption<List<File>> addPathOption(String option, String joinBy) {
         return optionFile.addPathOption(option, joinBy);
@@ -827,6 +859,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * </pre>
      * @param option command-line option
      * @return an option object to further configure the value
+     * @since 0.7
      */
     public JavadocOptionFileOption<List<String>> addStringsOption(String option) {
         return optionFile.addStringsOption(option);
@@ -848,6 +881,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * @param option command-line option
      * @param joinBy separator
      * @return an option object to further configure the value
+     * @since 0.7
      */
     public JavadocOptionFileOption<List<String>> addStringsOption(String option, String joinBy) {
         return optionFile.addStringsOption(option, joinBy);
@@ -869,6 +903,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * </p>
      * @param option command-line option
      * @return an option object to further configure the value
+     * @since 0.7
      */
     public JavadocOptionFileOption<List<String>> addMultilineStringsOption(String option) {
         return optionFile.addMultilineStringsOption(option);
@@ -919,6 +954,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * </pre>
      * @param option command-line option identifier
      * @return an option object to further configure the value
+     * @since 0.7
      */
     public JavadocOptionFileOption<Boolean> addBooleanOption(String option) {
         return optionFile.addBooleanOption(option);
@@ -948,6 +984,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * @param option command-line option
      * @param value whether to supply the option or not
      * @return an option object to further configure the value
+     * @since 0.7
      */
     public JavadocOptionFileOption<Boolean> addBooleanOption(String option, boolean value) {
         return optionFile.addBooleanOption(option, value);
@@ -967,6 +1004,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * </pre>
      * @param option command-line option
      * @return an option object to further configure the value
+     * @since 0.7
      */
     public JavadocOptionFileOption<File> addFileOption(String option) {
         return optionFile.addFileOption(option);
@@ -996,6 +1034,7 @@ public abstract class CoreJavadocOptions implements MinimalJavadocOptions {
      * @param option command-line option
      * @param value the value to supply or {@code null} to suppress the option
      * @return an option object to further configure the value
+     * @since 0.7
      */
     public JavadocOptionFileOption<File> addFileOption(String option, File value) {
         return optionFile.addFileOption(option, value);

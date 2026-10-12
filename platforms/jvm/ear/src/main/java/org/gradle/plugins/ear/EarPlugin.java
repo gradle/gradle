@@ -46,13 +46,29 @@ import java.util.concurrent.Callable;
  * </p>
  *
  * @see <a href="https://docs.gradle.org/current/userguide/ear_plugin.html">EAR plugin reference</a>
+ * @since 1.0
  */
 @SuppressWarnings("deprecation")
 public abstract class EarPlugin implements Plugin<Project> {
 
+    /**
+     * The ear task name.
+     *
+     * @since 1.0
+     */
     public static final String EAR_TASK_NAME = "ear";
 
+    /**
+     * The deploy configuration name.
+     *
+     * @since 1.0
+     */
     public static final String DEPLOY_CONFIGURATION_NAME = "deploy";
+    /**
+     * The earlib configuration name.
+     *
+     * @since 1.0
+     */
     public static final String EARLIB_CONFIGURATION_NAME = "earlib";
 
     static final String DEFAULT_LIB_DIR_NAME = "lib";

@@ -22,6 +22,7 @@ import org.gradle.platform.base.internal.DefaultComponentSpecIdentifier
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
+@SuppressWarnings("deprecation")
 class BaseLanguageSourceSetTest extends Specification {
     def "has useful display names"() {
         def identifier = new DefaultComponentSpecIdentifier("project", "parent").child("java5").child("test")

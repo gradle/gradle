@@ -87,13 +87,14 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         succeeds 'checkDeps'
 
         then:
+        String status = defaultStatus()
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:test:1.0') {
-                    variant('api1', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), custom: 'c1'])
+                    variant('api1', ['org.gradle.status': status, custom: 'c1'])
                 }
                 module('org:test:1.0') {
-                    variant('runtime2', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), custom2: 'c2'])
+                    variant('runtime2', ['org.gradle.status': status, custom2: 'c2'])
                 }
             }
         }
@@ -195,9 +196,9 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org:test:1.0' also provided by ['org:test:1.0' (runtime)]""")
+   Cannot select module because of conflict with org:test:1.0 (runtime). Both provide capability 'org:test:1.0'.""")
         failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org:test:1.0' also provided by ['org:test:1.0' (api)]""")
+   Cannot select module because of conflict with org:test:1.0 (api). Both provide capability 'org:test:1.0'.""")
     }
 
     void "can select distinct variants of the same component by using different attributes with capabilities"() {
@@ -275,12 +276,13 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
   - org:test:1.0 variant runtime:
       - Incompatible because this component declares attribute 'custom' with value 'c2' and the consumer needed attribute 'custom' with value 'c1'""")
         } else {
+            String status = defaultStatus()
             resolve.expectGraph {
                 root(":", ":test:") {
                     edge('org:test:1.0', 'org:test:1.0')
                     module('org:test:1.0') {
-                        maybeByConflictResolution()
-                        variant('runtime', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2'])
+                        byConflictResolution("latest version of capability org.test:cap")
+                        variant('runtime', ['org.gradle.status': status, 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library', custom: 'c2'])
                     }
                 }
             }
@@ -336,9 +338,9 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by ['org:test:1.0' (runtime)]""")
+   Cannot select module because of conflict with org:test:1.0 (runtime). Both provide capability 'org.test:cap:1.0'.""")
         failure.assertHasCause("""Module 'org:test' has been rejected:
-   Cannot select module with conflict on capability 'org.test:cap:1.0' also provided by ['org:test:1.0' (api)]""")
+   Cannot select module because of conflict with org:test:1.0 (api). Both provide capability 'org.test:cap:1.0'.""")
     }
 
     def "selects 2 variants of the same component with transitive dependency if they have different capabilities"() {
@@ -418,18 +420,19 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         succeeds 'checkDeps'
 
         then:
+        String status = defaultStatus()
         resolve.expectGraph {
             root(":", ":test:") {
                 edge('org:foo:1.0', 'org:foo:1.1') {
                     byConflictResolution('between versions 1.1 and 1.0')
-                    // the following assertion is true but limitations to the test fixtures make it hard to check
-                    //variant('altruntime', [custom: 'c3', 'org.gradle.status': defaultStatus()])
-                    variant('runtime', [custom: 'c2', 'org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('runtime', [custom: 'c2', 'org.gradle.status': status, 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact classifier: 'c2'
-                    artifact classifier: 'c3'
                 }
                 module('org:bar:1.0') {
-                    module('org:foo:1.1')
+                    module('org:foo:1.1') {
+                        variant('altruntime', [custom2: 'c3', 'org.gradle.status': status])
+                        artifact(classifier: 'c3')
+                    }
                 }
             }
         }
@@ -581,9 +584,9 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Module 'org:foo' has been rejected:
-   Cannot select module with conflict on capability 'org:foo:1.1' also provided by ['org:foo:1.1' (runtime)]""")
+   Cannot select module because of conflict with org:foo:1.1 (runtime). Both provide capability 'org:foo:1.1'.""")
         failure.assertHasCause("""Module 'org:foo' has been rejected:
-   Cannot select module with conflict on capability 'org:foo:1.1' also provided by ['org:foo:1.1' (api)]""")
+   Cannot select module because of conflict with org:foo:1.1 (api). Both provide capability 'org:foo:1.1'.""")
     }
 
     def "selects a single variant of the same component when asking for a consumer specific attribute"() {
@@ -650,11 +653,12 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         succeeds 'checkDeps'
 
         then:
+        String status = defaultStatus()
         resolve.expectGraph {
             root(":", ":test:") {
                 edge('org:foo:1.0', 'org:foo:1.1') {
                     byConflictResolution('between versions 1.1 and 1.0')
-                    variant('runtime', [custom: 'c2', 'org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('runtime', [custom: 'c2', 'org.gradle.status': status, 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact classifier: 'c2'
                 }
                 module('org:bar:1.0') {
@@ -698,14 +702,15 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         succeeds 'checkDeps'
 
         then:
+        String status = defaultStatus()
         resolve.expectGraph {
             root(":", ":test:") {
                 module('org:foo:1.0') {
-                    variant('runtime', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus(), 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
+                    variant('runtime', ['org.gradle.status': status, 'org.gradle.usage': 'java-runtime', 'org.gradle.libraryelements': 'jar', 'org.gradle.category': 'library'])
                     artifact()
                 }
                 module('org:foo:1.0') {
-                    variant('test-fixtures', ['org.gradle.status': MultipleVariantSelectionIntegrationTest.defaultStatus()])
+                    variant('test-fixtures', ['org.gradle.status': status])
                     artifact classifier: 'test-fixtures'
                 }
             }
@@ -747,9 +752,9 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Module 'org:foo' has been rejected:
-   Cannot select module with conflict on capability 'org:foo:1.0' also provided by ['org:bar:1.0' (runtime)]""")
+   Cannot select module because of conflict with org:bar:1.0 (runtime). Both provide capability 'org:foo:1.0'.""")
         failure.assertHasCause("""Module 'org:bar' has been rejected:
-   Cannot select module with conflict on capability 'org:foo:1.0' also provided by ['org:foo:1.0' (runtime)]""")
+   Cannot select module because of conflict with org:foo:1.0 (runtime). Both provide capability 'org:foo:1.0'.""")
     }
 
     def "detects conflicts between 2 variants of 2 different components with the same capability"() {
@@ -796,9 +801,9 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Module 'org:foo' has been rejected:
-   Cannot select module with conflict on capability 'org:blah:1.0' also provided by ['org:bar:1.0' (runtime)]""")
+   Cannot select module because of conflict with org:bar:1.0 (runtime). Both provide capability 'org:blah:1.0'.""")
         failure.assertHasCause("""Module 'org:bar' has been rejected:
-   Cannot select module with conflict on capability 'org:blah:1.0' also provided by ['org:foo:1.0' (runtime)]""")
+   Cannot select module because of conflict with org:foo:1.0 (runtime). Both provide capability 'org:blah:1.0'.""")
     }
 
     @ToBeImplemented("https://github.com/gradle/gradle/issues/8386")
@@ -993,7 +998,7 @@ class MultipleVariantSelectionIntegrationTest extends AbstractModuleDependencyRe
         applyRule << [true, false]
     }
 
-    static Closure<String> defaultStatus() {
-        { -> GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release' }
+    static String defaultStatus() {
+        GradleMetadataResolveRunner.useIvy() ? 'integration' : 'release'
     }
 }

@@ -35,6 +35,7 @@ import java.util.Set;
  * </p>
  *
  * <p>The order of the files in a {@code FileTree} is not stable, even on a single computer.
+ * @since 0.8
  */
 @HasInternalProtocol
 @HiddenInDefinition
@@ -50,6 +51,7 @@ public interface FileTree extends FileCollection {
      *
      * @param filterConfigClosure the closure to use to configure the filter.
      * @return The filtered tree.
+     * @since 0.8
      */
     FileTree matching(@DelegatesTo(PatternFilterable.class) Closure filterConfigClosure);
 
@@ -78,6 +80,7 @@ public interface FileTree extends FileCollection {
      *
      * @param patterns the pattern set to use to configure the filter.
      * @return The filtered tree.
+     * @since 0.8
      */
     FileTree matching(PatternFilterable patterns);
 
@@ -87,6 +90,7 @@ public interface FileTree extends FileCollection {
      *
      * @param visitor The visitor.
      * @return this
+     * @since 0.8
      */
     FileTree visit(FileVisitor visitor);
 
@@ -97,6 +101,7 @@ public interface FileTree extends FileCollection {
      *
      * @param visitor The visitor.
      * @return this
+     * @since 0.8
      */
     FileTree visit(@DelegatesTo(FileVisitDetails.class) Closure visitor);
 
@@ -107,6 +112,7 @@ public interface FileTree extends FileCollection {
      *
      * @param visitor The visitor.
      * @return this
+     * @since 3.3
      */
     FileTree visit(Action<? super FileVisitDetails> visitor);
 
@@ -116,6 +122,7 @@ public interface FileTree extends FileCollection {
      *
      * @param fileTree The tree. Should not be null.
      * @return The union of this tree and the given tree.
+     * @since 0.8
      */
     FileTree plus(FileTree fileTree);
 

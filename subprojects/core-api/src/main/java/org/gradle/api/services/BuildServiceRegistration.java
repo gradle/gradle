@@ -30,6 +30,7 @@ import org.gradle.api.provider.Provider;
 public interface BuildServiceRegistration<T extends BuildService<P>, P extends BuildServiceParameters> extends Named {
     /**
      * Returns the parameters that will be used to instantiate the service with.
+     * @since 6.1
      */
     P getParameters();
 
@@ -43,11 +44,13 @@ public interface BuildServiceRegistration<T extends BuildService<P>, P extends B
      *
      * @see ServiceReference
      * @see org.gradle.api.Task#usesService(Provider)
+     * @since 6.1
      */
     Property<Integer> getMaxParallelUsages();
 
     /**
      * Returns a {@link Provider} that will create the service instance when its value is queried.
+     * @since 6.1
      */
     Provider<T> getService();
 }

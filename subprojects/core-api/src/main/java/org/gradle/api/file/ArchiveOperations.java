@@ -54,6 +54,7 @@ public interface ArchiveOperations {
      *
      * @param zipPath The ZIP file. Evaluated as per {@link Project#file(Object)}.
      * @return the file tree. Never returns null.
+     * @since 6.6
      */
     FileTree zipTree(Object zipPath);
 
@@ -62,6 +63,7 @@ public interface ArchiveOperations {
      *
      * @param tarPath The TAR file. Evaluated as per {@link Project#file(Object)}.
      * @return the file tree. Never returns null.
+     * @since 6.6
      */
     FileTree tarTree(Object tarPath);
 }

@@ -18,36 +18,34 @@ package org.gradle.nativeplatform.internal.configure;
 
 import org.gradle.api.Action;
 import org.gradle.api.NamedDomainObjectContainer;
-import org.gradle.nativeplatform.NativeExecutableSpec;
-import org.gradle.nativeplatform.NativeLibrarySpec;
-import org.gradle.nativeplatform.NativeComponentExtension;
 
-public class DefaultNativeComponentExtension implements NativeComponentExtension {
-    private final NamedDomainObjectContainer<NativeExecutableSpec> executables;
-    private final NamedDomainObjectContainer<NativeLibrarySpec> libraries;
+@SuppressWarnings("deprecation")
+public class DefaultNativeComponentExtension implements org.gradle.nativeplatform.NativeComponentExtension {
+    private final NamedDomainObjectContainer<org.gradle.nativeplatform.NativeExecutableSpec> executables;
+    private final NamedDomainObjectContainer<org.gradle.nativeplatform.NativeLibrarySpec> libraries;
 
-    public DefaultNativeComponentExtension(NamedDomainObjectContainer<NativeExecutableSpec> executables, NamedDomainObjectContainer<NativeLibrarySpec> libraries) {
+    public DefaultNativeComponentExtension(NamedDomainObjectContainer<org.gradle.nativeplatform.NativeExecutableSpec> executables, NamedDomainObjectContainer<org.gradle.nativeplatform.NativeLibrarySpec> libraries) {
         this.executables = executables;
         this.libraries = libraries;
     }
 
     @Override
-    public NamedDomainObjectContainer<NativeExecutableSpec> getExecutables() {
+    public NamedDomainObjectContainer<org.gradle.nativeplatform.NativeExecutableSpec> getExecutables() {
         return executables;
     }
 
     @Override
-    public void executables(Action<? super NamedDomainObjectContainer<? super NativeExecutableSpec>> action) {
+    public void executables(Action<? super NamedDomainObjectContainer<? super org.gradle.nativeplatform.NativeExecutableSpec>> action) {
         action.execute(executables);
     }
 
     @Override
-    public NamedDomainObjectContainer<NativeLibrarySpec> getLibraries() {
+    public NamedDomainObjectContainer<org.gradle.nativeplatform.NativeLibrarySpec> getLibraries() {
         return libraries;
     }
 
     @Override
-    public void libraries(Action<? super NamedDomainObjectContainer<? super NativeLibrarySpec>> action) {
+    public void libraries(Action<? super NamedDomainObjectContainer<? super org.gradle.nativeplatform.NativeLibrarySpec>> action) {
         action.execute(libraries);
     }
 }

@@ -24,6 +24,7 @@ public interface JavaPlatformExtension {
     /**
      * Allow dependencies to be declared. By default, a platform
      * will not allow dependencies, only constraints.
+     * @since 5.2
      */
     void allowDependencies();
 }

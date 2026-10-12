@@ -23,6 +23,7 @@ import org.gradle.plugins.signing.SigningExtension;
  * <p>Provides implementations of signatory implementations for a project.</p>
  *
  * @param <T> The specific {@link Signatory} subtype
+ * @since 1.0
  */
 public interface SignatoryProvider<T extends Signatory> {
 
@@ -30,6 +31,7 @@ public interface SignatoryProvider<T extends Signatory> {
      * Evaluates the given DSL-containing-closure as signatory configuration.
      *
      * @param settings The signing settings for the project the configure is happening for
+     * @since 1.0
      */
     void configure(SigningExtension settings, Closure closure);
 
@@ -40,6 +42,7 @@ public interface SignatoryProvider<T extends Signatory> {
      *
      * @param project The project which the signatory is for
      * @return The signatory, or {@code null} if there is insufficient information available to create one.
+     * @since 1.0
      */
     T getDefaultSignatory(Project project);
 
@@ -48,6 +51,7 @@ public interface SignatoryProvider<T extends Signatory> {
      *
      * @param name The desired signatory's name.
      * @return The signatory with the given name if found, or {@code null} if no signatory is found with this name.
+     * @since 1.0
      */
     T getSignatory(String name);
 }

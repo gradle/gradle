@@ -21,7 +21,7 @@ package org.gradle.tooling.internal.protocol;
  *
  * <p>This is a marker interface. Instances are queried dynamically to see which parameters they support.
  *
- * @since 2.2-rc-1
+ * @since 2.2
  */
 public interface ShutdownParameters extends InternalProtocolInterface {
 }

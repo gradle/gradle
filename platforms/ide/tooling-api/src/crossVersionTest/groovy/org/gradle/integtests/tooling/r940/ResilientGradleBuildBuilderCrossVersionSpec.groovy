@@ -17,6 +17,8 @@
 package org.gradle.integtests.tooling.r940
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
+import org.gradle.test.fixtures.dsl.GradleDsl
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.tooling.fixture.ToolingApiVersion
 import org.gradle.integtests.tooling.r930.KotlinDslPluginRelatedToolingApiSpecification
 import org.gradle.test.fixtures.file.TestFile
@@ -92,13 +94,23 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
             }
         """
 
+        file("buildSrc/settings.gradle.kts") << """
+            pluginManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+        """
+
         file("buildSrc/build.gradle.kts") << """
             plugins {
                 `kotlin-dsl`
             }
 
             repositories {
-                gradlePluginPortal()
+                ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
             }
         """
 
@@ -184,8 +196,9 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
         assertModel(model, true, [], ["buildSrc", "buildSrc-included"])
     }
 
+    // From Gradle 9.7 the captured configuration failures also fail the build, see the r970 spec
     @ToolingApiVersion('>=9.3.0')
-    @TargetGradleVersion('>=9.4.0')
+    @TargetGradleVersion('>=9.4.0 <9.7.0')
     def "returns included builds nested within buildSrc composite build partially when compilation failures in #brokenFile"() {
         given:
         settingsKotlinFile << """
@@ -207,7 +220,7 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
         fails { model(it) }
 
         then:
-         def e = thrown(BuildException)
+        def e = thrown(BuildException)
         e.cause.message.contains("Script compilation error")
         def model = modelCollector.model
         assertFailures(model, *expectedFailures.call(targetVersion))

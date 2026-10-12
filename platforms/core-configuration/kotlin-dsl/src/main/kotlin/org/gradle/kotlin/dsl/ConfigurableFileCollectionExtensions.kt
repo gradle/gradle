@@ -26,6 +26,8 @@ import kotlin.reflect.KProperty
  * Property delegate for [ConfigurableFileCollection] instances.
  *
  * Example: `val aFileCollection by project.files()`
+ *
+ * @since 4.1
  */
 @Deprecated("Use 'val files = configurableFileCollection.getFiles()' instead. See the Gradle 9.6 upgrading guide.")
 operator fun ConfigurableFileCollection.getValue(receiver: Any?, property: KProperty<*>): ConfigurableFileCollection {
@@ -42,6 +44,8 @@ operator fun ConfigurableFileCollection.getValue(receiver: Any?, property: KProp
  * Property delegate for [ConfigurableFileCollection] instances.
  *
  * Example: `var aFileCollection by project.files()`
+ *
+ * @since 4.1
  */
 @Deprecated("Use 'configurableFileCollection.setFrom(...)' instead. See the Gradle 9.6 upgrading guide.")
 operator fun ConfigurableFileCollection.setValue(receiver: Any?, property: KProperty<*>, value: Iterable<*>) {

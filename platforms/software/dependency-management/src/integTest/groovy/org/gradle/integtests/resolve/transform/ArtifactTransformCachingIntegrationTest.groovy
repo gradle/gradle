@@ -216,7 +216,7 @@ class ArtifactTransformCachingIntegrationTest extends AbstractHttpDependencyReso
                 failure.assertHasDescription("A problem was found with the configuration of task ':${appType}:badTask' (type 'DefaultTask').")
                 verifyAll(receivedProblem(index as Integer)) {
                     severity == Severity.ERROR
-                    fqid == 'validation:property-validation:cannot-write-to-reserved-location'
+                    fqid == 'Gradle:Build Definition:Cannot write to reserved location'
                     definition.id.displayName == 'Cannot write to reserved location'
                     contextualLabel == "Property \'output\' points to \'${reserved.absolutePath}\' which is managed by Gradle"
                     details == 'Trying to write an output to a read-only location which is for Gradle internal use only'
@@ -1636,7 +1636,7 @@ resultsFile:
         then:
         failure.assertHasDescription("Execution failed for task ':app:resolve' (registered in build file 'build.gradle').")
         failure.assertResolutionFailure(":app:compile")
-        failure.hasErrorOutput("Received status code 500 from server: broken")
+        failure.hasErrorOutput("Received status code 500 from server: Internal Server Error")
 
         where:
         scheduled << [true, false]

@@ -68,7 +68,7 @@ class DeprecationInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
             pluginId,
             """
                 @file:Suppress("deprecation")
-                
+
                 import com.example.DeprecatedJavaExt
                 import com.example.DeprecatedJavaTask
 
@@ -105,6 +105,41 @@ class DeprecationInAccessorsIntegrationTest : AbstractKotlinIntegrationTest() {
                 |    val TaskContainer.`myTask`: TaskProvider<com.example.DeprecatedJavaTask>
                 """.trimMargin()
             )
+        }
+    }
+
+    @Test
+    fun `multi-string dependency declaration accessors are deprecated at compile time`() {
+        withBuildScript(
+            """
+            plugins {
+                id("java-library")
+            }
+
+            dependencies {
+                implementation("group", "name", "version")
+            }
+            """
+        )
+
+        // Declaring the dependency at configuration time also triggers the runtime multi-string deprecation warning.
+        executer.expectDocumentedDeprecationWarning(
+            "Declaring dependencies using multi-string notation has been deprecated. " +
+                "This will fail with an error in Gradle 10. " +
+                "Please use single-string notation (\"group:name:version\") or DependencyFactory instead. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#dependency_multi_string_notation"
+        )
+
+        build("help").apply {
+            assertTrue("Expected a compile-time deprecation warning on the multi-string accessor usage, output was:\n$output") {
+                output.lines().any {
+                    it.startsWith("w: ") &&
+                        it.contains("build.gradle.kts:") &&
+                        it.contains("implementation") &&
+                        it.endsWith("is deprecated. Use single-string notation or DependencyFactory instead.")
+                }
+            }
         }
     }
 

@@ -21,6 +21,7 @@ import java.net.URI;
 /**
  * A generic resource of some kind. Only describes the resource.
  * There are more specific interface that extend this one and specify ways of accessing the resource's content.
+ * @since 1.0
  */
 public interface Resource {
 
@@ -28,6 +29,7 @@ public interface Resource {
      * Human readable name of this resource
      *
      * @return human readable name, should not be null
+     * @since 1.0
      */
     String getDisplayName();
 
@@ -35,6 +37,7 @@ public interface Resource {
      * Uniform resource identifier that uniquely describes this resource
      *
      * @return unique URI, should not be null
+     * @since 1.0
      */
     URI getURI();
 
@@ -42,6 +45,7 @@ public interface Resource {
      * Short name that concisely describes this resource
      *
      * @return concise base name, should not be null
+     * @since 1.0
      */
     String getBaseName();
 }

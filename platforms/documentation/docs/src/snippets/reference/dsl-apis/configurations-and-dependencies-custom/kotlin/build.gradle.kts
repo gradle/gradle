@@ -2,6 +2,7 @@ plugins {
     `java-library`
 }
 
+// tag::custom[]
 // tag::direct-reference[]
 val db = configurations.create("db")
 val integTestImplementation = configurations.create("integTestImplementation") {
@@ -24,3 +25,4 @@ dependencies {
     "integTestImplementation"("com.example:integ-test-support:1.3")
 }
 // end::string-reference[]
+// end::custom[]

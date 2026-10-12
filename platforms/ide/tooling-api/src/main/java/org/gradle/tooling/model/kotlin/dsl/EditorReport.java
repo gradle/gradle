@@ -26,10 +26,25 @@ import org.jspecify.annotations.Nullable;
  */
 public interface EditorReport {
 
+    /**
+     * Returns the severity.
+     *
+     * @since 6.0
+     */
     EditorReportSeverity getSeverity();
 
+    /**
+     * Returns the message.
+     *
+     * @since 6.0
+     */
     String getMessage();
 
+    /**
+     * Returns the position.
+     *
+     * @since 6.0
+     */
     @Nullable
     EditorPosition getPosition();
 }

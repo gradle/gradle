@@ -35,6 +35,7 @@ public interface ComponentWithLinkFile extends ComponentWithNativeRuntime {
 
     /**
      * Returns the link file of this component.
+     * @since 4.5
      */
     Provider<RegularFile> getLinkFile();
 }

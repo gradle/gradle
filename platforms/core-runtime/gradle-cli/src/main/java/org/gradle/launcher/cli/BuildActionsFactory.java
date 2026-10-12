@@ -52,11 +52,12 @@ import org.gradle.launcher.daemon.client.DaemonClientGlobalServices;
 import org.gradle.launcher.daemon.client.DaemonStopClient;
 import org.gradle.launcher.daemon.client.ReportDaemonStatusClient;
 import org.gradle.launcher.daemon.configuration.DaemonParameters;
-import org.gradle.launcher.daemon.configuration.ForegroundDaemonConfiguration;
 import org.gradle.launcher.daemon.context.DaemonCompatibilitySpec;
 import org.gradle.launcher.daemon.context.DaemonContext;
 import org.gradle.launcher.daemon.context.DaemonRequestContext;
 import org.gradle.launcher.daemon.context.DefaultDaemonContext;
+import org.gradle.launcher.daemon.startup.DaemonPriority;
+import org.gradle.launcher.daemon.startup.DefaultDaemonServerConfiguration;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 import org.gradle.launcher.exec.BuildActionExecutor;
 import org.gradle.launcher.exec.BuildActionParameters;
@@ -69,6 +70,7 @@ import org.gradle.tooling.internal.provider.RunInProcess;
 import java.lang.management.ManagementFactory;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.List;
 import java.util.Optional;
 import java.util.Properties;
 import java.util.UUID;
@@ -106,10 +108,27 @@ class BuildActionsFactory implements CommandLineActionCreator {
             return Actions.toAction(showDaemonStatus(daemonParameters));
         }
         if (daemonParameters.isForeground()) {
-            ForegroundDaemonConfiguration conf = new ForegroundDaemonConfiguration(
-                UUID.randomUUID().toString(), daemonParameters.getBaseDir(), daemonParameters.getIdleTimeout(), daemonParameters.getPeriodicCheckInterval(), fileCollectionFactory,
-                daemonParameters.shouldApplyInstrumentationAgent(), daemonParameters.getNativeServicesMode());
-            return Actions.toAction(new ForegroundDaemonAction(loggingServices, conf));
+            // Foreground daemon cannot be 'told' its startup options since the client sits in the same process.
+            // So we will infer the jvm options from the inputArguments()
+            List<String> jvmOptions = new CurrentProcess(fileCollectionFactory).getJvmOptions().getAllImmutableJvmArgs();
+
+            return Actions.toAction(
+                new ForegroundDaemonAction(
+                    loggingServices,
+                    new DefaultDaemonServerConfiguration(
+                        daemonParameters.getGradleUserHomeDir(),
+                        UUID.randomUUID().toString(),
+                        daemonParameters.getBaseDir(),
+                        daemonParameters.getIdleTimeout(),
+                        daemonParameters.getPeriodicCheckInterval(),
+                        false,
+                        DaemonPriority.NORMAL,
+                        jvmOptions,
+                        daemonParameters.shouldApplyInstrumentationAgent(),
+                        daemonParameters.getNativeServicesMode()
+                    )
+                )
+            );
         }
 
         DaemonRequestContext requestContext = daemonParameters.toRequestContext();

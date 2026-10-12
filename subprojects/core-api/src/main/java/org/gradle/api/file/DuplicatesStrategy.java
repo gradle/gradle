@@ -18,6 +18,7 @@ package org.gradle.api.file;
 
 /**
  * Strategies for dealing with the potential creation of duplicate files or archive entries.
+ * @since 1.7
  */
 public enum DuplicatesStrategy {
 
@@ -26,6 +27,7 @@ public enum DuplicatesStrategy {
      * <p>
      * If the destination of the operation supports duplicates (e.g. zip files) then a duplicate entry will be created.
      * If the destination does not support duplicates, the existing destination entry will be overridden with the duplicate.
+     * @since 1.7
      */
     INCLUDE,
 
@@ -34,6 +36,7 @@ public enum DuplicatesStrategy {
      * <p>
      * If an attempt is made to create a duplicate file/entry during an operation, ignore the item.
      * This will leave the file/entry that was first copied/created in place.
+     * @since 1.7
      */
     EXCLUDE,
 
@@ -42,6 +45,7 @@ public enum DuplicatesStrategy {
      * are to be created at the same path.
      * <p>
      * This behaves exactly as INCLUDE otherwise.
+     * @since 1.8
      */
     WARN,
 
@@ -49,6 +53,7 @@ public enum DuplicatesStrategy {
      * Throw a {@link DuplicateFileCopyingException} when subsequent items are to be created at the same path.
      * <p>
      * Use this strategy when duplicates are an error condition that should cause the build to fail.
+     * @since 1.8
      */
     FAIL,
 

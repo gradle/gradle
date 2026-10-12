@@ -137,6 +137,15 @@ docker run --rm -u gradle \
 Most CI platforms allow you to specify a container image for each job.
 The examples below show how to reference the Gradle Docker image on popular platforms.
 
+[[docker_ci_cache_boundaries]]
+=== Cache boundaries and image pinning
+
+Pin the image and JDK, and use the Gradle Wrapper so the container's operating system and the project's Gradle version are explicit.
+
+For faster container builds, cache only directories that are safe for the image and job, such as compatible dependency and compiled-script caches.
+Keep project outputs and configuration-cache state associated with the correct workspace.
+Do not copy a host <<directory_layout.adoc#dir:gradle_user_home,`GRADLE_USER_HOME`>> into a container when its paths, operating system, JDK, permissions, or Gradle version are incompatible.
+
 [[docker_ci_github_actions]]
 === GitHub Actions
 

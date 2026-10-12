@@ -32,13 +32,39 @@ import org.jspecify.annotations.NullMarked;
  * <p>A {@link Plugin} which adds some project visualization report tasks to a project.</p>
  *
  * @see <a href="https://docs.gradle.org/current/userguide/project_report_plugin.html">Project Report plugin reference</a>
+ * @since 0.7
  */
 @NullMarked
 public abstract class ProjectReportsPlugin implements Plugin<Project> {
+    /**
+     * The task report.
+     *
+     * @since 0.7
+     */
     public static final String TASK_REPORT = "taskReport";
+    /**
+     * The property report.
+     *
+     * @since 0.7
+     */
     public static final String PROPERTY_REPORT = "propertyReport";
+    /**
+     * The dependency report.
+     *
+     * @since 0.7
+     */
     public static final String DEPENDENCY_REPORT = "dependencyReport";
+    /**
+     * The html dependency report.
+     *
+     * @since 1.9
+     */
     public static final String HTML_DEPENDENCY_REPORT = "htmlDependencyReport";
+    /**
+     * The project report.
+     *
+     * @since 0.7
+     */
     public static final String PROJECT_REPORT = "projectReport";
 
     @Override

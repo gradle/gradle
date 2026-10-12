@@ -25,7 +25,13 @@ import java.io.Serializable;
  */
 public enum Destination implements Serializable {
 
+    /**
+     * @since 6.0
+     */
     StdOut(0),
+    /**
+     * @since 6.0
+     */
     StdErr(1);
 
     private final int code;
@@ -34,10 +40,20 @@ public enum Destination implements Serializable {
         this.code = code;
     }
 
+    /**
+     * Returns the code.
+     *
+     * @since 6.0
+     */
     public int getCode() {
         return code;
     }
 
+    /**
+     * From code.
+     *
+     * @since 6.0
+     */
     public static Destination fromCode(int code) {
         for (Destination d : Destination.values()) {
             if (d.code == code) {

@@ -19,6 +19,7 @@ import java.io.Serializable;
 
 /**
  * The identifier of a module version.
+ * @since 1.0
  */
 public interface ModuleVersionIdentifier extends Serializable {
 
@@ -26,6 +27,7 @@ public interface ModuleVersionIdentifier extends Serializable {
      * The version of the module
      *
      * @return module version
+     * @since 1.0
      */
     String getVersion();
 
@@ -33,6 +35,7 @@ public interface ModuleVersionIdentifier extends Serializable {
      * The group of the module.
      *
      * @return module group
+     * @since 1.0
      */
     String getGroup();
 
@@ -40,6 +43,7 @@ public interface ModuleVersionIdentifier extends Serializable {
      * The name of the module.
      *
      * @return module name
+     * @since 1.0
      */
     String getName();
 

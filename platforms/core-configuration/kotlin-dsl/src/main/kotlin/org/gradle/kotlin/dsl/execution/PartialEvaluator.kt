@@ -26,6 +26,7 @@ import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.CollectProjec
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.Eval
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Instruction.SetupEmbeddedKotlin
 import org.gradle.kotlin.dsl.execution.ResidualProgram.Static
+import org.gradle.kotlin.dsl.support.loggerFor
 
 
 /**
@@ -240,7 +241,7 @@ class PartialEvaluator(
 
     private
     fun logUnoptimized(plugins: Program.Plugins, interpretation: PluginsBlockInterpretation.Dynamic) {
-        interpreterLogger.run {
+        loggerFor<PartialEvaluator>().run {
             if (isDebugEnabled) {
                 debug(
                     "Unable to interpret plugins block in '${plugins.fragment.source.path}', Kotlin compiler will be used: " +

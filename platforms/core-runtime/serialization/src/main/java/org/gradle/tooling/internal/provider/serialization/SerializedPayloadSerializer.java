@@ -20,12 +20,13 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializer;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class SerializedPayloadSerializer implements Serializer<SerializedPayload> {
-    private final Serializer<Object> javaSerializer = new DefaultSerializer<Object>();
+    private final Serializer<@Nullable Object> javaSerializer = new DefaultSerializer<@Nullable Object>();
 
     @Override
     public void write(Encoder encoder, SerializedPayload value) throws Exception {

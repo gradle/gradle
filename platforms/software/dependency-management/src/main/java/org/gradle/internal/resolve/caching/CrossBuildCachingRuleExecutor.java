@@ -292,7 +292,7 @@ public class CrossBuildCachingRuleExecutor<KEY, DETAILS, RESULT> implements Cach
         }
 
         private void writeImplicits(Encoder encoder, Multimap<String, ImplicitInputRecord<?, ?>> implicits) throws Exception {
-            encoder.writeSmallInt(implicits.size());
+            encoder.writeSmallInt(implicits.asMap().size());
             for (Map.Entry<String, Collection<ImplicitInputRecord<?, ?>>> entry : implicits.asMap().entrySet()) {
                 encoder.writeString(entry.getKey());
                 writeImplicitList(encoder, entry.getValue());

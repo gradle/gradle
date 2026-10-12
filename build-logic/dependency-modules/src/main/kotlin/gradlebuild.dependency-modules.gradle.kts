@@ -18,6 +18,7 @@ import com.google.gson.Gson
 import com.google.gson.Strictness
 import com.google.gson.reflect.TypeToken
 import com.google.gson.stream.JsonReader
+import gradlebuild.basics.bundleGroovyMajor
 import gradlebuild.basics.repoRoot
 
 applyAutomaticUpgradeOfCapabilities()
@@ -54,6 +55,11 @@ dependencies {
         applyRule<DependencyRemovalByNameRule>("org.gradle:sample-discovery", setOf("asciidoctorj", "asciidoctorj-api"))
 
         withModule<RemoveXmlApisRule>("jaxen:jaxen")
+        // The synthetic project used to generate precompiled script plugin accessors has no version catalogs
+        if (project.name != "gradle-kotlin-dsl-accessors") {
+            val lz4Fork = versionCatalogs.named("testLibs").findLibrary("lz4").get().get()
+            applyRule<ReplaceLz4WithMaintainedForkRule>("org.openjdk.jmc:common", "${lz4Fork.group}:${lz4Fork.name}:${lz4Fork.versionConstraint.requiredVersion}")
+        }
         withModule<RemoveXmlApisRule>("jdom:jdom")
         withModule<RemoveXmlApisRule>("xalan:xalan")
         withModule<RemoveXmlApisRule>("jaxen:jaxen")
@@ -81,6 +87,10 @@ dependencies {
             "org.gradle.profiler:gradle-profiler",
             setOf("gradle-tooling-api")
         )
+
+        if (bundleGroovyMajor >= 5) {
+            all<GroovyTargetJvmVersionRule>()
+        }
     }
 }
 
@@ -264,6 +274,45 @@ fun <reified T : ComponentMetadataRule> ComponentMetadataHandler.applyRule(modul
     }
 }
 
+
+/**
+ * Lowers the JVM version Groovy publishes so that Java 8 consumers can resolve it.
+ *
+ * Groovy 5 is built for Java 11, but Gradle's client and worker code targets Java 8, so
+ * nothing in Groovy 5 matches their compile classpath. This is only safe because it applies
+ * to the `-DbundleGroovyMajor=5` coverage build, which runs on Java 17+, and because no
+ * distribution module has `src/main/groovy` - so no Java 8 module ever forks `groovyc` onto
+ * a JDK 8 launcher. The Java 8 jars it produces link against classes that cannot load on
+ * Java 8.
+ */
+abstract class GroovyTargetJvmVersionRule : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        if (context.details.id.group != "org.apache.groovy") {
+            return
+        }
+        context.details.allVariants {
+            attributes {
+                attribute(TargetJvmVersion.TARGET_JVM_VERSION_ATTRIBUTE, 8)
+            }
+        }
+    }
+}
+
+
+// org.lz4:lz4-java is abandoned and has unfixed CVEs; at.yawk.lz4 is its maintained drop-in fork
+abstract class ReplaceLz4WithMaintainedForkRule @Inject constructor(
+    private val forkCoordinates: String
+) : ComponentMetadataRule {
+    override fun execute(context: ComponentMetadataContext) {
+        context.details.allVariants {
+            withDependencies {
+                if (removeAll { it.group == "org.lz4" && it.name == "lz4-java" }) {
+                    add(forkCoordinates)
+                }
+            }
+        }
+    }
+}
 
 /**
  * The JDK now provides these.

@@ -145,6 +145,10 @@ public class TestFiles {
         return new DefaultFilePropertyFactory(PropertyHost.NO_OP, resolver(), fileCollectionFactory());
     }
 
+    public static FileFactory fileFactory(File baseDir) {
+        return new DefaultFilePropertyFactory(PropertyHost.NO_OP, resolver(baseDir), fileCollectionFactory(baseDir));
+    }
+
     public static FileOperations fileOperations(File basedDir) {
         return fileOperations(basedDir, new DefaultTemporaryFileProvider(() -> new File(basedDir, "tmp")));
     }
@@ -169,6 +173,8 @@ public class TestFiles {
             resourceHandlerFactory,
             fileCollectionFactory(basedDir),
             propertyFactory(),
+            filePropertyFactory(basedDir),
+            fileFactory(basedDir),
             fileSystem,
             getPatternSetFactory(),
             deleter(),
@@ -237,6 +243,7 @@ public class TestFiles {
         return DefaultExecActionFactory.of(
             resolver(),
             fileCollectionFactory(),
+            filePropertyFactory(),
             TestUtil.instantiatorFactory().inject(),
             new DefaultExecutorFactory(),
             NativeServicesTestFixture.getInstance().get(TemporaryFileProvider.class),
@@ -250,7 +257,7 @@ public class TestFiles {
             .withFileResolver(resolver(baseDir))
             .withFileCollectionFactory(fileCollectionFactory(baseDir))
             .withInstantiator(TestUtil.instantiatorFactory().inject())
-            .withObjectFactory(objectFactory())
+            .withObjectFactory(objectFactory(baseDir))
             .build();
     }
 

@@ -24,6 +24,7 @@ import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.JavaVersion;
 import org.gradle.api.Project;
+import org.gradle.api.Task;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ConfigurationContainer;
 import org.gradle.api.artifacts.component.BuildIdentifier;
@@ -89,6 +90,7 @@ import java.util.concurrent.Callable;
  * configuration.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/idea_plugin.html">IDEA plugin reference</a>
+ * @since 1.0
  */
 public abstract class IdeaPlugin extends IdePlugin {
     private static final Predicate<Project> HAS_IDEA_AND_JAVA_PLUGINS = new Predicate<Project>() {
@@ -97,12 +99,22 @@ public abstract class IdeaPlugin extends IdePlugin {
             return project.getPlugins().hasPlugin(IdeaPlugin.class) && project.getPlugins().hasPlugin(JavaBasePlugin.class);
         }
     };
+    /**
+     * The source compatibility.
+     *
+     * @since 3.2
+     */
     public static final Function<Project, JavaVersion> SOURCE_COMPATIBILITY = new Function<Project, JavaVersion>() {
         @Override
         public JavaVersion apply(Project p) {
             return p.getExtensions().getByType(JavaPluginExtension.class).getSourceCompatibility();
         }
     };
+    /**
+     * The target compatibility.
+     *
+     * @since 3.2
+     */
     public static final Function<Project, JavaVersion> TARGET_COMPATIBILITY = new Function<Project, JavaVersion>() {
         @Override
         public JavaVersion apply(Project p) {
@@ -130,6 +142,11 @@ public abstract class IdeaPlugin extends IdePlugin {
         this.projectPathRegistry = projectPathRegistry;
     }
 
+    /**
+     * Returns the model.
+     *
+     * @since 1.0
+     */
     public IdeaModel getModel() {
         return ideaModel;
     }
@@ -326,6 +343,9 @@ public abstract class IdeaPlugin extends IdePlugin {
         conventionMapping.map("excludeDirs", new Callable<Set<File>>() {
             @Override
             public Set<File> call() {
+                // ".gradle" is the default project cache dir name (see BuildScopeCacheDir). Hardcoding it here is a
+                // historical accident: it should honor the user-configurable --project-cache-dir instead.
+                // We deliberately leave it as-is, as this IDE model generation is scheduled for removal in Gradle 10.
                 excludeDirs.add(project.file(".gradle"));
                 excludeDirs.add(project.getLayout().getBuildDirectory().getAsFile().get());
                 return excludeDirs;
@@ -337,7 +357,7 @@ public abstract class IdeaPlugin extends IdePlugin {
             public PathFactory call() {
                 final PathFactory factory = new PathFactory();
                 factory.addPathVariable("MODULE_DIR", task.get().getOutputFile().getParentFile());
-                for (Map.Entry<String, File> entry : module.getPathVariables().entrySet()) {
+                for (Map.Entry<String, File> entry : DeprecationLogger.whileDisabled(() -> module.getPathVariables()).entrySet()) {
                     factory.addPathVariable(entry.getKey(), entry.getValue());
                 }
                 return factory;
@@ -509,34 +529,47 @@ public abstract class IdeaPlugin extends IdePlugin {
         return !moduleLanguageLevel.equals(ideaProject.getLanguageLevel());
     }
 
+    @SuppressWarnings("deprecation")
     private void configureForScalaPlugin() {
-        boolean isolatedProjects = getBuildFeatures().getIsolatedProjects().getActive().get();
+        if (getBuildFeatures().getIsolatedProjects().getActive().get()) {
+            project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
+                @Override
+                public void execute(ScalaBasePlugin scalaBasePlugin) {
+                    failGenerationTaskOnExecution(IDEA_MODULE_TASK_NAME);
+                    if (isRoot()) {
+                        failGenerationTaskOnExecution(IDEA_PROJECT_TASK_NAME);
+                    }
+                }
+            });
+            return;
+        }
         project.getPlugins().withType(ScalaBasePlugin.class, new Action<ScalaBasePlugin>() {
             @Override
             public void execute(ScalaBasePlugin scalaBasePlugin) {
-                ideaModuleDependsOnRoot(isolatedProjects);
+                ideaModuleDependsOnRoot();
             }
         });
         if (isRoot()) {
-            new IdeaScalaConfigurer(project, scalaProjects -> {
-                if (!scalaProjects.isEmpty() && isolatedProjects) {
-                    failOnIncompatibleWithIsolatedProjects();
-                }
-            }).configure();
+            new IdeaScalaConfigurer(project).configure();
         }
     }
 
-    private void ideaModuleDependsOnRoot(boolean isolatedProjects) {
-        if (isolatedProjects) {
-            failOnIncompatibleWithIsolatedProjects();
-        }
+    private void failGenerationTaskOnExecution(String taskName) {
+        project.getTasks().named(taskName, generationTask -> generationTask.doFirst(new Action<Task>() {
+            @Override
+            public void execute(Task task) {
+                failOnIncompatibleWithIsolatedProjects();
+            }
+        }));
+    }
 
+    private void ideaModuleDependsOnRoot() {
         // see IdeaScalaConfigurer which requires the ipr to be generated first
         project.getTasks().named(IDEA_MODULE_TASK_NAME, dependsOn(project.getRootProject().getTasks().named(IDEA_PROJECT_TASK_NAME)));
     }
 
     private static void failOnIncompatibleWithIsolatedProjects() {
-        throw new GradleException("Applying 'idea' plugin to Scala projects is not supported with Isolated Projects. Disable Isolated Projects to use this integration.");
+        throw new GradleException("Generating IDEA project files for Scala projects is not supported with Isolated Projects. Disable Isolated Projects to generate them.");
     }
 
     private void linkCompositeBuildDependencies(final ProjectInternal project) {
@@ -571,6 +604,12 @@ public abstract class IdeaPlugin extends IdePlugin {
         }
     }
 
+    /**
+     * Injects and returns an instance of {@link BuildFeatures}.
+     *
+     * @deprecated Will be removed in Gradle 10.
+     */
+    @Deprecated
     @Inject
     protected abstract BuildFeatures getBuildFeatures();
 }

@@ -52,7 +52,6 @@ import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy
 import org.gradle.internal.instrumentation.api.annotations.NotToBeReplacedByLazyProperty;
 import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyProperty;
 import org.gradle.internal.reflect.PropertyAccessorType;
-import org.gradle.model.ModelElement;
 
 import javax.inject.Inject;
 import java.util.Arrays;
@@ -75,6 +74,7 @@ import static org.gradle.architecture.test.ArchUnitFixture.freeze;
 import static org.gradle.architecture.test.ArchUnitFixture.public_api_methods;
 
 @AnalyzeClasses(packages = "org.gradle")
+@SuppressWarnings("deprecation") // references deprecated software-model API
 public class ProviderMigrationArchitectureTest {
 
     private static final DescribedPredicate<JavaClass> class_with_any_mutable_property = new DescribedPredicate<JavaClass>("class with any mutable property") {
@@ -93,8 +93,14 @@ public class ProviderMigrationArchitectureTest {
         .and(not(declaredIn(Configuration.class)))
         .and(not(declaredIn(FileCollection.class)))
         .and(not(declaredIn(ConfigurableFileCollection.class)))
+        .and(not(declaredIn(assignableTo(Exception.class)))) // exceptions are not migrated to lazy properties
         .and(are(declaredIn(class_with_any_mutable_property)))
         .and(are(ArchUnitFixture.getters))
+        // Skip Nested properties that are not Lists
+        .and(not(and(
+            annotatedMaybeInSupertypeWith(Nested.class),
+            not(have(rawReturnType(List.class)))
+        )))
         .and(not(annotatedWith(Inject.class)))
         .as("mutable public API properties");
 
@@ -153,7 +159,7 @@ public class ProviderMigrationArchitectureTest {
         .and(not(annotatedWith(OptionValues.class)))
         // Skip types that are not to be migrated
         .and(not(declaredIn(annotatedWith(NotToBeMigratedToLazy.class))))
-        // Skip Nested properties that are not Iterables
+        // Skip Nested properties that are not Lists
         .and(not(and(
             annotatedMaybeInSupertypeWith(Nested.class),
             not(have(rawReturnType(List.class)))
@@ -168,7 +174,7 @@ public class ProviderMigrationArchitectureTest {
         )
         .and(not(declaredIn(resideInAPackage("org.gradle.api.attributes"))))
         // Software model
-        .and(not(declaredIn(assignableTo(ModelElement.class))))
+        .and(not(declaredIn(assignableTo(org.gradle.model.ModelElement.class))))
         // IDE Plugins
         .and(not(declaredIn(resideInAPackage("org.gradle.ide.."))))
         .and(not(declaredIn(resideInAPackage("org.gradle.plugins.ide.."))))

@@ -30,7 +30,6 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
@@ -47,7 +46,7 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
             """
             plugins {
                 `kotlin-dsl`
-                id("dev.detekt") version "2.0.0-alpha.4"
+                id("dev.detekt") version "2.0.0-alpha.5"
             }
 
             $repositoriesBlock
@@ -80,6 +79,13 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
             """.trimIndent()
         )
 
+        // This is necessary until https://github.com/detekt/detekt/issues/9558 is resolved
+        executer.expectDocumentedDeprecationWarning(
+            "The Configuration.setVisible(boolean) method has been deprecated. " +
+                "This is scheduled to be removed in Gradle 11. " +
+                "Consult the upgrading guide for further information: " +
+                "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecate-visible-property"
+        )
         build("generateScriptPluginAdapters", "detekt")
     }
 
@@ -167,7 +173,6 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
     }
 
 
-    @ToBeFixedForIsolatedProjects(because = "Kotlin DSL cross-project configuration")
     @Test
     fun `applied precompiled script plugin is reloaded upon change`() {
         // given:
@@ -181,21 +186,23 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
                     """
                 )
                 withFile(
-                    "build.gradle.kts",
+                    "producer/build.gradle.kts",
                     """
                         plugins {
-                            `kotlin-dsl` apply false
+                            `kotlin-dsl`
                         }
-
-                        subprojects {
-                            apply(plugin = "org.gradle.kotlin.kotlin-dsl")
-                            $repositoriesBlock
+                        $repositoriesBlock
+                    """
+                )
+                withFile(
+                    "consumer/build.gradle.kts",
+                    """
+                        plugins {
+                            `kotlin-dsl`
                         }
-
-                        project(":consumer") {
-                            dependencies {
-                                "implementation"(project(":producer"))
-                            }
+                        $repositoriesBlock
+                        dependencies {
+                            implementation(project(":producer"))
                         }
                     """
                 )

@@ -16,8 +16,9 @@
 
 package org.gradle.internal.classpath.transforms
 
-import org.gradle.internal.classpath.types.InstrumentationTypeRegistry
-import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter
+import org.gradle.internal.Pair
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.Opcodes
 import spock.lang.Specification
 import spock.lang.TempDir
 
@@ -26,30 +27,57 @@ import java.security.ProtectionDomain
 import java.security.cert.Certificate
 
 /**
- * Verifies the class-load-time transform classifies classes as project or external by code-source origin.
+ * Verifies the class-load-time transform routes classes to the transform of their originating classpath entry
+ * and leaves classes of unknown origin untouched.
  */
 class InstrumentingClassLoadTimeTransformTest extends Specification {
 
     @TempDir
     File dir
 
-    def "classifies a class by the origin of its code source"() {
+    def "applies the transform of the originating classpath entry"() {
         given:
-        def projectJar = new File(dir, "project.jar")
-        def externalJar = new File(dir, "external.jar")
-        def transform = new InstrumentingClassLoadTimeTransform(
-            BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_UPGRADE,
-            InstrumentationTypeRegistry.EMPTY,
-            BytecodeInterceptorFilter.INSTRUMENTATION_ONLY,
-            InstrumentationTypeRegistry.EMPTY,
-            [projectJar] as Set
-        )
+        def knownJar = new File(dir, "known.jar")
+        def transformedEntries = []
+        def entryTransform = Stub(ClassTransform) {
+            apply(_, _, _) >> { entry, visitor, classData ->
+                transformedEntries << entry.name
+                Pair.of(entry.path, visitor)
+            }
+        }
+        def transform = new InstrumentingClassLoadTimeTransform([(knownJar): entryTransform])
 
-        expect:
-        transform.isProjectOrigin(protectionDomainFor(projectJar))
-        !transform.isProjectOrigin(protectionDomainFor(externalJar))
-        !transform.isProjectOrigin(null)
-        !transform.isProjectOrigin(new ProtectionDomain(new CodeSource(null, (Certificate[]) null), null))
+        when:
+        def result = transform.transform(protectionDomainFor(knownJar), "Foo", trivialClassBytes("Foo"))
+
+        then:
+        transformedEntries == ["Foo.class"]
+        result != null
+    }
+
+    def "leaves classes of unknown origin untouched"() {
+        given:
+        def knownJar = new File(dir, "known.jar")
+        def transform = new InstrumentingClassLoadTimeTransform([(knownJar): Mock(ClassTransform)])
+        def buffer = [1, 2, 3] as byte[]
+
+        expect: "the buffer is returned as is, without even parsing it"
+        transform.transform(protectionDomain, "Foo", buffer) === buffer
+
+        where:
+        protectionDomain << [
+            protectionDomainFor(new File("unknown.jar")),
+            null,
+            new ProtectionDomain(new CodeSource(null, (Certificate[]) null), null),
+            new ProtectionDomain(null, null)
+        ]
+    }
+
+    private static byte[] trivialClassBytes(String name) {
+        def writer = new ClassWriter(0)
+        writer.visit(Opcodes.V1_8, Opcodes.ACC_PUBLIC, name, null, "java/lang/Object", null)
+        writer.visitEnd()
+        writer.toByteArray()
     }
 
     private static ProtectionDomain protectionDomainFor(File file) {

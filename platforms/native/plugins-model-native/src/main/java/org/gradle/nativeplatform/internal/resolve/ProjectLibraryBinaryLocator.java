@@ -18,14 +18,10 @@ package org.gradle.nativeplatform.internal.resolve;
 import org.gradle.api.DomainObjectSet;
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
-import org.gradle.model.ModelMap;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeLibraryBinary;
-import org.gradle.nativeplatform.NativeLibrarySpec;
-import org.gradle.platform.base.ComponentSpecContainer;
 import org.jspecify.annotations.Nullable;
 
+@SuppressWarnings("deprecation")
 public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
     private final ProjectModelResolver projectModelResolver;
     private final DomainObjectCollectionFactory domainObjectCollectionFactory;
@@ -38,21 +34,21 @@ public class ProjectLibraryBinaryLocator implements LibraryBinaryLocator {
     // Converts the binaries of a project library into regular binary instances
     @Nullable
     @Override
-    public DomainObjectSet<NativeLibraryBinary> getBinaries(LibraryIdentifier libraryIdentifier) {
+    public DomainObjectSet<org.gradle.nativeplatform.NativeLibraryBinary> getBinaries(LibraryIdentifier libraryIdentifier) {
         ModelRegistry projectModel = projectModelResolver.resolveProjectModel(libraryIdentifier.getProjectPath());
-        ComponentSpecContainer components = projectModel.find("components", ComponentSpecContainer.class);
+        org.gradle.platform.base.ComponentSpecContainer components = projectModel.find("components", org.gradle.platform.base.ComponentSpecContainer.class);
         if (components == null) {
             return null;
         }
         String libraryName = libraryIdentifier.getLibraryName();
-        NativeLibrarySpec library = components.withType(NativeLibrarySpec.class).get(libraryName);
+        org.gradle.nativeplatform.NativeLibrarySpec library = components.withType(org.gradle.nativeplatform.NativeLibrarySpec.class).get(libraryName);
         if (library == null) {
             return null;
         }
-        ModelMap<NativeBinarySpec> projectBinaries = library.getBinaries().withType(NativeBinarySpec.class);
-        DomainObjectSet<NativeLibraryBinary> binaries = domainObjectCollectionFactory.newDomainObjectSet(NativeLibraryBinary.class);
-        for (NativeBinarySpec nativeBinarySpec : projectBinaries.values()) {
-            binaries.add((NativeLibraryBinary) nativeBinarySpec);
+        org.gradle.model.ModelMap<org.gradle.nativeplatform.NativeBinarySpec> projectBinaries = library.getBinaries().withType(org.gradle.nativeplatform.NativeBinarySpec.class);
+        DomainObjectSet<org.gradle.nativeplatform.NativeLibraryBinary> binaries = domainObjectCollectionFactory.newDomainObjectSet(org.gradle.nativeplatform.NativeLibraryBinary.class);
+        for (org.gradle.nativeplatform.NativeBinarySpec nativeBinarySpec : projectBinaries.values()) {
+            binaries.add((org.gradle.nativeplatform.NativeLibraryBinary) nativeBinarySpec);
         }
         return binaries;
     }

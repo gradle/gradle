@@ -18,7 +18,6 @@ package org.gradle.launcher.daemon.logging;
 
 public abstract class DaemonMessages {
     public final static String PROCESS_STARTED = "Daemon server started.";
-    public final static String ABOUT_TO_CLOSE_STREAMS = "Daemon started. About to close the streams. Daemon details: ";
     public final static String STARTED_RELAYING_LOGS = "The client will now receive all logging from the daemon (pid: ";
     public final static String UNABLE_TO_START_DAEMON = "Unable to start the daemon process.";
     public final static String STARTED_EXECUTING_COMMAND = "Starting executing command: ";
@@ -34,5 +33,4 @@ public abstract class DaemonMessages {
     public static final String REMOVING_DAEMON_ADDRESS_ON_FAILURE = "Removing daemon from the registry due to communication failure. Daemon information: ";
     public static final String UNABLE_TO_STOP_DAEMON = "Unable to stop one of the daemons. The daemon may have crashed.";
     public static final String WAITING_ON_CANCELED = "Waiting for daemons with canceled builds to become available";
-    public static final String WAITING_FOR_DEBUGGER = "Listening for transport dt_socket at address";
 }

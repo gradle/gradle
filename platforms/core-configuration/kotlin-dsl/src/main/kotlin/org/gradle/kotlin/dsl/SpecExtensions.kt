@@ -22,6 +22,8 @@ import org.gradle.api.specs.Spec
  * Enables function invocation syntax on [Spec] instances.
  *
  * @see Spec.isSatisfiedBy
+ *
+ * @since 4.7
  */
 operator fun <T> Spec<T>.invoke(arg: T): Boolean =
     isSatisfiedBy(arg)

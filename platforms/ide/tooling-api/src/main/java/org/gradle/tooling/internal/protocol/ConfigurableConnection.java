@@ -24,7 +24,7 @@ package org.gradle.tooling.internal.protocol;
  * <p>Consumer compatibility: This interface is used by all consumer versions from 1.2-rc-1.</p>
  * <p>Provider compatibility: This interface is implemented by all provider versions from 1.2-rc-1.</p>
  *
- * @since 1.2-rc-1
+ * @since 1.2
  * @see ConnectionVersion4
  */
 public interface ConfigurableConnection extends InternalProtocolInterface {
@@ -34,7 +34,7 @@ public interface ConfigurableConnection extends InternalProtocolInterface {
      * <p>Consumer compatibility: This method is used by all consumer versions from 1.2-rc-1.</p>
      * <p>Provider compatibility: This method is implemented by all provider versions from 1.2-rc-1.</p>
      *
-     * @since 1.2-rc-1
+     * @since 1.2
      */
     void configure(ConnectionParameters parameters);
 }

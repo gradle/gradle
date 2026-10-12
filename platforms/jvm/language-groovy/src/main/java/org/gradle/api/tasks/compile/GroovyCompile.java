@@ -77,6 +77,7 @@ import static org.gradle.api.internal.FeaturePreviews.Feature.GROOVY_COMPILATION
 
 /**
  * Compiles Groovy source files, and optionally, Java source files.
+ * @since 0.7
  */
 @CacheableTask
 public abstract class GroovyCompile extends AbstractCompile implements HasCompileOptions {
@@ -85,6 +86,11 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
     private final FileCollection stableSources;
     private File previousCompilationDataFile;
 
+    /**
+     * Creates a new {@code GroovyCompile}.
+     *
+     * @since 0.8
+     */
     @SuppressWarnings("this-escape")
     public GroovyCompile() {
         this.stableSources = getObjectFactory().fileCollection().from((Callable<FileTree>) this::getSource);
@@ -123,6 +129,11 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
         return getFeatureFlags().isEnabled(GROOVY_COMPILATION_AVOIDANCE);
     }
 
+    /**
+     * Compile.
+     *
+     * @since 5.6
+     */
     @TaskAction
     protected void compile(InputChanges inputChanges) {
         checkGroovyClasspathIsNonEmpty();
@@ -306,6 +317,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
      * #getOptions()}.
      *
      * @return The Groovy compile options. Never returns null.
+     * @since 0.7
      */
     @Nested
     public abstract GroovyCompileOptions getGroovyOptions();
@@ -323,6 +335,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
      * Returns the classpath containing the version of Groovy to use for compilation.
      *
      * @return The classpath.
+     * @since 0.7
      */
     @Classpath
     @ToBeReplacedByLazyProperty
@@ -334,6 +347,7 @@ public abstract class GroovyCompile extends AbstractCompile implements HasCompil
      * Sets the classpath containing the version of Groovy to use for compilation.
      *
      * @param groovyClasspath The classpath. Must not be null.
+     * @since 0.7
      */
     public void setGroovyClasspath(FileCollection groovyClasspath) {
         this.groovyClasspath = groovyClasspath;

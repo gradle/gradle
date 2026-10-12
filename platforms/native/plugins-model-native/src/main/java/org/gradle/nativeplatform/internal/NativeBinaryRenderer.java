@@ -17,15 +17,15 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.nativeplatform.NativeBinarySpec;
 
-public class NativeBinaryRenderer extends AbstractNativeBinaryRenderer<NativeBinarySpec> {
+@SuppressWarnings("deprecation")
+public class NativeBinaryRenderer extends AbstractNativeBinaryRenderer<org.gradle.nativeplatform.NativeBinarySpec> {
     public NativeBinaryRenderer(ModelSchemaStore schemaStore) {
         super(schemaStore);
     }
 
     @Override
-    public Class<NativeBinarySpec> getTargetType() {
-        return NativeBinarySpec.class;
+    public Class<org.gradle.nativeplatform.NativeBinarySpec> getTargetType() {
+        return org.gradle.nativeplatform.NativeBinarySpec.class;
     }
 }

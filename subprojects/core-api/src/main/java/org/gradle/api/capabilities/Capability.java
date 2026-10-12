@@ -24,8 +24,23 @@ import org.jspecify.annotations.Nullable;
  * @since 4.7
  */
 public interface Capability {
+    /**
+     * Returns the group.
+     *
+     * @since 4.7
+     */
     String getGroup();
+    /**
+     * Returns the name.
+     *
+     * @since 4.7
+     */
     String getName();
+    /**
+     * Returns the version.
+     *
+     * @since 4.7
+     */
     @Nullable
     String getVersion();
 }

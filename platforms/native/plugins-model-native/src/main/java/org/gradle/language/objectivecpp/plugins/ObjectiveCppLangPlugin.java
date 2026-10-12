@@ -43,8 +43,12 @@ import java.util.Map;
 
 /**
  * Adds core Objective-Cpp language support.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 1.11
  */
 @Incubating
+@Deprecated
 public abstract class ObjectiveCppLangPlugin implements Plugin<Project> {
     @Override
     public void apply(final Project project) {

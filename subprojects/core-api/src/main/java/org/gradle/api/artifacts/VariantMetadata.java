@@ -31,6 +31,7 @@ public interface VariantMetadata extends HasConfigurableAttributes<VariantMetada
      * Register a rule that modifies the dependencies of this variant.
      *
      * @param action the action that performs the dependencies adjustment
+     * @since 4.4
      */
     void withDependencies(Action<? super DirectDependenciesMetadata> action);
 

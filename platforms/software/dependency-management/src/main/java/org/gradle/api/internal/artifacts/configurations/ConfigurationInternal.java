@@ -19,13 +19,14 @@ import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.Configuration;
 import org.gradle.api.artifacts.ExcludeRule;
 import org.gradle.api.artifacts.PublishArtifact;
-import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.artifacts.ivyservice.ResolutionParameters;
 import org.gradle.api.internal.artifacts.resolver.ResolutionAccess;
 import org.gradle.api.internal.attributes.AttributeContainerInternal;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.deprecation.DeprecatableConfiguration;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
 import org.jspecify.annotations.Nullable;
 
@@ -79,6 +80,11 @@ public interface ConfigurationInternal extends DeprecatableConfiguration, Config
     void markDependenciesObserved();
 
     DomainObjectContext getDomainObjectContext();
+
+    /**
+     * Returns the identity of the dependency management instance that owns this configuration.
+     */
+    DependencyManagementInstanceIdentity getInstanceIdentity();
 
     /**
      * Visits the variants of this configuration.

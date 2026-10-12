@@ -1,0 +1,11 @@
+version = '1.0'
+
+// tag::avoid[]
+tasks.register('release') {
+    ext.banner = "=== Releasing build ${rootProject.version} ==="
+    doLast {
+        // BAD: reading extra properties at execution time
+        println(ext.banner)
+    }
+}
+// end::avoid[]

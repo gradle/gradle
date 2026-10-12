@@ -73,7 +73,6 @@ import org.gradle.internal.accesscontrol.AllowUsingApiForExternalUse;
 import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.metaobject.HierarchicalDynamicObject;
-import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.RuleBasedPluginListener;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
@@ -671,16 +670,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public Path identityPath(String name) {
-        return delegate.identityPath(name);
-    }
-
-    @Override
-    public Path projectPath(String name) {
-        return delegate.projectPath(name);
-    }
-
-    @Override
     public Path getProjectPath() {
         return delegate.getProjectPath();
     }
@@ -707,12 +696,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     public AntBuilder ant(Action<? super AntBuilder> configureAction) {
         onMutableStateAccess("ant");
         return delegate.ant(configureAction);
-    }
-
-    @Nullable
-    @Override
-    public ProjectIdentifier getParentIdentifier() {
-        return delegate.getParentIdentifier();
     }
 
     @Override
@@ -923,11 +906,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     }
 
     @Override
-    public boolean isScript() {
-        return delegate.isScript();
-    }
-
-    @Override
     public void addDeferredConfiguration(Runnable configuration) {
         onMutableStateAccess("deferredConfiguration");
         delegate.addDeferredConfiguration(configuration);
@@ -937,27 +915,6 @@ public abstract class MutableStateAccessAwareProject implements ProjectInternal,
     public void fireDeferredConfiguration() {
         onMutableStateAccess("deferredConfiguration");
         delegate.fireDeferredConfiguration();
-    }
-
-    @Override
-    public ModelContainer<?> getModel() {
-        onMutableStateAccess("model");
-        return delegate.getModel();
-    }
-
-    @Override
-    public Path getBuildPath() {
-        return delegate.getBuildPath();
-    }
-
-    @Override
-    public boolean isRootScript() {
-        return delegate.isRootScript();
-    }
-
-    @Override
-    public boolean isPluginContext() {
-        return delegate.isPluginContext();
     }
 
     @Override

@@ -28,11 +28,13 @@ public interface IvyModuleDescriptorAuthor {
 
     /**
      * The name of this author.
+     * @since 4.8
      */
     Property<String> getName();
 
     /**
      * The URL of this author.
+     * @since 4.8
      */
     Property<String> getUrl();
 

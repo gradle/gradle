@@ -28,6 +28,8 @@ import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import static org.gradle.launcher.daemon.server.api.DaemonState.Stopped
 
 class DaemonRegistryStateProbe implements DaemonStateProbe {
+    private static final byte[] WRONG_TOKEN = "wrong token 1234".bytes
+
     private final DaemonRegistry registry
     private final DaemonContext context
 
@@ -36,10 +38,14 @@ class DaemonRegistryStateProbe implements DaemonStateProbe {
         this.registry = registry
     }
 
+    byte[] getToken() {
+        return registry.all.find { it.context.pid == context.pid }.token
+    }
+
     void resetToken() {
         def daemonInfo = registry.all.find { it.context.pid == context.pid }
         registry.remove(daemonInfo.address)
-        registry.store(new DaemonInfo(daemonInfo.address, daemonInfo.context, "password".bytes, daemonInfo.getState()))
+        registry.store(new DaemonInfo(daemonInfo.address, daemonInfo.context, WRONG_TOKEN, daemonInfo.getState()))
     }
 
     void assertRegistryNotWorldReadable() {

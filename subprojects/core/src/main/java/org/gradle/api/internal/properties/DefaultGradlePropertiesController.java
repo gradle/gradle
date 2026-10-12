@@ -17,9 +17,8 @@
 package org.gradle.api.internal.properties;
 
 import com.google.common.collect.ImmutableMap;
-import org.gradle.api.artifacts.component.BuildIdentifier;
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier;
 import org.gradle.api.internal.project.ProjectIdentity;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.initialization.properties.DefaultGradleProperties;
 import org.gradle.initialization.properties.GradlePropertiesLoader;
 import org.gradle.initialization.properties.SystemPropertiesInstaller;
@@ -37,7 +36,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
     private final SystemPropertiesInstaller systemPropertiesInstaller;
     private final GradlePropertiesListener listener;
 
-    private final ConcurrentMap<BuildIdentifier, BuildScopedGradleProperties> buildProperties = new ConcurrentHashMap<>();
+    private final ConcurrentMap<BuildIdentity, BuildScopedGradleProperties> buildProperties = new ConcurrentHashMap<>();
     private final ConcurrentMap<ProjectIdentity, ProjectScopedGradleProperties> projectProperties = new ConcurrentHashMap<>();
 
     public DefaultGradlePropertiesController(
@@ -59,17 +58,17 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
     }
 
     @Override
-    public GradleProperties getGradleProperties(BuildIdentifier buildId) {
+    public GradleProperties getGradleProperties(BuildIdentity buildId) {
         return getOrCreateGradleProperties(buildId);
     }
 
     @Override
-    public void loadGradleProperties(BuildIdentifier buildId, File buildRootDir, boolean setSystemProperties) {
+    public void loadGradleProperties(BuildIdentity buildId, File buildRootDir, boolean setSystemProperties) {
         getOrCreateGradleProperties(buildId).loadProperties(buildRootDir, setSystemProperties);
     }
 
     @Override
-    public void unloadGradleProperties(BuildIdentifier buildId) {
+    public void unloadGradleProperties(BuildIdentity buildId) {
         if (!projectProperties.isEmpty()) {
             throw new IllegalStateException("Cannot unload Gradle properties after loading project properties.");
         }
@@ -84,7 +83,7 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
     @Override
     public GradleProperties getGradleProperties(GradlePropertyScope propertyScope) {
         if (propertyScope instanceof GradlePropertyScope.Build) {
-            return getGradleProperties(((GradlePropertyScope.Build) propertyScope).getBuildIdentifier());
+            return getGradleProperties(((GradlePropertyScope.Build) propertyScope).getBuildIdentity());
         }
         if (propertyScope instanceof GradlePropertyScope.Project) {
             return getGradleProperties(((GradlePropertyScope.Project) propertyScope).getProjectIdentity());
@@ -94,12 +93,12 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
     @Override
     public void loadGradleProperties(ProjectIdentity projectId, File projectDir) {
-        LoadedBuildScopedState loadedBuildProperties = getOrCreateGradleProperties(new DefaultBuildIdentifier(projectId.getBuildPath()))
+        LoadedBuildScopedState loadedBuildProperties = getOrCreateGradleProperties(new BuildIdentity(projectId.getBuildPath()))
             .checkLoaded();
         getOrCreateGradleProperties(projectId).loadProperties(loadedBuildProperties, projectDir);
     }
 
-    private BuildScopedGradleProperties getOrCreateGradleProperties(BuildIdentifier buildId) {
+    private BuildScopedGradleProperties getOrCreateGradleProperties(BuildIdentity buildId) {
         return buildProperties.computeIfAbsent(buildId, id ->
             new BuildScopedGradleProperties(gradlePropertiesLoader, systemPropertiesInstaller, id, listener));
     }
@@ -175,14 +174,14 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
 
         private final GradlePropertiesLoader loader;
         private final SystemPropertiesInstaller systemPropertiesInstaller;
-        private final BuildIdentifier buildId;
+        private final BuildIdentity buildId;
         @Nullable
         private volatile LoadedBuildScopedState loaded;
 
         private BuildScopedGradleProperties(
             GradlePropertiesLoader loader,
             SystemPropertiesInstaller systemPropertiesInstaller,
-            BuildIdentifier buildId,
+            BuildIdentity buildId,
             GradlePropertiesListener listener
         ) {
             super(new BuildPropertyScope(buildId), listener);
@@ -373,14 +372,14 @@ public class DefaultGradlePropertiesController implements GradlePropertiesContro
     }
 
     private static class BuildPropertyScope implements GradlePropertyScope.Build {
-        private final BuildIdentifier buildId;
+        private final BuildIdentity buildId;
 
-        public BuildPropertyScope(BuildIdentifier buildId) {
+        public BuildPropertyScope(BuildIdentity buildId) {
             this.buildId = buildId;
         }
 
         @Override
-        public BuildIdentifier getBuildIdentifier() {
+        public BuildIdentity getBuildIdentity() {
             return buildId;
         }
 

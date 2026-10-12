@@ -51,12 +51,18 @@ import javax.inject.Inject;
 
 /**
  * Assembles a static library from object files.
+ * @since 2.2
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class CreateStaticLibrary extends DefaultTask implements ObjectFilesToBinary {
 
     private final ConfigurableFileCollection source;
 
+    /**
+     * Creates a new {@code CreateStaticLibrary}.
+     *
+     * @since 2.2
+     */
     @SuppressWarnings("this-escape")
     public CreateStaticLibrary() {
         this.source = getProject().files();
@@ -64,6 +70,7 @@ public abstract class CreateStaticLibrary extends DefaultTask implements ObjectF
 
     /**
      * The source object files to be passed to the archiver.
+     * @since 2.2
      */
     @InputFiles
     @SkipWhenEmpty
@@ -86,6 +93,11 @@ public abstract class CreateStaticLibrary extends DefaultTask implements ObjectF
 
     // TODO: Need to track version/implementation of ar tool.
 
+    /**
+     * Link.
+     *
+     * @since 2.2
+     */
     @TaskAction
     protected void link() {
 
@@ -128,6 +140,7 @@ public abstract class CreateStaticLibrary extends DefaultTask implements ObjectF
 
     /**
      * The file where the output binary will be located.
+     * @since 2.2
      */
     @OutputFile
     public abstract RegularFileProperty getOutputFile();

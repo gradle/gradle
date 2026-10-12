@@ -23,6 +23,7 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.tasks.Classpath;
 import org.gradle.api.tasks.Input;
+import org.gradle.internal.classpath.TransformedClassPath;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.InstrumentationTypeRegistry;
 import org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter;
@@ -58,6 +59,11 @@ public abstract class ProjectDependencyInstrumentingArtifactTransform extends Ba
         if (getParameters().getAgentSupported().get()) {
             doOutputOriginalArtifact(input, outputs);
         }
+    }
+
+    @Override
+    protected TransformedClassPath.FileMarker agentInstrumentationMarker() {
+        return TransformedClassPath.FileMarker.AGENT_INSTRUMENTATION_PROJECT_MARKER;
     }
 
     @Override

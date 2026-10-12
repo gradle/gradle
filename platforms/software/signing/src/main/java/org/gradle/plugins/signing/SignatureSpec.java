@@ -21,6 +21,7 @@ import org.gradle.plugins.signing.type.SignatureType;
 
 /**
  * Specifies how objects will be signed.
+ * @since 1.0
  */
 public interface SignatureSpec {
 
@@ -28,6 +29,7 @@ public interface SignatureSpec {
      * The signatory that will be performing the signing.
      *
      * @return the signatory, or {@code null} if none specified.
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty
     Signatory getSignatory();
@@ -36,6 +38,7 @@ public interface SignatureSpec {
      * Sets the signatory that will be signing the input.
      *
      * @param signatory The signatory
+     * @since 1.0
      */
     void setSignatory(Signatory signatory);
 
@@ -43,6 +46,7 @@ public interface SignatureSpec {
      * The signature representation that will be created.
      *
      * @return the signature type, or {@code null} if none specified.
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty
     SignatureType getSignatureType();
@@ -51,6 +55,7 @@ public interface SignatureSpec {
      * Sets the signature representation that the signatures will be produced as.
      *
      * @param type the signature type to use
+     * @since 1.0
      */
     void setSignatureType(SignatureType type);
 
@@ -61,6 +66,7 @@ public interface SignatureSpec {
      * will not be generated.
      *
      * @return Whether or not it is required that this signature be generated.
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty
     boolean isRequired();
@@ -70,6 +76,7 @@ public interface SignatureSpec {
      *
      * @param required Whether or not it is required that this signature be generated.
      * @see #isRequired
+     * @since 1.0
      */
     void setRequired(boolean required);
 }

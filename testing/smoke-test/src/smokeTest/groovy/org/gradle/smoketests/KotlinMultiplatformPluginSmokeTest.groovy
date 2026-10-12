@@ -50,7 +50,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
             )
             .expectLegacyDeprecationWarningIf(
-                kotlinVersionNumber.baseVersion >= KotlinGradlePluginVersions.KOTLIN_2_3_21,
+                kotlinVersionNumber.baseVersion >= KotlinGradlePluginVersions.KOTLIN_2_3_21 && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_4_20,
                 "The Configuration.getTaskDependencyFromProjectDependency(boolean, String) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#deprecate_getTaskDependencyFromProjectDependency"
             )
             .build()
@@ -62,7 +62,11 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
         kotlinVersion << TestedVersions.kotlin.versions
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Kotlin accesses projects from tasks in task graph: https://github.com/JetBrains/kotlin/blob/d6383256f1addbe92344b932f7d278f42bfef5bb/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/compilerRunner/GradleKotlinCompilerRunner.kt#L304")
+    // KGP 2.5.0-Beta1 stopped registering IncrementalModuleInfoBuildService when Project Isolation is enabled, so only 2.0.x-2.4.x still fail.
+    @ToBeFixedForIsolatedProjects(
+        because = "Kotlin accesses projects from tasks in task graph: https://github.com/JetBrains/kotlin/blob/d6383256f1addbe92344b932f7d278f42bfef5bb/libraries/tools/kotlin-gradle-plugin/src/common/kotlin/org/jetbrains/kotlin/compilerRunner/GradleKotlinCompilerRunner.kt#L304",
+        iterationMatchers = [".*kotlin=2\\.[0-4]\\..*"]
+    )
     def 'can run tests with kotlin multiplatform with js project (kotlin=#kotlinVersion)'() {
         given:
         withKotlinBuildFile()
@@ -134,7 +138,7 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
                 "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration",
             )
             .expectLegacyDeprecationWarningIf(
-                kotlinVersionNumber.baseVersion >= KotlinGradlePluginVersions.KOTLIN_2_3_21,
+                kotlinVersionNumber.baseVersion >= KotlinGradlePluginVersions.KOTLIN_2_3_21 && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_4_20,
                 "The Configuration.getTaskDependencyFromProjectDependency(boolean, String) method has been deprecated. This is scheduled to be removed in Gradle 10. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#deprecate_getTaskDependencyFromProjectDependency"
             )
             .build()
@@ -222,8 +226,19 @@ class KotlinMultiplatformPluginSmokeTest extends AbstractKotlinPluginSmokeTest {
     List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
         def kotlinVersionNumber = VersionNumber.parse(version)
         def deprecations = [parentMethodInvocationDeprecation('kotlin')]
+        if (kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_3_20) {
+            // The Kotlin plugin calls the deprecated Configuration.setVisible(boolean) method until KT-78754 was fixed in Kotlin 2.3.20 / 2.4.0
+            deprecations << "The Configuration.setVisible(boolean) method has been deprecated. This is scheduled to be removed in Gradle 11. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#deprecate-visible-property".toString()
+        }
         if (kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_3_21) {
             deprecations << "The archives configuration has been deprecated for artifact declaration. This will fail with an error in Gradle 10. Add artifacts as direct task dependencies of the 'assemble' task instead of declaring them in the archives configuration. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#sec:archives-configuration".toString()
+        }
+        // The KGP 2.0.x line declares an attribute of type KotlinNativeBundleArtifactsTypes,
+        // a plain enum that does not implement Named. Attribute.of allows this via a targeted
+        // compatibility exception and emits a KGP-specific deprecation warning. KGP 2.1.0+ no
+        // longer uses the plain enum, so the deprecation is expected only for the 2.0.x range.
+        if (kotlinVersionNumber.baseVersion >= KotlinGradlePluginVersions.KOTLIN_2_0_0 && kotlinVersionNumber.baseVersion < KotlinGradlePluginVersions.KOTLIN_2_1_0) {
+            deprecations << "Using the enum type KotlinNativeBundleArtifactsTypes as an attribute value type has been deprecated. This will fail with an error in Gradle 10. This enum does not implement Named. All Enums used as Attribute values should implement Named. This enum type is used by the Kotlin Gradle Plugin 2.0.x line. Upgrade to KGP 2.1.0 or later, in which the plugin no longer uses a plain enum for this attribute. Consult the upgrading guide for further information: https://docs.gradle.org/${GradleVersion.current().version}/userguide/upgrading_version_9.html#kgp_native_bundle_attribute_enum".toString()
         }
         return deprecations
     }

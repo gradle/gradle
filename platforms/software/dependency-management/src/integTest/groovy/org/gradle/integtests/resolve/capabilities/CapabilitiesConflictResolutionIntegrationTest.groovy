@@ -76,7 +76,7 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
         where:
         rule                               | error
         "throw new NullPointerException()" | "Capability resolution rule failed with an error" // error in user code
-        "select('org:testD:1.0')"          | "org:testD:1.0 is not a valid candidate for conflict resolution on capability 'org.test:cap': candidates are ['org:testA:1.0' (runtime), 'org:testB:1.0' (runtime)]"// invalid candidate
+        "select('org:testD:1.0')"          | "org:testD:1.0 is not a valid candidate for conflict resolution on capability 'org.test:cap': candidates are [org:testA:1.0 (runtime), org:testB:1.0 (runtime)]"// invalid candidate
 
     }
 
@@ -338,7 +338,7 @@ class CapabilitiesConflictResolutionIntegrationTest extends AbstractModuleDepend
                     artifact(name: "producer1-foo")
                     byReason("conflict resolution: latest version of capability org:foo")
                 }
-                edge("project ':producer2'", "project :producer1", "test:producer1:unspecified")
+                edge("project ':producer2'", ":producer1", "test:producer1:unspecified")
             }
         }
     }

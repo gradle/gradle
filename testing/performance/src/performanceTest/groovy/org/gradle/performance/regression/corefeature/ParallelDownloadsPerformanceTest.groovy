@@ -16,23 +16,15 @@
 
 package org.gradle.performance.regression.corefeature
 
-import org.eclipse.jetty.webapp.WebAppContext
+import com.sun.net.httpserver.HttpExchange
+import com.sun.net.httpserver.HttpHandler
 import org.gradle.performance.AbstractCrossVersionPerformanceTest
+import org.gradle.performance.StaticFileHandler
 import org.gradle.performance.WithExternalRepository
 import org.gradle.performance.annotations.RunFor
 import org.gradle.performance.annotations.Scenario
 import org.gradle.profiler.BuildContext
 import org.gradle.profiler.BuildMutator
-
-import javax.servlet.DispatcherType
-import javax.servlet.Filter
-import javax.servlet.FilterChain
-import javax.servlet.FilterConfig
-import javax.servlet.ServletException
-import javax.servlet.ServletRequest
-import javax.servlet.ServletResponse
-import javax.servlet.http.HttpServletRequest
-import java.util.concurrent.atomic.AtomicInteger
 
 import static org.gradle.performance.annotations.ScenarioType.PER_DAY
 import static org.gradle.performance.results.OperatingSystem.LINUX
@@ -104,55 +96,35 @@ class ParallelDownloadsPerformanceTest extends AbstractCrossVersionPerformanceTe
     }
 
 
+    // don't put those numbers too high, or the test is going to be really slow for each iteration!
+    private final static int[] DELAYS = [2, 3, 5, 8, 13, 21, 34, 55]
+
+    private final static Map<String, Integer> FACTORS = [
+        'jar': 10,
+        'xml': 3,
+        'pom': 3
+    ].withDefault { 1 }
+
     @Override
-    WebAppContext createContext() {
-        def context = new WebAppContext()
-        context.addFilter(SimulatedDownloadLatencyFilter, '/*', EnumSet.of(DispatcherType.REQUEST))
-        context
-    }
-
-    static class SimulatedDownloadLatencyFilter implements Filter {
-        // don't put those numbers too high, or the test is going to be really slow for each iteration!
-        private final static int[] DELAYS = [2, 3, 5, 8, 13, 21, 34, 55]
-
-        private final static boolean LOG = false
-        private final static Map<String, Integer> FACTORS = [
-            'jar': 10,
-            'xml': 3,
-            'pom': 3
-        ].withDefault { 1 }
-
-        private final AtomicInteger concurrency = new AtomicInteger()
-
-        @Override
-        void init(FilterConfig filterConfig) throws ServletException {
-
-        }
-
-        @Override
-        void doFilter(ServletRequest request, ServletResponse response, FilterChain chain) throws IOException, ServletException {
-            HttpServletRequest httpRequest = (HttpServletRequest) request
-            def path = httpRequest.servletPath
-            // compute a digest based on the path, allowing us to use the same latency for the same request each time
-            int sig = DELAYS[path.bytes.sum() % DELAYS.length]
-            def ext = path.contains('.') ? path.substring(1 + path.lastIndexOf('.')) : ''
-            int latency = sig * FACTORS[ext]
-            def file = path.substring(path.lastIndexOf('/'))
-            if (LOG) {
-                println "File ${file} : ${latency}ms - concurrent requests: ${concurrency.incrementAndGet()}"
+    HttpHandler createHandler(File repoDir) {
+        def delegate = new StaticFileHandler(repoDir)
+        return new HttpHandler() {
+            @Override
+            void handle(HttpExchange exchange) throws IOException {
+                int latency = simulatedLatency(exchange.requestURI.path)
+                if (latency > 0) {
+                    sleep(latency)
+                }
+                delegate.handle(exchange)
             }
-            if (latency) {
-                sleep latency
-            }
-            concurrency.decrementAndGet()
-            chain.doFilter(request, response)
-        }
-
-        @Override
-        void destroy() {
-
         }
     }
 
+    private static int simulatedLatency(String path) {
+        // compute a digest based on the path, allowing us to use the same latency for the same request each time
+        int sig = DELAYS[path.bytes.sum() % DELAYS.length]
+        def ext = path.contains('.') ? path.substring(1 + path.lastIndexOf('.')) : ''
+        return sig * FACTORS[ext]
+    }
 }
 

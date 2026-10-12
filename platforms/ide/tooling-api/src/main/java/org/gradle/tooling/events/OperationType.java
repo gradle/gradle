@@ -22,6 +22,7 @@ import org.gradle.api.Incubating;
  * Enumerates the different types of operations for which progress events can be received.
  *
  * @see org.gradle.tooling.LongRunningOperation#addProgressListener(ProgressListener, java.util.Set)
+ * @since 2.5
  */
 public enum OperationType {
 
@@ -34,6 +35,7 @@ public enum OperationType {
      *     <li>{@link org.gradle.tooling.events.test.TestStartEvent}</li>
      *     <li>{@link org.gradle.tooling.events.test.TestFinishEvent}</li>
      * </ul>
+     * @since 2.5
      */
     TEST,
 
@@ -47,6 +49,7 @@ public enum OperationType {
      *     <li>{@link org.gradle.tooling.events.task.TaskFinishEvent}</li>
      * </ul>
      *
+     * @since 2.5
      */
     TASK,
 
@@ -61,6 +64,7 @@ public enum OperationType {
      *     <li>{@link StatusEvent}</li>
      * </ul>
      *
+     * @since 2.5
      */
     GENERIC,
 

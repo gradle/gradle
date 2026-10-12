@@ -18,7 +18,6 @@ package org.gradle.kotlin.dsl.tooling.builders.r54
 
 import org.gradle.integtests.tooling.fixture.TargetGradleVersion
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinScriptModelCrossVersionTest
-import org.gradle.test.fixtures.Flaky
 import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.gradle.util.GradleVersion
 
@@ -100,7 +99,6 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
 
     @TargetGradleVersion(">=5.4 <7.5")
     @LeaksFileHandles("Kotlin compiler daemon on buildSrc jar")
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3708")
     def "sourcePath includes buildSrc source roots"() {
 
         given:
@@ -117,7 +115,6 @@ class KotlinSettingsScriptModelCrossVersionSpec extends AbstractKotlinScriptMode
 
     @TargetGradleVersion(">=5.4 <7.5")
     @LeaksFileHandles("Kotlin compiler daemon on buildSrc jar")
-    @Flaky(because = "https://github.com/gradle/gradle-private/issues/3708")
     def "sourcePath includes buildSrc project dependencies source roots"() {
 
         given:

@@ -25,6 +25,7 @@ import java.lang.annotation.Target;
 /**
  * Indicates that a feature is incubating. This means that the feature is currently a work-in-progress and may
  * change at any time.
+ * @since 1.2
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

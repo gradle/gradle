@@ -26,10 +26,20 @@ import org.gradle.tooling.UnsupportedVersionException;
  * @see GradleRunner#buildAndFail()
  */
 public class InvalidRunnerConfigurationException extends IllegalStateException {
+    /**
+     * Creates a new {@code InvalidRunnerConfigurationException}.
+     *
+     * @since 2.6
+     */
     public InvalidRunnerConfigurationException(String s) {
         super(s);
     }
 
+    /**
+     * Creates a new {@code InvalidRunnerConfigurationException}.
+     *
+     * @since 2.9
+     */
     public InvalidRunnerConfigurationException(String s, UnsupportedVersionException e) {
         super(s, e);
     }

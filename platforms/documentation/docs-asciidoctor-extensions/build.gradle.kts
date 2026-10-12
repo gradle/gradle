@@ -1,5 +1,5 @@
 plugins {
-    id("gradlebuild.internal.java")
+    id("gradlebuild.internal.tooling")
 }
 
 description = "Asciidoctor extensions that only work with html backends"

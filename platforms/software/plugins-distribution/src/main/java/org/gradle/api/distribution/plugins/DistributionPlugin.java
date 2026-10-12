@@ -24,16 +24,19 @@ import org.gradle.api.distribution.DistributionContainer;
  * <p>Applies the {@link DistributionBasePlugin} and adds a conventional {@link #MAIN_DISTRIBUTION_NAME main} distribution.</p>
  *
  * @see <a href="https://docs.gradle.org/current/userguide/distribution_plugin.html">Distribution plugin reference</a>
+ * @since 1.5
  */
 public abstract class DistributionPlugin implements Plugin<Project> {
 
     /**
      * Name of the main distribution
+     * @since 2.14
      */
     public static final String MAIN_DISTRIBUTION_NAME = "main";
 
     /**
      * The name of the install task for the main distribution.
+     * @since 2.14
      */
     public static final String TASK_INSTALL_NAME = "installDist";
 

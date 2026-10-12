@@ -23,9 +23,20 @@ import org.slf4j.MarkerFactory;
 /**
  * <p>The main entry point for Gradle's logging system. Gradle routes all logging via SLF4J. You can use either an SLF4J
  * {@link org.slf4j.Logger} or a Gradle {@link Logger} to perform logging.</p>
+ * @since 0.7
  */
 public class Logging {
+    /**
+     * Returns the detached marker.
+     *
+     * @since 0.7
+     */
     public static final Marker LIFECYCLE = MarkerFactory.getDetachedMarker("LIFECYCLE");
+    /**
+     * Returns the detached marker.
+     *
+     * @since 0.7
+     */
     public static final Marker QUIET = MarkerFactory.getDetachedMarker("QUIET");
 
     /**
@@ -33,6 +44,7 @@ public class Logging {
      *
      * @param c the class.
      * @return the logger. Never returns null.
+     * @since 0.8
      */
     @SuppressWarnings("rawtypes")
     public static Logger getLogger(Class c) {
@@ -44,6 +56,7 @@ public class Logging {
      *
      * @param name the logger name.
      * @return the logger. Never returns null.
+     * @since 0.8
      */
     public static Logger getLogger(String name) {
         return (Logger) LoggerFactory.getLogger(name);

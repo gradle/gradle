@@ -95,6 +95,7 @@ class AndroidProjectCachingSmokeTest extends AbstractAndroidProjectSmokeTest {
         runnerForLocation(relocatedDir, agpVersion, "clean", *ossLicensesTasksExcludes, *excludingCCIncompatibleTasks())
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecation()
+                expectSetVisibleDeprecation()
             }
             .build()
         result = buildCachedLocation(relocatedDir, agpVersion)
@@ -262,6 +263,7 @@ class AndroidPluginExpectations90 {
         ':app:writeDemoDebugSigningConfigVersions': SUCCESS,
         ':app:writeProdDebugAppMetadata': SUCCESS,
         ':app:writeProdDebugSigningConfigVersions': SUCCESS,
+        ':build-logic:convention:checkKotlinCompilerVersion': SUCCESS,
         ':build-logic:convention:checkKotlinGradlePluginConfigurationErrors': SKIPPED,
         ':build-logic:convention:classes': SUCCESS,
         ':build-logic:convention:compileJava': NO_SOURCE,
@@ -2471,6 +2473,7 @@ class AndroidPluginExpectations91 {
         ':app:writeDemoDebugSigningConfigVersions': SUCCESS,
         ':app:writeProdDebugAppMetadata': SUCCESS,
         ':app:writeProdDebugSigningConfigVersions': SUCCESS,
+        ':build-logic:convention:checkKotlinCompilerVersion': SUCCESS,
         ':build-logic:convention:checkKotlinGradlePluginConfigurationErrors': SKIPPED,
         ':build-logic:convention:classes': SUCCESS,
         ':build-logic:convention:compileJava': NO_SOURCE,

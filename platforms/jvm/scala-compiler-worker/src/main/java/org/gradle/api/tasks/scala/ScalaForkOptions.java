@@ -37,6 +37,7 @@ import org.gradle.api.tasks.compile.ProviderAwareCompilerDaemonForkOptions;
 /**
  * Fork options for Scala compilation. Only take effect if {@code BaseScalaCompileOptions.fork}
  * is {@code true}.
+ * @since 1.3
  */
 public abstract class ScalaForkOptions extends ProviderAwareCompilerDaemonForkOptions {
     private static final long serialVersionUID = 0;

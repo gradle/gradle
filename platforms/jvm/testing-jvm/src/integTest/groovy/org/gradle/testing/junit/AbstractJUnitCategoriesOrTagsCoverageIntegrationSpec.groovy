@@ -31,9 +31,7 @@ abstract class AbstractJUnitCategoriesOrTagsCoverageIntegrationSpec extends Abst
         buildFile << """
             apply plugin: "java"
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             dependencies {
                 ${testFrameworkDependencies}

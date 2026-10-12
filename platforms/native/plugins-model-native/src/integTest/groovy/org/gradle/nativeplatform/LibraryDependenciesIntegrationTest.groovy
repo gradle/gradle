@@ -27,6 +27,7 @@ import org.gradle.test.preconditions.TestEnvironmentPreconditions
 @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
 class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainIntegrationSpec {
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         settingsFile << "rootProject.name = 'test'"
         buildFile << """
             allprojects {
@@ -47,6 +48,7 @@ class LibraryDependenciesIntegrationTest extends AbstractInstalledToolChainInteg
 
     @UnsupportedWithIsolatedProjects(because = "software model")
     def "produces reasonable error message when referenced library #label"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CppHelloWorldApp()
         app.executable.writeSources(file("exe/src/main"))
@@ -92,6 +94,7 @@ project(":other") {
     }
 
     def "can use #notationName notation to reference library in same project"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CppHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -124,6 +127,7 @@ model {
     }
 
     def "can use map #notationName notation to reference library dependency of binary"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CppHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -156,6 +160,7 @@ model {
     }
 
     def "can use map notation to reference static library in same project"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CppHelloWorldApp()
         app.executable.writeSources(file("src/main"))
@@ -184,6 +189,7 @@ model {
 
     @UnsupportedWithIsolatedProjects(because = "software model")
     def "can use map notation to reference library in different project"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CppHelloWorldApp()
         app.executable.writeSources(file("exe/src/main"))
@@ -222,6 +228,7 @@ project(":lib") {
 
     @UnsupportedWithIsolatedProjects(because = "software model")
     def "can use map notation to reference library in different project with configure-on-demand"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new CppHelloWorldApp()
         app.executable.writeSources(file("exe/src/main"))
@@ -261,6 +268,7 @@ project(":lib") {
 
     @UnsupportedWithIsolatedProjects(because = "software model")
     def "can use map notation to transitively reference libraries in different projects"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
         app.writeSources(file("exe/src/main"), file("lib/src/hello"), file("greet/src/greetings"))
@@ -309,6 +317,7 @@ project(":greet") {
 
     @UnsupportedWithIsolatedProjects(because = "software model")
     def "can have component graph with project dependency cycle"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new ExeWithLibraryUsingLibraryHelloWorldApp()
         app.writeSources(file("exe/src/main"), file("lib/src/hello"), file("exe/src/greetings"))
@@ -352,6 +361,7 @@ project(":lib") {
     }
 
     def "can have component graph with diamond dependency"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new ExeWithDiamondDependencyHelloWorldApp()
         app.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))
@@ -389,6 +399,7 @@ model {
     }
 
     def "can have component graph with both static and shared variants of same library"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         def app = new ExeWithDiamondDependencyHelloWorldApp()
         app.writeSources(file("src/main"), file("src/hello"), file("src/greetings"))

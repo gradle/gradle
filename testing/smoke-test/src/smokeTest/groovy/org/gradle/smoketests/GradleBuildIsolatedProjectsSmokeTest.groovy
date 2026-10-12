@@ -59,8 +59,7 @@ class GradleBuildIsolatedProjectsSmokeTest extends AbstractGradleBuildIsolatedPr
         // sets properties that are required by tasks being realized
         def requiredGradleProperties = [
             "-Pgradle_installPath=/dev/null",
-            "-PartifactoryUserName=foo",
-            "-PartifactoryUserPassword=bar",
+            "-PartifactoryToken=foo",
             "-PtoolingApiShadedJarInstallPath=/tmp",
             "-PpromotionCommitId=1234567"
         ]

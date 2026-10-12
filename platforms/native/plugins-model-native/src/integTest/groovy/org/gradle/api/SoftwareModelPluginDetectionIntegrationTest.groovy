@@ -20,6 +20,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class SoftwareModelPluginDetectionIntegrationTest extends AbstractIntegrationSpec {
 
     def "plugin manager with id is fired after the plugin is applied for hybrid plugins"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
             import org.gradle.api.Plugin
@@ -58,6 +59,7 @@ class SoftwareModelPluginDetectionIntegrationTest extends AbstractIntegrationSpe
     }
 
     def "plugin manager with id is fired after the plugin is applied for rule plugins"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         file("buildSrc/src/main/groovy/MyPlugin.groovy") << """
             import org.gradle.model.*

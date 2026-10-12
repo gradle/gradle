@@ -34,6 +34,8 @@ import kotlin.reflect.KProperty
  *
  * @param configuration The expression to configure this container with
  * @return The container.
+ *
+ * @since 6.8
  */
 @Suppress("nothing_to_inline")
 inline operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
@@ -50,6 +52,8 @@ inline operator fun <T : Any, C : NamedDomainObjectContainer<T>> C.invoke(
  *
  * @param T the domain object type
  * @param C the concrete container type
+ *
+ * @since 4.10
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use 'val element = register(name)' instead. See the Gradle 9.6 upgrading guide.")
@@ -80,6 +84,8 @@ inline val <T : Any, C : NamedDomainObjectContainer<T>> C.registering: Registeri
  * @param T the domain object type
  * @param C the concrete container type
  * @param action the configuration action
+ *
+ * @since 4.10
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use 'val element = register(name) { }' instead. See the Gradle 9.6 upgrading guide.")
@@ -103,6 +109,8 @@ fun <T : Any, C : NamedDomainObjectContainer<T>> C.registering(action: T.() -> U
  * @param T the domain object type
  * @param C the concrete container type
  * @param type the domain object type
+ *
+ * @since 4.10
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use 'val element = register<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
@@ -128,6 +136,8 @@ fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> C.registering(type
  * @param U the desired domain object type
  * @param type the domain object type
  * @param action the configuration action
+ *
+ * @since 4.10
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use 'val element = register<Type>(name) { }' instead. See the Gradle 9.6 upgrading guide.")
@@ -148,6 +158,8 @@ fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> C.registering(
 
 /**
  * Registers an element and provides a delegate with the resulting [NamedDomainObjectProvider].
+ *
+ * @since 4.10
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use 'val element = register(name)' instead. See the Gradle 9.6 upgrading guide.")
@@ -163,6 +175,8 @@ operator fun <T : Any, C : NamedDomainObjectContainer<T>> RegisteringDomainObjec
 
 /**
  * Registers an element and provides a delegate with the resulting [NamedDomainObjectProvider].
+ *
+ * @since 4.10
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use 'val element = register(name) { }' instead. See the Gradle 9.6 upgrading guide.")
@@ -178,6 +192,8 @@ operator fun <T : Any, C : NamedDomainObjectContainer<T>> RegisteringDomainObjec
 
 /**
  * Registers an element and provides a delegate with the resulting [NamedDomainObjectProvider].
+ *
+ * @since 4.10
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use 'val element = register<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
@@ -193,6 +209,8 @@ operator fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> Registeri
 
 /**
  * Registers an element and provides a delegate with the resulting [NamedDomainObjectProvider].
+ *
+ * @since 4.10
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use 'val element = register<Type>(name) { }' instead. See the Gradle 9.6 upgrading guide.")
@@ -210,13 +228,21 @@ operator fun <T : Any, C : PolymorphicDomainObjectContainer<T>, U : T> Registeri
  * Holds the delegate provider for the `registering` property delegate with
  * the purpose of providing specialized implementations for the `provideDelegate` operator
  * based on the static type of the provider.
+ *
+ * @since 4.10
  */
 @Deprecated("Use 'val element = register(name)' instead. See the Gradle 9.6 upgrading guide.")
 class RegisteringDomainObjectDelegateProvider<T>
 private constructor(
     internal val delegateProvider: T
 ) {
+    /**
+     * @since 5.0
+     */
     companion object {
+        /**
+         * @since 5.0
+         */
         @Suppress("DEPRECATION")
         fun <T> of(delegateProvider: T) =
             RegisteringDomainObjectDelegateProvider(delegateProvider).also {
@@ -233,6 +259,8 @@ private constructor(
  * Holds the delegate provider for the `registering` property delegate with
  * the purpose of providing specialized implementations for the `provideDelegate` operator
  * based on the static type of the provider.
+ *
+ * @since 4.10
  */
 @Deprecated("Use 'val element = register(name) { }' instead. See the Gradle 9.6 upgrading guide.")
 class RegisteringDomainObjectDelegateProviderWithAction<C, T>
@@ -240,7 +268,13 @@ private constructor(
     internal val delegateProvider: C,
     internal val action: T.() -> Unit
 ) {
+    /**
+     * @since 5.0
+     */
     companion object {
+        /**
+         * @since 5.0
+         */
         @Suppress("DEPRECATION")
         fun <C, T> of(delegateProvider: C, action: T.() -> Unit) =
             RegisteringDomainObjectDelegateProviderWithAction(delegateProvider, action).also {
@@ -257,6 +291,8 @@ private constructor(
  * Holds the delegate provider and expected element type for the `registering` property delegate with
  * the purpose of providing specialized implementations for the `provideDelegate` operator
  * based on the static type of the provider.
+ *
+ * @since 4.10
  */
 @Deprecated("Use 'val element = register<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
 class RegisteringDomainObjectDelegateProviderWithType<T, U : Any>
@@ -264,7 +300,13 @@ private constructor(
     internal val delegateProvider: T,
     internal val type: KClass<U>
 ) {
+    /**
+     * @since 5.0
+     */
     companion object {
+        /**
+         * @since 5.0
+         */
         @Suppress("DEPRECATION")
         fun <T, U : Any> of(delegateProvider: T, type: KClass<U>) =
             RegisteringDomainObjectDelegateProviderWithType(delegateProvider, type).also {
@@ -281,6 +323,8 @@ private constructor(
  * Holds the delegate provider and expected element type for the `registering` property delegate with
  * the purpose of providing specialized implementations for the `provideDelegate` operator
  * based on the static type of the provider.
+ *
+ * @since 4.10
  */
 @Deprecated("Use 'val element = register<Type>(name) { }' instead. See the Gradle 9.6 upgrading guide.")
 class RegisteringDomainObjectDelegateProviderWithTypeAndAction<T, U : Any>
@@ -289,7 +333,13 @@ private constructor(
     internal val type: KClass<U>,
     internal val action: U.() -> Unit
 ) {
+    /**
+     * @since 5.0
+     */
     companion object {
+        /**
+         * @since 5.0
+         */
         @Suppress("DEPRECATION")
         fun <T, U : Any> of(delegateProvider: T, type: KClass<U>, action: U.() -> Unit) =
             RegisteringDomainObjectDelegateProviderWithTypeAndAction(delegateProvider, type, action).also {
@@ -304,6 +354,8 @@ private constructor(
 
 /**
  * Receiver for [NamedDomainObjectContainer] configuration blocks.
+ *
+ * @since 4.1
  */
 open
 class NamedDomainObjectContainerScope<T : Any>
@@ -311,7 +363,13 @@ internal constructor(
     override val delegate: NamedDomainObjectContainer<T>
 ) : NamedDomainObjectContainerDelegate<T>(), PolymorphicDomainObjectContainer<T> {
 
+    /**
+     * @since 5.0
+     */
     companion object {
+        /**
+         * @since 5.0
+         */
         fun <T : Any> of(container: NamedDomainObjectContainer<T>) =
             NamedDomainObjectContainerScope(container)
     }
@@ -339,6 +397,8 @@ internal constructor(
      *
      * @see [NamedDomainObjectContainer.named]
      * @see [NamedDomainObjectProvider.configure]
+     *
+     * @since 4.1
      */
     operator fun String.invoke(configuration: T.() -> Unit): NamedDomainObjectProvider<T> =
         named(this).apply { configure(configuration) }
@@ -348,6 +408,8 @@ internal constructor(
      *
      * @see [PolymorphicDomainObjectContainer.named]
      * @see [NamedDomainObjectProvider.configure]
+     *
+     * @since 4.1
      */
     operator fun <U : T> String.invoke(type: KClass<U>, configuration: U.() -> Unit): NamedDomainObjectProvider<U> =
         delegate.named(this, type, configuration)
@@ -356,6 +418,8 @@ internal constructor(
      * Locates an object by name and type, without triggering its creation or configuration, failing if there is no such object.
      *
      * @see [PolymorphicDomainObjectContainer.named]
+     *
+     * @since 4.1
      */
     operator fun <U : T> String.invoke(type: KClass<U>): NamedDomainObjectProvider<U> =
         delegate.named(this, type)
@@ -377,6 +441,8 @@ internal constructor(
 
 /**
  * Provides a property delegate that creates elements of the default collection type.
+ *
+ * @since 4.1
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use 'val element = create(name)' instead. See the Gradle 9.6 upgrading guide.")
@@ -394,6 +460,8 @@ val <T : Any> NamedDomainObjectContainer<T>.creating
  * Provides a property delegate that creates elements of the default collection type with the given [configuration].
  *
  * `val myElement by myContainer.creating { myProperty = 42 }`
+ *
+ * @since 4.1
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use 'val element = create(name) { }' instead. See the Gradle 9.6 upgrading guide.")
@@ -411,6 +479,8 @@ fun <T : Any> NamedDomainObjectContainer<T>.creating(configuration: T.() -> Unit
  * A property delegate that creates elements in the given [NamedDomainObjectContainer].
  *
  * See [creating]
+ *
+ * @since 4.10
  */
 @Deprecated("Use 'val element = create(name)' instead. See the Gradle 9.6 upgrading guide.")
 class NamedDomainObjectContainerCreatingDelegateProvider<T : Any>
@@ -418,7 +488,13 @@ private constructor(
     internal val container: NamedDomainObjectContainer<T>,
     internal val configuration: (T.() -> Unit)? = null
 ) {
+    /**
+     * @since 5.0
+     */
     companion object {
+        /**
+         * @since 5.0
+         */
         @Suppress("DEPRECATION")
         fun <T : Any> of(container: NamedDomainObjectContainer<T>, configuration: (T.() -> Unit)? = null) =
             NamedDomainObjectContainerCreatingDelegateProvider(container, configuration).also {
@@ -429,6 +505,9 @@ private constructor(
             }
     }
 
+    /**
+     * @since 4.10
+     */
     @Suppress("DEPRECATION")
     @Deprecated("Use 'val element = create(name)' instead. See the Gradle 9.6 upgrading guide.")
     operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
@@ -445,6 +524,8 @@ private constructor(
 
 /**
  * Provides a property delegate that creates elements of the given [type].
+ *
+ * @since 4.1
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use 'val element = create<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
@@ -462,6 +543,8 @@ fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: KClass<U
 
 /**
  * Provides a property delegate that creates elements of the given [type] with the given [configuration].
+ *
+ * @since 4.1
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use 'val element = create<Type>(name) { }' instead. See the Gradle 9.6 upgrading guide.")
@@ -472,6 +555,8 @@ fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: KClass<U
 /**
  * Provides a property delegate that creates elements of the given [type] expressed as a [java.lang.Class]
  * with the given [configuration].
+ *
+ * @since 4.1
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use 'val element = create<Type>(name) { }' instead. See the Gradle 9.6 upgrading guide.")
@@ -489,6 +574,8 @@ fun <T : Any, U : T> PolymorphicDomainObjectContainer<T>.creating(type: Class<U>
 
 /**
  * A property delegate that creates elements of the given [type] with the given [configuration] in the given [container].
+ *
+ * @since 4.10
  */
 @Deprecated("Use 'val element = create<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
 class PolymorphicDomainObjectContainerCreatingDelegateProvider<T : Any, U : T>
@@ -497,7 +584,13 @@ private constructor(
     internal val type: Class<U>,
     internal val configuration: (U.() -> Unit)? = null
 ) {
+    /**
+     * @since 5.0
+     */
     companion object {
+        /**
+         * @since 5.0
+         */
         @Suppress("DEPRECATION")
         fun <T : Any, U : T> of(container: PolymorphicDomainObjectContainer<T>, type: Class<U>, configuration: (U.() -> Unit)? = null) =
             PolymorphicDomainObjectContainerCreatingDelegateProvider(container, type, configuration).also {
@@ -508,6 +601,9 @@ private constructor(
             }
     }
 
+    /**
+     * @since 4.10
+     */
     @Suppress("DEPRECATION")
     @Deprecated("Use 'val element = create<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
     operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =
@@ -524,6 +620,8 @@ private constructor(
 
 /**
  * Provides a property delegate that gets elements of the given [type] and applies the given [configuration].
+ *
+ * @since 4.8
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use 'val element = getByName<Type>(name) { }' instead. See the Gradle 9.6 upgrading guide.")
@@ -541,6 +639,8 @@ fun <T : Any, U : T> NamedDomainObjectContainer<T>.getting(type: KClass<U>, conf
 
 /**
  * Provides a property delegate that gets elements of the given [type].
+ *
+ * @since 4.8
  */
 @Suppress("DEPRECATION")
 @Deprecated("Use 'val element = getByName<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
@@ -559,6 +659,8 @@ fun <T : Any, U : T> NamedDomainObjectContainer<T>.getting(type: KClass<U>) =
 /**
  * A property delegate that gets elements of the given [type] from the given [container]
  * and applies the given [configuration].
+ *
+ * @since 4.1
  */
 @Deprecated("Use 'val element = getByName<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
 class PolymorphicDomainObjectContainerGettingDelegateProvider<T : Any, U : T>
@@ -567,7 +669,13 @@ private constructor(
     internal val type: KClass<U>,
     internal val configuration: (U.() -> Unit)? = null
 ) {
+    /**
+     * @since 5.0
+     */
     companion object {
+        /**
+         * @since 5.0
+         */
         @Suppress("DEPRECATION")
         fun <T : Any, U : T> of(container: NamedDomainObjectContainer<T>, type: KClass<U>, configuration: (U.() -> Unit)? = null) =
             PolymorphicDomainObjectContainerGettingDelegateProvider(container, type, configuration).also {
@@ -578,6 +686,9 @@ private constructor(
             }
     }
 
+    /**
+     * @since 4.1
+     */
     @Suppress("DEPRECATION")
     @Deprecated("Use 'val element = getByName<Type>(name)' instead. See the Gradle 9.6 upgrading guide.")
     operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) =

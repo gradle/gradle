@@ -31,6 +31,11 @@ import java.util.concurrent.ConcurrentMap;
 public class MapBasedBuildCacheService implements BuildCacheService {
     private final ConcurrentMap<String, byte[]> delegate;
 
+    /**
+     * Creates a new {@code MapBasedBuildCacheService}.
+     *
+     * @since 4.0
+     */
     public MapBasedBuildCacheService(ConcurrentMap<String, byte[]> delegate) {
         this.delegate = delegate;
     }

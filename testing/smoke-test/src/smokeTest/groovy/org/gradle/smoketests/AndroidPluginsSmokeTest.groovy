@@ -58,6 +58,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         def result = runner
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
+                expectSetVisibleDeprecation()
             }
             .build()
 
@@ -78,6 +79,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result = runner
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
+                expectSetVisibleDeprecationIf(GradleContextualExecuter.isNotConfigCache())
             }
             .build()
 
@@ -97,6 +99,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         result = runner
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
+                expectSetVisibleDeprecationIf(GradleContextualExecuter.isNotConfigCache())
             }
             .build()
 
@@ -115,11 +118,13 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         agpRunner(agpVersion, 'clean')
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
+                expectSetVisibleDeprecation()
             }
             .build()
         result = runner
             .deprecations(AndroidDeprecations) {
                 expectProjectDependencyNotationDeprecationIf(GradleContextualExecuter.isNotConfigCache() && VersionNumber.parse(agpVersion).baseVersion < VersionNumber.parse("9.3.0"))
+                expectSetVisibleDeprecationIf(GradleContextualExecuter.isNotConfigCache())
             }.build()
 
         then:
@@ -198,7 +203,7 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
                 repositories {
                     ${googleRepository()}
                     ${mavenCentralRepository()}
-                    gradlePluginPortal()
+                    ${gradlePluginRepositoryDefinition()}
                 }
             }
             dependencyResolutionManagement {
@@ -367,8 +372,8 @@ class AndroidPluginsSmokeTest extends AbstractPluginValidatingSmokeTest implemen
         settingsFile << """
             pluginManagement {
                 repositories {
-                    gradlePluginPortal()
-                    google()
+                    ${gradlePluginRepositoryDefinition()}
+                    ${googleRepositoryDefinition()}
                 }
                 resolutionStrategy.eachPlugin {
                     if (pluginRequest.id.id.startsWith('com.android')) {

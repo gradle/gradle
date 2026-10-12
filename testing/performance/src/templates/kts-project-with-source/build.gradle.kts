@@ -29,13 +29,13 @@ repositories {
 }
 
 dependencies {
-    implementation("commons-lang:commons-lang:2.5")
-    implementation("org.apache.httpcomponents:httpclient:4.0")
-    implementation("commons-codec:commons-codec:1.2")
-    implementation("org.slf4j:jcl-over-slf4j:2.0.17")
-    implementation("org.codehaus.groovy:groovy:2.4.15")
-    testImplementation("junit:junit:4.13")
-    runtimeOnly("com.googlecode:reflectasm:1.01")
+    implementation("org.apache.commons:commons-lang3:3.20.0")
+    implementation("org.apache.httpcomponents.client5:httpclient5:5.6.2")
+    implementation("commons-codec:commons-codec:1.22.0")
+    implementation("org.slf4j:jcl-over-slf4j:2.0.18")
+    implementation("org.apache.groovy:groovy:4.0.32")
+    testImplementation("junit:junit:4.13.2")
+    runtimeOnly("com.esotericsoftware:reflectasm:1.11.9")
 }
 
 (tasks.getByName("test") as Test).apply {

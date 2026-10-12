@@ -21,12 +21,14 @@ import org.gradle.api.Incubating;
 
 /**
  * A plain text config file generated for Visual Studio.
+ * @since 1.11
  */
 @Incubating
 public interface TextConfigFile extends ConfigFile {
 
     /**
      * Add an action that can manipulate the generated file content.
+     * @since 1.11
      */
     void withContent(Action<? super TextProvider> action);
 }

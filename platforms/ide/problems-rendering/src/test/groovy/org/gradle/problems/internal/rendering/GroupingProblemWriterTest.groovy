@@ -20,7 +20,6 @@ package org.gradle.problems.internal.rendering
 import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblemBuilder
-import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.IsolatableToBytesSerializer
 import org.gradle.api.problems.internal.ProblemsInfrastructure
 import org.gradle.internal.isolation.IsolatableFactory
@@ -212,19 +211,19 @@ display-name
     }
 
     @Issue("https://github.com/gradle/gradle/issues/32016")
-    def "java compilation reports are properly separated"() {
+    def "details-only reports are separated by line breaks"() {
         given:
         def problem1 = createProblemBuilder()
-            .id("id", "display-name", GradleCoreProblemGroup.compilation().java())
+            .id("id", "display-name", level1Group)
             .details("Unused variable a in line 10")
             .build()
         def problem2 = createProblemBuilder()
-            .id("id", "display-name", GradleCoreProblemGroup.compilation().java())
+            .id("id", "display-name", level1Group)
             .details("Unused variable a in line 20")
             .build()
 
         when:
-        problemWriter.write([problem1, problem2], writer)
+        ProblemWriter.detailsOnly().write([problem1, problem2], writer)
 
         then:
         renderedProblem == denormalizeAndStrip('''

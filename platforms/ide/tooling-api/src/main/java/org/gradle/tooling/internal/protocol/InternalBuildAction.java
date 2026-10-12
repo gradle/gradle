@@ -26,7 +26,7 @@ import java.io.Serializable;
  * implement newer interfaces.
  * </p>
  *
- * @since 1.8-rc-1
+ * @since 1.8
  * @deprecated 4.4. Use {@link InternalBuildActionVersion2} instead.
  */
 @Deprecated
@@ -34,7 +34,7 @@ public interface InternalBuildAction<T> extends InternalProtocolInterface, Seria
     /**
      * Performs some action against a build and returns a result.
      *
-     * @since 1.8-rc-1
+     * @since 1.8
      * @deprecated 4.4. Use {@link InternalBuildActionVersion2#execute(InternalBuildControllerVersion2)} instead.
      */
     @Deprecated

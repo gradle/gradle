@@ -19,11 +19,8 @@ package org.gradle.nativeplatform.internal;
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.nativeplatform.StaticLibraryBinary;
-import org.gradle.nativeplatform.StaticLibraryBinarySpec;
 import org.gradle.nativeplatform.tasks.CreateStaticLibrary;
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
-import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
 
 import java.io.File;
@@ -32,8 +29,8 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Set;
 
-@SuppressWarnings("this-escape")
-public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinarySpec implements StaticLibraryBinary, StaticLibraryBinarySpecInternal {
+@SuppressWarnings({"this-escape", "deprecation"})
+public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinarySpec implements org.gradle.nativeplatform.StaticLibraryBinary, StaticLibraryBinarySpecInternal {
     private final List<FileCollection> additionalLinkFiles = new ArrayList<FileCollection>();
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
     private File staticLibraryFile;
@@ -77,12 +74,12 @@ public class DefaultStaticLibraryBinarySpec extends AbstractNativeLibraryBinaryS
     }
 
     @Override
-    public StaticLibraryBinarySpec.TasksCollection getTasks() {
+    public org.gradle.nativeplatform.StaticLibraryBinarySpec.TasksCollection getTasks() {
         return tasks;
     }
 
-    static class DefaultTasksCollection extends BinaryTasksCollectionWrapper implements StaticLibraryBinarySpec.TasksCollection {
-        public DefaultTasksCollection(BinaryTasksCollection delegate) {
+    static class DefaultTasksCollection extends BinaryTasksCollectionWrapper implements org.gradle.nativeplatform.StaticLibraryBinarySpec.TasksCollection {
+        public DefaultTasksCollection(org.gradle.platform.base.BinaryTasksCollection delegate) {
             super(delegate);
         }
 

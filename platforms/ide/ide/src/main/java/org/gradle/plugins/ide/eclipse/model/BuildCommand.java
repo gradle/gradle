@@ -25,32 +25,63 @@ import java.util.Map;
 
 /**
  * A build command.
+ * @since 1.0
  */
 public class BuildCommand implements Serializable {
     private String name;
     private Map<String, String> arguments;
 
+    /**
+     * Creates a new {@code BuildCommand}.
+     *
+     * @since 1.0
+     */
     public BuildCommand(String name) {
         this(name, new LinkedHashMap<>());
     }
 
+    /**
+     * Creates a new {@code BuildCommand}.
+     *
+     * @since 1.0
+     */
     public BuildCommand(String name, Map<String, String> arguments) {
         this.name = Preconditions.checkNotNull(name);
         this.arguments = Preconditions.checkNotNull(arguments);
     }
 
+    /**
+     * Returns the name.
+     *
+     * @since 1.0
+     */
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the name.
+     *
+     * @since 1.0
+     */
     public void setName(String name) {
         this.name = name;
     }
 
+    /**
+     * Returns the arguments.
+     *
+     * @since 1.0
+     */
     public Map<String, String> getArguments() {
         return arguments;
     }
 
+    /**
+     * Sets the arguments.
+     *
+     * @since 1.0
+     */
     public void setArguments(Map<String, String> arguments) {
         this.arguments = arguments;
     }

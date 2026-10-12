@@ -43,6 +43,7 @@ import java.util.TreeSet;
  * Preserved for backward compatibility.
  *
  * @deprecated Use {@link AbstractProjectBasedReportTask} instead.
+ * @since 0.7
  */
 @Deprecated
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
@@ -52,6 +53,11 @@ public abstract class AbstractReportTask extends ConventionTask {
     // todo annotate as required
     private Set<Project> projects;
 
+    /**
+     * Creates a new {@code AbstractReportTask}.
+     *
+     * @since 0.8
+     */
     @SuppressWarnings("this-escape")
     protected AbstractReportTask() {
         getOutputs().upToDateWhen(element -> false);
@@ -65,6 +71,11 @@ public abstract class AbstractReportTask extends ConventionTask {
     @Inject
     protected abstract StyledTextOutputFactory getTextOutputFactory();
 
+    /**
+     * Generate.
+     *
+     * @since 0.8
+     */
     @TaskAction
     public void generate() {
         reportGenerator().generateReport(
@@ -99,9 +110,19 @@ public abstract class AbstractReportTask extends ConventionTask {
         return getOutputFile() != null;
     }
 
+    /**
+     * Returns the renderer.
+     *
+     * @since 0.7
+     */
     @Internal
     protected abstract ReportRenderer getRenderer();
 
+    /**
+     * Generate.
+     *
+     * @since 0.7
+     */
     protected abstract void generate(Project project) throws IOException;
 
     /**
@@ -109,6 +130,7 @@ public abstract class AbstractReportTask extends ConventionTask {
      * Defaults to {@code null}.
      *
      * @return The output file. May be null.
+     * @since 0.7
      */
     @Nullable
     @Optional
@@ -121,6 +143,7 @@ public abstract class AbstractReportTask extends ConventionTask {
      * Sets the file which the report will be written to. Set this to {@code null} to write the report to {@code System.out}.
      *
      * @param outputFile The output file. May be null.
+     * @since 0.7
      */
     public void setOutputFile(@Nullable File outputFile) {
         this.outputFile = outputFile;
@@ -131,6 +154,7 @@ public abstract class AbstractReportTask extends ConventionTask {
      * containing project.
      *
      * @return The set of files.
+     * @since 0.9
      */
     @Internal
     // TODO:LPTR Have the paths of the projects serve as @Input maybe?
@@ -142,6 +166,7 @@ public abstract class AbstractReportTask extends ConventionTask {
      * Specifies the set of projects to generate this report for.
      *
      * @param projects The set of projects. Must not be null.
+     * @since 0.9
      */
     public void setProjects(Set<Project> projects) {
         this.projects = projects;

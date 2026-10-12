@@ -57,14 +57,25 @@ import java.io.File;
  *     // The returned class path can be used to configure the 'scalaClasspath' property of tasks
  *     // such as 'ScalaCompile' or 'ScalaDoc', or to execute these and other Scala tools directly.
  * </pre>
+ * @since 1.6
  */
 public abstract class ScalaRuntime {
 
     // TODO: Deprecate this class in 9.x when we de-incubate ScalaPluginExtension#getScalaVersion()
 
+    /**
+     * The project.
+     *
+     * @since 1.6
+     */
     private final Project project;
     private final JvmPluginServices jvmPluginServices;
 
+    /**
+     * Creates a new {@code ScalaRuntime}.
+     *
+     * @since 1.6
+     */
     public ScalaRuntime(Project project) {
         this.project = project;
         this.jvmPluginServices = ((ProjectInternal) project).getServices().get(JvmPluginServices.class);
@@ -78,6 +89,7 @@ public abstract class ScalaRuntime {
      *
      * @param classpath a class path containing a 'scala-library' Jar
      * @return a class path containing a corresponding 'scala-compiler' Jar and its dependencies
+     * @since 1.6
      */
     public FileCollection inferScalaClasspath(final Iterable<File> classpath) {
         // alternatively, we could return project.getLayout().files(Runnable)
@@ -156,6 +168,7 @@ public abstract class ScalaRuntime {
      * @param classpath the class path to search
      * @param appendix the appendix to search for
      * @return a Scala Jar file with the specified appendix
+     * @since 1.6
      */
     @Nullable
     public File findScalaJar(Iterable<File> classpath, String appendix) {
@@ -172,6 +185,7 @@ public abstract class ScalaRuntime {
      *
      * @param scalaJar a Scala Jar file
      * @return the version of the Scala Jar file
+     * @since 1.6
      */
     @Nullable
     public String getScalaVersion(File scalaJar) {

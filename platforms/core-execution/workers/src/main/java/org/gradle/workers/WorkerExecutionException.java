@@ -26,14 +26,29 @@ import org.gradle.internal.exceptions.DefaultMultiCauseException;
  */
 @Contextual
 public class WorkerExecutionException extends DefaultMultiCauseException {
+    /**
+     * Creates a new {@code WorkerExecutionException}.
+     *
+     * @since 3.5
+     */
     public WorkerExecutionException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code WorkerExecutionException}.
+     *
+     * @since 3.5
+     */
     public WorkerExecutionException(String message, Throwable... causes) {
         super(message, causes);
     }
 
+    /**
+     * Creates a new {@code WorkerExecutionException}.
+     *
+     * @since 3.5
+     */
     public WorkerExecutionException(String message, Iterable<? extends Throwable> causes) {
         super(message, causes);
     }

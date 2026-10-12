@@ -68,7 +68,7 @@ include::sample[dir="snippets/reference/dependency-management/declaring-reposito
 include::sample[dir="snippets/reference/dependency-management/declaring-repositories/defineRepository/groovy",files="build.gradle[tags=maven-local]"]
 ====
 
-NOTE: Gradle manages its own <<dependency_caching.adoc#sec:dependency-cache,cache>> and doesn't need to declare the local Maven repository even if you resolve dependencies from a remote Maven repository.
+NOTE: Gradle manages its own <<dependency_caching.adoc#sec:dependency-cache,cache>> and doesn't need to declare the local Maven repository even if you resolve dependencies from a remote Maven repository. Even without `mavenLocal()` declared, Gradle may reuse already-downloaded artifacts from it as a cache — see <<dependency_caching.adoc#sec:cache-artifact-reuse,Artifact reuse>>.
 
 Gradle uses the same logic as Maven to identify the location of your local Maven cache.
 If a `settings.xml` file is defined in the user’s home directory (`~/.m2/settings.xml`), this location takes precedence over `__M2_HOME__/conf`

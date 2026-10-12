@@ -354,11 +354,21 @@ public abstract class GenerateXcodeProjectFileTask extends PropertyListGenerator
         return parents;
     }
 
+    /**
+     * Returns the xcode project.
+     *
+     * @since 4.2
+     */
     @Internal
     public XcodeProject getXcodeProject() {
         return xcodeProject;
     }
 
+    /**
+     * Sets the xcode project.
+     *
+     * @since 4.2
+     */
     public void setXcodeProject(XcodeProject xcodeProject) {
         this.xcodeProject = (DefaultXcodeProject) xcodeProject;
     }

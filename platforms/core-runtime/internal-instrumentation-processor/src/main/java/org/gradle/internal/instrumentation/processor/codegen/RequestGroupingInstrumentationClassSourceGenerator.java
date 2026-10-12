@@ -29,7 +29,11 @@ import java.util.Set;
 import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
+import static java.util.Objects.requireNonNull;
+import org.jspecify.annotations.Nullable;
+
 public abstract class RequestGroupingInstrumentationClassSourceGenerator implements InstrumentationCodeGenerator {
+    @Nullable
     protected abstract String classNameForRequest(CallInterceptionRequest request);
 
     protected abstract Consumer<TypeSpec.Builder> classContentForClass(
@@ -69,7 +73,7 @@ public abstract class RequestGroupingInstrumentationClassSourceGenerator impleme
 
             @Override
             public void buildType(String className, TypeSpec.Builder builder) {
-                classContentByName.get(className).accept(builder);
+                requireNonNull(classContentByName.get(className)).accept(builder);
             }
 
             @Override

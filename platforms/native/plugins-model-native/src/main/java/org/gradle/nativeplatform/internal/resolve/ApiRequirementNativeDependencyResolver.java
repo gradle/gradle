@@ -18,12 +18,11 @@ package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.nativeplatform.NativeDependencySet;
-import org.gradle.nativeplatform.NativeLibraryRequirement;
 
 /**
  * Adapts an 'api' library requirement to a default linkage, and then wraps the result so that only headers are provided.
  */
+@SuppressWarnings("deprecation")
 public class ApiRequirementNativeDependencyResolver implements NativeDependencyResolver {
     private final NativeDependencyResolver delegate;
 
@@ -59,18 +58,18 @@ public class ApiRequirementNativeDependencyResolver implements NativeDependencyR
         return resolution.getRequirement().getLinkage();
     }
 
-    private static class ApiAdaptedNativeLibraryRequirement implements NativeLibraryRequirement {
-        private final NativeLibraryRequirement original;
-        public ApiAdaptedNativeLibraryRequirement(NativeLibraryRequirement original) {
+    private static class ApiAdaptedNativeLibraryRequirement implements org.gradle.nativeplatform.NativeLibraryRequirement {
+        private final org.gradle.nativeplatform.NativeLibraryRequirement original;
+        public ApiAdaptedNativeLibraryRequirement(org.gradle.nativeplatform.NativeLibraryRequirement original) {
             this.original = original;
         }
 
-        public NativeLibraryRequirement getOriginal() {
+        public org.gradle.nativeplatform.NativeLibraryRequirement getOriginal() {
             return original;
         }
 
         @Override
-        public NativeLibraryRequirement withProjectPath(String projectPath) {
+        public org.gradle.nativeplatform.NativeLibraryRequirement withProjectPath(String projectPath) {
             return new ApiAdaptedNativeLibraryRequirement(original.withProjectPath(projectPath));
         }
 
@@ -91,10 +90,10 @@ public class ApiRequirementNativeDependencyResolver implements NativeDependencyR
         }
     }
 
-    private static class ApiNativeDependencySet implements NativeDependencySet {
-        private final NativeDependencySet delegate;
+    private static class ApiNativeDependencySet implements org.gradle.nativeplatform.NativeDependencySet {
+        private final org.gradle.nativeplatform.NativeDependencySet delegate;
 
-        public ApiNativeDependencySet(NativeDependencySet delegate) {
+        public ApiNativeDependencySet(org.gradle.nativeplatform.NativeDependencySet delegate) {
             this.delegate = delegate;
         }
 

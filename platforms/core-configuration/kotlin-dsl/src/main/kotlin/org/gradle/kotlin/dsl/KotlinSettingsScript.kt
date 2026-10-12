@@ -33,6 +33,8 @@ import kotlin.script.templates.ScriptTemplateDefinition
  * Legacy base class for Gradle Kotlin DSL standalone [Settings] scripts IDE support.
  *
  * @see KotlinSettingsScriptTemplate
+ *
+ * @since 4.4
  */
 @ScriptTemplateDefinition(
     resolver = KotlinBuildScriptDependenciesResolver::class,

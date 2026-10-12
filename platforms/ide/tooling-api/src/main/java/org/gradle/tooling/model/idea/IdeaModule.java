@@ -26,7 +26,7 @@ import org.jspecify.annotations.Nullable;
 /**
  * Represents information about the IDEA module.
  *
- * @since 1.0-milestone-5
+ * @since 1.0
  */
 public interface IdeaModule extends HierarchicalElement, HasGradleProject {
 
@@ -52,7 +52,7 @@ public interface IdeaModule extends HierarchicalElement, HasGradleProject {
      * All content roots. Most idea modules have a single content root.
      *
      * @return content roots
-     * @since 1.0-milestone-5
+     * @since 1.0
      */
     DomainObjectSet<? extends IdeaContentRoot> getContentRoots();
 
@@ -63,7 +63,7 @@ public interface IdeaModule extends HierarchicalElement, HasGradleProject {
      * See {@link HasGradleProject}
      *
      * @return associated gradle project
-     * @since 1.0-milestone-5
+     * @since 1.0
      */
     @Override
     GradleProject getGradleProject();
@@ -73,7 +73,7 @@ public interface IdeaModule extends HierarchicalElement, HasGradleProject {
      * Alias to {@link #getProject()}
      *
      * @return idea project
-     * @since 1.0-milestone-5
+     * @since 1.0
      */
     @Override
     IdeaProject getParent();
@@ -83,14 +83,14 @@ public interface IdeaModule extends HierarchicalElement, HasGradleProject {
      * Alias to {@link #getParent()}
      *
      * @return idea project
-     * @since 1.0-milestone-5
+     * @since 1.0
      */
     IdeaProject getProject();
 
     /**
      * Returns information about idea compiler output (output dirs, inheritance of output dir, etc.)
      *
-     * @since 1.0-milestone-5
+     * @since 1.0
      */
     IdeaCompilerOutput getCompilerOutput();
 
@@ -98,7 +98,7 @@ public interface IdeaModule extends HierarchicalElement, HasGradleProject {
      * dependencies of this module (i.e. module dependencies, library dependencies, etc.)
      *
      * @return dependencies
-     * @since 1.0-milestone-5
+     * @since 1.0
      */
     DomainObjectSet<? extends IdeaDependency> getDependencies();
 }

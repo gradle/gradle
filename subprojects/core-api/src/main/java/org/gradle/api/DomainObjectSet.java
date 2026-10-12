@@ -28,6 +28,7 @@ import java.util.Set;
  *
  * @see ManagedType Create an instance of this as a managed property (preferred).
  * @see org.gradle.api.model.ObjectFactory#domainObjectSet(Class) Create an instance of this manually.
+ * @since 1.0
  */
 @ManagedType
 public interface DomainObjectSet<T> extends DomainObjectCollection<T>, Set<T> {

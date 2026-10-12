@@ -64,7 +64,7 @@ When using Develocity, you can use the https://docs.gradle.com/enterprise/export
 Develocity provides much richer data compared to what can be obtained from CI servers.
 For example, you can get insights into the execution of single tasks, how many tasks were retrieved from the cache, how long it took to download from the cache, the properties that were used to calculate the cache key and more.
 When using your CI servers built in functions, you can use https://confluence.jetbrains.com/display/TCD10/Statistic+Charts[statistic charts] if you use Teamcity for your CI builds.
-Most of time you will end up extracting data from your CI server via the corresponding REST API (see https://wiki.jenkins-ci.org/display/JENKINS/Remote+access+API[Jenkins remote access API] and https://confluence.jetbrains.com/display/TCD10/REST+API[Teamcity REST API]).
+Most of time you will end up extracting data from your CI server via the corresponding REST API (see https://www.jenkins.io/doc/book/using/remote-access-api/[Jenkins remote access API] and https://confluence.jetbrains.com/display/TCD10/REST+API[Teamcity REST API]).
 
 Typically, CI builds above a certain size include parallel sections to utilize multiple agents. With parallel pipelines you can measure the wall-clock time it takes for a set of changes to go from having been pushed to version control to being built, verified and deployed. The build cache's effect in this case can be measured in the reduction of the time developers have to wait for feedback from CI.
 

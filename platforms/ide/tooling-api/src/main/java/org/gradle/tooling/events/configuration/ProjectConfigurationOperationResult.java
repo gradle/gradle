@@ -37,6 +37,7 @@ public interface ProjectConfigurationOperationResult extends OperationResult {
      *
      * <p>If a plugin is applied more than once, this list will only contain a single result
      * that describes the summary of all its applications.
+     * @since 5.1
      */
     List<? extends PluginApplicationResult> getPluginApplicationResults();
 
@@ -49,11 +50,13 @@ public interface ProjectConfigurationOperationResult extends OperationResult {
 
         /**
          * Returns the identifier of this plugin.
+         * @since 5.1
          */
         PluginIdentifier getPlugin();
 
         /**
          * Returns the total configuration time of this plugin.
+         * @since 5.1
          */
         Duration getTotalConfigurationTime();
 

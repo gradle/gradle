@@ -29,20 +29,28 @@ import org.gradle.api.Named;
  */
 @Incubating
 public interface VerificationType extends Named {
+    /**
+     * Of.
+     *
+     * @since 7.4
+     */
     Attribute<VerificationType> VERIFICATION_TYPE_ATTRIBUTE = Attribute.of("org.gradle.verificationtype", VerificationType.class);
 
     /**
      * A list of directories containing source code, includes code in transitive dependencies
+     * @since 7.4
      */
     String MAIN_SOURCES = "main-sources";
 
     /**
      * Binary test coverage data gathered by JaCoCo
+     * @since 7.4
      */
     String JACOCO_RESULTS = "jacoco-coverage";
 
     /**
      * Binary results of running tests containing pass/fail information
+     * @since 7.4
      */
     String TEST_RESULTS = "test-results";
 }

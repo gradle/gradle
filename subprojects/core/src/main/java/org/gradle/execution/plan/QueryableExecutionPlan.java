@@ -18,10 +18,7 @@ package org.gradle.execution.plan;
 
 import org.gradle.api.Task;
 
-import java.util.Collections;
-import java.util.List;
 import java.util.Set;
-import java.util.function.BiConsumer;
 
 /**
  * An execution plan that has been finalized and can no longer be mutated.
@@ -29,37 +26,6 @@ import java.util.function.BiConsumer;
  * <p>Implementations may or may not be thread-safe.</p>
  */
 public interface QueryableExecutionPlan {
-    QueryableExecutionPlan EMPTY = new QueryableExecutionPlan() {
-        @Override
-        public Set<Task> getTasks() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<Task> getRequestedTasks() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public Set<Task> getFilteredTasks() {
-            return Collections.emptySet();
-        }
-
-        @Override
-        public int size() {
-            return 0;
-        }
-
-        @Override
-        public ScheduledNodes getScheduledNodes() {
-            return visitor -> visitor.accept(Collections.emptyList(), Collections.emptySet());
-        }
-
-        @Override
-        public TaskNode getNode(Task task) {
-            throw new IllegalStateException();
-        }
-    };
 
     /**
      * @return The set of all available tasks. This includes tasks that have not yet been executed, as well as tasks that have been processed.
@@ -79,7 +45,7 @@ public interface QueryableExecutionPlan {
     /**
      * Returns a snapshot of the current set of scheduled nodes, which can later be visited.
      */
-    ScheduledNodes getScheduledNodes();
+    ScheduledWork getScheduledNodes();
 
     /**
      * Returns the node for the supplied task that is part of this execution plan.
@@ -94,14 +60,8 @@ public interface QueryableExecutionPlan {
     int size();
 
     /**
-     * An immutable snapshot of the set of scheduled nodes.
+     * Returns whether the given node was scheduled as part of this execution plan.
      */
-    interface ScheduledNodes {
-        /**
-         * Invokes the consumer with the list of scheduled nodes and the set of entry nodes. Entry nodes may not be a subset of scheduled nodes.
-         *
-         * @param visitor the consumer of nodes and entry nodes
-         */
-        void visitNodes(BiConsumer<List<Node>, Set<Node>> visitor);
-    }
+    boolean contains(Node node);
+
 }

@@ -30,6 +30,7 @@ public interface JavaRuntime {
      * The Java version of the Java runtime installation.
      *
      * @return The Java version. Never returns {@code null}.
+     * @since 2.11
      */
     JavaVersion getJavaVersion();
 
@@ -37,6 +38,7 @@ public interface JavaRuntime {
      * The home directory of the Java runtime installation.
      *
      * @return The home directory. Never returns {@code null}.
+     * @since 2.11
      * */
     File getJavaHome();
 }

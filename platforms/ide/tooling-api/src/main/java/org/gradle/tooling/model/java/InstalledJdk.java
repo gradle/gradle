@@ -30,6 +30,7 @@ public interface InstalledJdk {
      * The version of the Java installation.
      *
      * @return The Java version. Never returns {@code null}.
+     * @since 2.11
      */
     JavaVersion getJavaVersion();
 
@@ -37,6 +38,7 @@ public interface InstalledJdk {
      * The home directory of the Java installation.
      *
      * @return The home directory. Never returns {@code null}.
+     * @since 2.11
      * */
     File getJavaHome();
 }

@@ -24,11 +24,17 @@ import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.TaskOutputsInternal
 import org.gradle.api.internal.file.FileCollectionFactory
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.provider.Providers
 import org.gradle.api.internal.tasks.TaskDestroyablesInternal
 import org.gradle.api.internal.tasks.TaskInputFilePropertyBuilderInternal
 import org.gradle.api.internal.tasks.TaskLocalStateInternal
+import org.gradle.api.internal.tasks.properties.FileParameterUtils
+import org.gradle.api.logging.StandardOutputListener
+import org.gradle.api.provider.HasConfigurableValue
+import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Spec
+import org.gradle.api.tasks.TaskProvider
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
 import org.gradle.internal.cc.base.serialize.IsolateOwners
@@ -42,6 +48,7 @@ import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.fingerprint.DirectorySensitivity
 import org.gradle.internal.fingerprint.FileNormalizer
 import org.gradle.internal.fingerprint.LineEndingSensitivity
+import org.gradle.internal.logging.LoggingManagerInternal
 import org.gradle.internal.properties.InputBehavior
 import org.gradle.internal.properties.InputFilePropertyType
 import org.gradle.internal.properties.OutputFilePropertyType
@@ -56,6 +63,7 @@ import org.gradle.internal.serialize.graph.readClassOf
 import org.gradle.internal.serialize.graph.readCollection
 import org.gradle.internal.serialize.graph.readCollectionInto
 import org.gradle.internal.serialize.graph.readEnum
+import org.gradle.internal.serialize.graph.readList
 import org.gradle.internal.serialize.graph.readNonNull
 import org.gradle.internal.serialize.graph.readPropertyValue
 import org.gradle.internal.serialize.graph.readStringsSet
@@ -71,7 +79,8 @@ import org.gradle.util.internal.DeferredUtil
 
 
 class TaskNodeCodec(
-    private val userTypesCodec: Codec<Any?>
+    private val userTypesCodec: Codec<Any?>,
+    private val serializeTaskLoggingListeners: Boolean
 ) : Codec<LocalTaskNode> {
 
     override suspend fun WriteContext.encode(value: LocalTaskNode) {
@@ -117,6 +126,7 @@ class TaskNodeCodec(
                     writeDestroyablesOf(task)
                     writeLocalStateOf(task)
                     writeRequiredServices(task)
+                    writeTaskLoggingListeners(task)
                 }
             }
         }
@@ -156,6 +166,7 @@ class TaskNodeCodec(
             readDestroyablesOf(task)
             readLocalStateOf(task)
             readRequiredServices(task)
+            readTaskLoggingListeners(task)
         }
 
         return task
@@ -294,6 +305,33 @@ class TaskNodeCodec(
             task.localState.register(readNonNull<FileCollection>())
         }
     }
+
+    private
+    suspend fun WriteContext.writeTaskLoggingListeners(task: TaskInternal) {
+        withVirtualPropertyTrace(TaskVirtualProperty.LOGGING_LISTENERS) {
+            val loggingManager = task.loggingManager
+            if (loggingManager != null && serializeTaskLoggingListeners) {
+                writeCollection(loggingManager.standardOutputListeners)
+                writeCollection(loggingManager.standardErrorListeners)
+            } else {
+                writeCollection(emptyList<StandardOutputListener>())
+                writeCollection(emptyList<StandardOutputListener>())
+            }
+        }
+    }
+
+    private
+    suspend fun ReadContext.readTaskLoggingListeners(task: TaskInternal) {
+        withVirtualPropertyTrace(TaskVirtualProperty.LOGGING_LISTENERS) {
+            val stdoutListeners = readList { readNonNull<StandardOutputListener>() }
+            val stderrListeners = readList { readNonNull<StandardOutputListener>() }
+            if (stdoutListeners.isNotEmpty() || stderrListeners.isNotEmpty()) {
+                val loggingManager = task.logging as LoggingManagerInternal
+                stdoutListeners.forEach { loggingManager.addStandardOutputListener(it) }
+                stderrListeners.forEach { loggingManager.addStandardErrorListener(it) }
+            }
+        }
+    }
 }
 
 
@@ -321,6 +359,7 @@ enum class TaskVirtualProperty(val traceName: String) {
     ACTIONS("actions"),
     CACHE_IF("cacheIf specs"),
     DO_NOT_CACHE_IF("doNotCacheIf specs"),
+    LOGGING_LISTENERS("logging listeners"),
     ONLY_IF("onlyIf specs"),
     UP_TO_DATE("upToDate specs"),
 }
@@ -369,8 +408,11 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
         writePropertyValue(kind, propertyName, propertyValue)
     }
 
-    suspend fun writeInputProperty(propertyName: String, propertyValue: Any?) =
-        writeProperty(propertyName, propertyValue, PropertyKind.InputProperty)
+    suspend fun writeInputProperty(propertyName: String, propertyValue: Any?, nestedProviders: List<Provider<*>>) {
+        writeString(propertyName)
+        write(nestedProviders)
+        writePropertyValue(PropertyKind.InputProperty, propertyName, propertyValue)
+    }
 
     suspend fun writeOutputProperty(propertyName: String, propertyValue: Any?) =
         writeProperty(propertyName, propertyValue, PropertyKind.OutputProperty)
@@ -380,8 +422,16 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
         property.run {
             when (this) {
                 is RegisteredProperty.InputFile -> {
-                    val finalValue = adaptInputFileValueForSerialization(DeferredUtil.unpackNestableDeferred(propertyValue), filePropertyType)
-                    writeInputProperty(propertyName, finalValue)
+                    val value = DeferredUtil.unpackNestableDeferred(propertyValue)
+                    val finalValue = adaptInputFileValueForSerialization(value, filePropertyType)
+                    // Keep nested provider presence available after the file value is serialized as a FileCollection.
+                    val nestedProviders =
+                        if (filePropertyType == InputFilePropertyType.FILES && !optional) {
+                            FileParameterUtils.findNestedProviders(value)
+                        } else {
+                            emptyList()
+                        }
+                    writeInputProperty(propertyName, finalValue, nestedProviders)
                     writeBoolean(optional)
                     writeBoolean(true)
                     writeEnum(filePropertyType)
@@ -393,7 +443,7 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
 
                 is RegisteredProperty.Input -> {
                     val finalValue = DeferredUtil.unpackNestableDeferred(propertyValue)
-                    writeInputProperty(propertyName, finalValue)
+                    writeInputProperty(propertyName, finalValue, emptyList())
                     writeBoolean(optional)
                     writeBoolean(false)
                 }
@@ -423,13 +473,18 @@ suspend fun WriteContext.writeRegisteredPropertiesOf(task: Task) {
  * mutable internals. This is semantically equivalent to what consumers of `TaskInputs` do at execution time
  * via `FileParameterUtils.resolveInputFileValue`.
  *
+ * Direct [Provider] values retain their shape because validation handles their presence specially. For required
+ * `inputs.files(...)`, nested providers are serialized separately so their presence can be checked again after restore
+ * without serializing the surrounding collection shape. [TaskProvider] values are omitted from that validation state
+ * and remain wrapped; they are always present and cannot be serialized directly.
+ *
  * Only applied to [InputFilePropertyType.FILES] — [InputFilePropertyType.FILE] and [InputFilePropertyType.DIRECTORY]
  * expect a single path-like value on read, so wrapping in a [FileCollection] would break `inputs.file(...)` /
  * `inputs.dir(...)`.
  */
 private
 fun WriteContext.adaptInputFileValueForSerialization(value: Any?, filePropertyType: InputFilePropertyType): Any? {
-    if (value == null || value is FileCollection || filePropertyType != InputFilePropertyType.FILES) {
+    if (value == null || filePropertyType != InputFilePropertyType.FILES || !needsFileCollectionWrapper(value)) {
         return value
     }
     return isolate.owner.serviceOf<FileCollectionFactory>().resolvingLeniently(value)
@@ -445,10 +500,23 @@ fun WriteContext.adaptInputFileValueForSerialization(value: Any?, filePropertyTy
  */
 private
 fun WriteContext.adaptOutputFileValueForSerialization(value: Any?, filePropertyType: OutputFilePropertyType): Any? {
-    if (value == null || value is FileCollection || filePropertyType == OutputFilePropertyType.FILE || filePropertyType == OutputFilePropertyType.DIRECTORY) {
+    if (value == null || filePropertyType == OutputFilePropertyType.FILE || filePropertyType == OutputFilePropertyType.DIRECTORY || !needsFileCollectionWrapper(value)) {
         return value
     }
     return isolate.owner.serviceOf<FileCollectionFactory>().resolvingLeniently(value)
+}
+
+
+/**
+ * Checks if the input value needs to be wrapped in a file collection to properly serialize.
+ *
+ * [FileCollection]s aren't wrapped as it is pointless.
+ * [Provider]s except [TaskProvider] aren't wrapped because input validation has special handling for them.
+ * [TaskProvider]s must be wrapped because they cannot be serialized directly, and `inputs.files(taskProvider)` is idiomatic.
+ */
+private
+fun needsFileCollectionWrapper(value: Any): Boolean {
+    return value !is FileCollection && (value !is Provider<*> || value is TaskProvider<*>)
 }
 
 
@@ -539,6 +607,7 @@ private
 suspend fun ReadContext.readInputPropertiesOf(task: Task) =
     readCollection {
         val propertyName = readString()
+        val nestedProviders = readNonNull<List<Provider<*>>>()
         readPropertyValue(PropertyKind.InputProperty, propertyName) { propertyValue ->
             val optional = readBoolean()
             val isFileInputProperty = readBoolean()
@@ -553,7 +622,15 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                         when (filePropertyType) {
                             InputFilePropertyType.FILE -> file(pack(propertyValue))
                             InputFilePropertyType.DIRECTORY -> dir(pack(propertyValue))
-                            InputFilePropertyType.FILES -> files(pack(propertyValue))
+                            InputFilePropertyType.FILES -> {
+                                val value = pack(propertyValue)
+                                if (nestedProviders.isEmpty()) {
+                                    files(value)
+                                } else {
+                                    val presenceProviders = nestedProviders.toPresenceOnlyProviders(isolate.owner.serviceOf<PropertyFactory>())
+                                    files(value, presenceProviders)
+                                }
+                            }
                         }
                     } as TaskInputFilePropertyBuilderInternal).run {
                         withPropertyName(propertyName)
@@ -571,6 +648,20 @@ suspend fun ReadContext.readInputPropertiesOf(task: Task) =
                         .optional(optional)
                 }
             }
+        }
+    }
+
+
+private
+fun List<Provider<*>>.toPresenceOnlyProviders(propertyFactory: PropertyFactory): List<Provider<*>> =
+    map { provider ->
+        // Keep only the presence of each provider, so it contributes no files, and whether it is a configurable property,
+        // so validation reports the same solution as it does without the configuration cache.
+        val presence = Providers.memoizing(Providers.internal(provider.map { emptyList<Any>() }))
+        if (provider is HasConfigurableValue) {
+            propertyFactory.property(Any::class.java).apply { set(presence) }
+        } else {
+            presence
         }
     }
 
@@ -609,5 +700,3 @@ fun createTask(project: ProjectInternal, taskName: String, taskClass: Class<out 
     }
     return task
 }
-
-

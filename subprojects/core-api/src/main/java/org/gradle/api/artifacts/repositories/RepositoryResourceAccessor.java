@@ -31,6 +31,7 @@ public interface RepositoryResourceAccessor {
      * Perform an action on the contents of a remote resource.
      * @param relativePath path to the resource, relative to the base URI of the repository
      * @param action action to execute on the resource
+     * @since 4.0
      */
     void withResource(String relativePath, Action<? super InputStream> action);
 }

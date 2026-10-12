@@ -53,7 +53,7 @@ class FlakyTestQuarantineProject(
         model.stages
             .filter { it.stageName <= StageName.READY_FOR_RELEASE }
             .flatMap { it.functionalTests }
-            .filter { it.os == os && !it.testType.crossVersionTests }
+            .filter { it.os == os }
             .forEach {
                 buildType(FlakyTestQuarantine(model, stage, it))
             }
@@ -77,7 +77,11 @@ class FlakyTestQuarantine(
         name = "Flaky Test Quarantine - ${testCoverage.asName()}"
         description = "Run all flaky tests skipped multiple times"
 
-        applyDefaultSettings(os = os, arch = arch, buildJvm = BuildToolBuildJvm, timeout = 60)
+        // A quarantine build runs every test task of its coverage on a single agent, and
+        // AllVersionsCrossVersion forks one test JVM per tested Gradle version, so it keeps
+        // double the headroom of the others.
+        val timeout = if (testCoverage.testType == TestType.ALL_VERSIONS_CROSS_VERSION) 240 else 120
+        applyDefaultSettings(os = os, arch = arch, buildJvm = BuildToolBuildJvm, timeout = timeout)
 
         if (os == Os.LINUX) {
             steps {
@@ -125,12 +129,9 @@ class FlakyTestQuarantine(
                 name =
                     "FLAKY_TEST_QUARANTINE_${testCoverage.testType.name.uppercase()}_${testCoverage.testJvmVersion.name.uppercase()}"
                 val testTaskName =
-                    if (testCoverage.testType ==
-                        TestType.ISOLATED_PROJECTS
-                    ) {
-                        "isolatedProjectsIntegTest"
-                    } else {
-                        "${testCoverage.testType.asCamelCase()}Test"
+                    when (testCoverage.testType) {
+                        TestType.ISOLATED_PROJECTS -> "isolatedProjectsIntegTest"
+                        else -> "${testCoverage.testType.asCamelCase()}Test"
                     }
                 tasks = "clean $testTaskName"
                 gradleParams = parameters

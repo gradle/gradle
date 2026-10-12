@@ -57,7 +57,7 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
     }
 
     @Override
-    public Address start(final IncomingConnectionHandler handler, final Runnable connectionErrorHandler) {
+    public Address start(final IncomingConnectionHandler handler, final Runnable connectionErrorHandler, final byte[] connectionToken) {
         lifecycleLock.lock();
         try {
             if (stopped) {
@@ -84,7 +84,7 @@ public class DaemonTcpServerConnector implements DaemonServerConnector {
                 }
             };
 
-            acceptor = incomingConnector.accept(connectEvent, false);
+            acceptor = incomingConnector.accept(connectEvent, false, connectionToken);
             started = true;
             return acceptor.getAddress();
         } finally {

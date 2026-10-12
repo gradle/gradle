@@ -22,6 +22,7 @@ import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 @UnsupportedWithConfigurationCache(because = "software model")
 class CustomBinaryIntegrationTest extends AbstractIntegrationSpec {
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
 @Managed interface SampleBinary extends BinarySpec {
     String getVersion()
@@ -31,6 +32,7 @@ class CustomBinaryIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "custom binary type can be registered and created"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildWithCustomBinaryPlugin()
 
@@ -57,6 +59,7 @@ model {
     }
 
     def "custom binary type can viewed as ModelElement"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildWithCustomBinaryPlugin()
 
@@ -82,6 +85,7 @@ model {
     }
 
     def "can configure binary defined by rule method using rule DSL"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildWithCustomBinaryPlugin()
 
@@ -115,6 +119,7 @@ model {
     }
 
     def "creates lifecycle task per binary"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildWithCustomBinaryPlugin()
         then:
@@ -122,6 +127,7 @@ model {
     }
 
     def "can register custom binary model without creating"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << '''
         class MySamplePlugin implements Plugin<Project> {
@@ -153,6 +159,7 @@ model {
     }
 
     def "can have binary declaration and creation in separate plugins"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << '''
         class MyBinaryDeclarationModel implements Plugin<Project> {
@@ -200,6 +207,7 @@ model {
     }
 
     def "can define and create multiple binary types in the same plugin"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         buildFile << '''
         @Managed interface AnotherSampleBinary extends BinarySpec {}
@@ -252,6 +260,7 @@ model {
     }
 
     def "reports failure for invalid binary type method"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         settingsFile << """rootProject.name = 'custom-binary'"""
         buildFile << """
@@ -279,6 +288,7 @@ model {
     }
 
     def "cannot register implementation for the same binary type multiple times"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         settingsFile << """rootProject.name = 'custom-binary'"""
         buildFile << """
@@ -310,6 +320,7 @@ model {
     }
 
     def "additional binaries listed in components report"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildWithCustomBinaryPlugin()
         when:

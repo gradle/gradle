@@ -20,8 +20,6 @@ import com.google.common.collect.ImmutableSortedSet;
 import com.google.common.collect.Iterables;
 import com.google.common.collect.Ordering;
 import groovy.lang.GroovyObject;
-import org.gradle.model.ModelMap;
-import org.gradle.model.ModelSet;
 
 import java.util.ArrayDeque;
 import java.util.LinkedHashSet;
@@ -29,22 +27,23 @@ import java.util.List;
 import java.util.Queue;
 import java.util.Set;
 
+@SuppressWarnings("deprecation")
 public abstract class ModelTypes {
 
-    public static <I> ModelType<ModelMap<I>> modelMap(Class<I> type) {
+    public static <I> ModelType<org.gradle.model.ModelMap<I>> modelMap(Class<I> type) {
         return modelMap(ModelType.of(type));
     }
 
-    public static <I> ModelType<ModelMap<I>> modelMap(ModelType<I> type) {
-        return new ModelType.Builder<ModelMap<I>>() {
+    public static <I> ModelType<org.gradle.model.ModelMap<I>> modelMap(ModelType<I> type) {
+        return new ModelType.Builder<org.gradle.model.ModelMap<I>>() {
         }.where(
             new ModelType.Parameter<I>() {
             }, type
         ).build();
     }
 
-    public static <I> ModelType<ModelSet<I>> modelSet(ModelType<I> type) {
-        return new ModelType.Builder<ModelSet<I>>() {
+    public static <I> ModelType<org.gradle.model.ModelSet<I>> modelSet(ModelType<I> type) {
+        return new ModelType.Builder<org.gradle.model.ModelSet<I>>() {
         }.where(
             new ModelType.Parameter<I>() {
             }, type

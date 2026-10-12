@@ -116,8 +116,12 @@ import java.io.File;
 
 /**
  * A plugin that sets up the infrastructure for defining native binaries.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating
+@Deprecated
 public abstract class NativeComponentModelPlugin implements Plugin<Project> {
     @Inject
     @SuppressWarnings("unused")
@@ -135,6 +139,11 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
 
     }
 
+    /**
+     * Rules.
+     *
+     * @since 2.2
+     */
     static class Rules extends RuleSource {
         @ComponentType
         void nativeExecutable(TypeBuilder<NativeExecutableSpec> builder) {
@@ -225,6 +234,11 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
             builder.internalView(NativeExecutableBinarySpecInternal.class);
         }
 
+        /**
+         * Create default build types.
+         *
+         * @since 2.2
+         */
         @Finalize
         public void createDefaultBuildTypes(BuildTypeContainer buildTypes) {
             if (buildTypes.isEmpty()) {
@@ -232,6 +246,11 @@ public abstract class NativeComponentModelPlugin implements Plugin<Project> {
             }
         }
 
+        /**
+         * Create default flavor.
+         *
+         * @since 2.2
+         */
         @Finalize
         public void createDefaultFlavor(FlavorContainer flavors) {
             if (flavors.isEmpty()) {

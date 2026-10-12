@@ -40,6 +40,7 @@ import java.lang.annotation.Target;
 public @interface Internal {
     /**
      * The reason for ignoring this element.
+     * @since 3.0
      */
     String value() default "";
 }

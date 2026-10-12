@@ -50,6 +50,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         """
 
         then:
+        expectModelDslDeprecation()
         succeeds "echo"
         output.contains "thing.value: foo"
 
@@ -92,6 +93,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         """
 
         then:
+        expectModelDslDeprecation()
         succeeds "echo"
         output.contains "thing.value: foo"
 
@@ -130,6 +132,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         """
 
         then:
+        expectModelDslDeprecation()
         succeeds "echo"
         output.contains "thing.value: foo"
 
@@ -162,6 +165,7 @@ class ModelDslRuleInputDetectionIntegrationSpec extends AbstractIntegrationSpec 
         """
 
         then:
+        expectModelDslDeprecation()
         succeeds "tasks"
         outputContains '''thing configured
 tasks configured
@@ -195,8 +199,8 @@ tasks configured
         failure.assertThatCause(containsString('Invalid variable name. Must include a letter but only found: $'))
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'compilation:groovy-dsl:compilation-failed'
-            definition.id.displayName == 'Groovy DSL script compilation problem'
+            fqid == 'Gradle:DSL Evaluation:Script compilation failed'
+            definition.id.displayName == 'Script compilation failed'
             contextualLabel == "Could not compile build file '${buildFile}'."
             details == null
             definition.documentationLink == null
@@ -239,6 +243,7 @@ tasks configured
         '''
 
         then:
+        expectModelDslDeprecation()
         succeeds "echo"
         outputContains "values: [true, false, false]"
     }
@@ -294,6 +299,8 @@ tasks configured
         """
 
         then:
+        expectSoftwareModelDeprecation("MyPlugin")
+        expectModelDslDeprecation()
         succeeds "tasks" // succeeds because we don't fail on invalid usage, and don't fail due to unbound inputs
 
         where:
@@ -326,6 +333,8 @@ tasks configured
         """
 
         then:
+        expectSoftwareModelDeprecation("MyPlugin")
+        expectModelDslDeprecation()
         succeeds "tasks" // succeeds because we don't fail on invalid usage, and don't fail due to unbound inputs
 
         where:
@@ -377,6 +386,8 @@ tasks configured
         """
 
         then:
+        expectSoftwareModelDeprecation("MyPlugin")
+        expectModelDslDeprecation()
         succeeds "printMessage"
         outputContains("message: [foo]")
 
@@ -457,6 +468,8 @@ cl.call()
         '''
 
         when:
+        expectSoftwareModelDeprecation("MyPlugin")
+        expectModelDslDeprecation()
         fails "tasks"
 
         then:
@@ -503,6 +516,8 @@ cl.call()
         '''
 
         when:
+        expectSoftwareModelDeprecation("MyPlugin")
+        expectModelDslDeprecation()
         fails "tasks"
 
         then:
@@ -537,7 +552,16 @@ cl.call()
         """
 
         then:
+        expectModelDslDeprecation()
         succeeds "tasks"
     }
 
+
+    private void expectSoftwareModelDeprecation(String pluginName) {
+        executer.expectDocumentedDeprecationWarning("The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+    }
+
+    private void expectModelDslDeprecation() {
+        executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+    }
 }

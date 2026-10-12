@@ -19,12 +19,14 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 
 /**
  * A {@code VerificationTask} is a task which performs some verification of the artifacts produced by a build.
+ * @since 0.9
  */
 public interface VerificationTask {
     /**
      * Specifies whether the build should break when the verifications performed by this task fail.
      *
      * @param ignoreFailures false to break the build on failure, true to ignore the failures. The default is false.
+     * @since 0.9
      */
     void setIgnoreFailures(boolean ignoreFailures);
 
@@ -32,6 +34,7 @@ public interface VerificationTask {
      * Specifies whether the build should break when the verifications performed by this task fail.
      *
      * @return false, when the build should break on failure, true when the failures should be ignored.
+     * @since 1.0
      */
     @Input
     @ToBeReplacedByLazyProperty

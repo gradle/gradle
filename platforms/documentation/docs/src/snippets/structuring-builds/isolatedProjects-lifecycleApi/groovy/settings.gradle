@@ -2,10 +2,6 @@
 include('sub1')
 include('sub2')
 
-def sharedGroup = 'org.example.app'
-def sharedVersion =
-    layout.settingsDirectory.file('version.txt').asFile.text
-
 gradle.lifecycle.beforeProject {
     apply plugin: 'base'
 
@@ -13,7 +9,9 @@ gradle.lifecycle.beforeProject {
         mavenCentral()
     }
 
-    group = sharedGroup
-    version = sharedVersion
+    group = 'org.example.app'
+    version = providers.fileContents(
+        isolated.rootProject.projectDirectory.file('version.txt')
+    ).asText.get()
 }
 // end::lifecycle-before-project[]

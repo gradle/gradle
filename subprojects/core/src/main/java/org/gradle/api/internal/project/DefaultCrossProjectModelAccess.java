@@ -20,25 +20,26 @@ import org.gradle.api.Project;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.tasks.TaskDependencyUsageTracker;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
+import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.internal.metaobject.HierarchicalDynamicObject;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.invocation.GradleLifecycleActionExecutor;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
+import java.util.LinkedHashSet;
 import java.util.Map;
 import java.util.Set;
-import java.util.TreeSet;
 import java.util.stream.Collectors;
 
 public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
 
-    private final ProjectRegistry projectRegistry;
+    private final BuildProjectRegistry projectRegistry;
     private final Instantiator instantiator;
     private final GradleLifecycleActionExecutor gradleLifecycleActionExecutor;
 
     public DefaultCrossProjectModelAccess(
-        ProjectRegistry projectRegistry,
+        BuildProjectRegistry projectRegistry,
         Instantiator instantiator,
         GradleLifecycleActionExecutor gradleLifecycleActionExecutor
     ) {
@@ -65,8 +66,8 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
             throw new IllegalArgumentException("Project path must be absolute");
         }
 
-        ProjectInternal project = projectRegistry.getProjectInternal(path.asString());
-        return project != null ? LifecycleAwareProject.wrap(project, referrer, instantiator, gradleLifecycleActionExecutor) : null;
+        ProjectState projectState = projectRegistry.findProject(path);
+        return projectState != null ? accessFromState(referrer, projectState) : null;
     }
 
     @Override
@@ -74,23 +75,29 @@ public class DefaultCrossProjectModelAccess implements CrossProjectModelAccess {
         return target.getChildProjects().stream().collect(
             Collectors.toMap(
                 ProjectState::getName,
-                projectState -> LifecycleAwareProject.wrap(projectState.getMutableModel(), referrer, instantiator, gradleLifecycleActionExecutor)
+                projectState -> accessFromState(referrer, projectState)
             )
         );
     }
 
     @Override
     public Set<? extends ProjectInternal> getSubprojects(ProjectIdentity referrer, ProjectIdentity target) {
-        return projectRegistry.getSubProjects(target.getProjectPath().asString()).stream()
-            .map(project -> LifecycleAwareProject.wrap(project, referrer, instantiator, gradleLifecycleActionExecutor))
-            .collect(Collectors.toCollection(TreeSet::new));
+        ProjectState targetProjectState = projectRegistry.getProject(target.getProjectPath());
+        Set<ProjectInternal> subprojects = new LinkedHashSet<>();
+        for (ProjectState subproject : ProjectOrderingUtil.orderedSubprojectsOf(targetProjectState)) {
+            subprojects.add(accessFromState(referrer, subproject));
+        }
+        return subprojects;
     }
 
     @Override
     public Set<? extends ProjectInternal> getAllprojects(ProjectIdentity referrer, ProjectIdentity target) {
-        return projectRegistry.getAllProjects(target.getProjectPath().asString()).stream()
-            .map(project -> LifecycleAwareProject.wrap(project, referrer, instantiator, gradleLifecycleActionExecutor))
-            .collect(Collectors.toCollection(TreeSet::new));
+        ProjectState targetProjectState = projectRegistry.getProject(target.getProjectPath());
+        Set<ProjectInternal> allProjects = new LinkedHashSet<>();
+        for (ProjectState subproject : ProjectOrderingUtil.orderedAllProjectsOf(targetProjectState)) {
+            allProjects.add(accessFromState(referrer, subproject));
+        }
+        return allProjects;
     }
 
     @Override

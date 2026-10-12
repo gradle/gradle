@@ -68,7 +68,6 @@ dependencies {
     crossVersionTestImplementation(testFixtures(projects.buildProcessServices))
     crossVersionTestImplementation(testFixtures(projects.problemsApi))
     crossVersionTestImplementation(libs.commonsIo)
-    crossVersionTestImplementation(testLibs.jettyWebApp)
     crossVersionTestRuntimeOnly(testLibs.cglib) {
         because("BuildFinishedCrossVersionSpec classpath inference requires cglib enhancer")
     }
@@ -92,6 +91,10 @@ dependencies {
     crossVersionTestLocalRepository(project(path)) {
         because("ToolingApiVersionSpecification uses the Tooling API Jar")
     }
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.coreApi)
+    javadocReferences(projects.startParameter) // for org.gradle.StartParameter
 }
 
 gradleModule {
@@ -126,10 +129,6 @@ shadedJar {
 
 strictCompile {
     ignoreRawTypes() // raw types used in public API
-}
-
-packageCycles {
-    excludePatterns.add("org/gradle/tooling/**")
 }
 
 testFilesCleanup.reportOnly = true

@@ -22,6 +22,7 @@ import org.gradle.internal.service.scopes.Scope;
  * <p>An {@code ProjectEvaluationListener} is notified when a project is evaluated. You add can add an {@code
  * ProjectEvaluationListener} to a {@link org.gradle.api.invocation.Gradle} using {@link
  * org.gradle.api.invocation.Gradle#addProjectEvaluationListener(ProjectEvaluationListener)}.</p>
+ * @since 0.7
  */
 @EventScope(Scope.Build.class)
 public interface ProjectEvaluationListener {
@@ -29,6 +30,7 @@ public interface ProjectEvaluationListener {
      * This method is called immediately before a project is evaluated.
      *
      * @param project The which is to be evaluated. Never null.
+     * @since 0.7
      */
     void beforeEvaluate(Project project);
 
@@ -39,6 +41,7 @@ public interface ProjectEvaluationListener {
      * @param project The project which was evaluated. Never null.
      * @param state The project evaluation state. If project evaluation failed, the exception is available in this
      * state. Never null.
+     * @since 0.9
      */
     void afterEvaluate(Project project, ProjectState state);
 }

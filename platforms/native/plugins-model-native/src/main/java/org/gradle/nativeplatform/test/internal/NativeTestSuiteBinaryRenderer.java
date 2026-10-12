@@ -18,44 +18,41 @@ package org.gradle.nativeplatform.test.internal;
 
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
-import org.gradle.nativeplatform.NativeBinarySpec;
-import org.gradle.nativeplatform.NativeComponentSpec;
 import org.gradle.nativeplatform.internal.AbstractNativeBinaryRenderer;
-import org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec;
-import org.gradle.nativeplatform.test.NativeTestSuiteSpec;
 
 import javax.inject.Inject;
 
-public class NativeTestSuiteBinaryRenderer extends AbstractNativeBinaryRenderer<NativeTestSuiteBinarySpec> {
+@SuppressWarnings("deprecation")
+public class NativeTestSuiteBinaryRenderer extends AbstractNativeBinaryRenderer<org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec> {
     @Inject
     public NativeTestSuiteBinaryRenderer(ModelSchemaStore schemaStore) {
         super(schemaStore);
     }
 
     @Override
-    public Class<NativeTestSuiteBinarySpec> getTargetType() {
-        return NativeTestSuiteBinarySpec.class;
+    public Class<org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec> getTargetType() {
+        return org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec.class;
     }
 
     @Override
-    protected void renderTasks(NativeTestSuiteBinarySpec binary, TextReportBuilder builder) {
+    protected void renderTasks(org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec binary, TextReportBuilder builder) {
         builder.item("install using task", binary.getTasks().getInstall().getPath());
         builder.item("run using task", binary.getTasks().getRun().getPath());
     }
 
     @Override
-    protected void renderOutputs(NativeTestSuiteBinarySpec binary, TextReportBuilder builder) {
+    protected void renderOutputs(org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec binary, TextReportBuilder builder) {
         builder.item("executable file", binary.getExecutableFile());
     }
 
     @Override
-    protected void renderDetails(NativeTestSuiteBinarySpec binary, TextReportBuilder builder) {
-        NativeTestSuiteSpec testSuite = binary.getTestSuite();
-        NativeComponentSpec testedComponent = testSuite.getTestedComponent();
+    protected void renderDetails(org.gradle.nativeplatform.test.NativeTestSuiteBinarySpec binary, TextReportBuilder builder) {
+        org.gradle.nativeplatform.test.NativeTestSuiteSpec testSuite = binary.getTestSuite();
+        org.gradle.nativeplatform.NativeComponentSpec testedComponent = testSuite.getTestedComponent();
         if (testedComponent!=null) {
             builder.item("component under test", testedComponent.getDisplayName());
         }
-        NativeBinarySpec testedBinary = binary.getTestedBinary();
+        org.gradle.nativeplatform.NativeBinarySpec testedBinary = binary.getTestedBinary();
         if (testedBinary != null) {
             builder.item("binary under test", testedBinary.getDisplayName());
         }

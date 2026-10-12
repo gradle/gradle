@@ -20,14 +20,19 @@ import org.gradle.api.Incubating;
 
 /**
  * A dependency onto a Gradle component.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.5
  */
 @Incubating
+@Deprecated
 public interface DependencySpec {
 
     /**
      * The human friendly name of this dependency.
      *
      * @return human friendly name
+     * @since 2.10
      */
     String getDisplayName();
 }

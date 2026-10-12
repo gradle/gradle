@@ -32,6 +32,7 @@ public interface HttpHeaderCredentials extends Credentials {
      * Returns the header name to use when authenticating.
      *
      * @return The header name. May be null.
+     * @since 4.10
      */
     @Nullable
     @ToBeReplacedByLazyProperty
@@ -41,6 +42,7 @@ public interface HttpHeaderCredentials extends Credentials {
      * Sets the header name to use when authenticating.
      *
      * @param name The header name. May be null.
+     * @since 4.10
      */
     void setName(@Nullable String name);
 
@@ -48,6 +50,7 @@ public interface HttpHeaderCredentials extends Credentials {
      * Returns the header value to use when authenticating.
      *
      * @return The header value. May be null.
+     * @since 4.10
      */
     @Nullable
     @ToBeReplacedByLazyProperty
@@ -57,6 +60,7 @@ public interface HttpHeaderCredentials extends Credentials {
      * Sets the header value to use when authenticating.
      *
      * @param value The header value. May be null.
+     * @since 4.10
      */
     void setValue(@Nullable String value);
 

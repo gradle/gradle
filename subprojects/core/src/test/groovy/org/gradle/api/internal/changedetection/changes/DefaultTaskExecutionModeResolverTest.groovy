@@ -15,7 +15,7 @@
  */
 package org.gradle.api.internal.changedetection.changes
 
-import org.gradle.StartParameter
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.internal.TaskInputsInternal
 import org.gradle.api.internal.TaskInternal
@@ -27,7 +27,7 @@ import spock.lang.Specification
 
 class DefaultTaskExecutionModeResolverTest extends Specification {
 
-    def startParameter = new StartParameter()
+    def startParameter = new StartParameterInternal()
     def repository = new DefaultTaskExecutionModeResolver(startParameter)
     def inputs = Stub(TaskInputsInternal)
     def outputs = Stub(TaskOutputsInternal)

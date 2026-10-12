@@ -64,14 +64,21 @@ import static java.util.Collections.emptyList;
  * <p>{@code StartParameter} defines the configuration used by a Gradle instance to execute a build. The properties of {@code StartParameter} generally correspond to the command-line options of
  * Gradle.
  *
- * <p>You can obtain an instance of a {@code StartParameter} by either creating a new one, or duplicating an existing one using {@link #newInstance} or {@link #newBuild}.</p>
+ * <p>The {@code StartParameter} for a build is provided by Gradle, e.g. via {@link org.gradle.api.invocation.Gradle#getStartParameter()}. It is not intended to be created or copied directly.</p>
+ * @since 0.7
  */
 @HasInternalProtocol
 public class StartParameter implements LoggingConfiguration, ParallelismConfiguration, Serializable {
+    /**
+     * The gradle user home property key.
+     *
+     * @since 0.9
+     */
     public static final String GRADLE_USER_HOME_PROPERTY_KEY = BuildLayoutParameters.GRADLE_USER_HOME_PROPERTY_KEY;
 
     /**
      * The default user home directory.
+     * @since 0.9
      */
     public static final File DEFAULT_GRADLE_USER_HOME = new BuildLayoutParameters().getGradleUserHomeDir();
 
@@ -88,6 +95,11 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
     private Map<String, String> projectProperties = new HashMap<>();
     private Map<String, String> systemPropertiesArgs = new HashMap<>();
     private File gradleUserHomeDir;
+    /**
+     * The gradle home dir.
+     *
+     * @since 4.8
+     */
     protected File gradleHomeDir;
     private File settingsFile;
     private File buildFile;
@@ -121,9 +133,12 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * here: a plain {@code StartParameter} is a freely mutable value object, and this module knows
      * nothing about how a mutation should be reported. {@code StartParameterInternal} overrides it to
      * notify a listener, but only the running build's own start parameter has such a listener armed
-     * (after settings have been evaluated), so detached or user-constructed copies stay silent.
+     * (after settings have been evaluated), so detached copies (e.g. one derived via {@link #newInstance}
+     * or the copy a {@code GradleBuild} task configures) stay silent.
      *
      * @param methodSignature the source-level signature of the setter that was called
+     *
+     * @since 9.7.0
      */
     protected void onMutableCall(String methodSignature) {
     }
@@ -232,6 +247,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Sets the project's cache location. Set to null to use the default location.
+     * @since 1.0
      */
     public void setProjectCacheDir(@Nullable File projectCacheDir) {
         onMutableCall("setProjectCacheDir(File)");
@@ -245,6 +261,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Plugins and build logic should not store or modify any files or directories within this cache directory.
      *
      * @return project's cache dir, or null if the default location is to be used.
+     * @since 1.0
      */
     @Nullable
     public File getProjectCacheDir() {
@@ -253,9 +270,16 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Creates a {@code StartParameter} with default values. This is roughly equivalent to running Gradle on the command-line with no arguments.
+     *
+     * @deprecated The {@code StartParameter} for a build is provided by Gradle (e.g. {@code gradle.startParameter}) and is not intended to be created directly.
+     * @since 0.7
      */
+    @Deprecated
     public StartParameter() {
         this(new BuildLayoutParameters());
+        // Only direct construction reaches here; Gradle's own construction goes through the protected
+        // constructors, so this nags third-party callers without nagging internal usage.
+        StartParameterDeprecations.nagOnStartParameterConstructor();
     }
 
     /**
@@ -276,11 +300,24 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Duplicates this {@code StartParameter} instance.
      *
      * @return the new parameters.
+     * @deprecated The {@code StartParameter} for a build is provided by Gradle and is not intended to be copied.
+     * @since 0.7
      */
+    @Deprecated
     public StartParameter newInstance() {
-        return prepareNewInstance(new StartParameter());
+        StartParameterDeprecations.nagOnStartParameterCopy("newInstance()");
+        return prepareNewInstance(createStartParameter());
     }
 
+    private static StartParameter createStartParameter() {
+        return new StartParameter(new BuildLayoutParameters());
+    }
+
+    /**
+     * Prepare new instance.
+     *
+     * @since 1.9
+     */
     protected StartParameter prepareNewInstance(StartParameter p) {
         prepareNewBuild(p);
         p.setWarningMode(getWarningMode());
@@ -304,11 +341,20 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * build specific properties (eg task names).</p>
      *
      * @return The new parameters.
+     * @deprecated The {@code StartParameter} for a build is provided by Gradle and is not intended to be copied.
+     * @since 0.7
      */
+    @Deprecated
     public StartParameter newBuild() {
-        return prepareNewBuild(new StartParameter());
+        StartParameterDeprecations.nagOnStartParameterCopy("newBuild()");
+        return prepareNewBuild(createStartParameter());
     }
 
+    /**
+     * Prepare new build.
+     *
+     * @since 1.9
+     */
     protected StartParameter prepareNewBuild(StartParameter p) {
         p.gradleUserHomeDir = gradleUserHomeDir;
         p.gradleHomeDir = gradleHomeDir;
@@ -356,6 +402,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * <strong>Note that this will also return entries for each task ARGUMENT as well.</strong>>
      *
      * @return the names of the tasks to execute in this build. Never returns null.
+     * @since 0.7
      */
     public List<String> getTaskNames() {
         List<String> taskNames = new ArrayList<>();
@@ -370,6 +417,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * between the tasks.</p>
      *
      * @param taskNames the names of the tasks to execute in this build.
+     * @since 1.0
      */
     public void setTaskNames(@Nullable Iterable<String> taskNames) {
         if (taskNames == null) {
@@ -383,6 +431,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Returns the tasks to execute in this build. When empty, the default tasks for the project will be executed.
      *
      * @return the tasks to execute in this build. Never returns null.
+     * @since 2.1
      */
     public List<TaskExecutionRequest> getTaskRequests() {
         return new InterceptingList<>(taskRequests, sig -> onMutableCall("getTaskRequests()." + sig));
@@ -393,6 +442,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * between the tasks.</p>
      *
      * @param taskParameters the tasks to execute in this build.
+     * @since 2.1
      */
     public void setTaskRequests(Iterable<? extends TaskExecutionRequest> taskParameters) {
         this.taskRequests = new CopyOnWriteArrayList<>(Lists.newArrayList(taskParameters));
@@ -402,6 +452,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Returns the names of the tasks to be excluded from this build. When empty, no tasks are excluded from the build.
      *
      * @return The names of the excluded tasks. Returns an empty set if there are no such tasks.
+     * @since 0.8
      */
     public Set<String> getExcludedTaskNames() {
         return new InterceptingSet<>(excludedTaskNames, sig -> onMutableCall("getExcludedTaskNames()." + sig));
@@ -411,6 +462,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Sets the tasks to exclude from this build.
      *
      * @param excludedTaskNames The task names.
+     * @since 1.0
      */
     public void setExcludedTaskNames(Iterable<String> excludedTaskNames) {
         onMutableCall("setExcludedTaskNames(Iterable)");
@@ -421,6 +473,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Returns the directory to use to select the default project, and to search for the settings file.
      *
      * @return The current directory. Never returns null.
+     * @since 0.7
      */
     public File getCurrentDir() {
         return currentDir;
@@ -430,6 +483,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Sets the directory to use to select the default project, and to search for the settings file. Set to null to use the default current directory.
      *
      * @param currentDir The directory. Set to null to use the default.
+     * @since 0.7
      */
     public void setCurrentDir(@Nullable File currentDir) {
         onMutableCall("setCurrentDir(File)");
@@ -446,6 +500,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Changing these properties may be too late to impact the build configuration.
      *
      * @return map of properties
+     * @since 0.7
      */
     public Map<String, String> getProjectProperties() {
         return new InterceptingMap<>(projectProperties, sig -> onMutableCall("getProjectProperties()." + sig));
@@ -457,6 +512,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Changing these properties may be too late to impact the build configuration.
      *
      * @param projectProperties new map of properties
+     * @since 0.7
      */
     public void setProjectProperties(Map<String, String> projectProperties) {
         onMutableCall("setProjectProperties(Map)");
@@ -470,6 +526,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Changing these properties may be too late to impact the build configuration.
      *
      * @return map of properties
+     * @since 0.7
      */
     public Map<String, String> getSystemPropertiesArgs() {
         return new InterceptingMap<>(systemPropertiesArgs, sig -> onMutableCall("getSystemPropertiesArgs()." + sig));
@@ -481,6 +538,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Changing these properties may be too late to impact the build configuration.
      *
      * @param systemPropertiesArgs new map of properties
+     * @since 0.7
      */
     public void setSystemPropertiesArgs(Map<String, String> systemPropertiesArgs) {
         onMutableCall("setSystemPropertiesArgs(Map)");
@@ -491,6 +549,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Returns the directory to use as the user home directory.
      *
      * @return The home directory.
+     * @since 0.7
      */
     public File getGradleUserHomeDir() {
         return gradleUserHomeDir;
@@ -500,6 +559,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Sets the directory to use as the user home directory. Set to null to use the default directory.
      *
      * @param gradleUserHomeDir The home directory. May be null.
+     * @since 0.7
      */
     public void setGradleUserHomeDir(@Nullable File gradleUserHomeDir) {
         onMutableCall("setGradleUserHomeDir(File)");
@@ -508,6 +568,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Returns true if project dependencies are to be built, false if they should not be. The default is true.
+     * @since 1.0
      */
     public boolean isBuildProjectDependencies() {
         return buildProjectDependencies;
@@ -517,6 +578,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Specifies whether project dependencies should be built. Defaults to true.
      *
      * @return this
+     * @since 1.0
      */
     public StartParameter setBuildProjectDependencies(boolean build) {
         onMutableCall("setBuildProjectDependencies(boolean)");
@@ -528,6 +590,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Is the build running as a dry-run? Dry-run means task actions do not execute for the root build.
      *
      * @return true if the build is running as a dry-run
+     * @since 0.7
      */
     public boolean isDryRun() {
         return dryRun;
@@ -537,6 +600,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Enables or disables dry-run.
      *
      * @param dryRun true if the build should run as a dry-run
+     * @since 0.7
      */
     public void setDryRun(boolean dryRun) {
         onMutableCall("setDryRun(boolean)");
@@ -547,6 +611,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Adds the given file to the list of init scripts that are run before the build starts.  This list is in addition to the default init scripts.
      *
      * @param initScriptFile The init scripts.
+     * @since 0.8
      */
     public void addInitScript(File initScriptFile) {
         onMutableCall("addInitScript(File)");
@@ -557,6 +622,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Sets the list of init scripts to be run before the build starts. This list is in addition to the default init scripts.
      *
      * @param initScripts The init scripts.
+     * @since 0.8
      */
     public void setInitScripts(List<File> initScripts) {
         onMutableCall("setInitScripts(List)");
@@ -568,6 +634,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * that init script will also be run.
      *
      * @return list of all explicitly added init scripts.
+     * @since 0.8
      */
     public List<File> getInitScripts() {
         return Collections.unmodifiableList(initScripts);
@@ -577,6 +644,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Returns all init scripts, including explicit init scripts and implicit init scripts.
      *
      * @return All init scripts, including explicit init scripts and implicit init scripts.
+     * @since 1.4
      */
     public List<File> getAllInitScripts() {
         CompositeInitScriptFinder initScriptFinder = new CompositeInitScriptFinder(
@@ -593,6 +661,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Sets the project directory to use to select the default project. Use null to use the default criteria for selecting the default project.
      *
      * @param projectDir The project directory. May be null.
+     * @since 0.7
      */
     public void setProjectDir(@Nullable File projectDir) {
         onMutableCall("setProjectDir(File)");
@@ -612,6 +681,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Returns null when the build file is not used to select the default project
      *
      * @return The project dir. May be null.
+     * @since 1.0
      */
     @Nullable
     public File getProjectDir() {
@@ -622,6 +692,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Specifies if a profile report should be generated.
      *
      * @param profile true if a profile report should be generated
+     * @since 0.9
      */
     public void setProfile(boolean profile) {
         onMutableCall("setProfile(boolean)");
@@ -630,6 +701,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Returns true if a profile report will be generated.
+     * @since 0.9
      */
     public boolean isProfile() {
         return profile;
@@ -637,6 +709,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Specifies whether the build should continue on task failure. The default is false.
+     * @since 1.0
      */
     public boolean isContinueOnFailure() {
         return continueOnFailure;
@@ -644,6 +717,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Specifies whether the build should continue on task failure. The default is false.
+     * @since 1.0
      */
     public void setContinueOnFailure(boolean continueOnFailure) {
         onMutableCall("setContinueOnFailure(boolean)");
@@ -652,6 +726,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Specifies whether the build should be performed offline (ie without network access).
+     * @since 1.0
      */
     public boolean isOffline() {
         return offline;
@@ -659,6 +734,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Specifies whether the build should be performed offline (ie without network access).
+     * @since 1.0
      */
     public void setOffline(boolean offline) {
         onMutableCall("setOffline(boolean)");
@@ -667,6 +743,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Specifies whether the dependencies should be refreshed..
+     * @since 1.0
      */
     public boolean isRefreshDependencies() {
         return refreshDependencies;
@@ -674,6 +751,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Specifies whether the dependencies should be refreshed..
+     * @since 1.0
      */
     public void setRefreshDependencies(boolean refreshDependencies) {
         onMutableCall("setRefreshDependencies(boolean)");
@@ -682,6 +760,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Specifies whether the cached task results should be ignored and each task should be forced to be executed.
+     * @since 1.0
      */
     public boolean isRerunTasks() {
         return rerunTasks;
@@ -689,6 +768,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Specifies whether the cached task results should be ignored and each task should be forced to be executed.
+     * @since 1.0
      */
     public void setRerunTasks(boolean rerunTasks) {
         onMutableCall("setRerunTasks(boolean)");
@@ -766,6 +846,10 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Enables/disables the build cache.
+     * <p>
+     * Calling this on the start parameter of a running build is deprecated: use the {@code org.gradle.caching}
+     * Gradle property instead. It is not annotated as deprecated because it remains the only way to configure the
+     * build a {@code GradleBuild} task runs.
      *
      * @since 3.5
      */
@@ -812,6 +896,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * If the configure-on-demand mode is active
+     * @since 1.4
      */
     @Incubating
     public boolean isConfigureOnDemand() {
@@ -865,37 +950,68 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
 
     /**
      * Package scope for testing purposes.
+     * @since 0.7
      */
     void setGradleHomeDir(File gradleHomeDir) {
         onMutableCall("setGradleHomeDir(File)");
         this.gradleHomeDir = gradleHomeDir;
     }
 
+    /**
+     * Sets the configure on demand.
+     *
+     * @since 1.5
+     */
     @Incubating
     public void setConfigureOnDemand(boolean configureOnDemand) {
         onMutableCall("setConfigureOnDemand(boolean)");
         this.configureOnDemand = configureOnDemand;
     }
 
+    /**
+     * Returns whether continuous is set.
+     *
+     * @since 2.5
+     */
     public boolean isContinuous() {
         return continuous;
     }
 
+    /**
+     * Sets the continuous.
+     *
+     * @since 2.5
+     */
     public void setContinuous(boolean enabled) {
         onMutableCall("setContinuous(boolean)");
         this.continuous = enabled;
     }
 
+    /**
+     * Include build.
+     *
+     * @since 3.1
+     */
     public void includeBuild(File includedBuild) {
         onMutableCall("includeBuild(File)");
         includedBuilds.add(includedBuild);
     }
 
+    /**
+     * Sets the included builds.
+     *
+     * @since 3.1
+     */
     public void setIncludedBuilds(List<File> includedBuilds) {
         onMutableCall("setIncludedBuilds(List)");
         this.includedBuilds = includedBuilds;
     }
 
+    /**
+     * Returns the included builds.
+     *
+     * @since 3.1
+     */
     public List<File> getIncludedBuilds() {
         return Collections.unmodifiableList(includedBuilds);
     }

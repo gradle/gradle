@@ -19,16 +19,27 @@ import java.io.File;
 
 /**
  * A Path that keeps the reference to the File
+ * @since 1.0
  */
 public class FilePath extends Path {
 
     private final File file;
 
+    /**
+     * Creates a new {@code FilePath}.
+     *
+     * @since 1.0
+     */
     public FilePath(File file, String url, String canonicalUrl, String relPath) {
         super(url, canonicalUrl, relPath);
         this.file = file;
     }
 
+    /**
+     * Returns the file.
+     *
+     * @since 1.0
+     */
     public File getFile() {
         return file;
     }

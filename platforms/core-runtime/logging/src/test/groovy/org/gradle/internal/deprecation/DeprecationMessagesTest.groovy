@@ -71,7 +71,19 @@ class DeprecationMessagesTest extends Specification {
         then:
         expectMessage "$summary This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/feature_lifecycle.html#sec:deprecated in the Gradle documentation."
 
-        problemsService.assertProblemEmittedOnce({ it.definition.id.displayName == 'Summary is deprecated.' })
+        problemsService.singleEmittedProblem().definition.id.displayName == 'Summary is deprecated.'
+    }
+
+    def "logs deprecation message scheduled for removal in Gradle 11"() {
+        given:
+        def builder = new DeprecationMessageBuilder()
+        builder.setSummary(summary)
+
+        when:
+        builder.willBeRemovedInGradle11().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
+
+        then:
+        expectMessage "$summary This is scheduled to be removed in Gradle 11. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/feature_lifecycle.html#sec:deprecated in the Gradle documentation."
     }
 
     def "logs deprecation message with custom problem id"() {
@@ -79,7 +91,7 @@ class DeprecationMessagesTest extends Specification {
         given:
         def builder = new DeprecationMessageBuilder()
         builder.setSummary(summary)
-        builder.withProblemIdDisplayName(deprecationDisplayName)
+        builder.withProblemName(deprecationDisplayName)
 
         when:
         builder.willBeRemovedInGradle10().withUserManual("feature_lifecycle", "sec:deprecated").nagUser()
@@ -87,7 +99,28 @@ class DeprecationMessagesTest extends Specification {
         then:
         expectMessage "$summary This is scheduled to be removed in Gradle ${NEXT_GRADLE_VERSION}. For more information, please refer to https://docs.gradle.org/${GradleVersion.current().version}/userguide/feature_lifecycle.html#sec:deprecated in the Gradle documentation."
 
-        problemsService.assertProblemEmittedOnce({ it.definition.id.displayName == 'summary deprecation' })
+        problemsService.singleEmittedProblem().definition.id.displayName == 'summary deprecation'
+    }
+
+    def "problem name leaves out data of the build"() {
+        when:
+        builder.willBeRemovedInGradle10().undocumented().nagUser()
+
+        then:
+        verifyAll(problemsService.singleEmittedProblem()) {
+            it.definition.id.name == expectedName
+            it.contextualLabel == expectedLabel
+        }
+
+        where:
+        builder                                                                    | expectedName          | expectedLabel
+        DeprecationLogger.deprecateConfiguration("compile").forConsumption()       | "Configuration usage" | "The compile configuration has been deprecated for consumption."
+        DeprecationLogger.deprecateTaskType(AbstractArchiveTask, ":app:thing")     | "Task type usage"     | "The task type org.gradle.api.tasks.bundling.AbstractArchiveTask (used by the :app:thing task) has been deprecated."
+        DeprecationLogger.deprecateProperty(AbstractArchiveTask, "archiveName")    | "Property usage"      | "The AbstractArchiveTask.archiveName property has been deprecated."
+        DeprecationLogger.deprecateMethod(AbstractArchiveTask, "getArchiveName()") | "Method usage"        | "The AbstractArchiveTask.getArchiveName() method has been deprecated."
+        DeprecationLogger.deprecate("The thing")                                   | "The thing"           | "The thing has been deprecated."
+        DeprecationLogger.deprecateAction("Doing a thing")                         | "Doing a thing"       | "Doing a thing has been deprecated."
+        DeprecationLogger.deprecateBehaviour("Doing a thing.")                     | "Doing a thing."      | "Doing a thing. This behavior has been deprecated."
     }
 
     def "logs deprecation message with advice"() {

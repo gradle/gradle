@@ -24,6 +24,7 @@ import org.gradle.integtests.tooling.r930.KotlinDslPluginRelatedToolingApiSpecif
 import org.gradle.internal.Pair
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.BuildActionFailureException
 import org.gradle.tooling.BuildException
 import org.gradle.tooling.IntermediateResultHandler
 import org.gradle.tooling.ProjectConnection
@@ -31,9 +32,9 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.util.GradleVersion
 import org.gradle.util.internal.ToBeImplemented
 import org.junit.Assume
+import spock.lang.Issue
 
 import java.util.function.Function
-import java.util.regex.Pattern
 import java.util.stream.Collectors
 
 import static KotlinModelAction.QueryStrategy
@@ -45,9 +46,16 @@ import static org.gradle.integtests.tooling.r940.KotlinModelAction.QueryStrategy
 class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPluginRelatedToolingApiSpecification {
 
     private static final List<String> NO_EXTRA_PROPERTIES = []
+    // skipIfIpNotSupported() guarantees these flags only reach 9.7+ targets, which understand the current name
     private static final List<String> IP_FLAGS = [
-        "-Dorg.gradle.unsafe.isolated-projects=true",
+        "-Dorg.gradle.isolated-projects=true",
     ]
+
+    private static final List<String> BUILD_SCRIPT_COMPILE_ERROR = ["Build file", "build.gradle.kts", "Script compilation error"]
+    private static final List<String> SETTINGS_SCRIPT_COMPILE_ERROR = ["Settings file", "settings.gradle.kts", "Script compilation error"]
+    private static final List<String> GENERAL_CONFIGURATION_FAILURE = ["The build could not be configured; see the reported build failures for the underlying problems."]
+    private static final List<String> PLUGIN_BUILD_SCRIPTS = ["build-logic/settings.gradle.kts", "build-logic/build.gradle.kts", "build-logic/src/main/kotlin/custom.gradle.kts"]
+    private static final List<String> PRECOMPILED_CLASSPATH_RESOLUTION_FAILURE = ["Could not resolve all", ":build-logic:compileClasspath"]
 
     TestFile initScriptFile
     KotlinModelCollector modelCollector
@@ -102,9 +110,16 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         given:
         skipIfIpNotSupported(extraGradleProperties)
         settingsKotlinFile << """
+            pluginManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
             dependencyResolutionManagement {
                 repositories {
                     ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
                 }
             }
             rootProject.name = "root"
@@ -208,9 +223,16 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         given:
         skipIfIpNotSupported(extraGradleProperties)
         settingsKotlinFile << """
+            pluginManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
             dependencyResolutionManagement {
                 repositories {
                     ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
                 }
             }
             rootProject.name = "root"
@@ -232,7 +254,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         def model = modelCollector.model
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "build.gradle.kts")
         assertHasErrorsInScriptModels(model,
-            Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+            Pair.of(".", BUILD_SCRIPT_COMPILE_ERROR))
         assertHasJarsInScriptModelClasspath(model, "build.gradle.kts", "gradle-kotlin-dsl-plugins")
 
         where:
@@ -262,7 +284,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         def model = modelCollector.model
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "build.gradle.kts")
         assertHasErrorsInScriptModels(model,
-            Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+            Pair.of(".", BUILD_SCRIPT_COMPILE_ERROR))
         assertHasAnyJarInScriptModelClasspath(model, "build.gradle.kts", expectedPublicApiJarPrefixes())
 
         where:
@@ -271,9 +293,10 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         "with isolated projects"   | IP_FLAGS
     }
 
-    def "compilation failure in included build project script body: root build and included build model is returned #mode"() {
+    def "compilation failure in included build project script body: root build and included build model is returned with the expected failures from #fromVersion #mode"() {
         given:
         skipIfIpNotSupported(extraGradleProperties)
+        skipUnlessExpectationsApply(fromVersion, untilVersion)
         settingsKotlinFile << """
             rootProject.name = "root"
             includeBuild("included")
@@ -281,9 +304,16 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
         def included = file("included")
         included.file("settings.gradle.kts") << """
+            pluginManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
             dependencyResolutionManagement {
                 repositories {
                     ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
                 }
             }
             rootProject.name = "included"
@@ -303,20 +333,22 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         e.cause.message.contains("Script compilation error")
         def model = modelCollector.model
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "included/settings.gradle.kts", "included/build.gradle.kts")
-        assertHasErrorsInScriptModels(model,
-            Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"),
-            Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+        assertHasErrorsInScriptModels(model, *expectedFailures)
         assertHasJarsInScriptModelClasspath(model, "included/build.gradle.kts", "gradle-kotlin-dsl-plugins")
 
         where:
-        mode                       | extraGradleProperties
-        ""                         | NO_EXTRA_PROPERTIES
-        "with isolated projects"   | IP_FLAGS
+        fromVersion | untilVersion | expectedFailures                                                                               | mode                     | extraGradleProperties
+        "9.4"       | "9.7"        | [Pair.of(".", BUILD_SCRIPT_COMPILE_ERROR), Pair.of("included", BUILD_SCRIPT_COMPILE_ERROR)]    | ""                       | NO_EXTRA_PROPERTIES
+        "9.4"       | "9.7"        | [Pair.of(".", BUILD_SCRIPT_COMPILE_ERROR), Pair.of("included", BUILD_SCRIPT_COMPILE_ERROR)]    | "with isolated projects" | IP_FLAGS
+        // From 9.7 each build reports only its own configuration failure, so builds that did not fail themselves report the general failure
+        "9.7"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE), Pair.of("included", BUILD_SCRIPT_COMPILE_ERROR)] | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE), Pair.of("included", BUILD_SCRIPT_COMPILE_ERROR)] | "with isolated projects" | IP_FLAGS
     }
 
-    def "compilation failure in included build project plugins block: root build and included build model is returned #mode"() {
+    def "compilation failure in included build project plugins block: root build and included build model is returned with the expected failures from #fromVersion #mode"() {
         given:
         skipIfIpNotSupported(extraGradleProperties)
+        skipUnlessExpectationsApply(fromVersion, untilVersion)
         settingsKotlinFile << """
             rootProject.name = "root"
             includeBuild("included")
@@ -340,10 +372,155 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         e.cause.message.contains("Script compilation error")
         def model = modelCollector.model
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "included/settings.gradle.kts", "included/build.gradle.kts")
-        assertHasErrorsInScriptModels(model,
-            Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"),
-            Pair.of("included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+        assertHasErrorsInScriptModels(model, *expectedFailures)
         assertHasAnyJarInScriptModelClasspath(model, "included/build.gradle.kts", expectedPublicApiJarPrefixes())
+
+        where:
+        fromVersion | untilVersion | expectedFailures                                                                               | mode                     | extraGradleProperties
+        "9.4"       | "9.7"        | [Pair.of(".", BUILD_SCRIPT_COMPILE_ERROR), Pair.of("included", BUILD_SCRIPT_COMPILE_ERROR)]    | ""                       | NO_EXTRA_PROPERTIES
+        "9.4"       | "9.7"        | [Pair.of(".", BUILD_SCRIPT_COMPILE_ERROR), Pair.of("included", BUILD_SCRIPT_COMPILE_ERROR)]    | "with isolated projects" | IP_FLAGS
+        // From 9.7 each build reports only its own configuration failure, so builds that did not fail themselves report the general failure
+        "9.7"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE), Pair.of("included", BUILD_SCRIPT_COMPILE_ERROR)] | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE), Pair.of("included", BUILD_SCRIPT_COMPILE_ERROR)] | "with isolated projects" | IP_FLAGS
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39247")
+    def "compilation failure in plugin build script body with precompiled script plugin: model is returned for the plugin build from #fromVersion #mode"() {
+        given:
+        skipIfIpNotSupported(extraGradleProperties)
+        skipUnlessExpectationsApply(fromVersion, untilVersion)
+        settingsKotlinFile << """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+            rootProject.name = "root"
+            include("lib")
+        """
+
+        def buildLogic = file("build-logic")
+        buildLogic.file("settings.gradle.kts") << """
+            pluginManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+            rootProject.name = "build-logic"
+        """
+        buildLogic.file("build.gradle.kts") << """
+            plugins { `kotlin-dsl` }
+
+            repositories {
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+            }
+
+            blow up !!!
+        """
+        buildLogic.file("src/main/kotlin/custom.gradle.kts") << """
+            plugins { `java-library` }
+        """
+        file("lib/build.gradle.kts") << """
+            plugins { id("custom") }
+        """
+
+        when:
+        fails {
+            resilientModel(it, ROOT_PROJECT_FIRST, extraGradleProperties)
+        }
+
+        then:
+        def e = thrown(BuildException)
+        e.cause.message.contains("Script compilation error")
+        def model = modelCollector.model
+        assertHasScriptModelForFiles(model, "settings.gradle.kts", "lib/build.gradle.kts", *pluginBuildScripts)
+        assertHasErrorsInScriptModels(model, [".": [GENERAL_CONFIGURATION_FAILURE], "build-logic": pluginBuildFailures])
+        if (!pluginBuildScripts.isEmpty()) {
+            assertHasJarsInScriptModelClasspath(model, "build-logic/build.gradle.kts", "gradle-kotlin-dsl-plugins")
+            // The project accessors were generated before the script body failed to compile, and the stage 1 blocks
+            // accessors (plugin spec builders) can be generated even though the root project failed, so the model has both
+            assertHasProjectAccessorsInClassPath(model, "build-logic/build.gradle.kts")
+            assertHasPluginSpecBuildersAccessorsInClassPath(model, "build-logic/build.gradle.kts")
+            assertHasAnyJarInScriptModelClasspath(model, "build-logic/src/main/kotlin/custom.gradle.kts", expectedPublicApiJarPrefixes())
+        }
+
+        where:
+        fromVersion | untilVersion | pluginBuildScripts   | pluginBuildFailures                                                          | mode                     | extraGradleProperties
+        // Before 9.9 the failure to resolve the compile classpath of the precompiled script plugin discarded the whole model of the plugin build
+        "9.7"       | "9.9"        | []                   | [BUILD_SCRIPT_COMPILE_ERROR]                                                 | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | "9.9"        | []                   | [BUILD_SCRIPT_COMPILE_ERROR]                                                 | "with isolated projects" | IP_FLAGS
+        // From 9.9 the plugin build reports its configuration failure and the resolution failure the model builder recovered from
+        "9.9"       | null         | PLUGIN_BUILD_SCRIPTS | [BUILD_SCRIPT_COMPILE_ERROR, PRECOMPILED_CLASSPATH_RESOLUTION_FAILURE]       | ""                       | NO_EXTRA_PROPERTIES
+        "9.9"       | null         | PLUGIN_BUILD_SCRIPTS | [BUILD_SCRIPT_COMPILE_ERROR, PRECOMPILED_CLASSPATH_RESOLUTION_FAILURE]       | "with isolated projects" | IP_FLAGS
+    }
+
+    @TargetGradleVersion('>=9.9.0')
+    def "compilation failure in plugin build script body with precompiled script plugin: model does not change when the plugin build script was compiled by a previous sync #mode"() {
+        given:
+        skipIfIpNotSupported(extraGradleProperties)
+        settingsKotlinFile << """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+            rootProject.name = "root"
+            include("lib")
+        """
+
+        def buildLogic = file("build-logic")
+        buildLogic.file("settings.gradle.kts") << """
+            pluginManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+            rootProject.name = "build-logic"
+        """
+        buildLogic.file("build.gradle.kts") << """
+            plugins { `kotlin-dsl` }
+
+            repositories {
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+            }
+
+            blow up !!!
+        """
+        buildLogic.file("src/main/kotlin/custom.gradle.kts") << """
+            plugins { `java-library` }
+        """
+        buildLogic.file("gradle/libs.versions.toml") << """
+            [libraries]
+            junit = "junit:junit:4.13.2"
+        """.stripIndent()
+        file("lib/build.gradle.kts") << """
+            plugins { id("custom") }
+        """
+
+        when:
+        fails {
+            resilientModel(it, ROOT_PROJECT_FIRST, extraGradleProperties)
+        }
+
+        then:
+        thrown(BuildException)
+        def firstSync = modelCollector.model
+        assertHasScriptModelForFiles(firstSync, "settings.gradle.kts", "lib/build.gradle.kts", *PLUGIN_BUILD_SCRIPTS)
+        assertHasPluginSpecBuildersAccessorsInClassPath(firstSync, "build-logic/build.gradle.kts")
+        assertHasVersionCatalogAccessorsInClassPath(firstSync, "build-logic/build.gradle.kts")
+
+        when:
+        // The daemon caches the compiled plugins block of the plugin build script, so this time the stage 1 blocks
+        // accessors are not generated while the script is evaluated, but only when the model is built after the
+        // project failed to configure
+        fails {
+            resilientModel(it, ROOT_PROJECT_FIRST, extraGradleProperties)
+        }
+
+        then:
+        thrown(BuildException)
+        def secondSync = modelCollector.model
+        assertHasPluginSpecBuildersAccessorsInClassPath(secondSync, "build-logic/build.gradle.kts")
+        assertHasVersionCatalogAccessorsInClassPath(secondSync, "build-logic/build.gradle.kts")
+        classPathsOf(secondSync) == classPathsOf(firstSync)
 
         where:
         mode                       | extraGradleProperties
@@ -351,9 +528,111 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         "with isolated projects"   | IP_FLAGS
     }
 
-    def "#description failure in main build subproject: resilient model is equal to non-resilient model except accessors with #queryStrategy #mode"() {
+    def "resolution failure of precompiled script plugin classpath: model is returned for the plugin build and the failure is reported from #fromVersion #mode"() {
         given:
         skipIfIpNotSupported(extraGradleProperties)
+        skipUnlessExpectationsApply(fromVersion, untilVersion)
+        settingsKotlinFile << """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+            rootProject.name = "root"
+        """
+
+        def buildLogic = file("build-logic")
+        buildLogic.file("settings.gradle.kts") << """
+            pluginManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+            rootProject.name = "build-logic"
+        """
+        buildLogic.file("build.gradle.kts") << """
+            plugins { `kotlin-dsl` }
+        """
+        // Two precompiled script plugins share the source set, and so its classpath and its failure
+        buildLogic.file("src/main/kotlin/custom.gradle.kts") << """
+            plugins { `java-library` }
+        """
+        buildLogic.file("src/main/kotlin/other.gradle.kts") << """
+            plugins { `java-library` }
+        """
+
+        when:
+        fails {
+            resilientModel(it, ROOT_PROJECT_FIRST, extraGradleProperties)
+        }
+
+        then:
+        def e = thrown(BuildException)
+        collectCauseMessages(e).any { it?.contains(":build-logic:compileClasspath") }
+        def model = modelCollector.model
+        assertHasScriptModelForFiles(model, "settings.gradle.kts", *pluginBuildScripts)
+        assertHasErrorsInScriptModels(model, Pair.of("build-logic", PRECOMPILED_CLASSPATH_RESOLUTION_FAILURE))
+        if (!pluginBuildScripts.isEmpty()) {
+            assertHasJarsInScriptModelClasspath(model, "build-logic/build.gradle.kts", "gradle-kotlin-dsl-plugins")
+            assertHasAnyJarInScriptModelClasspath(model, "build-logic/src/main/kotlin/custom.gradle.kts", expectedPublicApiJarPrefixes())
+            assertHasAnyJarInScriptModelClasspath(model, "build-logic/src/main/kotlin/other.gradle.kts", expectedPublicApiJarPrefixes())
+        }
+
+        where:
+        fromVersion | untilVersion | pluginBuildScripts                                                    | mode                     | extraGradleProperties
+        // Before 9.9 the model builder threw, so no model was returned for the plugin build
+        "9.7"       | "9.9"        | []                                                                    | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | "9.9"        | []                                                                    | "with isolated projects" | IP_FLAGS
+        "9.9"       | null         | PLUGIN_BUILD_SCRIPTS + ["build-logic/src/main/kotlin/other.gradle.kts"] | ""                       | NO_EXTRA_PROPERTIES
+        "9.9"       | null         | PLUGIN_BUILD_SCRIPTS + ["build-logic/src/main/kotlin/other.gradle.kts"] | "with isolated projects" | IP_FLAGS
+    }
+
+    @TargetGradleVersion('>=9.9.0')
+    def "precompiled classpath failure in a child project is propagated by the isolated scripts model"() {
+        given:
+        settingsKotlinFile << """
+            pluginManagement {
+                repositories {
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                }
+            }
+            rootProject.name = "root"
+            include("plugins")
+        """
+        file("plugins/build.gradle.kts") << """
+            plugins { `kotlin-dsl` }
+        """
+        file("plugins/src/main/kotlin/custom.gradle.kts") << """
+            plugins { `java-library` }
+        """
+
+        when:
+        fails {
+            resilientModel(it, ROOT_PROJECT_FIRST, IP_FLAGS)
+        }
+
+        then:
+        def resilientFailure = thrown(BuildException)
+        collectCauseMessages(resilientFailure).any { it?.contains(":plugins:compileClasspath") }
+        def model = modelCollector.model
+        assertHasScriptModelForFiles(model, "settings.gradle.kts", "plugins/build.gradle.kts", "plugins/src/main/kotlin/custom.gradle.kts")
+        assertHasErrorsInScriptModels(model, Pair.of(".", ["Could not resolve all", ":plugins:compileClasspath"]))
+        assertHasAnyJarInScriptModelClasspath(model, "plugins/src/main/kotlin/custom.gradle.kts", expectedPublicApiJarPrefixes())
+
+        when:
+        fails {
+            originalModel(it, ROOT_PROJECT_FIRST, IP_FLAGS)
+        }
+
+        then:
+        def regularFailure = thrown(BuildActionFailureException)
+        collectCauseMessages(regularFailure).any { it?.contains(":plugins:compileClasspath") }
+    }
+
+    def "#description failure in main build subproject: resilient model is equal to non-resilient model except accessors and the expected failures are reported with #queryStrategy from #fromVersion #mode"() {
+        given:
+        skipIfIpNotSupported(extraGradleProperties)
+        skipUnlessExpectationsApply(fromVersion, untilVersion)
         settingsKotlinFile << """
             rootProject.name = "root"
             include("a", "b", "c", "d")
@@ -408,25 +687,41 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
             modelAssert.assertClassPathsAreEqualIfIgnoringSomeEntries { !it.contains("/accessors/") }
             modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
         }
-        resilientModels.failures.size() == 1
-        expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], "c" + File.separatorChar + "build.gradle.kts' line: 5")
-        expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], expectedFailure)
+        assertHasErrorsInScriptModels(resilientModels, *expectedFailures)
 
         where:
-        description                | breakage                                     | expectedFailure  | queryStrategy          | mode                     | extraGradleProperties
-        "scripts evaluation fails" | "throw RuntimeException(\"Failing script\")" | "Failing script" | ROOT_PROJECT_FIRST     | ""                       | NO_EXTRA_PROPERTIES
-        "scripts evaluation fails" | "throw RuntimeException(\"Failing script\")" | "Failing script" | INCLUDED_BUILDS_FIRST  | ""                       | NO_EXTRA_PROPERTIES
-        "script compilation fails" | "broken !!!"                                 | "broken !!!"     | ROOT_PROJECT_FIRST     | ""                       | NO_EXTRA_PROPERTIES
-        "script compilation fails" | "broken !!!"                                 | "broken !!!"     | INCLUDED_BUILDS_FIRST  | ""                       | NO_EXTRA_PROPERTIES
-        "scripts evaluation fails" | "throw RuntimeException(\"Failing script\")" | "Failing script" | ROOT_PROJECT_FIRST     | "with isolated projects" | IP_FLAGS
-        "scripts evaluation fails" | "throw RuntimeException(\"Failing script\")" | "Failing script" | INCLUDED_BUILDS_FIRST  | "with isolated projects" | IP_FLAGS
-        "script compilation fails" | "broken !!!"                                 | "broken !!!"     | ROOT_PROJECT_FIRST     | "with isolated projects" | IP_FLAGS
-        "script compilation fails" | "broken !!!"                                 | "broken !!!"     | INCLUDED_BUILDS_FIRST  | "with isolated projects" | IP_FLAGS
+        fromVersion | untilVersion | description                | breakage                                     | expectedFailure  | expectedFailures                                                      | queryStrategy         | mode                     | extraGradleProperties
+        "9.4"       | "9.7"        | "scripts evaluation fails" | "throw RuntimeException(\"Failing script\")" | "Failing script" | [Pair.of(".", ["c${File.separatorChar}build.gradle.kts' line: 5", "Failing script"])] | ROOT_PROJECT_FIRST    | ""                       | NO_EXTRA_PROPERTIES
+        "9.4"       | "9.7"        | "scripts evaluation fails" | "throw RuntimeException(\"Failing script\")" | "Failing script" | [Pair.of(".", ["c${File.separatorChar}build.gradle.kts' line: 5", "Failing script"])] | INCLUDED_BUILDS_FIRST | ""                       | NO_EXTRA_PROPERTIES
+        "9.4"       | "9.7"        | "script compilation fails" | "broken !!!"                                 | "broken !!!"     | [Pair.of(".", ["c${File.separatorChar}build.gradle.kts' line: 5", "broken !!!"])]     | ROOT_PROJECT_FIRST    | ""                       | NO_EXTRA_PROPERTIES
+        "9.4"       | "9.7"        | "script compilation fails" | "broken !!!"                                 | "broken !!!"     | [Pair.of(".", ["c${File.separatorChar}build.gradle.kts' line: 5", "broken !!!"])]     | INCLUDED_BUILDS_FIRST | ""                       | NO_EXTRA_PROPERTIES
+        "9.4"       | "9.7"        | "configuration hook fails" | "afterEvaluate { throw RuntimeException(\"Failing hook\") }" | "A problem occurred configuring project ':c'." | [Pair.of(".", ["Failing hook"])]                                      | ROOT_PROJECT_FIRST    | ""                       | NO_EXTRA_PROPERTIES
+        "9.4"       | "9.7"        | "configuration hook fails" | "afterEvaluate { throw RuntimeException(\"Failing hook\") }" | "A problem occurred configuring project ':c'." | [Pair.of(".", ["Failing hook"])]                                      | INCLUDED_BUILDS_FIRST | ""                       | NO_EXTRA_PROPERTIES
+        "9.4"       | "9.7"        | "scripts evaluation fails" | "throw RuntimeException(\"Failing script\")" | "Failing script" | [Pair.of(".", ["c${File.separatorChar}build.gradle.kts' line: 5", "Failing script"])] | ROOT_PROJECT_FIRST    | "with isolated projects" | IP_FLAGS
+        "9.4"       | "9.7"        | "scripts evaluation fails" | "throw RuntimeException(\"Failing script\")" | "Failing script" | [Pair.of(".", ["c${File.separatorChar}build.gradle.kts' line: 5", "Failing script"])] | INCLUDED_BUILDS_FIRST | "with isolated projects" | IP_FLAGS
+        "9.4"       | "9.7"        | "script compilation fails" | "broken !!!"                                 | "broken !!!"     | [Pair.of(".", ["c${File.separatorChar}build.gradle.kts' line: 5", "broken !!!"])]     | ROOT_PROJECT_FIRST    | "with isolated projects" | IP_FLAGS
+        "9.4"       | "9.7"        | "script compilation fails" | "broken !!!"                                 | "broken !!!"     | [Pair.of(".", ["c${File.separatorChar}build.gradle.kts' line: 5", "broken !!!"])]     | INCLUDED_BUILDS_FIRST | "with isolated projects" | IP_FLAGS
+        "9.4"       | "9.7"        | "configuration hook fails" | "afterEvaluate { throw RuntimeException(\"Failing hook\") }" | "A problem occurred configuring project ':c'." | [Pair.of(".", ["Failing hook"])]                                      | ROOT_PROJECT_FIRST    | "with isolated projects" | IP_FLAGS
+        "9.4"       | "9.7"        | "configuration hook fails" | "afterEvaluate { throw RuntimeException(\"Failing hook\") }" | "A problem occurred configuring project ':c'." | [Pair.of(".", ["Failing hook"])]                                      | INCLUDED_BUILDS_FIRST | "with isolated projects" | IP_FLAGS
+        // From 9.7 each build reports only its own configuration failure, so builds that did not fail themselves report the general failure
+        "9.7"       | null         | "scripts evaluation fails" | "throw RuntimeException(\"Failing script\")" | "Failing script" | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                         | ROOT_PROJECT_FIRST    | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | null         | "scripts evaluation fails" | "throw RuntimeException(\"Failing script\")" | "Failing script" | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                         | INCLUDED_BUILDS_FIRST | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | null         | "script compilation fails" | "broken !!!"                                 | "broken !!!"     | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                         | ROOT_PROJECT_FIRST    | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | null         | "script compilation fails" | "broken !!!"                                 | "broken !!!"     | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                         | INCLUDED_BUILDS_FIRST | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | null         | "configuration hook fails" | "afterEvaluate { throw RuntimeException(\"Failing hook\") }" | "A problem occurred configuring project ':c'." | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                         | ROOT_PROJECT_FIRST    | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | null         | "configuration hook fails" | "afterEvaluate { throw RuntimeException(\"Failing hook\") }" | "A problem occurred configuring project ':c'." | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                         | INCLUDED_BUILDS_FIRST | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | null         | "scripts evaluation fails" | "throw RuntimeException(\"Failing script\")" | "Failing script" | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                         | ROOT_PROJECT_FIRST    | "with isolated projects" | IP_FLAGS
+        "9.7"       | null         | "scripts evaluation fails" | "throw RuntimeException(\"Failing script\")" | "Failing script" | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                         | INCLUDED_BUILDS_FIRST | "with isolated projects" | IP_FLAGS
+        "9.7"       | null         | "script compilation fails" | "broken !!!"                                 | "broken !!!"     | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                         | ROOT_PROJECT_FIRST    | "with isolated projects" | IP_FLAGS
+        "9.7"       | null         | "script compilation fails" | "broken !!!"                                 | "broken !!!"     | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                         | INCLUDED_BUILDS_FIRST | "with isolated projects" | IP_FLAGS
+        "9.7"       | null         | "configuration hook fails" | "afterEvaluate { throw RuntimeException(\"Failing hook\") }" | "A problem occurred configuring project ':c'." | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                         | ROOT_PROJECT_FIRST    | "with isolated projects" | IP_FLAGS
+        "9.7"       | null         | "configuration hook fails" | "afterEvaluate { throw RuntimeException(\"Failing hook\") }" | "A problem occurred configuring project ':c'." | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                         | INCLUDED_BUILDS_FIRST | "with isolated projects" | IP_FLAGS
     }
 
-    def "runtime failure in project convention plugin: resilient model is equal to non-resilient model except accessors and build-logic jar #queryStrategy #mode"() {
+    def "runtime failure in project convention plugin: resilient model is equal to non-resilient model except accessors and build-logic jar and the expected failures are reported #queryStrategy from #fromVersion #mode"() {
         given:
         skipIfIpNotSupported(extraGradleProperties)
+        skipUnlessExpectationsApply(fromVersion, untilVersion)
         settingsKotlinFile << """
             rootProject.name = "root"
             include("a", "b", "c")
@@ -439,8 +734,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
             pluginManagement {
                 repositories {
-                    mavenCentral()
-                    gradlePluginPortal()
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
                 }
             }
         """
@@ -450,8 +745,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
             }
 
             repositories {
-                mavenCentral()
-                gradlePluginPortal()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
             }
         """
         def projectPlugin = included.file("src/main/kotlin/build-logic.gradle.kts") << """"""
@@ -508,21 +803,25 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
                 modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             }
         }
-        resilientModels.failures.size() == 1
-        expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], "b" + File.separatorChar + "build.gradle.kts' line: 2")
-        expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], "Failing script")
+        assertHasErrorsInScriptModels(resilientModels, *expectedFailures)
 
         where:
-        queryStrategy          | mode                     | extraGradleProperties
-        ROOT_PROJECT_FIRST     | ""                       | NO_EXTRA_PROPERTIES
-        INCLUDED_BUILDS_FIRST  | ""                       | NO_EXTRA_PROPERTIES
-        ROOT_PROJECT_FIRST     | "with isolated projects" | IP_FLAGS
-        INCLUDED_BUILDS_FIRST  | "with isolated projects" | IP_FLAGS
+        fromVersion | untilVersion | expectedFailures                                                      | queryStrategy         | mode                     | extraGradleProperties
+        "9.4"       | "9.7"        | [Pair.of(".", ["b${File.separatorChar}build.gradle.kts' line: 2", "Failing script"])] | ROOT_PROJECT_FIRST    | ""                       | NO_EXTRA_PROPERTIES
+        "9.4"       | "9.7"        | [Pair.of(".", ["b${File.separatorChar}build.gradle.kts' line: 2", "Failing script"])] | INCLUDED_BUILDS_FIRST | ""                       | NO_EXTRA_PROPERTIES
+        "9.4"       | "9.7"        | [Pair.of(".", ["b${File.separatorChar}build.gradle.kts' line: 2", "Failing script"])] | ROOT_PROJECT_FIRST    | "with isolated projects" | IP_FLAGS
+        "9.4"       | "9.7"        | [Pair.of(".", ["b${File.separatorChar}build.gradle.kts' line: 2", "Failing script"])] | INCLUDED_BUILDS_FIRST | "with isolated projects" | IP_FLAGS
+        // From 9.7 each build reports only its own configuration failure, so builds that did not fail themselves report the general failure
+        "9.7"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                         | ROOT_PROJECT_FIRST    | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                         | INCLUDED_BUILDS_FIRST | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                         | ROOT_PROJECT_FIRST    | "with isolated projects" | IP_FLAGS
+        "9.7"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                         | INCLUDED_BUILDS_FIRST | "with isolated projects" | IP_FLAGS
     }
 
-    def "compilation failure in project convention plugin: resilient model is equal to non-resilient model except accessors and build-logic jar #queryStrategy #mode"() {
+    def "compilation failure in project convention plugin: resilient model is equal to non-resilient model except accessors and build-logic jar and the expected failures are reported #queryStrategy from #fromVersion #mode"() {
         given:
         skipIfIpNotSupported(extraGradleProperties)
+        skipUnlessExpectationsApply(fromVersion, untilVersion)
         settingsKotlinFile << """
             rootProject.name = "root"
             include("a", "b", "c")
@@ -535,8 +834,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
             pluginManagement {
                 repositories {
-                    mavenCentral()
-                    gradlePluginPortal()
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
                 }
             }
         """
@@ -546,8 +845,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
             }
 
             repositories {
-                mavenCentral()
-                gradlePluginPortal()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
             }
         """
         def projectPlugin = included.file("src/main/kotlin/build-logic.gradle.kts") << """"""
@@ -594,24 +893,38 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
             def modelAssert = new ComparingModelAssert(scriptFile, resilientModels, original)
             modelAssert.assertBothModelsExist()
             if (scriptFile == b) {
-                // In this case we don't have accessors and build-logic in the classpath
-                modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") && !it.contains("/build-logic.jar") }
+                // The plugins block of b failed, so there are no project accessors and no build-logic jar in the classpath
+                if (stage1BlocksAccessors) {
+                    // From 9.9 the stage 1 blocks accessors (plugin spec builders) are generated even though the project failed,
+                    // so the classpath is the original one without the project accessors and the build-logic jar
+                    modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { (!it.contains("/accessors/") || it.contains("-PS/") || it.contains("-VC/")) && !it.contains("/build-logic.jar") }
+                } else {
+                    modelAssert.assertClassPathsAreEqualIfIgnoringSomeOriginalEntries { !it.contains("/accessors/") && !it.contains("/build-logic.jar") }
+                }
                 modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             } else {
                 modelAssert.assertClassPathsAreEqualIfIgnoringSomeEntries { !it.contains("/accessors/") }
                 modelAssert.assertImplicitImportsAreEqualIgnoringAccessors()
             }
         }
-        def actualNoOfFailures = resilientModels.failures.size()
-        assert actualNoOfFailures == 1: "Expected 1 failures, but had ${actualNoOfFailures}"
-        expectFailureToContain(resilientModels.failures[settingsKotlinFile.parentFile], "A problem occurred configuring project ':b'.")
+        assertHasErrorsInScriptModels(resilientModels, *expectedFailures)
 
         where:
-        queryStrategy          | mode                     | extraGradleProperties
-        ROOT_PROJECT_FIRST     | ""                       | NO_EXTRA_PROPERTIES
-        INCLUDED_BUILDS_FIRST  | ""                       | NO_EXTRA_PROPERTIES
-        ROOT_PROJECT_FIRST     | "with isolated projects" | IP_FLAGS
-        INCLUDED_BUILDS_FIRST  | "with isolated projects" | IP_FLAGS
+        fromVersion | untilVersion | expectedFailures                                                     | stage1BlocksAccessors | queryStrategy         | mode                     | extraGradleProperties
+        "9.4"       | "9.7"        | [Pair.of(".", ["A problem occurred configuring project ':b'."])] | false                 | ROOT_PROJECT_FIRST    | ""                       | NO_EXTRA_PROPERTIES
+        "9.4"       | "9.7"        | [Pair.of(".", ["A problem occurred configuring project ':b'."])] | false                 | INCLUDED_BUILDS_FIRST | ""                       | NO_EXTRA_PROPERTIES
+        "9.4"       | "9.7"        | [Pair.of(".", ["A problem occurred configuring project ':b'."])] | false                 | ROOT_PROJECT_FIRST    | "with isolated projects" | IP_FLAGS
+        "9.4"       | "9.7"        | [Pair.of(".", ["A problem occurred configuring project ':b'."])] | false                 | INCLUDED_BUILDS_FIRST | "with isolated projects" | IP_FLAGS
+        // From 9.7 each build reports only its own configuration failure, so builds that did not fail themselves report the general failure
+        "9.7"       | "9.9"        | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | false                 | ROOT_PROJECT_FIRST    | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | "9.9"        | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | false                 | INCLUDED_BUILDS_FIRST | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | "9.9"        | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | false                 | ROOT_PROJECT_FIRST    | "with isolated projects" | IP_FLAGS
+        "9.7"       | "9.9"        | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | false                 | INCLUDED_BUILDS_FIRST | "with isolated projects" | IP_FLAGS
+        // From 9.9 the stage 1 blocks accessors are generated even for a project that failed to configure
+        "9.9"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | true                  | ROOT_PROJECT_FIRST    | ""                       | NO_EXTRA_PROPERTIES
+        "9.9"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | true                  | INCLUDED_BUILDS_FIRST | ""                       | NO_EXTRA_PROPERTIES
+        "9.9"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | true                  | ROOT_PROJECT_FIRST    | "with isolated projects" | IP_FLAGS
+        "9.9"       | null         | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE)]                        | true                  | INCLUDED_BUILDS_FIRST | "with isolated projects" | IP_FLAGS
     }
 
     @ToBeImplemented
@@ -633,7 +946,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         def model = modelCollector.model
         model.scriptModels.isEmpty()
         assertHasErrorsInScriptModels(model,
-            Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"))
+            Pair.of(".", SETTINGS_SCRIPT_COMPILE_ERROR))
 
         where:
         mode                       | extraGradleProperties
@@ -669,8 +982,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         def model = modelCollector.model
         model.scriptModels.isEmpty()
         assertHasErrorsInScriptModels(model,
-            Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"),
-            Pair.of("included", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"))
+            Pair.of(".", SETTINGS_SCRIPT_COMPILE_ERROR),
+            Pair.of("included", SETTINGS_SCRIPT_COMPILE_ERROR))
 
         where:
         mode                       | extraGradleProperties
@@ -697,8 +1010,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
 
             pluginManagement {
                 repositories {
-                    mavenCentral()
-                    gradlePluginPortal()
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
                 }
             }
         """
@@ -708,8 +1021,8 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
             }
 
             repositories {
-                mavenCentral()
-                gradlePluginPortal()
+                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
+                ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
             }
         """
         def settingsPlugin = included.file("src/main/kotlin/build-logic.settings.gradle.kts") << ""
@@ -734,7 +1047,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         def model = modelCollector.model
         assertHasScriptModelForFiles(model, "build-logic/settings.gradle.kts", "build-logic/build.gradle.kts", "build-logic/src/main/kotlin/build-logic.settings.gradle.kts")
         assertHasErrorsInScriptModels(model,
-            Pair.of(".", ".*Execution failed for task ':build-logic:compileKotlin.*"))
+            Pair.of(".", ["Execution failed for task ':build-logic:compileKotlin'"]))
 
         where:
         mode                       | extraGradleProperties
@@ -742,6 +1055,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         "with isolated projects"   | IP_FLAGS
     }
 
+    @TargetGradleVersion('>=9.4.0 <9.7.0')
     def "resilient Kotlin DSL can be queried with null target #mode"() {
         given:
         skipIfIpNotSupported(extraGradleProperties)
@@ -762,7 +1076,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         then:
         assertHasScriptModelForFiles(model, "settings.gradle.kts", "build.gradle.kts")
         assertHasErrorsInScriptModels(model,
-            Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"))
+            Pair.of(".", BUILD_SCRIPT_COMPILE_ERROR))
 
         where:
         mode                       | extraGradleProperties
@@ -770,6 +1084,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         "with isolated projects"   | IP_FLAGS
     }
 
+    @TargetGradleVersion('>=9.4.0 <9.7.0')
     def "no resilient Kotlin DSL model is returned if settings fails with null target #mode"() {
         given:
         skipIfIpNotSupported(extraGradleProperties)
@@ -787,7 +1102,7 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         then:
         model.scriptModels.isEmpty()
         assertHasErrorsInScriptModels(model,
-            Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"))
+            Pair.of(".", SETTINGS_SCRIPT_COMPILE_ERROR))
 
         where:
         mode                       | extraGradleProperties
@@ -795,9 +1110,10 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         "with isolated projects"   | IP_FLAGS
     }
 
-    def "return partial model when compilation failure in buildSrc (#brokenFile) #mode"() {
+    def "return partial model with the expected failures when compilation failure in buildSrc (#brokenFile) from #fromVersion #mode"() {
         given:
         skipIfIpNotSupported(extraGradleProperties)
+        skipUnlessExpectationsApply(fromVersion, untilVersion)
         settingsKotlinFile << """
             rootProject.name = "root"
         """
@@ -823,18 +1139,27 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         e.cause.message.contains("Script compilation error")
         def model = modelCollector.model
         assertHasScriptModelForFiles(model, *scriptModels)
-        assertHasErrorsInScriptModels(model, *failures)
+        assertHasErrorsInScriptModels(model, *expectedFailures)
 
         where:
-        brokenFile                              | scriptModels                                                                                                                           | failures                                                                                                                                                                                                                                                              | mode                       | extraGradleProperties
-        "buildSrc/settings.gradle.kts"          | ["settings.gradle.kts"]                                                                                                                | [Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"), Pair.of("buildSrc", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*")]                                                                                   | ""                         | NO_EXTRA_PROPERTIES
-        "buildSrc/build.gradle.kts"             | ["settings.gradle.kts", "buildSrc/settings.gradle.kts", "buildSrc/build.gradle.kts", "buildSrc-included/settings.gradle.kts"]          | [Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"), Pair.of("buildSrc", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")]                                                                                               | ""                         | NO_EXTRA_PROPERTIES
-        "buildSrc-included/settings.gradle.kts" | ["settings.gradle.kts"]                                                                                                                | [Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"), Pair.of("buildSrc", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"), Pair.of("buildSrc-included", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*")] | ""                         | NO_EXTRA_PROPERTIES
-        "buildSrc-included/build.gradle.kts"    | ["settings.gradle.kts", "buildSrc/settings.gradle.kts", "buildSrc-included/settings.gradle.kts", "buildSrc-included/build.gradle.kts"] | [Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"), Pair.of("buildSrc-included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")]                                                                                      | ""                         | NO_EXTRA_PROPERTIES
-        "buildSrc/settings.gradle.kts"          | ["settings.gradle.kts"]                                                                                                                | [Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"), Pair.of("buildSrc", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*")]                                                                                   | "with isolated projects"   | IP_FLAGS
-        "buildSrc/build.gradle.kts"             | ["settings.gradle.kts", "buildSrc/settings.gradle.kts", "buildSrc/build.gradle.kts", "buildSrc-included/settings.gradle.kts"]          | [Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"), Pair.of("buildSrc", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")]                                                                                               | "with isolated projects"   | IP_FLAGS
-        "buildSrc-included/settings.gradle.kts" | ["settings.gradle.kts"]                                                                                                                | [Pair.of(".", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"), Pair.of("buildSrc", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*"), Pair.of("buildSrc-included", ".*Settings file.*settings\\.gradle\\.kts.*Script compilation error.*")] | "with isolated projects"   | IP_FLAGS
-        "buildSrc-included/build.gradle.kts"    | ["settings.gradle.kts", "buildSrc/settings.gradle.kts", "buildSrc-included/settings.gradle.kts", "buildSrc-included/build.gradle.kts"] | [Pair.of(".", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*"), Pair.of("buildSrc-included", ".*Build file.*build\\.gradle\\.kts.*Script compilation error.*")]                                                                                      | "with isolated projects"   | IP_FLAGS
+        fromVersion | untilVersion | brokenFile                              | scriptModels                                                                                                                           | expectedFailures                                                                                                                                               | mode                     | extraGradleProperties
+        "9.4"       | "9.7"        | "buildSrc/settings.gradle.kts"          | ["settings.gradle.kts"]                                                                                                                | [Pair.of(".", SETTINGS_SCRIPT_COMPILE_ERROR), Pair.of("buildSrc", SETTINGS_SCRIPT_COMPILE_ERROR)]                                                              | ""                       | NO_EXTRA_PROPERTIES
+        "9.4"       | "9.7"        | "buildSrc/build.gradle.kts"             | ["settings.gradle.kts", "buildSrc/settings.gradle.kts", "buildSrc/build.gradle.kts", "buildSrc-included/settings.gradle.kts"]          | [Pair.of(".", BUILD_SCRIPT_COMPILE_ERROR), Pair.of("buildSrc", BUILD_SCRIPT_COMPILE_ERROR)]                                                                    | ""                       | NO_EXTRA_PROPERTIES
+        "9.4"       | "9.7"        | "buildSrc-included/settings.gradle.kts" | ["settings.gradle.kts"]                                                                                                                | [Pair.of(".", SETTINGS_SCRIPT_COMPILE_ERROR), Pair.of("buildSrc", SETTINGS_SCRIPT_COMPILE_ERROR), Pair.of("buildSrc-included", SETTINGS_SCRIPT_COMPILE_ERROR)] | ""                       | NO_EXTRA_PROPERTIES
+        "9.4"       | "9.7"        | "buildSrc-included/build.gradle.kts"    | ["settings.gradle.kts", "buildSrc/settings.gradle.kts", "buildSrc-included/settings.gradle.kts", "buildSrc-included/build.gradle.kts"] | [Pair.of(".", BUILD_SCRIPT_COMPILE_ERROR), Pair.of("buildSrc-included", BUILD_SCRIPT_COMPILE_ERROR)]                                                           | ""                       | NO_EXTRA_PROPERTIES
+        "9.4"       | "9.7"        | "buildSrc/settings.gradle.kts"          | ["settings.gradle.kts"]                                                                                                                | [Pair.of(".", SETTINGS_SCRIPT_COMPILE_ERROR), Pair.of("buildSrc", SETTINGS_SCRIPT_COMPILE_ERROR)]                                                              | "with isolated projects" | IP_FLAGS
+        "9.4"       | "9.7"        | "buildSrc/build.gradle.kts"             | ["settings.gradle.kts", "buildSrc/settings.gradle.kts", "buildSrc/build.gradle.kts", "buildSrc-included/settings.gradle.kts"]          | [Pair.of(".", BUILD_SCRIPT_COMPILE_ERROR), Pair.of("buildSrc", BUILD_SCRIPT_COMPILE_ERROR)]                                                                    | "with isolated projects" | IP_FLAGS
+        "9.4"       | "9.7"        | "buildSrc-included/settings.gradle.kts" | ["settings.gradle.kts"]                                                                                                                | [Pair.of(".", SETTINGS_SCRIPT_COMPILE_ERROR), Pair.of("buildSrc", SETTINGS_SCRIPT_COMPILE_ERROR), Pair.of("buildSrc-included", SETTINGS_SCRIPT_COMPILE_ERROR)] | "with isolated projects" | IP_FLAGS
+        "9.4"       | "9.7"        | "buildSrc-included/build.gradle.kts"    | ["settings.gradle.kts", "buildSrc/settings.gradle.kts", "buildSrc-included/settings.gradle.kts", "buildSrc-included/build.gradle.kts"] | [Pair.of(".", BUILD_SCRIPT_COMPILE_ERROR), Pair.of("buildSrc-included", BUILD_SCRIPT_COMPILE_ERROR)]                                                           | "with isolated projects" | IP_FLAGS
+        // From 9.7 each build reports only its own configuration failure, so builds that did not fail themselves report the general failure
+        "9.7"       | null         | "buildSrc/settings.gradle.kts"          | ["settings.gradle.kts"]                                                                                                                | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE), Pair.of("buildSrc", SETTINGS_SCRIPT_COMPILE_ERROR)]                                                              | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | null         | "buildSrc/build.gradle.kts"             | ["settings.gradle.kts", "buildSrc/settings.gradle.kts", "buildSrc/build.gradle.kts", "buildSrc-included/settings.gradle.kts"]          | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE), Pair.of("buildSrc", BUILD_SCRIPT_COMPILE_ERROR)]                                                                 | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | null         | "buildSrc-included/settings.gradle.kts" | ["settings.gradle.kts"]                                                                                                                | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE), Pair.of("buildSrc", SETTINGS_SCRIPT_COMPILE_ERROR), Pair.of("buildSrc-included", SETTINGS_SCRIPT_COMPILE_ERROR)] | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | null         | "buildSrc-included/build.gradle.kts"    | ["settings.gradle.kts", "buildSrc/settings.gradle.kts", "buildSrc-included/settings.gradle.kts", "buildSrc-included/build.gradle.kts"] | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE), Pair.of("buildSrc-included", BUILD_SCRIPT_COMPILE_ERROR)]                                                        | ""                       | NO_EXTRA_PROPERTIES
+        "9.7"       | null         | "buildSrc/settings.gradle.kts"          | ["settings.gradle.kts"]                                                                                                                | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE), Pair.of("buildSrc", SETTINGS_SCRIPT_COMPILE_ERROR)]                                                              | "with isolated projects" | IP_FLAGS
+        "9.7"       | null         | "buildSrc/build.gradle.kts"             | ["settings.gradle.kts", "buildSrc/settings.gradle.kts", "buildSrc/build.gradle.kts", "buildSrc-included/settings.gradle.kts"]          | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE), Pair.of("buildSrc", BUILD_SCRIPT_COMPILE_ERROR)]                                                                 | "with isolated projects" | IP_FLAGS
+        "9.7"       | null         | "buildSrc-included/settings.gradle.kts" | ["settings.gradle.kts"]                                                                                                                | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE), Pair.of("buildSrc", SETTINGS_SCRIPT_COMPILE_ERROR), Pair.of("buildSrc-included", SETTINGS_SCRIPT_COMPILE_ERROR)] | "with isolated projects" | IP_FLAGS
+        "9.7"       | null         | "buildSrc-included/build.gradle.kts"    | ["settings.gradle.kts", "buildSrc/settings.gradle.kts", "buildSrc-included/settings.gradle.kts", "buildSrc-included/build.gradle.kts"] | [Pair.of(".", GENERAL_CONFIGURATION_FAILURE), Pair.of("buildSrc-included", BUILD_SCRIPT_COMPILE_ERROR)]                                                        | "with isolated projects" | IP_FLAGS
     }
 
     void assertHasScriptModelForFiles(KotlinModel model, String... expectedFiles) {
@@ -847,24 +1172,34 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         }
     }
 
-    void assertHasErrorsInScriptModels(KotlinModel model, Pair<String, String>... expected) {
-        assert model.failures.size() == expected.size(): "Expected ${expected.size()} failures, but got ${model.failures.size()}"
+    // The scripts model attaches failures per build root, not per project, so the queried build is the finest granularity these expectations can assert.
+    // Each pair is one expected failure of a build root, containing all the given fragments; pairs of the same build root are its failures in order.
+    void assertHasErrorsInScriptModels(KotlinModel model, Pair<String, List<String>>... expected) {
+        assertHasErrorsInScriptModels(model, expected.groupBy { it.left }.collectEntries { buildRoot, pairs -> [(buildRoot): pairs*.right] })
+    }
+
+    // Each listed build root must report exactly the given failures, in order, each containing all of its fragments.
+    void assertHasErrorsInScriptModels(KotlinModel model, Map<String, List<List<String>>> expected) {
+        assert model.failures.size() == expected.size(): "Expected failures for ${expected.size()} build roots, but got ${model.failures.size()}: ${model.failures.keySet()}"
         def failures = new HashMap<>(model.failures)
 
-        for (Pair<String, String> expectedElement : expected) {
-            def buildRootDir = new File(new File(projectDir, expectedElement.left).canonicalPath)
-            def failure = failures.remove(buildRootDir)
-            assert failure: "Failures for build root ${expectedElement.left} not available"
-            matchProjectFailure(failure, expectedElement.right)
+        expected.each { buildRoot, expectedFailures ->
+            def buildRootDir = new File(new File(projectDir, buildRoot).canonicalPath)
+            def actualFailures = failures.remove(buildRootDir)
+            assert actualFailures: "Failures for build root ${buildRoot} not available"
+            assert actualFailures.size() == expectedFailures.size():
+                "Expected ${expectedFailures.size()} failures for build root ${buildRoot}, but got ${actualFailures.size()}:\n${actualFailures.join('\n---\n')}"
+            [actualFailures, expectedFailures].transpose().each { actualFailure, fragments ->
+                fragments.each { fragment -> expectFailureToContain(actualFailure, fragment) }
+            }
         }
 
         assert failures.isEmpty(): "Unexpected failures for build roots: ${failures.keySet()}"
     }
 
-    private static void matchProjectFailure(String failureMessage, String expectedPattern) {
-        def pattern = Pattern.compile(expectedPattern, Pattern.DOTALL)
-        def matcher = pattern.matcher(failureMessage)
-        assert matcher.matches(): "Exception \"${failureMessage}\" doesn't match expected pattern \"${expectedPattern}\""
+    static void expectFailureToContain(String actualFailure, String expectedFragment) {
+        assert actualFailure.contains(expectedFragment):
+            "Failure expected to contain \"${expectedFragment}\", but was \"\n${actualFailure}\n\" instead!"
     }
 
     /**
@@ -896,6 +1231,36 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         }
     }
 
+    private static Map<File, List<File>> classPathsOf(KotlinModel model) {
+        model.scriptModels.collectEntries { scriptFile, scriptModel -> [(scriptFile): scriptModel.classPath] }
+    }
+
+    // Both kinds of accessors live in the same accessors workspace, only the stage 1 blocks accessors have a -PS or -VC suffix
+    void assertHasProjectAccessorsInClassPath(KotlinModel model, String expectedFile) {
+        assertHasClassPathEntry(model, expectedFile, "with the project accessors") {
+            it.contains("/accessors/") && !it.contains("-PS/") && !it.contains("-VC/")
+        }
+    }
+
+    void assertHasPluginSpecBuildersAccessorsInClassPath(KotlinModel model, String expectedFile) {
+        assertHasClassPathEntry(model, expectedFile, "with the plugin spec builders accessors") {
+            it.contains("/accessors/") && it.contains("-PS/")
+        }
+    }
+
+    void assertHasVersionCatalogAccessorsInClassPath(KotlinModel model, String expectedFile) {
+        assertHasClassPathEntry(model, expectedFile, "with the version catalog accessors") {
+            it.contains("/accessors/") && it.contains("-VC/")
+        }
+    }
+
+    void assertHasClassPathEntry(KotlinModel model, String expectedFile, String description, Closure<Boolean> matcher) {
+        def scriptModel = model.scriptModels.get(new File(projectDir, expectedFile))
+        assert scriptModel != null: "Expected script model for file $expectedFile, but there wasn't one"
+        assert scriptModel.classPath.any { matcher(TextUtil.normaliseFileSeparators(it.absolutePath)) }:
+            "Expected a classpath entry $description in the script model classpath for file $expectedFile, but there was none: ${scriptModel.classPath}"
+    }
+
     /**
      * Assert contains at least one jar whose name starts with any of the given prefixes.
      */
@@ -914,17 +1279,22 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
                 "but none were found: ${jarFilesInClasspath.stream().collect(Collectors.joining("\n\t", "\n\t", ""))}"
     }
 
-    static void expectFailureToContain(String actualFailure, String expectedFragment) {
-        assert actualFailure.contains(expectedFragment):
-            "Failure expected to contain \"${expectedFragment}\", but was \"\n${actualFailure}\n\" instead!"
-    }
-
     KotlinModel resilientModel(ProjectConnection conn, QueryStrategy queryStrategy, List<String> extraGradleProperties = NO_EXTRA_PROPERTIES) {
         return model(conn, true, queryStrategy, initScriptFile, modelCollector, extraGradleProperties)
     }
 
     KotlinModel originalModel(ProjectConnection conn, QueryStrategy queryStrategy, List<String> extraGradleProperties = NO_EXTRA_PROPERTIES) {
         return model(conn, false, queryStrategy, initScriptFile, modelCollector, extraGradleProperties)
+    }
+
+    // Call from the given: block of tests with fromVersion/untilVersion columns to skip rows whose
+    // expectations apply to other target versions. A null untilVersion is unbounded.
+    private void skipUnlessExpectationsApply(String fromVersion, String untilVersion) {
+        def target = targetVersion.baseVersion
+        Assume.assumeTrue(
+            "Expectations apply to Gradle >=${fromVersion}" + (untilVersion ? " <${untilVersion}" : ""),
+            target >= GradleVersion.version(fromVersion) && (untilVersion == null || target < GradleVersion.version(untilVersion))
+        )
     }
 
     // Call from the top of each test's given: block. Isolated Projects model fetching with
@@ -1026,4 +1396,3 @@ class ResilientKotlinDslScriptsModelBuilderCrossVersionSpec extends KotlinDslPlu
         }
     }
 }
-

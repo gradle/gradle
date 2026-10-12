@@ -26,12 +26,14 @@ import java.util.Collection;
  *
  * See {@code ProviderInternalTestExecutionRequest} for what the provider expects on a test execution request.
  *
- * @since 2.6-rc-1
+ * @since 2.6
  */
 public interface InternalTestExecutionRequest extends InternalProtocolInterface {
     Collection<InternalTestDescriptor> getTestExecutionDescriptors();
     Collection<String> getTestClassNames();
     /**
+     * Returns whether run default tasks is set.
+     *
      * @since 7.6
      */
     boolean isRunDefaultTasks();

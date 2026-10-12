@@ -107,6 +107,8 @@ abstract class ShellScript {
 
         abstract Builder printText(String text);
 
+        abstract Builder printTextToStdErr(String text);
+
         abstract Builder printEnvironmentVariable(String variableName)
 
         abstract Builder printWorkingDir()
@@ -146,6 +148,11 @@ abstract class ShellScript {
         }
 
         @Override
+        Builder printTextToStdErr(String text) {
+            return addLine("echo '$text' 1>&2")
+        }
+
+        @Override
         Builder printEnvironmentVariable(String variableName) {
             return addLine("echo $variableName=\$$variableName")
         }
@@ -179,6 +186,11 @@ abstract class ShellScript {
         @Override
         Builder printText(String text) {
             return addLine("echo $text")
+        }
+
+        @Override
+        Builder printTextToStdErr(String text) {
+            return addLine("echo $text 1>&2")
         }
 
         @Override

@@ -34,6 +34,7 @@ public interface JvmTestOperationDescriptor extends TestOperationDescriptor {
      * Returns what kind of test this is.
      *
      * @return The test kind.
+     * @since 2.4
      */
     JvmTestKind getJvmTestKind();
 
@@ -41,6 +42,7 @@ public interface JvmTestOperationDescriptor extends TestOperationDescriptor {
      * Returns the name of the test suite, if any.
      *
      * @return The name of the test suite.
+     * @since 2.4
      */
     @Nullable
     String getSuiteName();
@@ -49,6 +51,7 @@ public interface JvmTestOperationDescriptor extends TestOperationDescriptor {
      * Returns the name of the test class, if any.
      *
      * @return The name of the test class.
+     * @since 2.4
      */
     @Nullable
     String getClassName();
@@ -57,6 +60,7 @@ public interface JvmTestOperationDescriptor extends TestOperationDescriptor {
      * Returns the name of the test method, if any.
      *
      * @return The name of the test method.
+     * @since 2.4
      */
     @Nullable
     String getMethodName();

@@ -26,7 +26,6 @@ import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.capabilities.Capability;
-import org.gradle.api.internal.artifacts.ComponentSelectorConverter;
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.SubstitutionResult;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.ModuleExclusions;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.excludes.specs.ExcludeSpec;
@@ -63,7 +62,6 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * Represents a node in the dependency graph.
@@ -96,8 +94,13 @@ public class NodeState implements DependencyGraphNode {
      * The node this node has been replaced by in a capability conflict, if this
      * node has been previously involved in a resolved capability conflict and
      * has lost that conflict.
+     * <p>
+     * This value may be stale. This pointer records the result of capability conflict resolution
+     * and only remains valid while the winner's component is present in the graph. Nothing updates this
+     * value when a participating module changes selection. This field must only be read by
+     * {@link #maybeResolveCapabilityReplacement()}, which ensures target replacement nodes are still valid.
      */
-    private @Nullable NodeState replacement;
+    private @Nullable NodeState capabilityReplacement;
     private @Nullable Pair<Capability, Collection<NodeState>> capabilityReject;
 
     private int transitiveEdgeCount;
@@ -172,10 +175,26 @@ public class NodeState implements DependencyGraphNode {
         this.dependenciesMayChange = component.getModule().isVirtualPlatform();
     }
 
-    NodeState maybeResolveReplacement() {
+    /**
+     * Follow the chain of capability replacement results to determine the node, if any, that should
+     * be targeted instead of this one. Otherwise, return this node if it has not been replaced.
+     */
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    NodeState maybeResolveCapabilityReplacement() {
         NodeState node = this;
-        while (node.getReplacement() != null) {
-            node = node.getReplacement();
+        while (node.capabilityReplacement != null) {
+            NodeState winner = node.capabilityReplacement;
+            // Validate that this replacement is still valid. If the winning node's component is no
+            // longer selected, the target node is no longer present in the graph and the current node
+            // should be returned. Note, that node may still end up conflicting with the corresponding
+            // version-upgraded node that we originally conflicted with. We clear the stale pointer
+            // rather than just skipping it, so that it cannot reactivate a superseded decision if the
+            // evicted component is later re-selected.
+            if (winner.getComponent() != winner.getComponent().getModule().getSelected()) {
+                node.capabilityReplacement = null;
+                break;
+            }
+            node = winner;
         }
         return node;
     }
@@ -255,7 +274,7 @@ public class NodeState implements DependencyGraphNode {
 
     @Override
     public String getDisplayName() {
-        return String.format("'%s' (%s)", component.getComponentId().getDisplayName(), metadata.getDisplayName());
+        return String.format("%s (%s)", component.getComponentId().getDisplayName(), metadata.getDisplayName());
     }
 
     public boolean isTransitive() {
@@ -395,8 +414,8 @@ public class NodeState implements DependencyGraphNode {
             for (ModuleIdentifier identifier : upcomingNoLongerPendingConstraints) {
                 ModuleResolveState module = resolveState.getModule(identifier);
                 for (EdgeState unattachedEdge : module.getUnattachedEdges()) {
-                    if (!unattachedEdge.getSelector().isResolved()) {
-                        // Unresolved - we have a selector that was deferred but the constraint has been removed in between
+                    if (unattachedEdge.getSelector().requiresSelection()) {
+                        // We have a selector that was deferred but the constraint has been removed in between
                         NodeState from = unattachedEdge.getFrom();
                         from.prepareToRecomputeEdge(unattachedEdge);
                     }
@@ -410,7 +429,7 @@ public class NodeState implements DependencyGraphNode {
             // Let's clear that state since it is no longer part of selection
             for (EdgeState edge : cachedFilteredEdges) {
                 if (edge.getDependencyMetadata().isConstraint()) {
-                    ModuleResolveState targetModule = resolveState.getModule(edge.getDependencyState().getModuleIdentifier(resolveState.getComponentSelectorConverter()));
+                    ModuleResolveState targetModule = resolveState.getModule(edge.getTargetModuleIdentifier());
                     if (targetModule.isPending()) {
                         targetModule.unregisterConstraintProvider(this);
                     }
@@ -455,7 +474,7 @@ public class NodeState implements DependencyGraphNode {
         EdgeState dependencyEdge
     ) {
         boolean constraint = dependencyEdge.getDependencyMetadata().isConstraint();
-        ModuleIdentifier moduleId = dependencyEdge.getDependencyState().getModuleIdentifier(resolveState.getComponentSelectorConverter());
+        ModuleIdentifier moduleId = dependencyEdge.getTargetModuleIdentifier();
         ModuleResolveState module = resolveState.getModule(moduleId);
 
         boolean deferSelection = false;
@@ -645,8 +664,7 @@ public class NodeState implements DependencyGraphNode {
             return false;
         }
 
-        ComponentSelectorConverter componentSelectorConverter = resolveState.getComponentSelectorConverter();
-        ModuleIdentifier targetModuleId = edgeState.getDependencyState().getModuleIdentifier(componentSelectorConverter);
+        ModuleIdentifier targetModuleId = edgeState.getTargetModuleIdentifier();
 
         if (excludeSpec.excludes(targetModuleId)) {
             LOGGER.debug("{} is excluded from {} by {}.", targetModuleId, this, excludeSpec);
@@ -654,9 +672,9 @@ public class NodeState implements DependencyGraphNode {
         }
 
         // If we were substituted, apply the exclusion to the original selector as well.
-        ComponentSelector requestedSelector = edgeState.getDependencyState().getRequested();
-        if (requestedSelector != edgeState.getDependencyState().getDependency().getSelector()) {
-            return excludeSpec.excludes(componentSelectorConverter.getModuleVersionId(requestedSelector).getModule());
+        ComponentSelector requestedSelector = edgeState.getRequested();
+        if (requestedSelector != edgeState.getDependencyMetadata().getSelector()) {
+            return excludeSpec.excludes(resolveState.getComponentSelectorConverter().getModuleVersionId(requestedSelector).getModule());
         }
 
         return false;
@@ -794,7 +812,7 @@ public class NodeState implements DependencyGraphNode {
         if (winner == this) {
             resolveState.onMoreSelected(this);
         } else {
-            this.replacement = winner;
+            this.capabilityReplacement = winner;
             restartIncomingEdges();
         }
     }
@@ -829,26 +847,19 @@ public class NodeState implements DependencyGraphNode {
         return formatCapabilityRejectMessage(getComponent().getModule().getId(), capabilityReject);
     }
 
+    @SuppressWarnings("DataFlowIssue") // Conflict nodes are not null when this is called
     private static String formatCapabilityRejectMessage(ModuleIdentifier id, Pair<Capability, Collection<NodeState>> capabilityConflict) {
+        var conflictNodes = capabilityConflict.right;
+        var multipleConflicts = conflictNodes.size() > 1;
+        var conflictMsg = multipleConflicts ? "conflicts" : "conflict";
+        var providedByMsg = multipleConflicts ? conflictNodes.stream().map(NodeState::getDisplayName).sorted().toList().toString() : conflictNodes.iterator().next().getDisplayName();
+        var groupNameMsg = multipleConflicts ? "All" : "Both";
         return "Module '" + id + "' has been rejected:\n" +
-            "   Cannot select module with conflict on capability '" + formatCapability(capabilityConflict.left) + "' also provided by " +
-            capabilityConflict.getRight().stream().map(NodeState::getDisplayName).sorted().collect(Collectors.toList());
+            "   Cannot select module because of " + conflictMsg + " with " + providedByMsg + ". " + groupNameMsg + " provide capability '" + formatCapability(capabilityConflict.left) + "'.";
     }
 
     private static String formatCapability(Capability capability) {
         return capability.getGroup() + ":" + capability.getName() + ":" + capability.getVersion();
-    }
-
-    /**
-     * The node in the same component as this node, that won against this node
-     * during capability conflict resolution, if any.
-     */
-    public @Nullable NodeState getReplacement() {
-        return replacement;
-    }
-
-    boolean shouldIncludedInGraphResult() {
-        return isSelected() && !component.getModule().isVirtualPlatform();
     }
 
     private ExcludeSpec computeModuleResolutionFilter(List<EdgeState> incomingEdges) {
@@ -1245,26 +1256,31 @@ public class NodeState implements DependencyGraphNode {
      * Retarget all incoming edges of this node. Called in two contexts:
      * <ul>
      *     <li>On losing nodes of capability conflicts, to move their edges to the winner.</li>
-     *     <li>On nodes (and their replacements) of components losing version or module conflicts
+     *     <li>On nodes (and their capability replacements) of components losing version or module conflicts
      *         in {@link ModuleResolveState#changeSelection}, to retarget edges to the new selection.</li>
      * </ul>
-     * In the second case, the node may be a capability conflict replacement that has its own
+     * In the second case, the node may be a capability conflict winner that has its own
      * legitimate incoming edges from other modules. Those edges re-attach to this node after
      * retargeting, so the node may still have incoming edges when this method returns.
      */
     void restartIncomingEdges() {
         if (incomingEdges.size() == 1) {
-            EdgeState singleEdge = incomingEdges.get(0);
-            singleEdge.retarget();
-            // The edge should have retargeted away from this node, unless it targets
-            // this node's own module and re-attached (replacement during version change).
-            assert !singleEdge.getTargetNodes().contains(this) || singleEdge.getSelector().getTargetModule() == getComponent().getModule();
+            retargetSingleEdge(incomingEdges.get(0));
         } else if (incomingEdges.size() > 1) {
             for (EdgeState edge : new ArrayList<>(incomingEdges)) {
-                edge.retarget();
-                assert !edge.getTargetNodes().contains(this) || edge.getSelector().getTargetModule() == getComponent().getModule();
+                retargetSingleEdge(edge);
             }
         }
+    }
+
+    @SuppressWarnings("ReferenceEquality") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
+    private void retargetSingleEdge(EdgeState edge) {
+        edge.retarget();
+        // The edge should have retargeted away from this node. If it still targets us, we must be
+        // the winner of a capability conflict, and the edge either targets us natively or was
+        // redirected to us via a loser's still-valid capability replacement. In both cases, our
+        // component must still be its module's selection.
+        assert !edge.getTargetNodes().contains(this) || getComponent() == getComponent().getModule().getSelected();
     }
 
     void prepareForConstraintNoLongerPending(ModuleIdentifier moduleIdentifier) {

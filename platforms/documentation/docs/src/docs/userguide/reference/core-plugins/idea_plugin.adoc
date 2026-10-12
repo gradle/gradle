@@ -15,7 +15,7 @@
 [[idea_plugin]]
 = The IDEA Plugin
 
-The IDEA plugin generates files that are used by http://www.jetbrains.com/idea/[IntelliJ IDEA], thus making it possible to open the project from IDEA (`File` - `Open Project`). Both external dependencies (including associated source and Javadoc files) and project dependencies are considered.
+The IDEA plugin generates files that are used by https://www.jetbrains.com/idea/[IntelliJ IDEA], thus making it possible to open the project from IDEA (`File` - `Open Project`). Both external dependencies (including associated source and Javadoc files) and project dependencies are considered.
 
 [NOTE]
 ====
@@ -103,13 +103,13 @@ Here are the configuration properties you can use:
 `idea` — link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaModel.html[IdeaModel]::
 Top level element that enables configuration of the idea plugin in a DSL-friendly fashion
 
-`idea.project` link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaProject.html[IdeaProject]::
+`idea.project` — link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaProject.html[IdeaProject]::
 Allows configuring project information
 
-`idea.module` link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaModule.html[IdeaModule]::
+`idea.module` — link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaModule.html[IdeaModule]::
 Allows configuring module information
 
-`idea.workspace` link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaWorkspace.html[IdeaWorkspace]::
+`idea.workspace` — link:{groovyDslPath}/org.gradle.plugins.ide.idea.model.IdeaWorkspace.html[IdeaWorkspace]::
 Allows configuring the workspace XML
 
 Follow the links to the types for examples of using these configuration properties.
@@ -142,7 +142,7 @@ The plugin provides objects modeling the sections of the metadata files that are
 
  1. The file is read; or a default version provided by Gradle is used if it does not exist
  2. The `beforeMerged` hook is executed with a domain object representing the existing file
- 3. The existing content is merged with the configuration inferred from the Gradle build or defined explicitly in the eclipse DSL
+ 3. The existing content is merged with the configuration inferred from the Gradle build or defined explicitly in the idea DSL
  4. The `whenMerged` hook is executed with a domain object representing contents of the file to be persisted
  5. The `withXml` hook is executed with a raw representation of the XML that will be persisted
  6. The final XML is persisted
@@ -213,9 +213,11 @@ include::sample[dir="snippets/reference/core-plugins/ideaAdditionalTestSources/k
 include::sample[dir="snippets/reference/core-plugins/ideaAdditionalTestSources/groovy",files="build.gradle[tags=mark-additional-sourcesets-as-test]"]
 ====
 
-NOTE: When working with the <<jvm_test_suite_plugin#jvm_test_suite_plugin,JVM Test Suite Plugin>>, test sources will automatically identified correctly.
+NOTE: When working with the <<jvm_test_suite_plugin#jvm_test_suite_plugin,JVM Test Suite Plugin>>, test sources will be automatically identified correctly.
 
 [[sec:further_things_to_consider]]
 == Further things to consider
 
-The paths of dependencies in the generated IDEA files are absolute. If you manually define a path variable pointing to the Gradle dependency cache, IDEA will automatically replace the absolute dependency paths with this path variable. you can configure this path variable via the "`idea.pathVariables`" property, so that it can do a proper merge without creating duplicates.
+The paths of dependencies in the generated IDEA files are absolute. If you manually define a path variable pointing to the Gradle dependency cache, IDEA will automatically replace the absolute dependency paths with this path variable. You can configure this path variable via the "`idea.pathVariables`" property, so that it can do a proper merge without creating duplicates.
+
+NOTE: The `idea.pathVariables` property is deprecated and will be removed in Gradle 10, along with the generated-file tasks described above. Modern versions of IntelliJ IDEA import Gradle projects directly and do not rely on these generated files.

@@ -51,7 +51,7 @@ task runBrokenWorker {
     doLast {
         WorkerProcessFactory workerProcessFactory = services.get(WorkerProcessFactory)
         def builder = workerProcessFactory.multiRequestWorker(TestWorkerProcessImpl)
-        builder.getJavaCommand().setWorkingDir(rootDir)
+        builder.getJavaCommand().getWorkingDirectory().set(rootDir)
 
         def workerDaemonProcess = builder.build()
         workerDaemonProcess.start()
@@ -95,7 +95,7 @@ task runBrokenWorker {
     doLast {
         WorkerProcessFactory workerProcessFactory = services.get(WorkerProcessFactory)
         def builder = workerProcessFactory.multiRequestWorker(TestWorkerProcessImpl)
-        builder.getJavaCommand().setWorkingDir(rootDir)
+        builder.getJavaCommand().getWorkingDirectory().set(rootDir)
 
         def workerDaemonProcess = builder.build()
         workerDaemonProcess.start()

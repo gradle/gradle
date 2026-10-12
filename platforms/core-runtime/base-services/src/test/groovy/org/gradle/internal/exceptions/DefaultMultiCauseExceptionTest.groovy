@@ -16,7 +16,7 @@
 
 package org.gradle.internal.exceptions
 
-
+import org.gradle.api.GradleException
 import spock.lang.Specification
 
 class DefaultMultiCauseExceptionTest extends Specification {
@@ -155,6 +155,101 @@ class DefaultMultiCauseExceptionTest extends Specification {
 
         expect:
         parentMultiFail.getResolutions() == ['resolutionParent', 'resolutionChild']
+    }
+
+    def "initCauses replaces resolutions contributed by former causes"() {
+        given:
+        def oldCause = new TestResolutionProviderException('oldResolution')
+        def newCause = new TestResolutionProviderException('newResolution')
+        def multiFail = new DefaultMultiCauseException('failure', oldCause)
+
+        when:
+        multiFail.initCauses([newCause])
+
+        then:
+        multiFail.getResolutions() == ['newResolution']
+    }
+
+    def "initCauses does not duplicate resolutions when a cause is re-added"() {
+        given:
+        def cause = new TestResolutionProviderException('resolution')
+        def multiFail = new DefaultMultiCauseException('failure', cause)
+
+        when:
+        multiFail.initCauses([cause])
+
+        then:
+        multiFail.getResolutions() == ['resolution']
+    }
+
+    def "initCauses preserves resolutions added directly via addResolution"() {
+        given:
+        def cause = new TestResolutionProviderException('causeResolution')
+        def multiFail = new DefaultMultiCauseException('failure', cause)
+        multiFail.addResolution('directResolution')
+
+        when:
+        multiFail.initCauses([new TestResolutionProviderException('newCauseResolution')])
+
+        then:
+        multiFail.getResolutions() == ['directResolution', 'newCauseResolution']
+    }
+
+    def "clearResolutions clears resolutions contributed by causes"() {
+        given:
+        def cause = new TestResolutionProviderException('causeResolution')
+        def multiFail = new DefaultMultiCauseException('failure', cause)
+
+        when:
+        multiFail.clearResolutions()
+
+        then:
+        multiFail.getResolutions().empty
+        multiFail.getCauses() == [cause]
+    }
+
+    def "clearResolutions clears both directly-added resolutions and cause contributions"() {
+        given:
+        def cause = new TestResolutionProviderException('causeResolution')
+        def multiFail = new DefaultMultiCauseException('failure', cause)
+        multiFail.addResolution('directResolution')
+
+        when:
+        multiFail.clearResolutions()
+
+        then:
+        multiFail.getResolutions().empty
+    }
+
+    def "a cause's resolutions are captured when it is attached, not read on every call"() {
+        given:
+        def cause = new GradleException('cause')
+        cause.addResolution('resolutionPresentWhenAttached')
+        def multiFail = new DefaultMultiCauseException('failure', cause)
+
+        when:
+        cause.addResolution('resolutionAddedAfterAttaching')
+
+        then: 'the late addition does not reach the wrapping exception'
+        multiFail.getResolutions() == ['resolutionPresentWhenAttached']
+
+        when: 'the causes are re-attached'
+        multiFail.initCauses([cause])
+
+        then: 'both resolutions are picked up'
+        multiFail.getResolutions() == ['resolutionPresentWhenAttached', 'resolutionAddedAfterAttaching']
+    }
+
+    def "resolutions can be added after clearResolutions"() {
+        given:
+        def multiFail = new DefaultMultiCauseException('failure', new TestResolutionProviderException('causeResolution'))
+        multiFail.clearResolutions()
+
+        when:
+        multiFail.addResolution('replacementResolution')
+
+        then:
+        multiFail.getResolutions() == ['replacementResolution']
     }
 
     private static class TestMultiCauseException extends DefaultMultiCauseException {

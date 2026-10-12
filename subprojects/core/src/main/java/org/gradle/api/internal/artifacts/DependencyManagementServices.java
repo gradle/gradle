@@ -15,7 +15,6 @@
  */
 package org.gradle.api.internal.artifacts;
 
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.internal.service.ServiceRegistration;
@@ -31,7 +30,7 @@ public interface DependencyManagementServices {
     /**
      * Registers the dependency management DSL services.
      */
-    void addDslServices(ServiceRegistration registration, DomainObjectContext domainObjectContext);
+    void addDslServices(ServiceRegistration registration, DependencyManagementParameters params);
 
     /**
      * Create a dependency resolution instance detached from any project instance. As such, the instance
@@ -45,16 +44,16 @@ public interface DependencyManagementServices {
      * @return A new dependency resolution instance. This instance comes with its own configuration container,
      * repositories, attribute schema, and other resolution services.
      */
-    DependencyResolutionServices newDetachedResolver(DomainObjectContext owner);
+    DependencyResolutionServices newDetachedResolver(DependencyManagementParameters params);
 
     /**
-     * Similar to {@link #newDetachedResolver(DomainObjectContext)}, but allows specifying
+     * Similar to {@link #newDetachedResolver(DependencyManagementParameters)}, but allows specifying
      * how files are resolved.
      */
     DependencyResolutionServices newDetachedResolver(
         FileResolver resolver,
         FileCollectionFactory fileCollectionFactory,
-        DomainObjectContext owner
+        DependencyManagementParameters params
     );
 
 }

@@ -23,12 +23,12 @@ import java.io.Serializable;
 import java.util.Collection;
 import java.util.stream.Collectors;
 
-class GradleBuildModel implements Serializable {
+public class GradleBuildModel implements Serializable {
 
-    final GradleBuild model;
-    final Collection<String> failures;
+    public final GradleBuild model;
+    public final Collection<String> failures;
 
-    GradleBuildModel(GradleBuild model, Collection<? extends Failure> failures) {
+    public GradleBuildModel(GradleBuild model, Collection<? extends Failure> failures) {
         this.model = model;
         this.failures = failures.stream().map(Failure::getMessage).collect(Collectors.toList());
     }

@@ -92,15 +92,18 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
             buildOp(displayName: "Configure build (:${buildName})", parent: resolve, details: [buildPath: ":${buildName}"]),
         ]
 
-        def treeGraphOps = operations.all(CalculateTreeTaskGraphBuildOperationType)
-        treeGraphOps == [
-            buildOp(displayName: "Calculate build tree task graph", parent: root)
-        ]
+        // The build-execution pass calculates the build tree task graph under the root "Run build" op.
+        // Under the configuration cache, storing the entry recalculates it, producing a second
+        // "Calculate build tree task graph" (with its own task-graph children) parented under
+        // "Load configuration cache state". That extra op is not part of the source-dependency
+        // hierarchy under test, so scope the assertions to the build-execution graph under root.
+        def buildTreeGraph = operations.all(CalculateTreeTaskGraphBuildOperationType).find { it.parentId == root.id }
+        buildTreeGraph == buildOp(displayName: "Calculate build tree task graph", parent: root)
 
-        def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType)
+        def taskGraphOps = operations.all(CalculateTaskGraphBuildOperationType).findAll { it.parentId == buildTreeGraph.id }
         taskGraphOps == [
-            buildOp(displayName: "Calculate task graph", parent: treeGraphOps[0], details: [buildPath: ":"]),
-            buildOp(displayName: "Calculate task graph (:${buildName})", parent: treeGraphOps[0], details: [buildPath: ":${buildName}"]),
+            buildOp(displayName: "Calculate task graph", parent: buildTreeGraph, details: [buildPath: ":"]),
+            buildOp(displayName: "Calculate task graph (:${buildName})", parent: buildTreeGraph, details: [buildPath: ":${buildName}"]),
         ]
         resolve.parentId == taskGraphOps[0].id
 
@@ -117,8 +120,8 @@ class SourceDependencyBuildOperationIntegrationTest extends AbstractIntegrationS
 
         def graphNotifyOps = operations.all(NotifyTaskGraphWhenReadyBuildOperationType)
         graphNotifyOps == [
-            buildOp(displayName: "Notify task graph whenReady listeners (:${buildName})", parent: treeGraphOps[0], details: [buildPath: ":${buildName}"]),
-            buildOp(displayName: 'Notify task graph whenReady listeners', parent: treeGraphOps[0], details: [buildPath: ':'])
+            buildOp(displayName: "Notify task graph whenReady listeners (:${buildName})", parent: buildTreeGraph, details: [buildPath: ":${buildName}"]),
+            buildOp(displayName: 'Notify task graph whenReady listeners', parent: buildTreeGraph, details: [buildPath: ':'])
         ]
 
         where:

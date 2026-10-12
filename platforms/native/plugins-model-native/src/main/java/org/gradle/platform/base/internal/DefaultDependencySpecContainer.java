@@ -26,6 +26,7 @@ import java.util.Set;
 
 import static java.util.Collections.emptySet;
 
+@SuppressWarnings("deprecation")
 public class DefaultDependencySpecContainer implements DependencySpecContainer {
 
     private final List<DependencySpecBuilder> builders = new LinkedList<DependencySpecBuilder>();

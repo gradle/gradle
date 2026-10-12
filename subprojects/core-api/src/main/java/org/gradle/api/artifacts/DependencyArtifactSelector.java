@@ -34,17 +34,20 @@ import org.jspecify.annotations.Nullable;
 public interface DependencyArtifactSelector {
     /**
      * Returns the type of the artifact to select
+     * @since 6.6
      */
     String getType();
 
     /**
      * Returns the extension of the artifact to select. If it returns null, it will fallback to jar.
+     * @since 6.6
      */
     @Nullable
     String getExtension();
 
     /**
      * Returns the classifier of the artifact to select.
+     * @since 6.6
      */
     @Nullable
     String getClassifier();

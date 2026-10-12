@@ -27,11 +27,13 @@ import org.gradle.api.Incubating;
 public interface SwiftcPlatformToolChain extends NativePlatformToolChain {
     /**
      * Returns the compiler tool.
+     * @since 4.1
      */
     CommandLineToolConfiguration getSwiftCompiler();
 
     /**
      * Returns the linker tool.
+     * @since 4.1
      */
     CommandLineToolConfiguration getLinker();
 

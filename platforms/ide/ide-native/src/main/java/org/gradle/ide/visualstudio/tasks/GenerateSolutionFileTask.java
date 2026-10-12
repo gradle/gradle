@@ -41,6 +41,7 @@ import java.util.List;
 
 /**
  * Task for generating a Visual Studio solution file (e.g. {@code foo.sln}).
+ * @since 1.11
  */
 @SuppressWarnings("this-escape")
 @Incubating
@@ -62,10 +63,20 @@ public abstract class GenerateSolutionFileTask extends GeneratorTask<VisualStudi
         return true;
     }
 
+    /**
+     * Sets the visual studio solution.
+     *
+     * @since 1.11
+     */
     public void setVisualStudioSolution(VisualStudioSolution solution) {
         this.solution = (DefaultVisualStudioSolution) solution;
     }
 
+    /**
+     * Returns the solution.
+     *
+     * @since 1.11
+     */
     @Internal
     public VisualStudioSolution getSolution() {
         return solution;

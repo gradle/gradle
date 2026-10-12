@@ -25,11 +25,19 @@ dependencies {
     }
     implementation(buildLibs.kgp)
     compileOnly(buildLibs.kotlinCompilerEmbeddable) {
-        because("Required by IncubatingApiReportTask")
+        because("Required by IncubatingApiReportTask and Gradle10RemovalReportTask")
     }
     implementation(buildLibs.develocityPlugin) {
         because("Arch-test plugin configures the PTS extension")
     }
 
     testImplementation(buildLibs.commonsLang3)
+    testImplementation(buildLibs.kotlinCompilerEmbeddable) {
+        because("RemovalReportWorkActionTest parses Kotlin sources via KotlinSourceParser")
+    }
+}
+
+configurations.testRuntimeClasspath {
+    // https://youtrack.jetbrains.com/issue/KT-87492/KGP-jar-bundles-a-partial-and-unshaded-copy-of-org.jetbrains.kotlin.com.intellij.-classes-that-collide-with-kotlin-compiler
+    exclude(group = "org.jetbrains.kotlin", module = "kotlin-gradle-plugin")
 }

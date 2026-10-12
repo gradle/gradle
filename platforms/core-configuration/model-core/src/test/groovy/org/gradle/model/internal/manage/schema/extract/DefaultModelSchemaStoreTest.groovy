@@ -28,6 +28,7 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 import java.beans.Introspector
 import java.util.concurrent.CopyOnWriteArraySet
 
+@SuppressWarnings("deprecation")
 class DefaultModelSchemaStoreTest extends ConcurrentSpec {
     def extractor = DefaultModelSchemaExtractor.withDefaultStrategies()
     def store = new DefaultModelSchemaStore(extractor)

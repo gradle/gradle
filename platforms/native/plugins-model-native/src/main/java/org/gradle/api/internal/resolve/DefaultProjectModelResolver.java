@@ -17,30 +17,33 @@
 package org.gradle.api.internal.resolve;
 
 import org.gradle.api.UnknownProjectException;
-import org.gradle.api.internal.project.ProjectInternal;
-import org.gradle.api.internal.project.ProjectRegistry;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.internal.build.BuildProjectRegistry;
 import org.gradle.model.internal.registry.ModelRegistry;
+import org.gradle.util.Path;
 
 public class DefaultProjectModelResolver implements ProjectModelResolver {
-    private final ProjectRegistry delegate;
 
-    public DefaultProjectModelResolver(ProjectRegistry delegate) {
+    private final BuildProjectRegistry delegate;
+
+    public DefaultProjectModelResolver(BuildProjectRegistry delegate) {
         this.delegate = delegate;
     }
 
     @Override
     public ModelRegistry resolveProjectModel(String path) {
-        ProjectInternal projectInternal = delegate.getProjectInternal(path);
-        if (projectInternal == null) {
+        ProjectState projectState = delegate.findProject(Path.path(path));
+        if (projectState == null) {
             throw new UnknownProjectException("Project with path '" + path + "' not found.");
         }
 
         // TODO This is a brain-dead way to ensure that the reference project's model is ready to access
-        return projectInternal.getOwner().fromMutableState(project -> {
+        return projectState.fromMutableState(project -> {
             project.prepareForRuleBasedPlugins();
             project.evaluateUnchecked();
             project.getTasks().discoverTasks();
             return project.getModelRegistry();
         });
     }
+
 }

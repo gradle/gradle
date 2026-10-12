@@ -18,22 +18,27 @@ package org.gradle.external.javadoc;
 
 /**
  * This enum maps to the -public, -protected, -package and -private options of the javadoc executable.
+ * @since 0.7
  */
 public enum JavadocMemberLevel {
     /**
      * Shows only public classes and members.
+     * @since 0.7
      */
     PUBLIC,
     /**
      * Shows only protected and public classes and members. This is the default.
+     * @since 0.7
      */
     PROTECTED,
     /**
      * Shows only package, protected, and public classes and members.
+     * @since 0.7
      */
     PACKAGE,
     /**
      * Shows all classes and members.
+     * @since 0.7
      */
     PRIVATE
 }

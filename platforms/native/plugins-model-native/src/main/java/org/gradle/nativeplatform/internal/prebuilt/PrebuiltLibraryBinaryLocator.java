@@ -20,14 +20,11 @@ import org.gradle.api.DomainObjectSet;
 import org.gradle.api.NamedDomainObjectSet;
 import org.gradle.api.internal.resolve.ProjectModelResolver;
 import org.gradle.model.internal.registry.ModelRegistry;
-import org.gradle.nativeplatform.NativeLibraryBinary;
-import org.gradle.nativeplatform.PrebuiltLibraries;
-import org.gradle.nativeplatform.PrebuiltLibrary;
-import org.gradle.nativeplatform.Repositories;
 import org.gradle.nativeplatform.internal.resolve.LibraryBinaryLocator;
 import org.gradle.nativeplatform.internal.resolve.LibraryIdentifier;
 import org.jspecify.annotations.Nullable;
 
+@SuppressWarnings("deprecation")
 public class PrebuiltLibraryBinaryLocator implements LibraryBinaryLocator {
     private final ProjectModelResolver projectModelResolver;
 
@@ -37,19 +34,19 @@ public class PrebuiltLibraryBinaryLocator implements LibraryBinaryLocator {
 
     @Nullable
     @Override
-    public DomainObjectSet<NativeLibraryBinary> getBinaries(LibraryIdentifier library) {
+    public DomainObjectSet<org.gradle.nativeplatform.NativeLibraryBinary> getBinaries(LibraryIdentifier library) {
         ModelRegistry projectModel = projectModelResolver.resolveProjectModel(library.getProjectPath());
-        Repositories repositories = projectModel.find("repositories", Repositories.class);
+        org.gradle.nativeplatform.Repositories repositories = projectModel.find("repositories", org.gradle.nativeplatform.Repositories.class);
         if (repositories == null) {
             return null;
         }
-        PrebuiltLibrary prebuiltLibrary = getPrebuiltLibrary(repositories.withType(PrebuiltLibraries.class), library.getLibraryName());
+        org.gradle.nativeplatform.PrebuiltLibrary prebuiltLibrary = getPrebuiltLibrary(repositories.withType(org.gradle.nativeplatform.PrebuiltLibraries.class), library.getLibraryName());
         return prebuiltLibrary != null ? prebuiltLibrary.getBinaries() : null;
     }
 
-    private PrebuiltLibrary getPrebuiltLibrary(NamedDomainObjectSet<PrebuiltLibraries> repositories, String libraryName) {
-        for (PrebuiltLibraries prebuiltLibraries : repositories) {
-            PrebuiltLibrary prebuiltLibrary = prebuiltLibraries.resolveLibrary(libraryName);
+    private org.gradle.nativeplatform.PrebuiltLibrary getPrebuiltLibrary(NamedDomainObjectSet<org.gradle.nativeplatform.PrebuiltLibraries> repositories, String libraryName) {
+        for (org.gradle.nativeplatform.PrebuiltLibraries prebuiltLibraries : repositories) {
+            org.gradle.nativeplatform.PrebuiltLibrary prebuiltLibrary = prebuiltLibraries.resolveLibrary(libraryName);
             if (prebuiltLibrary != null) {
                 return prebuiltLibrary;
             }

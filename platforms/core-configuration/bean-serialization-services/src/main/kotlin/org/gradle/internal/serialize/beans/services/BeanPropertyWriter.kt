@@ -20,6 +20,7 @@ import com.google.common.primitives.Primitives.wrap
 import org.gradle.api.internal.IConventionAware
 import org.gradle.internal.configuration.problems.PropertyKind
 import org.gradle.internal.extensions.stdlib.uncheckedCast
+import org.gradle.internal.reflection.access.ObjectOpener
 import org.gradle.internal.serialize.graph.BeanStateWriter
 import org.gradle.internal.serialize.graph.WriteContext
 import org.gradle.internal.serialize.graph.reportUnsupportedFieldType
@@ -29,11 +30,12 @@ import java.lang.reflect.Field
 
 
 class BeanPropertyWriter(
-    beanType: Class<*>
+    beanType: Class<*>,
+    objectOpener: ObjectOpener
 ) : BeanStateWriter {
 
     private
-    val relevantFields = relevantStateOf(beanType)
+    val relevantFields = relevantStateOf(beanType, objectOpener)
 
     /**
      * Serializes a bean by serializing the value of each of its fields.

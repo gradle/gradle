@@ -17,22 +17,14 @@
 package org.gradle.api.publish.ivy.plugins
 
 
-import org.gradle.api.Task
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.ivy.IvyPublication
 import org.gradle.api.publish.ivy.internal.publication.DefaultIvyPublication
 import org.gradle.api.publish.ivy.internal.publication.IvyPublicationInternal
 import org.gradle.internal.xml.XmlTransformer
-import org.gradle.model.ModelMap
-import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor
-import org.gradle.model.internal.registry.RuleContext
-import org.gradle.model.internal.type.ModelTypes
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.TestUtil
 import org.junit.Rule
-import org.junit.rules.TestRule
-import org.junit.runner.Description
-import org.junit.runners.model.Statement
 import spock.lang.Specification
 
 class IvyPublishPluginTest extends Specification {
@@ -40,25 +32,6 @@ class IvyPublishPluginTest extends Specification {
     TestNameTestDirectoryProvider testDir = new TestNameTestDirectoryProvider(getClass())
 
     final def project = TestUtil.create(testDir).rootProject()
-    @Rule SetRuleContext setContext = new SetRuleContext()
-
-    ModelMap<Task> realizeTasks() {
-        project.modelRegistry.find("tasks", ModelTypes.modelMap(Task))
-    }
-
-    static class SetRuleContext implements TestRule {
-        @Override
-        Statement apply(Statement base, Description description) {
-            return new Statement() {
-                @Override
-                void evaluate() throws Throwable {
-                    RuleContext.run(new SimpleModelRuleDescriptor(description.displayName)) {
-                        base.evaluate()
-                    }
-                }
-            }
-        }
-    }
 
     PublishingExtension publishing
 
@@ -85,7 +58,6 @@ class IvyPublishPluginTest extends Specification {
         when:
         publishing.publications.create("test", IvyPublication)
         publishing.repositories { ivy { url = "http://foo.com" } }
-        realizeTasks()
         def publishTask = project.tasks["publishTestPublicationToIvyRepository"]
 
         then:

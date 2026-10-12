@@ -18,7 +18,6 @@ package org.gradle.model.internal.inspect;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.Cast;
-import org.gradle.model.Path;
 import org.gradle.model.internal.core.ModelPath;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.rule.describe.MethodModelRuleDescriptor;
@@ -37,6 +36,7 @@ import java.util.List;
 import static org.gradle.util.internal.CollectionUtils.findFirst;
 
 @ThreadSafe
+@SuppressWarnings("deprecation")
 public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinition<R, S> {
     private static final String[] PARAMETER_DESC;
 
@@ -126,7 +126,7 @@ public class DefaultMethodRuleDefinition<T, R, S> implements MethodRuleDefinitio
     }
 
     private ModelReference<?> reference(List<Annotation> annotations, int i) {
-        Path pathAnnotation = (Path) findFirst(annotations, element -> element.annotationType().equals(Path.class));
+        org.gradle.model.Path pathAnnotation = (org.gradle.model.Path) findFirst(annotations, element -> element.annotationType().equals(org.gradle.model.Path.class));
         ModelPath path = pathAnnotation == null ? null : ModelPath.path(pathAnnotation.value());
         ModelType<?> cast = method.getGenericParameterTypes().get(i);
         return ModelReference.of(path, cast, PARAMETER_DESC[i]);

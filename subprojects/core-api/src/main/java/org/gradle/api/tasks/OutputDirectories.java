@@ -39,6 +39,7 @@ import java.lang.annotation.Target;
  * Otherwise the given directories will be evaluated as per {@link org.gradle.api.Project#files(Object...)}.
  * Task output caching will be disabled if the outputs contain file trees.
  * </p>
+ * @since 1.0
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

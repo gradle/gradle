@@ -38,7 +38,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UncheckedIOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Collections;
 import java.util.Locale;
@@ -58,6 +61,29 @@ public class WrapperGenerator {
     public static String getDistributionUrl(GradleVersion gradleVersion, Wrapper.DistributionType distributionType) {
         String distType = distributionType.name().toLowerCase(Locale.ENGLISH);
         return new DistributionLocator().getDistributionFor(gradleVersion, distType).toASCIIString();
+    }
+
+    public static Wrapper.@Nullable DistributionType getDistributionType(@Nullable String distributionUrl) {
+        if (distributionUrl == null) {
+            return null;
+        }
+        String path;
+        try {
+            path = new URI(distributionUrl).getPath();
+        } catch (URISyntaxException ignored) {
+            return null;
+        }
+        if (path == null) {
+            return null;
+        }
+        String fileName = path.substring(path.lastIndexOf('/') + 1);
+        for (Wrapper.DistributionType distributionType : Wrapper.DistributionType.values()) {
+            String suffix = "-" + distributionType.name().toLowerCase(Locale.ENGLISH) + ".zip";
+            if (fileName.endsWith(suffix)) {
+                return distributionType;
+            }
+        }
+        return null;
     }
 
     public static void generate(
@@ -143,6 +169,36 @@ public class WrapperGenerator {
 
         generator.generateUnixScript(unixScript);
         generator.generateWindowsScript(batchScript);
+        insertSafetyNet(batchScript);
+    }
+
+    private static final String SAFETY_NET_ANCHOR = "setlocal EnableExtensions\r\n\r\n";
+    private static final String SAFETY_NET =
+        "@rem Catch executions from older scripts and ensure they exit cleanly.\r\n" +
+            "@rem This can be removed once we can be reasonably confident that few people\r\n" +
+            "@rem will be migrating directly to this new wrapper.\r\n" +
+            "goto afterSafetyNet\r\n" +
+            (":".repeat(78) + "\r\n").repeat(20) +
+            "goto exitWithErrorLevel\r\n" +
+            ":afterSafetyNet\r\n" +
+            "\r\n";
+
+    private static void insertSafetyNet(File batchScript) {
+        try {
+            String script = new String(Files.readAllBytes(batchScript.toPath()), StandardCharsets.ISO_8859_1);
+            int anchorIndex = script.indexOf(SAFETY_NET_ANCHOR);
+            if (anchorIndex < 0 || script.indexOf(SAFETY_NET_ANCHOR, anchorIndex + 1) >= 0) {
+                throw new GradleException(
+                    "Cannot insert the overwrite safety net into " + batchScript
+                        + ": expected exactly one occurrence of " + SAFETY_NET_ANCHOR.trim()
+                );
+            }
+            int insertionPoint = anchorIndex + SAFETY_NET_ANCHOR.length();
+            String protectedScript = script.substring(0, insertionPoint) + SAFETY_NET + script.substring(insertionPoint);
+            Files.write(batchScript.toPath(), protectedScript.getBytes(StandardCharsets.ISO_8859_1));
+        } catch (IOException e) {
+            throw new UncheckedIOException("Failed to insert the overwrite safety net into " + batchScript, e);
+        }
     }
 
 }

@@ -17,6 +17,9 @@
 package org.gradle.integtests.resolve
 
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.gradle.test.fixtures.server.http.BlockingHttpServer.ExpectedRequest
+import org.junit.Rule
 
 /**
  * Tests variant reselection. i.e. anything of the form:
@@ -27,6 +30,9 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
  * </pre>
  */
 class ArtifactVariantReselectionIntegrationTest extends AbstractIntegrationSpec {
+
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
 
     def "variant reselection excludes artifacts for dependency with explicit artifact"() {
         mavenRepo.module("com", "foo").artifact(classifier: "sources").artifact(classifier: "cls").publish()
@@ -251,6 +257,235 @@ class ArtifactVariantReselectionIntegrationTest extends AbstractIntegrationSpec 
 
         expect:
         succeeds(":resolve")
+    }
+
+    def "withVariantReselection does not traverse dependencies declared on the reselected variant, but a separate configuration does"() {
+        // 'foo:main:1.0' has a "main" variant with its own file and a "docs" variant that has its
+        // own file AND declares a dependency on 'foo:extra-docs:1.0'.
+        // 'foo:extra-docs:1.0' has a "docs" variant with its own file.
+        //
+        // A separate configuration whose request attributes already select the "docs" variant
+        // triggers full graph resolution. Graph resolution traverses the docs variant's
+        // dependency, adding foo:extra-docs:1.0 to the graph; both docs artifacts appear.
+        //
+        // An ArtifactView built on a configuration that requested the "main" variant and
+        // re-selects via withVariantReselection() does NOT re-run graph resolution. It re-picks a
+        // different variant of each component already in the graph. The "docs" variant of
+        // foo:main:1.0 is selected and its own artifact appears, but the docs variant's
+        // dependency on foo:extra-docs:1.0 is never traversed, so that component's artifact is
+        // absent from the view.
+        given:
+        mavenRepo.module("foo", "main", "1.0")
+            .withModuleMetadata()
+            .withoutDefaultVariants()
+            .variant("mainElements", [attr: "main"]) {
+                artifact("main-1.0.jar")
+            }
+            .variant("docsElements", [attr: "docs"]) {
+                artifact("main-1.0-docs.jar")
+                dependsOn("foo:extra-docs:1.0")
+            }
+            .publish()
+
+        mavenRepo.module("foo", "extra-docs", "1.0")
+            .withModuleMetadata()
+            .withoutDefaultVariants()
+            .variant("docsElements", [attr: "docs"]) {
+                artifact("extra-docs-1.0.jar")
+            }
+            .publish()
+
+        buildFile << """
+            def attr = Attribute.of("attr", String)
+
+            repositories { maven { url = "${mavenRepo.uri}" } }
+
+            configurations {
+                mainConf {
+                    canBeConsumed = false
+                    attributes { attribute(attr, "main") }
+                }
+                docsConf {
+                    canBeConsumed = false
+                    attributes { attribute(attr, "docs") }
+                }
+            }
+
+            dependencies {
+                mainConf "foo:main:1.0"
+                docsConf "foo:main:1.0"
+            }
+
+            task resolve {
+                def mainFiles = configurations.mainConf.incoming.files
+                def reselectedViewFiles = configurations.mainConf.incoming.artifactView {
+                    withVariantReselection()
+                    attributes { attribute(attr, "docs") }
+                }.files
+                def docsConfFiles = configurations.docsConf.incoming.files
+
+                doLast {
+                    // Baseline: the main variant's artifact.
+                    assert mainFiles*.name.toSet() == ["main-1.0.jar"].toSet()
+
+                    // Variant reselection picks the docs variant on foo:main:1.0 but does not
+                    // traverse the docs variant's dependency on foo:extra-docs:1.0.
+                    assert reselectedViewFiles*.name.toSet() == ["main-1.0-docs.jar"].toSet()
+
+                    // A separate configuration whose attributes already select the docs variant
+                    // runs full graph resolution and traverses the docs variant's dependency.
+                    assert docsConfFiles*.name.toSet() == ["main-1.0-docs.jar", "extra-docs-1.0.jar"].toSet()
+                }
+            }
+        """
+
+        expect:
+        succeeds(":resolve")
+    }
+
+    def "downloads optional sources and javadoc artifacts of derived variants in parallel"() {
+        given:
+        server.start()
+        executer.requireOwnGradleUserHomeDir("So that artifacts cached by previous executions do not interfere with the expected requests")
+
+        def modules = (1..4).collect {
+            mavenRepo.module("test", "test$it", "1.0").artifact(classifier: "sources").artifact(classifier: "javadoc").publish()
+        }
+
+        buildFile << """
+            plugins {
+                id("java-library")
+            }
+
+            repositories {
+                maven { url = "${server.uri}" }
+            }
+
+            dependencies {
+                implementation("test:test1:1.0")
+                implementation("test:test2:1.0")
+                implementation("test:test3:1.0")
+                implementation("test:test4:1.0")
+            }
+
+            tasks.register("resolve") {
+                def classpath = configurations.runtimeClasspath.incoming.files
+                def sources = configurations.runtimeClasspath.incoming.artifactView {
+                    withVariantReselection()
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.DOCUMENTATION))
+                        attribute(Bundling.BUNDLING_ATTRIBUTE, named(Bundling, Bundling.EXTERNAL))
+                        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, named(DocsType, DocsType.SOURCES))
+                    }
+                }.files
+                def javadoc = configurations.runtimeClasspath.incoming.artifactView {
+                    withVariantReselection()
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.DOCUMENTATION))
+                        attribute(Bundling.BUNDLING_ATTRIBUTE, named(Bundling, Bundling.EXTERNAL))
+                        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, named(DocsType, DocsType.JAVADOC))
+                    }
+                }.files
+                if ($declaredDependencies) {
+                    dependsOn(classpath, sources, javadoc)
+                }
+                doLast {
+                    println("classpath: " + classpath*.name.sort())
+                    println("sources: " + sources*.name.sort())
+                    println("javadoc: " + javadoc*.name.sort())
+                }
+            }
+        """
+
+        // POMs are downloaded in parallel during graph resolution
+        server.expectConcurrent(modules.collect { m -> server.get(m.pom.path).sendFile(m.pom.file) } as ExpectedRequest[])
+
+        // Each artifact set is resolved separately, and the artifacts of each set are downloaded in parallel.
+        // The order in which the sets are resolved is not important.
+        server.expectInAnyOrder(
+            server.concurrent(modules.collect { m -> m.artifact.path } as String[]),
+            server.concurrent(modules.collect { m -> m.getArtifact(classifier: "sources").path } as String[]),
+            server.concurrent(modules.collect { m -> m.getArtifact(classifier: "javadoc").path } as String[])
+        )
+
+        when:
+        executer.withArguments("--max-workers", "4")
+        succeeds(":resolve")
+
+        then:
+        outputContains("classpath: [test1-1.0.jar, test2-1.0.jar, test3-1.0.jar, test4-1.0.jar]")
+        outputContains("sources: [test1-1.0-sources.jar, test2-1.0-sources.jar, test3-1.0-sources.jar, test4-1.0-sources.jar]")
+        outputContains("javadoc: [test1-1.0-javadoc.jar, test2-1.0-javadoc.jar, test3-1.0-javadoc.jar, test4-1.0-javadoc.jar]")
+
+        where:
+        declaredDependencies << [false, true]
+    }
+
+    def "does not apply transforms to reselected optional artifacts that do not exist"() {
+        given:
+        mavenRepo.module("test", "with-sources", "1.0").artifact(classifier: "sources").publish()
+        mavenRepo.module("test", "without-sources", "1.0").publish()
+
+        buildFile << """
+            import org.gradle.api.artifacts.transform.TransformParameters
+
+            plugins {
+                id("java-library")
+            }
+
+            ${mavenTestRepository()}
+
+            dependencies {
+                implementation("test:with-sources:1.0")
+                implementation("test:without-sources:1.0")
+            }
+
+            abstract class FileSizer implements TransformAction<TransformParameters.None> {
+                @InputArtifact
+                abstract Provider<FileSystemLocation> getInputArtifact()
+
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    def output = outputs.file(input.name + ".txt")
+                    println("Transforming \${input.name} to \${output.name}")
+                    output.text = String.valueOf(input.length())
+                }
+            }
+
+            def artifactType = Attribute.of("artifactType", String)
+            dependencies {
+                registerTransform(FileSizer) {
+                    from.attribute(artifactType, "jar")
+                    to.attribute(artifactType, "size")
+                }
+            }
+
+            tasks.register("resolve") {
+                def sizedSources = configurations.runtimeClasspath.incoming.artifactView {
+                    withVariantReselection()
+                    attributes {
+                        attribute(Usage.USAGE_ATTRIBUTE, named(Usage, Usage.JAVA_RUNTIME))
+                        attribute(Category.CATEGORY_ATTRIBUTE, named(Category, Category.DOCUMENTATION))
+                        attribute(Bundling.BUNDLING_ATTRIBUTE, named(Bundling, Bundling.EXTERNAL))
+                        attribute(DocsType.DOCS_TYPE_ATTRIBUTE, named(DocsType, DocsType.SOURCES))
+                        attribute(artifactType, "size")
+                    }
+                }.files
+                doLast {
+                    println("sources: " + sizedSources*.name.sort())
+                }
+            }
+        """
+
+        when:
+        succeeds(":resolve")
+
+        then:
+        outputContains("sources: [with-sources-1.0-sources.jar.txt]")
+        output.count("Transforming") == 1
+        outputContains("Transforming with-sources-1.0-sources.jar to with-sources-1.0-sources.jar.txt")
     }
 
     private static String multiFeatureProducer() {

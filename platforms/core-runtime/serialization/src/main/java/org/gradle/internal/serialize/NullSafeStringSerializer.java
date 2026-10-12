@@ -15,14 +15,16 @@
  */
 package org.gradle.internal.serialize;
 
-public class NullSafeStringSerializer implements Serializer<String> {
+import org.jspecify.annotations.Nullable;
+
+public class NullSafeStringSerializer implements Serializer<@Nullable String> {
     @Override
-    public String read(Decoder decoder) throws Exception {
+    public @Nullable String read(Decoder decoder) throws Exception {
         return decoder.readNullableString();
     }
 
     @Override
-    public void write(Encoder encoder, String value) throws Exception {
+    public void write(Encoder encoder, @Nullable String value) throws Exception {
         encoder.writeNullableString(value);
     }
 }

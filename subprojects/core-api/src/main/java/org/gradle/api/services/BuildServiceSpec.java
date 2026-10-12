@@ -32,6 +32,7 @@ public interface BuildServiceSpec<P extends BuildServiceParameters> {
      *
      * <p>When the service declares {@link BuildServiceParameters.None} as its parameters type,
      * this returns the {@link BuildServiceParameters.None} singleton.</p>
+     * @since 6.1
      */
     P getParameters();
 
@@ -40,6 +41,7 @@ public interface BuildServiceSpec<P extends BuildServiceParameters> {
      *
      * <p>The action is invoked even when the service declares {@link BuildServiceParameters.None} as its
      * parameters type; in that case it receives the {@link BuildServiceParameters.None} singleton.</p>
+     * @since 6.1
      */
     void parameters(Action<? super P> configureAction);
 
@@ -53,6 +55,7 @@ public interface BuildServiceSpec<P extends BuildServiceParameters> {
      *
      * @see ServiceReference
      * @see org.gradle.api.Task#usesService(Provider)
+     * @since 6.1
      */
     Property<Integer> getMaxParallelUsages();
 }

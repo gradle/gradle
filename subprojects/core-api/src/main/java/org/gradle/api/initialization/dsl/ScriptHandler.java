@@ -42,10 +42,12 @@ import java.net.URI;
  * <p>For most external dependencies you will also need to declare one or more repositories where the dependencies can
  * be found, using the {@link org.gradle.api.artifacts.dsl.RepositoryHandler} provided by {@link
  * #getRepositories()}.</p>
+ * @since 0.7
  */
 public interface ScriptHandler {
     /**
      * The name of the configuration used to assemble the script classpath.
+     * @since 0.7
      */
     String CLASSPATH_CONFIGURATION = "classpath";
 
@@ -53,6 +55,7 @@ public interface ScriptHandler {
      * Returns the file containing the source for the script, if any.
      *
      * @return The source file. Returns null if the script source is not a file.
+     * @since 0.9
      */
     @Nullable
     File getSourceFile();
@@ -61,6 +64,7 @@ public interface ScriptHandler {
      * Returns the URI for the script source, if any.
      *
      * @return The source URI. Returns null if the script source has no URI.
+     * @since 0.9
      */
     @Nullable
     URI getSourceURI();
@@ -69,6 +73,7 @@ public interface ScriptHandler {
      * Returns a handler to create repositories which are used for retrieving dependencies for the script classpath.
      *
      * @return the repository handler. Never returns null.
+     * @since 0.7
      */
     RepositoryHandler getRepositories();
 
@@ -78,6 +83,7 @@ public interface ScriptHandler {
      * delegate.
      *
      * @param configureClosure the closure to use to configure the repositories.
+     * @since 0.7
      */
     void repositories(@DelegatesTo(value=RepositoryHandler.class, strategy=Closure.DELEGATE_FIRST) Closure configureClosure);
 
@@ -96,6 +102,7 @@ public interface ScriptHandler {
      *
      * @return the dependency handler. Never returns null.
      * @see #getConfigurations()
+     * @since 0.7
      */
     DependencyHandler getDependencies();
 
@@ -104,6 +111,7 @@ public interface ScriptHandler {
      * this handler. The {@link DependencyHandler} is passed to the closure as the closure's delegate.
      *
      * @param configureClosure the closure to use to configure the dependencies.
+     * @since 0.7
      */
     void dependencies(@DelegatesTo(value=DependencyHandler.class, strategy=Closure.DELEGATE_FIRST) Closure configureClosure);
 
@@ -112,6 +120,7 @@ public interface ScriptHandler {
      * #CLASSPATH_CONFIGURATION}.
      *
      * @return The configuration of this handler.
+     * @since 0.7
      */
     ConfigurationContainer getConfigurations();
 
@@ -156,6 +165,7 @@ public interface ScriptHandler {
      * Returns the {@code ClassLoader} which contains the classpath for this script.
      *
      * @return The ClassLoader. Never returns null.
+     * @since 0.7
      */
     ClassLoader getClassLoader();
 }

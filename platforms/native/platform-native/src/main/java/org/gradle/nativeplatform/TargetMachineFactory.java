@@ -24,21 +24,25 @@ package org.gradle.nativeplatform;
 public interface TargetMachineFactory {
     /**
      * Returns a {@link TargetMachineBuilder} for the Windows operating system family and the architecture of the current host.
+     * @since 5.1
      */
     TargetMachineBuilder getWindows();
 
     /**
      * Returns a {@link TargetMachineBuilder} for the Linux operating system family and the architecture of the current host.
+     * @since 5.1
      */
     TargetMachineBuilder getLinux();
 
     /**
      * Returns a {@link TargetMachineBuilder} for the macOS operating system family and the architecture of the current host.
+     * @since 5.1
      */
     TargetMachineBuilder getMacOS();
 
     /**
      * Returns a {@link TargetMachineBuilder} representing the specified operating system and the architecture of the current host.
+     * @since 5.1
      */
     TargetMachineBuilder os(String operatingSystemFamily);
 }

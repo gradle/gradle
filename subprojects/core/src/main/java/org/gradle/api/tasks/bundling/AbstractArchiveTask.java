@@ -46,6 +46,7 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
 
 /**
  * {@code AbstractArchiveTask} is the base class for all archive tasks.
+ * @since 0.7
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class AbstractArchiveTask extends AbstractCopyTask {
@@ -59,6 +60,11 @@ public abstract class AbstractArchiveTask extends AbstractCopyTask {
     private final Property<Boolean> archivePreserveFileTimestamps;
     private final Property<Boolean> archiveReproducibleFileOrder;
 
+    /**
+     * Creates a new {@code AbstractArchiveTask}.
+     *
+     * @since 0.8
+     */
     @SuppressWarnings("this-escape")
     public AbstractArchiveTask() {
         ObjectFactory objectFactory = getProject().getObjects();

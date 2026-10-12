@@ -16,13 +16,13 @@
 package org.gradle.api.internal.artifacts;
 
 import org.gradle.api.artifacts.ResolveException;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationsProvider;
 import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformUpstreamDependenciesResolver;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.internal.model.CalculatedValue;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 

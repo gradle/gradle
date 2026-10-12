@@ -34,9 +34,15 @@ import java.util.concurrent.Callable;
 
 /**
  * Links a binary shared library from object files and imported libraries.
+ * @since 2.2
  */
 @DisableCachingByDefault(because = "Not made cacheable, yet")
 public abstract class LinkSharedLibrary extends AbstractLinkTask {
+    /**
+     * Creates a new {@code LinkSharedLibrary}.
+     *
+     * @since 2.2
+     */
     @SuppressWarnings("this-escape")
     public LinkSharedLibrary() {
         getImportLibrary().convention(getProject().getLayout().getProjectDirectory().file(getProject().getProviders().provider(new Callable<String>() {

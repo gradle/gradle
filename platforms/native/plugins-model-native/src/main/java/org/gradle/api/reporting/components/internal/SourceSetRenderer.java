@@ -19,28 +19,24 @@ package org.gradle.api.reporting.components.internal;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.file.SourceDirectorySet;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
-import org.gradle.language.base.DependentSourceSet;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.platform.base.DependencySpec;
-import org.gradle.platform.base.DependencySpecContainer;
-import org.gradle.platform.base.ProjectDependencySpec;
 import org.gradle.reporting.ReportRenderer;
 
 import java.io.File;
 import java.util.Comparator;
 import java.util.Set;
 
-class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuilder> {
-    static final Comparator<LanguageSourceSet> SORT_ORDER = (o1, o2) -> o1.getDisplayName().compareToIgnoreCase(o2.getDisplayName());
+@SuppressWarnings("deprecation")
+class SourceSetRenderer extends ReportRenderer<org.gradle.language.base.LanguageSourceSet, TextReportBuilder> {
+    static final Comparator<org.gradle.language.base.LanguageSourceSet> SORT_ORDER = (o1, o2) -> o1.getDisplayName().compareToIgnoreCase(o2.getDisplayName());
 
     @Override
-    public void render(LanguageSourceSet sourceSet, TextReportBuilder builder) {
+    public void render(org.gradle.language.base.LanguageSourceSet sourceSet, TextReportBuilder builder) {
         builder.heading(StringUtils.capitalize(sourceSet.getDisplayName()));
         renderSourceSetDirectories(sourceSet, builder);
         renderSourceSetDependencies(sourceSet, builder);
     }
 
-    private void renderSourceSetDirectories(LanguageSourceSet sourceSet, TextReportBuilder builder) {
+    private void renderSourceSetDirectories(org.gradle.language.base.LanguageSourceSet sourceSet, TextReportBuilder builder) {
         Set<File> srcDirs = sourceSet.getSource().getSrcDirs();
         if (srcDirs.isEmpty()) {
             builder.item("No source directories");
@@ -64,14 +60,14 @@ class SourceSetRenderer extends ReportRenderer<LanguageSourceSet, TextReportBuil
         }
     }
 
-    private void renderSourceSetDependencies(LanguageSourceSet sourceSet, TextReportBuilder builder) {
-        if (sourceSet instanceof DependentSourceSet) {
-            DependencySpecContainer dependencies = ((DependentSourceSet) sourceSet).getDependencies();
+    private void renderSourceSetDependencies(org.gradle.language.base.LanguageSourceSet sourceSet, TextReportBuilder builder) {
+        if (sourceSet instanceof org.gradle.language.base.DependentSourceSet) {
+            org.gradle.platform.base.DependencySpecContainer dependencies = ((org.gradle.language.base.DependentSourceSet) sourceSet).getDependencies();
             if (!dependencies.isEmpty()) {
-                builder.collection("dependencies", dependencies.getDependencies(), new ReportRenderer<DependencySpec, TextReportBuilder>() {
+                builder.collection("dependencies", dependencies.getDependencies(), new ReportRenderer<org.gradle.platform.base.DependencySpec, TextReportBuilder>() {
                     @Override
-                    public void render(DependencySpec model, TextReportBuilder output) {
-                        if (model instanceof ProjectDependencySpec) {
+                    public void render(org.gradle.platform.base.DependencySpec model, TextReportBuilder output) {
+                        if (model instanceof org.gradle.platform.base.ProjectDependencySpec) {
                             output.item(model.getDisplayName());
                         }
                     }

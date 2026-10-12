@@ -17,10 +17,6 @@
 package org.gradle.platform.base.internal.registry;
 
 import com.google.common.collect.ImmutableList;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.base.plugins.ComponentModelBasePlugin;
-import org.gradle.language.base.plugins.LanguageBasePlugin;
-import org.gradle.model.InvalidModelRuleDeclarationException;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelReference;
 import org.gradle.model.internal.core.ModelView;
@@ -35,39 +31,31 @@ import org.gradle.model.internal.inspect.ModelRuleInvoker;
 import org.gradle.model.internal.manage.schema.ModelSchema;
 import org.gradle.model.internal.manage.schema.ModelSchemaStore;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.ComponentSpec;
-import org.gradle.platform.base.ComponentType;
-import org.gradle.platform.base.InvalidModelException;
-import org.gradle.platform.base.SourceComponentSpec;
-import org.gradle.platform.base.TypeBuilder;
-import org.gradle.platform.base.VariantComponentSpec;
 import org.gradle.platform.base.component.internal.ComponentSpecFactory;
 import org.gradle.platform.base.internal.builder.TypeBuilderInternal;
-import org.gradle.platform.base.plugins.BinaryBasePlugin;
-import org.gradle.platform.base.plugins.ComponentBasePlugin;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
 
 import static java.util.Collections.emptyList;
 
-public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<ComponentType> {
+@SuppressWarnings("deprecation")
+public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<org.gradle.platform.base.ComponentType> {
 
     public static final ModelType<ComponentSpecFactory> COMPONENT_SPEC_FACTORY_CLASS = ModelType.of(ComponentSpecFactory.class);
     private static final ModelReference<ComponentSpecFactory> COMPONENT_SPEC_FACTORY_MODEL_REFERENCE = ModelReference.of(COMPONENT_SPEC_FACTORY_CLASS);
-    private static final ModelType<ComponentSpec> COMPONENT_SPEC_MODEL_TYPE = ModelType.of(ComponentSpec.class);
-    private static final ModelType<LanguageSourceSet> LANGUAGE_SOURCE_SET_MODEL_TYPE = ModelType.of(LanguageSourceSet.class);
-    private static final ModelType<BinarySpec> BINARY_SPEC_MODEL_TYPE = ModelType.of(BinarySpec.class);
-    private static final ModelType<SourceComponentSpec> SOURCE_COMPONENT_SPEC_MODEL_TYPE = ModelType.of(SourceComponentSpec.class);
-    private static final ModelType<VariantComponentSpec> VARIANT_COMPONENT_SPEC_MODEL_TYPE = ModelType.of(VariantComponentSpec.class);
+    private static final ModelType<org.gradle.platform.base.ComponentSpec> COMPONENT_SPEC_MODEL_TYPE = ModelType.of(org.gradle.platform.base.ComponentSpec.class);
+    private static final ModelType<org.gradle.language.base.LanguageSourceSet> LANGUAGE_SOURCE_SET_MODEL_TYPE = ModelType.of(org.gradle.language.base.LanguageSourceSet.class);
+    private static final ModelType<org.gradle.platform.base.BinarySpec> BINARY_SPEC_MODEL_TYPE = ModelType.of(org.gradle.platform.base.BinarySpec.class);
+    private static final ModelType<org.gradle.platform.base.SourceComponentSpec> SOURCE_COMPONENT_SPEC_MODEL_TYPE = ModelType.of(org.gradle.platform.base.SourceComponentSpec.class);
+    private static final ModelType<org.gradle.platform.base.VariantComponentSpec> VARIANT_COMPONENT_SPEC_MODEL_TYPE = ModelType.of(org.gradle.platform.base.VariantComponentSpec.class);
 
     private static class ComponentTypeRegistrationInfo {
         private final String modelName;
-        private final ModelType<? extends ComponentSpec> baseInterface;
+        private final ModelType<? extends org.gradle.platform.base.ComponentSpec> baseInterface;
         private final List<Class<?>> requiredPlugins;
 
-        private ComponentTypeRegistrationInfo(String modelName, ModelType<? extends ComponentSpec> baseInterface, Class<?> requiredPlugins) {
+        private ComponentTypeRegistrationInfo(String modelName, ModelType<? extends org.gradle.platform.base.ComponentSpec> baseInterface, Class<?> requiredPlugins) {
             this.modelName = modelName;
             this.baseInterface = baseInterface;
             this.requiredPlugins = ImmutableList.<Class<?>>of(requiredPlugins);
@@ -88,15 +76,15 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
         validateIsVoidMethod(ruleDefinition, context);
 
         if (ruleDefinition.getReferences().size() != 1) {
-            context.add(ruleDefinition, String.format("A method %s must have a single parameter of type %s.", getDescription(), TypeBuilder.class.getName()));
+            context.add(ruleDefinition, String.format("A method %s must have a single parameter of type %s.", getDescription(), org.gradle.platform.base.TypeBuilder.class.getName()));
             return null;
         }
 
         ModelReference<?> subjectReference = ruleDefinition.getSubjectReference();
         ModelType<?> subjectType = subjectReference.getType();
         Class<?> rawSubjectType = subjectType.getRawClass();
-        if (!rawSubjectType.equals(TypeBuilder.class)) {
-            context.add(ruleDefinition, String.format("A method %s must have a single parameter of type %s.", getDescription(), TypeBuilder.class.getName()));
+        if (!rawSubjectType.equals(org.gradle.platform.base.TypeBuilder.class)) {
+            context.add(ruleDefinition, String.format("A method %s must have a single parameter of type %s.", getDescription(), org.gradle.platform.base.TypeBuilder.class.getName()));
             return null;
         }
 
@@ -123,15 +111,15 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
 
     private ComponentTypeRegistrationInfo componentTypeRegistrationInfoFor(ModelType<?> builtType) {
         if (LANGUAGE_SOURCE_SET_MODEL_TYPE.isAssignableFrom(builtType)) {
-            return new ComponentTypeRegistrationInfo("language", LANGUAGE_SOURCE_SET_MODEL_TYPE, LanguageBasePlugin.class);
+            return new ComponentTypeRegistrationInfo("language", LANGUAGE_SOURCE_SET_MODEL_TYPE, org.gradle.language.base.plugins.LanguageBasePlugin.class);
         }
         if (BINARY_SPEC_MODEL_TYPE.isAssignableFrom(builtType)) {
-            return new ComponentTypeRegistrationInfo("binary", BINARY_SPEC_MODEL_TYPE, BinaryBasePlugin.class);
+            return new ComponentTypeRegistrationInfo("binary", BINARY_SPEC_MODEL_TYPE, org.gradle.platform.base.plugins.BinaryBasePlugin.class);
         }
         if (COMPONENT_SPEC_MODEL_TYPE.isAssignableFrom(builtType)) {
             Class<?> requiredPlugin = SOURCE_COMPONENT_SPEC_MODEL_TYPE.isAssignableFrom(builtType) || VARIANT_COMPONENT_SPEC_MODEL_TYPE.isAssignableFrom(builtType)
-                ? ComponentModelBasePlugin.class
-                : ComponentBasePlugin.class;
+                ? org.gradle.language.base.plugins.ComponentModelBasePlugin.class
+                : org.gradle.platform.base.plugins.ComponentBasePlugin.class;
             return new ComponentTypeRegistrationInfo("component", COMPONENT_SPEC_MODEL_TYPE, requiredPlugin);
         }
         return null;
@@ -151,16 +139,16 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
     private void validateInternalViewsAreInterfaces(TypeBuilderInternal<?> builder) {
         for (Class<?> internalView : builder.getInternalViews()) {
             if (!internalView.isInterface()) {
-                throw new InvalidModelException(String.format("Internal view %s must be an interface.", internalView.getName()));
+                throw new org.gradle.platform.base.InvalidModelException(String.format("Internal view %s must be an interface.", internalView.getName()));
             }
         }
     }
 
     private class ExtractedTypeRule extends AbstractExtractedModelRule {
         private final ComponentTypeRegistrationInfo info;
-        private final ModelType<? extends ComponentSpec> modelType;
+        private final ModelType<? extends org.gradle.platform.base.ComponentSpec> modelType;
 
-        public ExtractedTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ComponentTypeRegistrationInfo info, ModelType<? extends ComponentSpec> modelType) {
+        public ExtractedTypeRule(MethodRuleDefinition<?, ?> ruleDefinition, ComponentTypeRegistrationInfo info, ModelType<? extends org.gradle.platform.base.ComponentSpec> modelType) {
             super(ruleDefinition);
             this.info = info;
             this.modelType = modelType;
@@ -191,21 +179,21 @@ public class ComponentTypeModelRuleExtractor extends AbstractAnnotationDrivenCom
             @Override
             protected void execute(ModelRuleInvoker<?> invoker, ComponentSpecFactory registry, List<ModelView<?>> inputs) {
                 try {
-                    ModelSchema<? extends ComponentSpec> schema = schemaStore.getSchema(modelType);
-                    TypeBuilderInternal<? extends ComponentSpec> builder = new DefaultTypeBuilder<ComponentSpec>(getAnnotationType(), schema);
+                    ModelSchema<? extends org.gradle.platform.base.ComponentSpec> schema = schemaStore.getSchema(modelType);
+                    TypeBuilderInternal<? extends org.gradle.platform.base.ComponentSpec> builder = new DefaultTypeBuilder<org.gradle.platform.base.ComponentSpec>(getAnnotationType(), schema);
                     invoker.invoke(builder);
                     ModelType<?> implModelType = determineImplementationType(builder);
                     registry.register(modelType, builder.getInternalViews(), implModelType, getDescriptor());
-                } catch (InvalidModelException e) {
+                } catch (org.gradle.platform.base.InvalidModelException e) {
                     throw invalidModelRule(getRuleDefinition(), info.modelName, e);
                 }
             }
 
-            private InvalidModelRuleDeclarationException invalidModelRule(MethodRuleDefinition<?, ?> ruleDefinition, String modelName, InvalidModelException e) {
+            private org.gradle.model.InvalidModelRuleDeclarationException invalidModelRule(MethodRuleDefinition<?, ?> ruleDefinition, String modelName, org.gradle.platform.base.InvalidModelException e) {
                 StringBuilder sb = new StringBuilder();
                 ruleDefinition.getDescriptor().describeTo(sb);
                 sb.append(String.format(" is not a valid %s model rule method.", modelName));
-                return new InvalidModelRuleDeclarationException(sb.toString(), e);
+                return new org.gradle.model.InvalidModelRuleDeclarationException(sb.toString(), e);
             }
         }
     }

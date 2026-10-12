@@ -16,11 +16,10 @@
 
 package org.gradle.language.nativeplatform.internal;
 
-import org.gradle.language.nativeplatform.DependentSourceSet;
-
 import java.io.File;
 
-public interface DependentSourceSetInternal extends DependentSourceSet {
+@SuppressWarnings("deprecation")
+public interface DependentSourceSetInternal extends org.gradle.language.nativeplatform.DependentSourceSet {
     File getPrefixHeaderFile();
 
     void setPrefixHeaderFile(File prefixHeaderFile);

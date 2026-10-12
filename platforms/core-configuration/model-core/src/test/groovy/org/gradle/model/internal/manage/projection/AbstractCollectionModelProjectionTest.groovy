@@ -29,6 +29,7 @@ import org.gradle.util.internal.ClosureBackedAction
 
 import static org.gradle.model.internal.core.NodeInitializerContext.forType
 
+@SuppressWarnings("deprecation")
 abstract class AbstractCollectionModelProjectionTest<T, C extends Collection<T>> extends ProjectRegistrySpec {
 
     def collectionPath = ModelPath.path("collection")

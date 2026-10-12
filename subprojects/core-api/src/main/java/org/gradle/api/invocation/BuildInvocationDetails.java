@@ -44,6 +44,7 @@ public interface BuildInvocationDetails {
      *
      * The build is considered to have started as soon as the user, or some tool, initiated the build.
      * During continuous build, subsequent builds are timed from when changes are noticed.
+     * @since 5.0
      */
     long getBuildStartedTime();
 }

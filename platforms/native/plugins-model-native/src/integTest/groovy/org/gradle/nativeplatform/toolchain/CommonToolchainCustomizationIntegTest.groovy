@@ -24,6 +24,7 @@ public class CommonToolchainCustomizationIntegTest extends AbstractInstalledTool
     def helloWorldApp = new CppHelloWorldApp()
 
     def "can add action to tool chain that modifies tool arguments prior to execution"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         when:
         helloWorldApp.executable.writeSources(file("src/main"))
         helloWorldApp.writeSources(file("src/main"))

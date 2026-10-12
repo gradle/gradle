@@ -22,6 +22,7 @@ import java.util.Set;
 
 /**
  * A configuration included in an {@link IvyPublication}, which will be published in the ivy descriptor file generated.
+ * @since 1.5
  */
 public interface IvyConfiguration extends Named {
 
@@ -34,6 +35,7 @@ public interface IvyConfiguration extends Named {
      *     <li>*(private) - all other private configurations</li>
      * </ul>
      * @param configuration The extended configuration name
+     * @since 1.5
      */
     void extend(String configuration);
 
@@ -41,6 +43,7 @@ public interface IvyConfiguration extends Named {
      * The set of names of extended configurations, added via {@link #extend(String)}.
      *
      * @return The names of extended configurations.
+     * @since 1.5
      */
     Set<String> getExtends();
 }

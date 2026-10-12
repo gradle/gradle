@@ -33,7 +33,7 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
     static final int NULL_STRING = 0;
     static final int NEW_STRING = 1;
 
-    private Object2IntMap<String> strings;
+    private @Nullable Object2IntMap<String> strings;
 
     private final Output output;
 
@@ -115,19 +115,15 @@ public class StringDeduplicatingKryoBackedEncoder extends AbstractEncoder implem
     private void writeNonnullString(CharSequence value) {
         String key = value.toString();
         if (strings == null) {
-            strings = new Object2IntOpenHashMap<String>(1024);
-            writeNewString(key);
+            strings = new Object2IntOpenHashMap<>(1024);
         } else {
             int index = strings.getOrDefault(key, -1);
-            if (index == -1) {
-                writeNewString(key);
-            } else {
+            if (index != -1) {
                 writeStringIndex(index);
+                return;
             }
         }
-    }
 
-    private void writeNewString(String key) {
         /*
           Actual stored string indices start from 2 so `0` and `1` can be used as special codes:
           - 0 for null

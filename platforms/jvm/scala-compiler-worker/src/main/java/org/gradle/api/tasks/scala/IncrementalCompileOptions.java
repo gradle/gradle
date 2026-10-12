@@ -26,6 +26,7 @@ import javax.inject.Inject;
  * Options for incremental compilation of Scala code. Only used for compilation with Zinc.
  *
  * This is not sent to the compiler daemon as options.
+ * @since 1.3
  */
 public abstract class IncrementalCompileOptions {
     @Inject
@@ -35,6 +36,7 @@ public abstract class IncrementalCompileOptions {
 
     /**
      * Returns the file path where results of code analysis are to be stored.
+     * @since 1.3
      */
     @LocalState
     public abstract RegularFileProperty getAnalysisFile();
@@ -48,11 +50,12 @@ public abstract class IncrementalCompileOptions {
     @LocalState
     public abstract RegularFileProperty getClassfileBackupDir();
 
+    // only an input for other task instances
     /**
      * Returns the directory or archive path by which the code produced by this task
      * is published to other {@code ScalaCompile} tasks.
+     * @since 1.3
      */
-    // only an input for other task instances
     @Internal
     public abstract RegularFileProperty getPublishedCode();
 }

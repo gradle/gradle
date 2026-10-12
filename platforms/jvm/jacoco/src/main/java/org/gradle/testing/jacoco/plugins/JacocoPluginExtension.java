@@ -49,9 +49,15 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
  * Extension including common properties and methods for Jacoco.
+ * @since 1.6
  */
 public abstract class JacocoPluginExtension {
 
+    /**
+     * The task extension name.
+     *
+     * @since 2.14
+     */
     public static final String TASK_EXTENSION_NAME = "jacoco";
 
     private static final Logger LOGGER = Logging.getLogger(JacocoPluginExtension.class);
@@ -81,12 +87,18 @@ public abstract class JacocoPluginExtension {
 
     /**
      * Version of Jacoco JARs to use.
+     * @since 1.6
      */
     @ToBeReplacedByLazyProperty
     public String getToolVersion() {
         return toolVersion;
     }
 
+    /**
+     * Sets the tool version.
+     *
+     * @since 1.6
+     */
     public void setToolVersion(String toolVersion) {
         this.toolVersion = toolVersion;
     }
@@ -105,6 +117,7 @@ public abstract class JacocoPluginExtension {
      *
      * @param task the task to apply Jacoco to.
      * @see JacocoPluginExtension#TASK_EXTENSION_NAME
+     * @since 2.14
      */
     public <T extends Task & JavaForkOptions> void applyTo(final T task) {
         final String taskName = task.getName();
@@ -188,6 +201,7 @@ public abstract class JacocoPluginExtension {
      * Applies Jacoco to all of the given tasks.
      *
      * @param tasks the tasks to apply Jacoco to
+     * @since 1.6
      */
     @SuppressWarnings("unchecked")
     public <T extends Task & JavaForkOptions> void applyTo(TaskCollection<T> tasks) {

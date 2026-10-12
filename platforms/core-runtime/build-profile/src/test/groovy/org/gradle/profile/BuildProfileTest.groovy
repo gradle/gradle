@@ -15,13 +15,13 @@
  */
 package org.gradle.profile
 
-import org.gradle.StartParameter
+import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.tasks.TaskState
 import org.gradle.internal.buildevents.BuildStartedTime
 import spock.lang.Specification
 
 class BuildProfileTest extends Specification {
-    private profile = new BuildProfile(new StartParameter(), new BuildStartedTime(0))
+    private profile = new BuildProfile(new StartParameterInternal(), new BuildStartedTime(0))
 
     def "creates dependency set profile on first get"() {
         expect:
@@ -65,7 +65,7 @@ class BuildProfileTest extends Specification {
 
     def "contains build description"() {
         given:
-        def param = new StartParameter()
+        def param = new StartParameterInternal()
         param.setTaskNames(["foo", "bar"])
         param.setExcludedTaskNames(["one", "two"])
 
@@ -78,7 +78,7 @@ class BuildProfileTest extends Specification {
 
     def "build description looks nice even if no tasks specified"() {
         given:
-        def param = new StartParameter()
+        def param = new StartParameterInternal()
 
         when:
         profile = new BuildProfile(param, new BuildStartedTime(0))
@@ -99,7 +99,7 @@ class BuildProfileTest extends Specification {
         given:
         def buildStartedAt = 1000L
         def buildFinishedAt = 2000L
-        def startParameter = new StartParameter()
+        def startParameter = new StartParameterInternal()
         def buildStartedTime = new BuildStartedTime(buildStartedAt)
 
         when:

@@ -45,6 +45,7 @@ import java.lang.annotation.Target;
  * <p>
  * Using {@code @Optional} alone, without an accompanying input or output annotation, is a validation error.
  * If you want to express that the property should not be an input or output, you should mark it with {@link Internal} which implies optionality.
+ * @since 0.8
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

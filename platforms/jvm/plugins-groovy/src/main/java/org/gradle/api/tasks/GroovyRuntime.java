@@ -65,6 +65,7 @@ import static org.gradle.util.internal.GroovyDependencyUtil.groovyModuleDependen
  *     // The returned class path can be used to configure the 'groovyClasspath' property of tasks
  *     // such as 'GroovyCompile' or 'Groovydoc', or to execute these and other Groovy tools directly.
  * </pre>
+ * @since 1.6
  */
 public abstract class GroovyRuntime {
     private static final VersionNumber GROOVY_VERSION_WITH_SEPARATE_ANT = VersionNumber.parse("2.0");
@@ -72,6 +73,11 @@ public abstract class GroovyRuntime {
 
     private final ProjectInternal project;
 
+    /**
+     * Creates a new {@code GroovyRuntime}.
+     *
+     * @since 1.6
+     */
     public GroovyRuntime(Project project) {
         this.project = (ProjectInternal) project;
     }
@@ -85,6 +91,7 @@ public abstract class GroovyRuntime {
      *
      * @param classpath a class path containing Groovy Jars
      * @return a corresponding class path for executing Groovy tools such as the Groovy compiler and Groovydoc tool
+     * @since 1.6
      */
     public FileCollection inferGroovyClasspath(final Iterable<File> classpath) {
         // alternatively, we could return project.getLayout().files(Runnable)

@@ -34,11 +34,13 @@ public interface ArtifactView extends HasAttributes {
 
     /**
      * Returns the collection of artifacts matching the requested attributes that are sourced from Components matching the specified filter.
+     * @since 3.4
      */
     ArtifactCollection getArtifacts();
 
     /**
      * Returns the collection of artifact files matching the requested attributes that are sourced from Components matching the specified filter.
+     * @since 3.4
      */
     FileCollection getFiles();
 
@@ -77,6 +79,7 @@ public interface ArtifactView extends HasAttributes {
          *          }
          *      }
          * }</pre>
+         * @since 3.4
          */
         ViewConfiguration componentFilter(Spec<? super ComponentIdentifier> componentFilter);
 
@@ -87,6 +90,7 @@ public interface ArtifactView extends HasAttributes {
          * collecting any failures.
          *
          * When set to <code>false</code>, any failures will be propagated as exceptions when the view is resolved.
+         * @since 4.0
          */
         boolean isLenient();
 
@@ -97,6 +101,7 @@ public interface ArtifactView extends HasAttributes {
          * collecting any failures.
          *
          * When set to <code>false</code>, any failures will be propagated as exceptions when the view is resolved.
+         * @since 4.0
          */
         void setLenient(boolean lenient);
 
@@ -107,6 +112,7 @@ public interface ArtifactView extends HasAttributes {
          * collecting any failures.
          *
          * When set to <code>false</code>, any failures will be propagated as exceptions when the view is resolved.
+         * @since 4.0
          */
         ViewConfiguration lenient(boolean lenient);
 

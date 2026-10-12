@@ -37,12 +37,14 @@ import java.util.Set;
  * </ul>
  *
  * So, for example, to resolve <code>:junit:junit:4.8.1</code>, this repository will look for <code>junit-4.8.1.jar</code> and then <code>junit.jar</code>.
+ * @since 1.0
  */
 public interface FlatDirectoryArtifactRepository extends ArtifactRepository {
     /**
      * Returns the directories where this repository will look for artifacts.
      *
      * @return The directories. Never null.
+     * @since 1.0
      */
     Set<File> getDirs();
 
@@ -52,6 +54,7 @@ public interface FlatDirectoryArtifactRepository extends ArtifactRepository {
      * <p>The provided value are evaluated as per {@link org.gradle.api.Project#file(Object)}.
      *
      * @param dir the directory
+     * @since 1.0
      */
     void dir(Object dir);
 
@@ -61,6 +64,7 @@ public interface FlatDirectoryArtifactRepository extends ArtifactRepository {
      * <p>The provided values are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      *
      * @param dirs the directories.
+     * @since 1.0
      */
     void dirs(@Nullable Object... dirs);
 
@@ -78,6 +82,7 @@ public interface FlatDirectoryArtifactRepository extends ArtifactRepository {
      * <p>The provided values are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
      *
      * @param dirs the directories.
+     * @since 1.0
      */
     void setDirs(Iterable<?> dirs);
 }

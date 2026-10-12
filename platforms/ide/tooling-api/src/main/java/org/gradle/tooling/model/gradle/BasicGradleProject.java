@@ -43,6 +43,7 @@ public interface BasicGradleProject extends Model, ProjectModel {
      * Returns the name of this project. Note that the name is not a unique identifier for the project.
      *
      * @return The name of this project.
+     * @since 1.8
      */
     String getName();
 
@@ -50,6 +51,7 @@ public interface BasicGradleProject extends Model, ProjectModel {
      * Returns the path of this project. The path can be used as a unique identifier for the project within a given build.
      *
      * @return The path of this project.
+     * @since 1.8
      */
     String getPath();
 
@@ -57,6 +59,7 @@ public interface BasicGradleProject extends Model, ProjectModel {
      * Returns the project directory for this project.
      *
      * @return The project directory.
+     * @since 1.8
      */
     File getProjectDirectory();
 
@@ -64,6 +67,7 @@ public interface BasicGradleProject extends Model, ProjectModel {
      * Returns the parent of this project, or {@code null} if this is the root project.
      *
      * @return The parent of this project, or {@code null} if this is the root project.
+     * @since 1.8
      */
     @Nullable
     BasicGradleProject getParent();
@@ -72,6 +76,7 @@ public interface BasicGradleProject extends Model, ProjectModel {
      * Returns the child projects of this project, or the empty set if there are no child projects.
      *
      * @return The child projects of this project, or the empty set if there are no child projects.
+     * @since 1.8
      */
     DomainObjectSet<? extends BasicGradleProject> getChildren();
 

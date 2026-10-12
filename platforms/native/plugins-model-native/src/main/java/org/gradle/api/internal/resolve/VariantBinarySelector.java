@@ -16,12 +16,11 @@
 
 package org.gradle.api.internal.resolve;
 
-import org.gradle.platform.base.Binary;
-import org.gradle.platform.base.VariantComponent;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 
+@SuppressWarnings("deprecation")
 public interface VariantBinarySelector {
-    Collection<? extends Binary> selectVariants(VariantComponent componentSpec, @Nullable String requestedVariant);
+    Collection<? extends org.gradle.platform.base.Binary> selectVariants(org.gradle.platform.base.VariantComponent componentSpec, @Nullable String requestedVariant);
 }

@@ -1,0 +1,16 @@
+// tag::avoid[]
+abstract class PublishArtifactTask extends DefaultTask {
+    @Input
+    abstract Property<String> getApiToken()
+
+    @TaskAction
+    void run() {
+        // ... uses apiToken.get() to call the registry
+    }
+}
+
+tasks.register('publishArtifact', PublishArtifactTask) {
+    // BAD: the literal token value is captured into the task field at configuration time
+    apiToken = System.getenv('REGISTRY_TOKEN') ?: ''
+}
+// end::avoid[]

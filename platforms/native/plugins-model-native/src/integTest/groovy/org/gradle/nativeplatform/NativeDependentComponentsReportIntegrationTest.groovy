@@ -25,6 +25,7 @@ import org.gradle.test.preconditions.TestExecutionPreconditions
 class NativeDependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         settingsFile << "rootProject.name = 'test'"
     }
 

@@ -31,6 +31,7 @@ import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy
  * <p>Access to the source file itself after any filters have been added is not a supported operation.
  * </p>
  *
+ * @since 0.9
  */
 @NonExtensible
 @HasInternalProtocol
@@ -38,6 +39,7 @@ import org.gradle.internal.instrumentation.api.annotations.NotToBeMigratedToLazy
 public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Describable {
     /**
      * Excludes this file from the copy.
+     * @since 0.9
      */
     void exclude();
 
@@ -45,6 +47,7 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
      * Sets the destination name of this file.
      *
      * @param name The destination name of this file.
+     * @since 0.9
      */
     void setName(String name);
 
@@ -52,6 +55,7 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
      * Sets the destination path of this file.
      *
      * @param path The path of this file.
+     * @since 0.9
      */
     void setPath(String path);
 
@@ -59,6 +63,7 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
      * Sets the destination path of this file.
      *
      * @param path the new path for this file.
+     * @since 0.9
      */
     void setRelativePath(RelativePath path);
 
@@ -81,6 +86,7 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
 
     /**
      * The strategy to use if there is already a file at this file's destination.
+     * @since 1.7
      */
     void setDuplicatesStrategy(DuplicatesStrategy strategy);
 
@@ -91,6 +97,7 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
      *
      * @see DuplicatesStrategy
      * @return the strategy to use for this file.
+     * @since 1.7
      */
     DuplicatesStrategy getDuplicatesStrategy();
 
@@ -125,6 +132,7 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
      * Returns the base name of this file at the copy source.
      *
      * @return The source name. Never returns null.
+     * @since 2.2
      */
     String getSourceName();
 
@@ -135,6 +143,7 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
      * Same as calling <code>getRelativeSourcePath().getPathString()</code>.
      *
      * @return The path, relative to the root of the containing file tree. Never returns null.
+     * @since 2.2
      */
     String getSourcePath();
 
@@ -142,6 +151,7 @@ public interface FileCopyDetails extends FileTreeElement, ContentFilterable, Des
      * Returns the path of this file, relative to the root of the containing file tree.
      *
      * @return The path, relative to the root of the containing file tree. Never returns null.
+     * @since 2.2
      */
     RelativePath getRelativeSourcePath();
 

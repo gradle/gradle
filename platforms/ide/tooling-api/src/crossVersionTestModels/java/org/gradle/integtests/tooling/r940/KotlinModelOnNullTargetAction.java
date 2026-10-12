@@ -25,17 +25,18 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel;
 import java.io.File;
 import java.io.Serializable;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static org.gradle.integtests.tooling.r940.KotlinModelAction.queryResilientKotlinDslScriptsModel;
 
-class KotlinModelOnNullTargetAction implements BuildAction<KotlinModel>, Serializable {
+public class KotlinModelOnNullTargetAction implements BuildAction<KotlinModel>, Serializable {
     @Override
     public KotlinModel execute(BuildController controller) {
         GradleBuild build = controller.fetch(GradleBuild.class).getModel();
         assert build != null;
         Map<File, KotlinDslScriptModel> scriptModels = new HashMap<>();
-        Map<File, Failure> failures = new HashMap<>();
+        Map<File, List<Failure>> failures = new HashMap<>();
         queryResilientKotlinDslScriptsModel(controller, build, null, scriptModels, failures);
         return new KotlinModel(scriptModels, failures);
     }

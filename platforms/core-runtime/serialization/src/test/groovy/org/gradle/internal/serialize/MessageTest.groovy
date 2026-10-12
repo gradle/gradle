@@ -205,6 +205,30 @@ class MessageTest extends Specification {
         transported.cause.stackTrace == cause.stackTrace
     }
 
+    def "replaces incompatible GradleException subclass with local version"() {
+        // Reconstruction calls the single-String constructor and then initCause(), so a GradleException
+        // whose single-String constructor initializes the cause would send every subclass to a placeholder.
+        def cause = new RuntimeException("nested")
+        def sourceExceptionType = source.parseClass(
+                "package org.gradle; public class TestGradleException extends org.gradle.api.GradleException { public TestGradleException(String msg, Throwable cause) { super(msg, cause); } }")
+        def destExceptionType = dest.parseClass(
+                "package org.gradle; public class TestGradleException extends org.gradle.api.GradleException { private String someField; public TestGradleException(String msg) { super(msg); } }")
+
+        def original = sourceExceptionType.newInstance("message", cause)
+
+        when:
+        def transported = transport(original)
+
+        then:
+        transported.class == destExceptionType
+        transported.message == original.message
+        transported.stackTrace == original.stackTrace
+
+        transported.cause.class == RuntimeException.class
+        transported.cause.message == "nested"
+        transported.cause.stackTrace == cause.stackTrace
+    }
+
     def "uses placeholder when local exception cannot be constructed"() {
         def cause = new RuntimeException("nested")
         def sourceExceptionType = source.parseClass(

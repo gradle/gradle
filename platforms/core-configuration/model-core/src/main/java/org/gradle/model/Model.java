@@ -45,10 +45,14 @@ import java.lang.annotation.Target;
  * All parameters are considered <i>inputs</i>.
  *
  * Please see {@link RuleSource} for more information on method rules.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.1
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Incubating
+@Deprecated
 public @interface Model {
 
     /**
@@ -66,6 +70,7 @@ public @interface Model {
      * </p>
      *
      * @return the name by which the model element will be available
+     * @since 2.1
      */
     String value() default "";
 

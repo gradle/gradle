@@ -109,7 +109,7 @@ public class PluginResolutionResult {
         }
 
         String message = sb.toString();
-        Exception exception = new UnknownPluginException(message);
+        Exception exception = new UnknownPluginException(message, request.getId().getId());
         throw new LocationAwareException(exception, request.getScriptDisplayName(), request.getLineNumber());
     }
 

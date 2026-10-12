@@ -26,24 +26,45 @@ import java.util.Map;
 
 /**
  * A classpath entry representing an output folder.
+ * @since 1.0
  */
 public class Output implements ClasspathEntry {
 
     private String path;
 
+    /**
+     * Creates a new {@code Output}.
+     *
+     * @since 1.0
+     */
     public Output(Node node) {
         this((String)node.attribute("path"));
     }
 
+    /**
+     * Creates a new {@code Output}.
+     *
+     * @since 1.0
+     */
     public Output(String path) {
         Preconditions.checkNotNull(path);
         this.path = PathUtil.normalizePath(path);
     }
 
+    /**
+     * Returns the path.
+     *
+     * @since 1.0
+     */
     public String getPath() {
         return path;
     }
 
+    /**
+     * Sets the path.
+     *
+     * @since 1.0
+     */
     public void setPath(String path) {
         this.path = path;
     }

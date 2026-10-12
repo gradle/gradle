@@ -20,11 +20,16 @@ import org.gradle.api.Named;
 
 /**
  * Specifies a build-type for a native binary. Common build types are 'debug' and 'release', but others may be defined.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating
+@Deprecated
 public interface BuildType extends Named {
     /**
      * Returns a human-consumable name for this build type.
+     * @since 2.2
      */
     String getDisplayName();
 }

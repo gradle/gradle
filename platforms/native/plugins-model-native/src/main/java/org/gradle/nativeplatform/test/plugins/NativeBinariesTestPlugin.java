@@ -58,8 +58,12 @@ import java.util.concurrent.Callable;
 
 /**
  * A plugin that sets up the infrastructure for testing native binaries.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Incubating
+@Deprecated
 public abstract class NativeBinariesTestPlugin implements Plugin<Project> {
 
     @Override
@@ -68,6 +72,11 @@ public abstract class NativeBinariesTestPlugin implements Plugin<Project> {
         project.getPluginManager().apply(TestingModelBasePlugin.class);
     }
 
+    /**
+     * Rules.
+     *
+     * @since 2.2
+     */
     @SuppressWarnings("UnusedDeclaration")
     static class Rules extends RuleSource {
         @ComponentType

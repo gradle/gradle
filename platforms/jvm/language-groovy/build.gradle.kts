@@ -18,6 +18,7 @@ dependencies {
     api(projects.groovydocWorker)
     api(projects.javaCompilerWorker)
     api(projects.jvmCompilerWorker)
+    api(projects.jvmServices)
     api(projects.processServices)
     api(projects.languageJava)
     api(projects.languageJvm)
@@ -34,12 +35,12 @@ dependencies {
     api(libs.jspecify)
 
     implementation(projects.classloaders)
-    implementation(projects.jvmServices)
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)
     implementation(projects.logging)
     implementation(projects.loggingApi)
     implementation(projects.serviceLookup)
+    implementation(projects.workerShared)
 
     implementation(libs.guava)
     implementation(libs.asm)
@@ -78,10 +79,3 @@ gradleModule {
         daemon = true
     }
 }
-
-packageCycles {
-    excludePatterns.add("org/gradle/api/internal/tasks/compile/**")
-    excludePatterns.add("org/gradle/api/tasks/javadoc/**")
-}
-
-

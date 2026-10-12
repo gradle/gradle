@@ -20,7 +20,6 @@ import groovy.lang.Closure;
 import groovy.lang.GroovyObjectSupport;
 import groovy.lang.MissingMethodException;
 import groovy.lang.MissingPropertyException;
-import org.gradle.model.ModelMap;
 import org.gradle.util.internal.ClosureBackedAction;
 
 import static org.gradle.internal.Cast.uncheckedCast;
@@ -30,7 +29,8 @@ import static org.gradle.internal.Cast.uncheckedCast;
  */
 // TODO - mix in Groovy support using bytecode decoration instead
 // TODO - validate closure parameters to check they are within bounds
-public abstract class ModelMapGroovyView<I> extends GroovyObjectSupport implements ModelMap<I> {
+@SuppressWarnings("deprecation")
+public abstract class ModelMapGroovyView<I> extends GroovyObjectSupport implements org.gradle.model.ModelMap<I> {
     @Override
     public String toString() {
         return getDisplayName();
@@ -82,7 +82,7 @@ public abstract class ModelMapGroovyView<I> extends GroovyObjectSupport implemen
         }
         I element = get(property);
         if (element == null) {
-            throw new MissingPropertyException(property, ModelMap.class);
+            throw new MissingPropertyException(property, org.gradle.model.ModelMap.class);
         }
         return element;
     }
@@ -100,10 +100,9 @@ public abstract class ModelMapGroovyView<I> extends GroovyObjectSupport implemen
             Closure<? super I> closure = uncheckedCast(args[0]);
             named(name, closure);
         } else {
-            throw new MissingMethodException(name, ModelMap.class, args);
+            throw new MissingMethodException(name, org.gradle.model.ModelMap.class, args);
         }
         return null;
     }
 
 }
-

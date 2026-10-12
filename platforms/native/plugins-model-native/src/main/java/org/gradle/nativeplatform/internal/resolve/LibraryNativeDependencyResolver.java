@@ -16,8 +16,7 @@
 
 package org.gradle.nativeplatform.internal.resolve;
 
-import org.gradle.nativeplatform.NativeLibraryBinary;
-
+@SuppressWarnings("deprecation")
 public class LibraryNativeDependencyResolver implements NativeDependencyResolver {
     private final LibraryBinaryLocator libraryBinaryLocator;
 
@@ -29,7 +28,7 @@ public class LibraryNativeDependencyResolver implements NativeDependencyResolver
     public void resolve(NativeBinaryResolveResult resolution) {
         for (NativeBinaryRequirementResolveResult requirementResolution : resolution.getPendingResolutions()) {
             DefaultLibraryResolver libraryResolver = new DefaultLibraryResolver(libraryBinaryLocator, requirementResolution.getRequirement(), resolution.getTarget());
-            NativeLibraryBinary libraryBinary = libraryResolver.resolveLibraryBinary();
+            org.gradle.nativeplatform.NativeLibraryBinary libraryBinary = libraryResolver.resolveLibraryBinary();
             requirementResolution.setLibraryBinary(libraryBinary);
             requirementResolution.setNativeDependencySet(new DefaultNativeDependencySet(libraryBinary));
         }

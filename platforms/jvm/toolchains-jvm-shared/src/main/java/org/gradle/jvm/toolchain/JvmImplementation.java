@@ -29,6 +29,7 @@ public final class JvmImplementation {
      *
      * Acts as a placeholder and matches any implementation from any vendor.
      * Usually used to override specific implementation requests.
+     * @since 6.8
      */
     public static final JvmImplementation VENDOR_SPECIFIC = new JvmImplementation("vendor-specific");
 
@@ -36,6 +37,7 @@ public final class JvmImplementation {
      * Eclipse OpenJ9 (previously known as IBM J9) virtual machine implementation.
      *
      * Matches only virtual machine implementations using the OpenJ9/IBM J9 runtime engine.
+     * @since 6.8
      */
     public static final JvmImplementation J9 = new JvmImplementation("J9");
 

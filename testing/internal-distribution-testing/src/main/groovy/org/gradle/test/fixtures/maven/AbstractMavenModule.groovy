@@ -329,16 +329,27 @@ abstract class AbstractMavenModule extends AbstractModule implements MavenModule
     void assertArtifactsPublished(String[] names) {
         TreeSet allFileNames = []
         for (name in names) {
-            allFileNames.addAll([name, "${name}.sha1", "${name}.md5"]*.toString())
-            if (extraChecksums && !(name in missingExtraChecksums)) {
-                allFileNames.addAll(["${name}.sha256", "${name}.sha512"]*.toString())
+            if (isSignatureFile(name)) {
+                // Signature files are not published with checksums
+                allFileNames.add(name.toString())
+            } else {
+                allFileNames.addAll([name, "${name}.sha1", "${name}.md5"]*.toString())
+                if (extraChecksums && !(name in missingExtraChecksums)) {
+                    allFileNames.addAll(["${name}.sha256", "${name}.sha512"]*.toString())
+                }
             }
         }
         def actualModuleDirFiles = moduleDir.list() as TreeSet
         assert actualModuleDirFiles == allFileNames
         for (name in names) {
-            assertChecksumsPublishedFor(moduleDir.file(name))
+            if (!isSignatureFile(name)) {
+                assertChecksumsPublishedFor(moduleDir.file(name))
+            }
         }
+    }
+
+    private static boolean isSignatureFile(String name) {
+        return name.endsWith(".asc") || name.endsWith(".sig")
     }
 
     /**

@@ -28,11 +28,15 @@ import org.gradle.internal.state.ModelObject;
 import org.gradle.internal.state.OwnerAware;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * A helper used by generated classes to create managed instances.
  */
 public class ManagedObjectFactory {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ManagedObjectFactory.class);
+
     private final ServiceLookup serviceLookup;
     private final InstanceGenerator instantiator;
     private final PropertyRoleAnnotationHandler roleHandler;
@@ -52,6 +56,16 @@ public class ManagedObjectFactory {
     }
 
     // Called from generated code
+    @SuppressWarnings("unused")
+    public static void ignoreAttachOwnerFailure(Exception failure, ModelObject owner, String propertyName) {
+        // Name the property the same way a successful attach would have, since this message exists to diagnose
+        // exactly the properties that are missing that name.
+        LOGGER.debug("Could not attach owner to {} because its getter failed, leaving the property without an owner.",
+            displayNameFor(owner, propertyName), failure);
+    }
+
+    // Called from generated code
+    @SuppressWarnings("unused")
     public void applyRole(Object value, ModelObject owner) {
         roleHandler.applyRoleTo(owner, value);
     }

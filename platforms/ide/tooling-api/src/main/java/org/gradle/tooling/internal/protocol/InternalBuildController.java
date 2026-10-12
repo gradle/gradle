@@ -24,7 +24,7 @@ package org.gradle.tooling.internal.protocol;
  * </p>
  * <p>Provider compatibility: This interface is implemented by all provider versions from 1.8-rc-1.</p>
  *
- * @since 1.8-rc-1
+ * @since 1.8
  * @deprecated 4.4. Use {@link InternalBuildControllerVersion2} instead.
  */
 @Deprecated
@@ -36,7 +36,7 @@ public interface InternalBuildController {
      * <p>Provider compatibility: This method is implemented by all provider versions from 1.8-rc-1.</p>
      *
      * @throws BuildExceptionVersion1 On build failure.
-     * @since 1.8-rc-1
+     * @since 1.8
      * @deprecated 4.4
      */
     @Deprecated
@@ -54,7 +54,7 @@ public interface InternalBuildController {
      * @param modelIdentifier The identifier of the model to build.
      * @throws BuildExceptionVersion1 On build failure.
      * @throws InternalUnsupportedModelException When the requested model is not supported.
-     * @since 1.8-rc-1
+     * @since 1.8
      * @deprecated 4.4. Use {@link InternalBuildControllerVersion2#getModel(Object, ModelIdentifier, Object)} instead.
      */
     @Deprecated

@@ -33,8 +33,12 @@ public class FieldMember extends TypedMember implements Comparable<FieldMember> 
     }
 
     @Override
+    // The explicit @Nullable type argument is required to compare the nullable 'value' fields, but it
+    // makes NullAway reject Ordering.arbitrary() (a Comparator<Object>) for a @Nullable type variable,
+    // so the suppression is needed as well.
+    @SuppressWarnings("NullAway")
     public int compareTo(FieldMember o) {
-        return super.compare(o).compare(value, o.value, Ordering.arbitrary()).result();
+        return super.compare(o).<@Nullable Object>compare(value, o.value, Ordering.arbitrary()).result();
     }
 
     @Override

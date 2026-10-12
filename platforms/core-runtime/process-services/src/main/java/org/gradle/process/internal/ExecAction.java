@@ -22,6 +22,7 @@ import org.gradle.process.ProcessExecutionException;
 
 @NonExtensible
 public interface ExecAction extends ExecSpec {
+    ExecHandle buildHandle();
     ExecResult execute() throws ProcessExecutionException;
     ExecAction listener(ExecHandleListener listener);
 }

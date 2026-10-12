@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 class DependentComponentsReportIntegrationTest extends AbstractIntegrationSpec {
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         settingsFile << "rootProject.name = 'test'"
     }
 

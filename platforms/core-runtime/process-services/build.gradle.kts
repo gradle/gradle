@@ -50,7 +50,3 @@ gradleModule {
         worker = true
     }
 }
-
-packageCycles {
-    excludePatterns.add("org/gradle/process/internal/**")
-}

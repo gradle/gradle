@@ -16,7 +16,7 @@
 
 package org.gradle.api.internal.initialization;
 
-import org.gradle.api.internal.DomainObjectContext;
+import org.gradle.api.internal.artifacts.DependencyManagementParameters;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
 import org.gradle.api.internal.artifacts.DependencyResolutionServices;
 import org.gradle.api.internal.file.FileCollectionFactory;
@@ -38,10 +38,11 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
     @Override
     public ScriptHandlerInternal create(
         ScriptSource scriptSource,
-        ClassLoaderScope classLoaderScope,
-        DomainObjectContext owner
+        ClassLoaderScope classLoaderScope
     ) {
-        DependencyResolutionServices services = dependencyManagementServices.newDetachedResolver(owner);
+        DependencyResolutionServices services = dependencyManagementServices.newDetachedResolver(
+            DependencyManagementParameters.forDetachedJvmEnvironment(scriptSource.getShortDisplayName(), "settings-")
+        );
         return getDefaultScriptHandler(scriptSource, classLoaderScope, services);
     }
 
@@ -51,12 +52,12 @@ public class DefaultScriptHandlerFactory implements ScriptHandlerFactory {
         ClassLoaderScope classLoaderScope,
         FileResolver fileResolver,
         FileCollectionFactory fileCollectionFactory,
-        DomainObjectContext owner
+        DependencyManagementParameters params
     ) {
         DependencyResolutionServices services = dependencyManagementServices.newDetachedResolver(
             fileResolver,
             fileCollectionFactory,
-            owner
+            params
         );
         return getDefaultScriptHandler(scriptSource, classLoaderScope, services);
     }

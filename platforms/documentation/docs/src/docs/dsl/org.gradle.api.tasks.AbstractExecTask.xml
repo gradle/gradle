@@ -23,6 +23,9 @@
                 <td>workingDir</td>
             </tr>
             <tr>
+                <td>workingDirectory</td>
+            </tr>
+            <tr>
                 <td>environment</td>
             </tr>
             <tr>

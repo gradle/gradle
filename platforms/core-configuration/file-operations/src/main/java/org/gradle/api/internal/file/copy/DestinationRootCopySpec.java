@@ -17,22 +17,35 @@
 package org.gradle.api.internal.file.copy;
 
 import org.gradle.api.file.CopySpec;
+import org.gradle.api.file.Directory;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.internal.file.FileFactory;
+import org.gradle.api.internal.file.FilePropertyFactory;
+import org.gradle.api.internal.provider.MappingProvider;
+import org.gradle.api.internal.provider.Providers;
+import org.gradle.api.model.ReplacedBy;
+import org.gradle.api.provider.Provider;
 import org.gradle.internal.file.PathToFileResolver;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
 
+import static org.gradle.api.internal.lambdas.SerializableLambdas.transformer;
+
 public class DestinationRootCopySpec extends DelegatingCopySpecInternal {
 
     private final PathToFileResolver fileResolver;
+    private final FileFactory fileFactory;
     private final CopySpecInternal delegate;
-
-    private Object destinationDir;
+    private final DirectoryProperty destinationDirectory;
 
     @Inject
-    public DestinationRootCopySpec(PathToFileResolver fileResolver, CopySpecInternal delegate) {
+    public DestinationRootCopySpec(PathToFileResolver fileResolver, FilePropertyFactory filePropertyFactory, FileFactory fileFactory, CopySpecInternal delegate) {
         this.fileResolver = fileResolver;
+        this.fileFactory = fileFactory;
         this.delegate = delegate;
+        this.destinationDirectory = filePropertyFactory.newDirectoryProperty();
     }
 
     @Override
@@ -41,14 +54,43 @@ public class DestinationRootCopySpec extends DelegatingCopySpecInternal {
     }
 
     @Override
-    public CopySpec into(Object destinationDir) {
-        this.destinationDir = destinationDir;
+    public CopySpec into(@Nullable Object destinationDir) {
+        // Avoid referencing `this` (and the whole spec tree) into configuration cache state
+        PathToFileResolver fileResolver = this.fileResolver;
+        if (destinationDir == null) {
+            destinationDirectory.unset();
+        } else if (destinationDir instanceof DirectoryProperty) {
+            destinationDirectory.set((DirectoryProperty) destinationDir);
+        } else if (destinationDir instanceof Directory) {
+            destinationDirectory.set((Directory) destinationDir);
+        } else if (destinationDir instanceof Provider) {
+            // Only the location of the destination is needed, never its contents, so map with a MappingProvider,
+            // which does not require a producing task to have completed. This matters when the provider is derived
+            // from an output of the task that is currently running, e.g. `into(outputDir.dir("sub"))` in a task action.
+            FileFactory fileFactory = this.fileFactory;
+            destinationDirectory.set(new MappingProvider<>(Directory.class, Providers.internal((Provider<?>) destinationDir), transformer(value ->
+                value instanceof Directory
+                    ? (Directory) value
+                    : fileFactory.dir(fileResolver.resolve(value)))));
+        } else {
+            // Resolve all other notations (String, File, Closure, Callable, ...) lazily, preserving legacy behavior.
+            destinationDirectory.fileProvider(Providers.changing(() -> fileResolver.resolve(destinationDir)));
+        }
         return this;
     }
 
+    /**
+     * The lazy view of the destination directory, backing both {@link #into(Object)} and {@link #getDestinationDir()}.
+     */
+    public DirectoryProperty getDestinationDirectory() {
+        return destinationDirectory;
+    }
+
     @Override
+    @Nullable
+    @ReplacedBy("destinationDirectory")
     public File getDestinationDir() {
-        return destinationDir == null ? null : fileResolver.resolve(destinationDir);
+        return destinationDirectory.isPresent() ? destinationDirectory.get().getAsFile() : null;
     }
 
     // TODO:configuration-cache - remove this

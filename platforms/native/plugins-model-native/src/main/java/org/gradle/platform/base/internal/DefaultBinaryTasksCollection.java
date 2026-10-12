@@ -25,9 +25,9 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.model.internal.core.NamedEntityInstantiator;
-import org.gradle.platform.base.BinaryTasksCollection;
 
-public class DefaultBinaryTasksCollection extends DefaultDomainObjectSet<Task> implements BinaryTasksCollection {
+@SuppressWarnings("deprecation")
+public class DefaultBinaryTasksCollection extends DefaultDomainObjectSet<Task> implements org.gradle.platform.base.BinaryTasksCollection {
 
     private final BinarySpecInternal binary;
     private final NamedEntityInstantiator<Task> taskInstantiator;

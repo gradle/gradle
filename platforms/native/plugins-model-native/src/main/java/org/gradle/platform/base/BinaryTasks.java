@@ -29,7 +29,7 @@ import java.lang.annotation.Target;
  * The following example demonstrates how to register multiple tasks for custom binary using a plugin with a
  * {@link org.gradle.platform.base.BinaryTasks} annotation.
  *
- * <pre class='autoTested'>
+ * <pre class='autoTestedWithDeprecations'>
  * {@literal @}Managed interface SampleComponent extends ComponentSpec {}
  * {@literal @}Managed interface SampleBinary extends BinarySpec {}
  *
@@ -54,9 +54,13 @@ import java.lang.annotation.Target;
  *     }
  * }
  * </pre>
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.2
  */
 @Retention(RetentionPolicy.RUNTIME)
 @Target(ElementType.METHOD)
 @Incubating
+@Deprecated
 public @interface BinaryTasks {
 }

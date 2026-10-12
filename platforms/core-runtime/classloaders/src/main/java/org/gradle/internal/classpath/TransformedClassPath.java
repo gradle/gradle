@@ -32,6 +32,7 @@ import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Optional;
 import java.util.Set;
 
 import static com.google.common.base.Preconditions.checkArgument;
@@ -46,9 +47,8 @@ import static com.google.common.base.Preconditions.checkArgument;
  * <p>
  * The class loaders constructed from this classpath can replace classes from the original classpath entries with transformed ones (from "double") when loading.
  */
+@NullMarked
 public class TransformedClassPath implements ClassPath {
-
-    @NullMarked
     public enum FileMarker {
         /**
          * A marker file put next to the instrumentation entry to indicate that this is part of instrumentation.
@@ -56,9 +56,15 @@ public class TransformedClassPath implements ClassPath {
          */
         INSTRUMENTATION_CLASSPATH_MARKER(".gradle-instrumented-classpath.marker"),
         /**
-         * A marker file put next to the instrumented entry to indicate that it is using agent instrumentation.
+         * A marker file put next to the instrumented entry of an external dependency to indicate that it is using agent instrumentation.
+         * The marker is followed by the instrumented entry, the dependency analysis file and the original entry.
          */
-        AGENT_INSTRUMENTATION_MARKER(".gradle-agent-instrumented.marker"),
+        AGENT_INSTRUMENTATION_EXTERNAL_MARKER(".gradle-agent-instrumented-external.marker"),
+        /**
+         * A marker file put next to the instrumented entry of a project dependency to indicate that it is using agent instrumentation.
+         * The marker is followed by the instrumented entry and the original entry.
+         */
+        AGENT_INSTRUMENTATION_PROJECT_MARKER(".gradle-agent-instrumented-project.marker"),
         /**
          * A marker file put next to the instrumented entry to indicate that it is using legacy instrumentation.
          */
@@ -97,14 +103,102 @@ public class TransformedClassPath implements ClassPath {
     public static final String INSTRUMENTED_DIR_NAME = "instrumented";
     public static final String ORIGINAL_DIR_NAME = "original";
     public static final String INSTRUMENTED_ENTRY_PREFIX = "instrumented-";
+    /**
+     * The name of the per-artifact dependency analysis file produced by the instrumentation pipeline.
+     */
+    public static final String DEPENDENCY_ANALYSIS_FILE_NAME = "instrumentation-dependencies.bin";
+
+    /**
+     * The instrumentation pipeline that produced a transformed entry.
+     * Determines how classes of the entry are re-instrumented at class load time when Gradle instrumentation
+     * is composed with a third-party agent instead of substituting the pre-instrumented "double".
+     */
+    public enum InstrumentationKind {
+        /**
+         * The external dependency pipeline: the entry is instrumented and has property upgrades applied,
+         * using the type hierarchy recorded in the dependency analysis file.
+         */
+        EXTERNAL_DEPENDENCY,
+        /**
+         * The project dependency pipeline: the entry is instrumented only.
+         */
+        PROJECT_DEPENDENCY,
+        /**
+         * The provenance of the entry is not recorded. Such entries are not re-instrumented at class load time.
+         */
+        UNKNOWN
+    }
+
+    /**
+     * The transformed "double" of an original classpath entry, together with the data needed to re-instrument
+     * the original entry at class load time.
+     */
+    public static final class TransformedEntry {
+        private final File instrumentedFile;
+        @Nullable
+        private final File analysisFile;
+        private final InstrumentationKind kind;
+
+        public TransformedEntry(File instrumentedFile, @Nullable File analysisFile, InstrumentationKind kind) {
+            this.instrumentedFile = instrumentedFile;
+            this.analysisFile = analysisFile;
+            this.kind = kind;
+        }
+
+        /**
+         * The pre-instrumented "double" of the original entry.
+         */
+        public File getInstrumentedFile() {
+            return instrumentedFile;
+        }
+
+        /**
+         * The per-artifact dependency analysis file, or {@code null} if the producing pipeline does not use one.
+         */
+        @Nullable
+        public File getAnalysisFile() {
+            return analysisFile;
+        }
+
+        /**
+         * The instrumentation pipeline that produced this entry.
+         */
+        public InstrumentationKind getKind() {
+            return kind;
+        }
+
+        @Override
+        public boolean equals(@Nullable Object obj) {
+            if (obj == this) {
+                return true;
+            }
+            if (obj == null || obj.getClass() != getClass()) {
+                return false;
+            }
+            TransformedEntry other = (TransformedEntry) obj;
+            return instrumentedFile.equals(other.instrumentedFile)
+                && Objects.equals(analysisFile, other.analysisFile)
+                && kind == other.kind;
+        }
+
+        @Override
+        public int hashCode() {
+            return Objects.hash(instrumentedFile, analysisFile, kind);
+        }
+
+        @Override
+        public String toString() {
+            return instrumentedFile + " (" + kind + (analysisFile != null ? ", " + analysisFile : "") + ")";
+        }
+    }
 
     private final ClassPath originalClassPath;
     // mapping of original -> "double"
-    private final ImmutableMap<File, File> transforms;
+    private final ImmutableMap<File, TransformedEntry> transforms;
     @Nullable
     private final ClassLoadTimeTransform classLoadTimeTransform;
 
-    private TransformedClassPath(ClassPath originalClassPath, Map<File, File> transforms, @Nullable ClassLoadTimeTransform classLoadTimeTransform) {
+    private TransformedClassPath(ClassPath originalClassPath, Map<File, TransformedEntry> transforms, @Nullable ClassLoadTimeTransform classLoadTimeTransform) {
         assert !(originalClassPath instanceof TransformedClassPath);
         this.originalClassPath = originalClassPath;
         this.transforms = ImmutableMap.copyOf(transforms);
@@ -125,8 +219,16 @@ public class TransformedClassPath implements ClassPath {
      * Classes loaded from this classpath will be transformed at class load by composing
      * with any third-party {@link java.lang.instrument.ClassFileTransformer} registered before
      * Gradle's transformer.
+     * <p>
+     * The transform is derived data: it can be rebuilt from the {@link TransformedEntry transformed entries}
+     * of this classpath and the agent status of the current JVM. It does not participate in equality and
+     * is not persisted; it is only attached on the way from a producer of the classpath to a classloader.
      */
     public TransformedClassPath withClassLoadTimeTransform(ClassLoadTimeTransform classLoadTimeTransform) {
+        // TODO(mlopatkin): The TransformedClassPath is mostly to have an opaque transport between the classpath constructor,
+        //  where we know it must be instrumented, and the ClassLoaderFactory, where we actually build the classloader.
+        //  With the single ClassPath passed down we don't have to additionally plumb the instrumentation information.
+        //  However, with this runtime transform, the scheme becomes a leaky abstraction.
         return new TransformedClassPath(originalClassPath, transforms, classLoadTimeTransform);
     }
 
@@ -158,6 +260,9 @@ public class TransformedClassPath implements ClassPath {
     /**
      * Returns the list of JARs/class directories that this class path consists of, but original entries are replaced with corresponding transformed "doubles".
      * The entries that have no "doubles" are returned as is.
+     * <p>
+     * This is the view of the classpath a classloader observes when the "doubles" are substituted at class load.
+     * It is currently only used by tests, but is kept as part of the classpath API on purpose.
      *
      * @return the list of JARs/class directories
      */
@@ -166,7 +271,10 @@ public class TransformedClassPath implements ClassPath {
         ListIterator<File> iter = originals.listIterator();
         while (iter.hasNext()) {
             File original = iter.next();
-            iter.set(transforms.getOrDefault(original, original));
+            TransformedEntry entry = transforms.get(original);
+            if (entry != null) {
+                iter.set(entry.getInstrumentedFile());
+            }
         }
         return originals;
     }
@@ -212,17 +320,26 @@ public class TransformedClassPath implements ClassPath {
         ClassPath mergedOriginals = originalClassPath.plus(classPath.originalClassPath);
 
         // Merge transformations, keeping in mind that classpath is searched left-to-right.
-        ImmutableMap.Builder<File, File> mergedTransforms = ImmutableMap.builderWithExpectedSize(transforms.size() + classPath.transforms.size());
+        ImmutableMap.Builder<File, TransformedEntry> mergedTransforms = ImmutableMap.builderWithExpectedSize(transforms.size() + classPath.transforms.size());
         Set<File> thisClassPathFiles = ImmutableSet.copyOf(originalClassPath.getAsFiles());
         mergedTransforms.putAll(transforms);
-        for (Map.Entry<File, File> appendedTransform : classPath.transforms.entrySet()) {
+        for (Map.Entry<File, TransformedEntry> appendedTransform : classPath.transforms.entrySet()) {
             // If the file is already present on this classpath, it keeps its transform (or lack thereof).
             if (!thisClassPathFiles.contains(appendedTransform.getKey())) {
                 mergedTransforms.put(appendedTransform);
             }
         }
 
-        // Receiver's class-load-time transform if it has one, otherwise the argument's.
+        // The class-load-time transform is a per-origin snapshot of the classpath it was composed for, so it
+        // cannot represent the merge of two composed classpaths - classes of the other classpath would load
+        // without Gradle instrumentation. Fail loudly instead of losing instrumentation silently; the merged
+        // classpath has to be composed anew by the caller in that case.
+        checkArgument(
+            classLoadTimeTransform == null || classPath.classLoadTimeTransform == null,
+            "Cannot merge two classpaths that both carry a class-load-time transform; compose the merged classpath instead."
+        );
+        // Keeping the only transform is correct for the entries it was composed from; entries of the other
+        // classpath are unknown to it and load untouched, like any entry without a transformed "double".
         ClassLoadTimeTransform mergedClassLoadTimeTransform = classLoadTimeTransform != null ? classLoadTimeTransform : classPath.classLoadTimeTransform;
 
         // In the end, at most one instance of a transformed entry should be recorded for any given file.
@@ -261,8 +378,8 @@ public class TransformedClassPath implements ClassPath {
     public TransformedClassPath removeIf(Spec<? super File> filter) {
         ClassPath filteredClassPath = originalClassPath.removeIf(filter);
         Set<File> remainingOriginals = ImmutableSet.copyOf(filteredClassPath.getAsFiles());
-        ImmutableMap.Builder<File, File> remainingTransforms = ImmutableMap.builderWithExpectedSize(Math.min(remainingOriginals.size(), transforms.size()));
-        for (Map.Entry<File, File> remainingEntry : transforms.entrySet()) {
+        ImmutableMap.Builder<File, TransformedEntry> remainingTransforms = ImmutableMap.builderWithExpectedSize(Math.min(remainingOriginals.size(), transforms.size()));
+        for (Map.Entry<File, TransformedEntry> remainingEntry : transforms.entrySet()) {
             if (remainingOriginals.contains(remainingEntry.getKey())) {
                 remainingTransforms.put(remainingEntry);
             }
@@ -271,23 +388,39 @@ public class TransformedClassPath implements ClassPath {
     }
 
     /**
-     * Looks up the transformed entry corresponding to the given classpath entry (JAR/classes directory), if it is available. Otherwise, returns {@code null}.
+     * Looks up the transformed file corresponding to the given classpath entry (JAR/classes directory), if it is available. Otherwise, returns {@code null}.
      *
      * @param originalClassPathEntry the original classpath entry
-     * @return the transformed entry for the entry or {@code null} if there is none
+     * @return the transformed file for the entry or {@code null} if there is none
      */
     @Nullable
     public File findTransformedEntryFor(File originalClassPathEntry) {
+        TransformedEntry entry = transforms.get(originalClassPathEntry);
+        return entry != null ? entry.getInstrumentedFile() : null;
+    }
+
+    /**
+     * Looks up the transformed entry, including its instrumentation metadata, for the given classpath entry (JAR/classes directory),
+     * if it is available. Otherwise, returns {@code null}.
+     *
+     * @param originalClassPathEntry the original classpath entry
+     * @return the transformed entry or {@code null} if there is none
+     */
+    @Nullable
+    public TransformedEntry findEntryFor(File originalClassPathEntry) {
         return transforms.get(originalClassPathEntry);
     }
 
+    // The class-load-time transform is deliberately excluded from equals/hashCode:
+    // it is derived data, reconstructible from the transformed entries and the JVM-constant agent status,
+    // and is only attached transiently on the way to a classloader.
     @Override
     public int hashCode() {
-        return originalClassPath.hashCode() + transforms.hashCode() + (classLoadTimeTransform == null ? 0 : classLoadTimeTransform.hashCode());
+        return originalClassPath.hashCode() + transforms.hashCode();
     }
 
     @Override
-    public boolean equals(Object obj) {
+    public boolean equals(@Nullable Object obj) {
         if (obj == this) {
             return true;
         }
@@ -296,8 +429,7 @@ public class TransformedClassPath implements ClassPath {
         }
         TransformedClassPath other = (TransformedClassPath) obj;
         return originalClassPath.equals(other.originalClassPath)
-            && transforms.equals(other.transforms)
-            && Objects.equals(classLoadTimeTransform, other.classLoadTimeTransform);
+            && transforms.equals(other.transforms);
     }
 
     @Override
@@ -322,12 +454,13 @@ public class TransformedClassPath implements ClassPath {
     /**
      * Constructs a TransformedClassPath out of the ordinary JAR/directory list, strict produced by the instrumenting ArtifactTransform.
      *
-     * Artifact transform classpath should always contain pairs or triplets of files, where first file is a marker file, followed by other entries for instrumented artifact,
+     * Artifact transform classpath should always contain groups of files, where the first file is a marker file, followed by other entries for the instrumented artifact,
      * e.g. [marker file 1, instrumented entry 1, original entry 1, marker file 2, instrumented entry 2, original entry 2,...].
      *
      * Marker files rules are as follows:
      * <ul>
-     *      <li>An entry after {@link FileMarker#AGENT_INSTRUMENTATION_MARKER} is considered an instrumented entry and the following entry is considered the original of this instrumented entry.</li>
+     *      <li>{@link FileMarker#AGENT_INSTRUMENTATION_EXTERNAL_MARKER} is followed by the instrumented entry, the dependency analysis file and the original entry.</li>
+     *      <li>{@link FileMarker#AGENT_INSTRUMENTATION_PROJECT_MARKER} is followed by the instrumented entry and the original entry.</li>
      *      <li>An entry after {@link FileMarker#LEGACY_INSTRUMENTATION_MARKER} is instrumented entry without original entry, but it's added to a classpath as "original", to comply with legacy setup.</li>
      *      <li>An entry after {@link FileMarker#ORIGINAL_FILE_DOES_NOT_EXIST_MARKER} is a marker that indicates there is no original/instrumented entry, it's skipped</li>
      *      <li>An entry after {@link FileMarker#INSTRUMENTATION_CLASSPATH_MARKER} is a marker that indicates that this is an instrumented classpath, it's skipped</li>
@@ -347,13 +480,39 @@ public class TransformedClassPath implements ClassPath {
     }
 
     private static ClassPath fromInstrumentingArtifactTransformOutput(List<File> inputFiles) {
-        Map<File, File> transformedEntries = Maps.newLinkedHashMapWithExpectedSize(inputFiles.size());
+        // An empty value means the entry is used for classloading directly, without a transformed "double".
+        Map<File, Optional<TransformedEntry>> transformedEntries = Maps.newLinkedHashMapWithExpectedSize(inputFiles.size());
         for (int i = 0; i < inputFiles.size();) {
             File markerFile = inputFiles.get(i++);
             FileMarker fileMarker = FileMarker.of(markerFile.getName());
             switch (fileMarker) {
-                case AGENT_INSTRUMENTATION_MARKER:
-                    // Agent instrumentation always contain 3 entries:
+                case AGENT_INSTRUMENTATION_EXTERNAL_MARKER: {
+                    // External dependency agent instrumentation always contains 4 entries:
+                    // [a marker, a transformed file, a dependency analysis file, an original file or a copy of it]
+                    checkArgument(i + 2 < inputFiles.size(), "Missing the instrumented, analysis or original entry for classpath %s", inputFiles);
+                    File instrumentedEntry = inputFiles.get(i++);
+                    File analysisEntry = inputFiles.get(i++);
+                    File originalEntry = inputFiles.get(i++);
+                    checkArgument(
+                        analysisEntry.getName().equals(DEPENDENCY_ANALYSIS_FILE_NAME),
+                        "Expected the dependency analysis file after the instrumented entry %s, but got %s",
+                        instrumentedEntry.getAbsolutePath(),
+                        analysisEntry.getAbsolutePath()
+                    );
+                    checkArgument(
+                        areInstrumentedAndOriginalEntriesValid(instrumentedEntry, originalEntry),
+                        "Instrumented entry %s doesn't match original entry %s",
+                        instrumentedEntry.getAbsolutePath(),
+                        originalEntry.getAbsolutePath()
+                    );
+                    transformedEntries.putIfAbsent(
+                        originalEntry,
+                        Optional.of(new TransformedEntry(instrumentedEntry, analysisEntry, InstrumentationKind.EXTERNAL_DEPENDENCY))
+                    );
+                    break;
+                }
+                case AGENT_INSTRUMENTATION_PROJECT_MARKER: {
+                    // Project dependency agent instrumentation always contains 3 entries:
                     // [a marker, a transformed file, an original file or a copy of it]
                     checkArgument(i + 1 < inputFiles.size(), "Missing the instrumented or original entry for classpath %s", inputFiles);
                     File instrumentedEntry = inputFiles.get(i++);
@@ -364,14 +523,18 @@ public class TransformedClassPath implements ClassPath {
                         instrumentedEntry.getAbsolutePath(),
                         originalEntry.getAbsolutePath()
                     );
-                    putIfAbsent(transformedEntries, originalEntry, instrumentedEntry);
+                    transformedEntries.putIfAbsent(
+                        originalEntry,
+                        Optional.of(new TransformedEntry(instrumentedEntry, null, InstrumentationKind.PROJECT_DEPENDENCY))
+                    );
                     break;
+                }
                 case LEGACY_INSTRUMENTATION_MARKER:
                     // Legacy instrumentation always contain 2 entries:
                     // [a marker, a transformed file]
                     checkArgument(i < inputFiles.size(), "Missing the instrumented entry for classpath %s", inputFiles);
                     File legacyInstrumentedEntry = inputFiles.get(i++);
-                    putIfAbsent(transformedEntries, legacyInstrumentedEntry, legacyInstrumentedEntry);
+                    transformedEntries.putIfAbsent(legacyInstrumentedEntry, Optional.empty());
                     break;
                 case INSTRUMENTATION_CLASSPATH_MARKER:
                 case ORIGINAL_FILE_DOES_NOT_EXIST_MARKER:
@@ -384,19 +547,14 @@ public class TransformedClassPath implements ClassPath {
             }
         }
         Builder result = builderWithExactSize(transformedEntries.size());
-        for (Map.Entry<File, File> entry : transformedEntries.entrySet()) {
-            result.add(entry.getKey(), entry.getValue());
+        for (Map.Entry<File, Optional<TransformedEntry>> entry : transformedEntries.entrySet()) {
+            if (entry.getValue().isPresent()) {
+                result.add(entry.getKey(), entry.getValue().get());
+            } else {
+                result.addUntransformed(entry.getKey());
+            }
         }
         return result.build();
-    }
-
-    /**
-     * Base-services still uses Java 6, so we can't use Map#putIfAbsent.
-     */
-    private static <K, V> void putIfAbsent(Map<K, V> map, K key, V value) {
-        if (!map.containsKey(key)) {
-            map.put(key, value);
-        }
     }
 
     private static boolean areInstrumentedAndOriginalEntriesValid(File instrumentedEntry, File originalEntry) {
@@ -421,7 +579,7 @@ public class TransformedClassPath implements ClassPath {
      */
     public static class Builder {
         private final DefaultClassPath.Builder originals;
-        private final ImmutableMap.Builder<File, File> transforms;
+        private final ImmutableMap.Builder<File, TransformedEntry> transforms;
 
         private Builder(int exactSize) {
             originals = DefaultClassPath.builderWithExactSize(exactSize);
@@ -432,14 +590,12 @@ public class TransformedClassPath implements ClassPath {
          * Adds the classpath entry with the corresponding transformed entry.
          *
          * @param original the original JAR or classes directory
-         * @param transformed the transformed JAR or classes directory
+         * @param entry the transformed entry
          * @return this builder
          */
-        public Builder add(File original, File transformed) {
+        public Builder add(File original, TransformedEntry entry) {
             originals.add(original);
-            if (!original.equals(transformed)) {
-                transforms.put(original, transformed);
-            }
+            transforms.put(original, entry);
             return this;
         }
 
@@ -461,7 +617,7 @@ public class TransformedClassPath implements ClassPath {
          * @return the new classpath instance
          */
         public TransformedClassPath build() {
-            Map<File, File> transformedMap = transforms.build();
+            Map<File, TransformedEntry> transformedMap = transforms.build();
             return new TransformedClassPath(originals.build(), transformedMap, null);
         }
     }

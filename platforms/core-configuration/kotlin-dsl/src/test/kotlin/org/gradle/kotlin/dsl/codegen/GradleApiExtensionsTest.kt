@@ -27,6 +27,7 @@ import org.gradle.kotlin.dsl.fixtures.codegen.GroovyNamedArguments
 import org.gradle.kotlin.dsl.fixtures.codegen.IncubatingFunction
 import org.gradle.kotlin.dsl.fixtures.codegen.IncubatingType
 import org.gradle.kotlin.dsl.fixtures.compileToDirectory
+import org.gradle.kotlin.dsl.fixtures.disposeKotlinCompilerContext
 import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.generateKotlinDslApiExtensionsSourceTo
 import org.gradle.kotlin.dsl.support.bytecode.GradleJvmVersion
 import org.gradle.model.internal.asm.AsmConstants.ASM_LEVEL
@@ -34,6 +35,7 @@ import org.gradle.test.fixtures.file.LeaksFileHandles
 import org.hamcrest.CoreMatchers.containsString
 import org.hamcrest.CoreMatchers.equalTo
 import org.hamcrest.MatcherAssert.assertThat
+import org.junit.After
 import org.junit.Test
 import org.mockito.kotlin.atMost
 import org.mockito.kotlin.doReturn
@@ -54,6 +56,13 @@ import kotlin.reflect.KClass
 
 @LeaksFileHandles("embedded Kotlin compiler environment keepalive")
 class GradleApiExtensionsTest : TestWithClassPath() {
+
+    @After
+    fun releaseCompilerJarHandles() {
+        // Generated extensions are compiled against jars inside the test dir; release the
+        // compiler's cached jar handles so the dir can be deleted on Windows.
+        disposeKotlinCompilerContext()
+    }
 
     @Test
     fun `maps java-lang-Class to kotlin-reflect-KClass`() {

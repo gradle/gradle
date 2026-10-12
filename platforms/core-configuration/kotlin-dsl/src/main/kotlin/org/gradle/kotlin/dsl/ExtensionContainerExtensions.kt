@@ -31,6 +31,8 @@ import kotlin.reflect.KProperty
  * @throws [UnknownDomainObjectException] When the given extension is not found.
  *
  * @see [ExtensionContainer.getByName]
+ *
+ * @since 4.1
  */
 operator fun ExtensionContainer.get(name: String): Any =
     getByName(name)
@@ -46,6 +48,8 @@ operator fun ExtensionContainer.get(name: String): Any =
  * @return extension, never null
  * @throws [UnknownDomainObjectException] When the given extension is not found.
  * @throws [IllegalStateException] When the given extension cannot be cast to the expected type.
+ *
+ * @since 5.6
  */
 @Suppress("extension_shadowed_by_member")
 inline fun <reified T : Any> ExtensionContainer.getByName(name: String) =
@@ -59,6 +63,8 @@ inline fun <reified T : Any> ExtensionContainer.getByName(name: String) =
 
 /**
  * Delegated property getter that locates extensions.
+ *
+ * @since 5.6
  */
 @Deprecated("Use 'val extension = extensions.getByType<Type>()' instead. See the Gradle 9.6 upgrading guide.")
 inline operator fun <reified T : Any> ExtensionContainer.getValue(thisRef: Any?, property: KProperty<*>): T {

@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.dsl;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.ExternalModuleDependency;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
@@ -76,6 +75,7 @@ public abstract class DependencyModifier {
      * @param dependencyNotation the dependency notation
      * @return the modified dependency
      * @see DependencyFactory#create(CharSequence)
+     * @since 8.0
      */
     public final ExternalModuleDependency modify(CharSequence dependencyNotation) {
         return modify(getDependencyFactory().create(dependencyNotation));
@@ -86,8 +86,8 @@ public abstract class DependencyModifier {
      *
      * @param providerConvertibleToDependency the provider
      * @return a provider to the modified dependency
+     * @since 8.0
      */
-    @Incubating
     public final Provider<? extends MinimalExternalModuleDependency> modify(ProviderConvertible<? extends MinimalExternalModuleDependency> providerConvertibleToDependency) {
         return providerConvertibleToDependency.asProvider().map(this::modify);
     }
@@ -97,6 +97,7 @@ public abstract class DependencyModifier {
      *
      * @param providerToDependency the provider
      * @return a provider to the modified dependency
+     * @since 8.0
      */
     public final <D extends ModuleDependency> Provider<D> modify(Provider<D> providerToDependency) {
         return providerToDependency.map(this::modify);
@@ -112,6 +113,7 @@ public abstract class DependencyModifier {
      * @param dependency the dependency to modify
      * @param <D> the type of the {@link ModuleDependency}
      * @return the modified dependency
+     * @since 8.0
      */
     public final <D extends ModuleDependency> D modify(D dependency) {
         // Enforce a copy of the dependency to avoid modifying the original dependency

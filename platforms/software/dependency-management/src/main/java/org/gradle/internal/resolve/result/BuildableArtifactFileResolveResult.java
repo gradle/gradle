@@ -17,23 +17,41 @@
 package org.gradle.internal.resolve.result;
 
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
+import org.gradle.internal.resolve.ArtifactNotFoundException;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 
 public interface BuildableArtifactFileResolveResult extends ResolveResult, BuildableTypedResolveResult<File, ArtifactResolveException>, ResourceAwareResolveResult {
+
+    /**
+     * Returns true when the artifact was resolved.
+     */
     boolean isSuccessful();
 
     /**
-     * Returns the resolve failure, if any.
+     * Returns the resolve failure, if any. Returns null when the artifact was resolved or was not found.
      */
     @Override
     @Nullable
     ArtifactResolveException getFailure();
 
     /**
-     * @throws ArtifactResolveException If the resolution was unsuccessful.
+     * Returns true if the artifact was determined to not exist. This does not represent a
+     * failure case. {@link #getFailure()} is null when this method returns true.
+     */
+    boolean isNotFound();
+
+    /**
+     * Creates a failure describing that the artifact was not found, including the locations that were attempted.
+     *
+     * @throws IllegalStateException when {@link #isNotFound()} is false.
+     */
+    ArtifactNotFoundException getNotFoundFailure();
+
+    /**
+     * @throws ArtifactResolveException If the resolution was unsuccessful, or {@link #getNotFoundFailure()} if the artifact was not found.
      */
     @Override
     File getResult() throws ArtifactResolveException;
@@ -42,4 +60,5 @@ public interface BuildableArtifactFileResolveResult extends ResolveResult, Build
      * Marks the artifact as not found.
      */
     void notFound(ComponentArtifactIdentifier artifact);
+
 }

@@ -40,6 +40,7 @@ import java.util.TreeMap;
 /**
  * Displays the properties of a project. An instance of this type is used when you execute the {@code properties} task
  * from the command-line.
+ * @since 0.7
  */
 @UsedByScanPlugin("We use the class name to filter the console log to avoid showing secrets")
 @DisableCachingByDefault(because = "Not worth caching")
@@ -65,6 +66,11 @@ public abstract class PropertyReportTask extends AbstractProjectBasedReportTask<
         return renderer;
     }
 
+    /**
+     * Sets the renderer.
+     *
+     * @since 0.7
+     */
     public void setRenderer(PropertyReportRenderer renderer) {
         this.renderer = renderer;
     }

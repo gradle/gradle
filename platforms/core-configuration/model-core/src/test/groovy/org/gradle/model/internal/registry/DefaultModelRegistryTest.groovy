@@ -35,6 +35,7 @@ import static org.gradle.model.internal.core.NodePredicate.allDescendants
 import static org.gradle.model.internal.core.NodePredicate.allLinks
 import static org.gradle.util.internal.TextUtil.normaliseLineSeparators
 
+@SuppressWarnings("deprecation")
 class DefaultModelRegistryTest extends Specification {
 
     def registry = new ModelRegistryHelper()

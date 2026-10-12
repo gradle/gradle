@@ -21,6 +21,7 @@ import org.gradle.api.tasks.Nested;
 
 /**
  * Interface for generating scripts with the provided details based on a provided template.
+ * @since 2.4
  */
 public interface TemplateBasedScriptGenerator extends ScriptGenerator {
 
@@ -28,6 +29,7 @@ public interface TemplateBasedScriptGenerator extends ScriptGenerator {
      * Sets the template text resource used for generating script.
      *
      * @param template Template text resource
+     * @since 2.4
      */
     void setTemplate(TextResource template);
 
@@ -35,6 +37,7 @@ public interface TemplateBasedScriptGenerator extends ScriptGenerator {
      * Gets the template reader used for generating script.
      *
      * @return Template reader
+     * @since 2.4
      */
     @Nested
     TextResource getTemplate();

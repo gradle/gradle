@@ -39,6 +39,9 @@ dependencies {
     integTestImplementation(projects.messaging)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.scopedPersistentCache)
 }
 
 gradleModule {

@@ -12,7 +12,7 @@
 // See the License for the specific language governing permissions and
 // limitations under the License.
 
-:metadata-file-spec: https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-1.0-specification.md
+:metadata-file-spec: https://github.com/gradle/gradle/blob/master/platforms/documentation/docs/src/docs/design/gradle-module-metadata-latest-specification.md
 
 [[java_testing]]
 = Testing in Java & JVM projects
@@ -125,6 +125,21 @@ The command-line option is especially useful to execute a single test method. Wh
 
 NOTE: Not all test frameworks play well with filtering. Some advanced, synthetic tests may not be fully compatible.
 However, the vast majority of tests and use cases work perfectly well with Gradle's filtering mechanism.
+
+[[filtering_non_method_tests]]
+Not every JUnit Platform test is declared as a method, and how a test is declared affects how you can select it.
+Engines such as https://www.archunit.org/[ArchUnit] declare tests on fields, for example a rule annotated with `@ArchTest`.
+Gradle matches these by their enclosing class and the name they are reported with, in the same way it matches methods by class and method name.
+`--tests "ArchRulesTest.firstRule"` runs that rule on its own, and `excludeTestsMatching "*firstRule"` skips it.
+Rules grouped with `ArchTests.in(...)` are reported as `GroupedClass > ruleName`, after the class passed to `ArchTests.in(...)`.
+For a set held in a field `nested` of `ArchRulesTest` that wraps `NestedRules`, the pattern is `ArchRulesTest.NestedRules > nestedRule`: the enclosing class, then the reported name.
+The name of the field that holds the set never appears in the pattern.
+
+WARNING: The part after the class is the name the engine reports, and engines may change these names in any release.
+A pattern naming an individual non-method test can stop matching when you upgrade the engine, so prefer naming the enclosing class where that is specific enough.
+
+Engines that register their tests only while a class is executing, such as https://kotest.io/[Kotest], are a different case.
+Gradle applies filters after test discovery, before those tests exist, so you can select or exclude them only by their spec class.
 
 The following two sections look at the specific cases of simple class/method names and fully-qualified names.
 
@@ -320,7 +335,7 @@ If the test does not succeed (i.e. it fails for every retry), it will be indicat
 
 When `mergeReruns` is disabled (the default), each execution of a test will be listed as a separate test case.
 
-If you are using link:https://scans.gradle.com[Build Scan] or link:https://gradle.com/gradle-enterprise-solution-overview/failure-analytics/[Develocity],
+If you are using link:https://scans.gradle.com[Build Scan] or link:https://develocity.ai/[Develocity],
 flaky tests will be detected regardless of this setting.
 
 Enabling this option is especially useful when using a CI tool that uses the XML test results to determine build failure instead of relying on Gradle's determination of whether the build failed or not,
@@ -471,7 +486,7 @@ In this way, you can use `gradle test` to test JUnit 3/4 tests on JUnit Platform
 === Filtering test engine
 
 JUnit Platform allows you to use different test engines. JUnit currently provides two `TestEngine` implementations out of the box:
-https://junit.org/junit5/docs/current/api/org.junit.jupiter.engine/module-summary.html[junit-jupiter-engine] and https://junit.org/junit5/docs/current/api/org.junit.vintage.engine/module-summary.html[junit-vintage-engine].
+https://docs.junit.org/current/api/org.junit.jupiter.engine/module-summary.html[junit-jupiter-engine] and https://junit.org/junit5/docs/current/api/org.junit.vintage.engine/module-summary.html[junit-vintage-engine].
 You can also write and plug in your own `TestEngine` implementation as documented https://junit.org/junit5/docs/current/user-guide/#launcher-api-engines-custom[here].
 
 By default, all test engines on the test runtime classpath will be used.

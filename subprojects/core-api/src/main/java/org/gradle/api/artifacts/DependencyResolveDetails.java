@@ -33,6 +33,7 @@ public interface DependencyResolveDetails {
      * The module, before it is resolved.
      * The requested module does not change even if there are multiple dependency resolve rules
      * that manipulate the dependency metadata.
+     * @since 1.4
      */
     ModuleVersionSelector getRequested();
 
@@ -47,6 +48,7 @@ public interface DependencyResolveDetails {
      *
      * @param version to use when resolving this dependency, cannot be null.
      * It is valid to configure the same version as requested.
+     * @since 1.4
      */
     void useVersion(String version);
 
@@ -77,6 +79,7 @@ public interface DependencyResolveDetails {
     /**
      * The target module selector used to resolve the dependency.
      * Never returns null. Target module is updated when methods like {@link #useVersion(String)} are used.
+     * @since 1.4
      */
     ModuleVersionSelector getTarget();
 

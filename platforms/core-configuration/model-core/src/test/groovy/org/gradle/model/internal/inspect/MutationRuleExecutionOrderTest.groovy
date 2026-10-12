@@ -23,6 +23,7 @@ import org.gradle.model.RuleSource
 import org.gradle.model.internal.fixture.ModelRegistryHelper
 import org.gradle.model.internal.fixture.ProjectRegistrySpec
 
+@SuppressWarnings("deprecation")
 class MutationRuleExecutionOrderTest extends ProjectRegistrySpec {
     def modelRegistry = new ModelRegistryHelper(modelRuleExtractor)
 

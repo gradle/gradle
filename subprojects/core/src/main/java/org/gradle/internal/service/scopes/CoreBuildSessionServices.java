@@ -25,6 +25,8 @@ import org.gradle.api.internal.changedetection.state.FileHasherStatistics;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.file.archive.DecompressionCoordinator;
+import org.gradle.api.internal.initialization.transform.ClassLoadTimeInstrumentationComposer;
+import org.gradle.api.internal.initialization.transform.DefaultClassLoadTimeInstrumentationComposer;
 import org.gradle.api.internal.file.archive.DefaultDecompressionCoordinator;
 import org.gradle.api.internal.project.BuildOperationCrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
@@ -48,6 +50,8 @@ import org.gradle.internal.file.Deleter;
 import org.gradle.internal.hash.ChecksumService;
 import org.gradle.internal.hash.DefaultChecksumService;
 import org.gradle.internal.initialization.layout.BuildTreeLocations;
+import org.gradle.internal.instrumentation.agent.AgentStatus;
+import org.gradle.internal.instrumentation.agent.ThirdPartyAgentDetection;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
 import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.StateTransitionControllerFactory;
@@ -154,6 +158,14 @@ public class CoreBuildSessionServices implements ServiceRegistrationProvider {
     @PrivateService
     CrossBuildFileHashCache createCrossBuildChecksumCache(BuildTreeScopedCacheBuilderFactory cacheBuilderFactory, InMemoryCacheDecoratorFactory inMemoryCacheDecoratorFactory) {
         return new CrossBuildFileHashCache(cacheBuilderFactory, inMemoryCacheDecoratorFactory, CrossBuildFileHashCache.Kind.CHECKSUMS);
+    }
+
+    @Provides
+    ClassLoadTimeInstrumentationComposer createClassLoadTimeInstrumentationComposer(AgentStatus agentStatus, StringInterner stringInterner) {
+        if (agentStatus.isAgentInstrumentationEnabled() && ThirdPartyAgentDetection.isThirdPartyAgentPresent()) {
+            return new DefaultClassLoadTimeInstrumentationComposer(agentStatus, stringInterner);
+        }
+        return ClassLoadTimeInstrumentationComposer.empty();
     }
 
     @Provides

@@ -24,10 +24,20 @@ import org.gradle.api.GradleException;
  * @since 2.6
  */
 public class TestExecutionException extends GradleException {
+    /**
+     * Creates a new {@code TestExecutionException}.
+     *
+     * @since 2.6
+     */
     public TestExecutionException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code TestExecutionException}.
+     *
+     * @since 2.7
+     */
     public TestExecutionException(String message, Throwable cause) {
         super(message, cause);
     }

@@ -17,21 +17,16 @@
 package org.gradle.nativeplatform.internal;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.language.base.LanguageSourceSet;
-import org.gradle.language.nativeplatform.NativeResourceSet;
-import org.gradle.nativeplatform.SharedLibraryBinary;
-import org.gradle.nativeplatform.SharedLibraryBinarySpec;
 import org.gradle.nativeplatform.tasks.LinkSharedLibrary;
 import org.gradle.nativeplatform.tasks.ObjectFilesToBinary;
-import org.gradle.platform.base.BinaryTasksCollection;
 import org.gradle.platform.base.internal.BinaryTasksCollectionWrapper;
 
 import java.io.File;
 import java.util.Collections;
 import java.util.Set;
 
-@SuppressWarnings("this-escape")
-public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinarySpec implements SharedLibraryBinary, SharedLibraryBinarySpecInternal {
+@SuppressWarnings({"this-escape", "deprecation"})
+public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinarySpec implements org.gradle.nativeplatform.SharedLibraryBinary, SharedLibraryBinarySpecInternal {
     private final DefaultTasksCollection tasks = new DefaultTasksCollection(super.getTasks());
     private File sharedLibraryFile;
     private File sharedLibraryLinkFile;
@@ -77,12 +72,12 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
     }
 
     @Override
-    public SharedLibraryBinarySpec.TasksCollection getTasks() {
+    public org.gradle.nativeplatform.SharedLibraryBinarySpec.TasksCollection getTasks() {
         return tasks;
     }
 
-    private static class DefaultTasksCollection extends BinaryTasksCollectionWrapper implements SharedLibraryBinarySpec.TasksCollection {
-        public DefaultTasksCollection(BinaryTasksCollection delegate) {
+    private static class DefaultTasksCollection extends BinaryTasksCollectionWrapper implements org.gradle.nativeplatform.SharedLibraryBinarySpec.TasksCollection {
+        public DefaultTasksCollection(org.gradle.platform.base.BinaryTasksCollection delegate) {
             super(delegate);
         }
 
@@ -113,7 +108,7 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         }
 
         private boolean hasResources() {
-            for (NativeResourceSet windowsResourceSet : getInputs().withType(NativeResourceSet.class)) {
+            for (org.gradle.language.nativeplatform.NativeResourceSet windowsResourceSet : getInputs().withType(org.gradle.language.nativeplatform.NativeResourceSet.class)) {
                 if (!windowsResourceSet.getSource().isEmpty()) {
                     return true;
                 }
@@ -122,8 +117,8 @@ public class DefaultSharedLibraryBinarySpec extends AbstractNativeLibraryBinaryS
         }
 
         private boolean hasExportedSymbols() {
-            for (LanguageSourceSet languageSourceSet : getInputs()) {
-                if (!(languageSourceSet instanceof NativeResourceSet)) {
+            for (org.gradle.language.base.LanguageSourceSet languageSourceSet : getInputs()) {
+                if (!(languageSourceSet instanceof org.gradle.language.nativeplatform.NativeResourceSet)) {
                     if (!languageSourceSet.getSource().isEmpty()) {
                         return true;
                     }

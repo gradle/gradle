@@ -77,3 +77,11 @@ for dist in ${INT_TEST_DISTRIBUTIONS}; do
     "${GRADLE_UNIVERSAL_CACHE_CLI_PATH}" --store "${imageName}" "${gradleHome}" || true
   fi
 done
+
+# Every Artifact Cache CLI invocation above (restore and store) autodetects the Maven home
+# (~/.m2) and injects Develocity restore-metrics instrumentation into ~/.m2/.develocity; there
+# is no CLI flag to disable that autodetect. We only cache Gradle homes here, never Maven, so
+# that directory is pure pollution: the CHECK_CLEAN_M2_ANDROID_USER_HOME build step fails the
+# build if ~/.m2/.develocity survives. The agent-side pre-build hook already removes it after
+# its own bootstrap restore; mirror that cleanup for the restores/stores we trigger.
+rm -rf "${HOME}/.m2/.develocity"

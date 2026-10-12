@@ -59,7 +59,7 @@ public interface ZipEntry {
      * This method or {@link #getContent()} may or may not support being called more than once per entry.
      * Use {@link #canReopen()} to determine if more than one call is supported.
      */
-    <T> T withInputStream(IoFunction<InputStream, T> action) throws IOException;
+    <T extends @Nullable Object> T withInputStream(IoFunction<InputStream, T> action) throws IOException;
 
     /**
      * The size of the content in bytes, or -1 if not known.

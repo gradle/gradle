@@ -120,4 +120,11 @@ public interface FileWatcherUpdater {
      * @see FileWatcherUpdater
      */
     FileHierarchySet getWatchedFiles();
+
+    /**
+     * Removes the probe files created under the watchable hierarchies. Called when a build finishes.
+     *
+     * @see FileWatcherProbeRegistry#removeProbeFiles()
+     */
+    void removeProbeFiles();
 }

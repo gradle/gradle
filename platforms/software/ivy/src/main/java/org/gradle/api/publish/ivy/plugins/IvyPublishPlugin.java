@@ -57,7 +57,6 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.artifacts.repositories.AuthenticationSupportedInternal;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.typeconversion.NotationParser;
-import org.gradle.model.Path;
 
 import javax.inject.Inject;
 import java.util.Set;
@@ -166,7 +165,7 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
             .map(isUsingCredentialsProvider -> isUsingCredentialsProvider ? null : "Explicit credentials are unsupported with the Configuration Cache");
     }
 
-    private void createGenerateIvyDescriptorTask(TaskContainer tasks, final String publicationName, final IvyPublicationInternal publication, @Path("buildDir") final DirectoryProperty buildDir) {
+    private void createGenerateIvyDescriptorTask(TaskContainer tasks, final String publicationName, final IvyPublicationInternal publication, final DirectoryProperty buildDir) {
         final String descriptorTaskName = "generateDescriptorFileFor" + capitalize(publicationName) + "Publication";
 
         TaskProvider<GenerateIvyDescriptor> generatorTask = tasks.register(descriptorTaskName, GenerateIvyDescriptor.class, descriptorTask -> {
@@ -177,7 +176,10 @@ public abstract class IvyPublishPlugin implements Plugin<Project> {
                 buildDir.file("publications/" + publicationName + "/ivy.xml")
             );
         });
-        publication.setIvyDescriptorGenerator(generatorTask);
+        publication.setIvyDescriptorGenerator(
+            generatorTask.flatMap(GenerateIvyDescriptor::getDestinationFile),
+            generatorTask.map(task -> task.getOnlyIf().isSatisfiedBy(task))
+        );
     }
 
     private void createGenerateMetadataTask(final TaskContainer tasks, final IvyPublicationInternal publication, final Set<IvyPublicationInternal> publications, final DirectoryProperty buildDir, NamedDomainObjectList<IvyArtifactRepository> repositories) {

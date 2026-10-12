@@ -30,7 +30,6 @@ import org.gradle.api.internal.StartParameterInternal
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.plugins.PluginManagerInternal
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.invocation.GradleLifecycle
@@ -46,7 +45,6 @@ import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
-import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
 import java.io.File
@@ -64,11 +62,11 @@ class CrossBuildConfigurationReportingGradle(
             problem {
                 text("Build ")
                 reference(referrer.identityPath.asString())
-                text(" cannot access Gradle.$what on build ")
+                text(" cannot access ")
+                reference("Gradle.$what")
+                text(" on build ")
                 reference(identityPath.asString())
-            }
-                .exception { message -> message.capitalized() }
-                .build()
+            }.build()
         }
     }
 
@@ -186,11 +184,6 @@ class CrossBuildConfigurationReportingGradle(
     override fun getStartParameter(): StartParameterInternal {
         onBuildMutableStateAccess("getStartParameter")
         return delegate.getStartParameter()
-    }
-
-    override fun getProjectRegistry(): ProjectRegistry {
-        onBuildMutableStateAccess("getProjectRegistry")
-        return delegate.getProjectRegistry()
     }
 
     override fun resetState() {

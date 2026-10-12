@@ -415,9 +415,9 @@ include::sample[dir="snippets/fundamentals/authoring-builds/consuming/kotlin", f
 include::sample[dir="snippets/fundamentals/authoring-builds/consuming/groovy", files="settings.gradle[tags=custom-plugin-repositories]"]
 ====
 
-This tells Gradle to first look in the Maven repository at `../maven-repo` when resolving plugins and then to check the Gradle Plugin Portal if the plugins are not found in the Maven repository.
+This tells Gradle to first look in the Maven repository at `./maven-repo` when resolving plugins and then to check the Gradle Plugin Portal if the plugins are not found in the Maven repository.
 If you don't want the Gradle Plugin Portal to be searched, omit the `gradlePluginPortal()` line.
-Finally, the Ivy repository at `../ivy-repo` will be checked.
+Finally, the Ivy repository at `./ivy-repo` will be checked.
 
 [[sec:plugin_version_management]]
 === Plugin Version Management

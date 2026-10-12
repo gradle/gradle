@@ -44,6 +44,11 @@ public abstract class JacocoCoverageVerification extends JacocoReportBase {
 
     private final JacocoViolationRulesContainer violationRules;
 
+    /**
+     * Creates a new {@code JacocoCoverageVerification}.
+     *
+     * @since 3.4
+     */
     @SuppressWarnings("this-escape")
     public JacocoCoverageVerification() {
         super();
@@ -55,6 +60,7 @@ public abstract class JacocoCoverageVerification extends JacocoReportBase {
      * Returns the violation rules set for this task.
      *
      * @return Violation rules container
+     * @since 3.4
      */
     @Nested
     public JacocoViolationRulesContainer getViolationRules() {
@@ -63,6 +69,7 @@ public abstract class JacocoCoverageVerification extends JacocoReportBase {
 
     /**
      * For internal use only. This property exists, because only tasks with outputs can be up-to-date and cached.
+     * @since 7.1
      */
     @OutputFile
     protected File getDummyOutputFile() {
@@ -73,6 +80,7 @@ public abstract class JacocoCoverageVerification extends JacocoReportBase {
 
     /**
      * Configures the violation rules for this task.
+     * @since 3.4
      */
     public JacocoViolationRulesContainer violationRules(Action<? super JacocoViolationRulesContainer> configureAction) {
         configureAction.execute(violationRules);
@@ -82,6 +90,11 @@ public abstract class JacocoCoverageVerification extends JacocoReportBase {
     @Inject
     protected abstract WorkerExecutor getWorkerExecutor();
 
+    /**
+     * Check.
+     *
+     * @since 3.4
+     */
     @TaskAction
     public void check() throws IOException {
         WorkQueue queue = getWorkerExecutor().classLoaderIsolation();

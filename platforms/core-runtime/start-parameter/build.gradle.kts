@@ -28,6 +28,10 @@ dependencies {
     implementation(libs.commonsLang)
 
     testImplementation(testFixtures(projects.core))
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.coreApi)
+    javadocReferences(projects.fileCollections)
 }
 
 gradleModule {
@@ -37,8 +41,4 @@ gradleModule {
         daemon = true
         worker = true
     }
-}
-
-packageCycles {
-    excludePatterns.add("org/gradle/**")
 }

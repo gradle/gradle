@@ -29,17 +29,19 @@ import java.net.URI;
  *
  * <p>If you need to use more sophisticated mappings to control the resolution of source dependencies, you can use the {@link #getVcsMappings()} or {@link #vcsMappings(Action)} methods.</p>
  *
- * @since 4.4
+ * @since 4.3
  */
 @ServiceScope(Scope.Settings.class)
 public interface SourceControl {
     /**
      * Configures VCS mappings.
+     * @since 4.3
      */
     void vcsMappings(Action<? super VcsMappings> configuration);
 
     /**
      * Returns the VCS mappings configuration.
+     * @since 4.3
      */
     VcsMappings getVcsMappings();
 

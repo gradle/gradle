@@ -20,7 +20,6 @@ dependencies {
     api(libs.slf4jApi)
 
     implementation(projects.concurrent)
-    implementation(projects.core)
     implementation(projects.loggingApi)
     implementation(projects.problemsRendering)
 

@@ -18,14 +18,17 @@ package org.gradle.api.tasks.testing.logging;
 
 /**
  * Determines how exceptions are formatted in test logging.
+ * @since 1.1
  */
 public enum TestExceptionFormat {
     /**
      * Short display of exceptions.  Shows the exception types and locations as well as the hierarchy of causes, but not exception messages or full stack traces.
+     * @since 1.1
      */
     SHORT,
     /**
      * Full display of exceptions.
+     * @since 1.1
      */
     FULL
 }

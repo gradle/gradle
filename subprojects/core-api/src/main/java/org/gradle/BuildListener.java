@@ -39,6 +39,7 @@ import org.gradle.internal.service.scopes.Scope;
  * {@link org.gradle.api.flow.FlowProviders#getBuildWorkResult()}.
  *
  * @see org.gradle.api.invocation.Gradle#addListener(Object)
+ * @since 0.7
  */
 @EventScope(Scope.Build.class)
 @DeprecatedInGradleScope
@@ -57,6 +58,7 @@ public interface BuildListener {
      * ready to use to load the build projects.</p>
      *
      * @param settings The settings. Never null.
+     * @since 0.7
      */
     void settingsEvaluated(Settings settings);
 
@@ -65,6 +67,7 @@ public interface BuildListener {
      * evaluated.</p>
      *
      * @param gradle The build which has been loaded. Never null.
+     * @since 0.8
      */
     void projectsLoaded(Gradle gradle);
 
@@ -73,6 +76,7 @@ public interface BuildListener {
      * ready to use to populate the task graph.</p>
      *
      * @param gradle The build which has been evaluated. Never null.
+     * @since 0.8
      */
     void projectsEvaluated(Gradle gradle);
 
@@ -82,6 +86,7 @@ public interface BuildListener {
      * @param result The result of the build. Never null.
      * @deprecated This method is not supported when configuration caching is enabled.
      * @see org.gradle.api.flow.FlowProviders#getBuildWorkResult()
+     * @since 0.7
      */
     @Deprecated
     void buildFinished(BuildResult result);

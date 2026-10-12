@@ -19,7 +19,7 @@ package org.gradle.tooling.model;
 /**
  * Represents a task which is executable by Gradle.
  *
- * @since 1.0-milestone-5
+ * @since 1.0
  */
 public interface GradleTask extends Task {
 
@@ -27,7 +27,7 @@ public interface GradleTask extends Task {
      * Returns the Gradle project this task is defined in.
      *
      * @return The element.
-     * @since 1.0-milestone-5
+     * @since 1.0
      */
     GradleProject getProject();
 }

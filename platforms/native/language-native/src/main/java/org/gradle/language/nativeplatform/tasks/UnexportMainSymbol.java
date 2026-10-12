@@ -79,6 +79,11 @@ public abstract class UnexportMainSymbol extends DefaultTask {
     @OutputDirectory
     public abstract DirectoryProperty getOutputDirectory();
 
+    /**
+     * Unexport.
+     *
+     * @since 6.0
+     */
     @TaskAction
     protected void unexport(InputChanges inputChanges) {
         for (FileChange change : inputChanges.getFileChanges(getObjects())) {

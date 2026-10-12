@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
-import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.provider.ValueSupplier.ExecutionTimeValue;
 import org.gradle.api.internal.provider.ValueSupplier.Value;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -53,7 +52,6 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
     private final InstantiatorFactory instantiatorFactory;
     private final IsolatableFactory isolatableFactory;
-    private final GradleProperties gradleProperties;
     private final CalculatedValueFactory calculatedValueFactory;
     private final ExecOperations execOperations;
     private final ValueListener valueListener;
@@ -67,7 +65,6 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         ComputationListener computationListener,
         InstantiatorFactory instantiatorFactory,
         IsolatableFactory isolatableFactory,
-        GradleProperties gradleProperties,
         CalculatedValueFactory calculatedValueFactory,
         ExecOperations execOperations,
         ServiceLookup services
@@ -76,7 +73,6 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         this.computationListener = computationListener;
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
-        this.gradleProperties = gradleProperties;
         this.calculatedValueFactory = calculatedValueFactory;
         this.execOperations = execOperations;
         // TODO - dedupe logic copied from DefaultBuildServicesRegistry
@@ -137,7 +133,6 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         ServiceRegistry services = ServiceRegistryBuilder.builder()
             .displayName("value source services")
             .provider(registration -> {
-                registration.add(GradleProperties.class, gradleProperties);
                 registration.add(ExecOperations.class, execOperations);
                 registration.add(parametersType, isolatedParameters);
             })

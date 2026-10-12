@@ -26,6 +26,7 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.TestResources
 import org.gradle.integtests.fixtures.daemon.DaemonClientFixture
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
+import org.gradle.process.ShellScript
 import org.gradle.process.TestExecHttpServer
 import org.gradle.process.TestJavaMain
 import org.gradle.test.precondition.Requires
@@ -326,6 +327,34 @@ class ExecIntegrationTest extends AbstractIntegrationSpec {
             'execTask', 'execInjectedTaskAction',
             'javaexecTask','javaexecInjectedTaskAction'
         ]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38787")
+    def "execOperations.exec can redirect error output to the default standard output"() {
+        given:
+        def script = ShellScript.builder()
+            .printTextToStdErr("Written to stderr by the process")
+            .writeTo(testDirectory, "stderr-only")
+
+        buildFile << """
+            def execOperations = services.get(ExecOperations)
+            tasks.register("run") {
+                doLast {
+                    execOperations.exec {
+                        it.commandLine(${ShellScript.cmdToVarargLiterals(script.commandLine)})
+                        it.errorOutput = it.standardOutput
+                    }
+                }
+            }
+        """
+
+        when:
+        succeeds("run")
+
+        then:
+        // The script writes to stderr only, so this text reaches stdout only if the redirect worked.
+        outputContains("Written to stderr by the process")
+        !result.hasErrorOutput("Written to stderr by the process")
     }
 
     @Issue("https://github.com/gradle/gradle/issues/31282")

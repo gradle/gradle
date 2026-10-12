@@ -26,6 +26,7 @@ public enum InsecureProtocolOption {
      * Fail if a URL with an insecure protocol is found.
      *
      * Refuse to generate a Gradle build.
+     * @since 7.3
      */
     FAIL,
 
@@ -33,6 +34,7 @@ public enum InsecureProtocolOption {
      * Emit a warning if a URL with an insecure protocol is found.
      *
      * The generated Gradle build will fail at runtime.
+     * @since 7.3
      */
     WARN,
 
@@ -40,6 +42,7 @@ public enum InsecureProtocolOption {
      * Allow insecure protocols to be used when found.
      *
      * The generated Gradle build will not fail, but it will allow insecure protocols to be used.
+     * @since 7.3
      */
     ALLOW,
 
@@ -47,6 +50,7 @@ public enum InsecureProtocolOption {
      * Upgrade an insecure protocol to a secure one.
      *
      * The generated Gradle build will not fail, but the repository may not be usable over a secure protocol.
+     * @since 7.3
      */
     UPGRADE;
 }

@@ -19,23 +19,36 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
 
 /**
  * A security-role element in a deployment descriptor like application.xml.
+ * @since 1.0
  */
 public interface EarSecurityRole {
 
     /**
      * A description of the security role. Optional.
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty
     String getDescription();
 
+    /**
+     * Sets the description.
+     *
+     * @since 1.0
+     */
     void setDescription(String description);
 
     /**
      * The name of the security role. Required.
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty
     String getRoleName();
 
+    /**
+     * Sets the role name.
+     *
+     * @since 1.0
+     */
     void setRoleName(String roleName);
 
 }

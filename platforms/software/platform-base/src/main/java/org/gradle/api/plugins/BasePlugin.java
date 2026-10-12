@@ -37,10 +37,26 @@ import static org.gradle.api.internal.artifacts.configurations.ConfigurationRole
  * <p>A {@link org.gradle.api.Plugin} which defines a basic project lifecycle and some common convention properties.</p>
  *
  * @see <a href="https://docs.gradle.org/current/userguide/base_plugin.html">Base plugin reference</a>
+ * @since 0.7
  */
 public abstract class BasePlugin implements Plugin<Project> {
+    /**
+     * The clean task name.
+     *
+     * @since 0.7
+     */
     public static final String CLEAN_TASK_NAME = LifecycleBasePlugin.CLEAN_TASK_NAME;
+    /**
+     * The assemble task name.
+     *
+     * @since 0.8
+     */
     public static final String ASSEMBLE_TASK_NAME = LifecycleBasePlugin.ASSEMBLE_TASK_NAME;
+    /**
+     * The build group.
+     *
+     * @since 0.9
+     */
     public static final String BUILD_GROUP = LifecycleBasePlugin.BUILD_GROUP;
 
     @Override

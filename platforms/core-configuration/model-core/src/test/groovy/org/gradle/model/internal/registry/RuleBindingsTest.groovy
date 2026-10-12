@@ -26,6 +26,7 @@ import org.gradle.model.internal.core.ModelReference
 import org.gradle.model.internal.type.ModelType
 import org.gradle.util.internal.TextUtil
 
+@SuppressWarnings("deprecation")
 class RuleBindingsTest extends RegistrySpec {
     final RuleBindings bindings = new RuleBindings()
 

@@ -54,12 +54,12 @@ import static org.gradle.api.internal.initialization.transform.utils.Instrumenta
  *
  * Directory with analysis files has next content:<br>
  * 1. Instrumentation classpath marker file.<br>
- * 2. A properties file with original file hash and original file name.<br>
- * 3. A properties file with instrumented class dependencies in a file.<br><br>
+ * 2. A binary file with original file hash and original file name, followed by the instrumented class
+ * dependencies, see {@link InstrumentationAnalysisSerializer}.<br><br>
  *
- * File with instrumented class dependencies is a properties file like:<br>
- * [class name 1]=[instrumented super type 1],[instrumented super type 2],...<br>
- * [class name 2]=[instrumented super type 1],[instrumented super type 2],...<br>
+ * The instrumented class dependencies map every class name to its instrumented super types:<br>
+ * [class name 1] to [instrumented super type 1],[instrumented super type 2],...<br>
+ * [class name 2] to [instrumented super type 1],[instrumented super type 2],...<br>
  * ...
  */
 @DisableCachingByDefault(because = "Not worth caching.")
@@ -88,7 +88,7 @@ public abstract class MergeInstrumentationAnalysisTransform implements Transform
 
     @Override
     public void transform(TransformOutputs outputs) {
-        // We simulate fan-in behaviour:
+        // We simulate fan-in behavior:
         // We expect that a transform before this one outputs three artifacts: 1. analysis metadata, 2. the original file and 3. instrumentation marker file.
         // So if the input is analysis metadata we merge it and output it, otherwise it's original artifact, and we output that.
         File input = getInput().get().getAsFile();

@@ -28,20 +28,23 @@ import org.gradle.api.internal.CollectionCallbackActionDecorator
 import org.gradle.api.internal.ConfigurationServicesBundle
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.ConfigurationResolver
+import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity
 import org.gradle.api.internal.artifacts.ResolveExceptionMapper
 import org.gradle.api.internal.artifacts.dsl.PublishArtifactNotationParserFactory
 import org.gradle.api.internal.attributes.AttributeDesugaring
 import org.gradle.api.internal.attributes.AttributesFactory
 import org.gradle.api.internal.file.TestFiles
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.internal.project.ProjectStateRegistry
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Spec
+import org.gradle.internal.Describables
 import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.model.CalculatedValueContainerFactory
+import org.gradle.internal.model.DomainObjectContext
 import org.gradle.internal.operations.BuildOperationRunner
+import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.gradle.util.internal.ToBeImplemented
@@ -79,14 +82,16 @@ class DefaultConfigurationContainerTest extends Specification {
         CollectionCallbackActionDecorator.NOOP,
         TestUtil.problemsService(),
         new AttributeDesugaring(attributesFactory),
-        new ResolveExceptionMapper(StandaloneDomainObjectContext.ANONYMOUS, new DocumentationRegistry()),
-        TestUtil.providerFactory()
+        new ResolveExceptionMapper(DomainObjectContext.NONE, new DocumentationRegistry()),
+        TestUtil.providerFactory(),
+        new TestWorkerLeaseService(),
+        new DependencyManagementInstanceIdentity(Describables.of("unknown"))
     )
 
     private DefaultConfigurationFactory configurationFactory = new DefaultConfigurationFactory(
         configurationServices,
         listenerManager,
-        StandaloneDomainObjectContext.ANONYMOUS,
+        DomainObjectContext.NONE,
         new PublishArtifactNotationParserFactory(
                 objectFactory,
                 metaDataProvider,
@@ -99,7 +104,8 @@ class DefaultConfigurationContainerTest extends Specification {
     private DefaultConfigurationContainer configurationContainer = objectFactory.newInstance(DefaultConfigurationContainer.class,
         TestUtil.instantiatorFactory().decorateLenient(),
         callbackActionDecorator,
-        StandaloneDomainObjectContext.ANONYMOUS,
+        DomainObjectContext.NONE,
+        configurationServices.instanceIdentity,
         configurationFactory,
         Mock(ResolutionStrategyFactory),
         TestUtil.problemsService(),

@@ -21,16 +21,29 @@ import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
-import java.text.SimpleDateFormat
 
 @Requires([
     TestExecutionPreconditions.NotConfigCached,
 ])
 abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
-    public static final String TEST_BUILD_TIMESTAMP = "-PbuildTimestamp=" + newTimestamp()
+    /**
+     * The version the nested build stamps on its own output. A wall-clock value changes on every test run,
+     * which invalidates the build cache entry of every task that embeds the version - the build receipt, the
+     * jars, the distribution zips. Pin it so those stay cacheable across runs.
+     *
+     * This is deliberately different from the timestamp the CI build configuration gives the distribution
+     * that *runs* these nested builds (see {@code SmokeTests.kt}), matching how Gradleception distinguishes
+     * its two dogfooding distributions. The version of the running distribution - not this one - is what
+     * determines the cache keys of the bulk of the nested build's tasks.
+     */
+    public static final String FIXED_BUILD_TIMESTAMP = "19800202020202+0000"
+    public static final String TEST_BUILD_TIMESTAMP = "-PbuildTimestamp=" + FIXED_BUILD_TIMESTAMP
     private static final String DISABLE_IP = "-Dorg.gradle.isolated-projects=false"
-    private static final List<String> GRADLE_BUILD_TEST_ARGS = [DISABLE_IP, TEST_BUILD_TIMESTAMP]
+    // The nested build is a fresh checkout with no incoming-distributions/, but be explicit: an incoming
+    // build receipt would silently win over TEST_BUILD_TIMESTAMP (see BuildTimestampValueSource).
+    private static final String IGNORE_INCOMING_BUILD_RECEIPT = "-PignoreIncomingBuildReceipt=true"
+    private static final List<String> GRADLE_BUILD_TEST_ARGS = [DISABLE_IP, TEST_BUILD_TIMESTAMP, IGNORE_INCOMING_BUILD_RECEIPT]
 
     private SmokeTestGradleRunner.SmokeTestBuildResult result
 
@@ -80,6 +93,10 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
 
         runner.ignoreDeprecationWarnings("Gradleception smoke tests don't check for deprecation warnings; TODO: we should add expected deprecations for each task being called")
         runner.withJdkWarningChecksDisabled() // The Gradle build somehow still emits these warnings
+        // The Gradle build publishes Build Scans and uses the remote build cache, so a Develocity outage makes the
+        // Develocity agent log connection stack traces to the build output. Those are infrastructure noise unrelated
+        // to what these smoke tests verify. See https://github.com/gradle/gradle-private/issues/5290
+        runner.ignoreStackTraces("Develocity agent may log stack traces when ge.gradle.org / the remote build cache is unavailable")
 
         return runner
     }
@@ -87,15 +104,5 @@ abstract class AbstractGradleceptionSmokeTest extends AbstractSmokeTest {
     private SmokeTestGradleRunner runnerWithTestKitDir(File testKitDir, List<String> gradleArgs) {
         runnerWithGradleUserHome(IntegrationTestBuildContext.INSTANCE.gradleUserHomeDir, *(gradleArgs as String[]))
             .withTestKitDir(testKitDir)
-    }
-
-    private static String newTimestamp() {
-        newTimestampDateFormat().format(new Date())
-    }
-
-    static SimpleDateFormat newTimestampDateFormat() {
-        new SimpleDateFormat('yyyyMMddHHmmssZ').tap {
-            setTimeZone(TimeZone.getTimeZone("UTC"))
-        }
     }
 }

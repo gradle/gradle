@@ -34,7 +34,6 @@ import org.gradle.api.internal.project.CrossProjectConfigurator
 import org.gradle.api.internal.project.CrossProjectModelAccess
 import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
-import org.gradle.api.internal.project.ProjectRegistry
 import org.gradle.api.invocation.Gradle
 import org.gradle.api.invocation.GradleLifecycle
 import org.gradle.api.plugins.ExtensionContainer
@@ -50,7 +49,6 @@ import org.gradle.internal.build.PublicBuildPath
 import org.gradle.internal.composite.IncludedBuildInternal
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsReporter
 import org.gradle.internal.extensions.core.serviceOf
-import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.util.Path
 import java.io.File
@@ -72,7 +70,9 @@ class CrossProjectConfigurationReportingGradle(
         else -> gradle
     }
 
-    private val crossProjectModelAccess: CrossProjectModelAccess = delegate.serviceOf()
+    private val crossProjectModelAccess: CrossProjectModelAccess by lazy {
+        delegate.serviceOf()
+    }
 
     private val projectConfigurator: CrossProjectConfigurator = delegate.serviceOf()
 
@@ -81,10 +81,9 @@ class CrossProjectConfigurationReportingGradle(
             problem {
                 text("Project ")
                 reference(referrerProject.buildTreePath)
-                text(" cannot access Gradle.$what")
-            }
-                .exception { message -> message.capitalized() }
-                .build()
+                text(" cannot access ")
+                reference("Gradle.$what")
+            }.build()
         }
     }
 
@@ -395,9 +394,6 @@ class CrossProjectConfigurationReportingGradle(
     override fun setBaseProjectClassLoaderScope(classLoaderScope: ClassLoaderScope) {
         delegate.setBaseProjectClassLoaderScope(classLoaderScope)
     }
-
-    override fun getProjectRegistry(): ProjectRegistry =
-        delegate.projectRegistry
 
     override fun includedBuilds(): MutableList<out IncludedBuildInternal> =
         delegate.includedBuilds()

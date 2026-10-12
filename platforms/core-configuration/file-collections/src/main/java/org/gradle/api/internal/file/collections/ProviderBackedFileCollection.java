@@ -70,4 +70,8 @@ public class ProviderBackedFileCollection extends CompositeFileCollection {
     public PathToFileResolver getResolver() {
         return resolver;
     }
+
+    public ProviderResolutionStrategy getProviderResolutionStrategy() {
+        return providerResolutionStrategy;
+    }
 }

@@ -27,6 +27,7 @@ public interface PluginIdentifier {
 
     /**
      * Returns a human-readable display name for this plugin.
+     * @since 5.1
      */
     String getDisplayName();
 

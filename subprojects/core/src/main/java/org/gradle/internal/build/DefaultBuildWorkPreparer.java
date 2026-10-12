@@ -22,10 +22,15 @@ import org.gradle.execution.plan.ExecutionPlanFactory;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.taskgraph.TaskExecutionGraphInternal;
 import org.gradle.internal.execution.BuildOutputCleanupRegistry;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.function.Consumer;
 
 public class DefaultBuildWorkPreparer implements BuildWorkPreparer {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(DefaultBuildWorkPreparer.class);
+
     private final ExecutionPlanFactory executionPlanFactory;
 
     public DefaultBuildWorkPreparer(ExecutionPlanFactory executionPlanFactory) {
@@ -50,9 +55,16 @@ public class DefaultBuildWorkPreparer implements BuildWorkPreparer {
             plan.setContinueOnFailure(true);
         }
         FinalizedExecutionPlan finalizedExecutionPlan = plan.finalizePlan();
+
+        if (LOGGER.isInfoEnabled()) {
+            LOGGER.info("Tasks to be executed: {}", plan.getContents().getTasks());
+            LOGGER.info("Tasks that were excluded: {}", plan.getContents().getFilteredTasks());
+        }
+
         taskGraph.populate(finalizedExecutionPlan);
         BuildOutputCleanupRegistry buildOutputCleanupRegistry = gradle.getServices().get(BuildOutputCleanupRegistry.class);
         buildOutputCleanupRegistry.resolveOutputs();
         return finalizedExecutionPlan;
     }
+
 }

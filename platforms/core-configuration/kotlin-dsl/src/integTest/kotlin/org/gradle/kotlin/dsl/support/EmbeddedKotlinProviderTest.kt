@@ -45,7 +45,7 @@ class EmbeddedKotlinProviderTest : AbstractKotlinIntegrationTest() {
     @Test
     @Category(Flaky::class) // https://github.com/gradle/gradle-private/issues/4723
     fun `stdlib and reflect are pinned to the embedded kotlin version for requested plugins`() {
-        val requestedKotlinVersion = "2.1.21"
+        val requestedKotlinVersion = "2.3.21"
         withBuildScript(
             """
             buildscript {

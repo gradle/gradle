@@ -16,11 +16,10 @@
 
 package org.gradle.platform.base.internal.builder;
 
-import org.gradle.platform.base.TypeBuilder;
-
 import java.util.Set;
 
-public interface TypeBuilderInternal<T> extends TypeBuilder<T> {
+@SuppressWarnings("deprecation")
+public interface TypeBuilderInternal<T> extends org.gradle.platform.base.TypeBuilder<T> {
     Class<?> getDefaultImplementation();
 
     Set<Class<?>> getInternalViews();

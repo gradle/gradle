@@ -32,11 +32,13 @@ public interface PluginRequest {
 
     /**
      * The ID of the plugin requested. Never null.
+     * @since 3.5
      */
     PluginId getId();
 
     /**
      * The version of the plugin if one was specified, otherwise null.
+     * @since 3.5
      */
     @Nullable
     String getVersion();
@@ -45,6 +47,7 @@ public interface PluginRequest {
      * The implementation module of the plugin if one was explicitly specified, otherwise null.
      * <p>
      * Prefer {@link #getSelector()}.
+     * @since 3.5
      */
     @Nullable
     ModuleVersionSelector getModule();
@@ -52,7 +55,7 @@ public interface PluginRequest {
     /**
      * A selector for the implementation of the plugin if one was explicitly specified, otherwise null.
      *
-     * @since 9.2.0
+     * @since 9.3.0
      */
     @Nullable ComponentSelector getSelector();
 

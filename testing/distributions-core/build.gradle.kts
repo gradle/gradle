@@ -52,4 +52,7 @@ dependencies {
     pluginsRuntimeOnly(projects.problemsImpl) {
         because("This provides the daemon-only Problems API service implementations.")
     }
+    pluginsRuntimeOnly(projects.antImpl) {
+        because("Contains daemon Ant integration")
+    }
 }

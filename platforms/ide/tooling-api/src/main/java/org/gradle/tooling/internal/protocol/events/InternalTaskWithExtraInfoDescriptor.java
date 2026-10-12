@@ -16,6 +16,8 @@
 
 package org.gradle.tooling.internal.protocol.events;
 
+import org.jspecify.annotations.Nullable;
+
 import java.util.Set;
 
 /**
@@ -33,6 +35,6 @@ public interface InternalTaskWithExtraInfoDescriptor extends InternalTaskDescrip
     /**
      * Returns the plugin that registered this task.
      */
-    InternalPluginIdentifier getOriginPlugin();
+    @Nullable InternalPluginIdentifier getOriginPlugin();
 
 }

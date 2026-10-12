@@ -19,4 +19,8 @@ package org.gradle.language.objectivecpp.plugins
 import org.gradle.integtests.fixtures.WellBehavedPluginTest
 
 class ObjectiveCppPluginIntegrationTest extends WellBehavedPluginTest {
+    def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
+    }
+
 }

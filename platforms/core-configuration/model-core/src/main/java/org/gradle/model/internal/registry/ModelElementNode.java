@@ -20,7 +20,6 @@ import com.google.common.base.Predicate;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.Iterables;
 import org.gradle.internal.Cast;
-import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.DuplicateModelException;
 import org.gradle.model.internal.core.EmptyReferenceProjection;
 import org.gradle.model.internal.core.ModelAction;
@@ -45,6 +44,7 @@ import java.util.TreeMap;
 import static org.gradle.model.internal.core.ModelNode.State.Created;
 import static org.gradle.model.internal.core.ModelNode.State.Initialized;
 
+@SuppressWarnings("deprecation")
 class ModelElementNode extends ModelNodeInternal {
     private Map<String, ModelNodeInternal> links;
     private final MutableModelNode parent;
@@ -191,7 +191,7 @@ class ModelElementNode extends ModelNodeInternal {
     }
 
     @Override
-    public void applyTo(NodePredicate predicate, Class<? extends RuleSource> rules) {
+    public void applyTo(NodePredicate predicate, Class<? extends org.gradle.model.RuleSource> rules) {
         modelRegistry.configureMatching(predicate.scope(getPath()), rules);
     }
 

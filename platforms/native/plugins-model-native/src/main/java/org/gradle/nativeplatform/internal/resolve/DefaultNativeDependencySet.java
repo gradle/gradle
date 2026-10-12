@@ -17,13 +17,12 @@
 package org.gradle.nativeplatform.internal.resolve;
 
 import org.gradle.api.file.FileCollection;
-import org.gradle.nativeplatform.NativeDependencySet;
-import org.gradle.nativeplatform.NativeLibraryBinary;
 
-public class DefaultNativeDependencySet implements NativeDependencySet {
-    private final NativeLibraryBinary binary;
+@SuppressWarnings("deprecation")
+public class DefaultNativeDependencySet implements org.gradle.nativeplatform.NativeDependencySet {
+    private final org.gradle.nativeplatform.NativeLibraryBinary binary;
 
-    public DefaultNativeDependencySet(NativeLibraryBinary binary) {
+    public DefaultNativeDependencySet(org.gradle.nativeplatform.NativeLibraryBinary binary) {
         this.binary = binary;
     }
 

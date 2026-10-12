@@ -17,7 +17,6 @@
 package org.gradle.api.reporting.dependents.internal;
 
 import org.gradle.api.tasks.diagnostics.internal.TextReportRenderer;
-import org.gradle.platform.base.ComponentSpec;
 import org.gradle.platform.base.internal.dependents.DependentBinariesResolver;
 import org.jspecify.annotations.Nullable;
 
@@ -25,6 +24,7 @@ import java.util.Set;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.Info;
 
+@SuppressWarnings("deprecation")
 public class TextDependentComponentsReportRenderer extends TextReportRenderer {
 
     private final DependentComponentsRenderer dependentComponentsRenderer;
@@ -33,12 +33,12 @@ public class TextDependentComponentsReportRenderer extends TextReportRenderer {
         this.dependentComponentsRenderer = new DependentComponentsRenderer(dependentBinariesResolver, showNonBuildable, showTestSuites);
     }
 
-    public void renderComponents(Set<ComponentSpec> components) {
+    public void renderComponents(Set<org.gradle.platform.base.ComponentSpec> components) {
         if (components.isEmpty()) {
             getTextOutput().withStyle(Info).println("No components.");
             return;
         }
-        for (ComponentSpec component : components) {
+        for (org.gradle.platform.base.ComponentSpec component : components) {
             getBuilder().item(component, dependentComponentsRenderer);
         }
     }

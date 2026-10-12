@@ -19,7 +19,6 @@ import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
-import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.typeconversion.MapKey;
 import org.gradle.internal.typeconversion.MapNotationConverter;
@@ -29,9 +28,8 @@ import org.gradle.internal.typeconversion.TypedNotationConverter;
 
 import static org.gradle.api.internal.notations.ModuleNotationValidation.validate;
 
-public class ComponentIdentifierParserFactory implements Factory<NotationParser<Object, ComponentIdentifier>> {
+public class ComponentIdentifierParserFactory {
 
-    @Override
     public NotationParser<Object, ComponentIdentifier> create() {
         return NotationParserBuilder.toType(ComponentIdentifier.class)
             .fromCharSequence(new StringNotationConverter())
@@ -70,4 +68,5 @@ public class ComponentIdentifierParserFactory implements Factory<NotationParser<
             );
         }
     }
+
 }

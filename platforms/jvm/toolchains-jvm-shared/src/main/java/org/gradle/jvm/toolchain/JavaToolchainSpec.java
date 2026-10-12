@@ -50,6 +50,7 @@ public interface JavaToolchainSpec extends Describable {
 
     /**
      * The exact version of the Java language that the toolchain is required to support.
+     * @since 6.7
      */
     Property<JavaLanguageVersion> getLanguageVersion();
 

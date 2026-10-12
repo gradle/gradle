@@ -15,41 +15,50 @@
  */
 package org.gradle.api.internal.catalog.problems;
 
+import org.gradle.api.problems.ProblemGroups;
+import org.gradle.api.problems.ProblemId;
+
 /**
  * Problem IDs for version catalog problems.
  *
  * The lowercase names of these correspond to sections in <a href="https://docs.gradle.org/current/userguide/version_catalog_problems.html">version catalog problems</a>.
  * Always change version_catalog_problems.adoc accordingly when renaming an ID.
+ * <p>
+ * The problems are reported in {@code Dependencies > Declaration}.
  */
 public enum VersionCatalogProblemId {
 
-    ACCESSOR_NAME_CLASH("Accessor name clash"),
-    CATALOG_FILE_DOES_NOT_EXIST("Import of external catalog file failed"),
-    INVALID_ALIAS_NOTATION("Invalid alias notation"),
-    RESERVED_ALIAS_NAME("Reserved alias name"),
-    INVALID_DEPENDENCY_NOTATION("Invalid dependency notation"),
-    INVALID_PLUGIN_NOTATION("Invalid plugin notation"),
-    INVALID_MODULE_NOTATION("Invalid module notation"),
-    INVALID_TOML_DEFINITION("Invalid TOML definition"),
-    INVALID_VERSION_NOTATION("Invalid version notation"),
-    TOO_MANY_IMPORT_FILES("Importing multiple files is not supported"),
-    NO_IMPORT_FILES("No files were resolved to be imported"),
-    TOO_MANY_IMPORT_INVOCATION("Multiple 'from' invocations"),
-    TOML_SYNTAX_ERROR("TOML syntax error"),
-    TOO_MANY_ENTRIES("Too many entries"),
-    UNDEFINED_ALIAS_REFERENCE("Bundle declares dependency on non-existent alias"),
-    UNDEFINED_VERSION_REFERENCE("Undefined version reference"),
-    UNSUPPORTED_FILE_FORMAT("Unsupported file format"),
-    UNSUPPORTED_FORMAT_VERSION("Unsupported format version"),
-    ALIAS_NOT_FINISHED("Alias builder not finished");
+    ACCESSOR_NAME_CLASH("Version catalog accessor name clash"),
+    CATALOG_FILE_DOES_NOT_EXIST("Import of external version catalog file failed"),
+    INVALID_ALIAS_NOTATION("Invalid version catalog alias notation"),
+    RESERVED_ALIAS_NAME("Reserved version catalog alias name"),
+    INVALID_DEPENDENCY_NOTATION("Invalid version catalog dependency notation"),
+    INVALID_PLUGIN_NOTATION("Invalid version catalog plugin notation"),
+    INVALID_MODULE_NOTATION("Invalid version catalog module notation"),
+    INVALID_TOML_DEFINITION("Invalid version catalog TOML definition"),
+    INVALID_VERSION_NOTATION("Invalid version notation in version catalog"),
+    TOO_MANY_IMPORT_FILES("Importing multiple version catalog files is not supported"),
+    NO_IMPORT_FILES("No version catalog files were resolved to be imported"),
+    TOO_MANY_IMPORT_INVOCATION("Multiple 'from' invocations in version catalog"),
+    TOML_SYNTAX_ERROR("Version catalog TOML syntax error"),
+    TOO_MANY_ENTRIES("Too many entries in version catalog"),
+    UNDEFINED_ALIAS_REFERENCE("Version catalog bundle declares dependency on non-existent alias"),
+    UNDEFINED_VERSION_REFERENCE("Undefined version reference in version catalog"),
+    UNSUPPORTED_FILE_FORMAT("Unsupported version catalog file format"),
+    UNSUPPORTED_FORMAT_VERSION("Unsupported version catalog format version"),
+    ALIAS_NOT_FINISHED("Version catalog alias builder not finished");
 
-    private final String displayName;
+    private final String name;
 
-    VersionCatalogProblemId(String displayName) {
-        this.displayName = displayName;
+    VersionCatalogProblemId(String name) {
+        this.name = name;
     }
 
-    public String getDisplayName() {
-        return displayName;
+    public String getName() {
+        return name;
+    }
+
+    public ProblemId problemId(ProblemGroups groups) {
+        return groups.getDependencies().getDeclaration().problemId(name);
     }
 }

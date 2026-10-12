@@ -44,5 +44,10 @@ import java.lang.annotation.Target;
 @Retention(RetentionPolicy.RUNTIME)
 @Target({ElementType.TYPE})
 public @interface DisableCachingByDefault {
+    /**
+     * Because.
+     *
+     * @since 7.0
+     */
     String because() default "";
 }

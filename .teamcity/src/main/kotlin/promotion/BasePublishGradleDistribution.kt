@@ -28,8 +28,8 @@ abstract class BasePublishGradleDistribution(
     val promotedBranch: String,
     val prepTask: String?,
     val triggerName: String,
-    val gitUserName: String = "bot-teamcity",
-    val gitUserEmail: String = "bot-teamcity@gradle.com",
+    val gitUserName: String = "bot-gradle",
+    val gitUserEmail: String = "bot-gradle@gradle.com",
     val extraParameters: String = "",
     cleanCheckout: Boolean = true,
 ) : BasePromotionBuildType(cleanCheckout) {

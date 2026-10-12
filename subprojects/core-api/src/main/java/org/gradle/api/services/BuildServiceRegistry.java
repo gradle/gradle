@@ -31,6 +31,7 @@ import org.gradle.api.provider.Provider;
 public interface BuildServiceRegistry {
     /**
      * Returns the set of service registrations.
+     * @since 6.1
      */
     NamedDomainObjectSet<BuildServiceRegistration<?, ?>> getRegistrations();
 
@@ -41,6 +42,7 @@ public interface BuildServiceRegistry {
      * @param implementationType The service implementation type. Instances of the service are created as for {@link org.gradle.api.model.ObjectFactory#newInstance(Class, Object...)}.
      * @param configureAction An action to configure the registration. You can use this to provide parameters to the service instance.
      * @return A {@link Provider} that will create the service instance when queried.
+     * @since 6.1
      */
     <T extends BuildService<P>, P extends BuildServiceParameters> Provider<T> registerIfAbsent(String name, Class<T> implementationType, Action<? super BuildServiceSpec<P>> configureAction);
 

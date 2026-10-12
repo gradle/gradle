@@ -37,6 +37,7 @@ public interface WorkQueue {
      *
      * <p>The {@code parameterAction} is invoked even when the work action declares {@link WorkParameters.None} as its
      * parameters type; in that case it receives the {@link WorkParameters.None} singleton.</p>
+     * @since 5.6
      */
     <T extends WorkParameters> void submit(Class<? extends WorkAction<T>> workActionClass, Action<? super T> parameterAction);
 
@@ -46,6 +47,7 @@ public interface WorkQueue {
      * tasks from the same project cannot be run in parallel while the task action is still executing.
      *
      * @throws WorkerExecutionException when a failure occurs while executing the work.
+     * @since 5.6
      */
     void await() throws WorkerExecutionException;
 }

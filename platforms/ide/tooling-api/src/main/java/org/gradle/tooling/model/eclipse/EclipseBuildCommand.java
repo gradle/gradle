@@ -33,6 +33,7 @@ public interface EclipseBuildCommand {
      * @see <a href="http://help.eclipse.org/mars/topic/org.eclipse.platform.doc.isv/reference/api/org/eclipse/core/resources/ICommand.html#getBuilderName--">Definition of ICommand#getBuilderName() in the Eclipse documentation</a>
      *
      * @return The name of the build command. Does not return null.
+     * @since 2.9
      */
     String getName();
 
@@ -43,6 +44,7 @@ public interface EclipseBuildCommand {
      * @see <a href="http://help.eclipse.org/mars/topic/org.eclipse.platform.doc.isv/reference/api/org/eclipse/core/resources/ICommand.html#getArguments--">Definition of ICommand#getArguments() in the Eclipse documentation</a>
      *
      * @return The arguments map. If no arguments supplied then returns an empty map.
+     * @since 2.9
      */
     Map<String, String> getArguments();
 }

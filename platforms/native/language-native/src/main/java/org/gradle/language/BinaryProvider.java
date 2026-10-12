@@ -28,6 +28,7 @@ import org.gradle.api.provider.Provider;
 public interface BinaryProvider<T> extends Provider<T> {
     /**
      * Registers an action to execute to configure the binary. The action is executed only when the element is required.
+     * @since 4.5
      */
     void configure(Action<? super T> action);
 

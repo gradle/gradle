@@ -25,6 +25,8 @@ import org.gradle.integtests.tooling.r930.FetchGradleBuildAction
 @TargetGradleVersion(">=9.4.0")
 class FetchBuildActionCrossVersionSpec extends ToolingApiSpecification {
 
+    // From Gradle 9.7 the captured configuration failures also fail the build, see the r970 spec
+    @TargetGradleVersion('>=9.4.0 <9.7.0')
     def "returns a failure for GradleBuild model if settings script fails due to #description"() {
         given:
         settingsFile.delete()

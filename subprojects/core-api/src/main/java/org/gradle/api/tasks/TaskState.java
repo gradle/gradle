@@ -26,6 +26,7 @@ import org.jspecify.annotations.Nullable;
  * <p>
  * Accessing the details of the task state is only meaningful after the task has been
  * {@link #getExecuted() executed}.
+ * @since 0.9
  */
 @HasInternalProtocol
 public interface TaskState {
@@ -38,6 +39,7 @@ public interface TaskState {
      * For instance, failed or skipped tasks will also be considered executed.
      *
      * @return true if this task has been executed.
+     * @since 0.9
      */
     boolean getExecuted();
 
@@ -47,6 +49,7 @@ public interface TaskState {
      * Checking this value is meaningful only after the task has been {@link #getExecuted() executed}.
      *
      * @return The exception, or null if the task did not fail.
+     * @since 0.9
      */
     @Nullable
     Throwable getFailure();
@@ -57,6 +60,7 @@ public interface TaskState {
      * Calling this method is meaningful only after the task has been {@link #getExecuted() executed}.
      *
      * @see #getFailure()
+     * @since 0.9
      */
     void rethrowFailure();
 
@@ -70,6 +74,7 @@ public interface TaskState {
      * Checking this value is meaningful only after the task has been {@link #getExecuted() executed}.
      *
      * @return true if this task has been executed and did any work.
+     * @since 0.9
      */
     boolean getDidWork();
 
@@ -79,6 +84,7 @@ public interface TaskState {
      * Checking this value is meaningful only after the task has been {@link #getExecuted() executed}.
      *
      * @return true if this task has been executed and skipped.
+     * @since 0.9
      */
     boolean getSkipped();
 
@@ -88,6 +94,7 @@ public interface TaskState {
      * Checking this value is meaningful only after the task has been {@link #getExecuted() executed}.
      *
      * @return the message. returns null if the task was not skipped.
+     * @since 0.9
      */
     @Nullable
     String getSkipMessage();

@@ -23,6 +23,7 @@ abstract class AbstractNativeLanguageIncrementalCompileWithDiscoveredInputsInteg
     }
 
     def "does not recompile when include path has #testCase"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         outputs.snapshot { run "mainExecutable" }
 

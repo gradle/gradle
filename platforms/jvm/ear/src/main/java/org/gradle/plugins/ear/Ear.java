@@ -55,15 +55,26 @@ import static org.gradle.plugins.ear.EarPlugin.DEFAULT_LIB_DIR_NAME;
 
 /**
  * Assembles an EAR archive.
+ * @since 1.0
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class Ear extends Jar {
+    /**
+     * The ear extension.
+     *
+     * @since 1.0
+     */
     public static final String EAR_EXTENSION = "ear";
 
     private String libDirName;
     private DeploymentDescriptor deploymentDescriptor;
     private CopySpec lib;
 
+    /**
+     * Creates a new {@code Ear}.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings({"this-escape", "DefaultCharset"}) //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public Ear() {
         getArchiveExtension().set(EAR_EXTENSION);
@@ -162,6 +173,7 @@ public abstract class Ear extends Jar {
      *
      * @param configureClosure The closure.
      * @return This.
+     * @since 1.0
      */
     public Ear deploymentDescriptor(@DelegatesTo(value = DeploymentDescriptor.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
         ConfigureUtil.configure(configureClosure, forceDeploymentDescriptor());
@@ -191,6 +203,7 @@ public abstract class Ear extends Jar {
 
     /**
      * A location for dependency libraries to include in the 'lib' directory of the EAR archive.
+     * @since 1.0
      */
     @Internal
     @ToBeReplacedByLazyProperty(comment = "Should this be lazy?")
@@ -205,6 +218,7 @@ public abstract class Ear extends Jar {
      *
      * @param configureClosure The closure.
      * @return The created {@code CopySpec}
+     * @since 1.0
      */
     public CopySpec lib(@DelegatesTo(value = CopySpec.class, strategy = Closure.DELEGATE_FIRST) Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, getLib());
@@ -227,6 +241,7 @@ public abstract class Ear extends Jar {
 
     /**
      * The name of the library directory in the EAR file. Default is "lib".
+     * @since 1.0
      */
     @Nullable
     @Optional
@@ -236,6 +251,11 @@ public abstract class Ear extends Jar {
         return libDirName;
     }
 
+    /**
+     * Sets the lib dir name.
+     *
+     * @since 1.0
+     */
     public void setLibDirName(@Nullable String libDirName) {
         this.libDirName = libDirName;
     }
@@ -250,6 +270,7 @@ public abstract class Ear extends Jar {
 
     /**
      * The deployment descriptor configuration.
+     * @since 1.0
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -257,6 +278,11 @@ public abstract class Ear extends Jar {
         return deploymentDescriptor;
     }
 
+    /**
+     * Sets the deployment descriptor.
+     *
+     * @since 1.0
+     */
     public void setDeploymentDescriptor(DeploymentDescriptor deploymentDescriptor) {
         this.deploymentDescriptor = deploymentDescriptor;
     }

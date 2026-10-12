@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-
 package org.gradle.api.internal.artifacts.transform;
 
 import org.gradle.api.Describable;
@@ -24,11 +23,9 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
-import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.execution.plan.CreationOrderedNode;
 import org.gradle.execution.plan.Node;
-import org.gradle.execution.plan.SelfExecutingNode;
 import org.gradle.execution.plan.TaskDeclarationAware;
 import org.gradle.execution.plan.TaskDependencyResolver;
 import org.gradle.internal.Describables;
@@ -53,7 +50,6 @@ import org.gradle.operations.dependencies.variants.Capability;
 import org.gradle.operations.dependencies.variants.ComponentIdentifier;
 import org.jspecify.annotations.Nullable;
 
-import javax.annotation.OverridingMethodsMustInvokeSuper;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
@@ -61,9 +57,10 @@ import java.util.Optional;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.stream.Collectors;
+import javax.annotation.OverridingMethodsMustInvokeSuper;
 
 @SuppressWarnings("this-escape")
-public abstract class TransformStepNode extends CreationOrderedNode implements SelfExecutingNode, TaskDeclarationAware {
+public abstract class TransformStepNode extends CreationOrderedNode implements TaskDeclarationAware {
 
     protected final TransformStep transformStep;
     protected final ResolvableArtifact artifact;
@@ -263,6 +260,10 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
     private void nagAboutUndeclaredResolution() {
         String taskPath = workExecutionTracker.getCurrentTask().map(Task::getPath).orElse(null);
         String configName = configurationNameOf();
+        // TODO: Note to whoever converts this deprecation into a failure:
+        // Once this deprecation turns into a failure, we will no longer need to call `forceAccessToMutableState`
+        // in DefaultTransform. That class is the only usage of `forceAccessToMutableState`. We should then remove
+        // that call, fail hard in that branch, and remove the `forceAccessToMutableState` method.
         DeprecationMessageBuilder<?> deprecation = DeprecationLogger.deprecate(
             "Querying the output of an artifact transform from a task action without declaring it as a task input"
         );
@@ -296,7 +297,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements S
 
     @Override
     public void resolveDependencies(TaskDependencyResolver dependencyResolver) {
-        processDependencies(dependencyResolver.resolveDependenciesFor(null, (TaskDependencyContainer) context -> getTransformedArtifacts().visitDependencies(context)));
+        processDependencies(dependencyResolver.resolveDependenciesFor(null, getTransformedArtifacts()::visitDependencies));
     }
 
     protected void processDependencies(Set<Node> dependencies) {

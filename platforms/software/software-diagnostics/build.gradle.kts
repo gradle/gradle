@@ -67,7 +67,6 @@ dependencies {
     integTestImplementation(testFixtures(projects.platformNative))
 
     integTestImplementation(libs.jsoup)
-    integTestImplementation(testLibs.jetty)
 
     integTestDistributionRuntimeOnly(projects.distributionsFull)
 }
@@ -79,12 +78,9 @@ gradleModule {
     }
 }
 
-packageCycles {
-    excludePatterns.add("org/gradle/api/reporting/dependencies/internal/*")
-    excludePatterns.add("org/gradle/api/plugins/internal/*")
-}
-
 val reportResources = tasks.register<Copy>("reportResources") {
+    group = "build"
+    description = "Copies the JavaScript resources used by the HTML dependency report into the generated resources directory."
     from(implementationResources)
     into(layout.buildDirectory.file("generated-resources/report-resources/org/gradle/api/tasks/diagnostics/htmldependencyreport"))
     rename { oldName ->
@@ -99,5 +95,3 @@ tasks.processResources.configure {
 sourceSets.main {
     output.dir(layout.buildDirectory.file("generated-resources/report-resources"))
 }
-
-

@@ -27,18 +27,21 @@ public enum RulesMode {
      * those declared in settings.
      *
      * This is the default behavior.
+     * @since 6.8
      */
     PREFER_PROJECT,
 
     /**
      * If this mode is set, any component metadata rule declared directly in a
      * project, either directly or via a plugin, will be ignored.
+     * @since 6.8
      */
     PREFER_SETTINGS,
 
     /**
      * If this mode is set, any component metadata rule declared directly in a
      * project, either directly or via a plugin, will trigger a build error.
+     * @since 6.8
      */
     FAIL_ON_PROJECT_RULES;
 }

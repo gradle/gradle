@@ -23,31 +23,37 @@ import java.io.File;
 
 /**
  * The Visual C++ tool chain.
+ * @since 2.2
  */
 @Incubating
 public interface VisualCpp extends NativeToolChain {
     /**
      * The directory where Visual Studio or Visual C++ is installed.
+     * @since 2.2
      */
     File getInstallDir();
 
     /**
      * The directory where Visual Studio or Visual C++ is installed.
+     * @since 2.2
      */
     void setInstallDir(Object installDir);
 
     /**
      * The directory where Windows SDK is installed.
+     * @since 2.2
      */
     File getWindowsSdkDir();
 
     /**
      * The directory where Windows SDK is installed.
+     * @since 2.2
      */
     void setWindowsSdkDir(Object installDir);
 
     /**
      * Adds an action that can fine-tune the tool configuration for each platform supported by this tool chain.
+     * @since 2.2
      */
     void eachPlatform(Action<? super VisualCppPlatformToolChain> action);
 }

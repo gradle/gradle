@@ -59,6 +59,7 @@ class RuleSourceAppliedToModelMapElementIntegrationTest extends AbstractIntegrat
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         succeeds "echo"
 
         and:
@@ -87,6 +88,7 @@ class RuleSourceAppliedToModelMapElementIntegrationTest extends AbstractIntegrat
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         fails "tasks"
 
         and:
@@ -115,6 +117,7 @@ class RuleSourceAppliedToModelMapElementIntegrationTest extends AbstractIntegrat
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         fails "tasks"
 
         and:
@@ -144,6 +147,7 @@ class RuleSourceAppliedToModelMapElementIntegrationTest extends AbstractIntegrat
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         fails "taskWithUnboundRuleSourceApplied"
 
         and:
@@ -158,4 +162,8 @@ class RuleSourceAppliedToModelMapElementIntegrationTest extends AbstractIntegrat
 '''
     }
 
+
+    private void expectSoftwareModelDeprecation(String pluginName) {
+        executer.expectDocumentedDeprecationWarning("The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+    }
 }

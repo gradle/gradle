@@ -24,13 +24,14 @@ import java.util.List;
 /**
  * A request to execute some tasks, along with an optional project path context to provide information necessary to select the tasks
  *
- * @since 2.0
+ * @since 2.1
  */
 public interface TaskExecutionRequest {
     /**
      * The arguments to use to select and optionally configure the tasks, as if provided on the command-line.
      *
      * @return task name.
+     * @since 2.1
      */
     List<String> getArgs();
 
@@ -38,6 +39,7 @@ public interface TaskExecutionRequest {
      * Project path associated with this task request if any.
      *
      * @return project path or {@code null} to use the default project path.
+     * @since 2.1
      */
     @Nullable String getProjectPath();
 

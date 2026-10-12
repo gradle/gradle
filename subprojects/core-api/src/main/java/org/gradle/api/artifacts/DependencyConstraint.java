@@ -31,6 +31,7 @@ public interface DependencyConstraint extends ModuleVersionSelector, HasConfigur
      * Configures the version constraint for this dependency constraint.
      *
      * @param configureAction the configuration action for the module version
+     * @since 4.5
      */
     void version(Action<? super MutableVersionConstraint> configureAction);
 
@@ -76,6 +77,7 @@ public interface DependencyConstraint extends ModuleVersionSelector, HasConfigur
     /**
      * Returns the version constraint to be used during selection.
      * @return the version constraint
+     * @since 4.5
      */
     VersionConstraint getVersionConstraint();
 }

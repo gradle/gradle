@@ -18,8 +18,20 @@ package org.gradle.api.tasks.testing.logging;
 
 /**
  * Stack trace filters for test logging. Multiple filters can be combined.
+ * @since 1.1
  */
 public enum TestStackTraceFilter {
     // ordered by how much they filter
-    ENTRY_POINT, TRUNCATE, GROOVY
+    /**
+     * @since 1.1
+     */
+    ENTRY_POINT,
+    /**
+     * @since 1.1
+     */
+    TRUNCATE,
+    /**
+     * @since 1.1
+     */
+    GROOVY
 }

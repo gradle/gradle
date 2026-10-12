@@ -53,6 +53,7 @@ import static org.gradle.util.internal.CollectionUtils.collect;
 
 /**
  * Task for generating a Visual Studio project file (e.g. {@code foo.vcxproj}).
+ * @since 1.11
  */
 @SuppressWarnings("this-escape")
 @Incubating
@@ -76,6 +77,11 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
         return true;
     }
 
+    /**
+     * Init gradle command.
+     *
+     * @since 1.12
+     */
     public void initGradleCommand() {
         final File gradlew = new File(IdePlugin.toGradleCommand(getProject()));
         getConventionMapping().map("gradleExe", new Callable<Object>() {
@@ -96,15 +102,30 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
         });
     }
 
+    /**
+     * Returns the transformer.
+     *
+     * @since 1.12
+     */
     @Internal
     public Transformer<@org.jetbrains.annotations.NotNull String, File> getTransformer() {
         return RelativeFileNameTransformer.forFile(getProject().getRootDir(), visualStudioProject.getProjectFile().getLocation());
     }
 
+    /**
+     * Sets the visual studio project.
+     *
+     * @since 1.11
+     */
     public void setVisualStudioProject(VisualStudioProject vsProject) {
         this.visualStudioProject = (DefaultVisualStudioProject) vsProject;
     }
 
+    /**
+     * Returns the visual studio project.
+     *
+     * @since 1.11
+     */
     @Internal
     public VisualStudioProject getVisualStudioProject() {
         return visualStudioProject;
@@ -181,21 +202,41 @@ public abstract class GenerateProjectFileTask extends XmlGeneratorTask<VisualStu
         }
     }
 
+    /**
+     * Returns the gradle exe.
+     *
+     * @since 1.12
+     */
     @Internal
     public String getGradleExe() {
         return gradleExe;
     }
 
+    /**
+     * Sets the gradle exe.
+     *
+     * @since 1.12
+     */
     public void setGradleExe(String gradleExe) {
         this.gradleExe = gradleExe;
     }
 
+    /**
+     * Returns the gradle args.
+     *
+     * @since 1.12
+     */
     @Nullable
     @Internal
     public String getGradleArgs() {
         return gradleArgs;
     }
 
+    /**
+     * Sets the gradle args.
+     *
+     * @since 1.12
+     */
     public void setGradleArgs(@Nullable String gradleArgs) {
         this.gradleArgs = gradleArgs;
     }

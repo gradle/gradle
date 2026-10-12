@@ -34,12 +34,18 @@ import javax.inject.Inject;
 
 /**
  * Task to generate HTML, Xml and CSV reports of Jacoco coverage data.
+ * @since 1.6
  */
 @CacheableTask
 public abstract class JacocoReport extends JacocoReportBase implements Reporting<JacocoReportsContainer> {
 
     private final JacocoReportsContainer reports;
 
+    /**
+     * Creates a new {@code JacocoReport}.
+     *
+     * @since 2.0
+     */
     @SuppressWarnings("this-escape")
     public JacocoReport() {
         super();
@@ -82,6 +88,11 @@ public abstract class JacocoReport extends JacocoReportBase implements Reporting
     @Inject
     protected abstract WorkerExecutor getWorkerExecutor();
 
+    /**
+     * Generate.
+     *
+     * @since 1.6
+     */
     @TaskAction
     public void generate() {
         WorkQueue queue = getWorkerExecutor().classLoaderIsolation();

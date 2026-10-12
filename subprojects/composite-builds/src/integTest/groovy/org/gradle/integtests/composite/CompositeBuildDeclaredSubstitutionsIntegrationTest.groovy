@@ -75,11 +75,11 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         resolvedGraph {
             edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
                 compositeSubstitute()
-                configuration = "runtimeElements"
+                variant("runtimeElements")
             }
             edge("org.test:b1:1.0", ":buildB:b1", "org.test:b1:2.0") {
                 compositeSubstitute()
-                configuration = "runtimeElements"
+                variant("runtimeElements")
             }
             module("org.test:b2:1.0")
         }
@@ -99,11 +99,11 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         expect:
         resolvedGraph {
             edge("org.test:b1:1.0", ":buildB:b1", "org.test:b1:2.0") {
-                configuration = "runtimeElements"
+                variant("runtimeElements")
                 compositeSubstitute()
             }
             edge("org.test:XXX:1.0", ":buildC", "org.test:buildC:1.0") {
-                configuration = "runtimeElements"
+                variant("runtimeElements")
                 compositeSubstitute()
             }
         }
@@ -125,10 +125,10 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         expect:
         resolvedGraph {
             edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
-                configuration = "runtimeElements"
+                variant("runtimeElements")
                 compositeSubstitute()
                 edge("org.test:XXX:1.0", ":buildC", "org.test:buildC:1.0") {
-                    configuration = "runtimeElements"
+                    variant("runtimeElements")
                     compositeSubstitute()
                 }
             }
@@ -180,7 +180,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         then:
         resolvedGraph {
             edge("org.test:buildX:1.0", ":buildB:b1", "org.test:b1:2.0") {
-                configuration = "runtimeElements"
+                variant("runtimeElements")
                 compositeSubstitute()
             }
         }
@@ -209,7 +209,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         then:
         resolvedGraph {
             edge("org.gradle:buildX:1.0", ":buildB", "org.test:buildB2:1.0") {
-                configuration = "runtimeElements"
+                variant("runtimeElements")
                 compositeSubstitute()
             }
         }
@@ -230,10 +230,10 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         then:
         resolvedGraph {
             edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
-                configuration = "runtimeElements"
+                variant("runtimeElements")
                 compositeSubstitute()
                 edge("org.test:b2:1.0", ":buildB:b2", "org.test:b2:2.0") {
-                    configuration = "runtimeElements"
+                    variant("runtimeElements")
                     compositeSubstitute()
                 }
             }
@@ -263,7 +263,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         then:
         resolvedGraph {
             edge("org.test:platform:1.0", ":platform", "org.test:platform:2.0") {
-                configuration = "runtimeElements"
+                variant("runtimeElements")
                 compositeSubstitute()
                 noArtifacts()
             }
@@ -293,7 +293,7 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         then:
         resolvedGraph {
             edge("org.test:platform:1.0", ":platform", ":platform:") {
-                configuration = "runtimeElements"
+                variant("runtimeElements")
                 compositeSubstitute()
                 noArtifacts()
             }
@@ -329,11 +329,12 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         then:
         resolvedGraph {
             edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
-                configuration = "testFixturesRuntimeElements"
+                variant("testFixturesRuntimeElements")
                 compositeSubstitute()
-                artifact name: 'buildB'
                 artifact classifier: 'test-fixtures'
                 project(":buildB", "org.test:buildB:2.0") {
+                    variant("runtimeElements")
+                    artifact(name: 'buildB')
                 }
             }
         }
@@ -364,11 +365,12 @@ class CompositeBuildDeclaredSubstitutionsIntegrationTest extends AbstractComposi
         then:
         resolvedGraph {
             edge("org.test:buildB:1.0", ":buildB", "org.test:buildB:2.0") {
-                configuration = "testFixturesRuntimeElements"
+                variant("testFixturesRuntimeElements")
                 compositeSubstitute()
-                artifact name: 'buildB'
                 artifact classifier: 'test-fixtures'
                 project(":buildB", "org.test:buildB:2.0") {
+                    variant("runtimeElements")
+                    artifact(name: 'buildB')
                 }
             }
         }

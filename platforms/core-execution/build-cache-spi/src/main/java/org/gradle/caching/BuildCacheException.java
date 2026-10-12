@@ -22,14 +22,29 @@ package org.gradle.caching;
  * @since 3.3
  */
 public class BuildCacheException extends RuntimeException {
+    /**
+     * Creates a new {@code BuildCacheException}.
+     *
+     * @since 3.3
+     */
     public BuildCacheException() {
         super();
     }
 
+    /**
+     * Creates a new {@code BuildCacheException}.
+     *
+     * @since 3.3
+     */
     public BuildCacheException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code BuildCacheException}.
+     *
+     * @since 3.3
+     */
     public BuildCacheException(String message, Throwable cause) {
         super(message, cause);
     }

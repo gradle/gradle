@@ -20,11 +20,13 @@ import org.gradle.api.Task;
 
 /**
  * A task that combines a set of object files into a single binary.
+ * @since 2.2
  */
 public interface ObjectFilesToBinary extends Task {
     /**
      * Adds a set of object files to be combined into the file binary.
      * The provided source object is evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     * @since 2.2
      */
     void source(Object source);
 }

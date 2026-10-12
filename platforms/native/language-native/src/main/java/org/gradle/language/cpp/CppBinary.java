@@ -33,6 +33,7 @@ import org.gradle.nativeplatform.Linkage;
 public interface CppBinary extends ComponentWithObjectFiles, ComponentWithDependencies, BuildableComponent {
     /**
      * The dependency resolution attribute use to indicate whether a binary is debuggable or not.
+     * @since 4.2
      */
     Attribute<Boolean> DEBUGGABLE_ATTRIBUTE = Attribute.of("org.gradle.native.debuggable", Boolean.class);
 
@@ -52,21 +53,25 @@ public interface CppBinary extends ComponentWithObjectFiles, ComponentWithDepend
 
     /**
      * Returns the C++ source files of this binary.
+     * @since 4.2
      */
     FileCollection getCppSource();
 
     /**
      * Returns the header directories to use to compile this binary. Includes the header directories of this binary plus those of its dependencies.
+     * @since 4.2
      */
     FileCollection getCompileIncludePath();
 
     /**
      * Returns the link libraries to use to link this binary. Includes the link libraries of the component's dependencies.
+     * @since 4.2
      */
     FileCollection getLinkLibraries();
 
     /**
      * Returns the runtime libraries required by this binary. Includes the runtime libraries of the component's dependencies.
+     * @since 4.2
      */
     FileCollection getRuntimeLibraries();
 

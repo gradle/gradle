@@ -24,12 +24,18 @@ import java.util.List;
 
 /**
  * Thrown when a {@link Closure} is given as an {@link Action} implementation, but has the wrong signature.
+ * @since 1.3
  */
 public class InvalidActionClosureException extends GradleException {
 
     private final Closure<?> closure;
     private final Object argument;
 
+    /**
+     * Creates a new {@code InvalidActionClosureException}.
+     *
+     * @since 1.3
+     */
     public InvalidActionClosureException(Closure<?> closure, Object argument) {
         super(toMessage(closure, argument));
         this.closure = closure;
@@ -48,6 +54,7 @@ public class InvalidActionClosureException extends GradleException {
      * The closure being used as an action.
      *
      * @return The closure being used as an action.
+     * @since 1.3
      */
     public Closure<?> getClosure() {
         return closure;
@@ -57,6 +64,7 @@ public class InvalidActionClosureException extends GradleException {
      * The argument the action was executed with.
      *
      * @return The argument the action was executed with.
+     * @since 1.3
      */
     public Object getArgument() {
         return argument;

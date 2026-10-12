@@ -109,6 +109,7 @@ public interface IvyPublication extends Publication {
      * The module descriptor that will be published.
      *
      * @return The module descriptor that will be published.
+     * @since 1.3
      */
     @Nested
     IvyModuleDescriptorSpec getDescriptor();
@@ -119,6 +120,7 @@ public interface IvyPublication extends Publication {
      * The descriptor XML can be modified by using the {@link IvyModuleDescriptorSpec#withXml(org.gradle.api.Action)} method.
      *
      * @param configure The configuration action.
+     * @since 1.3
      */
     void descriptor(Action<? super IvyModuleDescriptorSpec> configure);
 
@@ -150,6 +152,7 @@ public interface IvyPublication extends Publication {
      * </pre>
      *
      * @param component The software component to publish.
+     * @since 1.5
      */
     void from(SoftwareComponent component);
 
@@ -178,12 +181,14 @@ public interface IvyPublication extends Publication {
      * </pre>
      *
      * @param config An action or closure to configure the values of the constructed {@link IvyConfiguration}.
+     * @since 1.5
      */
     void configurations(Action<? super IvyConfigurationContainer> config);
 
     /**
      * Returns the complete set of configurations for this publication.
      * @return the configurations
+     * @since 1.5
      */
     IvyConfigurationContainer getConfigurations();
 
@@ -228,6 +233,7 @@ public interface IvyPublication extends Publication {
      * </pre>
      *
      * @param source The source of the artifact content.
+     * @since 1.5
      */
     IvyArtifact artifact(Object source);
 
@@ -274,6 +280,7 @@ public interface IvyPublication extends Publication {
      *
      * @param source The source of the artifact.
      * @param config An action to configure the values of the constructed {@link IvyArtifact}.
+     * @since 1.5
      */
     IvyArtifact artifact(Object source, Action<? super IvyArtifact> config);
 
@@ -306,6 +313,7 @@ public interface IvyPublication extends Publication {
      * </pre>
      *
      * @return the artifacts.
+     * @since 1.5
      */
     IvyArtifactSet getArtifacts();
 
@@ -313,39 +321,46 @@ public interface IvyPublication extends Publication {
      * Sets the artifacts for this publication. Each supplied value is interpreted as per {@link #artifact(Object)}.
      *
      * @param sources The set of artifacts for this publication.
+     * @since 1.5
      */
     void setArtifacts(Iterable<?> sources);
 
     /**
      * Returns the organisation for this publication.
+     * @since 1.7
      */
     @ToBeReplacedByLazyProperty
     String getOrganisation();
 
     /**
      * Sets the organisation for this publication.
+     * @since 1.7
      */
     void setOrganisation(String organisation);
 
     /**
      * Returns the module for this publication.
+     * @since 1.7
      */
     @ToBeReplacedByLazyProperty
     String getModule();
 
     /**
      * Sets the module for this publication.
+     * @since 1.7
      */
     void setModule(String module);
 
     /**
      * Returns the revision for this publication.
+     * @since 1.7
      */
     @ToBeReplacedByLazyProperty
     String getRevision();
 
     /**
      * Sets the revision for this publication.
+     * @since 1.7
      */
     void setRevision(String revision);
 

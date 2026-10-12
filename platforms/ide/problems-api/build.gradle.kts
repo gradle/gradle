@@ -30,6 +30,7 @@ at https://github.com/melix/jdoctor/
 dependencies {
     api(projects.baseServices)
     api(projects.buildOperations)
+    api(projects.buildOption)
     api(projects.enterpriseOperations)
     api(projects.serialization)
     api(projects.snapshots)
@@ -38,18 +39,22 @@ dependencies {
     api(libs.guava)
     api(libs.inject)
     api(libs.jspecify)
-    api(projects.serialization)
 
     implementation(libs.jsr305)
 
     testImplementation(projects.logging)
+    testImplementation(testFixtures(projects.time))
+
     integTestImplementation(projects.internalTesting)
     integTestImplementation(testFixtures(projects.logging))
+
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 
-    testFixturesImplementation(projects.enterpriseOperations)
-    testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.internalDistributionTesting)
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.coreApi)
+    javadocReferences(projects.configurationProblemsBase)
 }
 
 gradleModule {
@@ -68,10 +73,4 @@ jvmCompile {
             targetJvmVersion = 8
         }
     }
-}
-
-
-
-packageCycles {
-    excludePatterns.add("org/gradle/api/problems/**") // ProblemId.create() and ProblemGroup.create() return internal types
 }

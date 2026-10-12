@@ -24,6 +24,7 @@ import org.gradle.api.tasks.Internal;
 
 /**
  * The reporting configuration for the {@link Checkstyle} task.
+ * @since 1.0
  */
 public interface CheckstyleReports extends ReportContainer<SingleFileReport> {
 
@@ -46,6 +47,7 @@ public interface CheckstyleReports extends ReportContainer<SingleFileReport> {
      * This report IS enabled by default.
      *
      * @return The checkstyle XML report
+     * @since 1.0
      */
     @Internal
     SingleFileReport getXml();

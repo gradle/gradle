@@ -25,9 +25,9 @@ import org.gradle.tooling.FetchModelResult;
 import java.util.List;
 import java.util.stream.Collectors;
 
-class FetchCustomModelAction implements BuildAction<Result<String>> {
+public class FetchCustomModelAction implements BuildAction<Result<String>> {
 
-    static FetchCustomModelAction withFetchModelCall() {
+    public static FetchCustomModelAction withFetchModelCall() {
         return new FetchCustomModelAction() {
             @Override
             public FetchModelResult<CustomModel> fetch(BuildController controller) {
@@ -36,7 +36,7 @@ class FetchCustomModelAction implements BuildAction<Result<String>> {
         };
     }
 
-    static FetchCustomModelAction withFetchTargetModelCall() {
+    public static FetchCustomModelAction withFetchTargetModelCall() {
         return new FetchCustomModelAction() {
             @Override
             public FetchModelResult<CustomModel> fetch(BuildController controller) {
@@ -45,7 +45,7 @@ class FetchCustomModelAction implements BuildAction<Result<String>> {
         };
     }
 
-    static FetchCustomModelAction withFetchModelParametersCall() {
+    public static FetchCustomModelAction withFetchModelParametersCall() {
         return new FetchCustomModelAction() {
             @Override
             public FetchModelResult<CustomModel> fetch(BuildController controller) {

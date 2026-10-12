@@ -24,6 +24,7 @@ package org.gradle.tooling.model;
 public interface BuildModel {
     /**
      * Returns the identifier for the build that this model is associated with.
+     * @since 3.0
      */
     BuildIdentifier getBuildIdentifier();
 }

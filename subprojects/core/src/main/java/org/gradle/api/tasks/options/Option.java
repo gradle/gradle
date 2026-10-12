@@ -72,6 +72,7 @@ public @interface Option {
      * in which case the field's name will be used.
      *
      * @return The option.
+     * @since 4.6
      */
     String option() default "";
 
@@ -79,6 +80,7 @@ public @interface Option {
      * The description of this option.
      *
      * @return The description.
+     * @since 4.6
      */
     String description();
 }

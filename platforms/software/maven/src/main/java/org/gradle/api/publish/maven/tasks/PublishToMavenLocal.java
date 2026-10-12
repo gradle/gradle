@@ -45,6 +45,11 @@ public abstract class PublishToMavenLocal extends AbstractPublishToMaven {
         return publicationInternal.asNormalisedPublication();
     }
 
+    /**
+     * Publish.
+     *
+     * @since 2.4
+     */
     @TaskAction
     public void publish() {
         MavenNormalizedPublication normalizedPublication = this.normalizedPublication.get();

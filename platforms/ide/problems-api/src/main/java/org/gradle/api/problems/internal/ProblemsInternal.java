@@ -23,6 +23,9 @@ import org.gradle.internal.service.scopes.ServiceScope;
 @ServiceScope(Scope.BuildTree.class)
 public interface ProblemsInternal extends Problems {
 
+    @Override
+    ProblemGroupsInternal getGroups();
+
     /**
      * Returns a reporter then provides additional problem service functionality specific for Gradle internals.
      *

@@ -19,12 +19,14 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * The metadata about an Ivy module that acts as an input to a component metadata rule.
+ * @since 2.1
  */
 public interface IvyModuleDescriptor {
     /**
      * Returns the branch attribute of the info element in this descriptor.
      *
      * @return the branch for this descriptor, or null if no branch was declared in the descriptor.
+     * @since 2.1
      */
     @Nullable
     String getBranch();
@@ -35,6 +37,7 @@ public interface IvyModuleDescriptor {
      * the {@link org.gradle.api.artifacts.ComponentMetadataDetails} interface in a component metadata rule.
      *
      * @return the status for this descriptor
+     * @since 2.1
      */
     String getIvyStatus();
 
@@ -45,6 +48,7 @@ public interface IvyModuleDescriptor {
      * The extra info is the set of all non-standard subelements of the <em>info</em> element.
      *
      * @return an {@link org.gradle.api.artifacts.ivy.IvyExtraInfo} representing the extra info declared in this descriptor
+     * @since 2.1
      */
     IvyExtraInfo getExtraInfo();
 }

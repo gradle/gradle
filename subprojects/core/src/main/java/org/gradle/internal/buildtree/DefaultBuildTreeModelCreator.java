@@ -29,6 +29,7 @@ import org.gradle.tooling.provider.model.UnknownModelException;
 import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal;
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier;
 import org.gradle.tooling.provider.model.internal.ToolingModelScope;
+import org.gradle.tooling.provider.model.internal.ToolingModelScopeResult;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -58,16 +59,26 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
     }
 
     @Override
-    public <T> void beforeTasks(BuildTreeModelAction<? extends T> action) {
-        action.beforeTasks(new DefaultBuildTreeModelController());
+    public BuildTreeModelCreatorResult<Void> beforeTasks(BuildTreeModelAction<?> action) {
+        ResilientBuildTreeFailureCollector failures = new ResilientBuildTreeFailureCollector();
+        action.beforeTasks(new DefaultBuildTreeModelController(failures));
+        return BuildTreeModelCreatorResult.of(null, failures);
     }
 
     @Override
-    public <T> T fromBuildModel(BuildTreeModelAction<? extends T> action) {
-        return action.fromBuildModel(new DefaultBuildTreeModelController());
+    public <T> BuildTreeModelCreatorResult<T> fromBuildModel(BuildTreeModelAction<? extends T> action) {
+        ResilientBuildTreeFailureCollector failures = new ResilientBuildTreeFailureCollector();
+        T model = action.fromBuildModel(new DefaultBuildTreeModelController(failures));
+        return BuildTreeModelCreatorResult.of(model, failures);
     }
 
     private class DefaultBuildTreeModelController implements BuildTreeModelController {
+        private final ResilientBuildTreeFailureCollector buildTreeFailureCollector;
+
+        public DefaultBuildTreeModelController(ResilientBuildTreeFailureCollector buildTreeFailureCollector) {
+            this.buildTreeFailureCollector = buildTreeFailureCollector;
+        }
+
         @Override
         public GradleInternal getConfiguredModel() {
             return defaultTarget.withToolingModels(false, BuildToolingModelController::getConfiguredModel);
@@ -82,10 +93,14 @@ public class DefaultBuildTreeModelCreator implements BuildTreeModelCreator {
                 @Nullable
                 public ToolingModelBuilderResultInternal call(BuildOperationContext context) {
                     ToolingModelScope scope = locateBuilderForTarget(target, modelRequestContext);
-                    return scope.getModel(modelRequestContext,
-                        modelRequestContext.getParameter()
-                            .map(parameterCarrierFactory::createCarrier)
-                            .orElse(null));
+                    ToolingModelParameterCarrier parameter = modelRequestContext.getParameter()
+                        .map(parameterCarrierFactory::createCarrier)
+                        .orElse(null);
+                    ToolingModelScopeResult result = scope.getModel(modelRequestContext, parameter);
+                    // A failure held behind a partial result is collected here, at the build-tree model boundary, so
+                    // the build still fails when it finishes, while the client result is returned unchanged.
+                    buildTreeFailureCollector.collectFrom(result);
+                    return result.getClientResult();
                 }
 
                 @Override

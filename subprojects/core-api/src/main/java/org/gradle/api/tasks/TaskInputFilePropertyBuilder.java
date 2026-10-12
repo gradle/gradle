@@ -34,24 +34,28 @@ public interface TaskInputFilePropertyBuilder extends TaskFilePropertyBuilder {
     /**
      * Skip executing the task if the property contains no files.
      * If there are multiple properties with {code skipWhenEmpty = true}, then they all need to be empty for the task to be skipped.
+     * @since 3.0
      */
     TaskInputFilePropertyBuilder skipWhenEmpty();
 
     /**
      * Sets whether executing the task should be skipped if the property contains no files.
      * If there are multiple properties with {code skipWhenEmpty = true}, then they all need to be empty for the task to be skipped.
+     * @since 3.0
      */
     TaskInputFilePropertyBuilder skipWhenEmpty(boolean skipWhenEmpty);
 
     /**
      * Marks a task property as optional. This means that a value does not have to be specified for the property, but any
      * value specified must meet the validation constraints for the property.
+     * @since 3.0
      */
     TaskInputFilePropertyBuilder optional();
 
     /**
      * Sets whether the task property is optional. If the task property is optional, it means that a value does not have to be
      * specified for the property, but any value specified must meet the validation constraints for the property.
+     * @since 3.0
      */
     TaskInputFilePropertyBuilder optional(boolean optional);
 

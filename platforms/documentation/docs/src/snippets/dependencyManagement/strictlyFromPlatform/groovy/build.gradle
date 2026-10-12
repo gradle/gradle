@@ -1,0 +1,17 @@
+plugins {
+    id 'java-library'
+}
+
+repositories {
+    mavenCentral()
+}
+
+// tag::consumer-endorsed[]
+dependencies {
+    // platform() endorses strict versions by default
+    implementation platform(project(':platform'))
+
+    // No version needed — the platform's strictly constraint pins guava to 33.0.0-jre
+    implementation 'com.google.guava:guava'
+}
+// end::consumer-endorsed[]

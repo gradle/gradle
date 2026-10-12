@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+import gradlebuild.jvm.JvmCompileExtension
+
 tasks.registerEarlyFeedbackLifecycleTasks()
 tasks.named("quickTest") {
     dependsOn("test")
@@ -22,6 +24,14 @@ tasks.named("platformTest") {
     dependsOn("test")
 }
 tasks.configureCIIntegrationTestDistributionLifecycleTasks()
+
+pluginManager.withPlugin("gradlebuild.jvm-compile") {
+    the<JvmCompileExtension>().whenMultiReleaseTestTaskRegistered {
+        val versionedTest = this
+        tasks.named("quickTest") { dependsOn(versionedTest) }
+        tasks.named("platformTest") { dependsOn(versionedTest) }
+    }
+}
 
 val ciGroup = "CI Lifecycle"
 

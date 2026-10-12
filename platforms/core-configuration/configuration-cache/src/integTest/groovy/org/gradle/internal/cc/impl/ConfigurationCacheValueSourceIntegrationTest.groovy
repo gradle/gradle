@@ -19,10 +19,53 @@ package org.gradle.internal.cc.impl
 import org.gradle.api.services.BuildService
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
-import org.gradle.process.ShellScript
 import spock.lang.Issue
 
 class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+
+    @Issue("https://github.com/gradle/gradle/issues/28588")
+    def "value source whose value cannot be deserialized invalidates the cache with the value source attributed"() {
+        given:
+        def configurationCache = newConfigurationCacheFixture()
+        buildFile("""
+            import org.gradle.api.provider.*
+            import java.io.*
+
+            class Poison implements Serializable {
+                private void readObject(ObjectInputStream ois) throws IOException {
+                    throw new RuntimeException("cannot deserialize Poison")
+                }
+            }
+
+            abstract class PoisonValueSource implements ValueSource<Poison, ValueSourceParameters.None> {
+                @Override Poison obtain() { return new Poison() }
+            }
+
+            // Only obtained as a configuration-time build-logic input, so it lands
+            // in the fingerprint and is NOT captured in any task state.
+            providers.of(PoisonValueSource) {}.get()
+
+            tasks.register("ok") { doLast { println "ok" } }
+        """)
+
+        when:
+        configurationCacheRun("ok")
+
+        then:
+        configurationCache.assertStateStored()
+
+        when: "the cached value source result cannot be read back"
+        executer.withStackTraceChecksDisabled()
+        configurationCacheRun("ok", "--info")
+
+        then: "the entry is discarded gracefully and the build reconfigures, exposing the underlying failure"
+        configurationCache.assertStateStored()
+        outputContains("configuration cache cannot be reused because the value of a build logic input of type 'PoisonValueSource' could not be loaded: cannot deserialize Poison")
+
+        and: "the full stack trace of the underlying failure is available at the info level"
+        outputContains("Configuration cache entry discarded because a fingerprint value could not be loaded")
+        outputContains("java.lang.RuntimeException: cannot deserialize Poison")
+    }
 
     @Issue("https://github.com/gradle/gradle/issues/30182")
     def "value source without parameters can access None parameters"() {
@@ -469,36 +512,6 @@ class ConfigurationCacheValueSourceIntegrationTest extends AbstractConfiguration
             withInput("Build file 'build.gradle': system property 'some.property'")
             withInput("Build file 'build.gradle': value from custom source 'MySource'")
         }
-    }
-
-    def "value source can use standard process API"() {
-        given:
-        def configurationCache = newConfigurationCacheFixture()
-        ShellScript testScript = ShellScript.builder().printText("Hello, world").writeTo(testDirectory, "script")
-
-        buildFile.text = """
-            import ${ByteArrayOutputStream.name}
-            import org.gradle.api.provider.*
-
-            abstract class ProcessSource implements ValueSource<String, ValueSourceParameters.None> {
-                @Override String obtain() {
-                    def baos = new ByteArrayOutputStream()
-                    def process = ${ShellScript.cmdToStringLiteral(testScript.getRelativeCommandLine(testDirectory))}.execute()
-                    process.waitForProcessOutput(baos, System.err)
-                    return baos.toString().trim()
-                }
-            }
-
-            def vsResult = providers.of(ProcessSource) {}
-            println("ValueSource result = \${vsResult.get()}")
-        """
-
-        when:
-        configurationCacheRun()
-
-        then:
-        configurationCache.assertStateStored()
-        outputContains("ValueSource result = Hello, world")
     }
 
     def "value source can read mutated system property inputs at configuration time"() {

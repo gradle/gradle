@@ -21,32 +21,29 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublica
 import org.gradle.api.plugins.ExtensionContainer;
 import org.gradle.api.publish.PublishingExtension;
 import org.gradle.internal.service.ServiceRegistry;
-import org.gradle.model.Model;
-import org.gradle.model.ModelMap;
-import org.gradle.model.Mutate;
-import org.gradle.model.RuleSource;
 
 /**
  * These bindings are only here for backwards compatibility, as some users might depend on the extensions being available in the model.
  */
-public class PublishingPluginRules extends RuleSource {
-    @Model
+@SuppressWarnings("deprecation")
+public class PublishingPluginRules extends org.gradle.model.RuleSource {
+    @org.gradle.model.Model
     PublishingExtension publishing(ExtensionContainer extensions) {
         return extensions.getByType(PublishingExtension.class);
     }
 
-    @Model
+    @org.gradle.model.Model
     ProjectPublicationRegistry projectPublicationRegistry(ServiceRegistry serviceRegistry) {
         return serviceRegistry.get(ProjectPublicationRegistry.class);
     }
 
-    @Mutate
+    @org.gradle.model.Mutate
     void addConfiguredPublicationsToProjectPublicationRegistry(ProjectPublicationRegistry projectPublicationRegistry, PublishingExtension extension) {
         //this rule is just here to ensure backwards compatibility for builds that create publications with model rules
     }
 
-    @Mutate
-    void tasksDependOnProjectPublicationRegistry(ModelMap<Task> tasks, PublishingExtension extension) {
+    @org.gradle.model.Mutate
+    void tasksDependOnProjectPublicationRegistry(org.gradle.model.ModelMap<Task> tasks, PublishingExtension extension) {
         //this rule is just here to ensure backwards compatibility for builds that create publications with model rules
     }
 }

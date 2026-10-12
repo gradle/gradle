@@ -23,6 +23,7 @@ package org.gradle.api.artifacts.result;
 public interface UnresolvedComponentResult extends ComponentResult {
     /**
      * Returns the failure that occurred when trying to resolve the component.
+     * @since 2.0
      */
     Throwable getFailure();
 }

@@ -42,6 +42,24 @@ public interface GroovydocParameters extends AntWorkParameters {
 
     Property<String> getFooter();
 
+    Property<String> getJavaVersion();
+
+    Property<Boolean> getShowInternal();
+
+    Property<Boolean> getNoIndex();
+
+    Property<Boolean> getNoDeprecatedList();
+
+    Property<Boolean> getNoHelp();
+
+    Property<String> getSyntaxHighlighter();
+
+    Property<String> getTheme();
+
+    Property<String> getPreLanguage();
+
+    ConfigurableFileCollection getAdditionalStylesheets();
+
     Property<String> getOverview();
 
     Property<GroovydocAccess> getAccess();

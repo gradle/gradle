@@ -27,6 +27,7 @@ import org.gradle.api.provider.Provider;
 public interface ProductionComponent extends SoftwareComponent {
     /**
      * Returns the binary of the component to use as the default for development.
+     * @since 4.5
      */
     Provider<? extends SoftwareComponent> getDevelopmentBinary();
 }

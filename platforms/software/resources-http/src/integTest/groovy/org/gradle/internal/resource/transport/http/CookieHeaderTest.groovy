@@ -16,6 +16,9 @@
 
 package org.gradle.internal.resource.transport.http
 
+import org.gradle.test.fixtures.server.http.HttpRequest
+import org.gradle.test.fixtures.server.http.HttpResponse
+
 import com.google.common.collect.ImmutableMap
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.logging.LogLevel
@@ -25,8 +28,6 @@ import org.gradle.test.fixtures.server.http.HttpServer
 import org.junit.Rule
 import spock.lang.Specification
 
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 class CookieHeaderTest extends Specification {
 
@@ -76,12 +77,11 @@ class RespondWithCookieAction extends HttpServer.ActionSupport {
     }
 
     @Override
-    void handle(HttpServletRequest request, HttpServletResponse response) {
+    void handle(HttpRequest request, HttpResponse response) {
         response.addHeader("Set-Cookie", "cookie_name=$cookie; $attributes")
         String message = "Cookie sent"
         response.setContentLength(message.bytes.length)
         response.setContentType("text/html")
-        response.setCharacterEncoding("utf8")
         response.outputStream.bytes = message.bytes
     }
 }

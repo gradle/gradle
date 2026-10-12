@@ -23,6 +23,7 @@ import org.gradle.nativeplatform.PrebuiltLibrary
 import org.gradle.nativeplatform.platform.NativePlatform
 import spock.lang.Specification
 
+@SuppressWarnings("deprecation")
 class DefaultPrebuiltSharedLibraryBinaryTest extends Specification {
     def prebuiltLibrary = Stub(PrebuiltLibrary) {
         getName() >> "lib"

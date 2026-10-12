@@ -119,7 +119,7 @@ import java.util.List;
  * Defines the extended global services of a given process. This includes the CLI, daemon and tooling API provider. The CLI
  * only needs these services if it is running in --no-daemon mode.
  *
- * <p>Do not use this type directly, but instead use it via {@link BuildProcessState}.</p>
+ * <p>Do not use this type directly, but instead use it via {@link org.gradle.internal.buildprocess.BuildProcessState}.</p>
  */
 public class GlobalScopeServices extends WorkerSharedGlobalScopeServices {
 

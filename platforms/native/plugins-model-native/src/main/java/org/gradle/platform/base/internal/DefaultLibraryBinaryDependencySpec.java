@@ -18,14 +18,13 @@ package org.gradle.platform.base.internal;
 import com.google.common.base.Joiner;
 import org.gradle.api.IllegalDependencyNotation;
 import org.gradle.api.artifacts.component.LibraryBinaryIdentifier;
-import org.gradle.platform.base.DependencySpec;
-import org.gradle.platform.base.LibraryBinaryDependencySpec;
 
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class DefaultLibraryBinaryDependencySpec implements LibraryBinaryDependencySpec {
+@SuppressWarnings("deprecation")
+public class DefaultLibraryBinaryDependencySpec implements org.gradle.platform.base.LibraryBinaryDependencySpec {
 
     private final String projectPath;
     private final String libraryName;
@@ -86,7 +85,7 @@ public class DefaultLibraryBinaryDependencySpec implements LibraryBinaryDependen
         return result;
     }
 
-    public static DependencySpec of(LibraryBinaryIdentifier id) {
+    public static org.gradle.platform.base.DependencySpec of(LibraryBinaryIdentifier id) {
         return new DefaultLibraryBinaryDependencySpec(id.getProjectPath(), id.getLibraryName(), id.getVariant());
     }
 }

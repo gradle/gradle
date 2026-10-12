@@ -97,39 +97,33 @@ class FileSystemWatchingBuildActionRunnerTest extends Specification {
         WatchMode.DISABLED | VfsLogging.NORMAL  | false
     }
 
-    def "watching enabled by default is disabled when project cache dir is specified"() {
-        _ * startParameter.watchFileSystemMode >> WatchMode.DEFAULT
+    def "specifying a project cache dir does not affect file system watching being #watchMode.description"() {
+        _ * startParameter.watchFileSystemMode >> watchMode
         _ * startParameter.projectCacheDir >> Mock(File)
 
         when:
         runner.run(buildAction, buildController)
 
         then:
-        1 * watchingHandler.afterBuildStarted(WatchMode.DISABLED, _, buildOperationRunner)
+        1 * watchingHandler.afterBuildStarted(watchMode, _, buildOperationRunner) >> actuallyEnabled
 
         then:
-        1 * buildOperationProgressEventEmitter.emitNowForCurrent({ FileSystemWatchingSettingsFinalizedProgressDetails details -> !details.enabled })
+        1 * buildOperationProgressEventEmitter.emitNowForCurrent({ FileSystemWatchingSettingsFinalizedProgressDetails details -> details.enabled == actuallyEnabled })
 
         then:
         1 * delegate.run(buildAction, buildController)
 
         then:
-        1 * watchingHandler.beforeBuildFinished(WatchMode.DISABLED, _, buildOperationRunner, _)
+        1 * watchingHandler.beforeBuildFinished(watchMode, _, buildOperationRunner, _)
 
         then:
         0 * _
-    }
 
-    def "fails when watching is enabled and project cache dir is specified"() {
-        _ * startParameter.watchFileSystemMode >> WatchMode.ENABLED
-        _ * startParameter.projectCacheDir >> Mock(File)
-
-        when:
-        runner.run(buildAction, buildController)
-
-        then:
-        def ex = thrown IllegalStateException
-        ex.message == "Enabling file system watching via --watch-fs (or via the org.gradle.vfs.watch property) with --project-cache-dir also specified is not supported; remove either option to fix this problem"
+        where:
+        watchMode          | actuallyEnabled
+        WatchMode.DEFAULT  | false
+        WatchMode.ENABLED  | true
+        WatchMode.DISABLED | false
     }
 
     def "force-enables watching when #description"() {

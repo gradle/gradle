@@ -22,6 +22,7 @@ import org.gradle.internal.tools.api.impl.ClassMember;
 import org.gradle.internal.tools.api.impl.FieldMember;
 import org.gradle.internal.tools.api.impl.InnerClassMember;
 import org.gradle.internal.tools.api.impl.MethodMember;
+import org.gradle.internal.tools.api.impl.RecordComponentMember;
 import org.jspecify.annotations.Nullable;
 import org.objectweb.asm.AnnotationVisitor;
 import org.objectweb.asm.FieldVisitor;
@@ -40,6 +41,8 @@ public interface ApiMemberWriter {
     ModuleVisitor writeModule(String name, int access, @Nullable String version);
 
     void writeClass(ClassMember classMember, Set<MethodMember> methods, Set<FieldMember> fields, Set<InnerClassMember> innerClasses);
+
+    void writeRecordComponent(RecordComponentMember recordComponent);
 
     void writeMethod(ClassMember classMember, @Nullable InnerClassMember declaringInnerClass, MethodMember method);
 

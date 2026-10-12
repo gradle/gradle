@@ -32,6 +32,7 @@ import java.util.Map;
 
 /**
  * <p>Specifies the options to use to fork a Java process.</p>
+ * @since 0.9
  */
 @HasInternalProtocol
 public interface JavaForkOptions extends ProcessForkOptions {
@@ -39,6 +40,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Returns the system properties which will be used for the process.
      *
      * @return The system properties. Returns an empty map when there are no system properties.
+     * @since 0.9
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -48,6 +50,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Sets the system properties to use for the process.
      *
      * @param properties The system properties. Must not be null.
+     * @since 0.9
      */
     void setSystemProperties(Map<String, ? extends @Nullable Object> properties);
 
@@ -56,6 +59,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @param properties The system properties. Must not be null.
      * @return this
+     * @since 0.9
      */
     JavaForkOptions systemProperties(Map<String, ? extends @Nullable Object> properties);
 
@@ -65,6 +69,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * @param name The name of the property
      * @param value The value for the property. May be null.
      * @return this
+     * @since 0.9
      */
     JavaForkOptions systemProperty(String name, @Nullable Object value);
 
@@ -72,6 +77,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Returns the default character encoding to use.
      *
      * @return The default character encoding. Returns null if the {@link java.nio.charset.Charset#defaultCharset() default character encoding of this JVM} should be used.
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
@@ -85,6 +91,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * this value will be overridden by the value specified by {@link #getDefaultCharacterEncoding()}.
      *
      * @param defaultCharacterEncoding The default character encoding. Use null to use {@link java.nio.charset.Charset#defaultCharset() this JVM's default charset}
+     * @since 1.0
      */
      void setDefaultCharacterEncoding(@Nullable String defaultCharacterEncoding);
 
@@ -92,6 +99,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Returns the minimum heap size for the process, if any.
      *
      * @return The minimum heap size. Returns null if the default minimum heap size should be used.
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
@@ -102,6 +110,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Supports the units megabytes (e.g. "512m") and gigabytes (e.g. "1g").
      *
      * @param heapSize The minimum heap size. Use null for the default minimum heap size.
+     * @since 1.0
      */
     void setMinHeapSize(@Nullable String heapSize);
 
@@ -109,6 +118,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Returns the maximum heap size for the process, if any.
      *
      * @return The maximum heap size. Returns null if the default maximum heap size should be used.
+     * @since 0.9
      */
     @ToBeReplacedByLazyProperty
     @Nullable @Optional @Input
@@ -119,6 +129,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Supports the units megabytes (e.g. "512m") and gigabytes (e.g. "1g").
      *
      * @param heapSize The heap size. Use null for the default maximum heap size.
+     * @since 0.9
      */
     void setMaxHeapSize(@Nullable String heapSize);
 
@@ -127,6 +138,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * minimum/maximum heap size settings, which are managed separately and included in {@link #getAllJvmArgs()}.
      *
      * @return The immutable list of arguments. Returns an empty list if there are no arguments.
+     * @since 0.9
      */
     @ToBeReplacedByLazyProperty
     @Optional @Input
@@ -146,6 +158,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * and minimum/maximum heap size are updated.
      *
      * @param arguments The arguments. Must not be null.
+     * @since 0.9
      */
     void setJvmArgs(Iterable<?> arguments);
 
@@ -154,6 +167,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @param arguments The arguments. Must not be null.
      * @return this
+     * @since 0.9
      */
     JavaForkOptions jvmArgs(Iterable<?> arguments);
 
@@ -162,6 +176,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @param arguments The arguments.
      * @return this
+     * @since 0.9
      */
     JavaForkOptions jvmArgs(Object... arguments);
 
@@ -179,6 +194,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * this classpath is empty.
      *
      * @return The bootstrap classpath. Never returns null.
+     * @since 0.9
      */
     @Classpath
     @ToBeReplacedByLazyProperty
@@ -189,6 +205,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * classpath for the specified JVM.
      *
      * @param classpath The classpath. Must not be null. Can be empty.
+     * @since 0.9
      */
     void setBootstrapClasspath(FileCollection classpath);
 
@@ -197,6 +214,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @param classpath The classpath.
      * @return this
+     * @since 0.9
      */
     JavaForkOptions bootstrapClasspath(@Nullable Object... classpath);
 
@@ -204,6 +222,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Returns true if assertions are enabled for the process.
      *
      * @return true if assertions are enabled, false if disabled
+     * @since 0.9
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -213,6 +232,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * Enable or disable assertions for the process.
      *
      * @param enabled true to enable assertions, false to disable.
+     * @since 0.9
      */
     void setEnableAssertions(boolean enabled);
 
@@ -226,6 +246,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * {@link #debugOptions(Action)}.
      *
      * @return true when debugging is enabled, false to disable.
+     * @since 0.9
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -238,6 +259,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * The debug properties (e.g. the port number) can be configured in {@link #debugOptions(Action)}.
      *
      * @param enabled true to enable debugging, false to disable.
+     * @since 0.9
      */
     void setDebug(boolean enabled);
 
@@ -264,6 +286,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * system properties, the minimum/maximum heap size, and the bootstrap classpath.
      *
      * @return The immutable list of arguments. Returns an empty list if there are no arguments.
+     * @since 0.9
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -284,6 +307,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      * properties, minimum/maximum heap size, assertions, and bootstrap classpath.
      *
      * @param arguments The arguments. Must not be null.
+     * @since 0.9
      */
     @Deprecated
     void setAllJvmArgs(Iterable<?> arguments);
@@ -293,6 +317,7 @@ public interface JavaForkOptions extends ProcessForkOptions {
      *
      * @param options The target options.
      * @return this
+     * @since 0.9
      */
     JavaForkOptions copyTo(JavaForkOptions options);
 }

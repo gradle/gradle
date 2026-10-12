@@ -32,12 +32,23 @@ import org.gradle.api.GradleException;
  * need the if statement.</p>
  *
  * <p>Note that throwing this exception does not fail the execution of the task or the build.</p>
+ * @since 0.7
  */
 public class StopActionException extends GradleException {
+    /**
+     * Creates a new {@code StopActionException}.
+     *
+     * @since 0.7
+     */
     public StopActionException() {
         super();
     }
 
+    /**
+     * Creates a new {@code StopActionException}.
+     *
+     * @since 0.7
+     */
     public StopActionException(String message) {
         super(message);
     }

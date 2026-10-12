@@ -28,7 +28,6 @@ import groovy.lang.GroovyObject;
 import org.gradle.internal.reflect.GroovyMethods;
 import org.gradle.internal.reflect.Types.TypeVisitResult;
 import org.gradle.internal.reflect.Types.TypeVisitor;
-import org.gradle.model.Managed;
 
 import java.lang.reflect.Method;
 import java.lang.reflect.Modifier;
@@ -41,6 +40,7 @@ import java.util.Map;
 import static org.gradle.internal.reflect.Methods.SIGNATURE_EQUIVALENCE;
 import static org.gradle.internal.reflect.Types.walkTypeHierarchy;
 
+@SuppressWarnings("deprecation")
 public class ModelSchemaUtils {
     public static final List<Class<?>> IGNORED_OBJECT_TYPES = ImmutableList.of(Object.class, GroovyObject.class);
 
@@ -124,7 +124,7 @@ public class ModelSchemaUtils {
     }
 
     /**
-     * Returns whether the most specific of the given methods has been declared in a <code>@</code>{@link Managed} type or not.
+     * Returns whether the most specific of the given methods has been declared in a <code>@</code>{@link org.gradle.model.Managed} type or not.
      */
     public static boolean isMethodDeclaredInManagedType(Iterable<Method> declarations) {
         Method mostSpecificDeclaration = findMostSpecificMethod(declarations);
@@ -132,9 +132,9 @@ public class ModelSchemaUtils {
     }
 
     /**
-     * Returns whether the method has been declared in a <code>@</code>{@link Managed} type or not.
+     * Returns whether the method has been declared in a <code>@</code>{@link org.gradle.model.Managed} type or not.
      */
     public static boolean isMethodDeclaredInManagedType(Method method) {
-        return method.getDeclaringClass().isAnnotationPresent(Managed.class);
+        return method.getDeclaringClass().isAnnotationPresent(org.gradle.model.Managed.class);
     }
 }

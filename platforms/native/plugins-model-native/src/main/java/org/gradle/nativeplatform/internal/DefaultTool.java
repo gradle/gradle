@@ -15,8 +15,6 @@
  */
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.nativeplatform.Tool;
-
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -24,7 +22,8 @@ import java.util.List;
 /**
  * A tool that is part of a tool chain (compiler, linker, assembler, etc).
  */
-public class DefaultTool implements Tool {
+@SuppressWarnings("deprecation")
+public class DefaultTool implements org.gradle.nativeplatform.Tool {
     private final ArrayList<String> args = new ArrayList<String>();
 
     @Override

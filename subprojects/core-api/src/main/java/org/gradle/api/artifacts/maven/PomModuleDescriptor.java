@@ -27,6 +27,7 @@ public interface PomModuleDescriptor {
      * Returns the packaging for this POM.
      *
      * @return the packaging type
+     * @since 6.3
      */
     String getPackaging();
 

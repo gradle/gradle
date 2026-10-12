@@ -1,8 +1,8 @@
 // tag::main[]
 pluginManagement {
     repositories {
-        mavenCentral()
         gradlePluginPortal()
+        mavenCentral()
     }
     includeBuild('./settings-plugin')
 }

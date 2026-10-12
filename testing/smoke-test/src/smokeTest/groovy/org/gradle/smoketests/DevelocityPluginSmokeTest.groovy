@@ -33,6 +33,8 @@ import spock.lang.Issue
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ConcurrentHashMap
 
+import static org.gradle.integtests.fixtures.RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl
+
 // https://plugins.gradle.org/plugin/com.gradle.develocity
 class DevelocityPluginSmokeTest extends AbstractSmokeTest {
 
@@ -170,6 +172,8 @@ class DevelocityPluginSmokeTest extends AbstractSmokeTest {
         "4.4.2",
         "4.4.3",
         "4.5.0",
+        "4.5.1",
+        "4.6.0",
     ]
 
     // Current injection scripts support Develocity plugin 3.6.4 and above
@@ -420,6 +424,7 @@ public class MyFlakyTest {
             systemProp.develocity-injection.init-script-name=$initScript
             systemProp.develocity-injection.url=http://localhost:5086
             systemProp.develocity-injection.enabled=true
+            systemProp.develocity-injection.plugin-repository.url=${gradlePluginRepositoryMirrorUrl()}
         """.stripIndent()
 
         setupLocalBuildCache()

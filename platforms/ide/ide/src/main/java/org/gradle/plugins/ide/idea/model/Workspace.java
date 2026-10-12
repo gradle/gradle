@@ -21,8 +21,17 @@ import org.gradle.plugins.ide.internal.generator.XmlPersistableConfigurationObje
 
 /**
  * Represents the customizable elements of an ipr (via XML hooks everything of the ipr is customizable).
+ *
+ * @deprecated Will be removed in Gradle 10.
+ * @since 1.0
  */
+@Deprecated
 public class Workspace extends XmlPersistableConfigurationObject {
+    /**
+     * Creates a new {@code Workspace}.
+     *
+     * @since 1.0
+     */
     public Workspace(XmlTransformer withXmlActions) {
         super(withXmlActions);
     }

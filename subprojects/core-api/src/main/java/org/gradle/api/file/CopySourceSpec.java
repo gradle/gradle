@@ -22,6 +22,7 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * Specifies sources for a file copy.
+ * @since 0.8
  */
 public interface CopySourceSpec {
     /**
@@ -29,6 +30,7 @@ public interface CopySourceSpec {
      * org.gradle.api.Project#files(Object...)}.
      *
      * @param sourcePaths Paths to source files for the copy
+     * @since 0.8
      */
     CopySourceSpec from(@Nullable Object... sourcePaths);
 
@@ -38,6 +40,7 @@ public interface CopySourceSpec {
      *
      * @param sourcePath Path to source for the copy
      * @param configureClosure closure for configuring the child CopySourceSpec
+     * @since 0.8
      */
     CopySourceSpec from(Object sourcePath, @DelegatesTo(CopySpec.class) Closure configureClosure);
 
@@ -47,6 +50,7 @@ public interface CopySourceSpec {
      *
      * @param sourcePath Path to source for the copy
      * @param configureAction action for configuring the child CopySpec
+     * @since 3.0
      */
     CopySourceSpec from(Object sourcePath, Action<? super CopySpec> configureAction);
 }

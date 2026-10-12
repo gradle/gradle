@@ -21,16 +21,18 @@ import org.gradle.nativeplatform.TargetMachine;
 /**
  * A target platform for building Swift binaries.
  *
- * @since 5.2
+ * @since 4.5
  */
 public interface SwiftPlatform {
     /**
      * Returns the target machine for this platform.
+     * @since 5.2
      */
     TargetMachine getTargetMachine();
 
     /**
      * Returns the Swift language level to use to compile the source files.
+     * @since 5.2
      */
     SwiftVersion getSourceCompatibility();
 }

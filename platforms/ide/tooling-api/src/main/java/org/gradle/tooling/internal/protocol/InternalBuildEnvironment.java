@@ -20,6 +20,6 @@ package org.gradle.tooling.internal.protocol;
  * Marker interface for the internal protocol purposes.
  * Corresponding client facing model is {@link org.gradle.tooling.model.build.BuildEnvironment}
  *
- * @since 1.0-milestone-8
+ * @since 1.0
  */
 public interface InternalBuildEnvironment extends InternalProtocolInterface {}

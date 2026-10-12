@@ -21,6 +21,7 @@ import org.gradle.declarative.dsl.model.annotations.HiddenInDefinition;
 /**
  * A {@code FileCollectionDependency} is a {@link Dependency} on a collection of local files which are not stored in a
  * repository.
+ * @since 0.8
  */
 public interface FileCollectionDependency extends Dependency {
 

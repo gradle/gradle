@@ -27,11 +27,13 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
     abstract HelloWorldApp getHelloWorldApp()
 
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << helloWorldApp.pluginScript
         buildFile << helloWorldApp.extraConfiguration
     }
 
     def "compile and link executable"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             model {
@@ -54,6 +56,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
     }
 
     def "build executable with custom compiler arg"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             model {
@@ -80,6 +83,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
     }
 
     def "build executable with macro defined"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             model {
@@ -107,6 +111,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
 
     @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "install and run executable with dependencies"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             model {
@@ -140,6 +145,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
 
     @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "install and run executable with dependencies and customized installation"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             model {
@@ -173,6 +179,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
 
     @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "build shared library and link into executable"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             model {
@@ -206,6 +213,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
 
     @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "build static library and link into executable"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             model {
@@ -242,6 +250,7 @@ abstract class AbstractNativeLanguageIntegrationTest extends AbstractInstalledTo
     }
 
     def "link order is stable across project directories for the same sources"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         def firstCopy = file("firstDir")
         def secondCopy = file("secondDir")
         [ firstCopy, secondCopy ].each { projectDir ->

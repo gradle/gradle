@@ -28,6 +28,7 @@ class DetailedModelReportIntegrationTest extends AbstractIntegrationSpec {
     public final HttpServer server = new HttpServer()
 
     def setup() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             plugins {
                 id 'model-reporting-tasks'

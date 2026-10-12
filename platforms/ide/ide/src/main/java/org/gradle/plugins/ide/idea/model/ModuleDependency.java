@@ -24,6 +24,7 @@ import java.util.Map;
 
 /**
  * Represents an orderEntry of type module in the iml XML.
+ * @since 1.0
  */
 public class ModuleDependency implements Dependency {
 
@@ -31,6 +32,11 @@ public class ModuleDependency implements Dependency {
     private String scope;
     private boolean exported;
 
+    /**
+     * Creates a new {@code ModuleDependency}.
+     *
+     * @since 2.14
+     */
     public ModuleDependency(String name, String scope) {
         this.name = name;
         this.scope = scope;
@@ -40,11 +46,17 @@ public class ModuleDependency implements Dependency {
     /**
      * The name of the module the module depends on.
      * Must not be null.
+     * @since 1.0
      */
     public String getName() {
         return name;
     }
 
+    /**
+     * Sets the name.
+     *
+     * @since 1.0
+     */
     public void setName(String name) {
         this.name = name;
     }
@@ -62,10 +74,20 @@ public class ModuleDependency implements Dependency {
         this.scope = scope;
     }
 
+    /**
+     * Returns whether exported is set.
+     *
+     * @since 1.0
+     */
     public boolean isExported() {
         return exported;
     }
 
+    /**
+     * Sets the exported.
+     *
+     * @since 1.0
+     */
     public void setExported(boolean exported) {
         this.exported = exported;
     }

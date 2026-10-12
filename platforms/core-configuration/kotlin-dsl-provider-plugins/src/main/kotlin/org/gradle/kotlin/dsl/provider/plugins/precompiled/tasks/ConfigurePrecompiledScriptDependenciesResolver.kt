@@ -27,6 +27,7 @@ import org.gradle.kotlin.dsl.internal.sharedruntime.codegen.PluginEntryCache
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties.kotlinDslImplicitImports
 import org.gradle.kotlin.dsl.support.ImplicitImports
 import org.gradle.kotlin.dsl.support.listFilesOrdered
+import org.gradle.kotlin.dsl.support.resolverEnvironmentStringFor
 import org.gradle.work.DisableCachingByDefault
 import java.io.File
 import javax.inject.Inject
@@ -88,11 +89,4 @@ fun precompiledScriptPluginImportsFrom(metadataDirFile: File): List<Pair<String,
         listFilesOrdered().map {
             it.name to it.readLines()
         }
-    }
-
-
-private
-fun resolverEnvironmentStringFor(properties: Iterable<Pair<String, List<String>>>): String =
-    properties.joinToString(separator = ",") { (key, values) ->
-        "$key=\"${values.joinToString(":")}\""
     }

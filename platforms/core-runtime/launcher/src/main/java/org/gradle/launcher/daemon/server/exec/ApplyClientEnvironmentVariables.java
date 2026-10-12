@@ -16,9 +16,11 @@
 package org.gradle.launcher.daemon.server.exec;
 
 import com.google.common.annotations.VisibleForTesting;
+import net.rubygrapefruit.platform.NativeException;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.internal.nativeintegration.EnvironmentModificationResult;
+import org.gradle.internal.nativeintegration.NativeIntegrationException;
 import org.gradle.internal.nativeintegration.ProcessEnvironment;
 import org.gradle.launcher.daemon.protocol.Build;
 import org.gradle.launcher.daemon.server.api.DaemonCommandExecution;
@@ -65,21 +67,37 @@ public class ApplyClientEnvironmentVariables extends BuildCommandOnly {
         // Log only the variable names and not their values. Environment variables often contain sensitive data that should not be leaked to log files.
         logger.debug("Configuring env variables: {}", build.getParameters().getEnvVariables().keySet());
 
-        EnvironmentModificationResult setEnvironmentResult = processEnvironment.maybeSetEnvironment(build.getParameters().getEnvVariables());
-        if (!setEnvironmentResult.isSuccess()) {
-            logger.warn("Warning: Unable to set daemon's environment variables to match the client because: "
-                + System.getProperty("line.separator") + "  "
-                + setEnvironmentResult
-                + System.getProperty("line.separator") + "  "
-                + "If the daemon was started with a significantly different environment from the client, and your build "
-                + System.getProperty("line.separator") + "  "
-                + "relies on environment variables, you may experience unexpected behavior.");
+        try {
+            EnvironmentModificationResult result = processEnvironment.maybeSetEnvironment(build.getParameters().getEnvVariables());
+            if (!result.isSuccess()) {
+                printWarning(result.toString());
+            }
+        } catch (NativeException | NativeIntegrationException e) {
+            // The JVM does not permit mutating the process environment. This likely means the daemon
+            // was started without the JPMS options that forked daemons get on their command line.
+            printWarning(e.getMessage());
         }
 
         try {
             execution.proceed();
         } finally {
-            processEnvironment.maybeSetEnvironment(originalEnv);
+            try {
+                processEnvironment.maybeSetEnvironment(originalEnv);
+            } catch (NativeException | NativeIntegrationException ignored) {
+                // Failures restoring the original environment are not reported. They have the same
+                // cause as failures applying the client environment, which was already warned about.
+            }
         }
     }
+
+    private void printWarning(String message) {
+        logger.warn("Warning: Unable to set daemon's environment variables to match the client because: "
+            + System.getProperty("line.separator") + "  "
+            + message
+            + System.getProperty("line.separator") + "  "
+            + "If the daemon was started with a significantly different environment from the client, and your build "
+            + System.getProperty("line.separator") + "  "
+            + "relies on environment variables, you may experience unexpected behavior.");
+    }
+
 }

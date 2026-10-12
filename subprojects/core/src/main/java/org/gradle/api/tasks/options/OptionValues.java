@@ -40,6 +40,7 @@ public @interface OptionValues {
     /**
      * The names of the options for which the method provides the possible values.
      * @return the option names
+     * @since 4.6
      */
     String[] value();
 }

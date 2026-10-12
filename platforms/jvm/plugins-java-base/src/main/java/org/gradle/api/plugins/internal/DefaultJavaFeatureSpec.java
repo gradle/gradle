@@ -16,6 +16,7 @@
 package org.gradle.api.plugins.internal;
 
 import org.gradle.api.InvalidUserCodeException;
+import org.gradle.api.Project;
 import org.gradle.api.capabilities.Capability;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.plugins.FeatureSpec;
@@ -80,11 +81,12 @@ public class DefaultJavaFeatureSpec implements FeatureSpec {
         }
 
         if (capabilities.isEmpty()) {
-            capabilities.add(new ProjectDerivedCapability(project, name));
+            capabilities.add(new ProjectDerivedCapability((Project) project, name));
         }
 
         if (SourceSet.isMain(sourceSet)) {
             DeprecationLogger.deprecateBehaviour(String.format("The '%s' feature was created using the main source set.", name))
+                .withProblemName("Feature created from the main source set")
                 .withAdvice("The main source set is reserved for production code and should not be used for features. Use another source set instead.")
                 .willBecomeAnErrorInGradle10()
                 .withUpgradeGuideSection(8, "deprecate_register_feature_main_source_set")

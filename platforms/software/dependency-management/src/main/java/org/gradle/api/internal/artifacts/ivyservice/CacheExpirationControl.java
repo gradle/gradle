@@ -16,10 +16,16 @@
 
 package org.gradle.api.internal.artifacts.ivyservice;
 
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.collect.ImmutableList;
+import org.gradle.api.Action;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.ResolvedModuleVersion;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
+import org.gradle.api.internal.artifacts.cache.ArtifactResolutionControl;
+import org.gradle.api.internal.artifacts.cache.DependencyResolutionControl;
+import org.gradle.api.internal.artifacts.cache.ModuleResolutionControl;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 
 import java.io.File;
@@ -47,6 +53,15 @@ public interface CacheExpirationControl {
     Expiry artifactExpiry(ModuleComponentArtifactMetadata artifactMetadata, File cachedArtifactFile, Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync);
 
     Expiry changingModuleExpiry(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, Duration age);
+
+    @VisibleForTesting
+    ImmutableList<Action<? super DependencyResolutionControl>> getDependencyCacheRules();
+
+    @VisibleForTesting
+    ImmutableList<Action<? super ModuleResolutionControl>> getModuleCacheRules();
+
+    @VisibleForTesting
+    ImmutableList<Action<? super ArtifactResolutionControl>> getArtifactCacheRules();
 
     interface Expiry {
 

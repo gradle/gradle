@@ -17,6 +17,7 @@
 package org.gradle.smoketests
 
 
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.internal.os.OperatingSystem
 import spock.lang.Issue
 
@@ -27,6 +28,15 @@ class ProtobufPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     // https://central.sonatype.com/artifact/com.google.protobuf/protobuf-java/versions
     private static protobufToolsVersion = "4.31.1"
+
+    // The protobuf plugin calls the deprecated Configuration.setVisible(boolean) method.
+    // The deprecation warning is expected until https://github.com/google/protobuf-gradle-plugin/issues/815 is fixed
+    private static final String PROTOBUF_SET_VISIBLE_FOLLOWUP = "https://github.com/google/protobuf-gradle-plugin/issues/815"
+    private static final String SET_VISIBLE_DEPRECATION =
+        "The Configuration.setVisible(boolean) method has been deprecated. " +
+            "This is scheduled to be removed in Gradle 11. " +
+            "Consult the upgrading guide for further information: " +
+            "${DOCS.getDocumentationFor("upgrading_version_9", "deprecate-visible-property")}"
 
     @Issue("https://plugins.gradle.org/plugin/com.google.protobuf")
     def "protobuf plugin"() {
@@ -68,6 +78,7 @@ class ProtobufPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
         when:
         def result = runner('compileJava')
+            .expectDeprecationWarning(SET_VISIBLE_DEPRECATION, PROTOBUF_SET_VISIBLE_FOLLOWUP)
             .build()
 
         then:
@@ -75,7 +86,9 @@ class ProtobufPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
         result.task(":compileJava").outcome == SUCCESS
 
         when:
+        // The second invocation is a configuration cache hit, so configuration (and the nag) does not re-run
         result = runner('compileJava')
+            .expectDeprecationWarningIf(GradleContextualExecuter.notConfigCache, SET_VISIBLE_DEPRECATION, PROTOBUF_SET_VISIBLE_FOLLOWUP)
             .build()
 
         then:
@@ -116,6 +129,6 @@ class ProtobufPluginSmokeTest extends AbstractPluginValidatingSmokeTest {
 
     @Override
     List<String> getSubprojectExtensionDeprecations(String testedPluginId, String version) {
-        [parentMethodInvocationDeprecation('protobuf')]
+        [parentMethodInvocationDeprecation('protobuf'), SET_VISIBLE_DEPRECATION]
     }
 }

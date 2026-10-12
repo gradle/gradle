@@ -28,6 +28,7 @@ import org.gradle.platform.base.ComponentSpec
 import org.gradle.platform.base.SourceComponentSpec
 import spock.lang.Specification
 
+@SuppressWarnings("deprecation")
 class ComponentReportRendererTest extends Specification {
     def project = Stub(ProjectDetails)
     def resolver = Stub(FileResolver)

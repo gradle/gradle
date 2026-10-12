@@ -1,0 +1,37 @@
+// tag::setup[]
+abstract class WriteVersion extends DefaultTask { // <1>
+    @OutputFile
+    abstract RegularFileProperty getVersionFile()
+
+    @TaskAction
+    void write() {
+        versionFile.get().asFile.text = "1.0"
+    }
+}
+
+def writeVersion = tasks.register("writeVersion", WriteVersion) {
+    versionFile = layout.buildDirectory.file("version.txt")
+}
+// end::setup[]
+
+// tag::avoid-this[]
+abstract class Report extends DefaultTask {
+    @Input
+    abstract Property<Collection<String>> getMessages() // <1>
+
+    @TaskAction
+    void report() {
+        messages.get().each { logger.lifecycle(it) }
+    }
+}
+
+def report = tasks.register("report", Report) {
+    messages = ["Project: ${project.name}".toString()]
+}
+
+report.configure {
+    messages = messages.get() + "Built with Gradle" // <2>
+    messages = writeVersion.flatMap { it.versionFile }
+        .map { ["Version: ${it.asFile.text}".toString()] } // <3>
+}
+// end::avoid-this[]

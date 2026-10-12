@@ -37,6 +37,10 @@ dependencies {
         because("Tests instantiate DefaultClassLoaderRegistry which requires a 'gradle-plugins.properties' through DefaultPluginModuleRegistry")
     }
     integTestDistributionRuntimeOnly(projects.distributionsCore)
+
+    // Javadoc-only: needed to resolve {@link MavenPublication ...}/{@link IvyPublication ...} references (downstream modules)
+    javadocReferences(projects.maven)
+    javadocReferences(projects.ivy)
 }
 
 gradleModule {

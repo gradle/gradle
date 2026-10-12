@@ -30,6 +30,7 @@ import java.beans.Introspector
 
 import static org.gradle.model.ModelTypeTesting.fullyQualifiedNameOf
 
+@SuppressWarnings("deprecation")
 class ModelRuleExtractorTest extends ProjectRegistrySpec {
     def extractor = new ModelRuleExtractor(MethodModelRuleExtractors.coreExtractors(SCHEMA_STORE), MANAGED_PROXY_FACTORY, SCHEMA_STORE, STRUCT_BINDINGS_STORE)
     ModelRegistry registry = new DefaultModelRegistry(extractor, null)
@@ -754,23 +755,24 @@ ${fullyQualifiedNameOf(ManagedWithNonManageableParents)}
                 }
             }
         ''')
+        def sourceRef = new java.lang.ref.WeakReference<Class<?>>(source)
 
         when:
         extractor.extract(source)
 
         then:
-        extractor.cache.size() == 1
+        sourceRef.get() != null
 
         when:
         cl.clearCache()
         forcefullyClearReferences(source)
         source = null
+        cl = null
 
         then:
         ConcurrentTestUtil.poll(10) {
             System.gc()
-            extractor.cache.cleanUp()
-            extractor.cache.size() == 0
+            sourceRef.get() == null
         }
     }
 

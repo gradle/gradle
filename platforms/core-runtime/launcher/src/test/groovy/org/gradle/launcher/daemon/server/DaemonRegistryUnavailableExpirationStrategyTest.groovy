@@ -15,10 +15,8 @@
  */
 package org.gradle.launcher.daemon.server
 
-
 import org.gradle.internal.remote.Address
 import org.gradle.jvm.toolchain.JavaLanguageVersion
-import org.gradle.launcher.daemon.configuration.DaemonPriority
 import org.gradle.launcher.daemon.context.DaemonContext
 import org.gradle.launcher.daemon.context.DefaultDaemonContext
 import org.gradle.launcher.daemon.registry.DaemonDir
@@ -26,6 +24,7 @@ import org.gradle.launcher.daemon.registry.DaemonInfo
 import org.gradle.launcher.daemon.registry.DaemonRegistry
 import org.gradle.launcher.daemon.registry.EmbeddedDaemonRegistry
 import org.gradle.launcher.daemon.server.expiry.DaemonExpirationResult
+import org.gradle.launcher.daemon.startup.DaemonPriority
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification

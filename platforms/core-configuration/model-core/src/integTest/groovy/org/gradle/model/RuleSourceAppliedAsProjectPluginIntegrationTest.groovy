@@ -54,6 +54,8 @@ class RuleSourceAppliedAsProjectPluginIntegrationTest extends AbstractIntegratio
         '''
 
         then:
+        expectSoftwareModelDeprecation("MyPlugin")
+        expectModelDslDeprecation()
         succeeds "value"
 
         and:
@@ -91,6 +93,8 @@ model {
 '''
 
         when:
+        expectSoftwareModelDeprecation("MyPlugin")
+        expectModelDslDeprecation()
         run 'show'
 
         then:
@@ -122,6 +126,8 @@ model {
         '''
 
         expect:
+        expectSoftwareModelDeprecation("MyPlugin")
+        expectModelDslDeprecation()
         succeeds "value"
     }
 
@@ -137,6 +143,7 @@ model {
         """
 
         then:
+        expectSoftwareModelDeprecation("MyPlugin")
         fails "tasks"
 
         and:
@@ -168,6 +175,8 @@ model {
         """
 
         then:
+        expectSoftwareModelDeprecation("MyPlugin")
+        expectSoftwareModelDeprecation("MyOtherPlugin")
         fails "tasks"
 
         and:
@@ -208,6 +217,9 @@ model {
         '''
 
         then:
+        expectSoftwareModelDeprecation("MyPlugin")
+        expectSoftwareModelDeprecation("MyOtherPlugin")
+        expectModelDslDeprecation()
         fails "loadPlugin"
 
         and:
@@ -235,6 +247,8 @@ model {
         '''
 
         then:
+        expectSoftwareModelDeprecation("MyPlugin")
+        expectModelDslDeprecation()
         fails "tasks"
 
         and:
@@ -267,6 +281,8 @@ model {
         '''
 
         then:
+        expectSoftwareModelDeprecation("MyPlugin")
+        expectModelDslDeprecation()
         fails "tasks"
 
         and:
@@ -296,6 +312,8 @@ model {
         '''
 
         then:
+        expectSoftwareModelDeprecation("MyPlugin")
+        expectModelDslDeprecation()
         fails "tasks"
 
         and:
@@ -340,6 +358,8 @@ model {
         '''
 
         then:
+        expectSoftwareModelDeprecation("MyPlugin")
+        expectSoftwareModelDeprecation("MyBasePlugin")
         succeeds "value"
 
         and:
@@ -388,6 +408,7 @@ model {
         '''
 
         then:
+        expectSoftwareModelDeprecation("MyPlugin")
         succeeds "value"
 
         and:
@@ -416,6 +437,7 @@ model {
         '''
 
         then:
+        expectSoftwareModelDeprecation("MyPlugin")
         succeeds "name"
 
         and:
@@ -438,10 +460,19 @@ model {
         '''
 
         then:
+        expectSoftwareModelDeprecation("Rules")
         fails "tasks"
 
         and:
         failure.assertHasCause("Exception thrown while executing model rule: Rules#tasks")
         failure.assertHasCause("failing constructor")
+    }
+
+    private void expectSoftwareModelDeprecation(String pluginName) {
+        executer.expectDocumentedDeprecationWarning("The ${pluginName} plugin has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
+    }
+
+    private void expectModelDslDeprecation() {
+        executer.expectDocumentedDeprecationWarning("The model DSL has been deprecated. This is scheduled to be removed in Gradle 10. Rule-based/software model plugins are no longer supported. Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_software_model")
     }
 }

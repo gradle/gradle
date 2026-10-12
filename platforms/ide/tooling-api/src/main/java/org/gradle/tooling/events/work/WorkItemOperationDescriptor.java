@@ -26,6 +26,7 @@ import org.gradle.tooling.events.OperationDescriptor;
 public interface WorkItemOperationDescriptor extends OperationDescriptor {
     /**
      * Returns the fully-qualified class name of work item's action.
+     * @since 5.1
      */
     String getClassName();
 }

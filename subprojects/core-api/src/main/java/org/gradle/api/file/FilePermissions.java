@@ -46,6 +46,7 @@ public interface FilePermissions {
      * Describes what actions the owner of the file can perform on the file/directory.
      * <p>
      * For further details about possible actions see {@link UserClassFilePermissions}.
+     * @since 8.3
      */
     UserClassFilePermissions getUser();
 
@@ -54,6 +55,7 @@ public interface FilePermissions {
      * can perform on the file/directory.
      * <p>
      * For further details about possible actions see {@link UserClassFilePermissions}.
+     * @since 8.3
      */
     UserClassFilePermissions getGroup();
 
@@ -61,12 +63,14 @@ public interface FilePermissions {
      * Describes what actions all other users (non-owner, non-group) can perform on the file/directory.
      * <p>
      * For further details about possible actions see {@link UserClassFilePermissions}.
+     * @since 8.3
      */
     UserClassFilePermissions getOther();
 
     /**
      * Converts the permissions for the various user groups to a numeric Unix permission.
      * See {@link ConfigurableFilePermissions#unix(int)} for details.
+     * @since 8.3
      */
     int toUnixNumeric();
 

@@ -28,6 +28,7 @@ import java.io.File;
 public interface PublicationArtifact extends Buildable {
     /**
      * The actual file contents to publish.
+     * @since 4.8
      */
     File getFile();
 
@@ -35,6 +36,7 @@ public interface PublicationArtifact extends Buildable {
      * Registers some tasks which build this artifact.
      *
      * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
+     * @since 4.8
      */
     void builtBy(Object... tasks);
 }

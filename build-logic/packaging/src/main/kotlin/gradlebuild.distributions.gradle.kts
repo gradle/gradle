@@ -14,6 +14,7 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.DistributionArtifactScope
 import gradlebuild.basics.GradleModuleApiAttribute
 import gradlebuild.basics.PublicApi
 import gradlebuild.basics.PublicApiVariants
@@ -25,6 +26,7 @@ import gradlebuild.configureAsApiElements
 import gradlebuild.configureAsRuntimeElements
 import gradlebuild.docs.GradleUserManualPlugin
 import gradlebuild.docs.dsl.source.ExtractDslMetaDataTask
+import gradlebuild.identity.registerPomPropertiesTask
 import gradlebuild.docs.dsl.source.GenerateApiMapping
 import gradlebuild.docs.dsl.source.GenerateDefaultImports
 import gradlebuild.instrumentation.extensions.InstrumentationMetadataExtension
@@ -43,9 +45,10 @@ import gradlebuild.packaging.tasks.GenerateLicenseFile
 import gradlebuild.packaging.tasks.PluginsManifest
 import org.gradle.api.artifacts.Configuration
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
+import org.gradle.api.attributes.AttributeDisambiguationRule
+import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.jetbrains.kotlin.gradle.plugin.KotlinBaseApiPlugin
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import java.util.jar.Attributes
 
 /**
  * Apply this plugin to let a project build 'Gradle distributions'.
@@ -168,14 +171,9 @@ extensions.configure<InstrumentationMetadataExtension>(INSTRUMENTED_METADATA_EXT
 }
 
 // Jar task to package all metadata in 'gradle-runtime-api-info.jar'
+val runtimeApiInfoPomProperties = registerPomPropertiesTask("generateRuntimeApiInfoPomProperties", runtimeApiJarName)
 val runtimeApiInfoJar = tasks.register<Jar>("runtimeApiInfoJar") {
     archiveVersion = gradleModule.identity.version.map { it.baseVersion.version }
-    manifest.attributes(
-        mapOf(
-            Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
-            Attributes.Name.IMPLEMENTATION_VERSION.toString() to gradleModule.identity.version.map { it.baseVersion.version }
-        )
-    )
     archiveBaseName = runtimeApiJarName
     into("org/gradle/api/internal/runtimeshaded") {
         from(generateRelocatedPackageList)
@@ -186,6 +184,7 @@ val runtimeApiInfoJar = tasks.register<Jar>("runtimeApiInfoJar") {
     from(implementationPluginsManifest)
     from(instrumentedSuperTypesMergeTask)
     from(upgradedPropertiesMergeTask)
+    from(runtimeApiInfoPomProperties)
 }
 
 val kotlinDslSharedRuntime = configurations.dependencyScope("kotlinDslSharedRuntime")
@@ -295,17 +294,13 @@ val compileGradleApiKotlinExtensions = tasks.named("compileGradleApiKotlinExtens
     destinationDirectory = layout.buildDirectory.dir("classes/kotlin-dsl-extensions")
 }
 
+val gradleApiKotlinExtensionsPomProperties = registerPomPropertiesTask("generateGradleApiKotlinExtensionsPomProperties", "gradle-kotlin-dsl-extensions")
 val gradleApiKotlinExtensionsJar = tasks.register<Jar>("gradleApiKotlinExtensionsJar") {
     archiveVersion = gradleModule.identity.version.map { it.baseVersion.version }
-    manifest.attributes(
-        mapOf(
-            Attributes.Name.IMPLEMENTATION_TITLE.toString() to "Gradle",
-            Attributes.Name.IMPLEMENTATION_VERSION.toString() to gradleModule.identity.version.map { it.baseVersion.version }
-        )
-    )
     archiveBaseName = "gradle-kotlin-dsl-extensions"
     from(gradleApiKotlinExtensions)
     from(compileGradleApiKotlinExtensions.flatMap { it.destinationDirectory })
+    from(gradleApiKotlinExtensionsPomProperties)
 }
 
 fun generateModulePropertiesFor(moduleJar: TaskProvider<Jar>, registryModuleName: String): TaskProvider<GenerateSingleModuleProperties> {
@@ -321,9 +316,14 @@ fun generateModulePropertiesFor(moduleJar: TaskProvider<Jar>, registryModuleName
 generateModulePropertiesFor(runtimeApiInfoJar, runtimeApiJarName)
 generateModulePropertiesFor(gradleApiKotlinExtensionsJar, "gradle-kotlin-dsl-extensions")
 
-// A standard Java runtime variant for embedded integration testing
+// A standard Java runtime variant for embedded integration testing.
+// Declares DistributionArtifactScope.STANDARD so it can be disambiguated from the `runtimeJarsOnly`
+// variant below when a consumer requests JAVA_RUNTIME without specifying a scope.
 consumableVariant("runtime", listOf(coreRuntimeOnly, pluginsRuntimeOnly), listOf(runtimeApiInfoJar, gradleApiKotlinExtensionsJar)) {
     configureAsRuntimeElements(objects)
+    attributes {
+        attribute(DistributionArtifactScope.attribute, DistributionArtifactScope.STANDARD)
+    }
 }
 
 consumableVariant("api", listOf(coreRuntimeOnly, pluginsRuntimeOnly), listOf(runtimeApiInfoJar, gradleApiKotlinExtensionsJar)) {
@@ -334,6 +334,44 @@ consumableVariant("api", listOf(coreRuntimeOnly, pluginsRuntimeOnly), listOf(run
 consumableSourcesVariant("transitiveSources", listOf(coreRuntimeOnly, pluginsRuntimeOnly), gradleApiKotlinExtensions.map { it.destinationDirectory })
 // A platform variant without 'runtime-api-info' artifact such that distributions can depend on each other
 consumablePlatformVariant("runtimePlatform", listOf(coreRuntimeOnly, pluginsRuntimeOnly))
+
+// A runtime variant exposing just the module JARs of this distribution — the transitively-resolved
+// core + plugin module JARs plus the Kotlin DSL extensions jar — WITHOUT the runtime-api-info jar
+// and its metadata-derivation task subtree (relocated package list, plugins manifest,
+// instrumented super-types merge, upgraded properties merge, DSL meta, api mapping, default imports).
+//
+// Consumers that only need module bytecode for classpath scanning (e.g. architecture-test)
+// should select this variant to keep the packaging metadata pipeline off their critical path.
+//
+// Distinguished from the standard `runtime` variant by DistributionArtifactScope. Consumers that
+// do not declare a scope fall back to `STANDARD` via the disambiguation rule registered below.
+// Transitive projects like :daemon-server do not declare this attribute at all and remain
+// compatible with any scoped request via Gradle's "producer-missing attribute = compatible" default.
+consumableVariant("runtimeJarsOnly", listOf(coreRuntimeOnly, pluginsRuntimeOnly), listOf(gradleApiKotlinExtensionsJar)) {
+    configureAsRuntimeElements(objects)
+    attributes {
+        attribute(DistributionArtifactScope.attribute, DistributionArtifactScope.RUNTIME_ONLY)
+    }
+}
+
+// When a consumer resolves a distribution collector (e.g. via `testRuntimeOnly(projects.distributionsFull)`)
+// without declaring a `DistributionArtifactScope`, both the `runtime` and `runtimeJarsOnly` variants
+// are compatible on all requested attributes. This rule selects `STANDARD` in that case so existing
+// consumers keep getting the standard runtime variant they always did — only consumers explicitly
+// requesting `RUNTIME_ONLY` see the leaner variant.
+abstract class DistributionArtifactScopeDisambiguationRule : AttributeDisambiguationRule<DistributionArtifactScope> {
+    override fun execute(details: MultipleCandidatesDetails<DistributionArtifactScope>) {
+        if (details.consumerValue == null) {
+            details.candidateValues.firstOrNull { it == DistributionArtifactScope.STANDARD }?.let(details::closestMatch)
+        }
+    }
+}
+
+dependencies.attributesSchema {
+    attribute(DistributionArtifactScope.attribute) {
+        disambiguationRules.add(DistributionArtifactScopeDisambiguationRule::class.java)
+    }
+}
 
 // A lifecycle task to build all the distribution zips for publishing
 val buildDists = tasks.register("buildDists")

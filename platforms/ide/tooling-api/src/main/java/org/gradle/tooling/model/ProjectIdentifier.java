@@ -39,6 +39,7 @@ public interface ProjectIdentifier extends Model {
      * Identifier of the build this project is a member of.
      *
      * @return build identifier, never null.
+     * @since 2.13
      */
     BuildIdentifier getBuildIdentifier();
 }

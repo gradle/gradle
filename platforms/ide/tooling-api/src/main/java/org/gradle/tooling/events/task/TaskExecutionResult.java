@@ -33,6 +33,7 @@ public interface TaskExecutionResult extends TaskOperationResult {
      *
      * @return {@code true} if this task was executed incrementally
      * @throws UnsupportedMethodException For Gradle versions older than 5.1, where this method is not supported.
+     * @since 5.1
      */
     boolean isIncremental();
 
@@ -42,6 +43,7 @@ public interface TaskExecutionResult extends TaskOperationResult {
      * @return the reasons why this task was executed; an empty list indicates the task was up-to-date;
      *         {@code null} that it failed before up-to-date checks had been performed.
      * @throws UnsupportedMethodException For Gradle versions older than 5.1, where this method is not supported.
+     * @since 5.1
      */
     @Nullable
     List<String> getExecutionReasons();

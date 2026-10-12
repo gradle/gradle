@@ -51,14 +51,25 @@ import static org.gradle.api.internal.lambdas.SerializableLambdas.spec;
 
 /**
  * Assembles a WAR archive.
+ * @since 0.7
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class War extends Jar {
+    /**
+     * The war extension.
+     *
+     * @since 0.7
+     */
     public static final String WAR_EXTENSION = "war";
 
     private FileCollection classpath;
     private final DefaultCopySpec webInf;
 
+    /**
+     * Creates a new {@code War}.
+     *
+     * @since 0.8
+     */
     @SuppressWarnings("this-escape")
     public War() {
         getArchiveExtension().set(WAR_EXTENSION);
@@ -85,6 +96,11 @@ public abstract class War extends Jar {
     @Override
     public abstract ObjectFactory getObjectFactory();
 
+    /**
+     * Returns the web inf.
+     *
+     * @since 0.9
+     */
     @Internal
     @ToBeReplacedByLazyProperty(comment = "This should probably stay eager")
     public CopySpec getWebInf() {
@@ -98,6 +114,7 @@ public abstract class War extends Jar {
      *
      * @param configureClosure The closure to execute
      * @return The newly created {@code CopySpec}.
+     * @since 0.9
      */
     public CopySpec webInf(@SuppressWarnings("rawtypes") @DelegatesTo(CopySpec.class) Closure configureClosure) {
         return ConfigureUtil.configure(configureClosure, getWebInf());
@@ -123,6 +140,7 @@ public abstract class War extends Jar {
      * the {@code WEB-INF/classes} directory.
      *
      * @return The classpath. Returns an empty collection when there is no classpath to include in the WAR.
+     * @since 0.9
      */
     @Nullable
     @Optional
@@ -146,6 +164,7 @@ public abstract class War extends Jar {
      * Sets the classpath to include in the WAR archive.
      *
      * @param classpath The classpath. Must not be null.
+     * @since 0.9
      */
     public void setClasspath(Object classpath) {
         this.classpath = getObjectFactory().fileCollection().from(classpath);
@@ -155,6 +174,7 @@ public abstract class War extends Jar {
      * Adds files to the classpath to include in the WAR archive.
      *
      * @param classpath The files to add. These are evaluated as per {@link org.gradle.api.Project#files(Object...)}
+     * @since 0.9
      */
     @SuppressWarnings("rawtypes")
     public void classpath(@Nullable Object... classpath) {
@@ -178,6 +198,7 @@ public abstract class War extends Jar {
      * Returns the {@code web.xml} file to include in the WAR archive. When {@code null}, no {@code web.xml} file is included in the WAR.
      *
      * @return The {@code web.xml} file.
+     * @since 0.7
      */
     @ReplacedBy("webXmlFile")
     @Nullable
@@ -190,6 +211,7 @@ public abstract class War extends Jar {
      * Sets the {@code web.xml} file to include in the WAR archive. When {@code null}, no {@code web.xml} file is included in the WAR.
      *
      * @param webXml The {@code web.xml} file. Maybe null.
+     * @since 0.7
      */
     public void setWebXml(@Nullable File webXml) {
         getWebXmlFile().set(webXml);

@@ -50,12 +50,14 @@ import org.gradle.internal.instrumentation.api.annotations.ToBeReplacedByLazyPro
  *
  * The defaults that are in place show progressively more information
  * on log levels WARN, LIFECYCLE, INFO, and DEBUG, respectively.
+ * @since 1.1
  */
 public interface TestLoggingContainer extends TestLogging {
     /**
      * Returns logging options for debug level.
      *
      * @return logging options for debug level
+     * @since 1.1
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -65,6 +67,7 @@ public interface TestLoggingContainer extends TestLogging {
      * Sets logging options for debug level.
      *
      * @param logging logging options for debug level
+     * @since 1.1
      */
     void setDebug(TestLogging logging);
 
@@ -72,6 +75,7 @@ public interface TestLoggingContainer extends TestLogging {
      * Configures logging options for debug level.
      *
      * @param action logging options for debug level
+     * @since 1.1
      */
     void debug(Action<TestLogging> action);
 
@@ -79,6 +83,7 @@ public interface TestLoggingContainer extends TestLogging {
      * Gets logging options for info level.
      *
      * @return logging options for info level
+     * @since 1.1
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -88,6 +93,7 @@ public interface TestLoggingContainer extends TestLogging {
      * Sets logging options for info level.
      *
      * @param logging logging options for info level
+     * @since 1.1
      */
     void setInfo(TestLogging logging);
 
@@ -95,6 +101,7 @@ public interface TestLoggingContainer extends TestLogging {
      * Configures logging options for info level.
      *
      * @param action logging options for info level
+     * @since 1.1
      */
     void info(Action<TestLogging> action);
 
@@ -102,6 +109,7 @@ public interface TestLoggingContainer extends TestLogging {
      * Returns logging options for lifecycle level.
      *
      * @return logging options for lifecycle level
+     * @since 1.1
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -111,6 +119,7 @@ public interface TestLoggingContainer extends TestLogging {
      * Sets logging options for lifecycle level.
      *
      * @param logging logging options for lifecycle level
+     * @since 1.1
      */
     void setLifecycle(TestLogging logging);
 
@@ -118,6 +127,7 @@ public interface TestLoggingContainer extends TestLogging {
      * Configures logging options for lifecycle level.
      *
      * @param action logging options for lifecycle level
+     * @since 1.1
      */
     void lifecycle(Action<TestLogging> action);
 
@@ -125,6 +135,7 @@ public interface TestLoggingContainer extends TestLogging {
      * Gets logging options for warn level.
      *
      * @return logging options for warn level
+     * @since 1.1
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -134,6 +145,7 @@ public interface TestLoggingContainer extends TestLogging {
      * Sets logging options for warn level.
      *
      * @param logging logging options for warn level
+     * @since 1.1
      */
     void setWarn(TestLogging logging);
 
@@ -141,6 +153,7 @@ public interface TestLoggingContainer extends TestLogging {
      * Configures logging options for warn level.
      *
      * @param action logging options for warn level
+     * @since 1.1
      */
     void warn(Action<TestLogging> action);
 
@@ -148,6 +161,7 @@ public interface TestLoggingContainer extends TestLogging {
      * Returns logging options for quiet level.
      *
      * @return logging options for quiet level
+     * @since 1.1
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -157,6 +171,7 @@ public interface TestLoggingContainer extends TestLogging {
      * Sets logging options for quiet level.
      *
      * @param logging logging options for quiet level
+     * @since 1.1
      */
     void setQuiet(TestLogging logging);
 
@@ -164,6 +179,7 @@ public interface TestLoggingContainer extends TestLogging {
      * Configures logging options for quiet level.
      *
      * @param action logging options for quiet level
+     * @since 1.1
      */
     void quiet(Action<TestLogging> action);
 
@@ -171,6 +187,7 @@ public interface TestLoggingContainer extends TestLogging {
      * Returns logging options for error level.
      *
      * @return logging options for error level
+     * @since 1.1
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -180,6 +197,7 @@ public interface TestLoggingContainer extends TestLogging {
      * Sets logging options for error level.
      *
      * @param logging logging options for error level
+     * @since 1.1
      */
     void setError(TestLogging logging);
 
@@ -187,6 +205,7 @@ public interface TestLoggingContainer extends TestLogging {
      * Configures logging options for error level.
      *
      * @param action logging options for error level
+     * @since 1.1
      */
     void error(Action<TestLogging> action);
 
@@ -196,6 +215,7 @@ public interface TestLoggingContainer extends TestLogging {
      * @param level the level whose logging options are to be returned
      *
      * @return logging options for the specified level
+     * @since 1.1
      */
     TestLogging get(LogLevel level);
 }

@@ -26,37 +26,75 @@ import java.util.List;
 
 /**
  * Provides a number of {@link org.gradle.api.specs.Spec} implementations.
+ * @since 0.7
  */
 public class Specs {
 
+    /**
+     * The shared spec that is satisfied by every object.
+     *
+     * @since 0.7
+     */
     public static final Spec<Object> SATISFIES_ALL = new Spec<Object>() {
         @Override
         public boolean isSatisfiedBy(Object element) {
             return true;
         }
+
+        @Override
+        public String toString() {
+            return "SATISFIES_ALL";
+        }
     };
 
+    /**
+     * Returns the shared spec that is satisfied by every object.
+     *
+     * @since 0.7
+     */
     public static <T> Spec<T> satisfyAll() {
         return Cast.uncheckedCast(SATISFIES_ALL);
     }
 
+    /**
+     * The shared spec that is satisfied by no object.
+     *
+     * @since 1.0
+     */
     public static final Spec<Object> SATISFIES_NONE = new Spec<Object>() {
         @Override
         public boolean isSatisfiedBy(Object element) {
             return false;
         }
+
+        @Override
+        public String toString() {
+            return "SATISFIES_NONE";
+        }
     };
 
+    /**
+     * Returns the shared spec that is satisfied by no object.
+     *
+     * @since 0.7
+     */
     public static <T> Spec<T> satisfyNone() {
         return Cast.uncheckedCast(SATISFIES_NONE);
     }
 
+    /**
+     * Returns a spec satisfied by objects for which the closure returns a Groovy-true value.
+     *
+     * @since 0.9
+     */
     public static <T> Spec<T> convertClosureToSpec(final Closure<?> closure) {
         return new ClosureSpec<>(closure);
     }
 
     /**
-     * Returns a spec that selects the intersection of those items selected by the given specs. Returns a spec that selects everything when no specs provided.
+     * Returns a spec that selects the intersection of those items selected by the given specs.
+     * Returns a spec that selects everything when no specs provided.
+     * @since 2.11
      */
     @SafeVarargs
     @SuppressWarnings("varargs")
@@ -71,7 +109,9 @@ public class Specs {
     }
 
     /**
-     * Returns a spec that selects the intersection of those items selected by the given specs. Returns a spec that selects everything when no specs provided.
+     * Returns a spec that selects the intersection of those items selected by the given specs.
+     * Returns a spec that selects everything when no specs provided.
+     * @since 2.11
      */
     public static <T> Spec<T> intersect(Collection<? extends Spec<? super T>> specs) {
         if (specs.size() == 0) {
@@ -100,7 +140,9 @@ public class Specs {
     }
 
     /**
-     * Returns a spec that selects the union of those items selected by the provided spec. Selects everything when no specs provided.
+     * Returns a spec that selects the union of those items selected by the given specs.
+     * Selects everything when no specs provided.
+     * @since 2.11
      */
     @SafeVarargs
     @SuppressWarnings("varargs")
@@ -115,7 +157,9 @@ public class Specs {
     }
 
     /**
-     * Returns a spec that selects the union of those items selected by the provided spec. Selects everything when no specs provided.
+     * Returns a spec that selects the union of those items selected by the given specs.
+     * Selects everything when no specs provided.
+     * @since 2.11
      */
     public static <T> Spec<T> union(Collection<? extends Spec<? super T>> specs) {
         if (specs.size() == 0) {
@@ -146,6 +190,7 @@ public class Specs {
 
     /**
      * Returns a spec that selects everything that is not selected by the given spec.
+     * @since 2.11
      */
     public static <T> Spec<T> negate(Spec<? super T> spec) {
         if (spec == SATISFIES_ALL) {

@@ -39,6 +39,7 @@ public interface ResolvedVariantResult {
 
     /**
      * The attributes associated with this variant.
+     * @since 3.5
      */
     AttributeContainer getAttributes();
 

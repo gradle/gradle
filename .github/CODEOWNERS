@@ -20,7 +20,6 @@ gradle/shared-with-buildSrc/                @gradle/bt-developer-productivity
 packaging/internal-build-reports/           @gradle/bt-developer-productivity
 testing/distributions-basics/               @gradle/bt-developer-productivity
 testing/distributions-core/                 @gradle/bt-developer-productivity
-testing/internal-architecture-testing/      @gradle/bt-developer-productivity
 testing/internal-distribution-testing/      @gradle/bt-developer-productivity
 testing/internal-integ-testing/             @gradle/bt-developer-productivity
 testing/internal-performance-testing/       @gradle/bt-developer-productivity
@@ -151,17 +150,8 @@ platforms/documentation/docs/src/snippets/reference/dsl-apis/                   
 platforms/documentation/docs/src/docs/userguide/reference/dsl-apis/kotlin_dsl.adoc                          @gradle/bt-docs-reviewers @gradle/bt-tide
 platforms/documentation/docs/src/docs/userguide/reference/dsl-apis/migrating_from_groovy_to_kotlin_dsl.adoc @gradle/bt-docs-reviewers @gradle/bt-tide
 
-platforms/documentation/docs/src/docs/userguide/reference/core-plugins/base_plugin.adoc                 @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/reference/core-plugins/build_dashboard_plugin.adoc      @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/reference/core-plugins/build_init_plugin.adoc           @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/reference/core-plugins/checkstyle_plugin.adoc           @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/reference/core-plugins/codenarc_plugin.adoc             @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/reference/core-plugins/distribution_plugin.adoc         @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/reference/core-plugins/ear_plugin.adoc                  @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/reference/core-plugins/jacoco_plugin.adoc               @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/reference/core-plugins/java_gradle_plugin.adoc          @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/reference/core-plugins/pmd_plugin.adoc                  @gradle/bt-docs-reviewers @gradle/bt-jvm
-platforms/documentation/docs/src/docs/userguide/reference/core-plugins/war_plugin.adoc                  @gradle/bt-docs-reviewers @gradle/bt-jvm
+# All core plugin reference pages live under core-plugins/
+platforms/documentation/docs/src/docs/userguide/reference/core-plugins/                                 @gradle/bt-docs-reviewers @gradle/bt-jvm
 platforms/documentation/docs/src/docs/userguide/reference/dependency-management/                        @gradle/bt-docs-reviewers @gradle/bt-jvm
 platforms/documentation/docs/src/docs/userguide/reference/platforms/jvm/                                @gradle/bt-docs-reviewers @gradle/bt-jvm
 platforms/documentation/docs/src/docs/userguide/reference/runtime-configuration/directory_layout.adoc   @gradle/bt-docs-reviewers @gradle/bt-jvm

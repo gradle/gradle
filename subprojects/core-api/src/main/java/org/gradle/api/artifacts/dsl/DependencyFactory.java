@@ -52,6 +52,7 @@ public interface DependencyFactory {
      *
      * @param dependencyNotation the dependency notation
      * @return the new dependency
+     * @since 7.6
      */
     ExternalModuleDependency create(CharSequence dependencyNotation);
 
@@ -62,6 +63,7 @@ public interface DependencyFactory {
      * @param name the name
      * @param version the version (optional)
      * @return the new dependency
+     * @since 7.6
      */
     ExternalModuleDependency create(@Nullable String group, String name, @Nullable String version);
 
@@ -74,6 +76,7 @@ public interface DependencyFactory {
      * @param classifier the classifier (optional)
      * @param extension the extension (optional)
      * @return the new dependency
+     * @since 7.6
      */
     ExternalModuleDependency create(@Nullable String group, String name, @Nullable String version, @Nullable String classifier, @Nullable String extension);
 
@@ -82,6 +85,7 @@ public interface DependencyFactory {
      *
      * @param fileCollection the file collection
      * @return the new dependency
+     * @since 7.6
      */
     FileCollectionDependency create(FileCollection fileCollection);
 
@@ -91,6 +95,7 @@ public interface DependencyFactory {
      * @param project the project
      * @return the new dependency
      * @deprecated Use {@link #createProjectDependency(String)} instead. This method will be removed in Gradle 10.0.
+     * @since 7.6
      */
     @Deprecated
     ProjectDependency create(Project project);

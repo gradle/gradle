@@ -17,15 +17,21 @@
 package org.gradle.jvm.toolchain.internal;
 
 import org.gradle.api.internal.file.FileResolver;
+import org.gradle.api.logging.Logger;
+import org.gradle.api.logging.Logging;
 
 import javax.inject.Inject;
+import java.nio.file.InvalidPathException;
 import java.util.Collection;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 public class LocationListInstallationSupplier implements InstallationSupplier {
 
     public static final String JAVA_INSTALLATIONS_PATHS_PROPERTY = "org.gradle.java.installations.paths";
+
+    private static final Logger LOGGER = Logging.getLogger(LocationListInstallationSupplier.class);
 
     private final ToolchainConfiguration buildOptions;
     private final FileResolver fileResolver;
@@ -46,12 +52,19 @@ public class LocationListInstallationSupplier implements InstallationSupplier {
         final Collection<String> property = buildOptions.getInstallationsFromPaths();
         return property.stream()
             .filter(path -> !path.trim().isEmpty())
-            .map(this::asInstallations)
+            .map(this::resolveInstallation)
+            .filter(Optional::isPresent)
+            .map(Optional::get)
             .collect(Collectors.toSet());
     }
 
-    private InstallationLocation asInstallations(String candidate) {
-        return InstallationLocation.userDefined(fileResolver.resolve(candidate), getSourceName());
+    private Optional<InstallationLocation> resolveInstallation(String candidate) {
+        try {
+            return Optional.of(InstallationLocation.userDefined(fileResolver.resolve(candidate), getSourceName()));
+        } catch (UnsupportedOperationException | InvalidPathException e) {
+            LOGGER.warn("Invalid path '{}' provided for {} could not be resolved: {}", candidate, getSourceName(), e.getMessage());
+            return Optional.empty();
+        }
     }
 
 }

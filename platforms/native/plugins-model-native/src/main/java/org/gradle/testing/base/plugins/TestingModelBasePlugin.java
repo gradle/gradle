@@ -44,8 +44,12 @@ import org.gradle.testing.base.internal.BaseTestSuiteSpec;
  *
  * - Adds a {@link TestSuiteContainer} named {@code testSuites} to the model.
  * - Copies test binaries from {@code testSuites} into {@code binaries}.
+ *
+ * @deprecated The Gradle software model is deprecated and will be removed in Gradle 10. Use the new component model (e.g. {@code cpp-application}, {@code cpp-library}, {@code swift-application}, {@code swift-library}, {@code xctest}) instead.
+ * @since 2.11
  */
 @Incubating
+@Deprecated
 public abstract class TestingModelBasePlugin implements Plugin<Project> {
     @Override
     public void apply(Project project) {

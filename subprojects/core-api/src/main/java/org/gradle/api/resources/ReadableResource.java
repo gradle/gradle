@@ -22,6 +22,7 @@ import java.io.InputStream;
 
 /**
  * A resource that can be read. The simplest example is a file.
+ * @since 1.0
  */
 @HasInternalProtocol
 public interface ReadableResource extends Resource {
@@ -29,6 +30,7 @@ public interface ReadableResource extends Resource {
      * Returns an unbuffered {@link InputStream} that provides means to read the resource. It is the caller's responsibility to close this stream.
      *
      * @return An input stream.
+     * @since 1.0
      */
     InputStream read() throws MissingResourceException, ResourceException;
 }

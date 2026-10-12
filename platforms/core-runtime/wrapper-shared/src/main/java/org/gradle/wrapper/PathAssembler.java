@@ -20,6 +20,8 @@ import java.math.BigInteger;
 import java.net.URI;
 import java.security.MessageDigest;
 
+import static java.util.Objects.requireNonNull;
+
 public class PathAssembler {
     public static final String GRADLE_USER_HOME_STRING = "GRADLE_USER_HOME";
     public static final String PROJECT_STRING = "PROJECT";
@@ -36,16 +38,17 @@ public class PathAssembler {
      * Determines the local locations for the distribution to use given the supplied configuration.
      */
     public LocalDistribution getDistribution(WrapperConfiguration configuration) {
-        String baseName = getDistName(configuration.getDistribution());
+        URI distribution = requireNonNull(configuration.getDistribution(), "No distribution URL specified in wrapper configuration");
+        String baseName = getDistName(distribution);
         String distName = removeExtension(baseName);
-        String rootDirName = rootDirName(distName, configuration);
+        String rootDirName = rootDirName(distName, distribution);
         File distDir = new File(getBaseDir(configuration.getDistributionBase()), configuration.getDistributionPath() + "/" + rootDirName);
         File distZip = new File(getBaseDir(configuration.getZipBase()), configuration.getZipPath() + "/" + rootDirName + "/" + baseName);
         return new LocalDistribution(distDir, distZip);
     }
 
-    private String rootDirName(String distName, WrapperConfiguration configuration) {
-        String urlHash = getHash(Download.safeUri(configuration.getDistribution()).toASCIIString());
+    private String rootDirName(String distName, URI distribution) {
+        String urlHash = getHash(Download.safeUri(distribution).toASCIIString());
         return distName + "/" + urlHash;
     }
 

@@ -20,12 +20,14 @@ import org.gradle.internal.scan.UsedByScanPlugin;
 
 /**
  * A dependency that was resolved successfully.
+ * @since 1.2
  */
 @UsedByScanPlugin
 public interface ResolvedDependencyResult extends DependencyResult {
     /**
      * Returns the selected component. This may not necessarily be the same as the requested component. For example, a dynamic version
      * may have been requested, or the version may have been substituted due to conflict resolution, or by being forced, or for some other reason.
+     * @since 1.2
      */
     ResolvedComponentResult getSelected();
 

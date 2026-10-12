@@ -26,14 +26,33 @@ import java.util.Locale;
  *
  * @deprecated This type is only used by the deprecated {@code targetJdk} property on the PMD plugin.
  *     It will be removed in Gradle 10. PMD 5.0 and later infer the Java language version from the rule sets.
+ * @since 1.5
  */
 @Deprecated
 public enum TargetJdk {
+    /**
+     * @since 1.5
+     */
     VERSION_1_3,
+    /**
+     * @since 1.5
+     */
     VERSION_1_4,
+    /**
+     * @since 1.5
+     */
     VERSION_1_5,
+    /**
+     * @since 1.5
+     */
     VERSION_1_6,
+    /**
+     * @since 1.5
+     */
     VERSION_1_7,
+    /**
+     * @since 1.5
+     */
     VERSION_JSP;
 
     /**
@@ -42,6 +61,7 @@ public enum TargetJdk {
      * @param value An object whose toString() value is to be converted. May be null.
      * @return The version, or null if the provided value is null.
      * @throws IllegalArgumentException when the provided value cannot be converted.
+     * @since 1.5
      */
     @Nullable
     public static TargetJdk toVersion(@Nullable Object value) throws IllegalArgumentException {
@@ -79,6 +99,11 @@ public enum TargetJdk {
         return getName();
     }
 
+    /**
+     * Returns the name.
+     *
+     * @since 1.5
+     */
     public String getName() {
         return name().substring("VERSION_".length()).replace('_', '.').toLowerCase(Locale.ROOT);
     }

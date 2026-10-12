@@ -29,6 +29,7 @@ public interface LibraryDependencies extends ComponentDependencies {
      * Adds an API dependency to this library. An API dependency is made visible to consumers that are compiled against this component.
      *
      * @param notation The dependency notation, as per {@link org.gradle.api.artifacts.dsl.DependencyHandler#create(Object)}.
+     * @since 4.6
      */
     void api(Object notation);
 
@@ -37,6 +38,7 @@ public interface LibraryDependencies extends ComponentDependencies {
      *
      * @param notation The dependency notation, as per {@link org.gradle.api.artifacts.dsl.DependencyHandler#create(Object)}.
      * @param action The action to run to configure the dependency.
+     * @since 4.6
      */
     void api(Object notation, Action<? super ExternalModuleDependency> action);
 }

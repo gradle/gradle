@@ -19,8 +19,6 @@ package org.gradle.api.reporting.components.internal;
 import org.gradle.api.tasks.diagnostics.internal.text.TextReportBuilder;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.model.ModelElement;
-import org.gradle.platform.base.BinarySpec;
 import org.gradle.reporting.ReportRenderer;
 
 import java.io.IOException;
@@ -29,25 +27,26 @@ import java.util.HashMap;
 import java.util.Map;
 
 @ServiceScope(Scope.Global.class)
-public class TypeAwareBinaryRenderer extends ReportRenderer<BinarySpec, TextReportBuilder> {
-    static final Comparator<BinarySpec> SORT_ORDER = Comparator.comparing(ModelElement::getName);
-    private final Map<Class<?>, ReportRenderer<BinarySpec, TextReportBuilder>> renderers = new HashMap<>();
+@SuppressWarnings("deprecation")
+public class TypeAwareBinaryRenderer extends ReportRenderer<org.gradle.platform.base.BinarySpec, TextReportBuilder> {
+    static final Comparator<org.gradle.platform.base.BinarySpec> SORT_ORDER = Comparator.comparing(org.gradle.model.ModelElement::getName);
+    private final Map<Class<?>, ReportRenderer<org.gradle.platform.base.BinarySpec, TextReportBuilder>> renderers = new HashMap<>();
 
     public void register(AbstractBinaryRenderer<?> renderer) {
         renderers.put(renderer.getTargetType(), renderer);
     }
 
     @Override
-    public void render(BinarySpec model, TextReportBuilder output) throws IOException {
-        ReportRenderer<BinarySpec, TextReportBuilder> renderer = getRendererForType(model.getClass());
+    public void render(org.gradle.platform.base.BinarySpec model, TextReportBuilder output) throws IOException {
+        ReportRenderer<org.gradle.platform.base.BinarySpec, TextReportBuilder> renderer = getRendererForType(model.getClass());
         renderer.render(model, output);
     }
 
-    private ReportRenderer<BinarySpec, TextReportBuilder> getRendererForType(Class<? extends BinarySpec> type) {
-        ReportRenderer<BinarySpec, TextReportBuilder> renderer = renderers.get(type);
+    private ReportRenderer<org.gradle.platform.base.BinarySpec, TextReportBuilder> getRendererForType(Class<? extends org.gradle.platform.base.BinarySpec> type) {
+        ReportRenderer<org.gradle.platform.base.BinarySpec, TextReportBuilder> renderer = renderers.get(type);
         if (renderer == null) {
             Class<?> bestType = null;
-            for (Map.Entry<Class<?>, ReportRenderer<BinarySpec, TextReportBuilder>> entry : renderers.entrySet()) {
+            for (Map.Entry<Class<?>, ReportRenderer<org.gradle.platform.base.BinarySpec, TextReportBuilder>> entry : renderers.entrySet()) {
                 if (!entry.getKey().isAssignableFrom(type)) {
                     continue;
                 }

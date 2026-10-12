@@ -26,11 +26,13 @@ import java.io.File;
 public interface SourceFile {
     /**
      * Returns the source file.
+     * @since 4.10
      */
     File getSourceFile();
 
     /**
      * Returns the object file produced for the source file.
+     * @since 4.10
      */
     File getObjectFile();
 }

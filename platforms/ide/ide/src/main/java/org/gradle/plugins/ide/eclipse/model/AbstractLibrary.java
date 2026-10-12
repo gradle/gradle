@@ -27,6 +27,7 @@ import java.util.Map;
 
 /**
  * Common superclass for the library elements.
+ * @since 1.0
  */
 public abstract class AbstractLibrary extends AbstractClasspathEntry {
     private static final String ATTRIBUTE_JAVADOC_LOCATION = "javadoc_location";
@@ -36,6 +37,11 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
     private FileReference library;
     private ModuleVersionIdentifier moduleVersion;
 
+    /**
+     * Creates a new {@code AbstractLibrary}.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings("this-escape")
     public AbstractLibrary(Node node, FileReferenceFactory fileReferenceFactory) {
         super(node);
@@ -43,23 +49,48 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
         javadocPath = fileReferenceFactory.fromJarURI(javadocLocation);
     }
 
+    /**
+     * Creates a new {@code AbstractLibrary}.
+     *
+     * @since 1.0
+     */
     public AbstractLibrary(FileReference library) {
         super(library.getPath());
         this.library = library;
     }
 
+    /**
+     * Returns the source path.
+     *
+     * @since 1.0
+     */
     public FileReference getSourcePath() {
         return sourcePath;
     }
 
+    /**
+     * Sets the source path.
+     *
+     * @since 1.0
+     */
     public void setSourcePath(FileReference sourcePath) {
         this.sourcePath = sourcePath;
     }
 
+    /**
+     * Returns the javadoc path.
+     *
+     * @since 1.0
+     */
     public FileReference getJavadocPath() {
         return javadocPath;
     }
 
+    /**
+     * Sets the javadoc path.
+     *
+     * @since 1.0
+     */
     public void setJavadocPath(FileReference path) {
         this.javadocPath = path;
         if (path != null) {
@@ -70,20 +101,40 @@ public abstract class AbstractLibrary extends AbstractClasspathEntry {
         }
     }
 
+    /**
+     * Returns the library.
+     *
+     * @since 1.0
+     */
     public FileReference getLibrary() {
         return library;
     }
 
+    /**
+     * Sets the library.
+     *
+     * @since 1.0
+     */
     public void setLibrary(FileReference library) {
         this.library = library;
         setPath(library.getPath());
     }
 
+    /**
+     * Returns the module version.
+     *
+     * @since 1.1
+     */
     @Nullable
     public ModuleVersionIdentifier getModuleVersion() {
         return moduleVersion;
     }
 
+    /**
+     * Sets the module version.
+     *
+     * @since 1.1
+     */
     public void setModuleVersion(@Nullable ModuleVersionIdentifier moduleVersion) {
         this.moduleVersion = moduleVersion;
     }

@@ -24,6 +24,7 @@ package org.gradle.ide.xcode;
 public interface XcodeExtension {
     /**
      * Returns the generated Xcode project for this Gradle project.
+     * @since 4.2
      */
     XcodeProject getProject();
 }

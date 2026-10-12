@@ -23,7 +23,6 @@ import org.junit.Assume
 
 import static org.gradle.kotlin.dsl.tooling.fixtures.KotlinDslModelChecker.checkBuildTreeScriptsModels
 import static org.gradle.kotlin.dsl.tooling.fixtures.KotlinDslModelChecker.checkKotlinDslScriptsModel
-import static org.gradle.kotlin.dsl.tooling.fixtures.KotlinDslModelChecker.checkScriptModelEditorReportsArePositioned
 
 class IsolatedProjectsToolingApiKotlinDslBrokenScriptsIntegrationTest extends AbstractIsolatedProjectsToolingApiIntegrationTest implements KotlinDslTestProjectInitiation {
 
@@ -68,67 +67,7 @@ class IsolatedProjectsToolingApiKotlinDslBrokenScriptsIntegrationTest extends Ab
         scriptError << ScriptError.values()
     }
 
-    def "can fetch KotlinDslScripts model honors subproject-local locationAwareEditorHints for runtime-broken script in lenient mode"() {
-        withSettings("""
-            include("a")
-        """)
-        withBuildScript(ScriptError.RUNTIME.snippet)
-        withBuildScriptIn("a", ScriptError.RUNTIME.snippet)
-        file("a/gradle.properties") << "org.gradle.kotlin.dsl.internal.locationAwareEditorHints=true"
-
-        when:
-        def originalModel = fetchScriptsModelLeniently()
-
-        then:
-        fixture.assertNoConfigurationCache()
-        // Sanity check: vintage produces a positioned editor report for :a/build.gradle.kts
-        checkScriptModelEditorReportsArePositioned(originalModel.scriptModels, "a${File.separator}build.gradle.kts")
-
-        when:
-        withIsolatedProjects()
-        def model = fetchScriptsModelLeniently()
-
-        then:
-        checkKotlinDslScriptsModel(model, originalModel)
-    }
-
-    def "can fetch KotlinDslScripts model honors root-level locationAwareEditorHints for runtime-broken #scriptKinds script in lenient mode"() {
-        file("gradle.properties") << "org.gradle.kotlin.dsl.internal.locationAwareEditorHints=true"
-        withSettings("""
-            ${scriptErrorSnippet(scriptKinds, ScriptKind.SETTINGS, ScriptError.RUNTIME)}
-        """)
-        withBuildScript(scriptErrorSnippet(scriptKinds, ScriptKind.BUILD, ScriptError.RUNTIME))
-        if (scriptKinds.contains(ScriptKind.INIT)) {
-            def initScript = file("init.gradle.kts")
-            initScript.text = scriptErrorSnippet(scriptKinds, ScriptKind.INIT, ScriptError.RUNTIME)
-            executer.beforeExecute { it.usingInitScript(initScript) }
-        }
-
-        when:
-        def originalModel = fetchScriptsModelLeniently()
-
-        then:
-        fixture.assertNoConfigurationCache()
-        // Sanity check: vintage produces a positioned editor report for the broken scripts
-        scriptKinds.forEach {
-            checkScriptModelEditorReportsArePositioned(originalModel.scriptModels, it.scriptFileName)
-        }
-
-        when:
-        withIsolatedProjects()
-        def model = fetchScriptsModelLeniently()
-
-        then:
-        checkKotlinDslScriptsModel(model, originalModel)
-
-        where:
-        scriptKinds << (ScriptKind.values() as List).subsequences()
-    }
-
-    def "can fetch KotlinDslScripts model with positioned editor reports for runtime-broken settings and build scripts across composite build in lenient mode"() {
-        file("gradle.properties") << "org.gradle.kotlin.dsl.internal.locationAwareEditorHints=true"
-        file("included/gradle.properties") << "org.gradle.kotlin.dsl.internal.locationAwareEditorHints=true"
-
+    def "can fetch KotlinDslScripts model with editor reports for runtime-broken settings and build scripts across composite build in lenient mode"() {
         withSettingsIn("included", """
             include("a")
             ${ScriptError.RUNTIME.snippet}
@@ -150,11 +89,9 @@ class IsolatedProjectsToolingApiKotlinDslBrokenScriptsIntegrationTest extends Ab
 
         then:
         fixture.assertNoConfigurationCache()
-        // Sanity check: vintage produces positioned reports for each broken script in each build.
-        checkScriptModelEditorReportsArePositioned(originalModel[":"].scriptModels, "settings.gradle.kts")
-        checkScriptModelEditorReportsArePositioned(originalModel[":"].scriptModels, "a${File.separator}build.gradle.kts".toString())
-        checkScriptModelEditorReportsArePositioned(originalModel[":included"].scriptModels, "settings.gradle.kts")
-        checkScriptModelEditorReportsArePositioned(originalModel[":included"].scriptModels, "a${File.separator}build.gradle.kts".toString())
+        // Sanity check: vintage carries editor reports for the broken scripts in each build.
+        originalModel[":"].scriptModels.values().any { !it.editorReports.isEmpty() }
+        originalModel[":included"].scriptModels.values().any { !it.editorReports.isEmpty() }
 
         when:
         withIsolatedProjects()

@@ -29,7 +29,7 @@ public abstract class AbstractComponentGraphResolveState<T extends ComponentGrap
     public AbstractComponentGraphResolveState(long instanceId, T graphMetadata) {
         this.instanceId = instanceId;
         this.graphMetadata = graphMetadata;
-        this.implicitCapability =  DefaultImmutableCapability.defaultCapabilityForComponent(graphMetadata.getModuleVersionId());
+        this.implicitCapability = DefaultImmutableCapability.defaultCapabilityForComponent(graphMetadata.getModuleVersionId());
     }
 
     @Override

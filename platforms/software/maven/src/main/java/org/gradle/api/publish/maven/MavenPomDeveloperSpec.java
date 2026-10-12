@@ -29,6 +29,7 @@ public interface MavenPomDeveloperSpec {
 
     /**
      * Creates, configures and adds a developer to the publication.
+     * @since 4.8
      */
     void developer(Action<? super MavenPomDeveloper> action);
 

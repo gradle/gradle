@@ -29,11 +29,11 @@ class PerformanceTestExecutionResult {
     public static final String STATUS_FAILURE = "FAILURE"
     public static final String STATUS_UNKNOWN = "UNKNOWN"
     public static final int FLAKINESS_DETECTION_THRESHOLD = 99
-    String teamCityBuildId
+    // No teamCityBuildId/webUrl: the producing build id is not stored in the cacheable bucket output (it would be
+    // replayed stale on a build-cache hit). The report derives the TeamCity build from the dependencyBuildIds property.
     String scenarioName
     String scenarioClass
     String testProject
-    String webUrl
     String testFailure
     String status
 

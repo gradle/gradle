@@ -78,7 +78,7 @@ enum class Os(
                         DefaultJvm(JvmVersion.JAVA_17, JvmVendor.OPENJDK),
                         DefaultJvm(JvmVersion.JAVA_21, JvmVendor.OPENJDK),
                         DefaultJvm(JvmVersion.JAVA_25, JvmVendor.OPENJDK),
-                        DefaultJvm(JvmVersion.JAVA_26, JvmVendor.OPENJDK),
+                        DefaultJvm(JvmVersion.JAVA_27, JvmVendor.OPENJDK),
                     )
                 }
 
@@ -89,7 +89,7 @@ enum class Os(
                         DefaultJvm(JvmVersion.JAVA_17, JvmVendor.OPENJDK),
                         DefaultJvm(JvmVersion.JAVA_21, JvmVendor.OPENJDK),
                         DefaultJvm(JvmVersion.JAVA_25, JvmVendor.OPENJDK),
-                        DefaultJvm(JvmVersion.JAVA_26, JvmVendor.OPENJDK),
+                        DefaultJvm(JvmVersion.JAVA_27, JvmVendor.OPENJDK),
                     )
                 }
 
@@ -100,7 +100,7 @@ enum class Os(
                         DefaultJvm(JvmVersion.JAVA_17, JvmVendor.OPENJDK),
                         DefaultJvm(JvmVersion.JAVA_21, JvmVendor.OPENJDK),
                         DefaultJvm(JvmVersion.JAVA_25, JvmVendor.OPENJDK),
-                        DefaultJvm(JvmVersion.JAVA_26, JvmVendor.OPENJDK),
+                        DefaultJvm(JvmVersion.JAVA_27, JvmVendor.OPENJDK),
                     )
                 }
             }.joinToString(",") { javaHome(it, this, arch) }

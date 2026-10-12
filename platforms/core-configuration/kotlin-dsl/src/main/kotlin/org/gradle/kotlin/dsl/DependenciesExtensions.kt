@@ -19,7 +19,6 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.Action
-import org.gradle.api.Incubating
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.DependencyConstraint
 import org.gradle.api.artifacts.ExternalModuleDependency
@@ -127,7 +126,6 @@ operator fun DependencyModifier.invoke(dependencyNotation: CharSequence): Extern
  * @see DependencyModifier
  * @since 8.0
  */
-@Incubating
 operator fun DependencyModifier.invoke(dependency: ProviderConvertible<out MinimalExternalModuleDependency>): Provider<out MinimalExternalModuleDependency> = modify(dependency)
 
 
@@ -186,7 +184,6 @@ operator fun DependencyCollector.invoke(files: FileCollection, configuration: Ac
  * @param externalModule external module to add as a dependency
  * @since 8.6
  */
-@Incubating
 operator fun DependencyCollector.invoke(externalModule: ProviderConvertible<out MinimalExternalModuleDependency>) = add(externalModule)
 
 
@@ -197,7 +194,6 @@ operator fun DependencyCollector.invoke(externalModule: ProviderConvertible<out 
  * @param configuration an action to configure the dependency
  * @since 8.6
  */
-@Incubating
 operator fun DependencyCollector.invoke(externalModule: ProviderConvertible<out MinimalExternalModuleDependency>, configuration: Action<in ExternalModuleDependency>) = add(externalModule, configuration)
 
 

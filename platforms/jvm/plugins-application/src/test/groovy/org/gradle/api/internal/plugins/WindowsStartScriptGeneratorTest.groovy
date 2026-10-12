@@ -159,6 +159,33 @@ class WindowsStartScriptGeneratorTest extends Specification {
         ['path\\to\\Jar.jar'] | '-classpath "%CLASSPATH%"' | true
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/38082")
+    def "error paths jump to the exit label instead of falling through"() {
+        given:
+        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(null, 'bin')
+        Writer destination = new StringWriter()
+
+        when:
+        generator.generateScript(details, destination)
+
+        then:
+        destination.toString().count('"%COMSPEC%" /c exit 1\r\ngoto exitWithErrorLevel\r\n') == 2
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38082")
+    def "app execution line keeps the call for its cmd side effects and re-anchors with a same-line goto"() {
+        given:
+        JavaAppStartScriptGenerationDetails details = createScriptGenerationDetails(null, 'bin')
+        Writer destination = new StringWriter()
+
+        when:
+        generator.generateScript(details, destination)
+
+        then:
+        def appExecutionLine = destination.toString().readLines().find { it.startsWith('endlocal & "%JAVA_EXE%"') }
+        appExecutionLine.endsWith('%* & call :exitWithErrorLevel & goto exitWithErrorLevel')
+    }
+
     @Issue("https://github.com/gradle/gradle/issues/30101")
     def "windows start script does not contain any embedded documentation with gradle github links"() {
         given:

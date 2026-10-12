@@ -19,6 +19,8 @@ package org.gradle.internal.instrumentation.agent;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
+import java.lang.instrument.Instrumentation;
+
 /**
  * A build service to query the status of the Gradle's Java agents. Prefer using this service to accessing the {@link AgentControl} directly.
  */
@@ -30,6 +32,17 @@ public interface AgentStatus {
      * @return {@code true} if the agent instrumentation should be used
      */
     boolean isAgentInstrumentationEnabled();
+
+    /**
+     * Returns the {@link Instrumentation} instance captured by the agent at startup.
+     * <p>
+     * Callers must first check {@link #isAgentInstrumentationEnabled()} — invoking this on a disabled status
+     * throws {@link IllegalStateException}.
+     *
+     * @return the live {@link Instrumentation} instance
+     * @throws IllegalStateException if the agent is not enabled
+     */
+    Instrumentation getInstrumentation();
 
     /**
      * Returns an AgentStatus instance that enables instrumentation if the agent is available.

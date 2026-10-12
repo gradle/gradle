@@ -23,6 +23,7 @@ import org.gradle.internal.HasInternalProtocol;
  * A {@link NamedDomainObjectContainer} that allows you to create objects with different types.
  *
  * @param <T> the (base) type of objects in the container
+ * @since 1.5
  */
 @HasInternalProtocol
 @HiddenInDefinition
@@ -39,6 +40,7 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
      *
      * @throws InvalidUserDataException if a domain object with the specified name already exists
      * or the container does not support creating a domain object with the specified type
+     * @since 1.5
      */
     <U extends T> U create(String name, Class<U> type) throws InvalidUserDataException;
 
@@ -54,6 +56,7 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
      *
      * @throws InvalidUserDataException if the container does not support creating a domain object with the specified type
      * @throws ClassCastException if a domain object with the specified name exists with a different type
+     * @since 1.11
      */
     <U extends T> U maybeCreate(String name, Class<U> type) throws InvalidUserDataException;
 
@@ -71,6 +74,7 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
      *
      * @throws InvalidUserDataException if a domain object with the specified name already exists
      * or the container does not support creating a domain object with the specified type
+     * @since 1.5
      */
     <U extends T> U create(String name, Class<U> type, Action<? super U> configuration) throws InvalidUserDataException;
 
@@ -82,6 +86,7 @@ public interface PolymorphicDomainObjectContainer<T> extends NamedDomainObjectCo
      * @param type the type of the container elements
      * @param <U> the type of the container elements
      * @return a {@link NamedDomainObjectContainer} providing access to elements of type U.
+     * @since 2.0
      */
     <U extends T> NamedDomainObjectContainer<U> containerWithType(Class<U> type);
 

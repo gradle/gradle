@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.api.JavaVersion
+import org.gradle.kotlin.dsl.support.DefaultKotlinCompiler
 import org.gradle.kotlin.dsl.support.toKotlinJvmTarget
 import org.jetbrains.kotlin.cli.common.ExitCode
 import org.jetbrains.kotlin.cli.common.arguments.K2JVMCompilerArguments
@@ -51,6 +52,19 @@ fun compileToDirectory(
         return K2JVMCompiler().exec(messageCollector, Services.EMPTY, arguments) == ExitCode.OK
     }
 }
+
+internal val sharedTestKotlinCompiler = DefaultKotlinCompiler(TestModuleRegistry)
+
+/**
+ * Cleans up the shared test Kotlin compiler and the classpath-snapshotting session,
+ * as [org.gradle.kotlin.dsl.support.DefaultKotlinCompiler] does at the end of a build.
+ * Call from an `@After` in tests that compile against jars inside the test directory: the environment
+ * caches open jar handles, which on Windows prevent deleting the directory.
+ */
+fun disposeKotlinCompilerContext() {
+    sharedTestKotlinCompiler.stop()
+}
+
 
 private
 inline fun <T> withDisposable(action: Disposable.() -> T): T {

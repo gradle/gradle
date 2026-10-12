@@ -65,12 +65,24 @@ class ProviderApiMigrationRenamedPropertiesTest {
             entry("CreateStartScripts.outputDir",             "org.gradle.jvm.application.tasks.CreateStartScripts",     "outputDir",            "outputDirectory"),
             entry("CreateStartScripts.unixScript",            "org.gradle.jvm.application.tasks.CreateStartScripts",     "unixScript",           "unixScriptFile"),
             entry("CreateStartScripts.windowsScript",         "org.gradle.jvm.application.tasks.CreateStartScripts",     "windowsScript",        "windowsScriptFile"),
+            entry("ProcessForkOptions.workingDir",            "org.gradle.process.ProcessForkOptions",                   "workingDir",           "workingDirectory"),
             entry("JacocoTaskExtension.classDumpDir",         "org.gradle.testing.jacoco.plugins.JacocoTaskExtension",   "classDumpDir",         "classDumpDirectory"),
 
             // Subclasses of CodeQualityExtension — walks through getSuperclass()
             entry("CheckstyleExtension (subclass)",           "org.gradle.api.plugins.quality.CheckstyleExtension",      "reportsDir",           "reportsDirectory"),
             entry("PmdExtension (subclass)",                  "org.gradle.api.plugins.quality.PmdExtension",             "reportsDir",           "reportsDirectory"),
-            entry("CodeNarcExtension (subclass)",             "org.gradle.api.plugins.quality.CodeNarcExtension",        "reportsDir",           "reportsDirectory")
+            entry("CodeNarcExtension (subclass)",             "org.gradle.api.plugins.quality.CodeNarcExtension",        "reportsDir",           "reportsDirectory"),
+
+            // Subinterfaces of ProcessForkOptions — walks through getInterfaces()
+            entry("JavaForkOptions (subinterface)",           "org.gradle.process.JavaForkOptions",                      "workingDir",           "workingDirectory"),
+            entry("BaseExecSpec (subinterface)",              "org.gradle.process.BaseExecSpec",                         "workingDir",           "workingDirectory"),
+            entry("ExecSpec (subinterface chain)",            "org.gradle.process.ExecSpec",                             "workingDir",           "workingDirectory"),
+            entry("JavaExecSpec (diamond)",                   "org.gradle.process.JavaExecSpec",                         "workingDir",           "workingDirectory"),
+
+            // Implementation classes — walks through getInterfaces() and getSuperclass()
+            entry("DefaultProcessForkOptions (impl)",         "org.gradle.process.internal.DefaultProcessForkOptions",   "workingDir",           "workingDirectory"),
+            entry("DefaultExecSpec (impl subclass)",          "org.gradle.process.internal.DefaultExecSpec",             "workingDir",           "workingDirectory"),
+            entry("DefaultJavaForkOptions (impl subclass)",   "org.gradle.process.internal.DefaultJavaForkOptions",      "workingDir",           "workingDirectory")
         );
     }
 

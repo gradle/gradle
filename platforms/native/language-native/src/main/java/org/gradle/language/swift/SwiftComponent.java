@@ -38,6 +38,7 @@ import org.gradle.language.ComponentWithTargetMachines;
 public interface SwiftComponent extends ComponentWithBinaries, ComponentWithDependencies, ComponentWithTargetMachines {
     /**
      * Defines the Swift module for this component. The default value is calculated from the project name.
+     * @since 4.2
      */
     Property<String> getModule();
 
@@ -45,16 +46,19 @@ public interface SwiftComponent extends ComponentWithBinaries, ComponentWithDepe
      * Defines the source files or directories of this component. You can add files or directories to this collection. When a directory is added, all source files are included for compilation.
      *
      * <p>When this collection is empty, the directory {@code src/main/swift} is used by default.</p>
+     * @since 4.2
      */
     ConfigurableFileCollection getSource();
 
     /**
      * Configures the source files or directories for this component.
+     * @since 4.2
      */
     void source(Action<? super ConfigurableFileCollection> action);
 
     /**
      * Returns the Swift source files of this component, as defined in {@link #getSource()}.
+     * @since 4.2
      */
     FileCollection getSwiftSource();
 
@@ -68,6 +72,7 @@ public interface SwiftComponent extends ComponentWithBinaries, ComponentWithDepe
 
     /**
      * Returns the implementation dependencies of this component.
+     * @since 4.2
      */
     Configuration getImplementationDependencies();
 

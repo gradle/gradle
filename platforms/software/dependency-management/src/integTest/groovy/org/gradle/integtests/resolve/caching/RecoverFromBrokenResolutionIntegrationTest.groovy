@@ -77,7 +77,7 @@ class RecoverFromBrokenResolutionIntegrationTest extends AbstractHttpDependencyR
             failure.assertHasDescription("Execution failed for task ':retrieve' (registered in build file 'build.gradle').")
         }
         failure.assertHasCause("Could not resolve all files for configuration ':compile'.")
-        failure.assertThatCause(CoreMatchers.containsString("Received status code 500 from server: broken"))
+        failure.assertThatCause(CoreMatchers.containsString("Received status code 500 from server: Internal Server Error"))
 
 
         when:

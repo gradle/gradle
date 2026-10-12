@@ -17,6 +17,7 @@
 package org.gradle.internal.declarativedsl.project
 
 import org.gradle.api.DefaultTask
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.api.JavaVersion
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.tasks.InputFiles
@@ -1157,7 +1158,7 @@ commonsLang3 = { module = "org.apache.commons:commons-lang3", version = "3.20.0"
 
             dependencyResolutionManagement {
                 repositories {
-                    mavenCentral()
+                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()}
                 }
             }
 

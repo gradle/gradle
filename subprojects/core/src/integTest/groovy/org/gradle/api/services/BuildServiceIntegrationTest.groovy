@@ -181,9 +181,7 @@ class BuildServiceIntegrationTest extends AbstractIntegrationSpec {
             def artifactType = Attribute.of('artifactType', String)
             def counted = Attribute.of('counted', Boolean)
 
-            repositories {
-                mavenCentral()
-            }
+            ${mavenCentralRepository()}
 
             configurations.all {
                 afterEvaluate {
@@ -535,7 +533,7 @@ service: closed with value 10001
         failureDescriptionContains("A problem was found with the configuration of task ':missingRequiredService' (type 'Consumer').")
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:value-not-set'
+            fqid == 'Gradle:Build Definition:Value not set'
             definition.id.displayName == 'Value not set'
             details == "This property isn't marked as optional and no value has been configured"
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
@@ -623,8 +621,8 @@ service: closed with value 10001
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:service-reference-must-be-a-build-service'
-            definition.id.displayName == 'Property has @ServiceReference annotation'
+            fqid == 'Gradle:Plugin Validation:@ServiceReference property is not a build service'
+            definition.id.displayName == '@ServiceReference property is not a build service'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#service_reference_must_be_a_build_service"
         }
     }
@@ -2107,6 +2105,125 @@ Hello, subproject1
                 }
             }
         """
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38607")
+    @Requires(
+        value = TestExecutionPreconditions.NotEmbeddedExecutor,
+        reason = "The build JVM must be forked so a -javaagent can be attached to it"
+    )
+    def "shared build service survives to execution time when a third-party agent is attached to the build JVM"() {
+        given: "a stub Java agent, built as a separate artifact"
+        def agentJar = buildStubAgentJar()
+
+        and: "an included build providing a plugin that registers a shared service and a task consuming it"
+        settingsFile("build-logic/settings.gradle", """
+            rootProject.name = 'build-logic'
+        """)
+        buildFile("build-logic/build.gradle", """
+            plugins {
+                id 'java-gradle-plugin'
+            }
+            gradlePlugin {
+                plugins {
+                    myPlugin {
+                        id = 'my.plugin'
+                        implementationClass = 'com.example.MyPlugin'
+                    }
+                }
+            }
+        """)
+        javaFile("build-logic/src/main/java/com/example/CountingService.java", """
+            package com.example;
+
+            import org.gradle.api.services.BuildService;
+            import org.gradle.api.services.BuildServiceParameters;
+            import org.gradle.tooling.events.FinishEvent;
+            import org.gradle.tooling.events.OperationCompletionListener;
+
+            public abstract class CountingService
+                    implements BuildService<BuildServiceParameters.None>, OperationCompletionListener {
+                public String greet() {
+                    return "hello from service";
+                }
+
+                @Override
+                public void onFinish(FinishEvent event) {
+                }
+            }
+        """)
+        javaFile("build-logic/src/main/java/com/example/MyTask.java", """
+            package com.example;
+
+            import org.gradle.api.DefaultTask;
+            import org.gradle.api.provider.Property;
+            import org.gradle.api.tasks.Internal;
+            import org.gradle.api.tasks.TaskAction;
+
+            public abstract class MyTask extends DefaultTask {
+                @Internal
+                public abstract Property<CountingService> getService();
+
+                @TaskAction
+                public void run() {
+                    System.out.println("task says: " + getService().get().greet());
+                }
+            }
+        """)
+        javaFile("build-logic/src/main/java/com/example/MyPlugin.java", """
+            package com.example;
+
+            import javax.inject.Inject;
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            import org.gradle.api.provider.Provider;
+            import org.gradle.build.event.BuildEventsListenerRegistry;
+
+            public abstract class MyPlugin implements Plugin<Project> {
+                @Inject
+                public abstract BuildEventsListenerRegistry getEventsListenerRegistry();
+
+                @Override
+                public void apply(Project project) {
+                    Provider<CountingService> service = project.getGradle().getSharedServices()
+                        .registerIfAbsent("counting", CountingService.class, spec -> {});
+                    // Registering the service as a build listener keeps its instance alive across the
+                    // configuration cache store/reload, so it is observable alongside the reloaded task.
+                    getEventsListenerRegistry().onTaskCompletion(service);
+                    project.getTasks().register("myTask", MyTask.class, task -> task.getService().set(service));
+                }
+            }
+        """)
+
+        and: "a root project that just applies the plugin"
+        settingsFile """
+            includeBuild 'build-logic'
+        """
+        buildFile """
+            plugins { id 'my.plugin' }
+        """
+
+        and: "the agent attached to the build JVM"
+        executer.requireIsolatedDaemons()
+        executer.withBuildJvmOpts("-javaagent:${agentJar.absolutePath}")
+
+        expect:
+        succeeds("myTask")
+        outputContains("task says: hello from service")
+    }
+
+    private TestFile buildStubAgentJar() {
+        def builder = artifactBuilder()
+        builder.sourceFile("TestAgent.java") << """
+            public class TestAgent {
+                public static void premain(String args, java.lang.instrument.Instrumentation instrumentation) {
+                }
+            }
+        """
+        builder.manifestAttributes("Premain-Class": "TestAgent")
+        def agentJar = file("agent.jar")
+        builder.buildJar(agentJar)
+        agentJar
     }
 
 }

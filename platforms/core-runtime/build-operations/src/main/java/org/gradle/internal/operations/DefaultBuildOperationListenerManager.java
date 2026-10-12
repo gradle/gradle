@@ -57,7 +57,6 @@ public class DefaultBuildOperationListenerManager implements BuildOperationListe
         }
     };
 
-    @SuppressWarnings("NullAway") // TODO(https://github.com/uber/NullAway/issues/681) Can't infer that AtomicReference holds non-nullable type
     private ImmutableList<ProgressShieldingBuildOperationListener> getListeners() {
         return DefaultBuildOperationListenerManager.this.listeners.get();
     }

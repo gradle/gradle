@@ -18,6 +18,8 @@ package org.gradle.internal.instrumentation.agent;
 
 import org.gradle.internal.lazy.Lazy;
 
+import java.lang.instrument.Instrumentation;
+
 class DefaultAgentStatus implements AgentStatus {
 
     private static final Lazy<Boolean> IS_AGENT_INSTRUMENTATION_ENABLED = Lazy.locking().of(AgentControl::isInstrumentationAgentApplied);
@@ -25,5 +27,14 @@ class DefaultAgentStatus implements AgentStatus {
     @Override
     public boolean isAgentInstrumentationEnabled() {
         return IS_AGENT_INSTRUMENTATION_ENABLED.get();
+    }
+
+    @Override
+    public Instrumentation getInstrumentation() {
+        Instrumentation instrumentation = AgentControl.getInstrumentation();
+        if (instrumentation == null) {
+            throw new IllegalStateException("Instrumentation agent is not loaded into this JVM");
+        }
+        return instrumentation;
     }
 }

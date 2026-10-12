@@ -17,13 +17,14 @@
 package org.gradle.internal.cc.impl
 
 import org.gradle.api.internal.project.ProjectIdentity
+import org.gradle.internal.buildtree.BuildTreeModelCreatorResult
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
 import org.gradle.internal.buildtree.ToolingModelRequestContext
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
-import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
 import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
+import org.gradle.tooling.provider.model.internal.ToolingModelScopeResult
 import org.gradle.util.Path
 
 
@@ -35,26 +36,34 @@ interface BuildTreeConfigurationCache {
     fun initializeCacheEntry()
 
     /**
-     * Loads the scheduled tasks from cache, if available, or else runs the given function to schedule the tasks and then
-     * writes the result to the cache.
+     * Loads the scheduled tasks from the cache entry, when there is one to reuse.
      */
-    fun loadOrScheduleRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?, scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph): WorkGraphResult
+    fun maybeLoadRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): LoadOutcome
+
+    /**
+     * Schedules the requested tasks by running the given function, and writes the result to the cache unless the
+     * entry is being skipped or discarded.
+     */
+    fun scheduleRequestedTasks(graph: BuildTreeWorkGraph, scheduler: (BuildTreeWorkGraph) -> BuildTreeWorkGraph.FinalizedGraph): ScheduleOutcome
 
     /**
      * Loads the scheduled tasks from cache.
      */
-    fun loadRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeWorkGraph.FinalizedGraph
+    fun loadRequestedTasks(graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): LoadRequestedTasksResult
 
     /**
-     * Prepares to load or create a model. Does nothing if the cached model is available or else prepares to capture
-     * configuration fingerprints and validation problems and then runs the given function.
+     * Prepares to load or create a model. Returns an empty result if the cached model is available or else prepares
+     * to capture configuration fingerprints and validation problems, runs the given function and returns its result.
+     * When the result carries failures, the cache entry is discarded instead of stored.
      */
-    fun maybePrepareModel(action: () -> Unit)
+    fun maybePrepareModel(action: () -> BuildTreeModelCreatorResult<Void>): BuildTreeModelCreatorResult<Void>
 
     /**
-     * Loads the cached model, if available, or else runs the given function to create it and then writes the result to the cache.
+     * Loads the cached model, if available, or else runs the given function to create it and then writes the model to
+     * the cache. When the result carries failures, the cache entry is discarded instead of stored, so the next build
+     * re-runs the function and re-reports the failures.
      */
-    fun <T : Any> loadOrCreateModel(creator: () -> T): T
+    fun <T : Any> loadOrCreateModel(creator: () -> BuildTreeModelCreatorResult<T>): BuildTreeModelCreatorResult<T>
 
     /**
      * Loads a cached intermediate model, if available, or else runs the given function to create it and then writes the result to the cache.
@@ -65,8 +74,8 @@ interface BuildTreeConfigurationCache {
         project: ProjectIdentity?,
         modelRequestContext: ToolingModelRequestContext,
         parameter: ToolingModelParameterCarrier?,
-        creator: () -> ToolingModelBuilderResultInternal
-    ): ToolingModelBuilderResultInternal
+        creator: () -> ToolingModelScopeResult
+    ): ToolingModelScopeResult
 
     /**
      * Loads cached dependency resolution metadata for the given project, if available, or else runs the given function to create it and then writes the result to the cache.
@@ -81,5 +90,19 @@ interface BuildTreeConfigurationCache {
     // This is a temporary property to allow migration from a root build scoped cache to a build tree scoped cache
     val isLoaded: Boolean
 
-    class WorkGraphResult(val graph: BuildTreeWorkGraph.FinalizedGraph, val wasLoadedFromCache: Boolean, val entryDiscarded: Boolean)
+    sealed interface LoadOutcome {
+        data class Reused(val graph: BuildTreeWorkGraph.FinalizedGraph) : LoadOutcome
+
+        object Missed : LoadOutcome
+    }
+
+    sealed interface ScheduleOutcome {
+        val graph: BuildTreeWorkGraph.FinalizedGraph
+
+        data class Stored(override val graph: BuildTreeWorkGraph.FinalizedGraph) : ScheduleOutcome
+
+        data class NotStored(override val graph: BuildTreeWorkGraph.FinalizedGraph) : ScheduleOutcome
+    }
+
+    data class LoadRequestedTasksResult(val graph: BuildTreeWorkGraph.FinalizedGraph, val workGraphRestorationFailed: Boolean)
 }

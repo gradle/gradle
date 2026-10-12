@@ -21,7 +21,14 @@ plugins {
     id("signing")
 }
 
-group = "org.gradle.experimental"
+gradleModule {
+    identity {
+        // The experimental public API is published under its own group; `project.group` derives
+        // from this, as does the coordinate recorded in the jar's manifest and pom.properties.
+        group = "org.gradle.experimental"
+    }
+}
+
 description = "Public API for Gradle"
 
 dependencies {
@@ -87,15 +94,19 @@ publishing {
 }
 
 // Temporary solution as we cannot simply apply publish-public-libraries for now
+// The key ID is required because the signing key is a subkey.
+val pgpSigningKeyId: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY_ID")
 val pgpSigningKey: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY")
+val pgpSigningPassPhrase: Provider<String> = providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE")
 val signArtifacts: Boolean = !pgpSigningKey.orNull.isNullOrEmpty()
 
 tasks.withType<Sign>().configureEach { isEnabled = signArtifacts }
 
 signing {
     useInMemoryPgpKeys(
-        project.providers.environmentVariable("PGP_SIGNING_KEY").orNull,
-        project.providers.environmentVariable("PGP_SIGNING_KEY_PASSPHRASE").orNull
+        pgpSigningKeyId.orNull,
+        pgpSigningKey.orNull,
+        pgpSigningPassPhrase.orNull
     )
     publishing.publications.configureEach {
         if (signArtifacts) {

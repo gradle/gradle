@@ -22,13 +22,24 @@ package org.gradle.api.tasks;
  * actions to be added to a task which abort execution of the task if the preconditions are not met.</p>
  *
  * <p>Note that throwing this exception does not fail the execution of the task or the build.</p>
+ * @since 0.7
  */
 public class StopExecutionException extends RuntimeException {
 
+    /**
+     * Creates a new {@code StopExecutionException}.
+     *
+     * @since 0.7
+     */
     public StopExecutionException() {
         super();
     }
 
+    /**
+     * Creates a new {@code StopExecutionException}.
+     *
+     * @since 0.7
+     */
     public StopExecutionException(String message) {
         super(message);
     }

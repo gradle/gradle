@@ -36,6 +36,7 @@ import org.jspecify.annotations.Nullable;
  * assumption that the model is effectively immutable. The tooling API does not make any guarantees about how the client application will use the model object.</p>
  *
  * <p>Plugins can register their own tooling model builder implementations using {@link ToolingModelBuilderRegistry}.</p>
+ * @since 1.6
  */
 public interface ToolingModelBuilder {
     /**
@@ -43,6 +44,7 @@ public interface ToolingModelBuilder {
      *
      * @param modelName The model name, usually the same as the name of the Java interface used by the client.
      * @return true if this builder can construct the model, false if not.
+     * @since 1.6
      */
     boolean canBuild(String modelName);
 
@@ -52,6 +54,7 @@ public interface ToolingModelBuilder {
      * @param modelName The model name, usually the same as the name of the Java interface used by the client.
      * @param project The project to create the model for.
      * @return The model, or null if not available.
+     * @since 1.6
      */
     @Nullable
     Object buildAll(String modelName, Project project);

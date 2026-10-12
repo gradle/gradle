@@ -21,7 +21,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Named;
 import org.gradle.api.Task;
 import org.gradle.internal.Cast;
-import org.gradle.model.ModelMap;
 import org.gradle.model.internal.core.DirectNodeNoInputsModelAction;
 import org.gradle.model.internal.core.DomainObjectCollectionBackedModelMap;
 import org.gradle.model.internal.core.InstanceModelView;
@@ -40,10 +39,6 @@ import org.gradle.model.internal.inspect.MethodRuleDefinition;
 import org.gradle.model.internal.inspect.ModelRuleInvoker;
 import org.gradle.model.internal.inspect.RuleSourceValidationProblemCollector;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.platform.base.BinaryContainer;
-import org.gradle.platform.base.BinarySpec;
-import org.gradle.platform.base.BinaryTasks;
-import org.gradle.platform.base.plugins.BinaryBasePlugin;
 import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
@@ -51,12 +46,13 @@ import java.util.List;
 
 import static org.gradle.model.internal.core.NodePredicate.allLinks;
 
-public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<BinaryTasks> {
-    private static final ModelType<BinarySpec> BINARY_SPEC = ModelType.of(BinarySpec.class);
+@SuppressWarnings("deprecation")
+public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenComponentModelRuleExtractor<org.gradle.platform.base.BinaryTasks> {
+    private static final ModelType<org.gradle.platform.base.BinarySpec> BINARY_SPEC = ModelType.of(org.gradle.platform.base.BinarySpec.class);
     private static final ModelType<NamedEntityInstantiator<Task>> TASK_FACTORY = new ModelType<NamedEntityInstantiator<Task>>() {
     };
     private static final ModelType<Task> TASK = ModelType.of(Task.class);
-    private static final ModelReference<BinaryContainer> BINARIES_CONTAINER = ModelReference.of("binaries", ModelType.of(BinaryContainer.class));
+    private static final ModelReference<org.gradle.platform.base.BinaryContainer> BINARIES_CONTAINER = ModelReference.of("binaries", ModelType.of(org.gradle.platform.base.BinaryContainer.class));
 
     @Nullable
     @Override
@@ -64,7 +60,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         return createRegistration(ruleDefinition, context);
     }
 
-    private <R, S extends BinarySpec> ExtractedModelRule createRegistration(final MethodRuleDefinition<R, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
+    private <R, S extends org.gradle.platform.base.BinarySpec> ExtractedModelRule createRegistration(final MethodRuleDefinition<R, ?> ruleDefinition, RuleSourceValidationProblemCollector problems) {
         RuleMethodDataCollector dataCollector = new RuleMethodDataCollector();
         verifyMethodSignature(dataCollector, ruleDefinition, problems);
         if (problems.hasProblems()) {
@@ -81,7 +77,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         visitDependency(taskDataCollector, ruleDefinition, BINARY_SPEC, problems);
     }
 
-    private static class BinaryTaskRule<T extends BinarySpec> extends ModelMapBasedRule<T, T> {
+    private static class BinaryTaskRule<T extends org.gradle.platform.base.BinarySpec> extends ModelMapBasedRule<T, T> {
 
         public BinaryTaskRule(ModelType<T> binaryType, MethodRuleDefinition<?, ?> ruleDefinition) {
             super(ModelReference.of(binaryType), binaryType, ruleDefinition, ModelReference.of(TASK_FACTORY));
@@ -90,7 +86,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         @Override
         protected void execute(ModelRuleInvoker<?> invoker, final T binary, List<ModelView<?>> inputs) {
             NamedEntityInstantiator<Task> taskFactory = Cast.uncheckedCast(ModelViews.getInstance(inputs.get(0), TASK_FACTORY));
-            ModelMap<Task> cast = DomainObjectCollectionBackedModelMap.wrap(
+            org.gradle.model.ModelMap<Task> cast = DomainObjectCollectionBackedModelMap.wrap(
                     "tasks",
                     Task.class,
                     binary.getTasks(),
@@ -112,7 +108,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
         }
     }
 
-    private static class ExtractedBinaryTasksRule<T extends BinarySpec>  extends AbstractExtractedModelRule {
+    private static class ExtractedBinaryTasksRule<T extends org.gradle.platform.base.BinarySpec>  extends AbstractExtractedModelRule {
         private final ModelType<T> binaryType;
 
         public ExtractedBinaryTasksRule(MethodRuleDefinition<?, ?> ruleDefinition, ModelType<T> binaryType) {
@@ -139,7 +135,7 @@ public class BinaryTasksModelRuleExtractor extends AbstractAnnotationDrivenCompo
 
         @Override
         public List<? extends Class<?>> getRuleDependencies() {
-            return ImmutableList.of(BinaryBasePlugin.class);
+            return ImmutableList.of(org.gradle.platform.base.plugins.BinaryBasePlugin.class);
         }
     }
 }

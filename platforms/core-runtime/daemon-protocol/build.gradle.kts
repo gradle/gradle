@@ -37,7 +37,6 @@ dependencies {
     // The client should not depend on core or core-api, but core still contains some types that are shared between the client and daemon
     api(projects.core)
 
-    implementation(projects.daemonLogging)
     implementation(projects.loggingApi)
     implementation(projects.time)
 
@@ -46,6 +45,9 @@ dependencies {
 
     testImplementation(testFixtures(projects.serialization))
     testImplementation(testFixtures(projects.core))
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.launcher)
 }
 
 gradleModule {

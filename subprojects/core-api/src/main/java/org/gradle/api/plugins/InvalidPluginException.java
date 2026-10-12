@@ -20,13 +20,24 @@ import org.gradle.api.GradleException;
 
 /**
  * Thrown when a plugin is found to be invalid when it is loaded.
+ * @since 2.1
  */
 public class InvalidPluginException extends GradleException {
 
+    /**
+     * Creates a new {@code InvalidPluginException}.
+     *
+     * @since 2.3
+     */
     public InvalidPluginException(String message) {
         super(message);
     }
 
+    /**
+     * Creates a new {@code InvalidPluginException}.
+     *
+     * @since 2.1
+     */
     public InvalidPluginException(String message, Throwable cause) {
         super(message, cause);
     }

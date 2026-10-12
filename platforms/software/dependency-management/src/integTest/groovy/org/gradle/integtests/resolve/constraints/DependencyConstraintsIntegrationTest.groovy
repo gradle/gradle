@@ -124,8 +124,8 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
 
         then:
         failure.assertHasCause("""Module 'org:foo' has been rejected:
-   Dependency path: 'root project 'test'' (conf) --> 'org:bar:1.0' (runtime) --> 'org:foo:1.1'
-   Constraint path: 'root project 'test'' (conf) --> 'org:foo:{reject all versions}'""")
+   Dependency path: root project 'test' (conf) --> org:bar:1.0 (runtime) --> 'org:foo:1.1'
+   Constraint path: root project 'test' (conf) --> 'org:foo:{reject all versions}'""")
     }
 
     void "dependency constraint is included into the result of resolution when a hard dependency is also added transitively"() {
@@ -423,7 +423,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
             root(":", ":test:") {
                 edge("org:foo:1.0", "org:foo:1.1").byConflictResolution("between versions 1.1 and 1.0").byConstraint('transitive dependency constraint')
                 project(":b", "test:b:") {
-                    configuration = "conf"
+                    variant("conf")
                     noArtifacts()
                     constraint("org:foo:1.1", "org:foo:1.1").byConstraint('transitive dependency constraint')
                 }
@@ -470,7 +470,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         resolve.expectGraph {
             root(":", ":test:") {
                 edge("org:foo:1.0", "org:foo:1.1") {
-                    configuration("runtime")
+                    variant("runtime")
                     byConstraint()
                     byConflictResolution("between versions 1.1 and 1.0")
                 }
@@ -732,7 +732,7 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         resolve.expectGraph {
             root(':', ':test:') {
                 module("org:bom:1.0") {
-                    configuration("platform-runtime")
+                    variant("platform-runtime")
                     constraint("org:constrained:1.1", "org:constrained:1.1")
                     noArtifacts()
                 }
@@ -860,18 +860,18 @@ class DependencyConstraintsIntegrationTest extends AbstractPolyglotIntegrationSp
         resolve.expectGraph {
             root(':', ':test:') {
                 edge("org:foo:1.0", ":foo", "org:foo:1.1") {
-                    configuration = 'default'
+                    variant('default')
                     byConstraint()
                     byConflictResolution("between versions 1.1 and 1.0")
                     noArtifacts()
                     project(":bar", "org:bar:1.1") {
-                        configuration = 'default'
+                        variant('default')
                         noArtifacts()
-                        constraint("project ':foo'", "org:foo:1.1")
+                        constraint("project ':foo'", ":foo", "org:foo:1.1")
                     }
                 }
                 project(":bar", "org:bar:1.1") {
-                    configuration = 'default'
+                    variant('default')
                     noArtifacts()
                 }
             }

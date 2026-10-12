@@ -19,13 +19,9 @@ dependencies {
     performanceTestImplementation(libs.commonsLang)
     performanceTestImplementation(libs.commonsIo)
     performanceTestImplementation(testLibs.gradleProfiler)
-    performanceTestImplementation(testLibs.jettyServer)
-    performanceTestImplementation(testLibs.jettyWebApp)
     performanceTestImplementation(testLibs.junit)
-    performanceTestImplementation(testLibs.servletApi)
 
     performanceTestRuntimeOnly(projects.coreApi)
-    performanceTestRuntimeOnly(testLibs.jetty)
 
     performanceTestDistributionRuntimeOnly(projects.distributionsFull) {
         because("All Gradle features have to be available.")

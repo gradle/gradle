@@ -39,6 +39,7 @@ dependencies {
     implementation(projects.functional)
     implementation(projects.loggingApi)
     implementation(projects.modelCore)
+    implementation(projects.startParameter)
 
     testImplementation(testFixtures(projects.time))
 }

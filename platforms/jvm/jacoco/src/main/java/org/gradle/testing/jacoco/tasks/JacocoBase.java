@@ -23,6 +23,7 @@ import org.gradle.work.DisableCachingByDefault;
 
 /**
  * Base class for Jacoco tasks.
+ * @since 1.6
  */
 @DisableCachingByDefault(because = "Abstract super-class, not to be instantiated directly")
 public abstract class JacocoBase extends DefaultTask {
@@ -31,6 +32,7 @@ public abstract class JacocoBase extends DefaultTask {
 
     /**
      * Classpath containing Jacoco classes for use by the task.
+     * @since 1.6
      */
     @Classpath
     @ToBeReplacedByLazyProperty
@@ -38,6 +40,11 @@ public abstract class JacocoBase extends DefaultTask {
         return jacocoClasspath;
     }
 
+    /**
+     * Sets the jacoco classpath.
+     *
+     * @since 1.6
+     */
     public void setJacocoClasspath(FileCollection jacocoClasspath) {
         this.jacocoClasspath = jacocoClasspath;
     }

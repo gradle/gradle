@@ -33,12 +33,18 @@ import static org.gradle.internal.build.NestedRootBuildRunner.runNestedRootBuild
 
 /**
  * Executes a Gradle build.
+ * @since 0.9
  */
 @DisableCachingByDefault(because = "Child Gradle build will do its own caching")
 public abstract class GradleBuild extends ConventionTask {
     private StartParameter startParameter;
     private String buildName;
 
+    /**
+     * Creates a new {@code GradleBuild}.
+     *
+     * @since 0.9
+     */
     @SuppressWarnings("this-escape")
     public GradleBuild() {
         this.startParameter = createStartParameterForNewBuild(getServices());
@@ -49,6 +55,7 @@ public abstract class GradleBuild extends ConventionTask {
      * Returns the full set of parameters that will be used to execute the build.
      *
      * @return the parameters. Never returns null.
+     * @since 0.9
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -60,6 +67,7 @@ public abstract class GradleBuild extends ConventionTask {
      * Sets the full set of parameters that will be used to execute the build.
      *
      * @param startParameter the parameters. Should not be null.
+     * @since 0.9
      */
     public void setStartParameter(StartParameter startParameter) {
         this.startParameter = startParameter;
@@ -69,6 +77,7 @@ public abstract class GradleBuild extends ConventionTask {
      * Returns the project directory for the build. Defaults to the project directory.
      *
      * @return The project directory. Never returns null.
+     * @since 0.9
      */
     @Internal
     @ToBeReplacedByLazyProperty
@@ -90,6 +99,7 @@ public abstract class GradleBuild extends ConventionTask {
      * Sets the project directory for the build.
      *
      * @param dir The project directory. Should not be null.
+     * @since 0.9
      */
     public void setDir(Object dir) {
         getStartParameter().setCurrentDir(getProject().file(dir));
@@ -99,6 +109,7 @@ public abstract class GradleBuild extends ConventionTask {
      * Returns the tasks that should be executed for this build.
      *
      * @return The sequence. May be empty. Never returns null.
+     * @since 0.9
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -120,6 +131,7 @@ public abstract class GradleBuild extends ConventionTask {
      * Sets the tasks that should be executed for this build.
      *
      * @param tasks The task names. May be empty or null to use the default tasks for the build.
+     * @since 0.9
      */
     public void setTasks(Collection<String> tasks) {
         getStartParameter().setTaskNames(tasks);
@@ -166,6 +178,7 @@ public abstract class GradleBuild extends ConventionTask {
             if (!(propertyValue instanceof String)) {
                 // TODO: Remove non-String project properties support in Gradle 10 - https://github.com/gradle/gradle/issues/34454
                 DeprecationLogger.deprecateBehaviour(String.format("Using non-String project properties: property '%s' has value of type %s.", propertyName, propertyValue.getClass().getName()))
+                    .withProblemName("Project property has a non-String value")
                     .willBecomeAnErrorInGradle10()
                     .withUpgradeGuideSection(9, "deprecated-gradle-build-non-string-properties")
                     .nagUser();

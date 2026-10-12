@@ -26,6 +26,7 @@ import java.util.Set;
 
 /**
  * The JUnit specific test options.
+ * @since 0.7
  */
 public abstract class JUnitOptions extends TestFrameworkOptions {
     private Set<String> includeCategories = new LinkedHashSet<String>();
@@ -46,11 +47,21 @@ public abstract class JUnitOptions extends TestFrameworkOptions {
         target.addAll(source);
     }
 
+    /**
+     * Include categories.
+     *
+     * @since 1.6
+     */
     public JUnitOptions includeCategories(String... includeCategories) {
         this.includeCategories.addAll(Arrays.asList(includeCategories));
         return this;
     }
 
+    /**
+     * Exclude categories.
+     *
+     * @since 1.6
+     */
     public JUnitOptions excludeCategories(String... excludeCategories) {
         this.excludeCategories.addAll(Arrays.asList(excludeCategories));
         return this;
@@ -58,6 +69,7 @@ public abstract class JUnitOptions extends TestFrameworkOptions {
 
     /**
      * The set of categories to run.
+     * @since 1.6
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -67,6 +79,7 @@ public abstract class JUnitOptions extends TestFrameworkOptions {
 
     /**
      * The set of categories to run.
+     * @since 1.6
      */
     public void setIncludeCategories(Set<String> includeCategories) {
         this.includeCategories = includeCategories;
@@ -74,6 +87,7 @@ public abstract class JUnitOptions extends TestFrameworkOptions {
 
     /**
      * The set of categories to exclude.
+     * @since 1.6
      */
     @Input
     @ToBeReplacedByLazyProperty
@@ -83,6 +97,7 @@ public abstract class JUnitOptions extends TestFrameworkOptions {
 
     /**
      * The set of categories to exclude.
+     * @since 1.6
      */
     public void setExcludeCategories(Set<String> excludeCategories) {
         this.excludeCategories = excludeCategories;

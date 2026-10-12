@@ -27,8 +27,18 @@ import java.util.Comparator;
  * @since 3.3
  */
 public interface AttributeMatchingStrategy<T> {
+    /**
+     * Returns the compatibility rules.
+     *
+     * @since 3.3
+     */
     CompatibilityRuleChain<T> getCompatibilityRules();
 
+    /**
+     * Returns the disambiguation rules.
+     *
+     * @since 3.3
+     */
     DisambiguationRuleChain<T> getDisambiguationRules();
 
     /**
@@ -40,6 +50,7 @@ public interface AttributeMatchingStrategy<T> {
      * compatible. When disambiguating, it will pick the highest compatible value.</p>
      *
      * @param comparator the comparator to use for compatibility and disambiguation
+     * @since 3.3
      */
     void ordered(Comparator<T> comparator);
 
@@ -53,6 +64,7 @@ public interface AttributeMatchingStrategy<T> {
      *
      * @param pickLast tells if, for disambiguation, we should pick the last value in order instead of the first one
      * @param comparator the comparator to use for compatibility and disambiguation
+     * @since 3.3
      */
     void ordered(boolean pickLast, Comparator<T> comparator);
 }

@@ -20,7 +20,7 @@ import org.gradle.internal.nativeintegration.services.NativeServices.NativeServi
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.jvm.toolchain.JavaLanguageVersion;
-import org.gradle.launcher.daemon.configuration.DaemonPriority;
+import org.gradle.launcher.daemon.startup.DaemonPriority;
 import org.gradle.launcher.daemon.toolchain.DaemonJvmCriteria;
 
 import java.io.File;

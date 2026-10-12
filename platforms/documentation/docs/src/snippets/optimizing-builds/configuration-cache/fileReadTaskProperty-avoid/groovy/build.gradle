@@ -1,0 +1,20 @@
+// tag::avoid[]
+abstract class GenerateReportTask extends DefaultTask {
+    @Input
+    abstract Property<String> getTitle()
+
+    @OutputFile
+    abstract RegularFileProperty getOutput()
+
+    @TaskAction
+    void run() {
+        output.get().asFile.text = "Title: ${title.get()}"
+    }
+}
+
+tasks.register('generateReport', GenerateReportTask) {
+    // Eager: file read happens during configuration; tracked correctly, but any change re-runs configuration
+    title = file('config/title.txt').text.trim()
+    output = layout.buildDirectory.file('report.txt')
+}
+// end::avoid[]

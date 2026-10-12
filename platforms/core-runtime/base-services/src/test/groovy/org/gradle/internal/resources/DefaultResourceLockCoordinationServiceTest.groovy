@@ -22,8 +22,11 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.function.Function
 
+import java.util.concurrent.atomic.AtomicBoolean
+
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.lock
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLock
+import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.tryLockWhile
 import static org.gradle.internal.resources.DefaultResourceLockCoordinationService.unlock
 import static org.gradle.internal.resources.ResourceLockState.Disposition.FAILED
 import static org.gradle.internal.resources.ResourceLockState.Disposition.FINISHED
@@ -305,6 +308,112 @@ class DefaultResourceLockCoordinationServiceTest extends ConcurrentSpec {
         true        | false       | RETRY
         false       | true        | RETRY
         false       | false       | FINISHED
+    }
+
+    def "tryLockWhile returns FINISHED when all locks are free regardless of continueBlocking"() {
+        def lock1 = resourceLock("lock1", false)
+        def lock2 = resourceLock("lock2", false)
+        def continueBlocking = { false } as java.util.function.BooleanSupplier
+
+        when:
+        def disposition = null
+        coordinationService.withStateLock(lockAction { ResourceLockState state ->
+            disposition = tryLockWhile(continueBlocking, lock1, lock2).apply(state)
+            return FINISHED
+        })
+
+        then:
+        disposition == FINISHED
+        lock1.doIsLockedByCurrentThread()
+        lock2.doIsLockedByCurrentThread()
+    }
+
+    def "tryLockWhile returns RETRY when a lock is contended and continueBlocking returns true"() {
+        def lock1 = resourceLock("lock1", false)
+        def lock2 = resourceLock("lock2", true)
+        def continueBlocking = { true } as java.util.function.BooleanSupplier
+
+        when:
+        def disposition = null
+        coordinationService.withStateLock(lockAction { ResourceLockState state ->
+            disposition = tryLockWhile(continueBlocking, lock1, lock2).apply(state)
+            return FAILED // don't actually retry, just inspect the disposition
+        })
+
+        then:
+        disposition == RETRY
+        !lock1.doIsLockedByCurrentThread()
+        !lock2.doIsLockedByCurrentThread()
+    }
+
+    def "tryLockWhile returns FAILED when a lock is contended and continueBlocking returns false"() {
+        def lock1 = resourceLock("lock1", false)
+        def lock2 = resourceLock("lock2", true)
+        def continueBlocking = { false } as java.util.function.BooleanSupplier
+
+        when:
+        boolean acquired = coordinationService.withStateLock(tryLockWhile(continueBlocking, lock1, lock2))
+
+        then:
+        !acquired
+        // withStateLock rolls partially-acquired locks back when the action returns FAILED.
+        !lock1.doIsLockedByCurrentThread()
+        !lock2.doIsLockedByCurrentThread()
+    }
+
+    def "withStateLock(tryLockWhile) blocks until continueBlocking becomes false"() {
+        def lock = resourceLock("lock", true)
+        def keepBlocking = new AtomicBoolean(true)
+
+        when:
+        async {
+            start {
+                boolean acquired = coordinationService.withStateLock(tryLockWhile({ keepBlocking.get() } as java.util.function.BooleanSupplier, lock))
+                instant.returned
+                assert !acquired
+            }
+
+            ConcurrentTestUtil.poll {
+                // Wait until the blocked thread has at least entered the state lock once.
+                assert lock.lockedState
+            }
+
+            keepBlocking.set(false)
+            coordinationService.notifyStateChange()
+
+            thread.blockUntil.returned
+        }
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "withStateLock(tryLockWhile) unblocks when the contended lock is released"() {
+        def lock = resourceLock("lock", true)
+
+        when:
+        async {
+            start {
+                coordinationService.withStateLock(tryLockWhile({ true } as java.util.function.BooleanSupplier, lock))
+                instant.acquired
+                assert lock.doIsLockedByCurrentThread()
+            }
+
+            ConcurrentTestUtil.poll {
+                assert lock.lockedState
+            }
+
+            lock.lockedState = false
+            coordinationService.withStateLock(lockAction { ResourceLockState state ->
+                state.registerUnlocked(lock)
+                return FINISHED
+            })
+
+            thread.blockUntil.acquired
+        }
+
+        then:
+        noExceptionThrown()
     }
 
     def "can unlock resources with unlock"() {

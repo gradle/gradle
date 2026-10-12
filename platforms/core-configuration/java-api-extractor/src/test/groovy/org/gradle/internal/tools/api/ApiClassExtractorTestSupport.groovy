@@ -113,6 +113,11 @@ class ApiClassExtractorTestSupport extends Specification {
     @TempDir
     File temporaryFolder
 
+    /**
+     * Compiler options to add to every compilation of this specification, e.g. {@code -parameters}.
+     */
+    protected List<String> additionalCompilerArgs = []
+
     // The default target version can be updated to a new version when necessary, as long as
     // you also update `ApiClassExtractorTest#target binary compatibility is maintained` with new assumptions.
     private static final String DEFAULT_TARGET_VERSION = '8'
@@ -146,7 +151,7 @@ class ApiClassExtractorTestSupport extends Specification {
             null,
             fileManager,
             diagnostics,
-            ['-d', dir.absolutePath, '-source', targetVersion, '-target', targetVersion],
+            ['-d', dir.absolutePath, '-source', targetVersion, '-target', targetVersion] + additionalCompilerArgs,
             [],
             sources.collect { fqn, src -> new JavaSourceFromString(fqn, src) })
         fileManager.close()

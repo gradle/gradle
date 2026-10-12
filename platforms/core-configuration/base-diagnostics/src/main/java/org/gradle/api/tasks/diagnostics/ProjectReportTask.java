@@ -52,6 +52,7 @@ import static org.gradle.internal.logging.text.StyledTextOutput.Style.UserInput;
 /**
  * <p>Displays a list of projects in the build. An instance of this type is used when you execute the {@code projects}
  * task from the command-line.</p>
+ * @since 0.9
  */
 @DisableCachingByDefault(because = "Not worth caching")
 public abstract class ProjectReportTask extends AbstractProjectBasedReportTask<ProjectReportTask.ProjectReportModel> {

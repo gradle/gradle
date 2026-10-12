@@ -82,6 +82,7 @@ import static org.gradle.util.internal.ConfigureUtil.configure;
  * </pre>
  *
  * @deprecated Will be removed in Gradle 10.
+ * @since 1.0
  */
 @Deprecated
 public abstract class EclipseWtpFacet {
@@ -97,6 +98,7 @@ public abstract class EclipseWtpFacet {
 
     /**
      * See {@link #file(Action) }
+     * @since 1.0
      */
     public XmlFileContentMerger getFile() {
         return file;
@@ -110,6 +112,7 @@ public abstract class EclipseWtpFacet {
      * <p>
      *
      * For example see docs for {@link EclipseWtpFacet}
+     * @since 1.0
      */
     public void file(@DelegatesTo(XmlFileContentMerger.class) Closure closure) {
         configure(closure, file);
@@ -132,11 +135,17 @@ public abstract class EclipseWtpFacet {
      * The facets to be added as elements.
      * <p>
      * For examples see docs for {@link EclipseWtpFacet}
+     * @since 1.0
      */
     public List<Facet> getFacets() {
         return facets;
     }
 
+    /**
+     * Sets the facets.
+     *
+     * @since 1.0
+     */
     public void setFacets(List<Facet> facets) {
         this.facets = facets;
     }
@@ -151,6 +160,7 @@ public abstract class EclipseWtpFacet {
      * For examples see docs for {@link EclipseWtpFacet}
      *
      * @param args A map that must contain a 'name' and 'version' key with corresponding values.
+     * @since 1.0
      */
     public void facet(Map<String, ?> args) {
         Facet newFacet = ConfigureUtil.configureByMap(args, new Facet());
@@ -182,6 +192,11 @@ public abstract class EclipseWtpFacet {
         return facets;
     }
 
+    /**
+     * Merge xml facet.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings("unchecked")
     public void mergeXmlFacet(WtpFacet xmlFacet) {
         file.getBeforeMerged().execute(xmlFacet);

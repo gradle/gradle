@@ -29,6 +29,7 @@ public interface ForkingWorkerSpec extends WorkerSpec {
      * Executes the provided action against the {@link JavaForkOptions} object associated with this builder.
      *
      * @param forkOptionsAction - An action to configure the {@link JavaForkOptions} for this builder
+     * @since 5.6
      */
     void forkOptions(Action<? super JavaForkOptions> forkOptionsAction);
 
@@ -36,6 +37,7 @@ public interface ForkingWorkerSpec extends WorkerSpec {
      * Returns the {@link JavaForkOptions} object associated with this builder.
      *
      * @return the {@link JavaForkOptions} of this builder
+     * @since 5.6
      */
     JavaForkOptions getForkOptions();
 }

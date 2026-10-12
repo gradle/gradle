@@ -94,6 +94,17 @@ trait DaemonJvmPropertiesFixture {
         assertJvmCriteria(version, vendor, implementation, testDir)
     }
 
+    /**
+     * Adds the native-image capability requirement to the daemon JVM criteria, preserving
+     * any criteria already written by {@link #writeJvmCriteria}.
+     */
+    void writeNativeImageCapableCriteria(TestFile testDir = testDirectory) {
+        TestFile daemonJvmPropertiesFile = getDaemonJvmPropertiesFile(testDir)
+        Properties properties = daemonJvmPropertiesFile.exists() ? GUtil.loadProperties(daemonJvmPropertiesFile) : new Properties()
+        properties.put(DaemonJvmPropertiesDefaults.TOOLCHAIN_NATIVE_IMAGE_CAPABLE_PROPERTY, "true")
+        daemonJvmPropertiesFile.writeProperties(properties)
+    }
+
     void writeToolchainDownloadUrls(String url, TestFile testDir = testDirectory) {
         TestFile daemonJvmPropertiesFile = getDaemonJvmPropertiesFile(testDir)
         Properties properties = daemonJvmPropertiesFile.exists() ? GUtil.loadProperties(daemonJvmPropertiesFile) : new Properties()

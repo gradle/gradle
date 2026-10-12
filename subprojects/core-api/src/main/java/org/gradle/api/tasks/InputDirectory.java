@@ -34,6 +34,7 @@ import java.lang.annotation.Target;
  *
  * <p><strong>Note:</strong> To make the task dependent on the directory's location but not its
  * contents, expose the path of the directory as an {@link org.gradle.api.tasks.Input} property instead.</p>
+ * @since 0.8
  */
 @Documented
 @Retention(RetentionPolicy.RUNTIME)

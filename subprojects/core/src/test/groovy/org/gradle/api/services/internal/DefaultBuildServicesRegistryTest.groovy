@@ -20,7 +20,6 @@ import org.gradle.BuildListener
 import org.gradle.BuildResult
 import org.gradle.api.Action
 import org.gradle.api.GradleException
-import org.gradle.api.artifacts.component.BuildIdentifier
 import org.gradle.api.internal.collections.DomainObjectCollectionFactory
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.provider.Property
@@ -29,6 +28,7 @@ import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.services.BuildServiceRegistry
 import org.gradle.api.services.BuildServiceSpec
 import org.gradle.api.services.ServiceReference
+import org.gradle.internal.build.BuildIdentity
 import org.gradle.internal.Actions
 import org.gradle.internal.Try
 import org.gradle.internal.buildtree.BuildModelParameters
@@ -45,6 +45,7 @@ import org.gradle.internal.service.ServiceRegistrationProvider
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.snapshot.impl.DefaultIsolatableFactory
 import org.gradle.util.TestUtil
+import org.gradle.util.Path
 import spock.lang.Specification
 
 import java.util.function.Consumer
@@ -56,7 +57,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
     }
     def isolatableFactory = new DefaultIsolatableFactory(classLoaderHasher, TestUtil.managedFactoryRegistry())
     def leaseRegistry = Stub(SharedResourceLeaseRegistry)
-    def buildIdentifier = Mock(BuildIdentifier)
+    def buildIdentity = new BuildIdentity(Path.ROOT)
     def ipProblemsReporter = new DefaultIsolatedProjectsProblemsReporter(
         Stub(ProblemFactory),
         Stub(IsolatedProjectsProblemsListener)
@@ -67,7 +68,7 @@ class DefaultBuildServicesRegistryTest extends Specification {
             @Provides
             BuildServiceRegistry createBuildServiceRegistry() {
                 return new DefaultBuildServicesRegistry(
-                    buildIdentifier,
+                    buildIdentity,
                     services.get(DomainObjectCollectionFactory),
                     services.get(InstantiatorFactory),
                     services,

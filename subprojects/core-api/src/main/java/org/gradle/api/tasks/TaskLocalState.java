@@ -32,6 +32,7 @@ public interface TaskLocalState {
      * Registers files and directories as local state of this task.
      *
      * @param paths The files that represent the local state. The given paths are evaluated as per {@link org.gradle.api.Project#files(Object...)}.
+     * @since 4.3
      */
     void register(@Nullable Object... paths);
 }

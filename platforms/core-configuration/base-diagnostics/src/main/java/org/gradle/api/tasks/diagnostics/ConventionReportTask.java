@@ -66,11 +66,21 @@ public abstract class ConventionReportTask extends ConventionTask {
     @Internal
     public abstract DirectoryProperty getProjectReportDirectory();
 
+    /**
+     * Creates a new {@code ConventionReportTask}.
+     *
+     * @since 6.9
+     */
     @SuppressWarnings("this-escape")
     protected ConventionReportTask() {
         doNotTrackState("Uses the whole project state as an input");
     }
 
+    /**
+     * Returns the renderer.
+     *
+     * @since 6.9
+     */
     @Internal
     protected abstract ReportRenderer getRenderer();
 
@@ -79,6 +89,7 @@ public abstract class ConventionReportTask extends ConventionTask {
      * Defaults to {@code null}.
      *
      * @return The output file. May be null.
+     * @since 6.9
      */
     @Nullable
     @Optional
@@ -92,6 +103,7 @@ public abstract class ConventionReportTask extends ConventionTask {
      * Sets the file which the report will be written to. Set this to {@code null} to write the report to {@code System.out}.
      *
      * @param outputFile The output file. May be null.
+     * @since 6.9
      */
     public void setOutputFile(@Nullable File outputFile) {
         this.outputFile = outputFile;
@@ -102,6 +114,7 @@ public abstract class ConventionReportTask extends ConventionTask {
      * containing project.
      *
      * @return The set of files.
+     * @since 6.9
      */
     @Internal
     // TODO:LPTR Have the paths of the projects serve as @Input maybe?
@@ -114,6 +127,7 @@ public abstract class ConventionReportTask extends ConventionTask {
      * Specifies the set of projects to generate this report for.
      *
      * @param projects The set of projects. Must not be null.
+     * @since 6.9
      */
     public void setProjects(Set<Project> projects) {
         this.projects.set(projects);

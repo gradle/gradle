@@ -32,6 +32,7 @@ import java.util.Map;
  * Configuration options for the Checkstyle plugin.
  *
  * @see CheckstylePlugin
+ * @since 1.0
  */
 public abstract class CheckstyleExtension extends CodeQualityExtension {
 
@@ -43,6 +44,11 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
     private int maxWarnings = Integer.MAX_VALUE;
     private boolean showViolations = true;
 
+    /**
+     * Creates a new {@code CheckstyleExtension}.
+     *
+     * @since 2.2
+     */
     @SuppressWarnings("this-escape")
     public CheckstyleExtension(Project project) {
         this.project = project;
@@ -51,6 +57,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
 
     /**
      * The Checkstyle configuration file to use.
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty
     public File getConfigFile() {
@@ -59,6 +66,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
 
     /**
      * The Checkstyle configuration file to use.
+     * @since 1.0
      */
     public void setConfigFile(File configFile) {
         setConfig(project.getResources().getText().fromFile(configFile));
@@ -85,6 +93,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
 
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration file.
+     * @since 1.0
      */
     @ToBeReplacedByLazyProperty
     public Map<String, Object> getConfigProperties() {
@@ -93,6 +102,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
 
     /**
      * The properties available for use in the configuration file. These are substituted into the configuration file.
+     * @since 1.0
      */
     public void setConfigProperties(Map<String, Object> configProperties) {
         this.configProperties = configProperties;
@@ -161,6 +171,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * Whether rule violations are to be displayed on the console. Defaults to <code>true</code>.
      *
      * Example: showViolations = false
+     * @since 1.4
      */
     @ToBeReplacedByLazyProperty
     public boolean isShowViolations() {
@@ -171,6 +182,7 @@ public abstract class CheckstyleExtension extends CodeQualityExtension {
      * Whether rule violations are to be displayed on the console. Defaults to <code>true</code>.
      *
      * Example: showViolations = false
+     * @since 1.4
      */
     public void setShowViolations(boolean showViolations) {
         this.showViolations = showViolations;

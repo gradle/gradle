@@ -24,6 +24,8 @@ import org.gradle.vcs.VersionControlSpec
  * Specifies the VCS location for the requested component.
  *
  * @see VcsMapping.from
+ *
+ * @since 5.6
  */
 inline fun <reified T : VersionControlSpec> VcsMapping.from(noinline configureAction: T.() -> Unit) =
     from(T::class.java, configureAction)

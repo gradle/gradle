@@ -240,6 +240,8 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 String failureOutputId = "root-" + rootIndex + "-test-failure-" + result.getName();
                 htmlWriter.startElement("span").attribute("class", "code");
 
+                addClipboardCopyButton(htmlWriter, failureOutputId);
+
                 htmlWriter.startElement("pre").attribute("id", failureOutputId);
                 if (hasFailures) {
                     for (SerializableFailure failure : result.getFailures()) {
@@ -251,7 +253,6 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
                 }
                 htmlWriter.endElement(); // pre
 
-                addClipboardCopyButton(htmlWriter, failureOutputId);
                 htmlWriter.endElement(); // span
 
                 htmlWriter.endElement(); // div
@@ -443,16 +444,16 @@ public abstract class PerRootTabRenderer extends ReportRenderer<TestTreeModel, S
         @Override
         protected void render(PerRootInfo info, SimpleHtmlWriter htmlWriter) throws IOException {
             String outputId = "root-" + rootIndex + "-test-" + destination.name().toLowerCase(Locale.ROOT) + "-" + info.getResults().get(0).getName();
-            htmlWriter.startElement("span").attribute("class", "code")
-                .startElement("pre")
+            htmlWriter.startElement("span").attribute("class", "code");
+            addClipboardCopyButton(htmlWriter, outputId);
+            htmlWriter.startElement("pre")
                 .attribute("id", outputId);
             outputReader.useTestOutputEvents(
                 info.getOutputEntries(), destination,
                 event -> htmlWriter.characters(event.getMessage())
             );
-            htmlWriter.endElement();
-            addClipboardCopyButton(htmlWriter, outputId);
-            htmlWriter.endElement();
+            htmlWriter.endElement(); // pre
+            htmlWriter.endElement(); // span
         }
     }
 

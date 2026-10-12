@@ -24,8 +24,6 @@ import org.junit.rules.TestRule
 import org.junit.runner.Description
 import org.junit.runners.model.Statement
 
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 import static org.gradle.test.fixtures.plugin.PluginBuilder.PLUGIN_MARKER_SUFFIX
 
@@ -94,10 +92,10 @@ class MavenHttpPluginRepository extends MavenHttpRepository implements HttpPlugi
 
     @Override
     void expectPluginMarkerQuery(String pluginId, String pluginVersion,
-                                 @DelegatesTo(value = HttpServletResponse, strategy = Closure.DELEGATE_FIRST) Closure<?> markerQueryConfigurer) {
+                                 @DelegatesTo(value = HttpResponse, strategy = Closure.DELEGATE_FIRST) Closure<?> markerQueryConfigurer) {
         def pluginMarker = module(pluginId, pluginId + PLUGIN_MARKER_SUFFIX, pluginVersion)
         server.expect(pluginMarker.pomPath, ["GET"], new HttpServer.ActionSupport("plugin marker pom") {
-            void handle(HttpServletRequest request, HttpServletResponse response) {
+            void handle(HttpRequest request, HttpResponse response) {
                 ConfigureUtil.configure(markerQueryConfigurer, response)
             }
         })

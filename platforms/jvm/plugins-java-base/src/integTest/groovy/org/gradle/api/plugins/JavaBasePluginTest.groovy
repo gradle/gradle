@@ -168,6 +168,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         def processResources = project.tasks.processResources
         processResources.description == "Processes main resources."
         processResources instanceof Copy
+        processResources.destinationDirectory.get().asFile == new File(project.buildDir, 'resources/main')
 
         def compileJava = project.tasks.compileJava
         compileJava.description == "Compiles main Java source."
@@ -205,6 +206,7 @@ class JavaBasePluginTest extends AbstractProjectBuilderSpec {
         then:
         def processResources = project.tasks['processCustomResources']
         processResources.destinationDir == resourcesDir
+        processResources.destinationDirectory.get().asFile == resourcesDir
 
         def compileJava = project.tasks['compileCustomJava']
         compileJava.destinationDirectory.get().getAsFile() == classesDir

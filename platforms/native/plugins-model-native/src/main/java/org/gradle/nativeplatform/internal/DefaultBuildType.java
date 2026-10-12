@@ -15,9 +15,8 @@
  */
 package org.gradle.nativeplatform.internal;
 
-import org.gradle.nativeplatform.BuildType;
-
-public class DefaultBuildType implements BuildType {
+@SuppressWarnings("deprecation")
+public class DefaultBuildType implements org.gradle.nativeplatform.BuildType {
     private final String name;
 
     public DefaultBuildType(String name) {

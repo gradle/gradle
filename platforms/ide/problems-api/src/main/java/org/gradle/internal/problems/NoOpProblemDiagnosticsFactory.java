@@ -16,7 +16,6 @@
 
 package org.gradle.internal.problems;
 
-import com.google.common.base.Supplier;
 import org.gradle.internal.code.UserCodeSource;
 import org.gradle.internal.problems.failure.Failure;
 import org.gradle.problems.Location;
@@ -67,7 +66,7 @@ public class NoOpProblemDiagnosticsFactory implements ProblemDiagnosticsFactory 
         }
 
         @Override
-        public ProblemDiagnostics forCurrentCaller(@Nullable Throwable exception) {
+        public ProblemDiagnostics forThrownException(Throwable exception) {
             return EMPTY_DIAGNOSTICS;
         }
 
@@ -77,7 +76,7 @@ public class NoOpProblemDiagnosticsFactory implements ProblemDiagnosticsFactory 
         }
 
         @Override
-        public ProblemDiagnostics forCurrentCaller(Supplier<? extends Throwable> exceptionFactory) {
+        public ProblemDiagnostics forCurrentCallerWithException(ProblemStream.ExceptionCreator exceptionCreator) {
             return EMPTY_DIAGNOSTICS;
         }
     };

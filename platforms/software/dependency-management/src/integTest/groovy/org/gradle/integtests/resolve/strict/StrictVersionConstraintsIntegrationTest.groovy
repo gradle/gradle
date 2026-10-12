@@ -101,12 +101,13 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         resolve.expectGraph {
             root(':', ':test:') {
                 constraint('org:foo:{strictly 1.0}', 'org:foo:1.0') {
-                    notRequested()
                     byConstraint()
-                    byAncestor()
                 }
                 module('org:bar:1.0') {
-                    edge('org:foo:2.0', 'org:foo:1.0')
+                    edge('org:foo:2.0', 'org:foo:1.0') {
+                        byAncestor()
+                        notRequested()
+                    }
                 }
             }
         }
@@ -275,9 +276,9 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause """Cannot find a version of 'org:c' that satisfies the version constraints:
-   Dependency path: 'root project 'test'' (conf) --> 'org:c:2.0'
-   Dependency path: 'root project 'test'' (conf) --> 'org:a:1.0' (runtime) --> 'org:c:{strictly 1.0}'
-   Dependency path: 'root project 'test'' (conf) --> 'org:a:1.0' (runtime) --> 'org:b:1.0' (runtime) --> 'org:c:2.0'"""
+   Dependency path: root project 'test' (conf) --> 'org:c:2.0'
+   Dependency path: root project 'test' (conf) --> org:a:1.0 (runtime) --> 'org:c:{strictly 1.0}'
+   Dependency path: root project 'test' (conf) --> org:a:1.0 (runtime) --> org:b:1.0 (runtime) --> 'org:c:2.0'"""
     }
 
     def "strict from selected and later evicted modules are ignored"() {
@@ -403,12 +404,13 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         resolve.expectGraph {
             root(':', ':test:') {
                 constraint('org:foo:{strictly 1.0}', 'org:foo:1.0') {
-                    notRequested()
                     byConstraint()
-                    byAncestor()
                 }
                 module('org:bar:1.0') {
-                    edge("org:foo:$publishedFooDependencyVersion", 'org:foo:1.0')
+                    edge("org:foo:$publishedFooDependencyVersion", 'org:foo:1.0') {
+                        byAncestor()
+                        notRequested()
+                    }
                 }
             }
         }
@@ -453,12 +455,13 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
         resolve.expectGraph {
             root(':', ':test:') {
                 constraint('org:foo:{strictly 1.0}', 'org:foo:1.0') {
-                    notRequested()
                     byConstraint()
-                    byAncestor()
                 }
                 module('org:bar:1.0') {
-                    edge("org:foo:[2.0,3.0)", 'org:foo:1.0')
+                    edge("org:foo:[2.0,3.0)", 'org:foo:1.0') {
+                        byAncestor()
+                        notRequested()
+                    }
                 }
             }
         }
@@ -512,7 +515,7 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
                     edge('org:foo:2.0', ':foo', 'org:foo:1.0') {}.byAncestor()
                 }
                 project(':foo', 'org:foo:1.0') {
-                    configuration = 'default'
+                    variant('default')
                     noArtifacts()
                 }
             }
@@ -548,8 +551,8 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause("""Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path: 'root project 'test'' (conf) --> 'project ':foo''
-   Constraint path: 'root project 'test'' (conf) --> 'org:foo:{strictly 1.0}'""")
+   Dependency path: root project 'test' (conf) --> 'project ':foo''
+   Constraint path: root project 'test' (conf) --> 'org:foo:{strictly 1.0}'""")
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")
@@ -596,8 +599,8 @@ class StrictVersionConstraintsIntegrationTest extends AbstractModuleDependencyRe
 
         then:
         failure.assertHasCause """Cannot find a version of 'org:foo' that satisfies the version constraints:
-   Dependency path: 'root project 'test'' (conf) --> 'org:x1:1.0' (runtime) --> 'org:bar:1.0' (runtime) --> 'org:foo:2.0'
-   Constraint path: 'root project 'test'' (conf) --> 'org:x1:1.0' (runtime) --> 'org:foo:{strictly 1.0}'"""
+   Dependency path: root project 'test' (conf) --> org:x1:1.0 (runtime) --> org:bar:1.0 (runtime) --> 'org:foo:2.0'
+   Constraint path: root project 'test' (conf) --> org:x1:1.0 (runtime) --> 'org:foo:{strictly 1.0}'"""
     }
 
     @RequiredFeature(feature = GradleMetadataResolveRunner.GRADLE_METADATA, value = "true")

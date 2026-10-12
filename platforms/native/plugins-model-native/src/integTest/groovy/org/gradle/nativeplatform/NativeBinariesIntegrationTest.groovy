@@ -31,10 +31,12 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
     def helloWorldApp = new CppCallingCHelloWorldApp()
 
     def "setup"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         settingsFile << "rootProject.name = 'test'"
     }
 
     def "skips building executable binary with no source"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             apply plugin: "cpp"
@@ -53,6 +55,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
     }
 
     def "assemble task constructs all buildable binaries"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         new CHelloWorldApp().writeSources(file("src/main"))
 
@@ -92,6 +95,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
 
     @ToBeFixedForConfigurationCache
     def "assemble task produces sensible error when there are no buildable binaries"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             apply plugin: 'c'
 
@@ -117,7 +121,6 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
             }
             """.stripIndent()
         when:
-        expectTaskGetTaskDependenciesDeprecations()
         fails "assemble"
 
         then:
@@ -140,6 +143,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
     }
 
     def "assemble executable from component with multiple language source sets"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         useMixedSources()
 
@@ -174,6 +178,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
     }
 
     def "assemble executable binary directly from language source sets"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         useMixedSources()
 
@@ -217,6 +222,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
     }
 
     def "build fails when link executable fails"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             apply plugin: "cpp"
@@ -241,6 +247,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
     }
 
     def "build fails when link library fails"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             apply plugin: "cpp"
@@ -274,6 +281,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
     }
 
     def "build fails when create static library fails"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             apply plugin: "cpp"
@@ -307,6 +315,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
 
     @Requires(TestEnvironmentPreconditions.CanInstallExecutable)
     def "installed executable receives command-line parameters"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         buildFile << """
             apply plugin: 'c'
 
@@ -342,6 +351,7 @@ class NativeBinariesIntegrationTest extends AbstractInstalledToolChainIntegratio
     }
 
     def "model report should display configured components"() {
+        executer.beforeExecute { it.noDeprecationChecks() }
         given:
         buildFile << """
             apply plugin: "c"

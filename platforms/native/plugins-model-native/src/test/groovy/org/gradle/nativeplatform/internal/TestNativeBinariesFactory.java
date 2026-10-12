@@ -20,24 +20,21 @@ import org.gradle.api.internal.file.TestFiles;
 import org.gradle.model.internal.core.MutableModelNode;
 import org.gradle.model.internal.core.rule.describe.SimpleModelRuleDescriptor;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.nativeplatform.BuildType;
-import org.gradle.nativeplatform.Flavor;
-import org.gradle.nativeplatform.NativeBinarySpec;
 import org.gradle.nativeplatform.internal.configure.NativeBinaries;
 import org.gradle.nativeplatform.internal.resolve.NativeDependencyResolver;
 import org.gradle.nativeplatform.platform.NativePlatform;
-import org.gradle.platform.base.SourceComponentSpec;
 import org.gradle.platform.base.binary.BaseBinaryFixtures;
 import org.gradle.platform.base.internal.BinaryNamingScheme;
 
+@SuppressWarnings("deprecation")
 public class TestNativeBinariesFactory {
 
-    public static <T extends NativeBinarySpec, I extends AbstractNativeBinarySpec> T create(Class<T> publicType, Class<I> implType, String name, MutableModelNode componentNode,
+    public static <T extends org.gradle.nativeplatform.NativeBinarySpec, I extends AbstractNativeBinarySpec> T create(Class<T> publicType, Class<I> implType, String name, MutableModelNode componentNode,
                                                                                       BinaryNamingScheme namingScheme, NativeDependencyResolver resolver,
-                                                                                      NativePlatform platform, BuildType buildType, Flavor flavor) {
+                                                                                      NativePlatform platform, org.gradle.nativeplatform.BuildType buildType, org.gradle.nativeplatform.Flavor flavor) {
         T binary = BaseBinaryFixtures.create(publicType, implType, name, componentNode);
         NativeBinaries.initialize(binary, namingScheme, resolver, TestFiles.fileCollectionFactory(), platform, buildType, flavor);
-        SourceComponentSpec component = componentNode.asImmutable(ModelType.of(SourceComponentSpec.class), new SimpleModelRuleDescriptor("get component of " + name)).getInstance();
+        org.gradle.platform.base.SourceComponentSpec component = componentNode.asImmutable(ModelType.of(org.gradle.platform.base.SourceComponentSpec.class), new SimpleModelRuleDescriptor("get component of " + name)).getInstance();
         binary.getInputs().addAll(component.getSources().values());
         return binary;
     }

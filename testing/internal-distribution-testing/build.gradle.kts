@@ -38,12 +38,8 @@ dependencies {
     api(libs.jsr305)
     api(libs.slf4jApi)
     api(testLibs.hamcrest)
-    api(testLibs.jettySecurity)
-    api(testLibs.jettyServer)
-    api(testLibs.jettyUtil)
     api(testLibs.junit)
     api(testLibs.samplesCheck)
-    api(testLibs.servletApi)
     api(testLibs.spock)
 
     implementation(projects.baseServicesGroovy)
@@ -54,6 +50,7 @@ dependencies {
     implementation(projects.concurrent)
     implementation(projects.coreApi)
     implementation(projects.daemonLogging)
+    implementation(projects.daemonMessaging)
     implementation(projects.enterpriseLogging)
     implementation(projects.fileCollections)
     implementation(projects.fileTemp)
@@ -68,6 +65,7 @@ dependencies {
     implementation(projects.time)
     implementation(projects.toolingApi)
     implementation(projects.wrapperShared)
+    implementation(projects.workerShared)
     implementation(libs.commonsCompress)
     implementation(libs.commonsIo)
     implementation(libs.commonsLang)
@@ -77,20 +75,25 @@ dependencies {
     implementation(libs.jcifs)
     implementation(libs.nativePlatform)
     implementation(testLibs.ansiControlSequenceUtil)
-    implementation(testLibs.jetty)
 
     compileOnly(libs.jetbrainsAnnotations)
     compileOnly(libs.jspecify)
 
     integTestDistributionRuntimeOnly(projects.distributionsCore)
 
-    constraints {
-        implementation(testLibs.jettyWebsocket)
-    }
+    // Javadoc-only: for {@link} references to types in internal-integ-testing and tooling-api test fixtures
+    javadocReferences(projects.internalIntegTesting)
+    javadocReferences(testFixtures(projects.toolingApi))
 }
 
+// Declared separately from the task so the source set can register it as an output directory
+// without querying the task's output property, which is not allowed before the task has run.
+val allReleasedVersionsDir = layout.buildDirectory.dir("generated-resources/all-released-versions")
+
 val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsInfo") {
-    destFile = layout.buildDirectory.file("generated-resources/all-released-versions/all-released-versions.properties")
+    group = "build"
+    description = "Generates the properties file listing all previously released Gradle versions."
+    destFile = allReleasedVersionsDir.map { it.file("all-released-versions.properties") }
     versions = gradleModule.identity.releasedVersions.map {
         it.allPreviousVersions.joinToString(" ") { it.version }
     }
@@ -99,6 +102,8 @@ val prepareVersionsInfo = tasks.register<PrepareVersionsInfo>("prepareVersionsIn
 }
 
 val copyTestedVersionsInfo = tasks.register<Copy>("copyTestedVersionsInfo") {
+    group = "build"
+    description = "Copies the AGP, Kotlin and smoke-tested plugin version properties into the generated resources directory."
     from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/agp-versions.properties"))
     from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/kotlin-versions.properties"))
     from(isolated.rootProject.projectDirectory.file("gradle/dependency-management/smoke-tested-plugins.properties"))
@@ -106,6 +111,8 @@ val copyTestedVersionsInfo = tasks.register<Copy>("copyTestedVersionsInfo") {
 }
 
 val generateLanguageAnnotations = tasks.register<GenerateLanguageAnnotations>("generateLanguageAnnotations") {
+    group = "build"
+    description = "Generates the Groovy language annotations used by integration test fixtures."
     classpath.from(configurations.integTestDistributionRuntimeClasspath)
     packageName = "org.gradle.integtests.fixtures"
     destDir = layout.buildDirectory.dir("generated/sources/language-annotations/groovy/main")
@@ -113,7 +120,7 @@ val generateLanguageAnnotations = tasks.register<GenerateLanguageAnnotations>("g
 
 sourceSets.main {
     groovy.srcDir(generateLanguageAnnotations.flatMap { it.destDir })
-    output.dir(prepareVersionsInfo.map { it.destFile.get().asFile.parentFile })
+    output.dir(mapOf("builtBy" to prepareVersionsInfo), allReleasedVersionsDir)
     output.dir(copyTestedVersionsInfo)
 }
 
@@ -141,9 +148,3 @@ abstract class PrepareVersionsInfo : DefaultTask() {
         gradlebuild.basics.util.ReproduciblePropertiesWriter.store(properties, destFile.get().asFile)
     }
 }
-
-packageCycles {
-    excludePatterns.add("org/gradle/**")
-}
-
-

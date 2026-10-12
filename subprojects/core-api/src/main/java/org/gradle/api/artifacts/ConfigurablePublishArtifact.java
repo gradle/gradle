@@ -19,12 +19,14 @@ import org.jspecify.annotations.Nullable;
 
 /**
  * A {@link PublishArtifact} whose properties can be modified.
+ * @since 1.0
  */
 public interface ConfigurablePublishArtifact extends PublishArtifact {
     /**
      * Sets the name of this artifact.
      *
      * @param name The name. Should not be null.
+     * @since 1.0
      */
     void setName(String name);
 
@@ -32,6 +34,7 @@ public interface ConfigurablePublishArtifact extends PublishArtifact {
      * Sets the extension of this artifact.
      *
      * @param extension The extension. Should not be null.
+     * @since 1.0
      */
     void setExtension(String extension);
 
@@ -39,6 +42,7 @@ public interface ConfigurablePublishArtifact extends PublishArtifact {
      * Sets the type of this artifact.
      *
      * @param type The type. Should not be null.
+     * @since 1.0
      */
     void setType(String type);
 
@@ -46,6 +50,7 @@ public interface ConfigurablePublishArtifact extends PublishArtifact {
      * Sets the classifier of this artifact.
      *
      * @param classifier The classifier. May be null.
+     * @since 1.0
      */
     void setClassifier(@Nullable String classifier);
 
@@ -54,6 +59,7 @@ public interface ConfigurablePublishArtifact extends PublishArtifact {
      *
      * @param tasks The tasks. These are evaluated as per {@link org.gradle.api.Task#dependsOn(Object...)}.
      * @return this
+     * @since 1.0
      */
     ConfigurablePublishArtifact builtBy(Object... tasks);
 }

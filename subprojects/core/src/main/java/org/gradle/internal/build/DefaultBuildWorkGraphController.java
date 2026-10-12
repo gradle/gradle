@@ -31,7 +31,6 @@ import org.gradle.execution.plan.TaskNode;
 import org.gradle.execution.plan.TaskNodeFactory;
 import org.gradle.internal.UncheckedException;
 import org.gradle.internal.work.WorkerLeaseService;
-import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -75,9 +74,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
     @Override
     public ExportedTaskNode locateTask(TaskIdentifier taskIdentifier) {
         DefaultExportedTaskNode node = doLocate(taskIdentifier);
-        if (taskIdentifier instanceof TaskIdentifier.TaskBasedTaskIdentifier) {
-            node.maybeBindTask(((TaskIdentifier.TaskBasedTaskIdentifier) taskIdentifier).getTask());
-        }
+        node.maybeBindTask(taskIdentifier.getTask());
         return node;
     }
 
@@ -102,16 +99,6 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
 
     private DefaultExportedTaskNode doLocate(TaskIdentifier taskIdentifier) {
         return nodesByPath.computeIfAbsent(taskIdentifier.getTaskPath(), DefaultExportedTaskNode::new);
-    }
-
-    @Nullable
-    private TaskInternal findTaskNode(String taskPath) {
-        for (Task task : taskNodeFactory.getTasks()) {
-            if (task.getPath().equals(taskPath)) {
-                return (TaskInternal) task;
-            }
-        }
-        return null;
     }
 
     private class DefaultBuildWorkGraph implements BuildWorkGraph {
@@ -267,11 +254,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         public TaskNode getTaskNode() {
             synchronized (lock) {
                 if (taskNode == null) {
-                    TaskInternal task = findTaskNode(taskPath);
-                    if (task == null) {
-                        throw new IllegalStateException("Task '" + taskPath + "' was never scheduled for execution.");
-                    }
-                    taskNode = taskNodeFactory.getOrCreateNode(task);
+                    throw new IllegalStateException("No task has been bound for task node '" + taskPath + "'.");
                 }
                 return taskNode;
             }
@@ -285,14 +268,7 @@ public class DefaultBuildWorkGraphController implements BuildWorkGraphController
         @Override
         public IncludedBuildTaskResource.State getTaskState() {
             synchronized (lock) {
-                if (taskNode == null) {
-                    TaskInternal task = findTaskNode(taskPath);
-                    if (task == null) {
-                        // Assume not scheduled yet
-                        return IncludedBuildTaskResource.State.NotScheduled;
-                    }
-                    taskNode = taskNodeFactory.getOrCreateNode(task);
-                }
+                TaskNode taskNode = getTaskNode();
                 if (taskNode.isExecuted() && taskNode.isSuccessful()) {
                     return IncludedBuildTaskResource.State.Success;
                 } else if (taskNode.isExecuted()) {

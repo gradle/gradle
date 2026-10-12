@@ -18,13 +18,14 @@ package org.gradle.api.internal.artifacts.ivyservice;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.internal.artifacts.LegacyResolutionParameters;
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
+import org.gradle.api.internal.artifacts.dsl.ImmutableComponentMetadataRules;
 import org.gradle.api.internal.artifacts.dsl.ImmutableModuleReplacements;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.Conflict;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
+import org.gradle.internal.component.external.model.VariantDerivationStrategy;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.operations.dependencies.configurations.ConfigurationIdentity;
@@ -51,7 +52,7 @@ public class ResolutionParameters {
     private final LocalComponentGraphResolveState rootComponent;
     private final LocalVariantGraphResolveState rootVariant;
     private final ImmutableList<ModuleVersionLock> moduleVersionLocks;
-    private final ResolutionStrategy.SortOrder defaultSortOrder;
+    private final SortOrder sortOrder;
     private final @Nullable ConfigurationIdentity configurationIdentity;
     private final ImmutableArtifactTypeRegistry artifactTypeRegistry;
     private final ImmutableModuleReplacements moduleReplacements;
@@ -64,13 +65,15 @@ public class ResolutionParameters {
     private final boolean failingOnChangingVersions;
     private final FailureResolutions failureResolutions;
     private final CacheExpirationControl cacheExpirationControl;
+    private final ImmutableComponentMetadataRules componentMetadataRules;
+    private final VariantDerivationStrategy variantDerivationStrategy;
 
     public ResolutionParameters(
         ResolutionHost resolutionHost,
         LocalComponentGraphResolveState rootComponent,
         LocalVariantGraphResolveState rootVariant,
         ImmutableList<ModuleVersionLock> moduleVersionLocks,
-        ResolutionStrategy.SortOrder defaultSortOrder,
+        SortOrder sortOrder,
         @Nullable ConfigurationIdentity configurationIdentity,
         ImmutableArtifactTypeRegistry artifactTypeRegistry,
         ImmutableModuleReplacements moduleReplacements,
@@ -82,13 +85,15 @@ public class ResolutionParameters {
         boolean failingOnDynamicVersions,
         boolean failingOnChangingVersions,
         FailureResolutions failureResolutions,
-        CacheExpirationControl cacheExpirationControl
+        CacheExpirationControl cacheExpirationControl,
+        ImmutableComponentMetadataRules componentMetadataRules,
+        VariantDerivationStrategy variantDerivationStrategy
     ) {
         this.resolutionHost = resolutionHost;
         this.rootComponent = rootComponent;
         this.rootVariant = rootVariant;
         this.moduleVersionLocks = moduleVersionLocks;
-        this.defaultSortOrder = defaultSortOrder;
+        this.sortOrder = sortOrder;
         this.configurationIdentity = configurationIdentity;
         this.artifactTypeRegistry = artifactTypeRegistry;
         this.moduleReplacements = moduleReplacements;
@@ -101,6 +106,8 @@ public class ResolutionParameters {
         this.failingOnChangingVersions = failingOnChangingVersions;
         this.failureResolutions = failureResolutions;
         this.cacheExpirationControl = cacheExpirationControl;
+        this.componentMetadataRules = componentMetadataRules;
+        this.variantDerivationStrategy = variantDerivationStrategy;
     }
 
     /**
@@ -179,10 +186,10 @@ public class ResolutionParameters {
     }
 
     /**
-     * The default sort ordering of artifacts. May be overridden during artifact selection.
+     * The sort ordering of artifacts.
      */
-    public ResolutionStrategy.SortOrder getDefaultSortOrder() {
-        return defaultSortOrder;
+    public SortOrder getSortOrder() {
+        return sortOrder;
     }
 
     /**
@@ -271,6 +278,20 @@ public class ResolutionParameters {
     }
 
     /**
+     * The component metadata rules that may modify the metadata of software components resolved from external repositories.
+     */
+    public ImmutableComponentMetadataRules getComponentMetadataRules() {
+        return componentMetadataRules;
+    }
+
+    /**
+     * Get the strategy used to synthesize variants for components which do not natively expose variants.
+     */
+    public VariantDerivationStrategy getVariantDerivationStrategy() {
+        return variantDerivationStrategy;
+    }
+
+    /**
      * Details about this resolution to provide additional context during failure cases.
      */
     public FailureResolutions getFailureResolutions() {
@@ -295,6 +316,15 @@ public class ResolutionParameters {
      */
     public CacheExpirationControl getCacheExpirationControl() {
         return cacheExpirationControl;
+    }
+
+    public enum SortOrder {
+        BFS,
+        TOPOLOGICAL,
+        TOPOLOGICAL_REVERSED,
+        // Legacy orderings, will go away in Gradle 10
+        COMPONENT_TOPOLOGICAL,
+        COMPONENT_TOPOLOGICAL_REVERSED,
     }
 
 }

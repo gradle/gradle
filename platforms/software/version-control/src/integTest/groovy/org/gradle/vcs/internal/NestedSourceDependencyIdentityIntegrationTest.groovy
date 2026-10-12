@@ -154,36 +154,56 @@ Required by:
         repoB.createLightWeightTag("1.2")
 
         buildFile << """
-            classes.doLast {
-                def components = configurations.runtimeClasspath.incoming.resolutionResult.allComponents.id
-                assert components.size() == 4
-                assert components[0].build.buildPath == ':'
-                assert components[0].projectPath == ':'
-                assert components[0].projectName == 'buildA'
-                assert components[0].buildTreePath == ':'
-                assert components[1].build.buildPath == ':buildB'
-                assert components[1].projectPath == ':'
-                assert components[1].projectName == 'buildB'
-                assert components[1].buildTreePath == ':buildB'
-                assert components[2].build.buildPath == ':${buildName}'
-                assert components[2].projectPath == ':'
-                assert components[2].projectName == '${dependencyName}'
-                assert components[3].build.buildPath == ':${buildName}'
-                assert components[3].projectPath == ':a'
-                assert components[3].projectName == 'a'
+            classes {
+                // Capture the resolution result lazily at configuration time so the task action
+                // doesn't read project state at execution time (configuration-cache compatible).
+                def rootComponent = configurations.runtimeClasspath.incoming.resolutionResult.rootComponent
+                doLast {
+                    def components = []
+                    def selectors = []
+                    def seen = new HashSet()
+                    def queue = [rootComponent.get()]
+                    while (!queue.isEmpty()) {
+                        def component = queue.remove(0)
+                        if (!seen.add(component.id)) {
+                            continue
+                        }
+                        components << component.id
+                        component.dependencies.each { dependency ->
+                            selectors << dependency.requested
+                            if (dependency instanceof org.gradle.api.artifacts.result.ResolvedDependencyResult) {
+                                queue << dependency.selected
+                            }
+                        }
+                    }
 
-                def selectors = configurations.runtimeClasspath.incoming.resolutionResult.allDependencies.requested
-                assert selectors.size() == 3
-                assert selectors[0].displayName == 'org.test:buildB:1.2'
-                assert selectors[1].displayName == 'org.test:${dependencyName}:1.2'
-                assert selectors[2].displayName == 'project \\':${buildName}:a\\''
-                assert selectors[2].buildPath == ':${buildName}'
-                assert selectors[2].projectPath == ':a'
+                    components.each { component ->
+                        def buildTreePath = component.hasProperty("buildTreePath") ? component.buildTreePath : null
+                        println "component: [ buildPath: \${component.build.buildPath}, projectPath: \${component.projectPath}, projectName: \${component.projectName}, buildTreePath: \${buildTreePath} ]"
+                    }
+                    println "components: \${components.size()}"
+
+                    selectors.each { selector ->
+                        def buildPath = selector.hasProperty("buildPath") ? selector.buildPath : null
+                        def projectPath = selector.hasProperty("projectPath") ? selector.projectPath : null
+                        println "selector: [ displayName: \${selector.displayName}, buildPath: \${buildPath}, projectPath: \${projectPath} ]"
+                    }
+                    println "selectors: \${selectors.size()}"
+                }
             }
         """
 
         expect:
         succeeds(":assemble")
+        outputContains("component: [ buildPath: :, projectPath: :, projectName: buildA, buildTreePath: : ]")
+        outputContains("component: [ buildPath: :buildB, projectPath: :, projectName: buildB, buildTreePath: :buildB ]")
+        outputContains("component: [ buildPath: :${buildName}, projectPath: :, projectName: ${dependencyName}, buildTreePath: :${buildName} ]")
+        outputContains("component: [ buildPath: :${buildName}, projectPath: :a, projectName: a, buildTreePath: :${buildName}:a ]")
+        outputContains("components: 4")
+        outputContains("selector: [ displayName: org.test:buildB:1.2, buildPath: null, projectPath: null ]")
+        outputContains("selector: [ displayName: org.test:${dependencyName}:1.2, buildPath: null, projectPath: null ]")
+        outputContains("selector: [ displayName: project ':${buildName}:a', buildPath: :${buildName}, projectPath: :a ]")
+        outputContains("selectors: 3")
 
         where:
         settings                     | buildName | dependencyName | display

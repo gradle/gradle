@@ -25,6 +25,7 @@ import org.gradle.language.objectivecpp.tasks.ObjectiveCppCompile
 import spock.lang.Ignore
 
 @Ignore("https://github.com/gradle/gradle-private/issues/3818")
+@SuppressWarnings("deprecation")
 class ObjectiveCppPluginTest extends AbstractNativeComponentPluginTest {
     @Override
     Class<? extends Plugin> getPluginClass() {

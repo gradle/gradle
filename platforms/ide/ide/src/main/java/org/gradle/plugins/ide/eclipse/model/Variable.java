@@ -21,14 +21,25 @@ import org.gradle.plugins.ide.eclipse.model.internal.FileReferenceFactory;
 
 /**
  * A variable library entry.
+ * @since 1.0
  */
 public class Variable extends AbstractLibrary {
+    /**
+     * Creates a new {@code Variable}.
+     *
+     * @since 1.0
+     */
     @SuppressWarnings("this-escape")
     public Variable(Node node, FileReferenceFactory fileReferenceFactory) {
         super(node, fileReferenceFactory);
         setSourcePath(fileReferenceFactory.fromVariablePath((String) node.attribute("sourcepath")));
     }
 
+    /**
+     * Creates a new {@code Variable}.
+     *
+     * @since 1.0
+     */
     public Variable(FileReference library) {
         super(library);
     }

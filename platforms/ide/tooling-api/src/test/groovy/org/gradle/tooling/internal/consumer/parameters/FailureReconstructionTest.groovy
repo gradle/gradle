@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.consumer.parameters
 
+import org.gradle.tooling.internal.consumer.DefaultFailure
 import org.gradle.tooling.internal.protocol.FailureDescriptionReconstructor
 import org.gradle.tooling.internal.protocol.InternalFailure
 import spock.lang.Specification
@@ -79,14 +80,26 @@ class FailureReconstructionTest extends Specification {
         rebuiltRoot.description.contains("java.lang.RuntimeException: boom")
         rebuiltRoot.description.contains("Caused by: java.lang.IllegalStateException: inner")
         !rebuiltRoot.description.contains("FULL-NOT-USED")
+
+        and: "the node-only descriptions are exposed without duplicating the cause text"
+        rebuiltRoot.ownDescription == "java.lang.RuntimeException: boom\n\tat Root.run(Root.java:9)"
+        rebuiltRoot.causes[0].ownDescription == "java.lang.IllegalStateException: inner\n\tat Inner.run(Inner.java:5)"
     }
 
-    def "falls back to the full description when the daemon has no own description (#error.class.simpleName)"() {
+    def "falls back to full descriptions without deriving node-only descriptions (#error.class.simpleName)"() {
+        def nl = System.lineSeparator()
+        def leaf = Stub(InternalFailure) {
+            getMessage() >> "inner"
+            getOwnDescription() >> { throw error }
+            getDescription() >> "java.lang.IllegalStateException: inner${nl}\tat Inner.run(Inner.java:5)${nl}"
+            getCauses() >> []
+            getProblems() >> []
+        }
         def origFailure = Stub(InternalFailure) {
             getMessage() >> "boom"
             getOwnDescription() >> { throw error }
-            getDescription() >> "FULL TEXT FROM OLD DAEMON"
-            getCauses() >> []
+            getDescription() >> "java.lang.RuntimeException: boom${nl}\tat Root.run(Root.java:9)${nl}Caused by: java.lang.IllegalStateException: inner${nl}\t... 1 more${nl}"
+            getCauses() >> [leaf]
             getProblems() >> []
         }
 
@@ -94,12 +107,26 @@ class FailureReconstructionTest extends Specification {
         def failures = BuildProgressListenerAdapter.toFailures([origFailure])
 
         then:
-        failures[0].description == "FULL TEXT FROM OLD DAEMON"
+        failures[0].description == "java.lang.RuntimeException: boom${nl}\tat Root.run(Root.java:9)${nl}Caused by: java.lang.IllegalStateException: inner${nl}\t... 1 more${nl}"
+        failures[0].ownDescription == null
+        failures[0].causes.first().ownDescription == null
 
         where:
         // An old daemon's InternalFailure implements the interface without the method (AbstractMethodError) or
         // predates it entirely (NoSuchMethodError); the consumer must fall back in both cases.
         error << [new AbstractMethodError("old daemon"), new NoSuchMethodError("old daemon")]
+    }
+
+    def "fromThrowable does not derive node-only descriptions"() {
+        def throwable = new RuntimeException("outer", new IllegalStateException("inner"))
+
+        when:
+        def failure = DefaultFailure.fromThrowable(throwable)
+
+        then:
+        failure.description.contains("Caused by: java.lang.IllegalStateException: inner")
+        failure.ownDescription == null
+        failure.causes.first().ownDescription == null
     }
 
     def "does not read the full per-node description when own descriptions are available"() {

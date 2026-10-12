@@ -45,17 +45,33 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
                 runtime "org.test:first:latest.integration"
             }
 
-            task resolve {
-                dependsOn configurations.runtime
-                ext.message = "hello world"
-                ext.dependencies = []
-                ext.assertions = []
-                doLast {
-                    def resolved = configurations.runtime.files
+            abstract class Resolve extends DefaultTask {
+                @InputFiles
+                abstract ConfigurableFileCollection getRuntimeFiles()
+
+                @Input
+                abstract ListProperty<String> getExpectedArtifacts()
+
+                @Input
+                abstract Property<String> getExpectedMessage()
+
+                @TaskAction
+                void resolve() {
+                    def resolved = runtimeFiles.files
+                    def message = expectedMessage.get()
                     println "Looking for " + message
-                    assert resolved.size() == dependencies.size()
-                    assertions.each { it.call(resolved, message) }
+                    assert resolved.size() == expectedArtifacts.get().size()
+                    expectedArtifacts.get().each { name ->
+                        def artifactFile = resolved.find { it.name == name + ".txt" }
+                        assert artifactFile != null
+                        assert artifactFile.text == message
+                    }
                 }
+            }
+
+            task resolve(type: Resolve) {
+                runtimeFiles.from(configurations.runtime)
+                expectedMessage.convention("hello world")
             }
         """
 
@@ -69,16 +85,29 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            task generate {
-                dependsOn configurations.runtime
-                ext.outputFile = new File(temporaryDir, project.name + ".txt")
-                ext.message = "hello world"
-                doLast {
-                    // write to outputFile
-                    println "Generating " + message + " against " + configurations.runtime.files
-                    outputFile.parentFile.mkdirs()
-                    outputFile.text = message
+            abstract class Generate extends DefaultTask {
+                @InputFiles
+                abstract ConfigurableFileCollection getRuntimeFiles()
+
+                @Input
+                abstract Property<String> getMessage()
+
+                @OutputFile
+                abstract RegularFileProperty getOutputFile()
+
+                @TaskAction
+                void generate() {
+                    def output = outputFile.get().asFile
+                    println "Generating " + message.get() + " against " + runtimeFiles.files
+                    output.parentFile.mkdirs()
+                    output.text = message.get()
                 }
+            }
+
+            task generate(type: Generate) {
+                runtimeFiles.from(configurations.runtime)
+                message.convention("hello world")
+                outputFile.set(new File(temporaryDir, project.name + ".txt"))
             }
 
             artifacts {
@@ -369,23 +398,18 @@ class NestedSourceDependencyIntegrationTest extends AbstractIntegrationSpec {
     void shouldResolve(GitFileRepository... targets) {
         targets.each { target ->
             buildFile << """
-                resolve.dependencies << "${target.workTree.name}"
-                resolve.assertions << { resolved, message ->
-                    def artifactFile = resolved.find { it.name == "${target.workTree.name}.txt" }
-                    assert artifactFile != null
-                    assert artifactFile.text == message
-                }
+                resolve.expectedArtifacts.add("${target.workTree.name}")
             """
         }
     }
 
     void changeMessage(String message, GitFileRepository... repos) {
         buildFile << """
-            resolve.message = "$message"
+            resolve.expectedMessage.set("$message")
         """
         repos.each { repo ->
             repo.file("build.gradle") << """
-                generate.message = "$message"
+                generate.message.set("$message")
             """
             repo.commit("change message", "build.gradle")
         }

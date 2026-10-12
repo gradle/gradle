@@ -38,6 +38,7 @@ public interface AdhocComponentWithVariants extends SoftwareComponent {
      *
      * @param outgoingConfiguration the configuration corresponding to the variant to use as source of dependencies and artifacts
      * @param action action executed to configure the variant prior to publishing
+     * @since 5.3
      */
     void addVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action);
 
@@ -62,6 +63,7 @@ public interface AdhocComponentWithVariants extends SoftwareComponent {
      *
      * @param outgoingConfiguration the configuration corresponding to the variant to configure with a given action
      * @param action an additional action to be executed to configure the variant prior to publishing
+     * @since 6.0
      */
     void withVariantsFromConfiguration(Configuration outgoingConfiguration, Action<? super ConfigurationVariantDetails> action);
 

@@ -18,7 +18,6 @@ package org.gradle.model.internal.registry;
 
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
-import org.gradle.model.RuleSource;
 import org.gradle.model.internal.core.ModelAction;
 import org.gradle.model.internal.core.ModelActionRole;
 import org.gradle.model.internal.core.ModelNode;
@@ -30,6 +29,7 @@ import org.gradle.model.internal.type.ModelType;
 import org.jspecify.annotations.Nullable;
 
 @ServiceScope(Scope.Project.class)
+@SuppressWarnings("deprecation")
 public interface ModelRegistry {
 
     /**
@@ -129,12 +129,12 @@ public interface ModelRegistry {
     ModelRegistry configureMatching(ModelSpec spec, ModelActionRole role, ModelAction action);
 
     /**
-     * Registers a listener and applies the given {@link RuleSource} whenever a node that matches the spec is discovered.
+     * Registers a listener and applies the given {@link org.gradle.model.RuleSource} whenever a node that matches the spec is discovered.
      * Matching nodes that are already discovered when {@code configureMatching()} is called are bound directly.
      * Unlike with {@link #configure(ModelActionRole, ModelAction)}, {@link #bindAllReferences()} will <em>not</em> fail
      * if no nodes match the given spec.
      */
-    ModelRegistry configureMatching(ModelSpec spec, Class<? extends RuleSource> rules);
+    ModelRegistry configureMatching(ModelSpec spec, Class<? extends org.gradle.model.RuleSource> rules);
 
     MutableModelNode getRoot();
 }

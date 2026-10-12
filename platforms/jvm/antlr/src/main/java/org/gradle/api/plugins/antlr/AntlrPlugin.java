@@ -40,8 +40,14 @@ import static org.gradle.api.plugins.antlr.internal.AntlrSpec.PACKAGE_ARG;
  * A plugin for adding Antlr support to {@link org.gradle.api.plugins.JavaPlugin java projects}.
  *
  * @see <a href="https://docs.gradle.org/current/userguide/antlr_plugin.html">ANTLR plugin reference</a>
+ * @since 0.9
  */
 public abstract class AntlrPlugin implements Plugin<Project> {
+    /**
+     * The antlr configuration name.
+     *
+     * @since 0.9
+     */
     public static final String ANTLR_CONFIGURATION_NAME = "antlr";
     private final ObjectFactory objectFactory;
 

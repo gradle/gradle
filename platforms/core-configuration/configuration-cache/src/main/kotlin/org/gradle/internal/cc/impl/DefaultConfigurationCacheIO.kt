@@ -16,6 +16,7 @@
 
 package org.gradle.internal.cc.impl
 
+import org.gradle.api.internal.initialization.transform.ClassLoadTimeInstrumentationComposer
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.api.logging.LogLevel
 import org.gradle.cache.internal.streams.BlockAddress
@@ -112,6 +113,7 @@ class DefaultConfigurationCacheIO internal constructor(
     private val codecs: ConfigurationCacheCodecs,
     private val encryptionService: EncryptionService,
     private val buildInvocationScopeId: BuildInvocationScopeId,
+    private val instrumentationComposer: ClassLoadTimeInstrumentationComposer,
 ) : ConfigurationCacheBuildTreeIO, ConfigurationCacheIncludedBuildIO {
 
     override fun writeCacheEntryDetailsTo(
@@ -486,24 +488,15 @@ class DefaultConfigurationCacheIO internal constructor(
         ) to codecs
 
     override fun <R> withReadContextFor(
-        name: String,
-        stateType: StateType,
-        inputStream: () -> InputStream,
+        stateFile: ConfigurationCacheStateFile,
         specialDecoders: SpecialDecoders,
         customClassDecoder: ClassDecoder?,
         readOperation: suspend MutableReadContext.(ConfigurationCacheCodecs) -> R
     ): R =
-        readContextFor(name, stateType, inputStream, specialDecoders, customClassDecoder)
+        readContextFor(stateFile, specialDecoders, customClassDecoder)
             .let { (context, codecs) ->
-                withReadContextFor(context, codecs, readOperation)
+                context.readWith(codecs, readOperation)
             }
-
-    override fun <R> withReadContextFor(
-        readContext: CloseableReadContext,
-        codecs: ConfigurationCacheCodecs,
-        readOperation: suspend MutableReadContext.(ConfigurationCacheCodecs) -> R
-    ): R =
-        readContext.readWith(codecs, readOperation)
 
     override fun <R> withWriteContextFor(
         name: String,
@@ -522,12 +515,14 @@ class DefaultConfigurationCacheIO internal constructor(
     private
     fun readContextFor(
         stateFile: ConfigurationCacheStateFile,
-        specialDecoders: SpecialDecoders = SpecialDecoders()
+        specialDecoders: SpecialDecoders = SpecialDecoders(),
+        customClassDecoder: ClassDecoder? = null
     ) = readContextFor(
         stateFile.stateFile.name,
         stateFile.stateType,
         stateFile::inputStream,
-        specialDecoders
+        specialDecoders,
+        customClassDecoder
     )
 
     private
@@ -548,6 +543,16 @@ class DefaultConfigurationCacheIO internal constructor(
         val (context, codecs) = readContextFor("unnamed", decoder, SpecialDecoders())
         return context.runReadOperation { readOperation(codecs) }
     }
+
+    override fun <T> runReadOperation(
+        name: String,
+        decoder: Decoder,
+        readOperation: suspend ReadContext.(ConfigurationCacheCodecs) -> T
+    ): T =
+        readContextFor(name, decoder, SpecialDecoders())
+            .let { (context, codecs) ->
+                context.readWith(codecs, readOperation)
+            }
 
     private
     fun readContextFor(
@@ -615,6 +620,7 @@ class DefaultConfigurationCacheIO internal constructor(
         DefaultClassDecoder(
             classLoaderScopeRegistry.coreAndPluginsScope,
             instantiatorFactory.decorateScheme().deserializationInstantiator(),
+            instrumentationComposer,
             scopeSpecDecoder = classLoaderScopes.decoder()
         )
 

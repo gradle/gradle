@@ -64,6 +64,7 @@ import java.util.Set;
  *
  * <p>If no exclude patterns or spec are specified, then no files will be excluded. If any exclude patterns or specs are
  * specified, then a file is include only if it matches none of the patterns or specs.</p>
+ * @since 0.7
  */
 public interface PatternFilterable {
 
@@ -71,6 +72,7 @@ public interface PatternFilterable {
      * Returns the set of include patterns.
      *
      * @return The include patterns. Returns an empty set when there are no include patterns.
+     * @since 0.7
      */
     @ToBeReplacedByLazyProperty
     Set<String> getIncludes();
@@ -79,6 +81,7 @@ public interface PatternFilterable {
      * Returns the set of exclude patterns.
      *
      * @return The exclude patterns. Returns an empty set when there are no exclude patterns.
+     * @since 0.7
      */
     @ToBeReplacedByLazyProperty
     Set<String> getExcludes();
@@ -90,6 +93,7 @@ public interface PatternFilterable {
      * @param includes an Iterable providing new include patterns
      * @return this
      * @see PatternFilterable Pattern Format
+     * @since 0.7
      */
     PatternFilterable setIncludes(Iterable<String> includes);
 
@@ -100,6 +104,7 @@ public interface PatternFilterable {
      * @param excludes an Iterable providing new exclude patterns
      * @return this
      * @see PatternFilterable Pattern Format
+     * @since 0.7
      */
     PatternFilterable setExcludes(Iterable<String> excludes);
 
@@ -113,6 +118,7 @@ public interface PatternFilterable {
      * @param includes a vararg list of include patterns
      * @return this
      * @see PatternFilterable Pattern Format
+     * @since 0.7
      */
     PatternFilterable include(String... includes);
 
@@ -126,6 +132,7 @@ public interface PatternFilterable {
      * @param includes a Iterable providing more include patterns
      * @return this
      * @see PatternFilterable Pattern Format
+     * @since 0.7
      */
     PatternFilterable include(Iterable<String> includes);
 
@@ -138,6 +145,7 @@ public interface PatternFilterable {
      * @param includeSpec the spec to add
      * @return this
      * @see PatternFilterable Pattern Format
+     * @since 0.9
      */
     PatternFilterable include(Spec<FileTreeElement> includeSpec);
 
@@ -151,6 +159,7 @@ public interface PatternFilterable {
      * @param includeSpec the spec to add
      * @return this
      * @see PatternFilterable Pattern Format
+     * @since 0.9
      */
     PatternFilterable include(Closure includeSpec);
 
@@ -164,6 +173,7 @@ public interface PatternFilterable {
      * @param excludes a vararg list of exclude patterns
      * @return this
      * @see PatternFilterable Pattern Format
+     * @since 0.7
      */
     PatternFilterable exclude(String... excludes);
 
@@ -177,6 +187,7 @@ public interface PatternFilterable {
      * @param excludes a Iterable providing new exclude patterns
      * @return this
      * @see PatternFilterable Pattern Format
+     * @since 0.7
      */
     PatternFilterable exclude(Iterable<String> excludes);
 
@@ -189,6 +200,7 @@ public interface PatternFilterable {
      * @param excludeSpec the spec to add
      * @return this
      * @see PatternFilterable Pattern Format
+     * @since 0.9
      */
     PatternFilterable exclude(Spec<FileTreeElement> excludeSpec);
 
@@ -211,6 +223,7 @@ public interface PatternFilterable {
      * @param excludeSpec the spec to add
      * @return this
      * @see FileTreeElement
+     * @since 0.9
      */
     PatternFilterable exclude(Closure excludeSpec);
 }

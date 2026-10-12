@@ -57,12 +57,9 @@ class SigningDistributionsIntegrationSpec extends SigningIntegrationSpec {
         """
 
         when:
-        run "buildSignatures"
+        succeeds("signDistributions")
 
         then:
-        executedAndNotSkipped ":signDistributions"
-
-        and:
         file("build", "libs", "sign-1.0.jar.asc").text
         file("build", "libs", "sign-1.0-javadoc.jar.asc").text
         file("build", "libs", "sign-1.0-sources.jar.asc").text

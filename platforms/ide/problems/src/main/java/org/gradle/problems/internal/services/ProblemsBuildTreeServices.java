@@ -17,6 +17,7 @@
 package org.gradle.problems.internal.services;
 
 import com.google.common.collect.ImmutableList;
+import org.gradle.api.logging.configuration.WarningMode;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.StartParameterInternal;
@@ -41,6 +42,8 @@ import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.operations.BuildOperationProgressEventEmitter;
 import org.gradle.internal.operations.CurrentBuildOperationRef;
+import org.gradle.internal.operations.FallbackBuildOperationIdRef;
+import org.gradle.internal.operations.RootBuildOperationRef;
 import org.gradle.internal.problems.failure.FailureFactory;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -62,6 +65,7 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
     ProblemsInternal createProblemsService(
         ProblemSummarizer problemSummarizer,
         ProblemStream problemStream,
+        RootBuildOperationRef rootBuildOperationRef,
         ExceptionProblemRegistry exceptionProblemRegistry,
         ExceptionAnalyser exceptionAnalyser,
         InstantiatorFactory instantiatorFactory,
@@ -73,7 +77,7 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         return new DefaultProblems(
             problemSummarizer,
             problemStream,
-            CurrentBuildOperationRef.instance(),
+            new FallbackBuildOperationIdRef(CurrentBuildOperationRef.instance(), rootBuildOperationRef),
             exceptionProblemRegistry,
             exceptionAnalyser,
             instantiatorFactory.decorateLenient(serviceRegistry),
@@ -92,9 +96,14 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         WorkExecutionTracker workExecutionTracker,
         StartParameterInternal startParameter
     ) {
+        ImmutableList.Builder<ProblemEmitter> emitters = ImmutableList.builder();
+        emitters.add(new BuildOperationBasedProblemEmitter(eventEmitter));
+        if (startParameter.getWarningMode() == WarningMode.All) {
+            emitters.add(new ConsoleProblemEmitter());
+        }
         return new DefaultProblemSummarizer(eventEmitter,
             currentBuildOperationRef,
-            ImmutableList.of(new BuildOperationBasedProblemEmitter(eventEmitter), new ConsoleProblemEmitter(startParameter.getWarningMode())),
+            emitters.build(),
             internalOptions,
             problemReportCreator,
             id -> {
