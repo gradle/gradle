@@ -94,7 +94,7 @@ class CheckProject(
             artifactsPatterns =
                 """
                 +:**/*
-                +:$HIDDEN_ARTIFACT_DESTINATION/**/*"
+                +:$HIDDEN_ARTIFACT_DESTINATION/**/*
                 """.trimIndent(),
         )
     })
