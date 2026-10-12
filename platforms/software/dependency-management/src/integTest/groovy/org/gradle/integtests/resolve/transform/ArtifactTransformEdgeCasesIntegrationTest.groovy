@@ -21,8 +21,6 @@ import org.gradle.integtests.fixtures.UndeclaredArtifactTransformInputDeprecatio
 import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Issue
 
-import static org.hamcrest.CoreMatchers.containsString
-
 /**
  * This class tests interesting edge case scenarios involving registering Artifact Transforms.
  * <p>
@@ -1096,7 +1094,7 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
     }
     // endregion Multi-project undeclared resolution scenarios
 
-    def "dependency declared using #description of transformed files schedules the transform and its upstream task: #scheduled"() {
+    def "dependency declared using #description of transformed files schedules the transform and its upstream task"() {
         transformedProjectArtifact()
         buildFile << """
             tasks.register("consumer") {
@@ -1108,25 +1106,19 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
         succeeds("consumer")
 
         then:
-        if (scheduled) {
-            executed(":lib:producer")
-            outputContains("Transforming in.txt")
-        } else {
-            notExecuted(":lib:producer")
-            outputDoesNotContain("Transforming in.txt")
-        }
+        executed(":lib:producer")
+        outputContains("Transforming in.txt")
 
         where:
-        description                | expression                                                      | scheduled
-        "elements"                 | "files.elements"                                                | true
-        "mapped elements"          | "files.elements.map { it }"                                     | true
-        "set property of elements" | "objects.setProperty(FileSystemLocation).value(files.elements)" | true
-        // zip and orElse only visit tasks, which drops the transform and the task behind it
-        "zipped elements"          | "files.elements.zip(provider { 1 }) { f, i -> f }"              | false
-        "orElse of elements"       | "files.elements.map { it }.orElse(provider { [] as Set })"      | false
+        description                | expression
+        "elements"                 | "files.elements"
+        "mapped elements"          | "files.elements.map { it }"
+        "set property of elements" | "objects.setProperty(FileSystemLocation).value(files.elements)"
+        "zipped elements"          | "files.elements.zip(provider { 1 }) { f, i -> f }"
+        "orElse of elements"       | "files.elements.map { it }.orElse(provider { [] as Set })"
     }
 
-    def "input files declared using #description of transformed files schedule the transform and its upstream task: #scheduled"() {
+    def "input files declared using #description of transformed files schedule the transform and its upstream task"() {
         transformedProjectArtifact()
         buildFile << """
             tasks.register("consumer") {
@@ -1136,32 +1128,19 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
         """
 
         when:
-        if (scheduled) {
-            succeeds("consumer")
-        } else {
-            // Nothing wires the transformed files into the consumer, so resolving them is an undeclared query
-            expectUndeclaredArtifactTransformInputDeprecation()
-            fails("consumer")
-        }
+        succeeds("consumer")
 
         then:
-        if (scheduled) {
-            executed(":lib:producer")
-            outputContains("Transforming in.txt")
-        } else {
-            // The transform runs when the consumer resolves its inputs, and its input was never produced
-            notExecuted(":lib:producer")
-            failure.assertThatCause(containsString("Failed to transform in.txt (project ':lib')"))
-        }
+        executed(":lib:producer")
+        outputContains("Transforming in.txt")
 
         where:
-        description                | expression                                                      | scheduled
-        "elements"                 | "files.elements"                                                | true
-        "mapped elements"          | "files.elements.map { it }"                                     | true
-        "set property of elements" | "objects.setProperty(FileSystemLocation).value(files.elements)" | true
-        // zip and orElse only visit tasks, which drops the transform and the task behind it
-        "zipped elements"          | "files.elements.zip(provider { 1 }) { f, i -> f }"              | false
-        "orElse of elements"       | "files.elements.map { it }.orElse(provider { [] as Set })"      | false
+        description                | expression
+        "elements"                 | "files.elements"
+        "mapped elements"          | "files.elements.map { it }"
+        "set property of elements" | "objects.setProperty(FileSystemLocation).value(files.elements)"
+        "zipped elements"          | "files.elements.zip(provider { 1 }) { f, i -> f }"
+        "orElse of elements"       | "files.elements.map { it }.orElse(provider { [] as Set })"
     }
 
     /**
