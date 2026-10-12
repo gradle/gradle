@@ -798,7 +798,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * Returns the maximum depth of the task graph printed by {@code --task-graph}.
      * Defaults to {@link Integer#MAX_VALUE} (unlimited).
      *
-     * @since 9.7.0
+     * @since 9.9.0
      */
     @Incubating
     public int getTaskGraphLimit() {
@@ -810,7 +810,7 @@ public class StartParameter implements LoggingConfiguration, ParallelismConfigur
      * A value of {@link Integer#MAX_VALUE} means unlimited.
      *
      * @param taskGraphLimit the maximum depth; must be a positive integer
-     * @since 9.7.0
+     * @since 9.9.0
      */
     @Incubating
     public void setTaskGraphLimit(int taskGraphLimit) {
