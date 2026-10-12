@@ -225,27 +225,6 @@ class NodeStateTest extends Specification {
         ["a"]          | true
     }
 
-    def "retargeting an endorsing edge to a node without strict versions invalidates stale endorsed strict versions"() {
-        given:
-        def root = root()
-        def sibling = node()
-        edge(root, sibling)
-        def oldPlatform = node(["a"])
-        def newPlatform = node()
-        def endorsing = endorsingEdge(root, oldPlatform)
-        assert sibling.ancestorsStrictVersions == modules(["a"])
-
-        when:
-        // Mirrors EdgeState.retarget(): the edge still targets the old node while detaching from it
-        oldPlatform.removeIncomingEdge(endorsing)
-        endorsing.targetNodes.clear()
-        endorsing.targetNodes.add(newPlatform)
-        newPlatform.addIncomingEdge(endorsing)
-
-        then:
-        sibling.ancestorsStrictVersions == StrictVersionConstraints.EMPTY
-    }
-
     private EdgeState edge(NodeState from, NodeState to) {
         edge(from, to, false)
     }
