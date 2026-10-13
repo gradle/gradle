@@ -324,7 +324,7 @@ class HtmlDependencyVerificationReportRenderer implements DependencyVerification
 
     private String createFileLink(ModuleComponentArtifactIdentifier key, VerificationFailure vf, String repositoryName) {
         String fileLink = "<div uk-tooltip=\"title: From repository '" + repositoryName + "'\">";
-        fileLink += "<a href=\"" + vf.getFilePath().toURI().toASCIIString() + "\">" + key.getFileName() + "</a>";
+        fileLink += "<a href=\"" + vf.getFilePath().toURI().toASCIIString() + "\">" + key.getDestinationFileName() + "</a>";
         File signatureFile = vf.getSignatureFile();
         if (signatureFile != null) {
             fileLink += "&nbsp;<a href=\"" + signatureFile.toURI().toASCIIString() + "\">(.asc)</a>";

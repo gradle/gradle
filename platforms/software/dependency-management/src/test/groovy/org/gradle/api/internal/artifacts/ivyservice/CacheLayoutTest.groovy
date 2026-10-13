@@ -54,7 +54,7 @@ class CacheLayoutTest extends Specification {
 
         then:
         // If you change the value here, update the docs in dependency_resolution.adoc#sub:cache_copy
-        def expectedVersion = 107
+        def expectedVersion = 108
         cacheLayout.name == 'metadata'
         cacheLayout.key == "metadata-2.${expectedVersion}"
         cacheLayout.version == CacheVersion.parse("2.${expectedVersion}")
@@ -73,5 +73,7 @@ class CacheLayoutTest extends Specification {
         cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("7.6.2")).get() == CacheVersion.parse("2.101")
         cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("7.7")).get() == CacheVersion.parse("2.101")
         cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("8.0")).get() == CacheVersion.parse("2.100")
+        cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("9.8")).get() == CacheVersion.parse("2.107")
+        cacheLayout.versionMapping.getVersionUsedBy(GradleVersion.version("9.9.0-rc-1")).get() == CacheVersion.parse("2.108")
     }
 }
