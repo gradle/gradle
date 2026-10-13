@@ -66,11 +66,11 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
     private void writeIdentity() throws IOException {
         writeObject("component", () -> {
             ModuleMetadataSpec.Identity identity = metadata.identity;
-            if (identity.relativeUrl != null) {
-                write("url", identity.relativeUrl);
+            if (identity.relativeUrl() != null) {
+                write("url", identity.relativeUrl());
             }
-            writeCoordinates(identity.coordinates);
-            writeAttributes(identity.attributes);
+            writeCoordinates(identity.coordinates());
+            writeAttributes(identity.attributes());
         });
     }
 
@@ -95,22 +95,22 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
                 if (variant instanceof ModuleMetadataSpec.LocalVariant) {
                     ModuleMetadataSpec.LocalVariant local = (ModuleMetadataSpec.LocalVariant) variant;
                     writeObject(() -> {
-                        write("name", local.name);
-                        writeAttributes(local.attributes);
-                        writeDependencies(local.dependencies);
-                        writeDependencyConstraints(local.dependencyConstraints);
-                        writeArtifacts(local.artifacts);
-                        writeCapabilities("capabilities", local.capabilities);
+                        write("name", local.name());
+                        writeAttributes(local.attributes());
+                        writeDependencies(local.dependencies());
+                        writeDependencyConstraints(local.dependencyConstraints());
+                        writeArtifacts(local.artifacts());
+                        writeCapabilities("capabilities", local.capabilities());
                     });
                     continue;
                 }
                 if (variant instanceof ModuleMetadataSpec.RemoteVariant) {
                     ModuleMetadataSpec.RemoteVariant remote = (ModuleMetadataSpec.RemoteVariant) variant;
                     writeObject(() -> {
-                        write("name", remote.name);
-                        writeAttributes(remote.attributes);
-                        writeAvailableAt(remote.availableAt);
-                        writeCapabilities("capabilities", remote.capabilities);
+                        write("name", remote.name());
+                        writeAttributes(remote.attributes());
+                        writeAvailableAt(remote.availableAt());
+                        writeCapabilities("capabilities", remote.capabilities());
                     });
                     continue;
                 }
@@ -128,7 +128,7 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
     private void writeAttributes(List<ModuleMetadataSpec.Attribute> attributes) throws IOException {
         writeObject("attributes", () -> {
             for (ModuleMetadataSpec.Attribute attribute : attributes) {
-                writeAttribute(attribute.name, attribute.value);
+                writeAttribute(attribute.name(), attribute.value());
             }
         });
     }
@@ -152,10 +152,10 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         writeArray(key, () -> {
             for (ModuleMetadataSpec.Capability capability : capabilities) {
                 writeObject(() -> {
-                    write("group", capability.group);
-                    write("name", capability.name);
-                    if (capability.version != null) {
-                        write("version", capability.version);
+                    write("group", capability.group());
+                    write("name", capability.name());
+                    if (capability.version() != null) {
+                        write("version", capability.version());
                     }
                 });
             }
@@ -164,8 +164,8 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
 
     private void writeAvailableAt(ModuleMetadataSpec.AvailableAt availableAt) throws IOException {
         writeObject("available-at", () -> {
-            write("url", availableAt.url);
-            writeCoordinates(availableAt.coordinates);
+            write("url", availableAt.url());
+            writeCoordinates(availableAt.coordinates());
         });
     }
 
@@ -182,9 +182,9 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         writeArray("files", () -> {
             for (ModuleMetadataSpec.Artifact artifact : artifacts) {
                 writeObject(() -> {
-                    write("name", artifact.name);
-                    write("url", artifact.uri);
-                    File file = artifact.file;
+                    write("name", artifact.name());
+                    write("url", artifact.uri());
+                    File file = artifact.file();
                     write("size", file.length());
                     write("sha512", sha512(file));
                     write("sha256", sha256(file));
@@ -195,28 +195,28 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
         });
     }
 
-    private void writeDependencies(List<ModuleMetadataSpec.Dependency> dependencies) throws IOException {
+    private void writeDependencies(Set<ModuleMetadataSpec.Dependency> dependencies) throws IOException {
         if (dependencies.isEmpty()) {
             return;
         }
         writeArray("dependencies", () -> {
             for (ModuleMetadataSpec.Dependency moduleDependency : dependencies) {
                 writeObject(() -> {
-                    ModuleMetadataSpec.DependencyCoordinates identifier = moduleDependency.coordinates;
-                    write("group", identifier.group);
-                    write("module", identifier.name);
-                    writeVersionConstraint(identifier.version);
-                    writeExcludes(moduleDependency.excludeRules);
-                    writeNonEmptyAttributes(moduleDependency.attributes);
-                    writeCapabilities("requestedCapabilities", moduleDependency.requestedCapabilities);
-                    if (moduleDependency.endorseStrictVersions) {
+                    ModuleMetadataSpec.DependencyCoordinates identifier = moduleDependency.coordinates();
+                    write("group", identifier.group());
+                    write("module", identifier.name());
+                    writeVersionConstraint(identifier.version());
+                    writeExcludes(moduleDependency.excludeRules());
+                    writeNonEmptyAttributes(moduleDependency.attributes());
+                    writeCapabilities("requestedCapabilities", moduleDependency.requestedCapabilities());
+                    if (moduleDependency.endorseStrictVersions()) {
                         write("endorseStrictVersions", true);
                     }
-                    if (moduleDependency.reason != null) {
-                        write("reason", moduleDependency.reason);
+                    if (moduleDependency.reason() != null) {
+                        write("reason", moduleDependency.reason());
                     }
-                    if (moduleDependency.artifactSelector != null) {
-                        writeDependencyArtifact(moduleDependency.artifactSelector);
+                    if (moduleDependency.artifactSelector() != null) {
+                        writeDependencyArtifact(moduleDependency.artifactSelector());
                     }
                 });
             }
@@ -228,17 +228,17 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
             return;
         }
         writeObject("version", () -> {
-            if (version.strictly != null) {
-                write("strictly", version.strictly);
+            if (version.strictly() != null) {
+                write("strictly", version.strictly());
             }
-            if (version.requires != null) {
-                write("requires", version.requires);
+            if (version.requires() != null) {
+                write("requires", version.requires());
             }
-            if (version.preferred != null) {
-                write("prefers", version.preferred);
+            if (version.preferred() != null) {
+                write("prefers", version.preferred());
             }
-            if (!version.rejectedVersions.isEmpty()) {
-                writeArray("rejects", version.rejectedVersions);
+            if (!version.rejectedVersions().isEmpty()) {
+                writeArray("rejects", version.rejectedVersions());
             }
         });
     }
@@ -246,31 +246,31 @@ class ModuleMetadataJsonWriter extends JsonWriterScope {
     private void writeDependencyArtifact(ModuleMetadataSpec.ArtifactSelector artifactSelector) throws IOException {
         writeObject("thirdPartyCompatibility", () ->
             writeObject("artifactSelector", () -> {
-                write("name", artifactSelector.name);
-                write("type", artifactSelector.type);
-                if (artifactSelector.extension != null) {
-                    write("extension", artifactSelector.extension);
+                write("name", artifactSelector.name());
+                write("type", artifactSelector.type());
+                if (artifactSelector.extension() != null) {
+                    write("extension", artifactSelector.extension());
                 }
-                if (artifactSelector.classifier != null) {
-                    write("classifier", artifactSelector.classifier);
+                if (artifactSelector.classifier() != null) {
+                    write("classifier", artifactSelector.classifier());
                 }
             })
         );
     }
 
-    private void writeDependencyConstraints(List<ModuleMetadataSpec.DependencyConstraint> constraints) throws IOException {
+    private void writeDependencyConstraints(Set<ModuleMetadataSpec.DependencyConstraint> constraints) throws IOException {
         if (constraints.isEmpty()) {
             return;
         }
         writeArray("dependencyConstraints", () -> {
             for (ModuleMetadataSpec.DependencyConstraint constraint : constraints) {
                 writeObject(() -> {
-                    write("group", constraint.coordinates.group);
-                    write("module", constraint.coordinates.name);
-                    writeVersionConstraint(constraint.coordinates.version);
-                    writeNonEmptyAttributes(constraint.attributes);
-                    if (constraint.reason != null) {
-                        write("reason", constraint.reason);
+                    write("group", constraint.coordinates().group());
+                    write("module", constraint.coordinates().name());
+                    writeVersionConstraint(constraint.coordinates().version());
+                    writeNonEmptyAttributes(constraint.attributes());
+                    if (constraint.reason() != null) {
+                        write("reason", constraint.reason());
                     }
                 });
             }
