@@ -89,7 +89,7 @@ class ArtifactCollectionIntegrationTest extends AbstractHttpDependencyResolution
                     assert result.id.componentIdentifier.group == 'org.external'
                     assert result.id.componentIdentifier.module == 'external-lib'
                     assert result.id.componentIdentifier.version == '1.0'
-                    assert result.id.fileName == 'external-lib-1.0.jar'
+                    assert result.id.destinationFileName == 'external-lib-1.0.jar'
 
                     // Check project artifact
                     idx = artifacts.findIndexOf { it.file.name == 'project-lib.jar' }
