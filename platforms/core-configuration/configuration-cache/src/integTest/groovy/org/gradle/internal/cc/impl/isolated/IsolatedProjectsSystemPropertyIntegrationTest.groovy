@@ -226,6 +226,28 @@ class IsolatedProjectsSystemPropertyIntegrationTest extends AbstractIsolatedProj
         mode << ALL_MODES
     }
 
+    def "mutation of temporarily allowed system property #property in a build script is allowed"() {
+        buildFile("""
+            System.setProperty('$property', 'true')
+            System.clearProperty('$property')
+            tasks.register("ok")
+        """)
+
+        when:
+        isolatedProjectsRun("ok")
+
+        then:
+        fixture.assertStateStored {
+            projectsConfigured(":")
+        }
+
+        where:
+        property << [
+            "java.awt.headless",
+            "kotlin.native.dependencies.lock"
+        ]
+    }
+
     def "system property mutation in a task action is allowed"() {
         buildFile("""
             tasks.register("mutate") {

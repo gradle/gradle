@@ -45,8 +45,21 @@ class IsolatedProjectsFingerprintEventHandler(
     private val workExecutionTracker: WorkExecutionTracker
 ) : ConfigurationCacheFingerprintEventHandler(workInputListeners, scriptFileResolverListeners, inputTrackingState) {
 
+    // We allow these system properties as they're used in plugins, and we can't immediately disallow them.
+    // Once these plugins are sufficiently able to migrate away, we can disallow these.
+    private
+    val temporarilyAllowedSystemProperties = setOf(
+        // https://github.com/gradle/gradle/issues/39460
+        "java.awt.headless",
+        // https://youtrack.jetbrains.com/issue/KT-82898
+        "kotlin.native.dependencies.lock",
+    )
+
     override fun systemPropertyChanged(key: Any, value: Any?, consumer: String?) {
         super.systemPropertyChanged(key, value, consumer)
+        if (key in temporarilyAllowedSystemProperties) {
+            return
+        }
         report(consumer) {
             text("mutation of system property ")
             reference(key.toString())
@@ -55,6 +68,9 @@ class IsolatedProjectsFingerprintEventHandler(
 
     override fun systemPropertyRemoved(key: Any, consumer: String?) {
         super.systemPropertyRemoved(key, consumer)
+        if (key in temporarilyAllowedSystemProperties) {
+            return
+        }
         report(consumer) {
             text("removal of system property ")
             reference(key.toString())
