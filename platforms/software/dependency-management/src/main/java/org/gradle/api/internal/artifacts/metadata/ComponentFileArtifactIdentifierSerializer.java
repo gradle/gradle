@@ -23,6 +23,8 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
+import java.io.IOException;
+
 /**
  * A thread-safe and reusable serializer for {@link ComponentFileArtifactIdentifier}.
  */
@@ -30,13 +32,13 @@ public class ComponentFileArtifactIdentifierSerializer implements Serializer<Com
     private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
 
     @Override
-    public void write(Encoder encoder, ComponentFileArtifactIdentifier value) throws Exception {
+    public void write(Encoder encoder, ComponentFileArtifactIdentifier value) throws IOException {
         componentIdentifierSerializer.write(encoder, value.getComponentIdentifier());
         encoder.writeString(value.getFileName());
     }
 
     @Override
-    public ComponentFileArtifactIdentifier read(Decoder decoder) throws Exception {
+    public ComponentFileArtifactIdentifier read(Decoder decoder) throws IOException {
         ComponentIdentifier componentIdentifier = componentIdentifierSerializer.read(decoder);
         String fileName = decoder.readString();
         return new ComponentFileArtifactIdentifier(componentIdentifier, fileName);
