@@ -17,15 +17,34 @@
 package org.gradle.internal.component.external.model;
 
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
 
-public class ModuleComponentFileArtifactIdentifier extends ComponentFileArtifactIdentifier implements ModuleComponentArtifactIdentifier {
-    public ModuleComponentFileArtifactIdentifier(ModuleComponentIdentifier componentId, String fileName) {
-        super(componentId, fileName);
+public final class ModuleComponentFileArtifactIdentifier extends ModuleComponentArtifactIdentifier {
+    private final ModuleComponentIdentifier componentId;
+    private final String destinationFileName;
+    private final String filePath;
+
+    public ModuleComponentFileArtifactIdentifier(ModuleComponentIdentifier componentId, String destinationFileName) {
+        this(componentId, destinationFileName, destinationFileName);
+    }
+
+    public ModuleComponentFileArtifactIdentifier(ModuleComponentIdentifier componentId, String destinationFileName, String filePath) {
+        this.componentId = componentId;
+        this.destinationFileName = destinationFileName;
+        this.filePath = filePath;
     }
 
     @Override
     public ModuleComponentIdentifier getComponentIdentifier() {
-        return (ModuleComponentIdentifier) super.getComponentIdentifier();
+        return componentId;
+    }
+
+    @Override
+    public String getDestinationFileName() {
+        return destinationFileName;
+    }
+
+    @Override
+    public String getFilePath() {
+        return filePath;
     }
 }

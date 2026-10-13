@@ -26,6 +26,7 @@ import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.tasks.TaskDependency
 import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
+import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier
 import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier
 import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier
 import org.gradle.internal.component.local.model.MissingLocalArtifactMetadata
@@ -76,6 +77,7 @@ class ComponentArtifactIdentifierCodecTest : AbstractUserTypeCodecTest() {
         listOf(
             DefaultModuleComponentArtifactIdentifier(moduleId, artifactName),
             ModuleComponentFileArtifactIdentifier(moduleId, "lib-1.0.jar"),
+            ModuleComponentFileArtifactIdentifier(moduleId, "lib-1.0.jar", "../dir/lib-1.0-all.jar"),
             OpaqueComponentArtifactIdentifier(file)
         ) + componentIds.flatMap { componentId ->
             listOf(
@@ -139,6 +141,12 @@ class ComponentArtifactIdentifierCodecTest : AbstractUserTypeCodecTest() {
         assertThat(serializationProblemsOf(id, codec), empty())
         val read = configurationCacheRoundtripOf(id, codec)
         assertThat(read, equalTo(id))
+        assertThat(read.javaClass, equalTo(id.javaClass))
+        if (id is ModuleComponentArtifactIdentifier) {
+            read as ModuleComponentArtifactIdentifier
+            assertThat(read.destinationFileName, equalTo(id.destinationFileName))
+            assertThat(read.filePath, equalTo(id.filePath))
+        }
     }
 
     private
