@@ -179,7 +179,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
      * @return True if releasing this selector requires the target module to be reselected.
      */
     public boolean release(EdgeState edge) {
-        boolean needsSelection = false;
+        boolean noLongerForcedOrLocked = false;
 
         if (edge.isConstraint()) {
             outgoingConstraintEdgeCount--;
@@ -193,8 +193,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
             hardForcingEdgeCount--;
             assert hardForcingEdgeCount >= 0 : "Inconsistent selector state detected for '" + this + "': hard forcing edge count cannot be negative";
             if (hardForcingEdgeCount == 0) {
-                this.requiresSelection = true;
-                needsSelection = true;
+                noLongerForcedOrLocked = true;
             }
         }
 
@@ -202,8 +201,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
             softForcingEdgeCount--;
             assert softForcingEdgeCount >= 0 : "Inconsistent selector state detected for '" + this + "': soft forcing edge count cannot be negative";
             if (softForcingEdgeCount == 0) {
-                this.requiresSelection = true;
-                needsSelection = true;
+                noLongerForcedOrLocked = true;
             }
         }
 
@@ -211,8 +209,7 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
             lockingEdgeCount--;
             assert lockingEdgeCount >= 0 : "Inconsistent selector state detected for '" + this + "': locking edge count cannot be negative";
             if (lockingEdgeCount == 0) {
-                this.requiresSelection = true;
-                needsSelection = true;
+                noLongerForcedOrLocked = true;
             }
         }
 
@@ -225,11 +222,18 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         assert outgoingEdgeCount >= 0 : "Inconsistent selector state detected for '" + this + "': outgoing edge count cannot be negative";
         if (outgoingEdgeCount == 0) {
             targetModule.removeSelector(this);
-            needsSelection |= markForReuse();
+            // Ensure that we flag the reuse properly before setting requiresSelection
+            boolean needsSelection = markForReuse();
             this.requiresSelection = true;
+            return needsSelection;
         }
 
-        return needsSelection;
+        if (noLongerForcedOrLocked) {
+            this.requiresSelection = true;
+            return true;
+        }
+
+        return false;
     }
 
     /**
@@ -342,6 +346,9 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
             // TODO: We have hit an unstable graph. This selector has already added, removed, added again,
             // and we are removing it once again. We should fail the resolution here and ask the user
             // to fix the graph -- likely by adding a version constraint.
+
+            // We currently rely on this not throwing to handle forced virtual platform alignment properly.
+            // A more proper solution may be needed to allow throwing here.
             return false;
         } else {
             markedReusableAlready = true;
