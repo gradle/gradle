@@ -133,6 +133,14 @@ On consoles without Unicode support, the line uses ASCII characters and words:
 [######=.......................]> EXECUTING  8 running, 5,312 queued   [1m 12s]
 ```
 
+While tasks run, the build duration is followed by an estimate of the time remaining, based on the recorded durations of the tasks:
+
+```
+│██████▉▶······················│» EXECUTING  ▶ 8  … 5,312   [1m 12s ELAPSED | 30s ETA]
+```
+
+When a task to run has no recorded duration yet, the line shows `ESTIMATE UNAVAILABLE` instead.
+
 The taskbar progress also shows the progress of the whole build.
 
 See the [Rich console](userguide/command_line_interface.html#sec:rich_console) section in the Gradle User Manual for more details.
