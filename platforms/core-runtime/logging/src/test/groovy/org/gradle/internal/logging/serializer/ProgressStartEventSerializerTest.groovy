@@ -78,9 +78,33 @@ class ProgressStartEventSerializerTest extends LogSerializerSpec {
         !result.buildOperationStart
         result.buildOperationId == null
         result.buildOperationCategory == BuildOperationCategory.UNCATEGORIZED
+        result.estimatedDurationMillis == null
+        result.estimatedCriticalPathMillis == null
 
         where:
         loggingHeader << [null, "logging", DESCRIPTION]
+    }
+
+    def "can serialize ProgressStartEvent with estimated duration #estimatedDurationMillis and critical path #estimatedCriticalPathMillis"() {
+        given:
+        def event = new ProgressStartEvent(OPERATION_ID, new OperationIdentifier(5678L), TIMESTAMP, CATEGORY, DESCRIPTION, null, "", 10, true, new OperationIdentifier(42L), BuildOperationCategory.RUN_WORK, estimatedDurationMillis, estimatedCriticalPathMillis)
+
+        when:
+        def result = serialize(event, serializer)
+
+        then:
+        result.totalProgress == 10
+        result.buildOperationId == new OperationIdentifier(42L)
+        result.buildOperationCategory == BuildOperationCategory.RUN_WORK
+        result.estimatedDurationMillis == estimatedDurationMillis
+        result.estimatedCriticalPathMillis == estimatedCriticalPathMillis
+
+        where:
+        estimatedDurationMillis | estimatedCriticalPathMillis
+        null                    | null
+        0L                      | 0L
+        1234L                   | 567L
+        1_000_000_000_000L      | 2_000_000_000_000L
     }
 
     def "can serialize ProgressStartEvent messages where build and progress ids are the same"() {

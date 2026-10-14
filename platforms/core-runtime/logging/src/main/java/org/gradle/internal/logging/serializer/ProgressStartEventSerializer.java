@@ -32,6 +32,7 @@ import org.gradle.internal.serialize.Serializer;
  */
 public class ProgressStartEventSerializer implements Serializer<ProgressStartEvent> {
     private static final short PARENT_PROGRESS_ID = 1;
+    private static final short ESTIMATED_DURATION = 1 << 1;
     private static final short LOGGING_HEADER = 1 << 2;
     private static final short LOGGING_HEADER_IS_SUB_DESCRIPTION = 1 << 3;
     private static final short STATUS = 1 << 4;
@@ -44,6 +45,7 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
     private static final short CATEGORY_NAME = 1 << 11;
     private static final short BUILD_OP_CATEGORY_OFFSET = 12;
     private static final short BUILD_OP_CATEGORY_MASK = 0x7;
+    private static final int ESTIMATED_CRITICAL_PATH = 1 << 15;
 
     public ProgressStartEventSerializer() {
         BuildOperationCategory maxCategory = BuildOperationCategory.values()[BuildOperationCategory.values().length - 1];
@@ -97,6 +99,15 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             flags |= BUILD_OPERATION_START;
         }
 
+        Long estimatedDurationMillis = event.getEstimatedDurationMillis();
+        if (estimatedDurationMillis != null) {
+            flags |= ESTIMATED_DURATION;
+        }
+        Long estimatedCriticalPathMillis = event.getEstimatedCriticalPathMillis();
+        if (estimatedCriticalPathMillis != null) {
+            flags |= ESTIMATED_CRITICAL_PATH;
+        }
+
         if (event.getCategory().equals(ProgressStartEvent.BUILD_OP_CATEGORY)) {
             flags |= CATEGORY_IS_BUILD_OP;
         } else if (event.getCategory().equals(ProgressStartEvent.TASK_CATEGORY)) {
@@ -130,6 +141,12 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
 
         if ((flags & BUILD_OPERATION_ID) != 0) {
             encoder.writeSmallLong(buildOperationId.getId());
+        }
+        if (estimatedDurationMillis != null) {
+            encoder.writeSmallLong(estimatedDurationMillis);
+        }
+        if (estimatedCriticalPathMillis != null) {
+            encoder.writeSmallLong(estimatedCriticalPathMillis);
         }
     }
 
@@ -183,6 +200,15 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             buildOperationId = progressOperationId;
         }
 
+        Long estimatedDurationMillis = null;
+        if ((flags & ESTIMATED_DURATION) != 0) {
+            estimatedDurationMillis = decoder.readSmallLong();
+        }
+        Long estimatedCriticalPathMillis = null;
+        if ((flags & ESTIMATED_CRITICAL_PATH) != 0) {
+            estimatedCriticalPathMillis = decoder.readSmallLong();
+        }
+
         BuildOperationCategory buildOperationCategory = BuildOperationCategory.values()[(int) ((flags >> BUILD_OP_CATEGORY_OFFSET) & BUILD_OP_CATEGORY_MASK)];
 
         return new ProgressStartEvent(
@@ -196,7 +222,9 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
             totalProgress,
             buildOperationStart,
             buildOperationId,
-            buildOperationCategory
+            buildOperationCategory,
+            estimatedDurationMillis,
+            estimatedCriticalPathMillis
         );
     }
 }

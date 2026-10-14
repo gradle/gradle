@@ -36,6 +36,8 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
     private final boolean buildOperationStart;
     private final @Nullable OperationIdentifier buildOperationId;
     private final BuildOperationCategory buildOperationCategory;
+    private final @Nullable Long estimatedDurationMillis;
+    private final @Nullable Long estimatedCriticalPathMillis;
 
     public ProgressStartEvent(
         @Nullable OperationIdentifier progressOperationId,
@@ -50,6 +52,24 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
         @Nullable OperationIdentifier buildOperationId,
         @Nullable BuildOperationCategory buildOperationCategory
     ) {
+        this(progressOperationId, parentProgressOperationId, timestamp, category, description, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, buildOperationCategory, null, null);
+    }
+
+    public ProgressStartEvent(
+        @Nullable OperationIdentifier progressOperationId,
+        @Nullable OperationIdentifier parentProgressOperationId,
+        long timestamp,
+        String category,
+        String description,
+        @Nullable String loggingHeader,
+        String status,
+        int totalProgress,
+        boolean buildOperationStart,
+        @Nullable OperationIdentifier buildOperationId,
+        @Nullable BuildOperationCategory buildOperationCategory,
+        @Nullable Long estimatedDurationMillis,
+        @Nullable Long estimatedCriticalPathMillis
+    ) {
         super(timestamp, category, LogLevel.LIFECYCLE);
         this.progressOperationId = progressOperationId;
         this.parentProgressOperationId = parentProgressOperationId;
@@ -60,6 +80,8 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
         this.buildOperationStart = buildOperationStart;
         this.buildOperationId = buildOperationId;
         this.buildOperationCategory = buildOperationCategory == null ? BuildOperationCategory.UNCATEGORIZED : buildOperationCategory;
+        this.estimatedDurationMillis = estimatedDurationMillis;
+        this.estimatedCriticalPathMillis = estimatedCriticalPathMillis;
     }
 
     @Nullable
@@ -84,6 +106,22 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
 
     public int getTotalProgress() {
         return totalProgress;
+    }
+
+    /**
+     * The estimated total duration, in milliseconds, of the work of this operation, or null when unknown.
+     */
+    @Nullable
+    public Long getEstimatedDurationMillis() {
+        return estimatedDurationMillis;
+    }
+
+    /**
+     * The estimated duration, in milliseconds, of the longest chain of dependent work starting with the work of this operation, or null when unknown.
+     */
+    @Nullable
+    public Long getEstimatedCriticalPathMillis() {
+        return estimatedCriticalPathMillis;
     }
 
     @Override
@@ -116,7 +154,7 @@ public class ProgressStartEvent extends CategorisedOutputEvent implements org.gr
     }
 
     public ProgressStartEvent withParentProgressOperation(OperationIdentifier parentProgressOperationId) {
-        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getCategory(), description, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, buildOperationCategory);
+        return new ProgressStartEvent(progressOperationId, parentProgressOperationId, getTimestamp(), getCategory(), description, loggingHeader, status, totalProgress, buildOperationStart, buildOperationId, buildOperationCategory, estimatedDurationMillis, estimatedCriticalPathMillis);
     }
 
     @Override
