@@ -103,6 +103,25 @@ This makes it easy to see how far a long-running build has progressed while the 
 
 See the [Rich console](userguide/command_line_interface.html#sec:rich_console) section in the Gradle User Manual for more details.
 
+#### One progress bar for the whole build
+
+The progress bar of the rich console now shows the progress of the whole build.
+Previously, the bar started again at 0% in each build phase, so a build that was almost done could show `0% EXECUTING`.
+
+The bar now counts the projects to configure and the work items to run, such as tasks and artifact transforms, from the start of the build to its end.
+It includes the work of all builds in the build tree, such as `buildSrc`, included builds and plugin builds.
+The name of the current phase stays next to the bar:
+
+```
+│████████████▊··│ 85% EXECUTING [12s]
+```
+
+Gradle finds more work while the build runs. For example, it only knows the tasks to run after the build is configured.
+When Gradle finds more work, the total grows and the bar can move backwards.
+The taskbar progress also shows the progress of the whole build.
+
+See the [Rich console](userguide/command_line_interface.html#sec:rich_console) section in the Gradle User Manual for more details.
+
 #### Predefined problem groups in the Problems API
 
 The incubating [Problems API](userguide/reporting_problems.html#header) now provides a predefined hierarchy of problem groups, available from the `Problems` service as `problems.groups`.
