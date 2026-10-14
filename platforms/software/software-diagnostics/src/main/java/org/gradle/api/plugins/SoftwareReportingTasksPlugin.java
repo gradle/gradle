@@ -71,6 +71,7 @@ public abstract class SoftwareReportingTasksPlugin implements Plugin<Project> {
         tasks.withType(TaskReportTask.class).configureEach(task -> {
             task.getShowTypes().convention(false);
             task.getShowProvenance().convention(false);
+            task.getShowEta().convention(false);
         });
     }
 

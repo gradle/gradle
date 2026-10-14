@@ -16,6 +16,8 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import com.google.common.base.Strings;
+import com.google.common.collect.HashMultiset;
+import com.google.common.collect.Multiset;
 import com.google.common.collect.SetMultimap;
 import com.google.common.collect.TreeMultimap;
 import org.gradle.util.Path;
@@ -50,24 +52,42 @@ public class AggregateMultiProjectTaskReportModel implements TaskReportModel {
     }
 
     public void build() {
+        Multiset<String> taskNameCounts = countTaskNames();
         groups = TreeMultimap.create(String::compareToIgnoreCase, Comparator.comparing(TaskDetails::getPath));
         for (TaskReportModel project : projects) {
             for (String group : project.getGroups()) {
                 if (isVisible(group)) {
                     for (final TaskDetails task : project.getTasksForGroup(group)) {
-                        groups.put(group, mergeTasksWithSameName ? mergedTaskDetails(task) : task);
+                        groups.put(group, mergeTasksWithSameName ? mergedTaskDetails(task, taskNameCounts) : task);
                     }
                 }
             }
         }
     }
 
-    private TaskDetails mergedTaskDetails(TaskDetails task) {
+    /**
+     * Counts task names across all groups, including those not shown, since a merged entry runs every task with its name.
+     */
+    private Multiset<String> countTaskNames() {
+        Multiset<String> counts = HashMultiset.create();
+        for (TaskReportModel project : projects) {
+            for (String group : project.getGroups()) {
+                for (TaskDetails task : project.getTasksForGroup(group)) {
+                    counts.add(task.getPath().getName());
+                }
+            }
+        }
+        return counts;
+    }
+
+    private static TaskDetails mergedTaskDetails(TaskDetails task, Multiset<String> taskNameCounts) {
+        String name = task.getPath().getName();
         return TaskDetails.of(
-            Path.path(task.getPath().getName()),
+            Path.path(name),
             task.getTypeName(),
             task.getDescription(),
-            task.getProvenance()
+            task.getProvenance(),
+            taskNameCounts.count(name) == 1 ? task.getBuildTreePath() : null
         );
     }
 

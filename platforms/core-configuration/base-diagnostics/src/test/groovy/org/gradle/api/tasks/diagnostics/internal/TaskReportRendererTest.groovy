@@ -16,8 +16,13 @@
 
 package org.gradle.api.tasks.diagnostics.internal
 
+import org.gradle.api.internal.tasks.execution.durations.TaskDurationHistory
+import org.gradle.api.internal.tasks.execution.durations.TaskDurations
 import org.gradle.initialization.BuildClientMetaData
 import org.gradle.internal.logging.text.TestStyledTextOutput
+import org.gradle.util.Path
+
+import java.time.Duration
 
 class TaskReportRendererTest extends AbstractTaskModelSpec {
     private final TestStyledTextOutput writer = new TestStyledTextOutput().ignoreStyle()
@@ -150,6 +155,31 @@ Other tasks
         writer.value == '''Tasks
 -----
 :task1
+'''
+    }
+
+    def "writes eta when enabled"() {
+        def history = Stub(TaskDurationHistory) {
+            getDurations(_) >> { Path path -> path == Path.path(":known") ? TaskDurations.of([Duration.ofMillis(1000), Duration.ofMillis(2000)]) : null }
+        }
+        def known = TaskDetails.of(Path.path("known"), "TYPE_NAME", "Known task", null, Path.path(":known"))
+        def unknown = TaskDetails.of(Path.path("unknown"), "TYPE_NAME", null, null, Path.path(":unknown"))
+        def merged = TaskDetails.of(Path.path("merged"), "TYPE_NAME", null, null, null)
+
+        when:
+        renderer.showEta(history)
+        renderer.startTaskGroup('group')
+        renderer.addTask(known)
+        renderer.addTask(unknown)
+        renderer.addTask(merged)
+        renderer.completeTasks()
+
+        then:
+        writer.value == '''Group tasks
+-----------
+known - Known task (ETA: avg 1.500s; last 1.000s, 2.000s)
+unknown (ETA: unknown)
+merged (ETA: multiple tasks)
 '''
     }
 
