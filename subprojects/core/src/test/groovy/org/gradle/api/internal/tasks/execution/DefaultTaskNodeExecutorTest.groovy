@@ -32,6 +32,7 @@ import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.api.internal.tasks.InputChangesAwareTaskAction
 import org.gradle.api.internal.tasks.TaskExecutionOutcome
 import org.gradle.api.internal.tasks.TaskStateInternal
+import org.gradle.api.internal.tasks.execution.durations.ExecutionTimeEstimates
 import org.gradle.api.internal.tasks.properties.TaskProperties
 import org.gradle.api.specs.Spec
 import org.gradle.api.tasks.StopActionException
@@ -161,7 +162,8 @@ class DefaultTaskNodeExecutorTest extends Specification {
         TestFiles.fileCollectionFactory(),
         TestFiles.taskDependencyFactory(),
         Stub(PathToFileResolver),
-        missingTaskDependencyDetector
+        missingTaskDependencyDetector,
+        Mock(ExecutionTimeEstimates)
     )
 
     def doesNothingWhenTaskHasNoActions() {

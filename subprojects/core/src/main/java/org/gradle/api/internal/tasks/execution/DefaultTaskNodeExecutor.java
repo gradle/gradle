@@ -24,6 +24,8 @@ import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskExecutionOutcome;
 import org.gradle.api.internal.tasks.TaskStateInternal;
+import org.gradle.api.internal.tasks.execution.durations.ExecutionTimeEstimate;
+import org.gradle.api.internal.tasks.execution.durations.ExecutionTimeEstimates;
 import org.gradle.api.internal.tasks.properties.LifecycleAwareValue;
 import org.gradle.api.internal.tasks.properties.TaskProperties;
 import org.gradle.api.logging.Logger;
@@ -87,6 +89,7 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
     private final TaskDependencyFactory taskDependencyFactory;
     private final PathToFileResolver fileResolver;
     private final MissingTaskDependencyDetector missingTaskDependencyDetector;
+    private final ExecutionTimeEstimates executionTimeEstimates;
 
     public DefaultTaskNodeExecutor(
         BuildOperationRunner buildOperationRunner,
@@ -107,7 +110,8 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
         FileCollectionFactory fileCollectionFactory,
         TaskDependencyFactory taskDependencyFactory,
         PathToFileResolver fileResolver,
-        MissingTaskDependencyDetector missingTaskDependencyDetector
+        MissingTaskDependencyDetector missingTaskDependencyDetector,
+        ExecutionTimeEstimates executionTimeEstimates
     ) {
         this.taskExecutionListener = taskExecutionListener;
         this.taskListener = taskListener;
@@ -126,6 +130,7 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
         this.taskDependencyFactory = taskDependencyFactory;
         this.fileResolver = fileResolver;
         this.missingTaskDependencyDetector = missingTaskDependencyDetector;
+        this.executionTimeEstimates = executionTimeEstimates;
     }
 
     @Override
@@ -143,11 +148,17 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
             public BuildOperationDescriptor.Builder description() {
                 TaskInternal task = node.getTask();
                 ExecuteTaskBuildOperationDetails taskOperation = new ExecuteTaskBuildOperationDetails(node);
-                return BuildOperationDescriptor.displayName("Task " + task.getIdentityPath())
+                BuildOperationDescriptor.Builder builder = BuildOperationDescriptor.displayName("Task " + task.getIdentityPath())
                     .name(task.getIdentityPath().asString())
                     .progressDisplayName(task.getIdentityPath().asString())
                     .metadata(BuildOperationCategory.TASK)
                     .details(taskOperation);
+                ExecutionTimeEstimate estimate = executionTimeEstimates.estimateTask(task.getTaskIdentity());
+                if (estimate != null) {
+                    builder.estimatedDurationMillis(estimate.getDurationMillis());
+                    builder.estimatedCriticalPathMillis(estimate.getCriticalPathMillis());
+                }
+                return builder;
             }
         });
     }

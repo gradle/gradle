@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.execution.DefaultTaskCacheabilityResolver;
 import org.gradle.api.internal.tasks.execution.DefaultTaskNodeExecutor;
 import org.gradle.api.internal.tasks.execution.TaskCacheabilityResolver;
+import org.gradle.api.internal.tasks.execution.durations.ExecutionTimeEstimates;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.MissingTaskDependencyDetector;
 import org.gradle.execution.plan.TaskNodeExecutor;
@@ -100,7 +101,8 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
         TaskExecutionModeResolver repository,
         ExecutionEngine executionEngine,
         InputFingerprinter inputFingerprinter,
-        MissingTaskDependencyDetector missingTaskDependencyDetector
+        MissingTaskDependencyDetector missingTaskDependencyDetector,
+        ExecutionTimeEstimates executionTimeEstimates
     ) {
         return new DefaultTaskNodeExecutor(
             buildOperationRunner,
@@ -120,7 +122,8 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
             taskDependencyFactory,
             // TODO Can we inject a PathToFileResolver here directly?
             fileOperations.getFileResolver(),
-            missingTaskDependencyDetector
+            missingTaskDependencyDetector,
+            executionTimeEstimates
         );
     }
 

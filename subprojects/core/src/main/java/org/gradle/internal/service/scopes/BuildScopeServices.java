@@ -81,6 +81,7 @@ import org.gradle.api.internal.tasks.DefaultTaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.TaskResolver;
 import org.gradle.api.internal.tasks.TaskStatistics;
+import org.gradle.api.internal.tasks.execution.durations.ExecutionTimeEstimates;
 import org.gradle.api.internal.tasks.options.OptionReader;
 import org.gradle.api.invocation.BuildInvocationDetails;
 import org.gradle.api.model.ObjectFactory;
@@ -296,6 +297,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         registration.add(BuildOutputCleanupRegistry.class, HoldsProjectState.class, DefaultBuildOutputCleanupRegistry.class);
         registration.add(BuildLogicBuilder.class, DefaultBuildLogicBuilder.class);
         registration.add(BuildWorkExecutor.class, DefaultBuildWorkExecutor.class);
+        registration.add(ExecutionTimeEstimates.class);
 
         for (GradleModuleServices services : serviceProviders) {
             services.registerBuildServices(registration);
