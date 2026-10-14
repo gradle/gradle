@@ -93,3 +93,11 @@ A task in the `producer` project (2s) writes a file that a task in the root proj
 Shows the ETA unavailable on every run, even once every task has a recorded duration: the transform of another project's artifact runs as its own step in the plan, and has no recorded duration.
 This is common in real multi-project builds.
 A transform of a file dependency, by contrast, runs inside the task that consumes it, so its time counts as part of that task and the ETA stays available.
+
+### test-build-new-task
+
+6 known tasks (2s each) run in parallel.
+Passing `-PnewTask=<name>` adds a task with that name (2s); use a name that has never run, for example `-PnewTask=new$RANDOM`.
+
+Shows a single task without a recorded duration making the ETA unavailable for the whole build.
+Run without the property first, twice, to see the ETA, then with it.
