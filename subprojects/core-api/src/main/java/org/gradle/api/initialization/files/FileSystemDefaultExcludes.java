@@ -27,7 +27,7 @@ import org.gradle.api.initialization.Settings;
  * in order, on top of Gradle's built-in defaults (entries for common version-control directories such as
  * <code>**&#47;.git</code> and OS metadata such as <code>**&#47;.DS_Store</code>).</p>
  *
- * @since 9.7.0
+ * @since 9.9.0
  */
 @Incubating
 public interface FileSystemDefaultExcludes {
@@ -36,7 +36,7 @@ public interface FileSystemDefaultExcludes {
      * Adds the given patterns to the default excludes, on top of Gradle's built-in defaults.
      *
      * @param patterns the Ant-style patterns to add
-     * @since 9.7.0
+     * @since 9.9.0
      */
     void add(String... patterns);
 
@@ -45,14 +45,14 @@ public interface FileSystemDefaultExcludes {
      * <code>**&#47;.gitignore</code>. Removing a pattern that is not currently present has no effect.
      *
      * @param patterns the Ant-style patterns to remove
-     * @since 9.7.0
+     * @since 9.9.0
      */
     void remove(String... patterns);
 
     /**
      * Removes all default excludes, so that no files are excluded by default.
      *
-     * @since 9.7.0
+     * @since 9.9.0
      */
     void clear();
 }
