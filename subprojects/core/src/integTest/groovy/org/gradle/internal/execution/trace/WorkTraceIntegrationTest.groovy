@@ -98,13 +98,13 @@ class WorkTraceIntegrationTest extends AbstractIntegrationSpec {
         consumer.scheduling.inputDependencies.size() == 1
         consumer.scheduling.inputDependencies[0].property == "sourceFiles"
         consumer.scheduling.inputDependencies[0].tasks == [":producer"]
-        consumer.scheduling.explicitDependsOn == []
+        !consumer.scheduling.containsKey("explicitDependsOn")
 
         and:
         def explicit = tasks[":explicit"]
         explicit.scheduling.requested
         explicit.scheduling.explicitDependsOn == [":consumer"]
-        explicit.scheduling.inputDependencies == []
+        !explicit.scheduling.containsKey("inputDependencies")
         !consumer.scheduling.containsKey("requested")
         !tasks[":producer"].scheduling.containsKey("requested")
         !tasks[":cleanup"].scheduling.containsKey("requested")
@@ -118,7 +118,7 @@ class WorkTraceIntegrationTest extends AbstractIntegrationSpec {
         and: "the producer records its input and output files with project-relative locations"
         def producer = tasks[":producer"]
         producer.implementation == "Producer"
-        producer.inputsCaptured
+        !producer.containsKey("inputsCapturingSkipped")
         producer.inputs*.property == ["source"]
         producer.inputs[0].roots == ["source.txt"]
         producer.outputs.size() == 1
@@ -128,7 +128,7 @@ class WorkTraceIntegrationTest extends AbstractIntegrationSpec {
         producer.outputs[0].files == ["produced.txt"]
 
         and: "the consumer's input root is the producer's output location"
-        consumer.inputsCaptured
+        !consumer.containsKey("inputsCapturingSkipped")
         consumer.inputs*.property == ["sourceFiles"]
         consumer.inputs[0].roots == ["build/produced"]
         consumer.inputs[0].roots == [producer.outputs[0].location]
@@ -141,10 +141,10 @@ class WorkTraceIntegrationTest extends AbstractIntegrationSpec {
         consumer.outputs[0].files == [""]
 
         and: "tasks without outputs are not snapshotted by Gradle, so they have no inputs"
-        !explicit.inputsCaptured
-        explicit.inputs == null
+        explicit.inputsCapturingSkipped == true
+        !explicit.containsKey("inputs")
         !explicit.containsKey("caching")
-        explicit.outputs == []
+        !explicit.containsKey("outputs")
 
         when: "nothing changed"
         def planBefore = planFile.text
@@ -205,11 +205,11 @@ class WorkTraceIntegrationTest extends AbstractIntegrationSpec {
         tasks.keySet().sort() == [":noOutputs", ":noSource", ":untracked"]
 
         and: "each task has a record with its scheduling and declared outputs, but no inputs"
-        tasks.values().every { !it.inputsCaptured && it.inputs == null && it.scheduling != null && it.scheduling.requested }
-        tasks[":noOutputs"].outputs == []
+        tasks.values().every { it.inputsCapturingSkipped == true && !it.containsKey("inputs") && it.scheduling != null && it.scheduling.requested }
+        !tasks[":noOutputs"].containsKey("outputs")
         tasks[":untracked"].outputs[0].location == "build/untracked.txt"
         tasks[":noSource"].outputs[0].location == "build/noSource.txt"
-        tasks[":noSource"].outputs[0].files == []
+        !tasks[":noSource"].outputs[0].containsKey("files")
         !file("build/noSource.txt").exists()
 
         when: "run again"
@@ -486,11 +486,12 @@ class WorkTraceIntegrationTest extends AbstractIntegrationSpec {
             if (!seen.add(current)) {
                 continue
             }
+            // empty arrays are omitted from the trace, so every list may be missing
             def scheduling = tasks[current].scheduling
-            queue.addAll(scheduling.explicitDependsOn)
-            queue.addAll(scheduling.inputDependencies*.tasks.flatten())
+            queue.addAll(scheduling.explicitDependsOn ?: [])
+            queue.addAll((scheduling.inputDependencies ?: [])*.tasks.flatten())
             // finalizers: tasks whose finalizerOf names the current task
-            queue.addAll(tasks.values().findAll { it.scheduling.finalizerOf.contains(current) }*.id)
+            queue.addAll(tasks.values().findAll { (it.scheduling.finalizerOf ?: []).contains(current) }*.id)
         }
         seen
     }

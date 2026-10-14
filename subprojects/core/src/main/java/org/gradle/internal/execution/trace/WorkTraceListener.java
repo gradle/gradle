@@ -176,7 +176,7 @@ class WorkTraceListener implements BuildOperationListener {
         record.put("excludedTaskPaths", buildTreeTaskPathsOf(details.getBuildPath(), result.getExcludedTaskPaths()));
         record.put("tasks", tasks);
         synchronized (pendingPlanLines) {
-            pendingPlanLines.add(JsonOutput.toJson(record));
+            pendingPlanLines.add(toJsonLine(record));
         }
     }
 
@@ -206,7 +206,7 @@ class WorkTraceListener implements BuildOperationListener {
         byte[] hashBytes = result.getHashBytes();
         if (hashBytes == null) {
             // No cache key means no before-execution state: Gradle did not snapshot the inputs of this task
-            // (no outputs, untracked, NO-SOURCE, validation failure); the record then says inputsCaptured: false
+            // (no outputs, untracked, NO-SOURCE, validation failure); the record then says inputsCapturingSkipped: true
             return;
         }
         InputFilePropertyCollector collector = new InputFilePropertyCollector();
@@ -295,9 +295,12 @@ class WorkTraceListener implements BuildOperationListener {
             inputDependencies = inferInputDependenciesFromLocations(node, inputs);
         }
         record.put("scheduling", scheduling(node, inputDependencies));
-        record.put("inputs", inputs == null ? null : inputs.inputFileProperties);
+        if (inputs == null) {
+            record.put("inputsCapturingSkipped", true);
+        } else {
+            record.put("inputs", inputs.inputFileProperties);
+        }
         record.put("outputs", outputs(node, result == null ? null : result.getOutputFileSnapshots()));
-        record.put("inputsCaptured", inputs != null);
         outputRootPathsByTask.put(buildTreeTaskPath, outputRootPaths(node));
         emit(record);
     }
@@ -520,6 +523,41 @@ class WorkTraceListener implements BuildOperationListener {
     }
 
     private void emit(Map<String, Object> record) {
-        workSink.accept(JsonOutput.toJson(record));
+        workSink.accept(toJsonLine(record));
+    }
+
+    /**
+     * Serializes a record as one JSON line, leaving out every array that is empty, at any depth, to keep the files small.
+     * Readers treat a missing array as empty.
+     */
+    private static String toJsonLine(Map<String, Object> record) {
+        return JsonOutput.toJson(withoutEmptyArrays(record));
+    }
+
+    private static final Object OMITTED = new Object();
+
+    @SuppressWarnings("unchecked")
+    private static @Nullable Object withoutEmptyArrays(@Nullable Object value) {
+        if (value instanceof Map) {
+            Map<String, Object> result = new LinkedHashMap<>();
+            for (Map.Entry<String, Object> entry : ((Map<String, Object>) value).entrySet()) {
+                Object element = withoutEmptyArrays(entry.getValue());
+                if (element != OMITTED) {
+                    result.put(entry.getKey(), element);
+                }
+            }
+            return result;
+        }
+        if (value instanceof Collection) {
+            List<Object> result = new ArrayList<>();
+            for (Object element : (Collection<?>) value) {
+                Object converted = withoutEmptyArrays(element);
+                if (converted != OMITTED) {
+                    result.add(converted);
+                }
+            }
+            return result.isEmpty() ? OMITTED : result;
+        }
+        return value;
     }
 }

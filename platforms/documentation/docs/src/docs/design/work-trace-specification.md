@@ -33,7 +33,8 @@ The trace records inputs only when the execution engine fingerprints them. Gradl
 - tasks skipped by `onlyIf` or `enabled = false`.
 
 These tasks still get a `task` record with full `scheduling` data and their declared output locations,
-so scheduling chains through them stay intact, but `inputs` is `null` and their output file lists are empty.
+so scheduling chains through them stay intact, but they carry `inputsCapturingSkipped: true`, no `inputs`,
+and their outputs carry no file lists.
 Consumer queries cannot see them.
 
 (open) Forcing input capture for these tasks when tracing is on. The capture step is gated only on whether
@@ -46,6 +47,13 @@ The directory holds two files, each in JSON Lines format: one JSON object per li
 written as the build progresses. Records are distinguished by `kind`.
 A reader must tolerate a truncated last line (failed or killed build)
 and must ignore unknown fields and unknown kinds.
+
+Empty arrays are omitted: a key whose value would be an empty array is left out, at any depth.
+This applies to edge lists, `excludedTaskPaths`, `inputs`, `outputs`, `roots` and `files` alike.
+A reader treats a missing array as empty. Flags that are normally false are omitted and present only
+with the value `true` (`scheduling.requested`, `inputsCapturingSkipped`).
+
+The records are described formally by the JSON Schema in `work-trace-schema.json` next to this document.
 
 | File | Written when | Contents |
 |---|---|---|
@@ -117,10 +125,7 @@ Output files under a location are listed as `/`-separated paths relative to that
   "tasks": [
     {
       "id": ":app:compileJava",
-      "dependencies": [ ":lib:jar" ],
-      "mustRunAfter": [],
-      "shouldRunAfter": [],
-      "finalizedBy": []
+      "dependencies": [ ":lib:jar" ]
     }
   ]
 }
@@ -144,10 +149,7 @@ Output files under a location are listed as `/`-separated paths relative to that
     "explicitDependsOn": [ ":app:classes" ],
     "inputDependencies": [
       { "property": "classpath", "tasks": [ ":lib:jar" ] }
-    ],
-    "finalizerOf": [],
-    "mustRunAfter": [],
-    "shouldRunAfter": []
+    ]
   },
   "inputs": [
     {
@@ -170,7 +172,6 @@ Output files under a location are listed as `/`-separated paths relative to that
       "files": [ "com/acme/A.class", "com/acme/B.class" ]
     }
   ],
-  "inputsCaptured": true
 }
 ```
 
@@ -193,13 +194,15 @@ Field semantics:
   A root is a location: a file, or a directory whose contents the task consumes.
   Only file and directory inputs are recorded: no individual files under a root, no hashes,
   no normalization or other fingerprinting settings, and no value (non-file) input properties.
-  It is `null` when `inputsCaptured` is false.
-- `inputsCaptured` is false when the engine did not fingerprint the task's inputs; see "Tasks without input
-  snapshots". It is also false for tasks that failed before their inputs were snapshotted.
+  It is absent when the task has no file inputs or when capturing was skipped.
+- `inputsCapturingSkipped` is present, with the value `true`, when the engine did not fingerprint the task's
+  inputs; see "Tasks without input snapshots". It is also present for tasks that failed before their inputs
+  were snapshotted. A record without it has had its inputs captured, even if `inputs` is absent because
+  the task has none.
 - `outputs` lists each declared output property with its location and `type` (`FILE` or `DIRECTORY`).
   `files` lists the regular files under the location, relative to it, as they exist after the task's turn
   in the build: produced by it, kept from a previous build when it was up-to-date, or loaded from the build cache.
-  It is empty when nothing is there, for example after a no-source short circuit or a failure.
+  It is omitted when nothing is there, for example after a no-source short circuit or a failure.
   No hashes are recorded.
 
 ## Answering the use cases

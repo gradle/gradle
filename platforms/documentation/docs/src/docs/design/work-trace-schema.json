@@ -1,0 +1,173 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://gradle.org/schemas/work-trace.json",
+  "title": "Work trace record",
+  "description": "One record of a Gradle work trace. plan.jsonl holds plan records; work.jsonl holds task records. Each file is JSON Lines: one record per line. Empty arrays are omitted at any depth; a missing array means empty. Flags that are normally false are omitted and present only as true.",
+  "oneOf": [
+    { "$ref": "#/$defs/planRecord" },
+    { "$ref": "#/$defs/taskRecord" }
+  ],
+  "$defs": {
+    "buildTreeTaskPath": {
+      "type": "string",
+      "pattern": "^:",
+      "description": "A task identity: the path of the task's build in the build tree joined with the task path, where the root build's ':' collapses. ':app:compileJava' is a task of the root build; ':included:lib:jar' is ':lib:jar' in the included build 'included'."
+    },
+    "buildPath": {
+      "type": "string",
+      "pattern": "^:",
+      "description": "The path of a build in the build tree: ':' for the root build, ':included' for an included build."
+    },
+    "taskList": {
+      "type": "array",
+      "minItems": 1,
+      "uniqueItems": true,
+      "items": { "$ref": "#/$defs/buildTreeTaskPath" }
+    },
+    "location": {
+      "type": "string",
+      "description": "A file or directory. Relative to the root build directory with '/' separators when inside it ('' is the root directory itself); otherwise an absolute path in native form."
+    },
+    "planRecord": {
+      "type": "object",
+      "description": "The task graph of one build in the root work graph, written when the graph is calculated. One per build in the build tree.",
+      "properties": {
+        "kind": { "const": "plan" },
+        "buildPath": { "$ref": "#/$defs/buildPath" },
+        "requestedTaskPaths": {
+          "$ref": "#/$defs/taskList",
+          "description": "The tasks of this build that were requested on the command line or are default tasks."
+        },
+        "excludedTaskPaths": {
+          "$ref": "#/$defs/taskList",
+          "description": "Tasks of this build excluded with -x. They have no task record and are not in 'tasks'; an edge naming one of them is a leaf."
+        },
+        "tasks": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/plannedTask" },
+          "description": "Every task of this build that was scheduled, whether or not it later ran. Sorted by id."
+        }
+      },
+      "required": [ "kind", "buildPath" ],
+      "additionalProperties": false
+    },
+    "plannedTask": {
+      "type": "object",
+      "properties": {
+        "id": { "$ref": "#/$defs/buildTreeTaskPath" },
+        "dependencies": {
+          "$ref": "#/$defs/taskList",
+          "description": "Explicit and input-inferred dependencies merged; the task record splits them by kind."
+        },
+        "mustRunAfter": { "$ref": "#/$defs/taskList" },
+        "shouldRunAfter": { "$ref": "#/$defs/taskList" },
+        "finalizedBy": { "$ref": "#/$defs/taskList" }
+      },
+      "required": [ "id" ],
+      "additionalProperties": false
+    },
+    "taskRecord": {
+      "type": "object",
+      "description": "One task that reached execution in the root work graph.",
+      "properties": {
+        "kind": { "const": "task" },
+        "id": { "$ref": "#/$defs/buildTreeTaskPath" },
+        "implementation": {
+          "type": "string",
+          "description": "Fully qualified name of the task class."
+        },
+        "scheduling": { "$ref": "#/$defs/scheduling" },
+        "inputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/inputProperty" },
+          "description": "Input file properties with their roots. Omitted when the task has no file inputs or when inputsCapturingSkipped is present."
+        },
+        "outputs": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/outputProperty" },
+          "description": "Declared output properties."
+        },
+        "inputsCapturingSkipped": {
+          "const": true,
+          "description": "Present only when the execution engine did not fingerprint the task's inputs; 'inputs' is then absent."
+        }
+      },
+      "required": [ "kind", "id", "implementation", "scheduling" ],
+      "additionalProperties": false
+    },
+    "scheduling": {
+      "type": "object",
+      "description": "Why the task is in the graph. A task is scheduled through a chain of explicitDependsOn, inputDependencies and finalizerOf edges from a requested task; the ordering constraints never cause scheduling.",
+      "properties": {
+        "requested": {
+          "const": true,
+          "description": "Present only for tasks requested on the command line or default tasks."
+        },
+        "explicitDependsOn": {
+          "$ref": "#/$defs/taskList",
+          "description": "Edges declared with dependsOn or by task dependency objects that are not input file properties."
+        },
+        "inputDependencies": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/inputDependency" },
+          "description": "Per input file property, the tasks that build its files."
+        },
+        "inputDependenciesError": {
+          "type": "string",
+          "description": "Present when the input dependencies could not be resolved; explains why."
+        },
+        "finalizerOf": {
+          "$ref": "#/$defs/taskList",
+          "description": "Tasks this task finalizes."
+        },
+        "mustRunAfter": { "$ref": "#/$defs/taskList" },
+        "shouldRunAfter": { "$ref": "#/$defs/taskList" }
+      },
+      "additionalProperties": false
+    },
+    "inputDependency": {
+      "type": "object",
+      "properties": {
+        "property": { "type": "string" },
+        "tasks": { "$ref": "#/$defs/taskList" }
+      },
+      "required": [ "property", "tasks" ],
+      "additionalProperties": false
+    },
+    "inputProperty": {
+      "type": "object",
+      "properties": {
+        "property": { "type": "string" },
+        "roots": {
+          "type": "array",
+          "minItems": 1,
+          "items": { "$ref": "#/$defs/location" },
+          "description": "The property's root files and directories. Files under a directory root are not listed."
+        }
+      },
+      "required": [ "property" ],
+      "additionalProperties": false
+    },
+    "outputProperty": {
+      "type": "object",
+      "properties": {
+        "property": { "type": "string" },
+        "type": { "enum": [ "FILE", "DIRECTORY" ] },
+        "location": { "$ref": "#/$defs/location" },
+        "files": {
+          "type": "array",
+          "minItems": 1,
+          "uniqueItems": true,
+          "items": { "type": "string" },
+          "description": "Regular files under the location, relative to it with '/' separators, as they exist after the task's turn in the build. '' means the location itself is the file. Omitted when nothing is there."
+        }
+      },
+      "required": [ "property", "type", "location" ],
+      "additionalProperties": false
+    }
+  }
+}
