@@ -169,6 +169,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         checkIsManagedThread();
         final BuildOperationRef currentBuildOperation = buildOperationRunner.getCurrentOperation();
         WorkItemExecution execution = new WorkItemExecution(spec.getDisplayName(), () -> {
+            outputEventListener.onOutput(new WorkItemProgressEvent(WorkItemProgressEvent.Kind.STARTED, 1));
             boolean success = false;
             try {
                 BuildOperationAwareWorker worker = workerFactory.getWorker(workerRequirement);

@@ -562,6 +562,36 @@ class BuildStatusRendererTest extends OutputSpecification {
         statusBar.display == '[####################..........]> EXECUTING  0 running, 1 queued   [0ms]'
     }
 
+    def "counts started work items as running"() {
+        given:
+        renderer.onOutput(startRootBuildOperation(1))
+        renderer.onOutput(startExecuteRootBuild(2, 1, 1))
+        renderer.onOutput(startExecuteTask(3, 2))
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUBMITTED, 3))
+
+        when:
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.STARTED, 2))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[======================........]> EXECUTING  3 running, 1 queued   [0ms]'
+
+        when:
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUCCEEDED))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[#######===============........]> EXECUTING  2 running, 1 queued   [0ms]'
+
+        when:
+        // Items that never started can complete, for example when a test task ends
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUCCEEDED, 2))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[#####################=======..]> EXECUTING  1 running, 0 queued   [0ms]'
+    }
+
     def "counts batches of work items"() {
         given:
         renderer.onOutput(startRootBuildOperation(1))
@@ -621,6 +651,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         when:
         renderer.onOutput(startRootBuildOperation(10))
         renderer.onOutput(startExecuteRootBuild(11, 10, 1))
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.STARTED))
         renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUCCEEDED))
         renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUCCEEDED))
         renderer.onOutput(updateNow())

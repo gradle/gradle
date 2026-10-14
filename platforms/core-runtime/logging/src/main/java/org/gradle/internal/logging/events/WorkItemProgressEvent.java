@@ -19,12 +19,12 @@ package org.gradle.internal.logging.events;
 import org.gradle.api.logging.LogLevel;
 
 /**
- * Reports the submission or completion of work items, each of which counts as a unit of build progress.
+ * Reports the submission, start or completion of work items, each of which counts as a unit of build progress.
  */
 public class WorkItemProgressEvent extends OutputEvent {
 
     public enum Kind {
-        SUBMITTED, SUCCEEDED, FAILED
+        SUBMITTED, STARTED, SUCCEEDED, FAILED
     }
 
     private final Kind kind;

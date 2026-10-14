@@ -37,7 +37,7 @@ class JUnitJupiterTestProgressIntegrationTest extends AbstractTestingMultiVersio
         generator = new JvmBlockingTestClassGenerator(testDirectory, server, testFrameworkImports, testFrameworkDependencies, configureTestFramework)
     }
 
-    def "discovered tests lower the execution progress, which rises as tests complete"() {
+    def "counts discovered tests as queued and running tests as running"() {
         given:
         executer.withConsole(ConsoleOutput.Rich)
         buildFile.text = generator.initBuildFile(1)
@@ -49,24 +49,24 @@ class JUnitJupiterTestProgressIntegrationTest extends AbstractTestingMultiVersio
         testExecution.waitForAllPendingCalls()
 
         then:
-        ConcurrentTestUtil.poll {
-            def percentages = executingPercentages(gradle)
-            assert percentages.last() < percentages.max()
-        }
+        // The test task and the first test run, the other discovered tests are queued
+        assertLastExecutingCounts(gradle, "EXECUTING ▶ 2 … 2")
 
         when:
-        int afterDiscovery = executingPercentages(gradle).last()
         testExecution.release(1)
         testExecution.waitForAllPendingCalls()
 
         then:
-        ConcurrentTestUtil.poll {
-            assert executingPercentages(gradle).last() > afterDiscovery
-        }
+        assertLastExecutingCounts(gradle, "EXECUTING ▶ 2 … 1")
 
         when:
         testExecution.release(1)
         testExecution.waitForAllPendingCalls()
+
+        then:
+        assertLastExecutingCounts(gradle, "EXECUTING ▶ 2 … 0")
+
+        when:
         testExecution.release(1)
         gradle.waitForFinish()
 
@@ -74,7 +74,12 @@ class JUnitJupiterTestProgressIntegrationTest extends AbstractTestingMultiVersio
         !gradle.standardOutput.contains("More progress was logged than there should be")
     }
 
-    private static List<Integer> executingPercentages(GradleHandle gradle) {
-        gradle.standardOutput.findAll(/(\d+)% EXECUTING/) { String match, String percentage -> percentage as int }
+    private static void assertLastExecutingCounts(GradleHandle gradle, String expected) {
+        ConcurrentTestUtil.poll {
+            def plain = gradle.standardOutput.replaceAll(/\u001B\[[0-9;?]*[A-Za-z]|\u001B\][^\u0007]*\u0007/, '')
+            def counts = plain.findAll(/EXECUTING\s+▶\s+[\d,]+\s+…\s+[\d,]+/)
+            assert !counts.empty
+            assert counts.last().replaceAll(/\s+/, ' ') == expected
+        }
     }
 }

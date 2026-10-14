@@ -59,6 +59,7 @@ public class BuildStatusRenderer implements OutputEventListener {
     private int expectedProjects;
     private int configuredProjects;
     private int pendingWorkItems;
+    private int startedWorkItems;
     private long currentTimePeriod;
 
     // What actually shows up on the console
@@ -121,7 +122,7 @@ public class BuildStatusRenderer implements OutputEventListener {
 
     private void renderNow(long now) {
         if (progressBar != null) {
-            progressBar.setRunning(configuringProjects.size() + runningWorkItems.size());
+            progressBar.setRunning(configuringProjects.size() + runningWorkItems.size() + startedWorkItems);
             buildStatusLabel.setText(progressBar.formatProgress(timerEnabled, now - buildStartTimestamp));
         }
         console.flush();
@@ -204,10 +205,14 @@ public class BuildStatusRenderer implements OutputEventListener {
         if (event.getKind() == WorkItemProgressEvent.Kind.SUBMITTED) {
             pendingWorkItems += event.getCount();
             addToTotal(event.getCount());
+        } else if (event.getKind() == WorkItemProgressEvent.Kind.STARTED) {
+            startedWorkItems = Math.min(startedWorkItems + event.getCount(), pendingWorkItems);
         } else {
             // Items submitted before this build started were never added to the total
             int completed = Math.min(event.getCount(), pendingWorkItems);
             pendingWorkItems -= completed;
+            // Events only carry counts, so assume the completed items are the started ones
+            startedWorkItems = Math.max(0, startedWorkItems - completed);
             boolean failed = event.getKind() == WorkItemProgressEvent.Kind.FAILED;
             for (int i = 0; i < completed; i++) {
                 progressBar.update(failed);
@@ -221,6 +226,7 @@ public class BuildStatusRenderer implements OutputEventListener {
         expectedProjects = 0;
         configuredProjects = 0;
         pendingWorkItems = 0;
+        startedWorkItems = 0;
     }
 
     private void buildEnded() {

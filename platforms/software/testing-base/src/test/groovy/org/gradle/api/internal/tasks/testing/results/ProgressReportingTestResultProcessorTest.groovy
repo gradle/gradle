@@ -33,7 +33,7 @@ class ProgressReportingTestResultProcessorTest extends Specification {
     def events = []
     def processor = new ProgressReportingTestResultProcessor(delegate, { WorkItemProgressEvent event -> events << "${event.kind} ${event.count}".toString() } as OutputEventListener)
 
-    def "reports discovered tests up front and completes them as they finish"() {
+    def "reports discovered tests up front, then starts and completes them as they run"() {
         when:
         processor.discovered(new TestDiscoveryEvent(2))
         processor.started(suite("suite"), new TestStartEvent(0))
@@ -43,7 +43,7 @@ class ProgressReportingTestResultProcessorTest extends Specification {
         processor.settle()
 
         then:
-        events == ["SUBMITTED 2", "SUCCEEDED 1", "SUCCEEDED 1"]
+        events == ["SUBMITTED 2", "STARTED 1", "SUCCEEDED 1", "STARTED 1", "SUCCEEDED 1"]
     }
 
     def "reports tests that start without being discovered"() {
@@ -54,7 +54,7 @@ class ProgressReportingTestResultProcessorTest extends Specification {
         processor.settle()
 
         then:
-        events == ["SUBMITTED 1", "SUCCEEDED 1", "SUBMITTED 1", "SUCCEEDED 1"]
+        events == ["SUBMITTED 1", "STARTED 1", "SUCCEEDED 1", "SUBMITTED 1", "STARTED 1", "SUCCEEDED 1"]
     }
 
     def "reports failed tests as failed and assumption failures as succeeded"() {
@@ -63,7 +63,7 @@ class ProgressReportingTestResultProcessorTest extends Specification {
         run("skipped", DefaultTestFailure.fromTestAssumptionFailure(new RuntimeException()))
 
         then:
-        events == ["SUBMITTED 1", "FAILED 1", "SUBMITTED 1", "SUCCEEDED 1"]
+        events == ["SUBMITTED 1", "STARTED 1", "FAILED 1", "SUBMITTED 1", "STARTED 1", "SUCCEEDED 1"]
     }
 
     def "settles discovered tests that never complete"() {
@@ -73,7 +73,7 @@ class ProgressReportingTestResultProcessorTest extends Specification {
         processor.settle()
 
         then:
-        events == ["SUBMITTED 3", "SUCCEEDED 3"]
+        events == ["SUBMITTED 3", "STARTED 1", "SUCCEEDED 3"]
     }
 
     def "forwards all events to the delegate"() {

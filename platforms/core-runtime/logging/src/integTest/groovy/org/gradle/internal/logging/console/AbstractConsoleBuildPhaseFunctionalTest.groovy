@@ -560,7 +560,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         """
     }
 
-    def "shows progress bar and percent phase completion with work items"() {
+    def "shows phase and counts with work items"() {
         buildFile << """
             interface BlockingParams extends WorkParameters {
                 Property<String> getItemName()
@@ -604,25 +604,26 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         expect:
         items.waitForAllPendingCalls()
-        assertHasBuildPhase("0% EXECUTING")
+        // The submitting task runs until its work items are done
+        assertHasBuildPhase("EXECUTING ▶ 4 … 1")
         items.release('item1')
 
         and:
-        assertHasBuildPhase("20% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 3 … 1")
         items.release('item2')
 
         and:
-        assertHasBuildPhase("40% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 2 … 1")
         items.release('item3')
 
         and:
         task2.waitForAllPendingCalls()
-        assertHasBuildPhase("80% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 1 … 0")
         task2.releaseAll()
 
         and:
         buildFinished.waitForAllPendingCalls()
-        assertHasBuildPhase("100% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 0 … 0")
         buildFinished.releaseAll()
 
         and:

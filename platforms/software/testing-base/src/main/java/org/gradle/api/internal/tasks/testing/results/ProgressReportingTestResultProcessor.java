@@ -34,6 +34,7 @@ import java.util.Set;
 /**
  * Reports each test as a unit of build progress. Discovered tests are reported up front, tests that start without
  * having been discovered are reported when they start, and units still outstanding are settled by {@link #settle()}.
+ * Each test is also reported when it starts, so it shows as running.
  */
 public class ProgressReportingTestResultProcessor implements TestResultProcessor {
     private final TestResultProcessor delegate;
@@ -68,6 +69,7 @@ public class ProgressReportingTestResultProcessor implements TestResultProcessor
                 } else {
                     submit(1);
                 }
+                outputEventListener.onOutput(new WorkItemProgressEvent(WorkItemProgressEvent.Kind.STARTED, 1));
             }
         }
         delegate.started(test, event);

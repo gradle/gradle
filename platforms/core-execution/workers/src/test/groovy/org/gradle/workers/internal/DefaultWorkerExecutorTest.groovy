@@ -207,7 +207,7 @@ class DefaultWorkerExecutorTest extends Specification {
         }
     }
 
-    def "reports work item progress when work completes with #outcome"() {
+    def "reports work item progress when work starts and completes with #outcome"() {
         when:
         workerExecutor.noIsolation().submit(TestExecutable.class, Actions.doNothing())
 
@@ -221,6 +221,9 @@ class DefaultWorkerExecutorTest extends Specification {
 
         when:
         task.getExecution().run()
+
+        then:
+        1 * outputEventListener.onOutput({ it.kind == WorkItemProgressEvent.Kind.STARTED })
 
         then:
         1 * noIsolationWorkerFactory.getWorker(_) >> worker
@@ -245,6 +248,9 @@ class DefaultWorkerExecutorTest extends Specification {
 
         when:
         task.getExecution().run()
+
+        then:
+        1 * outputEventListener.onOutput({ it.kind == WorkItemProgressEvent.Kind.STARTED })
 
         then:
         1 * noIsolationWorkerFactory.getWorker(_) >> { throw new RuntimeException("boom") }
