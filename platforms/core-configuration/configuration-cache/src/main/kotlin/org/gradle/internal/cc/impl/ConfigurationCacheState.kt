@@ -304,7 +304,7 @@ class ConfigurationCacheState(
 
     private
     fun calculateRootTaskGraph(builds: List<CachedBuildState>, graph: BuildTreeWorkGraph, graphBuilder: BuildTreeWorkGraphBuilder?): BuildTreeWorkGraph.FinalizedGraph {
-        return graph.scheduleWork { builder ->
+        return graph.scheduleWork(0) { builder ->
 
             graphBuilder?.invoke(builder, rootBuildState())
 

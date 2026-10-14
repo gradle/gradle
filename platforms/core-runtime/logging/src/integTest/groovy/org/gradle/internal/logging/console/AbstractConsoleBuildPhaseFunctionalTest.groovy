@@ -19,6 +19,7 @@ package org.gradle.internal.logging.console
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.flow.FlowActionsFixture
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -92,17 +93,17 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         bBuildScript.waitForAllPendingCalls()
-        assertHasBuildPhase("40% CONFIGURING")
+        assertHasBuildPhase(GradleContextualExecuter.isConfigCache() ? "25% CONFIGURING" : "33% CONFIGURING")
         bBuildScript.releaseAll()
 
         and:
         bAfterEvaluate.waitForAllPendingCalls()
-        assertHasBuildPhase("40% CONFIGURING")
+        assertHasBuildPhase(GradleContextualExecuter.isConfigCache() ? "25% CONFIGURING" : "33% CONFIGURING")
         bAfterEvaluate.releaseAll()
 
         and:
         taskGraph.waitForAllPendingCalls()
-        assertHasBuildPhase("100% CONFIGURING")
+        assertHasBuildPhase(GradleContextualExecuter.isConfigCache() ? "62% CONFIGURING" : "83% CONFIGURING")
         taskGraph.releaseAll()
 
         and:
@@ -180,12 +181,12 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         rootBuildScript.waitForAllPendingCalls()
-        assertHasBuildPhase("75% CONFIGURING")
+        assertHasBuildPhase(GradleContextualExecuter.isConfigCache() ? "42% CONFIGURING" : "60% CONFIGURING")
         rootBuildScript.releaseAll()
 
         and:
         childTaskGraph.waitForAllPendingCalls()
-        assertHasBuildPhase("100% CONFIGURING")
+        assertHasBuildPhase(GradleContextualExecuter.isConfigCache() ? "57% CONFIGURING" : "80% CONFIGURING")
         childTaskGraph.releaseAll()
 
         and:
@@ -270,7 +271,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         rootBuildScript.waitForAllPendingCalls()
-        assertHasBuildPhase("75% CONFIGURING")
+        assertHasBuildPhase(GradleContextualExecuter.isConfigCache() ? "50% CONFIGURING" : "66% CONFIGURING")
         rootBuildScript.releaseAll()
 
         and:
