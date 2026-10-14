@@ -35,11 +35,18 @@ import java.util.function.Consumer;
  */
 public interface BuildTreeWorkGraph {
     /**
+     * Equivalent to {@link #scheduleWork(int, Consumer)} with a {@code totalProgress} of 1.
+     */
+    default FinalizedGraph scheduleWork(Consumer<? super Builder> action) {
+        return scheduleWork(1, action);
+    }
+
+    /**
      * Schedules work using the given action and then prepares this work graphs for execution. Does not run any work until {@link FinalizedGraph#runWork()} is called.
      *
      * <p>This can be called only once for a given graph.</p>
      */
-    FinalizedGraph scheduleWork(Consumer<? super Builder> action);
+    FinalizedGraph scheduleWork(int totalProgress, Consumer<? super Builder> action);
 
     interface FinalizedGraph {
         /**

@@ -16,6 +16,7 @@
 
 package org.gradle.tooling.internal.provider.runner;
 
+import org.gradle.initialization.ConfigureBuildBuildOperationType;
 import org.gradle.internal.build.event.types.AbstractOperationResult;
 import org.gradle.internal.build.event.types.DefaultBuildPhaseDescriptor;
 import org.gradle.internal.build.event.types.DefaultFailure;
@@ -78,7 +79,15 @@ public class BuildPhaseOperationListener implements BuildOperationListener {
         String name = buildOperation.getName();
         String displayName = "Build phase: " + buildOperation.getDisplayName();
         String buildPhase = buildOperation.getMetadata().toString();
-        return new DefaultBuildPhaseDescriptor(operationId, name, displayName, parent, buildPhase, buildOperation.getTotalProgress());
+        return new DefaultBuildPhaseDescriptor(operationId, name, displayName, parent, buildPhase, buildItemsCount(buildOperation));
+    }
+
+    private static int buildItemsCount(BuildOperationDescriptor buildOperation) {
+        Object details = buildOperation.getDetails();
+        if (details instanceof ConfigureBuildBuildOperationType.Details) {
+            return ((ConfigureBuildBuildOperationType.Details) details).getProjectCount();
+        }
+        return buildOperation.getTotalProgress();
     }
 
     @Override

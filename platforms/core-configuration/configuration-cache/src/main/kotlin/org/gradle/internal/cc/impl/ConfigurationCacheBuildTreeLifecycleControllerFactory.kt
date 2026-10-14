@@ -26,6 +26,7 @@ import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeLifecycleControllerFactory
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
 import org.gradle.internal.buildtree.DefaultBuildTreeLifecycleController
+import org.gradle.internal.buildtree.RootBuildConfigurationProgressHelper
 import org.gradle.internal.cc.impl.services.DefaultDeferredRootBuildGradle
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -37,6 +38,7 @@ class ConfigurationCacheBuildTreeLifecycleControllerFactory internal constructor
     private val buildModelParameters: BuildModelParameters,
     buildOperationExecutor: BuildOperationExecutor,
     private val cache: BuildTreeConfigurationCache,
+    private val rootBuildConfigurationProgressHelper: RootBuildConfigurationProgressHelper,
     private val taskGraph: BuildTreeWorkGraphController,
     private val stateTransitionControllerFactory: StateTransitionControllerFactory,
     private val startParameter: StartParameterInternal,
@@ -77,7 +79,7 @@ class ConfigurationCacheBuildTreeLifecycleControllerFactory internal constructor
             return vintageFactory.createController(targetBuild, workExecutor, finishExecutor)
         }
 
-        val workPreparer = vintageFactory.createWorkPreparer(targetBuild)
+        val workPreparer = vintageFactory.createWorkPreparer(targetBuild, rootBuildConfigurationProgressHelper.isWorkGraphCounted)
         val workController = ConfigurationCacheAwareBuildTreeWorkController(
             workPreparer,
             workExecutor,
