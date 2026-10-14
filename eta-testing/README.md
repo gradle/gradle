@@ -22,6 +22,7 @@ cd eta-testing/<scenario>
 The first run of a scenario shows `ESTIMATE UNAVAILABLE`, because no task has a recorded duration yet.
 Run it again to see the estimate.
 Each task keeps up to its 3 most recent durations, in `.gradle/task-durations.txt`; delete that file to start over.
+Run `./clear-history.sh` to delete the history of every scenario.
 
 Two options simulate Develocity:
 
