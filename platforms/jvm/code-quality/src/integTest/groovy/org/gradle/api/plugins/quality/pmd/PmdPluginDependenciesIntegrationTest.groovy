@@ -16,8 +16,11 @@
 
 package org.gradle.api.plugins.quality.pmd
 
+import org.gradle.api.plugins.quality.PmdPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.fixtures.Flaky
+
+import static org.hamcrest.CoreMatchers.containsString
 
 class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -64,6 +67,22 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
         and:
         succeeds("dependencies", "--configuration", "pmd")
         output.contains "$testDependency"
+    }
+
+    def "runs PMD 7 without the PMD Ant task"() {
+        given:
+        buildFile << """
+            dependencies {
+                pmd "net.sourceforge.pmd:pmd-java:${PmdPlugin.DEFAULT_PMD_VERSION}"
+            }
+        """.stripIndent()
+
+        when:
+        fails("pmdTest")
+
+        then:
+        failure.assertThatCause(containsString("PMD rule violations were found."))
+        file("build/reports/pmd/test.xml").assertContents(containsString("Class1Test"))
     }
 
     @Flaky(because = "https://github.com/gradle/gradle-private/issues/4688")

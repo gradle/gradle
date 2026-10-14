@@ -120,7 +120,6 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
 
     private void setupParameters(PmdActionParameters parameters, @Nullable String pmdVersion) {
         parameters.getPmdVersion().set(pmdVersion);
-        parameters.getAntLibraryClasspath().setFrom(getPmdClasspath());
         parameters.getPmdClasspath().setFrom(getPmdClasspath());
         parameters.getTargetJdk().set(DeprecationLogger.whileDisabled(this::getTargetJdk));
         parameters.getRuleSets().set(getRuleSets());

@@ -404,6 +404,63 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         output.contains("PMD rule violations were found")
     }
 
+    def "suppressed violations are not reported"() {
+        goodCode()
+        file("src/main/java/org/gradle/Suppressed.java") <<
+            "package org.gradle; class Suppressed { public boolean equals(Object arg) { return !!true; } } // NOPMD"
+
+        expect:
+        expectPmdDeprecationIfLegacy()
+        succeeds("pmdMain")
+        file("build/reports/pmd/main.xml")
+            .assertContents(not(containsString("suppressedviolation")))
+            .assertContents(not(containsString("OverrideBothEqualsAndHashcode")))
+    }
+
+    def "fails when no rule sets are configured"() {
+        goodCode()
+        buildFile << """
+            pmd {
+                ruleSets = []
+            }
+        """
+
+        expect:
+        expectPmdDeprecationIfLegacy()
+        fails("pmdMain")
+        failure.assertThatCause(containsString("No rulesets specified"))
+    }
+
+    def "logs violations at info level when no report and no console output is enabled"() {
+        badCode()
+        buildFile << """
+            pmd {
+                ignoreFailures = true
+            }
+            pmdTest {
+                reports {
+                    html.required = false
+                    xml.required = false
+                }
+            }
+        """
+
+        when:
+        expectPmdDeprecationIfLegacy()
+        succeeds("pmdTest")
+
+        then:
+        !output.contains("Using multiple unary operators may be a bug")
+
+        when:
+        expectPmdDeprecationIfLegacy()
+        succeeds("pmdTest", "--rerun", "--info")
+
+        then:
+        outputContains("Using multiple unary operators may be a bug")
+        outputContains("2 PMD rule violations were found.")
+    }
+
     private static Matcher<String> containsClass(String className) {
         containsLine(containsString(className.replace(".", File.separator)))
     }
