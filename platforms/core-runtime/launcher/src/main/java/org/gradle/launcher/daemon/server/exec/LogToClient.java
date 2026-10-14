@@ -24,6 +24,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
+import org.gradle.internal.logging.events.WorkItemProgressEvent;
 import org.gradle.launcher.daemon.diagnostics.DaemonDiagnostics;
 import org.gradle.launcher.daemon.logging.DaemonMessages;
 import org.gradle.launcher.daemon.protocol.Build;
@@ -85,7 +86,7 @@ public class LogToClient extends BuildCommandOnly {
                     }
                 }
                 private boolean isProgressEvent(OutputEvent event) {
-                    return event instanceof ProgressStartEvent || event instanceof ProgressEvent || event instanceof ProgressCompleteEvent;
+                    return event instanceof ProgressStartEvent || event instanceof ProgressEvent || event instanceof ProgressCompleteEvent || event instanceof WorkItemProgressEvent;
                 }
                 private boolean isMatchingBuildLogLevel(OutputEvent event) {
                     return buildLogLevel != null && event.getLogLevel() != null && event.getLogLevel().compareTo(buildLogLevel) >= 0;

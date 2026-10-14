@@ -560,6 +560,75 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         """
     }
 
+    def "shows progress bar and percent phase completion with work items"() {
+        buildFile << """
+            interface BlockingParams extends WorkParameters {
+                Property<String> getItemName()
+            }
+
+            abstract class BlockingAction implements WorkAction<BlockingParams> {
+                @Override
+                void execute() {
+                    ${server.callFromBuildUsingExpression('parameters.itemName.get()')}
+                }
+            }
+
+            abstract class SubmittingTask extends DefaultTask {
+                @Inject
+                abstract WorkerExecutor getWorkerExecutor()
+
+                @TaskAction
+                void submit() {
+                    def queue = workerExecutor.noIsolation()
+                    ['item1', 'item2', 'item3'].each { name ->
+                        queue.submit(BlockingAction) { it.itemName = name }
+                    }
+                }
+            }
+
+            task work(type: SubmittingTask)
+            task hello2 {
+                dependsOn work
+                doFirst {
+                    ${server.callFromBuild('task2')}
+                }
+            }
+            ${buildFinishedCall('build-finished')}
+        """
+
+        given:
+        def items = server.expectConcurrentAndBlock('item1', 'item2', 'item3')
+        def task2 = server.expectAndBlock('task2')
+        def buildFinished = server.expectAndBlock('build-finished')
+        gradle = executer.withTasks("hello2").withArgument("--max-workers=4").start()
+
+        expect:
+        items.waitForAllPendingCalls()
+        assertHasBuildPhase("0% EXECUTING")
+        items.release('item1')
+
+        and:
+        assertHasBuildPhase("20% EXECUTING")
+        items.release('item2')
+
+        and:
+        assertHasBuildPhase("40% EXECUTING")
+        items.release('item3')
+
+        and:
+        task2.waitForAllPendingCalls()
+        assertHasBuildPhase("80% EXECUTING")
+        task2.releaseAll()
+
+        and:
+        buildFinished.waitForAllPendingCalls()
+        assertHasBuildPhase("100% EXECUTING")
+        buildFinished.releaseAll()
+
+        and:
+        waitForFinish()
+    }
+
     void assertHasBuildPhase(String message) {
         int drawnBefore = RenderedBuildStatus.all(gradle.standardOutput).size()
         ConcurrentTestUtil.poll {

@@ -23,6 +23,7 @@ import org.gradle.internal.Actions
 import org.gradle.internal.Factory
 import org.gradle.internal.classpath.CachedClasspathTransformer
 import org.gradle.internal.exceptions.DefaultMultiCauseException
+import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.AsyncWorkTracker
@@ -66,6 +67,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
     def instantiator = Mock(Instantiator)
     def projectCacheDir = Mock(ProjectCacheDir)
     def classpathTransformer = Mock(CachedClasspathTransformer)
+    def outputEventListener = Mock(OutputEventListener)
     DefaultWorkerExecutor workerExecutor
 
     def setup() {
@@ -76,7 +78,7 @@ class DefaultWorkerExecutorParallelTest extends ConcurrentSpec {
         _ * instantiator.newInstance(DefaultWorkerExecutor.DefaultWorkQueue, _, _, _) >> { args -> new DefaultWorkerExecutor.DefaultWorkQueue(args[1][0], args[1][1], args[1][2]) }
         _ * classpathTransformer.copyingTransform(_) >> { args -> args[0] }
         _ * projectCacheDir.getDir() >> temporaryFolder
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, workerThreadRegistry, buildOperationRunner, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, classpathTransformer, temporaryFolder, projectCacheDir)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, workerInProcessFactory, workerNoIsolationFactory, forkOptionsFactory, workerThreadRegistry, buildOperationRunner, asyncWorkerTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, classpathTransformer, temporaryFolder, projectCacheDir, outputEventListener)
         _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
 

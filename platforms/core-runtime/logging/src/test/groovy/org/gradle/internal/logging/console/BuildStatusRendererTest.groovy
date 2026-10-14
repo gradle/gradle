@@ -20,6 +20,7 @@ import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.events.UpdateNowEvent
+import org.gradle.internal.logging.events.WorkItemProgressEvent
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.OperationIdentifier
@@ -523,6 +524,89 @@ class BuildStatusRendererTest extends OutputSpecification {
 
         then:
         statusBar.display == '[..............................] WAITING'
+    }
+
+    def "counts submitted work items in execution phase"() {
+        given:
+        renderer.onOutput(startRootBuildOperation(1))
+        renderer.onOutput(startExecuteRootBuild(2, 1, 2))
+        renderer.onOutput(startExecuteTask(3, 2))
+
+        when:
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUBMITTED))
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUBMITTED))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[...............] 0% EXECUTING [0ms]'
+
+        when:
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUCCEEDED))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[###............] 25% EXECUTING [0ms]'
+
+        when:
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.FAILED))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[#######........] 50% EXECUTING [0ms]'
+
+        when:
+        renderer.onOutput(complete(3))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[###########....] 75% EXECUTING [0ms]'
+    }
+
+    def "counts batches of work items"() {
+        given:
+        renderer.onOutput(startRootBuildOperation(1))
+        renderer.onOutput(startExecuteRootBuild(2, 1, 0))
+
+        when:
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUBMITTED, 4))
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUCCEEDED, 2))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[#######........] 50% EXECUTING [0ms]'
+
+        when:
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUCCEEDED, 5))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[###############] 100% EXECUTING [0ms]'
+    }
+
+    def "ignores work items outside execution phase"() {
+        given:
+        renderer.onOutput(startRootBuildOperation(1))
+        renderer.onOutput(startConfigureRootBuild(2, 1, 2))
+
+        when:
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUBMITTED))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[...............] 0% CONFIGURING [0ms]'
+
+        when:
+        renderer.onOutput(complete(2))
+        renderer.onOutput(startExecuteRootBuild(3, 1, 1))
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUCCEEDED))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[...............] 0% EXECUTING [0ms]'
+    }
+
+    def workItem(WorkItemProgressEvent.Kind kind, int count = 1) {
+        new WorkItemProgressEvent(kind, count)
     }
 
     def startRootBuildOperation(Long id) {

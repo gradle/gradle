@@ -18,6 +18,7 @@ package org.gradle.api.internal.tasks.testing.processors;
 
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.TestDiscoveryEvent;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
@@ -100,6 +101,11 @@ public class CaptureTestOutputTestResultProcessor implements TestResultProcessor
     @Override
     public void published(Object testId, TestMetadataEvent keyValueEvent) {
         processor.published(testId, keyValueEvent);
+    }
+
+    @Override
+    public void discovered(TestDiscoveryEvent event) {
+        processor.discovered(event);
     }
 
 }

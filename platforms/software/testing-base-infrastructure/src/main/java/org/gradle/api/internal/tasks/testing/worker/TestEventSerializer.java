@@ -35,6 +35,7 @@ import org.gradle.api.internal.tasks.testing.DirectoryBasedTestDefinition;
 import org.gradle.api.internal.tasks.testing.FileComparisonFailureDetails;
 import org.gradle.api.internal.tasks.testing.TestFrameworkFailureDetails;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
+import org.gradle.api.internal.tasks.testing.TestDiscoveryEvent;
 import org.gradle.api.internal.tasks.testing.TestFailureSerializationException;
 import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
@@ -98,6 +99,7 @@ public class TestEventSerializer {
         registry.register(TestCompleteEvent.class, new TestCompleteEventSerializer(factory));
         registry.register(DefaultTestOutputEvent.class, new DefaultTestOutputEventSerializer(factory));
         registry.register(TestMetadataEvent.class, new TestMetadataEventSerializer());
+        registry.register(TestDiscoveryEvent.class, new TestDiscoveryEventSerializer());
 
         Serializer<Throwable> throwableSerializer = factory.getSerializerFor(Throwable.class);
         registry.register(Throwable.class, throwableSerializer);
@@ -164,6 +166,18 @@ public class TestEventSerializer {
         @Override
         public void write(Encoder encoder, DirectoryBasedTestDefinition value) throws Exception {
             encoder.writeString(value.getTestDefinitionsDir().getAbsolutePath());
+        }
+    }
+
+    private static class TestDiscoveryEventSerializer implements Serializer<TestDiscoveryEvent> {
+        @Override
+        public TestDiscoveryEvent read(Decoder decoder) throws Exception {
+            return new TestDiscoveryEvent(decoder.readSmallInt());
+        }
+
+        @Override
+        public void write(Encoder encoder, TestDiscoveryEvent value) throws Exception {
+            encoder.writeSmallInt(value.getTestCount());
         }
     }
 

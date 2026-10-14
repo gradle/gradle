@@ -22,6 +22,8 @@ import org.gradle.initialization.layout.ProjectCacheDir
 import org.gradle.internal.Actions
 import org.gradle.internal.classloader.VisitableURLClassLoader
 import org.gradle.internal.classpath.CachedClasspathTransformer
+import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.events.WorkItemProgressEvent
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.internal.work.AsyncWorkTracker
@@ -68,6 +70,7 @@ class DefaultWorkerExecutorTest extends Specification {
     def instantiator = Mock(Instantiator)
     def projectCacheDir = Mock(ProjectCacheDir)
     def classpathTransformer = Mock(CachedClasspathTransformer)
+    def outputEventListener = Mock(OutputEventListener)
     ConditionalExecution task
     DefaultWorkerExecutor workerExecutor
 
@@ -79,7 +82,7 @@ class DefaultWorkerExecutorTest extends Specification {
         _ * instantiator.newInstance(DefaultWorkerExecutor.DefaultWorkQueue, _, _, _) >> { args -> new DefaultWorkerExecutor.DefaultWorkQueue(args[1][0], args[1][1], args[1][2]) }
         _ * classpathTransformer.copyingTransform(_) >> { args -> args[0] }
         _ * projectCacheDir.getDir() >> temporaryFolder.testDirectory
-        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerThreadRegistry, buildOperationRunner, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, classpathTransformer, temporaryFolder.testDirectory, projectCacheDir)
+        workerExecutor = new DefaultWorkerExecutor(workerDaemonFactory, inProcessWorkerFactory, noIsolationWorkerFactory, forkOptionsFactory, workerThreadRegistry, buildOperationRunner, asyncWorkTracker, workerDirectoryProvider, executionQueueFactory, classLoaderStructureProvider, actionExecutionSpecFactory, instantiator, classpathTransformer, temporaryFolder.testDirectory, projectCacheDir, outputEventListener)
         _ * actionExecutionSpecFactory.newIsolatedSpec(_, _, _, _, _) >> Mock(IsolatedParametersActionExecutionSpec)
     }
 
@@ -202,6 +205,52 @@ class DefaultWorkerExecutorTest extends Specification {
             assert spec.implementationClass == TestExecutable
             return new DefaultWorkResult(true, null)
         }
+    }
+
+    def "reports work item progress when work completes with #outcome"() {
+        when:
+        workerExecutor.noIsolation().submit(TestExecutable.class, Actions.doNothing())
+
+        then:
+        1 * workerThreadRegistry.workerThread >> true
+        1 * outputEventListener.onOutput({ it.kind == WorkItemProgressEvent.Kind.SUBMITTED })
+
+        then:
+        1 * executionQueue.submit(_) >> { args -> task = args[0] }
+        0 * outputEventListener._
+
+        when:
+        task.getExecution().run()
+
+        then:
+        1 * noIsolationWorkerFactory.getWorker(_) >> worker
+        1 * worker.execute(_, _) >> result
+
+        then:
+        1 * outputEventListener.onOutput({ it.kind == kind })
+
+        where:
+        outcome   | result                                                   | kind
+        "success" | new DefaultWorkResult(true, null)                        | WorkItemProgressEvent.Kind.SUCCEEDED
+        "failure" | new DefaultWorkResult(false, new RuntimeException("boom")) | WorkItemProgressEvent.Kind.FAILED
+    }
+
+    def "reports failed work item progress when worker cannot be created"() {
+        when:
+        workerExecutor.noIsolation().submit(TestExecutable.class, Actions.doNothing())
+
+        then:
+        1 * workerThreadRegistry.workerThread >> true
+        1 * executionQueue.submit(_) >> { args -> task = args[0] }
+
+        when:
+        task.getExecution().run()
+
+        then:
+        1 * noIsolationWorkerFactory.getWorker(_) >> { throw new RuntimeException("boom") }
+
+        then:
+        1 * outputEventListener.onOutput({ it.kind == WorkItemProgressEvent.Kind.FAILED })
     }
 
     abstract static class TestExecutable implements WorkAction<WorkParameters.None> {

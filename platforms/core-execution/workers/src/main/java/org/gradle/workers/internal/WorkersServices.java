@@ -30,6 +30,7 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
@@ -135,7 +136,8 @@ public class WorkersServices extends AbstractGradleModuleServices {
                                             ActionExecutionSpecFactory actionExecutionSpecFactory,
                                             CachedClasspathTransformer classpathTransformer,
                                             ProjectLayout projectLayout,
-                                            ProjectCacheDir projectCacheDir
+                                            ProjectCacheDir projectCacheDir,
+                                            OutputEventListener outputEventListener
                                             ) {
             NoIsolationWorkerFactory noIsolationWorkerFactory = new NoIsolationWorkerFactory(buildOperationRunner, instantiatorFactory, actionExecutionSpecFactory, projectServices);
 
@@ -155,7 +157,8 @@ public class WorkersServices extends AbstractGradleModuleServices {
                 instantiatorFactory.decorateLenient(projectServices),
                 classpathTransformer,
                 projectLayout.getProjectDirectory().getAsFile(),
-                projectCacheDir);
+                projectCacheDir,
+                outputEventListener);
             noIsolationWorkerFactory.setWorkerExecutor(workerExecutor);
             return workerExecutor;
         }

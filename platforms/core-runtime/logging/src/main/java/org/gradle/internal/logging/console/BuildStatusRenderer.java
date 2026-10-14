@@ -23,6 +23,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.UpdateNowEvent;
+import org.gradle.internal.logging.events.WorkItemProgressEvent;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -57,6 +58,7 @@ public class BuildStatusRenderer implements OutputEventListener {
     private final Set<OperationIdentifier> runningWorkItems = new HashSet<>();
     private int expectedProjects;
     private int configuredProjects;
+    private int pendingWorkItems;
     private long currentTimePeriod;
 
     // What actually shows up on the console
@@ -103,6 +105,8 @@ public class BuildStatusRenderer implements OutputEventListener {
             } else if (runningWorkItems.remove(completeEvent.getProgressOperationId())) {
                 workDone(completeEvent);
             }
+        } else if (event instanceof WorkItemProgressEvent) {
+            workItemProgressed((WorkItemProgressEvent) event);
         }
 
         listener.onOutput(event);
@@ -193,11 +197,30 @@ public class BuildStatusRenderer implements OutputEventListener {
         }
     }
 
+    private void workItemProgressed(WorkItemProgressEvent event) {
+        if (currentPhase == null || progressBar == null) {
+            return;
+        }
+        if (event.getKind() == WorkItemProgressEvent.Kind.SUBMITTED) {
+            pendingWorkItems += event.getCount();
+            addToTotal(event.getCount());
+        } else {
+            // Items submitted before this build started were never added to the total
+            int completed = Math.min(event.getCount(), pendingWorkItems);
+            pendingWorkItems -= completed;
+            boolean failed = event.getKind() == WorkItemProgressEvent.Kind.FAILED;
+            for (int i = 0; i < completed; i++) {
+                progressBar.update(failed);
+            }
+        }
+    }
+
     private void resetCounts() {
         configuringProjects.clear();
         runningWorkItems.clear();
         expectedProjects = 0;
         configuredProjects = 0;
+        pendingWorkItems = 0;
     }
 
     private void buildEnded() {

@@ -31,6 +31,7 @@ import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.events.TextQuestionPromptEvent;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
+import org.gradle.internal.logging.events.WorkItemProgressEvent;
 import org.gradle.internal.logging.events.YesNoQuestionPromptEvent;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.serialize.BaseSerializerFactory;
@@ -58,6 +59,7 @@ public class OutputEventSerializer {
         registry.register(ProgressStartEvent.class, new ProgressStartEventSerializer());
         registry.register(ProgressCompleteEvent.class, new ProgressCompleteEventSerializer());
         registry.register(ProgressEvent.class, new ProgressEventSerializer());
+        registry.register(WorkItemProgressEvent.class, new WorkItemProgressEventSerializer());
         registry.register(LogLevelChangeEvent.class, new LogLevelChangeEventSerializer(logLevelSerializer));
     }
 
