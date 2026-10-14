@@ -665,7 +665,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         new WorkItemProgressEvent(kind, count)
     }
 
-    def "counts building the work graph and storing and loading the configuration cache as configuration"() {
+    def "counts building the work graph and storing and loading the configuration cache"() {
         given:
         renderer.onOutput(startRootBuildOperation(1))
         renderer.onOutput(startConfigureRootBuild(2, 1, 1))
@@ -678,7 +678,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[#######........] 50% CONFIGURING [0ms]'
+        statusBar.display == '[##############===============.]> CONFIGURING  1 running, 0 queued   [0ms]'
 
         when:
         renderer.onOutput(complete(4))
@@ -686,7 +686,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[##########.....] 66% CONFIGURING [0ms]'
+        statusBar.display == '[###################==========.]> CONFIGURING  1 running, 0 queued^  [0ms]'
 
         when:
         renderer.onOutput(complete(5))
@@ -695,7 +695,8 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[###########....] 75% CONFIGURING [0ms]'
+        // The work graph built while loading counts as part of the load
+        statusBar.display == '[#####################=======..]> CONFIGURING  1 running, 0 queued^  [0ms]'
 
         when:
         renderer.onOutput(complete(7))
@@ -703,86 +704,14 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[###############] 100% CONFIGURING [0ms]'
+        statusBar.display == '[#############################.]> CONFIGURING  0 running, 0 queued^  [0ms]'
 
         when:
         renderer.onOutput(startExecuteRootBuild(8, 1, 1))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% EXECUTING [0ms]'
-    }
-
-    def "configuration steps without total progress complete without growing the phase total"() {
-        given:
-        renderer.onOutput(startRootBuildOperation(1))
-        // 1 project plus 3 steps already counted in the total: work graph, store, and load
-        renderer.onOutput(startConfigureRootBuild(2, 1, 4))
-        renderer.onOutput(startConfigureProject(3, 2))
-        renderer.onOutput(complete(3))
-        renderer.onOutput(complete(2))
-        renderer.onOutput(updateNow())
-
-        expect:
-        // 1 of 4 done: the project
-        statusBar.display == '[###............] 25% CONFIGURING [0ms]'
-
-        when:
-        renderer.onOutput(startBuildWorkGraph(4, 1, 0))
-        renderer.onOutput(updateNow())
-
-        then:
-        // Still 1 of 4: starting a step with no total progress doesn't change the total
-        statusBar.display == '[###............] 25% CONFIGURING [0ms]'
-
-        when:
-        renderer.onOutput(complete(4))
-        renderer.onOutput(startStoreConfigurationCache(5, 1, 0))
-        renderer.onOutput(complete(5))
-        renderer.onOutput(updateNow())
-
-        then:
-        // 3 of 4 done: the project, the work graph, and the store
-        statusBar.display == '[###########....] 75% CONFIGURING [0ms]'
-
-        when:
-        renderer.onOutput(startLoadConfigurationCache(6, 1, 0))
-        renderer.onOutput(startBuildWorkGraph(7, 6))
-        renderer.onOutput(complete(7))
-        renderer.onOutput(complete(6))
-        renderer.onOutput(updateNow())
-
-        then:
-        // 4 of 4 done: the load completes, and the work graph built inside it is not counted
-        statusBar.display == '[###############] 100% CONFIGURING [0ms]'
-    }
-
-    def "configuration steps with total progress grow the phase total"() {
-        given:
-        renderer.onOutput(startRootBuildOperation(1))
-        // progress = 2: 1 project plus 1 expected CC store
-        renderer.onOutput(startConfigureRootBuild(2, 1, 2))
-        renderer.onOutput(startConfigureProject(3, 2))
-        renderer.onOutput(complete(3))
-
-        when:
-        renderer.onOutput(startBuildWorkGraph(4, 2))
-        renderer.onOutput(complete(4))
-        renderer.onOutput(updateNow())
-
-        then:
-        // 2 of 3 done: the project and the work graph, which added 1 to the total
-        statusBar.display == '[##########.....] 66% CONFIGURING [0ms]'
-
-        when:
-        renderer.onOutput(complete(2))
-        renderer.onOutput(startStoreConfigurationCache(5, 1, 0))
-        renderer.onOutput(complete(5))
-        renderer.onOutput(updateNow())
-
-        then:
-        // 3 of 3 done: the store was the step already counted in the total
-        statusBar.display == '[###############] 100% CONFIGURING [0ms]'
+        statusBar.display == '[#######################.......]> EXECUTING  0 running, 1 queued^  [0ms]'
     }
 
     def "shows loading phase when reusing the configuration cache"() {
@@ -796,21 +725,21 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% LOADING [0ms]'
+        statusBar.display == '[=============================.]> LOADING  1 running, 0 queued   [0ms]'
 
         when:
         renderer.onOutput(complete(2))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[###############] 100% LOADING [0ms]'
+        statusBar.display == '[#############################.]> LOADING  0 running, 0 queued   [0ms]'
 
         when:
         renderer.onOutput(startExecuteRootBuild(4, 1, 1))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% EXECUTING [0ms]'
+        statusBar.display == '[##############................]> EXECUTING  0 running, 1 queued^  [0ms]'
     }
 
     def "shows loading phase when reusing the configuration cache in a subsequent build"() {
@@ -824,7 +753,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% LOADING [0ms]'
+        statusBar.display == '[=============================.]> LOADING  1 running, 0 queued   [0ms]'
     }
 
     def "counts failed configuration cache load as progress"() {
@@ -840,10 +769,10 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[#######........] 50% CONFIGURING [0ms]'
+        statusBar.display == '[##############===============.]> CONFIGURING  1 running, 0 queued   [0ms]'
     }
 
-    def "ignores building the work graph before configuration"() {
+    def "counts building the work graph before configuration"() {
         given:
         renderer.onOutput(startRootBuildOperation(1))
 
@@ -853,7 +782,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% INITIALIZING [0ms]'
+        statusBar.display == '[#############################.]> INITIALIZING  0 running, 0 queued   [0ms]'
     }
 
     def "counts building the work graph of nested builds during configuration"() {
@@ -867,7 +796,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[#####..........] 33% CONFIGURING [0ms]'
+        statusBar.display == '[#########.....................]> CONFIGURING  0 running, 2 queued   [0ms]'
     }
 
     def startRootBuildOperation(Long id) {
@@ -902,16 +831,16 @@ class BuildStatusRendererTest extends OutputSpecification {
         return start(id, parentId, BuildOperationCategory.TASK)
     }
 
-    def startBuildWorkGraph(Long id, Long parentId, int totalProgress = 1) {
-        return start(id, parentId, BuildOperationCategory.BUILD_WORK_GRAPH, totalProgress)
+    def startBuildWorkGraph(Long id, Long parentId) {
+        return start(id, parentId, BuildOperationCategory.BUILD_WORK_GRAPH)
     }
 
-    def startStoreConfigurationCache(Long id, Long parentId, int totalProgress = 1) {
-        return start(id, parentId, BuildOperationCategory.STORE_CONFIGURATION_CACHE, totalProgress)
+    def startStoreConfigurationCache(Long id, Long parentId) {
+        return start(id, parentId, BuildOperationCategory.STORE_CONFIGURATION_CACHE)
     }
 
-    def startLoadConfigurationCache(Long id, Long parentId, int totalProgress = 1) {
-        return start(id, parentId, BuildOperationCategory.LOAD_CONFIGURATION_CACHE, totalProgress)
+    def startLoadConfigurationCache(Long id, Long parentId) {
+        return start(id, parentId, BuildOperationCategory.LOAD_CONFIGURATION_CACHE)
     }
 
     def startOther(Long id, Long parentId) {
