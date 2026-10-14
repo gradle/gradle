@@ -59,6 +59,7 @@ dependencies {
     runtimeOnly(project(":distributions-full"))
 
     userGuideTask(buildLibs.xalan)
+    userGuideTask(buildLibs.xalanSerializer)
     userGuideTask(buildLibs.xerces)
     userGuideTask(buildLibs.xslthl)
 
@@ -78,6 +79,18 @@ dependencies {
     docsTestRuntimeOnly(testLibs.junitPlatform)
 
     integTestDistributionRuntimeOnly(project(":distributions-full"))
+
+    constraints {
+        "dokkaHtmlGeneratorRuntime"(buildLibs.jsoup) {
+            because("Bump version brought in transitively by Dokka, to resolve CVE-2026-71497")
+        }
+        docsTestImplementation(libs.commonsLang) {
+            because("Bump version brought in transitively by Exemplar, to resolve CVE-2025-48924")
+        }
+        "dokkaHtmlGeneratorRuntime"(buildLibs.freemarker) {
+            because("Bump version brought in transitively by Dokka, to resolve CVE-2026-84939")
+        }
+    }
 }
 
 jvmCompile {
@@ -279,6 +292,8 @@ abstract class GradleInstallationForTestEnvironmentProvider : CommandLineArgumen
 }
 
 tasks.register("checkLinks") {
+    group = "verification"
+    description = "Checks the user manual for dead internal and external links."
     dependsOn("checkDeadInternalLinks")
     dependsOn("checkDeadExternalLinks")
 }

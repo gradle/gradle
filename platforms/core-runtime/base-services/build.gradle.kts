@@ -68,6 +68,8 @@ jmh.includes = listOf("HashingAlgorithmsBenchmark")
 // TODO: Base services should not be responsible for generating the build receipt.
 //       Perhaps :api-metadata is a better fit
 val createBuildReceipt = tasks.register<BuildReceipt>("createBuildReceipt") {
+    group = "build"
+    description = "Generates the build receipt properties file embedded in the Gradle distribution."
     this.version = gradleModule.identity.version.map { it.version }
     this.baseVersion = gradleModule.identity.version.map { it.baseVersion.version }
     this.snapshot = gradleModule.identity.snapshot

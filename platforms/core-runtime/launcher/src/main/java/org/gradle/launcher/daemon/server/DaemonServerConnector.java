@@ -31,10 +31,11 @@ public interface DaemonServerConnector extends Stoppable {
      * <p>
      * When this method returns, the daemon will be ready to accept connections.
      *
+     * @param connectionToken the token a client must present during the connection handshake
      * @return the address that clients can use to connect
      * @throws IllegalStateException if this method has previously been called on this object, or if the stop method has previously been called on this object.
      */
-    Address start(IncomingConnectionHandler handler, Runnable connectionErrorHandler);
+    Address start(IncomingConnectionHandler handler, Runnable connectionErrorHandler, byte[] connectionToken);
 
     /**
      * Stops accepting new connections, and blocks until all active connections close.

@@ -32,7 +32,7 @@ public class MessageHubBackedClient implements MessagingClient {
     }
 
     @Override
-    public ObjectConnection getConnection(Address address) {
-        return new MessageHubBackedObjectConnection(executorFactory, connector.connect(address));
+    public ObjectConnection getConnection(Address address, byte[] connectionToken) {
+        return new MessageHubBackedObjectConnection(executorFactory, connector.connect(address, connectionToken));
     }
 }

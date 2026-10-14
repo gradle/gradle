@@ -46,10 +46,7 @@ final class PredefinedChildren {
      * Implements {@code RootProblemGroup.group(String)}: predefined sibling on exact match, otherwise a new user group.
      */
     SecondLevelProblemGroup group(ResolvableProblemGroup owner, String name) {
-        String validated = ProblemNames.validateGroupName(name);
-        if (validated.equalsIgnoreCase(ProblemNames.UNDEFINED_NAME)) {
-            throw new IllegalArgumentException("'" + ProblemNames.UNDEFINED_NAME + "' is a reserved problem group name, use getUndefined() instead");
-        }
+        String validated = ProblemNames.validateUserGroupName(name);
         ResolvableProblemGroup exact = byName.get(validated);
         if (exact != null) {
             // open roots only have DefaultSecondLevelProblemGroup children besides Undefined, which is rejected above
@@ -63,11 +60,12 @@ final class PredefinedChildren {
     }
 
     /**
-     * Resolves a child of an open root group when reading a serialized path.
+     * Resolves a child of an open root group when reading a serialized path: a predefined child, including {@code Undefined},
+     * by its exact name, otherwise the user group that {@link #group} would create, with the same name rules.
      */
     ResolvableProblemGroup resolve(ResolvableProblemGroup owner, String name) {
         ResolvableProblemGroup exact = byName.get(name);
-        return exact != null ? exact : new DefaultSecondLevelProblemGroup(name, null, owner);
+        return exact != null ? exact : new DefaultSecondLevelProblemGroup(ProblemNames.validateUserGroupName(name), null, owner);
     }
 
     /**

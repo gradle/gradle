@@ -20,7 +20,9 @@ import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.launcher.daemon.logging.DaemonMessages
 
 class DaemonAuthenticationIntegrationSpec extends DaemonIntegrationSpec {
-    def "daemon discards build request that does not contain correct authentication token"() {
+    private static final String REFUSED = "Peer did not present the expected connection token"
+
+    def "daemon refuses connection from a client that does not have the correct authentication token"() {
         when:
         buildSucceeds()
         def daemon = daemons.daemon
@@ -31,15 +33,16 @@ class DaemonAuthenticationIntegrationSpec extends DaemonIntegrationSpec {
 
         when:
         daemon.changeTokenVisibleToClient()
-        fails()
+        buildSucceeds()
 
-        then:
-        failure.assertHasDescription("Unexpected authentication token in command")
-        daemon.log.contains("Unexpected authentication token in command")
+        then: "daemon rejects the token during the handshake"
+        daemon.log.contains(REFUSED)
 
-        and:
-        // daemon is still running
-        daemon.assertIdle()
+        and: "client treats the refusal as an unreachable daemon and starts a new one"
+        daemons.daemons.size() == 2
+
+        and: "client removed the old daemon from the registry, so it expires"
+        daemon.stops()
     }
 
     def "daemon discards stop request that does not contain correct authentication token"() {
@@ -54,7 +57,7 @@ class DaemonAuthenticationIntegrationSpec extends DaemonIntegrationSpec {
 
         then:
         output.contains DaemonMessages.UNABLE_TO_STOP_DAEMON
-        daemon.log.contains("Unexpected authentication token in command")
+        daemon.log.contains(REFUSED)
 
         and:
         // daemon is still running

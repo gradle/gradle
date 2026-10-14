@@ -20,13 +20,11 @@ import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.file.ConfigurableFileTree;
 import org.gradle.api.internal.GeneratedSubclass;
 import org.gradle.api.problems.ProblemSpec;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.properties.InputFilePropertyType;
 import org.gradle.internal.typeconversion.UnsupportedNotationException;
 import org.gradle.model.internal.type.ModelType;
 import org.gradle.util.internal.DeferredUtil;
-import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -186,7 +184,7 @@ public enum ValidationActions implements ValidationAction {
             String lowerKind = kind.toLowerCase(Locale.ROOT);
             problem
                 .forProperty(propertyName)
-                .id(TextUtil.screamingSnakeToKebabCase(INPUT_FILE_DOES_NOT_EXIST), "Input file does not exist", GradleCoreProblemGroup.validation().property())
+                .id(problem.getGradleGroup().getBuildDefinition().problemId("Input file does not exist"))
                 .contextualLabel("specifies " + lowerKind + " '" + input + "' which doesn't exist")
                 .documentedAt(userManual("validation_problems", INPUT_FILE_DOES_NOT_EXIST.toLowerCase(Locale.ROOT)))
                 .details("An input file was expected to be present but it doesn't exist")
@@ -195,14 +193,12 @@ public enum ValidationActions implements ValidationAction {
         });
     }
 
-    private static final String UNEXPECTED_INPUT_FILE_TYPE = "UNEXPECTED_INPUT_FILE_TYPE";
-
     private static void reportUnexpectedInputKind(PropertyValidationContext context, String kind, String propertyName, File input) {
         context.visitPropertyError(problem -> {
             String lowerKind = kind.toLowerCase(Locale.ROOT);
             problem
                 .forProperty(propertyName)
-                .id(TextUtil.screamingSnakeToKebabCase(UNEXPECTED_INPUT_FILE_TYPE), "Unexpected input file type", GradleCoreProblemGroup.validation().property())
+                .id(problem.getGradleGroup().getBuildDefinition().problemId("Unexpected input file type"))
                 .contextualLabel(lowerKind + " '" + input + "' is not a " + lowerKind)
                 .documentedAt(userManual("validation_problems", "unexpected_input_file_type"))
                 .details("Expected an input to be a " + lowerKind + " but it was a " + actualKindOf(input))
@@ -217,7 +213,7 @@ public enum ValidationActions implements ValidationAction {
         context.visitPropertyError(problem ->
             problem
                 .forProperty(propertyName)
-                .id(TextUtil.screamingSnakeToKebabCase(CANNOT_WRITE_OUTPUT), PROPERTY_IS_NOT_WRITABLE, GradleCoreProblemGroup.validation().property())
+                .id(problem.getGradleGroup().getBuildDefinition().problemId(PROPERTY_IS_NOT_WRITABLE))
                 .contextualLabel("is not writable because " + cause)
                 .documentedAt(userManual("validation_problems", CANNOT_WRITE_OUTPUT.toLowerCase(Locale.ROOT)))
                 .details("Expected '" + directory + "' to be a directory but it's a " + actualKindOf(directory))
@@ -229,7 +225,7 @@ public enum ValidationActions implements ValidationAction {
         context.visitPropertyError(problem ->
             problem
                 .forProperty(propertyName)
-                .id(TextUtil.screamingSnakeToKebabCase(CANNOT_WRITE_OUTPUT), PROPERTY_IS_NOT_WRITABLE, GradleCoreProblemGroup.validation().property())
+                .id(problem.getGradleGroup().getBuildDefinition().problemId(PROPERTY_IS_NOT_WRITABLE))
                 .contextualLabel("is not writable because '" + directory + "' is not a directory")
                 .documentedAt(userManual("validation_problems", CANNOT_WRITE_OUTPUT.toLowerCase(Locale.ROOT)))
                 .details("Expected the root of the file tree '" + directory + "' to be a directory but it's a " + actualKindOf(directory))
@@ -241,7 +237,7 @@ public enum ValidationActions implements ValidationAction {
         context.visitPropertyError(problem ->
             problem
                 .forProperty(propertyName)
-                .id(TextUtil.screamingSnakeToKebabCase(CANNOT_WRITE_OUTPUT), PROPERTY_IS_NOT_WRITABLE, GradleCoreProblemGroup.validation().property())
+                .id(problem.getGradleGroup().getBuildDefinition().problemId(PROPERTY_IS_NOT_WRITABLE))
                 .contextualLabel("is not writable because '" + file + "' is not a file")
                 .documentedAt(userManual("validation_problems", CANNOT_WRITE_OUTPUT.toLowerCase(Locale.ROOT)))
                 .details("Cannot write a file to a location pointing at a directory")
@@ -254,7 +250,7 @@ public enum ValidationActions implements ValidationAction {
         context.visitPropertyError(problem ->
             problem
                 .forProperty(propertyName)
-                .id(TextUtil.screamingSnakeToKebabCase(CANNOT_WRITE_OUTPUT), PROPERTY_IS_NOT_WRITABLE, GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
+                .id(problem.getGradleGroup().getBuildDefinition().problemId(PROPERTY_IS_NOT_WRITABLE)) // TODO (donat) missing test coverage
                 .contextualLabel("is not writable because '" + file + "' ancestor '" + ancestor + "' is not a directory")
                 .documentedAt(userManual("validation_problems", CANNOT_WRITE_OUTPUT.toLowerCase(Locale.ROOT)))
                 .details("Cannot create parent directories that are existing as file")
@@ -279,7 +275,7 @@ public enum ValidationActions implements ValidationAction {
             context.visitPropertyError(problem ->
                 problem
                     .forProperty(propertyName)
-                    .id(TextUtil.screamingSnakeToKebabCase(CANNOT_WRITE_TO_RESERVED_LOCATION), "Cannot write to reserved location", GradleCoreProblemGroup.validation().property())
+                    .id(problem.getGradleGroup().getBuildDefinition().problemId("Cannot write to reserved location"))
                     .contextualLabel("points to '" + location + "' which is managed by Gradle")
                     .documentedAt(userManual("validation_problems", CANNOT_WRITE_TO_RESERVED_LOCATION.toLowerCase(Locale.ROOT)))
                     .details("Trying to write an output to a read-only location which is for Gradle internal use only")
@@ -313,7 +309,7 @@ public enum ValidationActions implements ValidationAction {
         context.visitPropertyError(problem -> {
                 ProblemSpec describedProblem = problem
                     .forProperty(propertyName)
-                    .id(TextUtil.screamingSnakeToKebabCase(UNSUPPORTED_NOTATION), "Property has unsupported value", GradleCoreProblemGroup.validation().property())
+                    .id(problem.getGradleGroup().getBuildDefinition().problemId("Property has unsupported value"))
                     .contextualLabel("has unsupported value '" + value + "'")
                     .documentedAt(userManual("validation_problems", UNSUPPORTED_NOTATION.toLowerCase(Locale.ROOT)))
                     .details("Type '" + typeOf(value) + "' cannot be converted to a " + targetType);

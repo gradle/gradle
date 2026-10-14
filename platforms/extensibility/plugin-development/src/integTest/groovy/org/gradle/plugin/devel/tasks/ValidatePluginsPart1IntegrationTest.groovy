@@ -54,7 +54,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         and:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'tree.nonAnnotated\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -105,7 +105,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         and:
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:annotation-invalid-in-context'
+            fqid == 'Gradle:Plugin Validation:Invalid annotation in context'
             contextualLabel == "Type \'MyTask\' property \'options.nestedThing\' is annotated with invalid property type @$ann.simpleName"
             details == "The '@${ann.simpleName}' annotation cannot be used in this context"
             solutions == [
@@ -121,7 +121,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:annotation-invalid-in-context'
+            fqid == 'Gradle:Plugin Validation:Invalid annotation in context'
             contextualLabel == "Type 'MyTask' property 'thing' is annotated with invalid property type @$ann.simpleName"
             details == "The '@${ann.simpleName}' annotation cannot be used in this context"
             solutions == [
@@ -182,7 +182,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         and:
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-normalization-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing normalization'
             contextualLabel == 'Type \'MyTask\' property \'dirProp\' is annotated with @InputDirectory but missing a normalization strategy'
             details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
             solutions == [ 'Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath' ]
@@ -194,7 +194,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-normalization-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing normalization'
             contextualLabel == 'Type \'MyTask\' property \'fileProp\' is annotated with @InputFile but missing a normalization strategy'
             details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
             solutions == [ 'Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath' ]
@@ -206,7 +206,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         }
         verifyAll(receivedProblem(2)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-normalization-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing normalization'
             contextualLabel == 'Type \'MyTask\' property \'filesProp\' is annotated with @InputFiles but missing a normalization strategy'
             details == 'If you don\'t declare the normalization, outputs can\'t be re-used between machines or locations on the same machine, therefore caching efficiency drops significantly'
             solutions == [ 'Declare the normalization strategy by annotating the property with either @PathSensitive, @Classpath or @CompileClasspath' ]
@@ -374,7 +374,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         and:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'unannotatedProperty\' is missing an input or output annotation'
             originLocations == []
         }
@@ -450,7 +450,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         and:
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:annotation-invalid-in-context'
+            fqid == 'Gradle:Plugin Validation:Invalid annotation in context'
             contextualLabel == 'Type \'MyTransformAction\' property \'inputFile\' is annotated with invalid property type @InputFile'
             details == 'The \'@InputFile\' annotation cannot be used in this context'
             solutions == [
@@ -465,7 +465,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTransformAction\' property \'badTime\' is missing an input annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -480,7 +480,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         }
         verifyAll(receivedProblem(2)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTransformAction\' property \'oldThing\' is missing an input annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -556,7 +556,19 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         and:
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:annotation-invalid-in-context'
+            fqid == 'Gradle:Plugin Validation:Incompatible annotations'
+            contextualLabel == 'Type \'MyTransformParameters\' property \'incrementalNonFileInput\' is annotated with @Incremental but that is not allowed for \'Input\' properties'
+            details == 'This modifier is used in conjunction with a property of type \'Input\' but this doesn\'t have semantics'
+            solutions == [ 'Remove the \'@Incremental\' annotation' ]
+            additionalData.asMap == [
+                'typeName' : 'MyTransformParameters',
+                'propertyName' : 'incrementalNonFileInput',
+            ]
+            originLocations == []
+        }
+        verifyAll(receivedProblem(1)) {
+            severity == Severity.ERROR
+            fqid == 'Gradle:Plugin Validation:Invalid annotation in context'
             contextualLabel == 'Type \'MyTransformParameters\' property \'inputFile\' is annotated with invalid property type @InputArtifact'
             details == 'The \'@InputArtifact\' annotation cannot be used in this context'
             solutions == [
@@ -569,21 +581,9 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
             ]
             originLocations == []
         }
-        verifyAll(receivedProblem(1)) {
-            severity == Severity.ERROR
-            fqid == 'validation:property-validation:incompatible-annotations'
-            contextualLabel == 'Type \'MyTransformParameters\' property \'incrementalNonFileInput\' is annotated with @Incremental but that is not allowed for \'Input\' properties'
-            details == 'This modifier is used in conjunction with a property of type \'Input\' but this doesn\'t have semantics'
-            solutions == [ 'Remove the \'@Incremental\' annotation' ]
-            additionalData.asMap == [
-                'typeName' : 'MyTransformParameters',
-                'propertyName' : 'incrementalNonFileInput',
-            ]
-            originLocations == []
-        }
         verifyAll(receivedProblem(2)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTransformParameters\' property \'badTime\' is missing an input annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -598,7 +598,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         }
         verifyAll(receivedProblem(3)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTransformParameters\' property \'oldThing\' is missing an input annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -638,7 +638,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
          and:
          verifyAll(receivedProblem(0)) {
              severity == Severity.ERROR
-             fqid == 'validation:type-validation:not-cacheable-without-reason'
+             fqid == 'Gradle:Plugin Validation:Not cacheable without reason'
              contextualLabel == 'Type \'MyTask\' must be annotated either with @CacheableTask or with @DisableCachingByDefault'
              details == 'The task author should make clear why a task is not cacheable'
              solutions == [
@@ -651,7 +651,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
          }
          verifyAll(receivedProblem(1)) {
              severity == Severity.ERROR
-             fqid == 'validation:type-validation:not-cacheable-without-reason'
+             fqid == 'Gradle:Plugin Validation:Not cacheable without reason'
              contextualLabel == 'Type \'MyTransformAction\' must be annotated either with @CacheableTransform or with @DisableCachingByDefault'
              details == 'The transform action author should make clear why a transform action is not cacheable'
              solutions == [
@@ -735,7 +735,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         and:
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unsupported-value-type'
+            fqid == 'Gradle:Plugin Validation:Unsupported value type'
             contextualLabel == "Type 'MyTask' property 'direct' has @$annotation annotation used on property of type 'ResolvedArtifactResult'"
             details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
             solutions == [
@@ -750,7 +750,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unsupported-value-type'
+            fqid == 'Gradle:Plugin Validation:Unsupported value type'
             contextualLabel == "Type 'MyTask' property 'listPropertyInput' has @$annotation annotation used on property of type 'ListProperty<ResolvedArtifactResult>'"
             details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
             solutions == [
@@ -765,7 +765,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         }
         verifyAll(receivedProblem(2)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unsupported-value-type'
+            fqid == 'Gradle:Plugin Validation:Unsupported value type'
             contextualLabel == "Type 'MyTask' property 'mapPropertyInput' has @$annotation annotation used on property of type 'MapProperty<String, ResolvedArtifactResult>'"
             details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
             solutions == [
@@ -780,7 +780,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         }
         verifyAll(receivedProblem(3)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unsupported-value-type'
+            fqid == 'Gradle:Plugin Validation:Unsupported value type'
             contextualLabel == "Type 'MyTask' property 'nestedBean.nestedInput' has @$annotation annotation used on property of type 'Property<ResolvedArtifactResult>'"
             details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
             solutions == [
@@ -796,7 +796,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         }
         verifyAll(receivedProblem(4)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unsupported-value-type'
+            fqid == 'Gradle:Plugin Validation:Unsupported value type'
             contextualLabel == "Type 'MyTask' property 'propertyInput' has @$annotation annotation used on property of type 'Property<ResolvedArtifactResult>'"
             details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
             solutions == [
@@ -811,7 +811,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         }
         verifyAll(receivedProblem(5)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unsupported-value-type'
+            fqid == 'Gradle:Plugin Validation:Unsupported value type'
             contextualLabel == "Type 'MyTask' property 'providerInput' has @$annotation annotation used on property of type 'Provider<ResolvedArtifactResult>'"
             details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
             solutions == [
@@ -826,7 +826,7 @@ class ValidatePluginsPart1IntegrationTest extends AbstractIntegrationSpec implem
         }
         verifyAll(receivedProblem(6)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:unsupported-value-type'
+            fqid == 'Gradle:Plugin Validation:Unsupported value type'
             contextualLabel == "Type 'MyTask' property 'setPropertyInput' has @$annotation annotation used on property of type 'SetProperty<ResolvedArtifactResult>'"
             details == "ResolvedArtifactResult is not supported on task properties annotated with @$annotation"
             solutions == [

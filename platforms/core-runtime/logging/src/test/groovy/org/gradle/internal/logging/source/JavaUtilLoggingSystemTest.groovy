@@ -21,10 +21,13 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.internal.logging.ConfigureLogging
 import org.gradle.internal.logging.TestOutputEventListener
 import org.junit.Rule
+import org.slf4j.bridge.SLF4JBridgeHandler
 import spock.lang.Specification
 
+import java.util.logging.ConsoleHandler
 import java.util.logging.Handler
 import java.util.logging.Level
+import java.util.logging.LogManager
 import java.util.logging.LogRecord
 import java.util.logging.Logger
 
@@ -123,56 +126,95 @@ class JavaUtilLoggingSystemTest extends Specification {
         Logger.getLogger("").getLevel() == Level.FINE
     }
 
-    def "restore reinstates the root logger handlers that capturing displaced"() {
+    def "leaves unrelated root handlers attached and open while capturing"() {
         given:
         def rootLogger = Logger.getLogger("")
-        def originalHandler = new NoOpHandler()
-        rootLogger.addHandler(originalHandler)
-        def originalHandlers = rootLogger.handlers.toList()
+        def unrelated = new RecordingHandler()
+        rootLogger.addHandler(unrelated)
+
+        when:
+        def snapshot = configurer.snapshot()
+        configurer.setLevel(LogLevel.INFO)
+        configurer.startCapture()
+        Logger.getLogger('test').info('info message')
+
+        then:
+        rootLogger.handlers.toList().contains(unrelated)
+        unrelated.messages == ['info message']
+
+        when:
+        configurer.restore(snapshot)
+
+        then:
+        rootLogger.handlers.toList().contains(unrelated)
+        !unrelated.closed
+
+        cleanup:
+        rootLogger.removeHandler(unrelated)
+    }
+
+    def "replaces console handlers while capturing and reattaches them unclosed when restored"() {
+        given:
+        def rootLogger = Logger.getLogger("")
+        def console = new RecordingConsoleHandler()
+        rootLogger.addHandler(console)
 
         when:
         def snapshot = configurer.snapshot()
         configurer.startCapture()
 
         then:
-        !rootLogger.handlers.toList().contains(originalHandler)
+        !rootLogger.handlers.toList().contains(console)
 
         when:
         configurer.restore(snapshot)
 
         then:
-        rootLogger.handlers.toList() == originalHandlers
+        rootLogger.handlers.toList().contains(console)
+        !console.closed
 
         cleanup:
-        rootLogger.removeHandler(originalHandler)
+        rootLogger.removeHandler(console)
     }
 
-    def "closes handlers installed during the capturing scope when restored, but not the reinstated handlers"() {
+    def "removes its own bridge when restored"() {
         given:
         def rootLogger = Logger.getLogger("")
-        def outerHandler = new NoOpHandler()
-        rootLogger.addHandler(outerHandler)
 
         when:
         def snapshot = configurer.snapshot()
         configurer.startCapture()
-        def scopeHandler = new NoOpHandler()
-        rootLogger.addHandler(scopeHandler)
+
+        then:
+        rootLogger.handlers.count { it instanceof SLF4JBridgeHandler } == 1
+
+        when:
         configurer.restore(snapshot)
 
-        then: "the handler installed during the scope is removed and closed"
-        scopeHandler.closed
-        !rootLogger.handlers.toList().contains(scopeHandler)
-
-        and: "the displaced outer handler is reinstated, still open"
-        !outerHandler.closed
-        rootLogger.handlers.toList().contains(outerHandler)
-
-        cleanup:
-        rootLogger.removeHandler(outerHandler)
+        then:
+        rootLogger.handlers.count { it instanceof SLF4JBridgeHandler } == 0
     }
 
-    def "a nested logging scope restores the outer scope's routing when restored"() {
+    def "does not remove or close handlers added by others while capturing"() {
+        given:
+        def rootLogger = Logger.getLogger("")
+
+        when:
+        def snapshot = configurer.snapshot()
+        configurer.startCapture()
+        def added = new RecordingHandler()
+        rootLogger.addHandler(added)
+        configurer.restore(snapshot)
+
+        then:
+        rootLogger.handlers.toList().contains(added)
+        !added.closed
+
+        cleanup:
+        rootLogger.removeHandler(added)
+    }
+
+    def "a nested logging scope replaces the outer scope's bridge and restores it when restored"() {
         given:
         def outer = new JavaUtilLoggingSystem()
         def inner = new JavaUtilLoggingSystem()
@@ -183,19 +225,82 @@ class JavaUtilLoggingSystemTest extends Specification {
         def snapshot = inner.snapshot()
         inner.setLevel(LogLevel.INFO)
         inner.startCapture()
+        Logger.getLogger('test').info('inner message')
+
+        then: "only the inner scope's bridge routes"
+        outputEventListener.toString() == '[[INFO] [test] inner message]'
+
+        when:
         inner.restore(snapshot)
-        Logger.getLogger('test').info('info message')
+        Logger.getLogger('test').info('outer message')
 
         then: "the outer scope's bridge handler is back in place and still routes"
-        outputEventListener.toString() == '[[INFO] [test] info message]'
+        outputEventListener.toString() == '[[INFO] [test] inner message][[INFO] [test] outer message]'
     }
 
-    private static class NoOpHandler extends Handler {
+    def "does not attach a replaced handler twice if it was reattached while capturing"() {
+        given:
+        def rootLogger = Logger.getLogger("")
+        def console = new RecordingConsoleHandler()
+        rootLogger.addHandler(console)
 
+        when:
+        def snapshot = configurer.snapshot()
+        configurer.startCapture()
+        rootLogger.addHandler(console)
+        configurer.restore(snapshot)
+
+        then:
+        rootLogger.handlers.count { it.is(console) } == 1
+
+        cleanup:
+        rootLogger.removeHandler(console)
+    }
+
+    def "can restore and capture again after the LogManager was reset while capturing"() {
+        given:
+        def rootLogger = Logger.getLogger("")
+        def console = new RecordingConsoleHandler()
+        rootLogger.addHandler(console)
+
+        when: "the LogManager is reset while capturing, which removes and closes the bridge"
+        def snapshot = configurer.snapshot()
+        configurer.setLevel(LogLevel.INFO)
+        configurer.startCapture()
+        LogManager.logManager.reset()
+
+        then:
+        rootLogger.handlers.count { it instanceof SLF4JBridgeHandler } == 0
+
+        when:
+        configurer.restore(snapshot)
+
+        then:
+        rootLogger.handlers.toList().contains(console)
+        !console.closed
+        rootLogger.handlers.count { it instanceof SLF4JBridgeHandler } == 0
+
+        when:
+        configurer.setLevel(LogLevel.INFO)
+        configurer.startCapture()
+        Logger.getLogger('test').info('info message')
+
+        then:
+        outputEventListener.toString() == '[[INFO] [test] info message]'
+
+        cleanup:
+        rootLogger.removeHandler(console)
+    }
+
+    private static class RecordingHandler extends Handler {
+
+        final List<String> messages = []
         boolean closed
 
         @Override
-        void publish(LogRecord record) {}
+        void publish(LogRecord record) {
+            messages << record.message
+        }
 
         @Override
         void flush() {}
@@ -203,6 +308,18 @@ class JavaUtilLoggingSystemTest extends Specification {
         @Override
         void close() {
             closed = true
+        }
+
+    }
+
+    private static class RecordingConsoleHandler extends ConsoleHandler {
+
+        boolean closed
+
+        @Override
+        void close() {
+            closed = true
+            super.close()
         }
 
     }

@@ -172,7 +172,7 @@ public class Daemon implements Stoppable {
                     stateCoordinator.stop();
                 }
             };
-            connectorAddress = connector.start(connectionHandler, connectionErrorHandler);
+            connectorAddress = connector.start(connectionHandler, connectionErrorHandler, token);
             LOGGER.debug("Daemon starting at: {}, with address: {}", new Date(), connectorAddress);
             registryUpdater.onStart(connectorAddress);
         } finally {

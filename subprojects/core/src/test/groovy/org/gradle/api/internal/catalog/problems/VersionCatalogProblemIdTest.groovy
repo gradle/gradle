@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2026 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,31 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.internal.resource.transport.http
+package org.gradle.api.internal.catalog.problems
 
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
-class HttpErrorStatusCodeExceptionTest extends Specification {
+class VersionCatalogProblemIdTest extends Specification {
 
-    def "can identify status code as 5xx error"() {
+    def groups = TestUtil.problemsService().groups
+
+    def "#id is reported in Dependencies > Declaration under its name"() {
         when:
-        boolean serverError = new HttpErrorStatusCodeException(statusCode, '')
+        def problemId = id.problemId(groups)
 
         then:
-        serverError
+        problemId.group == groups.dependencies.declaration
+        problemId.name == id.name
+        problemId.displayName == id.name
 
         where:
-        statusCode << (500..599).collect { it }
-    }
-
-    def "can identify status code as non-server error"() {
-        when:
-        boolean serverError = new HttpErrorStatusCodeException(statusCode, '')
-
-        then:
-        serverError
-
-        where:
-        statusCode << [499, 600]
+        id << VersionCatalogProblemId.values()
     }
 }

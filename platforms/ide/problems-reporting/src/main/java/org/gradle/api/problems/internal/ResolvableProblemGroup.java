@@ -16,6 +16,8 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.ProblemId;
+
 import java.io.InvalidObjectException;
 
 /**
@@ -29,4 +31,12 @@ interface ResolvableProblemGroup extends ProblemGroupInternal {
      * such a child.
      */
     ResolvableProblemGroup resolveChild(String name) throws InvalidObjectException;
+
+    /**
+     * Returns the id of the problem with the given name in this group. Root groups cannot hold problems; the groups
+     * that can implement this through their public type.
+     */
+    default ProblemId problemId(String name) {
+        throw new IllegalArgumentException("Problem group '" + getName() + "' is a root group and cannot hold problems, but problem '" + name + "' was requested");
+    }
 }

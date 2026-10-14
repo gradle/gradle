@@ -18,7 +18,6 @@ package org.gradle.api.problems.internal;
 
 import com.google.common.collect.ImmutableList;
 
-import java.io.InvalidObjectException;
 import java.io.ObjectStreamException;
 import java.io.Serializable;
 
@@ -44,13 +43,6 @@ final class SerializedProblemGroup implements Serializable {
     }
 
     private Object readResolve() throws ObjectStreamException {
-        ResolvableProblemGroup current = DefaultProblemGroups.INSTANCE.findRoot(path.get(0));
-        if (current == null) {
-            throw new InvalidObjectException("Unknown predefined root problem group '" + path.get(0) + "'");
-        }
-        for (int i = 1; i < path.size(); i++) {
-            current = current.resolveChild(path.get(i));
-        }
-        return current;
+        return DefaultProblemGroups.INSTANCE.resolve(path);
     }
 }

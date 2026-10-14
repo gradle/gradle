@@ -41,10 +41,29 @@ The previous step will help you identify potential problems by issuing deprecati
 
 === Potential breaking changes
 
-[[kotlin_2_4_10]]
-==== Upgrade to Kotlin 2.4.20
+[[gradle_exception_carries_resolutions]]
+==== `GradleException` now carries resolution suggestions
 
-The embedded Kotlin has been upgraded from 2.4.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.20[Kotlin 2.4.20].
+link:{javadocPath}/org/gradle/api/GradleException.html[`GradleException`] now supplies the resolution suggestions that Gradle prints beneath a failure, rather than leaving that to a handful of exception subtypes.
+
+It does this by implementing the internal `org.gradle.internal.exceptions.ResolutionProvider` interface, which subtypes previously implemented directly.
+`GradleException` gains `getResolutions()` from it, alongside the new `addResolution(String)` and `clearResolutions()`.
+
+This matters only if you had already subclassed `GradleException`, or one of its public subtypes:
+
+* If you directly implemented `ResolutionProvider` on a subclass yourself, you no longer need to as the interface is inherited.
+* If you added a `getResolutions()` method to a subtype that returns anything other than `List<String>`, this no longer compiles.
+* Similarly, if you added a `addResolution(String)` or `clearResolutions()` method to subtypes, they must return `void`.
+* Custom implementations of `addResolution(String)`, `getResolutions()`, `clearResolutions()` should honor the implicit contract between these methods.
+
+Subclasses of `ResolveException` and `ProjectConfigurationException` additionally can no longer override `getResolutions()`.
+Those types combine the resolutions added to them directly with the ones contributed by their causes, and an override would silently discard the former.
+Add resolutions to these types with `addResolution(String)` instead.
+
+[[kotlin_2_4_21]]
+==== Upgrade to Kotlin 2.4.21
+
+The embedded Kotlin has been upgraded from 2.4.10 to link:https://github.com/JetBrains/kotlin/releases/tag/v2.4.21-RC[Kotlin 2.4.21].
 
 [[configuration_cache_and_problems_report_data_format]]
 ==== Configuration Cache and Problems report data format changes
@@ -94,6 +113,329 @@ This affects Tooling API clients, Build Scans, and any tooling that matches prob
 Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
 
 The console heading for a failed compiler start changes accordingly, from `Java compilation initialization error` to `Compiler initialization failed`.
+
+[[dependency_problem_ids_moved_to_predefined_groups]]
+==== Dependency problem ids moved to the predefined problem groups
+
+Gradle's own version catalog and dependency resolution problems now report into the <<reporting_problems.adoc#sec:predefined_problem_groups,predefined problem groups>> instead of the legacy `dependency-version-catalog` and `dependency-variant-resolution` groups.
+Version catalog problems report into `Dependencies > Declaration`, failures while resolving the dependency graph, such as selecting a version, a variant, or a capability, into `Dependencies > Graph Resolution`, and artifact selection failures into `Dependencies > Artifact Resolution`.
+Each problem is now named by its former display name, and the names of version catalog problems mention the version catalog.
+
+[cols="1,1"]
+|===
+|Before |After
+
+|`dependency-version-catalog:accessor-name-clash`
+|`Dependencies:Declaration:Version catalog accessor name clash`
+
+|`dependency-version-catalog:alias-not-finished`
+|`Dependencies:Declaration:Version catalog alias builder not finished`
+
+|`dependency-version-catalog:catalog-file-does-not-exist`
+|`Dependencies:Declaration:Import of external version catalog file failed`
+
+|`dependency-version-catalog:invalid-alias-notation`
+|`Dependencies:Declaration:Invalid version catalog alias notation`
+
+|`dependency-version-catalog:invalid-dependency-notation`
+|`Dependencies:Declaration:Invalid version catalog dependency notation`
+
+|`dependency-version-catalog:invalid-module-notation`
+|`Dependencies:Declaration:Invalid version catalog module notation`
+
+|`dependency-version-catalog:invalid-plugin-notation`
+|`Dependencies:Declaration:Invalid version catalog plugin notation`
+
+|`dependency-version-catalog:invalid-toml-definition`
+|`Dependencies:Declaration:Invalid version catalog TOML definition`
+
+|`dependency-version-catalog:invalid-version-notation`
+|`Dependencies:Declaration:Invalid version notation in version catalog` in a version catalog, `Dependencies:Declaration:Invalid version notation` in a dependency string notation such as `"org:foo:!!1.0"`
+
+|`dependency-version-catalog:no-import-files`
+|`Dependencies:Declaration:No version catalog files were resolved to be imported`
+
+|`dependency-version-catalog:reserved-alias-name`
+|`Dependencies:Declaration:Reserved version catalog alias name`
+
+|`dependency-version-catalog:toml-syntax-error`
+|`Dependencies:Declaration:Version catalog TOML syntax error`
+
+|`dependency-version-catalog:too-many-entries`
+|`Dependencies:Declaration:Too many entries in version catalog`
+
+|`dependency-version-catalog:too-many-import-files`
+|`Dependencies:Declaration:Importing multiple version catalog files is not supported`
+
+|`dependency-version-catalog:too-many-import-invocation`
+|`Dependencies:Declaration:Multiple 'from' invocations in version catalog`
+
+|`dependency-version-catalog:undefined-alias-reference`
+|`Dependencies:Declaration:Version catalog bundle declares dependency on non-existent alias`
+
+|`dependency-version-catalog:undefined-version-reference`
+|`Dependencies:Declaration:Undefined version reference in version catalog`
+
+|`dependency-version-catalog:unsupported-file-format`
+|`Dependencies:Declaration:Unsupported version catalog file format`
+
+|`dependency-version-catalog:unsupported-format-version`
+|`Dependencies:Declaration:Unsupported version catalog format version`
+
+|`dependency-variant-resolution:ambiguous-artifact-transform`
+|`Dependencies:Artifact Resolution:Multiple artifact transforms exist that would satisfy the request`
+
+|`dependency-variant-resolution:ambiguous-artifacts`
+|`Dependencies:Artifact Resolution:Multiple artifacts exist that would match the request`
+
+|`dependency-variant-resolution:ambiguous-variants`
+|`Dependencies:Graph Resolution:Multiple variants exist that would match the request`
+
+|`dependency-variant-resolution:capability-conflict`
+|`Dependencies:Graph Resolution:Module rejected due to a capability conflict`
+
+|`dependency-variant-resolution:configuration-does-not-exist`
+|`Dependencies:Graph Resolution:Configuration selected by name does not exist`
+
+|`dependency-variant-resolution:configuration-not-compatible`
+|`Dependencies:Graph Resolution:Configuration selected by name is not compatible`
+
+|`dependency-variant-resolution:configuration-not-consumable`
+|`Dependencies:Graph Resolution:Configuration selected by name is not consumable`
+
+|`dependency-variant-resolution:incompatible-multiple-nodes`
+|`Dependencies:Graph Resolution:Incompatible nodes of a single component were selected`
+
+|`dependency-variant-resolution:no-compatible-artifact`
+|`Dependencies:Artifact Resolution:No artifacts exist that would match the request`
+
+|`dependency-variant-resolution:no-compatible-variants`
+|`Dependencies:Graph Resolution:No variants exist that would match the request`
+
+|`dependency-variant-resolution:no-variants-with-matching-capabilities`
+|`Dependencies:Graph Resolution:No variants exist with capabilities that would match the request`
+
+|`dependency-variant-resolution:no-version-satisfies`
+|`Dependencies:Graph Resolution:No version satisfies the constraints`
+
+|`dependency-variant-resolution:unknown-artifact-selection-failure`
+|`Dependencies:Artifact Resolution:Unknown artifact selection failure`
+
+|`dependency-variant-resolution:unknown-resolution-failure`
+|`Dependencies:Graph Resolution:Unknown resolution failure`
+|===
+
+This affects Tooling API clients, Build Scans, and any tooling that matches problems by id.
+Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
+
+The display name of the ambiguous artifact transform failure is corrected from `Multiple artifacts transforms exist that would satisfy the request` to `Multiple artifact transforms exist that would satisfy the request`.
+
+[[validation_problem_ids_moved_to_predefined_groups]]
+==== Validation problem ids moved to the predefined problem groups
+
+Gradle's own validation problems now report into the <<reporting_problems.adoc#sec:predefined_problem_groups,predefined problem groups>> instead of the legacy `validation:property-validation`, `validation:type-validation` and `scripts:dcl-schema` groups.
+Problems about input, output, and caching annotations report into `Gradle > Plugin Validation`.
+Problems about how build logic uses the build model, such as an implementation that cannot be tracked, a missing task dependency, or a type that cannot be part of a Declarative schema, report into `Gradle > Build Logic`.
+Problems about a missing or unusable property value report into `Gradle > Build Definition`.
+Each problem is now named by its former display name, with a few names reworded to describe the problem:
+
+[cols="1,1"]
+|===
+|Before |After
+
+|`scripts:dcl-schema:dcl-schema-building-failure`
+|`Gradle:Build Logic:Schema building failure`
+
+|`scripts:dcl-schema:declaration-hidden-type-used-in-definition`
+|`Gradle:Build Logic:A hidden declaration is used in definition`
+
+|`scripts:dcl-schema:declaration-visible-and-hidden`
+|`Gradle:Build Logic:Declaration is both visible and hidden`
+
+|`scripts:dcl-schema:illegal-usage-of-type-parameter-bound-by-class`
+|`Gradle:Build Logic:Illegal usage of type parameter bound by class`
+
+|`scripts:dcl-schema:illegal-variance-in-parameterized-type-usage`
+|`Gradle:Build Logic:Illegal variance in parameterized type usage`
+
+|`scripts:dcl-schema:non-classifiable-type`
+|`Gradle:Build Logic:Non-classifiable type`
+
+|`scripts:dcl-schema:unit-adding-function-with-lambda`
+|`Gradle:Build Logic:Unit-adding function with lambda`
+
+|`scripts:dcl-schema:unrecognized-member`
+|`Gradle:Build Logic:Unrecognized member`
+
+|`scripts:dcl-schema:unsafe-because-has-hidden-members`
+|`Gradle:Build Logic:Unsafe hidden members in safe feature API`
+
+|`scripts:dcl-schema:unsafe-because-has-non-public-members`
+|`Gradle:Build Logic:Non-public members in safe feature API`
+
+|`scripts:dcl-schema:unsafe-inject-property`
+|`Gradle:Build Logic:Unsafe injected service property in safe feature API`
+
+|`scripts:dcl-schema:unsafe-java-bean-property`
+|`Gradle:Build Logic:Unsafe Java bean property in safe feature API`
+
+|`scripts:dcl-schema:unsafe-non-abstract-member`
+|`Gradle:Build Logic:Unsafe non-abstract member in safe feature API`
+
+|`scripts:dcl-schema:unsafe-non-interface-type`
+|`Gradle:Build Logic:Unsafe non-interface type in safe feature API`
+
+|`scripts:dcl-schema:unsafe-non-pure-function`
+|`Gradle:Build Logic:Unsafe non-pure function in safe feature API`
+
+|`scripts:dcl-schema:unsupported-generic-container-type`
+|`Gradle:Build Logic:Unsupported generic container type`
+
+|`scripts:dcl-schema:unsupported-map-factory`
+|`Gradle:Build Logic:Unsupported map factory`
+
+|`scripts:dcl-schema:unsupported-nullable-read-only-property`
+|`Gradle:Build Logic:Unsupported nullable read-only property`
+
+|`scripts:dcl-schema:unsupported-nullable-type`
+|`Gradle:Build Logic:Unsupported nullable type`
+
+|`scripts:dcl-schema:unsupported-pair-factory`
+|`Gradle:Build Logic:Unsupported pair factory`
+
+|`scripts:dcl-schema:unsupported-type-parameter-as-container-type`
+|`Gradle:Build Logic:Unsupported type parameter as container type`
+
+|`scripts:dcl-schema:unsupported-vararg-type`
+|`Gradle:Build Logic:Unsupported vararg type`
+
+|`validation:invalid-java-toolchain`
+|`Gradle:Build Definition:Running task ValidatePlugins with an unsupported Java Toolchain`
+
+|`validation:missing-java-toolchain-plugin`
+|`Gradle:Build Definition:Using task ValidatePlugins without applying the Java Toolchain plugin`
+
+|`validation:property-validation:annotation-invalid-in-context`
+|`Gradle:Plugin Validation:Invalid annotation in context`
+
+|`validation:property-validation:artifact-transform-should-not-declare-output`
+|`Gradle:Plugin Validation:Artifact transform should not declare output`
+
+|`validation:property-validation:cacheable-transform-cant-use-absolute-sensitivity`
+|`Gradle:Plugin Validation:Property declared to be sensitive to absolute paths`
+
+|`validation:property-validation:cannot-use-optional-on-primitive-types`
+|`Gradle:Plugin Validation:Primitive property annotated with @Optional`
+
+|`validation:property-validation:cannot-write-output`
+|`Gradle:Build Definition:Property is not writable`
+
+|`validation:property-validation:cannot-write-to-reserved-location`
+|`Gradle:Build Definition:Cannot write to reserved location`
+
+|`validation:property-validation:conflicting-annotations`
+|`Gradle:Plugin Validation:Conflicting annotations`
+
+|`validation:property-validation:ignored-annotations-on-field`
+|`Gradle:Plugin Validation:Incorrect annotations on field`
+
+|`validation:property-validation:ignored-property-must-not-be-annotated`
+|`Gradle:Plugin Validation:Ignored property has other annotations`
+
+|`validation:property-validation:implicit-dependency`
+|`Gradle:Build Logic:Property has implicit dependency`
+
+|`validation:property-validation:incompatible-annotations`
+|`Gradle:Plugin Validation:Incompatible annotations`
+
+|`validation:property-validation:incorrect-use-of-input-annotation`
+|`Gradle:Plugin Validation:Incorrect use of @Input annotation`
+
+|`validation:property-validation:input-file-does-not-exist`
+|`Gradle:Build Definition:Input file does not exist`
+
+|`validation:property-validation:invalid-dependency`
+|`Gradle:Build Logic:Property cannot carry dependency`
+
+|`validation:property-validation:missing-annotation`
+|`Gradle:Plugin Validation:Missing annotation`
+
+|`validation:property-validation:missing-normalization-annotation`
+|`Gradle:Plugin Validation:Missing normalization`
+
+|`validation:property-validation:mutable-type-with-setter`
+|`Gradle:Plugin Validation:Mutable type with setter`
+
+|`validation:property-validation:nested-map-unsupported-key-type`
+|`Gradle:Plugin Validation:Unsupported nested map key`
+
+|`validation:property-validation:nested-type-unsupported`
+|`Gradle:Plugin Validation:Nested type unsupported`
+
+|`validation:property-validation:private-getter-must-not-be-annotated`
+|`Gradle:Plugin Validation:Private property with wrong annotation`
+
+|`validation:property-validation:private-method-must-not-be-annotated`
+|`Gradle:Plugin Validation:Private method with wrong annotation`
+
+|`validation:property-validation:redundant-getters`
+|`Gradle:Plugin Validation:Property has redundant getters`
+
+|`validation:property-validation:service-reference-must-be-a-build-service`
+|`Gradle:Plugin Validation:@ServiceReference property is not a build service`
+
+|`validation:property-validation:unexpected-input-file-type`
+|`Gradle:Build Definition:Unexpected input file type`
+
+|`validation:property-validation:unknown-implementation`
+|`Gradle:Build Logic:Unknown implementation`
+
+|`validation:property-validation:unknown-implementation-nested`
+|`Gradle:Build Logic:Unknown property implementation`
+
+|`validation:property-validation:unsupported-notation`
+|`Gradle:Build Definition:Property has unsupported value`
+
+|`validation:property-validation:unsupported-value-type`
+|`Gradle:Plugin Validation:Unsupported value type`
+
+|`validation:property-validation:unsupported-value-type-for-input`
+|`Gradle:Plugin Validation:Unsupported value type for @Input annotation`
+
+|`validation:property-validation:value-not-set`
+|`Gradle:Build Definition:Value not set`
+
+|`validation:type-validation:annotation-invalid-in-context`
+|`Gradle:Plugin Validation:Invalid annotation in context`
+
+|`validation:type-validation:conflicting-annotations`
+|`Gradle:Plugin Validation:Conflicting annotations`
+
+|`validation:type-validation:ignored-annotations-on-method`
+|`Gradle:Plugin Validation:Ignored annotations on method`
+
+|`validation:type-validation:ignored-annotations-on-property`
+|`Gradle:Plugin Validation:Ignored annotations on property`
+
+|`validation:type-validation:incompatible-annotations`
+|`Gradle:Plugin Validation:Incompatible annotations`
+
+|`validation:type-validation:invalid-use-of-type-annotation`
+|`Gradle:Plugin Validation:Incorrect use of type annotation`
+
+|`validation:type-validation:missing-software-type`
+|`Gradle:Build Logic:Missing project feature annotation`
+
+|`validation:type-validation:not-cacheable-without-reason`
+|`Gradle:Plugin Validation:Not cacheable without reason`
+|===
+
+The two `ValidatePlugins` problems about the Java toolchain were reported directly into the legacy `validation` group.
+`annotation-invalid-in-context`, `incompatible-annotations` and `conflicting-annotations` existed in both legacy validation groups and are now one problem id each.
+
+This affects Tooling API clients, Build Scans, and any tooling that matches problems by id.
+Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
+The messages of these problems, their solutions, and their documentation links are unchanged.
 
 [[relocated_root_project_settings_kept]]
 ==== Builds that move the root project directory now load their settings file
@@ -180,6 +522,67 @@ tasks.register("wrapped") {
 To fix this, make sure every provider in the collection has a value.
 If the input is genuinely optional, declare it as such with link:{javadocPath}/org/gradle/api/tasks/TaskInputFilePropertyBuilder.html#optional()[`optional()`] on the `TaskInputs.files(...)` registration, or with link:{javadocPath}/org/gradle/api/tasks/Optional.html[`@Optional`] on the `@InputFiles` property.
 Optional inputs are not affected by this change and continue to ignore absent providers.
+
+[[filters_apply_to_non_method_tests]]
+==== Test filters apply to tests that are not declared as methods
+
+Some JUnit Platform engines declare tests on something other than a method.
+link:https://www.archunit.org/[ArchUnit] declares rules on fields, and link:https://www.spekframework.org/[Spek] declares scopes.
+Gradle previously ran such tests unconditionally, whatever <<java_testing.adoc#test_filtering,test filters>> were in effect.
+They are now matched by their enclosing class and the name they are reported with, in the same way as test methods.
+
+A filtered run that used to include these tests by accident no longer does.
+For example, `gradle test --tests "SomeUnrelatedTest"` previously ran every ArchUnit rule in the source set as well, and now runs only `SomeUnrelatedTest`.
+Review the `--tests` arguments, `filter` blocks and `include`/`exclude` patterns in your build and CI configuration, because a filtered run may now execute fewer tests than before.
+
+To keep such a test running under a filter, name it or its class in the pattern:
+
+* `--tests "ArchRulesTest"` runs every rule declared in `ArchRulesTest`.
+* `--tests "ArchRulesTest.firstRule"` runs the rule declared in the `firstRule` field on its own.
+* Rules grouped with `ArchTests.in(...)` are reported as `GroupedClass > ruleName`, after the class passed to `ArchTests.in(...)` and not the field that holds the set.
+For a set held in a field `nested` of `ArchRulesTest` that wraps `NestedRules`, `--tests "ArchRulesTest.NestedRules > nestedRule"` runs that rule.
+
+WARNING: For a test that is not declared as a method, the name after the class is the name its engine reports, not a method name Gradle derives.
+Engines own these names and may change them in any release, including a patch release.
+A pattern like `ArchRulesTest.NestedRules > nestedRule` can therefore stop matching, or start matching something else, when you upgrade ArchUnit or Spek, with no deprecation warning from Gradle.
+Prefer naming the enclosing class alone where that is specific enough, and treat a pattern that names an individual non-method test as something to re-check on every engine upgrade.
+
+Tests that an engine registers only while a class is executing, as link:https://kotest.io/[Kotest] does, are not affected by this change.
+Gradle applies filters before those tests exist, so they can still only be selected by their spec class.
+
+See <<java_testing.adoc#filtering_non_method_tests,Test filtering>> for details.
+
+[[legacy_apis_download_artifacts_in_parallel]]
+==== Legacy dependency resolution APIs download artifacts eagerly
+
+The following methods of the legacy link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html[`ResolvedConfiguration`] and link:{javadocPath}/org/gradle/api/artifacts/ResolvedDependency.html[`ResolvedDependency`] APIs now download the files of all returned artifacts in parallel before returning:
+
+- link:{javadocPath}/org/gradle/api/artifacts/ResolvedConfiguration.html#getResolvedArtifacts()[`ResolvedConfiguration.getResolvedArtifacts()`]
+- link:{javadocPath}/org/gradle/api/artifacts/ResolvedDependency.html#getModuleArtifacts()[`ResolvedDependency.getModuleArtifacts()`]
+- link:{javadocPath}/org/gradle/api/artifacts/ResolvedDependency.html#getAllModuleArtifacts()[`ResolvedDependency.getAllModuleArtifacts()`]
+
+Previously, these methods returned artifacts without downloading them, and each artifact's file was downloaded one at a time when link:{javadocPath}/org/gradle/api/artifacts/ResolvedArtifact.html#getFile()[`ResolvedArtifact.getFile()`] was called.
+link:{javadocPath}/org/gradle/api/artifacts/LenientConfiguration.html#getArtifacts()[`LenientConfiguration.getArtifacts()`] already downloaded the files of the returned artifacts, and now downloads them in parallel as well.
+
+This change makes the artifact download behavior of `ResolvedConfiguration` and `ResolvedDependency` consistent with `LenientConfiguration`, `FileCollection`, `ArtifactCollection`, and `ArtifactView`.
+
+As a result:
+
+- These methods now fail if any artifact they return cannot be downloaded, instead of failing later when the file of that artifact is accessed.
+- Builds that call these methods without accessing every file may now download artifacts not downloaded previously.
+
+To mitigate this change, consider the following:
+
+- To inspect the dependency graph without downloading any artifacts, use the <<graph_resolution.adoc#sec:resolved-dep-graph,`ResolutionResult`>> API.
+- To download the artifacts of only some dependencies, use an <<artifact_views.adoc#sec:filtering_selected_artifacts,`ArtifactView`>> with a component filter.
+- If you cannot migrate away from the legacy APIs, call `ResolvedDependency.getModuleArtifacts()` only on the dependencies whose artifacts you need, instead of calling `ResolvedConfiguration.getResolvedArtifacts()` or `ResolvedDependency.getAllModuleArtifacts()`.
+- To ignore artifacts that cannot be downloaded, use a <<artifact_views.adoc#sec:performing_lenient_artifact_selection,lenient `ArtifactView`>> or `LenientConfiguration.getArtifacts()`, which omit such artifacts from the result instead of failing.
+
+Neither the legacy APIs nor `ArtifactView` can download a single artifact of a dependency in isolation.
+
+In general, the `ResolvedConfiguration`, `LenientConfiguration`, `ResolvedDependency`, and `ResolvedArtifact` APIs are discouraged.
+They are not compatible with the <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types,Configuration Cache>> and, unlike the modern APIs, do not carry the task dependencies required to build the artifacts they return.
+Prefer the `ResolutionResult`, `ArtifactView`, link:{javadocPath}/org/gradle/api/file/FileCollection.html[`FileCollection`], and link:{javadocPath}/org/gradle/api/artifacts/ArtifactCollection.html[`ArtifactCollection`] APIs, described in <<artifact_resolution.adoc#sec:available_apis,Artifact Resolution>>.
 
 === Deprecations
 

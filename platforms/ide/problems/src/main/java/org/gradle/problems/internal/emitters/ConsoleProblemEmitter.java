@@ -16,12 +16,9 @@
 
 package org.gradle.problems.internal.emitters;
 
-import com.google.common.annotations.VisibleForTesting;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemEmitter;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.internal.operations.OperationIdentifier;
-import org.gradle.problems.internal.ProblemUtils;
 import org.gradle.problems.internal.rendering.ProblemWriter;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
@@ -40,17 +37,11 @@ public class ConsoleProblemEmitter implements ProblemEmitter {
 
     @Override
     public void emit(ProblemInternal problem, @Nullable OperationIdentifier id) {
-        if (shouldRender(problem)) {
+        // Some producers have already written the problem to the console themselves: the deprecation logger
+        // owns the output of deprecations, and the Java compiler integration mirrors javac's diagnostics.
+        if (!problem.isWrittenToConsole()) {
             render(problem);
         }
-    }
-
-    @VisibleForTesting
-    static boolean shouldRender(ProblemInternal problem) {
-        // Deprecations have their own console output, and some producers, such as the Java compiler integration,
-        // have already written the problem to the console themselves.
-        return !ProblemUtils.isInGroup(problem, GradleCoreProblemGroup.deprecation())
-            && !problem.isWrittenToConsole();
     }
 
     private static void render(ProblemInternal problem) {

@@ -595,7 +595,7 @@ NOTE: Plugins that use `javax.annotation` (JSR-305) annotations will continue to
 [[methods_on_public_api_types_made_final]]
 === Methods on public API types made final
 
-The methods link:{javadocPath}/org/gradle/api/specs/AndSpec.html#findUnsatisfiedSpec(java.lang.Object)[`AndSpec.and`] and link:{javadocPath}/org/gradle/api/reporting/GenerateBuildDashboard.html#aggregate(org.gradle.api.reporting.Reporting...)[`GenerateBuildDashboard.aggregate`] have been declared `final` to support the use of the `@SafeVarargs` annotation.
+The methods link:{javadocPath}/org/gradle/api/specs/AndSpec.html#and(org.gradle.api.specs.Spec++...++)[`AndSpec.and`] and link:{javadocPath}/org/gradle/api/reporting/GenerateBuildDashboard.html#aggregate(org.gradle.api.reporting.Reporting++...++)[`GenerateBuildDashboard.aggregate`] have been declared `final` to support the use of the `@SafeVarargs` annotation.
 
 These types were not intended to be subclassed.
 However, if your build logic or a plugin attempts to override these methods, it will now result in a runtime failure.

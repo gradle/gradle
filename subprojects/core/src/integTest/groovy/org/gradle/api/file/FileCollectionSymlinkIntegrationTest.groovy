@@ -391,7 +391,7 @@ class FileCollectionSymlinkIntegrationTest extends AbstractIntegrationSpec imple
 
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:input-file-does-not-exist'
+            fqid == 'Gradle:Build Definition:Input file does not exist'
             def inputNameLc = inputName.toLowerCase()
             definition.id.displayName == 'Input file does not exist'
             contextualLabel == "Type \'CustomTask\' property \'brokenInputFile\' specifies ${inputNameLc} \'$brokenInputFile\' which doesn\'t exist"

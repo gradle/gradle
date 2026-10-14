@@ -258,6 +258,7 @@ public class AsmBackedClassGenerator extends AbstractClassGenerator {
     public static void logGroovySpaceAssignmentDeprecation(String propertyName) {
         DeprecationLogger
             .deprecate("Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL")
+            .withProblemName("Property set via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL")
             .withAdvice("Use assignment ('" + propertyName + " = <value>') instead.")
             .willBeRemovedInGradle10()
             .withUpgradeGuideSection(8, "groovy_space_assignment_syntax")

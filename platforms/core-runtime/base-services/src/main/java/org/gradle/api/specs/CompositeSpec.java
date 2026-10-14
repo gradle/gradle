@@ -35,7 +35,7 @@ public abstract class CompositeSpec<T> implements Spec<T> {
     private final Spec<? super T>[] specs;
 
     /**
-     * Creates a new {@code CompositeSpec}.
+     * Creates a spec with no member specs.
      *
      * @since 3.0
      */
@@ -44,7 +44,7 @@ public abstract class CompositeSpec<T> implements Spec<T> {
     }
 
     /**
-     * Creates a new {@code CompositeSpec}.
+     * Creates a spec with the given member specs, in order.
      *
      * @since 0.7
      */
@@ -58,7 +58,7 @@ public abstract class CompositeSpec<T> implements Spec<T> {
     }
 
     /**
-     * Creates a new {@code CompositeSpec}.
+     * Creates a spec with the member specs of the given iterable, in iteration order.
      *
      * @since 0.9
      */
@@ -91,7 +91,7 @@ public abstract class CompositeSpec<T> implements Spec<T> {
     }
 
     /**
-     * Returns the specs.
+     * Returns an unmodifiable view of the member specs, in order.
      *
      * @since 0.7
      */
@@ -100,7 +100,7 @@ public abstract class CompositeSpec<T> implements Spec<T> {
     }
 
     /**
-     * Returns whether empty is set.
+     * Returns whether this spec has no member specs.
      *
      * @since 3.0
      */
@@ -126,5 +126,10 @@ public abstract class CompositeSpec<T> implements Spec<T> {
         int result = getClass().hashCode();
         result = 31 * result + Arrays.hashCode(specs);
         return result;
+    }
+
+    @Override
+    public String toString() {
+        return getClass().getSimpleName() + Arrays.toString(specs);
     }
 }

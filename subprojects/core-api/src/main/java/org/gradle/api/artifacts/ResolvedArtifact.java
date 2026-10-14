@@ -26,7 +26,7 @@ import java.io.File;
  */
 public interface ResolvedArtifact {
     /**
-     * Returns the local file for this artifact. Downloads the artifact if not already available locally, blocking until complete.
+     * Returns the local file for this artifact.
      * @since 0.8
      */
     File getFile();

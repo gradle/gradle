@@ -16,12 +16,12 @@
 
 package org.gradle.internal.resolve.result;
 
-import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvableArtifact;
 import org.gradle.internal.resolve.ArtifactResolveException;
 import org.jspecify.annotations.Nullable;
 
 public interface BuildableArtifactResolveResult extends ResolveResult, BuildableTypedResolveResult<ResolvableArtifact, ArtifactResolveException>, ResourceAwareResolveResult {
+
     boolean isSuccessful();
 
     /**
@@ -37,8 +37,4 @@ public interface BuildableArtifactResolveResult extends ResolveResult, Buildable
     @Override
     ResolvableArtifact getResult() throws ArtifactResolveException;
 
-    /**
-     * Marks the artifact as not found.
-     */
-    void notFound(ComponentArtifactIdentifier artifact);
 }

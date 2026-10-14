@@ -147,23 +147,21 @@ class DefaultKotlinCompiler(private val moduleRegistry: ModuleRegistry) : Intern
         incrementalCompilationCache: KotlinDslIncrementalCompilationCache,
         scriptIdentity: String
     ) {
-        CompilerOutput.withRedirecting(messageRenderer.log) {
-            btaCompiler().compile(
-                listOf(Path(scriptFile.path)),
-                outputDirectory.toPath(),
-                compilerOptions,
-                classPath,
-                template,
-                implicitImports,
-                messageRenderer,
-                fileSystemAccess,
-                classpathSnapshotCache,
-                incrementalCompilationCache,
-                scriptIdentity
-            )
-            if (messageRenderer.errors.isNotEmpty()) {
-                throw ScriptCompilationException(messageRenderer.errors)
-            }
+        btaCompiler().compile(
+            listOf(Path(scriptFile.path)),
+            outputDirectory.toPath(),
+            compilerOptions,
+            classPath,
+            template,
+            implicitImports,
+            messageRenderer,
+            fileSystemAccess,
+            classpathSnapshotCache,
+            incrementalCompilationCache,
+            scriptIdentity
+        )
+        if (messageRenderer.errors.isNotEmpty()) {
+            throw ScriptCompilationException(messageRenderer.errors)
         }
     }
 

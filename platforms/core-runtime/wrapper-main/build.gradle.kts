@@ -69,6 +69,8 @@ gradleModule {
 }
 
 val executableJar = tasks.register<Jar>("executableJar") {
+    group = "build"
+    description = "Builds the unminified executable Gradle wrapper JAR."
     archiveFileName = "gradle-wrapper-executable.jar"
     manifest {
         attributes.remove(Attributes.Name.IMPLEMENTATION_VERSION.toString())
@@ -107,6 +109,8 @@ val shadowedWrapperJar = gr8.create("gr") {
 // After introducing gr8, wrapper jar is generated as build/libs/gradle-wrapper-executable.jar and processed
 //   by gr8, then the processed `gradle-wrapper.jar` need to be copied back to build/libs for promotion build
 val copyGr8OutputJarAsGradleWrapperJar = tasks.register("copyGr8OutputJarAsGradleWrapperJar") {
+    group = "build"
+    description = "Copies the Gr8-minified wrapper JAR back to build/libs/gradle-wrapper.jar for the promotion build."
     // Declare file inputs and outputs
     // We use a custom task to not have Copy "own" its output directory when copying a single file
     val source = shadowedWrapperJar
@@ -125,6 +129,8 @@ val copyGr8OutputJarAsGradleWrapperJar = tasks.register("copyGr8OutputJarAsGradl
 }
 
 val debuggableJar = tasks.register<Jar>("debuggableJar") {
+    group = "build"
+    description = "Builds an unminified wrapper JAR so the launcher can be debugged."
     archiveFileName = "gradle-wrapper.jar"
     from(executableJar.map { it.source })
     from(configurations.runtimeClasspath.get().incoming.artifactView {

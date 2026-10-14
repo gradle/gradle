@@ -125,8 +125,8 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'dependency-version-catalog:alias-not-finished'
-            definition.id.displayName == 'Alias builder not finished'
+            fqid == 'Dependencies:Declaration:Version catalog alias builder not finished'
+            definition.id.displayName == 'Version catalog alias builder not finished'
             contextualLabel == 'In version catalog libs, dependency alias builder \'my.great.lib\' was not finished'
             details == 'A version was not set or explicitly declared as not wanted'
             definition.documentationLink.url == docUrlFor('alias_not_finished')
@@ -1954,8 +1954,8 @@ Second: 1.1"""
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'dependency-version-catalog:reserved-alias-name'
-            definition.id.displayName == 'Reserved alias name'
+            fqid == 'Dependencies:Declaration:Reserved version catalog alias name'
+            definition.id.displayName == 'Reserved version catalog alias name'
             contextualLabel == "In version catalog libs, alias '$reserved' is a reserved alias"
             details == "Alias '$reserved' is a reserved name in Gradle which prevents generation of accessors."
             definition.documentationLink.url == docUrlFor('reserved_alias_name')
@@ -1991,8 +1991,8 @@ Second: 1.1"""
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'dependency-version-catalog:reserved-alias-name'
-            definition.id.displayName == 'Reserved alias name'
+            fqid == 'Dependencies:Declaration:Reserved version catalog alias name'
+            definition.id.displayName == 'Reserved version catalog alias name'
             contextualLabel == "In version catalog libs, alias '$reserved' is a reserved alias"
             details == "Alias '$reserved' is a reserved name in Gradle which prevents generation of accessors."
             definition.documentationLink.url == docUrlFor('reserved_alias_name')
@@ -2028,8 +2028,8 @@ Second: 1.1"""
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'dependency-version-catalog:reserved-alias-name'
-            definition.id.displayName == 'Reserved alias name'
+            fqid == 'Dependencies:Declaration:Reserved version catalog alias name'
+            definition.id.displayName == 'Reserved version catalog alias name'
             contextualLabel == "In version catalog libs, alias '$reservedName' is a reserved alias"
             details == "Prefix for dependency shouldn\'t be equal to '$prefix'"
             definition.documentationLink.url == docUrlFor('reserved_alias_name')

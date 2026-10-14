@@ -1603,6 +1603,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
                     // 2. We should be able to remove this validator completely. We do not need to make this an error.
                     // See PropertyAccessorType, BeanDynamicObject and DefaultTypeAnnotationMetadataStore for similar special handling
                     DeprecationLogger.deprecateAction("Declaring '" + property.getName() + "' as a property using an 'is-' method with a Boolean type on " + method.getDeclaringClass().getCanonicalName())
+                        .withProblemName("Boolean property declared with an 'is-' method")
                         .withContext("The combination of method name and return type is not consistent with Java Bean property rules.")
                         .withAdvice(String.format(
                             "Add a method named '%s' with the same behavior and mark the old one with @Deprecated, or change the type of '%s.%s' (and the setter) to 'boolean'.",

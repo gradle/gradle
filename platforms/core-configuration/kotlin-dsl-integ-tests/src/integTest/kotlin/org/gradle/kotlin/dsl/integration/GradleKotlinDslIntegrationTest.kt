@@ -44,7 +44,6 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import spock.lang.Issue
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 
 class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
@@ -817,7 +816,6 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
         )
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Kotlin DSL cross-project configuration")
     @Test
     fun `can cross configure buildscript`() {
 
@@ -848,15 +846,12 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
                     }
                 }
             }
-            """
-        )
-
-        withBuildScript(
-            """
-            project(":sub") {
-                buildscript {
-                    dependencies {
-                        classpath(files("../deep.jar"))
+            gradle.lifecycle.beforeProject {
+                if (path == ":sub") {
+                    buildscript {
+                        dependencies {
+                            classpath(files("../deep.jar"))
+                        }
                     }
                 }
             }
@@ -966,14 +961,13 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
         build("help")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Kotlin DSL cross-project configuration")
     @Test
     fun `can use kotlin java8 inline-only methods`() {
 
         withBuildScript(
             """
             task("test") {
-                val v = project.properties.getOrDefault("non-existent-property", "default-value")
+                val v = project.extra.properties.getOrDefault("non-existent-property", "default-value")
                 doLast {
                     println(v)
                 }

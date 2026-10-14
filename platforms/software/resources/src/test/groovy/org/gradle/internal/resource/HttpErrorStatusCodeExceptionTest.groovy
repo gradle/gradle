@@ -1,5 +1,5 @@
 /*
- * Copyright 2020 the original author or authors.
+ * Copyright 2017 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -14,19 +14,25 @@
  * limitations under the License.
  */
 
-package org.gradle.plugins.ide.internal.resolver;
+package org.gradle.internal.resource
 
-import java.io.File;
+import spock.lang.Specification
 
-public class NullGradleApiSourcesResolver implements GradleApiSourcesResolver {
+class HttpErrorStatusCodeExceptionTest extends Specification {
 
-    public static final GradleApiSourcesResolver INSTANCE = new NullGradleApiSourcesResolver();
+    def "can identify status code as 5xx error"() {
+        expect:
+        new HttpErrorStatusCodeException(statusCode, '').serverError
 
-    private NullGradleApiSourcesResolver() {
+        where:
+        statusCode << (500..599)
     }
 
-    @Override
-    public File resolveLocalGroovySources(String jarName) {
-        return null;
+    def "can identify status code as non-server error"() {
+        expect:
+        !new HttpErrorStatusCodeException(statusCode, '').serverError
+
+        where:
+        statusCode << [100, 200, 404, 499, 600]
     }
 }

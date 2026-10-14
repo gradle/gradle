@@ -77,6 +77,22 @@ Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that
 ### Test reporting and execution
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
 
+#### Test filters apply to JUnit Platform tests that are not declared as methods
+
+[Test filters](userguide/java_testing.html#test_filtering) now apply to JUnit Platform tests that are not declared as methods, such as [ArchUnit](https://www.archunit.org/) rules annotated with `@ArchTest` on fields or [Spek](https://www.spekframework.org/) scopes.
+Previously, such tests were always executed, so requesting a single test with `--tests` or excluding tests with `excludeTestsMatching` had no effect on them.
+
+Gradle matches such tests by their enclosing test class and the name they are reported with, in the same way that test methods are matched by class and method name.
+For a rule declared in a field `firstRule` of `ArchRulesTest`, `--tests "ArchRulesTest.firstRule"` runs only that rule and `excludeTestsMatching "*firstRule"` skips it.
+Rules grouped in an `ArchTests` set are reported as `RuleSet > rule`, so they are matched by that name, not by the field name alone.
+Tests that an engine registers only while executing, as [Kotest](https://kotest.io/) does, are not visible to the filter and can only be selected by their spec class.
+
+This also affects the [Test Retry plugin](https://github.com/gradle/test-retry-gradle-plugin), which uses test filters to select the tests to run again.
+Previously, all such tests were retried whenever any test in the task was retried, even if they had passed.
+Now only the failed ones are retried.
+
+See the [Test filtering](userguide/java_testing.html#filtering_non_method_tests) section in the Gradle User Manual for more details.
+
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 
@@ -98,6 +114,8 @@ problems.reporter.report(problems.groups.compilation.java.problemId("Unused impo
 problems.reporter.report(problems.groups.transformation.group("KMP").problemId("Bundle failed")) {}
 ```
 
+Gradle's deprecation warnings are reported into `Gradle > Deprecation`, named after the kind of deprecation, for example `Task usage` instead of `deprecation:the-buildneeded-task-has-been-deprecated`. Details of the usage, such as the name of a task or configuration, no longer appear in the name; they remain in the problem's contextual label.
+
 Predefined groups are documented with a description of what belongs in them, giving consumers of problem reports a documented set of group names to navigate, filter, and aggregate the problems plugins report.
 On the console, problems now show the chain of groups they belong to, for example `Unused import (in Compilation > Java)`.
 The existing `ProblemGroup.create()` and `ProblemId.create()` methods keep working; migrating to the predefined groups is recommended.
@@ -107,6 +125,14 @@ Both the group and the name of these problem ids changed, so Tooling API and rep
 For example, `compilation:java:initialization-failed` is now `Compilation:Java:Compiler initialization failed`.
 The console heading for a failed compiler start changes with it, from `Java compilation initialization error` to `Compiler initialization failed`.
 Java compiler diagnostics are named after the kind of diagnostic, for example `Cannot find symbol` instead of the javac code `compiler.err.cant.resolve.location`; the compiler's message stays in the problem's contextual label.
+
+Gradle's own dependency problems use the predefined groups as well: version catalog problems report into `Dependencies > Declaration`, failures while resolving the dependency graph, such as selecting a version, a variant, or a capability, into `Dependencies > Graph Resolution`, and artifact selection failures into `Dependencies > Artifact Resolution`.
+They are now named by their former display names, and version catalog problem names mention the version catalog, for example `dependency-version-catalog:toml-syntax-error` is now `Dependencies:Declaration:Version catalog TOML syntax error`.
+See the [upgrade guide](userguide/upgrading_version_9.html#dependency_problem_ids_moved_to_predefined_groups) for the complete list.
+
+Gradle's own validation problems use the predefined groups as well: problems about input, output, and caching annotations report into `Gradle > Plugin Validation`, problems about how build logic uses the build model, including types that cannot be part of a Declarative schema, into `Gradle > Build Logic`, and missing or unusable property values into `Gradle > Build Definition`.
+They are now named by their former display names, with a few names reworded to describe the problem, for example `validation:property-validation:value-not-set` is now `Gradle:Build Definition:Value not set`.
+See the [upgrade guide](userguide/upgrading_version_9.html#validation_problem_ids_moved_to_predefined_groups) for the complete list.
 
 See the [Predefined Problem Groups](userguide/reporting_problems.html#sec:predefined_problem_groups) section in the Gradle User Manual for more details.
 
@@ -122,6 +148,29 @@ For example, `validateDistributionUrl=false` (previously set by running `./gradl
 User-declared `Wrapper` tasks now also write the default network timeout, retry count, and retry backoff when those properties are not otherwise configured.
 
 See the [Preserving Existing Wrapper Properties](userguide/gradle_wrapper.html#sec:preserving_wrapper_properties) section in the Gradle User Manual for more details.
+
+#### Providers for values that are already known
+
+Build logic often has a value at hand and needs to pass it to an API that accepts a [`Provider`](javadoc/org/gradle/api/provider/Provider.html).
+Previously, this required wrapping the value in a `Callable` with `providers.provider { value }`, or `providers.provider { null }` for a provider that has no value.
+
+[`ProviderFactory`](javadoc/org/gradle/api/provider/ProviderFactory.html) now has three incubating methods for these cases:
+
+* [`absent()`](javadoc/org/gradle/api/provider/ProviderFactory.html#absent()) returns a provider that never has a value.
+* [`present(value)`](javadoc/org/gradle/api/provider/ProviderFactory.html#present(T)) returns a provider that always has the given value.
+* [`presentIfNotNull(value)`](javadoc/org/gradle/api/provider/ProviderFactory.html#presentIfNotNull(T)) returns a provider that has the given value when it is not `null`, and has no value otherwise.
+
+```kotlin
+val missing: Provider<String> = providers.absent()
+val name: PresentProvider<String> = providers.present("my-lib")
+val value: Provider<String> = providers.presentIfNotNull(nullableValue)
+```
+
+Unlike `provider(Callable)`, these methods do not compute the value on demand, so prefer them when the value is already known.
+
+`present(value)` returns the new [`PresentProvider`](javadoc/org/gradle/api/provider/PresentProvider.html) type, a `Provider` that is guaranteed to have a value: its `get()` never fails and its `getOrNull()` never returns `null`.
+
+See the [Lazy Objects API Reference](userguide/lazy_configuration.html#lazy_objects_api_reference) section in the Gradle User Manual for more details.
 
 ### Dependency management enhancements
 Gradle provides a flexible [dependency management](userguide/getting_started_dep_man.html) engine for declaring, resolving, and verifying the dependencies your build needs.
@@ -157,6 +206,20 @@ Gradle provides [Tooling APIs](userguide/third_party_integration.html) that faci
 ### Performance improvements
 Gradle continuously improves [build performance](userguide/performance.html) through caching, parallelism, and reduced overhead across all phases of the build.
 
+#### Incremental compilation of Kotlin DSL scripts
+
+[Kotlin DSL](userguide/kotlin_dsl.html) scripts are now compiled with the [Kotlin Build Tools API](https://kotlinlang.org/docs/build-tools-api.html), which makes incremental compilation available for build scripts.
+When a script has to be recompiled, for example after an ABI change in build logic, only the affected parts are compiled again.
+In one of our performance tests, a large multi-project build, this makes recompiling scripts after an ABI change in build logic 65% faster.
+
+Setting up incremental compilation has a cost, so Gradle only uses it for scripts that are recompiled repeatedly:
+
+1. The first compilation of a script is a full compilation, without incremental compilation.
+2. The second compilation is also a full compilation, but it records the state needed for incremental compilation.
+3. Every later compilation is incremental.
+
+When script compilation doesn't happen often, users won't see any change in performance, but when script compilation is frequent, users should see a significant improvement.
+
 ### General improvements
 Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
 
@@ -184,6 +247,11 @@ The remaining incubating parts of the API for [custom `dependencies` blocks](use
 * [`modify(ProviderConvertible)`](javadoc/org/gradle/api/artifacts/dsl/DependencyModifier.html#modify(org.gradle.api.provider.ProviderConvertible)) in `DependencyModifier`
 * [`DependencyConstraintFactory`](javadoc/org/gradle/api/artifacts/dsl/DependencyConstraintFactory.html)
 * [`PlatformDependencyModifiers`](javadoc/org/gradle/api/plugins/jvm/PlatformDependencyModifiers.html) and [`TestFixturesDependencyModifiers`](javadoc/org/gradle/api/plugins/jvm/TestFixturesDependencyModifiers.html)
+
+### `AndSpec.findUnsatisfiedSpec`
+
+[`AndSpec.findUnsatisfiedSpec(T)`](javadoc/org/gradle/api/specs/AndSpec.html#findUnsatisfiedSpec(T)) has been promoted.
+Use it to find the first member spec that an object does not satisfy.
 
 ## Documentation and training
 

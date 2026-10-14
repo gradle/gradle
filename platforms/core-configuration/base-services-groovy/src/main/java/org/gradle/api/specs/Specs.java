@@ -31,7 +31,7 @@ import java.util.List;
 public class Specs {
 
     /**
-     * The satisfies all.
+     * The shared spec that is satisfied by every object.
      *
      * @since 0.7
      */
@@ -40,10 +40,15 @@ public class Specs {
         public boolean isSatisfiedBy(Object element) {
             return true;
         }
+
+        @Override
+        public String toString() {
+            return "SATISFIES_ALL";
+        }
     };
 
     /**
-     * Satisfy all.
+     * Returns the shared spec that is satisfied by every object.
      *
      * @since 0.7
      */
@@ -52,7 +57,7 @@ public class Specs {
     }
 
     /**
-     * The satisfies none.
+     * The shared spec that is satisfied by no object.
      *
      * @since 1.0
      */
@@ -61,10 +66,15 @@ public class Specs {
         public boolean isSatisfiedBy(Object element) {
             return false;
         }
+
+        @Override
+        public String toString() {
+            return "SATISFIES_NONE";
+        }
     };
 
     /**
-     * Satisfy none.
+     * Returns the shared spec that is satisfied by no object.
      *
      * @since 0.7
      */
@@ -73,7 +83,7 @@ public class Specs {
     }
 
     /**
-     * Convert closure to spec.
+     * Returns a spec satisfied by objects for which the closure returns a Groovy-true value.
      *
      * @since 0.9
      */
@@ -82,7 +92,8 @@ public class Specs {
     }
 
     /**
-     * Returns a spec that selects the intersection of those items selected by the given specs. Returns a spec that selects everything when no specs provided.
+     * Returns a spec that selects the intersection of those items selected by the given specs.
+     * Returns a spec that selects everything when no specs provided.
      * @since 2.11
      */
     @SafeVarargs
@@ -98,7 +109,8 @@ public class Specs {
     }
 
     /**
-     * Returns a spec that selects the intersection of those items selected by the given specs. Returns a spec that selects everything when no specs provided.
+     * Returns a spec that selects the intersection of those items selected by the given specs.
+     * Returns a spec that selects everything when no specs provided.
      * @since 2.11
      */
     public static <T> Spec<T> intersect(Collection<? extends Spec<? super T>> specs) {
@@ -128,7 +140,8 @@ public class Specs {
     }
 
     /**
-     * Returns a spec that selects the union of those items selected by the provided spec. Selects everything when no specs provided.
+     * Returns a spec that selects the union of those items selected by the given specs.
+     * Selects everything when no specs provided.
      * @since 2.11
      */
     @SafeVarargs
@@ -144,7 +157,8 @@ public class Specs {
     }
 
     /**
-     * Returns a spec that selects the union of those items selected by the provided spec. Selects everything when no specs provided.
+     * Returns a spec that selects the union of those items selected by the given specs.
+     * Selects everything when no specs provided.
      * @since 2.11
      */
     public static <T> Spec<T> union(Collection<? extends Spec<? super T>> specs) {

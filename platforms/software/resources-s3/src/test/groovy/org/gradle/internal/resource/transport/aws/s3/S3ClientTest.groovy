@@ -29,6 +29,7 @@ import com.amazonaws.services.s3.model.UploadPartRequest
 import com.amazonaws.services.s3.model.UploadPartResult
 import com.google.common.base.Optional
 import org.gradle.api.resources.ResourceException
+import org.gradle.internal.resource.HttpErrorStatusCodeException
 import org.gradle.internal.resource.transport.http.HttpProxySettings
 import org.gradle.util.TestCredentialUtil
 import spock.lang.Ignore
@@ -226,6 +227,38 @@ class S3ClientTest extends Specification {
         then:
         def ex = thrown(ResourceException)
         ex.message.startsWith("Could not get resource 'https://somehost/file.txt'")
+    }
+
+    def "reports the status code S3 answered with"() {
+        AmazonS3Client amazonS3Client = Mock()
+        URI uri = new URI("https://somehost/file.txt")
+        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        AmazonS3Exception amazonS3Exception = new AmazonS3Exception("Access Denied")
+        amazonS3Exception.setErrorCode("AccessDenied")
+        amazonS3Exception.setStatusCode(403)
+        amazonS3Client.getObject(_) >> { throw amazonS3Exception }
+
+        when:
+        s3Client.getResource(uri)
+
+        then:
+        def ex = thrown(HttpErrorStatusCodeException)
+        ex.statusCode == 403
+        ex.cause == amazonS3Exception
+        ex.message == "Could not get resource 'https://somehost/file.txt'."
+    }
+
+    def "a missing object is not reported as a failure"() {
+        AmazonS3Client amazonS3Client = Mock()
+        URI uri = new URI("https://somehost/file.txt")
+        S3Client s3Client = new S3Client(amazonS3Client, s3ConnectionProperties)
+        AmazonS3Exception amazonS3Exception = new AmazonS3Exception("no such key")
+        amazonS3Exception.setErrorCode("NoSuchKey")
+        amazonS3Exception.setStatusCode(404)
+        amazonS3Client.getObject(_) >> { throw amazonS3Exception }
+
+        expect:
+        s3Client.getResource(uri) == null
     }
 
     def "should include uri when upload fails"() {

@@ -350,6 +350,24 @@ class PredefinedProblemGroupsTest extends Specification {
         undefinedCopy.description == "Problems without an explicitly defined KMP sub-group"
     }
 
+    def "reading a serialized path with an invalid or reserved user group name fails"() {
+        // legacy groups do not validate their names, so they can carry an invalid name into the serialized path
+        when:
+        roundTrip(SerializedProblemGroup.of(ProblemGroup.create(" Kotlin", " Kotlin", groups.compilation)))
+
+        then:
+        def invalid = thrown(InvalidObjectException)
+        invalid.message == "Problem group name must not start with whitespace: ' Kotlin'"
+        invalid.cause instanceof IllegalArgumentException
+
+        when:
+        roundTrip(SerializedProblemGroup.of(ProblemGroup.create("undefined", "undefined", groups.compilation.java)))
+
+        then:
+        def reserved = thrown(InvalidObjectException)
+        reserved.message == "'Undefined' is a reserved problem group name, use getUndefined() instead"
+    }
+
     def "reading a serialized path that names an unknown root or an unknown child of the closed Gradle root fails"() {
         // legacy groups serialize as plain beans; only the predefined hierarchy goes through the name path
         when:
@@ -365,6 +383,41 @@ class PredefinedProblemGroupsTest extends Specification {
         then:
         def unknownChild = thrown(InvalidObjectException)
         unknownChild.message == "Unknown predefined problem group 'Nope'"
+    }
+
+    def "resolves a problem id from a path of group names"() {
+        expect:
+        def predefined = DefaultProblemGroups.INSTANCE.problemId(["Gradle", "Plugin Validation"], "Missing annotation")
+        predefined == groups.gradle.pluginValidation.problemId("Missing annotation")
+        predefined.group.is(groups.gradle.pluginValidation)
+
+        def undefined = DefaultProblemGroups.INSTANCE.problemId(["Compilation", "Undefined"], "Some problem")
+        undefined.group.is(groups.compilation.undefined)
+
+        def userDefined = DefaultProblemGroups.INSTANCE.problemId(["Transformation", "KMP", "Bundling"], "Bundle failed")
+        userDefined == groups.transformation.group("KMP").group("Bundling").problemId("Bundle failed")
+        userDefined.group.parent.parent.is(groups.transformation)
+    }
+
+    def "resolving a problem id fails for the path #path"() {
+        when:
+        DefaultProblemGroups.INSTANCE.problemId(path, "Some problem")
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.contains(message)
+
+        where:
+        path                                        | message
+        []                                          | "must name at least a root group"
+        ["validation"]                              | "Unknown predefined root problem group 'validation'"
+        ["Compilation"]                             | "is a root group and cannot hold problems"
+        ["Gradle", "Plugins"]                       | "Plugins"
+        ["Gradle", "Plugin Validation", "Caching"]  | "cannot have sub-groups"
+        ["Compilation", "undefined"]                | "'Undefined' is a reserved problem group name"
+        ["Compilation", "Java", "UNDEFINED"]        | "'Undefined' is a reserved problem group name"
+        ["Compilation", " Kotlin"]                  | "must not start with whitespace"
+        ["Compilation", "Java", "Lint > Checks"]    | "Problem group name"
     }
 
     def "serialized form only carries the path, not the siblings"() {

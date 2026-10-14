@@ -114,8 +114,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds("test")
         verifyAll(receivedProblem(0)) {
-            definition.id.fqid == 'deprecation:properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl'
-            definition.id.displayName == """Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."""
+            definition.id.fqid == """Gradle:Deprecation:Property set via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL"""
+            definition.id.displayName == """Property set via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL"""
             originLocations.size() == 1
             //guarantee no duplicate locations
             originLocations.size() == 1
@@ -607,7 +607,7 @@ Problem found: Project is a prototype (id: prototype-project, in sample-problems
         expect:
         succeeds("help")
         verifyAll(receivedProblem) {
-            it.definition.id.group.name == 'deprecation'
+            it.definition.id.fqid == 'Gradle:Deprecation:Feature'
         }
     }
 
