@@ -77,3 +77,11 @@ A chain of 20 tasks, each taking 1s and depending on the previous one, runs alon
 
 Shows the ETA following the 20s chain, even though there is twice as much independent work: spread across the parallel workers, the independent work finishes in a few seconds.
 The progress bar passes two thirds within 2s, while the ETA correctly still shows about 18s.
+
+### test-build-composite
+
+4 app tasks (2s each) depend on 2 tasks (3s each) of the included build `lib`.
+The tasks of `lib` do not depend on `intro`, as an included build cannot depend on tasks of the build that includes it.
+
+Shows the ETA covering work in an included build: the included build schedules its work separately from the root build, and the estimate covers both.
+The tasks of `lib` are recorded in the root build's history, as `:lib:libA` and `:lib:libB`, since the history is kept per build tree.
