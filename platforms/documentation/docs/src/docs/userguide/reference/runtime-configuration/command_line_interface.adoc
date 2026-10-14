@@ -437,6 +437,25 @@ assemble - Assembles the outputs of this project. (registered by plugin 'org.gra
 build - Assembles and tests this project. (registered by plugin 'org.gradle.language.base.plugins.LifecycleBasePlugin')
 ----
 
+You can use the incubating `--eta` option to show how long each task took in up to its last 3 successful executions, and their average:
+
+[source,bash]
+----
+$ ./gradlew tasks --eta
+----
+[source,text]
+----
+Build tasks
+-----------
+assemble - Assembles the outputs of this project. (ETA: avg 0.012s; last 0.010s, 0.014s)
+build - Assembles and tests this project. (ETA: unknown)
+----
+
+Gradle records these durations in the project cache directory (`.gradle/task-durations.txt` by default).
+Tasks that executed and succeeded are recorded, and tasks without sources (`NO-SOURCE`) are recorded as taking no time; up-to-date, cached, skipped, and failed tasks are not.
+Tasks that have not been recorded yet show `unknown`.
+When the report merges tasks with the same name from several projects into one line, it shows `multiple tasks`; use `--all` to see each task.
+
 [[sec:show_task_details]]
 === Show task usage details
 
