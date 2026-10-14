@@ -44,7 +44,7 @@ public class RemainingTimeEstimator {
     // Work items that wait on nested work they started, such as a nested build
     private final Map<OperationIdentifier, WaitingWork> waitingWork = new HashMap<>();
     // For work items whose scheduled work is unknown
-    private ScheduledWork unknownScheduledWork = new ScheduledWork(0);
+    private ScheduledWork unknownScheduledWork = new ScheduledWork();
     private long unstartedWorkMillis;
     private int maxParallelism = 1;
     // Set once any work has no estimate, since the remaining time can then no longer be trusted
@@ -70,7 +70,8 @@ public class RemainingTimeEstimator {
             estimateUnavailable = true;
             return;
         }
-        ScheduledWork scheduled = new ScheduledWork(schedulingEvent.getTimestamp() + estimate.get().getCriticalPathMillis());
+        ScheduledWork scheduled = new ScheduledWork();
+        scheduled.pendingChain(schedulingEvent.getTimestamp(), estimate.get().getCriticalPathMillis());
         scheduledWork.put(schedulingEvent.getProgressOperationId(), scheduled);
         unstartedWorkMillis += estimate.get().getDurationMillis();
 
@@ -97,6 +98,9 @@ public class RemainingTimeEstimator {
             return;
         }
         ScheduledWork scheduled = schedulingId == null ? null : scheduledWork.get(schedulingId);
+        if (scheduled != null) {
+            scheduled.workStarted(estimate.get().getCriticalPathMillis());
+        }
         long durationMillis = estimate.get().getDurationMillis();
         unstartedWorkMillis -= durationMillis;
         runningWork.put(workStartEvent.getProgressOperationId(), new RunningWork(
@@ -111,11 +115,11 @@ public class RemainingTimeEstimator {
     public void workCompleted(OperationIdentifier workId, long timestamp) {
         RunningWork running = runningWork.remove(workId);
         if (running != null) {
-            running.scheduledWork.chainEnd(timestamp + running.followingMillis);
+            running.scheduledWork.pendingChain(timestamp, running.followingMillis);
         }
         WaitingWork waiting = waitingWork.remove(workId);
         if (waiting != null) {
-            waiting.scheduledWork.chainEnd(timestamp + waiting.followingMillis);
+            waiting.scheduledWork.pendingChain(timestamp, waiting.followingMillis);
         }
     }
 
@@ -124,7 +128,7 @@ public class RemainingTimeEstimator {
         topLevelWork.clear();
         runningWork.clear();
         waitingWork.clear();
-        unknownScheduledWork = new ScheduledWork(0);
+        unknownScheduledWork = new ScheduledWork();
         topLevelWork.add(unknownScheduledWork);
         unstartedWorkMillis = 0;
         maxParallelism = 1;
@@ -154,7 +158,7 @@ public class RemainingTimeEstimator {
     }
 
     private long remainingChain(ScheduledWork scheduled, Map<ScheduledWork, Long> runningChains, long now) {
-        long remaining = max(scheduled.chainEndTime - now, runningChains.getOrDefault(scheduled, 0L));
+        long remaining = max(scheduled.pendingChainEndTime() - now, runningChains.getOrDefault(scheduled, 0L));
         for (WaitingWork waiting : waitingWork.values()) {
             if (waiting.scheduledWork == scheduled) {
                 remaining = max(remaining, waiting.followingMillis + remainingChain(waiting.nestedWork, runningChains, now));
@@ -167,15 +171,41 @@ public class RemainingTimeEstimator {
      * Work scheduled together, such as the tasks of a build.
      */
     private static class ScheduledWork {
-        // Latest known end time of a chain of its work that is no longer running
-        private long chainEndTime;
+        // Chains of work that has not started yet, such as the critical path before any work has started,
+        // or the work that runs after a completed work item
+        private final List<PendingChain> pendingChains = new ArrayList<>();
 
-        ScheduledWork(long chainEndTime) {
-            this.chainEndTime = chainEndTime;
+        void pendingChain(long startTime, long durationMillis) {
+            // Chains that have already ended no longer affect the estimate
+            pendingChains.removeIf(chain -> chain.endTime <= startTime);
+            if (durationMillis > 0) {
+                pendingChains.add(new PendingChain(startTime + durationMillis, durationMillis));
+            }
         }
 
-        void chainEnd(long endTime) {
-            chainEndTime = max(chainEndTime, endTime);
+        /**
+         * A started work item carries the chains that are no longer than its own, so they no longer hold up the estimate when work finishes earlier than estimated.
+         */
+        void workStarted(long criticalPathMillis) {
+            pendingChains.removeIf(chain -> chain.durationMillis <= criticalPathMillis);
+        }
+
+        long pendingChainEndTime() {
+            long endTime = 0;
+            for (PendingChain chain : pendingChains) {
+                endTime = max(endTime, chain.endTime);
+            }
+            return endTime;
+        }
+    }
+
+    private static class PendingChain {
+        private final long endTime;
+        private final long durationMillis;
+
+        PendingChain(long endTime, long durationMillis) {
+            this.endTime = endTime;
+            this.durationMillis = durationMillis;
         }
     }
 

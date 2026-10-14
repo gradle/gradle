@@ -377,6 +377,62 @@ class BuildStatusRendererTest extends OutputSpecification {
         statusBar.display == '[##########.....] 66% EXECUTING [10s ELAPSED | 6s ETA]'
     }
 
+    def "estimate drops when work finishes earlier than estimated"() {
+        given:
+        def event1 = startRootBuildOperation(1)
+        def event2 = startExecuteRootBuild(2, 1, 0)
+        // A chain of 2 tasks taking 3s each
+        def event3 = startExecuteBuild(3, 2, 2, 6000, 6000)
+
+        when:
+        renderer.onOutput(event1)
+        renderer.onOutput(event2)
+        renderer.onOutput(event3)
+        renderer.onOutput(startExecuteTask(4, 3, 3000, 6000))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[...............] 0% EXECUTING [0ms ELAPSED | 6s ETA]'
+
+        when:
+        currentTimeMs += 500
+        renderer.onOutput(complete(4))
+        renderer.onOutput(updateNow())
+
+        then:
+        // Only the second task remains
+        statusBar.display == '[#######........] 50% EXECUTING [500ms ELAPSED | 3s ETA]'
+    }
+
+    def "estimate drops when the work after a completed work item finishes earlier than estimated"() {
+        given:
+        def event1 = startRootBuildOperation(1)
+        def event2 = startExecuteRootBuild(2, 1, 0)
+        // A quick task, then a task estimated at 3s that is up-to-date, then a task taking 2s
+        def event3 = startExecuteBuild(3, 2, 3, 5000, 5000)
+
+        when:
+        renderer.onOutput(event1)
+        renderer.onOutput(event2)
+        renderer.onOutput(event3)
+        renderer.onOutput(startExecuteTask(4, 3, 0, 5000))
+        renderer.onOutput(complete(4))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[#####..........] 33% EXECUTING [0ms ELAPSED | 5s ETA]'
+
+        when:
+        currentTimeMs += 100
+        renderer.onOutput(startExecuteTask(5, 3, 3000, 5000))
+        renderer.onOutput(complete(5))
+        renderer.onOutput(updateNow())
+
+        then:
+        // Only the last task remains
+        statusBar.display == '[##########.....] 66% EXECUTING [100ms ELAPSED | 2s ETA]'
+    }
+
     def "estimate includes the work that follows a work item waiting on a nested build"() {
         given:
         def event1 = startRootBuildOperation(1)
