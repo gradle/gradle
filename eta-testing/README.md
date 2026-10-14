@@ -45,3 +45,11 @@ Then a slow task, taking 12-15s, runs after all of them.
 
 Shows the ETA rising when work is added during execution, and a task that waits on its nested build no longer counting as running.
 The nested build in `extra-tasks` keeps its own task duration history.
+
+### test-build-overrun
+
+8 parallel tasks take 2s longer on every run, so they always take longer than the average of their recorded durations.
+Then a finish task takes 3s.
+The run count is kept in `build/run-count.txt`; delete `build` to start over.
+
+Shows the ETA stalling, rather than counting up, while tasks overrun their estimates: once the 8 tasks pass their estimates, the ETA holds at about the finish task's duration until they complete.
