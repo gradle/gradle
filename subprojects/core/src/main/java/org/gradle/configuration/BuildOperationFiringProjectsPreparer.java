@@ -18,6 +18,7 @@ package org.gradle.configuration;
 
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.initialization.ConfigureBuildBuildOperationType;
+import org.gradle.internal.buildtree.RootBuildConfigurationProgressHelper;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
@@ -29,10 +30,12 @@ public class BuildOperationFiringProjectsPreparer implements ProjectsPreparer {
     };
     private final ProjectsPreparer delegate;
     private final BuildOperationRunner buildOperationRunner;
+    private final RootBuildConfigurationProgressHelper rootBuildConfigurationProgressHelper;
 
-    public BuildOperationFiringProjectsPreparer(ProjectsPreparer delegate, BuildOperationRunner buildOperationRunner) {
+    public BuildOperationFiringProjectsPreparer(ProjectsPreparer delegate, BuildOperationRunner buildOperationRunner, RootBuildConfigurationProgressHelper rootBuildConfigurationProgressHelper) {
         this.delegate = delegate;
         this.buildOperationRunner = buildOperationRunner;
+        this.rootBuildConfigurationProgressHelper = rootBuildConfigurationProgressHelper;
     }
 
     @Override
@@ -56,17 +59,23 @@ public class BuildOperationFiringProjectsPreparer implements ProjectsPreparer {
         @Override
         public BuildOperationDescriptor.Builder description() {
             BuildOperationDescriptor.Builder builder = BuildOperationDescriptor.displayName(gradle.contextualize("Configure build"));
+            int projectCount = gradle.getSettings().getProjectRegistry().size();
             if (gradle.isRootBuild()) {
                 builder.metadata(BuildOperationCategory.CONFIGURE_ROOT_BUILD);
+                builder.totalProgress(projectCount + rootBuildConfigurationProgressHelper.getAdditionalTotalProgress());
             } else {
                 builder.metadata(BuildOperationCategory.CONFIGURE_BUILD);
+                builder.totalProgress(projectCount);
             }
-            builder.totalProgress(gradle.getSettings().getProjectRegistry().size());
-            //noinspection Convert2Lambda
             return builder.details(new ConfigureBuildBuildOperationType.Details() {
                 @Override
                 public String getBuildPath() {
                     return gradle.getIdentityPath().toString();
+                }
+
+                @Override
+                public int getProjectCount() {
+                    return projectCount;
                 }
             });
         }

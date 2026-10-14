@@ -45,7 +45,7 @@ import java.util.Set;
 public class BuildStatusRenderer implements OutputEventListener {
 
     private enum Phase {
-        Initializing, Configuring, Executing
+        Initializing, Loading, Configuring, Executing
     }
 
     private final OutputEventListener listener;
@@ -53,6 +53,7 @@ public class BuildStatusRenderer implements OutputEventListener {
     private final Console console;
     private final ConsoleMetaData consoleMetaData;
     private @Nullable OperationIdentifier buildProgressOperationId;
+    private @Nullable OperationIdentifier loadProgressOperationId;
     private @Nullable Phase currentPhase;
     private final Set<OperationIdentifier> configuringProjects = new HashSet<>();
     private final Set<OperationIdentifier> runningWorkItems = new HashSet<>();
@@ -91,6 +92,10 @@ public class BuildStatusRenderer implements OutputEventListener {
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_ROOT_BUILD) {
                     // Once the root build starts configuring, we are in Configuring phase
                     phaseStarted(startEvent, Phase.Configuring);
+                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.LOAD_CONFIGURATION_CACHE && currentPhase == Phase.Initializing) {
+                    // Reusing the configuration cache takes the place of configuring the build
+                    phaseStarted(startEvent, Phase.Loading);
+                    workStarted(startEvent);
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_MAIN_TASKS) {
                     phaseStarted(startEvent, Phase.Executing);
                 } else if (currentPhase != null) {
@@ -99,6 +104,9 @@ public class BuildStatusRenderer implements OutputEventListener {
             }
         } else if (event instanceof ProgressCompleteEvent) {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
+            if (completeEvent.getProgressOperationId().equals(loadProgressOperationId)) {
+                loadProgressOperationId = null;
+            }
             if (completeEvent.getProgressOperationId().equals(buildProgressOperationId)) {
                 buildEnded();
             } else if (configuringProjects.remove(completeEvent.getProgressOperationId())) {
@@ -160,7 +168,21 @@ public class BuildStatusRenderer implements OutputEventListener {
             addToTotal(startEvent.getTotalProgress());
         } else if (category.isTopLevelWorkItem()) {
             runningWorkItems.add(startEvent.getProgressOperationId());
+        } else if (category == BuildOperationCategory.LOAD_CONFIGURATION_CACHE) {
+            loadProgressOperationId = startEvent.getProgressOperationId();
+            stepStarted(startEvent);
+        } else if (category == BuildOperationCategory.STORE_CONFIGURATION_CACHE) {
+            stepStarted(startEvent);
+        } else if (category == BuildOperationCategory.BUILD_WORK_GRAPH && loadProgressOperationId == null) {
+            // Loading the configuration cache also builds the work graph, which counts as part of the load
+            stepStarted(startEvent);
         }
+    }
+
+    // Building the work graph and storing or loading the configuration cache each count as one unit of work
+    private void stepStarted(ProgressStartEvent startEvent) {
+        addToTotal(1);
+        runningWorkItems.add(startEvent.getProgressOperationId());
     }
 
     private void projectsDiscovered(ProgressStartEvent startEvent) {
@@ -227,6 +249,7 @@ public class BuildStatusRenderer implements OutputEventListener {
         configuredProjects = 0;
         pendingWorkItems = 0;
         startedWorkItems = 0;
+        loadProgressOperationId = null;
     }
 
     private void buildEnded() {

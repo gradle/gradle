@@ -31,6 +31,7 @@ import org.gradle.internal.buildtree.BuildTreeModelSideEffectExecutor
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer
 import org.gradle.internal.buildtree.DefaultBuildTreeModelSideEffectExecutor
 import org.gradle.internal.buildtree.DefaultBuildTreeWorkGraphPreparer
+import org.gradle.internal.buildtree.RootBuildConfigurationProgressHelper
 import org.gradle.internal.cc.base.problems.IgnoringProblemsListener
 import org.gradle.internal.cc.impl.barrier.BarrierAwareBuildTreeLifecycleControllerFactory
 import org.gradle.internal.cc.impl.barrier.VintageConfigurationTimeActionRunner
@@ -133,6 +134,7 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
             add(ProjectScopedScriptResolution::class.java, ProjectScopedScriptResolution.NO_OP)
             add(ConfigurationCacheInputsListener::class.java, PromoInputsListener::class.java)
             add(BuildTreeModelSideEffectExecutor::class.java, DefaultBuildTreeModelSideEffectExecutor::class.java)
+            add(RootBuildConfigurationProgressHelper::class.java, VintageRootBuildConfigurationProgressHelper::class.java)
             // endregion
 
             // region VT-only
@@ -157,7 +159,7 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
             add(ConfigurationCacheStartParameter::class.java)
             add(ConfigurationCacheKey::class.java)
             add(ConfigurationCacheClassLoaderScopeRegistryListener::class.java)
-            add(BuildTreeConfigurationCache::class.java, DefaultConfigurationCache::class.java)
+            add(BuildTreeConfigurationCache::class.java, RootBuildConfigurationProgressHelper::class.java, DefaultConfigurationCache::class.java)
             add(DefaultDeferredRootBuildGradle::class.java)
             add(
                 ConfigurationCacheInputFileChecker.Host::class.java,
