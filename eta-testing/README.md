@@ -124,3 +124,10 @@ A breaker task takes 2s, and fails when run with `-Pfail`; 3 tasks that depend o
 Run without `-Pfail` first, twice, to record the durations, then with `-Pfail --continue`.
 
 Shows that the ETA does not account for work that will never run: when the breaker fails, its dependents are skipped, but the estimate still includes them, and the build ends with time remaining on the ETA.
+
+### test-build-finalizers
+
+4 tasks take 1s each, and are all finalized by a cleanup task that takes 6s.
+The `all` task only depends on the 4 tasks.
+
+Shows the ETA including finalizers in the chain of the tasks they finalize: it starts at 7s, while the progress bar passes 85% after 1s.
