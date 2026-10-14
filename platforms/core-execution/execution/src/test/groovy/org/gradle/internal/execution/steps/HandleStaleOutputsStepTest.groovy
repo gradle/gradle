@@ -22,6 +22,7 @@ import org.gradle.internal.execution.MutableUnitOfWork
 import org.gradle.internal.execution.OutputChangeListener
 import org.gradle.internal.execution.OutputVisitor
 import org.gradle.internal.execution.history.AfterExecutionState
+import org.gradle.internal.execution.history.ExecutionHistoryStore
 import org.gradle.internal.execution.history.OutputFilesRepository
 import org.gradle.internal.file.Deleter
 import org.gradle.internal.file.TreeType
@@ -31,7 +32,10 @@ class HandleStaleOutputsStepTest extends StepSpec<WorkspaceContext> implements S
     def deleter = Mock(Deleter)
     def outputChangeListener = Mock(OutputChangeListener)
     def outputFilesRepository = Mock(OutputFilesRepository)
-    def work = Stub(MutableUnitOfWork)
+    def work = Stub(MutableUnitOfWork) {
+        // outputs are only recorded for work with history
+        getHistory() >> Optional.of(Stub(ExecutionHistoryStore))
+    }
 
     def step = new HandleStaleOutputsStep<>(
         buildOperationRunner,

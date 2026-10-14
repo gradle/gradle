@@ -16,6 +16,7 @@
 package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
@@ -45,6 +46,7 @@ import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.WorkValidationException;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
+import org.gradle.internal.execution.history.ExecutionOutputState;
 import org.gradle.internal.file.PathToFileResolver;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
@@ -55,6 +57,7 @@ import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.internal.operations.RunnableBuildOperation;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.LoggerFactory;
@@ -87,6 +90,7 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
     private final TaskDependencyFactory taskDependencyFactory;
     private final PathToFileResolver fileResolver;
     private final MissingTaskDependencyDetector missingTaskDependencyDetector;
+    private final boolean captureInputsWithoutHistory;
 
     public DefaultTaskNodeExecutor(
         BuildOperationRunner buildOperationRunner,
@@ -107,7 +111,8 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
         FileCollectionFactory fileCollectionFactory,
         TaskDependencyFactory taskDependencyFactory,
         PathToFileResolver fileResolver,
-        MissingTaskDependencyDetector missingTaskDependencyDetector
+        MissingTaskDependencyDetector missingTaskDependencyDetector,
+        boolean captureInputsWithoutHistory
     ) {
         this.taskExecutionListener = taskExecutionListener;
         this.taskListener = taskListener;
@@ -126,6 +131,7 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
         this.taskDependencyFactory = taskDependencyFactory;
         this.fileResolver = fileResolver;
         this.missingTaskDependencyDetector = missingTaskDependencyDetector;
+        this.captureInputsWithoutHistory = captureInputsWithoutHistory;
     }
 
     @Override
@@ -207,19 +213,26 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
                 CachingState.NOT_DETERMINED,
                 null,
                 false,
-                ImmutableList.of()
+                ImmutableList.of(),
+                null
             );
         }
 
         boolean incremental = result.getExecution()
             .map(executionResult -> executionResult.getOutcome() == EXECUTED_INCREMENTALLY)
             .getOrMapFailure(throwable -> false);
+        // Prototype: getAfterExecutionOutputState() is marked @VisibleForTesting; it is used here to expose
+        // the produced output snapshots to the work trace listener without widening the public result type.
+        ImmutableSortedMap<String, FileSystemSnapshot> outputFileSnapshots = result.getAfterExecutionOutputState()
+            .map(ExecutionOutputState::getOutputFilesProducedByWork)
+            .orElse(null);
         return new ExecuteTaskBuildOperationResult(
             taskState,
             result.getCachingState(),
             result.getReusedOutputOriginMetadata().orElse(null),
             incremental,
-            result.getExecutionReasons()
+            result.getExecutionReasons(),
+            outputFileSnapshots
         );
     }
 
@@ -353,7 +366,8 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
             reservedFileSystemLocationRegistry,
             taskCacheabilityResolver,
             taskDependencyFactory,
-            missingTaskDependencyDetector
+            missingTaskDependencyDetector,
+            captureInputsWithoutHistory
         );
 
         TaskStateInternal state = task.getState();

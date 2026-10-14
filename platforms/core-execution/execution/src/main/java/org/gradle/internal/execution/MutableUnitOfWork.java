@@ -43,6 +43,17 @@ public interface MutableUnitOfWork extends UnitOfWork {
     ExecutionBehavior getExecutionBehavior();
 
     /**
+     * Whether the inputs of this work should be captured even when no execution history is kept for it
+     * (see {@link #getHistory()}), for observability purposes such as the work trace.
+     * <p>
+     * Capturing does not change how the work is executed: nothing is stored in the execution history,
+     * the work is never considered up-to-date and its outputs are never loaded from the build cache.
+     */
+    default boolean shouldCaptureInputsWithoutHistory() {
+        return false;
+    }
+
+    /**
      * Whether overlapping outputs should be allowed or ignored.
      */
     default OverlappingOutputHandling getOverlappingOutputHandling() {

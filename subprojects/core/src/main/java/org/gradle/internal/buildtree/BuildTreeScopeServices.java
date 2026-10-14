@@ -75,6 +75,7 @@ import org.gradle.internal.buildoption.InternalOptions;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
 import org.gradle.internal.event.ScopedListenerManager;
 import org.gradle.internal.exception.ExceptionAnalyser;
+import org.gradle.internal.execution.trace.WorkTraceService;
 import org.gradle.internal.file.Stat;
 import org.gradle.internal.id.ConfigurationCacheableIdFactory;
 import org.gradle.internal.initialization.layout.BuildTreeLocations;
@@ -144,6 +145,7 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(TaskIdentityFactory.class);
         registration.add(BuildLogicBuildQueue.class, DefaultBuildLogicBuildQueue.class);
         registration.add(NodeValidator.class, DefaultNodeValidator.class);
+        registration.add(WorkTraceService.class);
     }
 
     @Provides

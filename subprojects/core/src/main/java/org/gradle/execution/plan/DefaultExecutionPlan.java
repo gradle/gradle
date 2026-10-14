@@ -113,6 +113,9 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         }
         scheduledNodes = work.getScheduledNodes();
         entryNodes.addAll(work.getEntryNodes());
+        for (Node entryNode : work.getEntryNodes()) {
+            entryNode.markAsEntryNode();
+        }
         nodeMapping.addAll(scheduledNodes);
     }
 
@@ -158,6 +161,7 @@ public class DefaultExecutionPlan implements ExecutionPlan, QueryableExecutionPl
         for (Node node : nodes) {
             node.maybeInheritOrdinalAsDependency(group);
             group.addEntryNode(node);
+            node.markAsEntryNode();
             entryNodes.add(node);
             queue.add(node);
         }

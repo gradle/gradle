@@ -73,6 +73,7 @@ public abstract class Node {
     private MutationInfo mutationInfo = MutationInfo.EMPTY;
     private final ConsumerState consumerState = new ConsumerState();
     private NodeGroup group = NodeGroup.DEFAULT_GROUP;
+    private boolean entryNode;
 
     @VisibleForTesting
     ExecutionState getState() {
@@ -114,6 +115,22 @@ public abstract class Node {
 
     public NodeGroup getGroup() {
         return group;
+    }
+
+    /**
+     * Marks this node as an entry node of the execution plan, i.e. one that was requested directly
+     * (for example by a task name on the command line) rather than reached through dependencies.
+     */
+    public void markAsEntryNode() {
+        entryNode = true;
+    }
+
+    /**
+     * Whether this node is an entry node of the execution plan. Survives a configuration cache load,
+     * since the entry nodes are stored with the scheduled work.
+     */
+    public boolean isEntryNode() {
+        return entryNode;
     }
 
     public void setGroup(NodeGroup group) {

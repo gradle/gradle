@@ -16,10 +16,12 @@
 
 package org.gradle.api.internal.tasks.execution;
 
+import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.caching.internal.origin.OriginMetadata;
 import org.gradle.internal.execution.caching.CachingDisabledReason;
 import org.gradle.internal.execution.caching.CachingState;
+import org.gradle.internal.snapshot.FileSystemSnapshot;
 import org.gradle.operations.execution.CachingDisabledReasonCategory;
 import org.jspecify.annotations.Nullable;
 
@@ -33,13 +35,22 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
     private final OriginMetadata originMetadata;
     private final boolean incremental;
     private final List<String> executionReasons;
+    private final @Nullable ImmutableSortedMap<String, FileSystemSnapshot> outputFileSnapshots;
 
-    public ExecuteTaskBuildOperationResult(TaskStateInternal taskState, CachingState cachingState, @Nullable OriginMetadata originMetadata, boolean incremental, List<String> executionReasons) {
+    public ExecuteTaskBuildOperationResult(
+        TaskStateInternal taskState,
+        CachingState cachingState,
+        @Nullable OriginMetadata originMetadata,
+        boolean incremental,
+        List<String> executionReasons,
+        @Nullable ImmutableSortedMap<String, FileSystemSnapshot> outputFileSnapshots
+    ) {
         this.taskState = taskState;
         this.cachingState = cachingState;
         this.originMetadata = originMetadata;
         this.incremental = incremental;
         this.executionReasons = executionReasons;
+        this.outputFileSnapshots = outputFileSnapshots;
     }
 
     @Nullable
@@ -136,6 +147,19 @@ public class ExecuteTaskBuildOperationResult implements ExecuteTaskBuildOperatio
     @Override
     public boolean isIncremental() {
         return incremental;
+    }
+
+    /**
+     * Snapshots of the output files produced by the task, keyed by output property name.
+     * <p>
+     * Present when the task executed, was up-to-date (previous outputs) or was loaded from the cache;
+     * {@code null} when there is no after-execution output state (e.g. NO-SOURCE, SKIPPED, failed).
+     * This is not part of {@link ExecuteTaskBuildOperationType.Result} and is only consumed by internal listeners
+     * such as the work trace.
+     */
+    @Nullable
+    public ImmutableSortedMap<String, FileSystemSnapshot> getOutputFileSnapshots() {
+        return outputFileSnapshots;
     }
 
 }
