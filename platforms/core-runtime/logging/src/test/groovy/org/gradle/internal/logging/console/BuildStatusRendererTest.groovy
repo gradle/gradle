@@ -526,7 +526,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         statusBar.display == '[..............................] WAITING'
     }
 
-    def "counts submitted work items in execution phase"() {
+    def "counts submitted work items"() {
         given:
         renderer.onOutput(startRootBuildOperation(1))
         renderer.onOutput(startExecuteRootBuild(2, 1, 2))
@@ -538,28 +538,28 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% EXECUTING [0ms]'
+        statusBar.display == '[========......................]> EXECUTING  1 running, 3 queued   [0ms]'
 
         when:
         renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUCCEEDED))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[###............] 25% EXECUTING [0ms]'
+        statusBar.display == '[#######========...............]> EXECUTING  1 running, 2 queued   [0ms]'
 
         when:
         renderer.onOutput(workItem(WorkItemProgressEvent.Kind.FAILED))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[#######........] 50% EXECUTING [0ms]'
+        statusBar.display == '[#############========.........]> EXECUTING  1 running, 1 queued   [0ms]'
 
         when:
         renderer.onOutput(complete(3))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[###########....] 75% EXECUTING [0ms]'
+        statusBar.display == '[####################..........]> EXECUTING  0 running, 1 queued   [0ms]'
     }
 
     def "counts batches of work items"() {
@@ -573,17 +573,17 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[#######........] 50% EXECUTING [0ms]'
+        statusBar.display == '[##############................]> EXECUTING  0 running, 2 queued   [0ms]'
 
         when:
         renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUCCEEDED, 5))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[###############] 100% EXECUTING [0ms]'
+        statusBar.display == '[#############################.]> EXECUTING  0 running, 0 queued   [0ms]'
     }
 
-    def "ignores work items outside execution phase"() {
+    def "counts work items during configuration"() {
         given:
         renderer.onOutput(startRootBuildOperation(1))
         renderer.onOutput(startConfigureRootBuild(2, 1, 2))
@@ -593,16 +593,40 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% CONFIGURING [0ms]'
+        statusBar.display == '[..............................]> CONFIGURING  0 running, 3 queued   [0ms]'
 
         when:
-        renderer.onOutput(complete(2))
-        renderer.onOutput(startExecuteRootBuild(3, 1, 1))
         renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUCCEEDED))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% EXECUTING [0ms]'
+        statusBar.display == '[##########....................]> CONFIGURING  0 running, 2 queued   [0ms]'
+    }
+
+    def "ignores work items of a previous build"() {
+        given:
+        renderer.onOutput(startRootBuildOperation(1))
+        renderer.onOutput(startExecuteRootBuild(2, 1, 0))
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUBMITTED))
+        renderer.onOutput(complete(2))
+        renderer.onOutput(complete(1))
+
+        when:
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUBMITTED))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[..............................] WAITING'
+
+        when:
+        renderer.onOutput(startRootBuildOperation(10))
+        renderer.onOutput(startExecuteRootBuild(11, 10, 1))
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUCCEEDED))
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUCCEEDED))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[..............................]> EXECUTING  0 running, 1 queued   [0ms]'
     }
 
     def workItem(WorkItemProgressEvent.Kind kind, int count = 1) {
