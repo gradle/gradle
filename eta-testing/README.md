@@ -54,3 +54,10 @@ Then a finish task takes 3s.
 The run count is kept in `build/run-count.txt`; delete `build` to start over.
 
 Shows the ETA stalling, rather than counting up, while tasks overrun their estimates: once the 8 tasks pass their estimates, the ETA holds at about the finish task's duration until they complete.
+
+### test-build-early-finish
+
+A chain of 8 tasks, each depending on the previous one.
+Each task takes 3s, or finishes early after 0.3s, picked at random on every run, so its recorded average lies somewhere in between.
+
+Shows the ETA dropping in jumps when a task finishes earlier than its average, and holding when a task takes longer than its average.
