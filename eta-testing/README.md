@@ -108,3 +108,11 @@ Run without the property first, twice, to see the ETA, then with it.
 4 other tasks take 2s each, then a finish task takes 2s.
 
 Shows tasks without sources recorded as taking no time, as `0` in the history, so they do not make the ETA unavailable even though they never execute.
+
+### test-build-up-to-date
+
+6 tasks with inputs and outputs take 3s when they execute, then a finish task always takes 2s.
+Run again with the same `-Pinput` (or none), the 6 tasks are up-to-date and finish almost at once; pass a new value, for example `-Pinput=$RANDOM`, to execute them again.
+
+Shows that only executions are recorded: up-to-date tasks are estimated at their last execution time, 3s.
+As they complete almost at once, the ETA drops straight to the finish task's 2s.
