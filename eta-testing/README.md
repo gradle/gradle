@@ -101,3 +101,10 @@ Passing `-PnewTask=<name>` adds a task with that name (2s); use a name that has 
 
 Shows a single task without a recorded duration making the ETA unavailable for the whole build.
 Run without the property first, twice, to see the ETA, then with it.
+
+### test-build-no-source
+
+4 tasks have no sources, so they are `NO-SOURCE` on every run.
+4 other tasks take 2s each, then a finish task takes 2s.
+
+Shows tasks without sources recorded as taking no time, as `0` in the history, so they do not make the ETA unavailable even though they never execute.
