@@ -52,6 +52,15 @@ class OutputScrapingExecutionResultTest extends AbstractExecutionResultTest {
         result.error == error
     }
 
+    def "ignores OSC sequences in rich console output"() {
+        def output = "\u001B]7501;state=working:app=gradle:progress=50\u001B\\\u001B]9;4;1;50\u0007abc\n\u001B]7501;state=done:app=gradle\u001B\\"
+        def result = OutputScrapingExecutionResult.from(output, "")
+
+        expect:
+        result.plainTextOutput == "abc\n"
+        result.assertOutputContains("abc")
+    }
+
     def "finds stack traces when present"() {
         expect:
         STACK_TRACE_ELEMENT.matcher(line).matches()

@@ -39,6 +39,8 @@ import java.util.regex.Pattern;
 public class LogContent {
     // see org.gradle.internal.logging.console.StyledTextOutputBackedRenderer.ISO_8601_DATE_TIME_FORMAT
     private final static Pattern DEBUG_PREFIX = Pattern.compile("\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}\\.\\d{3}[-+]\\d{4} \\[\\w+] \\[.+?] ");
+    // OSC sequences (ESC ] ... BEL or ESC ] ... ESC \), such as taskbar progress or program status, which are not supported by the ANSI parser
+    private final static Pattern OSC_SEQUENCE = Pattern.compile("\u001B][^\u0007\u001B]*(?:\u0007|\u001B\\\\)");
 
     private final ImmutableList<String> lines;
     private final boolean definitelyNoDebugPrefix;
@@ -249,7 +251,7 @@ public class LogContent {
             if (i > 0) {
                 writer.write("\n");
             }
-            writer.write(lines.get(i));
+            writer.write(OSC_SEQUENCE.matcher(lines.get(i)).replaceAll(""));
         }
         writer.flush();
         return console;
