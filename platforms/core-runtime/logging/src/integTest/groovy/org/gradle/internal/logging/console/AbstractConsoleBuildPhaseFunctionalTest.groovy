@@ -496,7 +496,9 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
     }
 
     String regexFor(String message) {
-        /$ProgressBar.UNICODE_PROGRESS_BAR_PREFIX.*$ProgressBar.UNICODE_PROGRESS_BAR_SUFFIX $message \[[\dms ]+]/
+        // Integration test builds have no work duration estimates
+        String timer = message.endsWith("EXECUTING") ? /\[[\dms ]+ ELAPSED \| ESTIMATE UNAVAILABLE]/ : /\[[\dms ]+]/
+        /$ProgressBar.UNICODE_PROGRESS_BAR_PREFIX.*$ProgressBar.UNICODE_PROGRESS_BAR_SUFFIX $message $timer/
     }
 
     void waitForFinish() {
