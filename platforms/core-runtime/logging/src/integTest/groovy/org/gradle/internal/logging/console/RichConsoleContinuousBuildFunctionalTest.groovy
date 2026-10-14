@@ -43,28 +43,19 @@ class RichConsoleContinuousBuildFunctionalTest extends AbstractContinuousIntegra
         succeeds("copy")
 
         then:
-        assertLastBuildStatus("0% WAITING")
+        assertLastBuildStatus("WAITING")
 
         when:
         update(file("src/input.txt"), "two")
 
         then:
         buildTriggeredAndSucceeded()
-        assertLastBuildStatus("0% WAITING")
+        assertLastBuildStatus("WAITING")
     }
 
     void assertLastBuildStatus(String expected) {
         ConcurrentTestUtil.poll {
-            assert lastBuildStatus() == expected
+            assert RenderedBuildStatus.last(gradle.standardOutput) == expected
         }
-    }
-
-    String lastBuildStatus() {
-        def matcher = gradle.standardOutput =~ /$ProgressBar.UNICODE_PROGRESS_BAR_PREFIX[^$ProgressBar.UNICODE_PROGRESS_BAR_SUFFIX]*$ProgressBar.UNICODE_PROGRESS_BAR_SUFFIX (\d+% \w+)/
-        String last = null
-        while (matcher.find()) {
-            last = matcher.group(1)
-        }
-        return last
     }
 }

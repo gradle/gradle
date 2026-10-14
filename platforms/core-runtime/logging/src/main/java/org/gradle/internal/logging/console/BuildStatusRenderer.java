@@ -116,6 +116,7 @@ public class BuildStatusRenderer implements OutputEventListener {
 
     private void renderNow(long now) {
         if (progressBar != null) {
+            progressBar.setRunning(configuringProjects.size() + runningWorkItems.size());
             buildStatusLabel.setText(progressBar.formatProgress(timerEnabled, now - buildStartTimestamp));
         }
         console.flush();
@@ -130,6 +131,8 @@ public class BuildStatusRenderer implements OutputEventListener {
         } else {
             progressBar.setPhase(phaseLabel);
         }
+        // Until tasks run, the work to do is not known yet
+        progressBar.setEdge(phase == Phase.Executing ? ProgressBar.Edge.STEADY : ProgressBar.Edge.PULSING);
         currentPhase = phase;
         if (phase == Phase.Configuring) {
             projectsDiscovered(startEvent);
@@ -197,7 +200,8 @@ public class BuildStatusRenderer implements OutputEventListener {
     }
 
     private void buildEnded() {
-        progressBar = ProgressBar.createProgressBar(consoleMetaData, "WAITING", 1);
+        progressBar = ProgressBar.createProgressBar(consoleMetaData, "WAITING", 0);
+        progressBar.setEdge(ProgressBar.Edge.NONE);
         currentPhase = null;
         buildProgressOperationId = null;
         resetCounts();

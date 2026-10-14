@@ -36,7 +36,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
     }
 
     @UnsupportedWithIsolatedProjects(because = "test verifies cross-project configuration ordering via HTTP-blocking checkpoints; BlockingHttpServer teardown failures escape ToBeFixed's catch")
-    def "shows progress bar and percent build completion"() {
+    def "shows phase and counts"() {
         createDirs("a", "b", "c", "d")
         settingsFile << """
             ${server.callFromBuild('settings')}
@@ -82,49 +82,49 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         expect:
         settings.waitForAllPendingCalls()
-        assertHasBuildPhase("0% INITIALIZING")
+        assertHasBuildPhase("INITIALIZING")
         settings.releaseAll()
 
         and:
         rootBuildScript.waitForAllPendingCalls()
-        assertHasBuildPhase("0% CONFIGURING")
+        assertHasBuildPhase("CONFIGURING ▶ 1 … 4")
         rootBuildScript.releaseAll()
 
         and:
         bBuildScript.waitForAllPendingCalls()
-        assertHasBuildPhase("40% CONFIGURING")
+        assertHasBuildPhase("CONFIGURING ▶ 1 … 2")
         bBuildScript.releaseAll()
 
         and:
         bAfterEvaluate.waitForAllPendingCalls()
-        assertHasBuildPhase("40% CONFIGURING")
+        assertHasBuildPhase("CONFIGURING ▶ 1 … 2")
         bAfterEvaluate.releaseAll()
 
         and:
         taskGraph.waitForAllPendingCalls()
-        assertHasBuildPhase("100% CONFIGURING")
+        assertHasBuildPhase("CONFIGURING ▶ 0 … 0")
         taskGraph.releaseAll()
 
         and:
         task1.waitForAllPendingCalls()
-        assertHasBuildPhase("71% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 1 … 1")
         task1.releaseAll()
 
         and:
         task2.waitForAllPendingCalls()
-        assertHasBuildPhase("85% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 1 … 0")
         task2.releaseAll()
 
         and:
         buildFinished.waitForAllPendingCalls()
-        assertHasBuildPhase("100% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 0 … 0")
         buildFinished.releaseAll()
 
         and:
         waitForFinish()
     }
 
-    def "shows progress bar and percent build completion with included build"() {
+    def "shows phase and counts with included build"() {
         createDirs("child")
         settingsFile << """
             ${server.callFromBuild('settings')}
@@ -170,44 +170,44 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         expect:
         settings.waitForAllPendingCalls()
-        assertHasBuildPhase("0% INITIALIZING")
+        assertHasBuildPhase("INITIALIZING")
         settings.releaseAll()
 
         and:
         childBuildScript.waitForAllPendingCalls()
-        assertHasBuildPhase("0% CONFIGURING")
+        assertHasBuildPhase("CONFIGURING ▶ 1 … 3")
         childBuildScript.releaseAll()
 
         and:
         rootBuildScript.waitForAllPendingCalls()
-        assertHasBuildPhase("75% CONFIGURING")
+        assertHasBuildPhase("CONFIGURING ▶ 1 … 0")
         rootBuildScript.releaseAll()
 
         and:
         childTaskGraph.waitForAllPendingCalls()
-        assertHasBuildPhase("100% CONFIGURING")
+        assertHasBuildPhase("CONFIGURING ▶ 0 … 0")
         childTaskGraph.releaseAll()
 
         and:
         task1.waitForAllPendingCalls()
-        assertHasBuildPhase("66% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 1 … 1")
         task1.releaseAll()
 
         and:
         task2.waitForAllPendingCalls()
-        assertHasBuildPhase("83% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 1 … 0")
         task2.releaseAll()
 
         and:
         rootBuildFinished.waitForAllPendingCalls()
-        assertHasBuildPhase("100% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 0 … 0")
         rootBuildFinished.releaseAll()
 
         and:
         waitForFinish()
     }
 
-    def "shows progress bar and percent build completion with buildSrc build"() {
+    def "shows phase and counts with buildSrc build"() {
         settingsFile << """
             ${server.callFromBuild('settings')}
         """
@@ -250,40 +250,38 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         expect:
         settings.waitForAllPendingCalls()
-        assertHasBuildPhase("0% INITIALIZING")
+        assertHasBuildPhase("INITIALIZING")
         settings.releaseAll()
 
         and:
         childBuildScript.waitForAllPendingCalls()
-        assertHasBuildPhase("0% CONFIGURING")
+        assertHasBuildPhase("CONFIGURING ▶ 1 … 3")
         childBuildScript.releaseAll()
 
         and:
         childTaskGraph.waitForAllPendingCalls()
-        assertHasBuildPhase("75% CONFIGURING")
+        assertHasBuildPhase("CONFIGURING ▶ 0 … 1")
         childTaskGraph.releaseAll()
 
         and:
         task1.waitForAllPendingCalls()
-        // buildSrc runs 5 tasks, jar is the last one: (3 projects + 4 tasks) / (4 projects + 5 tasks)
-        assertHasBuildPhase("77% CONFIGURING")
+        // jar runs, and the root project is not configured yet
+        assertHasBuildPhase("CONFIGURING ▶ 1 … 1")
         task1.releaseAll()
 
         and:
         rootBuildScript.waitForAllPendingCalls()
-        // (3 projects + 5 tasks) / (4 projects + 5 tasks)
-        assertHasBuildPhase("88% CONFIGURING")
+        assertHasBuildPhase("CONFIGURING ▶ 1 … 0")
         rootBuildScript.releaseAll()
 
         and:
         task2.waitForAllPendingCalls()
-        // (4 projects + 5 tasks) / (4 projects + 6 tasks)
-        assertHasBuildPhase("90% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 1 … 0")
         task2.releaseAll()
 
         and:
         rootBuildFinished.waitForAllPendingCalls()
-        assertHasBuildPhase("100% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 0 … 0")
         rootBuildFinished.releaseAll()
 
         and:
@@ -322,19 +320,19 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         expect:
         settings.waitForAllPendingCalls()
         // The plugin build is configured and built before the settings script body runs
-        assertHasBuildPhase("100% INITIALIZING")
+        assertHasBuildPhase("INITIALIZING ▶ 0 … 0")
         settings.releaseAll()
 
         and:
         buildFinished.waitForAllPendingCalls()
-        assertHasBuildPhase("100% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 0 … 0")
         buildFinished.releaseAll()
 
         and:
         waitForFinish()
     }
 
-    def "reaches 100% with configure-on-demand"() {
+    def "does not count projects that are never configured with configure-on-demand"() {
         createDirs("a", "b")
         settingsFile << """
             include "a", "b"
@@ -353,7 +351,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         expect:
         buildFinished.waitForAllPendingCalls()
         // Project b is never configured, so it is not counted
-        assertHasBuildPhase("100% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 0 … 0")
         buildFinished.releaseAll()
 
         and:
@@ -361,7 +359,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
     }
 
     @ToBeFixedForIsolatedProjects(because = "multi-project tests via BlockingHttpServer/parallel fail under IP")
-    def "shows progress bar and percent build completion with artifact transforms"() {
+    def "shows phase and counts with artifact transforms"() {
         given:
         setupTransformBuild()
         def jar = server.expectAndBlock('jar')
@@ -375,27 +373,27 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         then:
         jar.waitForAllPendingCalls()
-        assertHasBuildPhase("42% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 1 … 3")
         jar.releaseAll()
 
         and:
         doubleTransform.waitForAllPendingCalls()
-        assertHasBuildPhase("57% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 1 … 2")
         doubleTransform.releaseAll()
 
         and:
         sizeTransform.waitForAllPendingCalls()
-        assertHasBuildPhase("71% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 1 … 1")
         sizeTransform.releaseAll()
 
         and:
         resolveTask.waitForAllPendingCalls()
-        assertHasBuildPhase("85% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 1 … 0")
         resolveTask.releaseAll()
 
         and:
         buildFinished.waitForAllPendingCalls()
-        assertHasBuildPhase("100% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 0 … 0")
         buildFinished.releaseAll()
 
         and:
@@ -404,7 +402,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
     @Issue("https://github.com/gradle/gradle/issues/24370")
     @ToBeFixedForIsolatedProjects(because = "multi-project tests via BlockingHttpServer/parallel fail under IP")
-    def "shows progress bar and percent build completion with non-planned planned artifact transforms"() {
+    def "shows phase and counts with non-planned planned artifact transforms"() {
         given:
         setupTransformBuild()
         def jar = server.expectAndBlock('jar')
@@ -418,27 +416,27 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         then:
         jar.waitForAllPendingCalls()
-        assertHasBuildPhase("60% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 1 … 1")
         jar.releaseAll()
 
         and:
         resolveTask.waitForAllPendingCalls()
-        assertHasBuildPhase("80% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 1 … 0")
         resolveTask.releaseAll()
 
         and:
         doubleTransform.waitForAllPendingCalls()
-        assertHasBuildPhase("80% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 1 … 0")
         doubleTransform.releaseAll()
 
         and:
         sizeTransform.waitForAllPendingCalls()
-        assertHasBuildPhase("80% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 1 … 0")
         sizeTransform.releaseAll()
 
         and:
         buildFinished.waitForAllPendingCalls()
-        assertHasBuildPhase("100% EXECUTING")
+        assertHasBuildPhase("EXECUTING ▶ 0 … 0")
         buildFinished.releaseAll()
 
         when:
@@ -563,22 +561,13 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
     }
 
     void assertHasBuildPhase(String message) {
-        int drawnBefore = renderedBuildPhases().size()
+        int drawnBefore = RenderedBuildStatus.all(gradle.standardOutput).size()
         ConcurrentTestUtil.poll {
-            def phases = renderedBuildPhases()
+            def statuses = RenderedBuildStatus.all(gradle.standardOutput)
             // Wait for the bar to be drawn again, so it shows everything that happened before the build blocked
-            assert phases.size() > drawnBefore
-            assert phases.last() == message
+            assert statuses.size() > drawnBefore
+            assert statuses.last() == message
         }
-    }
-
-    List<String> renderedBuildPhases() {
-        def matcher = gradle.standardOutput =~ /$ProgressBar.UNICODE_PROGRESS_BAR_PREFIX[^$ProgressBar.UNICODE_PROGRESS_BAR_SUFFIX]*$ProgressBar.UNICODE_PROGRESS_BAR_SUFFIX (\d+% \w+) \[[\dms ]+]/
-        List<String> phases = []
-        while (matcher.find()) {
-            phases << matcher.group(1)
-        }
-        return phases
     }
 
     void waitForFinish() {

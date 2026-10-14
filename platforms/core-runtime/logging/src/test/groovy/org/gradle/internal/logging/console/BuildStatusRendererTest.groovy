@@ -55,7 +55,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == "[...............] 0% INITIALIZING [0ms]"
+        statusBar.display == '[..............................]> INITIALIZING  [0ms]'
 
         when:
         currentTimeMs += 1000
@@ -63,7 +63,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == "[...............] 0% INITIALIZING [1s]"
+        statusBar.display == '[..............................]> INITIALIZING  [1s]'
     }
 
     def "hides timer once the build finished"() {
@@ -75,14 +75,14 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% INITIALIZING [0ms]'
+        statusBar.display == '[..............................]> INITIALIZING  [0ms]'
 
         when:
         renderer.onOutput(complete(1, 'WAITING'))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% WAITING'
+        statusBar.display == '[..............................] WAITING'
     }
 
     def "formats build"() {
@@ -94,14 +94,14 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% INITIALIZING [0ms]'
+        statusBar.display == '[..............................]> INITIALIZING  [0ms]'
 
         when:
         renderer.onOutput(complete(1))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% WAITING'
+        statusBar.display == '[..............................] WAITING'
     }
 
     def "counts configured projects"() {
@@ -118,21 +118,21 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% CONFIGURING [0ms]'
+        statusBar.display == '[..............................]> CONFIGURING  0 running, 4 queued   [0ms]'
 
         when:
         renderer.onOutput(event3)
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% CONFIGURING [0ms]'
+        statusBar.display == '[=========.....................]> CONFIGURING  1 running, 3 queued   [0ms]'
 
         when:
         renderer.onOutput(complete(3))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[###............] 25% CONFIGURING [0ms]'
+        statusBar.display == '[########......................]> CONFIGURING  0 running, 3 queued   [0ms]'
 
         when:
         renderer.onOutput(event4)
@@ -143,7 +143,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[###########....] 75% CONFIGURING [0ms]'
+        statusBar.display == '[#####################.........]> CONFIGURING  0 running, 1 queued   [0ms]'
     }
 
     def "counts projects of nested builds"() {
@@ -160,21 +160,21 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% CONFIGURING [0ms]'
+        statusBar.display == '[..............................]> CONFIGURING  0 running, 10 queued   [0ms]'
 
         when:
         renderer.onOutput(event4)
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% CONFIGURING [0ms]'
+        statusBar.display == '[========......................]> CONFIGURING  1 running,  9 queued   [0ms]'
 
         when:
         renderer.onOutput(complete(4))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[#..............] 10% CONFIGURING [0ms]'
+        statusBar.display == '[#######.......................]> CONFIGURING  0 running,  9 queued   [0ms]'
 
         when:
         renderer.onOutput(complete(3))
@@ -182,7 +182,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[#..............] 10% CONFIGURING [0ms]'
+        statusBar.display == '[#######.......................]> CONFIGURING  0 running,  9 queued   [0ms]'
     }
 
     def "counts executed work items"() {
@@ -197,28 +197,28 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% EXECUTING [0ms]'
+        statusBar.display == '[..............................]> EXECUTING  0 running, 4 queued   [0ms]'
 
         when:
         renderer.onOutput(event3)
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% EXECUTING [0ms]'
+        statusBar.display == '[=========.....................]> EXECUTING  1 running, 3 queued   [0ms]'
 
         when:
         renderer.onOutput(complete(3))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[###............] 25% EXECUTING [0ms]'
+        statusBar.display == '[########......................]> EXECUTING  0 running, 3 queued   [0ms]'
 
         when:
         renderer.onOutput(complete(2))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[###............] 25% EXECUTING [0ms]'
+        statusBar.display == '[########......................]> EXECUTING  0 running, 3 queued   [0ms]'
     }
 
     def "counts work items of nested builds"() {
@@ -235,21 +235,21 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% EXECUTING [0ms]'
+        statusBar.display == '[..............................]> EXECUTING  0 running, 10 queued   [0ms]'
 
         when:
         renderer.onOutput(event4)
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% EXECUTING [0ms]'
+        statusBar.display == '[========......................]> EXECUTING  1 running,  9 queued   [0ms]'
 
         when:
         renderer.onOutput(complete(4))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[#..............] 10% EXECUTING [0ms]'
+        statusBar.display == '[#######.......................]> EXECUTING  0 running,  9 queued   [0ms]'
 
         when:
         renderer.onOutput(complete(3))
@@ -257,7 +257,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[#..............] 10% EXECUTING [0ms]'
+        statusBar.display == '[#######.......................]> EXECUTING  0 running,  9 queued   [0ms]'
     }
 
     def "configuration phase runs until task graph execution"() {
@@ -274,7 +274,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% CONFIGURING [0ms]'
+        statusBar.display == '[..............................]> CONFIGURING  0 running, 1 queued   [0ms]'
 
         when:
         renderer.onOutput(event3)
@@ -283,14 +283,14 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[###############] 100% CONFIGURING [0ms]'
+        statusBar.display == '[##############################]> CONFIGURING  0 running, 0 queued   [0ms]'
 
         when:
         renderer.onOutput(event4)
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[###############] 100% CONFIGURING [0ms]'
+        statusBar.display == '[##############################]> CONFIGURING  0 running, 0 queued   [0ms]'
 
         when:
         renderer.onOutput(complete(4))
@@ -298,7 +298,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[#######........] 50% EXECUTING [0ms]'
+        statusBar.display == '[###############...............]> EXECUTING  0 running, 1 queued^  [0ms]'
 
         when:
         renderer.onOutput(complete(5))
@@ -306,7 +306,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% WAITING'
+        statusBar.display == '[..............................] WAITING'
     }
 
     def "carries configuration progress into execution"() {
@@ -325,7 +325,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[#######........] 50% EXECUTING [0ms]'
+        statusBar.display == '[###############...............]> EXECUTING  0 running, 4 queued   [0ms]'
 
         when:
         renderer.onOutput(startExecuteTask(9, 8))
@@ -335,7 +335,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[###########....] 75% EXECUTING [0ms]'
+        statusBar.display == '[######################........]> EXECUTING  0 running, 2 queued   [0ms]'
     }
 
     def "starts a new bar when a phase starts after the build finished"() {
@@ -348,7 +348,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% CONFIGURING [0ms]'
+        statusBar.display == '[..............................]> CONFIGURING  0 running, 2 queued   [0ms]'
 
         when:
         renderer.onOutput(startConfigureProject(3, 2))
@@ -356,7 +356,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[#######........] 50% CONFIGURING [0ms]'
+        statusBar.display == '[###############...............]> CONFIGURING  0 running, 1 queued   [0ms]'
     }
 
     def "counts work run by nested builds during configuration"() {
@@ -373,7 +373,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[###########....] 75% CONFIGURING [0ms]'
+        statusBar.display == '[######################........]> CONFIGURING  0 running, 1 queued   [0ms]'
     }
 
     def "counts nested builds configured and run during initialization"() {
@@ -392,14 +392,14 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[###############] 100% INITIALIZING [0ms]'
+        statusBar.display == '[##############################]> INITIALIZING  0 running, 0 queued   [0ms]'
 
         when:
         renderer.onOutput(startConfigureRootBuild(6, 1, 2))
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[#######........] 50% CONFIGURING [0ms]'
+        statusBar.display == '[###############...............]> CONFIGURING  0 running, 2 queued^  [0ms]'
     }
 
     def "ignores work reported after the build finished"() {
@@ -417,7 +417,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% WAITING'
+        statusBar.display == '[..............................] WAITING'
     }
 
     def "drops projects that were not configured once execution starts"() {
@@ -438,7 +438,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[###############] 100% EXECUTING [0ms]'
+        statusBar.display == '[##############################]> EXECUTING  0 running, 0 queued   [0ms]'
     }
 
     def "counts projects configured after execution starts"() {
@@ -461,7 +461,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[###############] 100% EXECUTING [0ms]'
+        statusBar.display == '[##############################]> EXECUTING  0 running, 0 queued   [0ms]'
     }
 
     def "starts a new bar for each build"() {
@@ -478,7 +478,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% WAITING'
+        statusBar.display == '[..............................] WAITING'
 
         when:
         currentTimeMs += 5000
@@ -486,7 +486,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% INITIALIZING [0ms]'
+        statusBar.display == '[..............................]> INITIALIZING  [0ms]'
 
         when:
         renderer.onOutput(startConfigureRootBuild(11, 10, 2))
@@ -495,7 +495,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[#######........] 50% CONFIGURING [0ms]'
+        statusBar.display == '[###############...............]> CONFIGURING  0 running, 1 queued   [0ms]'
 
         when:
         renderer.onOutput(complete(11))
@@ -503,7 +503,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% WAITING'
+        statusBar.display == '[..............................] WAITING'
     }
 
     def "ignores operations without a parent that are not builds"() {
@@ -522,7 +522,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% WAITING'
+        statusBar.display == '[..............................] WAITING'
     }
 
     def startRootBuildOperation(Long id) {

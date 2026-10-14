@@ -16,7 +16,6 @@
 
 package org.gradle.internal.logging.console;
 
-import com.google.common.collect.ImmutableList;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.internal.logging.events.StyledTextOutputEvent.Span;
 import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
@@ -26,81 +25,93 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Locale;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 
-import static java.lang.Math.max;
-import static java.lang.Math.min;
-
+/**
+ * The progress bar line of the rich console: the bar, the phase label, the running and queued counts and the build duration.
+ *
+ * <pre>
+ * │███████▏▶·····················│» EXECUTING  ▶ 8  … 5,312▲  [1m 12s]
+ * </pre>
+ *
+ * <p>The bar has three segments: done, running and queued work. They are scaled with {@link AdaptiveBarScale}.
+ * The open edge pulses while the total is not final. The flag after the queued count shows that the total just grew.</p>
+ */
 public class ProgressBar {
-    public static final int PROGRESS_BAR_WIDTH = 15;
     // Unicode progress bar style (Linux/macOS) - avoids ligature-triggering sequences
     public static final String UNICODE_PROGRESS_BAR_PREFIX = "│";
     public static final String UNICODE_PROGRESS_BAR_SUFFIX = "│";
-    // ASCII progress bar style (fallback/compatibility) - simple hash-based progress for non-Unicode terminals
+    // ASCII progress bar style (fallback/compatibility) - for non-Unicode terminals
     public static final String ASCII_PROGRESS_BAR_PREFIX = "[";
-    public static final char ASCII_PROGRESS_BAR_COMPLETE_CHAR = '#';
-    public static final char ASCII_PROGRESS_BAR_INCOMPLETE_CHAR = '.';
     public static final String ASCII_PROGRESS_BAR_SUFFIX = "]";
     private static final Logger LOGGER = LoggerFactory.getLogger(ProgressBar.class);
 
-    // Unicode block characters for smoother progress display (U+258F to U+2588)
-    // Note: These characters require font support. Modern monospace fonts (Fira Code,
+    private static final int MAX_BAR_WIDTH = 30;
+    private static final int MIN_BAR_WIDTH = 15;
+    private static final long FLAG_MILLIS = 2500;
+    private static final long PULSE_MILLIS = 500;
+    // The console counts the taskbar sequence as text, so the width leaves room for the longest one
+    private static final int TASKBAR_SEQUENCE_MAX_LENGTH = buildOsc94Sequence("2;100").length();
+
+    // Note: The block characters require font support. Modern monospace fonts (Fira Code,
     // JetBrains Mono, Cascadia Code, DejaVu Sans Mono) support them well. Older fonts
     // like Courier New may only have the full block (█) and show replacement characters
     // for partial blocks. The detection logic in ConsoleMetaData.supportsUnicode() uses
     // conservative heuristics (UTF-8 locale, modern terminal detection) to avoid enabling
     // Unicode mode when fonts are unlikely to support these characters.
-    private static final char[] UNICODE_BLOCKS = {
-        '·', // Empty
-        '▏', // ▏ 1/8 block  '\u258F',
-        '▎', // ▎ 2/8 block  '\u258E',
-        '▍', // ▍ 3/8 block  '\u258D',
-        '▌', // ▌ 4/8 block  '\u258C',
-        '▋', // ▋ 5/8 block  '\u258B',
-        '▊', // ▊ 6/8 block  '\u258A',
-        '▉', // ▉ 7/8 block  '\u2589',
-        '█'  // █ full block '\u2588'
-    };
+    private static final Glyphs UNICODE_GLYPHS = new Glyphs(
+        UNICODE_PROGRESS_BAR_PREFIX, UNICODE_PROGRESS_BAR_SUFFIX, '█', new char[]{'▏', '▎', '▍', '▌', '▋', '▊', '▉'}, '▶', '·', "»", "▲", true
+    );
+    private static final Glyphs ASCII_GLYPHS = new Glyphs(
+        ASCII_PROGRESS_BAR_PREFIX, ASCII_PROGRESS_BAR_SUFFIX, '#', null, '=', '.', ">", "^", false
+    );
+
+    /**
+     * How the open edge after the bar is shown.
+     */
+    enum Edge {
+        /**
+         * The total is not final yet.
+         */
+        PULSING,
+        /**
+         * More work can still arrive.
+         */
+        STEADY,
+        /**
+         * No work is going on, so there is no edge and no counts.
+         */
+        NONE
+    }
 
     private final TersePrettyDurationFormatter elapsedTimeFormatter = new TersePrettyDurationFormatter();
+    private final AdaptiveBarScale scale = new AdaptiveBarScale();
 
     private final ConsoleMetaData consoleMetaData;
-    private final String progressBarPrefix;
-    private final int progressBarWidth;
-    private final String progressBarSuffix;
-    private final char fillerChar;
-    private final char incompleteChar;
+    private final Glyphs glyphs;
     private String phase;
+    private Edge edge = Edge.STEADY;
 
-    private int current;
+    private int done;
+    private int running;
     private int total;
-    private @Nullable ExecutorService deadlockPreventer;
     private boolean failing;
-    private @Nullable String lastElapsedTimeStr;
-    private @Nullable List<Span> formatted;
+    private @Nullable ExecutorService deadlockPreventer;
 
-    public ProgressBar(
-        ConsoleMetaData consoleMetaData,
-        String progressBarPrefix,
-        int progressBarWidth,
-        String progressBarSuffix,
-        char completeChar,
-        char incompleteChar,
-        String phase,
-        int initialProgress,
-        int totalProgress
-    ) {
+    private int previousTotal = -1;
+    private long flagUntil = Long.MIN_VALUE;
+    private int runningCountWidth;
+    private int queuedCountWidth;
+
+    private ProgressBar(ConsoleMetaData consoleMetaData, Glyphs glyphs, String phase, int totalProgress) {
         this.consoleMetaData = consoleMetaData;
-        this.progressBarPrefix = progressBarPrefix;
-        this.progressBarWidth = progressBarWidth;
-        this.progressBarSuffix = progressBarSuffix;
-        this.fillerChar = completeChar;
-        this.incompleteChar = incompleteChar;
+        this.glyphs = glyphs;
         this.phase = phase;
-        this.current = initialProgress;
         this.total = totalProgress;
     }
 
@@ -113,165 +124,140 @@ public class ProgressBar {
         }
     }
 
-    // Unicode mode: smooth progress with block characters
     static ProgressBar getUnicodeProgressBar(ConsoleMetaData consoleMetaData, String initialPhase, int totalProgress) {
-        return new ProgressBar(consoleMetaData,
-            UNICODE_PROGRESS_BAR_PREFIX,
-            PROGRESS_BAR_WIDTH,
-            UNICODE_PROGRESS_BAR_SUFFIX,
-            ' ', // Not used in Unicode mode
-            ' ', // Not used in Unicode mode
-            initialPhase,
-            0,
-            totalProgress);
+        return new ProgressBar(consoleMetaData, UNICODE_GLYPHS, initialPhase, totalProgress);
     }
 
-    // ASCII mode: hash-based progress for compatibility
     static ProgressBar getAsciiProgressBar(ConsoleMetaData consoleMetaData, String initialPhase, int totalProgress) {
-        return new ProgressBar(consoleMetaData,
-            ASCII_PROGRESS_BAR_PREFIX,
-            PROGRESS_BAR_WIDTH,
-            ASCII_PROGRESS_BAR_SUFFIX,
-            ASCII_PROGRESS_BAR_COMPLETE_CHAR,
-            ASCII_PROGRESS_BAR_INCOMPLETE_CHAR,
-            initialPhase,
-            0,
-            totalProgress);
+        return new ProgressBar(consoleMetaData, ASCII_GLYPHS, initialPhase, totalProgress);
     }
 
     public void setPhase(String phase) {
         this.phase = phase;
-        formatted = null;
+    }
+
+    void setEdge(Edge edge) {
+        this.edge = edge;
+    }
+
+    public void setRunning(int running) {
+        this.running = running;
     }
 
     public void moreProgress(int totalProgress) {
         total += totalProgress;
-        formatted = null;
     }
 
     public void update(boolean failing) {
-        this.current++;
-        if (current > total) {
+        this.done++;
+        if (done > total) {
             if (deadlockPreventer == null) {
                 deadlockPreventer = Executors.newSingleThreadExecutor();
             }
             Future<?> ignored = deadlockPreventer.submit(() -> {
                 // do not do this directly or a deadlock happens
                 // to prevent that deadlock, execute it separately in another thread
-                LOGGER.warn("More progress was logged than there should be ({} > {})", current, total);
+                LOGGER.warn("More progress was logged than there should be ({} > {})", done, total);
             });
         }
         this.failing = this.failing || failing;
-        formatted = null;
     }
 
+    /**
+     * Formats the line for a new frame.
+     *
+     * @param elapsedTime the build duration, also used as the clock for the animation
+     */
     public List<Span> formatProgress(boolean timerEnabled, long elapsedTime) {
-        String elapsedTimeStr = elapsedTimeFormatter.format(elapsedTime);
-        if (formatted != null && elapsedTimeStr.equals(lastElapsedTimeStr)) {
-            return formatted;
+        int queued = Math.max(0, total - done - running);
+        int totalChange = previousTotal < 0 ? 0 : Integer.compare(total, previousTotal);
+        if (totalChange > 0 && previousTotal > 0) {
+            flagUntil = elapsedTime + FLAG_MILLIS;
         }
+        previousTotal = total;
 
-        int consoleCols = consoleMetaData.getCols();
+        Spans textAfterBar = textAfterBar(timerEnabled, elapsedTime, queued);
+        int width = barWidth(textAfterBar.length());
+        double exponent = scale.next(done, running, queued, totalChange, elapsedTime, width);
+        AdaptiveBarScale.Cells cells = AdaptiveBarScale.cells(width, done, running, queued, exponent);
 
-        // Calculate progress percentage for both display and taskbar
-        int progressPercent = (int) (current * 100.0 / total);
-
-        // Prepend taskbar progress sequence (invisible control sequence)
-        String taskbarSequence = buildTaskbarProgressSequence(progressPercent, failing);
-        String statusPrefix = trimToConsole(consoleCols, 0, taskbarSequence + progressBarPrefix);
-
-        if (consoleMetaData.supportsUnicode()) {
-            return getUnicodeFormatted(timerEnabled, consoleCols, statusPrefix, progressPercent, elapsedTimeStr);
+        int fullCells;
+        int partialEighths;
+        if (glyphs.partialBlocks != null) {
+            int doneEighths = (int) (cells.done * 8);
+            fullCells = doneEighths / 8;
+            partialEighths = doneEighths % 8;
         } else {
-            return getAsciiFormatted(timerEnabled, consoleCols, statusPrefix, progressPercent, elapsedTimeStr);
+            fullCells = (int) cells.done;
+            partialEighths = 0;
         }
-    }
-
-    private List<Span> getAsciiFormatted(boolean timerEnabled, int consoleCols, String statusPrefix, int progressPercent, String elapsedTimeStr) {
-
-        int completedWidth = getCompletedWidth();
-        int remainingWidth = progressBarWidth - completedWidth;
-
-        String coloredProgress = trimToConsole(consoleCols, statusPrefix.length(), StringUtils.repeat(fillerChar, completedWidth));
-        String statusSuffix = trimToConsole(consoleCols, statusPrefix.length() + coloredProgress.length(), StringUtils.repeat(incompleteChar, remainingWidth)
-            + renderProgressStatus(timerEnabled, progressPercent, elapsedTimeStr));
-
-        lastElapsedTimeStr = elapsedTimeStr;
-        return formatted = createFormattedList(statusPrefix, coloredProgress, statusSuffix);
-    }
-
-    private List<Span> createFormattedList(String statusPrefix, String coloredProgress, String statusSuffix) {
-        return ImmutableList.of(
-            new Span(StyledTextOutput.Style.Header, statusPrefix),
-            new Span(failing ? StyledTextOutput.Style.FailureHeader : StyledTextOutput.Style.SuccessHeader, coloredProgress),
-            new Span(StyledTextOutput.Style.Header, statusSuffix));
-    }
-
-    private List<Span> getUnicodeFormatted(boolean timerEnabled, int consoleCols, String statusPrefix, int progressPercent, String elapsedTimeStr) {
-        // Unicode mode: use block characters for finer granularity (8x resolution)
-        String progress = getProgressString();
-
-        String coloredProgress = trimToConsole(consoleCols, statusPrefix.length(), progress);
-        String statusSuffix = trimToConsole(consoleCols, statusPrefix.length() + coloredProgress.length(),
-            renderProgressStatus(timerEnabled, progressPercent, elapsedTimeStr));
-
-        lastElapsedTimeStr = elapsedTimeStr;
-        return formatted = createFormattedList(statusPrefix, coloredProgress, statusSuffix);
-    }
-
-    private String renderProgressStatus(boolean timerEnabled, int progressPercent, String elapsedTimeStr) {
-        return progressBarSuffix + " " + progressPercent + '%' + ' ' + phase
-            + (timerEnabled ? " [" + elapsedTimeStr + "]" : "");
-    }
-
-    private String getProgressString() {
-        double progressRatio = getProgressRatio();
-
-        // Calculate progress in eighths (8 sub-divisions per character)
-        double totalEighths = progressBarWidth * 8.0;
-        int completedEighths = (int) (progressRatio * totalEighths);
-
-        StringBuilder progress = new StringBuilder(progressBarWidth);
-        for (int i = 0; i < progressBarWidth; i++) {
-            int eighthsAtPosition = i * 8;
-            int remainingEighths = min(8, max(0, completedEighths - eighthsAtPosition));
-
-            progress.append(UNICODE_BLOCKS[remainingEighths]);
+        int runningCells = running > 0 ? Math.max(1, (int) Math.round(cells.running)) : 0;
+        int usedCells = fullCells + (partialEighths > 0 ? 1 : 0);
+        if (usedCells + runningCells > width) {
+            // Rounding made the segments too wide: drop the partial cell first, then running cells
+            partialEighths = 0;
+            usedCells = fullCells;
+            if (usedCells + runningCells > width) {
+                runningCells = Math.max(1, width - usedCells);
+                fullCells = width - runningCells;
+                usedCells = fullCells;
+            }
         }
+        int queuedCells = width - usedCells - runningCells;
+        int drawnDonePercent = (fullCells * 8 + partialEighths) * 100 / (width * 8);
 
-        return progress.toString();
+        Spans line = new Spans();
+        line.append(StyledTextOutput.Style.Header, buildTaskbarProgressSequence(drawnDonePercent, failing) + glyphs.barStart);
+        line.append(failing ? StyledTextOutput.Style.FailureHeader : StyledTextOutput.Style.SuccessHeader,
+            StringUtils.repeat(glyphs.done, fullCells) + (partialEighths > 0 ? String.valueOf(glyphs.partialBlock(partialEighths)) : ""));
+        line.append(StyledTextOutput.Style.ProgressStatus, StringUtils.repeat(glyphs.running, runningCells));
+        line.append(StyledTextOutput.Style.Header, StringUtils.repeat(glyphs.queued, queuedCells) + glyphs.barEnd);
+        line.append(textAfterBar);
+        return line.trimmedTo(consoleMetaData.getCols() - 1);
     }
 
-    private int getCompletedWidth() {
-        // ASCII mode: traditional hash-based progress
-        if (current > total) {
-            return progressBarWidth - 1;
+    private Spans textAfterBar(boolean timerEnabled, long now, int queued) {
+        Spans text = new Spans();
+        if (edge != Edge.NONE) {
+            boolean bold = edge == Edge.STEADY || (now / PULSE_MILLIS) % 2 == 0;
+            text.append(bold ? StyledTextOutput.Style.Header : StyledTextOutput.Style.Normal, glyphs.edge);
         }
-        return (int) ((double) current / total * progressBarWidth);
+        text.append(StyledTextOutput.Style.Header, " " + phase);
+        if (total > 0 && edge != Edge.NONE) {
+            String runningCount = formatCount(running);
+            String queuedCount = formatCount(queued);
+            runningCountWidth = Math.max(runningCountWidth, runningCount.length());
+            queuedCountWidth = Math.max(queuedCountWidth, queuedCount.length());
+            runningCount = StringUtils.leftPad(runningCount, runningCountWidth);
+            queuedCount = StringUtils.leftPad(queuedCount, queuedCountWidth);
+            String flag = now < flagUntil ? glyphs.flag : " ";
+            if (glyphs.unicode) {
+                text.append(StyledTextOutput.Style.Header, "  ");
+                text.append(StyledTextOutput.Style.ProgressStatus, String.valueOf(glyphs.running));
+                text.append(StyledTextOutput.Style.Header, " " + runningCount + "  … " + queuedCount + flag);
+            } else {
+                text.append(StyledTextOutput.Style.Header, "  " + runningCount + " running, " + queuedCount + " queued" + flag);
+            }
+        }
+        if (timerEnabled) {
+            text.append(StyledTextOutput.Style.Header, "  [" + elapsedTimeFormatter.format(now) + "]");
+        }
+        return text;
     }
 
-    private double getProgressRatio() {
-        if (current > total) {
-            // progress was reported excessively, show almost complete
-            return (progressBarWidth - 1.0) / progressBarWidth;
+    private int barWidth(int textAfterBarLength) {
+        int cols = consoleMetaData.getCols();
+        if (cols <= 0) {
+            return MAX_BAR_WIDTH;
         }
-        return (double) current / total;
+        int taskbarSequenceLength = consoleMetaData.supportsTaskbarProgress() ? TASKBAR_SEQUENCE_MAX_LENGTH : 0;
+        // Don't write to the right-most column, as on some consoles the cursor wraps to the next line
+        int available = cols - 1 - taskbarSequenceLength - glyphs.barStart.length() - glyphs.barEnd.length() - textAfterBarLength;
+        return Math.max(MIN_BAR_WIDTH, Math.min(MAX_BAR_WIDTH, available));
     }
 
-    private static String trimToConsole(int cols, int prefixLength, String str) {
-        int consoleWidth = cols - 1;
-        int remainingWidth = consoleWidth - prefixLength;
-
-        if (consoleWidth < 0) {
-            return str;
-        }
-        if (remainingWidth <= 0) {
-            return "";
-        }
-        if (consoleWidth < str.length()) {
-            return str.substring(0, consoleWidth);
-        }
-        return str;
+    private static String formatCount(int count) {
+        return String.format(Locale.ROOT, "%,d", count);
     }
 
     /**
@@ -304,5 +290,86 @@ public class ProgressBar {
     // Using BEL (0x07) instead of ST (ESC \) for broader compatibility
     private static String buildOsc94Sequence(String command) {
         return "\u001B]9;4;" + command + "\u0007";
+    }
+
+    private static final class Glyphs {
+        final String barStart;
+        final String barEnd;
+        final char done;
+        final char @Nullable [] partialBlocks;
+        final char running;
+        final char queued;
+        final String edge;
+        final String flag;
+        final boolean unicode;
+
+        Glyphs(String barStart, String barEnd, char done, char @Nullable [] partialBlocks, char running, char queued, String edge, String flag, boolean unicode) {
+            this.barStart = barStart;
+            this.barEnd = barEnd;
+            this.done = done;
+            this.partialBlocks = partialBlocks;
+            this.running = running;
+            this.queued = queued;
+            this.edge = edge;
+            this.flag = flag;
+            this.unicode = unicode;
+        }
+
+        char partialBlock(int eighths) {
+            return partialBlocks == null ? done : partialBlocks[eighths - 1];
+        }
+    }
+
+    /**
+     * Spans that merge text of the same style and skip empty text.
+     */
+    private static final class Spans {
+        private final List<Span> spans = new ArrayList<>();
+
+        void append(StyledTextOutput.Style style, String text) {
+            if (text.isEmpty()) {
+                return;
+            }
+            int last = spans.size() - 1;
+            if (last >= 0 && spans.get(last).getStyle() == style) {
+                spans.set(last, new Span(style, spans.get(last).getText() + text));
+            } else {
+                spans.add(new Span(style, text));
+            }
+        }
+
+        void append(Spans other) {
+            for (Span span : other.spans) {
+                append(span.getStyle(), span.getText());
+            }
+        }
+
+        int length() {
+            int length = 0;
+            for (Span span : spans) {
+                length += span.getText().length();
+            }
+            return length;
+        }
+
+        List<Span> trimmedTo(int maxLength) {
+            if (maxLength < 0) {
+                return spans;
+            }
+            List<Span> trimmed = new ArrayList<>();
+            int length = 0;
+            for (Span span : spans) {
+                if (length >= maxLength) {
+                    break;
+                }
+                String text = span.getText();
+                if (length + text.length() > maxLength) {
+                    text = text.substring(0, maxLength - length);
+                }
+                trimmed.add(new Span(span.getStyle(), text));
+                length += text.length();
+            }
+            return trimmed;
+        }
     }
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright 2017 the original author or authors.
+ * Copyright 2025 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.console
 
+import org.gradle.internal.logging.events.StyledTextOutputEvent.Span
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import spock.lang.Specification
@@ -28,244 +29,274 @@ class ProgressBarTest extends Specification {
 
     ProgressBar progressBar
 
-    private getProgress() {
-        progressBar.formatProgress(false, 0).collect { it.text }.join("")
-    }
-
-    private init(boolean unicode, int totalProgress = 10, boolean taskbarProgress = false) {
-        if (unicode) {
-            def consoleMetaData = Stub(ConsoleMetaData) {
-                supportsUnicode() >> true
-                supportsTaskbarProgress() >> taskbarProgress
-            }
-            progressBar = ProgressBar.getUnicodeProgressBar(consoleMetaData, BUILD_PHASE, totalProgress)
-        } else {
-            def consoleMetaData = Stub(ConsoleMetaData)
-            progressBar = ProgressBar.getAsciiProgressBar(consoleMetaData, BUILD_PHASE, totalProgress)
+    private void init(boolean unicode, int totalProgress = 0, int cols = 0, boolean taskbarProgress = false) {
+        def consoleMetaData = Stub(ConsoleMetaData) {
+            supportsUnicode() >> unicode
+            supportsTaskbarProgress() >> taskbarProgress
+            getCols() >> cols
         }
+        progressBar = unicode
+            ? ProgressBar.getUnicodeProgressBar(consoleMetaData, BUILD_PHASE, totalProgress)
+            : ProgressBar.getAsciiProgressBar(consoleMetaData, BUILD_PHASE, totalProgress)
     }
 
-    def "formats progress bar (#id)"() {
+    private List<Span> frame(long now = 0, boolean timerEnabled = false) {
+        progressBar.formatProgress(timerEnabled, now)
+    }
+
+    private String line(long now = 0, boolean timerEnabled = false) {
+        frame(now, timerEnabled).collect { it.text }.join("")
+    }
+
+    private static StyledTextOutput.Style styleOf(List<Span> spans, String text) {
+        spans.find { it.text.contains(text) }.style
+    }
+
+    def "formats the line without work (#id)"() {
         given:
         init(unicode)
 
         expect:
-        progress == rendering
+        line(1000, true) == withDuration
+        line(1000, false) == withoutDuration
 
         where:
-        unicode            | rendering
-        true               | "│···············│ 0% EXECUTING"
-        false              | "[...............] 0% EXECUTING"
+        unicode | withDuration                                          | withoutDuration
+        true    | "│······························│» EXECUTING  [1s]"    | "│······························│» EXECUTING"
+        false   | "[..............................]> EXECUTING  [1s]"   | "[..............................]> EXECUTING"
         id = unicode ? "unicode" : "ascii"
     }
 
-    def "renders 0% when no work is known (#id)"() {
+    def "shows the running and queued counts once work is known (#id)"() {
         given:
-        init(unicode, 0)
+        init(unicode, 10)
+        3.times { progressBar.update(false) }
+        progressBar.setRunning(2)
 
         expect:
-        progress == rendering
+        line() == expected
 
         where:
-        unicode            | rendering
-        true               | "│···············│ 0% EXECUTING"
-        false              | "[...............] 0% EXECUTING"
+        unicode | expected
+        true    | "│█████████▶▶▶▶▶▶···············│» EXECUTING  ▶ 2  … 5 "
+        false   | "[#########======...............]> EXECUTING  2 running, 5 queued "
         id = unicode ? "unicode" : "ascii"
     }
 
-    def "fills completed progress as work completes (#id)"() {
+    def "pads the counts to the widest value seen (#id)"() {
         given:
-        init(unicode)
+        init(unicode, 1500)
+        progressBar.setRunning(10)
+        frame(0)
 
         when:
-        progressBar.update(false)
+        1000.times { progressBar.update(false) }
+        progressBar.setRunning(2)
 
         then:
-        progress == rendering10
-
-        when:
-        progressBar.update(false)
-
-        then:
-        progress == rendering20
-
-        when:
-        8.times {
-            progressBar.update(false)
-        }
-
-        then:
-        progress == rendering100
+        line(100) == expected
 
         where:
-        unicode            | rendering10                          | rendering20                         | rendering100
-        true               | "│█▌·············│ 10% EXECUTING"    | "│███············│ 20% EXECUTING"   | "│███████████████│ 100% EXECUTING"
-        false              | "[#..............] 10% EXECUTING"    | "[###............] 20% EXECUTING"   | "[###############] 100% EXECUTING"
+        unicode | expected
+        true    | "│█████████████████▏▶···········│» EXECUTING  ▶  2  …   498 "
+        false   | "[#################=............]> EXECUTING   2 running,   498 queued "
         id = unicode ? "unicode" : "ascii"
     }
 
-    def "gracefully handles excessively reported progress (#id)"() {
+    def "scales the done, running and queued segments (#id)"() {
         given:
-        init(unicode)
+        init(unicode, 6560)
+        1240.times { progressBar.update(false) }
+        progressBar.setRunning(8)
 
-        when:
-        10.times {
-            progressBar.update(false)
-        }
-
-        then:
-        progress == rendering100
-
-        when:
-        progressBar.update(false)
-
-        then:
-        progress == rendering110
-
-        when:
-        9.times {
-            progressBar.update(false)
-        }
-
-        then:
-        progress == rendering200
+        expect:
+        line() == expected
 
         where:
-        unicode            | rendering100                         | rendering110                        | rendering200
-        true               | "│███████████████│ 100% EXECUTING"   | "│██████████████·│ 110% EXECUTING"  | "│██████████████·│ 200% EXECUTING"
-        false              | "[###############] 100% EXECUTING"   | "[##############.] 110% EXECUTING"  | "[##############.] 200% EXECUTING"
+        unicode | expected
+        true    | "│███████▏▶·····················│» EXECUTING  ▶ 8  … 5,312 "
+        false   | "[#######=......................]> EXECUTING  8 running, 5,312 queued "
         id = unicode ? "unicode" : "ascii"
     }
 
-    def "fills completed progress as work added (#id)"() {
+    def "fills the bar when more work is done than known (#id)"() {
+        given:
+        init(unicode, 2)
+        3.times { progressBar.update(false) }
+
+        expect:
+        line() == expected
+
+        where:
+        unicode | expected
+        true    | "│██████████████████████████████│» EXECUTING  ▶ 0  … 0 "
+        false   | "[##############################]> EXECUTING  0 running, 0 queued "
+        id = unicode ? "unicode" : "ascii"
+    }
+
+    def "fits the bar to a console #cols columns wide"() {
+        given:
+        init(true, 6560, cols)
+        1240.times { progressBar.update(false) }
+        progressBar.setRunning(8)
+
+        expect:
+        line(72000, true) == expected
+
+        where:
+        cols | expected
+        100  | "│███████▏▶·····················│» EXECUTING  ▶ 8  … 5,312   [1m 12s]"
+        60   | "│████▉▶···············│» EXECUTING  ▶ 8  … 5,312   [1m 12s]"
+        50   | "│███▍▶··········│» EXECUTING  ▶ 8  … 5,312   [1m "
+        0    | "│███████▏▶·····················│» EXECUTING  ▶ 8  … 5,312   [1m 12s]"
+    }
+
+    def "pulses the open edge every 500 ms"() {
+        given:
+        init(true)
+        progressBar.setEdge(ProgressBar.Edge.PULSING)
+
+        expect:
+        styleOf(frame(0), "»") == StyledTextOutput.Style.Header
+        styleOf(frame(500), "»") == StyledTextOutput.Style.Normal
+        styleOf(frame(1000), "»") == StyledTextOutput.Style.Header
+    }
+
+    def "keeps a steady open edge bold"() {
+        given:
+        init(true)
+        progressBar.setEdge(ProgressBar.Edge.STEADY)
+
+        expect:
+        styleOf(frame(0), "»") == StyledTextOutput.Style.Header
+        styleOf(frame(500), "»") == StyledTextOutput.Style.Header
+    }
+
+    def "shows no open edge (#id)"() {
         given:
         init(unicode)
+        progressBar.setPhase("WAITING")
+        progressBar.setEdge(ProgressBar.Edge.NONE)
+
+        expect:
+        line() == expected
+
+        where:
+        unicode | expected
+        true    | "│······························│ WAITING"
+        false   | "[..............................] WAITING"
+        id = unicode ? "unicode" : "ascii"
+    }
+
+    def "flags a grown total for 2.5 seconds (#id)"() {
+        given:
+        init(unicode, 10)
+        frame(0)
 
         when:
-        progressBar.update(false)
-        progressBar.update(false)
+        progressBar.moreProgress(5)
 
         then:
-        progress == rendering20
+        line(100) == flagged
+        line(2599) == flagged
+        line(2600) == notFlagged
+
+        where:
+        unicode | flagged                                                           | notFlagged
+        true    | "│······························│» EXECUTING  ▶ 0  … 15▲"          | "│······························│» EXECUTING  ▶ 0  … 15 "
+        false   | "[..............................]> EXECUTING  0 running, 15 queued^" | "[..............................]> EXECUTING  0 running, 15 queued "
+        id = unicode ? "unicode" : "ascii"
+    }
+
+    def "does not flag the first work"() {
+        given:
+        init(true)
+        frame(0)
 
         when:
         progressBar.moreProgress(10)
 
         then:
-        progress == rendering10
-
-        where:
-        unicode            | rendering10                          | rendering20
-        true               | "│█▌·············│ 10% EXECUTING"    | "│███············│ 20% EXECUTING"
-        false              | "[#..............] 10% EXECUTING"    | "[###............] 20% EXECUTING"
-        id = unicode ? "unicode" : "ascii"
+        line(100) == "│······························│» EXECUTING  ▶ 0  … 10 "
     }
 
-    def "keeps progress when the phase label changes (#id)"() {
+    def "restarts the flag when the total grows again"() {
         given:
-        init(unicode)
+        init(true, 10)
+        frame(0)
+        progressBar.moreProgress(5)
+        frame(100)
 
         when:
-        progressBar.update(false)
-        progressBar.update(false)
+        progressBar.moreProgress(5)
+        frame(2000)
 
         then:
-        progress == rendering20
-
-        when:
-        progressBar.setPhase('CONFIGURING')
-
-        then:
-        progress == rendering20Configuring
-
-        where:
-        unicode            | rendering20                         | rendering20Configuring
-        true               | "│███············│ 20% EXECUTING"   | "│███············│ 20% CONFIGURING"
-        false              | "[###............] 20% EXECUTING"   | "[###............] 20% CONFIGURING"
-        id = unicode ? "unicode" : "ascii"
+        line(4000) == "│······························│» EXECUTING  ▶ 0  … 20▲"
     }
 
-    def "formats successful progress green (#id)"() {
+    def "does not flag a shrinking total"() {
         given:
-        init(unicode)
+        init(true, 10)
+        frame(0)
+
+        when:
+        progressBar.moreProgress(-5)
+
+        then:
+        line(100) == "│······························│» EXECUTING  ▶ 0  …  5 "
+    }
+
+    def "styles the segments and the counts"() {
+        given:
+        init(true, 10)
+        3.times { progressBar.update(false) }
+        progressBar.setRunning(2)
 
         expect:
-        progressBar.formatProgress(false, 0)[1].style == StyledTextOutput.Style.SuccessHeader
-
-        where:
-        unicode            | _
-        true               | _
-        false              | _
-        id = unicode ? "unicode" : "ascii"
+        frame().collect { [it.style, it.text] } == [
+            [StyledTextOutput.Style.Header, "│"],
+            [StyledTextOutput.Style.SuccessHeader, "█████████"],
+            [StyledTextOutput.Style.ProgressStatus, "▶▶▶▶▶▶"],
+            [StyledTextOutput.Style.Header, "···············│» EXECUTING  "],
+            [StyledTextOutput.Style.ProgressStatus, "▶"],
+            [StyledTextOutput.Style.Header, " 2  … 5 "]
+        ]
     }
 
-    def "formats failed progress red (#id)"() {
+    def "styles the done segment as failed after a failure"() {
         given:
-        init(unicode)
-
-        when:
+        init(true, 10)
         progressBar.update(true)
         progressBar.update(false)
 
-        then:
-        progressBar.formatProgress(false, 0)[1].style == StyledTextOutput.Style.FailureHeader
-
-        where:
-        unicode            | _
-        true               | _
-        false              | _
-        id = unicode ? "unicode" : "ascii"
+        expect:
+        styleOf(frame(), "█") == StyledTextOutput.Style.FailureHeader
     }
 
-    def "unicode progress shows finer granularity (#id)"() {
+    def "reports the drawn done share to the taskbar"() {
         given:
-        init(unicode, 80)
+        init(true, 6560, 0, true)
+        progressBar.update(failed)
+        1239.times { progressBar.update(false) }
+        progressBar.setRunning(8)
 
-        when:
-        progressBar.update(false) // 1/80 = 1.25%
-
-        then:
-        progress == rendering
+        expect:
+        frame().first().text == sequence + "│"
 
         where:
-        unicode            | rendering
-        true               | "│▏··············│ 1% EXECUTING"
-        false              | "[...............] 1% EXECUTING"
-        id = unicode ? "unicode" : "ascii"
+        failed | sequence
+        false  | "\u001B]9;4;1;23\u0007"
+        true   | "\u001B]9;4;2;23\u0007"
     }
 
-    def "emits taskbar progress sequence when supported (#id)"() {
+    def "does not report to the taskbar when not supported"() {
         given:
-        init(unicode, 10, true)
-
-        when:
+        init(true, 10, 0, false)
         progressBar.update(false)
 
-        then:
-        progress == rendering
-
-        where:
-        unicode            | rendering
-        true               | "\u001B]9;4;1;10\u0007│█▌·············│ 10% EXECUTING" // Should contain OSC 9;4 with state 1: ESC ] 9 ; 4 ; 2 ; 10 BEL
-        false              | "[#..............] 10% EXECUTING"
-        id = unicode ? "unicode" : "ascii"
-    }
-
-    def "emits error state in taskbar progress when failing (#id)"() {
-        given:
-        init(unicode, 10, true)
-
-        when:
-        progressBar.update(true) // Mark as failing
-
-        then:
-        progress == rendering
-
-        where:
-        unicode            | rendering
-        true               | "\u001B]9;4;2;10\u0007│█▌·············│ 10% EXECUTING" // Should contain OSC 9;4 with state 2 (error): ESC ] 9 ; 4 ; 2 ; 10 BEL
-        false              | "[#..............] 10% EXECUTING"
-        id = unicode ? "unicode" : "ascii"
+        expect:
+        !line().contains("\u001B]9;4;")
     }
 
     def "builds taskbar progress reset sequence when supported (#id)"() {
@@ -293,23 +324,5 @@ class ProgressBarTest extends Specification {
         "0"     | "\u001B]9;4;0\u0007"
         "1;10"  | "\u001B]9;4;1;10\u0007"
         "2;10"  | "\u001B]9;4;2;10\u0007"
-    }
-
-    def "does not emit taskbar progress when not supported (#id)"() {
-        given:
-        init(unicode, 10, false)
-
-        when:
-        progressBar.update(false)
-
-        then:
-        !progress.contains('\u001B]9;4;') // Should NOT contain OSC 9;4 sequence
-        progress == rendering
-
-        where:
-        unicode            | rendering
-        true               | "│█▌·············│ 10% EXECUTING"
-        false              | "[#..............] 10% EXECUTING"
-        id = unicode ? "unicode" : "ascii"
     }
 }
