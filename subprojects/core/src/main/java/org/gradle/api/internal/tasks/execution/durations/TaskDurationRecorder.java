@@ -31,7 +31,7 @@ import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
 /**
- * Records the duration of each successfully executed task in the build tree.
+ * Records the duration of each successfully executed task in the build tree, and records tasks that do no work as taking no time.
  */
 @ListenerService
 @ServiceScope(Scope.BuildTree.class)
@@ -59,8 +59,8 @@ public class TaskDurationRecorder implements TaskListenerInternal {
         TaskExecutionOutcome outcome = ((TaskStateInternal) state).getOutcome();
         if (outcome == TaskExecutionOutcome.EXECUTED) {
             history.record(taskIdentity.getBuildTreePath(), Duration.ofMillis(clock.getCurrentTime() - startTime));
-        } else if (outcome == TaskExecutionOutcome.NO_SOURCE) {
-            // A task without sources does no work
+        } else if (outcome != null) {
+            // A task that is up-to-date, loaded from the build cache, skipped or without sources does no work
             history.record(taskIdentity.getBuildTreePath(), Duration.ZERO);
         }
     }

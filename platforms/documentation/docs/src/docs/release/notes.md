@@ -105,7 +105,7 @@ See the [Rich console](userguide/command_line_interface.html#sec:rich_console) s
 
 #### Task durations in the tasks report
 
-Gradle now records how long each task takes when it executes successfully, keeping up to the last 3 durations per task in the project cache directory.
+Gradle now records how long each task takes when it executes successfully, and records tasks that do no work, such as up-to-date tasks, as taking no time, keeping up to the last 3 durations per task in the project cache directory.
 The new incubating `--eta` option of the `tasks` report shows these durations and their average:
 
 ```text

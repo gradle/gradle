@@ -22,7 +22,23 @@ class TaskDurationRecordingIntegrationTest extends AbstractIntegrationSpec {
 
     def historyFile = file(".gradle/task-durations.txt")
 
-    def "records successful executions only"() {
+    def "records successful executions with their duration"() {
+        given:
+        buildFile << """
+            tasks.register("slow") {
+                doLast { Thread.sleep(200) }
+            }
+        """
+
+        when:
+        succeeds "slow"
+
+        then:
+        entries(":slow").size() == 1
+        (entries(":slow")[0] as long) >= 200
+    }
+
+    def "records up-to-date tasks as taking no time"() {
         given:
         buildFile << """
             def out = layout.buildDirectory.file("out.txt")
@@ -34,16 +50,51 @@ class TaskDurationRecordingIntegrationTest extends AbstractIntegrationSpec {
 
         when:
         succeeds "produce"
-
-        then:
-        entries(":produce").size() == 1
-
-        when:
         succeeds "produce"
 
         then:
         skipped ":produce"
-        entries(":produce").size() == 1
+        entries(":produce").size() == 2
+        entries(":produce")[1] == "0"
+    }
+
+    def "records tasks loaded from the build cache as taking no time"() {
+        given:
+        buildFile << """
+            def out = layout.buildDirectory.file("out.txt")
+            tasks.register("produce") {
+                outputs.file(out)
+                outputs.cacheIf { true }
+                doLast { out.get().asFile.text = "x" }
+            }
+        """
+
+        when:
+        succeeds "produce", "--build-cache"
+        file("build").deleteDir()
+        succeeds "produce", "--build-cache"
+
+        then:
+        outputContains("> Task :produce FROM-CACHE")
+        entries(":produce").size() == 2
+        entries(":produce")[1] == "0"
+    }
+
+    def "records skipped tasks as taking no time"() {
+        given:
+        buildFile << """
+            tasks.register("skip") {
+                onlyIf { false }
+                doLast { }
+            }
+        """
+
+        when:
+        succeeds "skip"
+
+        then:
+        outputContains("> Task :skip SKIPPED")
+        entries(":skip") == ["0"]
     }
 
     def "records tasks without sources as taking no time"() {
