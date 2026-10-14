@@ -131,3 +131,10 @@ Shows that the ETA does not account for work that will never run: when the break
 The `all` task only depends on the 4 tasks.
 
 Shows the ETA including finalizers in the chain of the tasks they finalize: it starts at 7s, while the progress bar passes 85% after 1s.
+
+### test-build-worker-limit
+
+48 independent tasks take 1.5s each.
+Run with `--max-workers=4`, so only 4 tasks run at a time; set it on the command line, as a `org.gradle.workers.max` in your user home `gradle.properties` takes precedence over the build's.
+
+Shows the ETA spreading the remaining work across the parallel workers: with 4 workers it starts at 18s and counts down evenly.
