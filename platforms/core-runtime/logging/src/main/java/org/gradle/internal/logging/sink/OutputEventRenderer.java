@@ -48,6 +48,7 @@ import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
+import org.gradle.internal.logging.events.WorkItemProgressEvent;
 import org.gradle.internal.logging.format.PrettyPrefixedLogHeaderFormatter;
 import org.gradle.internal.logging.text.StreamBackedStandardOutputListener;
 import org.gradle.internal.logging.text.StreamingStyledTextOutput;
@@ -488,7 +489,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     private boolean isProgressEvent(OutputEvent event) {
-        return event instanceof ProgressStartEvent || event instanceof ProgressEvent || event instanceof ProgressCompleteEvent;
+        return event instanceof ProgressStartEvent || event instanceof ProgressEvent || event instanceof ProgressCompleteEvent || event instanceof WorkItemProgressEvent;
     }
 
     private static class SnapshotImpl implements Snapshot {

@@ -23,6 +23,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.UpdateNowEvent;
+import org.gradle.internal.logging.events.WorkItemProgressEvent;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -48,6 +49,7 @@ public class BuildStatusRenderer implements OutputEventListener {
     private @Nullable OperationIdentifier buildProgressOperationId;
     private @Nullable Phase currentPhase;
     private final Set<OperationIdentifier> currentPhaseChildren = new HashSet<>();
+    private int pendingWorkItems;
     private long currentTimePeriod;
 
     // What actually shows up on the console
@@ -101,6 +103,8 @@ public class BuildStatusRenderer implements OutputEventListener {
             } else if (currentPhaseChildren.remove(completeEvent.getProgressOperationId())) {
                 phaseProgressed(completeEvent);
             }
+        } else if (event instanceof WorkItemProgressEvent) {
+            workItemProgressed((WorkItemProgressEvent) event);
         }
 
         listener.onOutput(event);
@@ -124,6 +128,7 @@ public class BuildStatusRenderer implements OutputEventListener {
         timerEnabled = true;
         currentPhase = phase;
         currentPhaseChildren.clear();
+        pendingWorkItems = 0;
         int totalProgress = progressStartEvent.getTotalProgress();
         progressBar = ProgressBar.createProgressBar(consoleMetaData, phase.name().toUpperCase(Locale.ROOT), totalProgress);
     }
@@ -140,11 +145,26 @@ public class BuildStatusRenderer implements OutputEventListener {
         }
     }
 
+    private void workItemProgressed(WorkItemProgressEvent event) {
+        if (currentPhase != Phase.Executing || progressBar == null) {
+            return;
+        }
+        if (event.getKind() == WorkItemProgressEvent.Kind.SUBMITTED) {
+            pendingWorkItems++;
+            progressBar.moreProgress(1);
+        } else if (pendingWorkItems > 0) {
+            // Items submitted before the execution phase started were never added to the total
+            pendingWorkItems--;
+            progressBar.update(event.getKind() == WorkItemProgressEvent.Kind.FAILED);
+        }
+    }
+
     private void buildEnded() {
         progressBar = ProgressBar.createProgressBar(consoleMetaData, "WAITING", 1);
         currentPhase = null;
         buildProgressOperationId = null;
         currentPhaseChildren.clear();
+        pendingWorkItems = 0;
         timerEnabled = false;
     }
 }

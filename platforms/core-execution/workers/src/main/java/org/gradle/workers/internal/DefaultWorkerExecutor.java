@@ -27,6 +27,8 @@ import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
 import org.gradle.internal.exceptions.NonGradleCauseExceptionsHolder;
 import org.gradle.internal.isolated.IsolationScheme;
+import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.WorkItemProgressEvent;
 import org.gradle.internal.operations.BuildOperationRef;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.reflect.Instantiator;
@@ -73,6 +75,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
     private final CachedClasspathTransformer classpathTransformer;
     private final File baseDir;
     private final ProjectCacheDir projectCacheDir;
+    private final OutputEventListener outputEventListener;
 
     public DefaultWorkerExecutor(
         WorkerFactory daemonWorkerFactory, WorkerFactory isolatedClassloaderWorkerFactory, WorkerFactory noIsolationWorkerFactory,
@@ -81,7 +84,8 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         ClassLoaderStructureProvider classLoaderStructureProvider, ActionExecutionSpecFactory actionExecutionSpecFactory, Instantiator instantiator,
         CachedClasspathTransformer classpathTransformer,
         File baseDir,
-        ProjectCacheDir projectCacheDir
+        ProjectCacheDir projectCacheDir,
+        OutputEventListener outputEventListener
     ) {
         this.daemonWorkerFactory = daemonWorkerFactory;
         this.isolatedClassloaderWorkerFactory = isolatedClassloaderWorkerFactory;
@@ -98,6 +102,7 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         this.classpathTransformer = classpathTransformer;
         this.baseDir = baseDir;
         this.projectCacheDir = projectCacheDir;
+        this.outputEventListener = outputEventListener;
     }
 
     @Override
@@ -164,13 +169,19 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
         checkIsManagedThread();
         final BuildOperationRef currentBuildOperation = buildOperationRunner.getCurrentOperation();
         WorkItemExecution execution = new WorkItemExecution(spec.getDisplayName(), () -> {
+            boolean success = false;
             try {
                 BuildOperationAwareWorker worker = workerFactory.getWorker(workerRequirement);
-                return worker.execute(spec, currentBuildOperation);
+                DefaultWorkResult result = worker.execute(spec, currentBuildOperation);
+                success = result.isSuccess();
+                return result;
             } catch (Throwable t) {
                 throw new WorkExecutionException(spec.getDisplayName(), t);
+            } finally {
+                outputEventListener.onOutput(new WorkItemProgressEvent(success ? WorkItemProgressEvent.Kind.SUCCEEDED : WorkItemProgressEvent.Kind.FAILED));
             }
         });
+        outputEventListener.onOutput(new WorkItemProgressEvent(WorkItemProgressEvent.Kind.SUBMITTED));
         executionQueue.submit(execution);
         asyncWorkTracker.registerWork(currentBuildOperation, execution);
         return execution;
