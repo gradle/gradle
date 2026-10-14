@@ -26,6 +26,8 @@ dependencies {
 
     implementation(libs.fastutil)
 
+    testFixturesApi(testFixtures(projects.modelCore))
+
     testFixturesImplementation(projects.internalIntegTesting)
     testFixturesImplementation(projects.internalTesting)
     testFixturesImplementation(projects.modelCore)

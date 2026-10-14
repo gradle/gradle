@@ -1093,4 +1093,102 @@ class ArtifactTransformEdgeCasesIntegrationTest extends AbstractIntegrationSpec 
         """
     }
     // endregion Multi-project undeclared resolution scenarios
+
+    def "dependency declared using #description of transformed files schedules the transform and its upstream task"() {
+        transformedProjectArtifact()
+        buildFile << """
+            tasks.register("consumer") {
+                dependsOn(${expression})
+            }
+        """
+
+        when:
+        succeeds("consumer")
+
+        then:
+        executed(":lib:producer")
+        outputContains("Transforming in.txt")
+
+        where:
+        description                | expression
+        "elements"                 | "files.elements"
+        "mapped elements"          | "files.elements.map { it }"
+        "set property of elements" | "objects.setProperty(FileSystemLocation).value(files.elements)"
+        "zipped elements"          | "files.elements.zip(provider { 1 }) { f, i -> f }"
+        "orElse of elements"       | "files.elements.map { it }.orElse(provider { [] as Set })"
+    }
+
+    def "input files declared using #description of transformed files schedule the transform and its upstream task"() {
+        transformedProjectArtifact()
+        buildFile << """
+            tasks.register("consumer") {
+                inputs.files(${expression})
+                doLast { }
+            }
+        """
+
+        when:
+        succeeds("consumer")
+
+        then:
+        executed(":lib:producer")
+        outputContains("Transforming in.txt")
+
+        where:
+        description                | expression
+        "elements"                 | "files.elements"
+        "mapped elements"          | "files.elements.map { it }"
+        "set property of elements" | "objects.setProperty(FileSystemLocation).value(files.elements)"
+        "zipped elements"          | "files.elements.zip(provider { 1 }) { f, i -> f }"
+        "orElse of elements"       | "files.elements.map { it }.orElse(provider { [] as Set })"
+    }
+
+    /**
+     * Declares {@code files}: the files of a project dependency, transformed by an artifact transform
+     * whose input is produced by the task {@code :lib:producer}.
+     */
+    private void transformedProjectArtifact() {
+        settingsFile << "include 'lib'"
+        file("lib/build.gradle") << """
+            abstract class Producer extends DefaultTask {
+                @OutputFile abstract RegularFileProperty getOut()
+                @TaskAction void go() { out.get().asFile.text = name }
+            }
+            def producer = tasks.register("producer", Producer) {
+                out = layout.buildDirectory.file("in.txt")
+            }
+            configurations {
+                consumable("outgoing") {
+                    attributes.attribute(Attribute.of("color", String), "blue")
+                    outgoing.artifact(producer.flatMap { it.out })
+                }
+            }
+        """
+        buildFile << """
+            abstract class Upper implements TransformAction<org.gradle.api.artifacts.transform.TransformParameters.None> {
+                @InputArtifact abstract Provider<FileSystemLocation> getInputArtifact()
+                void transform(TransformOutputs outputs) {
+                    def input = inputArtifact.get().asFile
+                    println("Transforming " + input.name)
+                    outputs.file(input.name + ".upper").text = input.text.toUpperCase()
+                }
+            }
+            def artifactType = Attribute.of('artifactType', String)
+            configurations {
+                dependencyScope("deps")
+                resolvable("res") {
+                    extendsFrom(deps)
+                    attributes.attribute(Attribute.of("color", String), "blue")
+                }
+            }
+            dependencies {
+                registerTransform(Upper) {
+                    from.attribute(artifactType, "txt")
+                    to.attribute(artifactType, "upper")
+                }
+                deps project(":lib")
+            }
+            def files = configurations.res.incoming.artifactView { attributes.attribute(artifactType, "upper") }.files
+        """
+    }
 }
