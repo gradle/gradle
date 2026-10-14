@@ -221,7 +221,7 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
     private long nextId = 1
 
     private BuildOperationDescriptor descriptor() {
-        new BuildOperationDescriptor(new OperationIdentifier(nextId++), null, "name", "name", "name", null, null, 12)
+        new BuildOperationDescriptor(new OperationIdentifier(nextId++), null, "name", "name", "name", null, null, 12, null, null)
     }
 
     class MockBuildEventListenerFactory implements BuildEventListenerFactory {
