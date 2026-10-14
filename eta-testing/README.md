@@ -114,8 +114,9 @@ Shows tasks without sources recorded as taking no time, as `0` in the history, s
 6 tasks with inputs and outputs take 3s when they execute, then a finish task always takes 2s.
 Run again with the same `-Pinput` (or none), the 6 tasks are up-to-date and finish almost at once; pass a new value, for example `-Pinput=$RANDOM`, to execute them again.
 
-Shows that only executions are recorded: up-to-date tasks are estimated at their last execution time, 3s.
-As they complete almost at once, the ETA drops straight to the finish task's 2s.
+Shows up-to-date runs recorded as taking no time.
+Each up-to-date run adds a 0 to the 6 tasks' history, pulling their average from 3s toward 0, so after 3 up-to-date runs they are estimated at 0s.
+Executing them again with a new `-Pinput` is then underestimated: the ETA starts at about 3s for a 5s build, and stalls while the 6 tasks run.
 
 ### test-build-failure
 
