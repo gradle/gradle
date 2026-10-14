@@ -22,9 +22,17 @@ import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.NoDaemonGradleExecuter
+import org.gradle.integtests.fixtures.versions.ReleasedVersionDistributions
 import org.gradle.internal.jvm.Jvm
+import org.gradle.kotlin.dsl.embeddedKotlinVersion
+import org.gradle.kotlin.dsl.support.KOTLIN_DSL_LANGUAGE_VERSION
 import org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
+import org.gradle.test.fixtures.file.TestFile
+import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.GradleVersion
+import org.gradle.util.internal.VersionNumber
 import org.junit.Assume.assumeTrue
+import org.junit.ClassRule
 import org.junit.Test
 import org.junit.runner.RunWith
 import org.junit.runners.Parameterized
@@ -38,40 +46,68 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
 ) : AbstractIntegrationTest() {
 
     companion object {
-        @Parameterized.Parameters(name = "Gradle {0}, KGP {1}, Kotlin {2}")
-        @JvmStatic
-        fun scenarios(): List<Array<Any>> = listOf(
-            arrayOf("7.2", "1.9.22", "1.4"),
-            arrayOf("7.6", "1.9.22", "1.4"),
+        @ClassRule
+        @JvmField
+        val pluginsDirectoryProvider = TestNameTestDirectoryProvider(KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest::class.java)
 
-            arrayOf("8.0", "1.9.22", "1.8"),
-            arrayOf("8.7", "1.9.22", "1.8"),
-            arrayOf("8.9", "1.9.23", "1.8"),
-            arrayOf("8.10", "1.9.24", "1.8"),
-            arrayOf("8.11", "2.0.20", "1.8"),
-            arrayOf("8.12", "2.0.21", "1.8"),
-            arrayOf("8.13", "2.1.0", "2.1"),
-            arrayOf("8.14", "2.1.21", "2.1"),
-            arrayOf("9.0.0", "2.2.0", "2.2"),
-            arrayOf("9.2.0", "2.2.20", "2.2"),
-            arrayOf("9.3.0", "2.2.21", "2.2"),
-            arrayOf("9.4.0", "2.3.0", "2.2"),
-            arrayOf("9.5.0", "2.3.20", "2.2"),
+        private val builtPluginVersions = mutableSetOf<String>()
 
-            arrayOf("9.6.0", "2.3.21", "2.2"),
-            arrayOf("9.7.0", "2.4.0", "2.2"),
-            // arrayOf("9.8.0", "2.4.10", "2.2"), // TODO: once available
-            // arrayOf("9.9.0", "2.4.20", "2.2"), // TODO: once available
+        // Gradle versions grouped by the Kotlin language version their own kotlin-dsl targets.
+        private val gradleVersionsByKotlinLanguageVersion = mapOf(
+            "1.4" to listOf("7.2", "7.6"),
+            "1.8" to listOf("8.0", "8.7", "8.9", "8.10", "8.11", "8.12", "8.13", "8.14"),
+            "2.2" to latestReleasedPatchOfEachMinor(9),
         )
+
+        // The newest KGP that can still target the given Kotlin language version.
+        private val kgpVersionByKotlinLanguageVersion = mapOf(
+            "1.4" to "1.9.22",
+            "1.8" to "2.2.21",
+            "2.2" to embeddedKotlinVersion,
+        )
+
+        @Parameterized.Parameters(name = "KGP {1} targeting Kotlin {2} applied on Gradle {0}")
+        @JvmStatic
+        fun scenarios(): List<Array<Any>> {
+            checkScenariosDoNotNeedManualFixing()
+            return gradleVersionsByKotlinLanguageVersion.flatMap { (kotlinLanguageVersion, gradleVersions) ->
+                gradleVersions.map { gradleVersion ->
+                    arrayOf(gradleVersion, kgpVersionByKotlinLanguageVersion.getValue(kotlinLanguageVersion), kotlinLanguageVersion)
+                }
+            }
+        }
+
+        private fun checkScenariosDoNotNeedManualFixing() {
+            check(GradleVersion.current().majorVersion == 9 && KOTLIN_DSL_LANGUAGE_VERSION == "2.2") {
+                "Gradle ${GradleVersion.current().version} targets Kotlin $KOTLIN_DSL_LANGUAGE_VERSION, " +
+                        "but the Kotlin 2.2 scenarios are derived from all released Gradle 9 versions."
+            }
+        }
+
+        private fun latestReleasedPatchOfEachMinor(major: Int): List<String> =
+            ReleasedVersionDistributions().all
+                .map { it.version }
+                .filter { it.majorVersion == major && it == it.baseVersion }
+                .groupBy { VersionNumber.parse(it.version).minor }
+                .map { (_, versions) -> versions.max() }
+                .sorted()
+                .map { it.version }
     }
+
+    private val pluginVersion = "1.0-kgp$kgpVersion-kotlin$kotlinLanguageVersion"
+
+    private val pluginRepoUri
+        get() = pluginsDirectoryProvider.testDirectory.file("maven-repo").toURI()
 
     @Test
     fun `plugin built with current Gradle can be applied with an older Gradle version`() {
         val gradleDistribution = buildContext.distribution(gradleVersion)
         val applyJdk = getHighestAvailableSupportedJdkForGradleVersion(gradleDistribution)
 
-        val compileJdk = getJdkSuitableForKGPCompilation()
-        buildPlugin(compileJdk)
+        if (pluginVersion !in builtPluginVersions) {
+            buildPlugin(getJdkSuitableForKGPCompilation())
+            builtPluginVersions += pluginVersion
+        }
 
         val result = applyPlugin(applyJdk)
 
@@ -80,7 +116,8 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
     }
 
     private fun buildPlugin(jdk: Jvm) {
-        file("plugin/settings.gradle.kts").setText(
+        val pluginDir: TestFile = pluginsDirectoryProvider.testDirectory.file("plugin-$pluginVersion")
+        pluginDir.file("settings.gradle.kts").setText(
             """
             pluginManagement {
                 repositories {
@@ -90,7 +127,7 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
             rootProject.name = "plugin"
             """
         )
-        file("plugin/build.gradle.kts").setText(
+        pluginDir.file("build.gradle.kts").setText(
             """
             import org.jetbrains.kotlin.gradle.dsl.JvmTarget
             import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
@@ -102,7 +139,7 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
                 `maven-publish`
             }
             group = "com.example"
-            version = "1.0"
+            version = "$pluginVersion"
             ${RepoScriptBlockUtil.mavenCentralRepository(KOTLIN)}
 
             gradlePlugin {
@@ -128,17 +165,17 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
             }
 
             publishing {
-                repositories { maven { url = uri("${mavenRepo.uri}") } }
+                repositories { maven { url = uri("$pluginRepoUri") } }
             }
             """
         )
-        file("plugin/gradle.properties").setText(
+        pluginDir.file("gradle.properties").setText(
             """
             # KGP 1.9.x registers its build statistics (FUS) listener via an unsupported provider, which is a configuration cache problem.
             enable_kotlin_performance_profile=false
             """
         )
-        file("plugin/src/main/kotlin/com/example/MyPlugin.kt").setText(
+        pluginDir.file("src/main/kotlin/com/example/MyPlugin.kt").setText(
             """
             package com.example
 
@@ -156,31 +193,12 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
             """
         )
 
-        val result = inDirectory(file("plugin"))
+        inDirectory(pluginDir)
             .withTasks("publish")
             .withJavaHome(jdk.javaHome.absolutePath)
             .noDeprecationChecks() // KGP emits deprecation warnings that vary by version and are not what we test here.
             .withStackTraceChecksDisabled() // The Kotlin compiler daemon intermittently crashes and logs a stack trace before falling back; that's not what we test here.
             .run()
-
-        // The KGP 2.0.x line registers an attribute whose type is a plain enum
-        // (KotlinNativeBundleArtifactFormat.KotlinNativeBundleArtifactsTypes). That plain
-        // enum type would normally trigger the generic unsupported-attribute-value-type
-        // deprecation, but Attribute.of recognizes its fully-qualified name and instead
-        // emits a KGP-specific deprecation identifying the plugin as the source. Verify
-        // that KGP-specific message is present for the 2.0.x rows in this matrix and
-        // absent from KGP 2.1.0+ (which no longer uses the plain enum for this attribute).
-        val kgpEnumDeprecationSummary =
-            "Using the enum type KotlinNativeBundleArtifactsTypes as an attribute value type has been deprecated."
-        if (kgpVersion.startsWith("2.0.")) {
-            result.assertOutputContains(kgpEnumDeprecationSummary)
-        } else {
-            check(!result.output.contains(kgpEnumDeprecationSummary)) {
-                "KGP $kgpVersion unexpectedly emitted the KotlinNativeBundleArtifactsTypes deprecation. " +
-                    "If a post-2.0.x KGP started re-using the plain enum, the special case in Attribute.of " +
-                    "and the 'upgrade to KGP 2.1.0 or later' guidance in the upgrade guide need to be revisited."
-            }
-        }
     }
 
     private fun applyPlugin(jdk: Jvm): ExecutionResult {
@@ -188,7 +206,7 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
             """
             pluginManagement {
                 repositories {
-                    maven(url = "${mavenRepo.uri}")
+                    maven(url = "$pluginRepoUri")
                     ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(KOTLIN)}
                 }
             }
@@ -198,7 +216,7 @@ class KotlinPluginAppliedWithOlderGradleVersionsIntegrationTest(
         file("consumer/build.gradle.kts").setText(
             """
             plugins {
-                id("my-plugin") version "1.0"
+                id("my-plugin") version "$pluginVersion"
             }
             """
         )
