@@ -359,6 +359,67 @@ class BuildStatusRendererTest extends OutputSpecification {
         statusBar.display == '[#######........] 50% CONFIGURING [0ms]'
     }
 
+    def "counts work run by nested builds during configuration"() {
+        given:
+        renderer.onOutput(startRootBuildOperation(1))
+        renderer.onOutput(startConfigureRootBuild(2, 1, 1))
+
+        when:
+        renderer.onOutput(startExecuteBuild(3, 2, 3))
+        (4..6).each { id ->
+            renderer.onOutput(startExecuteTask(id, 3))
+            renderer.onOutput(complete(id))
+        }
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[###########....] 75% CONFIGURING [0ms]'
+    }
+
+    def "counts nested builds configured and run during initialization"() {
+        given:
+        renderer.onOutput(startRootBuildOperation(1))
+
+        when:
+        renderer.onOutput(startConfigureBuild(2, 1, 1))
+        renderer.onOutput(startConfigureProject(3, 2))
+        renderer.onOutput(complete(3))
+        renderer.onOutput(complete(2))
+        renderer.onOutput(startExecuteBuild(4, 1, 1))
+        renderer.onOutput(startExecuteTask(5, 4))
+        renderer.onOutput(complete(5))
+        renderer.onOutput(complete(4))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[###############] 100% INITIALIZING [0ms]'
+
+        when:
+        renderer.onOutput(startConfigureRootBuild(6, 1, 2))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[#######........] 50% CONFIGURING [0ms]'
+    }
+
+    def "ignores work reported after the build finished"() {
+        given:
+        renderer.onOutput(startRootBuildOperation(1))
+        renderer.onOutput(complete(1))
+
+        when:
+        renderer.onOutput(startConfigureBuild(2, 1, 2))
+        renderer.onOutput(startConfigureProject(3, 2))
+        renderer.onOutput(complete(3))
+        renderer.onOutput(startExecuteBuild(4, 1, 2))
+        renderer.onOutput(startExecuteTask(5, 4))
+        renderer.onOutput(complete(5))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[...............] 0% WAITING'
+    }
+
     def startRootBuildOperation(Long id) {
         new ProgressStartEvent(new OperationIdentifier(id), null, currentTimeMs, "category", "description", null, null, 0, true, new OperationIdentifier(id), BuildOperationCategory.UNCATEGORIZED)
     }

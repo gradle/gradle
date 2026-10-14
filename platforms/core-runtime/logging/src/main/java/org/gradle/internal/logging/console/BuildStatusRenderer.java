@@ -78,19 +78,15 @@ public class BuildStatusRenderer implements OutputEventListener {
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_ROOT_BUILD) {
                     // Once the root build starts configuring, we are in Configuring phase
                     phaseStarted(startEvent, Phase.Configuring);
-                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_BUILD && currentPhase == Phase.Configuring) {
-                    // Any configuring event received from nested or buildSrc builds before the root build starts configuring is ignored
+                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_BUILD && currentPhase != null) {
                     phaseHasMoreProgress(startEvent);
-                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_PROJECT && currentPhase == Phase.Configuring) {
-                    // Any configuring event received from nested or buildSrc builds before the root build starts configuring is ignored
+                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_PROJECT && currentPhase != null) {
                     currentPhaseChildren.add(startEvent.getProgressOperationId());
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_MAIN_TASKS) {
                     phaseStarted(startEvent, Phase.Executing);
-                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_WORK && currentPhase == Phase.Executing) {
-                    // Any work execution happening in nested or buildSrc builds before the root build has started executing work is ignored
+                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_WORK && currentPhase != null) {
                     phaseHasMoreProgress(startEvent);
-                } else if (startEvent.getBuildOperationCategory().isTopLevelWorkItem() && currentPhase == Phase.Executing) {
-                    // Any work execution happening in nested or buildSrc builds before the root build has started executing work is ignored
+                } else if (startEvent.getBuildOperationCategory().isTopLevelWorkItem() && currentPhase != null) {
                     currentPhaseChildren.add(startEvent.getProgressOperationId());
                 }
             }

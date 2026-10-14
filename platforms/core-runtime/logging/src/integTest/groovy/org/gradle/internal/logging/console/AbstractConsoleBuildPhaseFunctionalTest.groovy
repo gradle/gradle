@@ -265,23 +265,70 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         task1.waitForAllPendingCalls()
-        assertHasBuildPhase("75% CONFIGURING")
+        // buildSrc runs 5 tasks, jar is the last one: (3 projects + 4 tasks) / (4 projects + 5 tasks)
+        assertHasBuildPhase("77% CONFIGURING")
         task1.releaseAll()
 
         and:
         rootBuildScript.waitForAllPendingCalls()
-        assertHasBuildPhase("75% CONFIGURING")
+        // (3 projects + 5 tasks) / (4 projects + 5 tasks)
+        assertHasBuildPhase("88% CONFIGURING")
         rootBuildScript.releaseAll()
 
         and:
         task2.waitForAllPendingCalls()
-        assertHasBuildPhase("80% EXECUTING")
+        // (4 projects + 5 tasks) / (4 projects + 6 tasks)
+        assertHasBuildPhase("90% EXECUTING")
         task2.releaseAll()
 
         and:
         rootBuildFinished.waitForAllPendingCalls()
         assertHasBuildPhase("100% EXECUTING")
         rootBuildFinished.releaseAll()
+
+        and:
+        waitForFinish()
+    }
+
+    def "shows initialization progress for included plugin builds"() {
+        settingsFile << """
+            pluginManagement {
+                includeBuild('plugins')
+            }
+            plugins {
+                id('my.settings-plugin')
+            }
+            ${server.callFromBuild('settings')}
+        """
+        buildFile << """
+            task hello
+            ${buildFinishedCall('build-finished')}
+        """
+        file("plugins/settings.gradle") << """
+            rootProject.name = 'plugins'
+        """
+        file("plugins/build.gradle") << """
+            plugins {
+                id('groovy-gradle-plugin')
+            }
+        """
+        file("plugins/src/main/groovy/my.settings-plugin.settings.gradle") << ""
+
+        given:
+        def settings = server.expectAndBlock('settings')
+        def buildFinished = server.expectAndBlock('build-finished')
+        gradle = executer.withTasks("hello").start()
+
+        expect:
+        settings.waitForAllPendingCalls()
+        // The plugin build is configured and built before the settings script body runs
+        assertHasBuildPhase("100% INITIALIZING")
+        settings.releaseAll()
+
+        and:
+        buildFinished.waitForAllPendingCalls()
+        assertHasBuildPhase("100% EXECUTING")
+        buildFinished.releaseAll()
 
         and:
         waitForFinish()
