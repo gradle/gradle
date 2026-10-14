@@ -67,6 +67,59 @@ class ProgressBarTest extends Specification {
         id = unicode ? "unicode" : "ascii"
     }
 
+    def "formats estimated remaining time rounded up to whole seconds (#remainingTime ms)"() {
+        given:
+        init(false)
+
+        expect:
+        progressBar.formatProgress(true, 2000, remainingTime).collect { it.text }.join("") == rendering
+
+        where:
+        remainingTime       | rendering
+        Optional.empty()    | "[..............................]> EXECUTING  [2s ELAPSED | ESTIMATE UNAVAILABLE]"
+        Optional.of(0L)     | "[..............................]> EXECUTING  [2s ELAPSED | 0s ETA]"
+        Optional.of(-500L)  | "[..............................]> EXECUTING  [2s ELAPSED | 0s ETA]"
+        Optional.of(1L)     | "[..............................]> EXECUTING  [2s ELAPSED | 1s ETA]"
+        Optional.of(4200L)  | "[..............................]> EXECUTING  [2s ELAPSED | 5s ETA]"
+        Optional.of(65000L) | "[..............................]> EXECUTING  [2s ELAPSED | 1m 5s ETA]"
+    }
+
+    def "shows note after the estimated remaining time"() {
+        given:
+        init(false)
+
+        expect:
+        progressBar.formatProgress(true, 2000, remainingTime, " - note").collect { it.text }.join("") == rendering
+
+        where:
+        remainingTime      | rendering
+        Optional.of(3000L) | "[..............................]> EXECUTING  [2s ELAPSED | 3s ETA] - note"
+        Optional.empty()   | "[..............................]> EXECUTING  [2s ELAPSED | ESTIMATE UNAVAILABLE] - note"
+    }
+
+    def "omits elapsed and estimated remaining time when timer is disabled"() {
+        given:
+        init(false)
+
+        expect:
+        progressBar.formatProgress(false, 2000, Optional.of(3000L)).collect { it.text }.join("") == "[..............................]> EXECUTING"
+    }
+
+    def "re-renders when only estimated remaining time changes"() {
+        given:
+        init(false)
+
+        when:
+        def first = progressBar.formatProgress(true, 2000, Optional.of(3000L)).collect { it.text }.join("")
+        def second = progressBar.formatProgress(true, 2000, Optional.of(2000L)).collect { it.text }.join("")
+        def third = progressBar.formatProgress(true, 2000, Optional.empty()).collect { it.text }.join("")
+
+        then:
+        first == "[..............................]> EXECUTING  [2s ELAPSED | 3s ETA]"
+        second == "[..............................]> EXECUTING  [2s ELAPSED | 2s ETA]"
+        third == "[..............................]> EXECUTING  [2s ELAPSED | ESTIMATE UNAVAILABLE]"
+    }
+
     def "shows the running and queued counts once work is known (#id)"() {
         given:
         init(unicode, 10)

@@ -19,7 +19,6 @@ package org.gradle.internal.logging.console
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
-import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.flow.FlowActionsFixture
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -103,8 +102,8 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         taskGraph.waitForAllPendingCalls()
-        // With the configuration cache, task graph listeners run while the work graph is being built
-        assertHasBuildPhase(GradleContextualExecuter.configCache ? "CONFIGURING ▶ 1 … 0" : "CONFIGURING ▶ 0 … 0")
+        // Task graph listeners run while the work graph is being built
+        assertHasBuildPhase("CONFIGURING ▶ 1 … 0")
         taskGraph.releaseAll()
 
         and:
@@ -187,8 +186,8 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         childTaskGraph.waitForAllPendingCalls()
-        // With the configuration cache, task graph listeners run while the work graph is being built
-        assertHasBuildPhase(GradleContextualExecuter.configCache ? "CONFIGURING ▶ 1 … 0" : "CONFIGURING ▶ 0 … 0")
+        // Task graph listeners run while the work graph is being built
+        assertHasBuildPhase("CONFIGURING ▶ 1 … 0")
         childTaskGraph.releaseAll()
 
         and:
@@ -263,8 +262,8 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         childTaskGraph.waitForAllPendingCalls()
-        // With the configuration cache, task graph listeners run while the work graph is being built
-        assertHasBuildPhase(GradleContextualExecuter.configCache ? "CONFIGURING ▶ 1 … 1" : "CONFIGURING ▶ 0 … 1")
+        // Task graph listeners run while the work graph is being built
+        assertHasBuildPhase("CONFIGURING ▶ 1 … 1")
         childTaskGraph.releaseAll()
 
         and:
