@@ -25,7 +25,6 @@ import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.project.antbuilder.AntBuilderDelegate;
 import org.gradle.api.plugins.internal.ant.AntWorkAction;
 import org.gradle.api.specs.Spec;
-import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
 import org.gradle.internal.SystemProperties;
 import org.gradle.internal.logging.ConsoleRenderer;
@@ -35,7 +34,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.lang.reflect.Field;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -49,6 +47,7 @@ public abstract class PmdInvoker extends AntWorkAction<PmdActionParameters> {
     private static final List<String> BASIC = ImmutableList.of("basic");
     private static final List<String> JAVA_BASIC = ImmutableList.of("java-basic");
     private static final List<String> ERROR_PRONE = ImmutableList.of("category/java/errorprone.xml");
+    private static final VersionNumber NEWEST_PMD_6 = VersionNumber.parse("6.55.0");
 
     @Override
     protected String getActionName() {
@@ -76,7 +75,8 @@ public abstract class PmdInvoker extends AntWorkAction<PmdActionParameters> {
 
     @SuppressWarnings("FormatStringShouldUsePlaceholders")
     private static void runPmd(AntBuilderDelegate ant, PmdActionParameters parameters) {
-        VersionNumber version = determinePmdVersion(Thread.currentThread().getContextClassLoader());
+        // Without version information, assume the newest version that runs through Ant
+        VersionNumber version = parameters.getPmdVersion().map(VersionNumber::parse).getOrElse(NEWEST_PMD_6);
 
         Map<String, Object> antPmdArgs = new HashMap<>(ImmutableMap.<String, Object>builder()
             .put("failOnRuleViolation", false)
@@ -192,25 +192,6 @@ public abstract class PmdInvoker extends AntWorkAction<PmdActionParameters> {
             } else {
                 throw new MarkedVerificationException(message);
             }
-        }
-    }
-
-    private static VersionNumber determinePmdVersion(ClassLoader antLoader) {
-        Class<?> pmdVersion;
-        try {
-            pmdVersion = antLoader.loadClass("net.sourceforge.pmd.PMDVersion");
-        } catch (ClassNotFoundException e) {
-            try {
-                pmdVersion = antLoader.loadClass("net.sourceforge.pmd.PMD");
-            } catch (ClassNotFoundException ex) {
-                throw new RuntimeException(ex);
-            }
-        }
-        try {
-            Field versionField = pmdVersion.getDeclaredField("VERSION");
-            return VersionNumber.parse(Cast.castNullable(String.class, versionField.get(null)));
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            throw new RuntimeException(e);
         }
     }
 

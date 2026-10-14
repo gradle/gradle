@@ -39,6 +39,7 @@ class PmdCustomRulesIntegrationTest extends AbstractPmdPluginVersionIntegrationT
         file("rules.xml") << customRuleSet()
 
         expect:
+        expectPmdDeprecationIfLegacy()
         succeeds(":pmdMain")
 
         where:
@@ -66,6 +67,7 @@ class PmdCustomRulesIntegrationTest extends AbstractPmdPluginVersionIntegrationT
         file("src/main/java/org/gradle/ruleusing/Class1.java") << breakingDefaultRulesCode()
 
         expect:
+        expectPmdDeprecationIfLegacy()
         fails(":pmdMain")
         errorOutput.contains("PMD rule violations were found")
     }

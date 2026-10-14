@@ -57,6 +57,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         goodCode()
 
         expect:
+        expectPmdDeprecationIfLegacy()
         succeeds("check")
         file("build/reports/pmd/main.xml").exists()
         file("build/reports/pmd/test.xml").exists()
@@ -66,6 +67,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         badCode()
 
         expect:
+        expectPmdDeprecationIfLegacy()
         fails("check")
         failure.assertHasDescription("Execution failed for task ':pmdTest' (registered by plugin 'org.gradle.pmd').")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
@@ -83,6 +85,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         expect:
+        expectPmdDeprecationIfLegacy()
         succeeds("check")
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
@@ -99,6 +102,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         expect:
+        expectPmdDeprecationIfLegacy()
         succeeds("check")
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").assertContents(containsClass("org.gradle.Class1Test"))
@@ -114,6 +118,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         expect:
+        expectPmdDeprecationIfLegacy()
         fails("check")
         failure.assertHasDescription("Execution failed for task ':pmdTest' (registered by plugin 'org.gradle.pmd').")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
@@ -130,6 +135,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         expect:
+        expectPmdDeprecationIfLegacy()
         fails("check")
         file("build/reports/pmd/main.xml").assertContents(not(containsClass("org.gradle.Class1")))
         file("build/reports/pmd/test.xml").
@@ -184,6 +190,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         expect:
+        expectPmdDeprecationIfLegacy()
         succeeds("check")
         !file("build/reports/pmd/main.xml").exists()
         file("htmlReport.html").exists()
@@ -207,6 +214,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         expect:
+        expectPmdDeprecationIfLegacy()
         succeeds("check")
         file("build/reports/pmd/main.xml").exists()
         file("build/reports/pmd/main.html").exists()
@@ -219,6 +227,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         goodCode()
 
         expect:
+        expectPmdDeprecationIfLegacy()
         succeeds("check")
         file("build/reports/pmd/").assertHasDescendants(
             "main.xml", "main.html", "test.xml", "test.html"
@@ -238,6 +247,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         expect:
+        expectPmdDeprecationIfLegacy()
         fails("pmdMain")
         failure.assertHasDescription("Execution failed for task ':pmdMain' (registered by plugin 'org.gradle.pmd').")
         failure.assertThatCause(containsString("1 PMD rule violations were found. See the report at:"))
@@ -259,6 +269,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         expect:
+        expectPmdDeprecationIfLegacy()
         fails("pmdMain")
         failure.assertHasDescription("Execution failed for task ':pmdMain' (registered by plugin 'org.gradle.pmd').")
         failure.assertThatCause(containsString("1 PMD rule violations were found. See the report at:"))
@@ -276,6 +287,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         expect:
+        expectPmdDeprecationIfLegacy()
         fails("pmdMain")
         failure.assertHasDescription("Execution failed for task ':pmdMain' (registered by plugin 'org.gradle.pmd').")
         failure.assertThatCause(containsString("1 PMD rule violations were found. See the report at:"))
@@ -293,6 +305,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         badCode()
 
         expect:
+        expectPmdDeprecationIfLegacy()
         fails("check")
         failure.assertHasDescription("Execution failed for task ':pmdTest' (registered by plugin 'org.gradle.pmd').")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
@@ -310,6 +323,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         expect:
+        expectPmdDeprecationIfLegacy()
         succeeds("check")
         file("build/reports/pmd/main.xml").exists()
         file("build/reports/pmd/test.xml").exists()
@@ -324,6 +338,7 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         expect:
+        expectPmdDeprecationIfLegacy()
         fails("check")
         failure.assertHasDescription("Execution failed for task ':pmdTest' (registered by plugin 'org.gradle.pmd').")
         failure.assertThatCause(containsString("2 PMD rule violations were found. See the report at:"))
@@ -379,7 +394,9 @@ class PmdPluginVersionIntegrationTest extends AbstractPmdPluginVersionIntegratio
         """
 
         when:
+        expectPmdDeprecationIfLegacy()
         succeeds('check')
+        expectPmdDeprecationIfLegacy()
         succeeds('clean', 'check')
 
         then:

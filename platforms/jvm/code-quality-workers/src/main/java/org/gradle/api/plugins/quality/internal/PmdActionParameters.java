@@ -30,6 +30,11 @@ public interface PmdActionParameters extends AntWorkParameters {
 
     ConfigurableFileCollection getPmdClasspath();
 
+    /**
+     * The PMD version, or absent if it could not be determined.
+     */
+    Property<String> getPmdVersion();
+
     Property<org.gradle.api.plugins.quality.TargetJdk> getTargetJdk();
 
     ListProperty<String> getRuleSets();

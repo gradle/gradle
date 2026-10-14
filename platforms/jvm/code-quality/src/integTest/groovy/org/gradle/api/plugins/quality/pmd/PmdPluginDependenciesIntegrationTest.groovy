@@ -58,6 +58,7 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         then:
+        executer.expectDocumentedDeprecationWarning(AbstractPmdPluginVersionIntegrationTest.pmdDeprecationMessage("5.1.1"))
         fails("check")
         failure.assertHasDescription("Execution failed for task ':pmdTest' (registered by plugin 'org.gradle.pmd').")
         and:
@@ -76,18 +77,21 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
+        executer.expectDocumentedDeprecationWarning(AbstractPmdPluginVersionIntegrationTest.pmdDeprecationMessage("5.1.1"))
         fails("pmdMain")
 
         then:
         failure.assertHasCause("Incremental analysis only supports PMD 6.0.0 and newer. Please upgrade from PMD 5.1.1 or disable incremental analysis.")
 
         when:
+        executer.expectDocumentedDeprecationWarning(AbstractPmdPluginVersionIntegrationTest.pmdDeprecationMessage("5.1.1"))
         fails("pmdTest")
 
         then:
         failure.assertHasCause("Incremental analysis only supports PMD 6.0.0 and newer. Please upgrade from PMD 5.1.1 or disable incremental analysis.")
 
         when:
+        executer.expectDocumentedDeprecationWarning(AbstractPmdPluginVersionIntegrationTest.pmdDeprecationMessage("5.1.1"))
         fails("check")
 
         then:
