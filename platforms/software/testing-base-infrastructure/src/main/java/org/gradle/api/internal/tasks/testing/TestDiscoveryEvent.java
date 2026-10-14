@@ -16,6 +16,9 @@
 
 package org.gradle.api.internal.tasks.testing;
 
+import org.jspecify.annotations.NullMarked;
+
+@NullMarked
 public class TestDiscoveryEvent {
     private final int testCount;
 

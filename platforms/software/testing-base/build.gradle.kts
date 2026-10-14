@@ -19,6 +19,7 @@ dependencies {
     api(projects.files)
     api(projects.functional)
     api(projects.stdlibJavaExtensions)
+    api(projects.logging)
     api(projects.loggingApi)
     api(projects.messaging)
     api(projects.native)
@@ -36,7 +37,6 @@ dependencies {
     api(libs.jspecify)
     api(libs.inject)
 
-    implementation(projects.logging)
     implementation(projects.processServices)
     implementation(projects.processServicesApi)
     implementation(projects.baseServicesGroovy)

@@ -26,6 +26,7 @@ import org.gradle.api.tasks.testing.TestMetadataEvent;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.WorkItemProgressEvent;
+import org.jspecify.annotations.NullMarked;
 
 import javax.inject.Inject;
 import java.util.HashSet;
@@ -36,6 +37,7 @@ import java.util.Set;
  * having been discovered are reported when they start, and units still outstanding are settled by {@link #settle()}.
  * Each test is also reported when it starts, so it shows as running.
  */
+@NullMarked
 public class ProgressReportingTestResultProcessor implements TestResultProcessor {
     private final TestResultProcessor delegate;
     private final OutputEventListener outputEventListener;
