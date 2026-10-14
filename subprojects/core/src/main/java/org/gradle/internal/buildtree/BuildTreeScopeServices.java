@@ -40,6 +40,11 @@ import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.DefaultConfigurationTimeBarrier;
 import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
+import org.gradle.api.internal.tasks.execution.durations.DefaultTaskDurationHistory;
+import org.gradle.api.internal.tasks.execution.durations.PlainTextTaskDurationStore;
+import org.gradle.api.internal.tasks.execution.durations.TaskDurationHistory;
+import org.gradle.api.internal.tasks.execution.durations.TaskDurationRecorder;
+import org.gradle.api.internal.tasks.execution.durations.TaskDurationStore;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
 import org.gradle.api.model.ObjectFactory;
@@ -64,6 +69,7 @@ import org.gradle.initialization.exception.MultipleBuildFailuresExceptionAnalyse
 import org.gradle.initialization.exception.StackTraceSanitizingExceptionAnalyser;
 import org.gradle.initialization.properties.DefaultGradlePropertiesLoader;
 import org.gradle.initialization.properties.DefaultSystemPropertiesInstaller;
+import org.gradle.initialization.layout.ProjectCacheDir;
 import org.gradle.initialization.properties.SystemPropertiesInstaller;
 import org.gradle.internal.build.BuildLifecycleControllerFactory;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -98,6 +104,7 @@ import org.gradle.internal.snapshot.CaseSensitivity;
 import org.gradle.problems.buildtree.ProblemDiagnosticsFactory;
 import org.gradle.problems.buildtree.ProblemReporter;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -144,6 +151,13 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(TaskIdentityFactory.class);
         registration.add(BuildLogicBuildQueue.class, DefaultBuildLogicBuildQueue.class);
         registration.add(NodeValidator.class, DefaultNodeValidator.class);
+        registration.add(TaskDurationHistory.class, DefaultTaskDurationHistory.class, DefaultTaskDurationHistory.class);
+        registration.add(TaskDurationRecorder.class);
+    }
+
+    @Provides
+    TaskDurationStore createTaskDurationStore(ProjectCacheDir projectCacheDir) {
+        return new PlainTextTaskDurationStore(new File(projectCacheDir.getDir(), PlainTextTaskDurationStore.FILE_NAME));
     }
 
     @Provides
