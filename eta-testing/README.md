@@ -36,3 +36,12 @@ Two options simulate Develocity:
 Then a slow task, taking 12-15s, runs after all of them.
 
 Shows the ETA accounting for a long task at the end of the build: while the slow task runs, the ETA keeps counting down instead of dropping to 0.
+
+### test-build-new-tasks-scheduled
+
+12 tasks each run a nested build, with a `GradleBuild` task, of 2 more tasks.
+The nested tasks are only scheduled when the task that runs them executes, so the number of scheduled tasks grows during execution.
+Then a slow task, taking 12-15s, runs after all of them.
+
+Shows the ETA rising when work is added during execution, and a task that waits on its nested build no longer counting as running.
+The nested build in `extra-tasks` keeps its own task duration history.
