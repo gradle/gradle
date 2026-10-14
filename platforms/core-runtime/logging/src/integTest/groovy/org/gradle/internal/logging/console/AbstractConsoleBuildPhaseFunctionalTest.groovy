@@ -107,12 +107,12 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         task1.waitForAllPendingCalls()
-        assertHasBuildPhase("0% EXECUTING")
+        assertHasBuildPhase("71% EXECUTING")
         task1.releaseAll()
 
         and:
         task2.waitForAllPendingCalls()
-        assertHasBuildPhase("50% EXECUTING")
+        assertHasBuildPhase("85% EXECUTING")
         task2.releaseAll()
 
         and:
@@ -190,12 +190,12 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         task1.waitForAllPendingCalls()
-        assertHasBuildPhase("0% EXECUTING")
+        assertHasBuildPhase("66% EXECUTING")
         task1.releaseAll()
 
         and:
         task2.waitForAllPendingCalls()
-        assertHasBuildPhase("50% EXECUTING")
+        assertHasBuildPhase("83% EXECUTING")
         task2.releaseAll()
 
         and:
@@ -275,7 +275,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         task2.waitForAllPendingCalls()
-        assertHasBuildPhase("0% EXECUTING")
+        assertHasBuildPhase("80% EXECUTING")
         task2.releaseAll()
 
         and:
@@ -302,22 +302,22 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         then:
         jar.waitForAllPendingCalls()
-        assertHasBuildPhase("0% EXECUTING")
+        assertHasBuildPhase("42% EXECUTING")
         jar.releaseAll()
 
         and:
         doubleTransform.waitForAllPendingCalls()
-        assertHasBuildPhase("25% EXECUTING")
+        assertHasBuildPhase("57% EXECUTING")
         doubleTransform.releaseAll()
 
         and:
         sizeTransform.waitForAllPendingCalls()
-        assertHasBuildPhase("50% EXECUTING")
+        assertHasBuildPhase("71% EXECUTING")
         sizeTransform.releaseAll()
 
         and:
         resolveTask.waitForAllPendingCalls()
-        assertHasBuildPhase("75% EXECUTING")
+        assertHasBuildPhase("85% EXECUTING")
         resolveTask.releaseAll()
 
         and:
@@ -345,22 +345,22 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         then:
         jar.waitForAllPendingCalls()
-        assertHasBuildPhase("0% EXECUTING")
+        assertHasBuildPhase("60% EXECUTING")
         jar.releaseAll()
 
         and:
         resolveTask.waitForAllPendingCalls()
-        assertHasBuildPhase("50% EXECUTING")
+        assertHasBuildPhase("80% EXECUTING")
         resolveTask.releaseAll()
 
         and:
         doubleTransform.waitForAllPendingCalls()
-        assertHasBuildPhase("50% EXECUTING")
+        assertHasBuildPhase("80% EXECUTING")
         doubleTransform.releaseAll()
 
         and:
         sizeTransform.waitForAllPendingCalls()
-        assertHasBuildPhase("50% EXECUTING")
+        assertHasBuildPhase("80% EXECUTING")
         sizeTransform.releaseAll()
 
         and:

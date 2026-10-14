@@ -298,7 +298,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         renderer.onOutput(updateNow())
 
         then:
-        statusBar.display == '[...............] 0% EXECUTING [0ms]'
+        statusBar.display == '[#######........] 50% EXECUTING [0ms]'
 
         when:
         renderer.onOutput(complete(5))
@@ -307,6 +307,56 @@ class BuildStatusRendererTest extends OutputSpecification {
 
         then:
         statusBar.display == '[...............] 0% WAITING'
+    }
+
+    def "carries configuration progress into execution"() {
+        given:
+        renderer.onOutput(startRootBuildOperation(1))
+        renderer.onOutput(startConfigureRootBuild(2, 1, 4))
+        (3..6).each { id ->
+            renderer.onOutput(startConfigureProject(id, 2))
+            renderer.onOutput(complete(id))
+        }
+        renderer.onOutput(complete(2))
+
+        when:
+        renderer.onOutput(startExecuteRootBuild(7, 1, 0))
+        renderer.onOutput(startExecuteBuild(8, 7, 4))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[#######........] 50% EXECUTING [0ms]'
+
+        when:
+        renderer.onOutput(startExecuteTask(9, 8))
+        renderer.onOutput(complete(9))
+        renderer.onOutput(startExecuteTask(10, 8))
+        renderer.onOutput(complete(10))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[###########....] 75% EXECUTING [0ms]'
+    }
+
+    def "starts a new bar when a phase starts after the build finished"() {
+        given:
+        renderer.onOutput(startRootBuildOperation(1))
+        renderer.onOutput(complete(1))
+
+        when:
+        renderer.onOutput(startConfigureRootBuild(2, 1, 2))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[...............] 0% CONFIGURING [0ms]'
+
+        when:
+        renderer.onOutput(startConfigureProject(3, 2))
+        renderer.onOutput(complete(3))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[#######........] 50% CONFIGURING [0ms]'
     }
 
     def startRootBuildOperation(Long id) {

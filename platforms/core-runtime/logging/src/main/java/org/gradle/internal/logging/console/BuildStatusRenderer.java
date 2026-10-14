@@ -122,10 +122,16 @@ public class BuildStatusRenderer implements OutputEventListener {
 
     private void phaseStarted(ProgressStartEvent progressStartEvent, Phase phase) {
         timerEnabled = true;
-        currentPhase = phase;
-        currentPhaseChildren.clear();
+        String phaseLabel = phase.name().toUpperCase(Locale.ROOT);
         int totalProgress = progressStartEvent.getTotalProgress();
-        progressBar = ProgressBar.createProgressBar(consoleMetaData, phase.name().toUpperCase(Locale.ROOT), totalProgress);
+        if (currentPhase == null || progressBar == null) {
+            currentPhaseChildren.clear();
+            progressBar = ProgressBar.createProgressBar(consoleMetaData, phaseLabel, totalProgress);
+        } else {
+            progressBar.setPhase(phaseLabel);
+            progressBar.moreProgress(totalProgress);
+        }
+        currentPhase = phase;
     }
 
     private void phaseHasMoreProgress(ProgressStartEvent progressStartEvent) {
