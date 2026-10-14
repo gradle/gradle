@@ -218,7 +218,7 @@ Setting up incremental compilation has a cost, so Gradle only uses it for script
 2. The second compilation is also a full compilation, but it records the state needed for incremental compilation.
 3. Every later compilation is incremental.
 
-Builds that rarely recompile their scripts should see no change in performance, while builds that recompile them often should see a significant improvement.
+When script compilation doesn't happen often, users won't see any change in performance, but when script compilation is frequent, users should see a significant improvement.
 
 ### General improvements
 Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
