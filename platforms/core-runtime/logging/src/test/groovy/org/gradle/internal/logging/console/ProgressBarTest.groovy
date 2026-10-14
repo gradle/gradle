@@ -59,6 +59,20 @@ class ProgressBarTest extends Specification {
         id = unicode ? "unicode" : "ascii"
     }
 
+    def "renders 0% when no work is known (#id)"() {
+        given:
+        init(unicode, 0)
+
+        expect:
+        progress == rendering
+
+        where:
+        unicode            | rendering
+        true               | "│···············│ 0% EXECUTING"
+        false              | "[...............] 0% EXECUTING"
+        id = unicode ? "unicode" : "ascii"
+    }
+
     def "fills completed progress as work completes (#id)"() {
         given:
         init(unicode)
@@ -144,6 +158,30 @@ class ProgressBarTest extends Specification {
         unicode            | rendering10                          | rendering20
         true               | "│█▌·············│ 10% EXECUTING"    | "│███············│ 20% EXECUTING"
         false              | "[#..............] 10% EXECUTING"    | "[###............] 20% EXECUTING"
+        id = unicode ? "unicode" : "ascii"
+    }
+
+    def "keeps progress when the phase label changes (#id)"() {
+        given:
+        init(unicode)
+
+        when:
+        progressBar.update(false)
+        progressBar.update(false)
+
+        then:
+        progress == rendering20
+
+        when:
+        progressBar.setPhase('CONFIGURING')
+
+        then:
+        progress == rendering20Configuring
+
+        where:
+        unicode            | rendering20                         | rendering20Configuring
+        true               | "│███············│ 20% EXECUTING"   | "│███············│ 20% CONFIGURING"
+        false              | "[###............] 20% EXECUTING"   | "[###............] 20% CONFIGURING"
         id = unicode ? "unicode" : "ascii"
     }
 

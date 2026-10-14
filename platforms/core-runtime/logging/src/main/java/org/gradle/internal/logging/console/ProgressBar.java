@@ -73,7 +73,7 @@ public class ProgressBar {
     private final String progressBarSuffix;
     private final char fillerChar;
     private final char incompleteChar;
-    private final String suffix;
+    private String phase;
 
     private int current;
     private int total;
@@ -89,7 +89,7 @@ public class ProgressBar {
         String progressBarSuffix,
         char completeChar,
         char incompleteChar,
-        String suffix,
+        String phase,
         int initialProgress,
         int totalProgress
     ) {
@@ -99,44 +99,49 @@ public class ProgressBar {
         this.progressBarSuffix = progressBarSuffix;
         this.fillerChar = completeChar;
         this.incompleteChar = incompleteChar;
-        this.suffix = suffix;
+        this.phase = phase;
         this.current = initialProgress;
         this.total = totalProgress;
     }
 
-    static ProgressBar createProgressBar(ConsoleMetaData consoleMetaData, String initialSuffix, int totalProgress) {
+    static ProgressBar createProgressBar(ConsoleMetaData consoleMetaData, String initialPhase, int totalProgress) {
         // Use Unicode progress bars if terminal supports it, otherwise use ASCII
         if (consoleMetaData.supportsUnicode()) {
-            return getUnicodeProgressBar(consoleMetaData, initialSuffix, totalProgress);
+            return getUnicodeProgressBar(consoleMetaData, initialPhase, totalProgress);
         } else {
-            return getAsciiProgressBar(consoleMetaData, initialSuffix, totalProgress);
+            return getAsciiProgressBar(consoleMetaData, initialPhase, totalProgress);
         }
     }
 
     // Unicode mode: smooth progress with block characters
-    static ProgressBar getUnicodeProgressBar(ConsoleMetaData consoleMetaData, String initialSuffix, int totalProgress) {
+    static ProgressBar getUnicodeProgressBar(ConsoleMetaData consoleMetaData, String initialPhase, int totalProgress) {
         return new ProgressBar(consoleMetaData,
             UNICODE_PROGRESS_BAR_PREFIX,
             PROGRESS_BAR_WIDTH,
             UNICODE_PROGRESS_BAR_SUFFIX,
             ' ', // Not used in Unicode mode
             ' ', // Not used in Unicode mode
-            initialSuffix,
+            initialPhase,
             0,
             totalProgress);
     }
 
     // ASCII mode: hash-based progress for compatibility
-    static ProgressBar getAsciiProgressBar(ConsoleMetaData consoleMetaData, String initialSuffix, int totalProgress) {
+    static ProgressBar getAsciiProgressBar(ConsoleMetaData consoleMetaData, String initialPhase, int totalProgress) {
         return new ProgressBar(consoleMetaData,
             ASCII_PROGRESS_BAR_PREFIX,
             PROGRESS_BAR_WIDTH,
             ASCII_PROGRESS_BAR_SUFFIX,
             ASCII_PROGRESS_BAR_COMPLETE_CHAR,
             ASCII_PROGRESS_BAR_INCOMPLETE_CHAR,
-            initialSuffix,
+            initialPhase,
             0,
             totalProgress);
+    }
+
+    public void setPhase(String phase) {
+        this.phase = phase;
+        formatted = null;
     }
 
     public void moreProgress(int totalProgress) {
@@ -215,7 +220,7 @@ public class ProgressBar {
     }
 
     private String renderProgressStatus(boolean timerEnabled, int progressPercent, String elapsedTimeStr) {
-        return progressBarSuffix + " " + progressPercent + '%' + ' ' + suffix
+        return progressBarSuffix + " " + progressPercent + '%' + ' ' + phase
             + (timerEnabled ? " [" + elapsedTimeStr + "]" : "");
     }
 
