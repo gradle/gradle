@@ -72,6 +72,8 @@ public class StartParameterInternal extends StartParameter {
     // serializable to the configuration cache without dragging the listener (and its services) along.
     private transient @Nullable Consumer<String> mutationListener;
     private boolean buildCacheEnabledConfiguredByBuildLogic = false;
+    private boolean simulateDevelocityOn = false;
+    private boolean simulateDevelocityOff = false;
 
     public StartParameterInternal() {
         // Delegate to the protected constructor rather than the deprecated no-arg super().
@@ -479,6 +481,30 @@ public class StartParameterInternal extends StartParameter {
     public void setPropertyUpgradeReportEnabled(boolean propertyUpgradeReportEnabled) {
         onMutableCall("setPropertyUpgradeReportEnabled(boolean)");
         this.propertyUpgradeReportEnabled = propertyUpgradeReportEnabled;
+    }
+
+    /**
+     * Whether to simulate downloading historical timing data from Develocity.
+     */
+    public boolean isSimulateDevelocityOn() {
+        return simulateDevelocityOn;
+    }
+
+    public void setSimulateDevelocityOn(boolean simulateDevelocityOn) {
+        onMutableCall("setSimulateDevelocityOn(boolean)");
+        this.simulateDevelocityOn = simulateDevelocityOn;
+    }
+
+    /**
+     * Whether to simulate the absence of Develocity, advertising it next to the estimated time remaining.
+     */
+    public boolean isSimulateDevelocityOff() {
+        return simulateDevelocityOff;
+    }
+
+    public void setSimulateDevelocityOff(boolean simulateDevelocityOff) {
+        onMutableCall("setSimulateDevelocityOff(boolean)");
+        this.simulateDevelocityOff = simulateDevelocityOff;
     }
 
     public void enableProblemReportGeneration(boolean enableProblemReportGeneration) {

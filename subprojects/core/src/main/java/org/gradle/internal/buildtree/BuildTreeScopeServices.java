@@ -42,6 +42,7 @@ import org.gradle.api.internal.provider.PropertyFactory;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.execution.durations.DefaultTaskDurationHistory;
 import org.gradle.api.internal.tasks.execution.durations.PlainTextTaskDurationStore;
+import org.gradle.api.internal.tasks.execution.durations.SimulatedDevelocityDownload;
 import org.gradle.api.internal.tasks.execution.durations.TaskDurationHistory;
 import org.gradle.api.internal.tasks.execution.durations.TaskDurationRecorder;
 import org.gradle.api.internal.tasks.execution.durations.TaskDurationStore;
@@ -153,6 +154,7 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(NodeValidator.class, DefaultNodeValidator.class);
         registration.add(TaskDurationHistory.class, DefaultTaskDurationHistory.class, DefaultTaskDurationHistory.class);
         registration.add(TaskDurationRecorder.class);
+        registration.add(SimulatedDevelocityDownload.class);
     }
 
     @Provides

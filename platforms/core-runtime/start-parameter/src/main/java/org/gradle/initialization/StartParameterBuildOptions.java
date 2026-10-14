@@ -55,6 +55,8 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         new OfflineOption(),
         new RefreshDependenciesOption(),
         new DryRunOption(),
+        new SimulateDevelocityOnOption(),
+        new SimulateDevelocityOffOption(),
         new ContinuousOption(),
         new ContinuousBuildQuietPeriodOption(),
         new NoProjectDependenciesRebuildOption(),
@@ -224,6 +226,38 @@ public class StartParameterBuildOptions extends BuildOptionSet<StartParameterInt
         @Override
         public void applyTo(StartParameterInternal settings, Origin origin) {
             settings.setDryRun(true);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
+        }
+    }
+
+    public static class SimulateDevelocityOnOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+        public SimulateDevelocityOnOption() {
+            super(null, CommandLineOptionConfiguration.create("simulate-dv-on", "Simulates downloading historical timing data from Develocity.").incubating());
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setSimulateDevelocityOn(true);
+        }
+
+        @Override
+        protected OptionCategory getCategory() {
+            return OptionCategory.EXECUTION;
+        }
+    }
+
+    public static class SimulateDevelocityOffOption extends EnabledOnlyBooleanBuildOption<StartParameterInternal> {
+        public SimulateDevelocityOffOption() {
+            super(null, CommandLineOptionConfiguration.create("simulate-dv-off", "Simulates running without Develocity for historical timing data.").incubating());
+        }
+
+        @Override
+        public void applyTo(StartParameterInternal settings, Origin origin) {
+            settings.setSimulateDevelocityOff(true);
         }
 
         @Override

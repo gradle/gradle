@@ -40,6 +40,12 @@ import java.util.function.Predicate;
  */
 public class BuildStatusRenderer implements OutputEventListener {
 
+    /**
+     * System property set by the launcher for {@code --simulate-dv-off}, which advertises Develocity next to the estimated time remaining.
+     */
+    public static final String SIMULATE_DEVELOCITY_OFF_PROPERTY = "org.gradle.internal.console.simulate-dv-off";
+    private static final String SIMULATED_DEVELOCITY_OFF_NOTE = " - for more accurate timing info BUY DEVELOCITY NOW!!!";
+
     private enum Phase {
         Initializing, Configuring, Executing
     }
@@ -137,10 +143,14 @@ public class BuildStatusRenderer implements OutputEventListener {
         if (progressBar != null) {
             long elapsedTime = now - buildStartTimestamp;
             buildStatusLabel.setText(currentPhase == Phase.Executing
-                ? progressBar.formatProgress(timerEnabled, elapsedTime, remainingTimeEstimator.estimateRemainingMillis(now))
+                ? progressBar.formatProgress(timerEnabled, elapsedTime, remainingTimeEstimator.estimateRemainingMillis(now), estimateNote())
                 : progressBar.formatProgress(timerEnabled, elapsedTime));
         }
         console.flush();
+    }
+
+    private static String estimateNote() {
+        return Boolean.getBoolean(SIMULATE_DEVELOCITY_OFF_PROPERTY) ? SIMULATED_DEVELOCITY_OFF_NOTE : "";
     }
 
     private void phaseStarted(ProgressStartEvent progressStartEvent, Phase phase) {

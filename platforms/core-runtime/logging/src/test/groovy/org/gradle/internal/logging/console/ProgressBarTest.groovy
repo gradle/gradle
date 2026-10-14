@@ -292,6 +292,19 @@ class ProgressBarTest extends Specification {
         Optional.of(65000L)    | "[...............] 0% EXECUTING [2s ELAPSED | 1m 5s ETA]"
     }
 
+    def "shows note after the estimated remaining time"() {
+        given:
+        init(false)
+
+        expect:
+        progressBar.formatProgress(true, 2000, remainingTime, " - note").collect { it.text }.join("") == rendering
+
+        where:
+        remainingTime     | rendering
+        Optional.of(3000L) | "[...............] 0% EXECUTING [2s ELAPSED | 3s ETA] - note"
+        Optional.empty()   | "[...............] 0% EXECUTING [2s ELAPSED | ESTIMATE UNAVAILABLE] - note"
+    }
+
     def "omits elapsed and estimated remaining time when timer is disabled"() {
         given:
         init(false)

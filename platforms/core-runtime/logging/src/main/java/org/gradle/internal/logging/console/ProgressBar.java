@@ -166,8 +166,15 @@ public class ProgressBar {
     }
 
     public List<Span> formatProgress(boolean timerEnabled, long elapsedTime, Optional<Long> estimatedRemainingTime) {
+        return formatProgress(timerEnabled, elapsedTime, estimatedRemainingTime, "");
+    }
+
+    /**
+     * @param estimateNote text shown after the estimated time remaining
+     */
+    public List<Span> formatProgress(boolean timerEnabled, long elapsedTime, Optional<Long> estimatedRemainingTime, String estimateNote) {
         return formatProgress(timerEnabled
-            ? " [" + elapsedTimeFormatter.format(elapsedTime) + " ELAPSED | " + estimatedRemainingTime.map(this::formatRemainingTime).orElse("ESTIMATE UNAVAILABLE") + "]"
+            ? " [" + elapsedTimeFormatter.format(elapsedTime) + " ELAPSED | " + estimatedRemainingTime.map(this::formatRemainingTime).orElse("ESTIMATE UNAVAILABLE") + "]" + estimateNote
             : "");
     }
 
