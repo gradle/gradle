@@ -83,4 +83,33 @@ class CompositeBuildResilientTaskSchedulingIntegrationTest extends AbstractInteg
         failure.assertHasFailures(1)
         failure.assertHasCause("boom")
     }
+
+    def "skips only the tasks that depend on a task of a broken build"() {
+        given:
+        settingsFile << """
+            includeBuild('ok')
+            includeBuild('broken')
+        """
+        buildFile << """
+            tasks.register('needsBroken') {
+                dependsOn gradle.includedBuild('broken').task(':ideModel')
+                doLast { println 'needsBroken ran' }
+            }
+            tasks.register('rootModel') {
+                doLast { println 'root model' }
+            }
+        """
+
+        when:
+        fails(FLAG, "--continue", ":needsBroken", ":rootModel", ":ok:ideModel")
+
+        then:
+        outputContains("ok model")
+        outputContains("root model")
+        outputDoesNotContain("needsBroken ran")
+        failure.assertHasFailures(2)
+        failure.assertHasDescription("Cannot run task ':ideModel' of build 'broken' because the build failed to configure.")
+        failure.assertHasDescription("A problem occurred evaluating project ':broken'.")
+        failure.assertHasCause("boom")
+    }
 }

@@ -29,6 +29,7 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.buildtree.BuildTreeServices;
+import org.gradle.internal.buildtree.ResilientTaskScheduling;
 import org.gradle.internal.composite.IncludedBuildInternal;
 import org.gradle.util.Path;
 
@@ -145,7 +146,12 @@ public class DefaultIncludedBuild extends AbstractCompositeParticipantBuildState
 
         @Override
         public TaskReference task(String pathStr) {
-            return DefaultTaskReference.create(pathStr, taskDependencyFactory);
+            TaskReference reference = DefaultTaskReference.create(pathStr, taskDependencyFactory);
+            ResilientTaskScheduling resilientTaskScheduling = buildState.getBuildServices().get(ResilientTaskScheduling.class);
+            if (resilientTaskScheduling.isEnabled()) {
+                return new BrokenBuildTaskReference(buildState, pathStr, reference, resilientTaskScheduling);
+            }
+            return reference;
         }
 
         @Override
