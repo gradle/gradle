@@ -50,7 +50,7 @@ and must ignore unknown fields and unknown kinds.
 | File | Written when | Contents |
 |---|---|---|
 | `plan.jsonl` | the task graph is calculated (configuration time) | one `plan` record per build in the build tree |
-| `work.jsonl` | the build executes work | one `projects` record, then one `task` record per task that reached execution |
+| `work.jsonl` | the build executes work | one `task` record per task that reached execution |
 
 The two files are separate because the task graph is not recalculated on a configuration cache hit:
 no `plan` record is produced in that build, and the `plan.jsonl` from the build that stored the cache entry stays valid.
@@ -58,8 +58,15 @@ no `plan` record is produced in that build, and the `plan.jsonl` from the build 
 `work.jsonl` is truncated and rewritten by every build that runs with the option set.
 
 A `--dry-run` build calculates the task graph without executing it, so it writes `plan.jsonl`
-and a `work.jsonl` holding only the `projects` record. This is the cheapest way to refresh the plan
+and an empty `work.jsonl`. This is the cheapest way to refresh the plan
 and to answer the scheduling questions without running any task.
+
+Only the root work graph is traced: the one that schedules and runs the requested tasks.
+A build tree also runs separate work graphs while configuring, to build included plugin builds
+(`pluginManagement { includeBuild(...) }`) and other build logic. Those graphs calculate their own task
+plans and execute tasks before the root graph exists; they are ignored, so that they neither overwrite
+the files nor leak build-logic tasks into the trace. (open) Tracing build-logic work graphs into their own
+files.
 
 ### Configuration cache
 
@@ -81,27 +88,21 @@ if that build ran last; the fingerprint only protects the entry that wrote the f
   joined with the task path, where the root build's `:` collapses.
   `:app:compileJava` is a task of the root build; `:included:lib:jar` is `:lib:jar` in the included build `included`.
   This is Gradle's task identity path. Every task reference in the trace, including the plan's requested and
-  excluded task lists and all scheduling edges, uses this form.
-- A project is named by its identity path, which is unique across the build tree:
-  `:` for the root project, `:app` for a subproject of the root build,
-  `:included:lib` for project `:lib` of the included build `included`.
+  excluded task lists and all scheduling edges, uses this form. A record's own identity is its `id` field.
 
 ### Locations
 
-A location names a file or directory. It has one of two forms:
+A location names a file or directory. It is a string in one of two forms:
 
-- Inside a project directory: `{"project": ":app", "path": "build/classes/java/main"}`.
-  `path` is relative to that project's directory, uses `/` separators, and is `""` for the directory itself.
-  When project directories nest (the root project directory usually contains the others),
-  the deepest project directory containing the file wins.
-- Outside every project directory: `{"path": "/Users/me/.gradle/caches/.../guava.jar"}`, an absolute path in native form.
-  This covers the Gradle user home, transformed artifacts, external files and anything outside the checkout.
+- Inside the root build directory: a path relative to it with `/` separators, such as `app/build/classes/java/main`;
+  `""` is the root build directory itself. Included builds that live under the root directory are covered too.
+- Outside it: an absolute path in native form, such as `/Users/me/.gradle/caches/.../guava.jar`.
+  This covers the Gradle user home, transformed artifacts, external files, and included builds located elsewhere.
+
+A reader tells the forms apart by whether the string is absolute.
 
 Output files under a location are listed as `/`-separated paths relative to that location;
 `""` means the location itself is the file (a `FILE` output).
-
-The `projects` record maps project identity paths to absolute directories,
-so a reader can turn any location back into an absolute path.
 
 ## `plan.jsonl`
 
@@ -115,7 +116,7 @@ so a reader can turn any location back into an absolute path.
   "excludedTaskPaths": [ ":app:test" ],
   "tasks": [
     {
-      "buildTreeTaskPath": ":app:compileJava",
+      "id": ":app:compileJava",
       "dependencies": [ ":lib:jar" ],
       "mustRunAfter": [],
       "shouldRunAfter": [],
@@ -132,34 +133,14 @@ so a reader can turn any location back into an absolute path.
 
 ## `work.jsonl`
 
-### `projects` record (one per build tree, first line of the file)
-
-```json
-{
-  "kind": "projects",
-  "projects": [
-    { "project": ":", "dir": "/Users/me/checkout" },
-    { "project": ":app", "dir": "/Users/me/checkout/app" },
-    { "project": ":included:lib", "dir": "/Users/me/checkout/included/lib" }
-  ]
-}
-```
-
 ### `task` record (one per task that reached execution)
 
 ```json
 {
   "kind": "task",
-  "buildTreeTaskPath": ":app:compileJava",
+  "id": ":app:compileJava",
   "implementation": "org.gradle.api.tasks.compile.JavaCompile",
-  "caching": {
-    "key": "3f2a...",
-    "disabledReason": null,
-    "disabledReasonCategory": null,
-    "originBuildInvocationId": null
-  },
   "scheduling": {
-    "requested": false,
     "explicitDependsOn": [ ":app:classes" ],
     "inputDependencies": [
       { "property": "classpath", "tasks": [ ":lib:jar" ] }
@@ -171,26 +152,21 @@ so a reader can turn any location back into an absolute path.
   "inputs": [
     {
       "property": "source",
-      "attributes": [ "..." ],
-      "roots": [
-        { "project": ":app", "path": "src/main/java" }
-      ]
+      "roots": [ "app/src/main/java" ]
     },
     {
       "property": "classpath",
-      "attributes": [ "..." ],
       "roots": [
-        { "project": ":lib", "path": "build/libs/lib.jar" },
-        { "path": "/Users/me/.gradle/caches/modules-2/files-2.1/.../guava.jar" }
+        "lib/build/libs/lib.jar",
+        "/Users/me/.gradle/caches/modules-2/files-2.1/.../guava.jar"
       ]
     }
   ],
-  "inputValueHashes": { "options.encoding": ".." },
   "outputs": [
     {
       "property": "destinationDirectory",
       "type": "DIRECTORY",
-      "location": { "project": ":app", "path": "build/classes/java/main" },
+      "location": "app/build/classes/java/main",
       "files": [ "com/acme/A.class", "com/acme/B.class" ]
     }
   ],
@@ -202,16 +178,21 @@ Field semantics:
 
 - Task outcomes (executed, up-to-date, from cache, and so on) are not recorded; the trace describes
   the work, not how a particular build treated it.
-- `scheduling.requested` is true when the task was requested on the command line (or is a default task).
-  It is computed at execution time and does not depend on `plan.jsonl`.
+- `scheduling.requested` is present, with the value `true`, only for tasks requested on the command line
+  (or default tasks). It is computed at execution time and does not depend on `plan.jsonl`.
 - `scheduling.explicitDependsOn` are edges declared with `dependsOn` or by task dependency objects
   that are not input file properties.
 - `scheduling.inputDependencies` lists, per input file property, the tasks that build its files.
   A task is scheduled because of some chain of `explicitDependsOn`, `inputDependencies` and `finalizerOf`
   edges from a requested task; ordering constraints never cause scheduling.
-- `inputs` lists each input file property with its attributes and its roots.
+  On a configuration cache run the restored file collections no longer carry their producer tasks,
+  so the property is attributed by matching its input roots against the declared output locations of the
+  task's dependency successors. (open) Record the attribution at configuration time instead.
+- Build cache data (cache key, caching-disabled reasons, origin of reused outputs) is not recorded.
+- `inputs` lists each input file property with its roots.
   A root is a location: a file, or a directory whose contents the task consumes.
-  Individual files under a root, their hashes and the normalization are not recorded.
+  Only file and directory inputs are recorded: no individual files under a root, no hashes,
+  no normalization or other fingerprinting settings, and no value (non-file) input properties.
   It is `null` when `inputsCaptured` is false.
 - `inputsCaptured` is false when the engine did not fingerprint the task's inputs; see "Tasks without input
   snapshots". It is also false for tasks that failed before their inputs were snapshotted.
@@ -223,8 +204,9 @@ Field semantics:
 
 ## Answering the use cases
 
-Queries take a path in either form; a reader converts between forms using the `projects` record.
-The first three questions need only `work.jsonl`; `plan.jsonl` adds the tasks that were scheduled but never ran.
+Queries take a path in either form; a reader relativizes an absolute path against the root build directory
+before matching. The first three questions need only `work.jsonl`; `plan.jsonl` adds the tasks that were
+scheduled but never ran.
 
 - **Producer of path P:** the `task` record with an output whose location is P or an ancestor of P,
   narrowed to the entry whose location joined with a `files` entry equals P.
@@ -245,10 +227,13 @@ The first three questions need only `work.jsonl`; `plan.jsonl` adds the tasks th
 - Artifact transforms are not recorded. Transformed files still appear as task inputs,
   so consumers of them are known, but no record claims to produce them.
 - Inputs and outputs are recorded only for tasks that reach execution; `--dry-run` yields the plan alone.
-- Locations outside project directories are absolute and machine-specific;
-  project-relative locations are portable across checkouts of the same build.
+- Locations outside the root build directory are absolute and machine-specific;
+  root-relative locations are portable across checkouts of the same build.
 - Input consumption is recorded per root, not per file; file tree include and exclude patterns are not recorded.
 - No content hashes are recorded; the trace says which files, not which versions of them.
+- Work graphs that build build logic (included plugin builds) are not traced; see "Files".
+  A nested build tree such as `buildSrc` has its own trace service and writes its own directory
+  under its own build directory.
 - The trace is internal and its format may change without notice.
 
 ## Validation

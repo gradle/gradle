@@ -16,6 +16,7 @@
 
 package org.gradle.internal.execution.trace;
 
+import org.gradle.api.internal.initialization.BuildLogicWorkGraphTracker;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.initialization.RootBuildLifecycleListener;
 import org.gradle.internal.build.BuildStateRegistry;
@@ -40,6 +41,7 @@ import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
+import java.util.concurrent.atomic.AtomicInteger;
 
 /**
  * Writes a "work trace" describing the scheduled task graph and every executed task as JSON Lines files.
@@ -52,12 +54,12 @@ import java.util.List;
  * <li>{@code plan.jsonl}: one {@code plan} record per build in the build tree, written once the build tree's task graph
  * has been calculated and recorded as a configuration input; untouched when no task graph is calculated (configuration cache hit),
  * so the previous build's file stays valid.</li>
- * <li>{@code work.jsonl}: the {@code projects} record followed by one {@code task} record per executed task. Truncated by every build.</li>
+ * <li>{@code work.jsonl}: one {@code task} record per executed task. Truncated by every build (empty on a dry run).</li>
  * </ul>
  * Prototype: see {@link WorkTraceListener} for the record formats.
  */
 @ServiceScope(Scope.BuildTree.class)
-public class WorkTraceService implements RootBuildLifecycleListener {
+public class WorkTraceService implements RootBuildLifecycleListener, BuildLogicWorkGraphTracker {
 
     public static final String SYSPROP = "org.gradle.internal.work.trace";
     public static final String PLAN_FILE_NAME = "plan.jsonl";
@@ -72,6 +74,7 @@ public class WorkTraceService implements RootBuildLifecycleListener {
     private final FileSystemAccess fileSystemAccess;
 
     private final @Nullable String configuredPath;
+    private final AtomicInteger buildLogicWorkGraphDepth = new AtomicInteger();
     private @Nullable WorkTraceListener listener;
     private @Nullable File traceDirectory;
     private @Nullable BufferedWriter workWriter;
@@ -100,9 +103,27 @@ public class WorkTraceService implements RootBuildLifecycleListener {
     }
 
     @Override
+    public void enterBuildLogicWorkGraph() {
+        buildLogicWorkGraphDepth.incrementAndGet();
+    }
+
+    @Override
+    public void leaveBuildLogicWorkGraph() {
+        buildLogicWorkGraphDepth.decrementAndGet();
+    }
+
+    /**
+     * Only the root work graph is traced: work graphs of build logic builds run nested during its configuration.
+     */
+    @Override
+    public boolean isInBuildLogicWorkGraph() {
+        return buildLogicWorkGraphDepth.get() > 0;
+    }
+
+    @Override
     public void afterStart() {
         // Always listening: the option itself is recorded as a configuration input even when the trace is off
-        WorkTraceListener newListener = new WorkTraceListener(isEnabled(), this::writePlan, this::writeWorkLine, buildStateRegistry);
+        WorkTraceListener newListener = new WorkTraceListener(isEnabled(), this::writePlan, this::writeWorkLine, buildTreeLocations.getBuildTreeRootDirectory(), this::isInBuildLogicWorkGraph);
         listener = newListener;
         buildOperationListenerManager.addListener(newListener);
     }
@@ -120,8 +141,6 @@ public class WorkTraceService implements RootBuildLifecycleListener {
         }
         // Plan records not flushed yet (the work graph calculation did not complete normally)
         currentListener.flushPlan();
-        // A build that ran no task (e.g. --dry-run) still gets the projects record
-        currentListener.ensureProjectsRecordWritten();
         File directory = closeWorkFile();
         renderTraceUrl(directory);
     }

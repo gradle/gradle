@@ -20,7 +20,6 @@ import com.google.common.collect.ImmutableSortedMap;
 import groovy.json.JsonOutput;
 import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
-import org.gradle.api.internal.project.ProjectState;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
 import org.gradle.api.internal.tasks.SnapshotTaskInputsBuildOperationType;
 import org.gradle.api.internal.tasks.execution.ExecuteTaskBuildOperationDetails;
@@ -32,10 +31,8 @@ import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.Node;
 import org.gradle.execution.plan.TaskInAnotherBuild;
 import org.gradle.execution.plan.TaskNode;
-import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.classpath.Instrumented;
 import org.gradle.internal.file.FileType;
-import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationListener;
 import org.gradle.internal.operations.OperationFinishEvent;
@@ -61,6 +58,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
+import java.util.function.BooleanSupplier;
 import java.util.function.Consumer;
 
 /**
@@ -68,11 +66,10 @@ import java.util.function.Consumer;
  * <p>
  * Records are JSON objects with a {@code kind} discriminator:
  * <ul>
- * <li>{@code projects}: maps every project identity path in the build tree to its directory (written once, before the first task record)</li>
  * <li>{@code plan}: the scheduled task graph of one build (requested/excluded task paths and the planned tasks with their edges)</li>
  * <li>{@code task}: one executed task with its scheduling provenance, inputs and outputs</li>
  * </ul>
- * File locations are project-relative when inside some project directory (deepest wins) and absolute otherwise.
+ * File locations are paths relative to the build tree root directory when inside it, and absolute paths otherwise.
  * Thread-safe: task operations finish on many threads.
  */
 class WorkTraceListener implements BuildOperationListener {
@@ -80,27 +77,33 @@ class WorkTraceListener implements BuildOperationListener {
     private final boolean enabled;
     private final Consumer<List<String>> planSink;
     private final Consumer<String> workSink;
-    private final BuildStateRegistry buildStateRegistry;
+    private final String rootDirectory;
+    private final BooleanSupplier inBuildLogicWorkGraph;
     private final Map<OperationIdentifier, CapturedInputs> inputsByTaskOperation = new ConcurrentHashMap<>();
     private final Map<OperationIdentifier, InputDependencies> inputDependenciesByTaskOperation = new ConcurrentHashMap<>();
     private final Map<String, List<String>> outputRootPathsByTask = new ConcurrentHashMap<>();
     private final List<String> pendingPlanLines = new ArrayList<>();
-    private volatile @Nullable List<ProjectDirectory> projectDirectories;
 
     /**
      * @param enabled whether the trace is written; when false only the option is recorded as a configuration input
      * @param planSink receives all {@code plan} records of the build tree at once, in build order
-     * @param workSink receives the {@code projects} and {@code task} records
+     * @param workSink receives the {@code task} records
+     * @param rootDirectory the build tree root directory, which locations are made relative to
+     * @param inBuildLogicWorkGraph whether a build logic build's work graph is running; only the root work graph is traced
      */
-    WorkTraceListener(boolean enabled, Consumer<List<String>> planSink, Consumer<String> workSink, BuildStateRegistry buildStateRegistry) {
+    WorkTraceListener(boolean enabled, Consumer<List<String>> planSink, Consumer<String> workSink, File rootDirectory, BooleanSupplier inBuildLogicWorkGraph) {
         this.enabled = enabled;
         this.planSink = planSink;
         this.workSink = workSink;
-        this.buildStateRegistry = buildStateRegistry;
+        this.rootDirectory = rootDirectory.getAbsolutePath();
+        this.inBuildLogicWorkGraph = inBuildLogicWorkGraph;
     }
 
     @Override
     public void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+        if (inBuildLogicWorkGraph.getAsBoolean()) {
+            return;
+        }
         Object details = buildOperation.getDetails();
         if (enabled && details instanceof ExecuteTaskBuildOperationDetails) {
             // Resolved before the task runs: executing a task finalizes its property values, and a finalized
@@ -116,6 +119,11 @@ class WorkTraceListener implements BuildOperationListener {
 
     @Override
     public void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {
+        if (inBuildLogicWorkGraph.getAsBoolean()) {
+            // Work graphs of build logic builds (pluginManagement includeBuild) run nested while the root graph is being
+            // configured; their task graph calculations and tasks are not part of the trace
+            return;
+        }
         Object details = buildOperation.getDetails();
         Object result = finishEvent.getResult();
         if (details instanceof CalculateTreeTaskGraphBuildOperationType.Details) {
@@ -145,7 +153,7 @@ class WorkTraceListener implements BuildOperationListener {
         List<Map<String, Object>> tasks = new ArrayList<>();
         for (CalculateTaskGraphBuildOperationType.PlannedTask plannedTask : result.getTaskPlan()) {
             Map<String, Object> task = new LinkedHashMap<>();
-            task.put("buildTreeTaskPath", buildTreeTaskPathOf(plannedTask.getTask()));
+            task.put("id", buildTreeTaskPathOf(plannedTask.getTask()));
             List<String> dependencies = new ArrayList<>();
             for (NodeIdentity dependency : plannedTask.getNodeDependencies()) {
                 if (dependency instanceof CalculateTaskGraphBuildOperationType.TaskIdentity) {
@@ -159,7 +167,7 @@ class WorkTraceListener implements BuildOperationListener {
             task.put("finalizedBy", buildTreeTaskPathsOf(plannedTask.getFinalizedBy()));
             tasks.add(task);
         }
-        tasks.sort(Comparator.comparing(task -> (String) task.get("buildTreeTaskPath")));
+        tasks.sort(Comparator.comparing(task -> (String) task.get("id")));
 
         Map<String, Object> record = new LinkedHashMap<>();
         record.put("kind", "plan");
@@ -195,36 +203,29 @@ class WorkTraceListener implements BuildOperationListener {
         if (taskOperationId == null) {
             return;
         }
+        byte[] hashBytes = result.getHashBytes();
+        if (hashBytes == null) {
+            // No cache key means no before-execution state: Gradle did not snapshot the inputs of this task
+            // (no outputs, untracked, NO-SOURCE, validation failure); the record then says inputsCaptured: false
+            return;
+        }
         InputFilePropertyCollector collector = new InputFilePropertyCollector();
         result.visitInputFileProperties(collector);
-
-        Map<String, Object> inputValueHashes = null;
-        Map<String, byte[]> inputValueHashesBytes = result.getInputValueHashesBytes();
-        if (inputValueHashesBytes != null) {
-            inputValueHashes = new LinkedHashMap<>();
-            for (Map.Entry<String, byte[]> entry : inputValueHashesBytes.entrySet()) {
-                inputValueHashes.put(entry.getKey(), hex(entry.getValue()));
-            }
-        }
-        inputsByTaskOperation.put(taskOperationId, new CapturedInputs(collector.properties, collector.rootPathsByProperty, inputValueHashes, hex(result.getHashBytes())));
+        inputsByTaskOperation.put(taskOperationId, new CapturedInputs(collector.properties, collector.rootPathsByProperty));
     }
 
     private static final class CapturedInputs {
         final List<Object> inputFileProperties;
         final Map<String, List<String>> rootPathsByProperty;
-        final @Nullable Map<String, Object> inputValueHashes;
-        final @Nullable String cacheKey;
 
-        CapturedInputs(List<Object> inputFileProperties, Map<String, List<String>> rootPathsByProperty, @Nullable Map<String, Object> inputValueHashes, @Nullable String cacheKey) {
+        CapturedInputs(List<Object> inputFileProperties, Map<String, List<String>> rootPathsByProperty) {
             this.inputFileProperties = inputFileProperties;
             this.rootPathsByProperty = rootPathsByProperty;
-            this.inputValueHashes = inputValueHashes;
-            this.cacheKey = cacheKey;
         }
     }
 
     /**
-     * Collects each input file property with its attributes and the locations of its roots.
+     * Collects each input file property with the locations of its roots.
      */
     private final class InputFilePropertyCollector implements SnapshotTaskInputsBuildOperationType.Result.InputFilePropertyVisitor {
         final List<Object> properties = new ArrayList<>();
@@ -236,7 +237,6 @@ class WorkTraceListener implements BuildOperationListener {
         public void preProperty(SnapshotTaskInputsBuildOperationType.Result.VisitState state) {
             Map<String, Object> property = new LinkedHashMap<>();
             property.put("property", state.getPropertyName());
-            property.put("attributes", new ArrayList<>(state.getPropertyAttributes()));
             currentRoots = new ArrayList<>();
             currentRootPaths = new ArrayList<>();
             property.put("roots", currentRoots);
@@ -277,7 +277,6 @@ class WorkTraceListener implements BuildOperationListener {
     // Task record
 
     private void writeTask(OperationIdentifier operationId, ExecuteTaskBuildOperationDetails details, @Nullable ExecuteTaskBuildOperationResult result) {
-        ensureProjectsRecordWritten();
         CapturedInputs inputs = inputsByTaskOperation.remove(operationId);
         LocalTaskNode node = details.getTaskNode();
         TaskInternal task = details.getTask();
@@ -286,9 +285,8 @@ class WorkTraceListener implements BuildOperationListener {
         String buildTreeTaskPath = task.getIdentityPath().asString();
         Map<String, Object> record = new LinkedHashMap<>();
         record.put("kind", "task");
-        record.put("buildTreeTaskPath", buildTreeTaskPath);
+        record.put("id", buildTreeTaskPath);
         record.put("implementation", identity.getTaskType().getName());
-        record.put("caching", caching(result, inputs));
         InputDependencies inputDependencies = inputDependenciesByTaskOperation.remove(operationId);
         if (inputDependencies == null) {
             inputDependencies = resolveInputDependencies(node, task);
@@ -298,7 +296,6 @@ class WorkTraceListener implements BuildOperationListener {
         }
         record.put("scheduling", scheduling(node, inputDependencies));
         record.put("inputs", inputs == null ? null : inputs.inputFileProperties);
-        record.put("inputValueHashes", inputs == null ? null : inputs.inputValueHashes);
         record.put("outputs", outputs(node, result == null ? null : result.getOutputFileSnapshots()));
         record.put("inputsCaptured", inputs != null);
         outputRootPathsByTask.put(buildTreeTaskPath, outputRootPaths(node));
@@ -359,20 +356,12 @@ class WorkTraceListener implements BuildOperationListener {
     }
 
 
-    private static Map<String, Object> caching(@Nullable ExecuteTaskBuildOperationResult result, @Nullable CapturedInputs inputs) {
-        Map<String, Object> caching = new LinkedHashMap<>();
-        caching.put("key", inputs == null ? null : inputs.cacheKey);
-        caching.put("disabledReason", result == null ? null : result.getCachingDisabledReasonMessage());
-        caching.put("disabledReasonCategory", result == null ? null : result.getCachingDisabledReasonCategory());
-        // The origin build invocation id is deliberately left out: it identifies the build that produced reused outputs,
-        // so it varies between otherwise identical traces and would reveal the task outcome.
-        return caching;
-    }
-
     private static Map<String, Object> scheduling(LocalTaskNode node, InputDependencies inputDependencies) {
         Map<String, Object> scheduling = new LinkedHashMap<>();
         // Entry nodes are restored from the configuration cache, so this does not depend on a plan record having been seen in this build
-        scheduling.put("requested", node.isEntryNode());
+        if (node.isEntryNode()) {
+            scheduling.put("requested", true);
+        }
         scheduling.put("explicitDependsOn", nodeTaskPaths(node.getLifecycleSuccessors()));
         scheduling.put("inputDependencies", inputDependencies.entries);
         if (inputDependencies.error != null) {
@@ -454,79 +443,18 @@ class WorkTraceListener implements BuildOperationListener {
         return files;
     }
 
-    // Projects record and locations
-
-    private static final class ProjectDirectory {
-        final String identityPath;
-        final String absoluteDir;
-
-        ProjectDirectory(String identityPath, String absoluteDir) {
-            this.identityPath = identityPath;
-            this.absoluteDir = absoluteDir;
-        }
-    }
+    // Locations
 
     /**
-     * Collects the project directories of the whole build tree once, and writes the {@code projects} record.
-     * Projects are sorted deepest directory first so that the first containing directory wins.
-     * Called before the first task record, and by the service at build completion when no task ran (e.g. {@code --dry-run}).
+     * A location is the path relative to the build tree root directory ({@code ""} for the directory itself)
+     * when the file is inside it, and the absolute native path otherwise.
      */
-    synchronized void ensureProjectsRecordWritten() {
-        if (projectDirectories != null) {
-            return;
-        }
-        List<ProjectDirectory> directories = new ArrayList<>();
-        buildStateRegistry.visitBuilds(build -> {
-            if (!build.isProjectsLoaded()) {
-                return;
-            }
-            for (ProjectState project : build.getProjects().getAllProjects()) {
-                directories.add(new ProjectDirectory(project.getIdentityPath().asString(), project.getProjectDir().getAbsolutePath()));
-            }
-        });
-
-        List<Object> projects = new ArrayList<>();
-        directories.sort(Comparator.comparing((ProjectDirectory directory) -> directory.identityPath));
-        for (ProjectDirectory directory : directories) {
-            Map<String, Object> project = new LinkedHashMap<>();
-            project.put("project", directory.identityPath);
-            project.put("dir", directory.absoluteDir);
-            projects.add(project);
-        }
-        Map<String, Object> record = new LinkedHashMap<>();
-        record.put("kind", "projects");
-        record.put("projects", projects);
-
-        directories.sort(Comparator.comparingInt((ProjectDirectory directory) -> directory.absoluteDir.length()).reversed());
-        projectDirectories = Collections.unmodifiableList(directories);
-        emit(record);
-    }
-
-    private Map<String, Object> locationOf(File file) {
+    private String locationOf(File file) {
         String absolutePath = file.getAbsolutePath();
-        Map<String, Object> location = new LinkedHashMap<>();
-        List<ProjectDirectory> directories = projectDirectories;
-        if (directories == null) {
-            // Input snapshots are captured before the first task record is written
-            ensureProjectsRecordWritten();
-            directories = projectDirectories;
+        if (absolutePath.equals(rootDirectory) || isInside(absolutePath, rootDirectory)) {
+            return relativeTo(rootDirectory, absolutePath);
         }
-        if (directories != null) {
-            for (ProjectDirectory directory : directories) {
-                if (absolutePath.equals(directory.absoluteDir)) {
-                    location.put("project", directory.identityPath);
-                    location.put("path", "");
-                    return location;
-                }
-                if (absolutePath.startsWith(directory.absoluteDir + File.separator)) {
-                    location.put("project", directory.identityPath);
-                    location.put("path", relativeTo(directory.absoluteDir, absolutePath));
-                    return location;
-                }
-            }
-        }
-        location.put("path", absolutePath);
-        return location;
+        return absolutePath;
     }
 
     private static String relativeTo(String root, String path) {
@@ -582,10 +510,6 @@ class WorkTraceListener implements BuildOperationListener {
      */
     private static String buildTreeTaskPathOf(String buildPath, String taskPath) {
         return Path.path(buildPath).append(Path.path(taskPath)).asString();
-    }
-
-    private static @Nullable String hex(byte @Nullable [] bytes) {
-        return bytes == null ? null : HashCode.fromBytes(bytes).toString();
     }
 
     private static <T> T requireNonNull(@Nullable T value) {

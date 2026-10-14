@@ -81,18 +81,16 @@ class WorkTraceIntegrationTest extends AbstractIntegrationSpec {
         plan.buildPath == ":"
         plan.requestedTaskPaths == [":explicit"]
         plan.tasks.size() == 4
-        plan.tasks*.buildTreeTaskPath == [":cleanup", ":consumer", ":explicit", ":producer"]
-        plan.tasks.find { it.buildTreeTaskPath == ":explicit" }.dependencies == [":consumer"]
-        plan.tasks.find { it.buildTreeTaskPath == ":explicit" }.finalizedBy == [":cleanup"]
+        plan.tasks*.id == [":cleanup", ":consumer", ":explicit", ":producer"]
+        plan.tasks.find { it.id == ":explicit" }.dependencies == [":consumer"]
+        plan.tasks.find { it.id == ":explicit" }.finalizedBy == [":cleanup"]
 
-        and: "the work file starts with the projects record, mapping the root project to the test directory"
+        and: "the work file holds the task records"
         def records = parse(workFile)
-        records[0].kind == "projects"
-        records[0].projects.find { it.project == ":" }.dir == testDirectory.absolutePath
-        records.drop(1)*.kind.every { it == "task" }
+        records*.kind.every { it == "task" }
 
         and:
-        def tasks = records.findAll { it.kind == "task" }.collectEntries { [(it.buildTreeTaskPath): it] }
+        def tasks = records.findAll { it.kind == "task" }.collectEntries { [(it.id): it] }
         tasks.keySet().sort() == [":cleanup", ":consumer", ":explicit", ":producer"]
 
         and:
@@ -107,9 +105,9 @@ class WorkTraceIntegrationTest extends AbstractIntegrationSpec {
         explicit.scheduling.requested
         explicit.scheduling.explicitDependsOn == [":consumer"]
         explicit.scheduling.inputDependencies == []
-        !consumer.scheduling.requested
-        !tasks[":producer"].scheduling.requested
-        !tasks[":cleanup"].scheduling.requested
+        !consumer.scheduling.containsKey("requested")
+        !tasks[":producer"].scheduling.containsKey("requested")
+        !tasks[":cleanup"].scheduling.containsKey("requested")
 
         and:
         tasks[":cleanup"].scheduling.finalizerOf == [":explicit"]
@@ -122,27 +120,30 @@ class WorkTraceIntegrationTest extends AbstractIntegrationSpec {
         producer.implementation == "Producer"
         producer.inputsCaptured
         producer.inputs*.property == ["source"]
-        producer.inputs[0].roots == [[project: ":", path: "source.txt"]]
+        producer.inputs[0].roots == ["source.txt"]
         producer.outputs.size() == 1
         producer.outputs[0].property == "outputDir"
         producer.outputs[0].type == "DIRECTORY"
-        producer.outputs[0].location == [project: ":", path: "build/produced"]
+        producer.outputs[0].location == "build/produced"
         producer.outputs[0].files == ["produced.txt"]
 
         and: "the consumer's input root is the producer's output location"
         consumer.inputsCaptured
         consumer.inputs*.property == ["sourceFiles"]
+        consumer.inputs[0].roots == ["build/produced"]
         consumer.inputs[0].roots == [producer.outputs[0].location]
-        consumer.caching.key =~ /[0-9a-f]{32}/
-        consumer.caching.disabledReasonCategory == "BUILD_CACHE_DISABLED"
+        !consumer.containsKey("caching")
+        !consumer.containsKey("inputValueHashes")
+        consumer.inputs.every { !it.containsKey("attributes") }
         consumer.outputs[0].property == "outputFile"
         consumer.outputs[0].type == "FILE"
-        consumer.outputs[0].location == [project: ":", path: "build/consumed.txt"]
+        consumer.outputs[0].location == "build/consumed.txt"
         consumer.outputs[0].files == [""]
 
-        and: "tasks without inputs and outputs are captured with empty inputs"
-        explicit.inputsCaptured
-        explicit.inputs == []
+        and: "tasks without outputs are not snapshotted by Gradle, so they have no inputs"
+        !explicit.inputsCaptured
+        explicit.inputs == null
+        !explicit.containsKey("caching")
         explicit.outputs == []
 
         when: "nothing changed"
@@ -206,8 +207,8 @@ class WorkTraceIntegrationTest extends AbstractIntegrationSpec {
         and: "each task has a record with its scheduling and declared outputs, but no inputs"
         tasks.values().every { !it.inputsCaptured && it.inputs == null && it.scheduling != null && it.scheduling.requested }
         tasks[":noOutputs"].outputs == []
-        tasks[":untracked"].outputs[0].location == [project: ":", path: "build/untracked.txt"]
-        tasks[":noSource"].outputs[0].location == [project: ":", path: "build/noSource.txt"]
+        tasks[":untracked"].outputs[0].location == "build/untracked.txt"
+        tasks[":noSource"].outputs[0].location == "build/noSource.txt"
         tasks[":noSource"].outputs[0].files == []
         !file("build/noSource.txt").exists()
 
@@ -221,7 +222,99 @@ class WorkTraceIntegrationTest extends AbstractIntegrationSpec {
         sameRecords(parse(workFile), records)
     }
 
-    def "writes the plan and the projects record on a dry run"() {
+    def "traces only the root work graph, not the work graphs of build logic builds"() {
+        withBuildLogicPlugin()
+        def planFile = file("build/reports/work-trace/plan.jsonl")
+        def workFile = file("build/reports/work-trace/work.jsonl")
+
+        when:
+        succeeds("explicit", "fromPlugin", "-Dorg.gradle.internal.work.trace=")
+
+        then: "the build logic build ran its own work graph"
+        executedAndNotSkipped(":build-logic:compileJava", ":build-logic:jar", ":explicit", ":fromPlugin")
+
+        and: "the plan holds the root work graph only"
+        def plans = parse(planFile)
+        plans*.kind == ["plan"]
+        plans[0].buildPath == ":"
+        plans[0].requestedTaskPaths == [":explicit", ":fromPlugin"]
+        plans[0].tasks*.id == [":cleanup", ":consumer", ":explicit", ":fromPlugin", ":producer"]
+
+        and: "the work file has no build logic task"
+        def records = parse(workFile)
+        byTask(records).keySet().sort() == [":cleanup", ":consumer", ":explicit", ":fromPlugin", ":producer"]
+        records.findAll { it.kind == "task" }.every { !it.id.startsWith(":build-logic:") }
+
+        when: "run again"
+        def planBefore = planFile.text
+        succeeds("explicit", "fromPlugin", "-Dorg.gradle.internal.work.trace=")
+
+        then:
+        planFile.text == planBefore
+        sameRecords(parse(workFile), records)
+    }
+
+    @Requires(
+        value = TestExecutionPreconditions.IsConfigCached,
+        reason = "Checks the plan file across configuration cache runs"
+    )
+    def "plan file stays up to date on a repeated configuration cache run with an included build"() {
+        withBuildLogicPlugin()
+        settingsFile << """
+            includeBuild("lib")
+        """
+        file("lib/settings.gradle") << 'rootProject.name = "lib"'
+        file("lib/build.gradle") << """
+            abstract class LibTask extends DefaultTask {
+                @OutputFile abstract RegularFileProperty getOutputFile()
+                @TaskAction void run() { outputFile.get().asFile.text = "lib" }
+            }
+            tasks.register("libTask", LibTask) {
+                outputFile = layout.buildDirectory.file("lib.txt")
+            }
+        """
+        buildFile << """
+            tasks.register("consumeLib") {
+                dependsOn(gradle.includedBuild("lib").task(":libTask"))
+                doLast { println("consumed lib") }
+            }
+        """
+        def planFile = file("build/reports/work-trace/plan.jsonl")
+        def workFile = file("build/reports/work-trace/work.jsonl")
+
+        when:
+        succeeds("consumeLib", "-Dorg.gradle.internal.work.trace=")
+
+        then:
+        postBuildOutputContains("Configuration cache entry stored.")
+        executedAndNotSkipped(":lib:libTask", ":consumeLib")
+
+        and: "one plan record per build of the root work graph"
+        def plans = parse(planFile)
+        plans*.buildPath == [":", ":lib"]
+        plans[0].requestedTaskPaths == [":consumeLib"]
+        plans[0].tasks*.id == [":consumeLib"]
+        plans[0].tasks[0].dependencies == [":lib:libTask"]
+        plans[1].tasks*.id == [":lib:libTask"]
+
+        and: "task records of both builds, none of the plugin build"
+        def records = parse(workFile)
+        byTask(records).keySet().sort() == [":consumeLib", ":lib:libTask"]
+        byTask(records)[":consumeLib"].scheduling.explicitDependsOn == [":lib:libTask"]
+        byTask(records)[":lib:libTask"].outputs[0].location == "lib/build/lib.txt"
+        plans.every { plan -> plan.tasks.every { !it.id.startsWith(":build-logic:") } }
+
+        when:
+        def planBefore = planFile.text
+        succeeds("consumeLib", "-Dorg.gradle.internal.work.trace=")
+
+        then:
+        postBuildOutputContains("Configuration cache entry reused.")
+        planFile.text == planBefore
+        sameRecords(parse(workFile), records)
+    }
+
+    def "writes the plan and an empty work file on a dry run"() {
         def planFile = file("build/reports/work-trace/plan.jsonl")
         def workFile = file("build/reports/work-trace/work.jsonl")
 
@@ -231,8 +324,8 @@ class WorkTraceIntegrationTest extends AbstractIntegrationSpec {
         then:
         parse(planFile)*.kind == ["plan"]
         parse(planFile)[0].requestedTaskPaths == [":explicit"]
-        parse(workFile)*.kind == ["projects"]
-        parse(workFile)[0].projects.find { it.project == ":" }.dir == testDirectory.absolutePath
+        workFile.isFile()
+        workFile.text.isEmpty()
         output.contains("See the work trace at:")
     }
 
@@ -248,7 +341,7 @@ class WorkTraceIntegrationTest extends AbstractIntegrationSpec {
         traceDir.file("work.jsonl").isFile()
         !file("build/reports/work-trace").exists()
         parse(traceDir.file("plan.jsonl"))*.kind == ["plan"]
-        parse(traceDir.file("work.jsonl")).findAll { it.kind == "task" }*.buildTreeTaskPath.sort() == [":cleanup", ":consumer", ":explicit", ":producer"]
+        parse(traceDir.file("work.jsonl")).findAll { it.kind == "task" }*.id.sort() == [":cleanup", ":consumer", ":explicit", ":producer"]
     }
 
     def "does not write a work trace when the option is not set"() {
@@ -345,7 +438,39 @@ class WorkTraceIntegrationTest extends AbstractIntegrationSpec {
     }
 
     private static Map<String, Map> byTask(List<Map> records) {
-        records.findAll { it.kind == "task" }.collectEntries { [(it.buildTreeTaskPath): it] }
+        records.findAll { it.kind == "task" }.collectEntries { [(it.id): it] }
+    }
+
+    /**
+     * A build logic build (pluginManagement includeBuild) providing "my.plugin", which registers the "fromPlugin" task,
+     * applied by the root project.
+     */
+    private void withBuildLogicPlugin() {
+        settingsFile << """
+            pluginManagement { includeBuild("build-logic") }
+        """
+        file("build-logic/settings.gradle") << 'rootProject.name = "build-logic"'
+        file("build-logic/build.gradle") << """
+            plugins { id("java-gradle-plugin") }
+            gradlePlugin {
+                plugins {
+                    p {
+                        id = "my.plugin"
+                        implementationClass = "MyPlugin"
+                    }
+                }
+            }
+        """
+        file("build-logic/src/main/java/MyPlugin.java") << """
+            import org.gradle.api.Plugin;
+            import org.gradle.api.Project;
+            public class MyPlugin implements Plugin<Project> {
+                public void apply(Project project) {
+                    project.getTasks().register("fromPlugin", task -> task.doLast(t -> System.out.println("from plugin")));
+                }
+            }
+        """
+        buildFile.text = 'plugins { id("my.plugin") }\n' + buildFile.text
     }
 
     private static List<Map> parse(TestFile traceFile) {
@@ -365,7 +490,7 @@ class WorkTraceIntegrationTest extends AbstractIntegrationSpec {
             queue.addAll(scheduling.explicitDependsOn)
             queue.addAll(scheduling.inputDependencies*.tasks.flatten())
             // finalizers: tasks whose finalizerOf names the current task
-            queue.addAll(tasks.values().findAll { it.scheduling.finalizerOf.contains(current) }*.buildTreeTaskPath)
+            queue.addAll(tasks.values().findAll { it.scheduling.finalizerOf.contains(current) }*.id)
         }
         seen
     }

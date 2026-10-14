@@ -45,6 +45,7 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
     private final FileLockManager fileLockManager;
     private final BuildTreeWorkGraphController buildTreeWorkGraphController;
     private final ProjectCacheDir projectCacheDir;
+    private final BuildLogicWorkGraphTracker workGraphTracker;
     private final Synchronizer resource;
     private FileLock fileLock = null;
 
@@ -53,12 +54,14 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
         FileLockManager fileLockManager,
         BuildTreeWorkGraphController buildTreeWorkGraphController,
         ProjectCacheDir projectCacheDir,
-        WorkerLeaseService workerLeaseService
+        WorkerLeaseService workerLeaseService,
+        BuildLogicWorkGraphTracker workGraphTracker
     ) {
         this.runner = runner;
         this.fileLockManager = fileLockManager;
         this.buildTreeWorkGraphController = buildTreeWorkGraphController;
         this.projectCacheDir = projectCacheDir;
+        this.workGraphTracker = workGraphTracker;
         this.resource = workerLeaseService.newResource();
     }
 
@@ -86,13 +89,18 @@ public class DefaultBuildLogicBuildQueue implements BuildLogicBuildQueue {
     }
 
     private <T> T doBuild(List<TaskIdentifier> tasks, Supplier<T> continuationUnderLock) {
-        buildTreeWorkGraphController.withNewWorkGraph(graph -> {
-            graph
-                .scheduleWork(builder -> builder.scheduleTasks(tasks))
-                .runWork()
-                .rethrow();
-            return null;
-        });
+        workGraphTracker.enterBuildLogicWorkGraph();
+        try {
+            buildTreeWorkGraphController.withNewWorkGraph(graph -> {
+                graph
+                    .scheduleWork(builder -> builder.scheduleTasks(tasks))
+                    .runWork()
+                    .rethrow();
+                return null;
+            });
+        } finally {
+            workGraphTracker.leaveBuildLogicWorkGraph();
+        }
         return continuationUnderLock.get();
     }
 

@@ -25,6 +25,7 @@ import org.gradle.api.internal.file.FilePropertyFactory;
 import org.gradle.api.internal.file.collections.DirectoryFileTreeFactory;
 import org.gradle.api.internal.file.collections.FileCollectionObservationListener;
 import org.gradle.api.internal.initialization.BuildLogicBuildQueue;
+import org.gradle.api.internal.initialization.BuildLogicWorkGraphTracker;
 import org.gradle.api.internal.initialization.DefaultBuildLogicBuildQueue;
 import org.gradle.api.internal.model.DefaultObjectFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
@@ -145,7 +146,7 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
         registration.add(TaskIdentityFactory.class);
         registration.add(BuildLogicBuildQueue.class, DefaultBuildLogicBuildQueue.class);
         registration.add(NodeValidator.class, DefaultNodeValidator.class);
-        registration.add(WorkTraceService.class);
+        registration.add(WorkTraceService.class, BuildLogicWorkGraphTracker.class, WorkTraceService.class);
     }
 
     @Provides
