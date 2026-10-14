@@ -175,7 +175,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         childBuildScript.waitForAllPendingCalls()
-        assertHasBuildPhase("0% INITIALIZING")
+        assertHasBuildPhase("0% CONFIGURING")
         childBuildScript.releaseAll()
 
         and:
@@ -255,17 +255,17 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         childBuildScript.waitForAllPendingCalls()
-        assertHasBuildPhase("0% INITIALIZING")
+        assertHasBuildPhase("0% CONFIGURING")
         childBuildScript.releaseAll()
 
         and:
         childTaskGraph.waitForAllPendingCalls()
-        assertHasBuildPhase("0% INITIALIZING")
+        assertHasBuildPhase("75% CONFIGURING")
         childTaskGraph.releaseAll()
 
         and:
         task1.waitForAllPendingCalls()
-        assertHasBuildPhase("0% INITIALIZING")
+        assertHasBuildPhase("75% CONFIGURING")
         task1.releaseAll()
 
         and:
@@ -490,13 +490,22 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
     }
 
     void assertHasBuildPhase(String message) {
+        int drawnBefore = renderedBuildPhases().size()
         ConcurrentTestUtil.poll {
-            assert gradle.standardOutput =~ regexFor(message)
+            def phases = renderedBuildPhases()
+            // Wait for the bar to be drawn again, so it shows everything that happened before the build blocked
+            assert phases.size() > drawnBefore
+            assert phases.last() == message
         }
     }
 
-    String regexFor(String message) {
-        /$ProgressBar.UNICODE_PROGRESS_BAR_PREFIX.*$ProgressBar.UNICODE_PROGRESS_BAR_SUFFIX $message \[[\dms ]+]/
+    List<String> renderedBuildPhases() {
+        def matcher = gradle.standardOutput =~ /$ProgressBar.UNICODE_PROGRESS_BAR_PREFIX[^$ProgressBar.UNICODE_PROGRESS_BAR_SUFFIX]*$ProgressBar.UNICODE_PROGRESS_BAR_SUFFIX (\d+% \w+) \[[\dms ]+]/
+        List<String> phases = []
+        while (matcher.find()) {
+            phases << matcher.group(1)
+        }
+        return phases
     }
 
     void waitForFinish() {
