@@ -17,7 +17,9 @@
 package org.gradle.internal.logging.console
 
 import org.gradle.internal.logging.OutputSpecification
+import org.gradle.internal.logging.events.EndOutputEvent
 import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.events.ProgressCompleteEvent
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
@@ -29,6 +31,7 @@ class BuildStatusRendererTest extends OutputSpecification {
     def console = new ConsoleStub()
     def consoleMetaData = Mock(ConsoleMetaData)
     long currentTimeMs
+    long clientStartTime = 0
     def renderer = new BuildStatusRenderer(listener, console.statusBar, console, consoleMetaData)
 
     @Override
@@ -307,6 +310,181 @@ class BuildStatusRendererTest extends OutputSpecification {
 
         then:
         statusBar.display == '[...............] 0% WAITING'
+    }
+
+    def "reports program status transitions and execution progress"() {
+        given:
+        def output = new ByteArrayOutputStream()
+        def renderer = new BuildStatusRenderer(listener, console.statusBar, console, consoleMetaData, new ProgramStatusReporter(output, clientStartTime))
+
+        when:
+        renderer.onOutput(startRootBuildOperation(1))
+        renderer.onOutput(updateNow())
+        renderer.onOutput(startConfigureRootBuild(2, 1, 1))
+        renderer.onOutput(startConfigureProject(3, 2))
+        renderer.onOutput(updateNow())
+        renderer.onOutput(complete(3))
+        renderer.onOutput(complete(2))
+        renderer.onOutput(updateNow())
+
+        then:
+        programStatusReports(output) == ["state=working:app=gradle"]
+
+        when:
+        renderer.onOutput(startExecuteRootBuild(4, 1, 4))
+        renderer.onOutput(updateNow())
+        renderer.onOutput(startExecuteTask(5, 4))
+        renderer.onOutput(updateNow())
+        renderer.onOutput(complete(5))
+        renderer.onOutput(updateNow())
+        currentTimeMs += 1000
+        renderer.onOutput(updateNow())
+
+        then:
+        programStatusReports(output) == ["state=working:app=gradle", "state=working:app=gradle:progress=0", "state=working:app=gradle:progress=25"]
+
+        when:
+        renderer.onOutput(complete(4))
+        renderer.onOutput(completeRoot(1, false))
+        renderer.onOutput(updateNow())
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[...............] 0% WAITING'
+        programStatusReports(output).last() == 'state=done:app=gradle:msg=BUILD SUCCESSFUL in 1s'
+        programStatusReports(output).size() == 4
+    }
+
+    def "ignores root operations after the build has ended"() {
+        given:
+        def output = new ByteArrayOutputStream()
+        def renderer = new BuildStatusRenderer(listener, console.statusBar, console, consoleMetaData, new ProgramStatusReporter(output, clientStartTime))
+        currentTimeMs = 1000
+
+        when:
+        renderer.onOutput(startRootBuildOperation(1))
+        renderer.onOutput(completeRoot(1, true))
+        // For example, the cleanup of unused caches
+        renderer.onOutput(startRootBuildOperation(2))
+        renderer.onOutput(updateNow())
+        renderer.onOutput(complete(2))
+        renderer.onOutput(new EndOutputEvent())
+
+        then:
+        statusBar.display == '[...............] 0% WAITING'
+        programStatusReports(output) == ['state=error:app=gradle:msg=BUILD FAILED in 1s']
+    }
+
+    def "measures the first build from the start of the client JVM"() {
+        given:
+        def output = new ByteArrayOutputStream()
+        def renderer = new BuildStatusRenderer(listener, console.statusBar, console, consoleMetaData, new ProgramStatusReporter(output, 0))
+        currentTimeMs = 1000
+
+        when:
+        renderer.onOutput(startRootBuildOperation(1))
+        currentTimeMs += 2000
+        renderer.onOutput(completeRoot(1, false))
+        renderer.onOutput(new EndOutputEvent())
+
+        then:
+        programStatusReports(output) == ['state=done:app=gradle:msg=BUILD SUCCESSFUL in 3s']
+    }
+
+    def "starts over for each build of a continuous build"() {
+        given:
+        def output = new ByteArrayOutputStream()
+        def renderer = new BuildStatusRenderer(listener, console.statusBar, console, consoleMetaData, new ProgramStatusReporter(output, clientStartTime))
+        currentTimeMs = 1000
+
+        when:
+        renderer.onOutput(startRootBuildOperation(1))
+        renderer.onOutput(startExecuteRootBuild(2, 1, 1))
+        renderer.onOutput(startExecuteTask(3, 2))
+        renderer.onOutput(complete(3))
+        renderer.onOutput(complete(2))
+        renderer.onOutput(completeRoot(1, false))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[...............] 0% WAITING'
+        programStatusReports(output) == [done1]
+
+        when:
+        currentTimeMs += 5000
+        renderer.onOutput(startRootBuildOperation(4))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[...............] 0% WAITING'
+        programStatusReports(output) == [done1]
+
+        when:
+        renderer.onOutput(startConfigureRootBuild(5, 4, 1))
+        currentTimeMs += 1000
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[...............] 0% CONFIGURING [1s]'
+        programStatusReports(output) == [done1, "state=working:app=gradle"]
+
+        when:
+        renderer.onOutput(complete(5))
+        renderer.onOutput(startExecuteRootBuild(6, 4, 1))
+        renderer.onOutput(startExecuteTask(7, 6))
+        renderer.onOutput(new ProgressCompleteEvent(new OperationIdentifier(7), currentTimeMs, "FAILED", true))
+        renderer.onOutput(complete(6))
+        currentTimeMs += 2000
+        renderer.onOutput(completeRoot(4, true))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[...............] 0% WAITING'
+        // Each build is measured from its own start
+        programStatusReports(output) == [done1, "state=working:app=gradle", 'state=error:app=gradle:msg=BUILD FAILED in 3s']
+
+        where:
+        done1 = 'state=done:app=gradle:msg=BUILD SUCCESSFUL in 1s'
+    }
+
+    def "reports program status error when the root build operation fails"() {
+        given:
+        def output = new ByteArrayOutputStream()
+        def renderer = new BuildStatusRenderer(listener, console.statusBar, console, consoleMetaData, new ProgramStatusReporter(output, clientStartTime))
+
+        when:
+        renderer.onOutput(startRootBuildOperation(1))
+        renderer.onOutput(startExecuteRootBuild(2, 1, 1))
+        renderer.onOutput(startExecuteTask(3, 2))
+        renderer.onOutput(new ProgressCompleteEvent(new OperationIdentifier(3), currentTimeMs, "FAILED", true))
+        renderer.onOutput(updateNow())
+        renderer.onOutput(complete(2))
+        renderer.onOutput(completeRoot(1, true))
+        renderer.onOutput(new EndOutputEvent())
+
+        then:
+        programStatusReports(output) == ["state=working:app=gradle:progress=100", 'state=error:app=gradle:msg=BUILD FAILED in 0ms']
+    }
+
+    def "does not report program status before the build starts"() {
+        given:
+        def output = new ByteArrayOutputStream()
+        def renderer = new BuildStatusRenderer(listener, console.statusBar, console, consoleMetaData, new ProgramStatusReporter(output, clientStartTime))
+
+        when:
+        renderer.onOutput(event("message"))
+        renderer.onOutput(updateNow())
+
+        then:
+        output.size() == 0
+    }
+
+    private static List<String> programStatusReports(ByteArrayOutputStream output) {
+        return (output.toString("US-ASCII") =~ '\u001B\\]7501;([^\u001B]*)\u001B\\\\').collect { ProgramStatusReporterTest.decodeMessage(it[1] as String) }
+    }
+
+    def completeRoot(Long id, boolean failed) {
+        new ProgressCompleteEvent(new OperationIdentifier(id), currentTimeMs, "", failed)
     }
 
     def startRootBuildOperation(Long id) {

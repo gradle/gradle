@@ -16,23 +16,27 @@
 
 package org.gradle.internal.logging.sink;
 
+import com.google.common.annotations.VisibleForTesting;
 import org.fusesource.jansi.AnsiPrintStream;
 import org.gradle.api.logging.configuration.ConsoleOutput;
 import org.gradle.api.logging.configuration.ConsoleUnicodeSupport;
 import org.gradle.internal.logging.console.AnsiConsole;
 import org.gradle.internal.logging.console.ColorMap;
 import org.gradle.internal.logging.console.Console;
+import org.gradle.internal.logging.console.ProgramStatusReporter;
 import org.gradle.internal.logging.console.ProgressBar;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.FallbackConsoleMetaData;
 import org.gradle.internal.nativeintegration.console.UnicodeProxyConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
+import org.jspecify.annotations.Nullable;
 
 import java.io.IOException;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.io.UncheckedIOException;
+import java.lang.management.ManagementFactory;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 import java.util.function.Supplier;
@@ -42,17 +46,29 @@ public class ConsoleConfigureAction {
     private ConsoleConfigureAction() {
     }
 
+    /**
+     * Attaches the console of the current process, the only console to which program status is reported.
+     */
     public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput, ConsoleUnicodeSupport consoleUnicodeSupport) {
-        execute(renderer, consoleOutput, getConsoleMetaData(consoleUnicodeSupport), renderer.getOriginalStdOut(), renderer.getOriginalStdErr());
+        ConsoleMetaData consoleMetadata = getConsoleMetaData(consoleUnicodeSupport);
+        OutputStream stdout = renderer.getOriginalStdOut();
+        ProgramStatusReporter programStatusReporter = shouldReportProgramStatus(consoleOutput, consoleMetadata, System.getProperty(ProgramStatusReporter.ENABLED_PROPERTY))
+            ? createProgramStatusReporter(stdout)
+            : null;
+        execute(renderer, consoleOutput, consoleMetadata, stdout, renderer.getOriginalStdErr(), programStatusReporter);
     }
 
     public static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata, OutputStream stdout, OutputStream stderr) {
+        execute(renderer, consoleOutput, consoleMetadata, stdout, stderr, null);
+    }
+
+    private static void execute(OutputEventRenderer renderer, ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata, OutputStream stdout, OutputStream stderr, @Nullable ProgramStatusReporter programStatusReporter) {
         if (consoleOutput == ConsoleOutput.Auto) {
-            configureAutoConsole(renderer, consoleMetadata, stdout, stderr);
+            configureAutoConsole(renderer, consoleMetadata, stdout, stderr, programStatusReporter);
         } else if (consoleOutput == ConsoleOutput.Rich) {
-            configureRichConsole(renderer, consoleMetadata, stdout, stderr, false);
+            configureRichConsole(renderer, consoleMetadata, stdout, stderr, false, programStatusReporter);
         } else if (consoleOutput == ConsoleOutput.Verbose) {
-            configureRichConsole(renderer, consoleMetadata, stdout, stderr, true);
+            configureRichConsole(renderer, consoleMetadata, stdout, stderr, true, programStatusReporter);
         } else if (consoleOutput == ConsoleOutput.Plain) {
             configurePlainConsole(renderer, consoleMetadata, stdout, stderr);
         } else if (consoleOutput == ConsoleOutput.Colored) {
@@ -69,6 +85,30 @@ public class ConsoleConfigureAction {
             return false;
         }
         return consoleOutput != ConsoleOutput.Auto || consoleMetadata.isStdOutATerminal();
+    }
+
+    /**
+     * Program status is reported only to a terminal on stdout that shows the rich console, unless disabled with a system property.
+     * Unlike taskbar progress, it does not depend on detecting the terminal, as unknown OSC sequences are ignored by terminals.
+     */
+    @VisibleForTesting
+    static boolean shouldReportProgramStatus(ConsoleOutput consoleOutput, ConsoleMetaData consoleMetadata, @Nullable String enabledProperty) {
+        if ("false".equals(enabledProperty)) {
+            return false;
+        }
+        boolean richConsole = consoleOutput == ConsoleOutput.Auto || consoleOutput == ConsoleOutput.Rich || consoleOutput == ConsoleOutput.Verbose;
+        return richConsole && consoleMetadata.isStdOutATerminal();
+    }
+
+    private static ProgramStatusReporter createProgramStatusReporter(OutputStream stdout) {
+        // The build duration printed on the console is measured from the start of the client JVM
+        ProgramStatusReporter reporter = new ProgramStatusReporter(stdout, ManagementFactory.getRuntimeMXBean().getStartTime());
+        try {
+            Runtime.getRuntime().addShutdownHook(new Thread(reporter::exit, "program-status-exit"));
+        } catch (SecurityException | IllegalStateException ignored) {
+            // Unable to register shutdown hook; proceed without it
+        }
+        return reporter;
     }
 
     private static void registerTaskbarReset(ConsoleMetaData consoleMetadata, OutputStream stdout) {
@@ -110,16 +150,16 @@ public class ConsoleConfigureAction {
             consoleUnicodeSupport);
     }
 
-    private static void configureAutoConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr) {
+    private static void configureAutoConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr, @Nullable ProgramStatusReporter programStatusReporter) {
         if (consoleMetaData.isStdOutATerminal() && consoleMetaData.isStdErrATerminal()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console. Assume that they are attached to the same console
             // This avoids interleaving problems when stdout and stderr end up at the same location
             Console console = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
-            renderer.addRichConsoleWithErrorOutputOnStdout(console, consoleMetaData, false);
+            renderer.addRichConsoleWithErrorOutputOnStdout(console, consoleMetaData, false, programStatusReporter);
         } else if (consoleMetaData.isStdOutATerminal()) {
             // Write rich content to stdout and plain content to stderr
             Console stdoutConsole = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
-            renderer.addRichConsole(stdoutConsole, stderr, consoleMetaData, false);
+            renderer.addRichConsole(stdoutConsole, stderr, consoleMetaData, false, programStatusReporter);
         } else if (consoleMetaData.isStdErrATerminal()) {
             // Write plain content to stdout and rich content to stderr
             Console stderrConsole = consoleForStdErr(stderr, consoleMetaData, renderer.getColourMap());
@@ -154,18 +194,18 @@ public class ConsoleConfigureAction {
         }
     }
 
-    private static void configureRichConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr, boolean verbose) {
+    private static void configureRichConsole(OutputEventRenderer renderer, ConsoleMetaData consoleMetaData, OutputStream stdout, OutputStream stderr, boolean verbose, @Nullable ProgramStatusReporter programStatusReporter) {
         if (consoleMetaData.isStdOutATerminal() && consoleMetaData.isStdErrATerminal()) {
             // Redirect stderr to stdout when both stdout and stderr are attached to a console.
             // Assume that they are attached to the same console.
             // This avoids interleaving problems when stdout and stderr end up at the same location.
             Console console = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
-            renderer.addRichConsoleWithErrorOutputOnStdout(console, consoleMetaData, verbose);
+            renderer.addRichConsoleWithErrorOutputOnStdout(console, consoleMetaData, verbose, programStatusReporter);
         } else {
             // Write rich content to both stdout and stderr
             Console stdoutConsole = consoleForStdOut(stdout, consoleMetaData, renderer.getColourMap());
             Console stderrConsole = consoleForStdErr(stderr, consoleMetaData, renderer.getColourMap());
-            renderer.addRichConsole(stdoutConsole, stderrConsole, consoleMetaData, verbose);
+            renderer.addRichConsole(stdoutConsole, stderrConsole, consoleMetaData, verbose, programStatusReporter);
         }
     }
 
