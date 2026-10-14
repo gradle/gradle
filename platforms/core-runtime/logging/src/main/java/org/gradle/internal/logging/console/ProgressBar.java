@@ -36,10 +36,11 @@ import java.util.concurrent.Future;
  * The progress bar line of the rich console: the bar, the phase label, the running and queued counts and the build duration.
  *
  * <pre>
- * │███████▏▶·····················│» EXECUTING  ▶ 8  … 5,312▲  [1m 12s]
+ * │██████▉▶······················│» EXECUTING  ▶ 8  … 5,312▲  [1m 12s]
  * </pre>
  *
  * <p>The bar has three segments: done, running and queued work. They are scaled with {@link AdaptiveBarScale}.
+ * The last cell is kept for work that is not known yet, so the bar is never full while the build runs.
  * The open edge pulses while the total is not final. The flag after the queued count shows that the total just grew.</p>
  */
 public class ProgressBar {
@@ -178,8 +179,10 @@ public class ProgressBar {
 
         Spans textAfterBar = textAfterBar(timerEnabled, elapsedTime, queued);
         int width = barWidth(textAfterBar.length());
-        double exponent = scale.next(done, running, queued, totalChange, elapsedTime, width);
-        AdaptiveBarScale.Cells cells = AdaptiveBarScale.cells(width, done, running, queued, exponent);
+        // The last cell is kept for work that is not known yet, so the bar is never full while the build runs
+        int countedWidth = width - 1;
+        double exponent = scale.next(done, running, queued, totalChange, elapsedTime, countedWidth);
+        AdaptiveBarScale.Cells cells = AdaptiveBarScale.cells(countedWidth, done, running, queued, exponent);
 
         int fullCells;
         int partialEighths;
@@ -193,17 +196,17 @@ public class ProgressBar {
         }
         int runningCells = running > 0 ? Math.max(1, (int) Math.round(cells.running)) : 0;
         int usedCells = fullCells + (partialEighths > 0 ? 1 : 0);
-        if (usedCells + runningCells > width) {
+        if (usedCells + runningCells > countedWidth) {
             // Rounding made the segments too wide: drop the partial cell first, then running cells
             partialEighths = 0;
             usedCells = fullCells;
-            if (usedCells + runningCells > width) {
-                runningCells = Math.max(1, width - usedCells);
-                fullCells = width - runningCells;
+            if (usedCells + runningCells > countedWidth) {
+                runningCells = Math.max(1, countedWidth - usedCells);
+                fullCells = countedWidth - runningCells;
                 usedCells = fullCells;
             }
         }
-        int queuedCells = width - usedCells - runningCells;
+        int queuedCells = countedWidth - usedCells - runningCells + 1;
         int drawnDonePercent = (fullCells * 8 + partialEighths) * 100 / (width * 8);
 
         Spans line = new Spans();

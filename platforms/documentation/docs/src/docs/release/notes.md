@@ -108,7 +108,7 @@ See the [Rich console](userguide/command_line_interface.html#sec:rich_console) s
 The progress bar of the rich console now shows the progress of the whole build, with the work that is running and the work that is queued:
 
 ```
-│███████▏▶·····················│» EXECUTING  ▶ 8  … 5,312   [1m 12s]
+│██████▉▶······················│» EXECUTING  ▶ 8  … 5,312   [1m 12s]
 ```
 
 Previously, the bar started again at 0% in each build phase, so a build that was almost done could show `0% EXECUTING`.
@@ -121,12 +121,13 @@ The name of the current phase stays next to the bar, followed by the running cou
 Gradle finds more work while the build runs. For example, it only knows the tasks to run after the build is configured.
 When Gradle finds more work, the total grows and the bar can move backwards. A `▲` after the queued count shows that this just happened.
 The `»` after the bar pulses until the tasks to run are known.
+The last cell of the bar stays empty until the build ends, so the bar never looks finished while Gradle still has work to do.
 When a lot of new work arrives, the bar shows the done work larger than its share, so that it stays visible, and then slowly goes back to its real share.
 
 On consoles without Unicode support, the line uses ASCII characters and words:
 
 ```
-[#######=......................]> EXECUTING  8 running, 5,312 queued   [1m 12s]
+[######=.......................]> EXECUTING  8 running, 5,312 queued   [1m 12s]
 ```
 
 The taskbar progress also shows the progress of the whole build.

@@ -78,8 +78,8 @@ class ProgressBarTest extends Specification {
 
         where:
         unicode | expected
-        true    | "│█████████▶▶▶▶▶▶···············│» EXECUTING  ▶ 2  … 5 "
-        false   | "[#########======...............]> EXECUTING  2 running, 5 queued "
+        true    | "│████████▋▶▶▶▶▶▶···············│» EXECUTING  ▶ 2  … 5 "
+        false   | "[########======................]> EXECUTING  2 running, 5 queued "
         id = unicode ? "unicode" : "ascii"
     }
 
@@ -98,8 +98,8 @@ class ProgressBarTest extends Specification {
 
         where:
         unicode | expected
-        true    | "│█████████████████▏▶···········│» EXECUTING  ▶  2  …   498 "
-        false   | "[#################=............]> EXECUTING   2 running,   498 queued "
+        true    | "│████████████████▋▶············│» EXECUTING  ▶  2  …   498 "
+        false   | "[################=.............]> EXECUTING   2 running,   498 queued "
         id = unicode ? "unicode" : "ascii"
     }
 
@@ -114,23 +114,25 @@ class ProgressBarTest extends Specification {
 
         where:
         unicode | expected
-        true    | "│███████▏▶·····················│» EXECUTING  ▶ 8  … 5,312 "
-        false   | "[#######=......................]> EXECUTING  8 running, 5,312 queued "
+        true    | "│██████▉▶······················│» EXECUTING  ▶ 8  … 5,312 "
+        false   | "[######=.......................]> EXECUTING  8 running, 5,312 queued "
         id = unicode ? "unicode" : "ascii"
     }
 
-    def "fills the bar when more work is done than known (#id)"() {
+    def "keeps the last cell for work not known yet (#id, #done done of #total)"() {
         given:
-        init(unicode, 2)
-        3.times { progressBar.update(false) }
+        init(unicode, total)
+        done.times { progressBar.update(false) }
 
         expect:
         line() == expected
 
         where:
-        unicode | expected
-        true    | "│██████████████████████████████│» EXECUTING  ▶ 0  … 0 "
-        false   | "[##############################]> EXECUTING  0 running, 0 queued "
+        unicode | total | done | expected
+        true    | 10    | 10   | "│█████████████████████████████·│» EXECUTING  ▶ 0  … 0 "
+        true    | 2     | 3    | "│█████████████████████████████·│» EXECUTING  ▶ 0  … 0 "
+        false   | 10    | 10   | "[#############################.]> EXECUTING  0 running, 0 queued "
+        false   | 2     | 3    | "[#############################.]> EXECUTING  0 running, 0 queued "
         id = unicode ? "unicode" : "ascii"
     }
 
@@ -145,10 +147,10 @@ class ProgressBarTest extends Specification {
 
         where:
         cols | expected
-        100  | "│███████▏▶·····················│» EXECUTING  ▶ 8  … 5,312   [1m 12s]"
-        60   | "│████▉▶···············│» EXECUTING  ▶ 8  … 5,312   [1m 12s]"
-        50   | "│███▍▶··········│» EXECUTING  ▶ 8  … 5,312   [1m "
-        0    | "│███████▏▶·····················│» EXECUTING  ▶ 8  … 5,312   [1m 12s]"
+        100  | "│██████▉▶······················│» EXECUTING  ▶ 8  … 5,312   [1m 12s]"
+        60   | "│████▋▶···············│» EXECUTING  ▶ 8  … 5,312   [1m 12s]"
+        50   | "│███▏▶··········│» EXECUTING  ▶ 8  … 5,312   [1m "
+        0    | "│██████▉▶······················│» EXECUTING  ▶ 8  … 5,312   [1m 12s]"
     }
 
     def "pulses the open edge every 500 ms"() {
@@ -256,7 +258,7 @@ class ProgressBarTest extends Specification {
         expect:
         frame().collect { [it.style, it.text] } == [
             [StyledTextOutput.Style.Header, "│"],
-            [StyledTextOutput.Style.SuccessHeader, "█████████"],
+            [StyledTextOutput.Style.SuccessHeader, "████████▋"],
             [StyledTextOutput.Style.ProgressStatus, "▶▶▶▶▶▶"],
             [StyledTextOutput.Style.Header, "···············│» EXECUTING  "],
             [StyledTextOutput.Style.ProgressStatus, "▶"],
@@ -286,8 +288,8 @@ class ProgressBarTest extends Specification {
 
         where:
         failed | sequence
-        false  | "\u001B]9;4;1;23\u0007"
-        true   | "\u001B]9;4;2;23\u0007"
+        false  | "\u001B]9;4;1;22\u0007"
+        true   | "\u001B]9;4;2;22\u0007"
     }
 
     def "does not report to the taskbar when not supported"() {
