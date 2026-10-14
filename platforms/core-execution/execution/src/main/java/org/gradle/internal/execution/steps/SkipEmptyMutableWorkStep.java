@@ -16,7 +16,6 @@
 
 package org.gradle.internal.execution.steps;
 
-import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.ImmutableSortedMap;
 import org.gradle.internal.UncheckedException;
@@ -30,16 +29,9 @@ import org.gradle.internal.execution.OutputChangeListener;
 import org.gradle.internal.execution.UnitOfWork;
 import org.gradle.internal.execution.WorkInputListeners;
 import org.gradle.internal.execution.WorkValidationContext;
-import org.gradle.internal.execution.caching.CachingDisabledReason;
-import org.gradle.internal.execution.caching.CachingDisabledReasonCategory;
-import org.gradle.internal.execution.caching.CachingState;
-import org.gradle.internal.execution.caching.CachingStateFactory;
-import org.gradle.internal.execution.caching.impl.DefaultCachingStateFactory;
-import org.gradle.internal.execution.history.BeforeExecutionState;
 import org.gradle.internal.execution.history.ExecutionInputState;
 import org.gradle.internal.execution.history.OutputsCleaner;
 import org.gradle.internal.execution.history.PreviousExecutionState;
-import org.gradle.internal.execution.history.impl.DefaultBeforeExecutionState;
 import org.gradle.internal.fingerprint.CurrentFileCollectionFingerprint;
 import org.gradle.internal.fingerprint.FileCollectionFingerprint;
 import org.gradle.internal.properties.InputBehavior;
@@ -50,7 +42,6 @@ import org.gradle.internal.time.Time;
 import org.gradle.internal.time.Timer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.helpers.NOPLogger;
 
 import java.io.IOException;
 import java.time.Duration;
@@ -61,7 +52,6 @@ import java.util.function.Supplier;
 
 public class SkipEmptyMutableWorkStep extends MutableStep<PreviousExecutionContext, CachingResult> {
     private static final Logger LOGGER = LoggerFactory.getLogger(SkipEmptyMutableWorkStep.class);
-    private static final CachingDisabledReason NO_SOURCES_REASON = new CachingDisabledReason(CachingDisabledReasonCategory.UNKNOWN, "Cacheability was not determined");
 
     private final ExecutionProblemHandler problemHandler;
     private final WorkInputListeners workInputListeners;
@@ -95,7 +85,7 @@ public class SkipEmptyMutableWorkStep extends MutableStep<PreviousExecutionConte
             return executeWithNonEmptySources(work, context);
         } else {
             if (hasEmptySources(sourceFileProperties, newInputs.getPropertiesRequiringIsEmptyCheck(), work)) {
-                return skipExecutionWithEmptySources(work, context, newInputs);
+                return skipExecutionWithEmptySources(work, context);
             } else {
                 return executeWithNonEmptySources(work, recreateContextWithNewInputFiles(context, newInputs.getAllFileFingerprints()));
             }
@@ -174,36 +164,6 @@ public class SkipEmptyMutableWorkStep extends MutableStep<PreviousExecutionConte
         return CachingResult.shortcutResult(duration, Execution.skipped(skipOutcome, work), null, executionReason, null);
     }
 
-    /**
-     * Fingerprints the non-primary inputs too, which the short-circuit normally never looks at, and finishes the legacy
-     * "Snapshot task inputs" operation with a caching state carrying them, so that observers (the work trace) see all inputs.
-     * The work is still short-circuited exactly as before.
-     */
-    private static void captureAllInputs(MutableUnitOfWork work, PreviousExecutionContext context, InputFingerprinter.Result primaryInputs) {
-        InputFingerprinter.Result allInputs = work.getInputFingerprinter().fingerprintInputProperties(
-            context.getPreviousExecutionState().map(ExecutionInputState::getInputProperties).orElse(ImmutableSortedMap.of()),
-            context.getPreviousExecutionState().map(ExecutionInputState::getInputFileProperties).orElse(ImmutableSortedMap.of()),
-            primaryInputs.getAllValueSnapshots(),
-            primaryInputs.getAllFileFingerprints(),
-            work::visitMutableInputs,
-            work.getInputDependencyChecker(context.getValidationContext())
-        );
-        BeforeExecutionState beforeExecutionState = new DefaultBeforeExecutionState(
-            context.getImplementation(),
-            context.getAdditionalImplementations(),
-            allInputs.getAllValueSnapshots(),
-            allInputs.getAllFileFingerprints(),
-            ImmutableSortedMap.of()
-        );
-        CachingStateFactory cachingStateFactory = new DefaultCachingStateFactory(NOPLogger.NOP_LOGGER);
-        CachingState cachingState = cachingStateFactory.createCachingState(
-            beforeExecutionState,
-            cachingStateFactory.calculateCacheKey(beforeExecutionState),
-            ImmutableList.of(NO_SOURCES_REASON)
-        );
-        work.markLegacySnapshottingInputsFinished(cachingState);
-    }
-
     private boolean cleanPreviousOutputs(Map<String, FileSystemSnapshot> outputFileSnapshots) {
         OutputsCleaner outputsCleaner = outputsCleanerSupplier.get();
         for (FileSystemSnapshot outputFileSnapshot : outputFileSnapshots.values()) {
@@ -234,15 +194,11 @@ public class SkipEmptyMutableWorkStep extends MutableStep<PreviousExecutionConte
             work.getInputDependencyChecker(context.getValidationContext()));
     }
 
-    private CachingResult skipExecutionWithEmptySources(MutableUnitOfWork work, PreviousExecutionContext context, InputFingerprinter.Result primaryInputs) {
+    private CachingResult skipExecutionWithEmptySources(UnitOfWork work, PreviousExecutionContext context) {
         // Make sure we check for missing dependencies even if we skip executing the work
         WorkValidationContext validationContext = context.getValidationContext();
         work.checkOutputDependencies(validationContext);
         problemHandler.handleReportedProblems(context.getIdentity(), work, validationContext);
-
-        if (work.shouldCaptureInputsWithoutHistory()) {
-            captureAllInputs(work, context, primaryInputs);
-        }
 
         CachingResult result = performSkip(work, context);
         workInputListeners.broadcastFileSystemInputsOf(work, EnumSet.of(InputBehavior.PRIMARY));

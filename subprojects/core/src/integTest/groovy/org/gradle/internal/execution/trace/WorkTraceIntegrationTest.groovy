@@ -156,7 +156,7 @@ class WorkTraceIntegrationTest extends AbstractIntegrationSpec {
         sameRecords(parse(workFile), records)
     }
 
-    def "captures inputs of tasks that Gradle does not snapshot otherwise, without changing their execution"() {
+    def "records tasks whose inputs Gradle does not snapshot, without inputs"() {
         buildFile """
             abstract class NoOutputs extends DefaultTask {
                 @InputFile abstract RegularFileProperty getSource()
@@ -200,31 +200,21 @@ class WorkTraceIntegrationTest extends AbstractIntegrationSpec {
         skipped(":noSource")
         outputContains("Task :noSource NO-SOURCE")
         def records = parse(workFile)
-        def tasks = records.findAll { it.kind == "task" }.collectEntries { [(it.buildTreeTaskPath): it] }
+        def tasks = byTask(records)
+        tasks.keySet().sort() == [":noOutputs", ":noSource", ":untracked"]
 
-        and:
-        tasks[":noOutputs"].inputsCaptured
-        tasks[":noOutputs"].inputs*.property == ["source"]
-        tasks[":noOutputs"].inputs[0].roots == [[project: ":", path: "source.txt"]]
-        tasks[":noOutputs"].caching.disabledReason != null
-
-        and:
-        tasks[":untracked"].inputsCaptured
-        tasks[":untracked"].inputs*.property == ["source"]
-        tasks[":untracked"].inputs[0].roots == [[project: ":", path: "source.txt"]]
+        and: "each task has a record with its scheduling and declared outputs, but no inputs"
+        tasks.values().every { !it.inputsCaptured && it.inputs == null && it.scheduling != null && it.scheduling.requested }
+        tasks[":noOutputs"].outputs == []
         tasks[":untracked"].outputs[0].location == [project: ":", path: "build/untracked.txt"]
-
-        and: "the non-primary input of the NO-SOURCE task is captured"
-        tasks[":noSource"].inputsCaptured
-        tasks[":noSource"].inputs*.property.sort() == ["config", "sources"]
-        tasks[":noSource"].inputs.find { it.property == "config" }.roots == [[project: ":", path: "source.txt"]]
+        tasks[":noSource"].outputs[0].location == [project: ":", path: "build/noSource.txt"]
         tasks[":noSource"].outputs[0].files == []
         !file("build/noSource.txt").exists()
 
         when: "run again"
         succeeds("noOutputs", "untracked", "noSource", "-Dorg.gradle.internal.work.trace=")
 
-        then: "tasks without history still execute, and the trace is identical"
+        then: "the build behaves as before, and the trace is identical"
         executedAndNotSkipped(":noOutputs", ":untracked")
         skipped(":noSource")
         outputContains("Task :noSource NO-SOURCE")

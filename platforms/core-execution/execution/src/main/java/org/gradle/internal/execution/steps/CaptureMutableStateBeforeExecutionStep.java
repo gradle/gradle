@@ -68,14 +68,10 @@ public class CaptureMutableStateBeforeExecutionStep<C extends PreviousExecutionC
     private R executeMutable(MutableUnitOfWork work, C context) {
         BeforeExecutionState beforeExecutionState;
         OverlappingOutputs overlappingOutputs;
-        boolean hasHistory = work.getHistory().isPresent();
-        boolean shouldCaptureBeforeExecutionState = hasHistory || work.shouldCaptureInputsWithoutHistory();
+        boolean shouldCaptureBeforeExecutionState = work.getHistory().isPresent();
         if (shouldCaptureBeforeExecutionState) {
             beforeExecutionState = captureExecutionState(work, context);
-            // Without history there are no previous outputs to compare against, so overlap detection stays off as before
-            overlappingOutputs = hasHistory
-                ? detectOverlappingOutputs(work, context, beforeExecutionState.getOutputFileLocationSnapshots())
-                : null;
+            overlappingOutputs = detectOverlappingOutputs(work, context, beforeExecutionState.getOutputFileLocationSnapshots());
         } else {
             beforeExecutionState = null;
             overlappingOutputs = null;

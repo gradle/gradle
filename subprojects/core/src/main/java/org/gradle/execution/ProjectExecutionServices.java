@@ -41,7 +41,6 @@ import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter;
-import org.gradle.internal.execution.trace.WorkTraceService;
 import org.gradle.internal.file.DefaultReservedFileSystemLocationRegistry;
 import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.ReservedFileSystemLocation;
@@ -101,8 +100,7 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
         TaskExecutionModeResolver repository,
         ExecutionEngine executionEngine,
         InputFingerprinter inputFingerprinter,
-        MissingTaskDependencyDetector missingTaskDependencyDetector,
-        WorkTraceService workTraceService
+        MissingTaskDependencyDetector missingTaskDependencyDetector
     ) {
         return new DefaultTaskNodeExecutor(
             buildOperationRunner,
@@ -122,9 +120,7 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
             taskDependencyFactory,
             // TODO Can we inject a PathToFileResolver here directly?
             fileOperations.getFileResolver(),
-            missingTaskDependencyDetector,
-            // The work trace needs the inputs of every task, including those Gradle would not snapshot otherwise
-            workTraceService.isEnabled()
+            missingTaskDependencyDetector
         );
     }
 

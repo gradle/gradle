@@ -123,7 +123,6 @@ public class TaskExecution implements MutableUnitOfWork {
     private final TaskCacheabilityResolver taskCacheabilityResolver;
     private final TaskDependencyFactory taskDependencyFactory;
     private final MissingTaskDependencyDetector missingTaskDependencyDetector;
-    private final boolean captureInputsWithoutHistory;
 
     private final TaskInternal task;
 
@@ -149,8 +148,7 @@ public class TaskExecution implements MutableUnitOfWork {
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
         TaskCacheabilityResolver taskCacheabilityResolver,
         TaskDependencyFactory taskDependencyFactory,
-        MissingTaskDependencyDetector missingTaskDependencyDetector,
-        boolean captureInputsWithoutHistory
+        MissingTaskDependencyDetector missingTaskDependencyDetector
     ) {
         this.node = node;
         this.taskExecutionMode = taskExecutionMode;
@@ -167,7 +165,6 @@ public class TaskExecution implements MutableUnitOfWork {
         this.taskCacheabilityResolver = taskCacheabilityResolver;
         this.taskDependencyFactory = taskDependencyFactory;
         this.missingTaskDependencyDetector = missingTaskDependencyDetector;
-        this.captureInputsWithoutHistory = captureInputsWithoutHistory;
 
         this.task = node.getTask();
     }
@@ -324,11 +321,6 @@ public class TaskExecution implements MutableUnitOfWork {
         return taskExecutionMode.isTaskHistoryMaintained()
             ? Optional.of(executionHistoryStore)
             : Optional.empty();
-    }
-
-    @Override
-    public boolean shouldCaptureInputsWithoutHistory() {
-        return captureInputsWithoutHistory;
     }
 
     @Override

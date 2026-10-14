@@ -90,7 +90,6 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
     private final TaskDependencyFactory taskDependencyFactory;
     private final PathToFileResolver fileResolver;
     private final MissingTaskDependencyDetector missingTaskDependencyDetector;
-    private final boolean captureInputsWithoutHistory;
 
     public DefaultTaskNodeExecutor(
         BuildOperationRunner buildOperationRunner,
@@ -111,8 +110,7 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
         FileCollectionFactory fileCollectionFactory,
         TaskDependencyFactory taskDependencyFactory,
         PathToFileResolver fileResolver,
-        MissingTaskDependencyDetector missingTaskDependencyDetector,
-        boolean captureInputsWithoutHistory
+        MissingTaskDependencyDetector missingTaskDependencyDetector
     ) {
         this.taskExecutionListener = taskExecutionListener;
         this.taskListener = taskListener;
@@ -131,7 +129,6 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
         this.taskDependencyFactory = taskDependencyFactory;
         this.fileResolver = fileResolver;
         this.missingTaskDependencyDetector = missingTaskDependencyDetector;
-        this.captureInputsWithoutHistory = captureInputsWithoutHistory;
     }
 
     @Override
@@ -366,8 +363,7 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
             reservedFileSystemLocationRegistry,
             taskCacheabilityResolver,
             taskDependencyFactory,
-            missingTaskDependencyDetector,
-            captureInputsWithoutHistory
+            missingTaskDependencyDetector
         );
 
         TaskStateInternal state = task.getState();

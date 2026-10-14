@@ -75,11 +75,8 @@ public class HandleStaleOutputsStep<C extends WorkspaceContext, R extends AfterE
             cleanupStaleOutputs(work, context);
         }
         R result = delegate.execute(work, context);
-        // Outputs of work without history are not tracked, even if its state was captured for observability
-        if (work.getHistory().isPresent()) {
-            result.getAfterExecutionOutputState()
-                .ifPresent(afterExecutionState -> outputFilesRepository.recordOutputs(afterExecutionState.getOutputFilesProducedByWork().values()));
-        }
+        result.getAfterExecutionOutputState()
+            .ifPresent(afterExecutionState -> outputFilesRepository.recordOutputs(afterExecutionState.getOutputFilesProducedByWork().values()));
         return result;
     }
 

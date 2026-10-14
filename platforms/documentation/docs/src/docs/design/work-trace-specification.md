@@ -22,22 +22,23 @@ Explaining why a task executed instead of being up-to-date is out of scope (see 
 
 (open) Whether this becomes a public `--work-trace` flag follows the `--profile` route later.
 
-### Forced input capture
+### Tasks without input snapshots
 
-The trace exists for observability, so running with it on makes Gradle snapshot the inputs of every task
-that enters the execution engine, including tasks it would otherwise not snapshot:
+The trace records inputs only when the execution engine fingerprints them. Gradle does not fingerprint:
 
+- tasks with no actions (lifecycle tasks such as `build` or `check`);
 - tasks that declare no outputs;
 - untracked tasks (`@UntrackedTask`, `doNotTrackState()`);
-- tasks that short-circuit as `NO-SOURCE`, whose non-primary inputs Gradle normally never fingerprints.
+- tasks that short-circuit as `NO-SOURCE`;
+- tasks skipped by `onlyIf` or `enabled = false`.
 
-Forced capture does not change what Gradle does with the task: no execution history is stored for it,
-it is neither considered up-to-date nor loaded from the build cache, and `NO-SOURCE` still short-circuits.
-The only cost is the fingerprinting work.
+These tasks still get a `task` record with full `scheduling` data and their declared output locations,
+so scheduling chains through them stay intact, but `inputs` is `null` and their output file lists are empty.
+Consumer queries cannot see them.
 
-Tasks skipped by `onlyIf` or `enabled = false` are scheduled and get a `task` record with full `scheduling`
-data and declared output locations, but they never enter the engine: `inputs` is `null` and output file lists
-are empty. (open) Capturing their inputs would need fingerprinting outside the engine.
+(open) Forcing input capture for these tasks when tracing is on. The capture step is gated only on whether
+task history is maintained, so decoupling the two is small for the first three cases; `NO-SOURCE` needs the
+short-circuit step to fingerprint non-primary inputs, and `onlyIf` skips never enter the engine at all.
 
 ## Files
 
@@ -212,8 +213,8 @@ Field semantics:
   A root is a location: a file, or a directory whose contents the task consumes.
   Individual files under a root, their hashes and the normalization are not recorded.
   It is `null` when `inputsCaptured` is false.
-- `inputsCaptured` is false only for tasks skipped by `onlyIf` and for tasks that failed before their inputs
-  were snapshotted (for example, a failure while resolving an input). See "Forced input capture".
+- `inputsCaptured` is false when the engine did not fingerprint the task's inputs; see "Tasks without input
+  snapshots". It is also false for tasks that failed before their inputs were snapshotted.
 - `outputs` lists each declared output property with its location and `type` (`FILE` or `DIRECTORY`).
   `files` lists the regular files under the location, relative to it, as they exist after the task's turn
   in the build: produced by it, kept from a previous build when it was up-to-date, or loaded from the build cache.
