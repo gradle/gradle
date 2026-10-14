@@ -334,6 +334,32 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         waitForFinish()
     }
 
+    def "reaches 100% with configure-on-demand"() {
+        createDirs("a", "b")
+        settingsFile << """
+            include "a", "b"
+        """
+        buildFile << """
+            ${buildFinishedCall('build-finished')}
+        """
+        file("a/build.gradle") << """
+            task hello
+        """
+
+        given:
+        def buildFinished = server.expectAndBlock('build-finished')
+        gradle = executer.withArgument("--configure-on-demand").withTasks(":a:hello").start()
+
+        expect:
+        buildFinished.waitForAllPendingCalls()
+        // Project b is never configured, so it is not counted
+        assertHasBuildPhase("100% EXECUTING")
+        buildFinished.releaseAll()
+
+        and:
+        waitForFinish()
+    }
+
     @ToBeFixedForIsolatedProjects(because = "multi-project tests via BlockingHttpServer/parallel fail under IP")
     def "shows progress bar and percent phase completion with artifact transforms"() {
         given:

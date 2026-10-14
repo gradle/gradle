@@ -420,6 +420,50 @@ class BuildStatusRendererTest extends OutputSpecification {
         statusBar.display == '[...............] 0% WAITING'
     }
 
+    def "drops projects that were not configured once execution starts"() {
+        given:
+        renderer.onOutput(startRootBuildOperation(1))
+        renderer.onOutput(startConfigureRootBuild(2, 1, 4))
+        renderer.onOutput(startConfigureProject(3, 2))
+        renderer.onOutput(complete(3))
+        renderer.onOutput(complete(2))
+
+        when:
+        renderer.onOutput(startExecuteRootBuild(4, 1, 0))
+        renderer.onOutput(startExecuteBuild(5, 4, 2))
+        renderer.onOutput(startExecuteTask(6, 5))
+        renderer.onOutput(complete(6))
+        renderer.onOutput(startExecuteTask(7, 5))
+        renderer.onOutput(complete(7))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[###############] 100% EXECUTING [0ms]'
+    }
+
+    def "counts projects configured after execution starts"() {
+        given:
+        renderer.onOutput(startRootBuildOperation(1))
+        renderer.onOutput(startConfigureRootBuild(2, 1, 4))
+        renderer.onOutput(startConfigureProject(3, 2))
+        renderer.onOutput(complete(3))
+        renderer.onOutput(complete(2))
+        renderer.onOutput(startExecuteRootBuild(4, 1, 0))
+        renderer.onOutput(startExecuteBuild(5, 4, 2))
+        renderer.onOutput(startExecuteTask(6, 5))
+        renderer.onOutput(complete(6))
+        renderer.onOutput(startExecuteTask(7, 5))
+        renderer.onOutput(complete(7))
+
+        when:
+        renderer.onOutput(startConfigureProject(8, 5))
+        renderer.onOutput(complete(8))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[###############] 100% EXECUTING [0ms]'
+    }
+
     def startRootBuildOperation(Long id) {
         new ProgressStartEvent(new OperationIdentifier(id), null, currentTimeMs, "category", "description", null, null, 0, true, new OperationIdentifier(id), BuildOperationCategory.UNCATEGORIZED)
     }

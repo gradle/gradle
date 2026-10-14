@@ -48,6 +48,9 @@ public class BuildStatusRenderer implements OutputEventListener {
     private @Nullable OperationIdentifier buildProgressOperationId;
     private @Nullable Phase currentPhase;
     private final Set<OperationIdentifier> currentPhaseChildren = new HashSet<>();
+    private final Set<OperationIdentifier> configuringProjects = new HashSet<>();
+    private int expectedProjects;
+    private int configuredProjects;
     private long currentTimePeriod;
 
     // What actually shows up on the console
@@ -79,9 +82,9 @@ public class BuildStatusRenderer implements OutputEventListener {
                     // Once the root build starts configuring, we are in Configuring phase
                     phaseStarted(startEvent, Phase.Configuring);
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_BUILD && currentPhase != null) {
-                    phaseHasMoreProgress(startEvent);
+                    projectsDiscovered(startEvent);
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_PROJECT && currentPhase != null) {
-                    currentPhaseChildren.add(startEvent.getProgressOperationId());
+                    configuringProjects.add(startEvent.getProgressOperationId());
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_MAIN_TASKS) {
                     phaseStarted(startEvent, Phase.Executing);
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_WORK && currentPhase != null) {
@@ -94,6 +97,8 @@ public class BuildStatusRenderer implements OutputEventListener {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
             if (completeEvent.getProgressOperationId().equals(buildProgressOperationId)) {
                 buildEnded();
+            } else if (configuringProjects.remove(completeEvent.getProgressOperationId())) {
+                projectConfigured(completeEvent);
             } else if (currentPhaseChildren.remove(completeEvent.getProgressOperationId())) {
                 phaseProgressed(completeEvent);
             }
@@ -119,15 +124,47 @@ public class BuildStatusRenderer implements OutputEventListener {
     private void phaseStarted(ProgressStartEvent progressStartEvent, Phase phase) {
         timerEnabled = true;
         String phaseLabel = phase.name().toUpperCase(Locale.ROOT);
-        int totalProgress = progressStartEvent.getTotalProgress();
         if (currentPhase == null || progressBar == null) {
             currentPhaseChildren.clear();
-            progressBar = ProgressBar.createProgressBar(consoleMetaData, phaseLabel, totalProgress);
+            configuringProjects.clear();
+            expectedProjects = 0;
+            configuredProjects = 0;
+            progressBar = ProgressBar.createProgressBar(consoleMetaData, phaseLabel, 0);
         } else {
             progressBar.setPhase(phaseLabel);
-            progressBar.moreProgress(totalProgress);
         }
         currentPhase = phase;
+        if (phase == Phase.Configuring) {
+            projectsDiscovered(progressStartEvent);
+        } else {
+            if (phase == Phase.Executing) {
+                dropProjectsNotConfigured();
+            }
+            phaseHasMoreProgress(progressStartEvent);
+        }
+    }
+
+    private void projectsDiscovered(ProgressStartEvent progressStartEvent) {
+        expectedProjects += progressStartEvent.getTotalProgress();
+        phaseHasMoreProgress(progressStartEvent);
+    }
+
+    private void projectConfigured(ProgressCompleteEvent progressEvent) {
+        configuredProjects++;
+        if (configuredProjects > expectedProjects && progressBar != null) {
+            expectedProjects = configuredProjects;
+            progressBar.moreProgress(1);
+        }
+        phaseProgressed(progressEvent);
+    }
+
+    // Some projects are never configured, for example with configure-on-demand
+    private void dropProjectsNotConfigured() {
+        int notConfigured = expectedProjects - configuredProjects;
+        if (notConfigured > 0 && progressBar != null) {
+            expectedProjects = configuredProjects;
+            progressBar.moreProgress(-notConfigured);
+        }
     }
 
     private void phaseHasMoreProgress(ProgressStartEvent progressStartEvent) {
@@ -147,6 +184,7 @@ public class BuildStatusRenderer implements OutputEventListener {
         currentPhase = null;
         buildProgressOperationId = null;
         currentPhaseChildren.clear();
+        configuringProjects.clear();
         timerEnabled = false;
     }
 }
