@@ -61,3 +61,12 @@ A chain of 8 tasks, each depending on the previous one.
 Each task takes 3s, or finishes early after 0.3s, picked at random on every run, so its recorded average lies somewhere in between.
 
 Shows the ETA dropping in jumps when a task finishes earlier than its average, and holding when a task takes longer than its average.
+
+### test-build-diamond
+
+Stages alternate between a single task and 8 parallel tasks: `a` (2s), then `b1`-`b8` (3s), then `c` (4s), then `d1`-`d8` (3s), then `e` (2s).
+
+Shows the ETA following the longest chain of dependent tasks, about 14s, rather than the total work spread across the parallel tasks.
+
+It also shows a weakness: while only `a` runs, the most tasks seen running at once is 1, so the remaining work is not spread across any parallelism and the ETA shows over a minute.
+It drops to the right value once the `b` tasks start.
