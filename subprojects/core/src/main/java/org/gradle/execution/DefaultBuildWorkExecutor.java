@@ -22,6 +22,8 @@ import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
+import org.gradle.api.internal.tasks.execution.durations.ExecutionTimeEstimate;
+import org.gradle.api.internal.tasks.execution.durations.ExecutionTimeEstimates;
 import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.Node;
@@ -55,19 +57,22 @@ public class DefaultBuildWorkExecutor implements BuildWorkExecutor {
     private final StyledTextOutputFactory textOutputFactory;
     private final ConfigurationTimeBarrier configurationTimeBarrier;
     private final BuildOperationRunner buildOperationRunner;
+    private final ExecutionTimeEstimates executionTimeEstimates;
 
     public DefaultBuildWorkExecutor(
         ServiceRegistry buildScopeServices,
         PlanExecutor planExecutor,
         StyledTextOutputFactory textOutputFactory,
         ConfigurationTimeBarrier configurationTimeBarrier,
-        BuildOperationRunner buildOperationRunner
+        BuildOperationRunner buildOperationRunner,
+        ExecutionTimeEstimates executionTimeEstimates
     ) {
         this.buildScopeServices = buildScopeServices;
         this.planExecutor = planExecutor;
         this.textOutputFactory = textOutputFactory;
         this.configurationTimeBarrier = configurationTimeBarrier;
         this.buildOperationRunner = buildOperationRunner;
+        this.executionTimeEstimates = executionTimeEstimates;
     }
 
     @Override
@@ -92,6 +97,11 @@ public class DefaultBuildWorkExecutor implements BuildWorkExecutor {
                 }
                 builder.metadata(BuildOperationCategory.RUN_WORK);
                 builder.totalProgress(plan.getContents().size());
+                ExecutionTimeEstimate estimate = executionTimeEstimates.estimatePlan(plan.getContents());
+                if (estimate != null) {
+                    builder.estimatedDurationMillis(estimate.getDurationMillis());
+                    builder.estimatedCriticalPathMillis(estimate.getCriticalPathMillis());
+                }
                 return builder;
             }
 

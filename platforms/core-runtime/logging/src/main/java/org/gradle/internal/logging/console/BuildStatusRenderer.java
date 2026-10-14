@@ -29,9 +29,12 @@ import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.jspecify.annotations.Nullable;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Set;
+import java.util.function.Predicate;
 
 /**
  * Shows one progress bar for the whole build, with the name of the current phase and the running and queued counts next to it.
@@ -42,9 +45,17 @@ import java.util.Set;
  * The total grows when Gradle finds more work, so the bar can move backwards.
  * Each build, also each build of a continuous build, starts a new bar.</p>
  *
+ * <p>While tasks run, the time remaining is estimated from the recorded durations of the scheduled work.</p>
+ *
  * <p>This listener displays nothing unless it receives periodic {@link UpdateNowEvent} clock events.</p>
  */
 public class BuildStatusRenderer implements OutputEventListener {
+
+    /**
+     * System property set by the launcher for {@code --simulate-dv-off}, which advertises Develocity next to the estimated time remaining.
+     */
+    public static final String SIMULATE_DEVELOCITY_OFF_PROPERTY = "org.gradle.internal.console.simulate-dv-off";
+    private static final String SIMULATED_DEVELOCITY_OFF_NOTE = " - for more accurate timing info BUY DEVELOCITY NOW!!!";
 
     private enum Phase {
         Initializing, Loading, Configuring, Executing
@@ -72,11 +83,19 @@ public class BuildStatusRenderer implements OutputEventListener {
     private long buildStartTimestamp;
     private boolean timerEnabled;
 
-    public BuildStatusRenderer(OutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData) {
+    // Used to estimate time remaining in the execution phase
+    private final RemainingTimeEstimator remainingTimeEstimator;
+    // Parent of each running operation, used to find the operation that scheduled a work item, and the work item that started a nested build
+    private final Map<OperationIdentifier, OperationIdentifier> runningOperationParents = new HashMap<>();
+    // Operations that scheduled work in the execution phase
+    private final Set<OperationIdentifier> schedulingOperations = new HashSet<>();
+
+    public BuildStatusRenderer(OutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData, WorkDurationEstimator workDurationEstimator) {
         this.listener = listener;
         this.buildStatusLabel = buildStatusLabel;
         this.console = console;
         this.consoleMetaData = consoleMetaData;
+        this.remainingTimeEstimator = new RemainingTimeEstimator(workDurationEstimator);
     }
 
     @Override
@@ -84,6 +103,9 @@ public class BuildStatusRenderer implements OutputEventListener {
         if (event instanceof ProgressStartEvent) {
             ProgressStartEvent startEvent = (ProgressStartEvent) event;
             if (startEvent.isBuildOperationStart()) {
+                if (startEvent.getParentProgressOperationId() != null) {
+                    runningOperationParents.put(startEvent.getProgressOperationId(), startEvent.getParentProgressOperationId());
+                }
                 if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_BUILD) {
                     // Each build starts a new bar, also each build of a continuous build
                     // TODO - should use BuildRequestMetaData to determine the build start time
@@ -106,6 +128,7 @@ public class BuildStatusRenderer implements OutputEventListener {
             }
         } else if (event instanceof ProgressCompleteEvent) {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
+            runningOperationParents.remove(completeEvent.getProgressOperationId());
             if (completeEvent.getProgressOperationId().equals(loadProgressOperationId)) {
                 loadProgressOperationId = null;
             }
@@ -114,6 +137,7 @@ public class BuildStatusRenderer implements OutputEventListener {
             } else if (configuringProjects.remove(completeEvent.getProgressOperationId())) {
                 projectConfigured(completeEvent);
             } else if (runningWorkItems.remove(completeEvent.getProgressOperationId())) {
+                remainingTimeEstimator.workCompleted(completeEvent.getProgressOperationId(), completeEvent.getTimestamp());
                 workDone(completeEvent);
             }
         } else if (event instanceof WorkItemProgressEvent) {
@@ -133,9 +157,16 @@ public class BuildStatusRenderer implements OutputEventListener {
     private void renderNow(long now) {
         if (progressBar != null) {
             progressBar.setRunning(configuringProjects.size() + runningWorkItems.size() + startedWorkItems);
-            buildStatusLabel.setText(progressBar.formatProgress(timerEnabled, now - buildStartTimestamp));
+            long elapsedTime = now - buildStartTimestamp;
+            buildStatusLabel.setText(currentPhase == Phase.Executing
+                ? progressBar.formatProgress(timerEnabled, elapsedTime, remainingTimeEstimator.estimateRemainingMillis(now), estimateNote())
+                : progressBar.formatProgress(timerEnabled, elapsedTime));
         }
         console.flush();
+    }
+
+    private static String estimateNote() {
+        return Boolean.getBoolean(SIMULATE_DEVELOCITY_OFF_PROPERTY) ? SIMULATED_DEVELOCITY_OFF_NOTE : "";
     }
 
     private void phaseStarted(ProgressStartEvent startEvent, Phase phase) {
@@ -155,6 +186,11 @@ public class BuildStatusRenderer implements OutputEventListener {
         } else {
             if (phase == Phase.Executing) {
                 dropProjectsNotConfigured();
+                // The time remaining is only estimated for the execution phase
+                remainingTimeEstimator.reset();
+                schedulingOperations.clear();
+                schedulingOperations.add(startEvent.getProgressOperationId());
+                remainingTimeEstimator.workScheduled(startEvent, null);
             }
             addToTotal(startEvent.getTotalProgress());
         }
@@ -167,9 +203,17 @@ public class BuildStatusRenderer implements OutputEventListener {
         } else if (category == BuildOperationCategory.CONFIGURE_PROJECT) {
             configuringProjects.add(startEvent.getProgressOperationId());
         } else if (category == BuildOperationCategory.RUN_WORK) {
+            if (currentPhase == Phase.Executing) {
+                // A work item that runs a nested build, such as a GradleBuild task, waits on the nested build's work
+                schedulingOperations.add(startEvent.getProgressOperationId());
+                remainingTimeEstimator.workScheduled(startEvent, findAncestor(startEvent, runningWorkItems::contains));
+            }
             addToTotal(startEvent.getTotalProgress());
         } else if (category.isTopLevelWorkItem()) {
             runningWorkItems.add(startEvent.getProgressOperationId());
+            if (currentPhase == Phase.Executing) {
+                remainingTimeEstimator.workStarted(startEvent, findAncestor(startEvent, schedulingOperations::contains));
+            }
         } else if (category == BuildOperationCategory.LOAD_CONFIGURATION_CACHE) {
             loadProgressOperationId = startEvent.getProgressOperationId();
             stepStarted(startEvent);
@@ -185,6 +229,21 @@ public class BuildStatusRenderer implements OutputEventListener {
     private void stepStarted(ProgressStartEvent startEvent) {
         addToTotal(1);
         runningWorkItems.add(startEvent.getProgressOperationId());
+    }
+
+    /**
+     * Returns the nearest running ancestor operation of the given operation that matches, or null when there is none.
+     */
+    @Nullable
+    private OperationIdentifier findAncestor(ProgressStartEvent startEvent, Predicate<OperationIdentifier> matches) {
+        OperationIdentifier ancestor = startEvent.getParentProgressOperationId();
+        while (ancestor != null) {
+            if (matches.test(ancestor)) {
+                return ancestor;
+            }
+            ancestor = runningOperationParents.get(ancestor);
+        }
+        return null;
     }
 
     private void projectsDiscovered(ProgressStartEvent startEvent) {
@@ -252,6 +311,8 @@ public class BuildStatusRenderer implements OutputEventListener {
         pendingWorkItems = 0;
         startedWorkItems = 0;
         loadProgressOperationId = null;
+        schedulingOperations.clear();
+        remainingTimeEstimator.reset();
     }
 
     private void buildEnded() {
@@ -259,6 +320,7 @@ public class BuildStatusRenderer implements OutputEventListener {
         progressBar.setEdge(ProgressBar.Edge.NONE);
         currentPhase = null;
         buildProgressOperationId = null;
+        runningOperationParents.clear();
         resetCounts();
         timerEnabled = false;
     }

@@ -137,6 +137,22 @@ The taskbar progress also shows the progress of the whole build.
 
 See the [Rich console](userguide/command_line_interface.html#sec:rich_console) section in the Gradle User Manual for more details.
 
+#### Task durations in the tasks report
+
+Gradle now records how long each task takes when it executes successfully, and records tasks that do no work, such as up-to-date tasks, as taking no time, keeping up to the last 3 durations per task in the project cache directory.
+The new incubating `--eta` option of the `tasks` report shows these durations and their average:
+
+```text
+$ ./gradlew tasks --eta
+
+Build tasks
+-----------
+assemble - Assembles the outputs of this project. (ETA: avg 0.012s; last 0.010s, 0.014s)
+build - Assembles and tests this project. (ETA: unknown)
+```
+
+See the [Listing tasks](userguide/command_line_interface.html#sec:listing_tasks) section in the Gradle User Manual for more details.
+
 #### Predefined problem groups in the Problems API
 
 The incubating [Problems API](userguide/reporting_problems.html#header) now provides a predefined hierarchy of problem groups, available from the `Problems` service as `problems.groups`.

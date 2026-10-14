@@ -179,6 +179,8 @@ public class BuildActionSerializer {
             encoder.writeNullableString(startParameter.getDevelocityUrl());
             encoder.writeNullableString(startParameter.getDevelocityPluginVersion());
             encoder.writeBoolean(startParameter.isInteractive());
+            encoder.writeBoolean(startParameter.isSimulateDevelocityOn());
+            encoder.writeBoolean(startParameter.isSimulateDevelocityOff());
         }
 
         private void writeTaskRequests(Encoder encoder, List<TaskExecutionRequest> taskRequests) throws Exception {
@@ -286,6 +288,8 @@ public class BuildActionSerializer {
             startParameter.setDevelocityUrl(decoder.readNullableString());
             startParameter.setDevelocityPluginVersion(decoder.readNullableString());
             startParameter.setInteractive(decoder.readBoolean());
+            startParameter.setSimulateDevelocityOn(decoder.readBoolean());
+            startParameter.setSimulateDevelocityOff(decoder.readBoolean());
 
             return startParameter;
         }

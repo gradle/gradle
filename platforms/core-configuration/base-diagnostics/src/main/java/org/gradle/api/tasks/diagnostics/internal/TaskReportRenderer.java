@@ -17,12 +17,18 @@
 package org.gradle.api.tasks.diagnostics.internal;
 
 import org.apache.commons.lang3.StringUtils;
+import org.gradle.api.internal.tasks.execution.durations.TaskDurationHistory;
+import org.gradle.api.internal.tasks.execution.durations.TaskDurations;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.logging.text.StyledTextOutput;
+import org.gradle.internal.time.TimeFormatting;
+import org.gradle.util.Path;
 import org.gradle.util.internal.CollectionUtils;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static org.gradle.internal.logging.text.StyledTextOutput.Style.*;
 
@@ -36,6 +42,8 @@ public class TaskReportRenderer extends TextReportRenderer {
     private boolean detail;
     private boolean showTypes;
     private boolean showProvenance;
+    @Nullable
+    private TaskDurationHistory taskDurationHistory;
     private final BuildClientMetaData buildClientMetaData;
 
     public TaskReportRenderer(BuildClientMetaData buildClientMetaData) {
@@ -67,6 +75,13 @@ public class TaskReportRenderer extends TextReportRenderer {
 
     public void showProvenance(boolean showProvenance) {
         this.showProvenance = showProvenance;
+    }
+
+    /**
+     * Shows the duration history of each task, or hides it when null.
+     */
+    public void showEta(@Nullable TaskDurationHistory taskDurationHistory) {
+        this.taskDurationHistory = taskDurationHistory;
     }
 
     /**
@@ -103,6 +118,7 @@ public class TaskReportRenderer extends TextReportRenderer {
         getTextOutput().text(prefix);
         maybeWriteTaskNameAndTypeAndProvenance(task);
         maybeWriteTaskDescription(task);
+        maybeWriteEta(task);
         getTextOutput().println();
     }
 
@@ -122,6 +138,27 @@ public class TaskReportRenderer extends TextReportRenderer {
         if (GUtil.isTrue(task.getDescription())) {
             getTextOutput().withStyle(Description).format(" - %s", task.getDescription());
         }
+    }
+
+    private void maybeWriteEta(TaskDetails task) {
+        if (taskDurationHistory == null) {
+            return;
+        }
+        StyledTextOutput etaOutput = getTextOutput().withStyle(Info);
+        Path buildTreePath = task.getBuildTreePath();
+        if (buildTreePath == null) {
+            etaOutput.text(" (ETA: multiple tasks)");
+            return;
+        }
+        TaskDurations durations = taskDurationHistory.getDurations(buildTreePath);
+        if (durations == null) {
+            etaOutput.text(" (ETA: unknown)");
+            return;
+        }
+        String recent = durations.getRecent().stream()
+            .map(duration -> TimeFormatting.formatDurationVeryTerse(duration.toMillis()))
+            .collect(Collectors.joining(", "));
+        etaOutput.format(" (ETA: avg %s; last %s)", TimeFormatting.formatDurationVeryTerse(durations.getAverage().toMillis()), recent);
     }
 
     private void addSubheading(String header) {

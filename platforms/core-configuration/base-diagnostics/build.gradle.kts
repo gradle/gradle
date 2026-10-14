@@ -32,6 +32,7 @@ dependencies {
     implementation(projects.functional)
     implementation(projects.loggingApi)
     implementation(projects.projectFeatures)
+    implementation(projects.time)
 
     implementation(libs.commonsLang)
 

@@ -73,6 +73,8 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
             buildOperationCategory
         );
         logger.totalProgress = buildOperationDescriptor.getTotalProgress();
+        logger.estimatedDurationMillis = buildOperationDescriptor.getEstimatedDurationMillis();
+        logger.estimatedCriticalPathMillis = buildOperationDescriptor.getEstimatedCriticalPathMillis();
 
         // Make some assumptions about the console output
         if (buildOperationCategory.isTopLevelWorkItem()) {
@@ -132,6 +134,10 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
         private String loggingHeader;
         private State state = State.idle;
         private int totalProgress;
+        @Nullable
+        private Long estimatedDurationMillis;
+        @Nullable
+        private Long estimatedCriticalPathMillis;
 
         ProgressLoggerImpl(
             @Nullable ProgressLoggerImpl parent,
@@ -222,7 +228,9 @@ public class DefaultProgressLoggerFactory implements ProgressLoggerFactory {
                 totalProgress,
                 buildOperationStart,
                 buildOperationId,
-                buildOperationCategory
+                buildOperationCategory,
+                estimatedDurationMillis,
+                estimatedCriticalPathMillis
             ));
         }
 

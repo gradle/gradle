@@ -33,12 +33,23 @@ public interface TaskDetails {
     @Nullable
     String getProvenance();
 
+    /**
+     * The build tree path of the task, or null when this entry stands for tasks with the same name in several projects.
+     */
+    @Nullable
+    Path getBuildTreePath();
+
     static TaskDetails of(Path path, Task task) {
-        return of(path, new DslObject(task).getPublicType().getFullyQualifiedName(), task.getDescription(), TaskProvenanceUtil.getProvenance((TaskInternal) task).orElse(null));
+        TaskInternal taskInternal = (TaskInternal) task;
+        return of(path, new DslObject(task).getPublicType().getFullyQualifiedName(), task.getDescription(), TaskProvenanceUtil.getProvenance(taskInternal).orElse(null), taskInternal.getTaskIdentity().getBuildTreePath());
     }
 
     static TaskDetails of(Path path, String typeName, @Nullable String description, @Nullable String provenance) {
-        return new DefaultTaskDetails(path, typeName, description, provenance);
+        return of(path, typeName, description, provenance, null);
+    }
+
+    static TaskDetails of(Path path, String typeName, @Nullable String description, @Nullable String provenance, @Nullable Path buildTreePath) {
+        return new DefaultTaskDetails(path, typeName, description, provenance, buildTreePath);
     }
 
     final class DefaultTaskDetails implements TaskDetails {
@@ -46,17 +57,25 @@ public interface TaskDetails {
         private final String typeName;
         @Nullable private final String provenance;
         @Nullable private final String description;
+        @Nullable private final Path buildTreePath;
 
-        private DefaultTaskDetails(Path path, String typeName, @Nullable String description, @Nullable String provenance) {
+        private DefaultTaskDetails(Path path, String typeName, @Nullable String description, @Nullable String provenance, @Nullable Path buildTreePath) {
             this.path = path;
             this.typeName = typeName;
             this.provenance = provenance;
             this.description = description;
+            this.buildTreePath = buildTreePath;
         }
 
         @Override
         public Path getPath() {
             return path;
+        }
+
+        @Nullable
+        @Override
+        public Path getBuildTreePath() {
+            return buildTreePath;
         }
 
         @Override

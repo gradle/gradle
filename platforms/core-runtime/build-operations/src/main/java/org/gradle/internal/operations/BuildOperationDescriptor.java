@@ -30,6 +30,8 @@ public final class BuildOperationDescriptor {
     private final @Nullable Object details;
     private final BuildOperationMetadata metadata;
     private final int totalProgress;
+    private final @Nullable Long estimatedDurationMillis;
+    private final @Nullable Long estimatedCriticalPathMillis;
 
     private BuildOperationDescriptor(
         @Nullable OperationIdentifier id,
@@ -39,7 +41,9 @@ public final class BuildOperationDescriptor {
         @Nullable String progressDisplayName,
         @Nullable Object details,
         BuildOperationMetadata metadata,
-        int totalProgress
+        int totalProgress,
+        @Nullable Long estimatedDurationMillis,
+        @Nullable Long estimatedCriticalPathMillis
     ) {
         this.id = id;
         this.parentId = parentId;
@@ -49,6 +53,8 @@ public final class BuildOperationDescriptor {
         this.details = details;
         this.metadata = metadata;
         this.totalProgress = totalProgress;
+        this.estimatedDurationMillis = estimatedDurationMillis;
+        this.estimatedCriticalPathMillis = estimatedCriticalPathMillis;
     }
 
     @Nullable
@@ -108,6 +114,22 @@ public final class BuildOperationDescriptor {
         return totalProgress;
     }
 
+    /**
+     * The estimated total duration, in milliseconds, of the work of the operation, or null when unknown.
+     */
+    @Nullable
+    public Long getEstimatedDurationMillis() {
+        return estimatedDurationMillis;
+    }
+
+    /**
+     * The estimated duration, in milliseconds, of the longest chain of dependent work starting with the work of the operation, or null when unknown.
+     */
+    @Nullable
+    public Long getEstimatedCriticalPathMillis() {
+        return estimatedCriticalPathMillis;
+    }
+
     public static Builder displayName(String displayName) {
         return new Builder(displayName);
     }
@@ -123,6 +145,8 @@ public final class BuildOperationDescriptor {
             ", details=" + details +
             ", metadata=" + metadata +
             ", totalProgress=" + totalProgress +
+            ", estimatedDurationMillis=" + estimatedDurationMillis +
+            ", estimatedCriticalPathMillis=" + estimatedCriticalPathMillis +
             '}';
     }
 
@@ -134,6 +158,8 @@ public final class BuildOperationDescriptor {
         private @Nullable BuildOperationRef parent;
         private BuildOperationMetadata metadata = BuildOperationMetadata.NONE;
         private int totalProgress;
+        private @Nullable Long estimatedDurationMillis;
+        private @Nullable Long estimatedCriticalPathMillis;
 
         private Builder(String displayName) {
             this.displayName = displayName;
@@ -165,6 +191,16 @@ public final class BuildOperationDescriptor {
             return this;
         }
 
+        public Builder estimatedDurationMillis(@Nullable Long estimatedDurationMillis) {
+            this.estimatedDurationMillis = estimatedDurationMillis;
+            return this;
+        }
+
+        public Builder estimatedCriticalPathMillis(@Nullable Long estimatedCriticalPathMillis) {
+            this.estimatedCriticalPathMillis = estimatedCriticalPathMillis;
+            return this;
+        }
+
         /**
          * Define the parent of the operation. Needs to be the state of an operations that is running at the same time
          * the described operation will run (see: {@code org.gradle.internal.operations.BuildOperationRunner#getCurrentOperation()}).
@@ -187,7 +223,7 @@ public final class BuildOperationDescriptor {
         }
 
         public BuildOperationDescriptor build(@Nullable OperationIdentifier id, @Nullable OperationIdentifier defaultParentId) {
-            return new BuildOperationDescriptor(id, parent == null ? defaultParentId : parent.getId(), name, displayName, progressDisplayName, details, metadata, totalProgress);
+            return new BuildOperationDescriptor(id, parent == null ? defaultParentId : parent.getId(), name, displayName, progressDisplayName, details, metadata, totalProgress, estimatedDurationMillis, estimatedCriticalPathMillis);
         }
     }
 }

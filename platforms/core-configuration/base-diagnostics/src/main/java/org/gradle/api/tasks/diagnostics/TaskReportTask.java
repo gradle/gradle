@@ -25,6 +25,7 @@ import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectTaskLister;
 import org.gradle.api.internal.project.taskfactory.TaskIdentity;
+import org.gradle.api.internal.tasks.execution.durations.TaskDurationHistory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.tasks.Console;
 import org.gradle.api.tasks.TaskAction;
@@ -189,6 +190,18 @@ public abstract class TaskReportTask extends ConventionReportTask {
     @Incubating
     public abstract Property<Boolean> getShowProvenance();
 
+    /**
+     * Whether to show the average and recent durations of each task next to their names in the output.
+     *
+     * This property can be set via command-line option '--eta'.
+     *
+     * @since 9.9.0
+     */
+    @Console
+    @Option(option = "eta", description = "Show the average and recent durations of each task")
+    @Incubating
+    public abstract Property<Boolean> getShowEta();
+
     @TaskAction
     void generate() {
         reportGenerator().generateReport(
@@ -253,6 +266,7 @@ public abstract class TaskReportTask extends ConventionReportTask {
         renderer.showDetail(isDetail());
         renderer.showTypes(getShowTypes().get());
         renderer.showProvenance(getShowProvenance().get());
+        renderer.showEta(getShowEta().get() ? getTaskDurationHistory() : null);
         renderer.addDefaultTasks(reportModel.defaultTasks);
 
         DefaultGroupTaskReportModel model = reportModel.tasks;
@@ -333,5 +347,8 @@ public abstract class TaskReportTask extends ConventionReportTask {
 
     @Inject
     protected abstract ProjectTaskLister getProjectTaskLister();
+
+    @Inject
+    protected abstract TaskDurationHistory getTaskDurationHistory();
 
 }

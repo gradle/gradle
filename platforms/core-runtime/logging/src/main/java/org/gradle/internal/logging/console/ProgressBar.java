@@ -28,6 +28,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Locale;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -170,6 +171,31 @@ public class ProgressBar {
      * @param elapsedTime the build duration, also used as the clock for the animation
      */
     public List<Span> formatProgress(boolean timerEnabled, long elapsedTime) {
+        return formatProgress(timerEnabled ? "  [" + elapsedTimeFormatter.format(elapsedTime) + "]" : "", elapsedTime);
+    }
+
+    public List<Span> formatProgress(boolean timerEnabled, long elapsedTime, Optional<Long> estimatedRemainingTime) {
+        return formatProgress(timerEnabled, elapsedTime, estimatedRemainingTime, "");
+    }
+
+    /**
+     * Formats the line for a new frame, with the estimated time remaining after the build duration.
+     *
+     * @param estimateNote text shown after the estimated time remaining
+     */
+    public List<Span> formatProgress(boolean timerEnabled, long elapsedTime, Optional<Long> estimatedRemainingTime, String estimateNote) {
+        return formatProgress(timerEnabled
+            ? "  [" + elapsedTimeFormatter.format(elapsedTime) + " ELAPSED | " + estimatedRemainingTime.map(this::formatRemainingTime).orElse("ESTIMATE UNAVAILABLE") + "]" + estimateNote
+            : "", elapsedTime);
+    }
+
+    private String formatRemainingTime(long estimatedRemainingTime) {
+        // Whole seconds only, so the estimate does not flicker through millisecond values
+        long roundedUpRemainingTime = (Math.max(0, estimatedRemainingTime) + 999) / 1000 * 1000;
+        return (roundedUpRemainingTime == 0 ? "0s" : elapsedTimeFormatter.format(roundedUpRemainingTime)) + " ETA";
+    }
+
+    private List<Span> formatProgress(String timeText, long elapsedTime) {
         int queued = Math.max(0, total - done - running);
         int totalChange = previousTotal < 0 ? 0 : Integer.compare(total, previousTotal);
         if (totalChange > 0 && previousTotal > 0) {
@@ -177,7 +203,7 @@ public class ProgressBar {
         }
         previousTotal = total;
 
-        Spans textAfterBar = textAfterBar(timerEnabled, elapsedTime, queued);
+        Spans textAfterBar = textAfterBar(timeText, elapsedTime, queued);
         int width = barWidth(textAfterBar.length());
         // The last cell is kept for work that is not known yet, so the bar is never full while the build runs
         int countedWidth = width - 1;
@@ -219,7 +245,7 @@ public class ProgressBar {
         return line.trimmedTo(consoleMetaData.getCols() - 1);
     }
 
-    private Spans textAfterBar(boolean timerEnabled, long now, int queued) {
+    private Spans textAfterBar(String timeText, long now, int queued) {
         Spans text = new Spans();
         if (edge != Edge.NONE) {
             boolean bold = edge == Edge.STEADY || (now / PULSE_MILLIS) % 2 == 0;
@@ -242,9 +268,7 @@ public class ProgressBar {
                 text.append(StyledTextOutput.Style.Header, "  " + runningCount + " running, " + queuedCount + " queued" + flag);
             }
         }
-        if (timerEnabled) {
-            text.append(StyledTextOutput.Style.Header, "  [" + elapsedTimeFormatter.format(now) + "]");
-        }
+        text.append(StyledTextOutput.Style.Header, timeText);
         return text;
     }
 

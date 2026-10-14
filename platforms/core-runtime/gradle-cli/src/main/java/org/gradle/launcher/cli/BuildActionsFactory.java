@@ -39,6 +39,7 @@ import org.gradle.internal.installation.CurrentGradleInstallation;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.instrumentation.agent.AgentStatus;
 import org.gradle.internal.jvm.Jvm;
+import org.gradle.internal.logging.console.BuildStatusRenderer;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.internal.service.ServiceRegistry;
@@ -99,6 +100,10 @@ class BuildActionsFactory implements CommandLineActionCreator {
     public Action<? super ExecutionListener> createAction(CommandLineParser parser, ParsedCommandLine commandLine, Parameters parameters) {
         StartParameterInternal startParameter = parameters.getStartParameter();
         DaemonParameters daemonParameters = parameters.getDaemonParameters();
+        if (startParameter.isSimulateDevelocityOff()) {
+            // The console of this process renders the status line
+            System.setProperty(BuildStatusRenderer.SIMULATE_DEVELOCITY_OFF_PROPERTY, "true");
+        }
         BuildLayoutConfiguration buildLayoutConfiguration = parameters.getBuildLayout().toLayoutConfiguration();
 
         if (daemonParameters.isStop()) {

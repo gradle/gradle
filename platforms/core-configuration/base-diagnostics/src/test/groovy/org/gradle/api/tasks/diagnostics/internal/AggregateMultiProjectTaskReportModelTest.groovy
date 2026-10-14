@@ -16,6 +16,7 @@
 package org.gradle.api.tasks.diagnostics.internal
 
 import org.gradle.api.Task
+import org.gradle.util.Path
 
 class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
 
@@ -158,6 +159,58 @@ class AggregateMultiProjectTaskReportModelTest extends AbstractTaskModelSpec {
         then:
         model.groups == ['A'] as Set
         model.getTasksForGroup('A') == [task1, task2] as Set
+    }
+
+    def "merged entry keeps build tree path only when a single task has that name"() {
+        def single = TaskDetails.of(Path.path(":a:single"), "TYPE_NAME", null, null, Path.path(":a:single"))
+        def shared1 = TaskDetails.of(Path.path(":a:shared"), "TYPE_NAME", "first", null, Path.path(":a:shared"))
+        def shared2 = TaskDetails.of(Path.path(":b:shared"), "TYPE_NAME", "second", null, Path.path(":b:shared"))
+        TaskReportModel project1 = Mock()
+        TaskReportModel project2 = Mock()
+        _ * project1.groups >> (['group'] as LinkedHashSet)
+        _ * project1.getTasksForGroup('group') >> ([single, shared1] as LinkedHashSet)
+        _ * project2.groups >> (['group'] as LinkedHashSet)
+        _ * project2.getTasksForGroup('group') >> ([shared2] as LinkedHashSet)
+
+        def model = model(true, false, null, [])
+
+        when:
+        model.add(project1)
+        model.add(project2)
+        model.build()
+
+        then:
+        def tasks = model.getTasksForGroup('group') as List
+        tasks*.path*.path == ['shared', 'single']
+        tasks*.buildTreePath == [null, Path.path(":a:single")]
+        tasks[0].description == 'first'
+    }
+
+    def "merged entry drops build tree path when a same-named task is hidden or in another group"() {
+        def visible = TaskDetails.of(Path.path(":a:shared"), "TYPE_NAME", null, null, Path.path(":a:shared"))
+        def hidden = TaskDetails.of(Path.path(":b:shared"), "TYPE_NAME", null, null, Path.path(":b:shared"))
+        def otherGroup = TaskDetails.of(Path.path(":c:shared"), "TYPE_NAME", null, null, Path.path(":c:shared"))
+        TaskReportModel project1 = Mock()
+        TaskReportModel project2 = Mock()
+        TaskReportModel project3 = Mock()
+        _ * project1.groups >> (['group'] as LinkedHashSet)
+        _ * project1.getTasksForGroup('group') >> ([visible] as LinkedHashSet)
+        _ * project2.groups >> ([''] as LinkedHashSet)
+        _ * project2.getTasksForGroup('') >> ([hidden] as LinkedHashSet)
+        _ * project3.groups >> (['other'] as LinkedHashSet)
+        _ * project3.getTasksForGroup('other') >> ([otherGroup] as LinkedHashSet)
+
+        def model = model(true, false, 'group', [])
+
+        when:
+        model.add(project1)
+        model.add(project2)
+        model.add(project3)
+        model.build()
+
+        then:
+        model.groups == ['group'] as Set
+        (model.getTasksForGroup('group') as List)*.buildTreePath == [null]
     }
 
     def model(boolean mergeTasksWithSameName, boolean detail, String group, List<String> groups) {

@@ -25,6 +25,8 @@ import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.provider.ConfigurationTimeBarrier
 import org.gradle.api.internal.tasks.TaskDependencyFactory
+import org.gradle.api.internal.tasks.execution.durations.ExecutionTimeEstimate
+import org.gradle.api.internal.tasks.execution.durations.ExecutionTimeEstimates
 import org.gradle.execution.plan.AbstractExecutionPlanSpec
 import org.gradle.execution.plan.FinalizedExecutionPlan
 import org.gradle.execution.plan.LocalTaskNode
@@ -39,6 +41,8 @@ import org.gradle.execution.taskgraph.TaskExecutionGraphInternal
 import org.gradle.internal.build.ExecutionResult
 import org.gradle.internal.logging.text.StyledTextOutputFactory
 import org.gradle.internal.logging.text.TestStyledTextOutputFactory
+import org.gradle.internal.operations.BuildOperationCategory
+import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -59,13 +63,16 @@ class DefaultBuildWorkExecutorTest extends AbstractExecutionPlanSpec {
     PlanExecutor planExecutor = Mock(PlanExecutor)
     StyledTextOutputFactory textOutputFactory = new TestStyledTextOutputFactory()
     ConfigurationTimeBarrier configurationTimeBarrier = Mock(ConfigurationTimeBarrier)
+    TestBuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
+    ExecutionTimeEstimates executionTimeEstimates = Mock(ExecutionTimeEstimates)
 
     DefaultBuildWorkExecutor underTest = new DefaultBuildWorkExecutor(
         buildScopeServices,
         planExecutor,
         textOutputFactory,
         configurationTimeBarrier,
-        new TestBuildOperationRunner()
+        buildOperationRunner,
+        executionTimeEstimates
     )
 
     TaskExecutionGraphExecutionListener executionGraphExecutionListener = Mock(TaskExecutionGraphExecutionListener)
@@ -262,6 +269,36 @@ class DefaultBuildWorkExecutorTest extends AbstractExecutionPlanSpec {
         Mock(LocalTaskNode) {
             getOwningProject() >> owner
         }
+    }
+
+    def "attaches the estimate of the plan to the operation running its work"() {
+        def plan = newPlan()
+
+        when:
+        underTest.execute(gradle, plan)
+
+        then:
+        1 * executionTimeEstimates.estimatePlan(_) >> new ExecutionTimeEstimate(2500, 1200)
+        1 * planExecutor.process(_, _) >> ExecutionResult.succeeded()
+        runWorkDescriptor().estimatedDurationMillis == 2500
+        runWorkDescriptor().estimatedCriticalPathMillis == 1200
+    }
+
+    def "attaches no estimate when the plan has none"() {
+        def plan = newPlan()
+
+        when:
+        underTest.execute(gradle, plan)
+
+        then:
+        1 * executionTimeEstimates.estimatePlan(_) >> null
+        1 * planExecutor.process(_, _) >> ExecutionResult.succeeded()
+        runWorkDescriptor().estimatedDurationMillis == null
+        runWorkDescriptor().estimatedCriticalPathMillis == null
+    }
+
+    BuildOperationDescriptor runWorkDescriptor() {
+        buildOperationRunner.log.descriptors.find { it.metadata == BuildOperationCategory.RUN_WORK }
     }
 
     FinalizedExecutionPlan newPlan() {
