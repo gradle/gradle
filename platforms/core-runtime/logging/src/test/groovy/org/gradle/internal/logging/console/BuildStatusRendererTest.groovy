@@ -66,7 +66,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         statusBar.display == "[...............] 0% INITIALIZING [1s]"
     }
 
-    def "hides timer between build phases"() {
+    def "hides timer once the build finished"() {
         given:
         def event1 = startRootBuildOperation(1)
 
@@ -104,7 +104,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         statusBar.display == '[...............] 0% WAITING'
     }
 
-    def "formats configuration phase"() {
+    def "counts configured projects"() {
         given:
         def event1 = startRootBuildOperation(1)
         def event2 = startConfigureRootBuild(2, 1, 4)
@@ -146,7 +146,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         statusBar.display == '[###########....] 75% CONFIGURING [0ms]'
     }
 
-    def "formats configuration phase with nested builds"() {
+    def "counts projects of nested builds"() {
         given:
         def event1 = startRootBuildOperation(1)
         def event2 = startConfigureRootBuild(2, 1, 4)
@@ -185,7 +185,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         statusBar.display == '[#..............] 10% CONFIGURING [0ms]'
     }
 
-    def "formats execution phase"() {
+    def "counts executed work items"() {
         given:
         def event1 = startRootBuildOperation(1)
         def event2 = startExecuteRootBuild(2, 1, 4)
@@ -221,7 +221,7 @@ class BuildStatusRendererTest extends OutputSpecification {
         statusBar.display == '[###............] 25% EXECUTING [0ms]'
     }
 
-    def "formats execution phase with nested builds"() {
+    def "counts work items of nested builds"() {
         given:
         def event1 = startRootBuildOperation(1)
         def event2 = startExecuteRootBuild(2, 1, 4)

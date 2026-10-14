@@ -36,7 +36,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
     }
 
     @UnsupportedWithIsolatedProjects(because = "test verifies cross-project configuration ordering via HTTP-blocking checkpoints; BlockingHttpServer teardown failures escape ToBeFixed's catch")
-    def "shows progress bar and percent phase completion"() {
+    def "shows progress bar and percent build completion"() {
         createDirs("a", "b", "c", "d")
         settingsFile << """
             ${server.callFromBuild('settings')}
@@ -124,7 +124,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         waitForFinish()
     }
 
-    def "shows progress bar and percent phase completion with included build"() {
+    def "shows progress bar and percent build completion with included build"() {
         createDirs("child")
         settingsFile << """
             ${server.callFromBuild('settings')}
@@ -207,7 +207,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
         waitForFinish()
     }
 
-    def "shows progress bar and percent phase completion with buildSrc build"() {
+    def "shows progress bar and percent build completion with buildSrc build"() {
         settingsFile << """
             ${server.callFromBuild('settings')}
         """
@@ -361,7 +361,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
     }
 
     @ToBeFixedForIsolatedProjects(because = "multi-project tests via BlockingHttpServer/parallel fail under IP")
-    def "shows progress bar and percent phase completion with artifact transforms"() {
+    def "shows progress bar and percent build completion with artifact transforms"() {
         given:
         setupTransformBuild()
         def jar = server.expectAndBlock('jar')
@@ -404,7 +404,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
     @Issue("https://github.com/gradle/gradle/issues/24370")
     @ToBeFixedForIsolatedProjects(because = "multi-project tests via BlockingHttpServer/parallel fail under IP")
-    def "shows progress bar and percent phase completion with non-planned planned artifact transforms"() {
+    def "shows progress bar and percent build completion with non-planned planned artifact transforms"() {
         given:
         setupTransformBuild()
         def jar = server.expectAndBlock('jar')

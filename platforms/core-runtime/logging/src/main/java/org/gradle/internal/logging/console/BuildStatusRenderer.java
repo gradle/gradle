@@ -33,6 +33,11 @@ import java.util.Locale;
 import java.util.Set;
 
 /**
+ * Shows one progress bar for the whole build, with the name of the current phase next to it.
+ *
+ * <p>The bar counts the projects to configure and the work items to run, in all builds of the build tree.
+ * The total grows when Gradle finds more work, so the bar can move backwards.</p>
+ *
  * <p>This listener displays nothing unless it receives periodic {@link UpdateNowEvent} clock events.</p>
  */
 public class BuildStatusRenderer implements OutputEventListener {
@@ -47,8 +52,8 @@ public class BuildStatusRenderer implements OutputEventListener {
     private final ConsoleMetaData consoleMetaData;
     private @Nullable OperationIdentifier buildProgressOperationId;
     private @Nullable Phase currentPhase;
-    private final Set<OperationIdentifier> currentPhaseChildren = new HashSet<>();
     private final Set<OperationIdentifier> configuringProjects = new HashSet<>();
+    private final Set<OperationIdentifier> runningWorkItems = new HashSet<>();
     private int expectedProjects;
     private int configuredProjects;
     private long currentTimePeriod;
@@ -81,16 +86,10 @@ public class BuildStatusRenderer implements OutputEventListener {
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_ROOT_BUILD) {
                     // Once the root build starts configuring, we are in Configuring phase
                     phaseStarted(startEvent, Phase.Configuring);
-                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_BUILD && currentPhase != null) {
-                    projectsDiscovered(startEvent);
-                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_PROJECT && currentPhase != null) {
-                    configuringProjects.add(startEvent.getProgressOperationId());
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_MAIN_TASKS) {
                     phaseStarted(startEvent, Phase.Executing);
-                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_WORK && currentPhase != null) {
-                    phaseHasMoreProgress(startEvent);
-                } else if (startEvent.getBuildOperationCategory().isTopLevelWorkItem() && currentPhase != null) {
-                    currentPhaseChildren.add(startEvent.getProgressOperationId());
+                } else if (currentPhase != null) {
+                    workStarted(startEvent);
                 }
             }
         } else if (event instanceof ProgressCompleteEvent) {
@@ -99,8 +98,8 @@ public class BuildStatusRenderer implements OutputEventListener {
                 buildEnded();
             } else if (configuringProjects.remove(completeEvent.getProgressOperationId())) {
                 projectConfigured(completeEvent);
-            } else if (currentPhaseChildren.remove(completeEvent.getProgressOperationId())) {
-                phaseProgressed(completeEvent);
+            } else if (runningWorkItems.remove(completeEvent.getProgressOperationId())) {
+                workDone(completeEvent);
             }
         }
 
@@ -121,70 +120,86 @@ public class BuildStatusRenderer implements OutputEventListener {
         console.flush();
     }
 
-    private void phaseStarted(ProgressStartEvent progressStartEvent, Phase phase) {
+    private void phaseStarted(ProgressStartEvent startEvent, Phase phase) {
         timerEnabled = true;
         String phaseLabel = phase.name().toUpperCase(Locale.ROOT);
         if (currentPhase == null || progressBar == null) {
-            currentPhaseChildren.clear();
-            configuringProjects.clear();
-            expectedProjects = 0;
-            configuredProjects = 0;
+            resetCounts();
             progressBar = ProgressBar.createProgressBar(consoleMetaData, phaseLabel, 0);
         } else {
             progressBar.setPhase(phaseLabel);
         }
         currentPhase = phase;
         if (phase == Phase.Configuring) {
-            projectsDiscovered(progressStartEvent);
+            projectsDiscovered(startEvent);
         } else {
             if (phase == Phase.Executing) {
                 dropProjectsNotConfigured();
             }
-            phaseHasMoreProgress(progressStartEvent);
+            addToTotal(startEvent.getTotalProgress());
         }
     }
 
-    private void projectsDiscovered(ProgressStartEvent progressStartEvent) {
-        expectedProjects += progressStartEvent.getTotalProgress();
-        phaseHasMoreProgress(progressStartEvent);
+    private void workStarted(ProgressStartEvent startEvent) {
+        BuildOperationCategory category = startEvent.getBuildOperationCategory();
+        if (category == BuildOperationCategory.CONFIGURE_BUILD) {
+            projectsDiscovered(startEvent);
+        } else if (category == BuildOperationCategory.CONFIGURE_PROJECT) {
+            configuringProjects.add(startEvent.getProgressOperationId());
+        } else if (category == BuildOperationCategory.RUN_WORK) {
+            addToTotal(startEvent.getTotalProgress());
+        } else if (category.isTopLevelWorkItem()) {
+            runningWorkItems.add(startEvent.getProgressOperationId());
+        }
     }
 
-    private void projectConfigured(ProgressCompleteEvent progressEvent) {
+    private void projectsDiscovered(ProgressStartEvent startEvent) {
+        expectedProjects += startEvent.getTotalProgress();
+        addToTotal(startEvent.getTotalProgress());
+    }
+
+    private void projectConfigured(ProgressCompleteEvent completeEvent) {
         configuredProjects++;
-        if (configuredProjects > expectedProjects && progressBar != null) {
+        if (configuredProjects > expectedProjects) {
             expectedProjects = configuredProjects;
-            progressBar.moreProgress(1);
+            addToTotal(1);
         }
-        phaseProgressed(progressEvent);
+        workDone(completeEvent);
     }
 
     // Some projects are never configured, for example with configure-on-demand
     private void dropProjectsNotConfigured() {
         int notConfigured = expectedProjects - configuredProjects;
-        if (notConfigured > 0 && progressBar != null) {
+        if (notConfigured > 0) {
             expectedProjects = configuredProjects;
-            progressBar.moreProgress(-notConfigured);
+            addToTotal(-notConfigured);
         }
     }
 
-    private void phaseHasMoreProgress(ProgressStartEvent progressStartEvent) {
+    private void addToTotal(int count) {
         if (progressBar != null) {
-            progressBar.moreProgress(progressStartEvent.getTotalProgress());
+            progressBar.moreProgress(count);
         }
     }
 
-    private void phaseProgressed(ProgressCompleteEvent progressEvent) {
+    private void workDone(ProgressCompleteEvent completeEvent) {
         if (progressBar != null) {
-            progressBar.update(progressEvent.isFailed());
+            progressBar.update(completeEvent.isFailed());
         }
+    }
+
+    private void resetCounts() {
+        configuringProjects.clear();
+        runningWorkItems.clear();
+        expectedProjects = 0;
+        configuredProjects = 0;
     }
 
     private void buildEnded() {
         progressBar = ProgressBar.createProgressBar(consoleMetaData, "WAITING", 1);
         currentPhase = null;
         buildProgressOperationId = null;
-        currentPhaseChildren.clear();
-        configuringProjects.clear();
+        resetCounts();
         timerEnabled = false;
     }
 }
