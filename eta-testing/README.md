@@ -85,3 +85,11 @@ The tasks of `lib` do not depend on `intro`, as an included build cannot depend 
 
 Shows the ETA covering work in an included build: the included build schedules its work separately from the root build, and the estimate covers both.
 The tasks of `lib` are recorded in the root build's history, as `:lib:libA` and `:lib:libB`, since the history is kept per build tree.
+
+### test-build-transform
+
+A task in the `producer` project (2s) writes a file that a task in the root project (2s) consumes through an artifact transform (1s).
+
+Shows the ETA unavailable on every run, even once every task has a recorded duration: the transform of another project's artifact runs as its own step in the plan, and has no recorded duration.
+This is common in real multi-project builds.
+A transform of a file dependency, by contrast, runs inside the task that consumes it, so its time counts as part of that task and the ETA stays available.
