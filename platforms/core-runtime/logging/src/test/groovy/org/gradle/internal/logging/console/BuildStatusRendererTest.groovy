@@ -464,7 +464,72 @@ class BuildStatusRendererTest extends OutputSpecification {
         statusBar.display == '[###############] 100% EXECUTING [0ms]'
     }
 
+    def "starts a new bar for each build"() {
+        given:
+        currentTimeMs = 1000
+        renderer.onOutput(startRootBuildOperation(1))
+        renderer.onOutput(startConfigureRootBuild(2, 1, 1))
+        renderer.onOutput(startConfigureProject(3, 2))
+        renderer.onOutput(complete(3))
+        renderer.onOutput(complete(2))
+
+        when:
+        renderer.onOutput(complete(1))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[...............] 0% WAITING'
+
+        when:
+        currentTimeMs += 5000
+        renderer.onOutput(startRootBuildOperation(10))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[...............] 0% INITIALIZING [0ms]'
+
+        when:
+        renderer.onOutput(startConfigureRootBuild(11, 10, 2))
+        renderer.onOutput(startConfigureProject(12, 11))
+        renderer.onOutput(complete(12))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[#######........] 50% CONFIGURING [0ms]'
+
+        when:
+        renderer.onOutput(complete(11))
+        renderer.onOutput(complete(10))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[...............] 0% WAITING'
+    }
+
+    def "ignores operations without a parent that are not builds"() {
+        when:
+        renderer.onOutput(startWithoutParent(1))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == ''
+
+        when:
+        renderer.onOutput(complete(1))
+        renderer.onOutput(startRootBuildOperation(2))
+        renderer.onOutput(complete(2))
+        renderer.onOutput(startWithoutParent(3))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[...............] 0% WAITING'
+    }
+
     def startRootBuildOperation(Long id) {
+        new ProgressStartEvent(new OperationIdentifier(id), null, currentTimeMs, "category", "description", null, null, 0, true, new OperationIdentifier(id), BuildOperationCategory.RUN_BUILD)
+    }
+
+    def startWithoutParent(Long id) {
         new ProgressStartEvent(new OperationIdentifier(id), null, currentTimeMs, "category", "description", null, null, 0, true, new OperationIdentifier(id), BuildOperationCategory.UNCATEGORIZED)
     }
 

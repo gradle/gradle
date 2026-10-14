@@ -77,11 +77,12 @@ public class BuildStatusRenderer implements OutputEventListener {
         if (event instanceof ProgressStartEvent) {
             ProgressStartEvent startEvent = (ProgressStartEvent) event;
             if (startEvent.isBuildOperationStart()) {
-                if (buildStartTimestamp == 0 && startEvent.getParentProgressOperationId() == null) {
-                    // The very first event starts the Initializing phase
+                if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_BUILD) {
+                    // Each build starts a new bar, also each build of a continuous build
                     // TODO - should use BuildRequestMetaData to determine the build start time
                     buildStartTimestamp = startEvent.getTimestamp();
                     buildProgressOperationId = startEvent.getProgressOperationId();
+                    currentPhase = null;
                     phaseStarted(startEvent, Phase.Initializing);
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_ROOT_BUILD) {
                     // Once the root build starts configuring, we are in Configuring phase

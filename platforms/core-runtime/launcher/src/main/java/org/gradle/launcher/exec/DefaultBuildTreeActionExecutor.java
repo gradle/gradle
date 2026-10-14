@@ -31,6 +31,7 @@ import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.id.UniqueId;
 import org.gradle.internal.invocation.BuildAction;
+import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -124,7 +125,7 @@ public class DefaultBuildTreeActionExecutor implements BuildTreeActionExecutor {
 
                 @Override
                 public BuildOperationDescriptor.Builder description() {
-                    return BuildOperationDescriptor.displayName("Run build").details(DETAILS);
+                    return BuildOperationDescriptor.displayName("Run build").details(DETAILS).metadata(BuildOperationCategory.RUN_BUILD);
                 }
             });
         } finally {

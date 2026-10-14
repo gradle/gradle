@@ -23,6 +23,12 @@ package org.gradle.internal.operations;
  */
 public enum BuildOperationCategory implements BuildOperationMetadata {
     /**
+     * Run a build, from initialization to the end of task execution. Includes all the other operations of the build.
+     * In a continuous build, each build is a separate operation.
+     */
+    RUN_BUILD(false, false, false),
+
+    /**
      * Configure the root build. May also include nested {@link #CONFIGURE_BUILD} and {@link #RUN_WORK} operations.
      */
     CONFIGURE_ROOT_BUILD(false, false, false),
