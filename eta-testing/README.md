@@ -70,3 +70,10 @@ Shows the ETA following the longest chain of dependent tasks, about 14s, rather 
 
 It also shows a weakness: while only `a` runs, the most tasks seen running at once is 1, so the remaining work is not spread across any parallelism and the ETA shows over a minute.
 It drops to the right value once the `b` tasks start.
+
+### test-build-long-chain
+
+A chain of 20 tasks, each taking 1s and depending on the previous one, runs alongside 40 independent tasks that also take 1s each.
+
+Shows the ETA following the 20s chain, even though there is twice as much independent work: spread across the parallel workers, the independent work finishes in a few seconds.
+The progress bar passes two thirds within 2s, while the ETA correctly still shows about 18s.
