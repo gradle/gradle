@@ -49,9 +49,10 @@ import java.util.function.Consumer;
 
 class DefaultBuildController implements BuildController {
     private enum State {
-        DiscoveringTasks, ReadyToRun, RunningTasks, Finished
+        DiscoveringTasks, ReadyToRun, RunningTasks, Finished, Broken
     }
 
+    private final BuildState build;
     private final BuildWorkGraph workGraph;
     private final Set<ExportedTaskNode> scheduled = new LinkedHashSet<>();
     private final Set<ExportedTaskNode> queuedForExecution = new LinkedHashSet<>();
@@ -60,8 +61,26 @@ class DefaultBuildController implements BuildController {
     private State state = State.DiscoveringTasks;
 
     public DefaultBuildController(BuildState build, WorkerLeaseService workerLeaseService) {
+        this.build = build;
         this.workerLeaseService = workerLeaseService;
         this.workGraph = build.getWorkGraph().newWorkGraph();
+    }
+
+    @Override
+    public BuildState getBuild() {
+        return build;
+    }
+
+    @Override
+    public void markBroken() {
+        assertInState(State.DiscoveringTasks);
+        queuedForExecution.clear();
+        state = State.Broken;
+    }
+
+    @Override
+    public boolean isBroken() {
+        return state == State.Broken;
     }
 
     @Override
@@ -125,6 +144,11 @@ class DefaultBuildController implements BuildController {
     @Override
     @SuppressWarnings("FutureReturnValueIgnored") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     public void startExecution(ExecutorService executorService, Consumer<ExecutionResult<Void>> completionHandler) {
+        if (state == State.Broken) {
+            // The configuration failure is reported by the build tree work graph, not as a task failure of this build
+            completionHandler.accept(ExecutionResult.succeeded());
+            return;
+        }
         assertInState(State.ReadyToRun);
         executorService.submit(new BuildOpRunnable(CurrentBuildOperationRef.instance().get(), completionHandler));
         state = State.RunningTasks;

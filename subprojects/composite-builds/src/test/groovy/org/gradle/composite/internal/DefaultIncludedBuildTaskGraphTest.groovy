@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal
 
+import org.gradle.internal.buildtree.ResilientTaskScheduling
 import org.gradle.execution.plan.PlanExecutor
 import org.gradle.internal.build.BuildIdentity
 import org.gradle.util.Path
@@ -29,7 +30,7 @@ import org.gradle.test.fixtures.work.TestWorkerLeaseService
 class DefaultIncludedBuildTaskGraphTest extends AbstractIncludedBuildTaskGraphTest {
     def workerLeaseService = new TestWorkerLeaseService()
     def preparer = Mock(BuildTreeWorkGraphPreparer)
-    def graph = new DefaultIncludedBuildTaskGraph(executorFactory, new TestBuildOperationRunner(), buildStateRegistry, workerLeaseService, Stub(PlanExecutor), preparer)
+    def graph = new DefaultIncludedBuildTaskGraph(executorFactory, new TestBuildOperationRunner(), buildStateRegistry, workerLeaseService, Stub(PlanExecutor), preparer, ResilientTaskScheduling.disabled())
 
     def "does no work when nothing scheduled"() {
         when:
