@@ -24,11 +24,9 @@ import org.gradle.api.logging.LogLevel
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildActionModelRequirements
-import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeModelCreatorResult
 import org.gradle.internal.buildtree.BuildTreeModelSideEffect
 import org.gradle.internal.buildtree.BuildTreeWorkGraph
-import org.gradle.internal.buildtree.RootBuildConfigurationProgressHelper
 import org.gradle.internal.buildtree.ToolingModelRequestContext
 import org.gradle.internal.cc.base.logger
 import org.gradle.internal.cc.base.serialize.HostServiceProvider
@@ -105,32 +103,8 @@ class DefaultConfigurationCache internal constructor(
     private val modelSideEffectExecutor: ConfigurationCacheBuildTreeModelSideEffectExecutor,
     private val deferredRootBuildGradle: DeferredRootBuildGradle,
     private val gradlePropertiesController: GradlePropertiesController,
-    private val entryCollector: ConfigurationCacheEntryCollector,
-    private val buildModelParameters: BuildModelParameters
-) : BuildTreeConfigurationCache, RootBuildConfigurationProgressHelper, Stoppable {
-
-    internal
-    class CountedOperations(val workGraph: Boolean, val store: Boolean, val loadAfterStore: Boolean) {
-        companion object {
-            fun of(cacheAction: ConfigurationCacheAction, runsTasks: Boolean, modelBuilding: Boolean): CountedOperations {
-                val store = (cacheAction == Store || cacheAction is Update) && runsTasks
-                return CountedOperations(
-                    workGraph = runsTasks,
-                    store = store,
-                    loadAfterStore = store && !modelBuilding
-                )
-            }
-        }
-    }
-
-    private
-    lateinit var countedOperations: CountedOperations
-
-    override fun isWorkGraphCounted(): Boolean = countedOperations.workGraph
-
-    override fun isStoreCounted(): Boolean = countedOperations.store
-
-    override fun isLoadAfterStoreCounted(): Boolean = countedOperations.loadAfterStore
+    private val entryCollector: ConfigurationCacheEntryCollector
+) : BuildTreeConfigurationCache, Stoppable {
 
     private
     lateinit var cacheAction: ConfigurationCacheAction
@@ -277,7 +251,6 @@ class DefaultConfigurationCache internal constructor(
 
             SkipStore -> {}
         }
-        countedOperations = CountedOperations.of(cacheAction, buildActionModelRequirements.isRunsTasks, buildModelParameters.isModelBuilding)
         // TODO:isolated find a way to avoid this late binding
         modelSideEffectExecutor.sideEffectStore = buildTreeModelSideEffects
     }
@@ -648,8 +621,7 @@ class DefaultConfigurationCache internal constructor(
             InstrumentedInputs.discardListener()
         }
 
-        val totalProgress = if (countedOperations.store) 0 else 1
-        buildOperationRunner.withWorkGraphStoreOperation(cacheKey.string, totalProgress) {
+        buildOperationRunner.withWorkGraphStoreOperation(cacheKey.string) {
             val stateStoreResult = runAndStore(stateType = StateType.Work) { stateFile: ConfigurationCacheStateFile ->
                 writeConfigurationCacheState(rootBuild, stateFile)
             }
@@ -705,8 +677,7 @@ class DefaultConfigurationCache internal constructor(
         // when loading the task graph.
         scopeRegistryListener.dispose()
 
-        val totalProgress = if (loadAfterStore && countedOperations.loadAfterStore) 0 else 1
-        val finalizedGraph = buildOperationRunner.withWorkGraphLoadOperation(totalProgress) {
+        val finalizedGraph = buildOperationRunner.withWorkGraphLoadOperation {
             val storeLoadResult = entryStore.useForStateLoad(StateType.Work) { stateFile: ConfigurationCacheStateFile ->
                 val (buildInvocationId, workGraph) = cacheIO.readRootBuildStateFrom(stateFile, loadAfterStore, graph, graphBuilder)
                 LoadResultMetadata(buildInvocationId) to workGraph

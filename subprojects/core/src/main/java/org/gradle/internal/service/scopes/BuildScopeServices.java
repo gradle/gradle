@@ -195,7 +195,6 @@ import org.gradle.internal.buildoption.FeatureFlags;
 import org.gradle.internal.buildtree.BuildInclusionCoordinator;
 import org.gradle.internal.buildtree.BuildModelParameters;
 import org.gradle.internal.buildtree.IntermediateBuildActionRunner;
-import org.gradle.internal.buildtree.RootBuildConfigurationProgressHelper;
 import org.gradle.internal.classpath.CachedClasspathTransformer;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
@@ -654,8 +653,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
         BuildInclusionCoordinator inclusionCoordinator,
         BuildLoader buildLoader,
         BuildOperationRunner buildOperationRunner,
-        BuildModelParameters buildModelParameters,
-        RootBuildConfigurationProgressHelper rootBuildConfigurationProgressHelper
+        BuildModelParameters buildModelParameters
     ) {
         return new BuildOperationFiringProjectsPreparer(
             new BuildTreePreparingProjectsPreparer(
@@ -666,9 +664,7 @@ public class BuildScopeServices implements ServiceRegistrationProvider {
                 buildLoader,
                 inclusionCoordinator,
                 buildSourceBuilder),
-            buildOperationRunner,
-            rootBuildConfigurationProgressHelper
-        );
+            buildOperationRunner);
     }
 
     @Provides

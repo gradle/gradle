@@ -51,7 +51,7 @@ class ConfigurationCacheBuildOperationsTest {
         val stateFile = testDirectoryProvider.file("stateFile")
 
         // when:
-        buildOperationRunner.withWorkGraphStoreOperation("key", 1) {
+        buildOperationRunner.withWorkGraphStoreOperation("key") {
             WorkGraphStoreResult(listOf(stateFile), null)
         }
 
@@ -76,7 +76,7 @@ class ConfigurationCacheBuildOperationsTest {
         val stateFile = testDirectoryProvider.file("stateFile")
 
         // when:
-        buildOperationRunner.withWorkGraphLoadOperation(1) {
+        buildOperationRunner.withWorkGraphLoadOperation {
             WorkGraphLoadResult(listOf(stateFile), UUID.randomUUID().toString()) to workGraph
         }
 

@@ -23,7 +23,6 @@ import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.buildtree.BuildTreeFinishExecutor
 import org.gradle.internal.buildtree.BuildTreeLifecycleController
 import org.gradle.internal.buildtree.BuildTreeWorkExecutor
-import org.gradle.internal.buildtree.RootBuildConfigurationProgressHelper
 import org.gradle.internal.cc.impl.VintageBuildTreeLifecycleControllerFactory
 import org.gradle.internal.model.StateTransitionControllerFactory
 import org.gradle.internal.operations.BuildOperationExecutor
@@ -35,7 +34,6 @@ import org.gradle.tooling.provider.model.internal.ToolingModelParameterCarrier
  */
 internal class BarrierAwareBuildTreeLifecycleControllerFactory(
     private val runner: VintageConfigurationTimeActionRunner,
-    private val rootBuildConfigurationProgressHelper: RootBuildConfigurationProgressHelper,
     buildModelParameters: BuildModelParameters,
     taskGraph: BuildTreeWorkGraphController,
     buildOperationExecutor: BuildOperationExecutor,
@@ -58,7 +56,7 @@ internal class BarrierAwareBuildTreeLifecycleControllerFactory(
         finishExecutor: BuildTreeFinishExecutor
     ): BuildTreeLifecycleController {
         return createControllerImpl(
-            BarrierAwareBuildTreeWorkPreparer(runner, createWorkPreparer(targetBuild, rootBuildConfigurationProgressHelper.isWorkGraphCounted)),
+            BarrierAwareBuildTreeWorkPreparer(runner, createWorkPreparer(targetBuild)),
             BarrierAwareBuildTreeModelCreator(runner, createModelCreator(targetBuild)),
             targetBuild,
             workExecutor,

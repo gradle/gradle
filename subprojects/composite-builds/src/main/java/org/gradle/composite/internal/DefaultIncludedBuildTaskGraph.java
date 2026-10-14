@@ -201,7 +201,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         }
 
         @Override
-        public FinalizedGraph scheduleWork(int totalProgress, Consumer<? super Builder> action) {
+        public FinalizedGraph scheduleWork(Consumer<? super Builder> action) {
             assertIsOwner();
             expectInState(State.NotPrepared);
             state = State.Preparing;
@@ -220,7 +220,6 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
                 public BuildOperationDescriptor.Builder description() {
                     return BuildOperationDescriptor.displayName("Calculate build tree task graph")
                         .metadata(BuildOperationCategory.BUILD_WORK_GRAPH)
-                        .totalProgress(totalProgress)
                         .details(new CalculateTreeTaskGraphBuildOperationType.Details() {
                         });
                 }
