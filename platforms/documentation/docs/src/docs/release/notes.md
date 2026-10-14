@@ -103,21 +103,32 @@ This makes it easy to see how far a long-running build has progressed while the 
 
 See the [Rich console](userguide/command_line_interface.html#sec:rich_console) section in the Gradle User Manual for more details.
 
-#### One progress bar for the whole build
+#### A progress bar for the whole build
 
-The progress bar of the rich console now shows the progress of the whole build.
+The progress bar of the rich console now shows the progress of the whole build, with the work that is running and the work that is queued:
+
+```
+│███████▏▶·····················│» EXECUTING  ▶ 8  … 5,312   [1m 12s]
+```
+
 Previously, the bar started again at 0% in each build phase, so a build that was almost done could show `0% EXECUTING`.
 
-The bar now counts the projects to configure and the work items to run, such as tasks and artifact transforms, from the start of the build to its end.
+The bar counts the projects to configure and the work items to run, such as tasks and artifact transforms, from the start of the build to its end.
 It includes the work of all builds in the build tree, such as `buildSrc`, included builds and plugin builds.
-The name of the current phase stays next to the bar:
-
-```
-│████████████▊··│ 85% EXECUTING [12s]
-```
+The bar has three segments: done work, running work (`▶`) and queued work (`·`).
+The name of the current phase stays next to the bar, followed by the running count (`▶ 8`) and the queued count (`… 5,312`), which replace the percentage.
 
 Gradle finds more work while the build runs. For example, it only knows the tasks to run after the build is configured.
-When Gradle finds more work, the total grows and the bar can move backwards.
+When Gradle finds more work, the total grows and the bar can move backwards. A `▲` after the queued count shows that this just happened.
+The `»` after the bar pulses until the tasks to run are known.
+When a lot of new work arrives, the bar shows the done work larger than its share, so that it stays visible, and then slowly goes back to its real share.
+
+On consoles without Unicode support, the line uses ASCII characters and words:
+
+```
+[#######=......................]> EXECUTING  8 running, 5,312 queued   [1m 12s]
+```
+
 The taskbar progress also shows the progress of the whole build.
 
 See the [Rich console](userguide/command_line_interface.html#sec:rich_console) section in the Gradle User Manual for more details.

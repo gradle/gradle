@@ -772,9 +772,14 @@ image::rich-cli.png[alt="Gradle Rich Console"]
 
 Features:
 
-* Progress bar and timer visually describe the overall status. The bar shows the progress of the whole build, with the name of the current phase next to it. It can move backwards when Gradle finds more work.
+* Progress bar and timer visually describe the overall status. The bar shows the progress of the whole build, in three segments: done, running (`▶`) and queued (`·`) work. Next to it are the current phase, the number of running and queued work items, and the build duration. The bar can move backwards when Gradle finds more work, and a `▲` shows when this happens.
 * Parallel work-in-progress lines below describe what is happening now
 * Colors and fonts are used to highlight significant output and errors
+
+[listing]
+----
+│███████▏▶·····················│» EXECUTING  ▶ 8  … 5,312   [1m 12s]
+----
 
 [[sec:command_line_execution_options]]
 == Execution options
