@@ -27,10 +27,12 @@ public class WorkItemProgressEventSerializer implements Serializer<WorkItemProgr
     @Override
     public void write(Encoder encoder, WorkItemProgressEvent event) throws Exception {
         encoder.writeSmallInt(event.getKind().ordinal());
+        encoder.writeSmallInt(event.getCount());
     }
 
     @Override
     public WorkItemProgressEvent read(Decoder decoder) throws Exception {
-        return new WorkItemProgressEvent(KINDS[decoder.readSmallInt()]);
+        WorkItemProgressEvent.Kind kind = KINDS[decoder.readSmallInt()];
+        return new WorkItemProgressEvent(kind, decoder.readSmallInt());
     }
 }

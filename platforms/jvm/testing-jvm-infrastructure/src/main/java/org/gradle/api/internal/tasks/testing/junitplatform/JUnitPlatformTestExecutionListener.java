@@ -26,6 +26,7 @@ import org.gradle.api.internal.tasks.testing.DefaultTestKeyValueDataEvent;
 import org.gradle.api.internal.tasks.testing.DefaultTestSuiteDescriptor;
 import org.gradle.api.internal.tasks.testing.TestCompleteEvent;
 import org.gradle.api.internal.tasks.testing.TestDescriptorInternal;
+import org.gradle.api.internal.tasks.testing.TestDiscoveryEvent;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.internal.tasks.testing.TestStartEvent;
 import org.gradle.api.internal.tasks.testing.failure.DefaultThrowableToTestFailureMapper;
@@ -212,6 +213,14 @@ public class JUnitPlatformTestExecutionListener implements TestExecutionListener
     @Override
     public void testPlanExecutionStarted(TestPlan testPlan) {
         this.currentTestPlan = testPlan;
+        resultProcessor.discovered(new TestDiscoveryEvent(Math.toIntExact(testPlan.countTestIdentifiers(TestIdentifier::isTest))));
+    }
+
+    @Override
+    public void dynamicTestRegistered(TestIdentifier testIdentifier) {
+        if (testIdentifier.isTest()) {
+            resultProcessor.discovered(new TestDiscoveryEvent(1));
+        }
     }
 
     @Override

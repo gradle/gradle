@@ -19,7 +19,7 @@ package org.gradle.internal.logging.events;
 import org.gradle.api.logging.LogLevel;
 
 /**
- * Reports the submission or completion of a work item, each of which counts as a unit of build progress.
+ * Reports the submission or completion of work items, each of which counts as a unit of build progress.
  */
 public class WorkItemProgressEvent extends OutputEvent {
 
@@ -28,18 +28,24 @@ public class WorkItemProgressEvent extends OutputEvent {
     }
 
     private final Kind kind;
+    private final int count;
 
-    public WorkItemProgressEvent(Kind kind) {
+    public WorkItemProgressEvent(Kind kind, int count) {
         this.kind = kind;
+        this.count = count;
     }
 
     public Kind getKind() {
         return kind;
     }
 
+    public int getCount() {
+        return count;
+    }
+
     @Override
     public String toString() {
-        return WorkItemProgressEvent.class.getSimpleName() + " " + kind;
+        return WorkItemProgressEvent.class.getSimpleName() + " " + kind + " " + count;
     }
 
     @Override

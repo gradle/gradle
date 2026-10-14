@@ -346,6 +346,27 @@ class BuildStatusRendererTest extends OutputSpecification {
         statusBar.display == '[###########....] 75% EXECUTING [0ms]'
     }
 
+    def "counts batches of work items"() {
+        given:
+        renderer.onOutput(startRootBuildOperation(1))
+        renderer.onOutput(startExecuteRootBuild(2, 1, 0))
+
+        when:
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUBMITTED, 4))
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUCCEEDED, 2))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[#######........] 50% EXECUTING [0ms]'
+
+        when:
+        renderer.onOutput(workItem(WorkItemProgressEvent.Kind.SUCCEEDED, 5))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == '[###############] 100% EXECUTING [0ms]'
+    }
+
     def "ignores work items outside execution phase"() {
         given:
         renderer.onOutput(startRootBuildOperation(1))
@@ -368,8 +389,8 @@ class BuildStatusRendererTest extends OutputSpecification {
         statusBar.display == '[...............] 0% EXECUTING [0ms]'
     }
 
-    def workItem(WorkItemProgressEvent.Kind kind) {
-        new WorkItemProgressEvent(kind)
+    def workItem(WorkItemProgressEvent.Kind kind, int count = 1) {
+        new WorkItemProgressEvent(kind, count)
     }
 
     def startRootBuildOperation(Long id) {

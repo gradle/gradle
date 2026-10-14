@@ -178,10 +178,10 @@ public class DefaultWorkerExecutor implements WorkerExecutor {
             } catch (Throwable t) {
                 throw new WorkExecutionException(spec.getDisplayName(), t);
             } finally {
-                outputEventListener.onOutput(new WorkItemProgressEvent(success ? WorkItemProgressEvent.Kind.SUCCEEDED : WorkItemProgressEvent.Kind.FAILED));
+                outputEventListener.onOutput(new WorkItemProgressEvent(success ? WorkItemProgressEvent.Kind.SUCCEEDED : WorkItemProgressEvent.Kind.FAILED, 1));
             }
         });
-        outputEventListener.onOutput(new WorkItemProgressEvent(WorkItemProgressEvent.Kind.SUBMITTED));
+        outputEventListener.onOutput(new WorkItemProgressEvent(WorkItemProgressEvent.Kind.SUBMITTED, 1));
         executionQueue.submit(execution);
         asyncWorkTracker.registerWork(currentBuildOperation, execution);
         return execution;

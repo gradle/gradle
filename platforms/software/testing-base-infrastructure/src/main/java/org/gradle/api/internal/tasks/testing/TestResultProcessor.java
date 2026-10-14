@@ -55,4 +55,9 @@ public interface TestResultProcessor {
      */
     default void published(Object testId, TestMetadataEvent keyValueEvent) {}
 
+    /**
+     * Notifies this processor that tests have been discovered and are expected to be executed.
+     */
+    default void discovered(TestDiscoveryEvent event) {}
+
 }

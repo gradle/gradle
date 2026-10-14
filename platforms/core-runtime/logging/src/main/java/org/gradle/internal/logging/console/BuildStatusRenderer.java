@@ -150,12 +150,16 @@ public class BuildStatusRenderer implements OutputEventListener {
             return;
         }
         if (event.getKind() == WorkItemProgressEvent.Kind.SUBMITTED) {
-            pendingWorkItems++;
-            progressBar.moreProgress(1);
-        } else if (pendingWorkItems > 0) {
+            pendingWorkItems += event.getCount();
+            progressBar.moreProgress(event.getCount());
+        } else {
             // Items submitted before the execution phase started were never added to the total
-            pendingWorkItems--;
-            progressBar.update(event.getKind() == WorkItemProgressEvent.Kind.FAILED);
+            int completed = Math.min(event.getCount(), pendingWorkItems);
+            pendingWorkItems -= completed;
+            boolean failed = event.getKind() == WorkItemProgressEvent.Kind.FAILED;
+            for (int i = 0; i < completed; i++) {
+                progressBar.update(failed);
+            }
         }
     }
 

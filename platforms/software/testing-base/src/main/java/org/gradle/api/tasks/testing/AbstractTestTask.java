@@ -48,6 +48,7 @@ import org.gradle.api.internal.tasks.testing.report.TestReporter;
 import org.gradle.api.internal.tasks.testing.report.generic.GenericHtmlTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.report.generic.JunitXmlTestReportGenerator;
 import org.gradle.api.internal.tasks.testing.report.generic.TestTreeModelResultsProvider;
+import org.gradle.api.internal.tasks.testing.results.ProgressReportingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.StateTrackingTestResultProcessor;
 import org.gradle.api.internal.tasks.testing.results.SynchronizedTestListenerInternal;
 import org.gradle.api.internal.tasks.testing.results.TestListenerAdapter;
@@ -620,11 +621,13 @@ public abstract class AbstractTestTask extends ConventionTask implements Verific
                 resultProcessorDelegate = new FailFastTestListenerInternal(testExecuter, resultProcessorDelegate);
             }
 
-            TestResultProcessor resultProcessor = new StateTrackingTestResultProcessor(resultProcessorDelegate);
+            TestResultProcessor stateTrackingProcessor = new StateTrackingTestResultProcessor(resultProcessorDelegate);
+            ProgressReportingTestResultProcessor resultProcessor = getObjectFactory().newInstance(ProgressReportingTestResultProcessor.class, stateTrackingProcessor);
 
             try {
                 testExecuter.execute(executionSpec, resultProcessor);
             } finally {
+                resultProcessor.settle();
                 parentProgressLogger.completed();
                 testWorkerProgressListener.completeAll();
                 testListenerSubscriptions.removeAllListeners();

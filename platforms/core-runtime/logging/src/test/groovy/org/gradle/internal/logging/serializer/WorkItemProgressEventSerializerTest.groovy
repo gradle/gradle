@@ -23,11 +23,12 @@ class WorkItemProgressEventSerializerTest extends LogSerializerSpec {
 
     def "can serialize WorkItemProgressEvent with kind #kind"() {
         when:
-        def result = serialize(new WorkItemProgressEvent(kind), serializer)
+        def result = serialize(new WorkItemProgressEvent(kind, 42), serializer)
 
         then:
         result instanceof WorkItemProgressEvent
         result.kind == kind
+        result.count == 42
 
         where:
         kind << WorkItemProgressEvent.Kind.values()
