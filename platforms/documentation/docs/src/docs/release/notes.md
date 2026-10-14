@@ -206,6 +206,20 @@ Gradle provides [Tooling APIs](userguide/third_party_integration.html) that faci
 ### Performance improvements
 Gradle continuously improves [build performance](userguide/performance.html) through caching, parallelism, and reduced overhead across all phases of the build.
 
+#### Incremental compilation of Kotlin DSL scripts
+
+[Kotlin DSL](userguide/kotlin_dsl.html) scripts are now compiled with the [Kotlin Build Tools API](https://kotlinlang.org/docs/build-tools-api.html), which makes incremental compilation available for build scripts.
+When a script has to be recompiled, for example after an ABI change in build logic, only the affected parts are compiled again.
+In one of our performance tests, a large multi-project build, this makes recompiling scripts after an ABI change in build logic 65% faster.
+
+Setting up incremental compilation has a cost, so Gradle only uses it for scripts that are recompiled repeatedly:
+
+1. The first compilation of a script is a full compilation, without incremental compilation.
+2. The second compilation is also a full compilation, but it records the state needed for incremental compilation.
+3. Every later compilation is incremental.
+
+Builds that rarely recompile their scripts should see no change in performance, while builds that recompile them often should see a significant improvement.
+
 ### General improvements
 Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
 
