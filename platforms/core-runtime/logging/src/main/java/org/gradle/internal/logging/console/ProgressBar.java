@@ -27,6 +27,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
@@ -79,7 +80,7 @@ public class ProgressBar {
     private int total;
     private @Nullable ExecutorService deadlockPreventer;
     private boolean failing;
-    private @Nullable String lastElapsedTimeStr;
+    private @Nullable String lastTimeStr;
     private @Nullable List<Span> formatted;
 
     public ProgressBar(
@@ -161,8 +162,23 @@ public class ProgressBar {
     }
 
     public List<Span> formatProgress(boolean timerEnabled, long elapsedTime) {
-        String elapsedTimeStr = elapsedTimeFormatter.format(elapsedTime);
-        if (formatted != null && elapsedTimeStr.equals(lastElapsedTimeStr)) {
+        return formatProgress(timerEnabled ? " [" + elapsedTimeFormatter.format(elapsedTime) + "]" : "");
+    }
+
+    public List<Span> formatProgress(boolean timerEnabled, long elapsedTime, Optional<Long> estimatedRemainingTime) {
+        return formatProgress(timerEnabled
+            ? " [" + elapsedTimeFormatter.format(elapsedTime) + " ELAPSED | " + estimatedRemainingTime.map(this::formatRemainingTime).orElse("ESTIMATE UNAVAILABLE") + "]"
+            : "");
+    }
+
+    private String formatRemainingTime(long estimatedRemainingTime) {
+        // Whole seconds only, so the estimate does not flicker through millisecond values
+        long roundedUpRemainingTime = (max(0, estimatedRemainingTime) + 999) / 1000 * 1000;
+        return (roundedUpRemainingTime == 0 ? "0s" : elapsedTimeFormatter.format(roundedUpRemainingTime)) + " ETA";
+    }
+
+    private List<Span> formatProgress(String timeStr) {
+        if (formatted != null && timeStr.equals(lastTimeStr)) {
             return formatted;
         }
 
@@ -176,22 +192,22 @@ public class ProgressBar {
         String statusPrefix = trimToConsole(consoleCols, 0, taskbarSequence + progressBarPrefix);
 
         if (consoleMetaData.supportsUnicode()) {
-            return getUnicodeFormatted(timerEnabled, consoleCols, statusPrefix, progressPercent, elapsedTimeStr);
+            return getUnicodeFormatted(consoleCols, statusPrefix, progressPercent, timeStr);
         } else {
-            return getAsciiFormatted(timerEnabled, consoleCols, statusPrefix, progressPercent, elapsedTimeStr);
+            return getAsciiFormatted(consoleCols, statusPrefix, progressPercent, timeStr);
         }
     }
 
-    private List<Span> getAsciiFormatted(boolean timerEnabled, int consoleCols, String statusPrefix, int progressPercent, String elapsedTimeStr) {
+    private List<Span> getAsciiFormatted(int consoleCols, String statusPrefix, int progressPercent, String timeStr) {
 
         int completedWidth = getCompletedWidth();
         int remainingWidth = progressBarWidth - completedWidth;
 
         String coloredProgress = trimToConsole(consoleCols, statusPrefix.length(), StringUtils.repeat(fillerChar, completedWidth));
         String statusSuffix = trimToConsole(consoleCols, statusPrefix.length() + coloredProgress.length(), StringUtils.repeat(incompleteChar, remainingWidth)
-            + renderProgressStatus(timerEnabled, progressPercent, elapsedTimeStr));
+            + renderProgressStatus(progressPercent, timeStr));
 
-        lastElapsedTimeStr = elapsedTimeStr;
+        lastTimeStr = timeStr;
         return formatted = createFormattedList(statusPrefix, coloredProgress, statusSuffix);
     }
 
@@ -202,21 +218,20 @@ public class ProgressBar {
             new Span(StyledTextOutput.Style.Header, statusSuffix));
     }
 
-    private List<Span> getUnicodeFormatted(boolean timerEnabled, int consoleCols, String statusPrefix, int progressPercent, String elapsedTimeStr) {
+    private List<Span> getUnicodeFormatted(int consoleCols, String statusPrefix, int progressPercent, String timeStr) {
         // Unicode mode: use block characters for finer granularity (8x resolution)
         String progress = getProgressString();
 
         String coloredProgress = trimToConsole(consoleCols, statusPrefix.length(), progress);
         String statusSuffix = trimToConsole(consoleCols, statusPrefix.length() + coloredProgress.length(),
-            renderProgressStatus(timerEnabled, progressPercent, elapsedTimeStr));
+            renderProgressStatus(progressPercent, timeStr));
 
-        lastElapsedTimeStr = elapsedTimeStr;
+        lastTimeStr = timeStr;
         return formatted = createFormattedList(statusPrefix, coloredProgress, statusSuffix);
     }
 
-    private String renderProgressStatus(boolean timerEnabled, int progressPercent, String elapsedTimeStr) {
-        return progressBarSuffix + " " + progressPercent + '%' + ' ' + suffix
-            + (timerEnabled ? " [" + elapsedTimeStr + "]" : "");
+    private String renderProgressStatus(int progressPercent, String timeStr) {
+        return progressBarSuffix + " " + progressPercent + '%' + ' ' + suffix + timeStr;
     }
 
     private String getProgressString() {

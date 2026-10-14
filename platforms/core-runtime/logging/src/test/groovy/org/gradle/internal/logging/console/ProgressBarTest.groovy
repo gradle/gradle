@@ -274,4 +274,44 @@ class ProgressBarTest extends Specification {
         false              | "[#..............] 10% EXECUTING"
         id = unicode ? "unicode" : "ascii"
     }
+
+    def "formats estimated remaining time rounded up to whole seconds (#remainingTime ms)"() {
+        given:
+        init(false)
+
+        expect:
+        progressBar.formatProgress(true, 2000, remainingTime).collect { it.text }.join("") == rendering
+
+        where:
+        remainingTime          | rendering
+        Optional.empty()       | "[...............] 0% EXECUTING [2s ELAPSED | ESTIMATE UNAVAILABLE]"
+        Optional.of(0L)        | "[...............] 0% EXECUTING [2s ELAPSED | 0s ETA]"
+        Optional.of(-500L)     | "[...............] 0% EXECUTING [2s ELAPSED | 0s ETA]"
+        Optional.of(1L)        | "[...............] 0% EXECUTING [2s ELAPSED | 1s ETA]"
+        Optional.of(4200L)     | "[...............] 0% EXECUTING [2s ELAPSED | 5s ETA]"
+        Optional.of(65000L)    | "[...............] 0% EXECUTING [2s ELAPSED | 1m 5s ETA]"
+    }
+
+    def "omits elapsed and estimated remaining time when timer is disabled"() {
+        given:
+        init(false)
+
+        expect:
+        progressBar.formatProgress(false, 2000, Optional.of(3000L)).collect { it.text }.join("") == "[...............] 0% EXECUTING"
+    }
+
+    def "re-renders when only estimated remaining time changes"() {
+        given:
+        init(false)
+
+        when:
+        def first = progressBar.formatProgress(true, 2000, Optional.of(3000L)).collect { it.text }.join("")
+        def second = progressBar.formatProgress(true, 2000, Optional.of(2000L)).collect { it.text }.join("")
+        def third = progressBar.formatProgress(true, 2000, Optional.empty()).collect { it.text }.join("")
+
+        then:
+        first == "[...............] 0% EXECUTING [2s ELAPSED | 3s ETA]"
+        second == "[...............] 0% EXECUTING [2s ELAPSED | 2s ETA]"
+        third == "[...............] 0% EXECUTING [2s ELAPSED | ESTIMATE UNAVAILABLE]"
+    }
 }
