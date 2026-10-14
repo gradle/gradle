@@ -116,3 +116,11 @@ Run again with the same `-Pinput` (or none), the 6 tasks are up-to-date and fini
 
 Shows that only executions are recorded: up-to-date tasks are estimated at their last execution time, 3s.
 As they complete almost at once, the ETA drops straight to the finish task's 2s.
+
+### test-build-failure
+
+6 tasks take 5s each.
+A breaker task takes 2s, and fails when run with `-Pfail`; 3 tasks that depend on it take 8s each.
+Run without `-Pfail` first, twice, to record the durations, then with `-Pfail --continue`.
+
+Shows that the ETA does not account for work that will never run: when the breaker fails, its dependents are skipped, but the estimate still includes them, and the build ends with time remaining on the ETA.
