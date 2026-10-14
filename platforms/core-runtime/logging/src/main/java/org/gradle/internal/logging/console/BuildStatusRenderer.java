@@ -37,6 +37,8 @@ import java.util.Set;
  * Shows one progress bar for the whole build, with the name of the current phase and the running and queued counts next to it.
  *
  * <p>The bar counts the projects to configure and the work items to run, in all builds of the build tree.
+ * Work items are tasks, artifact transforms, worker API items and tests. Building the work graph and storing or loading the
+ * configuration cache count as work items too.
  * The total grows when Gradle finds more work, so the bar can move backwards.
  * Each build, also each build of a continuous build, starts a new bar.</p>
  *

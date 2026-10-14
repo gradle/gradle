@@ -113,7 +113,9 @@ The progress bar of the rich console now shows the progress of the whole build, 
 
 Previously, the bar started again at 0% in each build phase, so a build that was almost done could show `0% EXECUTING`.
 
-The bar counts the projects to configure and the work items to run, such as tasks and artifact transforms, from the start of the build to its end.
+The bar counts the projects to configure and the work items to run, from the start of the build to its end.
+Work items are tasks, artifact transforms, work submitted with the Worker API, and tests.
+Building the task graph and storing or loading the configuration cache also count as work items.
 It includes the work of all builds in the build tree, such as `buildSrc`, included builds and plugin builds.
 The bar has three segments: done work, running work (`▶`) and queued work (`·`).
 The name of the current phase stays next to the bar, followed by the running count (`▶ 8`) and the queued count (`… 5,312`), which replace the percentage.
@@ -121,6 +123,7 @@ The name of the current phase stays next to the bar, followed by the running cou
 Gradle finds more work while the build runs. For example, it only knows the tasks to run after the build is configured.
 When Gradle finds more work, the total grows and the bar can move backwards. A `▲` after the queued count shows that this just happened.
 The `»` after the bar pulses until the tasks to run are known.
+When Gradle reuses the configuration cache, the phase is `LOADING` instead of `CONFIGURING`.
 The last cell of the bar stays empty until the build ends, so the bar never looks finished while Gradle still has work to do.
 When a lot of new work arrives, the bar shows the done work larger than its share, so that it stays visible, and then slowly goes back to its real share.
 
