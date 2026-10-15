@@ -71,9 +71,7 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
     public static final Pattern FATAL_WARNINGS = Pattern.compile(".*");
 
     /**
-     * Like {@link #FATAL_WARNINGS}, but for the single-page user manual, which combines pages that are written and
-     * linked to as standalone pages. Their IDs can clash there (e.g. {@code task_dependencies} in the upgrading guides for
-     * Gradle 7 and 9, which deprecation messages link to), so duplicate IDs are only fatal in the multi-page manual.
+     * Like {@link #FATAL_WARNINGS}, but for the single-page user manual.
      */
     public static final Pattern FATAL_WARNINGS_SINGLE_PAGE = Pattern.compile("^(?!id assigned to .+ already in use: ).*");
 

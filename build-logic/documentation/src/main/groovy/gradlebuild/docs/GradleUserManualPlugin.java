@@ -134,7 +134,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         TaskProvider<StageUserManualSources> userguideFlattenSources = tasks.register("stageUserguideSource", StageUserManualSources.class, task -> {
             task.setDuplicatesStrategy(DuplicatesStrategy.FAIL);
 
-            // TODO: This doesn't allow adoc files to be generated?
+            // UserManualPages lists the multi-page pages by walking this source root rather than the staged directory
             task.from(extension.getUserManual().getRoot(), sub -> {
                 sub.include("**/*.adoc");
                 // Flatten adocs into a single directory
