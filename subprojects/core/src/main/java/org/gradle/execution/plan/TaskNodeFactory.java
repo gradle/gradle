@@ -27,6 +27,8 @@ import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.composite.internal.BuildTreeWorkGraphController;
 import org.gradle.internal.Cast;
 import org.gradle.internal.build.BuildIdentity;
+import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.execution.WorkValidationContext;
 import org.gradle.internal.execution.impl.DefaultWorkValidationContext;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -34,6 +36,7 @@ import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.plugin.use.PluginId;
 import org.gradle.plugin.use.internal.DefaultPluginId;
+import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
@@ -50,6 +53,7 @@ import java.util.function.Function;
 public class TaskNodeFactory {
     private final Map<Task, TaskNode> nodes = new ConcurrentHashMap<>();
     private final BuildTreeWorkGraphController workGraphController;
+    private final BuildStateRegistry buildRegistry;
     private final ProblemsInternal problems;
     private final BuildIdentity buildIdentity;
     private final DefaultTypeOriginInspectorFactory typeOriginInspectorFactory;
@@ -58,6 +62,7 @@ public class TaskNodeFactory {
     public TaskNodeFactory(
         BuildIdentity buildIdentity,
         BuildTreeWorkGraphController workGraphController,
+        BuildStateRegistry buildRegistry,
         NodeValidator nodeValidator,
         BuildOperationRunner buildOperationRunner,
         ExecutionNodeAccessHierarchies accessHierarchies,
@@ -65,6 +70,7 @@ public class TaskNodeFactory {
     ) {
         this.buildIdentity = buildIdentity;
         this.workGraphController = workGraphController;
+        this.buildRegistry = buildRegistry;
         this.problems = problems;
         this.typeOriginInspectorFactory = new DefaultTypeOriginInspectorFactory();
         resolveMutationsNodeFactory = localTaskNode -> new ResolveMutationsNode(localTaskNode, nodeValidator, buildOperationRunner, accessHierarchies);
@@ -84,11 +90,15 @@ public class TaskNodeFactory {
     }
 
     private TaskNode createTaskNode(TaskInternal task) {
-        boolean sameBuild = task.getTaskIdentity().getProjectIdentity().getBuildPath().equals(buildIdentity.getBuildPath());
+        Path targetBuildPath = task.getTaskIdentity().getProjectIdentity().getBuildPath();
+        boolean sameBuild = targetBuildPath.equals(buildIdentity.getBuildPath());
         if (sameBuild) {
             return new LocalTaskNode(task, new DefaultWorkValidationContext(typeOriginInspectorFactory.forTask(task), problems), resolveMutationsNodeFactory);
+        } else {
+            BuildState targetBuild = buildRegistry.getBuild(targetBuildPath);
+            TaskNode targetNode = targetBuild.getWorkGraph().locateTaskNode(task);
+            return TaskInAnotherBuild.of(targetNode, targetBuild, workGraphController);
         }
-        return TaskInAnotherBuild.of(task, workGraphController);
     }
 
     public void resetState() {

@@ -49,6 +49,7 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 import java.util.function.Function;
 
+import org.gradle.execution.plan.Node;
 import static org.gradle.util.Path.path;
 
 @SuppressWarnings("deprecation")
@@ -414,9 +415,9 @@ public class DefaultBuildLifecycleController implements BuildLifecycleController
         }
 
         @Override
-        public void addEntryTasks(List<? extends Task> tasks) {
-            for (Task task : tasks) {
-                plan.addEntryTask(task);
+        public void addEntryNodes(List<? extends Node> nodes) {
+            for (Node node : nodes) {
+                plan.addEntryNode(node);
             }
         }
 

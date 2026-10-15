@@ -54,7 +54,7 @@ public class OrdinalNode extends Node {
     }
 
     @Override
-    public String toString() {
+    public String getDisplayName() {
         return type.name().toLowerCase(Locale.ROOT) + " locations for " + getGroup();
     }
 

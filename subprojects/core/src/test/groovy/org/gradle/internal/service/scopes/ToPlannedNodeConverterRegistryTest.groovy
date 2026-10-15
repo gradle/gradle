@@ -129,7 +129,7 @@ class ToPlannedNodeConverterRegistryTest extends Specification {
         void execute(NodeExecutionContext context) {}
 
         @Override
-        String toString() {
+        String getDisplayName() {
             "TestNode"
         }
     }

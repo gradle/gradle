@@ -14,18 +14,20 @@
  * limitations under the License.
  */
 
-package org.gradle.api.internal.artifacts.ivyservice.resolveengine.result;
+package org.gradle.internal.util;
 
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.util.Path;
+import org.jspecify.annotations.NullMarked;
 
 import java.io.IOException;
 
 /**
  * A thread-safe and reusable serializer for {@link Path}.
  */
+@NullMarked
 public class PathSerializer extends AbstractSerializer<Path> {
 
     @Override
