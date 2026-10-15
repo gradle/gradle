@@ -18,9 +18,13 @@ package org.gradle.api.plugins.quality.pmd
 
 import org.gradle.api.plugins.quality.PmdPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.jvm.Jvm
+import org.gradle.quality.integtest.fixtures.PmdCoverage
 import org.gradle.test.fixtures.Flaky
+import org.gradle.util.internal.VersionNumber
 
 import static org.hamcrest.CoreMatchers.containsString
+import static org.junit.Assume.assumeTrue
 
 class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -70,6 +74,7 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
     }
 
     def "runs PMD 7 without the PMD Ant task"() {
+        assumeTrue(PmdCoverage.supportsJdkVersion(VersionNumber.parse(PmdPlugin.DEFAULT_PMD_VERSION), Jvm.current().javaVersionMajor))
         given:
         buildFile << """
             dependencies {

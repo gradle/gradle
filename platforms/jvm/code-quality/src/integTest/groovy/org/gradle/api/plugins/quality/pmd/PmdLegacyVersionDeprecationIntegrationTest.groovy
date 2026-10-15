@@ -18,6 +18,11 @@ package org.gradle.api.plugins.quality.pmd
 
 import org.gradle.api.plugins.quality.PmdPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.jvm.Jvm
+import org.gradle.quality.integtest.fixtures.PmdCoverage
+import org.gradle.util.internal.VersionNumber
+
+import static org.junit.Assume.assumeTrue
 
 class PmdLegacyVersionDeprecationIntegrationTest extends AbstractIntegrationSpec {
 
@@ -34,6 +39,7 @@ class PmdLegacyVersionDeprecationIntegrationTest extends AbstractIntegrationSpec
     }
 
     def "emits deprecation and runs PMD when the PMD version cannot be determined"() {
+        assumeTrue(PmdCoverage.supportsJdkVersion(VersionNumber.parse(PmdPlugin.DEFAULT_PMD_VERSION), Jvm.current().javaVersionMajor))
         // Gradle reads the PMD version from the Maven metadata in the PMD core jar.
         // Repackage that jar without META-INF/maven so the version cannot be determined.
         buildFile << """
