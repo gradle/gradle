@@ -18,8 +18,6 @@ package org.gradle.internal.component.resolution.failure.transform;
 
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 
-import java.util.Objects;
-
 /**
  * A lightweight replacement for {@link org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant ResolvedVariant}
  * that contains the data in the root variant that is used to begin an artifact transformation chain.
@@ -29,14 +27,7 @@ import java.util.Objects;
  * This type is also used as a part of a {@link TransformationChainData.TransformationChainFingerprint}, and must
  * properly implement {@link #equals(Object)} and {@link #hashCode()}.
  */
-public final class SourceVariantData {
-    private final String variantDisplayName;
-    private final ImmutableAttributes attributes;
-
-    public SourceVariantData(String variantDisplayName, ImmutableAttributes attributes) {
-        this.variantDisplayName = variantDisplayName;
-        this.attributes = attributes;
-    }
+public record SourceVariantData(String variantDisplayName, ImmutableAttributes attributes) {
 
     public ImmutableAttributes getAttributes() {
         return attributes;
@@ -44,25 +35,5 @@ public final class SourceVariantData {
 
     public String getVariantDisplayName() {
         return variantDisplayName;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        SourceVariantData that = (SourceVariantData) o;
-        return Objects.equals(variantDisplayName, that.variantDisplayName) && Objects.equals(attributes, that.attributes);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = Objects.hashCode(variantDisplayName);
-        result = 31 * result + Objects.hashCode(attributes);
-        return result;
     }
 }

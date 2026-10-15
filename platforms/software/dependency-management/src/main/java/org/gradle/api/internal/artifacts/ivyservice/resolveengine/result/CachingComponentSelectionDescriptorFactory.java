@@ -21,7 +21,6 @@ import org.gradle.internal.model.InMemoryCacheFactory;
 import org.gradle.internal.model.InMemoryLoadingCache;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Objects;
 
 public class CachingComponentSelectionDescriptorFactory implements ComponentSelectionDescriptorFactory {
 
@@ -45,40 +44,7 @@ public class CachingComponentSelectionDescriptorFactory implements ComponentSele
         return descriptors.get(new Key(cause, null));
     }
 
-    private static class Key {
-
-        private final ComponentSelectionCause cause;
-        private final @Nullable String description;
-
-        private Key(ComponentSelectionCause cause, @Nullable String description) {
-            this.cause = cause;
-            this.description = description;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            Key key = (Key) o;
-
-            if (cause != key.cause) {
-                return false;
-            }
-            return Objects.equals(description, key.description);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = cause.hashCode();
-            result = 31 * result + Objects.hashCode(description);
-            return result;
-        }
-
+    private record Key(ComponentSelectionCause cause, @Nullable String description) {
     }
 
 }

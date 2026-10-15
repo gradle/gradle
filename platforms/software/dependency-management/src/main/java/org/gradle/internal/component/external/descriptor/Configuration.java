@@ -16,23 +16,15 @@
 
 package org.gradle.internal.component.external.descriptor;
 
-import com.google.common.base.Objects;
 import org.gradle.util.internal.CollectionUtils;
 
 import java.util.Collection;
 import java.util.List;
 
-public class Configuration {
-    private final String name;
-    private final boolean transitive;
-    private final boolean visible;
-    private final List<String> extendsFrom;
+public record Configuration(String name, boolean transitive, boolean visible, List<String> extendsFrom) {
 
     public Configuration(String name, boolean transitive, boolean visible, Collection<String> extendsFrom) {
-        this.name = name;
-        this.transitive = transitive;
-        this.visible = visible;
-        this.extendsFrom = CollectionUtils.toList(extendsFrom);
+        this(name, transitive, visible, CollectionUtils.toList(extendsFrom));
     }
 
     public String getName() {
@@ -49,25 +41,5 @@ public class Configuration {
 
     public List<String> getExtendsFrom() {
         return extendsFrom;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        Configuration that = (Configuration) o;
-        return transitive == that.transitive
-            && visible == that.visible
-            && Objects.equal(name, that.name)
-            && Objects.equal(extendsFrom, that.extendsFrom);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(name, transitive, visible, extendsFrom);
     }
 }

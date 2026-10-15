@@ -21,14 +21,7 @@ import org.gradle.api.attributes.MultipleCandidatesDetails;
 import java.util.Comparator;
 import java.util.Set;
 
-public class DefaultOrderedDisambiguationRule<T> implements Action<MultipleCandidatesDetails<T>> {
-    private final Comparator<? super T> comparator;
-    private final boolean pickFirst;
-
-    public DefaultOrderedDisambiguationRule(Comparator<? super T> comparator, boolean pickFirst) {
-        this.comparator = comparator;
-        this.pickFirst = pickFirst;
-    }
+public record DefaultOrderedDisambiguationRule<T>(Comparator<? super T> comparator, boolean pickFirst) implements Action<MultipleCandidatesDetails<T>> {
 
     @Override
     public void execute(MultipleCandidatesDetails<T> details) {
@@ -51,25 +44,5 @@ public class DefaultOrderedDisambiguationRule<T> implements Action<MultipleCandi
                 }
             }
         }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultOrderedDisambiguationRule<?> that = (DefaultOrderedDisambiguationRule<?>) o;
-        return pickFirst == that.pickFirst && comparator.equals(that.comparator);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = comparator.hashCode();
-        result = 31 * result + Boolean.hashCode(pickFirst);
-        return result;
     }
 }

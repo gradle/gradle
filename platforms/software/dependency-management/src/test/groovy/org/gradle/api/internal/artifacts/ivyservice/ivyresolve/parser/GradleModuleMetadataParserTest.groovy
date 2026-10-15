@@ -34,9 +34,8 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.AttributeTestUtil
 import org.gradle.util.TestUtil
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
-
-import java.util.stream.Collectors
 
 import static org.gradle.util.AttributeTestUtil.attributes
 
@@ -960,48 +959,18 @@ class GradleModuleMetadataParserTest extends Specification {
         json.replace('"formatVersion": "1.1"', '"formatVersion": "' + metadataVersion + '"')
     }
 
-    def "new hierarchy in ModuleDependency is added to equals and hashcode"() {
-        when:
-        // If this test fails, you added a type hierarchy to GradleModuleMetadataParser.ModuleDependency, update this test _after_ making sure it is considered by hashcode and equals
-        def modDepClass = GradleModuleMetadataParser.ModuleDependency.class
+    @Issue("https://github.com/gradle/gradle/issues/24037")
+    def "#type.simpleName is a record so equals and hashCode cover all of its state"() {
+        // Duplicate declarations rely on equals and hashCode to be cleaned up, so this must be a record
+        // or this test must be properly expanded to validate equals and hashCode.
+        expect:
+        type.isRecord()
 
-        then:
-        modDepClass.getSuperclass() == Object.class
-    }
-
-    def "new hierarchy in ModuleDependencyConstraint is added to equals and hashcode"() {
-        when:
-        // If this test fails, you added a type hierarchy to GradleModuleMetadataParser.ModuleDependency, update this test _after_ making sure it is considered by hashcode and equals
-        def modDepClass = GradleModuleMetadataParser.ModuleDependencyConstraint.class
-
-        then:
-        modDepClass.getSuperclass() == Object.class
-    }
-
-    def "new fields in ModuleDependency are added to equals and hashcode"() {
-        when:
-        // If this test fails, you added a field to GradleModuleMetadataParser.ModuleDependency, add it here _after_ making sure it is considered by hashcode and equals
-        def knownFields = ["group", "module", "versionConstraint", "excludes", "reason", "attributes", "requestedCapabilities", "endorsing", "artifact"]
-        def modDepClass = GradleModuleMetadataParser.ModuleDependency.class
-        def newFields = Arrays.stream(modDepClass.getDeclaredFields()).filter { !knownFields.contains(it.getName()) }
-            .map { it.getName() }
-            .collect(Collectors.toList())
-
-        then:
-        newFields == []
-    }
-
-    def "new fields in ModuleDependencyConstraint are added to equals and hashcode"() {
-        when:
-        // If this test fails, you added a field to GradleModuleMetadataParser.ModuleDependencyConstraint, add it here _after_ making sure it is considered by hashcode and equals
-        def knownFields = ["group", "module", "versionConstraint", "reason", "attributes"]
-        def modDepClass = GradleModuleMetadataParser.ModuleDependencyConstraint.class
-        def newFields = Arrays.stream(modDepClass.getDeclaredFields()).filter { !knownFields.contains(it.getName()) }
-            .map { it.getName() }
-            .collect(Collectors.toList())
-
-        then:
-        newFields == []
+        where:
+        type << [
+            GradleModuleMetadataParser.ModuleDependency,
+            GradleModuleMetadataParser.ModuleDependencyConstraint
+        ]
     }
 
     def resource(String content) {

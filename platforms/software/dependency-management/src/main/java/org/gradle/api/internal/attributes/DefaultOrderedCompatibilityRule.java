@@ -20,14 +20,7 @@ import org.gradle.api.attributes.CompatibilityCheckDetails;
 
 import java.util.Comparator;
 
-public class DefaultOrderedCompatibilityRule<T> implements Action<CompatibilityCheckDetails<T>> {
-    private final Comparator<? super T> comparator;
-    private final boolean reverse;
-
-    public DefaultOrderedCompatibilityRule(Comparator<? super T> comparator, boolean reverse) {
-        this.comparator = comparator;
-        this.reverse = reverse;
-    }
+public record DefaultOrderedCompatibilityRule<T>(Comparator<? super T> comparator, boolean reverse) implements Action<CompatibilityCheckDetails<T>> {
 
     @Override
     public void execute(CompatibilityCheckDetails<T> details) {
@@ -42,25 +35,5 @@ public class DefaultOrderedCompatibilityRule<T> implements Action<CompatibilityC
         } else {
             details.incompatible();
         }
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        DefaultOrderedCompatibilityRule<?> that = (DefaultOrderedCompatibilityRule<?>) o;
-        return reverse == that.reverse && comparator.equals(that.comparator);
-    }
-
-    @Override
-    public int hashCode() {
-        int result = comparator.hashCode();
-        result = 31 * result + Boolean.hashCode(reverse);
-        return result;
     }
 }

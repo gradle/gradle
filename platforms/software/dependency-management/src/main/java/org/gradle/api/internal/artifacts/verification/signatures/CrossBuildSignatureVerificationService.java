@@ -117,62 +117,14 @@ public class CrossBuildSignatureVerificationService implements SignatureVerifica
         store.close();
     }
 
-    private static class CacheKey {
-        private final String filePath;
-        private final String signaturePath;
-        private final Set<String> trustedKeys;
-        private final Set<String> ignoredKeys;
-        private final boolean useKeyServers;
-        private final HashCode keyringFileHash;
-
-        private CacheKey(String filePath, String signaturePath, Set<String> trustedKeys, Set<String> ignoredKeys, boolean useKeyServers, HashCode keyringFileHash) {
-            this.filePath = filePath;
-            this.signaturePath = signaturePath;
-            this.trustedKeys = trustedKeys;
-            this.ignoredKeys = ignoredKeys;
-            this.useKeyServers = useKeyServers;
-            this.keyringFileHash = keyringFileHash;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            CacheKey cacheKey = (CacheKey) o;
-
-            if (!filePath.equals(cacheKey.filePath)) {
-                return false;
-            }
-            if (!signaturePath.equals(cacheKey.signaturePath)) {
-                return false;
-            }
-            if (!trustedKeys.equals(cacheKey.trustedKeys)) {
-                return false;
-            }
-            if (!ignoredKeys.equals(cacheKey.ignoredKeys)) {
-                return false;
-            }
-            if (useKeyServers != cacheKey.useKeyServers) {
-                return false;
-            }
-            return keyringFileHash.equals(cacheKey.keyringFileHash);
-        }
-
-        @Override
-        public int hashCode() {
-            int result = filePath.hashCode();
-            result = 31 * result + signaturePath.hashCode();
-            result = 31 * result + trustedKeys.hashCode();
-            result = 31 * result + ignoredKeys.hashCode();
-            result = 31 * result + Boolean.hashCode(useKeyServers);
-            result = 31 * result + keyringFileHash.hashCode();
-            return result;
-        }
+    private record CacheKey(
+        String filePath,
+        String signaturePath,
+        Set<String> trustedKeys,
+        Set<String> ignoredKeys,
+        boolean useKeyServers,
+        HashCode keyringFileHash
+    ) {
     }
 
     private static class CacheKeySerializer extends AbstractSerializer<CacheKey> {

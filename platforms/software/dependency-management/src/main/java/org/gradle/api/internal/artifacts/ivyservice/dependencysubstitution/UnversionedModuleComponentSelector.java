@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.artifacts.ModuleIdentifier;
 import org.gradle.api.artifacts.capability.CapabilitySelector;
@@ -28,13 +27,7 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
 import java.util.Collections;
 import java.util.List;
 
-class UnversionedModuleComponentSelector implements ComponentSelectorInternal {
-
-    private final ModuleIdentifier moduleIdentifier;
-
-    UnversionedModuleComponentSelector(ModuleIdentifier id) {
-        this.moduleIdentifier = id;
-    }
+record UnversionedModuleComponentSelector(ModuleIdentifier moduleIdentifier) implements ComponentSelectorInternal {
 
     public ModuleIdentifier getModuleIdentifier() {
         return moduleIdentifier;
@@ -63,23 +56,6 @@ class UnversionedModuleComponentSelector implements ComponentSelectorInternal {
     @Override
     public ImmutableSet<CapabilitySelector> getCapabilitySelectors() {
         return ImmutableSet.of();
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-        UnversionedModuleComponentSelector that = (UnversionedModuleComponentSelector) o;
-        return Objects.equal(moduleIdentifier, that.moduleIdentifier);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(moduleIdentifier);
     }
 
 }

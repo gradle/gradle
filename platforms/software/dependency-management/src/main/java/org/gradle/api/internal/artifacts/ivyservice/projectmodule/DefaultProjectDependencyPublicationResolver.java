@@ -43,7 +43,6 @@ import java.util.Iterator;
 import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Objects;
 import java.util.Set;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.function.Function;
@@ -370,31 +369,7 @@ public class DefaultProjectDependencyPublicationResolver implements ProjectDepen
             return Cast.uncheckedCast(result);
         }
 
-        private static class Key {
-            private final Path identityPath;
-            private final Class<?> coordsType;
-
-            public Key(Path identityPath, Class<?> coordsType) {
-                this.identityPath = identityPath;
-                this.coordsType = coordsType;
-            }
-
-            @Override
-            public boolean equals(Object o) {
-                if (this == o) {
-                    return true;
-                }
-                if (o == null || getClass() != o.getClass()) {
-                    return false;
-                }
-                Key key = (Key) o;
-                return Objects.equals(identityPath, key.identityPath) && Objects.equals(coordsType, key.coordsType);
-            }
-
-            @Override
-            public int hashCode() {
-                return identityPath.hashCode() ^ coordsType.hashCode();
-            }
+        private record Key(Path identityPath, Class<?> coordsType) {
         }
     }
 }

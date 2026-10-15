@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser;
 
-import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
 import com.google.gson.stream.JsonReader;
@@ -660,101 +659,28 @@ public class GradleModuleMetadataParser {
         }
     }
 
-    private static class ModuleFile {
-        final String name;
-        final String uri;
-
-        ModuleFile(String name, String uri) {
-            this.name = name;
-            this.uri = uri;
-        }
+    private record ModuleFile(String name, String uri) {
     }
 
-    private static class ModuleDependency {
-        final String group;
-        final String module;
-        final VersionConstraint versionConstraint;
-        final ImmutableList<ExcludeMetadata> excludes;
-        final String reason;
-        final ImmutableAttributes attributes;
-        final List<ImmutableCapability> requestedCapabilities;
-        final boolean endorsing;
-        final IvyArtifactName artifact;
-
-        ModuleDependency(String group, String module, VersionConstraint versionConstraint, ImmutableList<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, List<ImmutableCapability> requestedCapabilities, boolean endorsing, IvyArtifactName artifact) {
-            this.group = group;
-            this.module = module;
-            this.versionConstraint = versionConstraint;
-            this.excludes = excludes;
-            this.reason = reason;
-            this.attributes = attributes;
-            this.requestedCapabilities = requestedCapabilities;
-            this.endorsing = endorsing;
-            this.artifact = artifact;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            ModuleDependency that = (ModuleDependency) o;
-            return Objects.equal(group, that.group)
-                && Objects.equal(module, that.module)
-                && Objects.equal(versionConstraint, that.versionConstraint)
-                && Objects.equal(excludes, that.excludes)
-                && Objects.equal(reason, that.reason)
-                && Objects.equal(attributes, that.attributes)
-                && Objects.equal(requestedCapabilities, that.requestedCapabilities)
-                && endorsing == that.endorsing
-                && Objects.equal(artifact, that.artifact);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(group, module, versionConstraint, excludes, reason, attributes, endorsing, artifact);
-        }
-
+    private record ModuleDependency(
+        String group,
+        String module,
+        VersionConstraint versionConstraint,
+        ImmutableList<ExcludeMetadata> excludes,
+        String reason,
+        ImmutableAttributes attributes,
+        List<ImmutableCapability> requestedCapabilities,
+        boolean endorsing,
+        IvyArtifactName artifact
+    ) {
     }
 
-    private static class ModuleDependencyConstraint {
-        final String group;
-        final String module;
-        final VersionConstraint versionConstraint;
-        final String reason;
-        final ImmutableAttributes attributes;
-
-        ModuleDependencyConstraint(String group, String module, VersionConstraint versionConstraint, String reason, ImmutableAttributes attributes) {
-            this.group = group;
-            this.module = module;
-            this.versionConstraint = versionConstraint;
-            this.reason = reason;
-            this.attributes = attributes;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            ModuleDependencyConstraint that = (ModuleDependencyConstraint) o;
-            return Objects.equal(group, that.group)
-                && Objects.equal(module, that.module)
-                && Objects.equal(versionConstraint, that.versionConstraint)
-                && Objects.equal(reason, that.reason)
-                && Objects.equal(attributes, that.attributes);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(group, module, versionConstraint, reason, attributes);
-        }
+    private record ModuleDependencyConstraint(
+        String group,
+        String module,
+        VersionConstraint versionConstraint,
+        String reason,
+        ImmutableAttributes attributes
+    ) {
     }
 }

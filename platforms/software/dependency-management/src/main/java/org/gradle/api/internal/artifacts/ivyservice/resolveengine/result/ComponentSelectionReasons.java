@@ -55,15 +55,9 @@ public class ComponentSelectionReasons {
         return descriptor.getCause() == ComponentSelectionCause.REQUESTED || descriptor.getCause() == ComponentSelectionCause.ROOT;
     }
 
-    static class DefaultComponentSelectionReason implements ComponentSelectionReasonInternal {
-
-        private final ImmutableList<ComponentSelectionDescriptorInternal> descriptions;
-
-        // Package private since static factories enforce non-empty and no duplicates,
-        // but the serializer can skip the set creation.
-        DefaultComponentSelectionReason(ImmutableList<ComponentSelectionDescriptorInternal> descriptions) {
-            this.descriptions = descriptions;
-        }
+    // Package private since static factories enforce non-empty and no duplicates,
+    // but the serializer can skip the set creation.
+    record DefaultComponentSelectionReason(ImmutableList<ComponentSelectionDescriptorInternal> descriptions) implements ComponentSelectionReasonInternal {
 
         @Override
         public boolean isForced() {
@@ -126,23 +120,6 @@ public class ComponentSelectionReasons {
 
         private ComponentSelectionDescriptorInternal getLast() {
             return descriptions.get(descriptions.size() - 1);
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            DefaultComponentSelectionReason that = (DefaultComponentSelectionReason) o;
-            return descriptions.equals(that.descriptions);
-        }
-
-        @Override
-        public int hashCode() {
-            return descriptions.hashCode();
         }
 
     }

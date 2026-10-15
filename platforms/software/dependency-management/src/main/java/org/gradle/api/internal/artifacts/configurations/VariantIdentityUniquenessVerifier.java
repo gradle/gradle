@@ -29,7 +29,6 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.List;
-import java.util.Objects;
 import java.util.stream.Collectors;
 
 /**
@@ -137,14 +136,7 @@ public class VariantIdentityUniquenessVerifier {
     /**
      * The identity of a variant -- its attributes and capabilities.
      */
-    private static class VariantIdentity {
-        private final ImmutableAttributes attributes;
-        private final ImmutableCapabilities capabilities;
-
-        private VariantIdentity(ImmutableAttributes attributes, ImmutableCapabilities capabilities) {
-            this.attributes = attributes;
-            this.capabilities = capabilities;
-        }
+    private record VariantIdentity(ImmutableAttributes attributes, ImmutableCapabilities capabilities) {
 
         public static VariantIdentity from(ConfigurationInternal configuration, ImmutableCapabilities defaultCapabilities) {
             Collection<? extends Capability> declaredCapabilities = configuration.getOutgoing().getCapabilities();
@@ -156,24 +148,6 @@ public class VariantIdentityUniquenessVerifier {
                 configuration.getAttributes().asImmutable(),
                 capabilities
             );
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-            VariantIdentity that = (VariantIdentity) o;
-            return Objects.equals(attributes, that.attributes) &&
-                   Objects.equals(capabilities, that.capabilities);
-        }
-
-        @Override
-        public int hashCode() {
-            return attributes.hashCode() ^ capabilities.hashCode();
         }
     }
 

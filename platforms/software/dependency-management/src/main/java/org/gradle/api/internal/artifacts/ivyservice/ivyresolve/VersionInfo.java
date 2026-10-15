@@ -17,25 +17,10 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve;
 
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.Version;
 
-public class VersionInfo implements Versioned {
-    private final Version version;
-
-    public VersionInfo(Version version) {
-        this.version = version;
-    }
+public record VersionInfo(Version version) implements Versioned {
 
     @Override
     public Version getVersion() {
         return version;
-    }
-
-    @Override
-    public boolean equals(Object other) {
-        return other instanceof VersionInfo && version.equals(((VersionInfo) other).getVersion());
-    }
-
-    @Override
-    public int hashCode() {
-        return version.hashCode();
     }
 }

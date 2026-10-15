@@ -15,21 +15,8 @@
  */
 package org.gradle.api.internal.artifacts.ivyservice.ivyresolve.parser.data;
 
-import com.google.common.base.Objects;
-
-public class MavenDependencyKey {
+public record MavenDependencyKey(String groupId, String artifactId, String type, String classifier) {
     private static final String KEY_SEPARATOR = ":";
-    private final String groupId;
-    private final String artifactId;
-    private final String type;
-    private final String classifier;
-
-    public MavenDependencyKey(String groupId, String artifactId, String type, String classifier) {
-        this.groupId = groupId;
-        this.artifactId = artifactId;
-        this.type = type;
-        this.classifier = classifier;
-    }
 
     public String getGroupId() {
         return groupId;
@@ -45,27 +32,6 @@ public class MavenDependencyKey {
 
     public String getClassifier() {
         return classifier;
-    }
-
-    @Override
-    public boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (o == null || getClass() != o.getClass()) {
-            return false;
-        }
-
-        MavenDependencyKey that = (MavenDependencyKey) o;
-        return Objects.equal(groupId, that.groupId)
-            && Objects.equal(artifactId, that.artifactId)
-            && Objects.equal(classifier, that.classifier)
-            && Objects.equal(type, that.type);
-    }
-
-    @Override
-    public int hashCode() {
-        return Objects.hashCode(groupId, artifactId, classifier, type);
     }
 
     @Override

@@ -145,28 +145,6 @@ public class DefaultVariantArtifactResolver implements VariantArtifactResolver {
     /**
      * Identifier for adhoc variants with a single artifact
      */
-    private static class SingleArtifactVariantIdentifier implements VariantResolveMetadata.Identifier {
-        private final ComponentArtifactIdentifier artifactIdentifier;
-
-        public SingleArtifactVariantIdentifier(ComponentArtifactIdentifier artifactIdentifier) {
-            this.artifactIdentifier = artifactIdentifier;
-        }
-
-        @Override
-        public int hashCode() {
-            return artifactIdentifier.hashCode();
-        }
-
-        @Override
-        public boolean equals(Object obj) {
-            if (obj == this) {
-                return true;
-            }
-            if (obj == null || obj.getClass() != getClass()) {
-                return false;
-            }
-            SingleArtifactVariantIdentifier other = (SingleArtifactVariantIdentifier) obj;
-            return artifactIdentifier.equals(other.artifactIdentifier);
-        }
+    private record SingleArtifactVariantIdentifier(ComponentArtifactIdentifier artifactIdentifier) implements VariantResolveMetadata.Identifier {
     }
 }

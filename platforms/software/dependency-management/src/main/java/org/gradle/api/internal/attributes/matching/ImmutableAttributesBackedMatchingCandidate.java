@@ -22,35 +22,11 @@ import org.gradle.api.internal.attributes.ImmutableAttributes;
  * Wraps a standalone {@link ImmutableAttributes} so that it can participate in
  * attribute matching.
  */
-public class ImmutableAttributesBackedMatchingCandidate implements AttributeMatchingCandidate {
-
-    private final ImmutableAttributes attributes;
-
-    public ImmutableAttributesBackedMatchingCandidate(ImmutableAttributes attributes) {
-        this.attributes = attributes;
-    }
+public record ImmutableAttributesBackedMatchingCandidate(ImmutableAttributes attributes) implements AttributeMatchingCandidate {
 
     @Override
     public ImmutableAttributes getAttributes() {
         return attributes;
-    }
-
-    @Override
-    public final boolean equals(Object o) {
-        if (this == o) {
-            return true;
-        }
-        if (!(o instanceof ImmutableAttributesBackedMatchingCandidate)) {
-            return false;
-        }
-
-        ImmutableAttributesBackedMatchingCandidate that = (ImmutableAttributesBackedMatchingCandidate) o;
-        return attributes.equals(that.attributes);
-    }
-
-    @Override
-    public int hashCode() {
-        return attributes.hashCode();
     }
 
 }

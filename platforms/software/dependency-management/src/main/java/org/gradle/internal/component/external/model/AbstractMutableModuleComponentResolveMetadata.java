@@ -320,7 +320,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
 
         @Override
         public void addDependency(String group, String module, VersionConstraint versionConstraint, List<ExcludeMetadata> excludes, String reason, ImmutableAttributes attributes, Set<CapabilitySelector> requestedCapabilities, boolean endorsing, @Nullable IvyArtifactName artifact) {
-            dependencies.add(new DependencyImpl(group, module, versionConstraint, excludes, reason, attributes, requestedCapabilities, endorsing, artifact));
+            dependencies.add(new DependencyImpl(group, module, versionConstraint, ImmutableList.copyOf(excludes), reason, attributes, requestedCapabilities, endorsing, artifact));
         }
 
         @Override
@@ -385,14 +385,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         }
     }
 
-    public static class FileImpl implements ComponentVariant.File {
-        private final String name;
-        private final String uri;
-
-        public FileImpl(String name, String uri) {
-            this.name = name;
-            this.uri = uri;
-        }
+    public record FileImpl(String name, String uri) implements ComponentVariant.File {
 
         @Override
         public String getName() {
@@ -403,59 +396,19 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         public String getUri() {
             return uri;
         }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            FileImpl file = (FileImpl) o;
-            return Objects.equal(name, file.name)
-                && Objects.equal(uri, file.uri);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(name, uri);
-        }
     }
 
-    protected static class DependencyImpl implements ComponentVariant.Dependency {
-        private final String group;
-        private final String module;
-        private final VersionConstraint versionConstraint;
-        private final ImmutableList<ExcludeMetadata> excludes;
-        private final String reason;
-        private final ImmutableAttributes attributes;
-        private final Set<CapabilitySelector> requestedCapabilities;
-        private final boolean endorsing;
-        private final IvyArtifactName dependencyArtifact;
-
-        DependencyImpl(
-            String group,
-            String module,
-            VersionConstraint versionConstraint,
-            List<ExcludeMetadata> excludes,
-            String reason,
-            ImmutableAttributes attributes,
-            Set<CapabilitySelector> capabilitySelectors,
-            boolean endorsing,
-            @Nullable IvyArtifactName dependencyArtifact
-        ) {
-            this.group = group;
-            this.module = module;
-            this.versionConstraint = versionConstraint;
-            this.excludes = ImmutableList.copyOf(excludes);
-            this.reason = reason;
-            this.attributes = attributes;
-            this.requestedCapabilities = capabilitySelectors;
-            this.endorsing = endorsing;
-            this.dependencyArtifact = dependencyArtifact;
-        }
+    protected record DependencyImpl(
+        String group,
+        String module,
+        VersionConstraint versionConstraint,
+        ImmutableList<ExcludeMetadata> excludes,
+        String reason,
+        ImmutableAttributes attributes,
+        Set<CapabilitySelector> capabilitySelectors,
+        boolean endorsing,
+        @Nullable IvyArtifactName dependencyArtifact
+    ) implements ComponentVariant.Dependency {
 
         @Override
         public String getGroup() {
@@ -489,7 +442,7 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
 
         @Override
         public Set<CapabilitySelector> getCapabilitySelectors() {
-            return requestedCapabilities;
+            return capabilitySelectors;
         }
 
         @Override
@@ -502,48 +455,15 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         public IvyArtifactName getDependencyArtifact() {
             return dependencyArtifact;
         }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            DependencyImpl that = (DependencyImpl) o;
-            return Objects.equal(group, that.group)
-                && Objects.equal(module, that.module)
-                && Objects.equal(versionConstraint, that.versionConstraint)
-                && Objects.equal(excludes, that.excludes)
-                && Objects.equal(reason, that.reason)
-                && Objects.equal(attributes, that.attributes)
-                && Objects.equal(requestedCapabilities, that.requestedCapabilities)
-                && endorsing == that.endorsing
-                && Objects.equal(dependencyArtifact, that.dependencyArtifact);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(group, module, versionConstraint, excludes, reason, attributes, endorsing, dependencyArtifact);
-        }
     }
 
-    protected static class DependencyConstraintImpl implements ComponentVariant.DependencyConstraint {
-        private final String group;
-        private final String module;
-        private final VersionConstraint versionConstraint;
-        private final String reason;
-        private final ImmutableAttributes attributes;
-
-        DependencyConstraintImpl(String group, String module, VersionConstraint versionConstraint, String reason, ImmutableAttributes attributes) {
-            this.group = group;
-            this.module = module;
-            this.versionConstraint = versionConstraint;
-            this.reason = reason;
-            this.attributes = attributes;
-        }
+    protected record DependencyConstraintImpl(
+        String group,
+        String module,
+        VersionConstraint versionConstraint,
+        String reason,
+        ImmutableAttributes attributes
+    ) implements ComponentVariant.DependencyConstraint {
 
         @Override
         public String getGroup() {
@@ -568,28 +488,6 @@ public abstract class AbstractMutableModuleComponentResolveMetadata implements M
         @Override
         public ImmutableAttributes getAttributes() {
             return attributes;
-        }
-
-        @Override
-        public boolean equals(Object o) {
-            if (this == o) {
-                return true;
-            }
-            if (o == null || getClass() != o.getClass()) {
-                return false;
-            }
-
-            DependencyConstraintImpl that = (DependencyConstraintImpl) o;
-            return Objects.equal(group, that.group)
-                && Objects.equal(module, that.module)
-                && Objects.equal(versionConstraint, that.versionConstraint)
-                && Objects.equal(reason, that.reason)
-                && Objects.equal(attributes, that.attributes);
-        }
-
-        @Override
-        public int hashCode() {
-            return Objects.hashCode(group, module, versionConstraint, reason, attributes);
         }
     }
 

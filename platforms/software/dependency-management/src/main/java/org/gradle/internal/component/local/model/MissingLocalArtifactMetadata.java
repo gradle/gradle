@@ -26,14 +26,7 @@ import java.io.File;
 /**
  * Represents an unknown local artifact, referenced from a dependency definition.
  */
-public class MissingLocalArtifactMetadata implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
-    private final ComponentIdentifier componentIdentifier;
-    private final IvyArtifactName name;
-
-    public MissingLocalArtifactMetadata(ComponentIdentifier componentIdentifier, IvyArtifactName artifactName) {
-        this.componentIdentifier = componentIdentifier;
-        this.name = artifactName;
-    }
+public record MissingLocalArtifactMetadata(ComponentIdentifier componentIdentifier, IvyArtifactName name) implements LocalComponentArtifactMetadata, ComponentArtifactIdentifier {
 
     @Override
     public String getDisplayName() {
@@ -78,22 +71,5 @@ public class MissingLocalArtifactMetadata implements LocalComponentArtifactMetad
     @Override
     public TaskDependencyContainer getBuildDependencies() {
         return TaskDependencyContainer.EMPTY;
-    }
-
-    @Override
-    public int hashCode() {
-        return componentIdentifier.hashCode() ^ name.hashCode();
-    }
-
-    @Override
-    public boolean equals(Object obj) {
-        if (obj == this) {
-            return true;
-        }
-        if (obj == null || obj.getClass() != getClass()) {
-            return false;
-        }
-        MissingLocalArtifactMetadata other = (MissingLocalArtifactMetadata) obj;
-        return other.componentIdentifier.equals(componentIdentifier) && other.name.equals(name);
     }
 }
