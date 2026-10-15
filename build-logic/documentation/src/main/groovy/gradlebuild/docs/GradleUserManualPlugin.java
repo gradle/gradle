@@ -59,6 +59,13 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
     public static final String DOCS_GRADLE_ORG = "https://docs.gradle.org/";
 
+    /**
+     * Output alias for the multi-page rendering. Both renderings use the html formatter, and the
+     * plugin keys a publication's log directory on toolchain and alias alone, so they need
+     * distinct aliases to avoid writing to the same directory.
+     */
+    private static final String CHUNKED_HTML_OUTPUT = "chunkedHtml";
+
     @Override
     public void apply(Project project) {
         ProjectLayout layout = project.getLayout();
@@ -181,7 +188,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             spec.getParameters().getExcludedFileNames().addAll("javaProject.*Layout\\.adoc", "userguide_single\\.adoc");
         }).map(pages -> new PatternSet().include(pages));
 
-        TaskProvider<AsciidoctorTask> userguideSinglePageHtml = registerUserManualPublication(project, asciidoc, extension, "userguideSinglePage",
+        TaskProvider<AsciidoctorTask> asciidoctorUserguideSinglePageHtml = registerUserManualPublication(project, asciidoc, extension, "userguideSinglePage", GradleBuildDocumentationPlugin.HTML_FORMATTER,
             GradleBuildDocumentationPlugin.FATAL_WARNINGS_SINGLE_PAGE,
             sourceSet -> sourceSet.sources("userguide_single.adoc"),
             providers.provider(() -> {
@@ -196,13 +203,13 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 attributes.put("samples-dir", stagedDocumentation.get().getAsFile().getAbsolutePath());
                 return attributes;
             }));
-        userguideSinglePageHtml.configure(task -> {
+        asciidoctorUserguideSinglePageHtml.configure(task -> {
             task.setDescription("Generates HTML single-page user manual.");
             task.onlyIf(new NotQuickFeedback(extension.getQuickFeedback()));
             outputTo(task, extension.getUserManual().getStagingRoot().dir("render-single-html"));
         });
 
-        TaskProvider<AsciidoctorTask> userguideMultiPage = registerUserManualPublication(project, asciidoc, extension, "userguideMultiPage",
+        TaskProvider<AsciidoctorTask> asciidoctorUserguideMultiPageChunkedHtml = registerUserManualPublication(project, asciidoc, extension, "userguideMultiPage", CHUNKED_HTML_OUTPUT,
             GradleBuildDocumentationPlugin.FATAL_WARNINGS,
             sourceSet -> { },
             providers.provider(() -> {
@@ -218,13 +225,13 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 attributes.put("samples-dir", stagedDocumentation.get().getAsFile().getAbsolutePath());
                 return attributes;
             }));
-        userguideMultiPage.configure(task -> {
+        asciidoctorUserguideMultiPageChunkedHtml.configure(task -> {
             task.setDescription("Generates multi-page user manual.");
             task.setSourcePatterns(multiPageSources);
             outputTo(task, extension.getUserManual().getStagingRoot().dir("render-multi"));
         });
 
-        return asList(userguideSinglePageHtml, userguideMultiPage);
+        return asList(asciidoctorUserguideSinglePageHtml, asciidoctorUserguideMultiPageChunkedHtml);
     }
 
     /**
@@ -255,6 +262,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         AsciidoctorModelExtension asciidoc,
         GradleDocumentationExtension extension,
         String name,
+        String outputAlias,
         Pattern fatalWarnings,
         Action<AsciidoctorSourceSet> sources,
         Provider<Map<String, Object>> attributes
@@ -268,9 +276,11 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             sourceSet.attributes(attrs -> attrs.attributeProvider(attributes));
             sources.execute(sourceSet);
         }));
-        publication.output(GradleBuildDocumentationPlugin.ASCIIDOCTORJ_TOOLCHAIN, GradleBuildDocumentationPlugin.HTML_FORMATTER);
+        // The alias names the output, and the plugin derives both the conversion task name and the
+        // per-run log directory (reports/asciidoc/logs/<toolchain>/<alias>) from it.
+        publication.output(GradleBuildDocumentationPlugin.ASCIIDOCTORJ_TOOLCHAIN, GradleBuildDocumentationPlugin.HTML_FORMATTER, outputAlias);
 
-        TaskProvider<AsciidoctorTask> task = project.getTasks().named(publication.taskNameFor(GradleBuildDocumentationPlugin.HTML_FORMATTER), AsciidoctorTask.class);
+        TaskProvider<AsciidoctorTask> task = project.getTasks().named(publication.taskNameFor(outputAlias), AsciidoctorTask.class);
         task.configure(t -> {
             t.setGroup("documentation");
             t.dependsOn(stagedDocumentation);
