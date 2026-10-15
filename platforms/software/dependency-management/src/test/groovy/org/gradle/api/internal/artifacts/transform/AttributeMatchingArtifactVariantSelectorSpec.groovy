@@ -16,7 +16,9 @@
 
 package org.gradle.api.internal.artifacts.transform
 
+
 import org.gradle.api.internal.artifacts.DependencyManagementTestUtil
+import org.gradle.api.internal.artifacts.dsl.dependencies.FallbackVariantSupport
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.BrokenResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedArtifactSet
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ResolvedVariant
@@ -25,6 +27,8 @@ import org.gradle.api.internal.attributes.AttributeSchemaServices
 import org.gradle.api.internal.attributes.ImmutableAttributes
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema
 import org.gradle.api.internal.attributes.matching.AttributeMatcher
+import org.gradle.api.internal.model.NamedObjectInstantiator
+import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.Describables
 import org.gradle.internal.component.resolution.failure.exception.ArtifactSelectionException
 import org.gradle.util.AttributeTestUtil
@@ -158,7 +162,8 @@ class AttributeMatchingArtifactVariantSelectorSpec extends Specification {
             consumerProvidedVariantFinder,
             attributesFactory,
             schemaServices,
-            failureProcessor
+            failureProcessor,
+            new FallbackVariantSupport(new NamedObjectInstantiator(new TestCrossBuildInMemoryCacheFactory()))
         )
     }
 

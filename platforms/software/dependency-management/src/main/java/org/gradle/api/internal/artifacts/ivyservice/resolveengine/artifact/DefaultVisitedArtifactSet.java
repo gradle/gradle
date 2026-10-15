@@ -25,6 +25,7 @@ import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder
 import org.gradle.api.internal.artifacts.transform.TransformUpstreamDependenciesResolver;
 import org.gradle.api.internal.artifacts.transform.TransformedVariantFactory;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
+import org.gradle.api.internal.artifacts.dsl.dependencies.FallbackVariantSupport;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
@@ -67,7 +68,8 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
         ImmutableArtifactTypeRegistry artifactTypeRegistry,
         ResolvedVariantCache resolvedVariantCache,
         GraphVariantSelector graphVariantSelector,
-        VariantTransformRegistry transformRegistry
+        VariantTransformRegistry transformRegistry,
+        FallbackVariantSupport fallbackVariantSupport
     ) {
         this.graphResults = graphResults;
         this.resolutionHost = resolutionHost;
@@ -79,7 +81,8 @@ public class DefaultVisitedArtifactSet implements VisitedArtifactSet {
             consumerProvidedVariantFinder,
             attributesFactory,
             attributeSchemaServices,
-            resolutionFailureHandler
+            resolutionFailureHandler,
+            fallbackVariantSupport
         );
 
         this.consumerServices = new ArtifactSelectionServices(
