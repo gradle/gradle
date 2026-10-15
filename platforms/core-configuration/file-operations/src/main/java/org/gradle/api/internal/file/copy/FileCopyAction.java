@@ -20,6 +20,7 @@ import org.gradle.api.tasks.WorkResult;
 import org.gradle.api.tasks.WorkResults;
 import org.gradle.internal.FileUtils;
 import org.gradle.internal.file.PathToFileResolver;
+import org.gradle.util.internal.GFileUtils;
 
 import java.io.File;
 import java.util.Objects;
@@ -46,10 +47,19 @@ public class FileCopyAction implements CopyAction {
         public void processFile(FileCopyDetailsInternal details) {
             File target = fileResolver.resolve(details.getRelativePath().getPathString());
             renameIfCaseChanged(target);
+            boolean replaced = replaceTargetIfTypeChanged(details, target);
             boolean copied = details.copyTo(target);
-            if (copied) {
+            if (copied || replaced) {
                 didWork = true;
             }
+        }
+
+        private boolean replaceTargetIfTypeChanged(FileCopyDetailsInternal details, File target) {
+            if (target.exists() && target.isDirectory() != details.isDirectory()) {
+                GFileUtils.forceDelete(target);
+                return true;
+            }
+            return false;
         }
 
         private void renameIfCaseChanged(File target) {
