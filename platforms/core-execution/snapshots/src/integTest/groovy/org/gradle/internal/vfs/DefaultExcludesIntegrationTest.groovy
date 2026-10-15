@@ -18,11 +18,27 @@ package org.gradle.internal.vfs
 
 import org.apache.tools.ant.DirectoryScanner
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import spock.lang.Issue
 
 class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
 
     private static final EXCLUDED_FILE_NAME = "my-excluded-file.txt"
+    private static final DIRECTORY_SCANNER_DEPRECATION =
+        "Mutating org.apache.tools.ant.DirectoryScanner default excludes has been deprecated. " +
+        "This is scheduled to be removed in Gradle 10. " +
+        "Use settings.fileSystemDefaultExcludes in settings.gradle(.kts) instead. " +
+        "For example: fileSystemDefaultExcludes.add(\"**/node_modules\"). " +
+        "Consult the upgrading guide for further information: " +
+        "https://docs.gradle.org/current/userguide/upgrading_version_9.html#directoryscanner_default_excludes_deprecation"
+    private static final DIRECTORY_SCANNER_AND_SETTINGS_DEPRECATION =
+        "Configuring file-system default excludes via both " +
+        "org.apache.tools.ant.DirectoryScanner and settings.fileSystemDefaultExcludes has been deprecated. " +
+        "This is scheduled to be removed in Gradle 10. " +
+        "settings.fileSystemDefaultExcludes takes precedence; the DirectoryScanner mutation is ignored. " +
+        "Remove the DirectoryScanner calls from your settings script. " +
+        "Consult the upgrading guide for further information: " +
+        "https://docs.gradle.org/current/userguide/upgrading_version_9.html#directoryscanner_default_excludes_deprecation"
     private static final DEFAULT_EXCLUDES = [
         "**/%*%",
         "**/.#*",
@@ -86,6 +102,7 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         def copyOfExcludedFile = outputDir.file(EXCLUDED_FILE_NAME)
 
         when:
+        executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_DEPRECATION)
         run "copyTask"
         then:
         executedAndNotSkipped(":copyTask")
@@ -93,6 +110,11 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
 
         when:
         excludedFile.text = "changed"
+        if (!GradleContextualExecuter.configCache) {
+            // settingsEvaluated re-runs on every non-CC build, so the deprecation re-fires.
+            // On a CC hit, settings come from cache and the user's DirectoryScanner mutation is not re-executed.
+            executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_DEPRECATION)
+        }
         run "copyTask"
         then:
         skipped(":copyTask")
@@ -102,6 +124,7 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         settingsFile << addDefaultExclude(EXCLUDED_FILE_NAME)
 
         when:
+        executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_DEPRECATION)
         run "copyTask"
         then:
         executedAndNotSkipped(":copyTask")
@@ -109,6 +132,9 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
 
         when:
         excludedFile.text = "changed"
+        if (!GradleContextualExecuter.configCache) {
+            executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_DEPRECATION)
+        }
         run "copyTask"
         then:
         skipped(":copyTask")
@@ -137,6 +163,7 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         List<String> defaultExcludesInTask = DEFAULT_EXCLUDES.toSorted()
 
         when:
+        executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_DEPRECATION)
         fails "copyTask"
 
         then:
@@ -152,6 +179,50 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         settingsFile << removeDefaultExclude(defaultExclude)
 
         when:
+        executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_DEPRECATION)
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+        file("build/output/$defaultExclude").exists()
+
+        when:
+        defaultExcludeFile.text = "changed"
+        if (!GradleContextualExecuter.configCache) {
+            executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_DEPRECATION)
+        }
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+    }
+
+    def "default excludes defined via settings.fileSystemDefaultExcludes are used"() {
+        settingsFile << """
+            fileSystemDefaultExcludes.add('**/${EXCLUDED_FILE_NAME}')
+        """
+
+        when:
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+        !copyOfExcludedFile.exists()
+
+        when:
+        excludedFile.text = "changed"
+        run "copyTask"
+        then:
+        skipped(":copyTask")
+    }
+
+    def "settings.fileSystemDefaultExcludes can remove a built-in default exclude"() {
+        def defaultExclude = '.gitignore'
+        def defaultExcludeFile = file("input/$defaultExclude")
+        defaultExcludeFile << "some content"
+
+        settingsFile << """
+            fileSystemDefaultExcludes.set(fileSystemDefaultExcludes.get() - '**/${defaultExclude}')
+        """
+
+        when:
         run "copyTask"
         then:
         executedAndNotSkipped(":copyTask")
@@ -162,6 +233,142 @@ class DefaultExcludesIntegrationTest extends AbstractIntegrationSpec{
         run "copyTask"
         then:
         executedAndNotSkipped(":copyTask")
+    }
+
+    def "fileSystemDefaultExcludes block supports add and remove"() {
+        def defaultExclude = '.gitignore'
+        file("input/$defaultExclude") << "some content"
+
+        settingsFile << """
+            fileSystemDefaultExcludes {
+                add('**/${EXCLUDED_FILE_NAME}')
+                remove('**/${defaultExclude}')
+            }
+        """
+
+        when:
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+        !copyOfExcludedFile.exists()                 // added exclude applied
+        file("build/output/$defaultExclude").exists() // built-in exclude removed
+    }
+
+    def "fileSystemDefaultExcludes block can remove multiple built-in excludes at once"() {
+        file("input/.gitignore") << "i"
+        file("input/.gitattributes") << "a"
+
+        settingsFile << """
+            fileSystemDefaultExcludes {
+                remove('**/.gitignore', '**/.gitattributes')
+            }
+        """
+
+        when:
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+        file("build/output/.gitignore").exists()
+        file("build/output/.gitattributes").exists()
+    }
+
+    def "fileSystemDefaultExcludes block can clear all default excludes"() {
+        given:
+        file("input/.gitignore") << "ignored"
+        file("input/.git/config") << "gitdir"
+
+        settingsFile << """
+            fileSystemDefaultExcludes {
+                clear()
+            }
+        """
+
+        when:
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+        file("build/output/.gitignore").exists()
+        file("build/output/.git/config").exists()
+    }
+
+    def "settings.fileSystemDefaultExcludes can clear all built-in default excludes"() {
+        // The andstatus 'include everything' use case: previously required wiping the Ant
+        // DirectoryScanner and adding a dummy entry; fileSystemDefaultExcludes.empty() now does it directly.
+        given:
+        file("input/.gitignore") << "ignored"
+        file("input/.git/config") << "gitdir"
+
+        settingsFile << """
+            fileSystemDefaultExcludes.empty()
+        """
+
+        when:
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+        file("build/output/.gitignore").exists()
+        file("build/output/.git/config").exists()
+
+        when: "nothing changes, the empty set is stable across builds (incl. a configuration-cache hit)"
+        run "copyTask"
+        then:
+        skipped(":copyTask")
+
+        when: "a now-included file changes, the task re-runs"
+        file("input/.gitignore").text = "changed"
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+        file("build/output/.gitignore").text == "changed"
+    }
+
+    def "legacy DirectoryScanner mutation can clear all default excludes (deprecated)"() {
+        // The original andstatus idiom: wipe every default exclude via the deprecated Ant API.
+        // Verifies the legacy clear-all path still results in 'include everything', end-to-end.
+        given:
+        file("input/.gitignore") << "ignored"
+        file("input/.git/config") << "gitdir"
+
+        settingsFile << """
+            ${DirectoryScanner.name}.defaultExcludes.each { ${DirectoryScanner.name}.removeDefaultExclude(it) }
+        """
+
+        when:
+        executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_DEPRECATION)
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+        file("build/output/.gitignore").exists()
+        file("build/output/.git/config").exists()
+
+        when: "a now-included file changes, the task re-runs"
+        file("input/.gitignore").text = "changed"
+        if (!GradleContextualExecuter.configCache) {
+            // settingsEvaluated re-runs on every non-CC build, so the deprecation re-fires.
+            // On a CC hit, settings come from cache and the user's DirectoryScanner mutation is not re-executed.
+            executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_DEPRECATION)
+        }
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+        file("build/output/.gitignore").text == "changed"
+    }
+
+    def "settings.fileSystemDefaultExcludes wins when both APIs configure the defaults"() {
+        // The new Settings API takes precedence; mutations to the legacy DirectoryScanner static state are ignored.
+        settingsFile << """
+            ${DirectoryScanner.name}.addDefaultExclude('**/legacy-excluded.txt')
+            fileSystemDefaultExcludes.add('**/${EXCLUDED_FILE_NAME}')
+        """
+        file('input/legacy-excluded.txt').text = "from legacy API"
+
+        when:
+        executer.expectDocumentedDeprecationWarning(DIRECTORY_SCANNER_AND_SETTINGS_DEPRECATION)
+        run "copyTask"
+        then:
+        executedAndNotSkipped(":copyTask")
+        !copyOfExcludedFile.exists() // new API exclude applied
+        outputDir.file('legacy-excluded.txt').exists() // legacy mutation ignored
     }
 
     private static String addDefaultExclude(String excludedFileName = EXCLUDED_FILE_NAME) {
