@@ -19,6 +19,12 @@ package org.gradle.api.file
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.modes.ToBeFixedForConfigurationCache
+import spock.lang.Issue
+
+import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
+import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
+import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
+import static org.gradle.integtests.fixtures.SuggestionsMessages.STACKTRACE_MESSAGE
 
 class FilePropertyLifecycleIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs {
     def "task #annotation file property is implicitly finalized when task starts execution"() {
@@ -466,9 +472,22 @@ task thing {
         fails("producer")
 
         then:
-        failureHasCause("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported")
+        failureHasCause(
+            "Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported. " +
+                "The mapped value may depend on the content produced by task ':producer', so it can only be calculated after task ':producer' has completed."
+        )
+        failure.assertHasResolutions(
+            "To use the value in another task, declare it as an input of that task, so that the task runs after task ':producer'.",
+            "To use the value in the actions of task ':producer', query the property with 'get()' and transform the result.",
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
+        )
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/26340")
     @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/19252")
     def "querying the value of a mapped task output file property before the task has completed is not supported"() {
         taskTypeWithOutputFileProperty()
@@ -486,7 +505,19 @@ task thing {
         fails("producer")
 
         then:
-        failureHasCause("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported")
+        failureHasCause(
+            "Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported. " +
+                "The mapped value may depend on the content produced by task ':producer', so it can only be calculated after task ':producer' has completed."
+        )
+        failure.assertHasResolutions(
+            "To use the value in another task, declare it as an input of that task, so that the task runs after task ':producer'.",
+            "To use the value in the actions of task ':producer', query the property with 'get()' and transform the result.",
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
+        )
     }
 
     def "querying the value of a mapped task output directory property before the task has started is not supported"() {
@@ -504,9 +535,22 @@ task thing {
         fails("producer")
 
         then:
-        failureHasCause("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported")
+        failureHasCause(
+            "Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported. " +
+                "The mapped value may depend on the content produced by task ':producer', so it can only be calculated after task ':producer' has completed."
+        )
+        failure.assertHasResolutions(
+            "To use the value in another task, declare it as an input of that task, so that the task runs after task ':producer'.",
+            "To use the value in the actions of task ':producer', query the property with 'get()' and transform the result.",
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
+        )
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/26340")
     @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/19252")
     def "querying the value of a mapped task output directory property before the task has completed is not supported"() {
         taskTypeWithOutputDirectoryProperty()
@@ -525,7 +569,139 @@ task thing {
         fails("producer")
 
         then:
-        failureHasCause("Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported")
+        failureHasCause(
+            "Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported. " +
+                "The mapped value may depend on the content produced by task ':producer', so it can only be calculated after task ':producer' has completed."
+        )
+        failure.assertHasResolutions(
+            "To use the value in another task, declare it as an input of that task, so that the task runs after task ':producer'.",
+            "To use the value in the actions of task ':producer', query the property with 'get()' and transform the result.",
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
+        )
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26340")
+    def "task action cannot query #kind value of its own output #outputType"() {
+        buildFile """
+            abstract class Producer extends DefaultTask {
+                @${outputAnnotation}
+                abstract ${propertyType} getOutput()
+
+                @TaskAction
+                def go() {
+                    ${contentFile}.text = "content"
+                    println("derived = " + ${query})
+                }
+            }
+
+            task producer(type: Producer) {
+                output = layout.buildDirectory.${outputLocation}
+            }
+        """
+
+        when:
+        fails("producer")
+
+        then:
+        failureHasCause(
+            "Querying the ${kind} value of task ':producer' property 'output' before task ':producer' has completed is not supported. " +
+                "The ${kind} value may depend on the content produced by task ':producer', so it can only be calculated after task ':producer' has completed."
+        )
+        failure.assertHasResolutions(
+            "To use the value in another task, declare it as an input of that task, so that the task runs after task ':producer'.",
+            "To use the value in the actions of task ':producer', query the property with 'get()' and transform the result.",
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
+        )
+
+        where:
+        query                                                              | kind       | outputType  | outputAnnotation  | propertyType          | outputLocation    | contentFile
+        'output.map { it.asFile.text }.get()'                              | "mapped"   | "file"      | "OutputFile"      | "RegularFileProperty" | 'file("out.txt")' | 'output.get().asFile'
+        'output.filter { it.asFile.file }.get().asFile.text'               | "filtered" | "file"      | "OutputFile"      | "RegularFileProperty" | 'file("out.txt")' | 'output.get().asFile'
+        'output.map { it.asFile.list().length }.get()'                     | "mapped"   | "directory" | "OutputDirectory" | "DirectoryProperty"   | 'dir("out")'      | 'new File(output.get().asFile, "a")'
+        'output.filter { it.asFile.directory }.get().asFile.list().length' | "filtered" | "directory" | "OutputDirectory" | "DirectoryProperty"   | 'dir("out")'      | 'new File(output.get().asFile, "a")'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26340")
+    @ToBeFixedForConfigurationCache(because = "the configuration cache drops the producer of a stored provider, so the mapped value is not checked")
+    def "task action cannot query value mapped from its own output at configuration time"() {
+        buildFile """
+            abstract class Producer extends DefaultTask {
+                @OutputFile
+                abstract RegularFileProperty getOutput()
+
+                @Internal
+                abstract Property<String> getOutputName()
+
+                @TaskAction
+                def go() {
+                    output.get().asFile.text = "content"
+                    println("outputName = " + outputName.get())
+                }
+            }
+
+            task producer(type: Producer) {
+                output = layout.buildDirectory.file("out.txt")
+                outputName = output.map { it.asFile.name }
+            }
+        """
+
+        when:
+        fails("producer")
+
+        then:
+        failureHasCause(
+            "Querying the mapped value of task ':producer' property 'output' before task ':producer' has completed is not supported. " +
+                "The mapped value may depend on the content produced by task ':producer', so it can only be calculated after task ':producer' has completed."
+        )
+        failure.assertHasResolutions(
+            "To use the value in another task, declare it as an input of that task, so that the task runs after task ':producer'.",
+            "To use the value in the actions of task ':producer', query the property with 'get()' and transform the result.",
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead.",
+            STACKTRACE_MESSAGE,
+            INFO_DEBUG,
+            SCAN,
+            GET_HELP
+        )
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26340")
+    def "task action can query value of its own output #outputType using #method"() {
+        buildFile """
+            abstract class Producer extends DefaultTask {
+                @${outputAnnotation}
+                abstract ${propertyType} getOutput()
+
+                @TaskAction
+                def go() {
+                    println("derived = " + ${query})
+                }
+            }
+
+            task producer(type: Producer) {
+                output = layout.buildDirectory.${outputLocation}
+            }
+        """
+
+        when:
+        succeeds("producer")
+
+        then:
+        outputContains("derived = ${expected}")
+
+        where:
+        query                                              | method         | outputType  | outputAnnotation  | propertyType          | outputLocation    | expected
+        'output.get().asFile.name'                         | "get()"        | "file"      | "OutputFile"      | "RegularFileProperty" | 'file("out.txt")' | "out.txt"
+        'output.locationOnly.map { it.asFile.name }.get()' | "locationOnly" | "file"      | "OutputFile"      | "RegularFileProperty" | 'file("out.txt")' | "out.txt"
+        'output.get().asFile.name'                         | "get()"        | "directory" | "OutputDirectory" | "DirectoryProperty"   | 'dir("out")'      | "out"
+        'output.locationOnly.map { it.asFile.name }.get()' | "locationOnly" | "directory" | "OutputDirectory" | "DirectoryProperty"   | 'dir("out")'      | "out"
     }
 
     @ToBeFixedForConfigurationCache(issue = "https://github.com/gradle/gradle/issues/36710")
