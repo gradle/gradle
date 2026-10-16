@@ -248,7 +248,6 @@ public abstract class DefaultSourceDirectorySet extends CompositeFileTree implem
     }
 
     private static boolean isExistingNonDirectory(File file) {
-        // A single read, so a directory that is concurrently deleted and recreated is never reported as a file
         try {
             return !Files.readAttributes(file.toPath(), BasicFileAttributes.class).isDirectory();
         } catch (IOException e) {
