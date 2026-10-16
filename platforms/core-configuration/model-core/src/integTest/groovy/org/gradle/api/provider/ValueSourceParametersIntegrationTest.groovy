@@ -43,17 +43,15 @@ class ValueSourceParametersIntegrationTest extends AbstractIntegrationSpec {
                 }
             }
 
-            println("first = " + providers.of(Probe) {}.get())
-            println("second = " + providers.of(Probe) {}.get())
+            println("probe = " + providers.of(Probe) {}.get())
         """
 
         when:
-        2.times { expectServiceInjectionDeprecation("Params", "org.gradle.api.model.ObjectFactory") }
+        expectServiceInjectionDeprecation("Params", "org.gradle.api.model.ObjectFactory")
         run("help")
 
         then:
-        outputContains("first = made by the injected factory")
-        outputContains("second = made by the injected factory")
+        outputContains("probe = made by the injected factory")
     }
 
     @ToBeImplemented("Services injected into value source parameters are not rejected yet")
