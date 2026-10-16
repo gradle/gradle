@@ -19,6 +19,7 @@ package org.gradle.internal.instantiation.generator;
 import com.google.common.collect.ImmutableCollection;
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableListMultimap;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableMultimap;
 import com.google.common.collect.ImmutableSet;
 import com.google.common.collect.LinkedHashMultimap;
@@ -79,6 +80,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -159,7 +161,11 @@ abstract class AbstractClassGenerator implements ClassGenerator {
 
     @Override
     public <T> GeneratedClass<? extends T> generate(Class<T> type) {
-        return Cast.uncheckedNonnullCast(generatedClasses.get(unpack(type), this::generateUnderLock));
+        return Cast.uncheckedNonnullCast(generateImpl(type));
+    }
+
+    private GeneratedClassImpl generateImpl(Class<?> type) {
+        return generatedClasses.get(unpack(type), this::generateUnderLock);
     }
 
     private GeneratedClassImpl generateUnderLock(Class<?> type) {
@@ -249,7 +255,7 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             outerType = null;
         }
 
-        return new GeneratedClassImpl(generatedClass, outerType, injectionHandler.getInjectedServices(), annotationsTriggeringServiceInjection.build());
+        return new GeneratedClassImpl(generatedClass, outerType, injectionHandler.getInjectedServices(), managedPropertiesHandler.getNestedManagedTypes(), annotationsTriggeringServiceInjection.build());
     }
 
     protected abstract ClassInspectionVisitor start(Class<?> type);
@@ -378,9 +384,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         // Else, ignore abstract methods on non-abstract classes as some other tooling (e.g. the Groovy compiler) has decided this is ok
     }
 
-    private static boolean isManagedProperty(PropertyMetadata property) {
-        // Property is readable and without a setter of property type and the type can be created
-        return property.isReadableWithoutSetterOfPropertyType() && (property.getType().isAnnotationPresent(ManagedType.class) || hasNestedAnnotation(property::hasAnnotation));
+    private static boolean isProvidedManagedProperty(PropertyMetadata property) {
+        return property.isReadableWithoutSetterOfPropertyType() && property.getType().isAnnotationPresent(ManagedType.class);
+    }
+
+    private static boolean isNestedManagedProperty(PropertyMetadata property) {
+        return property.isReadableWithoutSetterOfPropertyType() && hasNestedAnnotation(property::hasAnnotation);
     }
 
     private static boolean hasNestedAnnotation(Predicate<Class<? extends Annotation>> hasAnnotation) {
@@ -482,13 +491,22 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         private final Class<?> generatedClass;
         private final Class<?> outerType;
         private final List<Class<?>> injectedServices;
+        // Nested managed types are generated lazily, to avoid a StackOverflowError for self-nesting types
+        private final Set<Class<?>> nestedManagedTypes;
         private final List<Class<? extends Annotation>> annotationsTriggeringServiceInjection;
         private final List<GeneratedConstructor<Object>> constructors;
 
-        public GeneratedClassImpl(Class<?> generatedClass, @Nullable Class<?> outerType, List<Class<?>> injectedServices, List<Class<? extends Annotation>> annotationsTriggeringServiceInjection) {
+        public GeneratedClassImpl(
+            Class<?> generatedClass,
+            @Nullable Class<?> outerType,
+            List<Class<?>> injectedServices,
+            Set<Class<?>> nestedManagedTypes,
+            List<Class<? extends Annotation>> annotationsTriggeringServiceInjection
+        ) {
             this.generatedClass = generatedClass;
             this.outerType = outerType;
             this.injectedServices = injectedServices;
+            this.nestedManagedTypes = nestedManagedTypes;
             this.annotationsTriggeringServiceInjection = annotationsTriggeringServiceInjection;
 
             ImmutableList.Builder<GeneratedConstructor<Object>> builder = ImmutableList.builderWithExpectedSize(generatedClass.getDeclaredConstructors().length);
@@ -520,6 +538,31 @@ abstract class AbstractClassGenerator implements ClassGenerator {
         @Override
         public SerializationConstructor<Object> getSerializationConstructor(Class<? super Object> baseClass) {
             return new SerializationConstructorImpl(baseClass);
+        }
+
+        private void collectInjectedServices(
+            GeneratedConstructor<?> constructor,
+            ConstructorSelector nestedConstructorSelector,
+            Set<Class<?>> visited,
+            ImmutableMap.Builder<Class<?>, Set<Class<?>>> injectedServicesByDeclaringType
+        ) {
+            Set<Class<?>> declaredInjectedServices = ImmutableSet.<Class<?>>builder()
+                .add(constructor.getParameterTypes())
+                .addAll(injectedServices)
+                .build();
+            if (!declaredInjectedServices.isEmpty()) {
+                injectedServicesByDeclaringType.put(unpack(generatedClass), declaredInjectedServices);
+            }
+            for (Class<?> nestedManagedType : nestedManagedTypes) {
+                Class<?> nestedType = unpack(nestedManagedType);
+                if (visited.add(nestedType)) {
+                    GeneratedClassImpl nestedClass = generateImpl(nestedType);
+                    // TODO: this repeats how DependencyInjectingInstantiator.doCreate selects the constructor of a nested object.
+                    //  Keep that selection in one place, shared by creation and inspection.
+                    GeneratedConstructor<?> nestedConstructor = nestedConstructorSelector.forParams(nestedType, NO_PARAMS);
+                    nestedClass.collectInjectedServices(nestedConstructor, nestedConstructorSelector, visited, injectedServicesByDeclaringType);
+                }
+            }
         }
 
         private class SerializationConstructorImpl implements SerializationConstructor<Object> {
@@ -567,6 +610,15 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             @Override
             public boolean serviceInjectionTriggeredByAnnotation(Class<? extends Annotation> serviceAnnotation) {
                 return annotationsTriggeringServiceInjection.contains(serviceAnnotation);
+            }
+
+            @Override
+            public Map<Class<?>, Set<Class<?>>> injectedServicesByDeclaringType(ConstructorSelector nestedConstructorSelector) {
+                ImmutableMap.Builder<Class<?>, Set<Class<?>>> injectedServicesByDeclaringType = ImmutableMap.builder();
+                Set<Class<?>> visited = new HashSet<>();
+                visited.add(unpack(generatedClass));
+                collectInjectedServices(this, nestedConstructorSelector, visited, injectedServicesByDeclaringType);
+                return injectedServicesByDeclaringType.build();
             }
 
             @Override
@@ -1096,6 +1148,8 @@ abstract class AbstractClassGenerator implements ClassGenerator {
     private class ManagedPropertiesHandler extends ClassGenerationHandler {
         private final List<PropertyMetadata> mutableProperties = new ArrayList<>();
         private final List<PropertyMetadata> readOnlyProperties = new ArrayList<>();
+        // Types of the subset of readOnlyProperties created as @Nested rather than as @ManagedType instances
+        private final Set<Class<?>> nestedManagedTypes = new LinkedHashSet<>();
         private final List<PropertyMetadata> eagerAttachProperties = new ArrayList<>();
         private final List<PropertyMetadata> ineligibleProperties = new ArrayList<>();
 
@@ -1132,9 +1186,12 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             }
 
             // Property is readable and all getters and setters are abstract
-            if (isManagedProperty(property)) {
-                // Abstract read-only property with managed type
+            if (isProvidedManagedProperty(property)) {
                 readOnlyProperties.add(property);
+                return true;
+            } else if (isNestedManagedProperty(property)) {
+                readOnlyProperties.add(property);
+                nestedManagedTypes.add(property.getType());
                 return true;
             } else if (property.isReadable() && property.isWritable()) {
                 // Mutable property
@@ -1190,6 +1247,13 @@ abstract class AbstractClassGenerator implements ClassGenerator {
             if (!hasFields) {
                 visitor.addManagedMethods(mutableProperties, readOnlyProperties);
             }
+        }
+
+        /**
+         * Returns the types of abstract read-only {@code @Nested} properties, excluding {@link ManagedType} types.
+         */
+        public Set<Class<?>> getNestedManagedTypes() {
+            return nestedManagedTypes;
         }
     }
 
