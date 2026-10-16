@@ -47,15 +47,22 @@ public abstract class UserManualPages implements ValueSource<List<String>, UserM
          * Regular expressions for file names that are not rendered as pages of their own.
          */
         ListProperty<String> getExcludedFileNames();
+
+        /**
+         * Directories, relative to the user manual root, whose pages are left out, e.g. {@code redirects}.
+         */
+        ListProperty<String> getExcludedDirectories();
     }
 
     @Override
     public List<String> obtain() {
         List<Pattern> excluded = getParameters().getExcludedFileNames().get().stream().map(Pattern::compile).collect(Collectors.toList());
         Path root = getParameters().getUserManualRoot().get().getAsFile().toPath();
+        List<Path> excludedDirectories = getParameters().getExcludedDirectories().get().stream().map(root::resolve).collect(Collectors.toList());
         try (Stream<Path> files = Files.walk(root)) {
             return files
                 .filter(Files::isRegularFile)
+                .filter(path -> excludedDirectories.stream().noneMatch(path::startsWith))
                 .map(path -> path.getFileName().toString())
                 .filter(name -> name.endsWith(".adoc"))
                 .filter(name -> excluded.stream().noneMatch(pattern -> pattern.matcher(name).matches()))
