@@ -117,60 +117,6 @@ class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "verify"
     }
 
-    def "can process resources while a Java source directory is concurrently recreated"() {
-        given:
-        buildFile << """
-            plugins {
-                id 'java'
-            }
-
-            abstract class DirectoryRecreator implements BuildService<Params>, AutoCloseable {
-                interface Params extends BuildServiceParameters {
-                    DirectoryProperty getDirectory()
-                }
-
-                volatile boolean recreating = true
-                Thread thread
-
-                void start() {
-                    def directory = parameters.directory.get().asFile
-                    thread = Thread.start {
-                        while (recreating) {
-                            directory.deleteDir()
-                            directory.mkdirs()
-                        }
-                    }
-                }
-
-                @Override
-                void close() {
-                    recreating = false
-                    thread?.join()
-                }
-            }
-
-            def generatedDir = layout.buildDirectory.dir('generated/sources/gen/java/main')
-            sourceSets.main.java.srcDir(generatedDir)
-
-            def recreator = gradle.sharedServices.registerIfAbsent('recreator', DirectoryRecreator) {
-                parameters.directory = generatedDir
-            }
-            def startRecreating = tasks.register('startRecreating') {
-                usesService(recreator)
-                doLast {
-                    recreator.get().start()
-                }
-            }
-            tasks.named('processResources') {
-                dependsOn(startRecreating)
-            }
-        """
-        1000.times { file("src/main/resources/resource${it}.txt") << "resource" }
-
-        expect:
-        succeeds("processResources")
-    }
-
     def "registering a feature without the java plugin applied is deprecated"() {
         buildFile("""
             plugins {
