@@ -123,16 +123,37 @@ class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
             include 'lib'
         """
         buildFile << """
-            def generatedDir = file('lib/build/generated/sources/gen/java/main')
-            def generationStarted = file('generation-started')
-            def resourcesProcessed = file('resources-processed')
+            import java.util.concurrent.CountDownLatch
+            import org.gradle.api.services.BuildService
+            import org.gradle.api.services.BuildServiceParameters
+            import org.gradle.build.event.BuildEventsListenerRegistry
+            import org.gradle.tooling.events.FinishEvent
+            import org.gradle.tooling.events.OperationCompletionListener
+            import org.gradle.tooling.events.task.TaskFinishEvent
 
+            abstract class GenerationCoordinator implements BuildService<BuildServiceParameters.None>, OperationCompletionListener {
+                final CountDownLatch generationStarted = new CountDownLatch(1)
+                volatile boolean resourcesProcessed = false
+
+                @Override
+                void onFinish(FinishEvent event) {
+                    if (event instanceof TaskFinishEvent && event.descriptor.taskPath == ':lib:processResources') {
+                        resourcesProcessed = true
+                    }
+                }
+            }
+
+            def coordinator = gradle.sharedServices.registerIfAbsent('coordinator', GenerationCoordinator) {}
+            services.get(BuildEventsListenerRegistry).onTaskCompletion(coordinator)
+
+            def generatedDir = file('lib/build/generated/sources/gen/java/main')
             def generate = tasks.register('generate') {
                 outputs.dir(generatedDir)
+                usesService(coordinator)
                 doLast {
-                    generationStarted.text = ''
-                    long deadline = System.currentTimeMillis() + 30_000
-                    while (!resourcesProcessed.exists() && System.currentTimeMillis() < deadline) {
+                    def service = coordinator.get()
+                    service.generationStarted.countDown()
+                    while (!service.resourcesProcessed) {
                         generatedDir.deleteDir()
                         generatedDir.mkdirs()
                     }
@@ -144,18 +165,13 @@ class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
                 sourceSets.main.java.srcDir(generate)
 
                 def awaitGeneration = tasks.register('awaitGeneration') {
+                    usesService(coordinator)
                     doLast {
-                        long deadline = System.currentTimeMillis() + 30_000
-                        while (!generationStarted.exists() && System.currentTimeMillis() < deadline) {
-                            Thread.sleep(10)
-                        }
+                        coordinator.get().generationStarted.await()
                     }
                 }
                 tasks.named('processResources') {
                     dependsOn(awaitGeneration)
-                    doLast {
-                        resourcesProcessed.text = ''
-                    }
                 }
             }
         """
