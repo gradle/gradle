@@ -40,6 +40,9 @@ import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.LinkedHashMap;
@@ -234,7 +237,7 @@ public abstract class DefaultSourceDirectorySet extends CompositeFileTree implem
                 result.addAll(nested.getSourceTrees());
             } else {
                 for (File srcDir : fileCollectionFactory.resolving(path)) {
-                    if (!srcDir.isDirectory() && srcDir.exists()) {
+                    if (isExistingNonDirectory(srcDir)) {
                         throw new InvalidUserDataException(String.format("Source directory '%s' is not a directory.", srcDir));
                     }
                     result.add(directoryFileTreeFactory.create(srcDir, patterns));
@@ -242,6 +245,15 @@ public abstract class DefaultSourceDirectorySet extends CompositeFileTree implem
             }
         }
         return result;
+    }
+
+    private static boolean isExistingNonDirectory(File file) {
+        // A single read, so a directory that is concurrently deleted and recreated is never reported as a file
+        try {
+            return !Files.readAttributes(file.toPath(), BasicFileAttributes.class).isDirectory();
+        } catch (IOException e) {
+            return false;
+        }
     }
 
     @Override

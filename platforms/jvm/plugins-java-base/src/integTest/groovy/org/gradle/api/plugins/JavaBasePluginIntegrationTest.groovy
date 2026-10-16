@@ -117,6 +117,57 @@ class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "verify"
     }
 
+    def "can process resources while another project's task recreates a generated Java source directory"() {
+        given:
+        settingsFile << """
+            include 'lib'
+        """
+        buildFile << """
+            def generatedDir = file('lib/build/generated/sources/gen/java/main')
+            def generationStarted = file('generation-started')
+            def resourcesProcessed = file('resources-processed')
+
+            def generate = tasks.register('generate') {
+                outputs.dir(generatedDir)
+                doLast {
+                    generationStarted.text = ''
+                    long deadline = System.currentTimeMillis() + 30_000
+                    while (!resourcesProcessed.exists() && System.currentTimeMillis() < deadline) {
+                        generatedDir.deleteDir()
+                        generatedDir.mkdirs()
+                    }
+                }
+            }
+
+            project(':lib') {
+                apply plugin: 'java-library'
+                sourceSets.main.java.srcDir(generate)
+
+                def awaitGeneration = tasks.register('awaitGeneration') {
+                    doLast {
+                        long deadline = System.currentTimeMillis() + 30_000
+                        while (!generationStarted.exists() && System.currentTimeMillis() < deadline) {
+                            Thread.sleep(10)
+                        }
+                    }
+                }
+                tasks.named('processResources') {
+                    dependsOn(awaitGeneration)
+                    doLast {
+                        resourcesProcessed.text = ''
+                    }
+                }
+            }
+        """
+        1000.times { file("lib/src/main/resources/resource${it}.txt") << "resource" }
+
+        when:
+        succeeds("generate", ":lib:processResources", "--parallel")
+
+        then:
+        file("lib/build/resources/main/resource0.txt").assertExists()
+    }
+
     def "registering a feature without the java plugin applied is deprecated"() {
         buildFile("""
             plugins {
