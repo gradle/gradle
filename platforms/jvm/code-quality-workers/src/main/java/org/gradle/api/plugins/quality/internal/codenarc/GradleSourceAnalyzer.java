@@ -56,7 +56,6 @@ class GradleSourceAnalyzer extends AbstractSourceAnalyzer {
     private static final Logger LOGGER = LoggerFactory.getLogger(GradleSourceAnalyzer.class);
     private static final int POOL_TIMEOUT_SECONDS = 60 * 60;
 
-    private final File baseDir;
     private final Map<File, List<String>> sourceTrees;
 
     /**
@@ -76,8 +75,7 @@ class GradleSourceAnalyzer extends AbstractSourceAnalyzer {
     private final ConcurrentMap<String, AtomicInteger> fileCountMap = new ConcurrentHashMap<>();
     private final AtomicLong sourceFileErrors = new AtomicLong();
 
-    GradleSourceAnalyzer(File baseDir, Map<File, List<String>> sourceTrees) {
-        this.baseDir = baseDir;
+    GradleSourceAnalyzer(Map<File, List<String>> sourceTrees) {
         this.sourceTrees = sourceTrees;
         this.setNumberOfFilesInThisDirectory = findMethod(DirectoryResults.class, "setNumberOfFilesInThisDirectory", int.class);
         this.fileResultsHaveSourceCode = hasConstructor(FileResults.class, String.class, List.class, SourceCode.class);
@@ -111,10 +109,11 @@ class GradleSourceAnalyzer extends AbstractSourceAnalyzer {
 
     @Override
     public List<String> getSourceDirectories() {
-        String basePath = baseDir.getAbsolutePath();
+        // The Ant task shows them relative to the Ant project's base directory, which is the worker's working directory
+        // in Gradle and thus never contains them
         List<String> result = new ArrayList<>();
         for (File dir : sourceTrees.keySet()) {
-            result.add(PathUtil.removePathPrefix(basePath, dir.getPath()));
+            result.add(dir.getAbsolutePath());
         }
         return result;
     }

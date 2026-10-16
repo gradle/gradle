@@ -229,7 +229,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         then:
         fails('check')
         def codenarcOutput = result.groupedOutput.task(":codenarcTest")
-        codenarcOutput.assertOutputContains('[ant:codenarc]     Violation: Rule=ClassName P=2 Loc=.(testclass2.groovy:1) Msg=[The name testclass2 failed to match the pattern ([A-Z]\\w*\\$?)*] Src=[package org.gradle; class testclass2 { }]')
+        codenarcOutput.assertOutputContains('    Violation: Rule=ClassName P=2 Loc=.(testclass2.groovy:1) Msg=[The name testclass2 failed to match the pattern ([A-Z]\\w*\\$?)*] Src=[package org.gradle; class testclass2 { }]')
     }
 
     def "can enable multiple reports with console"() {
@@ -253,7 +253,7 @@ class CodeNarcPluginVersionIntegrationTest extends MultiVersionIntegrationSpec i
         and:
         // Failures should be reported to console, HTML report should be written and failure should link to HTML report
         def codenarcOutput = result.groupedOutput.task(":codenarcTest")
-        codenarcOutput.assertOutputContains('[ant:codenarc]     Violation: Rule=ClassName P=2 Loc=.(testclass2.groovy:1) Msg=[The name testclass2 failed to match the pattern ([A-Z]\\w*\\$?)*] Src=[package org.gradle; class testclass2 { }]')
+        codenarcOutput.assertOutputContains('    Violation: Rule=ClassName P=2 Loc=.(testclass2.groovy:1) Msg=[The name testclass2 failed to match the pattern ([A-Z]\\w*\\$?)*] Src=[package org.gradle; class testclass2 { }]')
         failure.assertThatCause(startsWith("CodeNarc rule violations were found. See the report at:"))
         report("test").assertExists()
     }

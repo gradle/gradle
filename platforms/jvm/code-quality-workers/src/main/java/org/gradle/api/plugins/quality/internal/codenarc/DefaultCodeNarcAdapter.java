@@ -45,7 +45,7 @@ public class DefaultCodeNarcAdapter implements CodeNarcAdapter {
     public int[] run(CodeNarcRunSpec spec) {
         CodeNarcRunner runner = new CodeNarcRunner();
         runner.setRuleSetFiles(spec.getRuleSetFiles());
-        runner.setSourceAnalyzer(new GradleSourceAnalyzer(spec.getBaseDir(), spec.getSourceTrees()));
+        runner.setSourceAnalyzer(new GradleSourceAnalyzer(spec.getSourceTrees()));
         runner.setReportWriters(createReportWriters(spec));
 
         Results results = execute(runner, spec.getCompilationClasspath());

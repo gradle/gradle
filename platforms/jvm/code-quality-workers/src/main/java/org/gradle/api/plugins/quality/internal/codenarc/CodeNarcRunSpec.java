@@ -33,11 +33,6 @@ public interface CodeNarcRunSpec {
     String getRuleSetFiles();
 
     /**
-     * The directory that source directories are shown relative to in the reports.
-     */
-    File getBaseDir();
-
-    /**
      * Source files to analyze, as relative paths per source directory, in analysis order.
      */
     Map<File, List<String>> getSourceTrees();
