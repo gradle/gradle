@@ -38,7 +38,6 @@ dependencies {
     api(libs.jspecify)
     api(libs.nativePlatform)
 
-    implementation(projects.functional)
     implementation(projects.native)
     implementation(projects.processServicesApi)
     implementation(projects.serialization)
