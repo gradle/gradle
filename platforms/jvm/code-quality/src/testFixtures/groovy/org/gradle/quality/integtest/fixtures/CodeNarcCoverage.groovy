@@ -20,14 +20,22 @@ import org.gradle.api.JavaVersion
 import org.gradle.api.plugins.quality.CodeNarcPlugin
 
 class CodeNarcCoverage {
-    public static final List<String> ALL = [CodeNarcPlugin.DEFAULT_CODENARC_VERSION].asImmutable()
+    /**
+     * Covers the CodeNarc API differences the CodeNarc adapter handles:
+     * file results without source code (before 2.0), file counts per directory (up to 3.0),
+     * and the Groovy 3, 4 and 5 builds of CodeNarc.
+     */
+    public static final List<String> ALL = ["1.6.1", "2.0.0", "3.0.0", "3.7.0", CodeNarcPlugin.DEFAULT_CODENARC_VERSION, "4.0.0"].asImmutable()
 
     static List<String> getSupportedVersionsByCurrentJdk() {
         getSupportedVersionsByJdk(JavaVersion.current())
     }
 
-    // Leaving this in since it might change in the future.
     static List<String> getSupportedVersionsByJdk(JavaVersion version) {
-        return ALL
+        if (version.isJava11Compatible()) {
+            return ALL
+        }
+        // CodeNarc 4 uses Groovy 5, which requires Java 11
+        return ALL.findAll { !it.startsWith("4.") }
     }
 }
