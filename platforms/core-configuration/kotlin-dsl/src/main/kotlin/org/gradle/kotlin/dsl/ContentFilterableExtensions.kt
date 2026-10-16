@@ -24,16 +24,13 @@ import kotlin.reflect.KClass
 /**
  * Adds a content filter to be used during the copy.
  * Multiple calls add additional filters to the filter chain.
- * Each filter should implement [FilterReader].
- * Import `org.apache.tools.ant.filters.*` for access to all the standard Ant filters.
+ * Each filter should implement [FilterReader] and declare a `(java.io.Reader)` constructor.
  *
  * Examples:
  *
  * ```
- * filter<StripJavaComments>()
  * filter<com.mycompany.project.CustomFilter>()
- * filter<HeadFilter>("lines" to 25, "skip" to 2)
- * filter<ReplaceTokens>("tokens" to mapOf("copyright" to "2009", "version" to "2.3.1"))
+ * filter<com.mycompany.project.CustomFilter>("lines" to 25, "skip" to 2)
  * ```
  *
  * @param T type of the filter to add
@@ -50,14 +47,12 @@ inline fun <reified T : FilterReader> ContentFilterable.filter(vararg properties
 /**
  * Adds a content filter to be used during the copy.
  * Multiple calls add additional filters to the filter chain.
- * Each filter should implement [FilterReader].
- * Import `org.apache.tools.ant.filters.*` for access to all the standard Ant filters.
+ * Each filter should implement [FilterReader] and declare a `(java.io.Reader)` constructor.
  *
  * Examples:
  *
  * ```
- * filter<HeadFilter>(mapOf("lines" to 25, "skip" to 2))
- * filter<ReplaceTokens>(mapOf("tokens" to mapOf("copyright" to "2009", "version" to "2.3.1")))
+ * filter<com.mycompany.project.CustomFilter>(mapOf("lines" to 25, "skip" to 2))
  * ```
  *
  * @param T type of the filter to add
@@ -74,16 +69,13 @@ inline fun <reified T : FilterReader> ContentFilterable.filter(properties: Map<S
 /**
  * Adds a content filter to be used during the copy.
  * Multiple calls add additional filters to the filter chain.
- * Each filter should implement [FilterReader].
- * Import `org.apache.tools.ant.filters.*` for access to all the standard Ant filters.
+ * Each filter should implement [FilterReader] and declare a `(java.io.Reader)` constructor.
  *
  * Examples:
  *
  * ```
- * filter(StripJavaComments::class)
  * filter(com.mycompany.project.CustomFilter::class)
- * filter(HeadFilter::class, "lines" to 25, "skip" to 2)
- * filter(ReplaceTokens::class, "tokens" to mapOf("copyright" to "2009", "version" to "2.3.1"))
+ * filter(com.mycompany.project.CustomFilter::class, "lines" to 25, "skip" to 2)
  * ```
  *
  * @param filterType type of the filter to add
@@ -100,14 +92,12 @@ fun <T : FilterReader> ContentFilterable.filter(filterType: KClass<T>, vararg pr
 /**
  * Adds a content filter to be used during the copy.
  * Multiple calls add additional filters to the filter chain.
- * Each filter should implement [FilterReader].
- * Import `org.apache.tools.ant.filters.*` for access to all the standard Ant filters.
+ * Each filter should implement [FilterReader] and declare a `(java.io.Reader)` constructor.
  *
  * Examples:
  *
  * ```
- * filter(HeadFilter::class, mapOf("lines" to 25, "skip" to 2))
- * filter(ReplaceTokens::class, mapOf("tokens" to mapOf("copyright" to "2009", "version" to "2.3.1")))
+ * filter(com.mycompany.project.CustomFilter::class, mapOf("lines" to 25, "skip" to 2))
  * ```
  *
  * @param filterType type of the filter to add

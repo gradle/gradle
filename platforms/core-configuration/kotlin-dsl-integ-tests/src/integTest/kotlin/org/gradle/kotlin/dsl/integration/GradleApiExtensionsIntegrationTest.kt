@@ -128,7 +128,18 @@ class GradleApiExtensionsIntegrationTest : AbstractKotlinIntegrationTest() {
         withFile(
             "plugin.gradle.kts",
             """
-            import org.apache.tools.ant.filters.ReplaceTokens
+            import java.io.FilterReader
+            import java.io.Reader
+            import java.io.StringReader
+
+            class PrefixingFilterReader(private val source: Reader) : FilterReader(source) {
+                var prefix: String = ""
+                private val transformed: Reader by lazy {
+                    StringReader(source.readLines().joinToString("\n") { prefix + it })
+                }
+                override fun read(): Int = transformed.read()
+                override fun read(cbuf: CharArray, off: Int, len: Int): Int = transformed.read(cbuf, off, len)
+            }
 
             // Class<T> to KClass<T>
             objects.property(Long::class)
@@ -142,7 +153,7 @@ class GradleApiExtensionsIntegrationTest : AbstractKotlinIntegrationTest() {
                 into("dst")
 
                 // Class<T> + Groovy named arguments to KClass<T> + vararg of Pair
-                filter(ReplaceTokens::class, "foo" to "bar")
+                filter(PrefixingFilterReader::class, "prefix" to "> ")
             }
             """
         )
@@ -168,8 +179,6 @@ class GradleApiExtensionsIntegrationTest : AbstractKotlinIntegrationTest() {
             import org.gradle.kotlin.dsl.*
 
             import javax.inject.Inject
-
-            import org.apache.tools.ant.filters.ReplaceTokens
 
             abstract class FooTask : DefaultTask() {
 

@@ -819,7 +819,7 @@ Filtering file content in Gradle involves replacing placeholders or tokens in fi
 
 Transforming the content of files while they are being copied involves basic templating that uses token substitution, removal of lines of text, or even more complex filtering using a full-blown template engine.
 
-The following example demonstrates several forms of filtering, including token substitution using the link:{javadocPath}/org/gradle/api/file/CopySpec.html#expand-java.util.Map-[CopySpec.expand(java.util.Map)] method and another using link:{javadocPath}/org/gradle/api/file/CopySpec.html#filter-java.lang.Class-[CopySpec.filter(java.lang.Class)] with an https://ant.apache.org/manual/Types/filterchain.html[Ant filter]:
+The following example demonstrates several forms of filtering, including token substitution using the link:{javadocPath}/org/gradle/api/file/CopySpec.html#expand-java.util.Map-[CopySpec.expand(java.util.Map)] method and another using link:{javadocPath}/org/gradle/api/file/CopySpec.html#filter-java.lang.Class-[CopySpec.filter(java.lang.Class)] with a custom `{javaApi}/java/io/FilterReader.html[FilterReader]` implementation:
 
 ====
 include::sample[dir="snippets/reference/gradle-types/copy/kotlin",files="build.gradle.kts[tags=filter-files]"]
@@ -828,11 +828,12 @@ include::sample[dir="snippets/reference/gradle-types/copy/groovy",files="build.g
 
 The `filter()` method has two variants, which behave differently:
 
-* one takes a `{javaApi}/java/io/FilterReader.html[FilterReader]` and is designed to work with Ant filters, such as `ReplaceTokens`
+* one takes a `{javaApi}/java/io/FilterReader.html[FilterReader]` class, letting you plug in a custom, stateful filter over the whole stream (the example above drops blank lines)
 * one takes a closure or link:{javadocPath}/org/gradle/api/Transformer.html[Transformer] that defines the transformation for each line of the source file
 
 Note that both variants assume the source files are text-based.
-When you use the `ReplaceTokens` class with `filter()`, you create a template engine that replaces tokens of the form `@tokenName@` (the Ant-style token) with values you define.
+A `FilterReader` is instantiated with the `(Reader)` constructor, so your implementation needs one; any Groovy-style named arguments passed to `filter()` are applied as JavaBean properties afterwards.
+For simple token substitution, prefer `expand()` (described below) or a line-based closure.
 
 [[using_copyspec_expand]]
 === Using `CopySpec.expand()`

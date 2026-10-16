@@ -16,8 +16,6 @@
 
 package org.gradle.api.internal.file.copy
 
-import org.apache.tools.ant.filters.HeadFilter
-import org.apache.tools.ant.filters.StripJavaComments
 import org.gradle.api.Action
 import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Transformer
@@ -30,7 +28,9 @@ import org.gradle.api.internal.file.DefaultConfigurableFilePermissions
 import org.gradle.api.internal.file.TestFiles
 import org.gradle.api.internal.file.pattern.PatternMatcher
 import org.gradle.internal.Actions
+import org.gradle.test.fixtures.file.HeadTestFilterReader
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.test.fixtures.file.UpperCaseTestFilterReader
 import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Specification
@@ -158,7 +158,7 @@ class DefaultCopySpecTest extends Specification {
 
     def 'no arg filter'() {
         when:
-        spec.filter(StripJavaComments)
+        spec.filter(UpperCaseTestFilterReader)
 
         then:
         spec.copyActions.size() == 1
@@ -166,7 +166,7 @@ class DefaultCopySpecTest extends Specification {
 
     def 'arg filter'() {
         when:
-        spec.filter(HeadFilter, lines: 15, skip: 2)
+        spec.filter(HeadTestFilterReader, lines: 15, skip: 2)
 
         then:
         spec.copyActions.size() == 1
@@ -192,8 +192,8 @@ class DefaultCopySpecTest extends Specification {
 
     def 'two filters'() {
         when:
-        spec.filter(StripJavaComments)
-        spec.filter(HeadFilter, lines: 15, skip: 2)
+        spec.filter(UpperCaseTestFilterReader)
+        spec.filter(HeadTestFilterReader, lines: 15, skip: 2)
 
         then:
         spec.copyActions.size() == 2
