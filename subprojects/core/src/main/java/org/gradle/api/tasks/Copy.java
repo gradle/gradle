@@ -39,8 +39,12 @@ import java.io.File;
  *     into 'build/target/doc'
  * }
  *
- * //for Ant filter
- * import org.apache.tools.ant.filters.ReplaceTokens
+ * //a custom content filter that drops blank lines
+ * class RemoveBlankLines extends FilterReader {
+ *     RemoveBlankLines(Reader input) {
+ *         super(new StringReader(input.text.readLines().findAll { !it.trim().isEmpty() }.join(System.lineSeparator())))
+ *     }
+ * }
  *
  * //for including in the copy task
  * def dataContent = copySpec {
@@ -52,7 +56,7 @@ import java.io.File;
  *     from('src/main/config') {
  *         include '**&#47;*.properties'
  *         include '**&#47;*.xml'
- *         filter(ReplaceTokens, tokens: [version: '2.3.1'])
+ *         filter(RemoveBlankLines)
  *     }
  *     from('src/main/config') {
  *         exclude '**&#47;*.properties', '**&#47;*.xml'

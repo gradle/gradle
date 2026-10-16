@@ -354,7 +354,11 @@ class SamplesCopyIntegrationTest extends AbstractSampleIntegrationTest {
 
         then:
         def outputDir = dslDir.file("build/explodedWar")
-        outputDir.file("index-staging.html").text.contains(String.format("[Copyright 2009]%n[Version 2.3.1]"))
+        def filtered = outputDir.file("index-staging.html").text
+        filtered.contains("[Copyright 2009]")
+        filtered.contains("[Version 2.3.1]")
+        // The custom FilterReader removed the blank line, so there is no bracketed empty line
+        !filtered.contains("[]")
         where:
         dsl << ['groovy', 'kotlin']
     }

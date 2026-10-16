@@ -30,15 +30,15 @@ import java.util.Map;
 public interface ContentFilterable {
     /**
      * <p>Adds a content filter to be used during the copy.  Multiple calls to filter, add additional filters to the
-     * filter chain.  Each filter should implement {@code java.io.FilterReader}. Include {@code
-     * org.apache.tools.ant.filters.*} for access to all the standard Ant filters.</p>
+     * filter chain.  Each filter should implement {@code java.io.FilterReader} and declare a {@code (java.io.Reader)}
+     * constructor.</p>
      *
-     * <p>Filter properties may be specified using groovy map syntax.</p>
+     * <p>Filter properties may be specified using groovy map syntax. They are applied to the filter instance as
+     * JavaBean properties after it is constructed.</p>
      *
      * <p> Examples:
      * <pre>
-     *    filter(HeadFilter, lines:25, skip:2)
-     *    filter(ReplaceTokens, tokens:[copyright:'2009', version:'2.3.1'])
+     *    filter(com.mycompany.project.CustomFilter, lines:25, skip:2)
      * </pre>
      *
      * @param properties map of filter properties
@@ -50,12 +50,11 @@ public interface ContentFilterable {
 
     /**
      * <p>Adds a content filter to be used during the copy.  Multiple calls to filter, add additional filters to the
-     * filter chain.  Each filter should implement {@code java.io.FilterReader}. Include {@code
-     * org.apache.tools.ant.filters.*} for access to all the standard Ant filters.</p>
+     * filter chain.  Each filter should implement {@code java.io.FilterReader} and declare a {@code (java.io.Reader)}
+     * constructor.</p>
      *
      * <p> Examples:
      * <pre>
-     *    filter(StripJavaComments)
      *    filter(com.mycompany.project.CustomFilter)
      * </pre>
      *

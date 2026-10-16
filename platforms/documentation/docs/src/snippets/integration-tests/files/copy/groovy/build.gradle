@@ -204,17 +204,20 @@ tasks.register('rename', Copy) {
 // end::rename-files[]
 
 // tag::filter-files[]
-import org.apache.tools.ant.filters.FixCrLfFilter
-import org.apache.tools.ant.filters.ReplaceTokens
+// A custom filter that drops blank lines
+class RemoveBlankLines extends FilterReader {
+    RemoveBlankLines(Reader input) {
+        super(new StringReader(input.text.readLines().findAll { !it.trim().isEmpty() }.join('\n')))
+    }
+}
 
 tasks.register('filter', Copy) {
     from 'src/main/webapp'
     into layout.buildDirectory.dir('explodedWar')
     // Substitute property tokens in files
     expand(copyright: '2009', version: '2.3.1')
-    // Use some of the filters provided by Ant
-    filter(FixCrLfFilter)
-    filter(ReplaceTokens, tokens: [copyright: '2009', version: '2.3.1'])
+    // Use a custom FilterReader implementation
+    filter(RemoveBlankLines)
     // Use a closure to filter each line
     filter { String line ->
         "[$line]"

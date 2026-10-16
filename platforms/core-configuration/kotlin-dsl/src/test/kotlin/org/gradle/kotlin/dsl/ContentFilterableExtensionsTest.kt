@@ -1,8 +1,8 @@
 package org.gradle.kotlin.dsl
 
-import org.apache.tools.ant.filters.HeadFilter
-import org.apache.tools.ant.filters.StripJavaComments
 import org.gradle.api.file.ContentFilterable
+import org.gradle.test.fixtures.file.HeadTestFilterReader
+import org.gradle.test.fixtures.file.UpperCaseTestFilterReader
 import org.junit.Test
 import org.mockito.kotlin.any
 import org.mockito.kotlin.doAnswer
@@ -22,21 +22,21 @@ class ContentFilterableExtensionsTest {
         }
 
         filterable.apply {
-            filter<StripJavaComments>()
-            filter<HeadFilter>("lines" to 25, "skip" to 1)
-            filter<HeadFilter>(mapOf("lines" to 52, "skip" to 2))
-            filter(StripJavaComments::class)
-            filter(HeadFilter::class, "lines" to 25, "skip" to 3)
-            filter(HeadFilter::class, mapOf("lines" to 52, "skip" to 4))
+            filter<UpperCaseTestFilterReader>()
+            filter<HeadTestFilterReader>("lines" to 25, "skip" to 1)
+            filter<HeadTestFilterReader>(mapOf("lines" to 52, "skip" to 2))
+            filter(UpperCaseTestFilterReader::class)
+            filter(HeadTestFilterReader::class, "lines" to 25, "skip" to 3)
+            filter(HeadTestFilterReader::class, mapOf("lines" to 52, "skip" to 4))
         }
 
         inOrder(filterable) {
-            verify(filterable).filter(StripJavaComments::class.java)
-            verify(filterable).filter(mapOf("lines" to 25, "skip" to 1), HeadFilter::class.java)
-            verify(filterable).filter(mapOf("lines" to 52, "skip" to 2), HeadFilter::class.java)
-            verify(filterable).filter(StripJavaComments::class.java)
-            verify(filterable).filter(mapOf("lines" to 25, "skip" to 3), HeadFilter::class.java)
-            verify(filterable).filter(mapOf("lines" to 52, "skip" to 4), HeadFilter::class.java)
+            verify(filterable).filter(UpperCaseTestFilterReader::class.java)
+            verify(filterable).filter(mapOf("lines" to 25, "skip" to 1), HeadTestFilterReader::class.java)
+            verify(filterable).filter(mapOf("lines" to 52, "skip" to 2), HeadTestFilterReader::class.java)
+            verify(filterable).filter(UpperCaseTestFilterReader::class.java)
+            verify(filterable).filter(mapOf("lines" to 25, "skip" to 3), HeadTestFilterReader::class.java)
+            verify(filterable).filter(mapOf("lines" to 52, "skip" to 4), HeadTestFilterReader::class.java)
             verifyNoMoreInteractions()
         }
     }

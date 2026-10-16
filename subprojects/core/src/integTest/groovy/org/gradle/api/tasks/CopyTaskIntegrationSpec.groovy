@@ -963,12 +963,18 @@ class CopyTaskIntegrationSpec extends AbstractIntegrationSpec {
     def "chained transformations"() {
         given:
         buildFile '''
+            class PrefixingFilter extends FilterReader {
+                PrefixingFilter(Reader input) {
+                    super(new StringReader(input.text.readLines().collect { 'line: ' + it }.join('\\n')))
+                }
+            }
+
             task copy(type: Copy) {
                 into 'dest\'
                 rename '(.*).a', '\$1.renamed'
                 eachFile { fcd -> if (fcd.path.contains('/ignore/')) { fcd.exclude() } }
                 eachFile { fcd -> if (fcd.relativePath.segments.length > 1) { fcd.relativePath = fcd.relativePath.prepend('prefix') }}
-                filter(org.apache.tools.ant.filters.PrefixLines, prefix: 'line: ')
+                filter(PrefixingFilter)
                 eachFile { fcd -> fcd.filter { it.replaceAll('^line:', 'prefix:') } }
                 from ('src') {
                     rename '(.*).renamed', '\$1.renamed_twice'
