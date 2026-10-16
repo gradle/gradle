@@ -355,7 +355,7 @@
          </trusted-key>
          <trusted-key id="8E3A02905A1AE67E7B0F9ACD3967D4EDA591B991" group="org.jetbrains.kotlinx" name="kotlinx-html-jvm"/>
          <trusted-key id="91268E187CDC92936DF90106AC01D965C791B637" group="org.rnorth.visible-assertions" name="visible-assertions"/>
-         <trusted-key id="93135AA35CDF701AB4E1513AB163E784347A4C24" group="^org[.]ysb33r[.]gradle($|([.].*))" regex="true"/>
+         <trusted-key id="93135AA35CDF701AB4E1513AB163E784347A4C24" group="org.ysb33r.gradle"/>
          <trusted-key id="94976E17E18DD3201447286954963C3E875A56AE" group="io.smallrye.common"/>
          <trusted-key id="98465301A4939C0279F2E847D89D05374952262B" group="org.jetbrains.dokka"/>
          <trusted-key id="9857C388D7D1D9D031274CD0A5DEF5A76F94A471" group="com.github.spotbugs"/>
@@ -1175,6 +1175,7 @@
       </component>
       <component group="org.ysb33r.gradle.jruby" name="jrubygradle-resolver" version="2.4.1">
          <artifact name="jrubygradle-resolver-2.4.1.jar">
+            <pgp value="93135AA35CDF701AB4E1513AB163E784347A4C24"/>
             <sha256 value="d91a88f0d2ae7ca4709f60c2a50efade725f4c083ed85af552542c7a078dd3f2" origin="Verified"/>
          </artifact>
       </component>

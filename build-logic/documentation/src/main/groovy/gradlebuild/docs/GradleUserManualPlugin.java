@@ -334,10 +334,20 @@ public class GradleUserManualPlugin implements Plugin<Project> {
     /**
      * model5 derives the output directory from the publication name, under {@code build/docs}, which is where
      * {@code stageDocs} assembles all documentation. Keep rendering into the staging root, as before.
+     * <p>
+     * {@link AsciidoctorTask#getOutputDir()} is {@code @Internal} and typed as a {@link Provider}, but forwards the
+     * conversion settings' destination directory, which is a {@link Property} in 5.0.3. The plugin offers no setter,
+     * so check the type rather than let a future version fail with a bare {@code ClassCastException}.
      */
     @SuppressWarnings("unchecked")
     private static void outputTo(AsciidoctorTask task, Provider<Directory> outputDir) {
-        ((Property<Directory>) task.getOutputDir()).set(outputDir);
+        Provider<Directory> destination = task.getOutputDir();
+        if (!(destination instanceof Property)) {
+            throw new IllegalStateException("Cannot redirect the output of " + task.getPath() + ": "
+                + "AsciidoctorTask.getOutputDir() returned " + destination.getClass().getName() + ", which is not a Property. "
+                + "The Asciidoctor Gradle plugin no longer allows the output directory to be overridden this way.");
+        }
+        ((Property<Directory>) destination).set(outputDir);
     }
 
     /**
