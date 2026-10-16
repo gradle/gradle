@@ -66,14 +66,9 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
     public static final String HTML_FORMATTER = "html";
 
     /**
-     * Any Asciidoctor warning fails the multi-page user manual.
+     * Any Asciidoctor warning fails the user manual.
      */
     public static final Pattern FATAL_WARNINGS = Pattern.compile(".*");
-
-    /**
-     * Like {@link #FATAL_WARNINGS}, but for the single-page user manual.
-     */
-    public static final Pattern FATAL_WARNINGS_SINGLE_PAGE = Pattern.compile("^(?!id assigned to .+ already in use: ).*");
 
     private static final String GRADLE_EXTENSIONS = "gradleDocs";
 

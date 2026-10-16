@@ -50,7 +50,6 @@ import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.regex.Pattern;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
@@ -189,7 +188,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         }).map(pages -> new PatternSet().include(pages));
 
         TaskProvider<AsciidoctorTask> asciidoctorUserguideSinglePageHtml = registerUserManualPublication(project, asciidoc, extension, "userguideSinglePage", GradleBuildDocumentationPlugin.HTML_FORMATTER,
-            GradleBuildDocumentationPlugin.FATAL_WARNINGS_SINGLE_PAGE,
             sourceSet -> sourceSet.sources("userguide_single.adoc"),
             providers.provider(() -> {
                 Map<String, Object> attributes = commonAttributes(extension);
@@ -210,7 +208,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         });
 
         TaskProvider<AsciidoctorTask> asciidoctorUserguideMultiPageChunkedHtml = registerUserManualPublication(project, asciidoc, extension, "userguideMultiPage", CHUNKED_HTML_OUTPUT,
-            GradleBuildDocumentationPlugin.FATAL_WARNINGS,
             sourceSet -> { },
             providers.provider(() -> {
                 Map<String, Object> attributes = commonAttributes(extension);
@@ -263,7 +260,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         GradleDocumentationExtension extension,
         String name,
         String outputAlias,
-        Pattern fatalWarnings,
         Action<AsciidoctorSourceSet> sources,
         Provider<Map<String, Object>> attributes
     ) {
@@ -272,7 +268,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             sourceSet.setSourceDir(stagedDocumentation);
             // Includes in the top-level document and private docinfo files are resolved against the base dir
             sourceSet.baseDir(baseDir -> baseDir.baseDirFollowsSourceDir());
-            sourceSet.fatalWarnings(fatalWarnings);
+            sourceSet.fatalWarnings(GradleBuildDocumentationPlugin.FATAL_WARNINGS);
             sourceSet.attributes(attrs -> attrs.attributeProvider(attributes));
             sources.execute(sourceSet);
         }));
