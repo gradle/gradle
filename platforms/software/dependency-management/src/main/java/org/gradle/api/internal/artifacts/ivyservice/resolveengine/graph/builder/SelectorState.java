@@ -343,12 +343,12 @@ class SelectorState implements DependencyGraphSelector, ResolvableSelectorState 
         }
         this.reusable = true;
         if (markedReusableAlready) {
-            // TODO: We have hit an unstable graph. This selector has already added, removed, added again,
-            // and we are removing it once again. We should fail the resolution here and ask the user
-            // to fix the graph -- likely by adding a version constraint.
-
-            // We currently rely on this not throwing to handle forced virtual platform alignment properly.
-            // A more proper solution may be needed to allow throwing here.
+            // This selector has been added, removed, added again, and is now removed once
+            // more. Not triggering reselection breaks the cycle. We can reach this point due to:
+            // 1. Unstable graphs
+            // 2. Forced virtual platform alignment (see #39454).
+            // TODO: Fail the resolution here and ask the user to fix the graph, once
+            // alignment converges without repeatedly releasing and re-adding its edges.
             return false;
         } else {
             markedReusableAlready = true;
