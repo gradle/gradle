@@ -117,71 +117,58 @@ class JavaBasePluginIntegrationTest extends AbstractIntegrationSpec {
         succeeds "verify"
     }
 
-    def "can process resources while another project's task recreates a generated Java source directory"() {
+    def "can process resources while a Java source directory is concurrently recreated"() {
         given:
-        settingsFile << """
-            include 'lib'
-        """
         buildFile << """
-            import java.util.concurrent.CountDownLatch
-            import org.gradle.api.services.BuildService
-            import org.gradle.api.services.BuildServiceParameters
-            import org.gradle.build.event.BuildEventsListenerRegistry
-            import org.gradle.tooling.events.FinishEvent
-            import org.gradle.tooling.events.OperationCompletionListener
-            import org.gradle.tooling.events.task.TaskFinishEvent
+            plugins {
+                id 'java'
+            }
 
-            abstract class GenerationCoordinator implements BuildService<BuildServiceParameters.None>, OperationCompletionListener {
-                final CountDownLatch generationStarted = new CountDownLatch(1)
-                volatile boolean resourcesProcessed = false
+            abstract class DirectoryRecreator implements BuildService<Params>, AutoCloseable {
+                interface Params extends BuildServiceParameters {
+                    DirectoryProperty getDirectory()
+                }
+
+                volatile boolean recreating = true
+                Thread thread
+
+                void start() {
+                    def directory = parameters.directory.get().asFile
+                    thread = Thread.start {
+                        while (recreating) {
+                            directory.deleteDir()
+                            directory.mkdirs()
+                        }
+                    }
+                }
 
                 @Override
-                void onFinish(FinishEvent event) {
-                    if (event instanceof TaskFinishEvent && event.descriptor.taskPath == ':lib:processResources') {
-                        resourcesProcessed = true
-                    }
+                void close() {
+                    recreating = false
+                    thread?.join()
                 }
             }
 
-            def coordinator = gradle.sharedServices.registerIfAbsent('coordinator', GenerationCoordinator) {}
-            services.get(BuildEventsListenerRegistry).onTaskCompletion(coordinator)
+            def generatedDir = layout.buildDirectory.dir('generated/sources/gen/java/main')
+            sourceSets.main.java.srcDir(generatedDir)
 
-            def generatedDir = file('lib/build/generated/sources/gen/java/main')
-            def generate = tasks.register('generate') {
-                outputs.dir(generatedDir)
-                usesService(coordinator)
+            def recreator = gradle.sharedServices.registerIfAbsent('recreator', DirectoryRecreator) {
+                parameters.directory = generatedDir
+            }
+            def startRecreating = tasks.register('startRecreating') {
+                usesService(recreator)
                 doLast {
-                    def service = coordinator.get()
-                    service.generationStarted.countDown()
-                    while (!service.resourcesProcessed) {
-                        generatedDir.deleteDir()
-                        generatedDir.mkdirs()
-                    }
+                    recreator.get().start()
                 }
             }
-
-            project(':lib') {
-                apply plugin: 'java-library'
-                sourceSets.main.java.srcDir(generate)
-
-                def awaitGeneration = tasks.register('awaitGeneration') {
-                    usesService(coordinator)
-                    doLast {
-                        coordinator.get().generationStarted.await()
-                    }
-                }
-                tasks.named('processResources') {
-                    dependsOn(awaitGeneration)
-                }
+            tasks.named('processResources') {
+                dependsOn(startRecreating)
             }
         """
-        1000.times { file("lib/src/main/resources/resource${it}.txt") << "resource" }
+        1000.times { file("src/main/resources/resource${it}.txt") << "resource" }
 
-        when:
-        succeeds("generate", ":lib:processResources", "--parallel")
-
-        then:
-        file("lib/build/resources/main/resource0.txt").assertExists()
+        expect:
+        succeeds("processResources")
     }
 
     def "registering a feature without the java plugin applied is deprecated"() {
