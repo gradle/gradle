@@ -109,7 +109,7 @@ tasks.register<Zip>("packageApp") {
 .app/build.gradle
 [source,groovy]
 ----
-tasks.register(Zip, "packageApp") {
+tasks.register("packageApp", Zip) {
 
 }
 ----
