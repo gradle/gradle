@@ -21,6 +21,11 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
+
+    compileOnly(providedLibs.codenarc) {
+        because("CodeNarc is resolved by the CodeNarc plugin; the CodeNarc adapter compiles against the CodeNarc API")
+        isTransitive = false
+    }
 }
 
 gradleModule {
