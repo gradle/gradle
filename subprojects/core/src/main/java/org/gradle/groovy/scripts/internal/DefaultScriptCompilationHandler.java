@@ -30,6 +30,7 @@ import org.codehaus.groovy.control.Phases;
 import org.codehaus.groovy.control.SourceUnit;
 import org.codehaus.groovy.control.messages.SyntaxErrorMessage;
 import org.codehaus.groovy.syntax.SyntaxException;
+import org.codehaus.groovy.tools.GroovyClass;
 import org.gradle.api.Action;
 import org.gradle.api.GradleException;
 import org.gradle.api.internal.initialization.ClassLoaderScope;
@@ -74,6 +75,9 @@ import java.lang.reflect.Field;
 import java.net.URL;
 import java.security.CodeSource;
 import java.security.ProtectionDomain;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
@@ -127,7 +131,33 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
         logger.debug("Timing: Writing script to cache at {} took: {}", classesDir.getAbsolutePath(), clock.getElapsed());
     }
 
-    private void compileScript(
+    @Override
+    public Map<String, byte[]> compileToMemory(
+        ScriptSource source, ClassLoader classLoader, File metadataDir, CompileOperation<?> extractingTransformer,
+        Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier
+    ) {
+        CompilerConfiguration configuration = createBaseCompilerConfiguration(scriptBaseClass);
+        try {
+            List<GroovyClass> classes = compileScript(source, classLoader, configuration, metadataDir, extractingTransformer, verifier);
+            Map<String, byte[]> result = new LinkedHashMap<>();
+            for (GroovyClass groovyClass : classes) {
+                result.put(groovyClass.getName().replace('.', '/'), groovyClass.getBytes());
+            }
+            return result;
+        } catch (Exception e) {
+            try {
+                getDeleter().deleteRecursively(metadataDir);
+            } catch (IOException ioex) {
+                throw UncheckedException.throwAsUncheckedException(ioex);
+            }
+            throw e;
+        }
+    }
+
+    /**
+     * Compiles the script, writing class files when the configuration has a target directory. Returns the generated classes.
+     */
+    private List<GroovyClass> compileScript(
         ScriptSource source, ClassLoader classLoader, CompilerConfiguration configuration, File metadataDir,
         final CompileOperation<?> extractingTransformer, final Action<? super ClassNode> customVerifier
     ) {
@@ -136,6 +166,7 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
 
         final EmptyScriptDetector emptyScriptDetector = new EmptyScriptDetector();
         final PackageStatementDetector packageDetector = new PackageStatementDetector();
+        final List<CompilationUnit> compilationUnits = new ArrayList<>(1);
         GroovyClassLoader groovyClassLoader = new GroovyClassLoader(classLoader, configuration, false) {
             @Override
             protected CompilationUnit createCompilationUnit(
@@ -144,6 +175,7 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
             ) {
 
                 CompilationUnit compilationUnit = new CustomCompilationUnit(compilerConfiguration, codeSource, customVerifier, this, simpleNameToFQN);
+                compilationUnits.add(compilationUnit);
 
                 if (transformer != null) {
                     transformer.register(compilationUnit);
@@ -172,6 +204,7 @@ public abstract class DefaultScriptCompilationHandler implements ScriptCompilati
                 throw new UnsupportedOperationException(String.format("%s should not contain a package statement.", source.getLongDisplayName().getCapitalizedDisplayName()));
             }
             serializeMetadata(source, extractingTransformer, metadataDir, emptyScriptDetector.isEmptyScript(), emptyScriptDetector.getHasMethods());
+            return compilationUnits.isEmpty() ? Collections.emptyList() : compilationUnits.get(0).getClasses();
         } finally {
             ClassLoaderUtils.tryClose(groovyClassLoader);
         }

@@ -24,11 +24,19 @@ import org.gradle.internal.classpath.ClassPath;
 import org.gradle.internal.hash.HashCode;
 
 import java.io.File;
+import java.util.Map;
 
 public interface ScriptCompilationHandler {
 
     void compileToDir(ScriptSource source, ClassLoader classLoader, File classesDir, File metadataDir, CompileOperation<?> transformer,
                       Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier);
+
+    /**
+     * Compiles the script without writing class files, and returns the bytecode of the generated classes by internal class name.
+     * The script metadata is still written to {@code metadataDir}.
+     */
+    Map<String, byte[]> compileToMemory(ScriptSource source, ClassLoader classLoader, File metadataDir, CompileOperation<?> transformer,
+                                        Class<? extends Script> scriptBaseClass, Action<? super ClassNode> verifier);
 
     <T extends Script, M> CompiledScript<T, M> loadFromDir(ScriptSource source, HashCode sourceHashCode, ClassLoaderScope targetScope, ClassPath scriptClassPath,
                                                            File metadataCacheDir, CompileOperation<M> transformer, Class<T> scriptBaseClass);

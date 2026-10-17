@@ -18,7 +18,8 @@ package org.gradle.internal.scripts;
 
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.groovy.scripts.ScriptSource;
-import org.gradle.internal.classpath.transforms.ClasspathElementTransform;
+import org.gradle.internal.UncheckedException;
+import org.gradle.internal.classpath.transforms.ClassTransforms;
 import org.gradle.internal.classpath.transforms.ClasspathElementTransformFactoryForLegacy;
 import org.gradle.internal.classpath.transforms.InstrumentingClassTransform;
 import org.gradle.internal.classpath.types.GradleCoreInstrumentationTypeRegistry;
@@ -41,12 +42,20 @@ import org.gradle.internal.hash.Hashing;
 import org.gradle.internal.instrumentation.reporting.PropertyUpgradeReportConfig;
 import org.gradle.internal.instrumentation.reporting.listener.BytecodeUpgradeReportMethodInterceptionListener;
 import org.gradle.internal.snapshot.ValueSnapshot;
+import org.gradle.util.internal.GFileUtils;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.OverridingMethodsMustInvokeSuper;
+import java.io.BufferedOutputStream;
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.Map;
 import java.util.Optional;
+import java.util.function.Consumer;
+import java.util.zip.Deflater;
+import java.util.zip.ZipEntry;
+import java.util.zip.ZipOutputStream;
 
 import static java.util.Objects.requireNonNull;
 import static org.gradle.internal.instrumentation.api.types.BytecodeInterceptorFilter.INSTRUMENTATION_AND_BYTECODE_REPORT;
@@ -110,6 +119,58 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
      */
     protected abstract File instrumentedOutput(File workspace);
 
+    /**
+     * The type of the instrumented output: a directory by default.
+     */
+    protected TreeType instrumentedOutputType() {
+        return TreeType.DIRECTORY;
+    }
+
+    /**
+     * Compiles the script and writes the instrumented classes to {@link #instrumentedOutput(File)}.
+     * By default, compiles to {@link #compile(File)} and instruments the result.
+     */
+    protected void compileAndInstrument(File workspace) {
+        File compileOutput = compile(workspace);
+        withClassTransform(propertyUpgradeReport(workspace), classTransform ->
+            transformFactory.createTransformer(compileOutput, classTransform).transform(instrumentedOutput(workspace))
+        );
+    }
+
+    /**
+     * Instruments classes that were compiled into memory and writes them to a single jar.
+     *
+     * @param classes class bytes by internal class name
+     */
+    protected void instrumentToJar(Map<String, byte[]> classes, File destinationJar, File propertyUpgradeReport) {
+        withClassTransform(propertyUpgradeReport, classTransform -> {
+            GFileUtils.mkdirs(destinationJar.getParentFile());
+            try (ZipOutputStream jar = new ZipOutputStream(new BufferedOutputStream(new FileOutputStream(destinationJar)))) {
+                // The jar is only ever read from the local file system, compressing it is not worth the time
+                jar.setLevel(Deflater.NO_COMPRESSION);
+                for (Map.Entry<String, byte[]> entry : classes.entrySet()) {
+                    jar.putNextEntry(new ZipEntry(entry.getKey() + ".class"));
+                    jar.write(ClassTransforms.applyToBytes(classTransform, entry.getKey(), entry.getValue()));
+                    jar.closeEntry();
+                }
+            } catch (IOException e) {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        });
+    }
+
+    private void withClassTransform(File propertyUpgradeReport, Consumer<InstrumentingClassTransform> action) {
+        if (propertyUpgradeReportConfig.isEnabled()) {
+            File source = this.source.getResource().getFile();
+            try (BytecodeUpgradeReportMethodInterceptionListener methodInterceptionListener = new BytecodeUpgradeReportMethodInterceptionListener(source, propertyUpgradeReport)) {
+                // TODO: Using gradleCoreTypeRegistry means we won't detect user types that extend from Gradle types, fix that
+                action.accept(new InstrumentingClassTransform(INSTRUMENTATION_AND_BYTECODE_REPORT, gradleCoreTypeRegistry, methodInterceptionListener));
+            }
+        } else {
+            action.accept(new InstrumentingClassTransform(INSTRUMENTATION_ONLY, InstrumentationTypeRegistry.EMPTY));
+        }
+    }
+
     protected File propertyUpgradeReport(File workspace) {
         return new File(workspace, "reports/" + INTERCEPTED_METHODS_REPORT_FILE);
     }
@@ -127,7 +188,7 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     public void visitOutputs(File workspace, OutputVisitor visitor) {
         File instrumentedOutput = instrumentedOutput(workspace);
         OutputVisitor.OutputFileValueSupplier instrumentedOutputValue = OutputVisitor.OutputFileValueSupplier.fromStatic(instrumentedOutput, fileCollectionFactory.fixed(instrumentedOutput));
-        visitor.visitOutputProperty("instrumentedOutput", TreeType.DIRECTORY, instrumentedOutputValue);
+        visitor.visitOutputProperty("instrumentedOutput", instrumentedOutputType(), instrumentedOutputValue);
 
         File propertyUpgradeReport = propertyUpgradeReport(workspace);
         OutputVisitor.OutputFileValueSupplier propertyUpgradeReportOutputValue = OutputVisitor.OutputFileValueSupplier.fromStatic(propertyUpgradeReport, fileCollectionFactory.fixed(propertyUpgradeReport));
@@ -137,8 +198,7 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
     @Override
     public WorkOutput execute(ExecutionContext executionContext) {
         File workspace = executionContext.getWorkspace();
-        File compileOutput = compile(workspace);
-        instrument(compileOutput, instrumentedOutput(workspace), propertyUpgradeReport(workspace));
+        compileAndInstrument(workspace);
         return new WorkOutput() {
             @Override
             public WorkResult getDidWork() {
@@ -150,22 +210,6 @@ public abstract class BuildScriptCompilationAndInstrumentation implements Immuta
                 return loadAlreadyProducedOutput(workspace);
             }
         };
-    }
-
-    private void instrument(File sourceDir, File destination, File propertyUpgradeReport) {
-        if (propertyUpgradeReportConfig.isEnabled()) {
-            File source = this.source.getResource().getFile();
-            try (BytecodeUpgradeReportMethodInterceptionListener methodInterceptionListener = new BytecodeUpgradeReportMethodInterceptionListener(source, propertyUpgradeReport)) {
-                // TODO: Using gradleCoreTypeRegistry means we won't detect user types that extend from Gradle types, fix that
-                InstrumentingClassTransform classTransform = new InstrumentingClassTransform(INSTRUMENTATION_AND_BYTECODE_REPORT, gradleCoreTypeRegistry, methodInterceptionListener);
-                ClasspathElementTransform transform = transformFactory.createTransformer(sourceDir, classTransform);
-                transform.transform(destination);
-            }
-        } else {
-            InstrumentingClassTransform classTransform = new InstrumentingClassTransform(INSTRUMENTATION_ONLY, InstrumentationTypeRegistry.EMPTY);
-            ClasspathElementTransform transform = transformFactory.createTransformer(sourceDir, classTransform);
-            transform.transform(destination);
-        }
     }
 
     @Override

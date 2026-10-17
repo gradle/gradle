@@ -19,6 +19,7 @@ import com.google.common.io.Files;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
+import org.gradle.groovy.scripts.internal.GroovyScriptCompilerWarmUp;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.instrumentation.agent.AgentInitializer;
 import org.gradle.internal.logging.LoggingManagerFactory;
@@ -69,6 +70,9 @@ public class DaemonMain extends EntryPoint {
         if (args.length != 1) {
             invalidArgs();
         }
+
+        // Take the cost of the first script compilation off the critical path of the first build
+        GroovyScriptCompilerWarmUp.startInBackground();
 
         // Read configuration from stdin
         DaemonServerConfiguration parameters = DaemonStartupCommunication.readDaemonServerConfiguration(System.in);

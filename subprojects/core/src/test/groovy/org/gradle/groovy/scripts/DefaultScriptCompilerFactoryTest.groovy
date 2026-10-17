@@ -41,6 +41,7 @@ class DefaultScriptCompilerFactoryTest extends Specification {
     }
     final CompileOperation<?> operation = Mock() {
         getId() >> "id"
+        getSourceToCompile(_) >> { ScriptSource source -> source }
     }
     final CompiledScript<TestScript, ?> compiledScript = Mock() {
         loadClass() >> TestScript
