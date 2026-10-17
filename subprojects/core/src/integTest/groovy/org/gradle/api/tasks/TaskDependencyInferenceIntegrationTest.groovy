@@ -163,6 +163,44 @@ class TaskDependencyInferenceIntegrationTest extends AbstractIntegrationSpec imp
         result.assertTasksScheduled(":a", ":b")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/16709")
+    def "dependency declared using task output file collection implies dependency on task"() {
+        taskTypeWithOutputFileCollection()
+        buildFile << """
+            def task = tasks.create("a", FilesProducer) {
+                outputFiles.from(file("a.txt"))
+            }
+            tasks.register("b") {
+                dependsOn task.outputFiles
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksScheduled(":a", ":b")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16709")
+    def "dependency declared using flat map provider whose value is the elements of a task output file collection implies dependency on task"() {
+        taskTypeWithOutputFileCollection()
+        buildFile << """
+            def provider = tasks.register("a", FilesProducer) {
+                outputFiles.from(file("a.txt"))
+            }
+            tasks.register("b") {
+                dependsOn provider.flatMap { it.outputFiles.elements }
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksScheduled(":a", ":b")
+    }
+
     def "dependency declared using property whose value is a mapped task output provider implies dependency on task and does not run mapping function"() {
         taskTypeWithOutputFileProperty()
         buildFile << """
@@ -829,6 +867,50 @@ The following types/formats are supported:
         then:
         result.assertTasksScheduled(":a", ":b")
         file("out.txt").text == "1"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16709")
+    def "input file collection containing task output file collection implies dependency on the task"() {
+        taskTypeWithOutputFileCollection()
+        taskTypeWithInputFileCollection()
+        buildFile << """
+            def a = tasks.create("a", FilesProducer) {
+                outputFiles.from(file("file1.txt"), file("file2.txt"))
+            }
+            tasks.register("b", InputFilesTask) {
+                inFiles.from a.outputFiles
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksScheduled(":a", ":b")
+        file("out.txt").text == "file1,file2"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16709")
+    def "input file collection containing flat map provider whose value is the elements of a task output file collection implies dependency on the task"() {
+        taskTypeWithOutputFileCollection()
+        taskTypeWithInputFileCollection()
+        buildFile << """
+            def provider = tasks.register("a", FilesProducer) {
+                outputFiles.from(file("file1.txt"), file("file2.txt"))
+            }
+            tasks.register("b", InputFilesTask) {
+                inFiles.from provider.flatMap { it.outputFiles.elements }
+                outFile = file("out.txt")
+            }
+        """
+
+        when:
+        run("b")
+
+        then:
+        result.assertTasksScheduled(":a", ":b")
+        file("out.txt").text == "file1,file2"
     }
 
     def "input file collection containing container element provider implies dependency on task"() {
