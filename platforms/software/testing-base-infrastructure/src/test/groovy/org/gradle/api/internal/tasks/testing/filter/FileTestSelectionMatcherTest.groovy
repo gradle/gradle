@@ -21,8 +21,12 @@ import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
 import spock.lang.Specification
 
+/**
+ * Unit tests for {@link FileTestSelectionMatcher}.
+ */
 class FileTestSelectionMatcherTest extends Specification {
-    @Rule TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(getClass())
+    @Rule
+    TestNameTestDirectoryProvider temp = new TestNameTestDirectoryProvider(FileTestSelectionMatcherTest.class)
 
     def "matchesFile with no patterns"() {
         def root = temp.createDir("root")
@@ -293,9 +297,53 @@ class FileTestSelectionMatcherTest extends Specification {
         matcherWithoutDot.matchesFile(excluded) // This is a side effect of the include
     }
 
+    def "nameFor is the path relative to the containing root, without the extension"() {
+        def root = temp.createDir("root")
+        def rootFile = root.file("included.test").touch()
+        def subFile = root.file("sub/included.test").touch()
+
+        expect:
+        def matcher = createMatcher([], [], root)
+        matcher.nameFor(rootFile).get() == "included"
+        matcher.nameFor(subFile).get() == "sub.included"
+    }
+
+    def "nameFor is empty for a file outside every root"() {
+        def outside = temp.createDir("outside-root").file("outside.test").touch()
+
+        expect:
+        def matcher = createMatcher([], [], temp.createDir("root"))
+        !matcher.nameFor(outside).isPresent()
+        // matchesFile answers the same as for a file that is judged and does not match
+        !matcher.matchesFile(outside)
+    }
+
+    def "nameFor is empty for every file when there are no roots"() {
+        def file = temp.createDir("root").file("some.test").touch()
+
+        expect:
+        def matcher = createMatcher(["some"], [])
+        !matcher.nameFor(file).isPresent()
+        !matcher.matchesFile(file)
+    }
+
+    def "nameFor is empty for a missing file, whether or not it would be under a root"() {
+        def root = temp.createDir("root")
+        def missingUnderRoot = root.file("does-not-exist.test")
+        def missingOutsideRoot = temp.testDirectory.file("elsewhere/does-not-exist.test")
+
+        expect: "a path that cannot be resolved cannot be placed under a root, so there is no name"
+        def matcher = createMatcher([], [], root)
+        !matcher.nameFor(missingUnderRoot).isPresent()
+        !matcher.nameFor(missingOutsideRoot).isPresent()
+
+        and: "so the file is not matched by path, and is left for a caller's fallback to judge"
+        !matcher.matchesFile(missingUnderRoot)
+        !matcher.matchesFile(missingOutsideRoot)
+    }
+
     private FileTestSelectionMatcher createMatcher(Collection<String> includes, Collection<String> excludes, TestFile... roots) {
         def classTestSelectionMatcher = new ClassTestSelectionMatcher(includes, excludes, [])
-        def matcher = new FileTestSelectionMatcher(classTestSelectionMatcher, roots.collect { it.toPath().toRealPath() })
-        matcher
+        return new FileTestSelectionMatcher(classTestSelectionMatcher, roots.collect { it.toPath().toRealPath() })
     }
 }
