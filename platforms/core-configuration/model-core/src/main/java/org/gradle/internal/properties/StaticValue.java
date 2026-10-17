@@ -19,7 +19,7 @@ package org.gradle.internal.properties;
 import org.gradle.api.Buildable;
 import org.gradle.api.Task;
 import org.gradle.api.internal.provider.HasConfigurableValueInternal;
-import org.gradle.api.internal.provider.PropertyInternal;
+import org.gradle.api.internal.provider.ProducerAware;
 import org.gradle.api.internal.tasks.TaskDependencyContainer;
 import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.internal.state.ModelObject;
@@ -51,8 +51,8 @@ public class StaticValue implements PropertyValue {
     }
 
     public void attachProducer(Task producer) {
-        if (value instanceof PropertyInternal) {
-            ((PropertyInternal<?>) value).attachProducer((ModelObject) producer);
+        if (value instanceof ProducerAware) {
+            ((ProducerAware) value).attachProducer((ModelObject) producer);
         }
     }
 
