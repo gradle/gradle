@@ -76,6 +76,16 @@ public class NoOpProblemDiagnosticsFactory implements ProblemDiagnosticsFactory 
         }
 
         @Override
+        public ProblemDiagnostics forCurrentCallerLocationOnly() {
+            return EMPTY_DIAGNOSTICS;
+        }
+
+        @Override
+        public ProblemDiagnostics forCurrentCallerAlwaysLocated() {
+            return EMPTY_DIAGNOSTICS;
+        }
+
+        @Override
         public ProblemDiagnostics forCurrentCallerWithException(ProblemStream.ExceptionCreator exceptionCreator) {
             return EMPTY_DIAGNOSTICS;
         }

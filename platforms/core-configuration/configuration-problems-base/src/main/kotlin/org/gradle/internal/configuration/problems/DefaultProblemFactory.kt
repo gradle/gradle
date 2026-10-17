@@ -84,7 +84,9 @@ class DefaultProblemFactory(
                 val diagnostics = if (failure) {
                     problemStream.forCurrentCallerWithException { InvalidUserCodeException(exceptionMessage()) }
                 } else {
-                    problemStream.forCurrentCaller()
+                    // An informational problem reports no stack, so it asks for a location alone
+                    // rather than spending a full capture that a reporting problem could use.
+                    problemStream.forCurrentCallerLocationOnly()
                 }
                 val location = locationMapper(locationForCaller(consumer, diagnostics))
                 return PropertyProblem(location, builtMessage, diagnostics.exception, diagnostics.failure, documentationSection)
