@@ -28,6 +28,7 @@ import org.gradle.internal.logging.events.PromptOutputEvent
 import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.logging.events.UserInputRequestEvent
 import org.gradle.internal.logging.events.UserInputResumeEvent
+import org.gradle.internal.logging.events.YesNoQuestionPromptEvent
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.TempDir
@@ -356,6 +357,42 @@ class UserInputConsoleRendererTest extends Specification {
         1 * console.buildOutputArea >> textArea
         1 * console.getBuildProgressArea() >> buildProgressArea
         totalEvents * listener.onOutput(_ as LogEvent)
+    }
+
+    def "reports program status blocked while a prompt waits for an answer"() {
+        given:
+        def output = new ByteArrayOutputStream()
+        def reporter = new ProgramStatusReporter(output, 0)
+        def reportingRenderer = new UserInputConsoleRenderer(listener, console, userInput, tempFileProvider, reporter)
+        console.getBuildProgressArea() >> buildProgressArea
+        console.getBuildOutputArea() >> textArea
+        def reportsAtConsoleFlush = []
+        console.flush() >> { reportsAtConsoleFlush << programStatusReports(output) }
+        // Recorded on the last event before the pause, but not yet written on a redraw
+        reporter.updateWorking(100)
+
+        when:
+        reportingRenderer.onOutput(new UserInputRequestEvent())
+
+        then:
+        programStatusReports(output) == ["state=working:app=gradle:progress=100"]
+
+        when:
+        reportingRenderer.onOutput(new YesNoQuestionPromptEvent(123, "Do you accept these terms?"))
+
+        then:
+        reportsAtConsoleFlush.last() == ["state=working:app=gradle:progress=100"]
+        programStatusReports(output) == ["state=working:app=gradle:progress=100", "state=blocked:kind=question:app=gradle:msg=Do you accept these terms? [yes, no]"]
+
+        when:
+        reportingRenderer.onOutput(new UserInputResumeEvent(123))
+
+        then:
+        programStatusReports(output) == ["state=working:app=gradle:progress=100", "state=blocked:kind=question:app=gradle:msg=Do you accept these terms? [yes, no]", "state=working:app=gradle:progress=100"]
+    }
+
+    private static List<String> programStatusReports(ByteArrayOutputStream output) {
+        return (output.toString("US-ASCII") =~ '\u001B\\]7501;([^\u001B]*)\u001B\\\\').collect { ProgramStatusReporterTest.decodeMessage(it[1] as String) }
     }
 
     private boolean hasOverflowFile() {

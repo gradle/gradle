@@ -18,26 +18,42 @@ package org.gradle.internal.logging.console;
 
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
 import org.gradle.internal.logging.events.OutputEventListener;
+import org.gradle.internal.logging.events.PromptOutputEvent;
 import org.gradle.internal.logging.events.RenderableOutputEvent;
+import org.jspecify.annotations.Nullable;
 
 public class UserInputConsoleRenderer extends AbstractUserInputRenderer {
     private final Console console;
+    private final @Nullable ProgramStatusReporter programStatusReporter;
 
     public UserInputConsoleRenderer(OutputEventListener delegate, Console console, GlobalUserInputReceiver userInput, TemporaryFileProvider temporaryFileProvider) {
+        this(delegate, console, userInput, temporaryFileProvider, null);
+    }
+
+    public UserInputConsoleRenderer(OutputEventListener delegate, Console console, GlobalUserInputReceiver userInput, TemporaryFileProvider temporaryFileProvider, @Nullable ProgramStatusReporter programStatusReporter) {
         super(delegate, userInput, temporaryFileProvider);
         this.console = console;
+        this.programStatusReporter = programStatusReporter;
     }
 
     @Override
     void startInput() {
         toggleBuildProgressAreaVisibility(false);
         flushConsole();
+        if (programStatusReporter != null) {
+            // Output is paused until the prompt is answered, so the state of the build is written now rather than on the next redraw
+            programStatusReporter.flush();
+        }
     }
 
     @Override
     void handlePrompt(RenderableOutputEvent event) {
         event.render(console.getBuildOutputArea());
         flushConsole();
+        if (programStatusReporter != null && event instanceof PromptOutputEvent) {
+            // Written after the prompt has been flushed to the console, so the sequence cannot land inside another escape sequence
+            programStatusReporter.blocked(((PromptOutputEvent) event).getPrompt());
+        }
     }
 
     @Override
@@ -45,6 +61,9 @@ public class UserInputConsoleRenderer extends AbstractUserInputRenderer {
         event.render(console.getBuildOutputArea());
         toggleBuildProgressAreaVisibility(true);
         flushConsole();
+        if (programStatusReporter != null) {
+            programStatusReporter.unblocked();
+        }
     }
 
     private void toggleBuildProgressAreaVisibility(boolean visible) {

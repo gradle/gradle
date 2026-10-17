@@ -169,7 +169,7 @@ public class ProgressBar {
         int consoleCols = consoleMetaData.getCols();
 
         // Calculate progress percentage for both display and taskbar
-        int progressPercent = (int) (current * 100.0 / total);
+        int progressPercent = getProgressPercent();
 
         // Prepend taskbar progress sequence (invisible control sequence)
         String taskbarSequence = buildTaskbarProgressSequence(progressPercent, failing);
@@ -180,6 +180,13 @@ public class ProgressBar {
         } else {
             return getAsciiFormatted(timerEnabled, consoleCols, statusPrefix, progressPercent, elapsedTimeStr);
         }
+    }
+
+    /**
+     * Returns the progress percentage shown on the status bar.
+     */
+    public int getProgressPercent() {
+        return (int) (current * 100.0 / total);
     }
 
     private List<Span> getAsciiFormatted(boolean timerEnabled, int consoleCols, String statusPrefix, int progressPercent, String elapsedTimeStr) {
