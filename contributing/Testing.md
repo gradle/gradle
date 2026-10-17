@@ -99,6 +99,16 @@ The single-repository helpers, `mavenCentralRepositoryDefinition()` and the like
 
 While a repository is active, tests asserting on the repositories a build uses can fail, for example those checking a plugin-resolution failure message.
 
+## Use the Kotlin DSL plugins built from this source
+
+A build that applies `kotlin-dsl` without a version gets the published plugin, which is built with the Kotlin of an earlier Gradle version.
+While the embedded Kotlin differs from that, e.g. after a Kotlin version bump, such builds warn about an unsupported Kotlin compiler version, and tests asserting on clean output fail.
+
+A project can have its tests use the plugins built from this source instead, by applying `gradlebuild.kotlin-dsl-plugin-bundle-integ-tests`.
+That publishes them to the local repository of its integration and cross version tests, where they are registered as an extra repository (see above).
+Its init script resolves requests for the default `kotlin-dsl` version to the locally built one, in builds that mention `kotlin-dsl` or `embedded-kotlin` and run the distribution under test; explicit versions are left alone.
+Tooling API tests have to pass the init script themselves, as the Kotlin DSL model specs extending `AbstractKotlinScriptModelCrossVersionTest` do.
+
 # Cross Version Tests
 
 Some tests in the Gradle codebase are executed with a wide range of supported Gradle versions.

@@ -19,6 +19,8 @@ package org.gradle.kotlin.dsl.tooling.builders
 import groovy.transform.CompileStatic
 import org.gradle.test.fixtures.dsl.GradleDsl
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
+import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
+import org.gradle.internal.jvm.Jvm
 import org.gradle.integtests.fixtures.build.KotlinDslTestProjectInitiation
 import org.gradle.integtests.fixtures.build.ProjectSourceRoots
 import org.gradle.integtests.tooling.fixture.TextUtil
@@ -27,6 +29,7 @@ import org.gradle.integtests.tooling.fixture.ToolingApiSpecification
 import org.gradle.kotlin.dsl.tooling.models.KotlinBuildScriptModel
 import org.gradle.test.fixtures.archive.JarTestFixture
 import org.gradle.test.fixtures.file.TestFile
+import org.gradle.tooling.ModelBuilder
 import org.gradle.tooling.events.ProgressEvent
 import org.gradle.tooling.events.ProgressListener
 import org.gradle.tooling.events.lifecycle.BuildPhaseStartEvent
@@ -51,6 +54,26 @@ import static org.hamcrest.MatcherAssert.assertThat
 @ToolingApiAdditionalClasspath(KotlinDslToolingModelsClasspathProvider)
 @CompileStatic
 abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpecification implements KotlinDslTestProjectInitiation {
+
+    // Tooling API builds get no init script from the executer, so they are given the extra repositories here
+    @Override
+    def <T> T loadToolingModel(Class<T> modelClass, Jvm jvm, @DelegatesTo(ModelBuilder) Closure cl) {
+        def arguments = extraRepositoriesArguments()
+        if (arguments.isEmpty()) {
+            return super.loadToolingModel(modelClass, jvm, cl)
+        }
+        return super.loadToolingModel(modelClass, jvm) { ModelBuilder<T> builder ->
+            cl.delegate = builder
+            cl.resolveStrategy = Closure.DELEGATE_FIRST
+            cl.call(builder)
+            builder.addArguments(arguments)
+        }
+    }
+
+    private List<String> extraRepositoriesArguments() {
+        def initScript = targetDist.gradleHomeDir == IntegrationTestBuildContext.INSTANCE.gradleHomeDir ? RepoScriptBlockUtil.extraRepositoriesInitScriptFile() : null
+        return initScript == null ? [] : ["--init-script", initScript.absolutePath]
+    }
 
     def setup() {
         // These specs assert on the Kotlin plugin's sources jar, resolved with the buildscript
@@ -111,7 +134,8 @@ abstract class AbstractKotlinScriptModelCrossVersionTest extends ToolingApiSpeci
         return fetchKotlinBuildScriptModelFor(
             projectDir,
             scriptFile,
-            { selectedProjectDir -> connector().forProjectDirectory(selectedProjectDir) }
+            { selectedProjectDir -> connector().forProjectDirectory(selectedProjectDir) },
+            extraRepositoriesArguments()
         )
     }
 

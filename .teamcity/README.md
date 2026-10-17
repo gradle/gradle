@@ -14,7 +14,7 @@ There are 3 subprojects in the TeamCity project hierarchy: `Check` for Gradle bu
 
 After you make a change, you can run `mvn clean teamcity-configs:generate` to generate and verify the generated TeamCity configuration XMLs.
 
-You also need to run `mvn clean verify` with Java 8 before committing changes.
+You also need to run `mvn clean verify` with Java 21 before committing changes.
 
 If you have ktlint errors, you can automatically fix them by running `mvn com.github.gantsign.maven:ktlint-maven-plugin:1.1.1:format`.
 
