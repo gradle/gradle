@@ -26,6 +26,7 @@ import org.gradle.internal.operations.CurrentBuildOperationRef;
 import org.gradle.internal.os.OperatingSystem;
 import org.gradle.process.internal.jvm.JvmProcessSupport;
 import org.gradle.process.internal.streams.FinishNotifyingStreamsHandler;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InputStreamReader;
 import java.util.concurrent.Executor;
@@ -94,6 +95,15 @@ public class ExecHandleRunner implements Runnable {
         } finally {
             lock.unlock();
         }
+    }
+
+    @Nullable
+    Integer getProcessExitValue() {
+        Process process = this.process;
+        if (process == null || process.isAlive()) {
+            return null;
+        }
+        return process.exitValue();
     }
 
     public void abortProcess() {
