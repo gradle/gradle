@@ -17,6 +17,8 @@ plugins {
     id("gradlebuild.configuration-cache-compatibility")
     id("gradlebuild.version-catalogs")
     id("gradlebuild.default-settings-plugins")
+    id("gradlebuild.cache-miss-monitor")
+    id("gradlebuild.collect-failed-tasks")
     id("gradlebuild.architecture-docs")
 }
 
