@@ -335,9 +335,9 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         """
         buildFile << """
             buildscript {
-                ${mavenCentralRepository()}
+                repositories { ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()} }
             }
-            ${mavenCentralRepository()}
+            repositories { ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()} }
         """
 
         when:

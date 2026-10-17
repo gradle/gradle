@@ -75,6 +75,7 @@ dependencies {
     implementation(libs.jcifs)
     implementation(libs.nativePlatform)
     implementation(testLibs.ansiControlSequenceUtil)
+    implementation(testLibs.junit5JupiterApi)
 
     compileOnly(libs.jetbrainsAnnotations)
     compileOnly(libs.jspecify)

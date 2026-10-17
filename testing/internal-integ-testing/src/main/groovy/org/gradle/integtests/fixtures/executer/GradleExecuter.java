@@ -613,6 +613,13 @@ public interface GradleExecuter extends Stoppable {
      */
     GradleExecuter withPluginRepositoryMirrorDisabled();
 
+    /**
+     * Adds the active extra repositories to the build even when its scripts do not show it needs them.
+     *
+     * @see org.gradle.integtests.fixtures.RepoScriptBlockUtil#extraRepositoriesNeededBy
+     */
+    GradleExecuter withExtraRepositories();
+
     GradleExecuter ignoreMissingSettingsFile();
 
     GradleExecuter ignoreCleanupAssertions();

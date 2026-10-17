@@ -18,6 +18,7 @@ package org.gradle.performance.fixture;
 
 import com.google.common.collect.ImmutableList;
 import groovy.transform.CompileStatic;
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil;
 import org.gradle.integtests.fixtures.executer.GradleDistribution;
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext;
 import org.gradle.internal.UncheckedException;
@@ -228,7 +229,7 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             cleanTasks.isEmpty()
                 ? BuildAction.NO_OP
                 : new RunTasksAction(cleanTasks),
-            invocationSpec.getArgs(),
+            withExtraRepositories(invocationSpec.getArgs()),
             invocationSettings.getSystemProperties(),
             collectMutators(invocationSettings, experimentSpec),
             invocationSettings.getWarmUpCount(),
@@ -238,6 +239,17 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             invocationSettings.getBuildOperationMeasurements(),
             invocationSettings.isBuildOperationsTrace()
         );
+    }
+
+    private static List<String> withExtraRepositories(List<String> args) {
+        File initScript = RepoScriptBlockUtil.extraRepositoriesInitScriptFile();
+        if (initScript == null) {
+            return args;
+        }
+        return ImmutableList.<String>builder()
+            .addAll(args)
+            .add("--init-script=" + initScript.getAbsolutePath())
+            .build();
     }
 
     private static List<BuildMutator> collectMutators(InvocationSettings invocationSettings, GradleBuildExperimentSpec experimentSpec) {
