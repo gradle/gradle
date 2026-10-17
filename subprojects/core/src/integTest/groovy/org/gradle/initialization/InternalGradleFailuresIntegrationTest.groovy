@@ -93,6 +93,17 @@ class InternalGradleFailuresIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasErrorOutput("Caused by: net.rubygrapefruit.platform.NativeException: Failed to load native library")
     }
 
+    def "Error message due to invalid bind address names the environment variable"() {
+        given:
+        executer.withEnvironmentVars(GRADLE_DAEMON_BIND_ADDRESS: "256.0.0.1")
+
+        when:
+        fails 'hello'
+
+        then:
+        assertHasStartupFailure(failure, "Invalid bind address '256.0.0.1' specified in environment variable 'GRADLE_DAEMON_BIND_ADDRESS'.")
+    }
+
     private static void assertHasStartupFailure(ExecutionFailure failure, String cause, int failures = 1) {
         failure.assertHasFailures(failures)
         failure.assertHasDescription("Gradle could not start your build.")
