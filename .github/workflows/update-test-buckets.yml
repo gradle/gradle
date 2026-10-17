@@ -30,11 +30,18 @@ jobs:
           secret-ids: |
             BOT_GRADLE_GITHUB_TOKEN, gha/gradle/_all/BOT_GRADLE_GITHUB_TOKEN
             TEAMCITY_ACCESS_TOKEN, gha/gradle/_all/TEAMCITY_ACCESS_TOKEN
+            WARP_CLIENT_ID, gha/_shared/_all/warp_basic_access_client_id
+            WARP_CLIENT_SECRET, gha/_shared/_all/warp_basic_access_client_secret
       - name: Setup java
         uses: actions/setup-java@v6.0.1
         with:
           distribution: temurin
           java-version: 21
+      - name: Connect to Gradle internal network via Cloudflare WARP
+        uses: gradle/actions-internal/warp-connect@v1
+        with:
+          client_id: ${{ env.WARP_CLIENT_ID }}
+          client_secret: ${{ env.WARP_CLIENT_SECRET }}
       - name: Clone gradle/ci-health repository
         run: |
           git clone https://${{ env.BOT_GRADLE_GITHUB_TOKEN }}@github.com/gradle/ci-health.git /tmp/gradle-ci-health
