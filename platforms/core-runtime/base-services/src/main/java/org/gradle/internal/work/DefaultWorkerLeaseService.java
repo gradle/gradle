@@ -262,6 +262,11 @@ public class DefaultWorkerLeaseService implements WorkerLeaseService, ProjectPar
     }
 
     @Override
+    public boolean mayChangeProjectLocks() {
+        return getRegistries().getProjectLockRegistry().mayAttemptToChangeLocks();
+    }
+
+    @Override
     public void withLocks(Collection<? extends ResourceLock> locks, Runnable runnable) {
         withLocks(locks, Factories.toFactory(runnable));
     }

@@ -249,6 +249,18 @@ class DefaultProjectState implements ProjectState, Closeable {
     }
 
     @Override
+    public <S extends @Nullable Object> S runWithModelLockIfAccessedFromOtherProject(Supplier<S> action) {
+        if (hasMutableState()) {
+            return action.get();
+        }
+        Collection<? extends ResourceLock> currentLocks = workerLeaseService.getCurrentProjectLocks();
+        if (currentLocks.isEmpty() || !workerLeaseService.mayChangeProjectLocks()) {
+            return action.get();
+        }
+        return workerLeaseService.withReplacedLocks(currentLocks, Collections.singletonList(projectLock), action::get);
+    }
+
+    @Override
     public <S> S forceAccessToMutableState(Function<? super ProjectInternal, ? extends S> factory) {
         Thread currentThread = Thread.currentThread();
         boolean added = canDoAnythingToThisProject.add(currentThread);

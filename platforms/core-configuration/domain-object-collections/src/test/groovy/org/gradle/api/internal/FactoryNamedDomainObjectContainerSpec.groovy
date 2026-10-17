@@ -52,6 +52,51 @@ class FactoryNamedDomainObjectContainerSpec extends Specification {
         0 * _._
     }
 
+    def realizesRegisteredElementsThroughCallbackDecoratorOnce() {
+        def decorator = Mock(CollectionCallbackActionDecorator)
+        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, factory, MutationGuards.identity(), decorator)
+        def provider = container.register('a')
+
+        when:
+        def first = provider.get()
+        def second = provider.get()
+        def present = provider.present
+
+        then:
+        1 * decorator.runRealization(_) >> { Runnable realization -> realization.run() }
+        1 * factory.create('a') >> 'element a'
+        _ * decorator.decorate(_) >> { it[0] }
+        0 * _._
+
+        and:
+        first == 'element a'
+        second == 'element a'
+        present
+    }
+
+    def realizesRegisteredElementThroughCallbackDecoratorWhenQueriedWhileBeingConfigured() {
+        def decorator = Mock(CollectionCallbackActionDecorator) {
+            _ * decorate(_) >> { it[0] }
+        }
+        def container = new FactoryNamedDomainObjectContainer<String>(String.class, instantiator, namer, factory, MutationGuards.identity(), decorator)
+        def provider = container.register('a')
+        def valueWhileConfigured = null
+        provider.configure { valueWhileConfigured = provider.get() }
+
+        when:
+        def value = provider.get()
+
+        then:
+        2 * decorator.runRealization(_) >> { Runnable realization -> realization.run() }
+        1 * factory.create('a') >> 'element a'
+        _ * decorator.decorate(_) >> { it[0] }
+        0 * _._
+
+        and:
+        value == 'element a'
+        valueWhileConfigured == 'element a'
+    }
+
     // Tests for reflective instantiation
 
     def type
