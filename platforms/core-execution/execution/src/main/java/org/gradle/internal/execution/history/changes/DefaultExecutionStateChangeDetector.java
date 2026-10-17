@@ -55,12 +55,12 @@ public class DefaultExecutionStateChangeDetector implements ExecutionStateChange
 
         // Capture non-file input changes
         ChangeContainer inputPropertyChanges = new PropertyChanges(
-            lastExecution.getInputProperties().keySet(),
+            lastExecution.getInputPropertyHashes().keySet(),
             thisExecution.getInputProperties().keySet(),
             "Input",
             executable);
         ChangeContainer inputPropertyValueChanges = new InputValueChanges(
-            lastExecution.getInputProperties(),
+            lastExecution.getInputPropertyHashes(),
             thisExecution.getInputProperties(),
             executable);
 

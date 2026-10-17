@@ -35,10 +35,7 @@ import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.operations.BuildOperationType;
 import org.gradle.internal.properties.InputBehavior;
 import org.gradle.internal.snapshot.FileSystemSnapshot;
-import org.gradle.internal.snapshot.ValueSnapshot;
 import org.jspecify.annotations.Nullable;
-
-import java.util.Optional;
 
 import static org.gradle.internal.execution.MutableUnitOfWork.OverlappingOutputHandling.IGNORE_OVERLAPS;
 
@@ -113,16 +110,11 @@ public class CaptureMutableStateBeforeExecutionStep<C extends PreviousExecutionC
     }
 
     private static BeforeExecutionState captureExecutionStateWithOutputs(UnitOfWork work, PreviousExecutionContext context, ImmutableSortedMap<String, FileSystemSnapshot> unfilteredOutputSnapshots) {
-        Optional<PreviousExecutionState> previousExecutionState = context.getPreviousExecutionState();
-        ImmutableSortedMap<String, ValueSnapshot> previousInputPropertySnapshots = previousExecutionState
-            .map(ExecutionInputState::getInputProperties)
-            .orElse(ImmutableSortedMap.of());
-        ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousInputFileFingerprints = previousExecutionState
+        ImmutableSortedMap<String, ? extends FileCollectionFingerprint> previousInputFileFingerprints = context.getPreviousExecutionState()
             .map(ExecutionInputState::getInputFileProperties)
             .orElse(ImmutableSortedMap.of());
 
         InputFingerprinter.Result newInputs = work.getInputFingerprinter().fingerprintInputProperties(
-            previousInputPropertySnapshots,
             previousInputFileFingerprints,
             context.getInputProperties(),
             context.getInputFileProperties(),
