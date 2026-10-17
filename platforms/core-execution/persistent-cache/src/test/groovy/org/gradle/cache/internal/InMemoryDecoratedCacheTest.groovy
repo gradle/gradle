@@ -22,6 +22,7 @@ import org.gradle.test.fixtures.concurrent.ConcurrentSpec
 
 import java.util.concurrent.atomic.AtomicReference
 import java.util.function.Function
+import java.util.function.Predicate
 
 class InMemoryDecoratedCacheTest extends ConcurrentSpec {
     def target = Mock(MultiProcessSafeAsyncPersistentIndexedCache)
@@ -109,6 +110,49 @@ class InMemoryDecoratedCacheTest extends ConcurrentSpec {
         then:
         cached == "value"
         0 * _
+    }
+
+    def "conditional update refreshes in-memory value when stored"() {
+        def condition = Stub(Predicate)
+
+        when:
+        def stored = cache.putIf("key", "new", condition)
+
+        then:
+        1 * target.putIf("key", "new", condition) >> true
+        stored
+
+        when:
+        def cached = cache.get("key")
+
+        then:
+        cached == "new"
+        0 * target.get(_)
+    }
+
+    def "rejected conditional update invalidates stale in-memory value"() {
+        def condition = Stub(Predicate)
+
+        when:
+        def initial = cache.get("key")
+
+        then:
+        1 * target.get("key") >> "stale"
+        initial == "stale"
+
+        when:
+        def stored = cache.putIf("key", "new", condition)
+
+        then:
+        1 * target.putIf("key", "new", condition) >> false
+        !stored
+
+        when:
+        def refreshed = cache.get("key")
+
+        then:
+        1 * target.get("key") >> "fresh"
+        refreshed == "fresh"
     }
 
     def "propagates failure to produce value and marks completed"() {
