@@ -1,0 +1,3 @@
+> Task :showPublishedFormat
+in this build:  MyFormat.TYPE_A.extension = txt-a
+in module.json: "my-format": "TYPE_A"

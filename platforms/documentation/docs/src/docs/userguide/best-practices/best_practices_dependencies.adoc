@@ -505,3 +505,147 @@ By declaring compatible attributes, you decouple your projects from internal nam
 === Tags
 
 `<<tags_reference.adoc#tag:dependencies,#dependencies>>`
+
+[[favor_string_attribute_values]]
+== Favor `String` Values for Custom Attributes
+
+When declaring a custom <<variant_attributes.adoc#variant-attributes,attribute>>, use `String` as its value type — or `Boolean` or a subtype of `Number` when the value genuinely is one.
+Avoid using `Named` types.
+
+=== Explanation
+
+Gradle accepts four kinds of attribute value type: `String`, `Boolean`, any subtype of `Number`, and any type implementing link:{javadocPath}/org/gradle/api/Named.html[`Named`].
+The first three are plain data.
+Gradle's own attributes, such as `Usage` and `LibraryElements`, use `Named` interfaces, which makes `Named` look like the idiomatic choice for your own attributes.
+It is not.
+
+No matter which of these types you declare, the value is converted to a plain string whenever it leaves the build.
+It is published to Gradle Module Metadata, and reported in resolution results, only as this string.
+A `Named` type adds machinery on top of that string without changing what the string does:
+
+* *It does not restrict the set of legal values.*
+Attribute matching compares values by name, and `objects.named` accepts any string you hand it.
+A `Named` type is not an enumeration of permitted values, so it buys no validation that `String` does not already give you.
+* *It does not survive publication.*
+A `Named` value is written to <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>> as its name alone.
+Consumers of your published module match against that string; the type exists only inside the build that declared it.
+* *It requires an `ObjectFactory`.*
+Values must be built with `objects.named(...)` rather than written literally, and reading a value back means calling `getName()` to recover the string you wanted in the first place.
+* *It has to live somewhere shared.*
+A `String` attribute needs no type declaration at all.
+A `Named` type must be on a classpath that every build using the attribute can see.
+
+=== Example
+
+==== Don't Do This
+
+====
+include::sample[dir="snippets/best-practices/preferStringAttributes-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/preferStringAttributes-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *A type that exists only to hold a name*: `MyFormat` declares no members. Every use of it will reduce to the string it wraps.
+<2> *Setting the value requires `ObjectFactory`*: the string `"json"` is still the payload, now built through `objects.named(...)`.
+<3> *Reading the value requires `getName()`*: recovering the string means unwrapping the value that was wrapped on the way in.
+
+==== Do This Instead
+
+++++
+<div style="text-align: right;">
+  <a class="download-project-link"
+     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/preferStringAttributes-do/"
+     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/preferStringAttributes-do/kotlin">
+    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
+  </a>
+</div>
+++++
+
+====
+include::sample[dir="snippets/best-practices/preferStringAttributes-do/kotlin",files="build.gradle.kts[tags=do-this]"]
+include::sample[dir="snippets/best-practices/preferStringAttributes-do/groovy",files="build.gradle[tags=do-this]"]
+====
+
+<1> *No type to declare*: the attribute is typed with `String` directly.
+<2> *The value is written literally*: no `ObjectFactory` is involved.
+<3> *The value is read as-is*: no unwrapping step.
+
+Both builds declare the same attribute, match on the same value, and print `my-format = json`.
+The `String` version does it without a supporting type.
+
+==== Enums Are Not an Exception
+
+An `enum` implementing `Named` is the most tempting reason to reach for a `Named` type, because putting state and behavior on the enum lets one type serve both as the value matched during dependency resolution and as the thing that value names.
+It can be made to work, and it avoids the `ObjectFactory` ceremony, since an enum constant is already an instance.
+
+In most cases, it is still not an exception to the recommendation above.
+Only the name crosses the publication boundary, so any member you add is reachable solely inside the build that declares the enum.
+This makes this approach suitable only for local use within a single build.
+
+====
+include::sample[dir="snippets/best-practices/preferStringAttributesEnum-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/preferStringAttributesEnum-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *Extra state on the attribute value type*: `MyFormat` carries an `extension` that resolution knows nothing about.
+<2> *Boilerplate `Named` implementation*: `getName()` can only sensibly delegate to the enum's own `name()`.
+<3> *The enum constant is used as the attribute value*: no `ObjectFactory` is needed here, since the constant is already an instance.
+<4> *The extra state, read inside the producing build*: `getExtension()` resolves to `txt-a`.
+<5> *The same attribute, read from the generated metadata*: the published value is `"my-format": "TYPE_A"` — a bare string.
+
+`extension` is absent from the published module, as is every other member of `MyFormat`.
+A consumer matches on `"TYPE_A"` and can only reach `getExtension()` if it happens to have its own copy of the enum type on its classpath to look the constant back up by name.
+Within a single build that constraint may be acceptable; across a publication boundary the extra members are simply not there, so none of that behavior can be part of the contract you publish.
+
+==== Mutable State on an Enum is Silently Dropped
+
+The example above keeps `extension` `final`, so its value is fixed by the enum's own initializers and is reconstructed wherever the constant is.
+A *mutable* field assigned per constant during configuration behaves far worse, because an attribute value is stored as nothing more than its type name and its constant name.
+
+====
+include::sample[dir="snippets/best-practices/preferStringAttributesMutableEnum-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
+include::sample[dir="snippets/best-practices/preferStringAttributesMutableEnum-avoid/groovy",files="build.gradle[tags=avoid-this]"]
+====
+
+<1> *A mutable field*, defaulted by the enum's own initializer.
+<2> *Assigned during the configuration phase*, not by the initializer.
+<3> *The attribute value is read back and its mutable state captured* for use during task execution.
+
+With the <<configuration_cache.adoc#config_cache,Configuration Cache>> enabled, the value read back from the attribute depends on whether the daemon that serves the build still happens to have the enum class loaded:
+
+[source,text]
+----
+$ gradle showExtension                      # cache miss: configuration runs
+attr value = TYPE_A, extension = txt-a
+
+$ gradle showExtension                      # cache hit, same daemon
+attr value = TYPE_A, extension = txt-a
+
+$ gradle --stop && gradle showExtension      # cache hit, fresh daemon
+attr value = TYPE_A, extension = unset
+----
+
+On a cache hit the configuration phase does not run, so the assignment never happens again.
+A warm daemon hides this, because the mutated constant is still in memory and the stored name resolves straight back to it.
+A cold daemon re-initializes the enum class and the field reverts to `unset`.
+
+The result is a build whose behavior changes based on daemon lifetime — the hardest class of bug to reproduce.
+Nothing warns you, because from Gradle's point of view the attribute round-tripped perfectly: the name is intact, and the name is all an attribute value is.
+
+Mutable state on an enum used as an attribute value is therefore **never safe**, and immutable state is usable only inside the declaring build.
+If you accept those limits deliberately, a `Named` enum can work.
+
+[TIP]
+====
+The simpler default is to keep the two responsibilities separate: declare an attribute as a `String` or as a numeric type.
+If your build also needs a type that maps names to behavior, let that type exist on its own terms rather than as the attribute's value type.
+====
+
+=== References
+
+- <<variant_attributes.adoc#sec:creating-attributes,Creating Attributes in a Build Script or Plugin>>
+- <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Understanding Gradle Module Metadata>>
+- <<#use_attributes_on_configurations,Always Declare Attributes on Consumable and Resolvable Configurations>>
+
+=== Tags
+
+`<<tags_reference.adoc#tag:dependencies,#dependencies>>`, `<<tags_reference.adoc#tag:configurations,#configurations>>`

@@ -1,0 +1,28 @@
+// tag::avoid-this[]
+enum MyFormat implements Named {
+    TYPE_A, TYPE_B
+
+    String extension = "unset" // <1>
+
+    @Override
+    String getName() { return name() }
+}
+
+MyFormat.TYPE_A.extension = "txt-a" // <2>
+
+def MY_FORMAT = Attribute.of("my-format", MyFormat)
+dependencies.attributesSchema.attribute(MY_FORMAT)
+
+def myElements = configurations.consumable("myElements") {
+    attributes {
+        attribute(MY_FORMAT, MyFormat.TYPE_A)
+    }
+}
+
+tasks.register("showExtension") {
+    def value = myElements.get().attributes.getAttribute(MY_FORMAT) // <3>
+    doLast {
+        logger.lifecycle("attr value = ${value.name}, extension = ${value.extension}")
+    }
+}
+// end::avoid-this[]
