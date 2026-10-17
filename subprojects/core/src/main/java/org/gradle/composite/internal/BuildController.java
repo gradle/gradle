@@ -20,6 +20,7 @@ import org.gradle.api.specs.Spec;
 import org.gradle.execution.EntryTaskSelector;
 import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.internal.build.BuildLifecycleController;
+import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
 import org.gradle.internal.concurrent.Stoppable;
@@ -29,6 +30,16 @@ import java.util.function.BiConsumer;
 import java.util.function.Consumer;
 
 public interface BuildController extends Stoppable {
+    BuildState getBuild();
+
+    /**
+     * Marks this build as unable to take part in the task run, because it failed to configure. Its queued tasks are dropped,
+     * nothing further is scheduled for it, and its execution completes immediately.
+     */
+    void markBroken();
+
+    boolean isBroken();
+
     /**
      * Adds tasks and nodes to the work graph of this build.
      */
