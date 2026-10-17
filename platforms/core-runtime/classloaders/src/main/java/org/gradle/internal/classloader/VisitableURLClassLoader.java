@@ -64,25 +64,27 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
     }
 
     // TODO:lptr When we drop Java 8 support we can switch to using ClassLoader.getName() instead of storing our own
+    @Nullable
     private final String name;
 
-    public VisitableURLClassLoader(String name, ClassLoader parent, Collection<URL> urls) {
+    public VisitableURLClassLoader(@Nullable String name, ClassLoader parent, Collection<URL> urls) {
         this(name, urls.toArray(new URL[0]), parent);
     }
 
-    protected VisitableURLClassLoader(String name, ClassLoader parent, ClassPath classPath) {
+    protected VisitableURLClassLoader(@Nullable String name, ClassLoader parent, ClassPath classPath) {
         this(name, classPath.getAsURLArray(), parent);
         if (classPath instanceof TransformedClassPath && !(this instanceof InstrumentingClassLoader)) {
             throw new IllegalArgumentException("Cannot build a non-instrumenting class loader " + name + " out of transformed class path");
         }
     }
 
-    private VisitableURLClassLoader(String name, URL[] classpath, ClassLoader parent) {
+    private VisitableURLClassLoader(@Nullable String name, URL[] classpath, ClassLoader parent) {
         super(classpath, parent);
         this.name = name;
     }
 
     @Override
+    @Nullable
     public String getName() {
         return name;
     }
@@ -106,14 +108,16 @@ public class VisitableURLClassLoader extends URLClassLoader implements ClassLoad
     }
 
     public static class Spec extends ClassLoaderSpec {
+        @Nullable
         final String name;
         final List<URL> classpath;
 
+        @Nullable
         public String getName() {
             return name;
         }
 
-        public Spec(String name, List<URL> classpath) {
+        public Spec(@Nullable String name, List<URL> classpath) {
             this.name = name;
             this.classpath = classpath;
         }
