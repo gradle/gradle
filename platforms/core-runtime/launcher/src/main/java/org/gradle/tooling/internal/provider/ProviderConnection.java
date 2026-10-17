@@ -480,6 +480,7 @@ public class ProviderConnection {
             .put(InternalBuildProgressListener.BUILD_PHASE, OperationType.BUILD_PHASE)
             .put(InternalBuildProgressListener.PROBLEMS, OperationType.PROBLEMS)
             .put(InternalBuildProgressListener.ROOT, OperationType.ROOT)
+            .put(InternalBuildProgressListener.CONFIGURATION_CACHE, OperationType.CONFIGURATION_CACHE)
             .build();
 
         private final BuildEventSubscriptions clientSubscriptions;

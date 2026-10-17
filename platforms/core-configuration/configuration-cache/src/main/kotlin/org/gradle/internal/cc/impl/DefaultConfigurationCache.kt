@@ -392,12 +392,14 @@ class DefaultConfigurationCache internal constructor(
 
             entryDiscardRequested || problems.shouldDiscardEntry -> {
                 candidateEntries.remove(CandidateEntry(entryId))
+                problems.onEntryDiscarded()
                 cacheEntryRequiresCommit = false
             }
 
             cacheEntryRequiresCommit -> {
                 val projectUsage = collectProjectUsage()
                 commitCacheEntry(projectUsage.reused)
+                problems.onEntryCommitted()
                 problems.projectStateStats(projectUsage.reused.size, projectUsage.updated.size)
                 cacheEntryRequiresCommit = false
                 // Can reuse the cache entry for the rest of this build invocation
@@ -643,7 +645,7 @@ class DefaultConfigurationCache internal constructor(
                 storeFailure
             } catch (error: Exception) {
                 // Invalidate state on serialization errors
-                problems.onStoreSerializationError()
+                problems.onStoreSerializationError(error)
                 throw error
             }
         }
