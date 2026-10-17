@@ -106,6 +106,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
         setupRuleUsingProject(classExtendingAssertj(), ASSERTJ_IMPL_DEPENDENCY)
 
         expect:
+        expectPmdDeprecationIfLegacy()
         fails ":rule-using:pmdMain"
 
         file("rule-using/build/reports/pmd/main.xml").
@@ -123,6 +124,7 @@ class PmdPluginAuxclasspathIntegrationTest extends AbstractPmdPluginVersionInteg
         file("rule-using/src/test/java/org/gradle/ruleusing/Class2.java") << testClass()
 
         expect:
+        expectPmdDeprecationIfLegacy()
         fails ":rule-using:pmdTest"
 
         file("rule-using/build/reports/pmd/test.xml").
@@ -146,6 +148,7 @@ project("rule-using") {
 }
 """
         expect:
+        expectPmdDeprecationIfLegacy()
         fails ":rule-using:pmdMain"
 
         file("rule-using/build/reports/pmd/main.xml").
@@ -161,6 +164,7 @@ project("rule-using") {
         setupRuleUsingProject(classReferencingIntermediate(), "implementation project(':intermediate')")
 
         expect:
+        expectPmdDeprecationIfLegacy()
         fails ":rule-using:pmdMain"
 
         file("rule-using/build/reports/pmd/main.xml").
@@ -176,6 +180,7 @@ project("rule-using") {
         setupRuleUsingProject(classReferencingIntermediate(), "implementation project(':intermediate')")
 
         expect:
+        expectPmdDeprecationIfLegacy()
         fails ":rule-using:pmdMain"
 
         file("rule-using/build/reports/pmd/main.xml").
@@ -191,6 +196,7 @@ project("rule-using") {
         setupRuleUsingProject(classReferencingIntermediate(), "implementation project(':intermediate')", ASSERTJ_PMDAUX_DEPENDENCY)
 
         expect:
+        expectPmdDeprecationIfLegacy()
         fails ":rule-using:pmdMain"
 
         file("rule-using/build/reports/pmd/main.xml").

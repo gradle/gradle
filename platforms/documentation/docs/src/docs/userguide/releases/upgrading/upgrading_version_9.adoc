@@ -728,6 +728,26 @@ val greeting = providers.of(Greeting::class) {
 
 A value source that needs to run an external process injects link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] into the `ValueSource` implementation itself, as described in <<configuration_cache_requirements.adoc#config_cache:requirements:value_source,Using External Information Sources>>.
 
+[[deprecated_pmd_older_than_7]]
+==== Deprecation of PMD versions older than 7.0.0
+
+Running the <<pmd_plugin.adoc#pmd_plugin,PMD plugin>> with a PMD version older than 7.0.0 is deprecated and will fail with an error in Gradle 10.
+PMD 6.55.0, released in February 2023, is the last PMD 6 release.
+
+Gradle emits the deprecation warning when a `Pmd` task runs with PMD older than 7.0.0, either because `pmd.toolVersion` selects such a version or because the `pmd` configuration declares one.
+
+To fix the warning, upgrade to PMD 7.0.0 or newer:
+
+[source,kotlin]
+----
+pmd {
+    toolVersion = "7.24.0"
+}
+----
+
+PMD 7 renamed or removed rules and changed rule set references.
+Check custom rule sets against the link:https://docs.pmd-code.org/latest/pmd_userdocs_migrating_to_pmd7.html[PMD 7 migration guide].
+
 [[changes_9.8.0]]
 == Upgrading from 9.7.0 and earlier
 

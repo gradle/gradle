@@ -72,6 +72,7 @@ class PmdPluginSubtypeParamIntegrationTest extends AbstractPmdPluginVersionInteg
         assumeTrue(supportsAuxclasspath() && fileLockingIssuesSolved())
 
         expect:
+        expectPmdDeprecationIfLegacy()
         succeeds "pmdMain"
     }
 

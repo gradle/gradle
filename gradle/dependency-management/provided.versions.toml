@@ -8,6 +8,7 @@ junit = "4.13.2!!"
 junit5 = "5.12.2!!"
 junitPlatform = "1.12.2!!"
 plexusClassworlds = "2.7.0!!"
+pmd = "7.10.0!!" # oldest PMD release signed with the current PMD key; the PMD 7 adapter must only use API that PMD 7.0.0 has
 testng = "6.3.1!!" # later versions break test cross-version test filtering
 zinc = "1.12.0!!"
 
@@ -26,5 +27,6 @@ maven3Core = { group = "org.apache.maven", name = "maven-core", version.ref = "m
 maven3PluginApi = { group = "org.apache.maven", name = "maven-plugin-api", version.ref = "maven" }
 mavenResolverApi = { group = "org.apache.maven.resolver", name = "maven-resolver-api", version.ref = "mavenResolver" }
 plexusClassworlds = { group = "org.codehaus.plexus", name = "plexus-classworlds", version.ref = "plexusClassworlds" }
+pmdCore = { group = "net.sourceforge.pmd", name = "pmd-core", version.ref = "pmd" }
 testng = { group = "org.testng", name = "testng", version.ref = "testng" }
 zinc = { group = "org.scala-sbt", name = "zinc_2.13", version.ref = "zinc" }

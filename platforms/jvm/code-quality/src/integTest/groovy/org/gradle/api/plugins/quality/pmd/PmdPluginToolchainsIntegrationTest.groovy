@@ -45,6 +45,7 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
         writeBuildFileWithToolchainsFromJavaPlugin(jdk)
 
         when:
+        expectPmdDeprecationIfLegacy()
         succeeds("pmdMain")
 
         then:
@@ -64,6 +65,7 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
         writeBuildFileWithToolchainsFromCheckstyleTask(jdk)
 
         when:
+        expectPmdDeprecationIfLegacy()
         succeeds("pmdMain")
 
         then:
@@ -80,6 +82,7 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
         writeBuildFile()
 
         when:
+        expectPmdDeprecationIfLegacy()
         succeeds("pmdMain")
 
         then:
@@ -129,6 +132,7 @@ class PmdPluginToolchainsIntegrationTest extends AbstractPmdPluginVersionIntegra
             "Remove the targetJdk configuration from your build. " +
             "Consult the upgrading guide for further information: " +
             "https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_pmd_target_jdk")
+        expectPmdDeprecationIfLegacy()
         succeeds("myPmd")
 
         then:
