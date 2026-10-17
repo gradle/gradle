@@ -15,12 +15,9 @@
  */
 package org.gradle.api.internal.artifacts.repositories.metadata;
 
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
-import org.gradle.api.internal.artifacts.ImmutableModuleIdentifierFactory;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
 import org.gradle.api.internal.filestore.ArtifactIdentifierFileStore;
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
-import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier;
 import org.gradle.internal.component.model.PersistentModuleSource;
 import org.gradle.internal.hash.HashCode;
 import org.gradle.internal.serialize.Decoder;
@@ -38,53 +35,29 @@ import java.io.IOException;
  * module artifact identifier.
  */
 public class DefaultMetadataFileSourceCodec implements PersistentModuleSource.Codec<MetadataFileSource> {
-    private final ImmutableModuleIdentifierFactory moduleIdentifierFactory;
+    private final ComponentArtifactIdentifierSerializer artifactIdSerializer;
     private final ArtifactIdentifierFileStore fileStore;
 
-    public DefaultMetadataFileSourceCodec(ImmutableModuleIdentifierFactory moduleIdentifierFactory, ArtifactIdentifierFileStore fileStore) {
-        this.moduleIdentifierFactory = moduleIdentifierFactory;
+    public DefaultMetadataFileSourceCodec(ComponentArtifactIdentifierSerializer artifactIdSerializer, ArtifactIdentifierFileStore fileStore) {
+        this.artifactIdSerializer = artifactIdSerializer;
         this.fileStore = fileStore;
     }
 
     @Override
     public void encode(MetadataFileSource moduleSource, Encoder encoder) throws IOException {
-        ModuleComponentArtifactIdentifier artifactId = moduleSource.getArtifactId();
-        ModuleComponentIdentifier componentIdentifier = artifactId.getComponentIdentifier();
-        encoder.writeString(componentIdentifier.getGroup());
-        encoder.writeString(componentIdentifier.getModule());
-        encoder.writeString(componentIdentifier.getVersion());
-        encoder.writeString(artifactId.getFileName());
+        artifactIdSerializer.write(encoder, moduleSource.getArtifactId());
         encoder.writeBinary(moduleSource.getSha1().toByteArray());
     }
 
     @Override
     public MetadataFileSource decode(Decoder decoder) throws IOException {
-        String group = decoder.readString();
-        String module = decoder.readString();
-        String version = decoder.readString();
-        String name = decoder.readString();
-        byte[] sha1 = decoder.readBinary();
-        DefaultMetadataFileSource source = createSource(sha1, group, module, version, name);
-        return source;
-    }
-
-    private DefaultMetadataFileSource createSource(byte[] sha1, String group, String module, String version, String name) {
-        ModuleComponentArtifactIdentifier artifactId = createArtifactId(group, module, version, name);
-        HashCode hashCode = HashCode.fromBytes(sha1);
-        File metadataFile = fileStore.whereIs(artifactId, hashCode.toString());
+        ModuleComponentArtifactIdentifier artifactId = (ModuleComponentArtifactIdentifier) artifactIdSerializer.read(decoder);
+        HashCode sha1 = HashCode.fromBytes(decoder.readBinary());
+        File metadataFile = fileStore.whereIs(artifactId, sha1.toString());
         return new DefaultMetadataFileSource(
             artifactId,
             metadataFile,
-            hashCode);
-    }
-
-    private ModuleComponentFileArtifactIdentifier createArtifactId(String group, String module, String version, String name) {
-        return new ModuleComponentFileArtifactIdentifier(
-            DefaultModuleComponentIdentifier.newId(
-                moduleIdentifierFactory.module(group, module),
-                version
-            ),
-            name
+            sha1
         );
     }
 
@@ -98,6 +71,6 @@ public class DefaultMetadataFileSourceCodec implements PersistentModuleSource.Co
 
     @Override
     public int hashCode() {
-        return moduleIdentifierFactory.hashCode();
+        return getClass().hashCode();
     }
 }
