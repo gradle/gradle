@@ -16,6 +16,9 @@ dependencies {
     implementation(projects.binaryCompatibility)
     implementation(projects.dependencyModules)
 
+    implementation(buildLibs.gson) {
+        because("Package-info data is exchanged between projects as JSON")
+    }
     implementation(buildLibs.codenarc) {
         exclude(group = "org.apache.groovy")
         exclude(group = "org.codehaus.groovy")
