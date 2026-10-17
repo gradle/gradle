@@ -16,6 +16,7 @@
 
 package org.gradle.features.internal.builders
 
+import org.gradle.features.internal.builders.dsl.HasNestedTypes
 import org.gradle.features.internal.builders.dsl.HasProperties
 import org.gradle.features.internal.builders.dsl.HasSharedRefInProperties
 
@@ -33,7 +34,7 @@ import org.gradle.features.internal.builders.dsl.HasSharedRefInProperties
  * }
  * </pre>
  */
-class BuildModelDeclaration implements HasProperties, HasSharedRefInProperties {
+class BuildModelDeclaration implements HasProperties, HasSharedRefInProperties, HasNestedTypes {
     /** The simple class name of the build model interface (e.g. "ModelType", "FeatureModel"). */
     String className
 
@@ -42,6 +43,9 @@ class BuildModelDeclaration implements HasProperties, HasSharedRefInProperties {
 
     /** The properties declared on this build model. */
     List<PropertyDeclaration> properties = []
+
+    /** The nested properties declared on this build model. */
+    List<PropertyTypeDeclaration> nestedTypes = []
 
     /** Per-language custom build model mapping code. When set, overrides the auto-derived mapping. */
     Map<Language, String> customMappings = [:]
