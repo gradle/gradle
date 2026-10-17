@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl
 
-import com.google.common.collect.ImmutableSet
 import org.gradle.api.internal.initialization.ClassLoaderScopeIdentifier
 import org.gradle.api.internal.initialization.loadercache.ClassLoaderId
 import org.gradle.initialization.ClassLoaderScopeId
@@ -28,13 +27,13 @@ import org.gradle.internal.cc.impl.serialize.ClassLoaderRole
 import org.gradle.internal.cc.impl.serialize.ClassLoaderScopeSpec
 import org.gradle.internal.cc.impl.serialize.ScopeLookup
 import org.gradle.internal.cc.impl.serialize.describeClassLoader
-import org.gradle.internal.cc.impl.serialize.describeKnownClassLoaders
 import org.gradle.internal.classloader.DelegatingClassLoader
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.hash.HashCode
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import java.io.Closeable
+import java.util.Collections
 import java.util.IdentityHashMap
 
 
@@ -53,56 +52,123 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
     private
     val loaders = IdentityHashMap<ClassLoader, Pair<ClassLoaderScopeSpec, ClassLoaderRole>>()
 
+    /**
+     * The class loaders that [scopeFor] reported as having no scope. A scope
+     * must not arrive for one of these afterwards: the class was already
+     * encoded against the Gradle runtime, which does not have it.
+     */
     private
-    var disposed = false
+    val reportedAsUnknown = Collections.newSetFromMap(IdentityHashMap<ClassLoader, Boolean>())
 
-    override fun afterStart() {
+    private
+    var state = State.IDLE
+
+    private
+    enum class State {
+        /** Before the build tree starts. No event was received. */
+        IDLE,
+
+        /** Registered as a listener. Events are received and recorded. */
+        ACTIVE,
+
+        /** Unregistered and the recorded state released. Terminal. */
+        DISPOSED
+    }
+
+    /**
+     * Starts recording the [ClassLoaderScopeSpec]s of this build tree.
+     *
+     * This runs before any scope of the build tree can be created, so that no
+     * scope is missed. A build that does not need the scope tree stops the
+     * recording again through [stopRecording].
+     */
+    override fun afterBuildTreeStart() {
+        startRecording()
+    }
+
+    private
+    fun startRecording() {
         synchronized(lock) {
-            assertNotDisposed("afterStart")
+            check(state == State.IDLE) {
+                "Cannot start recording ClassLoaderScopes in state $state."
+            }
             listenerManager.add(this)
+            state = State.ACTIVE
         }
     }
 
     /**
-     * Stops recording [ClassLoaderScopeSpec]s and releases any recorded state.
+     * Unregisters the listener and releases the recorded state.
+     *
+     * Callers invoke this more than once per build tree, so a call in
+     * [State.DISPOSED] returns without doing anything. The state is terminal:
+     * recording cannot start again for this build tree.
+     *
+     * TODO:configuration-cache make this unnecessary by deciding the cache strategy
+     *  early, so the listener is only attached when the entry is stored.
      */
-    fun dispose() {
+    fun stopRecording() {
         synchronized(lock) {
-            if (disposed) {
+            if (state == State.DISPOSED) {
                 return
             }
-            // TODO:configuration-cache find a way to make `dispose` unnecessary;
-            //  maybe by extracting an `ConfigurationCacheBuildDefinition` service
-            //  from DefaultConfigurationCacheHost so a decision based on the configured
-            //  configuration cache strategy (none, store or load) can be taken early on.
-            //  The listener only needs to be attached in the `store` state.
-            scopeSpecs.clear()
-            loaders.clear()
-            listenerManager.remove(this)
-            disposed = true
+            check(state == State.ACTIVE) {
+                "Cannot stop recording ClassLoaderScopes in state $state."
+            }
+            dispose()
         }
     }
 
+    /**
+     * Releases the state of a listener that the build tree no longer needs.
+     *
+     * Unlike [stopRecording] this accepts every state, because the services of
+     * a build tree are closed even when the tree failed before it started.
+     */
     override fun close() {
-        dispose()
+        synchronized(lock) {
+            if (state != State.DISPOSED) {
+                dispose()
+            }
+        }
+    }
+
+    private
+    fun dispose() {
+        if (state == State.ACTIVE) {
+            listenerManager.remove(this)
+        }
+        scopeSpecs.clear()
+        loaders.clear()
+        reportedAsUnknown.clear()
+        state = State.DISPOSED
     }
 
     override fun scopeFor(classLoader: ClassLoader?): Pair<ClassLoaderScopeSpec, ClassLoaderRole>? {
         synchronized(lock) {
-            assertNotDisposed("scopeFor")
+            check(state == State.ACTIVE) {
+                "Cannot look up a ClassLoaderScope in state $state."
+            }
             // TODO:configuration-cache assert the spec can no longer change after it has been observed
-            return loaders[classLoader]
+            val scopeAndRole = loaders[classLoader]
+            if (scopeAndRole == null && classLoader != null) {
+                reportedAsUnknown.add(classLoader)
+            }
+            return scopeAndRole
         }
     }
 
-    override val knownClassLoaders: Set<ClassLoader>
-        get() = synchronized(lock) {
-            ImmutableSet.copyOf(loaders.keys)
+    override fun describeKnownClassLoaders(): String =
+        synchronized(lock) {
+            if (loaders.isEmpty()) "No class loaders are currently known."
+            else "These are the known class loaders:\n${loaders.keys.joinToString("\n") { "\t- $it" }}\n"
         }
 
     override fun childScopeCreated(parentId: ClassLoaderScopeId, childId: ClassLoaderScopeId, origin: ClassLoaderScopeOrigin?) {
         synchronized(lock) {
-            assertNotDisposed("childScopeCreated")
+            check(state == State.ACTIVE) {
+                "Received a ClassLoaderScope event for $childId in state $state."
+            }
             if (scopeSpecs.containsKey(childId)) {
                 // scope is being reused
                 return
@@ -113,7 +179,7 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
                 null
             } else {
                 val lookupParent = scopeSpecs[parentId]
-                require(lookupParent != null) {
+                check(lookupParent != null) {
                     "Cannot find parent $parentId for child scope $childId"
                 }
                 lookupParent
@@ -132,7 +198,15 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
                 "Please report this error, run './gradlew --stop' and try again."
         }
         synchronized(lock) {
-            assertNotDisposed("classloaderCreated")
+            check(state == State.ACTIVE) {
+                "Received a ClassLoader event for scope '$scopeId' in state $state."
+            }
+            check(classLoader !in reportedAsUnknown) {
+                "ClassLoaderScope '$scopeId' was created for ${describeClassLoader(classLoader)} " +
+                    "after that loader was reported as having no scope.\n" +
+                    describeKnownClassLoaders() +
+                    "Please report this error, run './gradlew --stop' and try again."
+            }
             val spec = scopeSpecs[scopeId]
             check(spec != null) {
                 "Spec for ClassLoaderScope '$scopeId' not found!"
@@ -147,13 +221,6 @@ class ConfigurationCacheClassLoaderScopeRegistryListener(
                 spec.exportClassPath = classPath
             }
             loaders[classLoader] = Pair(spec, ClassLoaderRole(local))
-        }
-    }
-
-    private
-    fun assertNotDisposed(method: String) {
-        check(!disposed) {
-            "${javaClass.simpleName}.$method cannot be used after being disposed of."
         }
     }
 }

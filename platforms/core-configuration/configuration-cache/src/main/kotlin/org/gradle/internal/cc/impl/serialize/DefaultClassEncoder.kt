@@ -98,10 +98,3 @@ class DefaultClassEncoder(
         }
     }
 }
-
-
-internal
-fun ScopeLookup.describeKnownClassLoaders(): String = knownClassLoaders.let { classLoaders ->
-    if (classLoaders.isEmpty()) "No class loaders are currently known."
-    else "These are the known class loaders:\n${classLoaders.joinToString("\n") { "\t- $it" }}"
-}
