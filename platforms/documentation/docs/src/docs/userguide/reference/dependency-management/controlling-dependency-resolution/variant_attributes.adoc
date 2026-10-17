@@ -354,7 +354,7 @@ include::sample[dir="snippets/reference/dependency-management/controlling-depend
 
 1. **Attribute Selection**: Specify the attribute to disambiguate (e.g., `Usage.USAGE_ATTRIBUTE`, a built-in Gradle attribute).
 2. **Rule Registration**: Register the custom disambiguation rule using `disambiguationRules.add()` within the `attributesSchema` block of `dependencies`.
-3. **Custom Logic**: Implement the `AttributeDisambiguationRule` interface in a separate class. The `execute` method defines how Gradle selects among candidates. In this example, it prefers the `JAVA_API` usage.
+3. **Custom Logic**: Implement the `AttributeDisambiguationRule` interface in a separate class. The `execute` method defines how Gradle selects among candidates. A rule may only choose among the candidate values it is given. Values that are not candidates are ignored. In this example, it prefers the `JAVA_API` usage when it is one of the candidates.
 
 Attribute disambiguation rules must be registered via the link:{javadocPath}/org/gradle/api/attributes/AttributeMatchingStrategy.html[attribute matching strategy], which is accessed through the link:{javadocPath}/org/gradle/api/attributes/AttributesSchema.html[attributes schema] in the link:{javadocPath}/org/gradle/api/artifacts/dsl/DependencyHandler.html[DependencyHandler].
 This ensures the rules apply globally to dependency resolution.

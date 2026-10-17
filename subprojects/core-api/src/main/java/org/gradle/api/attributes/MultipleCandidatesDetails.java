@@ -48,7 +48,8 @@ public interface MultipleCandidatesDetails<T> {
      * Calling this method indicates that the candidate is the closest match. It is allowed to call this method several times with
      * different values, in which case it indicates that multiple candidates are equally compatible.
      *
-     * @param candidate The closest match. Must be present in {@link #getCandidateValues()}.
+     * @param candidate The closest match. Must be present in {@link #getCandidateValues()}. Values which are
+     * not present are ignored.
      * @since 3.4
      */
     void closestMatch(T candidate);
