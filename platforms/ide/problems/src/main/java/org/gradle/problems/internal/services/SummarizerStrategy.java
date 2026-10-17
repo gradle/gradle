@@ -17,8 +17,10 @@
 package org.gradle.problems.internal.services;
 
 import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemSummaryData;
+import org.gradle.api.problems.internal.TaskLocation;
 
 import java.util.HashMap;
 import java.util.List;
@@ -46,6 +48,20 @@ public class SummarizerStrategy {
             problem.getDefinition().getId(),
             key -> new ProblemSummaryInfo()
         );
-        return summaryInfo.shouldEmit(problem.hashCode(), threshold);
+        return summaryInfo.shouldEmit(deduplicationHash(problem), threshold);
+    }
+
+    /**
+     * The reporting task is the only contextual location that makes a problem distinct.
+     * Others, like stack traces, only describe how the problem was reached.
+     */
+    private static int deduplicationHash(ProblemInternal problem) {
+        int hash = problem.hashCode();
+        for (ProblemLocation location : problem.getContextualLocations()) {
+            if (location instanceof TaskLocation) {
+                hash = 31 * hash + ((TaskLocation) location).getBuildTreePath().hashCode();
+            }
+        }
+        return hash;
     }
 }
