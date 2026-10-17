@@ -34,6 +34,7 @@ import org.gradle.internal.vfs.impl.DefaultSnapshotHierarchy
 import org.gradle.internal.watch.registry.FileWatcherProbeRegistry
 import org.gradle.internal.watch.registry.FileWatcherUpdater
 import org.gradle.internal.watch.registry.WatchMode
+import org.gradle.internal.watch.registry.WatcherVerificationResult
 import org.gradle.test.fixtures.file.CleanupTestDirectory
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
@@ -440,6 +441,280 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         0 * _
     }
 
+    def "a file added to a snapshotted directory makes it outdated"() {
+        given:
+        def watchableHierarchy = file("hierarchy").createDir()
+        registerWatchableHierarchies([watchableHierarchy])
+        def sourceDirectory = watchableHierarchy.createDir("src")
+        sourceDirectory.file("Foo.java").createFile()
+        addSnapshot(snapshotDirectory(sourceDirectory))
+        probeRegistry.hasUnprovenHierarchies() >> true
+        probeRegistry.getProbeDirectory(_) >> { File it -> new File(it, ".gradle") }
+
+        when: "a file appears that the watcher never reported"
+        sourceDirectory.file("Bar.java").createFile()
+        def verification = updater.verifyWatcherIsCurrent(virtualFileSystem.root)
+
+        then:
+        verification.outdatedPaths == [sourceDirectory.absolutePath]
+
+        when:
+        virtualFileSystem.root = updater.updateVfsOnBuildStarted(virtualFileSystem.root, WatchMode.DEFAULT, [], verification)
+
+        then:
+        !vfsHasSnapshotsAt(sourceDirectory)
+    }
+
+    def "a file added under the probe directory is still detected"() {
+        given:
+        def watchableHierarchy = file("hierarchy").createDir()
+        registerWatchableHierarchies([watchableHierarchy])
+        def probeDirectory = watchableHierarchy.createDir(".gradle")
+        probeDirectory.file("file-watching.probe").createFile()
+        addSnapshot(snapshotDirectory(probeDirectory))
+        probeRegistry.hasUnprovenHierarchies() >> true
+        probeRegistry.getProbeDirectory(_) >> { File it -> new File(it, ".gradle") }
+        probePredicatesFrom(watchableHierarchy)
+
+        when: "real state appears under .gradle without the watcher reporting it"
+        probeDirectory.file("configuration-cache.bin").createFile()
+        def verification = updater.verifyWatcherIsCurrent(virtualFileSystem.root)
+
+        then: "skipping the probe directory wholesale would have missed this"
+        verification.outdatedPaths == [probeDirectory.absolutePath]
+    }
+
+    def "creating the probe directory does not make its parent outdated"() {
+        given: "the hierarchy is snapshotted before the probe directory exists"
+        def watchableHierarchy = file("hierarchy").createDir()
+        watchableHierarchy.file("build.gradle").createFile()
+        registerWatchableHierarchies([watchableHierarchy])
+        addSnapshot(snapshotDirectory(watchableHierarchy))
+        probeRegistry.hasUnprovenHierarchies() >> true
+        probeRegistry.getProbeDirectory(_) >> { File it -> new File(it, ".gradle") }
+        probePredicatesFrom(watchableHierarchy)
+
+        when: "arming creates it"
+        watchableHierarchy.createDir(".gradle").file("file-watching-1.probe").createFile()
+        def verification = updater.verifyWatcherIsCurrent(virtualFileSystem.root)
+
+        then: "the parent listing gained a name Gradle wrote for itself, which is not a change to report"
+        verification.outdatedPaths.isEmpty()
+    }
+
+    def "removing the probe directory does not make its parent outdated"() {
+        given: "the hierarchy is snapshotted while the probe directory exists"
+        def watchableHierarchy = file("hierarchy").createDir()
+        watchableHierarchy.file("build.gradle").createFile()
+        def probeDirectory = watchableHierarchy.createDir(".gradle")
+        probeDirectory.file("file-watching-1.probe").createFile()
+        registerWatchableHierarchies([watchableHierarchy])
+        addSnapshot(snapshotDirectory(watchableHierarchy))
+        probeRegistry.hasUnprovenHierarchies() >> true
+        probeRegistry.getProbeDirectory(_) >> { File it -> new File(it, ".gradle") }
+        probePredicatesFrom(watchableHierarchy)
+
+        when: "it is gone from disk while the retained listing still names it"
+        probeDirectory.deleteDir()
+        def verification = updater.verifyWatcherIsCurrent(virtualFileSystem.root)
+
+        then: "the exclusion has to hold on the snapshot side as well as the disk side"
+        !verification.outdatedPaths.contains(watchableHierarchy.absolutePath)
+    }
+
+    def "a file added under a probe directory the parent snapshot names is reported"() {
+        given: "the parent is snapshotted while its probe directory already exists"
+        def watchableHierarchy = file("hierarchy").createDir()
+        watchableHierarchy.file("build.gradle").createFile()
+        def probeDirectory = watchableHierarchy.createDir(".gradle")
+        probeDirectory.file("file-watching-1.probe").createFile()
+        registerWatchableHierarchies([watchableHierarchy])
+        addSnapshot(snapshotDirectory(watchableHierarchy))
+        probeRegistry.hasUnprovenHierarchies() >> true
+        probeRegistry.getProbeDirectory(_) >> { File it -> new File(it, ".gradle") }
+        probePredicatesFrom(watchableHierarchy)
+
+        when: "content the watcher never reported appears under it"
+        probeDirectory.file("configuration-cache.bin").createFile()
+        def verification = updater.verifyWatcherIsCurrent(virtualFileSystem.root)
+
+        then: "the directory is a child of the parent snapshot, so its own comparison catches it"
+        verification.outdatedPaths == [probeDirectory.absolutePath]
+    }
+
+    def "a file replaced by a symlink to identical content is reported"() {
+        given:
+        def watchableHierarchy = file("hierarchy").createDir()
+        registerWatchableHierarchies([watchableHierarchy])
+        def watched = watchableHierarchy.file("watched.txt")
+        watched.text = "same bytes"
+        addSnapshot(snapshotRegularFile(watched))
+        probeRegistry.hasUnprovenHierarchies() >> true
+        probeRegistry.getProbeDirectory(_) >> { File it -> new File(it, ".gradle") }
+        probePredicatesFrom(watchableHierarchy)
+
+        when: "the path becomes a link to a file the metadata cannot tell apart"
+        def target = watchableHierarchy.file("target.txt")
+        target.text = "same bytes"
+        target.lastModified = watched.lastModified()
+        watched.delete()
+        java.nio.file.Files.createSymbolicLink(watched.toPath(), target.toPath())
+
+        and:
+        def verification = updater.verifyWatcherIsCurrent(virtualFileSystem.root)
+
+        then: "following the link would vouch for content reached by a route Gradle does not watch"
+        verification.outdatedPaths == [watched.absolutePath]
+    }
+
+    def "a nested hierarchy's probe directory is not reported by the outer walk"() {
+        given: "the outer hierarchy is snapshotted before the inner hierarchy has a probe directory"
+        def outer = file("outer").createDir()
+        def inner = outer.createDir("inner")
+        inner.file("build.gradle").createFile()
+        registerWatchableHierarchies([outer, inner])
+        addSnapshot(snapshotDirectory(inner))
+        probeRegistry.hasUnprovenHierarchies() >> true
+        probeRegistry.getProbeDirectory(_) >> { File it -> new File(it, ".gradle") }
+        probePredicatesFrom(outer, inner)
+
+        when: "arming the inner hierarchy creates its probe directory"
+        inner.createDir(".gradle").file("file-watching-1.probe").createFile()
+        def verification = updater.verifyWatcherIsCurrent(virtualFileSystem.root)
+
+        then: "an exclusion scoped to one hierarchy's probe directory would report the inner listing"
+        verification.outdatedPaths.isEmpty()
+    }
+
+    def "retained state under a deleted probe directory is reported"() {
+        given:
+        def watchableHierarchy = file("hierarchy").createDir()
+        registerWatchableHierarchies([watchableHierarchy])
+        def probeDirectory = watchableHierarchy.createDir(".gradle")
+        probeDirectory.file("configuration-cache.bin").createFile()
+        // The directory itself is retained, which is the shape an absence guard would skip whole.
+        addSnapshot(snapshotDirectory(probeDirectory))
+        probeRegistry.hasUnprovenHierarchies() >> true
+        probeRegistry.getProbeDirectory(_) >> { File it -> new File(it, ".gradle") }
+        probePredicatesFrom(watchableHierarchy)
+
+        when: "the directory goes away with real state retained under it"
+        probeDirectory.deleteDir()
+        def verification = updater.verifyWatcherIsCurrent(virtualFileSystem.root)
+
+        then: "skipping the subtree here would vouch for state that is gone"
+        verification.outdatedPaths == [probeDirectory.absolutePath]
+    }
+
+    def "a verified hierarchy survives the drop and an unverified one does not"() {
+        given:
+        def watchableHierarchy = file("hierarchy").createDir()
+        registerWatchableHierarchies([watchableHierarchy])
+        addSnapshot(snapshotRegularFile(watchableHierarchy.file("kept.txt").createFile()))
+        probeRegistry.getProbeDirectory(_) >> { File it -> new File(it, ".gradle") }
+        probeRegistry.unprovenHierarchies() >> { Stream.of(watchableHierarchy) }
+
+        when: "the probe never fires and no scan vouched for the hierarchy"
+        buildStarted(WatchMode.DEFAULT, [], WatcherVerificationResult.EMPTY)
+
+        then:
+        !vfsHasSnapshotsAt(watchableHierarchy)
+    }
+
+    def "a hierarchy the scan verified is kept even though its probe never fired"() {
+        given:
+        def watchableHierarchy = file("hierarchy").createDir()
+        registerWatchableHierarchies([watchableHierarchy])
+        addSnapshot(snapshotRegularFile(watchableHierarchy.file("kept.txt").createFile()))
+        probeRegistry.getProbeDirectory(_) >> { File it -> new File(it, ".gradle") }
+        probeRegistry.unprovenHierarchies() >> { Stream.of(watchableHierarchy) }
+
+        when:
+        def verified = new WatcherVerificationResult([], [watchableHierarchy] as Set)
+        buildStarted(WatchMode.DEFAULT, [], verified)
+
+        then:
+        vfsHasSnapshotsAt(watchableHierarchy)
+    }
+
+    def "re-arming the probe does not make its own directory outdated"() {
+        given:
+        def watchableHierarchy = file("hierarchy").createDir()
+        registerWatchableHierarchies([watchableHierarchy])
+        def probeDirectory = watchableHierarchy.createDir(".gradle")
+        probeDirectory.file("file-watching.probe").createFile()
+        addSnapshot(snapshotDirectory(probeDirectory))
+        probeRegistry.hasUnprovenHierarchies() >> true
+        probeRegistry.getProbeDirectory(_) >> { File it -> new File(it, ".gradle") }
+        probePredicatesFrom(watchableHierarchy)
+
+        when: "arming writes a file name the snapshot has never seen"
+        probeDirectory.file("file-watching-1.probe").createFile()
+        def verification = updater.verifyWatcherIsCurrent(virtualFileSystem.root)
+
+        then:
+        verification.outdatedPaths.isEmpty()
+    }
+
+    def "content in an immutable location is not scanned"() {
+        given:
+        def watchableHierarchy = file("hierarchy").createDir()
+        registerWatchableHierarchies([watchableHierarchy])
+        def cacheDirectory = watchableHierarchy.createDir("caches")
+        def cachedFile = cacheDirectory.file("artifact.jar").createFile()
+        addSnapshot(snapshotRegularFile(cachedFile))
+        ignoredForWatching.add(cachedFile.absolutePath)
+        probeRegistry.hasUnprovenHierarchies() >> true
+        probeRegistry.getProbeDirectory(_) >> { File it -> new File(it, ".gradle") }
+
+        when: "the immutable location changes behind the watcher's back"
+        cachedFile.text = "rewritten"
+        cachedFile.lastModified = cachedFile.lastModified() + 2000
+        def verification = updater.verifyWatcherIsCurrent(virtualFileSystem.root)
+
+        then: "Gradle manages that location itself, so the scan does not spend a stat on it"
+        verification.outdatedPaths.isEmpty()
+    }
+
+    def "a hierarchy is not entered once the probe has answered"() {
+        given: "two watchable hierarchies, each holding a file that changed behind the watcher's back"
+        def hierarchies = [file("one").createDir(), file("two").createDir()]
+        registerWatchableHierarchies(hierarchies)
+        def changedFiles = hierarchies.collect { it.file("changed.txt").createFile() }
+        changedFiles.each { it.text = "before" }
+        changedFiles.each { addSnapshot(snapshotRegularFile(it)) }
+        probeRegistry.getProbeDirectory(_) >> { File it -> new File(it, ".gradle") }
+        // Unproven when the walk starts, answered before the next hierarchy is entered.
+        probeRegistry.hasUnprovenHierarchies() >>> [true, false]
+
+        when:
+        changedFiles.each {
+            it.text = "after"
+            it.lastModified = it.lastModified() + 2000
+        }
+        def verification = updater.verifyWatcherIsCurrent(virtualFileSystem.root)
+
+        then: "the walk stopped after one hierarchy, whichever the iteration reached first"
+        verification.verifiedHierarchies.size() == 1
+        verification.outdatedPaths.size() == 1
+
+        and: "the hierarchy that was never entered is not vouched for"
+        def skipped = hierarchies.find { !verification.verifiedHierarchies.contains(it) }
+        verification.outdatedPaths.every { !it.startsWith(skipped.absolutePath) }
+    }
+
+    /**
+     * Answers the probe predicates the way production does, by delegating to a real registry built
+     * with this fixture's resolver. Re-stating the rule in a stub is how the earlier ones drifted
+     * wider than the code they stood in for.
+     */
+    void probePredicatesFrom(File... hierarchies) {
+        def real = new DefaultFileWatcherProbeRegistry(probeLocationResolver)
+        hierarchies.each { real.registerProbe(it) }
+        probeRegistry.isProbeFile(_) >> { String path -> real.isProbeFile(path) }
+        probeRegistry.isProbeDirectory(_) >> { String path -> real.isProbeDirectory(path) }
+    }
+
     TestFile file(Object... path) {
         temporaryFolder.testDirectory.file(path)
     }
@@ -502,8 +777,8 @@ abstract class AbstractFileWatcherUpdaterTest extends Specification {
         probeLocationResolver.apply(watchableHierarchy)
     }
 
-    SnapshotHierarchy buildStarted(WatchMode watchMode = WatchMode.DEFAULT, List<File> unsupportedFileSystems = []) {
-        virtualFileSystem.root = updater.updateVfsOnBuildStarted(virtualFileSystem.root, watchMode, unsupportedFileSystems)
+    SnapshotHierarchy buildStarted(WatchMode watchMode = WatchMode.DEFAULT, List<File> unsupportedFileSystems = [], WatcherVerificationResult verification = WatcherVerificationResult.EMPTY) {
+        virtualFileSystem.root = updater.updateVfsOnBuildStarted(virtualFileSystem.root, watchMode, unsupportedFileSystems, verification)
         return virtualFileSystem.root
     }
 
