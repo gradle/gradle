@@ -9,18 +9,26 @@ dependencies {
     api(projects.antWorker)
     api(projects.baseServices)
     api(projects.coreApi)
+    api(projects.daemonServerWorker)
     api(projects.stdlibJavaExtensions)
 
     api(libs.jspecify)
 
-    implementation(projects.daemonServerWorker)
+    implementation(projects.classloaders)
     implementation(projects.fileCollections)
+    implementation(projects.groovyLoader)
     implementation(projects.logging)
+    implementation(projects.loggingApi)
     implementation(libs.guava)
     implementation(libs.commonsIo)
     implementation(libs.groovy)
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
+
+    compileOnly(providedLibs.codenarc) {
+        because("CodeNarc is resolved by the CodeNarc plugin; the CodeNarc adapter compiles against the CodeNarc API")
+        isTransitive = false
+    }
 }
 
 gradleModule {

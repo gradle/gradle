@@ -2,6 +2,7 @@
 [versions]
 antlr = "2.7.7!!"
 bsh = "2.0b6!!" # transitive dependency of testng, upgraded to avoid having vulnerabile version
+codenarc = "3.7.0-groovy-4.0!!" # the CodeNarc adapter must only use API that CodeNarc 0.24.1 has, or check for newer API at runtime
 eclipseSisuPlexus = "0.3.5!!"
 jcommander = "1.78!!" # transitive dependency of testng, upgraded to avoid having vulnerabile version
 junit = "4.13.2!!"
@@ -14,6 +15,7 @@ zinc = "1.12.0!!"
 [libraries]
 antlr = { group = "antlr", name = "antlr", version.ref = "antlr" }
 bsh = { group = "org.apache-extras.beanshell", name = "bsh", version.ref = "bsh" }
+codenarc = { group = "org.codenarc", name = "CodeNarc", version.ref = "codenarc" }
 eclipseSisuPlexus = { group = "org.eclipse.sisu", name = "org.eclipse.sisu.plexus", version.ref = "eclipseSisuPlexus" } # transitive dependency of Maven modules to process POM metadata
 jcommander = { group = "com.beust", name = "jcommander", version.ref = "jcommander" }
 junit = { group = "junit", name = "junit", version.ref = "junit" }

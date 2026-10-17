@@ -115,7 +115,7 @@ public abstract class CodeNarc extends AbstractCodeQualityTask implements Report
     }
 
     private void setupParameters(CodeNarcActionParameters parameters) {
-        parameters.getAntLibraryClasspath().setFrom(getCodenarcClasspath());
+        parameters.getCodenarcClasspath().setFrom(getCodenarcClasspath());
         parameters.getCompilationClasspath().setFrom(getCompilationClasspath());
         parameters.getConfig().set(getConfigFile());
         parameters.getMaxPriority1Violations().set(getMaxPriority1Violations());
