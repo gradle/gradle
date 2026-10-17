@@ -43,3 +43,6 @@ const val ALL_WARNINGS_AS_ERRORS_PROPERTY_NAME = "org.gradle.kotlin.dsl.allWarni
 
 const val SKIP_METADATA_VERSION_CHECK_PROPERTY_NAME = "org.gradle.kotlin.dsl.skipMetadataVersionCheck"
 
+
+const val KOTLIN_DSL_LANGUAGE_VERSION = "2.3"
+

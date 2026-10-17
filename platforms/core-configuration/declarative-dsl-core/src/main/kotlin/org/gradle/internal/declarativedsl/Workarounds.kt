@@ -17,9 +17,6 @@
 package org.gradle.internal.declarativedsl
 
 import kotlin.reflect.KFunction
-import kotlin.reflect.KProperty
-import kotlin.reflect.full.memberProperties
-import kotlin.reflect.jvm.isAccessible
 
 object Workarounds {
     /**
@@ -33,8 +30,9 @@ object Workarounds {
         return kFunctionImplSignature(function)
     }
 
+    // Declared by the interface, as Kotlin reflection implements functions with different classes depending on the Kotlin version
     private val kFunctionImplSignature: (KFunction<*>) -> String by lazy {
-        val property: KProperty<*> = Class.forName("kotlin.reflect.jvm.internal.DescriptorKFunction").kotlin.memberProperties.first { it.name == "signature" }.apply { isAccessible = true }
-        return@lazy { kFunction: KFunction<*> -> property.call(kFunction) as String }
+        val getSignature = Class.forName("kotlin.reflect.jvm.internal.ReflectKFunction").getMethod("getSignature")
+        return@lazy { kFunction: KFunction<*> -> getSignature.invoke(kFunction) as String }
     }
 }
