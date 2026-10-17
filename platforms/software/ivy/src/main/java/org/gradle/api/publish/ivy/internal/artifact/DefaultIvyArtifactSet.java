@@ -20,39 +20,26 @@ import org.gradle.api.Action;
 import org.gradle.api.file.FileCollection;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.DefaultDomainObjectSet;
-import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.collections.MinimalFileSet;
+import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.publish.internal.PublicationArtifactSet;
 import org.gradle.api.publish.ivy.IvyArtifact;
 import org.gradle.api.publish.ivy.IvyArtifactSet;
 import org.gradle.internal.typeconversion.NotationParser;
 
-import java.io.File;
-import java.util.LinkedHashSet;
-import java.util.Set;
-
 @SuppressWarnings("this-escape")
 public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> implements IvyArtifactSet, PublicationArtifactSet<IvyArtifact> {
-    private final String publicationName;
     private final FileCollection files;
     private final NotationParser<Object, IvyArtifact> ivyArtifactParser;
 
     public DefaultIvyArtifactSet(
         String publicationName,
         NotationParser<Object, IvyArtifact> ivyArtifactParser,
-        FileCollectionFactory fileCollectionFactory,
+        TaskDependencyFactory taskDependencyFactory,
         CollectionCallbackActionDecorator collectionCallbackActionDecorator
     ) {
         super(IvyArtifact.class, collectionCallbackActionDecorator);
-        this.publicationName = publicationName;
         this.ivyArtifactParser = ivyArtifactParser;
-        this.files = fileCollectionFactory.create(
-            new ArtifactsFileCollection(), context -> {
-                for (IvyArtifact ivyArtifact : this) {
-                    context.add(ivyArtifact);
-                }
-            }
-        );
+        this.files = new IvyArtifactsFileCollection(publicationName, this, taskDependencyFactory);
     }
 
     @Override
@@ -72,21 +59,5 @@ public class DefaultIvyArtifactSet extends DefaultDomainObjectSet<IvyArtifact> i
     @Override
     public FileCollection getFiles() {
         return files;
-    }
-
-    private class ArtifactsFileCollection implements MinimalFileSet {
-        @Override
-        public String getDisplayName() {
-            return "artifacts for Ivy publication '" + publicationName + "'";
-        }
-
-        @Override
-        public Set<File> getFiles() {
-            Set<File> files = new LinkedHashSet<>();
-            for (IvyArtifact artifact : DefaultIvyArtifactSet.this) {
-                files.add(artifact.getFile());
-            }
-            return files;
-        }
     }
 }

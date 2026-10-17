@@ -35,7 +35,7 @@ import java.util.Date;
 
 public class LazyPublishArtifact implements PublishArtifactInternal {
 
-    private final ProviderInternal<?> provider;
+    private final ProviderInternal<File> provider;
     @Nullable
     private final String version;
     private final FileResolver fileResolver;
@@ -43,7 +43,9 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
     private PublishArtifactInternal delegate;
 
     public LazyPublishArtifact(Provider<?> provider, @Nullable String version, FileResolver fileResolver, TaskDependencyFactory taskDependencyFactory) {
-        this.provider = Providers.internal(provider);
+        @SuppressWarnings("unchecked")
+        var fileProvider = (Provider<File>) provider;
+        this.provider = Providers.internal(fileProvider);
         this.version = version;
         this.fileResolver = fileResolver;
         this.taskDependencyFactory = taskDependencyFactory;
@@ -101,6 +103,19 @@ public class LazyPublishArtifact implements PublishArtifactInternal {
     private PublishArtifactInternal fromFile(File file) {
         ArtifactFile artifactFile = new ArtifactFile(file, version);
         return new DefaultPublishArtifact(taskDependencyFactory, artifactFile.getName(), artifactFile.getExtension(), artifactFile.getExtension(), artifactFile.getClassifier(), null, file);
+    }
+
+    /**
+     * Returns the underlying provider that produces this artifact's file. Exposed for
+     * configuration-cache serialization: callers that would otherwise call {@link #getFile()}
+     * at store time (which fails for providers guarded by {@code TransformBackedProvider.beforeRead})
+     * can instead capture and serialize the provider itself, deferring resolution to task
+     * execution time.
+     *
+     * @return the underlying provider; never {@code null}
+     */
+    public ProviderInternal<?> getProvider() {
+        return provider;
     }
 
     @Override
