@@ -41,6 +41,7 @@ import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheFingerprintEven
 import org.gradle.internal.cc.impl.fingerprint.ConfigurationCacheInputFileChecker
 import org.gradle.internal.cc.impl.fingerprint.DefaultConfigurationCacheInputFileCheckerHost
 import org.gradle.internal.cc.impl.fingerprint.IsolatedProjectsClassLoaderScopesFingerprintController
+import org.gradle.internal.cc.impl.fingerprint.IsolatedProjectsFingerprintEventHandler
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheInjectedClasspathInstrumentationStrategy
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheProblemsListener
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheStartParameter
@@ -107,7 +108,11 @@ object BuildTreeModelControllerServices : ServiceRegistrationProvider {
         }
         // TODO: do these services have to be registered in all modes?
         add(DefaultConfigurationCacheDegradationController::class.java)
-        add(ConfigurationCacheFingerprintEventHandler::class.java)
+        if (modelParameters.isIsolatedProjects) {
+            add(IsolatedProjectsFingerprintEventHandler::class.java)
+        } else {
+            add(ConfigurationCacheFingerprintEventHandler::class.java)
+        }
         // endregion
 
         // Set up CC problem reporting pipeline and promo, based on the build configuration
