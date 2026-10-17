@@ -386,7 +386,8 @@ Problem found: Project is a prototype (id: prototype-project, in sample-problems
                 Mock(PayloadSerializer),
                 Mock(IsolatableFactory),
                 Mock(IsolatableToBytesSerializer),
-                Mock(ProblemStream)
+                Mock(ProblemStream),
+                null
             )
         )
     }

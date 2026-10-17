@@ -17,8 +17,8 @@ package org.gradle.util.internal;
 
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.function.TriConsumer;
+import org.gradle.api.problems.GradleSecondLevelProblemGroup;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 
 import java.util.Collection;
 import java.util.Locale;
@@ -227,13 +227,18 @@ public class NameMatcher {
         return String.format("%s '%s' not found in %s.", singularItemDescription, pattern, container);
     }
 
-    public ProblemId problemId() {
+    /**
+     * The id of the problem describing why the last {@link #find} failed, in the given group.
+     *
+     * @param singularItemDescription what was looked up, in lower case, for example {@code task}
+     */
+    public ProblemId problemId(GradleSecondLevelProblemGroup group, String singularItemDescription) {
         if (!getMatches().isEmpty()) {
-            return ProblemId.create("ambiguous-matches", "Ambiguous matches", GradleCoreProblemGroup.taskSelection());
+            return group.problemId("Ambiguous " + singularItemDescription + " name");
         } else if (!getCandidates().isEmpty()) {
-            return ProblemId.create("no-matches", "No matches", GradleCoreProblemGroup.taskSelection());
+            return group.problemId(StringUtils.capitalize(singularItemDescription) + " not found");
         } else {
-            return ProblemId.create("selection-failed", "Selection failed", GradleCoreProblemGroup.taskSelection());
+            return group.problemId(StringUtils.capitalize(singularItemDescription) + " selection failed");
         }
     }
 }

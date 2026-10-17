@@ -65,6 +65,9 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
     }
 
     def "When execute updateDaemonJvm without toolchain download repositories configured Then fails with expected exception message"() {
+        given:
+        enableProblemsApiCheck()
+
         when:
         fails "updateDaemonJvm"
 
@@ -74,8 +77,13 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
             // TODO The description is different with CC on, and this should use the problem validation test API
 //        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'.")
         }
-        failureHasCause('Invalid task configuration')
+        failureHasCause('No toolchain download repositories configured')
         failureCauseContains('Toolchain download repositories have not been configured.')
+        findReceivedProblem { it.fqid == 'Provisioning:Tools and Toolchains:No toolchain download repositories configured' } != null
+        if (GradleContextualExecuter.configCache) {
+            // the failed task's map property cannot be stored
+            findReceivedProblem { it.contextualLabel == "error writing value of type 'org.gradle.api.internal.provider.DefaultMapProperty'" }
+        }
         failure.error.contains('Possible solution: Configure toolchain download repositories in your build settings.')
         failure.error.contains(DocumentationUtils.normalizeDocumentationLink('For more information, please refer to https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories.'))
 
@@ -325,6 +333,7 @@ tasks.named("updateDaemonJvm") {
         given:
         writeJvmCriteria(Jvm.current())
         settingsFile << applyToolchainResolverPlugin("CustomToolchainResolver", noUrlResolverCode())
+        enableProblemsApiCheck()
 
         when:
         fails "updateDaemonJvm", "--jvm-version=20", "--jvm-vendor=FOO"
@@ -332,7 +341,12 @@ tasks.named("updateDaemonJvm") {
         then:
         // TODO The description is different with CC on, and this should use the problem validation test API
 //        failureDescriptionContains("Execution failed for task ':updateDaemonJvm'")
-        failureHasCause("Invalid task configuration")
+        failureHasCause("Toolchain not resolvable for requested platforms")
+        findReceivedProblem { it.fqid == 'Provisioning:Tools and Toolchains:Toolchain not resolvable for requested platforms' } != null
+        if (GradleContextualExecuter.configCache) {
+            // the failed task's map property cannot be stored
+            findReceivedProblem { it.contextualLabel == "error writing value of type 'org.gradle.api.internal.provider.DefaultMapProperty'" }
+        }
         failureCauseContains("Toolchain resolvers did not return download URLs providing a JDK matching {languageVersion=20, vendor=vendor matching('FOO'), implementation=vendor-specific, nativeImageCapable=false} for any of the requested platforms")
         failure.error.contains('Possible solution: Use a toolchain download repository capable of resolving the toolchain spec for the given platforms.')
         failure.error.contains(DocumentationUtils.normalizeDocumentationLink('For more information, please refer to https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:daemon_jvm_provisioning.'))

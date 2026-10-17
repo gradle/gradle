@@ -16,6 +16,7 @@
 
 package org.gradle.api.problems.internal;
 
+import org.gradle.api.problems.ProblemGroups;
 import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.problems.buildtree.ProblemStream;
@@ -30,6 +31,8 @@ public class ProblemsInfrastructure {
     private final Instantiator instantiator;
     private final PayloadSerializer payloadSerializer;
     private final IsolatableFactory isolatableFactory;
+    @Nullable
+    private final ProblemGroups groups;
 
     public ProblemsInfrastructure(
         AdditionalDataBuilderFactory additionalDataBuilderFactory,
@@ -38,7 +41,9 @@ public class ProblemsInfrastructure {
         IsolatableFactory isolatableFactory,
         IsolatableToBytesSerializer isolatableSerializer,
         @Nullable
-        ProblemStream problemStream
+        ProblemStream problemStream,
+        @Nullable
+        ProblemGroups groups
     ) {
         this.additionalDataBuilderFactory = additionalDataBuilderFactory;
         this.instantiator = instantiator;
@@ -46,6 +51,7 @@ public class ProblemsInfrastructure {
         this.isolatableFactory = isolatableFactory;
         this.isolatableSerializer = isolatableSerializer;
         this.problemStream = problemStream;
+        this.groups = groups;
     }
 
     public IsolatableToBytesSerializer getIsolatableSerializer() {
@@ -71,5 +77,14 @@ public class ProblemsInfrastructure {
 
     public IsolatableFactory getIsolatableFactory() {
         return isolatableFactory;
+    }
+
+    /**
+     * The predefined problem groups, for problems the builder reports itself. Only infrastructure that builds new
+     * problems needs them; copies of existing problems pass {@code null}.
+     */
+    @Nullable
+    public ProblemGroups getGroups() {
+        return groups;
     }
 }

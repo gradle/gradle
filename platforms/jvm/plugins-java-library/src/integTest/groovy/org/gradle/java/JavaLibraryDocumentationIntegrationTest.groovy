@@ -115,7 +115,7 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
         and:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'task-selection:no-matches'
+            fqid == 'Gradle:Invocation:Task not found'
             contextualLabel == 'Cannot locate tasks that match \':a:javadocJar\' as task \'javadocJar\' not found in project \':a\'. Some candidates are: \'javadoc\'.'
             additionalData.asMap == [ 'requestedPath' : ':a:javadocJar']
             originLocations == []
@@ -141,7 +141,7 @@ class JavaLibraryDocumentationIntegrationTest extends AbstractIntegrationSpec {
         and:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'task-selection:selection-failed'
+            fqid == 'Gradle:Invocation:Task selection failed'
             contextualLabel == 'Cannot locate tasks that match \':a:sourcesJar\' as task \'sourcesJar\' not found in project \':a\'.'
             additionalData.asMap == [ 'requestedPath' : ':a:sourcesJar']
             originLocations == []

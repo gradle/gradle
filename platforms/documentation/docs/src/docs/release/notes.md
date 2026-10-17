@@ -134,6 +134,12 @@ Gradle's own validation problems use the predefined groups as well: problems abo
 They are now named by their former display names, with a few names reworded to describe the problem, for example `validation:property-validation:value-not-set` is now `Gradle:Build Definition:Value not set`.
 See the [upgrade guide](userguide/upgrading_version_9.html#validation_problem_ids_moved_to_predefined_groups) for the complete list.
 
+All other problems Gradle reports use the predefined groups too, and the legacy groups are gone: problems with the requested tasks report into `Gradle > Invocation`, Configuration Cache and Isolated Projects problems into `Gradle > Configuration Cache` and `Gradle > Isolated Projects`, JVM toolchain problems into `Provisioning > Tools and Toolchains`, and signing problems into `Packaging > Signing`.
+For example, `task-selection:no-matches` is now `Gradle:Invocation:Task not found`, or `Gradle:Invocation:Project not found` when a project in the task path does not exist.
+See the [upgrade guide](userguide/upgrading_version_9.html#runtime_problem_ids_moved_to_predefined_groups) for the complete list.
+
+Groups created through `ProblemGroup.create()` whose names match a predefined group are reported as that predefined group, so reports show the same group, with its description, whichever API a plugin used to create it.
+
 See the [Predefined Problem Groups](userguide/reporting_problems.html#sec:predefined_problem_groups) section in the Gradle User Manual for more details.
 
 ### Build authoring improvements

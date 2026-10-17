@@ -16,9 +16,11 @@
 
 package org.gradle.problems.internal.services;
 
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemEmitter;
+import org.gradle.api.problems.internal.ProblemGroupsInternal;
 import org.gradle.api.problems.internal.ProblemReportCreator;
 import org.gradle.api.problems.internal.ProblemSummarizer;
 import org.gradle.api.problems.internal.ProblemSummaryData;
@@ -45,6 +47,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
     private final ProblemReportCreator problemReportCreator;
     private final SummarizerStrategy summarizerStrategy;
     private final TaskIdentityProvider taskProvider;
+    private final ProblemGroupsInternal groups;
 
     public static final InternalOption<Integer> THRESHOLD_OPTION = InternalOptions.ofInt("org.gradle.internal.problem.summary.threshold", 15);
     public static final int THRESHOLD_DEFAULT_VALUE = THRESHOLD_OPTION.getDefaultValue();
@@ -55,6 +58,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         Collection<ProblemEmitter> problemEmitters,
         InternalOptions internalOptions,
         ProblemReportCreator problemReportCreator,
+        ProblemGroupsInternal groups,
         TaskIdentityProvider taskProvider
     ) {
         this.eventEmitter = eventEmitter;
@@ -63,6 +67,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         this.summarizerStrategy = new SummarizerStrategy(internalOptions.getInt(THRESHOLD_OPTION));
         this.problemReportCreator = problemReportCreator;
         this.taskProvider = taskProvider;
+        this.groups = groups;
     }
 
     @Override
@@ -79,6 +84,7 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
 
     @Override
     public void emit(ProblemInternal problem, @Nullable OperationIdentifier id) {
+        problem = withCanonicalId(problem);
         if (summarizerStrategy.shouldEmit(problem)) {
             problem = maybeAddTaskLocation(problem, id);
             problemReportCreator.addProblem(problem);
@@ -88,11 +94,24 @@ public class DefaultProblemSummarizer implements ProblemSummarizer {
         }
     }
 
+    /**
+     * Reports problems whose groups were created through the legacy factories with the matching predefined groups, so
+     * that every consumer sees the same group, including its description, whichever API the producer used.
+     */
+    private ProblemInternal withCanonicalId(ProblemInternal problem) {
+        ProblemId id = problem.getDefinition().getId();
+        ProblemId canonical = groups.canonical(id);
+        if (canonical == id) {
+            return problem;
+        }
+        return problem.toBuilder(new ProblemsInfrastructure(null, null, null, null, null, null, null)).id(canonical).build();
+    }
+
     @NonNull
     private ProblemInternal maybeAddTaskLocation(ProblemInternal problem, @Nullable OperationIdentifier id) {
         TaskIdentity taskIdentity = taskProvider.taskIdentityFor(id);
         if (taskIdentity != null) {
-            problem = problem.toBuilder(new ProblemsInfrastructure(null, null, null, null, null, null)).taskLocation(taskIdentity.getTaskPath()).build();
+            problem = problem.toBuilder(new ProblemsInfrastructure(null, null, null, null, null, null, null)).taskLocation(taskIdentity.getTaskPath()).build();
         }
         return problem;
     }

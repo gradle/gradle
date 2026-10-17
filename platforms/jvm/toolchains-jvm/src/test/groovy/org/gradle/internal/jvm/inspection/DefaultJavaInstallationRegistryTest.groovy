@@ -28,6 +28,7 @@ import org.gradle.jvm.toolchain.internal.InstallationLocation
 import org.gradle.jvm.toolchain.internal.InstallationSupplier
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
+import org.gradle.util.TestUtil
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
@@ -239,6 +240,7 @@ class DefaultJavaInstallationRegistryTest extends Specification {
         def problems = Mock(ProblemsInternal)
         def problemReporter = Mock(ProblemReporterInternal)
         problems.getInternalReporter() >> problemReporter
+        problems.getGroups() >> TestUtil.problemsService().getGroups()
 
         when:
         def registry = createRegistry([jdk8], OperatingSystem.current(), problems)
@@ -246,7 +248,7 @@ class DefaultJavaInstallationRegistryTest extends Specification {
 
         then:
         installations.isEmpty()
-        1 * problemReporter.report({ it.name == "invalid-jvm-installation" }, _)
+        1 * problemReporter.report({ it.name == "Invalid JVM installation" && it.group.name == "Tools and Toolchains" }, _)
         0 * logger.warn(_)
     }
 

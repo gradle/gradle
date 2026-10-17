@@ -23,9 +23,7 @@ import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
 import org.gradle.api.logging.Logging
-import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemSpec
-import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.problems.internal.PropertyTraceDataSpec
 import org.gradle.initialization.RootBuildLifecycleListener
@@ -54,7 +52,6 @@ import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configuration.problems.StructuredMessageBuilder
-import org.gradle.internal.deprecation.DeprecationMessageBuilder
 import org.gradle.internal.deprecation.Documentation
 import org.gradle.internal.event.ListenerManager
 import org.gradle.internal.extensions.stdlib.maybeUnwrapInvocationTargetException
@@ -318,17 +315,11 @@ class ConfigurationCacheProblems(
     }
 
     private
-    val configCacheValidation: ProblemGroup = ProblemGroup.create("configuration-cache", "configuration cache validation", GradleCoreProblemGroup.validation().thisGroup())
-
-    private
     fun ProblemsInternal.onProblem(problem: PropertyProblem, severity: ProblemSeverity, forIsolatedProjects: Boolean) {
         val message = problem.message.render()
+        val group = if (forIsolatedProjects) groups.gradle.isolatedProjects else groups.gradle.configurationCache
         internalReporter.internalCreate {
-            id(
-                DeprecationMessageBuilder.createDefaultDeprecationId(message),
-                message,
-                configCacheValidation
-            )
+            id(group.problemId(problemNameOf(message)))
             contextualLabel(message)
             documentOfProblem(problem)
             locationOfProblem(problem)
@@ -350,11 +341,7 @@ class ConfigurationCacheProblems(
     fun reportDangerouslyIgnoringProblems() {
         val message = isolatedProjectsDangerouslyIgnoreProblemsSentences.joinToString(" ")
         problemsService.internalReporter.internalCreate {
-            id(
-                "isolated-projects-dangerously-ignoring-problems",
-                "Isolated Projects problems are dangerously ignored",
-                configCacheValidation
-            )
+            id(problemsService.groups.gradle.isolatedProjects.problemId("Isolated Projects problems are dangerously ignored"))
             contextualLabel(message)
             documentedAt(isolatedProjectsDangerouslyIgnoreProblemsDocumentation.url)
         }.also {
@@ -366,11 +353,7 @@ class ConfigurationCacheProblems(
     fun reportConfigurationCacheWarnMode() {
         val message = configurationCacheWarnModeSentences.joinToString(" ")
         problemsService.internalReporter.internalCreate {
-            id(
-                "configuration-cache-warn-mode",
-                "Configuration Cache warn mode is enabled",
-                configCacheValidation
-            )
+            id(problemsService.groups.gradle.configurationCache.problemId("Configuration Cache warn mode is enabled"))
             contextualLabel(message)
         }.also {
             problemsService.internalReporter.report(it)
@@ -623,3 +606,42 @@ class ConfigurationCacheProblems(
         }
     }
 }
+
+
+/**
+ * The problem name for a configuration cache or Isolated Projects problem message: its first non-blank line, without
+ * control or format characters, with whitespace collapsed, and shortened to the maximum problem name length.
+ * The full message stays the problem's contextual label.
+ */
+@VisibleForTesting
+internal
+fun problemNameOf(message: String): String {
+    val firstLine = message.lineSequence().firstOrNull { it.isNotBlank() } ?: return UNNAMED_PROBLEM
+    val cleaned = buildString {
+        firstLine.codePoints().forEach { codePoint ->
+            when {
+                Character.isWhitespace(codePoint) || Character.isISOControl(codePoint) -> append(' ')
+                Character.getType(codePoint) == Character.FORMAT.toInt() -> Unit
+                else -> appendCodePoint(codePoint)
+            }
+        }
+    }.replace(WHITESPACE_RUN, " ").trim()
+    return when {
+        cleaned.isEmpty() -> UNNAMED_PROBLEM
+        cleaned.codePointCount(0, cleaned.length) <= MAX_PROBLEM_NAME_LENGTH -> cleaned
+        else -> cleaned.substring(0, cleaned.offsetByCodePoints(0, MAX_PROBLEM_NAME_LENGTH - 1)).trimEnd() + "\u2026"
+    }
+}
+
+
+private
+const val UNNAMED_PROBLEM = "Unnamed problem"
+
+
+// Matches ProblemNames.MAX_PROBLEM_NAME_LENGTH, which rejects longer names
+private
+const val MAX_PROBLEM_NAME_LENGTH = 2000
+
+
+private
+val WHITESPACE_RUN = Regex(" {2,}")
