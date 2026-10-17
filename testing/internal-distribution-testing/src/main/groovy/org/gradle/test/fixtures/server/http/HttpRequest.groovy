@@ -38,6 +38,10 @@ class HttpRequest {
         return exchange.requestURI.path
     }
 
+    String getRawPath() {
+        return exchange.requestURI.rawPath
+    }
+
     String getRequestURI() {
         return exchange.requestURI.path
     }
