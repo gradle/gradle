@@ -97,17 +97,17 @@ class DefaultTestEventReporter implements TestEventReporterInternal {
         if (!isComposite()) {
             testResultState.incrementSuccessfulCount();
         }
-        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.SUCCESS, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), Collections.emptyList(), null), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SUCCESS));
+        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.SUCCESS, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), Collections.emptyList(), null, null), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SUCCESS));
     }
 
     @Override
     public void skipped(Instant endTime) {
-        skipped(endTime, null);
+        skipped(endTime, null, null);
     }
 
     @Override
-    public void skipped(Instant endTime, @Nullable TestFailure assumptionFailure) {
-        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.SKIPPED, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), Collections.emptyList(), assumptionFailure), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SKIPPED));
+    public void skipped(Instant endTime, @Nullable TestFailure assumptionFailure, @Nullable String skipReason) {
+        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.SKIPPED, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), Collections.emptyList(), assumptionFailure, skipReason), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.SKIPPED, skipReason));
     }
 
     @Override
@@ -122,7 +122,7 @@ class DefaultTestEventReporter implements TestEventReporterInternal {
         if (!isComposite()) {
             testResultState.incrementFailureCount();
         }
-        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), failures, null), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
+        listener.completed(testDescriptor, new DefaultTestResult(TestResult.ResultType.FAILURE, startTime, endTime.toEpochMilli(), testResultState.getTotalCount(), testResultState.getSuccessfulCount(), testResultState.getFailureCount(), failures, null, null), new TestCompleteEvent(endTime.toEpochMilli(), TestResult.ResultType.FAILURE));
     }
 
     @Override
