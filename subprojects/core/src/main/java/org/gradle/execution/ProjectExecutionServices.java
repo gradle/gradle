@@ -22,7 +22,7 @@ import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
 import org.gradle.api.internal.changedetection.changes.DefaultTaskExecutionModeResolver;
 import org.gradle.api.internal.changedetection.state.ResourceSnapshotterCacheService;
 import org.gradle.api.internal.file.FileCollectionFactory;
-import org.gradle.api.internal.file.FileOperations;
+import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.execution.DefaultTaskCacheabilityResolver;
@@ -42,7 +42,6 @@ import org.gradle.internal.execution.history.ExecutionHistoryStore;
 import org.gradle.internal.execution.impl.DefaultFileCollectionFingerprinterRegistry;
 import org.gradle.internal.execution.impl.DefaultInputFingerprinter;
 import org.gradle.internal.file.DefaultReservedFileSystemLocationRegistry;
-import org.gradle.internal.file.RelativeFilePathResolver;
 import org.gradle.internal.file.ReservedFileSystemLocation;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.impl.FileCollectionFingerprinterRegistrations;
@@ -50,33 +49,67 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.Provides;
+import org.gradle.internal.service.ServiceRegistration;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistryBuilder;
+import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
-
-import java.util.List;
 
 @SuppressWarnings("deprecation")
 public class ProjectExecutionServices implements ServiceRegistrationProvider {
 
     public static CloseableServiceRegistry create(ProjectInternal project) {
+        ServiceRegistry projectServices = project.getServices();
         return ServiceRegistryBuilder.builder()
+            .scopeStrictly(Scope.ProjectExecution.class)
             .displayName("project execution services for '" + project.getPath() + "'")
-            .parent(project.getServices())
-            .provider(new ProjectExecutionServices())
+            .parent(project.getGradle().getServices())
+            // TODO: The file collection factory and the task dependency factory still retain a reference to the Project instance
+            .provider(new ProjectExecutionServices(
+                projectServices.get(FileResolver.class),
+                projectServices.get(FileCollectionFactory.class),
+                projectServices.get(TaskDependencyFactory.class),
+                projectServices.get(InputNormalizationHandlerInternal.class),
+                new DefaultReservedFileSystemLocationRegistry(projectServices.getAll(ReservedFileSystemLocation.class))
+            ))
             .build();
     }
 
-    @Provides
-    TaskCacheabilityResolver createTaskCacheabilityResolver(RelativeFilePathResolver relativeFilePathResolver) {
-        return new DefaultTaskCacheabilityResolver(relativeFilePathResolver);
+    private final FileResolver fileResolver;
+    private final FileCollectionFactory fileCollectionFactory;
+    private final TaskDependencyFactory taskDependencyFactory;
+    private final InputNormalizationHandlerInternal inputNormalizationHandler;
+    private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
+
+    private ProjectExecutionServices(
+        FileResolver fileResolver,
+        FileCollectionFactory fileCollectionFactory,
+        TaskDependencyFactory taskDependencyFactory,
+        InputNormalizationHandlerInternal inputNormalizationHandler,
+        ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry
+    ) {
+        this.fileResolver = fileResolver;
+        this.fileCollectionFactory = fileCollectionFactory;
+        this.taskDependencyFactory = taskDependencyFactory;
+        this.inputNormalizationHandler = inputNormalizationHandler;
+        this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
     }
 
     @Provides
-    ReservedFileSystemLocationRegistry createReservedFileLocationRegistry(List<ReservedFileSystemLocation> reservedFileSystemLocations) {
-        return new DefaultReservedFileSystemLocationRegistry(reservedFileSystemLocations);
+    void configure(ServiceRegistration registration) {
+        registration.add(FileResolver.class, fileResolver);
+        registration.add(FileCollectionFactory.class, fileCollectionFactory);
+        registration.add(TaskDependencyFactory.class, taskDependencyFactory);
+        registration.add(InputNormalizationHandlerInternal.class, inputNormalizationHandler);
+        registration.add(ReservedFileSystemLocationRegistry.class, reservedFileSystemLocationRegistry);
+    }
+
+    @Provides
+    TaskCacheabilityResolver createTaskCacheabilityResolver(FileResolver fileResolver) {
+        return new DefaultTaskCacheabilityResolver(fileResolver);
     }
 
     @Provides
@@ -93,7 +126,7 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
         TaskDependencyFactory taskDependencyFactory,
-        FileOperations fileOperations,
+        FileResolver fileResolver,
         ListenerManager listenerManager,
         ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry,
         TaskCacheabilityResolver taskCacheabilityResolver,
@@ -118,8 +151,7 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
             reservedFileSystemLocationRegistry,
             fileCollectionFactory,
             taskDependencyFactory,
-            // TODO Can we inject a PathToFileResolver here directly?
-            fileOperations.getFileResolver(),
+            fileResolver,
             missingTaskDependencyDetector
         );
     }
