@@ -26,7 +26,7 @@ class ScriptResolutionResultTest extends Specification {
         def selectedFile = Mock(File)
 
         when:
-        def result = new ScriptResolutionResult(directory, "script", selectedFile, [])
+        def result = new ScriptResolutionResult(directory, "script", selectedFile, , [])
 
         then:
         result.selectedCandidate == selectedFile
@@ -42,7 +42,7 @@ class ScriptResolutionResultTest extends Specification {
         def ignoredFile2 = Mock(File)
 
         when:
-        def result = new ScriptResolutionResult(directory, "script", selectedFile, [ignoredFile1, ignoredFile2])
+        def result = new ScriptResolutionResult(directory, "script", selectedFile, , [ignoredFile1, ignoredFile2])
 
         then:
         result.selectedCandidate == selectedFile
@@ -55,7 +55,7 @@ class ScriptResolutionResultTest extends Specification {
         def directory = Mock(File)
 
         when:
-        def result = new ScriptResolutionResult(directory, "script", null, [])
+        def result = new ScriptResolutionResult(directory, "script", null, , [])
 
         then:
         result.selectedCandidate == null
@@ -70,7 +70,7 @@ class ScriptResolutionResultTest extends Specification {
         def ignoredFile = Mock(File)
 
         when:
-        def result = new ScriptResolutionResult(directory, "script", selectedFile, [ignoredFile])
+        def result = new ScriptResolutionResult(directory, "script", selectedFile, , [ignoredFile])
         result.ignoredCandidates.add(Mock(File))
 
         then:
