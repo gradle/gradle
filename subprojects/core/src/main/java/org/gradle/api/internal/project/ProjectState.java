@@ -32,6 +32,7 @@ import javax.annotation.concurrent.ThreadSafe;
 import java.io.File;
 import java.util.Collection;
 import java.util.Set;
+import java.util.function.Supplier;
 
 /**
  * Encapsulates the identity and state of a particular project in a build tree.
@@ -176,6 +177,28 @@ public interface ProjectState extends ModelContainer<ProjectInternal> {
      * Should not be used in general, it's specific to obtaining partial TAPI models in the presence of failures.
      */
     ProjectInternal getMutableModelEvenAfterFailure();
+
+    /**
+     * Runs the given action, which uses the mutable state of this project, while holding the {@link #getAccessLock() access lock} of this project
+     * if the current thread holds the access lock of some other project.
+     * <p>
+     * This is a variant of {@link #runWithModelLock(Supplier)} for code that is usually reached while holding the lock of this project,
+     * but may also be reached from code running on behalf of another project, for example, when a lazily registered element of a collection of this project
+     * is realized while the configuration cache stores the state of another project.
+     * <p>
+     * The lock is acquired only when the current thread holds the access lock of some other project and may change the project locks it holds.
+     * In that case, the locks held by the current thread are released while the action runs and reacquired once the action has completed,
+     * so the current thread never waits for the lock of this project while holding the lock of another project.
+     * <p>
+     * Otherwise, the action runs with the locks the current thread already holds:
+     * <ul>
+     * <li>A thread that holds no project lock does not take part in project locking, for example a thread of a pool created by a plugin.
+     * Acquiring the lock there could deadlock with a thread that holds the lock of this project and waits for that thread.</li>
+     * <li>A thread that may not change its project locks, see {@link org.gradle.internal.resources.ProjectLeaseRegistry#whileDisallowingProjectLockChanges(org.gradle.internal.Factory)},
+     * would fail to acquire the lock.</li>
+     * </ul>
+     */
+    <S extends @Nullable Object> S runWithModelLockIfAccessedFromOtherProject(Supplier<S> action);
 
     /**
      * {@inheritDoc}

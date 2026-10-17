@@ -811,6 +811,163 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         calculatedValue.get() == "updated2"
     }
 
+    def "accessing project from another project replaces the lock of the other project while running the action"() {
+        given:
+        def build = build("p1", "p2")
+        def project1 = project("p1")
+        def project2 = project("p2")
+
+        createRootProject()
+        def state1 = registry.stateFor(projectId("p1"))
+        createProject(state1, project1)
+        def state2 = registry.stateFor(projectId("p2"))
+        createProject(state2, project2)
+
+        def projectLock1 = workerLeaseService.getProjectLock(build.getIdentityPath(), project1.getIdentityPath())
+        def projectLock2 = workerLeaseService.getProjectLock(build.getIdentityPath(), project2.getIdentityPath())
+
+        when:
+        def result = null
+        async {
+            workerThread {
+                state1.applyToMutableState {
+                    result = state2.runWithModelLockIfAccessedFromOtherProject {
+                        assert workerLeaseService.getCurrentProjectLocks() as Set == [projectLock2] as Set
+                        "value"
+                    }
+                    assert workerLeaseService.getCurrentProjectLocks() as Set == [projectLock1] as Set
+                }
+            }
+        }
+
+        then:
+        result == "value"
+    }
+
+    def "accessing project from another project restores the locks of the current thread when the action fails"() {
+        given:
+        def build = build("p1", "p2")
+        def project1 = project("p1")
+        def project2 = project("p2")
+
+        createRootProject()
+        def state1 = registry.stateFor(projectId("p1"))
+        createProject(state1, project1)
+        def state2 = registry.stateFor(projectId("p2"))
+        createProject(state2, project2)
+
+        def projectLock1 = workerLeaseService.getProjectLock(build.getIdentityPath(), project1.getIdentityPath())
+        def failure = new RuntimeException("broken")
+
+        when:
+        def thrown = null
+        async {
+            workerThread {
+                state1.applyToMutableState {
+                    try {
+                        state2.runWithModelLockIfAccessedFromOtherProject {
+                            throw failure
+                        }
+                    } catch (RuntimeException e) {
+                        thrown = e
+                    }
+                    assert workerLeaseService.getCurrentProjectLocks() as Set == [projectLock1] as Set
+                }
+            }
+        }
+
+        then:
+        thrown == failure
+    }
+
+    def "accessing project from another project is mutually exclusive with access to the project"() {
+        given:
+        build("p1", "p2")
+        def project1 = project("p1")
+        def project2 = project("p2")
+
+        createRootProject()
+        def state1 = registry.stateFor(projectId("p1"))
+        createProject(state1, project1)
+        def state2 = registry.stateFor(projectId("p2"))
+        createProject(state2, project2)
+
+        when:
+        async {
+            workerThread {
+                state2.applyToMutableState {
+                    instant.start
+                    thread.block()
+                    instant.thread1
+                }
+            }
+            workerThread {
+                thread.blockUntil.start
+                state1.applyToMutableState {
+                    state2.runWithModelLockIfAccessedFromOtherProject {
+                        instant.thread2
+                    }
+                }
+            }
+        }
+
+        then:
+        instant.thread2 > instant.thread1
+    }
+
+    def "accessing project does not change locks when the current thread holds no project lock"() {
+        given:
+        build("p1")
+        def project1 = project("p1")
+
+        createRootProject()
+        def state1 = registry.stateFor(projectId("p1"))
+        createProject(state1, project1)
+
+        when:
+        async {
+            workerThread {
+                state1.runWithModelLockIfAccessedFromOtherProject {
+                    assert workerLeaseService.getCurrentProjectLocks().isEmpty()
+                }
+            }
+        }
+
+        then:
+        noExceptionThrown()
+    }
+
+    def "accessing project from another project does not change locks when the current thread may not change project locks"() {
+        given:
+        def build = build("p1", "p2")
+        def project1 = project("p1")
+        def project2 = project("p2")
+
+        createRootProject()
+        def state1 = registry.stateFor(projectId("p1"))
+        createProject(state1, project1)
+        def state2 = registry.stateFor(projectId("p2"))
+        createProject(state2, project2)
+
+        def projectLock1 = workerLeaseService.getProjectLock(build.getIdentityPath(), project1.getIdentityPath())
+
+        when:
+        async {
+            workerThread {
+                state1.applyToMutableState {
+                    workerLeaseService.whileDisallowingProjectLockChanges {
+                        state2.runWithModelLockIfAccessedFromOtherProject {
+                            assert workerLeaseService.getCurrentProjectLocks() as Set == [projectLock1] as Set
+                        }
+                    }
+                }
+            }
+        }
+
+        then:
+        noExceptionThrown()
+    }
+
     void createRootProject() {
         createRootProject(Path.ROOT)
     }

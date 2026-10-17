@@ -931,6 +931,10 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
 
     public abstract class AbstractDomainObjectCreatingProvider<I extends T> extends AbstractNamedDomainObjectProvider<I> {
         private I object;
+        // Set once the element is added and configured.
+        // object is assigned before that to support circular evaluation, so a thread of another project
+        // that checks object instead would skip the realization and see a partially configured element.
+        private volatile boolean realized;
         private RuntimeException failure;
         protected ImmutableActionSet<I> onCreate;
         private boolean removedBeforeRealized = false;
@@ -986,13 +990,24 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
             if (failure != null) {
                 throw failure;
             }
-            if (object == null) {
-                object = getType().cast(findByNameWithoutRules(getName()));
-                if (object == null) {
-                    tryCreate();
-                }
+            if (!realized) {
+                getEventRegister().getDecorator().runRealization(this::findOrCreate);
             }
             return Value.of(object);
+        }
+
+        private void findOrCreate() {
+            if (failure != null) {
+                throw failure;
+            }
+            if (object != null) {
+                return;
+            }
+            object = getType().cast(findByNameWithoutRules(getName()));
+            if (object == null) {
+                tryCreate();
+            }
+            realized = true;
         }
 
         protected void tryCreate() {

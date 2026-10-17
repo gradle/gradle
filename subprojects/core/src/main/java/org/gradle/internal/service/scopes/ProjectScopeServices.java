@@ -19,6 +19,7 @@ package org.gradle.internal.service.scopes;
 import org.gradle.api.component.SoftwareComponentContainer;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
+import org.gradle.api.internal.DefaultCollectionCallbackActionDecorator;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.DependencyManagementParameters;
 import org.gradle.api.internal.artifacts.DependencyManagementServices;
@@ -51,6 +52,7 @@ import org.gradle.api.internal.project.BuildScopedTaskResolver;
 import org.gradle.api.internal.project.CrossProjectConfigurator;
 import org.gradle.api.internal.project.CrossProjectModelAccess;
 import org.gradle.api.internal.project.DeferredProjectConfiguration;
+import org.gradle.api.internal.project.ProjectCollectionCallbackActionDecorator;
 import org.gradle.api.internal.project.ProjectDomainObjectContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.project.ProjectScopedTaskResolver;
@@ -358,6 +360,14 @@ public class ProjectScopeServices implements ServiceRegistrationProvider {
     @Provides
     protected ConfigurationTargetIdentifier createConfigurationTargetIdentifier() {
         return ConfigurationTargetIdentifier.of(project.getProjectIdentity());
+    }
+
+    @Provides
+    protected CollectionCallbackActionDecorator createCollectionCallbackActionDecorator(
+        BuildOperationRunner buildOperationRunner,
+        UserCodeApplicationContext userCodeApplicationContext
+    ) {
+        return new ProjectCollectionCallbackActionDecorator(new DefaultCollectionCallbackActionDecorator(buildOperationRunner, userCodeApplicationContext), project.getOwner());
     }
 
     @Provides
