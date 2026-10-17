@@ -49,6 +49,7 @@ class ToolchainReportRendererTest extends Specification {
      | Language Version:   {description}8{normal}
      | Vendor:             {description}vendorName{normal}
      | Architecture:       {description}myArch{normal}
+     | Impl. Version:      {description}1.8.0{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}SourceSupplier{normal}
 
@@ -78,6 +79,7 @@ class ToolchainReportRendererTest extends Specification {
      | Language Version:   {description}8{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
      | Architecture:       {description}myArch{normal}
+     | Impl. Version:      {description}1.8.0{normal}
      | Is JDK:             {description}true{normal}
      | Detected by:        {description}SourceSupplier{normal}
 

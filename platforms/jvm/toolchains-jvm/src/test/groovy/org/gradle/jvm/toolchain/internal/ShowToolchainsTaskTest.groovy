@@ -70,6 +70,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
      | Language Version:   {description}8{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
      | Architecture:       {description}archName{normal}
+     | Impl. Version:      {description}1.8.0_202{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
@@ -78,6 +79,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
      | Language Version:   {description}8{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
      | Architecture:       {description}archName{normal}
+     | Impl. Version:      {description}1.8.0_404{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
@@ -86,6 +88,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
      | Language Version:   {description}9{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
      | Architecture:       {description}archName{normal}
+     | Impl. Version:      {description}9{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
@@ -94,6 +97,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
      | Language Version:   {description}14{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
      | Architecture:       {description}archName{normal}
+     | Impl. Version:      {description}14{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
@@ -102,6 +106,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
      | Language Version:   {description}15{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
      | Architecture:       {description}archName{normal}
+     | Impl. Version:      {description}15-ea{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
@@ -132,6 +137,7 @@ class ShowToolchainsTaskTest extends AbstractProjectBuilderSpec {
      | Language Version:   {description}14{normal}
      | Vendor:             {description}AdoptOpenJDK{normal}
      | Architecture:       {description}archName{normal}
+     | Impl. Version:      {description}14{normal}
      | Is JDK:             {description}false{normal}
      | Detected by:        {description}TestSource{normal}
 
