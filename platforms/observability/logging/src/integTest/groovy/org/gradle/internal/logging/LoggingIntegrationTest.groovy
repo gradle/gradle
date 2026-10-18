@@ -271,6 +271,37 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
         level << ['quiet', 'lifecycle', 'info', 'debug']
     }
 
+    def "slf4j markers obtained from MarkerFactory are mapped to Gradle log levels"() {
+        given:
+        buildFile """
+            tasks.register("log") {
+                doLast {
+                    def logger = org.slf4j.LoggerFactory.getLogger("some-logger")
+                    logger.info(org.slf4j.MarkerFactory.getMarker("LIFECYCLE"), "lifecycle message")
+                    logger.info(org.slf4j.MarkerFactory.getMarker("QUIET"), "quiet message")
+                    logger.info(org.slf4j.MarkerFactory.getMarker("OTHER"), "info message")
+                }
+            }
+        """
+
+        when:
+        run "log"
+
+        then:
+        outputContains("lifecycle message")
+        outputContains("quiet message")
+        outputDoesNotContain("info message")
+
+        when:
+        executer.withArgument("--quiet")
+        run "log"
+
+        then:
+        outputDoesNotContain("lifecycle message")
+        outputContains("quiet message")
+        outputDoesNotContain("info message")
+    }
+
     // The build logs from Ant, which is deprecated. Remove the Ant logging from the build in Gradle 10.
     private void expectAntDeprecations(String level) {
         if (level == 'quiet') {

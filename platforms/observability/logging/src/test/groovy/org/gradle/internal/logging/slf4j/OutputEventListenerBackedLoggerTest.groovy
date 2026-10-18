@@ -27,6 +27,7 @@ import org.gradle.internal.operations.OperationIdentifier
 import org.gradle.internal.time.Clock
 import org.gradle.internal.time.FixedClock
 import org.slf4j.Marker
+import org.slf4j.MarkerFactory
 import spock.lang.Specification
 
 import static org.gradle.api.logging.LogLevel.DEBUG
@@ -660,6 +661,23 @@ class OutputEventListenerBackedLoggerTest extends Specification {
         arg1 = "arg1"
         arg2 = "arg2"
         arg3 = "arg3"
+    }
+
+    def "info calls with #markerName marker obtained from MarkerFactory are logged at #expectedLevel"() {
+        given:
+        globalLevel = INFO
+
+        when:
+        logger().info(MarkerFactory.getMarker(markerName), "message")
+
+        then:
+        singleLogEvent().message("message").logLevel(expectedLevel)
+
+        where:
+        markerName  | expectedLevel
+        "LIFECYCLE" | LIFECYCLE
+        "QUIET"     | QUIET
+        "OTHER"     | INFO
     }
 
     def "quiet calls work as expected when level is #level"() {
