@@ -135,6 +135,7 @@ public class BuildOperationProblem implements Problem {
         }
 
         @Override
+        @SuppressWarnings("deprecation") // the build operation type keeps the display name of a legacy id until Gradle 10
         public String getDisplayName() {
             return definition.getId().getDisplayName();
         }

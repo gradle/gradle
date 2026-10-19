@@ -44,6 +44,7 @@ final class PredefinedTransformationProblemGroup extends TransformationProblemGr
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
         return NAME;
     }

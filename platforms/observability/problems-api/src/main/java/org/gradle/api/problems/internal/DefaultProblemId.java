@@ -29,6 +29,7 @@ public class DefaultProblemId extends ProblemId implements Serializable {
     private final String displayName;
     private final ProblemGroup parent;
 
+    @SuppressWarnings("deprecation") // only Gradle may subclass
     public DefaultProblemId(String name, String displayName, ProblemGroup parent) {
         validateFields(name, displayName, parent);
         this.name = TextUtil.replaceLineSeparatorsOf(name, "");
@@ -54,6 +55,7 @@ public class DefaultProblemId extends ProblemId implements Serializable {
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
         return displayName;
     }

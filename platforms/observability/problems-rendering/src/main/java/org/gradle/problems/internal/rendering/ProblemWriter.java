@@ -134,6 +134,7 @@ public abstract class ProblemWriter {
             output.flush();
         }
 
+        @SuppressWarnings("deprecation") // renders the display name of a legacy id until Gradle 10
         private static String textOf(ProblemInternal problem) {
             if (problem.getDetails() != null) {
                 return problem.getDetails();

@@ -51,6 +51,7 @@ final class PredefinedGradleProblemGroup extends GradleProblemGroup implements G
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
         return NAME;
     }

@@ -45,6 +45,7 @@ final class PredefinedVerificationProblemGroup extends VerificationProblemGroup 
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
         return NAME;
     }

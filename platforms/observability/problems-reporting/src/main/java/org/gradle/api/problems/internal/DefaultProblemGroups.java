@@ -163,6 +163,7 @@ final class DefaultProblemGroups implements ProblemGroupsInternal {
     }
 
     @Override
+    @SuppressWarnings("deprecation") // keeps the display name of a legacy id until Gradle 10
     public ProblemId canonical(ProblemId id) {
         List<ProblemGroup> rootToLeaf = new ArrayList<>();
         for (ProblemGroup current = id.getGroup(); current != null; current = current.getParent()) {

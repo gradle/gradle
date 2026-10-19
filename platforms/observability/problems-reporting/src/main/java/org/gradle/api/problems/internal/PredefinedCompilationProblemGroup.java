@@ -47,6 +47,7 @@ final class PredefinedCompilationProblemGroup extends CompilationProblemGroup im
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
         return NAME;
     }

@@ -43,6 +43,7 @@ final class PredefinedProvisioningProblemGroup extends ProvisioningProblemGroup 
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
         return NAME;
     }

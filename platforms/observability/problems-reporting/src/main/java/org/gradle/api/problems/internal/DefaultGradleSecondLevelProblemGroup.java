@@ -46,6 +46,7 @@ final class DefaultGradleSecondLevelProblemGroup extends GradleSecondLevelProble
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
         return name;
     }
