@@ -584,6 +584,25 @@ In general, the `ResolvedConfiguration`, `LenientConfiguration`, `ResolvedDepend
 They are not compatible with the <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types,Configuration Cache>> and, unlike the modern APIs, do not carry the task dependencies required to build the artifacts they return.
 Prefer the `ResolutionResult`, `ArtifactView`, link:{javadocPath}/org/gradle/api/file/FileCollection.html[`FileCollection`], and link:{javadocPath}/org/gradle/api/artifacts/ArtifactCollection.html[`ArtifactCollection`] APIs, described in <<artifact_resolution.adoc#sec:available_apis,Artifact Resolution>>.
 
+[[pmd_7_runs_through_the_java_api]]
+==== PMD 7 and newer runs through the PMD Java API
+
+The <<pmd_plugin.adoc#pmd_plugin,PMD plugin>> runs PMD 7.0.0 and newer through the PMD Java API instead of the PMD Ant task.
+PMD versions older than 7.0.0 keep using the Ant task and are <<#deprecated_pmd_older_than_7,deprecated>>.
+
+Which violations PMD reports does not change, but three details of how a `Pmd` task behaves do:
+
+- Every entry of `ruleSets` is passed to PMD as a single rule set reference.
+An entry that packs several references into one comma-separated string no longer resolves.
+Split such an entry into one list element per rule set.
+- Failures raised by PMD are no longer wrapped in an Ant `BuildException`.
+Build logic and tests that match on the cause chain of a failed `Pmd` task have to match on the PMD failure itself.
+- Report files are written as UTF-8.
+Adjust any tool that reads PMD reports with a different fixed encoding.
+
+PMD 7 and newer no longer needs `net.sourceforge.pmd:pmd-ant` on the `pmd` configuration.
+Gradle still adds it to the default dependencies, so builds that do not replace those dependencies are unaffected.
+
 === Deprecations
 
 [[kotlin_dsl_scripts_model_explicit_scripts]]
@@ -727,6 +746,30 @@ val greeting = providers.of(Greeting::class) {
 ----
 
 A value source that needs to run an external process injects link:{javadocPath}/org/gradle/process/ExecOperations.html[`ExecOperations`] into the `ValueSource` implementation itself, as described in <<configuration_cache_requirements.adoc#config_cache:requirements:value_source,Using External Information Sources>>.
+
+[[deprecated_pmd_older_than_7]]
+==== Deprecation of PMD versions older than 7.0.0
+
+Running the <<pmd_plugin.adoc#pmd_plugin,PMD plugin>> with a PMD version older than 7.0.0 is deprecated and will fail with an error in Gradle 10.
+PMD 6.55.0, released in February 2023, is the last PMD 6 release.
+
+Gradle emits the deprecation warning when a `Pmd` task runs with PMD older than 7.0.0, either because `pmd.toolVersion` selects such a version or because the `pmd` configuration declares one.
+
+To fix the warning, upgrade to PMD 7.0.0 or newer:
+
+[source,kotlin]
+----
+pmd {
+    toolVersion = "7.24.0"
+}
+----
+
+PMD 7 renamed or removed rules and changed rule set references.
+Check custom rule sets against the link:https://docs.pmd-code.org/latest/pmd_userdocs_migrating_to_pmd7.html[PMD 7 migration guide].
+
+Gradle emits the same deprecation, with the context `Could not determine the PMD version.`, when it cannot read the version at all.
+It reads the version from the Maven metadata that PMD ships under `META-INF/maven` in its core jar, so a repackaged or shaded PMD jar hides it even on PMD 7 or newer.
+To resolve that case, put an unmodified PMD core jar on the `pmd` configuration or on the task's `pmdClasspath`.
 
 [[changes_9.8.0]]
 == Upgrading from 9.7.0 and earlier

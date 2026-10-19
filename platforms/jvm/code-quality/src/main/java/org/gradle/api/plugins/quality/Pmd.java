@@ -25,6 +25,7 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.plugins.quality.internal.PmdActionParameters;
 import org.gradle.api.plugins.quality.internal.PmdInvoker;
 import org.gradle.api.plugins.quality.internal.PmdReportsImpl;
+import org.gradle.api.plugins.quality.internal.PmdVersionDetector;
 import org.gradle.api.provider.Property;
 import org.gradle.api.reporting.Reporting;
 import org.gradle.api.resources.TextResource;
@@ -46,6 +47,7 @@ import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.nativeintegration.services.NativeServices;
 import org.gradle.util.internal.ClosureBackedAction;
+import org.gradle.util.internal.VersionNumber;
 import org.gradle.workers.WorkQueue;
 import org.jspecify.annotations.Nullable;
 
@@ -63,6 +65,8 @@ import java.util.stream.Collectors;
 @CacheableTask
 @SuppressWarnings("deprecation") // The targetJdk property and TargetJdk type are themselves deprecated.
 public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<PmdReports> {
+
+    private static final VersionNumber PMD_7 = VersionNumber.parse("7.0.0");
 
     private FileCollection pmdClasspath;
     private List<String> ruleSets;
@@ -95,12 +99,27 @@ public abstract class Pmd extends AbstractCodeQualityTask implements Reporting<P
         validate(getRulesMinimumPriority().get());
         validateThreads(getThreads().get());
 
+        String pmdVersion = PmdVersionDetector.detect(getPmdClasspath());
+        nagAboutPmdVersionOlderThan7(pmdVersion);
+
         WorkQueue workQueue = getWorkerExecutor().processIsolation(spec -> configureForkOptions(spec.getForkOptions()));
-        workQueue.submit(PmdInvoker.class, this::setupParameters);
+        workQueue.submit(PmdInvoker.class, parameters -> setupParameters(parameters, pmdVersion));
     }
 
-    private void setupParameters(PmdActionParameters parameters) {
-        parameters.getAntLibraryClasspath().setFrom(getPmdClasspath());
+    private static void nagAboutPmdVersionOlderThan7(@Nullable String pmdVersion) {
+        if (pmdVersion != null && VersionNumber.parse(pmdVersion).compareTo(PMD_7) >= 0) {
+            return;
+        }
+        DeprecationLogger.deprecate("Using PMD versions older than 7.0.0")
+            .withContext(pmdVersion == null ? "Could not determine the PMD version." : "Detected PMD " + pmdVersion + ".")
+            .withAdvice("Upgrade to PMD 7.0.0 or newer.")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_pmd_older_than_7")
+            .nagUser();
+    }
+
+    private void setupParameters(PmdActionParameters parameters, @Nullable String pmdVersion) {
+        parameters.getPmdVersion().set(pmdVersion);
         parameters.getPmdClasspath().setFrom(getPmdClasspath());
         parameters.getTargetJdk().set(DeprecationLogger.whileDisabled(this::getTargetJdk));
         parameters.getRuleSets().set(getRuleSets());

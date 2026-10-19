@@ -46,6 +46,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         goodCode()
 
         expect:
+        expectPmdDeprecationIfLegacy()
         succeeds("check", "-i")
         !file("build/tmp/pmdMain/incremental.cache").exists()
     }
@@ -56,6 +57,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         goodCode()
 
         when:
+        expectPmdDeprecationIfLegacy()
         succeeds("pmdMain")
 
         then:
@@ -63,6 +65,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
 
         when:
         args('--rerun-tasks', '--info')
+        expectPmdDeprecationIfLegacy()
         succeeds("pmdMain")
 
         then:
@@ -76,6 +79,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         badCode()
 
         when:
+        expectPmdDeprecationIfLegacy()
         fails('pmdMain')
 
         then:
@@ -83,6 +87,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
 
         when:
         file('src/main/java/org/gradle/BadClass.java').delete()
+        expectPmdDeprecationIfLegacy()
         succeeds('pmdMain')
 
         then:
@@ -95,10 +100,12 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         goodCode()
         file("customRuleSet.xml") << customRuleSet()
 
+        expectPmdDeprecationIfLegacy()
         succeeds('pmdMain')
 
         when:
         buildFile << "\npmd{${code}}"
+        expectPmdDeprecationIfLegacy(pmdVersionAfterChange ?: version.toString())
         if (versionNumber < VersionNumber.parse("7.0.0")) {
             succeeds('pmdMain', '--info')
         } else {
@@ -112,9 +119,9 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         outputContains("Analysis cache invalidated, ${reason}")
 
         where:
-        reason                | code
-        'PMD version changed' | 'toolVersion="6.5.0"'
-        'rulesets changed'    | 'ruleSetFiles = files("customRuleSet.xml")'
+        reason                | code                                        | pmdVersionAfterChange
+        'PMD version changed' | 'toolVersion="6.5.0"'                       | "6.5.0"
+        'rulesets changed'    | 'ruleSetFiles = files("customRuleSet.xml")' | null
     }
 
     def "incremental analysis is available in 6.0.0 or newer"() {
@@ -123,6 +130,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         goodCode()
 
         expect:
+        expectPmdDeprecationIfLegacy()
         succeeds('pmdMain')
     }
 
@@ -132,6 +140,7 @@ class PmdPluginIncrementalAnalysisIntegrationTest extends AbstractPmdPluginVersi
         goodCode()
 
         when:
+        expectPmdDeprecationIfLegacy()
         fails('pmdMain')
 
         then:

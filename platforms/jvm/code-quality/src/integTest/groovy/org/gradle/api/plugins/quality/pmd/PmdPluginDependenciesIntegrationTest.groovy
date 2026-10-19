@@ -16,8 +16,15 @@
 
 package org.gradle.api.plugins.quality.pmd
 
+import org.gradle.api.plugins.quality.PmdPlugin
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.internal.jvm.Jvm
+import org.gradle.quality.integtest.fixtures.PmdCoverage
 import org.gradle.test.fixtures.Flaky
+import org.gradle.util.internal.VersionNumber
+
+import static org.hamcrest.CoreMatchers.containsString
+import static org.junit.Assume.assumeTrue
 
 class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
 
@@ -58,11 +65,29 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         then:
+        executer.expectDocumentedDeprecationWarning(AbstractPmdPluginVersionIntegrationTest.pmdDeprecationMessage("5.1.1"))
         fails("check")
         failure.assertHasDescription("Execution failed for task ':pmdTest' (registered by plugin 'org.gradle.pmd').")
         and:
         succeeds("dependencies", "--configuration", "pmd")
         output.contains "$testDependency"
+    }
+
+    def "runs PMD 7 without the PMD Ant task"() {
+        assumeTrue(PmdCoverage.supportsJdkVersion(VersionNumber.parse(PmdPlugin.DEFAULT_PMD_VERSION), Jvm.current().javaVersionMajor))
+        given:
+        buildFile << """
+            dependencies {
+                pmd "net.sourceforge.pmd:pmd-java:${PmdPlugin.DEFAULT_PMD_VERSION}"
+            }
+        """.stripIndent()
+
+        when:
+        fails("pmdTest")
+
+        then:
+        failure.assertThatCause(containsString("PMD rule violations were found."))
+        file("build/reports/pmd/test.xml").assertContents(containsString("Class1Test"))
     }
 
     @Flaky(because = "https://github.com/gradle/gradle-private/issues/4688")
@@ -76,18 +101,21 @@ class PmdPluginDependenciesIntegrationTest extends AbstractIntegrationSpec {
         """.stripIndent()
 
         when:
+        executer.expectDocumentedDeprecationWarning(AbstractPmdPluginVersionIntegrationTest.pmdDeprecationMessage("5.1.1"))
         fails("pmdMain")
 
         then:
         failure.assertHasCause("Incremental analysis only supports PMD 6.0.0 and newer. Please upgrade from PMD 5.1.1 or disable incremental analysis.")
 
         when:
+        executer.expectDocumentedDeprecationWarning(AbstractPmdPluginVersionIntegrationTest.pmdDeprecationMessage("5.1.1"))
         fails("pmdTest")
 
         then:
         failure.assertHasCause("Incremental analysis only supports PMD 6.0.0 and newer. Please upgrade from PMD 5.1.1 or disable incremental analysis.")
 
         when:
+        executer.expectDocumentedDeprecationWarning(AbstractPmdPluginVersionIntegrationTest.pmdDeprecationMessage("5.1.1"))
         fails("check")
 
         then:

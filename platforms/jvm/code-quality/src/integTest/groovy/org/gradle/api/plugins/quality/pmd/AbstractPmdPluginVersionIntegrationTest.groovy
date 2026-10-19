@@ -32,6 +32,24 @@ class AbstractPmdPluginVersionIntegrationTest extends MultiVersionIntegrationSpe
         return PmdPlugin.calculateDefaultDependencyNotation(versionNumber.toString())
     }
 
+    static String pmdDeprecationMessage(String pmdVersion) {
+        "Using PMD versions older than 7.0.0 has been deprecated. " +
+            "This will fail with an error in Gradle 10. " +
+            "Detected PMD ${pmdVersion}. " +
+            "Upgrade to PMD 7.0.0 or newer. " +
+            "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_pmd_older_than_7"
+    }
+
+    /**
+     * Expects the deprecation for PMD versions older than 7.0.0 in the next build, if {@code pmdVersion} is such a version.
+     * Call it only for builds that execute a Pmd task action.
+     */
+    void expectPmdDeprecationIfLegacy(String pmdVersion = version.toString()) {
+        if (VersionNumber.parse(pmdVersion) < VersionNumber.parse("7.0.0")) {
+            executer.expectDocumentedDeprecationWarning(pmdDeprecationMessage(pmdVersion))
+        }
+    }
+
     static boolean fileLockingIssuesSolved() {
         return TestPrecondition.satisfied(OsTestPreconditions.Windows) || VersionNumber.parse("5.5.1") <= versionNumber
     }

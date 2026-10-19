@@ -18,17 +18,22 @@ package org.gradle.api.plugins.quality.internal;
 
 import org.gradle.api.file.ConfigurableFileCollection;
 import org.gradle.api.file.RegularFileProperty;
-import org.gradle.api.plugins.internal.ant.AntWorkParameters;
 import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
+import org.gradle.workers.WorkParameters;
 
 /**
  * Parameters used to configure a {@link PmdInvoker}.
  */
 @SuppressWarnings("deprecation") // TargetJdk is deprecated; this internal type is removed alongside it.
-public interface PmdActionParameters extends AntWorkParameters {
+public interface PmdActionParameters extends WorkParameters {
 
     ConfigurableFileCollection getPmdClasspath();
+
+    /**
+     * The PMD version, or absent if it could not be determined.
+     */
+    Property<String> getPmdVersion();
 
     Property<org.gradle.api.plugins.quality.TargetJdk> getTargetJdk();
 

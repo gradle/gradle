@@ -9,11 +9,13 @@ dependencies {
     api(projects.antWorker)
     api(projects.baseServices)
     api(projects.coreApi)
+    api(projects.daemonServerWorker)
     api(projects.stdlibJavaExtensions)
 
+    api(libs.inject)
     api(libs.jspecify)
 
-    implementation(projects.daemonServerWorker)
+    implementation(projects.classloaders)
     implementation(projects.fileCollections)
     implementation(projects.logging)
     implementation(libs.guava)
@@ -21,6 +23,11 @@ dependencies {
     implementation(libs.groovy)
     implementation(libs.groovyXml)
     implementation(libs.slf4jApi)
+
+    compileOnly(providedLibs.pmdCore) {
+        because("PMD is resolved by the PMD plugin; the adapter for PMD 7 compiles against the PMD API")
+        isTransitive = false
+    }
 }
 
 gradleModule {
