@@ -25,6 +25,7 @@ import kotlin.reflect.KClass
  * Adds a content filter to be used during the copy.
  * Multiple calls add additional filters to the filter chain.
  * Each filter should implement [FilterReader] and declare a `(java.io.Reader)` constructor.
+ * Filter properties are applied to the filter instance as JavaBean properties after it is constructed.
  *
  * Examples:
  *
@@ -48,6 +49,7 @@ inline fun <reified T : FilterReader> ContentFilterable.filter(vararg properties
  * Adds a content filter to be used during the copy.
  * Multiple calls add additional filters to the filter chain.
  * Each filter should implement [FilterReader] and declare a `(java.io.Reader)` constructor.
+ * Filter properties are applied to the filter instance as JavaBean properties after it is constructed.
  *
  * Examples:
  *
@@ -70,6 +72,7 @@ inline fun <reified T : FilterReader> ContentFilterable.filter(properties: Map<S
  * Adds a content filter to be used during the copy.
  * Multiple calls add additional filters to the filter chain.
  * Each filter should implement [FilterReader] and declare a `(java.io.Reader)` constructor.
+ * Filter properties are applied to the filter instance as JavaBean properties after it is constructed.
  *
  * Examples:
  *
@@ -93,6 +96,7 @@ fun <T : FilterReader> ContentFilterable.filter(filterType: KClass<T>, vararg pr
  * Adds a content filter to be used during the copy.
  * Multiple calls add additional filters to the filter chain.
  * Each filter should implement [FilterReader] and declare a `(java.io.Reader)` constructor.
+ * Filter properties are applied to the filter instance as JavaBean properties after it is constructed.
  *
  * Examples:
  *

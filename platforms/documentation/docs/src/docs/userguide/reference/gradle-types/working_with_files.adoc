@@ -828,12 +828,14 @@ include::sample[dir="snippets/reference/gradle-types/copy/groovy",files="build.g
 
 The `filter()` method has two variants, which behave differently:
 
-* one takes a `{javaApi}/java/io/FilterReader.html[FilterReader]` class, letting you plug in a custom, stateful filter over the whole stream (the example above drops blank lines)
+* one takes a `FilterReader` class, which filters the whole character stream rather than one line at a time (the example above drops blank lines)
 * one takes a closure or link:{javadocPath}/org/gradle/api/Transformer.html[Transformer] that defines the transformation for each line of the source file
 
 Note that both variants assume the source files are text-based.
-A `FilterReader` is instantiated with the `(Reader)` constructor, so your implementation needs one; any Groovy-style named arguments passed to `filter()` are applied as JavaBean properties afterwards.
-For simple token substitution, prefer `expand()` (described below) or a line-based closure.
+Gradle instantiates your filter by calling a public constructor that takes a single `{javaApi}/java/io/Reader.html[Reader]`, so your implementation must declare one.
+Any properties passed to `filter()` are applied as JavaBean setters *after* the constructor runs.
+A filter that accepts properties must therefore defer its work until the first read, rather than transforming the input in its constructor.
+For simple token substitution, prefer <<using_copyspec_expand,`expand()`>> or a line-based closure.
 
 [[using_copyspec_expand]]
 === Using `CopySpec.expand()`
