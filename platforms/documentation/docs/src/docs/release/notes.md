@@ -10,7 +10,13 @@
 <meta name="twitter:description" content="We are excited to announce Gradle @version@.">
 <meta name="twitter:image" content="https://gradle.org/assets/images/releases/gradle-default.png">
 
-Gradle @version@ is the first patch release for Gradle 9.8.0 (released [@releaseDate@](https://gradle.org/releases/)).
+Gradle @version@ is the second patch release for Gradle 9.8.0 (released [@releaseDate@](https://gradle.org/releases/)).
+
+The following issues were resolved:
+
+- [Gradle 9.8 reports a false "graph wasn't stable enough" warning when aligning versions with a virtual platform](https://github.com/gradle/gradle/issues/39454)
+
+Issues fixed in the first patch release:
 
 This release addresses three high rated vulnerabilities:
 - [Unauthenticated worker-to-daemon channel deserializes untrusted Java objects](https://github.com/gradle/gradle/security/advisories/GHSA-mvvg-497x-hmj8)
