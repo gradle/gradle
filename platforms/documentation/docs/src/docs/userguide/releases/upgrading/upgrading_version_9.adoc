@@ -760,11 +760,12 @@ my-plugin = { id = "com.example.my-plugin", version.ref = "my-plugin" }
 ----
 
 [[ant_build_script_classpath]]
-==== Ant classes will no longer be available to build scripts
+==== Deprecation of implicit Ant classes on the build script classpath
 
 Starting with Gradle 10, Ant classes will no longer be implicitly available to build scripts.
+This is a consequence of <<deprecated_ant_builder,the deprecation of the Ant integration>> described below.
 
-Ant is often used with the `Copy` task or `CopySpec` using the link:{javadocPath}/org/gradle/api/file/ContentFilterable.html#filter(java.util.Map,java.lang.Class)[`filter`] method.
+The most common way build scripts rely on Ant classes is link:{javadocPath}/org/gradle/api/file/ContentFilterable.html#filter(java.util.Map,java.lang.Class)[`filter(Map, Class)`] on the `Copy` task or on a `CopySpec`, which takes an Ant `FilterReader` such as `ReplaceTokens`.
 
 For example, instead of using Ant's `ReplaceTokens` filter, implement the filter using link:{javadocPath}/org/gradle/api/file/ContentFilterable.html#filter(org.gradle.api.Transformer)[`filter(Transformer)`]:
 
@@ -861,7 +862,9 @@ tasks.register("processTemplates", Copy) {
 [[deprecated_ant_builder]]
 ==== Deprecation of the Ant integration
 
-The native integration with Ant is deprecated and will be removed in Gradle 10.
+Gradle's built-in integration with Ant is deprecated and will be removed in Gradle 10.
+Ant classes will also stop being implicitly available to build scripts; see <<ant_build_script_classpath,Deprecation of implicit Ant classes on the build script classpath>>.
+
 The following types and methods will be removed:
 
 * link:{javadocPath}/org/gradle/api/AntBuilder.html[`AntBuilder`]
@@ -879,15 +882,16 @@ The following types and methods will be removed:
 
 ===== Call the tool directly
 
-If your usage of Ant can be replaced by a Gradle equivalent, such as the link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[`Copy`], link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html[`Zip`] or link:{groovyDslPath}/org.gradle.api.tasks.Exec.html[`Exec`] task types, or the link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[`FileSystemOperations`] service, prefer the Gradle counterpart instead.
+Some Ant usage has a direct Gradle equivalent.
+Prefer the link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[`Copy`], link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html[`Zip`] or link:{groovyDslPath}/org.gradle.api.tasks.Exec.html[`Exec`] task types, or the link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[`FileSystemOperations`] service, wherever one fits.
 
 If you use Ant to run another tool, prefer running that tool directly instead.
 For example, use a link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[`JavaExec`] task to run its main class, or use the <<worker_api.adoc#tasks_parallel_worker,Worker API>> to call its Java API with the tool on the classpath of the work.
-Alternatively, you may also put the tool on the classpath of your build logic and call its Java API during configuration time or from a task action.
+You can also put the tool on the classpath of your build logic and call its Java API during configuration time or from a task action.
 
 ===== Run Ant as a separate process
 
-If the tool you want to run cannot be executed directly, you may execute Ant in a separate Java process.
+If the tool you want to run has no entry point other than an Ant task, you can execute Ant in a separate Java process.
 First, declare a configuration that depends on Ant and the tool you want to execute.
 Then, execute Ant with `JavaExec` using that configuration as the runtime classpath.
 
