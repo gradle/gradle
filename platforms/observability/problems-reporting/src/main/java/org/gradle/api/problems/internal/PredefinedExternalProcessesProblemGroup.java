@@ -44,6 +44,7 @@ final class PredefinedExternalProcessesProblemGroup extends ExternalProcessesPro
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
         return NAME;
     }

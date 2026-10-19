@@ -111,6 +111,7 @@ class DefaultProblemsReportCreator(
 private fun ProblemSummaryData.toJsProblemIdSummary(): JsProblemIdSummary =
     JsProblemIdSummary(problemId = problemId.toJsProblemIdElements(), count = count)
 
+@Suppress("DEPRECATION") // the report keeps the display name of a legacy id until Gradle 10
 private fun ProblemId.toJsProblemIdElements(): List<JsProblemIdElement> =
     group.chainFromRoot().map { jsElement(it.name, it.displayName) } + jsElement(name, displayName)
 

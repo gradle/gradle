@@ -44,6 +44,7 @@ final class DefaultThirdLevelProblemGroup extends ThirdLevelProblemGroup impleme
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
         return name;
     }

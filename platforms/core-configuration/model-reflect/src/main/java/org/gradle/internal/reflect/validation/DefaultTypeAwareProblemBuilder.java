@@ -83,6 +83,7 @@ public class DefaultTypeAwareProblemBuilder extends DelegatingProblemBuilder imp
     }
 
     @Override
+    @SuppressWarnings("deprecation") // renders the display name of a legacy id until Gradle 10
     public ProblemInternal build() {
         ProblemInternal problem = super.build();
         Optional<TypeValidationData> additionalData = Optional.ofNullable((TypeValidationData) problem.getAdditionalData());

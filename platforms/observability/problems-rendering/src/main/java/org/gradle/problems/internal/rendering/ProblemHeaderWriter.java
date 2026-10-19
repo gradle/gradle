@@ -34,6 +34,7 @@ class ProblemHeaderWriter implements PartialProblemWriter {
         output.print(headerFor(options, problem));
     }
 
+    @SuppressWarnings("deprecation") // renders the display name of a legacy id until Gradle 10
     private String headerFor(RenderOptions options, ProblemInternal problem) {
         ProblemId id = problem.getDefinition().getId();
         StringBuilder result = new StringBuilder(options.getPrefix());
