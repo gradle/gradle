@@ -165,12 +165,15 @@ class RepoScriptBlockUtil {
                     }
                 """
         } else {
+            // Gradle 5.0, the oldest Tooling API target, has no content filtering; Kotlin DSL builds under test are all on 5.1+
             """
                     maven {
                         name = '${repository.name}'
                         url = '${repository.url}'
-                        content {
-                            ${includes}
+                        if (org.gradle.util.GradleVersion.current() >= org.gradle.util.GradleVersion.version('5.1')) {
+                            content {
+                                ${includes}
+                            }
                         }
                     }
                 """
