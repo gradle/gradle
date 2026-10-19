@@ -317,7 +317,8 @@ Gradle itself reports problems into these predefined groups:
 |`Provisioning > Tools and Toolchains` |Unusable JVM installations and Daemon JVM toolchains that cannot be provisioned
 |===
 
-A group created with `ProblemGroup.create()` whose name matches a predefined group, such as `ProblemGroup.create("Java", "Java", problems.groups.compilation)`, is reported as that predefined group, with its description.
+A group created with the deprecated `ProblemGroup.create()` whose name matches a predefined group, such as `ProblemGroup.create("Java", "Java", problems.groups.compilation)`, is reported as that predefined group, with its description; see <<upgrading_version_9.adoc#problems_api_legacy_identity,the upgrading guide>>.
+Use the predefined group instead, here `problems.groups.compilation.java`.
 
 [[sec:problem_summarization]]
 == Problem Summarization
