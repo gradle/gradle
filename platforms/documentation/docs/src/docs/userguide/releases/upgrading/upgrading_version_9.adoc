@@ -86,6 +86,39 @@ The following issues track the development of TestKit APIs for this purpose:
 These APIs are intentionally focused on testing use cases.
 If you extract the report data for other purposes, please comment on these issues and describe your use case.
 
+[[deprecation_problem_ids_moved_to_predefined_groups]]
+==== Deprecation problem ids moved to the predefined problem groups
+
+Gradle's deprecation warnings now report into the <<reporting_problems.adoc#sec:predefined_problem_groups,predefined problem groups>>, in the `Gradle > Deprecation` group reserved for them, instead of the legacy `deprecation` group.
+A deprecation is now named after the kind of feature being deprecated, instead of a slug derived from its message.
+Details of the usage, such as the name of a task or a configuration, no longer appear in the name; they remain in the problem's contextual label.
+One id therefore now covers every deprecation of the same kind:
+
+[cols="1,1"]
+|===
+|Before |After
+
+|`deprecation:<message in kebab case>`
+|`Gradle:Deprecation:<kind of deprecation>`
+
+|`deprecation:the-buildneeded-task-has-been-deprecated`
+|`Gradle:Deprecation:Task usage`
+
+|`deprecation:the-detachedconfiguration-configuration-has-been-deprecated-for-consumption`
+|`Gradle:Deprecation:Configuration usage`
+
+|`deprecation:buildsrc-script`
+|`Gradle:Deprecation:BuildSrc script`
+
+|`deprecation:implicit-lookup-of-methods-in-parent-projects`
+|`Gradle:Deprecation:Implicit lookup of methods in parent projects`
+|===
+
+This affects Tooling API clients, Build Scans, and any tooling that matches problems by id.
+Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
+Matching on the text of a deprecation now means matching the contextual label rather than the name.
+The messages of these deprecations, their solutions, and their documentation links are unchanged.
+
 [[compilation_problem_ids_moved_to_predefined_groups]]
 ==== Compilation problem ids moved to the predefined problem groups
 
@@ -442,16 +475,17 @@ The messages of these problems, their solutions, and their documentation links a
 
 The remaining problems Gradle reports now use the <<reporting_problems.adoc#sec:predefined_problem_groups,predefined problem groups>>, and the legacy groups `configuration-usage`, `daemon-toolchain`, `jvm-toolchain`, `packaging`, `plugin-application`, `problems-api`, `scripts`, `task-selection` and `validation` are gone.
 Problems with the requested tasks report into `Gradle > Invocation`.
-Configuration Cache problems report into `Gradle > Configuration Cache` and Isolated Projects problems into `Gradle > Isolated Projects`; they shared the legacy `validation:configuration-cache` group before.
-Problems with the configured build, such as a reserved configuration name, a missing project directory, or several build scripts in one directory, report into `Gradle > Build Definition`.
+Configuration Cache problems report into `Gradle > Configuration Cache` and Isolated Projects problems into `Gradle > Isolated Projects`; they previously shared the legacy `validation:configuration-cache` group.
+Problems with the configured build, such as a reserved configuration name, a project with an invalid directory, or several build scripts in one directory, report into `Gradle > Build Definition`.
 Problems with how build logic uses the build model, including the contract of project features and misuse of the Problems API itself, report into `Gradle > Build Logic`.
 JVM toolchain problems report into `Provisioning > Tools and Toolchains` and signing problems into `Packaging > Signing`.
+For the full set of groups Gradle reports into, see <<reporting_problems.adoc#sec:groups_gradle_reports_into,Groups Gradle reports into>>.
 Each problem is now named by its former display name, with a few exceptions:
 
 * Configuration Cache and Isolated Projects problems are named after the first line of their message, instead of the message in kebab case.
-* Task selection problems name what was selected, and a project that cannot be selected in a task path has its own name, for example `Task not found` and `Project not found` instead of `No matches` and `Selection failed`.
+* Task selection problems name what Gradle looked for, and a project that cannot be found in a task path has its own name, for example `Task not found` and `Project not found` instead of `No matches` and `Selection failed`.
 * Names that relied on their legacy group for context now carry it, for example `Configuration method call not allowed` instead of `Method call not allowed`, and `Reported problem has no id` instead of `Problem id must be specified`.
-* `init invocation problem` is now `Exclusive task run with other tasks`.
+* `Init invocation problem` is now `Exclusive task run with other tasks`.
 * `Project features binds to BuildModel.None` is now `Project feature binds to BuildModel.None`.
 * The `updateDaemonJvm` task configuration problem is split into two problems, one for missing toolchain download repositories and one for repositories that cannot resolve the requested toolchain.
 
@@ -551,7 +585,7 @@ This affects Tooling API clients, Build Scans, and any tooling that matches prob
 Update that matching logic to the new group and name, as described in <<reporting_problems.adoc#tooling_api_clients,Tooling API Clients>>.
 The messages of these problems, their solutions, and their documentation links are unchanged.
 
-Problems reported with groups created through `ProblemGroup.create()` whose names match a predefined group, for example `ProblemGroup.create("Java", "Java", problems.getGroups().getCompilation())`, are now reported with that predefined group, including its description.
+Problems reported with groups created through `ProblemGroup.create()` whose names match a predefined group, for example `ProblemGroup.create("Java", "Java", problems.getGroups().getCompilation())`, now carry that predefined group, including its description.
 
 [[relocated_root_project_settings_kept]]
 ==== Builds that move the root project directory now load their settings file

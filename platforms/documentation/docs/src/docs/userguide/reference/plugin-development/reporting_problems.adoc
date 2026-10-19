@@ -300,7 +300,7 @@ Gradle itself reports problems into these predefined groups:
 [cols="1,3", options="header"]
 |===
 |Group |Problems Gradle reports there
-|`Gradle > Build Definition` |Missing, invalid, or conflicting values in the configured build, such as a reserved configuration name, a project without a directory, a plugin applied to the wrong target, or several build scripts in one directory
+|`Gradle > Build Definition` |Missing, invalid, or conflicting values in the configured build, such as a missing or unusable property value, a reserved configuration name, a project with an invalid directory, a plugin applied to the wrong target, or several build scripts in one directory
 |`Gradle > Build Logic` |Build logic using the build model incorrectly, such as untracked implementations, missing task dependencies, disallowed configuration calls, project feature contract violations, and misuse of the Problems API
 |`Gradle > Configuration Cache` |Configuration Cache problems
 |`Gradle > Deprecation` |Deprecation warnings
@@ -317,7 +317,7 @@ Gradle itself reports problems into these predefined groups:
 |`Provisioning > Tools and Toolchains` |Unusable JVM installations and Daemon JVM toolchains that cannot be provisioned
 |===
 
-A group created with `ProblemGroup.create()` whose names match a predefined group, such as `ProblemGroup.create("Java", "Java", problems.groups.compilation)`, is reported as that predefined group, with its description.
+A group created with `ProblemGroup.create()` whose name matches a predefined group, such as `ProblemGroup.create("Java", "Java", problems.groups.compilation)`, is reported as that predefined group, with its description.
 
 [[sec:problem_summarization]]
 == Problem Summarization
