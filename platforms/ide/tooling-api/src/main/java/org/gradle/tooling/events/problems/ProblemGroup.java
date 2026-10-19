@@ -40,7 +40,10 @@ public interface ProblemGroup {
      *
      * @return the display name
      * @since 8.9
+     * @deprecated Use {@link #getName()} instead. The predefined problem groups have a display name equal to their name.
+     * This method will be removed in Gradle 10.
      */
+    @Deprecated
     String getDisplayName();
 
     /**
