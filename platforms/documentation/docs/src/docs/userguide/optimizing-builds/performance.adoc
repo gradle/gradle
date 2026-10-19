@@ -275,7 +275,7 @@ You can use:
 
 * A local Build Cache to speed up repeated builds on the same machine.
 * A shared Build Cache to accelerate builds across multiple machines.
-** https://gradle.com/build-cache/[Develocity provides] a shared Cache solution for CI and developer builds.
+** https://develocity.ai/product/build-cache/[Develocity provides] a shared Cache solution for CI and developer builds.
 
 When the build cache flag is used on our reference project, the build (`./gradlew clean build --build-cache`) time is *5 seconds*:
 
