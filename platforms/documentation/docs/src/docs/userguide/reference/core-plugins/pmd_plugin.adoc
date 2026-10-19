@@ -36,7 +36,8 @@ You can also run PMD with a specific JDK using a <<#sec:pmd_configuration_toolch
 === Supported PMD versions
 
 Gradle supports PMD versions from 5.1.0 through 7.26.0.
-PMD versions older than 7.0.0 are deprecated and will no longer be supported in Gradle 10, see <<upgrading_version_9.adoc#deprecated_pmd_older_than_7,the upgrade guide>>.
+PMD versions older than 7.0.0 are deprecated and will no longer be supported in Gradle 10.
+See <<upgrading_version_9.adoc#deprecated_pmd_older_than_7,the upgrade guide>> for details.
 
 Older PMD releases may work but are not tested against.
 Use link:{groovyDslPath}/org.gradle.api.plugins.quality.PmdExtension.html#org.gradle.api.plugins.quality.PmdExtension:toolVersion[`pmd.toolVersion`] to select a specific PMD version.
