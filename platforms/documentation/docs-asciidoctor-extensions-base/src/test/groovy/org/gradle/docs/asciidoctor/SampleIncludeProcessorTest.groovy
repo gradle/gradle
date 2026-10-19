@@ -36,6 +36,11 @@ class SampleIncludeProcessorTest extends Specification {
         extensionRegistry.includeProcessor(SampleIncludeProcessor.class)
     }
 
+    def cleanup() {
+        // Each instance holds a JRuby runtime, which is large enough to exhaust the test JVM heap if leaked
+        asciidoctor.shutdown()
+    }
+
     def "requires dir and files attributes"() {
         given:
         String asciidocContent = """

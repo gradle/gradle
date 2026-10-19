@@ -27,6 +27,11 @@ class SinceGradleLabelProcessorTest extends Specification {
         asciidoctor = Asciidoctor.Factory.create()
     }
 
+    def cleanup() {
+        // Each instance holds a JRuby runtime, which is large enough to exhaust the test JVM heap if leaked
+        asciidoctor.shutdown()
+    }
+
     private String convertContent(String content) {
         return asciidoctor.convert(content, Options.builder().build())
     }

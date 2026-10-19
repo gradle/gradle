@@ -32,6 +32,11 @@ class GuidesContributeIncludeProcessorTest extends Specification {
         extensionRegistry.includeProcessor(GuidesContributeIncludeProcessor.class)
     }
 
+    def cleanup() {
+        // Each instance holds a JRuby runtime, which is large enough to exhaust the test JVM heap if leaked
+        asciidoctor.shutdown()
+    }
+
     def "defaults repo to gradle/guides and issue to blank url"() {
         given:
         String asciidocContent = """

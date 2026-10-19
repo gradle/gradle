@@ -33,6 +33,11 @@ class MarkdownConverterTest extends Specification {
         asciidoctor = Asciidoctor.Factory.create()
     }
 
+    def cleanup() {
+        // Each instance holds a JRuby runtime, which is large enough to exhaust the test JVM heap if leaked
+        asciidoctor.shutdown()
+    }
+
     private String toMarkdown(String asciidoc) {
         asciidoctor.convert(asciidoc, Options.builder()
             .backend(MarkdownConverter.BACKEND)
