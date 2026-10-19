@@ -595,7 +595,6 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
                     module('org:core:2.9.4')
                 }
             }
-            virtualConfiguration('org:platform:2.9.4')
         }
 
         where: "order of dependencies doesn't matter"
