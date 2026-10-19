@@ -206,6 +206,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean useInternalDeprecationStackTraceFlag = true;
     private boolean checkDeprecations = true;
     private boolean filterJavaVersionDeprecation = true;
+    private boolean filterLegacyProblemIdentityDeprecations = true;
     private boolean checkDaemonCrash = true;
 
     private TestFile tmpDir;
@@ -279,6 +280,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         interactiveSession = false;
         checkDeprecations = true;
         filterJavaVersionDeprecation = true;
+        filterLegacyProblemIdentityDeprecations = true;
         durationMeasurement = null;
         consoleType = null;
         warningMode = WarningMode.All;
@@ -448,6 +450,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         if (!filterJavaVersionDeprecation) {
             executer.disableDaemonJavaVersionDeprecationFiltering();
+        }
+        if (!filterLegacyProblemIdentityDeprecations) {
+            executer.disableLegacyProblemIdentityDeprecationFiltering();
         }
 
         if (durationMeasurement != null) {
@@ -1387,6 +1392,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
                 SupportedJavaVersionsExpectations.getExpectedDaemonDeprecationWarning(getComputedGradleVersion())
             ));
         }
+        if (filterLegacyProblemIdentityDeprecations) {
+            maybeExpectedDeprecationWarnings.add(ProblemsApiDeprecations.anyLegacyIdentityDeprecation());
+        }
 
         return new ResultAssertion(
             expectedDeprecationWarnings,
@@ -1448,6 +1456,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     @Override
     public GradleExecuter disableDaemonJavaVersionDeprecationFiltering() {
         filterJavaVersionDeprecation = false;
+        return this;
+    }
+
+    @Override
+    public GradleExecuter disableLegacyProblemIdentityDeprecationFiltering() {
+        filterLegacyProblemIdentityDeprecations = false;
         return this;
     }
 

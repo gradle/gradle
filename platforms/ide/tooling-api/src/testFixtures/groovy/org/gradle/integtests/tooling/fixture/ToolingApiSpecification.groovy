@@ -32,6 +32,7 @@ import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionFailureWithThrowable
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.ExpectedDeprecationWarning
+import org.gradle.integtests.fixtures.executer.ProblemsApiDeprecations
 import org.gradle.integtests.fixtures.executer.GradleDistribution
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionFailure
@@ -526,17 +527,19 @@ abstract class ToolingApiSpecification extends Specification implements CommonTe
     }
 
     void validateOutput(ExecutionResult result) {
-        List<String> maybeExpectedDeprecations = []
+        List<ExpectedDeprecationWarning> maybeExpectedDeprecations = []
         if (filterJavaVersionDeprecation) {
-            maybeExpectedDeprecations.add(
+            maybeExpectedDeprecations.add(ExpectedDeprecationWarning.withMessage(
                 normalizeDeprecationWarning(SupportedJavaVersionsExpectations.getExpectedDaemonDeprecationWarning(targetDist.version))
-            )
+            ))
         }
+        // third-party plugins under test, such as the Kotlin Gradle plugin, still report through the legacy identity API
+        maybeExpectedDeprecations.add(ProblemsApiDeprecations.anyLegacyIdentityDeprecation())
 
         // Check for deprecation warnings.
         new ResultAssertion(
-                expectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
-            maybeExpectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
+            expectedDeprecations.collect { ExpectedDeprecationWarning.withMessage(it) },
+            maybeExpectedDeprecations,
             Collections.emptyList(),
             !stackTraceChecksOn,
             shouldCheckForDeprecationWarnings(),

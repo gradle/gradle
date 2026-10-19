@@ -411,6 +411,15 @@ public interface GradleExecuter extends Stoppable {
     GradleExecuter disableDaemonJavaVersionDeprecationFiltering();
 
     /**
+     * Disable the filtering of deprecation warnings about problems reported with an identity created outside the
+     * predefined problem group hierarchy ({@code ProblemGroup.create()}).
+     * <p>
+     * Third-party plugins under test still report problems that way, so by default these warnings are tolerated.
+     * Tests that cover the deprecation itself disable the filter and expect the exact warnings.
+     */
+    GradleExecuter disableLegacyProblemIdentityDeprecationFiltering();
+
+    /**
      * Disable crash daemon checks
      */
     GradleExecuter noDaemonCrashChecks();

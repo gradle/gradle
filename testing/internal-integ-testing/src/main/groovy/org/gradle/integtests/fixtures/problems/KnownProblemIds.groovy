@@ -148,6 +148,7 @@ class KnownProblemIds {
         'Gradle:Deprecation:Task usage': ['Task usage'],
         'Gradle:Deprecation:Executing Gradle on JVM versions \\d+ and lower': ['Executing Gradle on JVM versions ' + (SupportedJavaVersions.FUTURE_MINIMUM_DAEMON_JAVA_VERSION - 1) + ' and lower'],
         'Gradle:Deprecation:Included build script': ['Included build script'],
+        'Gradle:Deprecation:Problem reported outside the predefined problem groups': ['Problem reported outside the predefined problem groups'],
         'Gradle:Deprecation:Included build task': ['Included build task'],
         'Gradle:Deprecation:Init script': ['Init script'],
         'Gradle:Deprecation:Plugin': ['Plugin'],

@@ -21,6 +21,7 @@ import org.gradle.integtests.fixtures.BuildOperationTreeQueries
 import org.gradle.integtests.fixtures.configurationcache.ConfigurationCacheBuildOperationsFixture
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.ExpectedDeprecationWarning
+import org.gradle.integtests.fixtures.executer.ProblemsApiDeprecations
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.integtests.fixtures.executer.OutputScrapingExecutionResult
 import org.gradle.integtests.fixtures.executer.ResultAssertion
@@ -259,9 +260,13 @@ class SmokeTestGradleRunner extends GradleRunner {
             deprecationWarningsToCheck = expectedDeprecationWarnings
         }
 
+        // Third-party plugins still create problem groups through the legacy API; see ProblemsApiDeprecations.
+        List<ExpectedDeprecationWarning> maybeExpected = maybeExpectedDeprecationWarnings.collect { ExpectedDeprecationWarning.withMessage(it) }
+        maybeExpected.add(ProblemsApiDeprecations.anyLegacyIdentityDeprecation())
+
         new ResultAssertion(
             deprecationWarningsToCheck.collect { ExpectedDeprecationWarning.withMessage(it) },
-            maybeExpectedDeprecationWarnings.collect { ExpectedDeprecationWarning.withMessage(it) },
+            maybeExpected,
             Collections.emptyList(),
             expectStackTraces,
             !ignoreDeprecationWarnings,
