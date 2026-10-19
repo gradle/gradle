@@ -17,7 +17,6 @@ package org.gradle.api.internal.project.ant;
 
 import org.apache.tools.ant.BuildEvent;
 import org.apache.tools.ant.BuildLogger;
-import org.gradle.api.AntBuilder.AntMessagePriority;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
@@ -28,7 +27,8 @@ import java.io.PrintStream;
 public class AntLoggingAdapter implements BuildLogger {
     private final Logger logger = Logging.getLogger(AntLoggingAdapter.class);
 
-    private AntMessagePriority lifecycleLogLevel;
+    @SuppressWarnings("deprecation")
+    private org.gradle.api.AntBuilder.AntMessagePriority lifecycleLogLevel;
 
     @Override
     public void setMessageOutputLevel(int level) {
@@ -99,30 +99,34 @@ public class AntLoggingAdapter implements BuildLogger {
         }
     }
 
+    @SuppressWarnings({"unused", "deprecation"}) // Called reflectively by CodeNarcInvoker
     public void setLifecycleLogLevel(String lifecycleLogLevel) {
-        setLifecycleLogLevel(lifecycleLogLevel == null ? null : AntMessagePriority.valueOf(lifecycleLogLevel));
+        setLifecycleLogLevel(lifecycleLogLevel == null ? null : org.gradle.api.AntBuilder.AntMessagePriority.valueOf(lifecycleLogLevel));
     }
 
-    public void setLifecycleLogLevel(AntMessagePriority lifecycleLogLevel) {
+    @SuppressWarnings("deprecation")
+    public void setLifecycleLogLevel(org.gradle.api.AntBuilder.AntMessagePriority lifecycleLogLevel) {
         this.lifecycleLogLevel = lifecycleLogLevel;
     }
 
-    public AntMessagePriority getLifecycleLogLevel() {
+    @SuppressWarnings("deprecation")
+    public org.gradle.api.AntBuilder.AntMessagePriority getLifecycleLogLevel() {
         return lifecycleLogLevel;
     }
 
+    @SuppressWarnings("deprecation")
     private LogLevel getLogLevelForMessagePriority(int messagePriority) {
         LogLevel defaultLevel = LogLevelMapping.ANT_IVY_2_SLF4J.get(messagePriority);
 
         // Check to see if we should adjust the level based on a set lifecycle log level
         if (lifecycleLogLevel != null) {
             if (defaultLevel.ordinal() < LogLevel.LIFECYCLE.ordinal()
-                && AntMessagePriority.from(messagePriority).ordinal() >= lifecycleLogLevel.ordinal()) {
+                && org.gradle.api.AntBuilder.AntMessagePriority.from(messagePriority).ordinal() >= lifecycleLogLevel.ordinal()) {
                 // we would normally log at a lower level than lifecycle, but the Ant message priority is actually higher
                 // than (or equal to) the set lifecycle log level
                 return LogLevel.LIFECYCLE;
             } else if (defaultLevel.ordinal() >= LogLevel.LIFECYCLE.ordinal()
-                && AntMessagePriority.from(messagePriority).ordinal() < lifecycleLogLevel.ordinal()) {
+                && org.gradle.api.AntBuilder.AntMessagePriority.from(messagePriority).ordinal() < lifecycleLogLevel.ordinal()) {
                 // would normally log at a level higher than (or equal to) lifecycle, but the Ant message priority is
                 // actually lower than the set lifecycle log level
                 return LogLevel.INFO;

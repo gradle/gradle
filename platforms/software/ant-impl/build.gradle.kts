@@ -24,6 +24,7 @@ dependencies {
     api(projects.modelCore)
 
     implementation(projects.concurrent)
+    implementation(projects.logging)
     implementation(projects.stdlibJavaExtensions)
 
     compileOnly(libs.jetbrainsAnnotations)

@@ -70,6 +70,7 @@ public abstract class CompositeFileCollection extends AbstractFileCollection imp
     }
 
     @Override
+    @Deprecated
     protected void addAsResourceCollection(Object builder, String nodeName) {
         for (FileCollection fileCollection : getSourceCollections()) {
             fileCollection.addToAntBuilder(builder, nodeName, AntType.ResourceCollection);
