@@ -114,4 +114,18 @@ class DefaultProblemTest extends Specification {
         then:
         newProblem.class == DefaultProblem
     }
+
+    def "a copy with another id remembers the id it replaced, and a copy of the copy the first one"() {
+        given:
+        def reportedId = ProblemId.create('Unused import', 'Unused import', ProblemGroup.create('Compilation', 'Compilation'))
+        def problem = new DefaultProblem(new DefaultProblemDefinition(reportedId, Severity.ERROR, null), 'label', [], [], [])
+        def first = ProblemId.create('Unused import', 'Unused import', ProblemGroup.create('first', 'first'))
+        def second = ProblemId.create('Unused import', 'Unused import', ProblemGroup.create('second', 'second'))
+
+        expect:
+        problem.reportedId.is(reportedId)
+        problem.withId(first).definition.id.is(first)
+        problem.withId(first).reportedId.is(reportedId)
+        problem.withId(first).withId(second).reportedId.is(reportedId)
+    }
 }

@@ -286,6 +286,22 @@ class ValidationProblemSerializationTest extends Specification {
         e.message == "Unknown predefined problem group 'Plugins'"
     }
 
+    def "leaves out the id a problem was reported with before its groups were replaced"() {
+        given:
+        // a legacy group the predefined hierarchy cannot hold
+        def reportedId = ProblemId.create("label", "label", ProblemGroup.create("org.example:legacy", "Legacy"))
+        def problem = problemReporter.create(reportedId, {}).withId(problemId)
+
+        when:
+        def json = ValidationProblemSerialization.serialize([problem], [], problems.groups)
+        def deserialized = ValidationProblemSerialization.deserialize(json, problems.groups).warnings[0]
+
+        then:
+        !json.contains("org.example:legacy")
+        deserialized.definition.id.group.is(problems.groups.gradle.pluginValidation)
+        deserialized.reportedId == deserialized.definition.id
+    }
+
     private ProblemInternal serializeAndDeserialize(ProblemInternal problem, boolean asWarning) {
         def json = asWarning ? ValidationProblemSerialization.serialize([problem], [], problems.groups) : ValidationProblemSerialization.serialize([], [problem], problems.groups)
         def deserialized = ValidationProblemSerialization.deserialize(json, problems.groups)

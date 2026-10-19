@@ -33,9 +33,18 @@ public interface ProblemInternal extends Problem {
     ProblemBuilderInternal toBuilder(ProblemsInfrastructure infrastructure);
 
     /**
-     * Returns a copy of this problem with the given id; everything else is unchanged.
+     * Returns a copy of this problem with the given id; everything else is unchanged. The copy remembers the id it
+     * replaced as its {@linkplain #getReportedId() reported id}.
      */
     ProblemInternal withId(ProblemId id);
+
+    /**
+     * Returns the id the producer reported this problem with, before the reporter replaced groups created through
+     * {@code ProblemGroup.create} with the matching predefined groups; otherwise the id of the {@linkplain #getDefinition() definition}.
+     * <p>
+     * A problem built from this one through {@link #toBuilder} starts again from the definition's id.
+     */
+    ProblemId getReportedId();
 
     /**
      * Returns the problem definition, i.e. the data that is independent of the report context.

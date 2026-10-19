@@ -136,6 +136,52 @@ class DefaultProblemReporterTest extends Specification {
         registered[0].definition.id.group.is(groups.compilation.java)
     }
 
+    def "problem with a factory group matching a predefined group keeps the id it was reported with"() {
+        given:
+        def reportedId = ProblemId.create('Unused import', 'Unused import', ProblemGroup.create('Java', 'Java language', DefaultProblemGroups.INSTANCE.compilation))
+        def reporter = reporter { null }
+        ProblemInternal emitted = null
+
+        when:
+        reporter.report(problemWithId(reportedId), new OperationIdentifier(1L))
+
+        then:
+        1 * summarizer.emit(_, _) >> { arguments -> emitted = arguments[0] }
+        emitted.reportedId.is(reportedId)
+        !emitted.definition.id.is(reportedId)
+    }
+
+    def "problem whose groups need no replacement reports its own id"() {
+        given:
+        def problem = createTestProblem()
+        def reporter = reporter { null }
+
+        when:
+        reporter.report(problem, new OperationIdentifier(1L))
+
+        then:
+        1 * summarizer.emit({ it.is(problem) }, _)
+        problem.reportedId.is(problem.definition.id)
+    }
+
+    def "reporting a problem again keeps the id it was first reported with"() {
+        given:
+        // a problem from a worker is reported by the worker's reporter, then again by the daemon's
+        def reportedId = ProblemId.create('Unused import', 'Unused import', ProblemGroup.create('Compilation', 'Compilation'))
+        def reporter = reporter { null }
+        List<ProblemInternal> emitted = []
+        summarizer.emit(_, _) >> { arguments -> emitted << arguments[0] }
+
+        when:
+        reporter.report(problemWithId(reportedId), new OperationIdentifier(1L))
+        reporter.report(emitted[0], new OperationIdentifier(1L))
+
+        then:
+        emitted.size() == 2
+        emitted[1].reportedId.is(reportedId)
+        emitted[1].definition.id.group.is(DefaultProblemGroups.INSTANCE.compilation)
+    }
+
     private DefaultProblemReporter reporter(Closure<OperationIdentifier> operationId) {
         new DefaultProblemReporter(
             summarizer,
@@ -170,5 +216,9 @@ class DefaultProblemReporterTest extends Specification {
             null,
             false
         )
+    }
+
+    private static DefaultProblem problemWithId(ProblemId id) {
+        new DefaultProblem(new DefaultProblemDefinition(id, Severity.ERROR, null), 'label', [], [], [])
     }
 }
