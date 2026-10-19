@@ -1,5 +1,3 @@
-import gradlebuild.basics.googleApisJs
-
 plugins {
     id("gradlebuild.internal.java")
 }
@@ -16,10 +14,6 @@ sourceSets {
 val reports = configurations.create("reports")
 val flamegraph = configurations.create("flamegraph")
 configurations.compileOnly { extendsFrom(flamegraph) }
-
-repositories {
-    googleApisJs()
-}
 
 dependencies {
     reports(variantOf(libs.jquery) { artifactType("js") })
