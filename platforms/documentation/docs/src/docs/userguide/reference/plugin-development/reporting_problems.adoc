@@ -208,7 +208,7 @@ The names shown below identify a group together with its parent.
 `group(name)` matches on the name, and console output renders groups as a chain such as `Gradle > Build Cache`.
 
 // The rows below mirror the predefined hierarchy in DefaultProblemGroups and the descriptions in PredefinedProblemGroupDescriptions
-// (platforms/ide/problems-reporting). Update this table whenever a predefined group or a description changes;
+// (platforms/observability/problems-reporting). Update this table whenever a predefined group or a description changes;
 // PredefinedProblemGroupsDocumentationTest in that module fails when the two drift apart.
 [cols="1,2,3", options="header"]
 |===
