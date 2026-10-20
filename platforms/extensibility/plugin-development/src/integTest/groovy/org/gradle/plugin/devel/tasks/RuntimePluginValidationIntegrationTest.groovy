@@ -66,7 +66,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
                 'typeName' : 'MyTask',
             ]
             originLocations == []
-            contextualLocations == []
+            contextualLocations*.buildTreePath == [':run']
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
@@ -83,7 +83,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
                 'typeName' : 'MyTask',
             ]
             originLocations == []
-            contextualLocations == []
+            contextualLocations*.buildTreePath == [':run']
         }
         verifyAll(receivedProblem(2)) {
             severity == Severity.ERROR
@@ -100,7 +100,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
                 'typeName' : 'MyTask',
             ]
             originLocations == []
-            contextualLocations == []
+            contextualLocations*.buildTreePath == [':run']
         }
         verifyAll(receivedProblem(3)) {
             severity == Severity.ERROR
@@ -117,7 +117,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
                 'typeName' : 'MyTask',
             ]
             originLocations == []
-            contextualLocations == []
+            contextualLocations*.buildTreePath == [':run']
         }
         verifyAll(receivedProblem(4)) {
             severity == Severity.ERROR
@@ -134,7 +134,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
                 'typeName' : 'MyTask',
             ]
             originLocations == []
-            contextualLocations == []
+            contextualLocations*.buildTreePath == [':run']
         }
     }
 
@@ -216,7 +216,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
                 'propertyName' : 'file',
             ]
             originLocations == []
-            contextualLocations == []
+            contextualLocations*.buildTreePath == [':run']
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
@@ -233,7 +233,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
                 'propertyName' : 'fileCollection',
             ]
             originLocations == []
-            contextualLocations == []
+            contextualLocations*.buildTreePath == [':run']
         }
         verifyAll(receivedProblem(2)) {
             severity == Severity.ERROR
@@ -250,7 +250,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
                 'propertyName' : 'filePath',
             ]
             originLocations == []
-            contextualLocations == []
+            contextualLocations*.buildTreePath == [':run']
         }
         verifyAll(receivedProblem(3)) {
             severity == Severity.ERROR
@@ -267,7 +267,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
                 'propertyName' : 'fileTree',
             ]
             originLocations == []
-            contextualLocations == []
+            contextualLocations*.buildTreePath == [':run']
         }
     }
 
@@ -396,7 +396,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
                 'typeName' : 'MyTask',
             ]
             originLocations == []
-            contextualLocations == []
+            contextualLocations*.buildTreePath == [':run']
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
@@ -413,7 +413,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
                 'typeName' : 'MyTask',
             ]
             originLocations == []
-            contextualLocations == []
+            contextualLocations*.buildTreePath == [':run']
         }
         verifyAll(receivedProblem(2)) {
             severity == Severity.ERROR
@@ -430,7 +430,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
                 'typeName' : 'MyTask',
             ]
             originLocations == []
-            contextualLocations == []
+            contextualLocations*.buildTreePath == [':run']
         }
         verifyAll(receivedProblem(3)) {
             severity == Severity.ERROR
@@ -447,7 +447,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
                 'typeName' : 'MyTask',
             ]
             originLocations == []
-            contextualLocations == []
+            contextualLocations*.buildTreePath == [':run']
         }
         verifyAll(receivedProblem(4)) {
             severity == Severity.ERROR
@@ -464,7 +464,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
                 'typeName' : 'MyTask',
             ]
             originLocations == []
-            contextualLocations == []
+            contextualLocations*.buildTreePath == [':run']
         }
         verifyAll(receivedProblem(5)) {
             severity == Severity.ERROR
@@ -481,7 +481,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
                 'typeName' : 'MyTask',
             ]
             originLocations == []
-            contextualLocations == []
+            contextualLocations*.buildTreePath == [':run']
         }
         verifyAll(receivedProblem(6)) {
             severity == Severity.ERROR
@@ -498,7 +498,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
                 'typeName' : 'MyTask',
             ]
             originLocations == []
-            contextualLocations == []
+            contextualLocations*.buildTreePath == [':run']
         }
         verifyAll(receivedProblem(7)) {
             severity == Severity.ERROR
@@ -515,7 +515,7 @@ class RuntimePluginValidationIntegrationTest extends AbstractIntegrationSpec imp
                 'typeName' : 'MyTask',
             ]
             originLocations == []
-            contextualLocations == []
+            contextualLocations*.buildTreePath == [':run']
         }
     }
 
