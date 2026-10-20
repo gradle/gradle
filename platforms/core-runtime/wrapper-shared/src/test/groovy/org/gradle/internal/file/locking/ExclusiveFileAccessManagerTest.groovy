@@ -18,14 +18,18 @@ package org.gradle.internal.file.locking
 
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
+
+import java.nio.file.FileAlreadyExistsException
 
 class ExclusiveFileAccessManagerTest extends Specification {
     @Rule
     public TestNameTestDirectoryProvider temporaryDirectory = new TestNameTestDirectoryProvider(getClass())
     private manager = new ExclusiveFileAccessManager(1000, 10)
 
-    def 'If the directory for the lock file cannot be created then we get a good error message'() {
+    @Issue('https://github.com/gradle/gradle/issues/39392')
+    def 'reports why the lock file directory cannot be created'() {
         given:
         def fileWithSameNameAsDirectory = temporaryDirectory.createFile('someDir')
         when:
@@ -34,6 +38,16 @@ class ExclusiveFileAccessManagerTest extends Specification {
 
         then:
         RuntimeException e = thrown()
-        e.message == "Could not create parent directory for lock file ${fileWithSameNameAsDirectory.file('someFile.zip.lck').absolutePath}"
+        e.message.startsWith("Could not create parent directory for lock file ${fileWithSameNameAsDirectory.file('someFile.zip.lck').absolutePath}: ")
+        e.cause instanceof FileAlreadyExistsException
+        e.message.endsWith(e.cause.toString())
+    }
+
+    def 'accepts an existing lock file directory'() {
+        given:
+        def existingDirectory = temporaryDirectory.createDir('existingDirectory')
+
+        expect:
+        manager.access(existingDirectory.file('someFile.zip')) { 'available' } == 'available'
     }
 }
