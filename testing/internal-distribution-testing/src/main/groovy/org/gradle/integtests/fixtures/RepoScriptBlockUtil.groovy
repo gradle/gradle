@@ -85,12 +85,13 @@ class RepoScriptBlockUtil {
     }
 
     /**
-     * A repository that test builds need on top of the ones they declare, typically because a tested
-     * dependency version is not published to the public repositories. Only the matching groups are looked up in it.
+     * A repository for dependency versions under test that are not in the public repositories.
+     * Test builds get it in addition to the repositories that they declare. See {@link RepoScriptBlockUtil#EXTRA_REPOSITORIES}.
      */
     static final class ExtraRepository {
         final String name
         final String url
+        /** Gradle searches this repository only for the groups that match these regexes. */
         final List<String> groupRegexes
 
         ExtraRepository(String name, String url, List<String> groupRegexes) {
@@ -101,11 +102,12 @@ class RepoScriptBlockUtil {
     }
 
     /**
-     * Register extra repositories here, no test needs a repository declaration of its own. See contributing/Testing.md.
-     * A repository is in the list only while tests need it.
+     * Repositories for dependency versions not in the public repositories. Register an extra repository here,
+     * not in the tests. See contributing/Testing.md. Keep a repository in the list only while tests need it.
+     * The list drops {@code null} entries.
      *
-     * The repository blocks of this class contain these repositories (see {@link #extraRepositoriesDefinition}).
-     * An init script also adds them to every test build (see {@link #extraRepositoriesInitScript}).
+     * The repositories blocks of this class declare these repositories (see {@link #extraRepositoriesDefinition}).
+     * An init script declares them in every executer build, smoke test build and performance test build (see {@link #extraRepositoriesInitScript}).
      */
     private static final List<ExtraRepository> EXTRA_REPOSITORIES = ([
         kotlinDevVersionTested() ? new ExtraRepository(MirroredRepository.KOTLIN_DEV.name, MirroredRepository.KOTLIN_DEV.mirrorUrl, [/org\.jetbrains\.kotlin(\..+)?/]) : null
@@ -133,7 +135,7 @@ class RepoScriptBlockUtil {
     }
 
     /**
-     * The Plugin Portal and Maven Central, which is what a build applying {@code kotlin-dsl} resolves from.
+     * A repository block with the Plugin Portal and Maven Central. A build that applies {@code kotlin-dsl} resolves its dependencies from these repositories.
      */
     static String gradlePluginAndMavenCentralRepositories(GradleDsl dsl = GROOVY) {
         repositoriesBlock(dsl, gradlePluginRepositoryDefinition(dsl), mavenCentralRepositoryDefinition(dsl))
@@ -154,6 +156,8 @@ class RepoScriptBlockUtil {
 
     static String extraRepositoryDefinition(GradleDsl dsl = GROOVY, ExtraRepository repository) {
         def includes = repository.groupRegexes.collect { "includeGroupByRegex(\"${escapeBackslashes(it)}\")" }.join("\n")
+        // Repository content filtering exists since Gradle 5.1. Cross-version tests run builds on Gradle 4.0 and later.
+        // Kotlin DSL builds under test run on Gradle 5.1 or later, so the Kotlin variant needs no version check.
         if (dsl == KOTLIN) {
             """
                     maven {
@@ -165,7 +169,6 @@ class RepoScriptBlockUtil {
                     }
                 """
         } else {
-            // Gradle 5.0, the oldest Tooling API target, has no content filtering; Kotlin DSL builds under test are all on 5.1+
             """
                     maven {
                         name = '${repository.name}'
@@ -267,8 +270,8 @@ class RepoScriptBlockUtil {
                         gradle.beforeSettings { Settings settings ->
                             def repos = settings.pluginManagement.repositories
                             ExtraRepositoriesPlugin.addTo(repos)
-                            // The default plugin repository only applies while none is declared. Settings plugins resolve
-                            // while the settings script still runs, so it has to go as soon as the build declares one.
+                            // By default, Gradle searches the Gradle Plugin Portal for plugins. A declared plugin repository turns that default off, so declare the Gradle Plugin Portal too.
+                            // When the build declares its own plugin repository, remove the Gradle Plugin Portal at once. Settings plugins resolve while the settings script runs.
                             def portal = repos.gradlePluginPortal()
                             repos.whenObjectAdded { if (!it.is(portal)) repos.remove(portal) }
                         }
@@ -282,7 +285,7 @@ class RepoScriptBlockUtil {
                         project.buildscript.configurations["classpath"].incoming.beforeResolve {
                             ExtraRepositoriesPlugin.addUnlessEmpty(project.buildscript.repositories)
                         }
-                        // Added on first resolution rather than eagerly, so builds that never resolve don't see them
+                        // Declare the repositories when a configuration resolves, not earlier. Then builds that resolve nothing do not see them.
                         def declareOnResolve = { Configuration configuration ->
                             configuration.incoming.beforeResolve {
                                 ExtraRepositoriesPlugin.addUnlessEmpty(project.repositories)
@@ -301,7 +304,7 @@ class RepoScriptBlockUtil {
                     }
                 }
 
-                // a repository declared where there was none would replace the settings repositories
+                // Repositories declared in a project override those declared in settings. Thus, do not declare a repository in a project that declares none.
                 static void addUnlessEmpty(RepositoryHandler repos) {
                     if (!repos.isEmpty()) {
                         addTo(repos)

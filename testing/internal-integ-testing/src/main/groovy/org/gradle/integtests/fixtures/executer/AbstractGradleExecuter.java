@@ -1105,8 +1105,8 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         }
         File extraRepositoriesInitScript = RepoScriptBlockUtil.extraRepositoriesInitScriptFile();
         if (extraRepositoriesInitScript != null && !extraRepositoriesDisabled) {
-            // Give the option and its value as one argument. The wrapper stops its own parsing at the separate value
-            // of an unknown option. Then the wrapper does not see later options, for example --gradle-user-home.
+            // Pass the option and its value as one argument. The wrapper does not know this option. If the value is a
+            // separate argument, the wrapper stops parsing there and misses later options such as --gradle-user-home.
             allArgs.add("--init-script=" + extraRepositoriesInitScript.getAbsolutePath());
         }
         if (quiet) {
