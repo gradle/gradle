@@ -49,13 +49,7 @@ class GeneratedProjectDescriptor {
      */
     @Nullable
     static GeneratedProjectDescriptor findFor(String testProject) {
-        File projectDir
-        try {
-            projectDir = TestProjectLocator.findProjectDir(testProject)
-        } catch (IllegalArgumentException ignored) {
-            return null
-        }
-        File descriptor = new File(projectDir, FILE_NAME)
+        File descriptor = new File(TestProjectLocator.findProjectDir(testProject), FILE_NAME)
         if (!descriptor.file) {
             return null
         }

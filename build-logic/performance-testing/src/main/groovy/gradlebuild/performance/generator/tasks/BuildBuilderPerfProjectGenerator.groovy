@@ -17,11 +17,15 @@
 package gradlebuild.performance.generator.tasks
 
 import org.gradle.api.file.DirectoryProperty
+import org.gradle.api.file.FileCollection
+import org.gradle.api.file.RegularFile
 import org.gradle.api.model.ObjectFactory
+import org.gradle.api.provider.Provider
 import org.gradle.api.provider.ProviderFactory
+import org.gradle.api.tasks.Classpath
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.InputFile
 import org.gradle.api.tasks.Internal
-import org.gradle.api.tasks.InputDirectory
 import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
@@ -46,9 +50,19 @@ abstract class BuildBuilderPerfProjectGenerator extends ProjectGeneratorTask {
     /**
      * Installation directory of the build-builder tool.
      */
-    @PathSensitive(PathSensitivity.RELATIVE)
-    @InputDirectory
+    @Internal
     final DirectoryProperty buildBuilderInstall
+
+    @Classpath
+    FileCollection getBuildBuilderClasspath() {
+        buildBuilderInstall.dir("lib").get().asFileTree
+    }
+
+    @InputFile
+    @PathSensitive(PathSensitivity.NONE)
+    Provider<RegularFile> getBuildBuilderLauncher() {
+        buildBuilderInstall.file("bin/build-builder")
+    }
 
     /**
      * Name of the performance test project to generate, as listed by
@@ -91,7 +105,7 @@ abstract class BuildBuilderPerfProjectGenerator extends ProjectGeneratorTask {
         def outputDir = outputBaseDir.get().asFile
         outputDir.mkdirs()
         execOperations.exec {
-            it.executable = buildBuilderInstall.file("bin/build-builder").get().asFile
+            it.executable = buildBuilderLauncher.get().asFile
             it.workingDir = outputDir
             // Absolute here, but it is not a task input: the generated content is path-independent,
             // and `generatedDir` already covers what this task produces.
