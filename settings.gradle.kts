@@ -45,8 +45,6 @@ val core = platform("core") {
         subproject("build-discovery")
         subproject("build-discovery-impl")
         subproject("build-discovery-reporting")
-        subproject("build-operations")
-        subproject("build-operations-trace")
         subproject("build-option")
         subproject("build-process-services")
         subproject("build-profile")
@@ -197,6 +195,8 @@ module("ide") {
 
 // Observability Module
 module("observability") {
+    subproject("build-operations")
+    subproject("build-operations-trace")
     subproject("logging")
     subproject("logging-api")
     subproject("problems")
