@@ -19,4 +19,5 @@
 
 set -euo pipefail
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+"${SCRIPT_DIR}/inventory-gradle-home.sh" pre || true
 exec "${SCRIPT_DIR}/hooks.sh" pre
