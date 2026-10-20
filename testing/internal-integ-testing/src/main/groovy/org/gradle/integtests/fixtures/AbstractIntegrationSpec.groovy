@@ -655,9 +655,9 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         if (!RepoScriptBlockUtil.mirrorEnabled || mirrorUrl == ArtifactRepositoryContainer.MAVEN_CENTRAL_URL) {
             return
         }
-        using m2
         m2.withCentralMirror(mirrorUrl)
         executer.beforeExecute {
+            it.withEnvironmentVars(M2_HOME: m2.globalMavenDirectory.absolutePath)
             it.withArgument("-Dorg.gradle.mirror.maven.settings=true")
         }
     }

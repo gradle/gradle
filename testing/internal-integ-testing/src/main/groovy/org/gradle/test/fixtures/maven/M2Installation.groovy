@@ -29,6 +29,7 @@ class M2Installation implements Action<GradleExecuter> {
     private TestFile userSettingsFile
     private TestFile globalMavenDirectory
     private MavenLocalRepository userRepository
+    private MavenLocalRepository globalRepository
     private String centralMirrorUrl
     private TestFile globalSettingsFile
     private TestFile isolatedMavenRepoForLeakageChecks
@@ -98,16 +99,18 @@ class M2Installation implements Action<GradleExecuter> {
     }
 
     /**
-     * Adds a {@code <mirrorOf>central</mirrorOf>} mirror to the generated user settings.
+     * Adds a {@code <mirrorOf>central</mirrorOf>} mirror to the generated global settings.
      *
-     * <p>Together with {@code -Dorg.gradle.mirror.maven.settings=true} this redirects
-     * {@code mavenCentral()} for every repository the build creates, including those of a
-     * {@code ProjectInternal.DetachedResolver}, which an init script cannot reach.</p>
+     * <p>Together with {@code -Dorg.gradle.mirror.maven.settings=true} and {@code M2_HOME} pointing at
+     * {@link #getGlobalMavenDirectory()} this redirects {@code mavenCentral()} for every repository the
+     * build creates, including those of a {@code ProjectInternal.DetachedResolver}, which an init script
+     * cannot reach. Unlike the user settings, the global settings do not require moving {@code user.home}
+     * into the test directory.</p>
      */
     M2Installation withCentralMirror(String mirrorUrl) {
         init()
         this.centralMirrorUrl = mirrorUrl
-        writeUserSettingsFile()
+        writeGlobalSettingsFile()
         return this
     }
 
@@ -118,6 +121,21 @@ class M2Installation implements Action<GradleExecuter> {
     private void writeUserSettingsFile() {
         def localRepository = userRepository == null ? "" : """
     <localRepository>${userRepository.rootDir.absolutePath}</localRepository>"""
+        userSettingsFile.text = """
+<settings>${localRepository}
+</settings>"""
+    }
+
+    M2Installation generateGlobalSettingsFile(MavenLocalRepository globalRepository = mavenRepo()) {
+        init()
+        this.globalRepository = globalRepository
+        writeGlobalSettingsFile()
+        return this
+    }
+
+    private void writeGlobalSettingsFile() {
+        def localRepository = globalRepository == null ? "" : """
+    <localRepository>${globalRepository.rootDir.absolutePath}</localRepository>"""
         def mirrors = centralMirrorUrl == null ? "" : """
     <mirrors>
         <mirror>
@@ -126,18 +144,9 @@ class M2Installation implements Action<GradleExecuter> {
             <url>${xmlEscape(centralMirrorUrl)}</url>
         </mirror>
     </mirrors>"""
-        userSettingsFile.text = """
+        globalSettingsFile.createFile().text = """
 <settings>${localRepository}${mirrors}
 </settings>"""
-    }
-
-    M2Installation generateGlobalSettingsFile(MavenLocalRepository globalRepository = mavenRepo()) {
-        init()
-        globalSettingsFile.createFile().text = """
-<settings>
-    <localRepository>${globalRepository.rootDir.absolutePath}</localRepository>
-</settings>"""
-        return this
     }
 
     void execute(GradleExecuter gradleExecuter) {
