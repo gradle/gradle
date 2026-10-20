@@ -66,9 +66,11 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
     public static final String HTML_FORMATTER = "html";
 
     /**
-     * Any Asciidoctor warning fails the user manual.
+     * Matches every Asciidoctor warning message: any warning fails the user manual. The plugin selects
+     * fatal warnings by pattern and has no "all warnings" switch, so matching everything is how that is
+     * expressed.
      */
-    public static final Pattern FATAL_WARNINGS = Pattern.compile(".*");
+    public static final Pattern ANY_WARNING = Pattern.compile(".*");
 
     private static final String GRADLE_EXTENSIONS = "gradleDocs";
 

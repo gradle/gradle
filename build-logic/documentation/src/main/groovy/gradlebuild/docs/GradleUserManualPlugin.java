@@ -284,7 +284,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             sourceSet.setSourceDir(stagedDocumentation);
             // Includes in the top-level document and private docinfo files are resolved against the base dir
             sourceSet.baseDir(baseDir -> baseDir.baseDirFollowsSourceDir());
-            sourceSet.fatalWarnings(GradleBuildDocumentationPlugin.FATAL_WARNINGS);
+            sourceSet.fatalWarnings(GradleBuildDocumentationPlugin.ANY_WARNING);
             sourceSet.attributes(attrs -> attrs.attributeProvider(attributes));
             sources.execute(sourceSet);
         }));
