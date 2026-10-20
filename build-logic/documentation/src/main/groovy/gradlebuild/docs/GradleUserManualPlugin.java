@@ -349,12 +349,13 @@ public class GradleUserManualPlugin implements Plugin<Project> {
     }
 
     /**
-     * model5 derives the output directory from the publication name, under {@code build/docs}, which is where
-     * {@code stageDocs} assembles all documentation. Keep rendering into the staging root, as before.
+     * Redirects a rendering into the user manual's staging root.
      * <p>
-     * {@link AsciidoctorTask#getOutputDir()} is {@code @Internal} and typed as a {@link Provider}, but forwards the
-     * conversion settings' destination directory, which is a {@link Property} in 5.0.3. The plugin offers no setter,
-     * so check the type rather than let a future version fail with a bare {@code ClassCastException}.
+     * The plugin hardcodes its output under {@code build/docs/asciidoc<Publication>/<alias>}, inside
+     * {@code build/docs}, the directory {@code stageDocs} syncs the assembled documentation into. Rendering
+     * there would nest one task's output inside another's, so each rendering is redirected under
+     * {@code build/working/usermanual/}. Consumers read the location back off the task, so only the task
+     * itself needs to know where it writes.
      */
     @SuppressWarnings("unchecked")
     private static void outputTo(AsciidoctorTask task, Provider<Directory> outputDir) {
