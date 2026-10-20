@@ -53,6 +53,7 @@ final class PredefinedOthersProblemGroup extends OthersProblemGroup implements R
 
     @Override
     @Nullable
+    @Deprecated
     public ProblemGroup getParent() {
         return null;
     }

@@ -73,7 +73,10 @@ public abstract class ProblemGroup {
      * Returns the parent group or {@code null} for root groups.
      *
      * @since 8.8
+     * @deprecated The groups from {@link Problems#getGroups()} have a fixed place in the predefined hierarchy, so there is no need to walk it.
+     * This method will be removed in Gradle 10 without replacement.
      */
+    @Deprecated
     @Nullable
     public abstract ProblemGroup getParent();
 

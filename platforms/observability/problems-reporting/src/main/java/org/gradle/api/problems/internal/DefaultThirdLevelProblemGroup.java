@@ -56,6 +56,7 @@ final class DefaultThirdLevelProblemGroup extends ThirdLevelProblemGroup impleme
     }
 
     @Override
+    @Deprecated
     public ProblemGroup getParent() {
         // every Gradle-owned implementation extends ProblemGroup
         return (ProblemGroup) parent;

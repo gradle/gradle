@@ -57,6 +57,7 @@ final class DefaultGradleSecondLevelProblemGroup extends GradleSecondLevelProble
     }
 
     @Override
+    @Deprecated
     public ProblemGroup getParent() {
         // every Gradle-owned implementation extends ProblemGroup
         return (ProblemGroup) parent;

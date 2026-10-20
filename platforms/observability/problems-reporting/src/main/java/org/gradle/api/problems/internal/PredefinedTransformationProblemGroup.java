@@ -56,6 +56,7 @@ final class PredefinedTransformationProblemGroup extends TransformationProblemGr
 
     @Override
     @Nullable
+    @Deprecated
     public ProblemGroup getParent() {
         return null;
     }

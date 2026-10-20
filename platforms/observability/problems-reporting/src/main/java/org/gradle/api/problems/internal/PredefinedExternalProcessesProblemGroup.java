@@ -56,6 +56,7 @@ final class PredefinedExternalProcessesProblemGroup extends ExternalProcessesPro
 
     @Override
     @Nullable
+    @Deprecated
     public ProblemGroup getParent() {
         return null;
     }

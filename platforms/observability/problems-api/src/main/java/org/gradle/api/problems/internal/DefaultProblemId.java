@@ -71,6 +71,7 @@ public class DefaultProblemId extends ProblemId implements Serializable {
         return name + " (in " + groupPath(parent) + ")";
     }
 
+    @SuppressWarnings("deprecation") // ProblemId.create keeps a foreign group, which only the public getter can walk
     private static String groupPath(ProblemGroup group) {
         ProblemGroup parent = group.getParent();
         return parent == null ? group.getName() : groupPath(parent) + " > " + group.getName();

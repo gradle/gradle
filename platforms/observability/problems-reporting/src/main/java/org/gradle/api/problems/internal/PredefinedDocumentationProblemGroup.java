@@ -56,6 +56,7 @@ final class PredefinedDocumentationProblemGroup extends DocumentationProblemGrou
 
     @Override
     @Nullable
+    @Deprecated
     public ProblemGroup getParent() {
         return null;
     }

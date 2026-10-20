@@ -58,6 +58,7 @@ final class PredefinedDependenciesProblemGroup extends DependenciesProblemGroup 
 
     @Override
     @Nullable
+    @Deprecated
     public ProblemGroup getParent() {
         return null;
     }
