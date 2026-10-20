@@ -178,6 +178,16 @@ public class DefaultProblemDiagnosticsFactory implements ProblemDiagnosticsFacto
         }
 
         @Override
+        public ProblemDiagnostics forCurrentCallerLocationOnly() {
+            return diagnosticsForCapturedStack(capturer.captureLocationOnly(), NO_OP);
+        }
+
+        @Override
+        public ProblemDiagnostics forCurrentCallerAlwaysLocated() {
+            return diagnosticsForCapturedStack(capturer.captureLocationAlways(), NO_OP);
+        }
+
+        @Override
         public ProblemDiagnostics forCurrentCallerWithException(ExceptionCreator exceptionCreator) {
             Throwable retained = capturer.captureRetainableException(exceptionCreator);
             if (retained != null) {
