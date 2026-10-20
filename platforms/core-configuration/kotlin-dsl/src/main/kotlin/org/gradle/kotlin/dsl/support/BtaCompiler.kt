@@ -26,11 +26,11 @@ import org.gradle.kotlin.dsl.cache.KotlinDslClasspathEntrySnapshotCache
 import org.gradle.kotlin.dsl.cache.KotlinDslIncrementalCompilationCache
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties.kotlinDslImplicitImports
 import org.jetbrains.kotlin.assignment.plugin.AssignmentPluginNames
-import org.jetbrains.kotlin.buildtools.api.BaseCompilationOperation
 import org.jetbrains.kotlin.buildtools.api.BaseCompilationOperation.Companion.COMPILER_MESSAGE_RENDERER
 import org.jetbrains.kotlin.buildtools.api.BaseIncrementalCompilationConfiguration.Companion.BACKUP_CLASSES
 import org.jetbrains.kotlin.buildtools.api.BaseIncrementalCompilationConfiguration.Companion.KEEP_IC_CACHES_IN_MEMORY
 import org.jetbrains.kotlin.buildtools.api.ExperimentalBuildToolsApi
+import org.jetbrains.kotlin.buildtools.api.KotlinLogger
 import org.jetbrains.kotlin.buildtools.api.SourcesChanges
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.API_VERSION
 import org.jetbrains.kotlin.buildtools.api.arguments.CommonCompilerArguments.Companion.COMPILER_PLUGINS
@@ -61,7 +61,6 @@ import org.jetbrains.kotlin.buildtools.api.jvm.JvmPlatformToolchain.Companion.jv
 import org.jetbrains.kotlin.buildtools.api.jvm.JvmSnapshotBasedIncrementalCompilationConfiguration.Companion.PRECISE_JAVA_TRACKING
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation
 import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.Companion.INCREMENTAL_COMPILATION
-import org.jetbrains.kotlin.buildtools.api.jvm.operations.JvmCompilationOperation.CompilerArgumentsLogLevel
 import org.jetbrains.kotlin.config.JvmTarget
 import org.jetbrains.kotlin.config.JvmTarget.JVM_1_8
 import org.jetbrains.kotlin.samWithReceiver.SamWithReceiverPluginNames
@@ -131,8 +130,6 @@ internal class BTACompiler(val moduleRegistry: ModuleRegistry) {
         fun runCompilation(incremental: Boolean) {
             val operationBuilder = kotlinToolchains.jvm.jvmCompilationOperationBuilder(sources, btaOutputDir)
 
-            operationBuilder[BaseCompilationOperation.COMPILER_ARGUMENTS_LOG_LEVEL] = CompilerArgumentsLogLevel.DEBUG
-
             operationBuilder.compilerArguments.let {
                 it.configureScriptEnvironment(classPath, template, implicitImports)
                 it.configureLanguageVersion(compilerOptions)
@@ -145,7 +142,7 @@ internal class BTACompiler(val moduleRegistry: ModuleRegistry) {
                 operationBuilder.configureIncrementalCompilation(scriptIdentity, classPath, fileSystemAccess, classpathSnapshotCache, incrementalCompilationCache)
             }
 
-            session.executeOperation(operationBuilder.build(), kotlinToolchains.createInProcessExecutionPolicy())
+            session.executeOperation(operationBuilder.build(), kotlinToolchains.createInProcessExecutionPolicy(), SilentKotlinLogger)
         }
 
         incrementalCompilationCache.markCompilationStarted(scriptIdentity)
@@ -314,4 +311,21 @@ internal class BTACompiler(val moduleRegistry: ModuleRegistry) {
 
         return listOfNotNull(scriptingPlugin, samWithReceiverPlugin, assignmentPlugin)
     }
+}
+
+
+// Compiler diagnostics are reported through the message renderer; without a logger BTA prints them to stdout again.
+private
+object SilentKotlinLogger : KotlinLogger {
+    override val isDebugEnabled: Boolean = false
+
+    override fun error(msg: String, throwable: Throwable?) = Unit
+
+    override fun warn(msg: String, throwable: Throwable?) = Unit
+
+    override fun info(msg: String) = Unit
+
+    override fun debug(msg: String) = Unit
+
+    override fun lifecycle(msg: String) = Unit
 }

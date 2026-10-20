@@ -30,7 +30,6 @@ import org.gradle.api.artifacts.dsl.LockMode;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
 import org.gradle.api.file.RegularFileProperty;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier;
 import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity;
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal;
@@ -49,6 +48,7 @@ import org.gradle.api.provider.ListProperty;
 import org.gradle.api.provider.Property;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.resource.local.FileResourceListener;
 import org.jspecify.annotations.Nullable;
 

@@ -74,6 +74,11 @@ Current registry state is ${lastRegistryState} and current log state is ${lastLo
     }
 
     @Override
+    byte[] getToken() {
+        return registryProbe.token
+    }
+
+    @Override
     int getPort() {
         Pattern pattern = Pattern.compile("^.*" + DaemonMessages.ADVERTISING_DAEMON + ".*port:(\\d+).*",
             Pattern.MULTILINE + Pattern.DOTALL);

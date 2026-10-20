@@ -3,7 +3,7 @@
 aircompressor = "2.0.3!!" # CVE-2025-67721
 ansiControl = "0.3!!"
 archunit = "1.4.2!!"
-assertj = "3.23.1!!"
+assertj = "3.27.7!!"
 awaitility = "3.1.6!!"
 bytebuddy = "1.18.8!!"
 cglib = "3.3.0!!"
@@ -12,7 +12,7 @@ compileTesting = "0.21.0!!"
 develocityTestAnnotation = "2.0.1!!"
 dockerJavaApi = "3.4.0!!"
 flot = "0.8.1" # performance test reports
-gradleProfiler = "0.25.2!!"
+gradleProfiler = "0.26.0!!"
 guice = "5.1.0!!"
 hamcrest = "3.0!!"
 hikariCP = "6.3.0!!" # 5.x requires Java 11+
@@ -24,6 +24,7 @@ junit5ForTests = "5.12.2!!"
 junitForTests = "4.13.2!!"
 junitPlatformForTests = "1.12.2!!"
 littleproxy = "2.2.1!!"
+lz4 = "1.11.4!!"
 mockitoCore = "5.23.0!!"
 mockitoKotlin = "6.3.0!!"
 mockwebserver = "4.12.0!!"
@@ -37,7 +38,7 @@ snappy = "0.5!!"
 socksProxy = "4.2.0!!"
 spock = "2.4-groovy-4.0!!"
 testcontainers = "1.20.4!!"
-xerces = "2.12.0!!"
+xerces = "2.12.2!!"
 xmlunit = "1.6!!"
 
 [libraries]
@@ -78,6 +79,7 @@ junitPlatform = { group = "org.junit.platform", name = "junit-platform-launcher"
 junitPlatformEngine = { group = "org.junit.platform", name = "junit-platform-engine", version.ref = "junitPlatformForTests" }
 kotlinxCoroutinesDebug = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-debug", version.ref = "kotlinCoroutines" }
 littleproxy = { group = "io.github.littleproxy", name = "littleproxy", version.ref = "littleproxy" }
+lz4 = { group = "at.yawk.lz4", name = "lz4-java", version.ref = "lz4" }
 mavenResolverConnectorBasic = { group = "org.apache.maven.resolver", name = "maven-resolver-connector-basic", version.ref = "mavenResolver" }
 mavenResolverImpl = { group = "org.apache.maven.resolver", name = "maven-resolver-impl", version.ref = "mavenResolver" }
 mavenResolverProvider = { group = "org.apache.maven", name = "maven-resolver-provider", version.ref = "maven" }

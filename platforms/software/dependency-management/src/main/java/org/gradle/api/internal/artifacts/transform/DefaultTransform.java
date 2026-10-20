@@ -26,18 +26,17 @@ import org.gradle.api.artifacts.transform.TransformAction;
 import org.gradle.api.artifacts.transform.TransformParameters;
 import org.gradle.api.file.FileSystemLocation;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionFactory;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
 import org.gradle.api.internal.file.FileLookup;
 import org.gradle.api.internal.plugins.DslObject;
+import org.gradle.api.internal.project.ProjectDomainObjectContext;
 import org.gradle.api.internal.project.ProjectInternal;
 import org.gradle.api.internal.tasks.NodeExecutionContext;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
 import org.gradle.api.internal.tasks.properties.FileParameterUtils;
 import org.gradle.api.internal.tasks.properties.InputParameterUtils;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
@@ -63,6 +62,7 @@ import org.gradle.internal.isolation.IsolatableFactory;
 import org.gradle.internal.logging.text.TreeFormatter;
 import org.gradle.internal.model.CalculatedValueContainer;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.internal.model.ValueCalculator;
 import org.gradle.internal.operations.BuildOperationContext;
@@ -81,10 +81,8 @@ import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.internal.service.ServiceLookup;
 import org.gradle.internal.service.ServiceLookupException;
 import org.gradle.internal.service.UnknownServiceException;
-import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
 import org.gradle.internal.snapshot.ValueSnapshot;
 import org.gradle.model.internal.type.ModelType;
-import org.gradle.util.internal.TextUtil;
 import org.gradle.work.InputChanges;
 import org.jspecify.annotations.Nullable;
 
@@ -203,15 +201,13 @@ public class DefaultTransform implements Transform {
         this.dependenciesLineEndingSensitivity = dependenciesLineEndingSensitivity;
     }
 
-    private static final String CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY = "CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY";
-
     public static void validateInputFileNormalizer(String propertyName, @Nullable FileNormalizer normalizer, boolean cacheable, TypeValidationContext validationContext) {
         if (cacheable) {
             if (normalizer == InputNormalizer.ABSOLUTE_PATH) {
                 validationContext.visitPropertyError(problem ->
                     problem
                         .forProperty(propertyName)
-                        .id(TextUtil.screamingSnakeToKebabCase(CACHEABLE_TRANSFORM_CANT_USE_ABSOLUTE_SENSITIVITY), "Property declared to be sensitive to absolute paths", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
+                        .id(problem.getGradleGroup().getPluginValidation().problemId("Property declared to be sensitive to absolute paths")) // TODO (donat) missing test coverage
                         .documentedAt(userManual("validation_problems", "cacheable_transform_cant_use_absolute_sensitivity"))
                         .contextualLabel("is declared to be sensitive to absolute paths")
                         .details("This is not allowed for cacheable transforms")
@@ -370,7 +366,7 @@ public class DefaultTransform implements Transform {
                     validationContext.visitPropertyError(problem ->
                         problem
                             .forProperty(propertyName)
-                            .id(TextUtil.screamingSnakeToKebabCase(ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT), "Artifact transform should not declare output", GradleCoreProblemGroup.validation().property()) // TODO (donat) missing test coverage
+                            .id(problem.getGradleGroup().getPluginValidation().problemId("Artifact transform should not declare output")) // TODO (donat) missing test coverage
                             .contextualLabel("declares an output")
                             .documentedAt(userManual("validation_problems", ARTIFACT_TRANSFORM_SHOULD_NOT_DECLARE_OUTPUT.toLowerCase(Locale.ROOT)))
                             .details("is annotated with an output annotation")

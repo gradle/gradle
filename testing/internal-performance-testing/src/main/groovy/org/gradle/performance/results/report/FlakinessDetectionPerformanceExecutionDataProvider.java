@@ -76,6 +76,9 @@ class FlakinessDetectionPerformanceExecutionDataProvider extends PerformanceExec
         return new PerformanceReportScenario(
             Collections.singletonList(execution),
             currentHistory,
+            // Flakiness detection measures how often a scenario regresses, not whether it is broken; an errored run
+            // carries no flakiness signal, so it is deliberately not surfaced here.
+            Collections.emptyList(),
             history instanceof CrossBuildPerformanceTestHistory,
             currentBuildIds,
             commitId

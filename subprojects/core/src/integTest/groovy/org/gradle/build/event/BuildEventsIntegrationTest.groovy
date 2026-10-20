@@ -17,6 +17,7 @@
 package org.gradle.build.event
 
 import org.gradle.api.internal.tasks.testing.report.VerifiesGenericTestReportResults
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.api.services.BuildServiceParameters
 import org.gradle.api.tasks.testing.TestResult
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
@@ -334,7 +335,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec implements Veri
         given:
         file("build.gradle") << """
             plugins { id 'groovy-gradle-plugin' }
-            repositories { mavenCentral() }
+            repositories { ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()} }
             dependencies { testImplementation("junit:junit:4.13") }
         """
         def plugin = file('src/main/groovy/my-plugin.gradle')
@@ -380,7 +381,7 @@ class BuildEventsIntegrationTest extends AbstractIntegrationSpec implements Veri
 
         file("build.gradle") << """
             plugins { id 'groovy-gradle-plugin' }
-            repositories { mavenCentral() }
+            repositories { ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()} }
             dependencies { testImplementation("junit:junit:4.13") }
         """
 

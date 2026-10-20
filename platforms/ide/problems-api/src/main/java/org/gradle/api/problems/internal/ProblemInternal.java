@@ -86,4 +86,9 @@ public interface ProblemInternal extends Problem {
      */
     @Nullable
     AdditionalData getAdditionalData();
+
+    /**
+     * Whether the producer has already written this problem to the console, see {@link ProblemSpecInternal#writtenToConsole()}.
+     */
+    boolean isWrittenToConsole();
 }

@@ -72,6 +72,11 @@ class DistributionFactoryTest extends Specification {
         factory.getDefaultDistribution(tmpDir.testDirectory, false).displayName == "Gradle distribution '${uri}'"
     }
 
+    def doesNotIncludeDistributionUrlCredentialsInDisplayName() {
+        expect:
+        factory.getDistribution(new URI("https://user:secret@server/dist.zip")).displayName == "Gradle distribution 'https://***@server/dist.zip'"
+    }
+
     def createsADisplayNameForAnInstallation() {
         expect:
         factory.getDistribution(tmpDir.testDirectory).displayName == "Gradle installation '${tmpDir.testDirectory}'"
@@ -126,7 +131,7 @@ class DistributionFactoryTest extends Specification {
         def zipFile = createZip { }
 
         expect:
-        factory.getDistribution(zipFile.toURI()).displayName == "Gradle distribution '${zipFile.toURI()}'"
+        factory.getDistribution(zipFile.toURI()).displayName == "Gradle distribution '${zipFile.toURI().toASCIIString()}'"
     }
 
     def usesContentsOfDistributionZipLibDirectoryAsImplementationClasspath() {
@@ -255,7 +260,7 @@ class DistributionFactoryTest extends Specification {
 
         then:
         IllegalArgumentException e = thrown()
-        e.message == "The specified Gradle distribution '${zipFile}' does not exist."
+        e.message == "The specified Gradle distribution '${zipFile.toASCIIString()}' does not exist."
     }
 
     def failsWhenDistributionZipDoesNotContainALibDirectory() {

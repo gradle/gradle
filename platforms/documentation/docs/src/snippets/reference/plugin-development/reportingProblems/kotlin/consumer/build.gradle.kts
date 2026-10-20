@@ -10,5 +10,5 @@ repositories {
 
 
 tasks.named<GreetTask>("greet") {
-    recipient = "World"
+    recipient = providers.gradleProperty("recipient")
 }

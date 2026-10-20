@@ -129,7 +129,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'badTime\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -144,7 +144,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'oldThing\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -159,7 +159,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         }
         verifyAll(receivedProblem(2)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'options.badNested\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -175,7 +175,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         }
         verifyAll(receivedProblem(3)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'ter\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -260,7 +260,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:cannot-use-optional-on-primitive-types'
+            fqid == 'Gradle:Plugin Validation:Primitive property annotated with @Optional'
             contextualLabel == "Type 'MyTask' property 'primitive' of type $primitiveType shouldn't be annotated with @Optional"
             details == 'Properties of primitive type cannot be optional'
             solutions == [
@@ -320,7 +320,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:type-validation:invalid-use-of-type-annotation'
+            fqid == 'Gradle:Plugin Validation:Incorrect use of type annotation'
             contextualLabel == 'Type \'MyTask\' is incorrectly annotated with @CacheableTransform'
             details == 'This annotation only makes sense on TransformAction types'
             solutions == [ 'Remove the annotation' ]
@@ -329,7 +329,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
-            fqid == 'validation:type-validation:invalid-use-of-type-annotation'
+            fqid == 'Gradle:Plugin Validation:Incorrect use of type annotation'
             contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated with @CacheableTask'
             details == 'This annotation only makes sense on Task types'
             solutions == [ 'Remove the annotation' ]
@@ -338,7 +338,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         }
         verifyAll(receivedProblem(2)) {
             severity == Severity.ERROR
-            fqid == 'validation:type-validation:invalid-use-of-type-annotation'
+            fqid == 'Gradle:Plugin Validation:Incorrect use of type annotation'
             contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated with @CacheableTransform'
             details == 'This annotation only makes sense on TransformAction types'
             solutions == [ 'Remove the annotation' ]
@@ -347,7 +347,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         }
         verifyAll(receivedProblem(3)) {
             severity == Severity.ERROR
-            fqid == 'validation:type-validation:invalid-use-of-type-annotation'
+            fqid == 'Gradle:Plugin Validation:Incorrect use of type annotation'
             contextualLabel == 'Type \'MyTask.Options\' is incorrectly annotated with @DisableCachingByDefault'
             details == 'This annotation only makes sense on Task, TransformAction types'
             solutions == [ 'Remove the annotation' ]
@@ -395,7 +395,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'badTime\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -410,7 +410,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == 'Type \'MyTask\' property \'options.badNested\' is missing an input or output annotation'
             details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
@@ -549,7 +549,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:mutable-type-with-setter'
+            fqid == 'Gradle:Plugin Validation:Mutable type with setter'
             contextualLabel == "Type \'MyTask\' property \'mutablePropertyWithSetter\' of mutable type '${testedType.replace('<String>', '')}' is writable"
             details == "Properties of type '${testedType.replace('<String>', '')}' are already mutable"
             solutions == [ 'Remove the \'setMutablePropertyWithSetter\' method' ]
@@ -610,7 +610,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:private-getter-must-not-be-annotated'
+            fqid == 'Gradle:Plugin Validation:Private property with wrong annotation'
             contextualLabel == 'Type \'MyTask\' property \'badTime\' is private and annotated with @Input'
             details == 'Annotations on private getters are ignored'
             solutions == [
@@ -625,7 +625,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:private-getter-must-not-be-annotated'
+            fqid == 'Gradle:Plugin Validation:Private property with wrong annotation'
             contextualLabel == 'Type \'MyTask\' property \'options.badNested\' is private and annotated with @Input'
             details == 'Annotations on private getters are ignored'
             solutions == [
@@ -641,7 +641,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         }
         verifyAll(receivedProblem(2)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:private-getter-must-not-be-annotated'
+            fqid == 'Gradle:Plugin Validation:Private property with wrong annotation'
             contextualLabel == 'Type \'MyTask\' property \'outputDir\' is private and annotated with @OutputDirectory'
             details == 'Annotations on private getters are ignored'
             solutions == [
@@ -697,7 +697,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:type-validation:ignored-annotations-on-method'
+            fqid == 'Gradle:Plugin Validation:Ignored annotations on method'
             contextualLabel == 'Type \'MyTask\' function \'notAGetter()\' should not be annotated with: @Input'
             details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
             solutions == [
@@ -709,7 +709,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
-            fqid == 'validation:type-validation:ignored-annotations-on-method'
+            fqid == 'Gradle:Plugin Validation:Ignored annotations on method'
             contextualLabel == 'Type \'MyTask.Options\' function \'notANestedGetter()\' should not be annotated with: @Input'
             details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
             solutions == [
@@ -774,23 +774,20 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
-            contextualLabel == 'Type \'MyTask\' property \'readWrite\' is missing an input or output annotation'
-            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
+            fqid == 'Gradle:Plugin Validation:Ignored annotations on method'
+            contextualLabel == 'Type \'MyTask\' setter \'setReadWrite()\' should not be annotated with: @Input'
+            details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
             solutions == [
-                'Add an input or output annotation',
-                'Mark it as @Internal',
+                'Remove the annotations',
+                'Rename the method',
             ]
-            additionalData.asMap == [
-                'typeName' : 'MyTask',
-                'propertyName' : 'readWrite',
-            ]
+            additionalData.asMap == [ 'typeName' : 'MyTask' ]
             originLocations == []
         }
         verifyAll(receivedProblem(1)) {
             severity == Severity.ERROR
-            fqid == 'validation:type-validation:ignored-annotations-on-method'
-            contextualLabel == 'Type \'MyTask\' setter \'setReadWrite()\' should not be annotated with: @Input'
+            fqid == 'Gradle:Plugin Validation:Ignored annotations on method'
+            contextualLabel == 'Type \'MyTask\' setter \'setWriteOnly()\' should not be annotated with: @Input'
             details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
             solutions == [
                 'Remove the annotations',
@@ -801,20 +798,20 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         }
         verifyAll(receivedProblem(2)) {
             severity == Severity.ERROR
-            fqid == 'validation:type-validation:ignored-annotations-on-method'
-            contextualLabel == 'Type \'MyTask\' setter \'setWriteOnly()\' should not be annotated with: @Input'
+            fqid == 'Gradle:Plugin Validation:Ignored annotations on method'
+            contextualLabel == 'Type \'MyTask.Options\' setter \'setReadWrite()\' should not be annotated with: @Input'
             details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
             solutions == [
                 'Remove the annotations',
                 'Rename the method',
             ]
-            additionalData.asMap == [ 'typeName' : 'MyTask' ]
+            additionalData.asMap == [ 'typeName' : 'MyTask.Options' ]
             originLocations == []
         }
         verifyAll(receivedProblem(3)) {
             severity == Severity.ERROR
-            fqid == 'validation:type-validation:ignored-annotations-on-method'
-            contextualLabel == 'Type \'MyTask.Options\' setter \'setReadWrite()\' should not be annotated with: @Input'
+            fqid == 'Gradle:Plugin Validation:Ignored annotations on method'
+            contextualLabel == 'Type \'MyTask.Options\' setter \'setWriteOnly()\' should not be annotated with: @Input'
             details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
             solutions == [
                 'Remove the annotations',
@@ -825,14 +822,17 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         }
         verifyAll(receivedProblem(4)) {
             severity == Severity.ERROR
-            fqid == 'validation:type-validation:ignored-annotations-on-method'
-            contextualLabel == 'Type \'MyTask.Options\' setter \'setWriteOnly()\' should not be annotated with: @Input'
-            details == 'Input/Output annotations are ignored if they are placed on something else than a getter'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
+            contextualLabel == 'Type \'MyTask\' property \'readWrite\' is missing an input or output annotation'
+            details == 'Properties must be annotated so that Gradle knows how to handle them during up-to-date checking'
             solutions == [
-                'Remove the annotations',
-                'Rename the method',
+                'Add an input or output annotation',
+                'Mark it as @Internal',
             ]
-            additionalData.asMap == [ 'typeName' : 'MyTask.Options' ]
+            additionalData.asMap == [
+                'typeName' : 'MyTask',
+                'propertyName' : 'readWrite',
+            ]
             originLocations == []
         }
     }
@@ -875,7 +875,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:ignored-property-must-not-be-annotated'
+            fqid == 'Gradle:Plugin Validation:Ignored property has other annotations'
             contextualLabel == 'Type \'MyTask\' property \'oldProperty\' annotated with @ReplacedBy should not be also annotated with @Input'
             details == 'A property is ignored but also has input annotations'
             solutions == [
@@ -913,7 +913,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:missing-annotation'
+            fqid == 'Gradle:Plugin Validation:Missing annotation'
             contextualLabel == "Type 'MyTask' property 'badProperty' is missing an input or output annotation"
             details == "@Optional is a modifier annotation and has no effect without an input or output annotation"
             solutions == [
@@ -952,7 +952,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:ignored-property-must-not-be-annotated'
+            fqid == 'Gradle:Plugin Validation:Ignored property has other annotations'
             contextualLabel == "Type 'MyTask' property 'badProperty' annotated with @Internal should not be also annotated with @Optional"
             details == '@Internal properties are excluded from up-to-date checks; @Optional is redundant and not allowed here'
             solutions == [
@@ -996,7 +996,7 @@ abstract class AbstractPluginValidationIntegrationSpec extends AbstractIntegrati
         and:
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:conflicting-annotations'
+            fqid == 'Gradle:Plugin Validation:Conflicting annotations'
             contextualLabel == 'Type \'MyTask\' property \'file\' has conflicting type annotations declared: @InputFile, @OutputFile'
             details == 'The different annotations have different semantics and Gradle cannot determine which one to pick'
             solutions == [ 'Choose between one of the conflicting annotations' ]

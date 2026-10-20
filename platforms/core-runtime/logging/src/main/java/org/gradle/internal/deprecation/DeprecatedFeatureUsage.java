@@ -32,8 +32,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
     private final String advice;
     private final String contextualAdvice;
     private final DocLink documentation;
-    private final String problemIdDisplayName;
-    private final String problemId;
+    private final String problemName;
 
     private final Type type;
 
@@ -44,8 +43,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         @Nullable String contextualAdvice,
         @Nullable DocLink documentation,
         Type type,
-        String problemIdDisplayName,
-        String problemId,
+        String problemName,
         Class<?> calledFrom
     ) {
         super(summary, calledFrom);
@@ -54,8 +52,7 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         this.contextualAdvice = contextualAdvice;
         this.type = Preconditions.checkNotNull(type);
         this.documentation = documentation;
-        this.problemIdDisplayName = problemIdDisplayName;
-        this.problemId = problemId;
+        this.problemName = problemName;
     }
 
     @VisibleForTesting
@@ -66,13 +63,9 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         this.contextualAdvice = usage.contextualAdvice;
         this.documentation = usage.documentation;
         this.type = usage.type;
-        this.problemIdDisplayName = usage.problemIdDisplayName;
-        this.problemId = usage.problemId;
+        this.problemName = usage.problemName;
     }
 
-    @Nullable public String getProblemId() {
-        return problemId;
-    }
 
     /**
      * Indicates the type of usage, affecting the feedback that can be given.
@@ -161,8 +154,8 @@ public class DeprecatedFeatureUsage extends FeatureUsage {
         return type;
     }
 
-    public String getProblemIdDisplayName() {
-        return problemIdDisplayName;
+    public String getProblemName() {
+        return problemName;
     }
 
     @Override

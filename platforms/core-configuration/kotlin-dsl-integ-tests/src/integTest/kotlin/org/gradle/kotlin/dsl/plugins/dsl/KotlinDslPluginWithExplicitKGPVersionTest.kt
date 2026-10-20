@@ -79,7 +79,7 @@ class KotlinDslPluginWithExplicitKGPVersionTest(
             return listOfNotNull(latestOlderStable, newerVersion)
         }
 
-        private val KOTLIN_2_4_20 = VersionNumber.parse("2.4.20")
+        private val KOTLIN_2_5_0 = VersionNumber.parse("2.5.0")
 
         private fun isSynthetic(label: String): Boolean = label == "synthetic"
     }
@@ -93,52 +93,48 @@ class KotlinDslPluginWithExplicitKGPVersionTest(
             setupSyntheticKgpRepo()
         }
 
-        try {
+        syntheticKgpRepo.use {
             withBuildScript(
                 """
-
-                plugins {
-                    `kotlin-dsl`
-                    id("org.jetbrains.kotlin.jvm") version "$kotlinVersionString"
-                }
-
-                $repositoriesBlock
-
-                """
+    
+                    plugins {
+                        `kotlin-dsl`
+                        id("org.jetbrains.kotlin.jvm") version "$kotlinVersionString"
+                    }
+    
+                    $repositoriesBlock
+    
+                    """
             )
 
             withFile(
                 "src/main/kotlin/code.kt",
                 """
-
-                import org.gradle.api.Plugin
-                import org.gradle.api.Project
-
-                class MyPlugin : Plugin<Project> {
-                    override fun apply(project: Project) {
-                        println("applied!")
+    
+                    import org.gradle.api.Plugin
+                    import org.gradle.api.Project
+    
+                    class MyPlugin : Plugin<Project> {
+                        override fun apply(project: Project) {
+                            println("applied!")
+                        }
                     }
-                }
-
-                """
+    
+                    """
             )
 
-            expectFirLightTreeFlagDeprecation()
+            expectLanguageLevel2Dot2Deprecation()
 
             build("classes")
-        } finally {
-            syntheticKgpRepo?.close()
         }
     }
-    
-    private fun expectFirLightTreeFlagDeprecation() {
-        if (isSynthetic(versionLabel)) return
-        if (VersionNumber.parse(kotlinVersionString).baseVersion < KOTLIN_2_4_20) return
-        executer.expectExternalDeprecatedMessage(
-            "    The argument '-Xuse-fir-lt' is deprecated since Kotlin 2.4.20. " +
-                "It will be removed in one of the future releases. " +
-                "The light tree mode is enabled by default, and it will become the only available mode in one of the future releases."
-        )
+
+    private fun expectLanguageLevel2Dot2Deprecation() {
+        if (VersionNumber.parse(kotlinVersionString).baseVersion >= KOTLIN_2_5_0) {
+            executer.expectExternalDeprecatedMessage(
+                "    Language version 2.2 is deprecated and its support will be removed in a future version of Kotlin. Update the version to 2.3."
+            )
+        }
     }
 
     private fun setupSyntheticKgpRepo() {

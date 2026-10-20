@@ -23,7 +23,6 @@ import spock.lang.Issue;
 
 import java.io.File;
 
-import static org.hamcrest.CoreMatchers.containsString;
 import static org.hamcrest.CoreMatchers.startsWith;
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects;
 
@@ -281,7 +280,7 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
     }
 
     @Test
-    public void settingsFileGetsIgnoredWhenUsingSettingsOnlyDirectoryAsProjectDirectory() {
+    public void settingsFileIsUsedWhenUsingSettingsOnlyDirectoryAsProjectDirectory() {
         TestFile settingsDir = testFile("gradle");
         TestFile settingsFile = settingsDir.file("settings.gradle");
         createDirs("root");
@@ -290,7 +289,6 @@ public class ProjectLoadingIntegrationTest extends AbstractIntegrationTest {
         );
         getTestDirectory().createDir("root").file("build.gradle").writelns("task thing");
 
-        inTestDirectory().withArguments("-p", settingsDir.getAbsolutePath()).withTasks("thing").runWithFailure()
-            .assertThatDescription(containsString("Task 'thing' not found in root project 'gradle'."));
+        inTestDirectory().withArguments("-p", settingsDir.getAbsolutePath()).withTasks("thing").run();
     }
 }

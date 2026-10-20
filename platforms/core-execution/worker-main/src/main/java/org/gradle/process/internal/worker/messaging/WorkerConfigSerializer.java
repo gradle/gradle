@@ -52,6 +52,7 @@ public class WorkerConfigSerializer implements Serializer<WorkerConfig> {
         NativeServicesMode nativeServicesMode = NativeServicesMode.values()[decoder.readSmallInt()];
         String gradleUserHomeDirPath = decoder.readString();
         MultiChoiceAddress serverAddress = new MultiChoiceAddressSerializer().read(decoder);
+        byte[] connectionToken = decoder.readBinary();
         final long workerId = decoder.readSmallLong();
         final String displayName = decoder.readString();
         Action<? super WorkerProcessContext> workerAction = deserializeWorker(decoder.readBinary(), getClass().getClassLoader());
@@ -61,6 +62,7 @@ public class WorkerConfigSerializer implements Serializer<WorkerConfig> {
             shouldPublishJvmMemoryInfo,
             gradleUserHomeDirPath,
             serverAddress,
+            connectionToken,
             workerId,
             displayName,
             workerAction,
@@ -75,6 +77,7 @@ public class WorkerConfigSerializer implements Serializer<WorkerConfig> {
         encoder.writeSmallInt(config.getNativeServicesMode().ordinal());
         encoder.writeString(config.getGradleUserHomeDirPath());
         new MultiChoiceAddressSerializer().write(encoder, config.getServerAddress());
+        encoder.writeBinary(config.getConnectionToken());
         encoder.writeSmallLong(config.getWorkerId());
         encoder.writeString(config.getDisplayName());
         encoder.writeBinary(serializeWorker(config.getWorkerAction()));

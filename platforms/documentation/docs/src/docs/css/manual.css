@@ -678,16 +678,6 @@ select { width: 100%; }
 }
 .clearfix:after, .float-group:after { clear: both; }
 
-/* 6. SITE HEADER */
-
-/* Hamburger */
-
-/* Submenu */
-
-/* Mobile header */
-
-/* Desktop header */
-
 /* 7. SIDE NAVIGATION */
 
 .docs-navigation {
@@ -1893,8 +1883,6 @@ details p {
 @media screen and (min-width: 64rem) {
     #header { margin-bottom: 20px; }
 }
-
-/* 22. THEME TOGGLE */
 
 /* 23. BUTTONS & BADGES */
 

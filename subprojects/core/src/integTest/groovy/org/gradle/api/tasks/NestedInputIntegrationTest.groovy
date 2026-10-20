@@ -500,7 +500,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'TaskWithAbsentNestedInput').")
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:value-not-set'
+            fqid == 'Gradle:Build Definition:Value not set'
             definition.id.displayName == 'Value not set'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"
         }
@@ -869,7 +869,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         failureDescriptionContains("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:nested-map-unsupported-key-type'
+            fqid == 'Gradle:Plugin Validation:Unsupported nested map key'
             definition.id.displayName == 'Unsupported nested map key'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#unsupported_key_type_of_nested_map"
         }
@@ -900,7 +900,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         failureDescriptionContains("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:nested-type-unsupported'
+            fqid == 'Gradle:Plugin Validation:Nested type unsupported'
             definition.id.displayName == 'Nested type unsupported'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#unsupported_nested_type"
         }
@@ -938,7 +938,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         failureDescriptionContains("A problem was found with the configuration of task ':customTask' (type 'CustomTask').")
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:nested-type-unsupported'
+            fqid == 'Gradle:Plugin Validation:Nested type unsupported'
             definition.id.displayName == 'Nested type unsupported'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#unsupported_nested_type"
         }
@@ -1015,7 +1015,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         failureDescriptionContains("A problem was found with the configuration of task ':customTask' (type 'Build_gradle.CustomTask').")
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:nested-type-unsupported'
+            fqid == 'Gradle:Plugin Validation:Nested type unsupported'
             definition.id.displayName == 'Nested type unsupported'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#unsupported_nested_type"
         }
@@ -1071,19 +1071,19 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
             failureDescriptionStartsWith("Configuration cache problems found in this build")
             verifyAll(receivedProblem(0)) {
                 severity == Severity.ERROR
-                fqid.startsWith('validation:configuration-cache:class-nestedbean-cannot-be-encoded')
-                originLocations == []
+                fqid == 'Gradle:Build Logic:Unknown property implementation'
+                definition.id.displayName == 'Unknown property implementation'
+                definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
             }
             verifyAll(receivedProblem(1)) {
                 severity == Severity.ERROR
-                fqid == 'validation:property-validation:unknown-implementation-nested'
-                definition.id.displayName == 'Unknown property implementation'
-                definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
+                fqid.startsWith('validation:configuration-cache:class-nestedbean-cannot-be-encoded')
+                originLocations == []
             }
         } else {
             verifyAll(receivedProblem) {
                 severity == Severity.ERROR
-                fqid == 'validation:property-validation:unknown-implementation-nested'
+                fqid == 'Gradle:Build Logic:Unknown property implementation'
                 definition.id.displayName == 'Unknown property implementation'
                 definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#implementation_unknown"
             }

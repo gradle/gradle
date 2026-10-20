@@ -29,7 +29,6 @@ import org.gradle.internal.jvm.Jvm;
 import org.gradle.internal.jvm.inspection.DefaultJavaInstallationRegistry;
 import org.gradle.internal.jvm.inspection.DefaultJvmMetadataDetector;
 import org.gradle.internal.jvm.inspection.JavaInstallationRegistry;
-import org.gradle.internal.jvm.inspection.JvmInstallationProblemReporter;
 import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.ExternalResourceFactory;
 import org.gradle.internal.service.Provides;
@@ -138,7 +137,6 @@ public class ToolchainsJvmServices extends AbstractGradleModuleServices {
 
     @Override
     public void registerBuildSessionServices(ServiceRegistration registration) {
-        registration.add(JvmInstallationProblemReporter.class);
         registration.add(JvmToolchainsConfigurationValidator.class, DefaultJvmToolchainsConfigurationValidator.class);
     }
 

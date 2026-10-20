@@ -229,10 +229,13 @@ class ProblemProgressEventCrossVersionSpec extends ToolingApiSpecification {
         ]
     }
 
-    static void validateCompilationProblem(List<SingleProblemEvent> problems, TestFile buildFile) {
-        problems.size() == 1
-        problems[0].definition.id.displayName == "Could not compile build file '$buildFile.absolutePath'."
-        problems[0].definition.id.group.name == 'compilation'
+    void validateCompilationProblem(List<SingleProblemEvent> problems, TestFile buildFile) {
+        assert problems.size() == 1
+        def problem = problems[0]
+        assert problem.contextualLabel.contextualLabel == "Could not compile build file '$buildFile.absolutePath'."
+        assert problem.definition.id.displayName == 'Script compilation failed'
+        assert problem.definition.id.group.name == 'DSL Evaluation'
+        assert problem.definition.id.group.parent.name == 'Gradle'
     }
 
     def "Property validation failure should produce problem report with domain-specific additional data"() {
@@ -272,30 +275,6 @@ class ProblemProgressEventCrossVersionSpec extends ToolingApiSpecification {
         listener.problems.size() == 1
         listener.problems[0].additionalData.asMap['typeName'] == 'MyTask'
     }
-
-    @TargetGradleVersion("=8.6")
-    def "8.6 version doesn't send failure"() {
-        buildFile """
-            tasks.register("foo) {
-        """
-
-        given:
-        def listener = new ProblemProgressListener()
-
-        when:
-        withConnection {
-            it.model(CustomModel)
-                .addProgressListener(listener)
-                .get()
-        }
-
-        then:
-        thrown(BuildException)
-        def problems = listener.problems
-        validateCompilationProblem(problems, buildFile)
-        failureMessage(problems[0].failure) == null
-    }
-
 
     static class ProblemProgressListener implements ProgressListener {
         List<SingleProblemEvent> problems = []

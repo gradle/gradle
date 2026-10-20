@@ -27,6 +27,7 @@ import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.ProblemLocation
 import org.gradle.api.problems.internal.PluginIdLocation
+import org.gradle.api.problems.internal.ProblemGroupInternal
 import org.gradle.api.problems.internal.ProblemInternal
 import org.gradle.api.problems.internal.ProblemReportCreator
 import org.gradle.api.problems.internal.ProblemSummaryData
@@ -106,16 +107,17 @@ class DefaultProblemsReportCreator(
 private fun ProblemSummaryData.toJsProblemIdSummary(): JsProblemIdSummary =
     JsProblemIdSummary(problemId = problemId.toJsProblemIdElements(), count = count)
 
+private fun ProblemId.toJsProblemIdElements(): List<JsProblemIdElement> =
+    group.chainFromRoot().map { jsElement(it.name, it.displayName) } + jsElement(name, displayName)
+
+private fun ProblemGroup.chainFromRoot(): List<ProblemGroupInternal> =
+    generateSequence(ProblemGroupInternal.of(this)) { it.parentInternal }.toList().asReversed()
+
 @Suppress("USELESS_ELVIS")
-private fun ProblemId.toJsProblemIdElements(): List<JsProblemIdElement> {
-    val groups = generateSequence(group) { it.parent }.toList().reversed() + ProblemGroup.create(name, displayName)
-    return groups.map { group ->
-        JsProblemIdElement(
-            name = group.name ?: "<no name provided>",
-            displayName = group.displayName ?: "<no display name provided>"
-        )
-    }
-}
+private fun jsElement(name: String?, displayName: String?) = JsProblemIdElement(
+    name = name ?: "<no name provided>",
+    displayName = displayName ?: "<no display name provided>",
+)
 
 private fun jsLocationsFor(
     originLocations: List<ProblemLocation>,

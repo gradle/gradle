@@ -16,6 +16,7 @@
 
 package gradlebuild.integrationtests.androidhomewarmup
 
+import gradlebuild.basics.RepositoryMirrors
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.DirectoryProperty
 import org.gradle.api.provider.ListProperty
@@ -154,7 +155,8 @@ abstract class AndroidHomeWarmupTask : DefaultTask() {
         val result: ExecResult = execOperations.exec {
             workingDir = projectDir
             executable = gradleExecutable
-            args = listOf("build", "--no-daemon", "--quiet", "-x", "lint", "-x", "lintDebug", "-x", "lintRelease")
+            args = listOf("build", "--no-daemon", "--quiet", "-x", "lint", "-x", "lintDebug", "-x", "lintRelease") +
+                RepositoryMirrors.nestedBuildArguments(rootProjectDir.get().asFile)
             isIgnoreExitValue = false
         }
 

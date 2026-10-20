@@ -174,7 +174,7 @@ public abstract class TaskInAnotherBuild extends TaskNode {
 
     @Nullable
     @Override
-    public ResourceLock getProjectToLock() {
+    public ResourceLock getResourceToLock() {
         // Ignore, as the node in the other build's execution graph takes care of this
         return null;
     }

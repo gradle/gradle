@@ -442,7 +442,7 @@ class JarIntegrationTest extends AbstractIntegrationSpec implements ValidationMe
         //   We will produce the correct message after https://github.com/gradle/gradle/issues/26141 is fixed.
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:value-not-set'
+            fqid == 'Gradle:Build Definition:Value not set'
             definition.id.displayName == 'Value not set'
             details == 'This property isn\'t marked as optional and no value has been configured'
             definition.documentationLink.url == "https://docs.gradle.org/${distribution.version.version}/userguide/validation_problems.html#value_not_set"

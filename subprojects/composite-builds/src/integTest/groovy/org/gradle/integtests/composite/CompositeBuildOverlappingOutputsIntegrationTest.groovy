@@ -214,7 +214,7 @@ class CompositeBuildOverlappingOutputsIntegrationTest extends AbstractCompositeB
         executed(":buildB:producer", ":consumer")
         buildA.file("consumer-out.txt").text == "consumed"
         verifyAll(receivedProblem(0)) {
-            fqid == 'deprecation:implicit-dependency-between-tasks-in-different-builds'
+            fqid == 'Gradle:Deprecation:Implicit dependency between tasks in different builds'
             definition.id.displayName == 'Implicit dependency between tasks in different builds'
             contextualLabel == "Producing a file in one build and consuming it in another build without declaring an explicit dependency has been deprecated."
             details == 'This will fail with an error in Gradle 10.'

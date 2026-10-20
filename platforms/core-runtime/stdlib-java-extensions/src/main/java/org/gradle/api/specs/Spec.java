@@ -23,7 +23,7 @@ package org.gradle.api.specs;
  */
 public interface Spec<T> {
     /**
-     * Returns whether satisfied by is set.
+     * Returns whether the given element satisfies this spec.
      *
      * @since 0.7
      */

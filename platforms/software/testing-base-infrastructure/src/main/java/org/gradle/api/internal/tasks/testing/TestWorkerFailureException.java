@@ -28,15 +28,7 @@ import java.util.List;
  */
 @NullMarked
 public final class TestWorkerFailureException extends DefaultMultiCauseException {
-    private final List<String> resolutions;
-
     public TestWorkerFailureException(String message, List<Throwable> causes, List<String> resolutions) {
-        super(message, causes);
-        this.resolutions = resolutions;
-    }
-
-    @Override
-    public List<String> getResolutions() {
-        return resolutions;
+        super(message, causes, resolutions);
     }
 }

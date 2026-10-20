@@ -17,6 +17,7 @@ package org.gradle.integtests.fixtures
 
 import org.apache.commons.lang3.StringEscapeUtils
 import org.gradle.api.Action
+import org.gradle.api.artifacts.ArtifactRepositoryContainer
 import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.problems.Severity
 import org.gradle.api.problems.internal.DefaultProblemProgressDetails
@@ -631,6 +632,36 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         executer
     }
 
+    /**
+     * Routes the libraries that the {@code :init} task resolves through the repository mirror.
+     *
+     * <p>Those are resolved by a {@code ProjectInternal.DetachedResolver} created in
+     * {@code PomProjectInitDescriptor}, whose repositories the init script installed by
+     * {@link org.gradle.integtests.fixtures.executer.GradleExecuter#withRepositoryMirrors()}
+     * never sees. A Maven settings mirror does reach them, because
+     * {@code DefaultMavenArtifactRepository} consults it for every repository it creates.</p>
+     *
+     * <p>{@code BuildInitPlugin} calls {@code configureClasspath} on the build converter when it
+     * registers the task, so every {@code init} invocation gets this classpath regardless of
+     * {@code --type}. That is why this applies to all build-init tests, not only the ones that
+     * convert a POM.</p>
+     */
+    protected void mirrorMavenCentralForInit() {
+        def mirrorUrl = RepoScriptBlockUtil.mavenCentralMirrorUrl
+        // Without a mirror configured, mirrorUrl is Maven Central itself. Writing that as a
+        // <mirrorOf>central</mirrorOf> would be a no-op for resolution, but it would still switch
+        // on the incubating feature - emitting its warning and making settings.xml a configuration
+        // cache input - so leave local runs alone entirely.
+        if (!RepoScriptBlockUtil.mirrorEnabled || mirrorUrl == ArtifactRepositoryContainer.MAVEN_CENTRAL_URL) {
+            return
+        }
+        using m2
+        m2.withCentralMirror(mirrorUrl)
+        executer.beforeExecute {
+            it.withArgument("-Dorg.gradle.mirror.maven.settings=true")
+        }
+    }
+
     def createZip(String name, Closure cl) {
         TestFile zipRoot = file("${name}.root")
         zipRoot.deleteDir()
@@ -758,7 +789,7 @@ tmpdir is currently ${System.getProperty("java.io.tmpdir")}""")
         // However, since it isn't we do not know if the test has disabled the filtering of
         // these deprecation logs from the normal deprecation checks.
         // So, just ignore them all the time, even if the test has requested to not ignore these warnings.
-        if (problem.fqid == 'deprecation:executing-gradle-on-jvm-versions-and-lower') {
+        if (problem.fqid.startsWith('Gradle:Deprecation:Executing Gradle on JVM versions ')) {
             return false
         }
         // Filter out Kotlin DSL JDK incompatibility warnings that don't matter in practice

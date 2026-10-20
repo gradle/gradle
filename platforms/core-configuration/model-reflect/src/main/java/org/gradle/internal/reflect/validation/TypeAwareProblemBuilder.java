@@ -16,6 +16,7 @@
 
 package org.gradle.internal.reflect.validation;
 
+import org.gradle.api.problems.GradleProblemGroup;
 import org.gradle.api.problems.internal.ProblemSpecInternal;
 import org.jspecify.annotations.NullMarked;
 import org.jspecify.annotations.Nullable;
@@ -29,4 +30,12 @@ public interface TypeAwareProblemBuilder extends ProblemSpecInternal {
     TypeAwareProblemBuilder forFunction(String methodName);
 
     TypeAwareProblemBuilder parentProperty(@Nullable String parentProperty);
+
+    /**
+     * The predefined {@code Gradle} root group, from which validation code creates the id of the problem it reports.
+     * <p>
+     * Validation problems are described by actions that may be recorded and replayed later, often from static code,
+     * so the builder is the one place where every producer can reach the groups of the {@code Problems} service.
+     */
+    GradleProblemGroup getGradleGroup();
 }

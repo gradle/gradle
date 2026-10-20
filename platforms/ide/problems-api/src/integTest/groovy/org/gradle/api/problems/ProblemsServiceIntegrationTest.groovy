@@ -114,8 +114,8 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         expect:
         succeeds("test")
         verifyAll(receivedProblem(0)) {
-            definition.id.fqid == 'deprecation:properties-should-be-assigned-using-the-propname-value-syntax-setting-a-property-via-the-gradle-generated-propname-value-or-propname-value-syntax-in-groovy-dsl'
-            definition.id.displayName == """Properties should be assigned using the 'propName = value' syntax. Setting a property via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL has been deprecated."""
+            definition.id.fqid == """Gradle:Deprecation:Property set via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL"""
+            definition.id.displayName == """Property set via the Gradle-generated 'propName value' or 'propName(value)' syntax in Groovy DSL"""
             originLocations.size() == 1
             //guarantee no duplicate locations
             originLocations.size() == 1
@@ -531,7 +531,7 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         outputContains """
-Problem found: Project is a prototype (id: sample-problems:prototype-project)
+Problem found: Project is a prototype (id: prototype-project, in sample-problems)
   This is a prototype and not a guideline for modeling real-life projects
     Complex build logic like the Problems API usage should be integrated into plugins
     For more information, please refer to https://example.com/some-problem.
@@ -607,7 +607,7 @@ Problem found: Project is a prototype (id: sample-problems:prototype-project)
         expect:
         succeeds("help")
         verifyAll(receivedProblem) {
-            it.definition.id.group.name == 'deprecation'
+            it.definition.id.fqid == 'Gradle:Deprecation:Feature'
         }
     }
 

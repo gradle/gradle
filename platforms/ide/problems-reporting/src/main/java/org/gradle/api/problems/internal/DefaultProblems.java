@@ -57,6 +57,11 @@ public class DefaultProblems implements ProblemsInternal {
         return createReporter();
     }
 
+    @Override
+    public ProblemGroupsInternal getGroups() {
+        return DefaultProblemGroups.INSTANCE;
+    }
+
     private DefaultProblemReporter createReporter() {
         return new DefaultProblemReporter(
             problemSummarizer,

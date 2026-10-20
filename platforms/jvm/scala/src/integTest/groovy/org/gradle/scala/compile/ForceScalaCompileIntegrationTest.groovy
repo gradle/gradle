@@ -33,9 +33,7 @@ plugins {
     id 'scala'
 }
 
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
 
 dependencies {
     implementation 'org.scala-lang:scala-library:${ScalaCoverage.latestSupportedScala2Version}'
@@ -69,9 +67,7 @@ plugins {
     id 'scala'
 }
 
-repositories {
-    mavenCentral()
-}
+${mavenCentralRepository()}
 
 dependencies {
     implementation 'org.scala-lang:scala-library:${ScalaCoverage.latestSupportedScala2Version}'

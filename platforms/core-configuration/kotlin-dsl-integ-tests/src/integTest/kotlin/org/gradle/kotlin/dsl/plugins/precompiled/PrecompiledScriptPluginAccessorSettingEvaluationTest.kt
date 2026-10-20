@@ -22,13 +22,11 @@ import org.hamcrest.CoreMatchers
 import org.hamcrest.MatcherAssert
 import org.junit.Test
 import java.io.File
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
 class PrecompiledScriptPluginAccessorSettingEvaluationTest : AbstractPrecompiledScriptPluginTest() {
 
-    @ToBeFixedForIsolatedProjects(because = "precompiled script plugins cross-project")
     @Test
     fun `settings and init scripts are not evaluated when generating accessors`() {
         // given:
@@ -58,16 +56,11 @@ class PrecompiledScriptPluginAccessorSettingEvaluationTest : AbstractPrecompiled
                 file("${evaluationLog.normalisedPath}").appendText("<settings>")
             """
         )
-        withKotlinDslPlugin().appendText(
+        withKotlinDslPluginIn("producer")
+        withKotlinDslPluginIn("consumer").appendText(
             """
-                subprojects {
-                    apply(plugin = "org.gradle.kotlin.kotlin-dsl")
-                    $repositoriesBlock
-                }
-                project(":consumer") {
-                    dependencies {
-                        implementation(project(":producer"))
-                    }
+                dependencies {
+                    implementation(project(":producer"))
                 }
             """
         )

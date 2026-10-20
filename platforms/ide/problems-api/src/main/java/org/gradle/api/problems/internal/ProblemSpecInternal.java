@@ -118,6 +118,13 @@ public interface ProblemSpecInternal extends ProblemSpec {
     @Override
     ProblemSpecInternal withException(Throwable t);
 
+    /**
+     * Records that the producer has already written this problem to the console, so console renderers that would
+     * otherwise print every reported problem skip it. Used by producers that mirror an external tool's output, such as
+     * the Java compiler diagnostics javac prints to the error stream.
+     */
+    ProblemSpecInternal writtenToConsole();
+
     @Override
     @Deprecated
     ProblemSpecInternal severity(Severity severity);

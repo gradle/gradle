@@ -29,15 +29,17 @@ import java.util.Map;
  * {@link PostDiscoveryFilter} instances based on the type of {@link TestSource}
  * associated with the {@link TestDescriptor}.
  * <p>
- * Adding <strong>only</strong> this type to the JUnit Platform launch request
- * prevents the class-based {@link ClassMethodNameFilter} filter to be run against non-class-based test descriptors
- * and have to report "included" (and vice versa, with {@link FilePathFilter}).  That
- * filter is n/a in that situation and can't render a meaningful opinion.  Delegating
- * by type allows each filter to be applied only to the test descriptors it can
- * meaningfully filter.
+ * Delegating by type allows each filter to be applied only to the test descriptors it can
+ * meaningfully filter, e.g. {@link FilePathFilter} to file-based tests. Descriptors whose source
+ * has no dedicated delegate, including descriptors without a source, are handed to the default delegate.
  */
 public final class DelegatingByTypeFilter implements PostDiscoveryFilter {
     private final Map<Class<? extends TestSource>, PostDiscoveryFilter> delegates = new HashMap<>();
+    private final PostDiscoveryFilter defaultDelegate;
+
+    public DelegatingByTypeFilter(PostDiscoveryFilter defaultDelegate) {
+        this.defaultDelegate = defaultDelegate;
+    }
 
     public void addDelegate(Class<? extends TestSource> source, PostDiscoveryFilter filter) {
         delegates.put(source, filter);
@@ -45,16 +47,9 @@ public final class DelegatingByTypeFilter implements PostDiscoveryFilter {
 
     @Override
     public FilterResult apply(TestDescriptor descriptor) {
-        TestSource source = descriptor.getSource().orElse(null);
-        if (source == null) {
-            return FilterResult.included("absent source"); // No opinion on absent sources, so allow them to pass this filter
-        }
-
-        PostDiscoveryFilter filter = delegates.get(source.getClass());
-        if (filter == null) {
-            return FilterResult.included("unknown source"); // No opinion on sources that haven't had a delegate added, so allow them to pass this filter
-        }
-
-        return filter.apply(descriptor);
+        PostDiscoveryFilter delegate = descriptor.getSource()
+            .map(source -> delegates.get(source.getClass()))
+            .orElse(defaultDelegate);
+        return delegate.apply(descriptor);
     }
 }

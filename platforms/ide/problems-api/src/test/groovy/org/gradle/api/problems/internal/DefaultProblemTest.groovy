@@ -83,8 +83,8 @@ class DefaultProblemTest extends Specification {
             [],
             'description',
             new RuntimeException('cause'),
-            additionalData
-
+            additionalData,
+            false
         )
     }
 
@@ -102,7 +102,8 @@ class DefaultProblemTest extends Specification {
             [],
             'description',
             new RuntimeException('cause'),
-            null
+            null,
+            false
 
 
         )

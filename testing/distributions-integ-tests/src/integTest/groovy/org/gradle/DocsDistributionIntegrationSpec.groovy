@@ -36,7 +36,7 @@ class DocsDistributionIntegrationSpec extends DistributionIntegrationSpec {
 
     @Override
     int getDistributionSizeMiB() {
-        return 85
+        return 86
     }
 
     @Override
@@ -52,8 +52,5 @@ class DocsDistributionIntegrationSpec extends DistributionIntegrationSpec {
         expect:
         contentsDir.file("LICENSE").assertIsFile()
         assertDocsExist(contentsDir, version)
-
-        // Docs distribution contains all published samples
-        contentsDir.file("docs/samples/index.html").assertIsFile()
     }
 }

@@ -62,7 +62,7 @@ For details of the published `junit` platform, see its link:https://mvnrepositor
 The `platform` notation automatically performs several actions:
 
 - Sets the link:{javadocPath}/org/gradle/api/attributes/Category.html[`org.gradle.category` attribute] to platform, ensuring Gradle selects the platform component. See the <<variant_attributes.adoc#variant-attributes,Attributes>> documentation to learn more.
-- Enables the link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#endorseStrictVersions--[`endorseStrictVersions`] behavior by default, enforcing strict versions defined in the platform. Check out the <<#sec:endorsing-platform-strict-versions,Strict Version Enforcement section below>> to learn more.
+- Enables the link:{javadocPath}/org/gradle/api/artifacts/ModuleDependency.html#endorseStrictVersions()[`endorseStrictVersions`] behavior by default, enforcing strict versions defined in the platform. Check out the <<#sec:endorsing-platform-strict-versions,Strict Version Enforcement section below>> to learn more.
 
 Custom platforms like the `platform` project above are created with the <<java_platform_plugin.adoc#java_platform_plugin,`java-platform plugin`>> and can be published as Maven BOMs (Bill of Materials) for consumption by other projects (such as the `junit-bom`).
 

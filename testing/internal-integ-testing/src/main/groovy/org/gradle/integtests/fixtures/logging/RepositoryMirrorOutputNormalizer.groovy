@@ -23,5 +23,6 @@ class RepositoryMirrorOutputNormalizer implements OutputNormalizer {
     @Override
     String normalize(String commandOutput, ExecutionMetadata executionMetadata) {
         return commandOutput.replace("https://repo.grdev.net/artifactory/maven-central/", "https://repo.maven.apache.org/maven2/")
+            .replaceAll(/(?m)^Reusing Maven mirror settings is an incubating feature\.\R/, "")
     }
 }

@@ -65,7 +65,58 @@ task retrieve(type: Sync) {
             .assertHasCause('Could not resolve org.gradle:test:1.85.')
             .assertHasCause("Could not get resource '${module.pom.uri}'.")
             .assertHasCause("401 Unauthorized")
+
     }
+
+    def "a server error disables the repository for the rest of the build"() {
+        setup:
+        mavenGcsRepo.module("org.gradle", "other", artifactVersion).publish()
+        buildFile << mavenGcsRepoDsl()
+        buildFile << secondConfiguration()
+
+        when:
+        module.pom.expectDownloadBroken()
+
+        then:
+        succeeds 'resolveBoth'
+        outputContains("FAILING: []")
+        outputContains("HEALTHY: []")
+    }
+
+    def "an authentication error does not disable the repository"() {
+        setup:
+        def other = mavenGcsRepo.module("org.gradle", "other", artifactVersion).publish()
+        buildFile << mavenGcsRepoDsl()
+        buildFile << secondConfiguration()
+
+        when:
+        module.pom.expectDownloadAuthenticationError()
+        other.pom.expectDownload()
+        other.artifact.expectDownload()
+
+        then:
+        succeeds 'resolveBoth'
+        outputContains("FAILING: []")
+        outputContains("HEALTHY: [other-${artifactVersion}.jar]")
+    }
+
+    def "a missing module does not disable the repository"() {
+        setup:
+        def other = mavenGcsRepo.module("org.gradle", "other", artifactVersion).publish()
+        buildFile << mavenGcsRepoDsl()
+        buildFile << secondConfiguration()
+
+        when:
+        module.pom.expectDownloadMissing()
+        other.pom.expectDownload()
+        other.artifact.expectDownload()
+
+        then:
+        succeeds 'resolveBoth'
+        outputContains("FAILING: []")
+        outputContains("HEALTHY: [other-${artifactVersion}.jar]")
+    }
+
 
     def "fails when providing PasswordCredentials with decent error"() {
         setup:
@@ -137,5 +188,21 @@ Required by:
         assertResolutionTaskFailed(":retrieve", "build file 'build.gradle'")
         failure.assertHasCause("Could not resolve all dependencies for configuration ':compile'.")
         failure.assertHasCause("Authentication scheme 'auth'(BasicAuthentication) is not supported by protocol 'gcs'")
+    }
+
+    private String secondConfiguration() {
+        """
+configurations { second }
+dependencies { second 'org.gradle:other:$artifactVersion' }
+
+task resolveBoth {
+    def failing = configurations.compile.incoming.artifactView { lenient = true }.files
+    def healthy = configurations.second.incoming.artifactView { lenient = true }.files
+    doLast {
+        println "FAILING: " + failing*.name
+        println "HEALTHY: " + healthy*.name
+    }
+}
+"""
     }
 }

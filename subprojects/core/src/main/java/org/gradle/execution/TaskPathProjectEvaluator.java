@@ -32,8 +32,6 @@ import org.gradle.internal.operations.MultipleBuildOperationFailures;
 import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.WorkerLimits;
 
-import java.util.concurrent.LinkedBlockingQueue;
-
 public class TaskPathProjectEvaluator implements ProjectConfigurer {
 
     /**
@@ -87,7 +85,7 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
         }
 
         if (maxWorkerCount() < 2) {
-            // We need at least two workers to configure in parallel
+            // Parallel configuration cannot help with a single worker
             configureHierarchy(projectState);
             return;
         }
@@ -119,43 +117,16 @@ public class TaskPathProjectEvaluator implements ProjectConfigurer {
     }
 
     private void scheduleProjectsJustInTime(ProjectState root) {
-        assert maxWorkerCount() > 1 : "Parallel traversal requires more than one worker!";
-        runAllWithAccessToProjectState(queue -> {
-
-            final LinkedBlockingQueue<ProjectState> readyQueue = new LinkedBlockingQueue<>();
-            queue.add(traverseProject(root, readyQueue));
-
-            int pending = root.hasChildren() ? 1 : 0;
-            while (pending > 0) {
-                ProjectState next;
-                try {
-                    next = readyQueue.take();
-                    --pending;
-                } catch (InterruptedException e) {
-                    throw new RuntimeException(e);
-                }
-                for (final ProjectState child : next.getUnorderedChildProjects()) {
-                    queue.add(traverseProject(child, readyQueue));
-                    if (child.hasChildren()) {
-                        // Only wait for projects that have children to be configured
-                        ++pending;
-                    }
-                }
-            }
-        });
+        runAllWithAccessToProjectState(queue -> queue.add(traverseProject(root, queue)));
     }
 
-    private static RunnableBuildOperation traverseProject(ProjectState project, LinkedBlockingQueue<ProjectState> readyQueue) {
+    private static RunnableBuildOperation traverseProject(ProjectState project, BuildOperationQueue<RunnableBuildOperation> queue) {
         return new RunnableBuildOperation() {
             @Override
             public void run(BuildOperationContext context) {
-                try {
-                    project.ensureSelfConfigured();
-                } finally {
-                    if (project.hasChildren()) {
-                        // Only enqueue projects that have children to be configured
-                        readyQueue.add(project);
-                    }
+                project.ensureSelfConfigured();
+                for (ProjectState child : project.getUnorderedChildProjects()) {
+                    queue.add(traverseProject(child, queue));
                 }
             }
 

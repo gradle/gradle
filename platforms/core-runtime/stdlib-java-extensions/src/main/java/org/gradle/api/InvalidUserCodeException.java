@@ -43,6 +43,12 @@ public class InvalidUserCodeException extends GradleException {
 
     /**
      * Creates a new {@code InvalidUserCodeException}.
+     * <p>
+     * There is deliberately no {@code (String, Iterable)} overload carrying resolution suggestions. It would make
+     * {@code new InvalidUserCodeException(message, null)} ambiguous with this constructor: Java and Kotlin would
+     * reject such a call at compile time, and Groovy, which resolves overloads from the runtime types, would select
+     * the resolutions constructor and fail on the null. To attach resolutions, use
+     * {@link #InvalidUserCodeException(String)} followed by {@link #addResolution(String)}.
      *
      * @since 1.4
      */

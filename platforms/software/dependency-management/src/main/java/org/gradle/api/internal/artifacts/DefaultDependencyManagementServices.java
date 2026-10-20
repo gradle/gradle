@@ -33,7 +33,6 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
@@ -158,6 +157,7 @@ import java.io.File;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import org.gradle.internal.model.DomainObjectContext;
 
 public class DefaultDependencyManagementServices implements DependencyManagementServices {
 

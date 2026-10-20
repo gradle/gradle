@@ -1,3 +1,12 @@
 {
-    "acceptedApiChanges": []
+    "acceptedApiChanges": [
+        {
+            "type": "org.gradle.api.GradleException",
+            "member": "Class org.gradle.api.GradleException",
+            "acceptation": "Making GradleException implement ResolutionProvider",
+            "changes": [
+                "org.gradle.internal.exceptions.ResolutionProvider"
+            ]
+        }
+    ]
 }
