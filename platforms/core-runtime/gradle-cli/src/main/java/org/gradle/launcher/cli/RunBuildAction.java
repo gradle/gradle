@@ -22,6 +22,8 @@ import org.gradle.initialization.NoOpBuildEventConsumer;
 import org.gradle.initialization.ReportedException;
 import org.gradle.internal.concurrent.Stoppable;
 import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
+import org.gradle.internal.logging.events.BuildStartTimeEvent;
+import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.nativeintegration.console.ConsoleDetector;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.launcher.exec.BuildActionExecutor;
@@ -36,23 +38,26 @@ public class RunBuildAction implements Runnable {
     private final long startTime;
     private final BuildActionParameters buildActionParameters;
     private final ServiceRegistry sharedServices;
+    private final OutputEventListener outputEventListener;
     private final Stoppable stoppable;
 
     public RunBuildAction(
         BuildActionExecutor<BuildActionParameters, ClientBuildRequestContext> executor, StartParameterInternal startParameter, GradleLauncherMetaData clientMetaData, long startTime,
-        BuildActionParameters buildActionParameters, ServiceRegistry sharedServices, Stoppable stoppable) {
+        BuildActionParameters buildActionParameters, ServiceRegistry sharedServices, OutputEventListener outputEventListener, Stoppable stoppable) {
         this.executor = executor;
         this.startParameter = startParameter;
         this.clientMetaData = clientMetaData;
         this.startTime = startTime;
         this.buildActionParameters = buildActionParameters;
         this.sharedServices = sharedServices;
+        this.outputEventListener = outputEventListener;
         this.stoppable = stoppable;
     }
 
     @Override
     public void run() {
         try {
+            outputEventListener.onOutput(new BuildStartTimeEvent(startTime));
             BuildActionResult result = executor.execute(
                 new ExecuteBuildAction(startParameter),
                 buildActionParameters,
