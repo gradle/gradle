@@ -25,7 +25,6 @@ import org.asciidoctor.gradle.model5.core.tasks.AsciidoctorTask;
 import org.gradle.api.Action;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
-import org.gradle.api.Task;
 import org.gradle.api.file.CopySpec;
 import org.gradle.api.file.Directory;
 import org.gradle.api.file.DuplicatesStrategy;
@@ -35,7 +34,6 @@ import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.ProviderFactory;
-import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.PathSensitivity;
 import org.gradle.api.tasks.SourceSetContainer;
 import org.gradle.api.tasks.Sync;
@@ -180,6 +178,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         AsciidoctorModelExtension asciidoc = project.getExtensions().getByType(AsciidoctorModelExtension.class);
         ProviderFactory providers = project.getProviders();
         Provider<Directory> stagedDocumentation = extension.getUserManual().getStagedDocumentation();
+        Provider<Boolean> quickFeedback = extension.getQuickFeedback();
 
         // Every page of the manual, except those that are only included by other pages
         Provider<PatternFilterable> multiPageSources = providers.of(UserManualPages.class, spec -> {
@@ -203,7 +202,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             }));
         asciidoctorUserguideSinglePageHtml.configure(task -> {
             task.setDescription("Generates HTML single-page user manual.");
-            task.onlyIf(new NotQuickFeedback(extension.getQuickFeedback()));
+            task.onlyIf("quick feedback mode is not enabled", t -> !quickFeedback.get());
             outputTo(task, extension.getUserManual().getStagingRoot().dir("render-single-html"));
         });
 
@@ -348,22 +347,6 @@ public class GradleUserManualPlugin implements Plugin<Project> {
                 + "The Asciidoctor Gradle plugin no longer allows the output directory to be overridden this way.");
         }
         ((Property<Directory>) destination).set(outputDir);
-    }
-
-    /**
-     * Skips the single-page manual with {@code -PquickDocs}. Holds only a provider so it can be stored in the configuration cache.
-     */
-    private static final class NotQuickFeedback implements Spec<Task> {
-        private final Provider<Boolean> quickFeedback;
-
-        private NotQuickFeedback(Provider<Boolean> quickFeedback) {
-            this.quickFeedback = quickFeedback;
-        }
-
-        @Override
-        public boolean isSatisfiedBy(Task task) {
-            return !quickFeedback.get();
-        }
     }
 
     private static void stageUserManualImages(CopySpec spec, GradleDocumentationExtension extension) {
