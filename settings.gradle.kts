@@ -86,7 +86,6 @@ val core = platform("core") {
         subproject("process-services-base")
         subproject("process-services-api")
         subproject("reflection-services")
-        subproject("report-rendering")
         subproject("serialization")
         subproject("service-lookup")
         subproject("service-provider")
@@ -205,6 +204,7 @@ module("observability") {
     subproject("problems-impl")
     subproject("problems-rendering")
     subproject("problems-reporting")
+    subproject("report-rendering")
 }
 
 // Software Platform

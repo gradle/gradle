@@ -120,7 +120,7 @@ Provides cross-cutting integration with IDEs and other tooling.
 
 ### Observability
 
-Provides cross-cutting support for reporting what happens during a build. This includes logging, the Problems API, their implementations and the rendering of problems.
+Provides cross-cutting support for reporting what happens during a build. This includes logging, the Problems API, their implementations, the rendering of problems and the shared HTML report rendering.
 
 ### Build infrastructure
 
