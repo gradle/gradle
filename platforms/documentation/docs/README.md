@@ -63,7 +63,7 @@ The extension also exposes nested configurations for each documentation type:
 
 1. **Source** — Each documentation type reads from a subdirectory of `src/docs/` (or from generated metadata such as the DSL meta-data file).
 2. **Stage** — The user manual stages flattened `.adoc` sources, snippets, images, and CSS into `build/working/usermanual/raw/` via the `stageUserguideSource` task.
-3. **Render** — Asciidoctor (`asciidoctorUserguideMultiPageChunkedHtml`, `asciidoctorUserguideSinglePageHtml`) and Dokka render the staged sources into `build/working/<doc-type>/render-*/`.
+3. **Render** — Asciidoctor (`userguideMultiPage`, `userguideSinglePageHtml`) and Dokka render the staged sources into `build/working/<doc-type>/render-*/`.
 4. **Publish** — `stageDocs` collects every rendered output into `build/docs/` (multi-page manual under `userguide/`, DSL under `dsl/`, Javadoc under `javadoc/`, Kotlin DSL under `kotlin-dsl/`).
 5. **Consume** — The `gradleFullDocsElements` configuration exposes `build/docs/` as an outgoing artifact for downstream packaging (distribution zips, the `docs.gradle.org` deploy).
 
@@ -153,8 +153,8 @@ The following changes are not intended to be in the "New features and usability 
 | Full preview with fast iteration       | `./gradlew stageDocs -PquickDocs`         |
 | Live reload at `http://localhost:8000` | `./gradlew serveDocs`                     |
 | User manual only (links may break)     | `./gradlew :docs:userguide`               |
-| Multi-page HTML manual only            | `./gradlew :docs:asciidoctorUserguideMultiPageChunkedHtml` |
-| Single-page HTML manual only           | `./gradlew :docs:asciidoctorUserguideSinglePageHtml`       |
+| Multi-page HTML manual only            | `./gradlew :docs:userguideMultiPage`      |
+| Single-page HTML manual only           | `./gradlew :docs:userguideSinglePageHtml` |
 | Javadoc only                           | `./gradlew :docs:javadocAll`              |
 | Run all snippet and sample tests       | `./gradlew :docs:docsTest`                |
 

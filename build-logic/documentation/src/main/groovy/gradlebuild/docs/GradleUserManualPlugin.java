@@ -227,7 +227,24 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             outputTo(task, extension.getUserManual().getStagingRoot().dir("render-multi"));
         });
 
+        // The plugin derives the conversion task names from the publication and the output alias, which is
+        // not what contributors have always typed. These keep the historical names working as entry points.
+        registerRenderingAlias(project, "userguideSinglePageHtml", "Generates HTML single-page user manual.", asciidoctorUserguideSinglePageHtml);
+        registerRenderingAlias(project, "userguideMultiPage", "Generates multi-page user manual.", asciidoctorUserguideMultiPageChunkedHtml);
+
         return asList(asciidoctorUserguideSinglePageHtml, asciidoctorUserguideMultiPageChunkedHtml);
+    }
+
+    /**
+     * Registers a lifecycle task that runs {@code rendering}, under the name the build used before the
+     * user manual moved to the Asciidoctor Gradle plugin's model5 DSL.
+     */
+    private static void registerRenderingAlias(Project project, String name, String description, TaskProvider<AsciidoctorTask> rendering) {
+        project.getTasks().register(name, task -> {
+            task.setGroup("documentation");
+            task.setDescription(description);
+            task.dependsOn(rendering);
+        });
     }
 
     /**
@@ -277,7 +294,8 @@ public class GradleUserManualPlugin implements Plugin<Project> {
 
         TaskProvider<AsciidoctorTask> task = project.getTasks().named(publication.taskNameFor(outputAlias), AsciidoctorTask.class);
         task.configure(t -> {
-            t.setGroup("documentation");
+            // Deliberately not in the documentation group: the derived name is an implementation detail
+            // of the plugin, and registerRenderingAlias lists the name contributors use instead.
             t.dependsOn(stagedDocumentation);
 
             // TODO: Break the paths assumed here
