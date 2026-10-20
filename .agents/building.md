@@ -74,6 +74,7 @@ The project is organized into **platforms** under `platforms/`:
 - `jvm/` - JVM platform (`java`, `groovy`, `scala`, `jacoco`)
 - `native/` - Native platform support
 - `ide/` - IDE integration (`tooling-api`)
+- `observability/` - Problems API and its implementation (`problems-api`, `problems`, `problems-reporting`)
 - `documentation/` - User docs and samples
 - `extensibility/` - Plugin system and test-kit
 - `enterprise/` - Develocity/Gradle Enterprise integration
