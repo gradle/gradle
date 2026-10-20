@@ -133,14 +133,14 @@ platforms/software/                         @gradle/bt-jvm
 platforms/extensibility/                    @gradle/bt-tide
 platforms/core-runtime/daemon-messaging     @gradle/bt-tide
 
+# Observability
+platforms/observability/          @gradle/bt-tide
+
 # Native
 platforms/native/                 @gradle/bt-jvm
 
 # IDE Experience
 platforms/ide/                    @gradle/bt-tide
-# Eventually be moved to the core platform.
-# Currently heavily developed by the bt-ide-experience team.
-platforms/ide/problems/           @gradle/bt-tide
 platforms/ide/ide-native/         @gradle/bt-tide @gradle/bt-jvm
 
 # Documentation

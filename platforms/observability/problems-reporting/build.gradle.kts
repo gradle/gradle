@@ -39,7 +39,7 @@ dependencies {
 // The predefined hierarchy and its descriptions are repeated by hand in the user guide and in the Javadoc of the public
 // group types; a unit test keeps both in sync with the code.
 val reportingProblemsGuide = layout.settingsDirectory.file("platforms/documentation/docs/src/docs/userguide/reference/plugin-development/reporting_problems.adoc")
-val publicGroupTypeSources = layout.settingsDirectory.dir("platforms/ide/problems-api/src/main/java/org/gradle/api/problems")
+val publicGroupTypeSources = layout.settingsDirectory.dir("platforms/observability/problems-api/src/main/java/org/gradle/api/problems")
 
 tasks.named<Test>("test") {
     jvmArgumentProviders.add(objects.newInstance<PredefinedGroupsDocumentationProvider>().apply {
