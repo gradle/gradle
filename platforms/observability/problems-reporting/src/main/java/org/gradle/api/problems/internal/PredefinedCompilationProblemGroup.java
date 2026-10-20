@@ -59,6 +59,7 @@ final class PredefinedCompilationProblemGroup extends CompilationProblemGroup im
 
     @Override
     @Nullable
+    @Deprecated
     public ProblemGroup getParent() {
         return null;
     }

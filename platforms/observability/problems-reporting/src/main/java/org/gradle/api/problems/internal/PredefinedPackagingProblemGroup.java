@@ -57,6 +57,7 @@ final class PredefinedPackagingProblemGroup extends PackagingProblemGroup implem
 
     @Override
     @Nullable
+    @Deprecated
     public ProblemGroup getParent() {
         return null;
     }

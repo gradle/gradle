@@ -63,6 +63,7 @@ final class PredefinedGradleProblemGroup extends GradleProblemGroup implements G
 
     @Override
     @Nullable
+    @Deprecated
     public ProblemGroup getParent() {
         return null;
     }

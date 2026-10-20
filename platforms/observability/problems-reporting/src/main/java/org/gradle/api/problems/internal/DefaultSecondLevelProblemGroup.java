@@ -68,6 +68,7 @@ final class DefaultSecondLevelProblemGroup extends SecondLevelProblemGroup imple
     }
 
     @Override
+    @Deprecated
     public ProblemGroup getParent() {
         // every Gradle-owned implementation extends ProblemGroup
         return (ProblemGroup) parent;

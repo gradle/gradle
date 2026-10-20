@@ -55,6 +55,7 @@ final class PredefinedProvisioningProblemGroup extends ProvisioningProblemGroup 
 
     @Override
     @Nullable
+    @Deprecated
     public ProblemGroup getParent() {
         return null;
     }

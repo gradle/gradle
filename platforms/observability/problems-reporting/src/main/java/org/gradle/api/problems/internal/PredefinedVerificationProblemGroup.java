@@ -57,6 +57,7 @@ final class PredefinedVerificationProblemGroup extends VerificationProblemGroup 
 
     @Override
     @Nullable
+    @Deprecated
     public ProblemGroup getParent() {
         return null;
     }
