@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider;
 
-import org.gradle.api.InvalidUserCodeException;
 import org.gradle.api.Transformer;
 import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.NonNull;
@@ -94,9 +93,7 @@ public class TransformBackedProvider<OUT, IN> extends AbstractMinimalProvider<OU
     protected void beforeRead(EvaluationScopeContext context) {
         provider.getProducer().visitContentProducerTasks(producer -> {
             if (!producer.getState().getExecuted()) {
-                throw new InvalidUserCodeException(
-                    String.format("Querying the mapped value of %s before %s has completed is not supported", provider, producer)
-                );
+                throw new ProducerNotCompletedException("mapped", provider, producer);
             }
         });
     }

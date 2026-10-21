@@ -18,8 +18,9 @@ package org.gradle.internal.cc.impl.inputs.undeclared
 
 import org.gradle.initialization.StartParameterBuildOptions
 import org.gradle.internal.cc.impl.AbstractConfigurationCacheIntegrationTest
+import org.gradle.internal.cc.impl.fixtures.ConfigurationCacheOptOutDeprecations
 
-class UndeclaredBuildInputsIgnoringIntegrationTest extends AbstractConfigurationCacheIntegrationTest {
+class UndeclaredBuildInputsIgnoringIntegrationTest extends AbstractConfigurationCacheIntegrationTest implements ConfigurationCacheOptOutDeprecations {
     def 'can ignore a file system check configuration input'() {
         given:
         buildFile("""
@@ -37,6 +38,7 @@ class UndeclaredBuildInputsIgnoringIntegrationTest extends AbstractConfiguration
 
         when:
         file("gradle.properties") << """$IGNORE_FS_CHECKS_PROPERTY=build/*.lock"""
+        expectDeprecatedOptOutWarning(IGNORE_FS_CHECKS_PROPERTY)
         configurationCacheRun()
 
         then:
@@ -58,6 +60,7 @@ class UndeclaredBuildInputsIgnoringIntegrationTest extends AbstractConfiguration
         file("gradle.properties") << """
             $IGNORE_FS_CHECKS_PROPERTY=file1.txt;file2.txt
         """
+        expectDeprecatedOptOutWarning(IGNORE_FS_CHECKS_PROPERTY)
         configurationCacheRun()
 
         then:
@@ -69,6 +72,7 @@ class UndeclaredBuildInputsIgnoringIntegrationTest extends AbstractConfiguration
     def 'paths ignored in file system checks are included in the configuration cache fingerprint'() {
         when:
         configurationCacheRun()
+        expectDeprecatedOptOutWarning(IGNORE_FS_CHECKS_PROPERTY)
         configurationCacheRun("-D$IGNORE_FS_CHECKS_PROPERTY=test")
 
         then:

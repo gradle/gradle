@@ -10,58 +10,19 @@
 <meta name="twitter:description" content="We are excited to announce Gradle @version@.">
 <meta name="twitter:image" content="https://gradle.org/assets/images/releases/gradle-default.png">
 
-Gradle @version@ is the second patch release for Gradle 9.8.0 (released [@releaseDate@](https://gradle.org/releases/)).
+We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-The following issues were resolved:
-
-- [Gradle 9.8 reports a false "graph wasn't stable enough" warning when aligning versions with a virtual platform](https://github.com/gradle/gradle/issues/39454)
-
-Issues fixed in the first patch release:
-
-This release addresses three high rated vulnerabilities:
-- [Unauthenticated worker-to-daemon channel deserializes untrusted Java objects](https://github.com/gradle/gradle/security/advisories/GHSA-mvvg-497x-hmj8)
-- [Deserialization of untrusted Java objects before authentication in the client - daemon communication](https://github.com/gradle/gradle/security/advisories/GHSA-xwqc-3h47-hg64)
-- [Failure to disable repositories failing to establish an SSL connection can expose builds to malicious artifacts](https://github.com/gradle/gradle/security/advisories/GHSA-j5m7-59rp-24f5)
-
-The following issues were resolved:
-
-- [Gradle 9.8.0 complains again about invalid Toolchains on Debian / Ubuntu packaged systems](https://github.com/gradle/gradle/issues/39358)
-- [Gradle 9.8.0 removes root java.util.logging handlers installed by a custom LogManager (breaks Quarkus test log capture)](https://github.com/gradle/gradle/issues/39359)
-- [Dependency resolution regression](https://github.com/gradle/gradle/issues/39365)
-
-We recommend upgrading to Gradle @version@.
-
----
-
-In this release, [Java 27](#support-for-java-27) is supported for both the Gradle daemon and Java toolchains.
-
-Gradle can now [reuse Maven's mirror settings](#reusing-mirror-settings-from-maven), so teams with an internal repository mirror configure it once instead of in both build tools.
-
-[Build authoring](#build-authoring-improvements) gets less verbose, with Gradle's built-in services for working with files, objects, and processes now available directly in scripts and task actions, and copy destinations configurable lazily.
-
-For plugin authors, the [Maven Publish Plugin](#core-plugin-and-plugin-authoring-enhancements) now takes part in up-to-date checks, so it no longer regenerates a POM that has not changed.
-[Build failures](#cli-logging-and-problem-reporting) are easier to read and navigate, and more of Gradle's diagnostics are now available to tooling.
-
-This release also includes [performance improvements](#performance-improvements) for Windows.
+This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-[Aman Gautam](https://github.com/Gautam-aman),
-[Björn Kautler](https://github.com/Vampire),
-[Eng Zer Jun](https://github.com/Juneezee),
-[Hashim Khan](https://github.com/Hashim1999164),
-[Julian Krannich](https://github.com/jkrannich),
-[KBS](https://github.com/youdie006),
-[Labh R Jethe](https://github.com/itsCodeTide),
-[Mark Dodgson](https://github.com/doddi),
-[Maxim](https://github.com/kroune),
-[monkey](https://github.com/Develop-KIM),
-[nataphon-ktsystems](https://github.com/nataphon-ktsystems),
-[Paul King](https://github.com/paulk-asert),
-[Qiu Tian](https://github.com/qiu-tiandev),
-[rg_sandesh](https://github.com/sandeshgorde),
-[Roberto Perez Alcolea](https://github.com/rpalcolea),
-[Sean](https://github.com/seanxuu),
-[Zongle Wang](https://github.com/Goooler).
+[devareddy05](https://github.com/devareddy05).
+
+<!-- 
+Include only their name, impactful features should be called out separately below.
+ [Some person](https://github.com/some-person)
+
+THIS LIST SHOULD BE ALPHABETIZED BY [PERSON NAME] - the docs:updateContributorsInReleaseNotes task will enforce this ordering, which is case-insensitive.
+-->
 
 Be sure to check out the [public roadmap](https://roadmap.gradle.org) for insight into what's planned for future releases.
 
@@ -75,194 +36,228 @@ Switch your build to use Gradle @version@ by updating the [wrapper](userguide/gr
 
 See the [Gradle 9.x upgrade guide](userguide/upgrading_version_9.html#changes_@baseVersion@) to learn about deprecations, breaking changes, and other considerations when upgrading to Gradle @version@.
 
-For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).
+For Java, Groovy, Kotlin, and Android compatibility, see the [full compatibility notes](userguide/compatibility.html).   
 
 ## New features and usability improvements
 
-### Support for Java 27
+<!-- ================== TEMPLATE =============================
 
-With this release, Gradle supports [Java 27](https://openjdk.org/projects/jdk/27/).
+Do not add breaking changes or deprecations here! Add them to the upgrade guide instead.
 
-You can now run the [Gradle daemon](userguide/gradle_daemon.html) on Java 27, in addition to using Java 27 via [toolchains](userguide/toolchains.html):
+Find the best fitting section for your feature below, then, fill it in.
 
-```kotlin
-java {
-    toolchain {
-        languageVersion = JavaLanguageVersion.of(27)
-    }
-}
-```
+### SECTION TITLE
 
-Some third-party tools (for example, PMD) do not yet support Java 27.
+#### FILL-IN-FEATURE
+> HIGHLIGHT the use case or existing problem the feature solves.
+> EXPLAIN how the new release addresses that problem or use case.
+> PROVIDE a screenshot or snippet illustrating the new feature, if applicable.
+> LINK to the full documentation for more details.
 
-See [the compatibility documentation](userguide/compatibility.html#java_runtime) for more details.
+To embed images, add the image to the `release-notes-assets` folder, then add the line below.
+![image.png](release-notes-assets/image.png)
 
-### Reusing mirror settings from Maven
+To embed videos, use the macros below. 
+You can extract the URL from YouTube by clicking the "Share" button.
+@youtube(Summary,6aRM8lAYyUA?si=qeXDSX8_8hpVmH01)@
 
-In organizations that use both Maven and Gradle build tools with an internal repository mirror, Gradle @version@ supports reusing Maven's [mirror repository settings](https://maven.apache.org/guides/mini/guide-mirror-settings.html) with a simple flag.
+================== END TEMPLATE ========================== -->
 
-By default, this is disabled, but you can enable it with `org.gradle.mirror.maven.settings=true` in `gradle.properties`.
 
-When applying the mirror configuration, Gradle will replace a repository's URL if it matches any configured mirrors. This applies to all HTTP/HTTPS Maven repositories, including build script repositories like `gradlePluginPortal()`, repositories declared in settings, and repositories declared in projects. Ivy repositories, Maven local, flat directory repositories, and Maven repositories served over S3 or GCS do not support mirroring.
+<!-- =========================================================
+ADD RELEASE FEATURES BELOW
+vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 
-See the [Centralizing Repositories](userguide/centralizing_repositories.html) section in the Gradle User Manual for more details.
+### Isolated Projects
+[Isolated Projects](userguide/isolated_projects.html) is an incubating performance feature that safely runs project configuration in parallel, significantly reducing configuration time in many scenarios, including IDE sync and CI builds.
+
+### Configuration Cache improvements
+Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
+
+### Test reporting and execution
+Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
+
+#### Test filters apply to JUnit Platform tests that are not declared as methods
+
+[Test filters](userguide/java_testing.html#test_filtering) now apply to JUnit Platform tests that are not declared as methods, such as [ArchUnit](https://www.archunit.org/) rules annotated with `@ArchTest` on fields or [Spek](https://www.spekframework.org/) scopes.
+Previously, such tests were always executed, so requesting a single test with `--tests` or excluding tests with `excludeTestsMatching` had no effect on them.
+
+Gradle matches such tests by their enclosing test class and the name they are reported with, in the same way that test methods are matched by class and method name.
+For a rule declared in a field `firstRule` of `ArchRulesTest`, `--tests "ArchRulesTest.firstRule"` runs only that rule and `excludeTestsMatching "*firstRule"` skips it.
+Rules grouped in an `ArchTests` set are reported as `RuleSet > rule`, so they are matched by that name, not by the field name alone.
+Tests that an engine registers only while executing, as [Kotest](https://kotest.io/) does, are not visible to the filter and can only be selected by their spec class.
+
+This also affects the [Test Retry plugin](https://github.com/gradle/test-retry-gradle-plugin), which uses test filters to select the tests to run again.
+Previously, all such tests were retried whenever any test in the task was retried, even if they had passed.
+Now only the failed ones are retried.
+
+See the [Test filtering](userguide/java_testing.html#filtering_non_method_tests) section in the Gradle User Manual for more details.
 
 ### CLI, logging, and problem reporting
-
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 
-#### Easier to read problem reports
+#### Taskbar progress in Windows Terminal
 
-Two improvements make [reported problems](userguide/reporting_problems.html#command_line_interface_problems) easier to scan and act on:
+The build progress shown in the terminal is now also reported to the Windows taskbar when running in [Windows Terminal](https://learn.microsoft.com/en-us/windows/terminal/) 1.6 or later, in addition to ConEmu, Ghostty, kitty and iTerm2.
+This makes it easy to see how far a long-running build has progressed while the terminal window is in the background, and it also works in WSL shells hosted by Windows Terminal.
 
-- Printed problem locations (`demo-convention.gradle.kts:8`) are now clickable in terminals that support hyperlinks, so you can jump straight to the source line in most modern IDEs and editors.
-- Problems in the CLI failure output now appear in the order they occurred, which preserves the causal sequence when you scroll through a failing build.
+See the [Rich console](userguide/command_line_interface.html#sec:rich_console) section in the Gradle User Manual for more details.
 
-![Problem Report Screenshot](release-notes-assets/problem-report.png)
+#### Predefined problem groups in the Problems API
 
-#### Interactive HTML problem report
+The incubating [Problems API](userguide/reporting_problems.html#header) now provides a predefined hierarchy of problem groups, available from the `Problems` service as `problems.groups`.
+Plugins report into the matching predefined group or add a subgroup below one.
+The types of the hierarchy enforce placement:
 
-In [the HTML problem report](userguide/reporting_problems.html#sec:generated_html_report), the copy button stays visible while you scroll long stack traces, so capturing a full trace no longer means hunting for the button:
+```kotlin
+problems.reporter.report(problems.groups.compilation.java.problemId("Unused import")) {}
+problems.reporter.report(problems.groups.transformation.group("KMP").problemId("Bundle failed")) {}
+```
 
-![Problem Report Gif](release-notes-assets/problem-report.gif)
+Gradle's deprecation warnings are reported into `Gradle > Deprecation`, named after the kind of deprecation, for example `Task usage` instead of `deprecation:the-buildneeded-task-has-been-deprecated`. Details of the usage, such as the name of a task or configuration, no longer appear in the name; they remain in the problem's contextual label.
 
-#### Broader coverage from the Problems API
+Predefined groups are documented with a description of what belongs in them, giving consumers of problem reports a documented set of group names to navigate, filter, and aggregate the problems plugins report.
+On the console, problems now show the chain of groups they belong to, for example `Unused import (in Compilation > Java)`.
+The existing `ProblemGroup.create()` and `ProblemId.create()` methods keep working; migrating to the predefined groups is recommended.
 
-Consumers of the [Problems API](userguide/reporting_problems.html) now receive data from more parts of Gradle.
+Gradle's own compilation problems now use the predefined groups: Java compiler diagnostics and compiler initialization failures report into `Compilation > Java`, a missing `tools.jar` for the Groovy compiler into `Compilation > Groovy`, and Groovy DSL script compilation failures into `Gradle > DSL Evaluation`.
+Both the group and the name of these problem ids changed, so Tooling API and report consumers that match on the old ids need to update.
+For example, `compilation:java:initialization-failed` is now `Compilation:Java:Compiler initialization failed`.
+The console heading for a failed compiler start changes with it, from `Java compilation initialization error` to `Compiler initialization failed`.
+Java compiler diagnostics are named after the kind of diagnostic, for example `Cannot find symbol` instead of the javac code `compiler.err.cant.resolve.location`; the compiler's message stays in the problem's contextual label.
 
-Dependency management failures are reported through the API with [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) details.
-Unresolved dependencies and configuration conflicts now surface as structured problems.
+Gradle's own dependency problems use the predefined groups as well: version catalog problems report into `Dependencies > Declaration`, failures while resolving the dependency graph, such as selecting a version, a variant, or a capability, into `Dependencies > Graph Resolution`, and artifact selection failures into `Dependencies > Artifact Resolution`.
+They are now named by their former display names, and version catalog problem names mention the version catalog, for example `dependency-version-catalog:toml-syntax-error` is now `Dependencies:Declaration:Version catalog TOML syntax error`.
+See the [upgrade guide](userguide/upgrading_version_9.html#dependency_problem_ids_moved_to_predefined_groups) for the complete list.
 
-Configuration Cache warn-mode messages are also reported through the API, matching how Configuration Cache errors are already surfaced.
+Gradle's own validation problems use the predefined groups as well: problems about input, output, and caching annotations report into `Gradle > Plugin Validation`, problems about how build logic uses the build model, including types that cannot be part of a Declarative schema, into `Gradle > Build Logic`, and missing or unusable property values into `Gradle > Build Definition`.
+They are now named by their former display names, with a few names reworded to describe the problem, for example `validation:property-validation:value-not-set` is now `Gradle:Build Definition:Value not set`.
+See the [upgrade guide](userguide/upgrading_version_9.html#validation_problem_ids_moved_to_predefined_groups) for the complete list.
 
-Problems raised from threads without a current build operation are now captured rather than dropped. This closes a gap where asynchronous work could silently lose its diagnostics.
+See the [Predefined Problem Groups](userguide/reporting_problems.html#sec:predefined_problem_groups) section in the Gradle User Manual for more details.
 
 ### Build authoring improvements
-
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
-#### Lazy destination directory for `Copy` and `Sync`
+#### The `wrapper` task preserves customized properties
 
-The [`Copy`](dsl/org.gradle.api.tasks.Copy.html) and [`Sync`](dsl/org.gradle.api.tasks.Sync.html) tasks only exposed the destination as `destinationDir`, a plain `File` property, so a destination derived from a provider had to be resolved eagerly at [configuration time](userguide/build_lifecycle.html). Both tasks now expose a `destinationDirectory` [`DirectoryProperty`](javadoc/org/gradle/api/file/DirectoryProperty.html):
+The [`wrapper`](userguide/gradle_wrapper.html#gradle_wrapper) task now preserves values customized in an existing `gradle-wrapper.properties` file when they are not explicitly configured on the task. Preserved values include the network timeout, URL validation, retries, retry backoff, and the distribution and archive paths and bases. Explicit task configuration still takes precedence.
 
-```kotlin
-tasks.register<Copy>("copyFiles") {
-    from("src")
-    destinationDirectory = layout.buildDirectory.dir("out")
-}
-```
+For example, `validateDistributionUrl=false` (previously set by running `./gradlew :wrapper --no-validate-url`) now persists when the wrapper is regenerated.
 
-The property is the single source of truth for the destination. Assigning it is equivalent to calling `into(...)`, and it reflects whatever was configured through `into(...)` or `destinationDir`.
+User-declared `Wrapper` tasks now also write the default network timeout, retry count, and retry backoff when those properties are not otherwise configured.
 
-`into(...)` now wires a `Provider` destination into `destinationDirectory` instead of resolving its value, so provider-based destinations stay lazy; all other notations (`String`, `File`, `Closure`, `Callable`, ...) keep their existing lazy resolution. Since `destinationDirectory` is a task output property, other tasks can consume it directly and pick up the task dependency.
+See the [Preserving Existing Wrapper Properties](userguide/gradle_wrapper.html#sec:preserving_wrapper_properties) section in the Gradle User Manual for more details.
 
-The new property is [incubating](userguide/feature_lifecycle.html#feature_preview). `destinationDir` continues to work and will be deprecated once `destinationDirectory` is promoted.
+#### Providers for values that are already known
 
-See [`Copy.destinationDirectory`](dsl/org.gradle.api.tasks.Copy.html#org.gradle.api.tasks.Copy:destinationDirectory) and [`Sync.destinationDirectory`](dsl/org.gradle.api.tasks.Sync.html#org.gradle.api.tasks.Sync:destinationDirectory) in the DSL Reference for more details.
+Build logic often has a value at hand and needs to pass it to an API that accepts a [`Provider`](javadoc/org/gradle/api/provider/Provider.html).
+Previously, this required wrapping the value in a `Callable` with `providers.provider { value }`, or `providers.provider { null }` for a provider that has no value.
 
-#### Groovydoc supports modern Java sources and Groovy 6 output options
+[`ProviderFactory`](javadoc/org/gradle/api/provider/ProviderFactory.html) now has three incubating methods for these cases:
 
-The [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task now exposes configuration options that had previously only been available through the Groovy CLI, Ant task, or Maven plugin, closing a long-standing gap in Gradle's Groovydoc support.
-
-**Java source parsing level:** Groovydoc uses JavaParser to read Java sources mixed into Groovy projects. When the parser's assumed language level is older than the sources, modern constructs — switch expressions, sealed classes, records, and similar — fail to parse, and the affected classes are silently omitted from the generated documentation. The new `javaVersion` property forwards the language level to Groovydoc so those sources parse cleanly:
+* [`absent()`](javadoc/org/gradle/api/provider/ProviderFactory.html#absent()) returns a provider that never has a value.
+* [`present(value)`](javadoc/org/gradle/api/provider/ProviderFactory.html#present(T)) returns a provider that always has the given value.
+* [`presentIfNotNull(value)`](javadoc/org/gradle/api/provider/ProviderFactory.html#presentIfNotNull(T)) returns a provider that has the given value when it is not `null`, and has no value otherwise.
 
 ```kotlin
-tasks.groovydoc {
-    javaVersion = JavaLanguageVersion.of(21)
-}
+val missing: Provider<String> = providers.absent()
+val name: PresentProvider<String> = providers.present("my-lib")
+val value: Provider<String> = providers.presentIfNotNull(nullableValue)
 ```
 
-This option requires Groovy 4.0.27 or later and is silently ignored on earlier Groovy versions.
+Unlike `provider(Callable)`, these methods do not compute the value on demand, so prefer them when the value is already known.
 
-**Groovy 6.0.0 documentation options:** For projects using Groovy 6.0.0 or later, several new properties are now available on the `Groovydoc` task to control the generated output:
+`present(value)` returns the new [`PresentProvider`](javadoc/org/gradle/api/provider/PresentProvider.html) type, a `Provider` that is guaranteed to have a value: its `get()` never fails and its `getOrNull()` never returns `null`.
 
-| Property                | Purpose                                                              |
-|-------------------------|----------------------------------------------------------------------|
-| `showInternal`          | Include members annotated with `groovy.transform.Internal` (GEP-17). |
-| `noIndex`               | Suppress the alphabetical index page.                                |
-| `noDeprecatedList`      | Suppress the deprecated-list page.                                   |
-| `noHelp`                | Suppress the help page.                                              |
-| `syntaxHighlighter`     | Select the client-side syntax highlighter (`"prism"` or `"none"`).   |
-| `theme`                 | Lock the palette (`"auto"`, `"light"`, or `"dark"`).                 |
-| `preLanguage`           | Default language id applied to unclassified `<pre>` code blocks.     |
-| `additionalStylesheets` | Extra stylesheets copied alongside the default.                      |
+See the [Lazy Objects API Reference](userguide/lazy_configuration.html#lazy_objects_api_reference) section in the Gradle User Manual for more details.
 
-All of these are silently ignored on earlier Groovy versions, so they are safe to configure in builds that may be run against multiple Groovy releases.
+### Dependency management enhancements
+Gradle provides a flexible [dependency management](userguide/getting_started_dep_man.html) engine for declaring, resolving, and verifying the dependencies your build needs.
 
-All new properties are [incubating](userguide/feature_lifecycle.html#feature_preview).
-
-See the [`Groovydoc`](dsl/org.gradle.api.tasks.javadoc.Groovydoc.html) task in the DSL Reference for the full list of configuration options.
+### Platform and toolchain management
+Gradle provides comprehensive support for [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
 
 ### Core plugin and plugin authoring enhancements
-
 Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
 
-#### Up-to-date checks for POM generation in Maven publishing
+#### `Sync` can empty its destination when its source is empty
 
-The [`GenerateMavenPom`](javadoc/org/gradle/api/publish/maven/tasks/GenerateMavenPom.html) task was previously marked as untracked, so it executed on every build regardless of whether the underlying POM had changed.
+A [`Sync`](dsl/org.gradle.api.tasks.Sync.html) task whose source contains no files and no directories, by default, does not run, so its destination directory is not synchronized. What is left in the destination then depends on whether it is a build-owned directory: if it is, the destination is cleaned up; otherwise it keeps the files the source no longer contains.
 
-The task now declares each part of its source POM as a task input, so it participates in up-to-date checks:
-
-```text
-$ ./gradlew generatePomFileForMavenPublication
-> Task :generatePomFileForMavenPublication UP-TO-DATE
-
-BUILD SUCCESSFUL
-```
-
-When a `withXml` action is registered, task input tracking remains disabled, as `withXml` actions do not yet support snapshotting, so the task continues to run on every build. To restore up-to-date behavior, move the customization into the DSL properties on [`MavenPom`](javadoc/org/gradle/api/publish/maven/MavenPom.html) where possible.
-
-See the [Generate POM task](userguide/publishing_maven.html#publishing_maven:generate-pom) section in the Gradle User Manual for more details.
-
-#### Declaring plugin compatibility with Isolated Projects on the Plugin Portal
-
-The [Plugin Publish Plugin](https://plugins.gradle.org/plugin/com.gradle.plugin-publish) now allows plugin authors to declare support for [Isolated Projects](userguide/isolated_projects.html) using the `compatibility { features { ... } }` block:
+Setting the new `skipWhenSourceIsEmpty` property to `false` makes the task run in that case as well, so that an empty source empties the destination directory:
 
 ```kotlin
-gradlePlugin {
-    plugins {
-        create("myPlugin") {
-            id = "io.github.my.plugin"
-            // ...
-            compatibility {
-                features {
-                    isolatedProjects = true
-                    configurationCache = true
-                }
-            }
-        }
-    }
+tasks.named<Sync>("mySync") {
+    skipWhenSourceIsEmpty = false
 }
 ```
 
-Declaring compatibility with Gradle features can surface badges on the [Plugin Portal](https://plugins.gradle.org/) and improve your plugin's search ranking.
+`Sync` always deletes the entire contents of its destination directory, not only the files it previously copied there. With `skipWhenSourceIsEmpty` disabled, that also happens when the source is empty - including when it is empty by mistake - so disable it only where nothing other than the task writes to the destination, and use `preserve { ... }` to retain anything the task does not manage.
 
-Publishing a plugin without a compatibility declaration is deprecated as of `com.gradle.plugin-publish` 2.2.1 and produces a warning.
+See [Synchronizing from an empty source](userguide/working_with_files.html#sec:sync_task_empty_source) in the user manual for more details.
 
-See the [Declaring compatibility with Gradle features](userguide/publishing_gradle_plugins.html#declaring_feature_compatibility) section in the Gradle User Manual for more details.
+### Security and infrastructure
+Gradle provides robust [security features and underlying infrastructure](userguide/security.html) to ensure that builds are secure, reproducible, and easy to maintain.
+
+### Tooling and IDE integration
+Gradle provides [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.
 
 ### Performance improvements
+Gradle continuously improves [build performance](userguide/performance.html) through caching, parallelism, and reduced overhead across all phases of the build.
 
-Gradle continues to reduce build times and memory usage across the daemon, configuration, and execution phases.
+#### Incremental compilation of Kotlin DSL scripts
 
-#### Improved performance on Windows machines with slow system clocks
+[Kotlin DSL](userguide/kotlin_dsl.html) scripts are now compiled with the [Kotlin Build Tools API](https://kotlinlang.org/docs/build-tools-api.html), which makes incremental compilation available for build scripts.
+When a script has to be recompiled, for example after an ABI change in build logic, only the affected parts are compiled again.
+In one of our performance tests, a large multi-project build, this makes recompiling scripts after an ABI change in build logic 65% faster.
 
-Builds on affected Windows machines are up to 45% faster in this release.
+Setting up incremental compilation has a cost, so Gradle only uses it for scripts that are recompiled repeatedly:
 
-Gradle reads the system clock frequently while a build runs, to capture execution traces, progress events, and log messages. On most machines, this is inexpensive, but on some Windows systems, particularly virtualized ones, reading the clock is much slower, and the cost accumulates over the many readings taken during a single build.
+1. The first compilation of a script is a full compilation, without incremental compilation.
+2. The second compilation is also a full compilation, but it records the state needed for incremental compilation.
+3. Every later compilation is incremental.
 
-Gradle now detects a slow system clock at startup and switches to a faster time source for the rest of the build. No configuration is required, and builds on machines with a normal system clock are unaffected.
+When script compilation doesn't happen often, users won't see any change in performance, but when script compilation is frequent, users should see a significant improvement.
+
+### General improvements
+Gradle provides various incremental updates and performance optimizations to ensure the continued reliability of the build ecosystem.
+
+<!-- ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+ADD RELEASE FEATURES ABOVE
+========================================================== -->
+
+## Promoted features
+
+Promoted features are features that were incubating in previous versions of Gradle but are now supported and subject to backward compatibility.
+See the User Manual section on the "[Feature Lifecycle](userguide/feature_lifecycle.html)" for more information.
+
+The following are the features that have been promoted in this Gradle release.
+
+<!--
+### Example promoted
+-->
+
+### Custom `dependencies` block API
+
+The remaining incubating parts of the API for [custom `dependencies` blocks](userguide/implementing_gradle_plugins_binary.html#custom_dependencies_blocks) have been promoted:
+
+* [`add(ProviderConvertible)`](javadoc/org/gradle/api/artifacts/dsl/DependencyCollector.html#add(org.gradle.api.provider.ProviderConvertible)) and the `bundle(...)` methods in `DependencyCollector`
+* [`constraint(Provider)`](javadoc/org/gradle/api/artifacts/dsl/Dependencies.html#constraint(org.gradle.api.provider.Provider)) and [`constraint(ProviderConvertible)`](javadoc/org/gradle/api/artifacts/dsl/Dependencies.html#constraint(org.gradle.api.provider.ProviderConvertible)) in `Dependencies`
+* [`modify(ProviderConvertible)`](javadoc/org/gradle/api/artifacts/dsl/DependencyModifier.html#modify(org.gradle.api.provider.ProviderConvertible)) in `DependencyModifier`
+* [`DependencyConstraintFactory`](javadoc/org/gradle/api/artifacts/dsl/DependencyConstraintFactory.html)
+* [`PlatformDependencyModifiers`](javadoc/org/gradle/api/plugins/jvm/PlatformDependencyModifiers.html) and [`TestFixturesDependencyModifiers`](javadoc/org/gradle/api/plugins/jvm/TestFixturesDependencyModifiers.html)
+
+### `AndSpec.findUnsatisfiedSpec`
+
+[`AndSpec.findUnsatisfiedSpec(T)`](javadoc/org/gradle/api/specs/AndSpec.html#findUnsatisfiedSpec(T)) has been promoted.
+Use it to find the first member spec that an object does not satisfy.
 
 ## Documentation and training
 
-### Documentation
-
-The User Manual reference pages for the core plugins have been entirely rewritten for consistency and depth. The [Core Plugin Reference index](userguide/plugin_reference.html) has also been reorganized and now lists previously missing core plugins.
-
-Two new entries have been added to the [Best Practices](userguide/best_practices.html) collection:
-
-- Obtain Loggers via `Logging.getLogger(Class)` outside of Tasks — where and how to acquire a logger in build logic.
-- Favor collection property types over a `Property` holding a collection — the case for `ListProperty` and `SetProperty` over `Property<List<...>>`.
+<!--
+Add new docs, training, and best practices here
+-->
 
 ## Fixed issues
 

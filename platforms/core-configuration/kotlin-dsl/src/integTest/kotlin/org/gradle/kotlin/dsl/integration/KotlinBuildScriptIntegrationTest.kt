@@ -14,25 +14,14 @@ import org.junit.Assume.assumeThat
 import org.junit.Test
 import spock.lang.Issue
 import java.io.StringWriter
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 
 class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
 
-    @ToBeFixedForIsolatedProjects(because = "Kotlin DSL cross-project configuration")
     @Test
     fun `can apply plugin using ObjectConfigurationAction syntax`() {
 
-        file("bar").mkdirs()
-        withSettings(
-            """
-            rootProject.name = "foo"
-            include("bar")
-            """
-        )
-
-        withBuildScript(
-            """
+        val projectPlugin = """
             open class ProjectPlugin : Plugin<Project> {
                 override fun apply(target: Project) {
                     target.task("run") {
@@ -43,12 +32,17 @@ class KotlinBuildScriptIntegrationTest : AbstractKotlinIntegrationTest() {
             }
 
             apply { plugin<ProjectPlugin>() }
+        """
 
-            subprojects {
-                apply { plugin<ProjectPlugin>() }
-            }
+        withSettings(
+            """
+            rootProject.name = "foo"
+            include("bar")
             """
         )
+
+        withBuildScript(projectPlugin)
+        withBuildScriptIn("bar", projectPlugin)
 
         assertThat(
             build("run", "-q").output,

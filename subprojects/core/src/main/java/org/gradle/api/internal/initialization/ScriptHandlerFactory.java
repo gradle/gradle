@@ -27,12 +27,11 @@ import org.gradle.internal.service.scopes.ServiceScope;
 public interface ScriptHandlerFactory {
 
     /**
-     * Create a script handler tied to the given domain object context.
+     * Create a script handler for the given script.
      */
     ScriptHandlerInternal create(
         ScriptSource scriptSource,
-        ClassLoaderScope classLoaderScope,
-        DependencyManagementParameters params
+        ClassLoaderScope classLoaderScope
     );
 
     /**

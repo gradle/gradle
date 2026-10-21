@@ -73,8 +73,8 @@ public class ResolveMutationsNode extends Node {
 
     @Nullable
     @Override
-    public ResourceLock getProjectToLock() {
-        return node.getProjectToLock();
+    public ResourceLock getResourceToLock() {
+        return node.getResourceToLock();
     }
 
     @Nullable

@@ -29,16 +29,19 @@ import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.SecondLevelProblemGroup;
 import org.gradle.api.problems.internal.ProblemReporterInternal;
+import org.gradle.api.problems.internal.ProblemSpecInternal;
 
 import javax.tools.Diagnostic;
 import javax.tools.DiagnosticListener;
 import javax.tools.JavaFileObject;
 import java.util.ArrayList;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
+import java.util.Map;
 import java.util.Optional;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -57,13 +60,19 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
 
     private final Context context;
     private final ProblemReporterInternal problemReporter;
+    private final SecondLevelProblemGroup javaCompilationGroup;
     private final List<Problem> problemsReported = new ArrayList<>();
+    private final Map<String, String> problemNamesByCode = new HashMap<>();
 
     private int errorCount = 0;
     private int warningCount = 0;
 
-    public DiagnosticToProblemListener(ProblemReporterInternal problemReporter, Context context) {
+    /**
+     * @param javaCompilationGroup the predefined {@code Compilation > Java} group, obtained from the {@link Problems} service of the process the compiler runs in
+     */
+    public DiagnosticToProblemListener(ProblemReporterInternal problemReporter, SecondLevelProblemGroup javaCompilationGroup, Context context) {
         this.problemReporter = problemReporter;
+        this.javaCompilationGroup = javaCompilationGroup;
         this.context = context;
     }
 
@@ -81,18 +90,38 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
                 break;
         }
 
-        Problem reportedProblem = problemReporter.create(id(diagnostic), spec -> buildProblem(diagnostic, spec));
+        ProblemId id = id(diagnostic);
+        Problem reportedProblem = problemReporter.internalCreate(spec -> {
+            spec.id(id);
+            buildProblem(diagnostic, spec);
+        });
         problemsReported.add(reportedProblem);
     }
 
-    private static ProblemId id(Diagnostic<? extends JavaFileObject> diagnostic) {
+    private ProblemId id(Diagnostic<? extends JavaFileObject> diagnostic) {
+        return javaCompilationGroup.problemId(problemName(diagnostic));
+    }
+
+    private String problemName(Diagnostic<? extends JavaFileObject> diagnostic) {
         String code = diagnostic.getCode();
-        String message = diagnostic.getMessage(Locale.getDefault());
-        return ProblemId.create(
-            code == null ? "unknown" : code,
-            message == null ? "unknown" : message,
-            GradleCoreProblemGroup.compilation().java()
-        );
+        if (code == null) {
+            return JavacDiagnosticNames.nameFor(null, diagnostic.getKind(), messages());
+        }
+        return problemNamesByCode.computeIfAbsent(code, c -> JavacDiagnosticNames.nameFor(c, diagnostic.getKind(), messages()));
+    }
+
+    /**
+     * The compiler's messages, which include the bundles compiler plugins registered. Some compilers reject lookups in
+     * their context from a diagnostic listener (observed on JDK 8, like the formatter lookups above); the compiler's
+     * own bundle is then read through a fresh context, which only loses the plugin bundles.
+     */
+    private JavacMessages messages() {
+        try {
+            return JavacMessages.instance(context);
+        } catch (RuntimeException e) {
+            LOGGER.info(FORMATTER_FALLBACK_MESSAGE);
+            return JavacMessages.instance(new Context());
+        }
     }
 
     /**
@@ -162,7 +191,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
     }
 
     @VisibleForTesting
-    void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpec spec) {
+    void buildProblem(Diagnostic<? extends JavaFileObject> diagnostic, ProblemSpecInternal spec) {
         maybeAddSolution(diagnostic, spec);
         addLocations(diagnostic, spec);
 
@@ -177,6 +206,7 @@ public class DiagnosticToProblemListener implements DiagnosticListener<JavaFileO
             // By default, when a compiler is called without a diagnostic listener
             // the compiler will print the diagnostic message to the error stream
             System.err.println(details);
+            spec.writtenToConsole();
         }
     }
 

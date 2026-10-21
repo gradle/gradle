@@ -22,7 +22,6 @@ import org.gradle.kotlin.dsl.fixtures.containsMultiLineString
 import org.gradle.test.fixtures.dsl.GradleDsl.KOTLIN
 import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Test
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 
 class KotlinDslJvmDefaultIntegrationTest : AbstractKotlinIntegrationTest() {
@@ -98,7 +97,6 @@ class KotlinDslJvmDefaultIntegrationTest : AbstractKotlinIntegrationTest() {
         }
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Kotlin DSL cross-project configuration")
     @Test
     fun `kotlin-dsl java and groovy consumers can use kotlin interface default methods directly`() {
 
@@ -107,11 +105,19 @@ class KotlinDslJvmDefaultIntegrationTest : AbstractKotlinIntegrationTest() {
             include("kotlin-dsl-producer")
             include("java-consumer")
             include("groovy-consumer")
+
+            dependencyResolutionManagement {
+                ${mavenCentralRepository(KOTLIN)}
+            }
             """
         )
-        withBuildScript("subprojects { ${mavenCentralRepository(KOTLIN)} }")
 
-        withBuildScriptIn("kotlin-dsl-producer", "plugins { `kotlin-dsl` }")
+        withBuildScriptIn(
+            "kotlin-dsl-producer",
+            """
+            plugins { `kotlin-dsl` }
+            """
+        )
         withFile(
             "kotlin-dsl-producer/src/main/kotlin/some/Some.kt",
             """

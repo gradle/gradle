@@ -16,6 +16,7 @@
 
 package org.gradle.plugin.devel.internal.precompiled;
 
+import org.gradle.api.GradleException;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
 import org.gradle.api.file.DirectoryProperty;
@@ -105,16 +106,20 @@ public abstract class PrecompiledGroovyPluginsPlugin implements Plugin<Project> 
 
     private void validateScriptPlugin(Project project, PrecompiledGroovyScript scriptPlugin) {
         if (scriptPlugin.getId().equals(CORE_PLUGIN_NAMESPACE) || scriptPlugin.getId().startsWith(CORE_PLUGIN_PREFIX)) {
-            throw new PrecompiledScriptException(
-                String.format("The precompiled plugin (%s) cannot start with '%s'.", project.relativePath(scriptPlugin.getFileName()), CORE_PLUGIN_NAMESPACE),
-                PRECOMPILED_SCRIPT_MANUAL.getConsultDocumentationMessage());
+            throw precompiledPluginFailure(
+                String.format("The precompiled plugin (%s) cannot start with '%s'.", project.relativePath(scriptPlugin.getFileName()), CORE_PLUGIN_NAMESPACE));
         }
         Plugin<?> existingPlugin = project.getPlugins().findPlugin(scriptPlugin.getId());
         if (existingPlugin != null && existingPlugin.getClass().getPackage().getName().startsWith(CORE_PLUGIN_PREFIX)) {
-            throw new PrecompiledScriptException(
-                String.format("The precompiled plugin (%s) conflicts with the core plugin '%s'. Rename your plugin.", project.relativePath(scriptPlugin.getFileName()), scriptPlugin.getId()),
-                PRECOMPILED_SCRIPT_MANUAL.getConsultDocumentationMessage());
+            throw precompiledPluginFailure(
+                String.format("The precompiled plugin (%s) conflicts with the core plugin '%s'. Rename your plugin.", project.relativePath(scriptPlugin.getFileName()), scriptPlugin.getId()));
         }
+    }
+
+    private static GradleException precompiledPluginFailure(String message) {
+        GradleException failure = new GradleException(message);
+        failure.addResolution(PRECOMPILED_SCRIPT_MANUAL.getConsultDocumentationMessage());
+        return failure;
     }
 
     private void declarePluginMetadata(GradlePluginDevelopmentExtension pluginExtension, List<PrecompiledGroovyScript> scriptPlugins) {

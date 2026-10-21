@@ -33,7 +33,6 @@ import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.internal.CollectionCallbackActionDecorator;
 import org.gradle.api.internal.ConfigurationServicesBundle;
 import org.gradle.api.internal.DocumentationRegistry;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.GradleInternal;
 import org.gradle.api.internal.artifacts.configurations.ConfigurationContainerInternal;
 import org.gradle.api.internal.artifacts.configurations.DefaultConfigurationContainer;
@@ -83,7 +82,6 @@ import org.gradle.api.internal.artifacts.repositories.ResolutionAwareRepository;
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenVariantAttributesFactory;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.artifacts.transform.ConsumerProvidedVariantFinder;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformInvocationFactory;
 import org.gradle.api.internal.artifacts.transform.DefaultTransformRegistrationFactory;
@@ -148,6 +146,7 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileResourceListener;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.gradle.internal.resource.transport.RepositoryTransportFactory;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistrationProvider;
@@ -158,6 +157,7 @@ import java.io.File;
 import java.util.List;
 import java.util.function.Supplier;
 import java.util.stream.Collectors;
+import org.gradle.internal.model.DomainObjectContext;
 
 public class DefaultDependencyManagementServices implements DependencyManagementServices {
 

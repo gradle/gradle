@@ -17,9 +17,14 @@ package org.gradle.plugins.ide.internal.tooling;
 
 import org.gradle.api.Project;
 import org.gradle.api.Task;
+import org.gradle.api.internal.project.ProjectInternal;
+import org.gradle.api.internal.project.ProjectState;
+import org.gradle.internal.build.BuildProjectRegistry;
 
 import java.util.Map;
 import java.util.Set;
+import java.util.TreeMap;
+import java.util.TreeSet;
 
 import static java.util.Collections.emptySet;
 
@@ -32,7 +37,21 @@ public class TasksFactory {
     }
 
     public void collectTasks(Project root) {
-        allTasks = root.getAllTasks(true);
+        // Project.getAllTasks(true) reads the task container of every subproject, which is reported
+        // as a cross-project access with Isolated Projects enabled. Collect the tasks of each
+        // project under the lock that covers all of them instead.
+        BuildProjectRegistry projects = ((ProjectInternal) root).getOwner().getOwner().getProjects();
+        allTasks = projects.fromMutableStateOfAllProjects(access -> {
+            // Same shape as DefaultProject.getAllTasks(true): tasks are discovered per project and
+            // collected into a sorted set.
+            Map<Project, Set<Task>> result = new TreeMap<>();
+            for (ProjectState projectState : projects.getAllProjects()) {
+                projectState.ensureTasksDiscovered();
+                ProjectInternal project = access.getMutableModel(projectState);
+                result.put(project, new TreeSet<>(project.getTasks()));
+            }
+            return result;
+        });
     }
 
     public Set<Task> getTasks(Project project) {

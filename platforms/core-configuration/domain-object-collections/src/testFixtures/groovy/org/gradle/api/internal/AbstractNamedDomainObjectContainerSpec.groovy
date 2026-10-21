@@ -18,6 +18,7 @@ package org.gradle.api.internal
 
 import org.gradle.api.NamedDomainObjectContainer
 import org.gradle.internal.Actions
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.code.UserCodeApplicationId
 import org.gradle.internal.code.UserCodeSource
 
@@ -85,13 +86,13 @@ abstract class AbstractNamedDomainObjectContainerSpec<T> extends AbstractNamedDo
         UserCodeApplicationId id1 = null
         UserCodeApplicationId id2 = null
         List<UserCodeApplicationId> ids = []
-        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource), UserCodeApplicationContext.Target.Other.INSTANCE) {
             id1 = it
             container.register("a") {
                 ids << userCodeApplicationContext.current()
             }
         }
-        userCodeApplicationContext.apply(Stub(UserCodeSource)) {
+        userCodeApplicationContext.apply(Stub(UserCodeSource), UserCodeApplicationContext.Target.Other.INSTANCE) {
             id2 = it
             container.named("a").configure {
                 ids << userCodeApplicationContext.current()

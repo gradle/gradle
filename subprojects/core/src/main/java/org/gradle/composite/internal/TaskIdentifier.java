@@ -16,21 +16,21 @@
 
 package org.gradle.composite.internal;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.TaskInternal;
+import org.gradle.internal.build.BuildIdentity;
 
 public class TaskIdentifier {
 
-    private final BuildIdentifier buildIdentifier;
+    private final BuildIdentity buildIdentity;
     private final TaskInternal task;
 
-    public TaskIdentifier(BuildIdentifier buildIdentifier, TaskInternal task) {
-        this.buildIdentifier = buildIdentifier;
+    public TaskIdentifier(BuildIdentity buildIdentity, TaskInternal task) {
+        this.buildIdentity = buildIdentity;
         this.task = task;
     }
 
-    public BuildIdentifier getBuildIdentifier() {
-        return buildIdentifier;
+    public BuildIdentity getBuildIdentity() {
+        return buildIdentity;
     }
 
     public TaskInternal getTask() {

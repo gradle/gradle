@@ -311,7 +311,7 @@ class VariantsDependencySubstitutionRulesIntegrationTest extends AbstractIntegra
         resolve.expectGraph {
             root(":", ":depsub:") {
                 edge('org:lib:1.0', ':other', 'org:other:') {
-                    configuration = 'runtimeElements'
+                    variant('runtimeElements')
                     selectedByRule()
                 }
             }

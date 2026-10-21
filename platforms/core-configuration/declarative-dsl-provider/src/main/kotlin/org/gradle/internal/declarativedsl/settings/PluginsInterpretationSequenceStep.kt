@@ -17,7 +17,6 @@
 package org.gradle.internal.declarativedsl.settings
 
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.artifacts.DependencyManagementParameters
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.internal.initialization.ScriptHandlerFactory
 import org.gradle.api.internal.plugins.PluginManagerInternal
@@ -107,7 +106,7 @@ class PluginsInterpretationSequenceStep(
                 )
             }
             with(targetServices) {
-                val scriptHandler = get(ScriptHandlerFactory::class.java).create(scriptSource, targetScope, DependencyManagementParameters(scriptSource.shortDisplayName, "settings-", true, true, true))
+                val scriptHandler = get(ScriptHandlerFactory::class.java).create(scriptSource, targetScope)
                 val pluginManager = get(PluginManagerInternal::class.java)
                 val pluginApplicator = get(PluginRequestApplicator::class.java)
                 val pluginHandler = get(PluginHandler::class.java)

@@ -1,0 +1,33 @@
+plugins {
+    id 'java'
+}
+
+abstract class Consumer extends DefaultTask {
+
+    @InputFiles
+    abstract ConfigurableFileCollection getInputFile()
+
+    @TaskAction
+    void run() {
+        println "input files: ${inputFile.files.size()}"
+    }
+}
+
+// tag::from-archive-file[]
+tasks.register('consumerA', Consumer) {
+    inputFile.from(tasks.named('jar').flatMap { it.archiveFile })
+}
+// end::from-archive-file[]
+
+// tag::from-task[]
+tasks.register('consumerB', Consumer) {
+    inputFile.from(tasks.named('jar'))
+}
+// end::from-task[]
+
+// tag::depends-on[]
+tasks.register('consumerC', Consumer) {
+    dependsOn tasks.named('jar')
+    inputFile.from(tasks.jar.archiveFile)
+}
+// end::depends-on[]

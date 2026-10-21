@@ -17,10 +17,10 @@
 package org.gradle.internal.configuration.problems
 
 import org.gradle.api.Describable
-import org.gradle.internal.cc.impl.problems.JsonWriter
 import org.gradle.internal.code.UserCodeSource
 import org.gradle.internal.configuration.problems.StructuredMessage.Fragment.Reference
 import org.gradle.internal.configuration.problems.StructuredMessage.Fragment.Text
+import org.gradle.internal.extensions.stdlib.capitalized
 import org.gradle.internal.problems.failure.Failure
 import org.gradle.problems.Location
 import org.gradle.util.Path
@@ -90,6 +90,13 @@ data class StructuredMessage(val fragments: List<Fragment>) {
         }
     }
 
+    /**
+     * Renders a message to stand on its own, such as in an exception message.
+     *
+     * Messages are typically not capitalized, so that they can be part of a longer sentence.
+     */
+    fun renderCapitalized() = render().capitalized()
+
     override fun toString(): String = render()
 
     sealed class Fragment {
@@ -140,20 +147,6 @@ data class StructuredMessage(val fragments: List<Fragment>) {
         fun build(): StructuredMessage = StructuredMessage(fragments.toList())
     }
 }
-
-fun JsonWriter.writeStructuredMessage(message: StructuredMessage) {
-    jsonObjectList(message.fragments) { fragment ->
-        writeFragment(fragment)
-    }
-}
-
-fun JsonWriter.writeFragment(fragment: StructuredMessage.Fragment) {
-    when (fragment) {
-        is Reference -> property("name", fragment.name)
-        is Text -> property("text", fragment.text)
-    }
-}
-
 
 /**
  * Subtypes are expected to support [PropertyTrace.equals] and [PropertyTrace.hashCode].

@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.googleApisJs
+
 repositories {
+    // Serves the jquery and flot JavaScript artifacts bundled into generated reports.
+    // The helper applies its own content filter, so this repository is only ever
+    // consulted for those two groups.
+    googleApisJs()
     maven {
         name = "Gradle public repository"
         url = uri("https://repo.gradle.org/gradle/public")
@@ -23,8 +29,9 @@ repositories {
             includeGroup("org.gradle.fileevents")
             includeModule("flot", "flot")
             includeModule("org.gradle", "gradle-tooling-api")
-            // The root multiplatform module plus the -jvm module its GMM redirects to.
-            includeModuleByRegex("org\\.gradle\\.buildtool\\.internal", "configuration-cache-report(-jvm)?")
+            // The root multiplatform module plus the -jvm module its GMM redirects to, and the
+            // fixtures library the integration test fixtures read reports with.
+            includeModuleByRegex("org\\.gradle\\.buildtool\\.internal", "configuration-cache-report(-jvm|-fixtures)?")
             includeModule("org.gradle.buildtool.internal", "gradle-ide-starter")
             includeModule("org.gradle.buildtool.internal", "gradle-ide-starter-scenarios")
         }

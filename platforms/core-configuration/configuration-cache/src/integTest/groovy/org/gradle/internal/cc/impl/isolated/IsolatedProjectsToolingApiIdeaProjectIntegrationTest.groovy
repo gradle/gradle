@@ -28,7 +28,7 @@ import org.gradle.tooling.model.idea.IdeaModuleDependency
 import org.gradle.tooling.model.idea.IdeaProject
 import org.gradle.tooling.model.idea.IdeaSingleEntryLibraryDependency
 import org.gradle.tooling.provider.model.internal.PluginApplyingBuilder
-import org.gradle.util.internal.ToBeImplemented
+import spock.lang.Issue
 
 import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkGradleProject
 import static org.gradle.integtests.tooling.fixture.ToolingApiModelChecker.checkModel
@@ -473,39 +473,68 @@ class IsolatedProjectsToolingApiIdeaProjectIntegrationTest extends AbstractIsola
         ])
     }
 
-    @ToBeImplemented("https://github.com/gradle/gradle/issues/27363")
+    @Issue("https://github.com/gradle/gradle/issues/27363")
     def "can fetch IdeaProject model for Scala projects"() {
         settingsFile << """
             rootProject.name = 'root'
             include(":lib1")
+            include(":lib2")
+        """
+
+        buildFile << """
+            plugins {
+                id 'idea'
+            }
         """
 
         file("lib1/build.gradle") << """
             plugins {
+                id 'idea'
                 id 'scala'
             }
         """
+
+        file("lib2/build.gradle") << """
+            plugins {
+                id 'idea'
+                id 'scala'
+            }
+
+            dependencies {
+                implementation(project(":lib1"))
+            }
+        """
+
+        file("lib1/src/main/scala/Lib1.scala") << "class Lib1"
+        file("lib2/src/main/scala/Lib2.scala") << "class Lib2"
 
         when: "fetching without Isolated Projects"
         def originalIdeaModel = fetchModel(IdeaProject)
 
         then:
         fixture.assertNoConfigurationCache()
-        originalIdeaModel.modules.name == ["root", "lib1"]
+        originalIdeaModel.modules.name == ["root", "lib1", "lib2"]
 
         when: "fetching with Isolated Projects"
         withIsolatedProjects()
-        fetchModelFails(IdeaProject)
+        def ideaModel = fetchModel(IdeaProject)
 
         then:
-        // From Gradle 9.7 the plugin application failure captured during resilient model building is propagated,
-        // so the build fails with it while the client still receives the per-model failures.
-        failure.assertHasFailures(1)
-        failureHasCause("Applying 'idea' plugin to Scala projects is not supported with Isolated Projects. Disable Isolated Projects to use this integration.")
-        failureHasCause("Failed to apply plugin class 'org.gradle.plugins.ide.idea.IdeaPlugin'.")
-        // TODO:isolated assert model stored successfully
-        // TODO:isolated check the model matches the vintage model
-        // checkIdeaProject(ideaModel, originalIdeaModel)
+        fixture.assertModelStored {
+            modelsCreated(":", models(IdeaProject, pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            modelsCreated(":lib1", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+            modelsCreated(":lib2", models(pluginApplyingModel, IsolatedGradleProjectInternal, IsolatedIdeaModuleInternal))
+        }
+
+        and:
+        checkIdeaProject(ideaModel, originalIdeaModel)
+
+        when: "fetching again with Isolated Projects"
+        withIsolatedProjects()
+        fetchModel(IdeaProject)
+
+        then:
+        fixture.assertModelLoaded()
     }
 
     private static void checkIdeaProject(IdeaProject actual, IdeaProject expected) {

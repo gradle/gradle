@@ -20,9 +20,7 @@ dependencies {
     integTestImplementation(projects.platformJvm)
     integTestImplementation(testFixtures(projects.jacoco))
     integTestImplementation(testFixtures(projects.testingBase))
-    integTestImplementation(testLibs.mockwebserver) {
-        exclude(group = "org.bouncycastle").because("MockWebServer uses a different version of BouncyCastle")
-    }
+    integTestImplementation(testLibs.mockwebserver)
     integTestImplementation(libs.kotlinCompilerEmbeddable)
     integTestImplementation(testLibs.mockitoKotlin)
     integTestImplementation(libs.kotlinStdlib)

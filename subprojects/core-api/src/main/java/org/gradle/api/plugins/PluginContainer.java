@@ -52,6 +52,9 @@ public interface PluginContainer extends PluginCollection<Plugin> {
 
     /**
      * Returns true if the container has a plugin with the given id, false otherwise.
+     * <p>
+     * A plugin is only added to the container once its application has completed.
+     * Use {@link PluginManager#hasPlugin(String)} to also detect a plugin that is currently being applied.
      *
      * @param id The id of the plugin
      * @since 0.7

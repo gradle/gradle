@@ -16,7 +16,6 @@
 
 package org.gradle.api.artifacts.dsl;
 
-import org.gradle.api.Incubating;
 import org.gradle.api.NonExtensible;
 import org.gradle.api.artifacts.DependencyConstraint;
 import org.gradle.api.artifacts.MinimalExternalModuleDependency;
@@ -41,7 +40,6 @@ import org.jspecify.annotations.Nullable;
  */
 @HasInternalProtocol
 @NonExtensible
-@Incubating
 @ServiceScope(Scope.Build.class)
 public interface DependencyConstraintFactory {
     /**

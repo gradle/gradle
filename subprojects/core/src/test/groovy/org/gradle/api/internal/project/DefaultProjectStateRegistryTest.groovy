@@ -19,13 +19,13 @@ package org.gradle.api.internal.project
 import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.SettingsInternal
-import org.gradle.api.internal.artifacts.DefaultBuildIdentifier
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
 import org.gradle.api.problems.ProblemReporter
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
+import org.gradle.internal.build.BuildIdentity
 import org.gradle.internal.build.BuildState
 import org.gradle.internal.model.DefaultCalculatedModelValue
 import org.gradle.internal.operations.BuildOperationsParameters
@@ -97,7 +97,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         registry.stateFor(p1.componentIdentifier).is(p1)
         registry.stateFor(p2.componentIdentifier).is(p2)
 
-        def projects = registry.projectsFor(build.buildIdentifier)
+        def projects = registry.projectsFor(build.buildIdentity)
         projects.rootProject.is(root)
         projects.getProject(Path.ROOT).is(root)
         projects.getProject(Path.path(":p1")).is(p1)
@@ -265,7 +265,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         given:
         def build = build("p1", "p2")
         def state = registry.stateFor(projectId("p1"))
-        def projects = registry.projectsFor(build.buildIdentifier)
+        def projects = registry.projectsFor(build.buildIdentity)
 
         expect:
         !state.hasMutableState()
@@ -291,7 +291,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         createRootProject()
         def state = registry.stateFor(projectId("p1"))
         createProject(state, project)
-        def projects = registry.projectsFor(build.buildIdentifier)
+        def projects = registry.projectsFor(build.buildIdentity)
 
         when:
         async {
@@ -330,7 +330,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         createRootProject()
         def state = registry.stateFor(projectId("p1"))
         createProject(state, project("p1"))
-        def projects = registry.projectsFor(build.buildIdentifier)
+        def projects = registry.projectsFor(build.buildIdentity)
 
         when:
         async {
@@ -359,7 +359,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         createRootProject()
         def state = registry.stateFor(projectId("p1"))
         createProject(state, project("p1"))
-        def projects = registry.projectsFor(build.buildIdentifier)
+        def projects = registry.projectsFor(build.buildIdentity)
 
         when:
         async {
@@ -390,7 +390,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         createProject(state1, project("p1"))
         def state2 = registry.stateFor(projectId("p2"))
         createProject(state2, project("p2"))
-        def projects = registry.projectsFor(build.buildIdentifier)
+        def projects = registry.projectsFor(build.buildIdentity)
 
         when:
         async {
@@ -420,7 +420,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         createProject(state1, project("p1"))
         def state2 = registry.stateFor(projectId("p2"))
         createProject(state2, project("p2"))
-        def projects = registry.projectsFor(build.buildIdentifier)
+        def projects = registry.projectsFor(build.buildIdentity)
 
         when:
         async {
@@ -450,7 +450,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         createRootProject(otherBuildPath)
         def state = registry.stateFor(projectId(otherBuildPath, "p1"))
         createProject(state, project("p1"))
-        def rootProjects = registry.projectsFor(rootBuild.buildIdentifier)
+        def rootProjects = registry.projectsFor(rootBuild.buildIdentity)
 
         when:
         async {
@@ -481,7 +481,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
         createRootProject()
         def state = registry.stateFor(projectId("p1"))
         createProject(state, project("p1"))
-        def otherProjects = registry.projectsFor(otherBuild.buildIdentifier)
+        def otherProjects = registry.projectsFor(otherBuild.buildIdentity)
 
         when:
         async {
@@ -507,7 +507,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
     def "releases lock for all projects while running blocking operation"() {
         given:
         def build = build("p1", "p2")
-        def projects = registry.projectsFor(build.buildIdentifier)
+        def projects = registry.projectsFor(build.buildIdentity)
 
         when:
         async {
@@ -871,7 +871,7 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
 
         def build = Stub(BuildState)
         build.loadedSettings >> settings
-        build.buildIdentifier >> (identityPath == Path.ROOT ? DefaultBuildIdentifier.ROOT : new DefaultBuildIdentifier(identityPath))
+        build.buildIdentity >> new BuildIdentity(identityPath)
         build.identityPath >> identityPath
         def services = new DefaultServiceRegistry()
         services.add(projectFactory)

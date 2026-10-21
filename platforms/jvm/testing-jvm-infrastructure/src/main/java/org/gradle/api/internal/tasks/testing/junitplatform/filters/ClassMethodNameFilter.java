@@ -20,17 +20,19 @@ import org.gradle.api.internal.tasks.testing.filter.TestSelectionMatcher;
 import org.jspecify.annotations.NullMarked;
 import org.junit.platform.engine.FilterResult;
 import org.junit.platform.engine.TestDescriptor;
-import org.junit.platform.engine.TestSource;
 import org.junit.platform.engine.support.descriptor.ClassSource;
 import org.junit.platform.engine.support.descriptor.MethodSource;
 import org.junit.platform.launcher.PostDiscoveryFilter;
 
 import java.util.Optional;
-import java.util.Set;
 
 /**
- * A JUnit Platform {@link PostDiscoveryFilter} filter that includes or excludes
- * class or method based tests based on their fully qualified names.
+ * A JUnit Platform {@link PostDiscoveryFilter} filter that includes or excludes tests based on the
+ * fully qualified name of their class and, where applicable, their method or test name.
+ * <p>
+ * A test that is not declared as a method, such as an ArchUnit rule declared as a field or a Spek scope,
+ * belongs to the nearest enclosing class in the descriptor hierarchy. It is matched by that class name together
+ * with its own reporting name. A test without an enclosing class cannot be judged by name and is included.
  */
 @NullMarked
 public final class ClassMethodNameFilter implements PostDiscoveryFilter {
@@ -42,65 +44,69 @@ public final class ClassMethodNameFilter implements PostDiscoveryFilter {
 
     @Override
     public FilterResult apply(TestDescriptor descriptor) {
+        if (!descriptor.getChildren().isEmpty()) {
+            return FilterResult.included("Has children, inclusion decided by them");
+        }
         if (classMatch(descriptor)) {
             return FilterResult.included("Class match");
         }
         return FilterResult.includedIf(shouldRun(descriptor), () -> "Method or class match", () -> "Method or class mismatch");
     }
 
+    /**
+     * Decides whether a single test should run, based on the names it can be matched by.
+     * <p>
+     * {@link #apply(TestDescriptor)} only reaches this method for descriptors without children, and
+     * only after {@link #classMatch(TestDescriptor)} failed to find an including ancestor. The
+     * decision therefore rests on this descriptor alone.
+     * <p>
+     * A descriptor backed by a {@link MethodSource} is matched by its declaring class and method name,
+     * as described on {@link #shouldRun(TestDescriptor, MethodSource)}.
+     * <p>
+     * Anything else is a test the engine did not declare as a method: an ArchUnit rule held in a field,
+     * a Spek scope, or any other custom or absent test source. There is no method name to match, so the
+     * test is matched by the nearest ancestor carrying a {@link ClassSource} (its own, if it has one)
+     * paired with the name it is reported under, {@link TestDescriptor#getLegacyReportingName()}.
+     * Either pair including the test is enough:
+     * <ul>
+     *   <li>{@code (className, null)} matches a pattern naming only the class, so
+     *       {@code --tests "ArchRulesTest"} selects every non-method test in it.</li>
+     *   <li>{@code (className, reportingName)} matches a pattern naming both, so
+     *       {@code --tests "ArchRulesTest.firstRule"} selects one rule and
+     *       {@code excludeTestsMatching "*firstRule"} skips it.</li>
+     * </ul>
+     * <p>
+     * The reporting name is whatever the engine chose, not always a simple identifier. ArchUnit reports
+     * a rule grouped with {@code ArchTests.in(NestedRules.class)} as {@code "NestedRules > nestedRule"},
+     * so the pattern that selects it is {@code ArchRulesTest.NestedRules > nestedRule}. The field
+     * holding the set is never part of it.
+     * <p>
+     * Despite the name, {@link TestDescriptor#getLegacyReportingName()} is the right name to match on
+     * and is not deprecated; "legacy" refers only to the Ant-style JUnit 4 XML format it was built to
+     * feed, which is what Gradle writes. It derives from code identifiers and ignores
+     * {@code @DisplayName}, so a cosmetic annotation cannot break a filter, and it is the same name
+     * Gradle puts in its test reports, so a name copied from a report can be pasted into
+     * {@code --tests}. {@link TestDescriptor#getDisplayName()} is unsuitable: its own contract says
+     * display names must never be parsed.
+     * <p>
+     * {@link TestSelectionMatcher#matchesTest(String, String)} applies includes and excludes together,
+     * so both pairs are exclude-aware. It treats a {@code null} method name as excluded as soon as the
+     * class name <em>may</em> match an exclude, which is why the second pair can still include a test
+     * when only a sibling is excluded.
+     * <p>
+     * A descriptor with no {@link ClassSource} above it cannot be judged by name and is included. Tests
+     * that an engine registers only while a class executes, as Kotest does, do not exist yet when this
+     * filter runs; only their spec class is seen, as a childless {@link ClassSource} leaf, so they can
+     * be selected by that class alone.
+     */
     private boolean shouldRun(TestDescriptor descriptor) {
-        return shouldRun(descriptor, false);
-    }
-
-    private boolean shouldRun(TestDescriptor descriptor, boolean checkingParent) {
-        Optional<TestSource> source = descriptor.getSource();
-        if (source.isPresent()) {
-            TestSource testSource = source.get();
-            if (testSource instanceof MethodSource) {
-                return shouldRun(descriptor, (MethodSource) testSource);
-            }
-            if (testSource instanceof ClassSource) {
-                return shouldRun(descriptor, checkingParent, (ClassSource) testSource);
-            }
+        Optional<MethodSource> methodSource = methodSource(descriptor);
+        if (methodSource.isPresent()) {
+            return shouldRun(descriptor, methodSource.get());
         }
-
-        // Source is absent or of a custom type (e.g. ArchUnit field-based tests).
-        // Walk up to the first ancestor with a class source and honor its exclude status:
-        // if that enclosing class exactly matches an exclude pattern, this descriptor is also
-        // excluded (as a member of the class). Otherwise default to included (original behavior
-        // preserved — the filter's status quo for custom sources is inclusive).
-        TestDescriptor current = descriptor.getParent().orElse(null);
-        while (current != null) {
-            Optional<String> enclosingClassName = className(current);
-            if (enclosingClassName.isPresent()) {
-                return !matcher.matchesExcludeClassExactly(enclosingClassName.get());
-            }
-            current = current.getParent().orElse(null);
-        }
-        return true;
-    }
-
-    private boolean shouldRun(TestDescriptor descriptor, boolean checkingParent, ClassSource classSource) {
-        String className = classSource.getClassName();
-        if (matcher.matchesExcludeClassExactly(className)) {
-            // This class exactly matches an exclude pattern.
-            // Return immediately to prevent children from re-including the container. Ancestors that are
-            // themselves included by pattern (e.g. a test suite) are handled by classMatch.
-            return false;
-        }
-        Set<? extends TestDescriptor> children = descriptor.getChildren();
-        if (!checkingParent) {
-            for (TestDescriptor child : children) {
-                if (shouldRun(child)) {
-                    return true;
-                }
-            }
-        }
-        if (children.isEmpty()) {
-            return matcher.matchesTest(className, null)
-                || matcher.matchesTest(className, descriptor.getLegacyReportingName());
-        }
-        return true;
+        return enclosingClassName(descriptor)
+            .map(className -> matcher.matchesTest(className, null) || matcher.matchesTest(className, descriptor.getLegacyReportingName()))
+            .orElse(true);
     }
 
     private boolean shouldRun(TestDescriptor descriptor, MethodSource methodSource) {
@@ -166,8 +172,9 @@ public final class ClassMethodNameFilter implements PostDiscoveryFilter {
 
             // If the descriptor is a MethodSource, capture the method name to use when checking against parent class names
             // (for instance, if the method is in a nested class).
-            if (current.getSource().isPresent() && current.getSource().get() instanceof MethodSource) {
-                methodName = ((MethodSource) current.getSource().get()).getMethodName();
+            Optional<MethodSource> methodSource = methodSource(current);
+            if (methodSource.isPresent()) {
+                methodName = methodSource.get().getMethodName();
             }
 
             current = parent.get();
@@ -175,10 +182,24 @@ public final class ClassMethodNameFilter implements PostDiscoveryFilter {
         return false;
     }
 
+    private Optional<String> enclosingClassName(TestDescriptor descriptor) {
+        Optional<String> className = className(descriptor);
+        if (className.isPresent()) {
+            return className;
+        }
+        return descriptor.getParent().flatMap(this::enclosingClassName);
+    }
+
     private Optional<String> className(TestDescriptor descriptor) {
         return descriptor.getSource()
             .filter(ClassSource.class::isInstance)
             .map(ClassSource.class::cast)
             .map(ClassSource::getClassName);
+    }
+
+    private Optional<MethodSource> methodSource(TestDescriptor descriptor) {
+        return descriptor.getSource()
+            .filter(MethodSource.class::isInstance)
+            .map(MethodSource.class::cast);
     }
 }

@@ -29,7 +29,7 @@ class ResilientFetchFailureCrossVersionSpec extends KotlinDslPluginRelatedToolin
 
     private static final List<String> CONFIGURE_ON_DEMAND_ON = [
         "-Dorg.gradle.internal.isolated-projects.configure-on-demand=true",
-        "-Dorg.gradle.unsafe.isolated-projects=true"
+        "-Dorg.gradle.isolated-projects=true"
     ]
 
     private static final List<String> ISOLATED_PROJECTS_ON = [

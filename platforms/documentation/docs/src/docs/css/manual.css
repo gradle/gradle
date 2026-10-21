@@ -678,16 +678,6 @@ select { width: 100%; }
 }
 .clearfix:after, .float-group:after { clear: both; }
 
-/* 6. SITE HEADER */
-
-/* Hamburger */
-
-/* Submenu */
-
-/* Mobile header */
-
-/* Desktop header */
-
 /* 7. SIDE NAVIGATION */
 
 .docs-navigation {
@@ -1894,8 +1884,6 @@ details p {
     #header { margin-bottom: 20px; }
 }
 
-/* 22. THEME TOGGLE */
-
 /* 23. BUTTONS & BADGES */
 
 .badge-wrapper {
@@ -1986,6 +1974,7 @@ details p {
 /* 24. FEATURE STATUS LABELS */
 
 .incubating-label,
+.deprecated-label,
 .since-gradle-label {
     display: inline-block;
     position: relative;
@@ -2006,6 +1995,10 @@ details p {
 
 .incubating-label {
     background-color: rgb(from var(--warning-color) r g b / 0.2);
+}
+
+.deprecated-label {
+    background-color: rgb(from var(--caution-color) r g b / 0.2);
 }
 
 /* 25. TECHNOLOGY & UI LOGOS */

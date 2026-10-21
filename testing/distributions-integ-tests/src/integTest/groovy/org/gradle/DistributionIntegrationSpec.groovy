@@ -35,7 +35,7 @@ import static org.hamcrest.MatcherAssert.assertThat
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     protected static final NATIVE_PLATFORM_BINARIES = 16
-    protected static final THIRD_PARTY_LIB_COUNT = 115
+    protected static final THIRD_PARTY_LIB_COUNT = 116
 
     @Shared
     String baseVersion = GradleVersion.current().baseVersion.version
@@ -200,7 +200,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        98
+        99
     }
 
     /**
@@ -289,7 +289,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         //accept my sincere apologies that you have to manually bump the numbers here.
         assert jarLibEntries.size() == libJarsCount, """
             Expected ${libJarsCount} jars in lib directory but found ${jarLibEntries.size()}.
-            Please review the jar entries and update the expectation in the getPackagedPluginsJarCount() method.
+            Please review the jar entries and update the expectation.
             Jar entries found:
             ${jarLibEntries.collect { it.name }}
         """
@@ -439,7 +439,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     protected static void assertDocsExist(TestFile contentsDir, String version) {
         // Javadoc
         contentsDir.file('docs/javadoc/index.html').assertIsFile()
-        contentsDir.file('docs/javadoc/index.html').assertContents(containsString("Gradle API ${version}"))
+        contentsDir.file('docs/javadoc/index.html').assertContents(containsString("Gradle API ${GradleVersion.version(version).baseVersion.version}"))
         contentsDir.file('docs/javadoc/org/gradle/api/Project.html').assertIsFile()
 
         // Userguide

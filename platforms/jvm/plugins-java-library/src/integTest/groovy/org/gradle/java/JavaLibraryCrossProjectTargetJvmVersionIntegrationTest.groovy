@@ -102,7 +102,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
                 project(':producer', 'test:producer:') {
                     variant(expected, [
                             'org.gradle.dependency.bundling': 'external',
-                            'org.gradle.jvm.version': selected,
+                            'org.gradle.jvm.version': Integer.toString(selected),
                             'org.gradle.usage':'java-api',
                             'org.gradle.libraryelements': 'jar'
                     ])
@@ -161,7 +161,7 @@ class JavaLibraryCrossProjectTargetJvmVersionIntegrationTest extends AbstractInt
                     variant("apiElements", [
                             'org.gradle.category': 'library',
                             'org.gradle.dependency.bundling': 'external',
-                            'org.gradle.jvm.version': 7,
+                            'org.gradle.jvm.version': "7",
                             'org.gradle.usage':'java-api',
                             'org.gradle.libraryelements': 'jar'
                     ])

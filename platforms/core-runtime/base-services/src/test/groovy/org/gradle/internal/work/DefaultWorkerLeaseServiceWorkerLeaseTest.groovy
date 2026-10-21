@@ -359,7 +359,7 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends AbstractWorkerLeaseServic
                 registry.runAsWorkerThread {
                     instant.worker1Started
                     registry.withLocks([resource1]) {
-                        registry.withReplacedLocks([resource1], resource2) {
+                        registry.withReplacedLocks([resource1], [resource2]) {
                             thread.block()
                         }
                     }
@@ -390,7 +390,7 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends AbstractWorkerLeaseServic
                 registry.runAsWorkerThread {
                     instant.worker1Started
                     registry.withLocks([resource1]) {
-                        registry.withReplacedLocks([resource1], resource2) {
+                        registry.withReplacedLocks([resource1], [resource2]) {
                             instant.worker1Finished
                         }
                     }
@@ -422,7 +422,7 @@ class DefaultWorkerLeaseServiceWorkerLeaseTest extends AbstractWorkerLeaseServic
             start {
                 registry.runAsWorkerThread {
                     registry.withLocks([resource1]) {
-                        registry.withReplacedLocks([resource1], resource2) {
+                        registry.withReplacedLocks([resource1], [resource2]) {
                             instant.unlocked1
                             thread.blockUntil.locked1
                         }

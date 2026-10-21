@@ -16,17 +16,16 @@
 
 package org.gradle.plugins.ide.internal;
 
-import org.gradle.api.Task;
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublication;
+import org.gradle.api.internal.tasks.TaskDependencyContainer;
 
 import java.io.File;
-import java.util.Set;
 
 /**
  * Details of an IDE project shared across Gradle project boundaries.
  */
-public interface IdeProjectMetadata extends ProjectPublication {
+public interface IdeProjectMetadata extends ProjectPublication, TaskDependencyContainer {
+
     File getFile();
 
-    Set<? extends Task> getGeneratorTasks();
 }

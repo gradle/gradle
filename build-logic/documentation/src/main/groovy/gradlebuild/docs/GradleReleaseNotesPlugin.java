@@ -42,6 +42,9 @@ import java.time.format.DateTimeFormatter;
  * TODO: Maybe eventually convert this asciidoc too, so everything uses the same markup language.
  */
 public class GradleReleaseNotesPlugin implements Plugin<Project> {
+    private static final DateTimeFormatter BUILD_TIMESTAMP_FORMAT = DateTimeFormatter.ofPattern("yyyyMMddHHmmssZ");
+    private static final DateTimeFormatter RELEASE_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+
     @Override
     public void apply(Project project) {
         ProjectLayout layout = project.getLayout();
@@ -77,9 +80,8 @@ public class GradleReleaseNotesPlugin implements Plugin<Project> {
 
             MapProperty<String, String> replacementTokens = task.getReplacementTokens();
             Provider<String> buildTimestamp = moduleIdentity.getBuildTimestamp();
-            DateTimeFormatter inputFormatter = DateTimeFormatter.ofPattern("yyyyMMddHHmmssZ");
-            DateTimeFormatter outputFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd");
-            Provider<String> dateTime = buildTimestamp.map(timestamp -> ZonedDateTime.parse(timestamp, inputFormatter).format(outputFormatter));
+            Provider<String> dateTime = buildTimestamp.map(timestamp ->
+                ZonedDateTime.parse(timestamp, BUILD_TIMESTAMP_FORMAT).format(RELEASE_DATE_FORMAT));
 
             replacementTokens.put("releaseDate", dateTime);
             replacementTokens.put("version", moduleIdentity.getVersion().map(GradleVersion::getVersion));

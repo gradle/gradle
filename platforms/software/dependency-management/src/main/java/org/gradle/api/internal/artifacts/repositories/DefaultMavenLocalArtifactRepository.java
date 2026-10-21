@@ -28,8 +28,6 @@ import org.gradle.api.internal.artifacts.repositories.metadata.MavenMetadataArti
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.resolver.ExternalResourceArtifactResolver;
 import org.gradle.api.internal.artifacts.repositories.resolver.MavenResolver;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.internal.component.external.model.ModuleComponentArtifactIdentifier;
@@ -43,6 +41,8 @@ import org.gradle.internal.resolve.result.DefaultResourceAwareResolveResult;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.gradle.internal.resource.transport.RepositoryTransport;
+import org.gradle.internal.resource.transport.RepositoryTransportFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 

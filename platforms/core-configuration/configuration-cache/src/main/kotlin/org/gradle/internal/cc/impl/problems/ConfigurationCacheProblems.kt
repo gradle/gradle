@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl.problems
 
 import com.google.common.annotations.VisibleForTesting
 import com.google.common.collect.Sets.newConcurrentHashSet
+import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Task
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.project.taskfactory.TaskIdentity
@@ -47,7 +48,7 @@ import org.gradle.internal.configuration.problems.DocumentationSection
 import org.gradle.internal.configuration.problems.IsolatedProjectsProblemsListener
 import org.gradle.internal.configuration.problems.ProblemFactory
 import org.gradle.internal.configuration.problems.ProblemReportDetails
-import org.gradle.internal.configuration.problems.ProblemReportDetailsJsonSource
+import org.gradle.internal.configuration.problems.toJsSummary
 import org.gradle.internal.configuration.problems.ProblemsListener
 import org.gradle.internal.configuration.problems.PropertyProblem
 import org.gradle.internal.configuration.problems.PropertyTrace
@@ -277,6 +278,7 @@ class ConfigurationCacheProblems(
             .mapLocation {
                 trace
             }
+            .informational()
             .documentationSection(DocumentationSection.TaskOptOut).build()
         report.onIncompatibleTask(problem)
         summarizer.onIncompatibleTask()
@@ -308,7 +310,9 @@ class ConfigurationCacheProblems(
         }
 
         if (severity == ProblemSeverity.Interrupting) {
-            val exception = problem.exception ?: error("Interrupting problems must have an associated exception. Got: $problem")
+            // The exception is missing once the full stack-capture budget is spent, which is unlikely
+            // for an interrupting problem, since the build stops at the first one.
+            val exception = problem.exception ?: InvalidUserCodeException(problem.message.renderCapitalized())
             throw exception
         }
     }
@@ -424,7 +428,7 @@ class ConfigurationCacheProblems(
         val hasNoProblemsForConsole = summary.consoleProblemCount == 0
         val outputDirectory = outputDirectoryFor(reportDir)
         val details = detailsFor(summary)
-        val htmlReportFile = report.writeReportFileTo(outputDirectory, ProblemReportDetailsJsonSource(details))
+        val htmlReportFile = report.writeReportFileTo(outputDirectory, details.toJsSummary())
         val areTaskDegradationReasonsPresent = degradationDecision.degradedTaskCount > 0
         if (htmlReportFile == null) {
             // there was nothing to report (no problems, no build configuration inputs)

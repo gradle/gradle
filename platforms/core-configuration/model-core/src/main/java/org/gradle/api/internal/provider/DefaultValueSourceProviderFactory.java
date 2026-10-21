@@ -20,7 +20,6 @@ import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.GradleException;
 import org.gradle.api.NonExtensible;
-import org.gradle.api.internal.properties.GradleProperties;
 import org.gradle.api.internal.provider.ValueSupplier.ExecutionTimeValue;
 import org.gradle.api.internal.provider.ValueSupplier.Value;
 import org.gradle.api.internal.tasks.TaskDependencyResolveContext;
@@ -32,7 +31,10 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.Describables;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
+import org.gradle.internal.deprecation.DeprecationLogger;
+import org.gradle.internal.instantiation.InstanceFactory;
 import org.gradle.internal.instantiation.InstanceGenerator;
+import org.gradle.internal.instantiation.InstantiationScheme;
 import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.isolated.IsolationScheme;
 import org.gradle.internal.isolation.IsolatableFactory;
@@ -46,6 +48,9 @@ import org.gradle.process.ExecOperations;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
+import java.util.Map;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.concurrent.atomic.AtomicReference;
 import java.util.function.Function;
 
@@ -53,13 +58,12 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
     private final InstantiatorFactory instantiatorFactory;
     private final IsolatableFactory isolatableFactory;
-    private final GradleProperties gradleProperties;
     private final CalculatedValueFactory calculatedValueFactory;
     private final ExecOperations execOperations;
     private final ValueListener valueListener;
     private final ComputationListener computationListener;
     private final IsolationScheme<ValueSource, ValueSourceParameters> isolationScheme = new IsolationScheme<>(ValueSource.class, ValueSourceParameters.class, ValueSourceParameters.None.class);
-    private final InstanceGenerator paramsInstantiator;
+    private final InstantiationScheme paramsInstantiationScheme;
     private final InstanceGenerator specInstantiator;
 
     public DefaultValueSourceProviderFactory(
@@ -67,7 +71,6 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         ComputationListener computationListener,
         InstantiatorFactory instantiatorFactory,
         IsolatableFactory isolatableFactory,
-        GradleProperties gradleProperties,
         CalculatedValueFactory calculatedValueFactory,
         ExecOperations execOperations,
         ServiceLookup services
@@ -76,13 +79,10 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         this.computationListener = computationListener;
         this.instantiatorFactory = instantiatorFactory;
         this.isolatableFactory = isolatableFactory;
-        this.gradleProperties = gradleProperties;
         this.calculatedValueFactory = calculatedValueFactory;
         this.execOperations = execOperations;
-        // TODO - dedupe logic copied from DefaultBuildServicesRegistry
-        // TODO: Is it intentional we use a service registry that allows all services, even internal ones, to be injected?
-        //       All other usages of `IsolationScheme` use a specially crafted service registry only allowing certain services to be injected.
-        this.paramsInstantiator = instantiatorFactory.decorateScheme().withServices(services).instantiator();
+        // TODO(https://github.com/gradle/gradle/issues/39090): refuse injected services once the deprecation cycle ends.
+        this.paramsInstantiationScheme = instantiatorFactory.decorateScheme().withServices(services);
         this.specInstantiator = instantiatorFactory.decorateLenient(services);
     }
 
@@ -90,7 +90,7 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
     public <T, P extends ValueSourceParameters> Provider<T> createProviderOf(Class<? extends ValueSource<T, P>> valueSourceType, Action<? super ValueSourceSpec<P>> configureAction) {
         try {
             Class<P> parametersType = extractParametersTypeOf(valueSourceType);
-            P parameters = isolationScheme.instantiateParameters(parametersType, paramsInstantiator::newInstance);
+            P parameters = isolationScheme.instantiateParameters(parametersType, this::newParameters);
 
             // TODO - consider deferring configuration
             configureParameters(parameters, configureAction);
@@ -137,7 +137,6 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
         ServiceRegistry services = ServiceRegistryBuilder.builder()
             .displayName("value source services")
             .provider(registration -> {
-                registration.add(GradleProperties.class, gradleProperties);
                 registration.add(ExecOperations.class, execOperations);
                 registration.add(parametersType, isolatedParameters);
             })
@@ -152,6 +151,31 @@ public class DefaultValueSourceProviderFactory implements ValueSourceProviderFac
 
     private <T, P extends ValueSourceParameters> Class<P> extractParametersTypeOf(Class<? extends ValueSource<T, P>> valueSourceType) {
         return isolationScheme.parameterTypeFor(valueSourceType, 1);
+    }
+
+    private <P extends ValueSourceParameters> P newParameters(Class<P> parametersType) {
+        InstanceFactory<P> factory = paramsInstantiationScheme.forType(parametersType);
+        nagIfParametersInjectServices(parametersType, factory.injectedServicesByDeclaringType());
+        return factory.newInstance();
+    }
+
+    private static void nagIfParametersInjectServices(Class<?> parametersType, Map<Class<?>, Set<Class<?>>> injectedServicesByDeclaringType) {
+        if (injectedServicesByDeclaringType.isEmpty()) {
+            return;
+        }
+        TreeSet<String> injectedServices = new TreeSet<>();
+        injectedServicesByDeclaringType.forEach((declaringType, serviceTypes) -> {
+            String through = declaringType == parametersType ? "" : String.format(" through '%s'", declaringType.getName());
+            for (Class<?> serviceType : serviceTypes) {
+                injectedServices.add(String.format("'%s'%s", serviceType.getName(), through));
+            }
+        });
+        DeprecationLogger.deprecateAction("Injecting services into the parameters of a value source")
+            .withContext(String.format("Parameters type '%s' injects %s.", parametersType.getName(), String.join(", ", injectedServices)))
+            .withAdvice("Parameters must only hold data. Pass the values that need the service in as parameters, or inject a supported service into the value source implementation instead.")
+            .willBecomeAnErrorInGradle10()
+            .withUpgradeGuideSection(9, "value_source_parameters_service_injection")
+            .nagUser();
     }
 
     private <P extends ValueSourceParameters> void configureParameters(P parameters, Action<? super ValueSourceSpec<P>> configureAction) {

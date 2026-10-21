@@ -129,7 +129,7 @@ test problem
         succeeds "warnRun"
 
         and:
-        outputContains("""Problem found: test problem (id: root:test-problem)
+        outputContains("""Problem found: test problem (id: test-problem, in root)
   Type 'MyTask' property 'bar' test problem
     This is a test.
     For more information, please refer to ${docLink()} in the Gradle documentation.""")

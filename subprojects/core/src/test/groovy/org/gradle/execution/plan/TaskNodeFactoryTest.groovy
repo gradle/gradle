@@ -16,18 +16,24 @@
 
 package org.gradle.execution.plan
 
-import org.gradle.api.internal.GradleInternal
+import org.gradle.api.DefaultTask
 import org.gradle.api.internal.TaskInternal
 import org.gradle.api.internal.plugins.PluginManagerInternal
+import org.gradle.api.internal.project.ProjectIdentity
 import org.gradle.api.internal.project.ProjectInternal
+import org.gradle.api.internal.project.taskfactory.TestTaskIdentities
 import org.gradle.composite.internal.BuildTreeWorkGraphController
+import org.gradle.internal.build.BuildIdentity
 import org.gradle.internal.operations.TestBuildOperationRunner
+import org.gradle.util.Path
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class TaskNodeFactoryTest extends Specification {
-    def gradle = Stub(GradleInternal)
-    def project = Stub(ProjectInternal)
+    def project = Stub(ProjectInternal) {
+        getProjectIdentity() >> ProjectIdentity.forRootProject(Path.ROOT, "root")
+        getPluginManager() >> Stub(PluginManagerInternal)
+    }
     TaskNodeFactory factory
     def a = task('a')
     def b = task('b')
@@ -36,10 +42,7 @@ class TaskNodeFactoryTest extends Specification {
     def e = task('e')
 
     def setup() {
-        project.gradle >> gradle
-        project.pluginManager >> Stub(PluginManagerInternal)
-
-        factory = new TaskNodeFactory(gradle, Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationRunner(), Stub(ExecutionNodeAccessHierarchies), TestUtil.problemsService())
+        factory = new TaskNodeFactory(new BuildIdentity(Path.ROOT), Stub(BuildTreeWorkGraphController), Stub(NodeValidator), new TestBuildOperationRunner(), Stub(ExecutionNodeAccessHierarchies), TestUtil.problemsService())
     }
 
     private TaskInternal task(String name) {
@@ -47,6 +50,7 @@ class TaskNodeFactoryTest extends Specification {
             getName() >> name
             compareTo(_) >> { args -> name.compareTo(args[0].name) }
             getProject() >> project
+            getTaskIdentity() >> TestTaskIdentities.create(name, DefaultTask, project)
         }
     }
 

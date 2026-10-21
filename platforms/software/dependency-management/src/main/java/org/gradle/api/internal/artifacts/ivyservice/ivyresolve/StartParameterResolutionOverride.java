@@ -23,13 +23,11 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.ChecksumAndSignatureVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.DependencyVerificationOverride;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.verification.writer.WriteDependencyVerificationFile;
-import org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy.ExternalResourceCachePolicy;
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.artifacts.verification.exceptions.DependencyVerificationException;
 import org.gradle.api.internal.artifacts.verification.signatures.SignatureVerificationServiceFactory;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.api.internal.properties.GradleProperties;
-import org.gradle.api.resources.ResourceException;
 import org.gradle.internal.Factory;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
@@ -45,22 +43,17 @@ import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleVersionListingResolveResult;
-import org.gradle.internal.resource.ExternalResource;
-import org.gradle.internal.resource.ExternalResourceName;
-import org.gradle.internal.resource.ReadableContent;
 import org.gradle.internal.resource.local.FileResourceListener;
-import org.gradle.internal.resource.metadata.ExternalResourceMetaData;
-import org.gradle.internal.resource.transfer.ExternalResourceConnector;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.internal.BuildCommencedTimeProvider;
-import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
 
 @ServiceScope(Scope.BuildTree.class)
 public class StartParameterResolutionOverride {
+
     private final StartParameter startParameter;
     private final File gradleDir;
 
@@ -163,49 +156,6 @@ public class StartParameterResolutionOverride {
         }
     }
 
-    public ExternalResourceCachePolicy overrideExternalResourceCachePolicy(ExternalResourceCachePolicy original) {
-        if (startParameter.isOffline()) {
-            return ageMillis -> false;
-        }
-        return original;
-    }
-
-    public ExternalResourceConnector overrideExternalResourceConnector(ExternalResourceConnector original) {
-        if (startParameter.isOffline()) {
-            return new OfflineExternalResourceConnector();
-        }
-        return original;
-    }
-
-    private static class OfflineExternalResourceConnector implements ExternalResourceConnector {
-        @Nullable
-        @Override
-        public <T> T withContent(ExternalResourceName location, boolean revalidate, ExternalResource.ContentAndMetadataAction<T> action) throws ResourceException {
-            throw offlineResource(location);
-        }
-
-        @Nullable
-        @Override
-        public ExternalResourceMetaData getMetaData(ExternalResourceName location, boolean revalidate) throws ResourceException {
-            throw offlineResource(location);
-        }
-
-        @Nullable
-        @Override
-        public List<String> list(ExternalResourceName parent) throws ResourceException {
-            throw offlineResource(parent);
-        }
-
-        @Override
-        public void upload(ReadableContent resource, ExternalResourceName destination) {
-            throw new ResourceException(destination.getUri(), String.format("Cannot upload to '%s' in offline mode.", destination.getUri()));
-        }
-
-        private ResourceException offlineResource(ExternalResourceName source) {
-            return new ResourceException(source.getUri(), String.format("No cached resource '%s' available for offline mode.", source.getUri()));
-        }
-    }
-
     private static class FailureVerificationOverride implements DependencyVerificationOverride {
         private final Exception error;
 
@@ -218,4 +168,5 @@ public class StartParameterResolutionOverride {
             throw new DependencyVerificationException("Dependency verification cannot be performed", error);
         }
     }
+
 }

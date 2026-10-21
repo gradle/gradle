@@ -19,6 +19,9 @@ package org.gradle.kotlin.dsl.tooling.builders
 import org.gradle.api.Project
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectOrderingUtil
+import org.gradle.internal.classpath.ClassPath
+import org.gradle.internal.deprecation.DeprecationLogger
+import org.gradle.internal.problems.failure.FailureFactory
 import org.gradle.internal.resources.ProjectLeaseRegistry
 import org.gradle.internal.time.Time
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptPluginsSupport
@@ -29,7 +32,17 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslModelsParameters
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.tooling.provider.model.ToolingModelBuilder
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
 import java.io.File
+
+
+/**
+ * Gradle property that restricts the set of scripts the model is built for.
+ * Deprecated for removal in Gradle 10, when the model will always be built for all scripts.
+ */
+@Suppress("DEPRECATION")
+internal
+const val SCRIPTS_GRADLE_PROPERTY_NAME = KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME
 
 
 internal
@@ -65,14 +78,14 @@ abstract class AbstractKotlinDslScriptsModelBuilder : ToolingModelBuilder {
     override fun canBuild(modelName: String): Boolean =
         modelName == MODEL_NAME
 
-    override fun buildAll(modelName: String, project: Project): KotlinDslScriptsModel {
+    override fun buildAll(modelName: String, project: Project): ToolingModelBuilderResultInternal {
         requireRootProject(project)
         val timer = Time.startTimer()
         val parameter = prepareParameter(project)
         try {
-            return buildFor(parameter, project).also {
-                log("$parameter => $it - took ${timer.elapsed}")
-            }
+            val result = buildFor(parameter, project)
+            log("$parameter => ${result.model} - took ${timer.elapsed}")
+            return result.toToolingModelResult(project.serviceOf())
         } catch (ex: Exception) {
             log("$parameter => $ex - took ${timer.elapsed}")
             throw ex
@@ -81,7 +94,7 @@ abstract class AbstractKotlinDslScriptsModelBuilder : ToolingModelBuilder {
 
     abstract fun prepareParameter(rootProject: Project): KotlinDslScriptsParameter
 
-    abstract fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): KotlinDslScriptsModel
+    abstract fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): ScriptModelResult<KotlinDslScriptsModel>
 
     private
     val Project.leaseRegistry: ProjectLeaseRegistry
@@ -100,28 +113,37 @@ object KotlinDslScriptsModelBuilder : AbstractKotlinDslScriptsModelBuilder() {
 
     override fun prepareParameter(rootProject: Project) = rootProject.parameterFromRequest()
 
-    override fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): KotlinDslScriptsModel {
+    override fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): ScriptModelResult<KotlinDslScriptsModel> {
+        val classPathResolver = SourceSetClassPathResolver()
         val scriptModels = parameter.scriptFiles.associateWith { scriptFile ->
-            buildScriptModel(rootProject, scriptFile, parameter)
+            buildScriptModel(rootProject, scriptFile, parameter, classPathResolver)
         }
-        return createStandardKotlinDslScriptsModel(scriptModels)
+        return ScriptModelResult(
+            createStandardKotlinDslScriptsModel(scriptModels.mapValues { (_, result) -> result.model }),
+            // The scripts of one source set share a classpath, so report its failure once, not once per script
+            scriptModels.values.flatMap { it.failures }.distinct()
+        )
     }
 
     private
     fun buildScriptModel(
         rootProject: Project,
         scriptFile: File,
-        parameter: KotlinDslScriptsParameter
-    ): StandardKotlinDslScriptModel {
+        parameter: KotlinDslScriptsParameter,
+        classPathResolver: SourceSetClassPathResolver
+    ): ScriptModelResult<StandardKotlinDslScriptModel> {
 
         val scriptModelParameter = KotlinBuildScriptModelParameter(scriptFile, parameter.correlationId)
-        val scriptModel = KotlinBuildScriptModelBuilder.kotlinBuildScriptModelFor(rootProject, scriptModelParameter)
-        return StandardKotlinDslScriptModel(
-            scriptModel.classPath,
-            scriptModel.sourcePath,
-            scriptModel.implicitImports,
-            mapEditorReports(scriptModel.editorReports),
-            scriptModel.exceptions
+        val (scriptModel, failures) = KotlinBuildScriptModelBuilder.kotlinBuildScriptModelFor(rootProject, scriptModelParameter, classPathResolver)
+        return ScriptModelResult(
+            StandardKotlinDslScriptModel(
+                scriptModel.classPath,
+                scriptModel.sourcePath,
+                scriptModel.implicitImports,
+                mapEditorReports(scriptModel.editorReports),
+                scriptModel.exceptions
+            ),
+            failures
         )
     }
 }
@@ -148,14 +170,28 @@ fun Project.resolveScriptsParameter(): List<File> =
 
 
 private
-fun Project.resolveExplicitScriptsParameter(): List<File>? =
-    (findProperty(KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME) as? String)
-        ?.split("|")
-        ?.asSequence()
-        ?.filter { it.isNotBlank() }
-        ?.map(::canonicalFile)
-        ?.filter { it.isFile }
-        ?.toList()
+fun Project.resolveExplicitScriptsParameter(): List<File>? {
+    val explicitScripts = findProperty(SCRIPTS_GRADLE_PROPERTY_NAME) as? String ?: return null
+    nagUserAboutExplicitScriptsProperty()
+    return explicitScripts
+        .split("|")
+        .asSequence()
+        .filter { it.isNotBlank() }
+        .map(::canonicalFile)
+        .filter { it.isFile }
+        .toList()
+}
+
+
+private
+fun nagUserAboutExplicitScriptsProperty() {
+    DeprecationLogger.deprecateBehaviour(
+        "Requesting the KotlinDslScriptsModel for an explicit set of scripts using the '$SCRIPTS_GRADLE_PROPERTY_NAME' Gradle property."
+    )
+        .willBeRemovedInGradle10()
+        .withUpgradeGuideSection(9, "kotlin_dsl_scripts_model_explicit_scripts")
+        .nagUser()
+}
 
 
 // TODO:kotlin-dsl naive implementation for now, refine
@@ -199,6 +235,35 @@ fun Project.discoverPrecompiledScriptPluginScripts() =
             .collectScriptPluginFilesOf(this)
     else
         emptyList()
+
+
+/**
+ * A model together with the failures its builder recovered from by degrading the model of some script, e.g. by
+ * using the base script classpath for a precompiled script plugin whose compile classpath could not be resolved.
+ *
+ * The failures are reported alongside the model through a [ToolingModelBuilderResultInternal], so the tooling
+ * model controller decides what to do with them: a regular model request fails as if the builder had thrown,
+ * while a resilient one returns the degraded model to the client and fails the build once it finishes.
+ */
+internal
+data class ScriptModelResult<T : Any>(
+    val model: T,
+    val failures: List<Throwable> = emptyList()
+) {
+
+    fun toToolingModelResult(failureFactory: FailureFactory): ToolingModelBuilderResultInternal =
+        ToolingModelBuilderResultInternal.of(model, failures.map { failureFactory.create(it) })
+}
+
+
+/**
+ * A script classpath together with the failure it was recovered from, if any.
+ */
+internal
+data class ResolvedClassPath(
+    val classPath: ClassPath,
+    val failure: Throwable? = null
+)
 
 
 internal

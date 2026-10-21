@@ -21,6 +21,8 @@ import org.gradle.api.tasks.TaskInputFilePropertyBuilder;
 import org.gradle.internal.fingerprint.FileNormalizer;
 import org.jspecify.annotations.NullMarked;
 
+import java.util.function.BooleanSupplier;
+
 @NullMarked
 public interface TaskInputFilePropertyBuilderInternal extends TaskInputFilePropertyBuilder, TaskFilePropertyBuilderInternal {
 
@@ -40,6 +42,14 @@ public interface TaskInputFilePropertyBuilderInternal extends TaskInputFilePrope
 
     @Override
     TaskInputFilePropertyBuilderInternal skipWhenEmpty(boolean skipWhenEmpty);
+
+    /**
+     * Same as {@link #skipWhenEmpty(boolean)}, but lazy.
+     * <p>
+     * The supplier may be queried whenever the registered properties are visited, possibly more than once
+     * and as early as the end of the task's configuration.
+     */
+    TaskInputFilePropertyBuilderInternal skipWhenEmpty(BooleanSupplier skipWhenEmpty);
 
     @Override
     TaskInputFilePropertyBuilderInternal optional();

@@ -28,6 +28,7 @@ import java.io.DataInputStream;
 import java.io.DataOutputStream;
 import java.io.File;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -383,15 +384,23 @@ public class BTreePersistentIndexedCache<K, V> {
         @Override
         public void read(DataInputStream instr) throws IOException {
             int count = instr.readInt();
+            // A block is written before it is split, so it can hold one entry more than the maximum
+            if (count < 0 || count > maxChildIndexEntries + 1) {
+                throw new CorruptedCacheException(String.format("Corrupted index block with %d entries found in %s.", count, cacheFile));
+            }
+            // Read the entries in bulk: per-field readLong() calls go through several stream layers each
+            byte[] bytes = new byte[count * 3 * Block.LONG_SIZE + Block.LONG_SIZE];
+            instr.readFully(bytes);
+            ByteBuffer buffer = ByteBuffer.wrap(bytes);
             entries.clear();
             for (int i = 0; i < count; i++) {
                 IndexEntry entry = new IndexEntry();
-                entry.hashCode = instr.readLong();
-                entry.dataBlock = BlockPointer.pos(instr.readLong());
-                entry.childIndexBlock = BlockPointer.pos(instr.readLong());
+                entry.hashCode = buffer.getLong();
+                entry.dataBlock = BlockPointer.pos(buffer.getLong());
+                entry.childIndexBlock = BlockPointer.pos(buffer.getLong());
                 entries.add(entry);
             }
-            tailPos = BlockPointer.pos(instr.readLong());
+            tailPos = BlockPointer.pos(buffer.getLong());
         }
 
         @Override

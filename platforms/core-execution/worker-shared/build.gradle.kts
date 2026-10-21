@@ -43,6 +43,9 @@ dependencies {
     implementation(libs.jsr305)
 
     testImplementation(testFixtures(projects.core))
+
+    // Javadoc-only: downstream modules whose types are referenced by {@link ...} in this module's docs.
+    javadocReferences(projects.core) // for GlobalScopeServices
 }
 
 gradleModule {

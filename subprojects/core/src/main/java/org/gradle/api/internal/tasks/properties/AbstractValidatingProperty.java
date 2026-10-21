@@ -16,19 +16,15 @@
 
 package org.gradle.api.internal.tasks.properties;
 
-import com.google.common.base.Suppliers;
 import org.gradle.api.problems.ProblemSpec;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.provider.HasConfigurableValue;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.properties.PropertyValue;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.gradle.util.internal.DeferredUtil;
-import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Locale;
-import java.util.function.Supplier;
 
 import static org.gradle.internal.deprecation.Documentation.userManual;
 
@@ -50,7 +46,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
     public static void reportValueNotSet(String propertyName, TypeValidationContext context, boolean hasConfigurableValue) {
         context.visitPropertyError(problem -> {
             ProblemSpec problemSpec = problem.forProperty(propertyName)
-                .id(TextUtil.screamingSnakeToKebabCase(VALUE_NOT_SET), "Value not set", GradleCoreProblemGroup.validation().property())
+                .id(problem.getGradleGroup().getBuildDefinition().problemId("Value not set"))
                 .contextualLabel("doesn't have a configured value")
                 .documentedAt(userManual("validation_problems", VALUE_NOT_SET.toLowerCase(Locale.ROOT)))
                 .details("This property isn't marked as optional and no value has been configured");
@@ -68,9 +64,8 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
         // unnest callables without resolving deferred values (providers, factories)
         Object unnested = DeferredUtil.unpackNestableDeferred(value.call());
         if (isPresent(unnested)) {
-            // only resolve deferred values if actually required by some action
-            Supplier<Object> valueSupplier = Suppliers.memoize(() -> DeferredUtil.unpack(unnested));
-            validationAction.validate(propertyName, valueSupplier, context);
+            // the value is passed unresolved; each action decides whether to resolve the root provider, see ValidationActions.validate()
+            validationAction.validate(propertyName, () -> unnested, context);
         } else {
             if (!optional) {
                 reportValueNotSet(propertyName, context, hasConfigurableValue(unnested));
@@ -86,7 +81,7 @@ public abstract class AbstractValidatingProperty implements ValidatingProperty {
         return value != null;
     }
 
-    private static boolean hasConfigurableValue(@Nullable Object value) {
+    static boolean hasConfigurableValue(@Nullable Object value) {
         // TODO We should check the type of the property here, not its value
         //   With the current code we'd assume a `Provider<String>` to be configurable when
         //   the getter returns `null`. The property type is not currently available in this

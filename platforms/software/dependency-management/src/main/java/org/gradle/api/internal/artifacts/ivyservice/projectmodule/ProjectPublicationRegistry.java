@@ -16,8 +16,8 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.projectmodule;
 
-import org.gradle.api.artifacts.component.BuildIdentifier;
 import org.gradle.api.internal.project.ProjectIdentity;
+import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 import org.gradle.util.Path;
@@ -49,7 +49,7 @@ public interface ProjectPublicationRegistry {
     /**
      * Returns all known publications for the given build.
      */
-    <T extends ProjectPublication> Collection<PublicationForProject<T>> getPublicationsForBuild(Class<T> type, BuildIdentifier buildIdentity);
+    <T extends ProjectPublication> Collection<PublicationForProject<T>> getPublicationsForBuild(Class<T> type, BuildIdentity buildIdentity);
 
     interface PublicationForProject<T extends ProjectPublication> {
 

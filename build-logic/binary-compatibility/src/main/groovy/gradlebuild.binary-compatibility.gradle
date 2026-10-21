@@ -203,7 +203,9 @@ def checkSinceForNonPublicApi = tasks.register("checkSinceForNonPublicApi", grad
         baseVersion.get(),
         {
             it.includedClasses = toPatterns(["org/gradle/**"])
-            it.excludedClasses = toNonInternalPatterns(PublicApi.includes + PublicKotlinDslApi.includes)
+            // relocated third-party classes have no sources in this repository
+            it.excludedClasses = toNonInternalPatterns(PublicApi.includes + PublicKotlinDslApi.includes) +
+                toPatterns(PublicKotlinDslApi.relocated)
 
             it.title = "@since report for non-public Gradle API ${isSnapshot.get() ? "${baseVersion.get()}-SNAPSHOT" : version} since ${compatibilityBaselineVersion}"
             it.destinationDir = layout.buildDirectory.dir("reports/binary-compatibility-non-public-api")

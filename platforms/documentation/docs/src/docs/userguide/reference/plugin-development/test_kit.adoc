@@ -55,7 +55,7 @@ The functional test then runs that build, potentially using different tasks, arg
 * The build's logging
 * The tasks that executed and their outcomes (e.g., FAILED, UP-TO-DATE, FROM-CACHE)
 
-After creating and configuring a runner instance, execute the build using link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#build--[`GradleRunner.build()`] or link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#buildAndFail--[`GradleRunner.buildAndFail()`], depending on whether the build is expected to succeed or fail.
+After creating and configuring a runner instance, execute the build using link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#build()[`GradleRunner.build()`] or link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#buildAndFail()[`GradleRunner.buildAndFail()`], depending on whether the build is expected to succeed or fail.
 
 The following demonstrates the usage of the Gradle runner in a Java JUnit test:
 
@@ -109,7 +109,7 @@ The <<java_gradle_plugin.adoc#java_gradle_plugin,Java Gradle Plugin Development 
 When applied to a project, it automatically:
 
 * adds the `gradleTestKit()` dependency to the appropriate test configuration, and
-* generates the plugin-under-test classpath and injects it into any `GradleRunner` instance created by your tests via link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath--[`GradleRunner.withPluginClasspath()`].
+* generates the plugin-under-test classpath and injects it into any `GradleRunner` instance created by your tests via link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withPluginClasspath()[`GradleRunner.withPluginClasspath()`].
 
 This allows functional tests to execute a “real” Gradle build that can apply and exercise your plugin without requiring any manual classpath wiring.
 
@@ -179,7 +179,7 @@ By default, the working directories created for each test build are **not** dele
 To keep the filesystem clean or to store TestKit state in a location managed by your build (such as a project’s `build/` directory), you can specify a custom TestKit directory using one of the following:
 
 * The `org.gradle.testkit.dir` system property
-* link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withTestKitDir-java.io.File-[`GradleRunner.withTestKitDir(File testKitDir)`]
+* link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withTestKitDir(java.io.File)[`GradleRunner.withTestKitDir(File testKitDir)`]
 
 [[sub:gradle-runner-gradle-version]]
 == Setting the Gradle version used to test
@@ -196,9 +196,9 @@ This means that the plugin will be effectively tested with the same version of G
 
 Alternatively, a different and specific version of Gradle to use can be specified by the following `GradleRunner` methods:
 
-* link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withGradleVersion-java.lang.String-[`GradleRunner.withGradleVersion(java.lang.String)`]
-* link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withGradleInstallation-java.io.File-[`GradleRunner.withGradleInstallation(java.io.File)`]
-* link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withGradleDistribution-java.net.URI-[`GradleRunner.withGradleDistribution(java.net.URI)`]
+* link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withGradleVersion(java.lang.String)[`GradleRunner.withGradleVersion(java.lang.String)`]
+* link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withGradleInstallation(java.io.File)[`GradleRunner.withGradleInstallation(java.io.File)`]
+* link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withGradleDistribution(java.net.URI)[`GradleRunner.withGradleDistribution(java.net.URI)`]
 
 This can potentially be used to test build logic across Gradle versions.
 The following demonstrates a cross-version compatibility test written as a Groovy Spock test:
@@ -220,7 +220,7 @@ Any breakpoints set in your IDE will be not be tripped by the code being exercis
 The TestKit provides two different ways to enable the debug mode:
 
 * Setting "`org.gradle.testkit.debug`" system property to `true` for the JVM _using_ the `GradleRunner` (i.e., not the build being executed with the runner);
-* Calling the link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withDebug-boolean-[`GradleRunner.withDebug(boolean)`] method.
+* Calling the link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withDebug(boolean)[`GradleRunner.withDebug(boolean)`] method.
 
 The system property approach can be used when it is desirable to enable debugging support without making an ad hoc change to the runner configuration.
 Most IDEs offer the capability to set JVM system properties for test execution, and this feature can be used to set the desired system property.
@@ -237,7 +237,7 @@ You can then check for the task outcome link:{javadocPath}/org/gradle/testkit/ru
 include::{snippetsPath}/reference/plugin-development/testKitFunctionalTestSpockBuildCache/groovy/src/test/groovy/org/gradle/sample/BuildLogicFunctionalTest.groovy[tag=functional-test-build-cache]
 ----
 
-Note that TestKit re-uses a Gradle User Home between tests (see link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withTestKitDir-java.io.File-[`GradleRunner.withTestKitDir(java.io.File)`]), which contains the default location for the local Build Cache.
+Note that TestKit re-uses a Gradle User Home between tests (see link:{javadocPath}/org/gradle/testkit/runner/GradleRunner.html#withTestKitDir(java.io.File)[`GradleRunner.withTestKitDir(java.io.File)`]), which contains the default location for the local Build Cache.
 For testing with the build cache, the Build Cache directory should be cleaned between tests.
 The easiest way to accomplish this is to configure the local Build Cache to use a temporary directory:
 

@@ -35,6 +35,7 @@ class KotlinDslGivenScriptsModelCrossVersionSpec extends AbstractKotlinDslScript
 
         when:
         maybeExpectAccessorsDeprecation()
+        maybeExpectExplicitScriptsDeprecation()
         def model = loadToolingModel(KotlinDslScriptsModel) {
             setModelParameters(it, false, true, requestedScripts)
         }
@@ -62,6 +63,7 @@ class KotlinDslGivenScriptsModelCrossVersionSpec extends AbstractKotlinDslScript
 
         when:
         maybeExpectAccessorsDeprecation()
+        maybeExpectExplicitScriptsDeprecation()
         withStackTraceChecksDisabled() // This test prints a huge stack trace
         def model = loadToolingModel(KotlinDslScriptsModel) {
             setModelParameters(it, true, true, requestedScripts)

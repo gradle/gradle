@@ -17,7 +17,6 @@ package org.gradle.api.internal.project;
 
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
-import kotlin.Unit;
 import org.gradle.api.Action;
 import org.gradle.api.AntBuilder;
 import org.gradle.api.CircularReferenceException;
@@ -1176,11 +1175,10 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
 
     public static void reportGetPropertiesProblem(IsolatedProjectsProblemsReporter reporter) {
         reporter.report(factory ->
-            factory.problem(null, builder -> {
-                builder.text("use of ").reference("Project.getProperties()")
-                    .text(" is not allowed with Isolated Projects");
-                return Unit.INSTANCE;
-            }).exception().build()
+            factory.problem(message -> message
+                .text("use of ").reference("Project.getProperties()")
+                .text(" is not allowed with Isolated Projects")
+            ).build()
         );
     }
 
@@ -1550,7 +1548,7 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
         DependencyResolutionServices resolver = dms.newDetachedResolver(
             services.get(FileResolver.class),
             services.get(FileCollectionFactory.class),
-            new DependencyManagementParameters(Describables.of("detached context for", owner.getDisplayName()), null, true, true, true)
+            DependencyManagementParameters.forDetachedJvmEnvironment(Describables.of("detached context for", owner.getDisplayName()))
         );
 
         return new LocalDetachedResolver(resolver);

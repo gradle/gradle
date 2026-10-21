@@ -16,17 +16,14 @@
 
 package org.gradle.kotlin.dsl.tooling.builders.internal
 
+import org.gradle.api.InvalidUserDataException
 import org.gradle.api.Project
-import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectInternal
 import org.gradle.api.internal.project.ProjectState
 import org.gradle.internal.classpath.ClassPath
 import org.gradle.internal.classpath.ClassPath.EMPTY
-import org.gradle.internal.classpath.DefaultClassPath
-import org.gradle.kotlin.dsl.accessors.AccessorsClassPath
 import org.gradle.kotlin.dsl.accessors.Stage1BlocksAccessorClassPathGenerator
 import org.gradle.kotlin.dsl.provider.ClassPathModeExceptionCollector
-import org.gradle.kotlin.dsl.provider.KotlinScriptClassPathProvider
 import org.gradle.kotlin.dsl.provider.runCatching
 import org.gradle.kotlin.dsl.resolver.SourceDistributionResolver
 import org.gradle.kotlin.dsl.resolver.SourcePathProvider
@@ -37,10 +34,13 @@ import org.gradle.kotlin.dsl.support.serviceOf
 import org.gradle.kotlin.dsl.tooling.builders.AbstractKotlinDslScriptsModelBuilder
 import org.gradle.kotlin.dsl.tooling.builders.KotlinDslScriptsParameter
 import org.gradle.kotlin.dsl.tooling.builders.PrecompiledScriptPluginsMetadataDir
+import org.gradle.kotlin.dsl.tooling.builders.SCRIPTS_GRADLE_PROPERTY_NAME
+import org.gradle.kotlin.dsl.tooling.builders.ScriptModelResult
 import org.gradle.kotlin.dsl.tooling.builders.StandardKotlinDslScriptModel
 import org.gradle.kotlin.dsl.tooling.builders.StandardKotlinDslScriptsModel
 import org.gradle.kotlin.dsl.tooling.builders.accessorsClassPathOf
 import org.gradle.kotlin.dsl.tooling.builders.addNotNull
+import org.gradle.kotlin.dsl.tooling.builders.baseScriptClassPath
 import org.gradle.kotlin.dsl.tooling.builders.compilationClassPathForScriptPluginOf
 import org.gradle.kotlin.dsl.tooling.builders.createStandardKotlinDslScriptsModel
 import org.gradle.kotlin.dsl.tooling.builders.discoverBuildScript
@@ -50,6 +50,7 @@ import org.gradle.kotlin.dsl.tooling.builders.discoverSettingScript
 import org.gradle.kotlin.dsl.tooling.builders.resolveCorrelationIdParameter
 import org.gradle.kotlin.dsl.tooling.builders.buildEditorReportsFor
 import org.gradle.kotlin.dsl.tooling.builders.mapEditorReports
+import org.gradle.kotlin.dsl.tooling.builders.SourceSetClassPathResolver
 import org.gradle.kotlin.dsl.tooling.builders.runtimeFailuresLocatedIn
 import org.gradle.kotlin.dsl.tooling.builders.scriptCompilationClassPath
 import org.gradle.kotlin.dsl.tooling.builders.scriptHandlerFactoryOf
@@ -60,6 +61,7 @@ import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptModel
 import org.gradle.tooling.model.kotlin.dsl.KotlinDslScriptsModel
 import org.gradle.tooling.provider.model.ToolingModelBuilder
 import org.gradle.tooling.provider.model.internal.IntermediateToolingModelProvider
+import org.gradle.tooling.provider.model.internal.ToolingModelBuilderResultInternal
 import java.io.File
 
 
@@ -69,23 +71,26 @@ class IsolatedProjectsSafeKotlinDslScriptsModelBuilder(
 ) : AbstractKotlinDslScriptsModelBuilder() {
 
     override fun prepareParameter(rootProject: Project): KotlinDslScriptsParameter {
-        require(rootProject.findProperty(KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME) == null) {
-            "Property ${KotlinDslScriptsModel.SCRIPTS_GRADLE_PROPERTY_NAME} is not supported with Isolated Projects"
+        if (rootProject.findProperty(SCRIPTS_GRADLE_PROPERTY_NAME) != null) {
+            throw InvalidUserDataException(
+                "Property $SCRIPTS_GRADLE_PROPERTY_NAME is not supported with Isolated Projects: " +
+                    "the model is always built for all the Kotlin DSL scripts of the build."
+            )
         }
 
         return KotlinDslScriptsParameter(rootProject.resolveCorrelationIdParameter(), emptyList())
     }
 
-    override fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): KotlinDslScriptsModel {
+    override fun buildFor(parameter: KotlinDslScriptsParameter, rootProject: Project): ScriptModelResult<KotlinDslScriptsModel> {
         return buildFor(rootProject as ProjectInternal)
     }
 
     private
-    fun buildFor(rootProject: ProjectInternal): StandardKotlinDslScriptsModel {
+    fun buildFor(rootProject: ProjectInternal): ScriptModelResult<KotlinDslScriptsModel> {
         val base = ScriptModelBase(rootProject)
 
         val nonProjectIntermediate = nonProjectIntermediateModels(rootProject)
-        val projectHierarchy = visitProjectHierarchy(rootProject, intermediateModelProvider)
+        val (projectHierarchy, failures) = visitProjectHierarchy(rootProject, intermediateModelProvider)
 
         // Script evaluation failures are reported to a single build-scoped collector rather than travelling
         // back with each intermediate model, so we read them here once every script (init, settings, and
@@ -95,7 +100,10 @@ class IsolatedProjectsSafeKotlinDslScriptsModelBuilder(
 
         val nonProjectScriptModels = buildOutputsForNonProject(nonProjectIntermediate, base, exceptions)
         val projectHierarchyScriptModels = buildOutputsForHierarchy(projectHierarchy, base, exceptions)
-        return createStandardKotlinDslScriptsModel(nonProjectScriptModels + projectHierarchyScriptModels)
+        return ScriptModelResult(
+            createStandardKotlinDslScriptsModel(nonProjectScriptModels + projectHierarchyScriptModels),
+            failures
+        )
     }
 }
 
@@ -178,14 +186,15 @@ private
 fun visitProjectHierarchy(
     rootProject: ProjectInternal,
     intermediateModelProvider: IntermediateToolingModelProvider
-): List<ProjectModelWithParentSource> {
+): ScriptModelResult<List<ProjectModelWithParentSource>> {
     val visited = mutableListOf<ProjectModelWithParentSource>()
+    val failures = mutableListOf<Throwable>()
     val classPathModeExceptionCollector = rootProject.serviceOf<ClassPathModeExceptionCollector>()
 
     fun prepareForParallelAccess() {
-        // Avoid deadlock on stage1BlocksAccessorClassPath on root.fromMutableState call.
-        // It's wrapped in runCatching the same way the per-project and settings accessorsClassPathOf calls,
-        // so a broken root build degrades to empty accessors instead of aborting the model build.
+        // Compute the stage 1 blocks accessors on this thread, which holds the root project lock, before fanning out
+        // to the workers. Otherwise a worker can enter the lazy and block on the root project lock held here.
+        // A failure is collected so a broken root build degrades to empty accessors instead of aborting the model build.
         classPathModeExceptionCollector.runCatching {
             rootProject.serviceOf<Stage1BlocksAccessorClassPathGenerator>().prepareForParallelAccess()
         }
@@ -199,6 +208,8 @@ fun visitProjectHierarchy(
                 val original = failure.original
                 classPathModeExceptionCollector.collect(original as? Exception ?: RuntimeException(original))
             }
+            // Only model builder failures are propagated, configuration failures are reported by the BuildToolingModelController anyway
+            failures.addAll(result.modelBuilderFailures)
             result.model?.let {
                 visited.add(ProjectModelWithParentSource(it, parentSourcePath))
                 visitChildren(child, parentSourcePath + it.buildScriptSourcePath)
@@ -207,10 +218,11 @@ fun visitProjectHierarchy(
     }
 
     prepareForParallelAccess()
-    val rootModel = isolatedScriptsModelFor(rootProject)
+    val (rootModel, rootFailures) = isolatedScriptsModelFor(rootProject)
+    failures.addAll(rootFailures)
     visited.add(ProjectModelWithParentSource(rootModel, EMPTY))
     visitChildren(rootProject.owner, rootModel.buildScriptSourcePath)
-    return visited
+    return ScriptModelResult(visited, failures)
 }
 
 
@@ -238,13 +250,6 @@ fun buildOutputsForHierarchy(
         }
     }
     return outputModels
-}
-
-
-private
-fun GradleInternal.baseScriptClassPath(): ClassPath {
-    return serviceOf<KotlinScriptClassPathProvider>()
-        .compilationClassPathOf(baseProjectClassLoaderScope())
 }
 
 
@@ -294,9 +299,7 @@ private
 fun buildSettingsScriptModel(settingsScript: File, rootProject: Project): NonProjectScriptModel {
     val settings = rootProject.settings
     val scriptCompilationClassPath = settings.scriptCompilationClassPath
-    val accessorsClassPath = rootProject.serviceOf<ClassPathModeExceptionCollector>().runCatching {
-        settings.accessorsClassPathOf(scriptCompilationClassPath)
-    } ?: AccessorsClassPath.empty
+    val accessorsClassPath = settings.accessorsClassPathOf(scriptCompilationClassPath)
 
     return NonProjectScriptModel(
         settingsScript,
@@ -337,23 +340,23 @@ object IsolatedScriptsModelBuilder : ToolingModelBuilder {
     override fun canBuild(modelName: String): Boolean =
         modelName == "org.gradle.kotlin.dsl.tooling.builders.internal.IsolatedScriptsModel"
 
-    override fun buildAll(modelName: String, project: Project): IsolatedScriptsModel {
-        return isolatedScriptsModelFor(project as ProjectInternal)
-    }
+    override fun buildAll(modelName: String, project: Project): ToolingModelBuilderResultInternal =
+        isolatedScriptsModelFor(project as ProjectInternal).toToolingModelResult(project.serviceOf())
 }
 
 
 private
-fun isolatedScriptsModelFor(project: ProjectInternal): IsolatedScriptsModel {
+fun isolatedScriptsModelFor(project: ProjectInternal): ScriptModelResult<IsolatedScriptsModel> {
     val buildScriptModel = buildScriptModelFor(project)
+    val (precompiledScriptModels, failures) = precompiledScriptModelsFor(project)
     val models = mutableListOf<IntermediateScriptModel>().apply {
         addNotNull(buildScriptModel)
-        addAll(precompiledScriptModelsFor(project))
+        addAll(precompiledScriptModels)
     }
     val buildScriptSourcePath =
         if (buildScriptModel != null) sourcePathFor(listOf(project.buildscript))
         else EMPTY
-    return IsolatedScriptsModel(models, buildScriptSourcePath)
+    return ScriptModelResult(IsolatedScriptsModel(models, buildScriptSourcePath), failures)
 }
 
 
@@ -365,9 +368,7 @@ fun buildScriptModelFor(project: ProjectInternal): IntermediateScriptModel? {
     // TODO:isolated this relies on the hierarchy of classloaders
     val compilationClassPath = project.scriptCompilationClassPath
 
-    val accessorsClassPath = project.serviceOf<ClassPathModeExceptionCollector>().runCatching {
-        project.accessorsClassPathOf(compilationClassPath)
-    } ?: AccessorsClassPath.empty
+    val accessorsClassPath = project.accessorsClassPathOf(compilationClassPath)
 
     val classpathSources = sourcePathFor(listOf(project.buildscript))
 
@@ -380,19 +381,23 @@ fun buildScriptModelFor(project: ProjectInternal): IntermediateScriptModel? {
 
 
 private
-fun precompiledScriptModelsFor(project: ProjectInternal): List<IntermediateScriptModel> {
-    val scripts = project.discoverPrecompiledScriptPluginScripts()
-    if (scripts.isEmpty()) return emptyList()
+val emptyScriptModelResult: ScriptModelResult<List<IntermediateScriptModel>> = ScriptModelResult(emptyList())
 
-    val sourceSets = project.sourceSets ?: return emptyList()
+
+private
+fun precompiledScriptModelsFor(project: ProjectInternal): ScriptModelResult<List<IntermediateScriptModel>> {
+    val scripts = project.discoverPrecompiledScriptPluginScripts()
+    if (scripts.isEmpty()) return emptyScriptModelResult
+
+    val sourceSets = project.sourceSets ?: return emptyScriptModelResult
     val metadataDir = PrecompiledScriptPluginsMetadataDir.of(project)
 
-    val classPathBySourceSet = mutableMapOf<String, ClassPath>()
+    val classPathResolver = SourceSetClassPathResolver()
     val pluginSpecImports = metadataDir.implicitPluginSpecBuildersImports
 
-    return scripts.mapNotNull { scriptFile ->
+    val models = scripts.mapNotNull { scriptFile ->
         val sourceSet = sourceSets.find { scriptFile in it.allSource } ?: return@mapNotNull null
-        val classPath = classPathBySourceSet.getOrPut(sourceSet.name) { DefaultClassPath.of(sourceSet.compileClasspath) }
+        val classPath = classPathResolver.resolveCompileClassPathOf(project, sourceSet).classPath
         val accessorImports = metadataDir.implicitAccessorsImports(scriptFile)
         IntermediateScriptModel(
             scriptFile,
@@ -402,6 +407,7 @@ fun precompiledScriptModelsFor(project: ProjectInternal): List<IntermediateScrip
             includeParentSourcePath = false
         )
     }
+    return ScriptModelResult(models, classPathResolver.failures)
 }
 
 private

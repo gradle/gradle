@@ -44,10 +44,12 @@ import org.gradle.kotlin.dsl.*
 import org.gradle.kotlin.dsl.concurrent.withSynchronousIO
 import org.gradle.kotlin.dsl.fixtures.AbstractDslTest
 import org.gradle.kotlin.dsl.fixtures.compileToDirectory
+import org.gradle.kotlin.dsl.fixtures.disposeKotlinCompilerContext
 import org.gradle.kotlin.dsl.fixtures.eval
 import org.gradle.kotlin.dsl.fixtures.testRuntimeClassPath
 import org.gradle.kotlin.dsl.fixtures.withClassLoaderFor
 import org.gradle.kotlin.dsl.support.uppercaseFirstChar
+import org.junit.After
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
 import org.junit.Test
@@ -65,6 +67,13 @@ import java.lang.reflect.Modifier.STATIC
 
 
 class ProjectAccessorsClassPathTest : AbstractDslTest() {
+
+    @After
+    fun releaseCompilerJarHandles() {
+        // The compiled accessor jars end up on compile classpaths; release the compiler's
+        // cached jar handles so the test dir can be deleted on Windows.
+        disposeKotlinCompilerContext()
+    }
 
     @Test
     fun `#buildAccessorsFor (Kotlin types)`() {

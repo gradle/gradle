@@ -491,7 +491,7 @@ Gradle provides escape hatches, listed below in order of preference.
 | `task.notCompatibleWithConfigurationCache("reason")` per task. Surgical, well-understood, supported. See <<configuration_cache_debugging.adoc#config_cache:task_opt_out, Declare Incompatible Tasks>>.
 
 | 2
-| Suppressible inputs: `org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks` and `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization`. Use sparingly to mitigate noisy invalidation while the underlying plugin is being fixed. See <<configuration_cache_enabling.adoc#config_cache:usage:input_opt_outs:input_detection, Input-detection opt-outs>>.
+| Suppressible inputs: `org.gradle.configuration-cache.inputs.unsafe.ignore.file-system-checks` and `org.gradle.configuration-cache.inputs.unsafe.ignore.in-serialization`. Use sparingly to mitigate noisy invalidation while the underlying plugin is being fixed. *Both properties are deprecated and scheduled for removal in Gradle 11.* See <<configuration_cache_enabling.adoc#config_cache:usage:input_opt_outs:input_detection, Input-detection opt-outs>>.
 
 | 3
 | `--no-configuration-cache` for a specific invocation. Permanent flag in your CI job for one specific workflow. Reasonable when a single command is fundamentally incompatible.
@@ -620,7 +620,7 @@ When filing a bug report, include:
 
 Once CC is enabled, the metric to watch is the **cache hit rate**: the fraction of builds that reuse an existing entry rather than recomputing one.
 A near-100% hit rate on the inner dev loop signals a healthy adoption; a degrading rate over time signals new untracked inputs creeping in.
-link:https://gradle.com/develocity/[Develocity] and link:https://scans.gradle.com[Build Scans] expose per-task and per-build CC hit/miss telemetry.
+link:https://develocity.ai/[Develocity] and link:https://scans.gradle.com[Build Scans] expose per-task and per-build CC hit/miss telemetry.
 When hit rates drop, open the CC report's "build configuration inputs" list and look for inputs that change every run but are not actually used.
 Each is either a candidate for switching to a `provider` (so the input is dropped if unused) or for one of the temporary opt-outs in <<configuration_cache_enabling.adoc#config_cache:usage:input_opt_outs, Temporary Opt-Outs for Configuration Cache Behavior>>.
 

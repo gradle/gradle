@@ -52,8 +52,8 @@ class IsolatedProjectsInjectedServicesIntegrationTest extends AbstractIsolatedPr
 
         where:
         service                      | prohibitedInvocation                   | expectedProblem
-        "Gradle"                     | "plugins"                              | "Project ':' cannot access Gradle.getPlugins"
-        "GradleInternal"             | "plugins"                              | "Project ':' cannot access Gradle.getPlugins"
+        "Gradle"                     | "plugins"                              | "Project ':' cannot access 'Gradle.getPlugins'"
+        "GradleInternal"             | "plugins"                              | "Project ':' cannot access 'Gradle.getPlugins'"
         "TaskExecutionGraph"         | "whenReady { g -> g.hasTask(':a:x') }" | "Project ':' cannot access the tasks in the task graph that were created by other projects"
         "TaskExecutionGraphInternal" | "whenReady { g -> g.hasTask(':a:x') }" | "Project ':' cannot access the tasks in the task graph that were created by other projects"
 
@@ -98,8 +98,8 @@ class IsolatedProjectsInjectedServicesIntegrationTest extends AbstractIsolatedPr
 
         where:
         service                      | prohibitedInvocation                   | expectedProblem
-        "Gradle"                     | "plugins"                              | "Project ':' cannot access Gradle.getPlugins"
-        "GradleInternal"             | "plugins"                              | "Project ':' cannot access Gradle.getPlugins"
+        "Gradle"                     | "plugins"                              | "Project ':' cannot access 'Gradle.getPlugins'"
+        "GradleInternal"             | "plugins"                              | "Project ':' cannot access 'Gradle.getPlugins'"
         "TaskExecutionGraph"         | "whenReady { g -> g.hasTask(':a:x') }" | "Project ':' cannot access the tasks in the task graph that were created by other projects"
         "TaskExecutionGraphInternal" | "whenReady { g -> g.hasTask(':a:x') }" | "Project ':' cannot access the tasks in the task graph that were created by other projects"
 
@@ -136,8 +136,8 @@ class IsolatedProjectsInjectedServicesIntegrationTest extends AbstractIsolatedPr
 
         where:
         service                      | prohibitedInvocation                   | expectedProblem
-        "Gradle"                     | "plugins"                              | "Project ':' cannot access Gradle.getPlugins"
-        "GradleInternal"             | "plugins"                              | "Project ':' cannot access Gradle.getPlugins"
+        "Gradle"                     | "plugins"                              | "Project ':' cannot access 'Gradle.getPlugins'"
+        "GradleInternal"             | "plugins"                              | "Project ':' cannot access 'Gradle.getPlugins'"
         "TaskExecutionGraph"         | "whenReady { g -> g.hasTask(':a:x') }" | "Project ':' cannot access the tasks in the task graph that were created by other projects"
         "TaskExecutionGraphInternal" | "whenReady { g -> g.hasTask(':a:x') }" | "Project ':' cannot access the tasks in the task graph that were created by other projects"
 

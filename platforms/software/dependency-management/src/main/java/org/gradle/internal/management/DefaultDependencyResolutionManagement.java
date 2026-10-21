@@ -78,7 +78,7 @@ public class DefaultDependencyResolutionManagement implements DependencyResoluti
         this.context = context;
         this.repositoryMode = objects.property(RepositoriesMode.class).convention(RepositoriesMode.PREFER_PROJECT);
         this.rulesMode = objects.property(RulesMode.class).convention(RulesMode.PREFER_PROJECT);
-        this.dependencyResolutionServices = Lazy.locking().of(() -> dependencyManagementServices.newDetachedResolver(new DependencyManagementParameters(Describables.of("Dependency Resolution Management"), "settings-", true, true, true)));
+        this.dependencyResolutionServices = Lazy.locking().of(() -> dependencyManagementServices.newDetachedResolver(DependencyManagementParameters.forDetachedJvmEnvironment(Describables.of("Dependency Resolution Management"), "settings-")));
         this.librariesExtensionName = objects.property(String.class).convention("libs");
         this.projectsExtensionName = objects.property(String.class).convention("projects");
         this.versionCatalogs = objects.newInstance(DefaultVersionCatalogBuilderContainer.class, collectionCallbackActionDecorator, objects, context, dependencyResolutionServices);

@@ -64,7 +64,7 @@ class FailOnDynamicVersionsResolveIntegrationTest extends AbstractModuleDependen
         resolve.expectGraph {
             root(":", ":test:") {
                 project(":other", "test:other:unspecified") {
-                    configuration('default')
+                    variant('default')
                     noArtifacts()
                 }
                 module('org:test:1.0')

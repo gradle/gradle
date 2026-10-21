@@ -30,7 +30,6 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 
 @LeaksFileHandles("Kotlin Compiler Daemon working directory")
@@ -174,7 +173,6 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
     }
 
 
-    @ToBeFixedForIsolatedProjects(because = "Kotlin DSL cross-project configuration")
     @Test
     fun `applied precompiled script plugin is reloaded upon change`() {
         // given:
@@ -188,21 +186,23 @@ class PrecompiledScriptPluginTasksIntegrationTest : AbstractKotlinIntegrationTes
                     """
                 )
                 withFile(
-                    "build.gradle.kts",
+                    "producer/build.gradle.kts",
                     """
                         plugins {
-                            `kotlin-dsl` apply false
+                            `kotlin-dsl`
                         }
-
-                        subprojects {
-                            apply(plugin = "org.gradle.kotlin.kotlin-dsl")
-                            $repositoriesBlock
+                        $repositoriesBlock
+                    """
+                )
+                withFile(
+                    "consumer/build.gradle.kts",
+                    """
+                        plugins {
+                            `kotlin-dsl`
                         }
-
-                        project(":consumer") {
-                            dependencies {
-                                "implementation"(project(":producer"))
-                            }
+                        $repositoriesBlock
+                        dependencies {
+                            implementation(project(":producer"))
                         }
                     """
                 )

@@ -25,12 +25,12 @@ import org.gradle.api.logging.Logger
 import org.gradle.api.logging.Logging
 import org.gradle.api.logging.LoggingManager
 import org.gradle.api.plugins.PluginAware
-import org.gradle.kotlin.dsl.PluginDependenciesSpecScope
-import org.gradle.kotlin.dsl.ScriptHandlerScope
+import org.gradle.kotlin.dsl.*
 import org.gradle.plugin.use.PluginDependenciesSpec
+import kotlin.script.experimental.annotations.KotlinScript
 
 
-@ImplicitReceiver(Project::class)
+@KotlinScript(compilationConfiguration = BuildScriptCompilationConfiguration::class)
 open class CompiledKotlinBuildScript(
     private val host: KotlinScriptHost<Project>
 ) : DefaultKotlinScript(defaultKotlinScriptHostForProject(host.target)), PluginAware by host.target {
@@ -64,7 +64,7 @@ open class CompiledKotlinBuildScript(
 /**
  * Base class for `buildscript` block evaluation on scripts targeting Project.
  */
-@ImplicitReceiver(Project::class)
+@KotlinScript(compilationConfiguration = BuildScriptCompilationConfiguration::class)
 open class CompiledKotlinBuildscriptBlock(
     private val host: KotlinScriptHost<Project>
 ) : CompiledKotlinBuildScript(host) {
@@ -83,7 +83,7 @@ open class CompiledKotlinBuildscriptBlock(
 /**
  * Base class for `buildscript` block evaluation on scripts targeting Settings.
  */
-@ImplicitReceiver(Settings::class)
+@KotlinScript(compilationConfiguration = SettingsScriptCompilationConfiguration::class)
 open class CompiledKotlinSettingsBuildscriptBlock(
     host: KotlinScriptHost<Settings>
 ) : CompiledKotlinSettingsScript(host) {
@@ -99,7 +99,7 @@ open class CompiledKotlinSettingsBuildscriptBlock(
 }
 
 
-@ImplicitReceiver(Gradle::class)
+@KotlinScript(compilationConfiguration = InitScriptCompilationConfiguration::class)
 open class CompiledKotlinInitScript(
     private val host: KotlinScriptHost<Gradle>
 ) : DefaultKotlinScript(InitScriptHost(host)), PluginAware by PluginAwareScript(host) {
@@ -122,7 +122,7 @@ open class CompiledKotlinInitScript(
 /**
  * Base class for `initscript` block evaluation on scripts targeting Gradle.
  */
-@ImplicitReceiver(Gradle::class)
+@KotlinScript(compilationConfiguration = InitScriptCompilationConfiguration::class)
 open class CompiledKotlinInitscriptBlock(
     host: KotlinScriptHost<Gradle>
 ) : CompiledKotlinInitScript(host) {

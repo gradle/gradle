@@ -112,9 +112,9 @@ $includeMechanism 'ProjectA'
             }
 
             def projectId(String projectName) {
-                def buildId = $buildId
+                def buildPath = $buildId
                 def projectPath = $projectPath
-                return project.services.get(${BuildStateRegistry.name}).getBuild(buildId).projects.getProject(${Path.name}.path(projectPath)).componentIdentifier
+                return project.services.get(${BuildStateRegistry.name}).getBuild(buildPath).projects.getProject(${Path.name}.path(projectPath)).componentIdentifier
             }
 
             repositories { maven { url = "${mavenRepo.uri}" } }

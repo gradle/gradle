@@ -16,7 +16,7 @@
 
 package org.gradle.internal.serialize.codecs.core
 
-import org.gradle.api.artifacts.component.BuildIdentifier
+import org.gradle.internal.build.BuildIdentity
 import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
@@ -38,7 +38,7 @@ class TaskInAnotherBuildCodec(
 
     override suspend fun ReadContext.decode(): TaskInAnotherBuild {
         val taskPath = readString()
-        val targetBuild = readNonNull<BuildIdentifier>()
+        val targetBuild = readNonNull<BuildIdentity>()
         return TaskInAnotherBuild.restored(
             taskPath,
             targetBuild,

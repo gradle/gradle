@@ -29,6 +29,7 @@ import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForGradle
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForProject
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForSettings
+import org.gradle.kotlin.dsl.support.textOf
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependency
 import org.gradle.plugin.use.PluginDependencySpec
@@ -237,7 +238,7 @@ fun ScriptCompilationConfiguration.Builder.defaultImportsForPrecompiledScript() 
             context.compilationConfiguration.with {
                 defaultImports(
                     PrecompiledScriptsEnvironment.implicitImportsForScript(
-                        context.script.text,
+                        textOf(context.script),
                         environment
                     )
                 )

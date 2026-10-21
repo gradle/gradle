@@ -16,6 +16,8 @@
 
 package org.gradle.kotlin.dsl.provider
 
+import org.gradle.kotlin.dsl.support.implicitImportsFrom
+import org.gradle.kotlin.dsl.support.stringList
 import org.gradle.kotlin.dsl.support.KotlinScriptHashing
 import kotlin.script.dependencies.Environment
 
@@ -26,28 +28,12 @@ object PrecompiledScriptsEnvironment {
         const val kotlinDslPluginSpecBuildersImplicitImports = "kotlinDslPluginSpecBuildersImplicitImports"
     }
 
-    /**
-     * **Optimisation note**: assumes [scriptText] contains only `\n` line separators as any script text
-     * coming from the Kotlin compiler already should.
-     */
     internal
     fun implicitImportsForScript(scriptText: CharSequence, environment: Environment?) =
         implicitImportsFrom(environment) + precompiledScriptPluginImportsFrom(environment, scriptText)
 
     private
-    fun implicitImportsFrom(environment: Environment?) =
-        environment.stringList(EnvironmentProperties.kotlinDslImplicitImports)
-
-    private
     fun precompiledScriptPluginImportsFrom(environment: Environment?, scriptText: CharSequence): List<String> =
-        environment.stringList(KotlinScriptHashing.hashOfNormalisedString(scriptText))
-
-    private
-    fun Environment?.stringList(key: String) =
-        string(key)?.split(':')
-            ?: emptyList()
-
-    private
-    fun Environment?.string(key: String) =
-        this?.get(key) as? String
+        // Normalised hash: the light tree parser hands over raw script text, which may contain CRLF separators.
+        environment.stringList(KotlinScriptHashing.hashOf(scriptText))
 }

@@ -36,7 +36,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
-import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -268,27 +268,35 @@ public abstract class DefaultSourceDirectorySet extends CompositeFileTree implem
     }
 
     @Override
-    public SourceDirectorySet srcDir(Object srcDir) {
-        source.add(srcDir);
+    public SourceDirectorySet srcDir(@Nullable Object srcDir) {
+        if (srcDir != null) {
+            source.add(srcDir);
+        }
         return this;
     }
 
     @Override
-    public SourceDirectorySet srcDirs(Object... srcDirs) {
-        source.addAll(Arrays.asList(srcDirs));
+    public SourceDirectorySet srcDirs(@Nullable Object... srcDirs) {
+        if (srcDirs != null) {
+            Arrays.stream(srcDirs).forEach(this::srcDir);
+        }
         return this;
     }
 
     @Override
     public SourceDirectorySet setSrcDirs(Iterable<?> srcPaths) {
         source.clear();
-        GUtil.addToCollection(source, srcPaths);
+        if (srcPaths != null) {
+            srcPaths.forEach(this::srcDir);
+        }
         return this;
     }
 
     @Override
     public SourceDirectorySet source(SourceDirectorySet source) {
-        this.source.add(source);
+        if (source != null) {
+            this.source.add(source);
+        }
         return this;
     }
 

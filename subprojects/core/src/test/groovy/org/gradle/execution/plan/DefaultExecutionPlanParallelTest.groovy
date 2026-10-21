@@ -33,6 +33,7 @@ import org.gradle.api.tasks.OutputFile
 import org.gradle.api.tasks.OutputFiles
 import org.gradle.api.tasks.TaskAction
 import org.gradle.composite.internal.BuildTreeWorkGraphController
+import org.gradle.internal.build.BuildIdentity
 import org.gradle.internal.file.Stat
 import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.test.fixtures.file.TestFile
@@ -53,7 +54,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
     DefaultFinalizedExecutionPlan finalizedPlan
 
     def accessHierarchies = new ExecutionNodeAccessHierarchies(CASE_SENSITIVE, Stub(Stat))
-    def taskNodeFactory = new TaskNodeFactory(project.gradle, Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationRunner(), accessHierarchies, TestUtil.problemsService())
+    def taskNodeFactory = new TaskNodeFactory(new BuildIdentity(Path.ROOT), Stub(BuildTreeWorkGraphController), nodeValidator, new TestBuildOperationRunner(), accessHierarchies, TestUtil.problemsService())
 
     def setup() {
         executionPlan = newExecutionPlan()
@@ -2398,7 +2399,7 @@ class DefaultExecutionPlanParallelTest extends AbstractExecutionPlanSpec {
             assert !finalizedPlan.allExecutionComplete()
             def nextNode = selection.item
             if (nextNode instanceof LocalTaskNode && nextNode.task instanceof Async) {
-                nextNode.projectToLock.unlock()
+                nextNode.resourceToLock.unlock()
             }
             result = nextNode
         }

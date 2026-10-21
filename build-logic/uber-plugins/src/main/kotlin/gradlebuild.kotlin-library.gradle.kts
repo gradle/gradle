@@ -35,6 +35,16 @@ configurations.transitiveSourcesElements {
     }
 }
 
+configurations.matching { it.name == "kotlinBouncyCastleConfiguration" }.configureEach {
+    val bouncycastleVersion = versionCatalogs.named("libs").findVersion("bouncycastle").get().requiredVersion
+    resolutionStrategy.eachDependency {
+        if (requested.group == "org.bouncycastle") {
+            useVersion(bouncycastleVersion)
+            because("Align with the Bouncy Castle version used by the distribution")
+        }
+    }
+}
+
 kotlin {
     target.compilations.named("testFixtures") {
         associateWith(target.compilations["main"])

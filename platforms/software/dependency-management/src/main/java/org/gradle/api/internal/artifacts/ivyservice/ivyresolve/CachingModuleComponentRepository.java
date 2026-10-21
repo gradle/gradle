@@ -36,8 +36,8 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.artifacts.repositories.resolver.MetadataFetchingCost;
 import org.gradle.api.internal.component.ArtifactType;
 import org.gradle.internal.action.InstantiatingAction;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ExternalModuleComponentGraphResolveState;
+import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 import org.gradle.internal.component.external.model.ModuleComponentGraphResolveStateFactory;
 import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata;
 import org.gradle.internal.component.model.ComponentArtifactMetadata;
@@ -47,8 +47,6 @@ import org.gradle.internal.component.model.ImmutableModuleSources;
 import org.gradle.internal.component.model.ModuleSources;
 import org.gradle.internal.component.model.MutableModuleSources;
 import org.gradle.internal.hash.HashCode;
-import org.gradle.internal.resolve.ArtifactNotFoundException;
-import org.gradle.internal.resolve.ArtifactResolveException;
 import org.gradle.internal.resolve.result.BuildableArtifactFileResolveResult;
 import org.gradle.internal.resolve.result.BuildableArtifactSetResolveResult;
 import org.gradle.internal.resolve.result.BuildableModuleComponentMetaDataResolveResult;
@@ -470,11 +468,10 @@ public class CachingModuleComponentRepository implements ModuleComponentReposito
             delegate.getRemoteAccess().resolveArtifact(artifact, moduleSources, result);
             LOGGER.debug("Downloaded artifact '{}' from resolver: {}", artifact, delegate.getName());
 
-            ArtifactResolveException failure = result.getFailure();
             ModuleDescriptorHashModuleSource cachingModuleSource = findCachingModuleSource(moduleSources);
-            if (failure == null) {
+            if (result.isSuccessful()) {
                 moduleArtifactCache.store(artifactCacheKey(artifact.getId()), result.getResult(), cachingModuleSource.getDescriptorHash());
-            } else if (failure instanceof ArtifactNotFoundException) {
+            } else if (result.isNotFound()) {
                 moduleArtifactCache.storeMissing(artifactCacheKey(artifact.getId()), result.getAttempted(), cachingModuleSource.getDescriptorHash());
             }
         }

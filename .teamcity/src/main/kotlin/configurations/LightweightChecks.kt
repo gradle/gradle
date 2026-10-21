@@ -83,6 +83,50 @@ class LightweightChecks(
                             --pr-body-file "${'$'}PR_BODY_FILE"
                         """.trimIndent()
                 }
+                script {
+                    name = "CHECK_NO_SUBMODULES"
+                    scriptContent =
+                        """
+                        set -eu
+
+                        # Enforce in the merge queue - that is the gate nothing may slip past - and on
+                        # ready-for-review PRs. Draft PRs and plain branch builds only get a warning, so
+                        # work in progress isn't blocked by a submodule that is still being sorted out.
+                        BRANCH="%teamcity.build.branch%"
+                        case "${'$'}BRANCH" in
+                            gh-readonly-queue/*)
+                                WARN_ONLY=""
+                                echo "Merge queue branch ${'$'}BRANCH; enforcing."
+                                ;;
+                            *)
+                                # Default to warn-only and upgrade to enforcing only when we can prove
+                                # that a non-draft PR contains this commit. An unavailable token or a
+                                # failed API call must not turn a draft PR into a hard failure.
+                                WARN_ONLY="--warn-only"
+                                if [ -n "${'$'}{BOT_TEAMCITY_GITHUB_TOKEN:-}" ]; then
+                                    DRAFT_STATES="${'$'}(curl --silent --show-error --fail-with-body \
+                                        -H "Accept: application/vnd.github+json" \
+                                        -H "X-GitHub-Api-Version: 2022-11-28" \
+                                        -H "Authorization: Bearer ${'$'}BOT_TEAMCITY_GITHUB_TOKEN" \
+                                        "https://api.github.com/repos/gradle/gradle/commits/%build.vcs.number%/pulls" \
+                                        | jq -r '.[] | select(.state == "open") | .draft' \
+                                        || echo "")"
+                                    if echo "${'$'}DRAFT_STATES" | grep -qx "false"; then
+                                        WARN_ONLY=""
+                                        echo "Commit belongs to a ready-for-review PR; enforcing."
+                                    else
+                                        echo "No ready-for-review PR for this commit; warning only."
+                                    fi
+                                else
+                                    echo "BOT_TEAMCITY_GITHUB_TOKEN not set; warning only."
+                                fi
+                                ;;
+                        esac
+
+                        "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/FindCommits.java ${model.branch.branchName} | \
+                        "${'$'}JAVA_HOME/bin/java" .teamcity/scripts/CheckNoSubmodules.java ${'$'}WARN_ONLY
+                        """.trimIndent()
+                }
                 if (model.branch.isMaster) {
                     script {
                         name = "CHECK_BAD_MERGE"

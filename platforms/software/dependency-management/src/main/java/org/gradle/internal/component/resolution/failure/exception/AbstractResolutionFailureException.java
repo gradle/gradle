@@ -16,12 +16,10 @@
 
 package org.gradle.internal.component.resolution.failure.exception;
 
-import com.google.common.collect.ImmutableList;
 import org.gradle.api.internal.catalog.problems.ResolutionFailureProblemId;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.problems.Problem;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.problems.internal.ResolutionFailureDataSpec;
 import org.gradle.internal.component.resolution.failure.ReportableAsProblem;
@@ -30,7 +28,6 @@ import org.gradle.internal.component.resolution.failure.interfaces.ResolutionFai
 import org.gradle.internal.exceptions.Contextual;
 import org.gradle.internal.exceptions.ResolutionProvider;
 import org.gradle.internal.exceptions.StyledException;
-import org.gradle.util.internal.TextUtil;
 import org.jspecify.annotations.Nullable;
 
 import java.util.List;
@@ -49,37 +46,34 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
  * {@link VariantSelectionByAttributesException} subtypes.  All subtypes should remain immutable.
  */
 @Contextual
-public abstract class AbstractResolutionFailureException extends StyledException implements ResolutionProvider, ReportableAsProblem {
+public abstract class AbstractResolutionFailureException extends StyledException implements ReportableAsProblem {
     protected static final Logger LOGGER = Logging.getLogger(AbstractResolutionFailureException.class);
 
-    private final ImmutableList<String> resolutions;
     protected final ResolutionFailure failure;
 
+    @SuppressWarnings("this-escape")
     public AbstractResolutionFailureException(String message, ResolutionFailure failure, List<String> resolutions) {
-        this(message, failure, resolutions, null);
+        // Does not delegate to the cause-taking constructor: passing an explicit null cause counts as initializing
+        // it, which makes any later initCause(...) call throw IllegalStateException.
+        super(message, resolutions);
+        this.failure = failure;
+        LOGGER.info("Variant Selection Exception: {} caused by Resolution Failure: {}", this.getClass().getName(), getFailure().getClass().getName());
     }
 
     @SuppressWarnings("this-escape")
     public AbstractResolutionFailureException(String message, ResolutionFailure failure, List<String> resolutions, @Nullable Throwable cause) {
-        super(message, cause);
+        super(message, cause, resolutions);
         this.failure = failure;
-        this.resolutions = ImmutableList.copyOf(resolutions);
-
         LOGGER.info("Variant Selection Exception: {} caused by Resolution Failure: {}", this.getClass().getName(), getFailure().getClass().getName());
     }
 
     public abstract ResolutionFailure getFailure();
 
     @Override
-    public ImmutableList<String> getResolutions() {
-        return resolutions;
-    }
-
-    @Override
     public AbstractResolutionFailureException reportAsProblem(ProblemsInternal problemsService) {
         Problem problem = problemsService.getInternalReporter().internalCreate(builder -> {
             ResolutionFailureProblemId problemId = getFailure().getProblemId();
-            builder.id(TextUtil.screamingSnakeToKebabCase(problemId.name()), problemId.getDisplayName(), GradleCoreProblemGroup.variantResolution())
+            builder.id(problemId.problemId(problemsService.getGroups()))
                 .contextualLabel(getMessage())
                 .documentedAt(userManual("variant_model", "sec:variant-select-errors"))
                 .additionalDataInternal(ResolutionFailureDataSpec.class, data -> data.from(getFailure()));

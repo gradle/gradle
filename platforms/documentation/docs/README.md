@@ -290,40 +290,16 @@ The `docs:docsTest` task tests **code snippets** located in `src/snippets/`. Sni
 
 To fully understand how to write and test code snippets in the Gradle documentation, see @platforms/documentation/docs/src/docs/rules/snippets.md
 
-### `org.gradle.samples` plugin
+### How snippets are tested
 
-The main build file for documentation, `platforms/documentation/docs/build.gradle.kts`, applies the `org.gradle.samples` plugin.
+`platforms/documentation/docs/build.gradle.kts` applies the `gradlebuild.docs-snippets-testing` plugin (`build-logic/documentation`, `GradleSnippetsTestingPlugin`):
 
-The source code of this plugin is [here](https://github.com/gradle/guides/blob/ba018cec535d90f75876bfcca29381d213a956cc/subprojects/gradle-guides-plugin/src/main/java/org/gradle/docs/samples/internal/LegacySamplesDocumentationPlugin.java#L9).
-This plugin adds a [`Samples`](https://github.com/gradle/guides/blob/fa335417efb5656e202e95759ebf8a4e60843f10/subprojects/gradle-guides-plugin/src/main/java/org/gradle/docs/samples/Samples.java#L8) extension named `samples`.
+- Every directory under `src/snippets` that contains a `groovy/` or `kotlin/` directory is a snippet (`DocsSnippets`).
+- `installSnippetsForTest` installs each snippet once per DSL into `build/working/samples/testing/<snippet-name>/<dsl>/`: the wrapper scripts, `common/`, the DSL directory, and `tests/`, `tests-common/` and `tests-<dsl>/`.
+  Snippets without their own sanity check get a generated `sanityCheck.sample.conf` that runs `gradle tasks -q`.
+- `docsTest` runs every `*.sample.conf` found there with Exemplar, against the Gradle distribution being built.
 
-This `samples` extension is configured in `platforms/documentation/docs/build.gradle.kts`. All snippets are auto-discovered and assembled into [`samples.publishedSamples`](https://github.com/gradle/guides/blob/fa335417efb5656e202e95759ebf8a4e60843f10/subprojects/gradle-guides-plugin/src/main/java/org/gradle/docs/samples/Samples.java#L41), as follows:
-
-```
-┌────────────────────────────────────┐
-│ documentation/docs/build.gradle.kts│
-│                                    │
-│  samples {                         │    ┌─────────────────────────────────┐
-│    ...                             │    │ code snippets in src/snippets   ├───┐
-│    publishedSamples {  ────────────┼───►│                                 │   │
-│      ...                           │    └─────────────────────────────────┘   │
-└────────────────────────────────────┘                                          │
-                                                                                │
-                                        ┌───────────────────────────────────┐   │
-                                        │ org.gradle.samples plugin         │   │
-                                        │ ┌─────────────────────────────┐   │   │
-┌─────────────┐   Install samples to    │ │ Samples.publishedSamples    │   │   │
-│  Exemplar   │   local directory and   │ │                             │   │   │
-│             │   test with exemplar    │ │                             │   │   │
-│             │◄────────────────────────┤ │                             ◄───┼───┘
-│             │                         │ │                             │   │
-└─────────────┘                         │ │                             │   │
-                                        │ └─────────────────────────────┘   │
-                                        │                                   │
-                                        └───────────────────────────────────┘
-```
-
-The elements in `samples.publishedSamples` container are installed into a local directory (by default [`docs/build/working/samples/install`](https://github.com/gradle/guides/blob/900650c6fd6c980ae7335d7aab6dea200a693aa0/subprojects/gradle-guides-plugin/src/main/java/org/gradle/docs/samples/internal/SamplesInternal.java#L46)) as Exemplar samples.
+The installed directory name is also the test ID, for example `snippet-best-practices-use-gav-string-do`, which is what the `excludeTestsMatching` filters and the configuration cache exclusion lists refer to.
 
 ---
 

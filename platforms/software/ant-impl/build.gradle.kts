@@ -21,11 +21,10 @@ dependencies {
     api(libs.ant)
     api(libs.groovy)
     api(libs.jspecify)
+    api(projects.modelCore)
 
     implementation(projects.concurrent)
-    implementation(projects.modelCore)
     implementation(projects.stdlibJavaExtensions)
-    implementation(libs.guava)
 
     compileOnly(libs.jetbrainsAnnotations)
     compileOnly(projects.internalInstrumentationApi)

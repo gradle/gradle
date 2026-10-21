@@ -44,7 +44,6 @@ import org.hamcrest.MatcherAssert.assertThat
 import org.junit.Assert.assertNotEquals
 import org.junit.Test
 import spock.lang.Issue
-import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 
 
 class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
@@ -644,8 +643,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
                 Script compilation error:
 
                   Line 1: publishing { }
-                          ^ Unresolved reference. None of the following candidates is applicable because of a receiver type mismatch:
-                              val PluginDependenciesSpec.publishing: PluginDependencySpec
+                          ^ Candidate 'val PluginDependenciesSpec.publishing: PluginDependencySpec' is inapplicable because of a receiver type mismatch.
 
                 1 error
                 """
@@ -679,7 +677,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
                     |                   ^ Unresolved reference 'foo'.
                     |
                     |  Line 06: println("foo").bar.bazar
-                    |                          ^ Unresolved reference 'bar'.
+                    |                          ^ Unresolved reference 'bar' on receiver of type 'Unit'.
                     |
                     |  Line 10: println(cathedral)
                     |                   ^ Unresolved reference 'cathedral'.
@@ -818,7 +816,6 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
         )
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Kotlin DSL cross-project configuration")
     @Test
     fun `can cross configure buildscript`() {
 
@@ -849,15 +846,12 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
                     }
                 }
             }
-            """
-        )
-
-        withBuildScript(
-            """
-            project(":sub") {
-                buildscript {
-                    dependencies {
-                        classpath(files("../deep.jar"))
+            gradle.lifecycle.beforeProject {
+                if (path == ":sub") {
+                    buildscript {
+                        dependencies {
+                            classpath(files("../deep.jar"))
+                        }
                     }
                 }
             }
@@ -967,14 +961,13 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
         build("help")
     }
 
-    @ToBeFixedForIsolatedProjects(because = "Kotlin DSL cross-project configuration")
     @Test
     fun `can use kotlin java8 inline-only methods`() {
 
         withBuildScript(
             """
             task("test") {
-                val v = project.properties.getOrDefault("non-existent-property", "default-value")
+                val v = project.extra.properties.getOrDefault("non-existent-property", "default-value")
                 doLast {
                     println(v)
                 }

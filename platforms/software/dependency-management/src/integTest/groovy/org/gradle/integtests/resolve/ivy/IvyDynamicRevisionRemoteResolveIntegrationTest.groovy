@@ -140,7 +140,7 @@ dependencies {
         succeeds('checkDeps')
         resolve.expectGraph {
             root(":", ":test:") {
-                dependency(group: name, module: name, version: 'latest.integration').selects(group: name, module: name, version: name)
+                edge([group: name, module: name, version: 'latest.integration'], [group: name, module: name, version: name])
             }
         }
 
@@ -1412,14 +1412,15 @@ dependencies {
         failure.assertHasCause "No cached version listing for group:projectA:1.+ available for offline mode."
     }
 
-    def checkResolve(Map edges) {
+    def checkResolve(Map<String, Object> edges) {
         assert succeeds('checkDeps')
         resolve.expectGraph {
             root(":", ":test:") {
                 edges.each { from, to ->
                     if (to instanceof List) {
-                        edge(from, to[0]).byReason(to[1]).notRequested()
+                        edge(from, to[0] as String).byReason(to[1] as String).notRequested()
                     } else {
+                        assert to instanceof String
                         edge(from, to)
                     }
                 }

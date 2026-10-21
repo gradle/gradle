@@ -26,7 +26,8 @@ import org.gradle.internal.build.event.types.DefaultTaskFailureResult
 import org.gradle.internal.build.event.types.DefaultTaskFinishedProgressEvent
 import org.gradle.internal.build.event.types.DefaultTaskSkippedResult
 import org.gradle.internal.build.event.types.DefaultTaskSuccessResult
-import org.gradle.internal.code.DefaultUserCodeApplicationContext
+import org.gradle.internal.code.TestUserCodeApplicationContext
+import org.gradle.internal.code.UserCodeApplicationContext
 import org.gradle.internal.event.DefaultListenerManager
 import org.gradle.internal.event.ListenerNotificationException
 import org.gradle.internal.operations.BuildOperationDescriptor
@@ -54,7 +55,7 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
         isRootBuild() >> true
     }
     def buildResult = new BuildResult(gradle, null)
-    def registry = new DefaultBuildEventsListenerRegistry(new DefaultUserCodeApplicationContext(), factory, listenerManager, buildOperationListenerManager, executorFactory)
+    def registry = new DefaultBuildEventsListenerRegistry(new TestUserCodeApplicationContext(), factory, listenerManager, buildOperationListenerManager, executorFactory)
 
     def cleanup() {
         // Signal the end of the build, to stop everything
@@ -233,7 +234,7 @@ class DefaultBuildEventsListenerRegistryTest extends ConcurrentSpec {
         }
 
         @Override
-        Iterable<Object> createListeners(BuildEventSubscriptions subscriptions, BuildEventConsumer consumer) {
+        Iterable<Object> createListeners(BuildEventSubscriptions subscriptions, BuildEventConsumer consumer, UserCodeApplicationContext userCodeApplicationContext) {
             consumers.add(consumer)
             return []
         }

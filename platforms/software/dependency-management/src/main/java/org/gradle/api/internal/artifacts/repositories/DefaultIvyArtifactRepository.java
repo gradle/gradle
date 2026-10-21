@@ -50,8 +50,6 @@ import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleM
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataSource;
 import org.gradle.api.internal.artifacts.repositories.metadata.RedirectingGradleMetadataModuleMetadataSource;
 import org.gradle.api.internal.artifacts.repositories.resolver.IvyResolver;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransport;
-import org.gradle.api.internal.artifacts.repositories.transport.RepositoryTransportFactory;
 import org.gradle.api.internal.file.FileResolver;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.ProviderFactory;
@@ -66,6 +64,8 @@ import org.gradle.internal.reflect.Instantiator;
 import org.gradle.internal.resource.local.FileResourceRepository;
 import org.gradle.internal.resource.local.FileStore;
 import org.gradle.internal.resource.local.LocallyAvailableResourceFinder;
+import org.gradle.internal.resource.transport.RepositoryTransport;
+import org.gradle.internal.resource.transport.RepositoryTransportFactory;
 import org.jspecify.annotations.Nullable;
 
 import javax.inject.Inject;

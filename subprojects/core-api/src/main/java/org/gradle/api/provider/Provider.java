@@ -36,8 +36,9 @@ import java.util.function.BiFunction;
  *
  * <p>
  * A provider may not always have a value available, for example when the value may not yet be known but will be known
- * at some point in the future. When a value is not available, {@link #isPresent()} returns {@code false} and retrieving
- * the value will fail with an exception.
+ * at some point in the future. A provider that has a value is said to be <em>present</em>, and a provider that has no
+ * value is said to be <em>absent</em>. When a provider is absent, {@link #isPresent()} returns {@code false} and
+ * retrieving the value will fail with an exception.
  * </p>
  *
  * <p>
@@ -68,6 +69,7 @@ import java.util.function.BiFunction;
  *     <li>Using the return value of {@link org.gradle.api.tasks.TaskContainer#register(String)}, which is a provider that represents the task instance.</li>
  *     <li>Using the methods on {@link org.gradle.api.file.Directory} and {@link org.gradle.api.file.DirectoryProperty} to produce file providers.</li>
  *     <li>By calling {@link ProviderFactory#provider(Callable)} or {@link org.gradle.api.Project#provider(Callable)} to create a new provider from a {@link Callable}.</li>
+ *     <li>By calling {@link ProviderFactory#present(Object)} or {@link ProviderFactory#absent()} to create a provider that is always present or always absent, respectively.</li>
  * </ul>
  *
  * <p>

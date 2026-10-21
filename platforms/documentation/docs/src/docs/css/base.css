@@ -14,7 +14,6 @@
 /* Variables */
 :root {
     --bg-color: #fff;
-    --fg-color: #000;
     --text-color: #02303A;
     --title-color: #02303A;
     --border-color: #e5e5e5;
@@ -34,7 +33,6 @@
 
 [data-theme="dark"] {
     --bg-color: #121212;
-    --fg-color: #fff;
     --text-color: #aaa;
     --title-color: #fff;
     --border-color: #444;
@@ -451,16 +449,6 @@ h3.releaseinfo {
     font-weight: normal;
     margin-top: -0.5em;
 }
-
-/* Site header specific styles */
-
-/* Override javadoc styles */
-
-/* Navigation submenu styles */
-
-/* Top navigation mobile styles */
-
-/* Top navigation desktop styles */
 
 /* Side Navigation styles */
 /* Docs Navigation */
@@ -948,6 +936,4 @@ div.example code.filename {
 [data-theme="dark"] .hl-comment    { color: #7f848e; }
 [data-theme="dark"] .hl-doccomment { color: #7f848e; }
 [data-theme="dark"] .hl-annotation { color: #61aeee; }
-
-/* Dark mode overrides */
 

@@ -16,9 +16,8 @@
 
 package org.gradle.internal.service.scopes;
 
-import org.gradle.api.internal.DomainObjectContext;
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext;
-import org.gradle.internal.build.BuildState;
+import org.gradle.internal.build.BuildIdentity;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.internal.model.ModelContainer;
 import org.gradle.util.Path;
 
@@ -27,27 +26,27 @@ import org.gradle.util.Path;
  */
 public class BuildDomainObjectContext implements DomainObjectContext {
 
-    private final BuildState buildState;
+    private final BuildIdentity buildIdentity;
 
-    public BuildDomainObjectContext(BuildState buildState) {
-        this.buildState = buildState;
+    public BuildDomainObjectContext(BuildIdentity buildIdentity) {
+        this.buildIdentity = buildIdentity;
     }
 
     @Override
     public Path getBuildPath() {
-        return buildState.getIdentityPath();
+        return buildIdentity.getBuildPath();
     }
 
     @Override
     public ModelContainer<?> getModel() {
         // TODO: This should be the build model, a container for the Gradle instance
         // that provides lock-aware access to the build's mutable model.
-        return StandaloneDomainObjectContext.ANONYMOUS.getModel();
+        return ModelContainer.EMPTY;
     }
 
     @Override
     public String getDisplayName() {
-        return buildState.getDisplayName().getDisplayName();
+        return buildIdentity.getDisplayName();
     }
 
 }
