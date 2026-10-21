@@ -424,7 +424,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         }
     }
 
-    def "execution fails when a nested property throws an exception where property is a #description"() {
+    def "build fails when a nested property throws an exception where property is a #description"() {
         buildFile << """
             import javax.inject.Inject
             import org.gradle.api.provider.ProviderFactory
@@ -457,7 +457,7 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
 
         expect:
         fails "myTask"
-        failure.assertHasDescription("Execution failed for task ':myTask' (registered in build file 'build.gradle').")
+        failure.assertHasDescription("Could not determine the dependencies of task ':myTask'.")
         failure.assertHasCause("BOOM")
 
         where:
@@ -466,6 +466,37 @@ class NestedInputIntegrationTest extends AbstractIntegrationSpec implements Dire
         "Provider"                 | "return providers.provider { throw new RuntimeException(\"BOOM\") }"
         "Provider in a collection" | "return [providers.provider { throw new RuntimeException(\"BOOM\") }]"
 
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/25374")
+    def "build fails when a nested property of a task without actions throws an exception where property is a #description"() {
+        buildFile << """
+            import javax.inject.Inject
+            import org.gradle.api.provider.ProviderFactory
+
+            abstract class TaskWithFailingNestedInput extends DefaultTask {
+                @Inject
+                abstract ProviderFactory getProviders()
+
+                @Nested
+                Object getNested() {
+                    $propertyValue
+                }
+            }
+
+            task myTask(type: TaskWithFailingNestedInput)
+        """
+
+        expect:
+        fails "myTask"
+        failure.assertHasDescription("Could not determine the dependencies of task ':myTask'.")
+        failure.assertHasCause("BOOM")
+
+        where:
+        description                | propertyValue
+        "Java type"                | "throw new RuntimeException(\"BOOM\")"
+        "Provider"                 | "return providers.provider { throw new RuntimeException(\"BOOM\") }"
+        "Provider in a collection" | "return [providers.provider { throw new RuntimeException(\"BOOM\") }]"
     }
 
     def "null on nested bean is validated #description"() {
