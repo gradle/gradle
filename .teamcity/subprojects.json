@@ -1072,14 +1072,14 @@
   },
   {
     "name": "logging",
-    "path": "platforms/core-runtime/logging",
+    "path": "platforms/observability/logging",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "logging-api",
-    "path": "platforms/core-runtime/logging-api",
+    "path": "platforms/observability/logging-api",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false

@@ -79,8 +79,6 @@ val core = platform("core") {
         subproject("io")
         subproject("stdlib-java-extensions")
         subproject("launcher")
-        subproject("logging")
-        subproject("logging-api")
         subproject("messaging")
         subproject("native")
         subproject("process-memory-services")
@@ -200,6 +198,8 @@ module("ide") {
 
 // Observability Module
 module("observability") {
+    subproject("logging")
+    subproject("logging-api")
     subproject("problems")
     subproject("problems-api")
     subproject("problems-impl")
