@@ -23,6 +23,7 @@ import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
 import org.gradle.internal.logging.events.ProgressStartEvent;
 import org.gradle.internal.logging.events.UpdateNowEvent;
+import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.OperationIdentifier;
@@ -45,7 +46,10 @@ public class BuildStatusRenderer implements OutputEventListener {
     private final StyledLabel buildStatusLabel;
     private final Console console;
     private final ConsoleMetaData consoleMetaData;
+    private final @Nullable ProgramStatusReporter programStatusReporter;
     private @Nullable OperationIdentifier buildProgressOperationId;
+    private @Nullable ProgressStartEvent nextBuildCandidate;
+    private boolean firstBuild = true;
     private @Nullable Phase currentPhase;
     private final Set<OperationIdentifier> currentPhaseChildren = new HashSet<>();
     private long currentTimePeriod;
@@ -55,13 +59,19 @@ public class BuildStatusRenderer implements OutputEventListener {
 
     // Used to maintain timer
     private long buildStartTimestamp;
+    private final TersePrettyDurationFormatter durationFormatter = new TersePrettyDurationFormatter();
     private boolean timerEnabled;
 
     public BuildStatusRenderer(OutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData) {
+        this(listener, buildStatusLabel, console, consoleMetaData, null);
+    }
+
+    public BuildStatusRenderer(OutputEventListener listener, StyledLabel buildStatusLabel, Console console, ConsoleMetaData consoleMetaData, @Nullable ProgramStatusReporter programStatusReporter) {
         this.listener = listener;
         this.buildStatusLabel = buildStatusLabel;
         this.console = console;
         this.consoleMetaData = consoleMetaData;
+        this.programStatusReporter = programStatusReporter;
     }
 
     @Override
@@ -72,11 +82,15 @@ public class BuildStatusRenderer implements OutputEventListener {
                 if (buildStartTimestamp == 0 && startEvent.getParentProgressOperationId() == null) {
                     // The very first event starts the Initializing phase
                     // TODO - should use BuildRequestMetaData to determine the build start time
-                    buildStartTimestamp = startEvent.getTimestamp();
-                    buildProgressOperationId = startEvent.getProgressOperationId();
+                    buildStarted(startEvent);
                     phaseStarted(startEvent, Phase.Initializing);
+                } else if (buildProgressOperationId == null && startEvent.getParentProgressOperationId() == null) {
+                    // After a build has ended, a root operation is either the next build of a continuous build or other work, such as cache cleanup.
+                    // It is taken as the next build once the root build starts configuring or running tasks.
+                    nextBuildCandidate = startEvent;
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_ROOT_BUILD) {
                     // Once the root build starts configuring, we are in Configuring phase
+                    startNextBuildIfAny();
                     phaseStarted(startEvent, Phase.Configuring);
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_BUILD && currentPhase == Phase.Configuring) {
                     // Any configuring event received from nested or buildSrc builds before the root build starts configuring is ignored
@@ -85,6 +99,7 @@ public class BuildStatusRenderer implements OutputEventListener {
                     // Any configuring event received from nested or buildSrc builds before the root build starts configuring is ignored
                     currentPhaseChildren.add(startEvent.getProgressOperationId());
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_MAIN_TASKS) {
+                    startNextBuildIfAny();
                     phaseStarted(startEvent, Phase.Executing);
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_WORK && currentPhase == Phase.Executing) {
                     // Any work execution happening in nested or buildSrc builds before the root build has started executing work is ignored
@@ -97,10 +112,16 @@ public class BuildStatusRenderer implements OutputEventListener {
         } else if (event instanceof ProgressCompleteEvent) {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
             if (completeEvent.getProgressOperationId().equals(buildProgressOperationId)) {
-                buildEnded();
+                buildEnded(completeEvent);
+            } else if (nextBuildCandidate != null && completeEvent.getProgressOperationId().equals(nextBuildCandidate.getProgressOperationId())) {
+                nextBuildCandidate = null;
             } else if (currentPhaseChildren.remove(completeEvent.getProgressOperationId())) {
                 phaseProgressed(completeEvent);
             }
+        }
+
+        if (event instanceof ProgressStartEvent || event instanceof ProgressCompleteEvent) {
+            updateProgramStatus();
         }
 
         listener.onOutput(event);
@@ -118,6 +139,31 @@ public class BuildStatusRenderer implements OutputEventListener {
             buildStatusLabel.setText(progressBar.formatProgress(timerEnabled, now - buildStartTimestamp));
         }
         console.flush();
+        if (programStatusReporter != null) {
+            // Written after the console flush, so the sequence cannot land inside another escape sequence
+            programStatusReporter.flush();
+        }
+    }
+
+    private void updateProgramStatus() {
+        if (programStatusReporter == null || currentPhase == null) {
+            return;
+        }
+        // The percentage restarts for each phase, so it is reported only for the Executing phase
+        Integer progress = currentPhase == Phase.Executing && progressBar != null ? progressBar.getProgressPercent() : null;
+        programStatusReporter.updateWorking(progress);
+    }
+
+    private void buildStarted(ProgressStartEvent rootBuildOperationStart) {
+        buildStartTimestamp = rootBuildOperationStart.getTimestamp();
+        buildProgressOperationId = rootBuildOperationStart.getProgressOperationId();
+        nextBuildCandidate = null;
+    }
+
+    private void startNextBuildIfAny() {
+        if (buildProgressOperationId == null && nextBuildCandidate != null) {
+            buildStarted(nextBuildCandidate);
+        }
     }
 
     private void phaseStarted(ProgressStartEvent progressStartEvent, Phase phase) {
@@ -140,7 +186,15 @@ public class BuildStatusRenderer implements OutputEventListener {
         }
     }
 
-    private void buildEnded() {
+    private void buildEnded(ProgressCompleteEvent rootBuildOperationComplete) {
+        if (programStatusReporter != null) {
+            boolean failed = rootBuildOperationComplete.isFailed();
+            // Same text as printed on the console at the end of the build, where the first build is measured from the start of the client JVM
+            long startTime = firstBuild ? Math.min(programStatusReporter.getClientStartTime(), buildStartTimestamp) : buildStartTimestamp;
+            String duration = durationFormatter.format(rootBuildOperationComplete.getTimestamp() - startTime);
+            programStatusReporter.updateOutcome(failed, "BUILD " + (failed ? "FAILED" : "SUCCESSFUL") + " in " + duration);
+        }
+        firstBuild = false;
         progressBar = ProgressBar.createProgressBar(consoleMetaData, "WAITING", 1);
         currentPhase = null;
         buildProgressOperationId = null;

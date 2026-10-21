@@ -34,6 +34,7 @@ import org.gradle.internal.logging.console.DefaultColorMap;
 import org.gradle.internal.logging.console.DefaultWorkInProgressFormatter;
 import org.gradle.internal.logging.console.FlushConsoleListener;
 import org.gradle.internal.logging.console.GlobalUserInputReceiver;
+import org.gradle.internal.logging.console.ProgramStatusReporter;
 import org.gradle.internal.logging.console.StyledTextOutputBackedRenderer;
 import org.gradle.internal.logging.console.ThrottlingOutputEventListener;
 import org.gradle.internal.logging.console.UserInputConsoleRenderer;
@@ -252,29 +253,41 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
     }
 
     public void addRichConsoleWithErrorOutputOnStdout(Console stdout, ConsoleMetaData consoleMetaData, boolean verbose) {
+        addRichConsoleWithErrorOutputOnStdout(stdout, consoleMetaData, verbose, null);
+    }
+
+    public void addRichConsoleWithErrorOutputOnStdout(Console stdout, ConsoleMetaData consoleMetaData, boolean verbose, @Nullable ProgramStatusReporter programStatusReporter) {
         OutputEventListener consoleListener = new StyledTextOutputBackedRenderer(stdout.getBuildOutputArea());
         OutputEventListener consoleChain = throttled(
-            getUserInputConsoleRenderer(stdout, consoleMetaData, verbose, consoleListener)
+            getUserInputConsoleRenderer(stdout, consoleMetaData, verbose, consoleListener, programStatusReporter)
         );
         addConsoleChain(consoleChain);
     }
 
     public void addRichConsole(Console stdout, Console stderr, ConsoleMetaData consoleMetaData, boolean verbose) {
+        addRichConsole(stdout, stderr, consoleMetaData, verbose, null);
+    }
+
+    public void addRichConsole(Console stdout, Console stderr, ConsoleMetaData consoleMetaData, boolean verbose, @Nullable ProgramStatusReporter programStatusReporter) {
         OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(stdout.getBuildOutputArea());
         OutputEventListener stderrChain = new FlushConsoleListener(stderr, new StyledTextOutputBackedRenderer(stderr.getBuildOutputArea()));
         OutputEventListener consoleListener = new ErrorOutputDispatchingListener(stderrChain, stdoutChain);
         OutputEventListener consoleChain = throttled(
-            getUserInputConsoleRenderer(stdout, consoleMetaData, verbose, consoleListener)
+            getUserInputConsoleRenderer(stdout, consoleMetaData, verbose, consoleListener, programStatusReporter)
         );
         addConsoleChain(consoleChain);
     }
 
     public void addRichConsole(Console stdout, OutputStream stderr, ConsoleMetaData consoleMetaData, boolean verbose) {
+        addRichConsole(stdout, stderr, consoleMetaData, verbose, null);
+    }
+
+    public void addRichConsole(Console stdout, OutputStream stderr, ConsoleMetaData consoleMetaData, boolean verbose, @Nullable ProgramStatusReporter programStatusReporter) {
         OutputEventListener stdoutChain = new StyledTextOutputBackedRenderer(stdout.getBuildOutputArea());
         OutputEventListener stderrChain = new StyledTextOutputBackedRenderer(new StreamingStyledTextOutput(new StreamBackedStandardOutputListener(stderr)));
         OutputEventListener consoleListener = new ErrorOutputDispatchingListener(stderrChain, stdoutChain);
         OutputEventListener consoleChain = throttled(
-            getUserInputConsoleRenderer(stdout, consoleMetaData, verbose, consoleListener)
+            getUserInputConsoleRenderer(stdout, consoleMetaData, verbose, consoleListener, programStatusReporter)
         );
         addConsoleChain(consoleChain);
     }
@@ -328,7 +341,7 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
         addConsoleChain(consoleChain);
     }
 
-    private UserInputConsoleRenderer getUserInputConsoleRenderer(Console console, ConsoleMetaData consoleMetaData, boolean verbose, OutputEventListener consoleListener) {
+    private UserInputConsoleRenderer getUserInputConsoleRenderer(Console console, ConsoleMetaData consoleMetaData, boolean verbose, OutputEventListener consoleListener, @Nullable ProgramStatusReporter programStatusReporter) {
         return new UserInputConsoleRenderer(
             new BuildStatusRenderer(
                 new WorkInProgressRenderer(
@@ -339,10 +352,11 @@ public class OutputEventRenderer implements OutputEventListener, LoggingRouter {
                     new DefaultWorkInProgressFormatter(consoleMetaData),
                     new ConsoleLayoutCalculator(consoleMetaData)
                 ),
-                console.getStatusBar(), console, consoleMetaData),
+                console.getStatusBar(), console, consoleMetaData, programStatusReporter),
             console,
             userInput,
-            temporaryFileProvider);
+            temporaryFileProvider,
+            programStatusReporter);
     }
 
     private UserInputStandardOutputRenderer getInputStandardOutputRenderer(OutputEventListener outputListener, boolean verbose) {
