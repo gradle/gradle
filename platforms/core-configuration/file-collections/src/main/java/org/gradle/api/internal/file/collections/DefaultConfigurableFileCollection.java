@@ -212,6 +212,9 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public void setFrom(Iterable<?> path) {
         assertMutable();
+        if (path == this) {
+            return;
+        }
         setExplicitCollector(newExplicitValue(path));
     }
 
@@ -279,6 +282,9 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     @Override
     public void setFrom(Object... paths) {
         assertMutable();
+        if (isOnlySelf(paths)) {
+            return;
+        }
         setExplicitCollector(paths.length > 0
             ? newExplicitValue(paths)
             : EMPTY_COLLECTOR);
@@ -307,13 +313,11 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
      * @param forNewExplicitValue true if base value is for an explicit value, false otherwise (i.e. for a convention value)
      */
     private ValueCollector getBaseValue(boolean forNewExplicitValue) {
-        if (forNewExplicitValue && !isExplicit()) {
-            return conventionReadValue();
+        if (forNewExplicitValue) {
+            return isExplicit() ? value : conventionReadValue();
         }
-        if (!forNewExplicitValue && isExplicit() && !value.isEmpty()) {
-            return copySources(value);
-        }
-        return value;
+        // A new convention that references this collection means its previous convention, never the explicit value
+        return isExplicit() ? copySources(valueState.convention()) : value;
     }
 
     private ValueCollector conventionReadValue() {
@@ -336,8 +340,21 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
     @Override
     public ConfigurableFileCollection from(Object... paths) {
+        if (isOnlySelf(paths)) {
+            assertMutable();
+            return this;
+        }
         withActualValue(it -> it.from(paths));
         return this;
+    }
+
+    private boolean isOnlySelf(Object[] paths) {
+        for (Object path : paths) {
+            if (path != this) {
+                return false;
+            }
+        }
+        return paths.length > 0;
     }
 
     private void assertMutable() {
@@ -492,8 +509,6 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
 
         ValueCollector plus(DefaultConfigurableFileCollection owner, PathToFileResolver resolver, PatternSetFactory patternSetFactory, TaskDependencyFactory taskDependencyFactory, PropertyHost propertyHost, Object... paths);
 
-        boolean isEmpty();
-
         /**
          * Returns a shallow copy of this value collector, to avoid sharing mutable data.
          */
@@ -501,10 +516,6 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
     }
 
     private static class EmptyCollector implements ValueCollector {
-        @Override
-        public boolean isEmpty() {
-            return true;
-        }
 
         @Override
         public void collectSource(Collection<Object> dest) {
@@ -579,10 +590,6 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             return new UnresolvedItemsCollector(this);
         }
 
-        @Override
-        public boolean isEmpty() {
-            return items.isEmpty();
-        }
 
         @Override
         public void collectSource(Collection<Object> dest) {
@@ -662,10 +669,6 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
             this.fileCollections = fileCollections;
         }
 
-        @Override
-        public boolean isEmpty() {
-            return fileCollections.isEmpty();
-        }
 
         @Override
         public void collectSource(Collection<Object> dest) {
