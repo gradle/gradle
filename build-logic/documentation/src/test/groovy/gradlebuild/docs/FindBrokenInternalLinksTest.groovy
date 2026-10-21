@@ -78,6 +78,8 @@ class FindBrokenInternalLinksTest extends Specification {
                 id 'gradlebuild.documentation'
             }
 
+            version = '9.9.0'
+
             repositories {
                 mavenCentral()
             }
