@@ -170,6 +170,10 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
     @Override
     public void set(Provider<? extends Map<? extends K, ? extends V>> provider) {
         ProviderInternal<? extends Map<? extends K, ? extends V>> checked = checkMapProvider(provider);
+        if (checked == this) {
+            assertCanMutate();
+            return;
+        }
         ProviderInternal<? extends Map<? extends K, ? extends V>> substituted = Cast.uncheckedCast(substituteSelfReference(checked));
         setSupplier(newCollectingSupplierOf(new MapCollectors.EntriesFromMapProvider<>(substituted)));
     }
@@ -299,7 +303,9 @@ public class DefaultMapProperty<K, V> extends AbstractProperty<Map<K, V>, MapSup
 
     @Override
     public MapProperty<K, V> convention(Provider<? extends Map<? extends K, ? extends V>> valueProvider) {
-        setConvention(newCollectingSupplierOf(new EntriesFromMapProvider<>(checkMapProvider("convention", valueProvider))));
+        ProviderInternal<? extends Map<? extends K, ? extends V>> p = checkMapProvider("convention", valueProvider);
+        assertNoSelfReference(p);
+        setConvention(newCollectingSupplierOf(new EntriesFromMapProvider<>(p)));
         return this;
     }
 

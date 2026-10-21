@@ -1592,7 +1592,7 @@ The value of this property is derived from: <source>""")
         property.get() == [a: "1"]
     }
 
-    def "unset convention makes convention-based map self assignment missing"() {
+    def "unset convention makes convention-based map self assignment read the empty default"() {
         given:
         property.convention([a: "1"])
         property.set(property.map { values -> values + [b: "2"] })
@@ -1601,7 +1601,46 @@ The value of this property is derived from: <source>""")
         property.unsetConvention()
 
         then:
-        !property.present
+        property.get() == [b: "2"]
+    }
+
+    def "self assignment of a fresh map property reads the empty default"() {
+        when:
+        property.set(property.map { values -> values + [b: "2"] })
+
+        then:
+        property.get() == [b: "2"]
+
+        when:
+        property.convention([a: "1"])
+
+        then:
+        property.get() == [a: "1", b: "2"]
+    }
+
+    def "direct self assignment of a map property is a no-op"() {
+        given:
+        property.convention([a: "1"])
+
+        when:
+        property.set(property)
+        property.convention([b: "2"])
+
+        then:
+        property.get() == [b: "2"]
+    }
+
+    def "map convention derived from the property itself is rejected"() {
+        given:
+        property.convention([a: "1"])
+
+        when:
+        property.convention(property.map { values -> values + [b: "2"] })
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.startsWith("Cannot set the convention of this property using a provider derived from the property itself.")
+        property.get() == [a: "1"]
     }
 
     def "can alternate insert and put"() {

@@ -1275,7 +1275,7 @@ The value of this property is derived from: <source>""")
         property.get() as Set == ["a"] as Set
     }
 
-    def "unset convention makes convention-based collection self assignment missing"() {
+    def "unset convention makes convention-based collection self assignment read the empty default"() {
         given:
         property.convention(["a"])
         property.set(property.map { values -> values + "b" })
@@ -1284,7 +1284,69 @@ The value of this property is derived from: <source>""")
         property.unsetConvention()
 
         then:
+        property.get() as List == ["b"]
+    }
+
+    def "self assignment of a fresh collection property reads the empty default"() {
+        when:
+        property.set(property.map { values -> values + "b" })
+
+        then:
+        property.get() as List == ["b"]
+
+        when:
+        property.convention(["a"])
+
+        then:
+        property.get() as List == ["a", "b"]
+    }
+
+    def "self assignment after set(null) stays missing until a convention is set"() {
+        given:
+        property.set((Iterable) null)
+
+        when:
+        property.set(property.map { values -> values + "b" })
+
+        then:
         !property.present
+
+        when:
+        property.convention(["a"])
+
+        then:
+        property.get() as List == ["a", "b"]
+    }
+
+    def "direct self assignment is a no-op"() {
+        given:
+        property.convention(["a"])
+
+        when:
+        property.set(property)
+
+        then:
+        !property.explicit
+        property.get() as List == ["a"]
+
+        when:
+        property.convention(["b"])
+
+        then:
+        property.get() as List == ["b"]
+    }
+
+    def "convention derived from the property itself is rejected"() {
+        given:
+        property.convention(["a"])
+
+        when:
+        property.convention(property.map { values -> values + "b" })
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Cannot set the convention of this property using a provider derived from the property itself. Use set() to derive a value from the previous value of the property."
+        property.get() as List == ["a"]
     }
 
     static abstract class CollectionPropertyCircularChainEvaluationTest<T, C extends Collection<T>> extends PropertySpec.PropertyCircularChainEvaluationSpec<C> {
