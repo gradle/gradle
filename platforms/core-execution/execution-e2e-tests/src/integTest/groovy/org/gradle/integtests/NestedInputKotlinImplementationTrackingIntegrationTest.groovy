@@ -106,7 +106,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
     def "task action defined in latest Kotlin can be tracked when using language version #kotlinLanguageVersion"() {
         file("buildSrc/build.gradle.kts") << """
             plugins {
-                kotlin("jvm") version("${new KotlinGradlePluginVersions().latestStableOrRC}")
+                kotlin("jvm") version("${new KotlinGradlePluginVersions().latest}")
                 `java-gradle-plugin`
             }
 
@@ -157,8 +157,8 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         """
 
         when:
-        if (['2.0', '2.1'].contains(kotlinLanguageVersion)) {
-            executer.expectExternalDeprecatedMessage("    Language version $kotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin. Update the version to 2.2.")
+        if (kotlinLanguageVersion == '2.2') {
+            executer.expectExternalDeprecatedMessage("    Language version $kotlinLanguageVersion is deprecated and its support will be removed in a future version of Kotlin. Update the version to 2.3.")
         }
         run "myTask"
 
@@ -166,7 +166,7 @@ class NestedInputKotlinImplementationTrackingIntegrationTest extends AbstractInt
         executedAndNotSkipped(":myTask")
 
         where:
-        kotlinLanguageVersion << new KotlinGradlePluginVersions().languageVersionsSupportedByLatestStableOrRc()
+        kotlinLanguageVersion << new KotlinGradlePluginVersions().languageVersionsSupportedByLatest()
     }
 
     @Issue("https://github.com/gradle/gradle/issues/11703")
