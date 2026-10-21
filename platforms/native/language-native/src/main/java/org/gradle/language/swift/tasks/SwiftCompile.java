@@ -53,6 +53,8 @@ import org.gradle.nativeplatform.platform.internal.NativePlatformInternal;
 import org.gradle.nativeplatform.toolchain.NativeToolChain;
 import org.gradle.nativeplatform.toolchain.internal.NativeToolChainInternal;
 import org.gradle.nativeplatform.toolchain.internal.PlatformToolProvider;
+import org.gradle.nativeplatform.toolchain.internal.UnavailableCompilerVersion;
+import org.gradle.nativeplatform.toolchain.internal.UnavailableToolException;
 import org.gradle.nativeplatform.toolchain.internal.compilespec.SwiftCompileSpec;
 import org.gradle.nativeplatform.toolchain.internal.swift.IncrementalSwiftCompiler;
 import org.gradle.work.ChangeType;
@@ -229,7 +231,11 @@ public abstract class SwiftCompile extends DefaultTask {
      */
     @Nested
     protected CompilerVersion getCompilerVersion() {
-        return ((VersionAwareCompiler)createCompiler()).getVersion();
+        try {
+            return ((VersionAwareCompiler)createCompiler()).getVersion();
+        } catch (UnavailableToolException e) {
+            return new UnavailableCompilerVersion(e);
+        }
     }
 
     private Compiler<SwiftCompileSpec> createCompiler() {
