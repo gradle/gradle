@@ -33,6 +33,7 @@ import org.gradle.api.tasks.TaskProvider;
 import org.gradle.api.tasks.javadoc.Javadoc;
 import org.gradle.external.javadoc.StandardJavadocDocletOptions;
 import org.gradle.internal.UncheckedException;
+import org.gradle.util.GradleVersion;
 
 import javax.inject.Inject;
 import java.io.File;
@@ -94,7 +95,7 @@ public abstract class GradleJavadocsPlugin implements Plugin<Project> {
             task.setDescription("Generate Javadocs for all API classes");
 
             // TODO: This breaks if version is changed later
-            task.setTitle("Gradle API " + project.getVersion());
+            task.setTitle("Gradle API " + GradleVersion.version(project.getVersion().toString()).getBaseVersion().getVersion());
 
             StandardJavadocDocletOptions options = (StandardJavadocDocletOptions) task.getOptions();
             options.setEncoding("utf-8");

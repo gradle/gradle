@@ -3,7 +3,7 @@
 asciidoctor = "3.0.1"
 bytebuddy = "1.18.11"
 checkstyle = "13.7.0"
-develocity = "4.6.0"
+develocity = "4.6.1"
 groovy = "4.0.33"
 hamcrest = "3.0"
 javaPoet = "1.13.0"
