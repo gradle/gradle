@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import gradlebuild.GeneratePackageInfoDataTask
 import gradlebuild.GeneratePlatformsDataTask
 import gradlebuild.GeneratorTask
 import gradlebuild.PlatformBuilder
@@ -33,12 +32,6 @@ gradle.rootProject {
         outputFile = layout.buildDirectory.file("architecture/platforms.json")
         platforms = provider { structure.architectureElements.filterIsInstance<PlatformBuilder>().map { it.build() } }
     }
-    val packageInfoData = tasks.register("packageInfoData", GeneratePackageInfoDataTask::class) {
-        description = "Map packages to the list of package-info.java files that apply to them"
-        outputFile = layout.buildDirectory.file("architecture/package-info.json")
-        packageInfoFiles.from(GeneratePackageInfoDataTask.findPackageInfoFiles(objects, provider { structure.projectBaseDirs }))
-    }
-
     configurations.consumable("platformsData") {
         outgoing.artifact(platformsData)
         attributes {
@@ -46,10 +39,4 @@ gradle.rootProject {
         }
     }
 
-    configurations.consumable("packageInfoData") {
-        outgoing.artifact(packageInfoData)
-        attributes {
-            attribute(Category.CATEGORY_ATTRIBUTE, objects.named<Category>(ArchitectureDataType.PACKAGE_INFO))
-        }
-    }
 }
