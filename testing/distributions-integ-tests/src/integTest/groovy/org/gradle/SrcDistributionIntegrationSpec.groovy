@@ -46,7 +46,7 @@ class SrcDistributionIntegrationSpec extends DistributionIntegrationSpec {
         0
     }
 
-    @Ignore("Disabled on xdcl/release: the source zip cannot carry the xdcl composite checkout the build requires")
+    @Ignore("Disabled on xdl/release: the source zip cannot carry the xdl composite checkout the build requires")
     @Requires(OsTestPreconditions.NotWindows)
     def sourceZipContents() {
         given:
