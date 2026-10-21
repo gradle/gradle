@@ -22,7 +22,6 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.Stoppable;
 import org.jspecify.annotations.Nullable;
 
-import java.io.Closeable;
 import java.lang.annotation.Annotation;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.InvocationTargetException;
@@ -53,8 +52,8 @@ import static org.gradle.util.internal.CollectionUtils.join;
  * A hierarchical {@link ServiceRegistry} implementation.
  *
  * <p>Service instances are closed when the registry that created them is closed using {@link #close()}.
- * If a service instance implements {@link java.io.Closeable} or {@link org.gradle.internal.concurrent.Stoppable}
- * then the appropriate {@link Closeable#close()} or {@link Stoppable#stop()} method is called.
+ * If a service instance implements {@link AutoCloseable} or {@link org.gradle.internal.concurrent.Stoppable}
+ * then the appropriate {@link AutoCloseable#close()} or {@link Stoppable#stop()} method is called.
  * Instances are closed in reverse dependency order.
  *
  * <p>Service registries are arranged in a hierarchy. If a service of a given type cannot be located, the registry uses its parent registry, if any, to locate the service.</p>
@@ -145,7 +144,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
         }
         throw new IllegalArgumentException(
             String.format("Service registry %s cannot be used as a parent for another service registry."
-                + " Expected an instance of %s but got %s.",
+                    + " Expected an instance of %s but got %s.",
                 serviceRegistry, AbstractServiceRegistry.class.getSimpleName(), serviceRegistry.getClass().getSimpleName()));
     }
 
@@ -294,7 +293,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements C
     }
 
     /**
-     * Closes all services for this registry. For each service, if the service has a public void close() or stop() method, that method is called to close the service.
+     * Closes all services for this registry. For each service, if the service implements {@link AutoCloseable} or {@link Stoppable}, the appropriate {@code close()} or {@code stop()} method is called.
      */
     @Override
     public void close() {
