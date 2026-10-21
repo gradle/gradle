@@ -22,6 +22,7 @@ import org.gradle.api.GradleException;
 import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.internal.StartParameterInternal;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
+import org.gradle.api.problems.internal.DefaultProblemGroups;
 import org.gradle.api.problems.internal.DefaultProblems;
 import org.gradle.api.problems.internal.ExceptionProblemRegistry;
 import org.gradle.api.problems.internal.IsolatableToBytesSerializer;
@@ -131,7 +132,7 @@ public class ProblemsBuildTreeServices implements ServiceRegistrationProvider {
         BuildStateRegistry buildStateRegistry
     ) {
         if (startParameter.isProblemReportGenerationEnabled()) {
-            return new DefaultProblemsReportCreator(executorFactory, temporaryFileProvider, internalOptions, startParameter, failureFactory, buildStateRegistry);
+            return new DefaultProblemsReportCreator(executorFactory, temporaryFileProvider, internalOptions, startParameter, failureFactory, buildStateRegistry, DefaultProblemGroups.INSTANCE.getRoots());
         }
         return new NoOpProblemReportCreator();
     }
