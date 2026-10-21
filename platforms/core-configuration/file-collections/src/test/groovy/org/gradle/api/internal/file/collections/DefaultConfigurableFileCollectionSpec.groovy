@@ -530,8 +530,69 @@ class DefaultConfigurableFileCollectionSpec extends FileCollectionSpec {
         collection.convention(collection + src5)
 
         then:
-        collection.files as List == [file3, file2, file5]
+        collection.files as List == [file3, file1, file5]
         !collection.explicit
+    }
+
+    def "convention derived from the collection reads the previous convention and not the explicit value"() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def file3 = new File("3")
+        def src1 = containing(file1)
+        def src2 = containing(file2)
+        def src3 = containing(file3)
+
+        when:
+        collection.convention(src1)
+        collection.from = src2
+        collection.convention(collection + src3)
+
+        then:
+        collection.files as List == [file2]
+        collection.explicit
+
+        when:
+        collection.unset()
+
+        then:
+        collection.files as List == [file1, file3]
+        !collection.explicit
+    }
+
+    def "assigning the collection to itself is a no-op"() {
+        given:
+        def file1 = new File("1")
+        def file2 = new File("2")
+        def src1 = containing(file1)
+        def src2 = containing(file2)
+
+        when:
+        collection.convention(src1)
+        collection.setFrom(collection)
+        collection.from(collection)
+
+        then:
+        !collection.explicit
+        collection.files as List == [file1]
+
+        when:
+        collection.convention(src2)
+
+        then:
+        collection.files as List == [file2]
+    }
+
+    def "self-referencing an empty collection using plus operator works"() {
+        given:
+        def file1 = new File("1")
+        def src1 = containing(file1)
+
+        when:
+        collection.from(collection + src1)
+
+        then:
+        collection.files as List == [file1]
     }
 
     def "elements provider tracks changes to content"() {
