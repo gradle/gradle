@@ -456,15 +456,109 @@ class DefaultPropertyTest extends AbstractPropertySpec<String> {
         property.get() == "abc"
     }
 
-    def "direct self assignment uses previous value"() {
+    def "direct self assignment is a no-op"() {
         given:
-        def property = property().value(someValue())
+        def property = property().convention(someValue())
 
         when:
         property.set(property)
 
         then:
+        !property.explicit
         property.get() == someValue()
+
+        when:
+        property.convention(someOtherValue())
+
+        then:
+        property.get() == someOtherValue()
+    }
+
+    def "convention derived from the property itself is rejected"() {
+        given:
+        def property = property().convention(someValue())
+
+        when:
+        property.convention(property.map { it.reverse() })
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Cannot set the convention of this property using a provider derived from the property itself. Use set() to derive a value from the previous value of the property."
+        property.get() == someValue()
+    }
+
+    def "self assignment of a fresh property stays missing until a convention is set"() {
+        given:
+        def property = property()
+
+        when:
+        property.set(property.map { it + "!" })
+
+        then:
+        !property.present
+
+        when:
+        property.convention("hello")
+
+        then:
+        property.get() == "hello!"
+    }
+
+    def "self reference can be the fallback of orElse"() {
+        given:
+        def vendor = property().convention("Adoptium")
+        def configured = property()
+
+        when:
+        vendor.set(configured.orElse(vendor))
+
+        then:
+        vendor.get() == "Adoptium"
+
+        when:
+        configured.set("Oracle")
+
+        then:
+        vendor.get() == "Oracle"
+    }
+
+    def "self reference works with filter and flatMap"() {
+        given:
+        def property = property().value("hello")
+
+        when:
+        property.set(property.flatMap { previous -> Providers.of(previous + "!") })
+
+        then:
+        property.get() == "hello!"
+
+        when:
+        property.set(property.filter { it.startsWith("x") })
+
+        then:
+        !property.present
+    }
+
+    def "self assignment chain is released by set(null)"() {
+        given:
+        def property = property().convention("hello")
+        property.set(property.map { "[" + it + "]" })
+        property.set(property.map { it + "!" })
+
+        expect:
+        property.get() == "[hello]!"
+
+        when:
+        property.convention("goodbye")
+
+        then:
+        property.get() == "[goodbye]!"
+
+        when:
+        property.set((String) null)
+
+        then:
+        property.get() == "goodbye"
     }
 
     def "self assignment observes convention installed later"() {

@@ -473,11 +473,30 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         return new ProviderSubstitution(this, this::previousValue).substitute(provider);
     }
 
+    /**
+     * Rejects a convention that is derived from this property itself. A convention states a default; deriving it
+     * from the property would make the result depend on the order in which plugins configure the property.
+     */
+    protected void assertNoSelfReference(ProviderInternal<?> convention) {
+        new ProviderSubstitution(this, () -> {
+            throw new IllegalArgumentException(String.format(
+                "Cannot set the convention of %s using a provider derived from the property itself. Use set() to derive a value from the previous value of the property.",
+                getDisplayName().getDisplayName()));
+        }).substitute(convention);
+    }
+
     private ProviderInternal<T> previousValue() {
         if (isExplicit()) {
             return shallowCopy();
         }
         return new ConventionReadProvider();
+    }
+
+    /**
+     * The value this property would have if it had no explicit value: the convention when one is set, otherwise the default.
+     */
+    private S conventionOrDefault() {
+        return isDefaultConvention() ? getDefaultValue() : getConventionSupplier();
     }
 
     private class ShallowCopyProvider extends AbstractMinimalProvider<T> {
@@ -522,21 +541,21 @@ public abstract class AbstractProperty<T, S extends ValueSupplier> extends Abstr
         @Override
         public ValueProducer getProducer() {
             try (EvaluationScopeContext ignored = openScope()) {
-                return getConventionSupplier().getProducer();
+                return conventionOrDefault().getProducer();
             }
         }
 
         @Override
         public ExecutionTimeValue<? extends T> calculateExecutionTimeValue() {
             try (EvaluationScopeContext context = openScope()) {
-                return calculateOwnExecutionTimeValue(context, getConventionSupplier());
+                return calculateOwnExecutionTimeValue(context, conventionOrDefault());
             }
         }
 
         @Override
         protected Value<? extends T> calculateOwnValue(ValueConsumer consumer) {
             try (EvaluationScopeContext context = openScope()) {
-                return calculateValueFrom(context, getConventionSupplier(), consumer);
+                return calculateValueFrom(context, conventionOrDefault(), consumer);
             }
         }
 
