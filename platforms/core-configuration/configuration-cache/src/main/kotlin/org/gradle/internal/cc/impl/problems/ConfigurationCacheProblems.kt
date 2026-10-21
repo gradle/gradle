@@ -207,7 +207,7 @@ class ConfigurationCacheProblems(
         this.updatedProjects = updatedProjects
     }
 
-    override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+    override fun onError(trace: PropertyTrace, name: String, error: Exception, message: StructuredMessageBuilder) {
         // Let IO and configuration cache exceptions surface to the top.
         if (error is IOException || error is ConfigurationCacheThrowable) {
             throw error
@@ -220,7 +220,7 @@ class ConfigurationCacheProblems(
             "Configuration cache state could not be cached: $trace: ${wrappedMessage.render()}",
             originalError
         )
-        val problem = PropertyProblem(trace, wrappedMessage, wrappedError, failureFactory.create(originalError))
+        val problem = PropertyProblem(trace, name, wrappedMessage, wrappedError, failureFactory.create(originalError))
         onProblem(problem, ProblemSeverity.Interrupting)
     }
 
@@ -268,7 +268,7 @@ class ConfigurationCacheProblems(
     private
     fun reportIncompatibleTask(trace: PropertyTrace, reason: String) {
         val problem = problemFactory
-            .problem {
+            .problem("Task incompatible with the configuration cache") {
                 message(trace.containingUserCodeMessage)
                 text(" is incompatible with the configuration cache. Reason: $reason.")
             }
@@ -316,11 +316,10 @@ class ConfigurationCacheProblems(
 
     private
     fun ProblemsInternal.onProblem(problem: PropertyProblem, severity: ProblemSeverity, forIsolatedProjects: Boolean) {
-        val message = problem.message.render()
         val group = if (forIsolatedProjects) groups.gradle.isolatedProjects else groups.gradle.configurationCache
         internalReporter.internalCreate {
-            id(group.problemId(problemNameOf(message)))
-            contextualLabel(message)
+            id(group.problemId(problem.name))
+            contextualLabel(problem.message.renderCapitalized())
             documentOfProblem(problem)
             locationOfProblem(problem)
             additionalDataInternal(PropertyTraceDataSpec::class.java) {
@@ -596,9 +595,9 @@ class ConfigurationCacheProblems(
             onProblem(problem, problemSeverity)
         }
 
-        override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+        override fun onError(trace: PropertyTrace, name: String, error: Exception, message: StructuredMessageBuilder) {
             val failure = failureFactory.create(error)
-            onProblem(PropertyProblem(trace, StructuredMessage.build(message), error, failure))
+            onProblem(PropertyProblem(trace, name, StructuredMessage.build(message), error, failure))
         }
 
         override fun onExecutionTimeProblem(problem: PropertyProblem) {
@@ -606,42 +605,3 @@ class ConfigurationCacheProblems(
         }
     }
 }
-
-
-/**
- * The problem name for a configuration cache or Isolated Projects problem message: its first non-blank line, without
- * control or format characters, with whitespace collapsed, and shortened to the maximum problem name length.
- * The full message stays the problem's contextual label.
- */
-@VisibleForTesting
-internal
-fun problemNameOf(message: String): String {
-    val firstLine = message.lineSequence().firstOrNull { it.isNotBlank() } ?: return UNNAMED_PROBLEM
-    val cleaned = buildString {
-        firstLine.codePoints().forEach { codePoint ->
-            when {
-                Character.isWhitespace(codePoint) || Character.isISOControl(codePoint) -> append(' ')
-                Character.getType(codePoint) == Character.FORMAT.toInt() -> Unit
-                else -> appendCodePoint(codePoint)
-            }
-        }
-    }.replace(WHITESPACE_RUN, " ").trim()
-    return when {
-        cleaned.isEmpty() -> UNNAMED_PROBLEM
-        cleaned.codePointCount(0, cleaned.length) <= MAX_PROBLEM_NAME_LENGTH -> cleaned
-        else -> cleaned.substring(0, cleaned.offsetByCodePoints(0, MAX_PROBLEM_NAME_LENGTH - 1)).trimEnd() + "\u2026"
-    }
-}
-
-
-private
-const val UNNAMED_PROBLEM = "Unnamed problem"
-
-
-// Matches ProblemNames.MAX_PROBLEM_NAME_LENGTH, which rejects longer names
-private
-const val MAX_PROBLEM_NAME_LENGTH = 2000
-
-
-private
-val WHITESPACE_RUN = Regex(" {2,}")

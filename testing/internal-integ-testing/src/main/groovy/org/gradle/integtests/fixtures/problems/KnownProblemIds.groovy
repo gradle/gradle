@@ -155,10 +155,9 @@ class KnownProblemIds {
         'root:test-problem': ['test problem'],
         'Gradle:Invocation:Task not found': ['Task not found'],
         'Gradle:Invocation:Project not found': ['Project not found'],
-        "\\QGradle:Configuration Cache:error writing value of type 'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection'\\E": ["\\Qerror writing value of type 'org.gradle.api.internal.file.collections.DefaultConfigurableFileCollection'\\E"],
-        "\\QGradle:Configuration Cache:error writing value of type 'org.gradle.api.internal.provider.DefaultMapProperty'\\E": ["\\Qerror writing value of type 'org.gradle.api.internal.provider.DefaultMapProperty'\\E"],
-        "\\QGradle:Configuration Cache:registration of listener on 'Gradle.buildFinished' is unsupported\\E": ["\\Qregistration of listener on 'Gradle.buildFinished' is unsupported\\E"],
-        "\\QGradle:Configuration Cache:invocation of 'Task.project' at execution time is unsupported with the configuration cache.\\E": ["\\Qinvocation of 'Task.project' at execution time is unsupported with the configuration cache.\\E"],
+        'Gradle:Configuration Cache:Error writing value': ['Error writing value'],
+        'Gradle:Configuration Cache:Unsupported build listener registration': ['Unsupported build listener registration'],
+        'Gradle:Configuration Cache:Project accessed at execution time': ['Project accessed at execution time'],
         'Gradle:Isolated Projects:Isolated Projects problems are dangerously ignored': ['Isolated Projects problems are dangerously ignored'],
         'Packaging:Signing:No configured signatory': ['No configured signatory'],
         'Gradle:Build Definition:Plugin applied to the wrong target': ['Plugin applied to the wrong target'],
@@ -168,9 +167,8 @@ class KnownProblemIds {
         'Gradle:Invocation:Missing task name': ['Missing task name'],
         'Gradle:Invocation:Task path with empty segments': ['Task path with empty segments'],
         'Gradle:Invocation:Exclusive task run with other tasks': ['Exclusive task run with other tasks'],
-        "\\QGradle:Configuration Cache:cannot serialize object of type 'org.gradle.api.DefaultTask', a subtype of 'org.gradle.api.Task', as these are not supported with the configuration cache.\\E": ["\\Qcannot serialize object of type 'org.gradle.api.DefaultTask', a subtype of 'org.gradle.api.Task', as these are not supported with the configuration cache.\\E"],
-        // Named after the message, which names the class
-        'Gradle:Configuration Cache:Class .* cannot be encoded because.*': ['Class .* cannot be encoded because.*'],
+        'Gradle:Configuration Cache:Type unsupported for serialization': ['Type unsupported for serialization'],
+        'Gradle:Configuration Cache:Class cannot be encoded': ['Class cannot be encoded'],
         'Gradle:Configuration Cache:Configuration Cache warn mode is enabled': ['Configuration Cache warn mode is enabled'],
 
         // Plugin Validation

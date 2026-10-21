@@ -482,7 +482,8 @@ JVM toolchain problems report into `Provisioning > Tools and Toolchains` and sig
 For the full set of groups Gradle reports into, see <<reporting_problems.adoc#sec:groups_gradle_reports_into,Groups Gradle reports into>>.
 Each problem is now named by its former display name, with a few exceptions:
 
-* Configuration Cache and Isolated Projects problems are named after the first line of their message, instead of the message in kebab case.
+* Configuration Cache and Isolated Projects problems are named after the kind of problem, for example `Error writing value` or `Cross-project model access`, instead of the message in kebab case.
+  Details such as types, members, and projects no longer appear in the name; they remain in the problem's contextual label.
 * Task selection problems name what Gradle looked for, and a project that cannot be found in a task path has its own name, for example `Task not found` and `Project not found` instead of `No matches` and `Selection failed`.
 * Names that relied on their legacy group for context now carry it, for example `Configuration method call not allowed` instead of `Method call not allowed`, and `Reported problem has no id` instead of `Problem id must be specified`.
 * `Init invocation problem` is now `Exclusive task run with other tasks`.
@@ -575,10 +576,10 @@ Each problem is now named by its former display name, with a few exceptions:
 |`Gradle:Isolated Projects:Isolated Projects problems are dangerously ignored`
 
 |`validation:configuration-cache:<message as kebab case>`, for a Configuration Cache problem
-|`Gradle:Configuration Cache:<first line of the message>`
+|`Gradle:Configuration Cache:<kind of problem>`, for example `Gradle:Configuration Cache:Project accessed at execution time`
 
 |`validation:configuration-cache:<message as kebab case>`, for an Isolated Projects problem
-|`Gradle:Isolated Projects:<first line of the message>`
+|`Gradle:Isolated Projects:<kind of problem>`, for example `Gradle:Isolated Projects:Cross-project model access`
 |===
 
 This affects Tooling API clients, Build Scans, and any tooling that matches problems by id.

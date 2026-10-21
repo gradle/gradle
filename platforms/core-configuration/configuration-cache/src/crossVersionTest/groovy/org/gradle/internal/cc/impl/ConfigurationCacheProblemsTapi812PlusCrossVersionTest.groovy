@@ -79,7 +79,7 @@ class ConfigurationCacheProblemsTapi812PlusCrossVersionTest extends ToolingApiSp
         thrown(BuildException)
         listener.problems.size() == 1
         verifyAll(listener.problems[0]) {
-            definition.id.displayName == "registration of listener on 'Gradle.buildFinished' is unsupported"
+            definition.id.displayName == (reportsIntoPredefinedGroups ? "Unsupported build listener registration" : "registration of listener on 'Gradle.buildFinished' is unsupported")
             definition.id.group.displayName == (reportsIntoPredefinedGroups ? "Configuration Cache" : "configuration cache validation")
             definition.id.group.name == (reportsIntoPredefinedGroups ? "Configuration Cache" : "configuration-cache")
             definition.severity == Severity.ERROR

@@ -373,7 +373,7 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun onProblem(problem: PropertyProblem): Unit =
             undefined()
 
-        override fun onError(error: Exception, message: StructuredMessageBuilder) =
+        override fun onError(name: String, error: Exception, message: StructuredMessageBuilder) =
             undefined()
 
         override suspend fun forIncompatibleTask(trace: PropertyTrace, reason: String, action: suspend () -> Unit) =
@@ -496,7 +496,7 @@ class ConfigurationCacheFingerprintCheckerTest {
         override fun onProblem(problem: PropertyProblem): Unit =
             undefined()
 
-        override fun onError(error: Exception, message: StructuredMessageBuilder) =
+        override fun onError(name: String, error: Exception, message: StructuredMessageBuilder) =
             undefined()
 
         override fun push(codec: Codec<Any?>): Unit =

@@ -82,7 +82,7 @@ class UpdateDaemonJvmIntegrationTest extends AbstractIntegrationSpec implements 
         findReceivedProblem { it.fqid == 'Provisioning:Tools and Toolchains:No toolchain download repositories configured' }.contextualLabel == 'Toolchain download repositories have not been configured.'
         if (GradleContextualExecuter.configCache) {
             // the failed task's map property cannot be stored
-            findReceivedProblem { it.contextualLabel == "error writing value of type 'org.gradle.api.internal.provider.DefaultMapProperty'" }
+            findReceivedProblem { it.contextualLabel == "Error writing value of type 'org.gradle.api.internal.provider.DefaultMapProperty'" }
         }
         failure.error.contains('Possible solution: Configure toolchain download repositories in your build settings.')
         failure.error.contains(DocumentationUtils.normalizeDocumentationLink('For more information, please refer to https://docs.gradle.org/current/userguide/toolchains.html#sub:download_repositories.'))
@@ -345,7 +345,7 @@ tasks.named("updateDaemonJvm") {
         findReceivedProblem { it.fqid == 'Provisioning:Tools and Toolchains:Daemon JVM toolchain not resolvable for requested platforms' }.contextualLabel.startsWith('Toolchain resolvers did not return download URLs providing a JDK matching {languageVersion=20')
         if (GradleContextualExecuter.configCache) {
             // the failed task's map property cannot be stored
-            findReceivedProblem { it.contextualLabel == "error writing value of type 'org.gradle.api.internal.provider.DefaultMapProperty'" }
+            findReceivedProblem { it.contextualLabel == "Error writing value of type 'org.gradle.api.internal.provider.DefaultMapProperty'" }
         }
         failureCauseContains("Toolchain resolvers did not return download URLs providing a JDK matching {languageVersion=20, vendor=vendor matching('FOO'), implementation=vendor-specific, nativeImageCapable=false} for any of the requested platforms")
         failure.error.contains('Possible solution: Use a toolchain download repository capable of resolving the toolchain spec for the given platforms.')

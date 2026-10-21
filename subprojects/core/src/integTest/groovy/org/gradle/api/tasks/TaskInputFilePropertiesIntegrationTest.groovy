@@ -112,8 +112,8 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         if (GradleContextualExecuter.configCache) {
             verifyAll(receivedProblem(1)) {
                 severity == Severity.ERROR
-                fqid == "Gradle:Configuration Cache:cannot serialize object of type 'org.gradle.api.DefaultTask', a subtype of 'org.gradle.api.Task', as these are not supported with the configuration cache."
-                contextualLabel == 'cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'
+                fqid == "Gradle:Configuration Cache:Type unsupported for serialization"
+                contextualLabel == 'Cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'
                 originLocations == []
             }
         }
@@ -179,8 +179,8 @@ class TaskInputFilePropertiesIntegrationTest extends AbstractIntegrationSpec imp
         if (GradleContextualExecuter.configCache) {
             verifyAll(receivedProblem(1)) {
                 severity == Severity.ERROR
-                fqid == "Gradle:Configuration Cache:cannot serialize object of type 'org.gradle.api.DefaultTask', a subtype of 'org.gradle.api.Task', as these are not supported with the configuration cache."
-                contextualLabel == 'cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'
+                fqid == "Gradle:Configuration Cache:Type unsupported for serialization"
+                contextualLabel == 'Cannot serialize object of type \'org.gradle.api.DefaultTask\', a subtype of \'org.gradle.api.Task\', as these are not supported with the configuration cache.'
                 originLocations == []
             }
         }
