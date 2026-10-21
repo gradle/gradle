@@ -94,6 +94,13 @@ public interface MapProperty<K, V> extends Provider<Map<K, V>>, HasConfigurableV
      * This property will track the value of the provider and query its value each time the value of this property is queried.
      * When the provider has no value, this property will also have no value.
      *
+     * <p>
+     * The provider may be derived from this property itself, for example {@code entries.set(entries.map(m -> ...))}.
+     * Reads of this property found in the provider then mean the previous value of this property: the explicit
+     * value it had before this call or, when it had none, its convention. The convention is read live, so a
+     * convention set or changed after this call is still used. The property does not track such a provider.
+     * </p>
+     *
      * @param provider Provider of the entries.
      * @since 5.1
      */

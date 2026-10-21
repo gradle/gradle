@@ -88,6 +88,14 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue, Supports
      * from the provider.
      * </p>
      *
+     * <p>
+     * The provider may be derived from this property itself, for example {@code p.set(p.map(v -> v + "!"))}.
+     * Reads of this property found in the provider then mean the previous value of this property: the explicit
+     * value it had before this call or, when it had none, its convention. The convention is read live, so a
+     * convention set or changed after this call is still used. The property does not track such a provider;
+     * the provider itself stays a live view of the new value of the property.
+     * </p>
+     *
      * @param provider The provider of the property's value, can't be null.
      * @since 4.3
      */
@@ -165,6 +173,11 @@ public interface Property<T> extends Provider<T>, HasConfigurableValue, Supports
      * <p>
      * The property's convention tracks the convention provider. Whenever the convention's actual value is
      * needed, the convention provider will be queried anew.
+     * </p>
+     *
+     * <p>
+     * The convention provider must not be derived from this property itself. Use {@link #set(Provider)} to derive
+     * a value from the previous value of the property.
      * </p>
      *
      * <p>
