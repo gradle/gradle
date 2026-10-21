@@ -59,7 +59,7 @@ object GradleDistributionSpecs {
         // version) merged under `repo/` — deliberately OUTSIDE `lib/` (whose contents are pinned by
         // the distribution integrity tests, and whose subdirectories the module registry scans).
         // Consumer builds resolve distribution-served components from here through ordinary
-        // dependency resolution (the XDCL provider injects it as a settings-classpath repository).
+        // dependency resolution (the XDL provider injects it as a settings-classpath repository).
         into("repo") {
             from(distributionRepositoryPath)
         }

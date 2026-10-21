@@ -1764,29 +1764,29 @@
     "crossVersionTests": false
   },
   {
-    "name": "xdcl-common-ecosystem",
-    "path": "platforms/core-configuration/xdcl-common-ecosystem",
+    "name": "xdl-common-ecosystem",
+    "path": "platforms/core-configuration/xdl-common-ecosystem",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "name": "xdcl-integ-tests",
-    "path": "platforms/core-configuration/xdcl-integ-tests",
+    "name": "xdl-integ-tests",
+    "path": "platforms/core-configuration/xdl-integ-tests",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
-    "name": "xdcl-plugin-development",
-    "path": "platforms/extensibility/xdcl-plugin-development",
+    "name": "xdl-plugin-development",
+    "path": "platforms/extensibility/xdl-plugin-development",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
-    "name": "xdcl-plugin-development-plugin",
-    "path": "platforms/extensibility/xdcl-plugin-development-plugin",
+    "name": "xdl-plugin-development-plugin",
+    "path": "platforms/extensibility/xdl-plugin-development-plugin",
     "unitTests": false,
     "functionalTests": false,
     "crossVersionTests": false

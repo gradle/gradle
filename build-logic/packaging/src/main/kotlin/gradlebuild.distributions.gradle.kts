@@ -221,8 +221,8 @@ val gradleApiKotlinExtensions = tasks.register<GenerateKotlinExtensionsForGradle
     classpath.from(
         runtimeClasspath.filter { jar ->
             // A jar carrying the opt-out marker contributes neither plugin-id accessors nor API type
-            // extensions — the XDCL ecosystem carriers and schema libraries, whose ids/facades must
-            // not become generated public API yet (they are meant to be used from XDCL).
+            // extensions — the XDL ecosystem carriers and schema libraries, whose ids/facades must
+            // not become generated public API yet (they are meant to be used from XDL).
             !(jar.name.endsWith(".jar") && jar.isFile && JarFile(jar).use { opened -> opened.getEntry(gradlebuild.packaging.NO_KOTLIN_DSL_EXTENSIONS_MARKER) != null })
     })
     sources.from(gradleApiSources)
