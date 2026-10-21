@@ -37,8 +37,6 @@ import java.util.concurrent.ConcurrentHashMap;
 @NullMarked
 public class TestEventProgressListener implements TestListenerInternal {
 
-    private static final int MAX_TEST_NAME_LENGTH = 60;
-
     private final ProgressLoggerFactory factory;
     private final Map<Object, ProgressLogger> progressLoggers = new ConcurrentHashMap<>();
 
@@ -61,7 +59,7 @@ public class TestEventProgressListener implements TestListenerInternal {
         if (testDescriptor.isComposite()) {
             description = testDescriptor.getDisplayName();
         } else {
-            description = "Executing test " + JavaClassNameFormatter.abbreviateJavaPackage(testDescriptor.getDisplayName(), MAX_TEST_NAME_LENGTH);
+            description = "Executing test " + JavaClassNameFormatter.abbreviateJavaPackage(testDescriptor.getDisplayName());
         }
         progressLogger.start(description, description);
         progressLoggers.put(testDescriptor.getId(), progressLogger);

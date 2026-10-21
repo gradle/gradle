@@ -20,10 +20,10 @@ import spock.lang.Specification
 class JavaClassNameFormatterTest extends Specification {
     def "abbreviates long java packages"() {
         expect:
-        JavaClassNameFormatter.abbreviateJavaPackage("", 60) == ""
-        JavaClassNameFormatter.abbreviateJavaPackage("org.gradle.FooTest", 60) == "org.gradle.FooTest"
-        JavaClassNameFormatter.abbreviateJavaPackage("TestNoPackageFunctionalIntegrationTestWithAReallyReallyLongName", 60) == "TestNoPackageFunctionalIntegrationTestWithAReallyReallyLongName"
-        JavaClassNameFormatter.abbreviateJavaPackage("org.gradle.api.internal.tasks.testing.logging.TestWorkerProgressListenerTest", 60) == "org.gradle...testing.logging.TestWorkerProgressListenerTest"
-        JavaClassNameFormatter.abbreviateJavaPackage("short.pkg.TestWorkerProgressListenerIntegrationTestWithAReallyReallyLongName", 60) == "...TestWorkerProgressListenerIntegrationTestWithAReallyReallyLongName"
+        JavaClassNameFormatter.abbreviateJavaPackage("") == ""
+        JavaClassNameFormatter.abbreviateJavaPackage("org.gradle.FooTest") == "org.gradle.FooTest"
+        JavaClassNameFormatter.abbreviateJavaPackage("TestNoPackageFunctionalIntegrationTestWithAReallyReallyLongName") == "TestNoPackageFunctionalIntegrationTestWithAReallyReallyLongName"
+        JavaClassNameFormatter.abbreviateJavaPackage("org.gradle.api.internal.tasks.testing.logging.TestWorkerProgressListenerTest") == "org.gradle...testing.logging.TestWorkerProgressListenerTest"
+        JavaClassNameFormatter.abbreviateJavaPackage("short.pkg.TestWorkerProgressListenerIntegrationTestWithAReallyReallyLongName") == "...TestWorkerProgressListenerIntegrationTestWithAReallyReallyLongName"
     }
 }
