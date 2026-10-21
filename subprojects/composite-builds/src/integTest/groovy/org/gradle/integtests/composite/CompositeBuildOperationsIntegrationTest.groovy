@@ -413,13 +413,16 @@ class CompositeBuildOperationsIntegrationTest extends AbstractCompositeBuildInte
 
         and:
         def buildFinished = operations.only(FinishRootBuildTreeBuildOperationType)
-        buildFinished.progress.size() == 3
-        buildFinished.progress.details.spans.text.flatten() ==~ ["buildA", "buildB", "buildC"].collect { "$message $it${getPlatformLineSeparator()}".toString() }
+        def withOutput = ([buildFinished] + operations.search(buildFinished)).findAll { it.progress }
+        withOutput.displayName ==~ outputOperations
+        def output = withOutput.collectMany { it.progress }
+        output.size() == 3
+        output.details.spans.text.flatten() ==~ ["buildA", "buildB", "buildC"].collect { "$message $it${getPlatformLineSeparator()}".toString() }
 
         where:
-        description     | registration                                                          | message
-        "buildFinished" | CompositeBuildOperationsIntegrationTest.&buildFinishedRegistrationFor | "buildFinished from"
-        "flow actions"  | CompositeBuildOperationsIntegrationTest.&flowActionRegistrationFor    | "flowAction from"
+        description     | registration                                                          | message              | outputOperations
+        "buildFinished" | CompositeBuildOperationsIntegrationTest.&buildFinishedRegistrationFor | "buildFinished from" | ["Finish root build tree"]
+        "flow actions"  | CompositeBuildOperationsIntegrationTest.&flowActionRegistrationFor    | "flowAction from"    | ["Run flow action LogBuild", "Run flow action LogBuild (:buildB)", "Run flow action LogBuild (:buildC)"]
     }
 
     @ToBeFixedForIsolatedProjects(because = "cross-build configuration in composite build")
