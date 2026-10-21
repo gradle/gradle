@@ -23,6 +23,8 @@ import org.gradle.initialization.DefaultBuildCancellationToken
 import org.gradle.initialization.ReportedException
 import org.gradle.internal.concurrent.Stoppable
 import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext
+import org.gradle.internal.logging.events.BuildStartTimeEvent
+import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.nativeintegration.console.ConsoleDetector
 import org.gradle.internal.service.ServiceRegistry
 import org.gradle.launcher.exec.BuildActionExecutor
@@ -30,6 +32,7 @@ import org.gradle.launcher.exec.BuildActionParameters
 import org.gradle.launcher.exec.BuildActionResult
 import org.gradle.tooling.internal.provider.action.ExecuteBuildAction
 import org.gradle.tooling.internal.provider.serialization.SerializedPayload
+import spock.lang.Issue
 import spock.lang.Specification
 
 class RunBuildActionTest extends Specification {
@@ -39,8 +42,9 @@ class RunBuildActionTest extends Specification {
     final long startTime = 90
     final BuildActionParameters parameters = Mock()
     final ServiceRegistry sharedServices = Mock()
+    final OutputEventListener outputEventListener = Mock()
     final Stoppable stoppable = Mock()
-    final RunBuildAction action = new RunBuildAction(client, startParameter, clientMetaData, startTime, parameters, sharedServices, stoppable)
+    final RunBuildAction action = new RunBuildAction(client, startParameter, clientMetaData, startTime, parameters, sharedServices, outputEventListener, stoppable)
 
     def runsBuildUsingDaemon() {
         when:
@@ -48,6 +52,7 @@ class RunBuildActionTest extends Specification {
 
         then:
         startParameter.logLevel >> LogLevel.ERROR
+        1 * outputEventListener.onOutput(_ as BuildStartTimeEvent)
         1 * sharedServices.get(ConsoleDetector) >> Stub(ConsoleDetector)
         1 * client.execute({ !null }, { !null }, { !null }) >> { ExecuteBuildAction action, BuildActionParameters build, ClientBuildRequestContext context ->
             assert action.startParameter == startParameter
@@ -70,11 +75,28 @@ class RunBuildActionTest extends Specification {
 
         and:
         startParameter.logLevel >> LogLevel.ERROR
+        1 * outputEventListener.onOutput(_ as BuildStartTimeEvent)
         1 * sharedServices.get(ConsoleDetector) >> Stub(ConsoleDetector)
         1 * client.execute(_, _, _) >> {
             return BuildActionResult.failed(new SerializedPayload("thing", []))
         }
         1 * stoppable.stop()
         0 * _._
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39523")
+    def "sends the build start time to the console before it runs the build"() {
+        given:
+        sharedServices.get(ConsoleDetector) >> Stub(ConsoleDetector)
+
+        when:
+        action.run()
+
+        then:
+        1 * outputEventListener.onOutput({ it instanceof BuildStartTimeEvent && it.startTime == startTime })
+
+        then:
+        1 * client.execute(_, _, _) >> BuildActionResult.of(null)
+        1 * stoppable.stop()
     }
 }
