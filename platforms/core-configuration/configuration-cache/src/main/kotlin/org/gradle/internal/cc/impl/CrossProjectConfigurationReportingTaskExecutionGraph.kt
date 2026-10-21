@@ -144,7 +144,7 @@ class CrossProjectConfigurationReportingTaskExecutionGraph(
         reportCoupledProjects(coupledProjects)
 
         ipProblems.report {
-            problem {
+            problem("Task graph access to other projects' tasks") {
                 text("Project ")
                 reference(referrerProject.buildTreePath)
                 text(" cannot access the tasks in the task graph that were created by other projects")

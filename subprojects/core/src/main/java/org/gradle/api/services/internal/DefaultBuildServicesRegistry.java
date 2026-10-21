@@ -461,7 +461,7 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
         protected void onMethodCall(String signature) {
             if (buildModelParameters.isIsolatedProjects()) {
                 problems.report(factory ->
-                    factory.problem(message -> message
+                    factory.problem("Unsupported build service registrations access", message -> message
                         .text("Cannot call ").reference(signature)
                         .text(" on ").reference("BuildServicesRegistry.getRegistrations()")
                         .text(" when Isolated Projects is enabled. Only ").reference("findByName(String)")
