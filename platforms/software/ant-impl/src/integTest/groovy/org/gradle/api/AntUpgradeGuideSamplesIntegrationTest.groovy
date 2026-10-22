@@ -216,12 +216,12 @@ class AntUpgradeGuideSamplesIntegrationTest extends AbstractIntegrationSpec {
     def "can replace tokens with a filter written by hand with the Kotlin DSL"() {
         file("src/templates/app.properties") << "version=@version@"
         buildKotlinFile << '''
-            val tokens = mapOf("version" to "1.0")
-
             tasks.register<Copy>("processTemplates") {
-                inputs.properties(tokens)
                 from("src/templates")
                 into(layout.buildDirectory.dir("templates"))
+
+                val tokens = mapOf("version" to "1.0")
+                inputs.properties(tokens)
                 filter { line: String ->
                     tokens.entries.fold(line) { result, (name, value) -> result.replace("@$name@", value) }
                 }

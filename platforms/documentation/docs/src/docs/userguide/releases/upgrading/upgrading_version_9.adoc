@@ -775,12 +775,12 @@ For example, instead of using Ant's `ReplaceTokens` filter, implement the filter
 .build.gradle.kts
 [source,kotlin]
 ----
-val tokens = mapOf("version" to "1.0")
-
 tasks.register<Copy>("processTemplates") {
-    inputs.properties(tokens)
     from("src/templates")
     into(layout.buildDirectory.dir("templates"))
+
+    val tokens = mapOf("version" to "1.0")
+    inputs.properties(tokens)
     filter { line: String ->
         tokens.entries.fold(line) { result, (name, value) -> result.replace("@$name@", value) }
     }
