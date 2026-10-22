@@ -17,6 +17,7 @@
 package org.gradle.process;
 
 import org.gradle.api.Action;
+import org.gradle.api.Incubating;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -39,6 +40,17 @@ public interface ExecOperations {
      * @since 6.0
      */
     ExecResult exec(Action<? super ExecSpec> action);
+
+    /**
+     * Executes the specified external process asynchronously.
+     * The given action is used to configure an {@link ExecSpec}, which is then used to run an external process.
+     *
+     * @param action Action to configure the ExecSpec
+     * @return {@link ExecHandle} that can be used to wait for the process to finish, or to abort it
+     * @since 9.6.0
+     */
+    @Incubating
+    ExecHandle execAsync(Action<? super ExecSpec> action);
 
     /**
      * Executes the specified external <code>java</code> process.
