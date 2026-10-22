@@ -15,7 +15,11 @@
  */
 package org.gradle.internal.execution.history;
 
+import org.gradle.cache.IndexedCache;
+import org.gradle.cache.IndexedCacheParameters;
+import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.gradle.cache.PersistentCache;
+import org.gradle.internal.Cast;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -26,4 +30,14 @@ import java.util.function.Supplier;
  */
 @ServiceScope(Scope.Build.class)
 public interface ExecutionHistoryCacheAccess extends Supplier<PersistentCache> {
+    /**
+     * Creates an execution-history cache with the cross-process locking semantics required by the execution engine.
+     */
+    default <K, V> MultiProcessSafeIndexedCache<K, V> createIndexedCache(IndexedCacheParameters<K, V> parameters) {
+        IndexedCache<K, V> indexedCache = get().createIndexedCache(parameters);
+        if (!(indexedCache instanceof MultiProcessSafeIndexedCache<?, ?>)) {
+            throw new IllegalStateException("Execution history requires a multi-process-safe indexed cache");
+        }
+        return Cast.uncheckedCast(indexedCache);
+    }
 }

@@ -22,6 +22,7 @@ import org.gradle.cache.MultiProcessSafeIndexedCache;
 import org.jspecify.annotations.Nullable;
 
 import java.util.function.Function;
+import java.util.function.Predicate;
 
 /**
  * Applies cross-process file locking to a backing cache, to ensure that any in-memory and on file state is kept in sync while this process is read from or writing to the cache.
@@ -56,6 +57,11 @@ public class CrossProcessSynchronizingIndexedCache<K, V> implements MultiProcess
     public void put(K key, V value) {
         Runnable runnable = cacheAccess.acquireFileLock();
         target.putLater(key, value, runnable);
+    }
+
+    @Override
+    public boolean putIf(K key, V value, Predicate<? super V> condition) {
+        return cacheAccess.withFileLock(() -> target.putIf(key, value, condition));
     }
 
     @Override
