@@ -57,7 +57,7 @@ Declaring a version as `+`, without any prefix, will include any version.
 
 |`latest-status` version
 |`latest.integration`, `latest.release`
-|Matches the highest version with the specified status. See link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html#getStatus--[ComponentMetadata.getStatus()].
+|Matches the highest version with the specified status. See link:{javadocPath}/org/gradle/api/artifacts/ComponentMetadata.html#getStatus()[ComponentMetadata.getStatus()].
 
 |Maven `SNAPSHOT` version
 |`1.0-SNAPSHOT`, `1.4.9-beta1-SNAPSHOT`
@@ -292,6 +292,7 @@ The highest level of version declaration—`strictly` or `require` over `prefer`
 ====
 
 TIP: Rich versions — including `strictly`, `require`, `prefer`, and `reject` — can also be declared in a <<version_catalogs.adoc#sec:version-catalog-declaration,version catalog>> using the rich-version TOML object, for example: `guava = { strictly = "[33.0, 34.0[", prefer = "33.0.0-jre" }`.
+This does not apply to `[plugins]` entries, which only use the required version and where other constraints are <<upgrading_version_9.adoc#version_catalog_plugin_non_required_versions,deprecated>>.
 
 [[sec:rich-version-examples]]
 === Choosing between `strictly`, `reject`, and `require`
@@ -563,7 +564,7 @@ include::sample[dir="snippets/reference/dependency-management/declaring-dependen
 ====
 
 Gradle is flexible enough to treat any version as a changing version.
-All you need to do is to set the property link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html#setChanging-boolean-[ExternalModuleDependency.setChanging(boolean)] to `true`.
+All you need to do is to set the property link:{javadocPath}/org/gradle/api/artifacts/ExternalModuleDependency.html#setChanging(boolean)[ExternalModuleDependency.setChanging(boolean)] to `true`.
 
 [[sec:versioning_file_dependencies]]
 == Versioning file dependencies

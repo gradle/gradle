@@ -1282,35 +1282,35 @@
   },
   {
     "name": "problems",
-    "path": "platforms/ide/problems",
+    "path": "platforms/observability/problems",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "problems-api",
-    "path": "platforms/ide/problems-api",
+    "path": "platforms/observability/problems-api",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false
   },
   {
     "name": "problems-impl",
-    "path": "platforms/ide/problems-impl",
+    "path": "platforms/observability/problems-impl",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "problems-rendering",
-    "path": "platforms/ide/problems-rendering",
+    "path": "platforms/observability/problems-rendering",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "problems-reporting",
-    "path": "platforms/ide/problems-reporting",
+    "path": "platforms/observability/problems-reporting",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false

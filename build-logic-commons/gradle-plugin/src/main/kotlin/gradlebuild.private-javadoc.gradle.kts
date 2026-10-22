@@ -53,6 +53,7 @@ val javadocReferencesClasspath = configurations.resolvable("javadocReferencesCla
 tasks.withType<Javadoc>().configureEach {
     classpath += files(javadocReferencesClasspath)
     assert(name != "javadocAll") // This plugin should not be applied to the :docs project.
+    title = "${project.name} API"
 
     onlyIf("Do not run the task if there are no java sources") {
         // Javadoc task will complain if we only have package-info.java files and no

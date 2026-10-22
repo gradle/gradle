@@ -31,6 +31,7 @@ import org.gradle.api.internal.catalog.PluginModel
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemTestFor
 import org.gradle.api.problems.internal.ProblemsInternal
+import org.gradle.test.fixtures.ExpectDeprecation
 import org.gradle.util.TestUtil
 import spock.lang.Specification
 
@@ -222,6 +223,7 @@ class TomlCatalogFileParserTest extends Specification {
         }
     }
 
+    @ExpectDeprecation("Declaring a plugin version in a version catalog with constraints other than a required version.")
     def "parses plugins with different notations"() {
         when:
         parse('plugin-notations')

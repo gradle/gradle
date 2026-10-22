@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="EntryPointsManager">
-    <list size="7">
+    <list size="15">
       <item index="0" class="java.lang.String" itemvalue="com.tngtech.archunit.junit.ArchTest" />
       <item index="1" class="java.lang.String" itemvalue="org.gradle.api.model.ManagedObjectCreator" />
       <item index="2" class="java.lang.String" itemvalue="org.gradle.api.services.ServiceReference" />
-      <item index="3" class="java.lang.String" itemvalue="org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade" />
-      <item index="4" class="java.lang.String" itemvalue="org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls" />
-      <item index="5" class="java.lang.String" itemvalue="org.gradle.internal.scan.UsedByScanPlugin" />
-      <item index="6" class="java.lang.String" itemvalue="org.gradle.internal.service.Provides" />
+      <item index="3" class="java.lang.String" itemvalue="org.gradle.api.tasks.Input" />
+      <item index="4" class="java.lang.String" itemvalue="org.gradle.api.tasks.InputDirectory" />
+      <item index="5" class="java.lang.String" itemvalue="org.gradle.api.tasks.InputFile" />
+      <item index="6" class="java.lang.String" itemvalue="org.gradle.api.tasks.InputFiles" />
+      <item index="7" class="java.lang.String" itemvalue="org.gradle.api.tasks.OutputDirectories" />
+      <item index="8" class="java.lang.String" itemvalue="org.gradle.api.tasks.OutputDirectory" />
+      <item index="9" class="java.lang.String" itemvalue="org.gradle.api.tasks.OutputFile" />
+      <item index="10" class="java.lang.String" itemvalue="org.gradle.api.tasks.OutputFiles" />
+      <item index="11" class="java.lang.String" itemvalue="org.gradle.internal.instrumentation.api.annotations.BytecodeUpgrade" />
+      <item index="12" class="java.lang.String" itemvalue="org.gradle.internal.instrumentation.api.annotations.InterceptJvmCalls" />
+      <item index="13" class="java.lang.String" itemvalue="org.gradle.internal.scan.UsedByScanPlugin" />
+      <item index="14" class="java.lang.String" itemvalue="org.gradle.internal.service.Provides" />
     </list>
     <pattern value="org.gradle.internal.service.ServiceRegistrationProvider" hierarchically="true" method="configure" />
   </component>

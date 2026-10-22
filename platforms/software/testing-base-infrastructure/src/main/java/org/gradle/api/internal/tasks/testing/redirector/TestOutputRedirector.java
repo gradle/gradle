@@ -20,11 +20,20 @@ import org.gradle.api.internal.tasks.testing.DefaultTestOutputEvent;
 import org.gradle.api.internal.tasks.testing.TestResultProcessor;
 import org.gradle.api.tasks.testing.TestOutputEvent;
 import org.gradle.internal.time.Clock;
+import org.jspecify.annotations.Nullable;
+
+import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 public class TestOutputRedirector {
     private final StandardOutputRedirector redirector;
-    Forwarder outForwarder;
-    Forwarder errForwarder;
+    // Bounded leak, also cleaned up when test worker exits.
+    @SuppressWarnings("ThreadLocalUsage")
+    private final ThreadLocal<Object> threadOwner = new ThreadLocal<>();
+    private final Set<Object> activeOwners = ConcurrentHashMap.newKeySet();
+    private volatile @Nullable Object lastOwner;
+    final Forwarder outForwarder;
+    final Forwarder errForwarder;
 
     public TestOutputRedirector(Clock clock, TestResultProcessor processor, StandardOutputRedirector redirector) {
         this.redirector = redirector;
@@ -33,8 +42,7 @@ public class TestOutputRedirector {
     }
 
     public void startRedirecting() {
-        assert outForwarder.outputOwner != null;
-        assert errForwarder.outputOwner != null;
+        assert lastOwner != null;
 
         redirector.redirectStandardOutputTo(outForwarder);
         redirector.redirectStandardErrorTo(errForwarder);
@@ -42,28 +50,62 @@ public class TestOutputRedirector {
     }
 
     public void stopRedirecting() {
-        redirector.stop();
+        try {
+            redirector.stop();
+        } finally {
+            activeOwners.clear();
+            threadOwner.remove();
+            lastOwner = null;
+        }
     }
 
-    public void setOutputOwner(Object testId) {
+    public void testStarted(Object testId) {
         assert testId != null;
+        flushCurrentThread();
+        activeOwners.add(testId);
+        threadOwner.set(testId);
+        lastOwner = testId;
+    }
+
+    public void testCompleted(Object testId, Object newOwner) {
+        assert newOwner != null;
+        flushCurrentThread();
+        activeOwners.remove(testId);
+        threadOwner.set(newOwner);
+        lastOwner = newOwner;
+    }
+
+    @Nullable
+    Object currentOwner() {
+        Object owner = threadOwner.get();
+        if (owner != null) {
+            if (activeOwners.contains(owner)) {
+                return owner;
+            }
+            // Clear thread owner if no longer active, for GC
+            threadOwner.remove();
+        }
+        // Fallback to last owner if no active owner on current thread
+        // This is necessary instead of attributing to the root for compatibility
+        // with how JUnit 4 and TestNG handle their test timeout mechanisms.
+        return lastOwner;
+    }
+
+    private static void flushCurrentThread() {
         if (System.out != null) {
             System.out.flush();
         }
         if (System.err != null) {
             System.err.flush();
         }
-        outForwarder.outputOwner = testId;
-        errForwarder.outputOwner = testId;
     }
 
-    static class Forwarder implements StandardOutputRedirector.OutputListener {
+    class Forwarder implements StandardOutputRedirector.OutputListener {
         final Clock clock;
         final TestResultProcessor processor;
         final TestOutputEvent.Destination dest;
-        Object outputOwner;
 
-        public Forwarder(Clock clock, TestResultProcessor processor, TestOutputEvent.Destination dest) {
+        Forwarder(Clock clock, TestResultProcessor processor, TestOutputEvent.Destination dest) {
             this.clock = clock;
             this.processor = processor;
             this.dest = dest;
@@ -71,10 +113,11 @@ public class TestOutputRedirector {
 
         @Override
         public void onOutput(CharSequence output) {
-            if (outputOwner == null) {
+            Object owner = currentOwner();
+            if (owner == null) {
                 throw new RuntimeException("Unable send output event from test executor. Please report this problem. Destination: " + dest + ", event: " + output.toString());
             }
-            processor.output(outputOwner, new DefaultTestOutputEvent(clock.getCurrentTime(), dest, output.toString()));
+            processor.output(owner, new DefaultTestOutputEvent(clock.getCurrentTime(), dest, output.toString()));
         }
     }
 }

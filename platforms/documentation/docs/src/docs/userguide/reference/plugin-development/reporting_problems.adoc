@@ -139,8 +139,8 @@ include::sample[dir="snippets/reference/plugin-development/reportingProblems/gro
 
 Plugins can report problems in two ways:
 
-- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#reporting-org.gradle.api.Action-[`report()`] — use for recoverable problems when the build should continue.
-- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#throwing-org.gradle.api.Action-[`throwing()`] — use for non-recoverable problems that should fail the build.
+- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#report(org.gradle.api.problems.ProblemId,org.gradle.api.Action)[`report()`] — use for recoverable problems when the build should continue.
+- link:{javadocPath}/org/gradle/api/problems/ProblemReporter.html#throwing(java.lang.Throwable,org.gradle.api.problems.ProblemId,org.gradle.api.Action)[`throwing()`] — use for non-recoverable problems that should fail the build.
 
 Once you have decided what type of problem you want to report, get the link:{javaDocPath}/org/gradle/api/problems/ProblemReporter.html[`ProblemReporter`] using `problem.getReporter()`:
 
@@ -208,7 +208,7 @@ The names shown below identify a group together with its parent.
 `group(name)` matches on the name, and console output renders groups as a chain such as `Gradle > Build Cache`.
 
 // The rows below mirror the predefined hierarchy in DefaultProblemGroups and the descriptions in PredefinedProblemGroupDescriptions
-// (platforms/ide/problems-reporting). Update this table whenever a predefined group or a description changes;
+// (platforms/observability/problems-reporting). Update this table whenever a predefined group or a description changes;
 // PredefinedProblemGroupsDocumentationTest in that module fails when the two drift apart.
 [cols="1,2,3", options="header"]
 |===

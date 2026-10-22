@@ -4,7 +4,7 @@ asciidoctor = "3.0.1"
 asciidoctorPdf = "2.3.23"
 bytebuddy = "1.18.11"
 checkstyle = "13.7.0"
-develocity = "4.6.0"
+develocity = "4.6.1"
 groovy = "4.0.33"
 hamcrest = "3.0"
 javaPoet = "1.13.0"
@@ -58,7 +58,7 @@ junit = { group = "junit", name = "junit", version = "4.13.2!!" } # keep JUnit 4
 junitBom = { group = "org.junit", name = "junit-bom", version.ref = "junit" }
 junitJupiter = { group = "org.junit.jupiter", name = "junit-jupiter", version.ref = "junit" }
 junitPlatform = { group = "org.junit.platform", name = "junit-platform-launcher", version.ref = "junit" }
-kgp = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin"}
+kotlinGradlePlugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin"}
 kotlinCompilerEmbeddable = { module = "org.jetbrains.kotlin:kotlin-compiler-embeddable"}
 kotlinJvmAbiGenEmbeddable = { group = "org.jetbrains.kotlin", name = "jvm-abi-gen-embeddable"}
 kotlinMetadata = { module = "org.jetbrains.kotlin:kotlin-metadata-jvm"}
