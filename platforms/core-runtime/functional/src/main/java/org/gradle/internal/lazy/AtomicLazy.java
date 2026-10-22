@@ -37,6 +37,11 @@ class AtomicLazy<T extends @Nullable Object> implements Lazy<T> {
     }
 
     @Override
+    public boolean isInitialized() {
+        return value.get() != UNINITIALIZED;
+    }
+
+    @Override
     public T get() {
         Supplier<T> s = supplier;
         if (s != null) {

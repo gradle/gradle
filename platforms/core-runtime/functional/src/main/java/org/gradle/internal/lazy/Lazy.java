@@ -34,6 +34,11 @@ import java.util.function.Supplier;
  */
 public interface Lazy<T extends @Nullable Object> extends Supplier<T> {
     /**
+     * {@return {@code true} if this lazy's {@link #get()} can be called without significant overhead, {@code false} otherwise}
+     */
+    boolean isInitialized();
+
+    /**
      * Executes an operation on the lazily computed value
      *
      * @param consumer the consumer
@@ -54,15 +59,47 @@ public interface Lazy<T extends @Nullable Object> extends Supplier<T> {
     }
 
     /**
-     * Creates another lazy wrapper which will eventually apply the supplied
-     * function to the lazily computed value
+     * Creates another lazy wrapper which will eventually apply the supplied function to the lazily computed value.
+     *
+     * <p>
+     * This wrapper is thread-safe if this lazy and the {@code mapper} are, shares {@link #isInitialized()} with this
+     * lazy, and memoizes the mapped value. The {@code mapper} is only called again if it fails. It runs while holding
+     * a lock, so it should be inexpensive.
+     * </p>
      *
      * @param mapper the mapping function
      * @param <V> the type of the result of the function
      * @return a new lazy wrapper
      */
     default <V extends @Nullable Object> Lazy<V> map(Function<? super T, V> mapper) {
-        return unsafe().of(() -> mapper.apply(get()));
+        return new MappedLazy<>(this, mapper);
+    }
+
+    /**
+     * Creates another lazy wrapper from the lazy that the supplied function creates from the lazily computed value.
+     * Primarily useful for chaining lazy computations that are themselves expensive to compute, but doesn't offer
+     * significant improvement versus {@link #map(Function)} otherwise.
+     *
+     * <p>
+     * If this lazy is already initialized, the {@code mapper} is called immediately and the lazy it creates is
+     * returned as is. Otherwise, the creation and evaluation of that lazy are deferred and run while holding a lock,
+     * so the {@code mapper} is only called again if it fails. The returned lazy is only initialized once the created
+     * lazy has been read.
+     * </p>
+     *
+     * <p>
+     * This wrapper is thread-safe if this lazy, the {@code mapper}, and the lazy from the mapper all are.
+     * </p>
+     *
+     * @param mapper the function creating the next lazy from the lazily computed value
+     * @param <V> the type of the value of the next lazy
+     * @return a new lazy wrapper
+     */
+    default <V extends @Nullable Object> Lazy<V> flatMap(Function<? super T, Lazy<V>> mapper) {
+        if (isInitialized()) {
+            return mapper.apply(get());
+        }
+        return new FlatMappedLazy<>(this, mapper);
     }
 
     /**
