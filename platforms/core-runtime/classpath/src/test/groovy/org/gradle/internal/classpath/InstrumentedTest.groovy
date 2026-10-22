@@ -254,6 +254,22 @@ class InstrumentedTest extends Specification {
         1 * listener.systemPropertyQueried("prop", "value", "consumer")
     }
 
+    def "notifies listener once when system properties are replaced"() {
+        def listener = withInstrumentedInputsListener()
+
+        def replacement = new Properties()
+        replacement.putAll(System.getProperties())
+        replacement.setProperty("prop", "value")
+
+        when:
+        Instrumented.setSystemProperties(replacement, "consumer")
+
+        then:
+        System.getProperty("prop") == "value"
+        1 * listener.systemPropertiesReplaced(replacement, "consumer")
+        0 * listener._
+    }
+
     def "notifies listener when file is opened with absolute file path"() {
         def listener = withInstrumentedInputsListener()
 

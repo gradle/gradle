@@ -18,6 +18,7 @@ package org.gradle.internal.cc.impl
 
 import org.gradle.internal.cc.impl.initialization.ConfigurationCacheProblemsListener
 import java.io.File
+import java.util.Properties
 
 
 private
@@ -83,6 +84,10 @@ class InstrumentedInputAccessListener(
 
     override fun systemPropertiesCleared(consumer: String) {
         inputListener.systemPropertiesCleared(consumer)
+    }
+
+    override fun systemPropertiesReplaced(properties: Properties, consumer: String) {
+        inputListener.systemPropertiesReplaced(properties, consumer)
     }
 
     override fun envVariableQueried(key: String, value: String?, consumer: String) {

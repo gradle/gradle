@@ -269,8 +269,8 @@ class IsolatedProjectsFixture {
         def configuredProjects = buildOperations.typed(ConfigureProjectBuildOperationType)
         assert configuredProjects.collect { fullPath(it) }.toSet() == details.projects
 
-        // Scripts - one or more for settings, and one for each project build script
-        def scripts = buildOperations.typed(ApplyScriptPluginBuildOperationType)
+        // Scripts - one or more for settings, and one for each project build script; init scripts are ignored
+        def scripts = buildOperations.typed(ApplyScriptPluginBuildOperationType).findAll { it.details.targetType != "gradle" }
         assert !scripts.empty
         def sortedScripts = scripts.toSorted { it -> it.startTime }
         assert sortedScripts.first().details.targetType == "settings"
