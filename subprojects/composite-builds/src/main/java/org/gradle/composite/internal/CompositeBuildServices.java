@@ -51,6 +51,7 @@ public class CompositeBuildServices extends AbstractGradleModuleServices {
     @Override
     public void registerBuildServices(ServiceRegistration registration) {
         registration.add(PluginResolverContributor.class, HoldsProjectState.class, CompositeBuildPluginResolverContributor.class);
+        registration.add(BrokenBuildTaskDependencyResolver.class);
     }
 
     private static class CompositeBuildTreeScopeServices implements ServiceRegistrationProvider {

@@ -30,6 +30,7 @@ import org.gradle.internal.build.ExecutionResult;
 import org.gradle.internal.build.ExportedTaskNode;
 import org.gradle.internal.buildtree.BuildTreeWorkGraph;
 import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer;
+import org.gradle.internal.buildtree.ResilientTaskScheduling;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
@@ -65,6 +66,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
     private final int monitoringPollTime;
     private final TimeUnit monitoringPollTimeUnit;
     private final ManagedExecutor executorService;
+    private final ResilientTaskScheduling resilientTaskScheduling;
     @SuppressWarnings("ThreadLocalUsage") //TODO: evaluate errorprone suppression (https://github.com/gradle/gradle/issues/35864)
     private final ThreadLocal<DefaultBuildTreeWorkGraph> current = new ThreadLocal<>();
 
@@ -75,9 +77,10 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         BuildStateRegistry buildRegistry,
         WorkerLeaseService workerLeaseService,
         PlanExecutor planExecutor,
-        BuildTreeWorkGraphPreparer workGraphPreparer
+        BuildTreeWorkGraphPreparer workGraphPreparer,
+        ResilientTaskScheduling resilientTaskScheduling
     ) {
-        this(executorFactory, buildOperationRunner, buildRegistry, workerLeaseService, planExecutor, workGraphPreparer, MONITORING_POLL_TIME, TimeUnit.SECONDS);
+        this(executorFactory, buildOperationRunner, buildRegistry, workerLeaseService, planExecutor, workGraphPreparer, MONITORING_POLL_TIME, TimeUnit.SECONDS, resilientTaskScheduling);
     }
 
     @VisibleForTesting
@@ -89,8 +92,10 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         PlanExecutor planExecutor,
         BuildTreeWorkGraphPreparer workGraphPreparer,
         int monitoringPollTime,
-        TimeUnit monitoringPollTimeUnit
+        TimeUnit monitoringPollTimeUnit,
+        ResilientTaskScheduling resilientTaskScheduling
     ) {
+        this.resilientTaskScheduling = resilientTaskScheduling;
         this.buildOperationRunner = buildOperationRunner;
         this.buildRegistry = buildRegistry;
         this.executorService = executorFactory.create("included builds");
@@ -102,7 +107,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
     }
 
     private DefaultBuildControllers createControllers() {
-        return new DefaultBuildControllers(executorService, workerLeaseService, planExecutor, monitoringPollTime, monitoringPollTimeUnit);
+        return new DefaultBuildControllers(executorService, workerLeaseService, planExecutor, monitoringPollTime, monitoringPollTimeUnit, resilientTaskScheduling);
     }
 
     @Override
@@ -232,7 +237,11 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
             expectInState(State.ReadyToRun);
             state = State.Running;
             try {
-                return controllers.execute();
+                ExecutionResult<Void> result = controllers.execute();
+                for (Throwable configurationFailure : resilientTaskScheduling.takeUnreportedFailures()) {
+                    result = result.withFailures(ExecutionResult.failed(configurationFailure));
+                }
+                return result;
             } finally {
                 state = State.Finished;
             }
