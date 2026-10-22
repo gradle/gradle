@@ -30,6 +30,11 @@ class UnsafeLazy<T extends @Nullable Object> implements Lazy<T> {
     }
 
     @Override
+    public boolean isInitialized() {
+        return supplier == null;
+    }
+
+    @Override
     // NullAway cannot infer the invariant here:
     // supplier != null => value == null
     // supplier == null => value != null
