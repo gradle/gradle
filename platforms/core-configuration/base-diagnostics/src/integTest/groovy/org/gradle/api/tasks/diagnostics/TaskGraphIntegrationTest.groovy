@@ -589,6 +589,55 @@ Tasks graph for: leaf1
 """)
     }
 
+    def "does not count the requested task itself against --task-graph-limit"() {
+        given:
+        buildFile chainGraph
+
+        when:
+        succeeds("root", "--task-graph", "--task-graph-limit=1")
+
+        then:
+        outputContains("""
+Tasks graph for: root
+\\--- :root (org.gradle.api.DefaultTask)
+     \\--- :t1 (org.gradle.api.DefaultTask) (+)
+
+(+) - dependencies omitted (exceeded depth limit)
+""")
+        outputDoesNotContain("(*) - details omitted")
+    }
+
+    def "depth limit of 2 shows two levels of dependencies"() {
+        given:
+        buildFile chainGraph
+
+        when:
+        succeeds("root", "--task-graph", "--task-graph-limit=2")
+
+        then:
+        outputContains("""
+Tasks graph for: root
+\\--- :root (org.gradle.api.DefaultTask)
+     \\--- :t1 (org.gradle.api.DefaultTask)
+          \\--- :t2 (org.gradle.api.DefaultTask) (+)
+
+(+) - dependencies omitted (exceeded depth limit)
+""")
+        outputDoesNotContain("(*) - details omitted")
+    }
+
+    def "--task-graph-limit without --task-graph has no effect"() {
+        given:
+        buildFile sampleGraph
+
+        when:
+        succeeds("root", "--task-graph-limit=1")
+
+        then:
+        outputDoesNotContain("Tasks graph for")
+        result.assertTaskExecuted(":root")
+    }
+
     def "dry-run has higher priority than task graph"() {
         given:
         buildFile sampleGraph
@@ -966,6 +1015,19 @@ Tasks graph for: root r2
             doLast {
                 println("I'm a task called root")
             }
+        }
+    """
+
+    private def chainGraph = buildScriptSnippet """
+        def t3 = tasks.register("t3")
+        def t2 = tasks.register("t2") {
+            dependsOn(t3)
+        }
+        def t1 = tasks.register("t1") {
+            dependsOn(t2)
+        }
+        tasks.register("root") {
+            dependsOn(t1)
         }
     """
 }
