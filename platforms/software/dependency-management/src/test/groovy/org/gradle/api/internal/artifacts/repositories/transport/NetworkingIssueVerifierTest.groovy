@@ -20,16 +20,18 @@ import org.apache.http.ConnectionClosedException
 import org.apache.http.NoHttpResponseException
 import org.apache.http.conn.HttpHostConnectException
 import org.gradle.internal.exceptions.DefaultMultiCauseException
-import org.gradle.internal.resource.transport.http.HttpErrorStatusCodeException
+import org.gradle.internal.resource.HttpErrorStatusCodeException
+import org.gradle.internal.resource.transport.http.HttpRequestException
 import spock.lang.Specification
 import spock.lang.Subject
-import spock.lang.Unroll
+
+import javax.net.ssl.SSLException
+import javax.net.ssl.SSLHandshakeException
 
 @Subject(NetworkingIssueVerifier)
 class NetworkingIssueVerifierTest extends Specification {
 
-    @Unroll("'#description' is likely transient network issue")
-    def "verifies if an exception is a related to transient network issue"() {
+    def "'#description' is likely a transient network issue"() {
         expect:
         NetworkingIssueVerifier.isLikelyTransientNetworkingIssue(failure)
 
@@ -44,5 +46,21 @@ class NetworkingIssueVerifierTest extends Specification {
         "HttpErrorStatusCodeException with server error"            | new HttpErrorStatusCodeException(503, "something")
         "HttpErrorStatusCodeException with transient client error"  | new HttpErrorStatusCodeException(429, "something")
         "RuntimeException with a likely network exception as cause" | new RuntimeException("with cause", new SocketTimeoutException("something went wrong"))
+        "SSLException wrapping a socket timeout"                    | new SSLException("Read timed out", new SocketTimeoutException())
+        "SSLException wrapping a socket error"                      | new SSLException("Connection reset", new SocketException())
+        "HttpRequestException wrapping an SSL socket error"         | new HttpRequestException("Got socket exception during request", new SSLException("readHandshakeRecord", new SocketException()))
+    }
+
+    def "'#description' is not a transient network issue"() {
+        expect:
+        !NetworkingIssueVerifier.isLikelyTransientNetworkingIssue(failure)
+
+        where:
+        description                             | failure
+        "RuntimeException"                      | new RuntimeException("something went wrong")
+        "HttpErrorStatusCodeException with 401" | new HttpErrorStatusCodeException(401, "something")
+        "HttpErrorStatusCodeException with 403" | new HttpErrorStatusCodeException(403, "something")
+        "SSLHandshakeException"                 | new SSLHandshakeException("Received fatal alert: handshake_failure")
+        "SSLException without a network cause"  | new SSLException("PKIX path building failed")
     }
 }

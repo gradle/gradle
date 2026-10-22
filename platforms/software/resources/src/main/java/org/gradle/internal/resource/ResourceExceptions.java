@@ -57,6 +57,10 @@ public class ResourceExceptions {
         return failure(location, String.format("Could not get resource '%s'.", location), failure);
     }
 
+    public static ResourceException getFailed(URI location, int statusCode, Throwable cause) {
+        return new HttpErrorStatusCodeException(location, String.format("Could not get resource '%s'.", location), statusCode, cause);
+    }
+
     public static ResourceException putFailed(URI location, Throwable failure) {
         return failure(location, String.format("Could not write to resource '%s'.", location), failure);
     }

@@ -66,7 +66,6 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
     private final Logger logger;
     private final OperatingSystem os;
     private final @Nullable ProgressLoggerFactory progressLoggerFactory;
-    private final JvmInstallationProblemReporter problemReporter;
     private final @Nullable ProblemsInternal problems;
 
     @Inject
@@ -79,10 +78,9 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         @Nullable ProgressLoggerFactory progressLoggerFactory,
         FileResolver fileResolver,
         JdkCacheDirectory jdkCacheDirectory,
-        JvmInstallationProblemReporter problemReporter,
         @Nullable ProblemsInternal problems
     ) {
-        this(toolchainConfiguration, builtInSuppliers(toolchainConfiguration, fileResolver, jdkCacheDirectory), suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), buildOperationRunner, os, progressLoggerFactory, problemReporter, problems);
+        this(toolchainConfiguration, builtInSuppliers(toolchainConfiguration, fileResolver, jdkCacheDirectory), suppliers, metadataDetector, Logging.getLogger(JavaInstallationRegistry.class), buildOperationRunner, os, progressLoggerFactory, problems);
     }
 
     @VisibleForTesting
@@ -95,7 +93,6 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         @Nullable BuildOperationRunner buildOperationRunner,
         OperatingSystem os,
         @Nullable ProgressLoggerFactory progressLoggerFactory,
-        JvmInstallationProblemReporter problemReporter,
         @Nullable ProblemsInternal problems
     ) {
         this.logger = logger;
@@ -108,7 +105,6 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
         this.installations = new Installations(() -> maybeCollectInBuildOperation(allSuppliers));
         this.os = os;
         this.progressLoggerFactory = progressLoggerFactory;
-        this.problemReporter = problemReporter;
         this.problems = problems;
     }
 
@@ -212,13 +208,17 @@ public class DefaultJavaInstallationRegistry implements JavaInstallationRegistry
     }
 
     private void reportProblem(InstallationLocation installationLocation, String message) {
-        problemReporter.reportProblemIfNeeded(logger, installationLocation, message);
-        if (problems != null) {
+        if (installationLocation.isAutoDetected()) {
+            // Auto-detected locations are not under the user's control, so they are not worth a warning
+            logger.info(message);
+        } else if (problems != null) {
             ProblemId problemId = ProblemId.create("invalid-jvm-installation", "Invalid JVM installation", TOOLCHAIN_PROBLEM_GROUP);
             problems.getInternalReporter().report(problemId, spec -> spec
                 .contextualLabel(message)
                 .solution("Ensure that the configured JVM installation path is a valid, absolute path to a JDK or JRE installation")
             );
+        } else {
+            logger.warn(message);
         }
     }
 

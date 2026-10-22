@@ -70,13 +70,13 @@ From this data about the plugins being developed, Gradle can automatically:
 
 The plugin adds the following tasks to the project:
 
-`pluginUnderTestMetadata` — link:{groovyDslPath}/org.gradle.plugin.devel.tasks.PluginUnderTestMetadata.html[PluginUnderTestMetadata]::
+`pluginUnderTestMetadata` — link:{javadocPath}/org/gradle/plugin/devel/tasks/PluginUnderTestMetadata.html[PluginUnderTestMetadata]::
 Generates the metadata for plugin functional tests. The resulting plugin classpath manifest is consumed by a TestKit `GradleRunner` instance.
 
-`pluginDescriptors` — link:{groovyDslPath}/org.gradle.plugin.devel.tasks.GeneratePluginDescriptors.html[GeneratePluginDescriptors]::
+`pluginDescriptors` — link:{javadocPath}/org/gradle/plugin/devel/tasks/GeneratePluginDescriptors.html[GeneratePluginDescriptors]::
 Generates plugin descriptors from the plugin declarations in the `gradlePlugin {}` block, written to the `jar` file's `META-INF/gradle-plugins` directory.
 
-`validatePlugins` — link:{groovyDslPath}/org.gradle.plugin.devel.tasks.ValidatePlugins.html[ValidatePlugins]::
+`validatePlugins` — link:{javadocPath}/org/gradle/plugin/devel/tasks/ValidatePlugins.html[ValidatePlugins]::
 Validates the plugin by checking the property annotations on the plugin's task and artifact transform types.
 
 [[sec:gradle_plugin_dev_interactions]]

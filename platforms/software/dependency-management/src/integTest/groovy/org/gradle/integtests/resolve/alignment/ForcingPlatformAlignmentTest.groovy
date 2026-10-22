@@ -551,6 +551,60 @@ abstract class ForcingPlatformAlignmentTest extends AbstractAlignmentSpec {
         ].permutations()*.join("\n")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39454")
+    def "can force a virtual platform to a higher version by forcing the platform itself via a constraint"() {
+        repository {
+            ['2.7.9', '2.9.4'].each {
+                path "databind:$it -> core:$it"
+                path "databind:$it -> annotations:$it"
+            }
+        }
+
+        given:
+        buildFile << """
+            dependencies {
+                $dependencies
+            }
+        """
+
+        and:
+        "a rule which infers module set from group and version"()
+
+        when:
+        allowAllRepositoryInteractions()
+        run ':checkDeps'
+
+        then:
+        outputDoesNotContain("graph wasn't stable enough")
+        resolve.expectGraph {
+            root(":", ":test:") {
+                edge("org:core:2.7.9", "org:core:2.9.4") {
+                    forced()
+                    byConstraint("belongs to platform org:platform:2.9.4")
+                    byConflictResolution("between versions 2.9.4 and 2.7.9")
+                }
+                edge("org:databind:2.7.9", "org:databind:2.9.4") {
+                    forced()
+                    byConstraint("belongs to platform org:platform:2.9.4")
+                    byConflictResolution("between versions 2.9.4 and 2.7.9")
+                    module('org:annotations:2.9.4') {
+                        forced()
+                        byConstraint("belongs to platform org:platform:2.9.4")
+                        maybeByConflictResolution()
+                    }
+                    module('org:core:2.9.4')
+                }
+            }
+        }
+
+        where: "order of dependencies doesn't matter"
+        dependencies << [
+                'conf("org:core:2.7.9")',
+                'conf("org:databind:2.7.9")',
+                'constraints { conf enforcedPlatform("org:platform:2.9.4") }'
+        ].permutations()*.join("\n")
+    }
+
     def "can force a virtual platform version by forcing the platform itself via a constraint using a strict version"() {
         repository {
             ['2.7.9', '2.9.4', '2.9.4.1'].each {

@@ -95,10 +95,9 @@ public class DefaultUrlArtifactRepository {
     }
 
     private void throwExceptionDueToInsecureProtocol() throws InvalidUserCodeException {
-        throw new InsecureProtocolException(
+        throw insecureProtocolFailure(
             "Using insecure protocols with repositories, without explicit opt-in, is unsupported.",
-            String.format("Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols.", repositoryType, displayNameSupplier.get()),
-            Documentation.dslReference(UrlArtifactRepository.class, "allowInsecureProtocol").getConsultDocumentationMessage()
+            String.format("Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols.", repositoryType, displayNameSupplier.get())
         );
     }
 
@@ -113,11 +112,17 @@ public class DefaultUrlArtifactRepository {
         } else {
             contextualAdvice = "";
         }
-        throw new InsecureProtocolException(
+        throw insecureProtocolFailure(
             "Redirecting from secure protocol to insecure protocol, without explicit opt-in, is unsupported." + contextualAdvice,
-            String.format("Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols. ", repositoryType, displayNameSupplier.get()),
-            Documentation.dslReference(UrlArtifactRepository.class, "allowInsecureProtocol").getConsultDocumentationMessage()
+            String.format("Switch %s repository '%s' to redirect to a secure protocol (like HTTPS) or allow insecure protocols. ", repositoryType, displayNameSupplier.get())
         );
+    }
+
+    private static InvalidUserCodeException insecureProtocolFailure(String message, String firstResolution) {
+        InvalidUserCodeException failure = new InvalidUserCodeException(message);
+        failure.addResolution(firstResolution);
+        failure.addResolution(Documentation.dslReference(UrlArtifactRepository.class, "allowInsecureProtocol").getConsultDocumentationMessage());
+        return failure;
     }
 
     HttpRedirectVerifier createRedirectVerifier() {

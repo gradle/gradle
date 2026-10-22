@@ -125,8 +125,8 @@ class VersionCatalogExtensionIntegrationTest extends AbstractVersionCatalogInteg
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'dependency-version-catalog:alias-not-finished'
-            definition.id.displayName == 'Alias builder not finished'
+            fqid == 'Dependencies:Declaration:Version catalog alias builder not finished'
+            definition.id.displayName == 'Version catalog alias builder not finished'
             contextualLabel == 'In version catalog libs, dependency alias builder \'my.great.lib\' was not finished'
             details == 'A version was not set or explicitly declared as not wanted'
             definition.documentationLink.url == docUrlFor('alias_not_finished')
@@ -1954,8 +1954,8 @@ Second: 1.1"""
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'dependency-version-catalog:reserved-alias-name'
-            definition.id.displayName == 'Reserved alias name'
+            fqid == 'Dependencies:Declaration:Reserved version catalog alias name'
+            definition.id.displayName == 'Reserved version catalog alias name'
             contextualLabel == "In version catalog libs, alias '$reserved' is a reserved alias"
             details == "Alias '$reserved' is a reserved name in Gradle which prevents generation of accessors."
             definition.documentationLink.url == docUrlFor('reserved_alias_name')
@@ -1991,8 +1991,8 @@ Second: 1.1"""
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'dependency-version-catalog:reserved-alias-name'
-            definition.id.displayName == 'Reserved alias name'
+            fqid == 'Dependencies:Declaration:Reserved version catalog alias name'
+            definition.id.displayName == 'Reserved version catalog alias name'
             contextualLabel == "In version catalog libs, alias '$reserved' is a reserved alias"
             details == "Alias '$reserved' is a reserved name in Gradle which prevents generation of accessors."
             definition.documentationLink.url == docUrlFor('reserved_alias_name')
@@ -2028,8 +2028,8 @@ Second: 1.1"""
         then:
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'dependency-version-catalog:reserved-alias-name'
-            definition.id.displayName == 'Reserved alias name'
+            fqid == 'Dependencies:Declaration:Reserved version catalog alias name'
+            definition.id.displayName == 'Reserved version catalog alias name'
             contextualLabel == "In version catalog libs, alias '$reservedName' is a reserved alias"
             details == "Prefix for dependency shouldn\'t be equal to '$prefix'"
             definition.documentationLink.url == docUrlFor('reserved_alias_name')
@@ -2214,6 +2214,14 @@ Second: 1.1"""
         """
 
         when:
+        executer.expectDocumentedDeprecationWarning(
+            "Declaring a plugin version in a version catalog with constraints other than a required version. " +
+                "This behavior has been deprecated. " +
+                "This will fail with an error in Gradle 10. " +
+                "Plugin 'greeter2' in catalog 'libs' declares version '{require 1.0.0; prefer 1.1.0; reject 1.0.5}', but only the required version is used when resolving a plugin. " +
+                "Declare the plugin version using only a required version. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#version_catalog_plugin_non_required_versions"
+        )
         run 'printCatalog'
 
         then:
@@ -2224,6 +2232,11 @@ Second: 1.1"""
         outputContains "Found bundle: '[org:test:1.0, org:test2:{require 1.0.0; prefer 1.1.0; reject 1.0.5}]'."
         outputContains "Found plugin: 'com.acme.greeter:1.4'."
         outputContains "Found plugin: 'com.acme.greeter2:{require 1.0.0; prefer 1.1.0; reject 1.0.5}'."
+        verifyAll(receivedProblem) {
+            severity == Severity.WARNING
+            fqid == 'Gradle:Deprecation:Non-required plugin version in version catalog'
+            definition.id.displayName == 'Non-required plugin version in version catalog'
+        }
     }
 
     @Issue("https://github.com/gradle/gradle/issues/17874")

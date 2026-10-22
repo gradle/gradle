@@ -268,7 +268,7 @@ public class DefaultDaemonConnector implements DaemonConnector {
             .start("Connecting to Gradle Daemon", "Connecting to Daemon");
         RemoteConnection<Message> connection;
         try {
-            connection = connector.connect(daemon.getAddress()).create(Serializers.stateful(serializer));
+            connection = connector.connect(daemon.getAddress(), daemon.getToken()).create(Serializers.stateful(serializer));
         } catch (ConnectException e) {
             staleAddressDetector.maybeStaleAddress(e);
             throw e;

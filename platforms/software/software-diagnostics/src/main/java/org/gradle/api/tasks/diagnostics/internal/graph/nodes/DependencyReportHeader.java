@@ -18,10 +18,8 @@ package org.gradle.api.tasks.diagnostics.internal.graph.nodes;
 
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
-import org.gradle.api.artifacts.component.ModuleComponentSelector;
 import org.gradle.api.artifacts.result.ResolvedVariantResult;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
@@ -73,11 +71,16 @@ public class DependencyReportHeader extends AbstractRenderableDependency {
         return allVariants;
     }
 
+    /**
+     * The attributes declared on the dependency declaration itself, which are not necessarily
+     * present on the consuming configuration.
+     * <p>
+     * Every {@link ComponentSelector} carries these, so this must not be restricted to any
+     * particular selector type: project dependencies can declare attributes just as module
+     * dependencies can.
+     */
     public AttributeContainer getAttributes() {
-        ComponentSelector requested = dependency.getRequested();
-        return requested instanceof ModuleComponentSelector
-            ? requested.getAttributes()
-            : ImmutableAttributes.EMPTY;
+        return dependency.getRequested().getAttributes();
     }
 
     @Override

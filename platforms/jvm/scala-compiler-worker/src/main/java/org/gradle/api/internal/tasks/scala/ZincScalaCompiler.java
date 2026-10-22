@@ -40,6 +40,7 @@ import xsbti.T2;
 import xsbti.VirtualFile;
 import xsbti.compile.AnalysisContents;
 import xsbti.compile.AnalysisStore;
+import xsbti.compile.AuxiliaryClassFiles;
 import xsbti.compile.ClassFileManagerType;
 import xsbti.compile.ClasspathOptionsUtil;
 import xsbti.compile.CompileAnalysis;
@@ -54,6 +55,7 @@ import xsbti.compile.PerClasspathEntryLookup;
 import xsbti.compile.PreviousResult;
 import xsbti.compile.ScalaCompiler;
 import xsbti.compile.Setup;
+import xsbti.compile.TastyFiles;
 import xsbti.compile.TransactionalManagerType;
 
 import javax.inject.Inject;
@@ -129,7 +131,8 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         IncOptions incOptions = IncOptions.of()
                 .withRecompileOnMacroDef(Optional.of(false))
                 .withClassfileManagerType(classFileManagerType)
-                .withTransitiveStep(5);
+                .withTransitiveStep(5)
+                .withAuxiliaryClassFiles(auxiliaryClassFiles());
 
         Setup setup = incremental.setup(new EntryLookup(spec),
                 false,
@@ -165,6 +168,14 @@ public class ZincScalaCompiler implements Compiler<ScalaJavaJointCompileSpec> {
         }
         LOGGER.info("Completed Scala compilation: {}", timer.getElapsed());
         return WorkResults.didWork(true);
+    }
+
+    // Scala 3 emits a .tasty file next to each top-level class, which Zinc has to delete along with the class files
+    private AuxiliaryClassFiles[] auxiliaryClassFiles() {
+        if (ZincScalaCompilerFactory.isScala3(scalaInstance.actualVersion())) {
+            return new AuxiliaryClassFiles[]{TastyFiles.instance()};
+        }
+        return new AuxiliaryClassFiles[0];
     }
 
     @SuppressWarnings({"unchecked", "rawtypes"})

@@ -42,7 +42,7 @@ Creates a POM file for the publication named _PubName_, populating the known met
 `publish__PubName__PublicationTo__RepoName__Repository` — link:{groovyDslPath}/org.gradle.api.publish.maven.tasks.PublishToMavenRepository.html[PublishToMavenRepository]::
 Publishes the _PubName_ publication to the repository named _RepoName_. If you have a repository definition without an explicit name, _RepoName_ will be "Maven".
 
-`publish__PubName__PublicationToMavenLocal` — link:{groovyDslPath}/org.gradle.api.publish.maven.tasks.PublishToMavenLocal.html[PublishToMavenLocal]::
+`publish__PubName__PublicationToMavenLocal` — link:{javadocPath}/org/gradle/api/publish/maven/tasks/PublishToMavenLocal.html[PublishToMavenLocal]::
 Copies the _PubName_ publication to the local Maven cache — typically _<home directory of the current user>/.m2/repository_ — along with the publication's POM file and other metadata.
 
 `publish`::

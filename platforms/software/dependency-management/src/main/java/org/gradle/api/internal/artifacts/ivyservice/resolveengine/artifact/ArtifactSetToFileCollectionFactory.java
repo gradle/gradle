@@ -17,7 +17,6 @@
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact;
 
 import org.apache.commons.lang3.StringUtils;
-import org.gradle.api.Action;
 import org.gradle.api.artifacts.ResolvedArtifact;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.internal.artifacts.configurations.ResolutionHost;
@@ -146,11 +145,6 @@ public class ArtifactSetToFileCollectionFactory {
             }
 
             @Override
-            public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
-                throw new UnsupportedOperationException();
-            }
-
-            @Override
             public void visitDependencies(TaskDependencyResolveContext context) {
                 throw new UnsupportedOperationException();
             }
@@ -227,11 +221,6 @@ public class ArtifactSetToFileCollectionFactory {
         }
 
         @Override
-        public void visitExternalArtifacts(Action<ResolvableArtifact> visitor) {
-            throw new UnsupportedOperationException();
-        }
-
-        @Override
         public void visitDependencies(TaskDependencyResolveContext context) {
             throw new UnsupportedOperationException();
         }
@@ -258,7 +247,7 @@ public class ArtifactSetToFileCollectionFactory {
                     throw new UnsupportedOperationException();
                 }
             }
-            ParallelResolveArtifactSet.wrap(CompositeResolvedArtifactSet.of(artifactSets), buildOperationExecutor).visit(visitor);
+            ParallelResolveArtifactSet.visitInParallel(CompositeResolvedArtifactSet.of(artifactSets), buildOperationExecutor, visitor);
         }
 
         @Override
@@ -272,7 +261,7 @@ public class ArtifactSetToFileCollectionFactory {
                     artifactSets.add(new FileBackedArtifactSet(file));
                 }
             }
-            ParallelResolveArtifactSet.wrap(CompositeResolvedArtifactSet.of(artifactSets), buildOperationExecutor).visit(new ArtifactVisitorToResolvedFileVisitorAdapter(visitor));
+            ParallelResolveArtifactSet.visitInParallel(CompositeResolvedArtifactSet.of(artifactSets), buildOperationExecutor, new ArtifactVisitorToResolvedFileVisitorAdapter(visitor));
         }
 
         @Override

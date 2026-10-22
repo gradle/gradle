@@ -704,7 +704,7 @@ The following types/formats are supported:
         def matched = false
         receivedProblems.size().times { i ->
             def problem = receivedProblem(i)
-            if (problem.definition.id.fqid == 'validation:property-validation:implicit-dependency') {
+            if (problem.definition.id.fqid == 'Gradle:Build Logic:Property has implicit dependency') {
                 def text = "${problem.contextualLabel ?: ''} ${problem.details ?: ''}"
                 if (text.contains("'${producerTask}'") && text.contains("'${consumerTask}'")
                     && expectedLocationPaths.any { text.contains(it) }) {

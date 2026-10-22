@@ -17,6 +17,7 @@
 package org.gradle.plugin.devel.tasks.internal
 
 
+import org.gradle.api.problems.ProblemGroup
 import org.gradle.api.problems.ProblemId
 import org.gradle.api.problems.internal.AdditionalDataBuilderFactory
 import org.gradle.api.problems.internal.DefaultProblemReporter
@@ -25,7 +26,6 @@ import org.gradle.api.problems.internal.DeprecationDataSpec
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
 import org.gradle.api.problems.internal.GeneralData
 import org.gradle.api.problems.internal.GeneralDataSpec
-import org.gradle.api.problems.internal.GradleCoreProblemGroup
 import org.gradle.api.problems.internal.DocLinkInternal
 import org.gradle.api.problems.internal.ProblemInternal
 import org.gradle.api.problems.internal.ProblemReporterInternal
@@ -39,11 +39,13 @@ import org.gradle.internal.operations.CurrentBuildOperationRef
 import org.gradle.internal.reflect.Instantiator
 import org.gradle.problems.buildtree.ProblemStream
 import org.gradle.tooling.internal.provider.serialization.PayloadSerializer
+import org.gradle.util.TestUtil
 import spock.lang.Specification
 
 class ValidationProblemSerializationTest extends Specification {
 
-    def problemId = ProblemId.create("id", "label", GradleCoreProblemGroup.validation().type())
+    def problems = TestUtil.problemsService()
+    def problemId = problems.groups.gradle.pluginValidation.problemId("id")
 
     ProblemReporterInternal problemReporter = new DefaultProblemReporter(
         Stub(ProblemSummarizer),
@@ -69,12 +71,8 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.definition.id.name == "id"
-        deserialized.definition.id.displayName == "label"
-        deserialized.definition.id.group.name == "type-validation"
-        deserialized.definition.id.group.displayName == "Gradle type validation"
-        deserialized.definition.id.group.parent.name == "validation"
-        deserialized.definition.id.group.parent.displayName == "Validation"
-        deserialized.definition.id.group.parent.parent == null
+        deserialized.definition.id.displayName == "id"
+        deserialized.definition.id.group.is(problems.groups.gradle.pluginValidation)
 
         deserialized.originLocations.isEmpty()
         deserialized.definition.documentationLink == null
@@ -94,7 +92,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.definition.id.name == "id"
-        deserialized.definition.id.displayName == "label"
+        deserialized.definition.id.displayName == "id"
         deserialized.originLocations[0].path == "location"
         deserialized.originLocations[0].line == 1
         deserialized.originLocations[0].column == 2
@@ -117,7 +115,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.definition.id.name == "id"
-        deserialized.definition.id.displayName == "label"
+        deserialized.definition.id.displayName == "id"
         deserialized.originLocations[0].path == "location"
         deserialized.originLocations[0].line == 1
         deserialized.originLocations[0].column == 1
@@ -139,7 +137,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.definition.id.name == "id"
-        deserialized.definition.id.displayName == "label"
+        deserialized.definition.id.displayName == "id"
         deserialized.originLocations == [] as List
         deserialized.definition.documentationLink == null
         deserialized.exception.message == "cause"
@@ -160,7 +158,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.definition.id.name == "id"
-        deserialized.definition.id.displayName == "label"
+        deserialized.definition.id.displayName == "id"
         deserialized.originLocations == [] as List
         deserialized.definition.documentationLink == null
         deserialized.solutions[0] == "solution 0"
@@ -187,7 +185,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.definition.id.name == "id"
-        deserialized.definition.id.displayName == "label"
+        deserialized.definition.id.displayName == "id"
         deserialized.originLocations == [] as List
         deserialized.definition.documentationLink == null
         (deserialized.additionalData as TypeValidationData).propertyName == 'property'
@@ -213,7 +211,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.definition.id.name == "id"
-        deserialized.definition.id.displayName == "label"
+        deserialized.definition.id.displayName == "id"
         deserialized.additionalData instanceof GeneralData
         (deserialized.additionalData as GeneralData).asMap == ['foo' : 'bar']
 
@@ -235,7 +233,7 @@ class ValidationProblemSerializationTest extends Specification {
 
         then:
         deserialized.definition.id.name == "id"
-        deserialized.definition.id.displayName == "label"
+        deserialized.definition.id.displayName == "id"
         deserialized.additionalData instanceof DeprecationData
         (deserialized.additionalData as DeprecationData).type == DeprecationData.Type.BUILD_INVOCATION
 
@@ -243,9 +241,53 @@ class ValidationProblemSerializationTest extends Specification {
         asWarning << [false, true]
     }
 
-    private static ProblemInternal serializeAndDeserialize(ProblemInternal problem, boolean asWarning) {
-        def json = asWarning ? ValidationProblemSerialization.serialize([problem], []) : ValidationProblemSerialization.serialize([], [problem])
-        def deserialized = ValidationProblemSerialization.deserialize(json)
+    def "resolves a group created by a plugin below a predefined group"() {
+        given:
+        def id = problems.groups.transformation.group("KMP").problemId("Bundle failed")
+
+        when:
+        def deserialized = serializeAndDeserialize(problemReporter.create(id, {}), true)
+
+        then:
+        deserialized.definition.id == id
+        deserialized.definition.id.group.parent.is(problems.groups.transformation)
+    }
+
+    def "refuses to write a problem whose group is #description"() {
+        given:
+        def problem = problemReporter.create(ProblemId.create("id", "label", group), {})
+
+        when:
+        ValidationProblemSerialization.serialize([problem], [], problems.groups)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Problem 'id' cannot be written to the validation report: $message"
+
+        where:
+        description                              | group                                                                                                      | message
+        "outside the predefined hierarchy"       | ProblemGroup.create("legacy", "Legacy")                                                                    | "Unknown predefined root problem group 'legacy'"
+        "a root group"                           | ProblemGroup.create("Gradle", "Gradle")                                                                    | "Problem group 'Gradle' is a root group and cannot hold problems, but problem 'id' was requested"
+        "a sub-group below a closed Gradle group" | ProblemGroup.create("Caching", "Caching", ProblemGroup.create("Plugin Validation", "Plugin Validation", ProblemGroup.create("Gradle", "Gradle"))) | "Problem group 'Gradle > Plugin Validation' cannot have sub-groups, but 'Caching' was requested"
+        "named like the reserved Undefined group"  | ProblemGroup.create("undefined", "undefined", ProblemGroup.create("Compilation", "Compilation"))                            | "'Undefined' is a reserved problem group name, use getUndefined() instead"
+    }
+
+    def "fails to read a problem whose group is not part of the predefined hierarchy"() {
+        given:
+        def json = ValidationProblemSerialization.serialize([problemReporter.create(problemId, {})], [], problems.groups)
+            .replace('"Plugin Validation"', '"Plugins"')
+
+        when:
+        ValidationProblemSerialization.deserialize(json, problems.groups)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message == "Unknown predefined problem group 'Plugins'"
+    }
+
+    private ProblemInternal serializeAndDeserialize(ProblemInternal problem, boolean asWarning) {
+        def json = asWarning ? ValidationProblemSerialization.serialize([problem], [], problems.groups) : ValidationProblemSerialization.serialize([], [problem], problems.groups)
+        def deserialized = ValidationProblemSerialization.deserialize(json, problems.groups)
         def problems = asWarning ? deserialized.warnings : deserialized.errors
         assert problems.size() == 1
         return problems[0]

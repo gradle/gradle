@@ -245,7 +245,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         failure.assertHasDescription("A problem was found with the configuration of task ':myTask' (type 'DefaultTask').")
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:value-not-set'
+            fqid == 'Gradle:Build Definition:Value not set'
             definition.id.displayName == 'Value not set'
             contextualLabel == "Property 'inputProp' doesn't have a configured value"
             solutions == [
@@ -306,7 +306,7 @@ class TaskFilePropertiesIntegrationTest extends AbstractIntegrationSpec {
         outputDoesNotContain("input action executed")
         verifyAll(receivedProblem) {
             severity == Severity.ERROR
-            fqid == 'validation:property-validation:value-not-set'
+            fqid == 'Gradle:Build Definition:Value not set'
             definition.id.displayName == 'Value not set'
             contextualLabel.endsWith("'inputProp' doesn't have a configured value")
             solutions == [

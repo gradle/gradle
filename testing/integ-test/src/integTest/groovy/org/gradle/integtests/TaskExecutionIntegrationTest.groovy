@@ -75,11 +75,12 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
             task b
             gradle.buildFinished {
                 def graph = gradle.taskGraph
-                // This is existing behaviour, not desired behaviour
-                assert !graph.hasTask(':a')
-                assert !graph.hasTask(a)
-                assert !graph.hasTask(':b')
-                assert !graph.hasTask(b)
+                assert graph.hasTask(':a')
+                assert graph.hasTask(a)
+                assert graph.findTask(':a') == a
+                assert graph.hasTask(':b')
+                assert graph.hasTask(b)
+                assert graph.findTask(':b') == b
                 assert graph.allTasks == [b, a]
             }
         """
@@ -88,6 +89,48 @@ class TaskExecutionIntegrationTest extends AbstractIntegrationSpec implements Ta
             succeeds "a"
             result.assertTasksScheduled(":b", ":a")
         }
+    }
+
+    @UnsupportedWithConfigurationCache(because = "Queries task graph during execution")
+    def "task graph of included build reflects the tasks of the current execution"() {
+        settingsFile """
+            pluginManagement {
+                includeBuild("build-logic")
+            }
+        """
+        file("build-logic/settings.gradle") << ""
+        file("build-logic/build.gradle") << """
+            plugins {
+                id("groovy-gradle-plugin")
+            }
+            def tg = gradle.taskGraph
+            tasks.named("jar") {
+                doLast {
+                    println("first execution: hasTask(:jar)=\${tg.hasTask(":jar")} hasTask(:other)=\${tg.hasTask(":other")}")
+                }
+            }
+            tasks.register("other") {
+                doLast {
+                    println("second execution: hasTask(:jar)=\${tg.hasTask(":jar")} hasTask(:other)=\${tg.hasTask(":other")}")
+                }
+            }
+        """
+        file("build-logic/src/main/groovy/my-plugin.gradle") << ""
+        buildFile """
+            plugins {
+                id("my-plugin")
+            }
+            tasks.register("run") {
+                dependsOn(gradle.includedBuild("build-logic").task(":other"))
+            }
+        """
+
+        when:
+        succeeds("run")
+
+        then:
+        outputContains("first execution: hasTask(:jar)=true hasTask(:other)=false")
+        outputContains("second execution: hasTask(:jar)=false hasTask(:other)=true")
     }
 
     def executesAllTasksInASingleBuildAndEachTaskAtMostOnce() {

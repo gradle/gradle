@@ -1,5 +1,3 @@
-import gradlebuild.basics.googleApisJs
-
 plugins {
     id("gradlebuild.distribution.api-java")
     id("gradlebuild.instrumented-java-project")
@@ -10,10 +8,6 @@ in the Gradle builds of software projects.  Any reports or reporting tasks relat
 dependency management types should be included here."""
 
 val implementationResources = configurations.create("implementationResources")
-
-repositories {
-    googleApisJs()
-}
 
 dependencies {
     api(projects.baseDiagnostics)
@@ -79,6 +73,8 @@ gradleModule {
 }
 
 val reportResources = tasks.register<Copy>("reportResources") {
+    group = "build"
+    description = "Copies the JavaScript resources used by the HTML dependency report into the generated resources directory."
     from(implementationResources)
     into(layout.buildDirectory.file("generated-resources/report-resources/org/gradle/api/tasks/diagnostics/htmldependencyreport"))
     rename { oldName ->

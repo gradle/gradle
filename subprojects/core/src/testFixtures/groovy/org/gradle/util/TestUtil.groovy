@@ -43,12 +43,12 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.internal.tasks.properties.annotations.OutputPropertyRoleAnnotationHandler
 import org.gradle.api.model.ObjectFactory
 import org.gradle.api.problems.Problem
-import org.gradle.api.problems.ProblemGroups
 import org.gradle.api.problems.ProblemReporter
 import org.gradle.api.problems.internal.DefaultProblems
 import org.gradle.api.problems.internal.DeprecationData
 import org.gradle.api.problems.internal.ExceptionProblemRegistry
 import org.gradle.api.problems.internal.ProblemBuilderInternal
+import org.gradle.api.problems.internal.ProblemGroupsInternal
 import org.gradle.api.problems.internal.ProblemInternal
 import org.gradle.api.problems.internal.ProblemReporterInternal
 import org.gradle.api.problems.internal.ProblemSummarizer
@@ -87,7 +87,6 @@ import org.gradle.test.fixtures.work.TestWorkerLeaseService
 import org.gradle.testfixtures.ProjectBuilder
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 import org.gradle.testfixtures.internal.ProjectBuilderImpl
-import org.spockframework.lang.Wildcard
 
 import javax.annotation.Nullable
 import java.util.function.Supplier
@@ -424,7 +423,7 @@ class TestProblems implements ProblemsInternal {
     }
 
     @Override
-    ProblemGroups getGroups() {
+    ProblemGroupsInternal getGroups() {
         delegate.groups
     }
 
@@ -443,16 +442,9 @@ class TestProblems implements ProblemsInternal {
         delegate.getProblemBuilder()
     }
 
-    void assertProblemEmittedOnce(Object expectedProblem) {
+    Problem singleEmittedProblem() {
         assert summarizer.emitted.size() == 1
-        def actualProblem = summarizer.emitted[0]
-        if (expectedProblem instanceof Closure) {
-            assert expectedProblem.call(actualProblem)
-        } else if (expectedProblem instanceof Problem) {
-            assert expectedProblem == actualProblem
-        } else {
-            assert expectedProblem instanceof Wildcard
-        }
+        summarizer.emitted[0]
     }
 
     void assertNoProblemsEmitted() {

@@ -7,6 +7,7 @@ import org.gradle.api.Project
 import org.gradle.api.provider.Property
 import org.gradle.api.problems.*
 import org.gradle.api.tasks.Input
+import org.gradle.api.tasks.Optional
 import org.gradle.api.tasks.TaskAction
 import javax.inject.Inject
 
@@ -38,6 +39,7 @@ interface GreetProblemData extends AdditionalData {
 abstract class GreetTask extends DefaultTask {
 
     @Input
+    @Optional
     abstract Property<String> getRecipient()
 
 // tag::problems-service[]

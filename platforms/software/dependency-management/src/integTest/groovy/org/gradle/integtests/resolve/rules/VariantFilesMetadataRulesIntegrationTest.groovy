@@ -715,7 +715,6 @@ class VariantFilesMetadataRulesIntegrationTest extends AbstractModuleDependencyR
         repositoryInteractions {
             'org.test:moduleA:1.0' {
                 expectGetMetadata()
-                expectHeadArtifact(type: 'notJar')
                 expectGetArtifact(type: 'notJar')
             }
         }

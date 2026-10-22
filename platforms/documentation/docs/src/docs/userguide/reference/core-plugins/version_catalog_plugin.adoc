@@ -73,7 +73,7 @@ This configuration backs the `versionCatalog` component.
 [[sec:version_catalog_plugin_extension]]
 == Contributed extension
 
-The plugin adds the link:{groovyDslPath}/org.gradle.api.plugins.catalog.CatalogPluginExtension.html[`catalog`] extension to the project.
+The plugin adds the link:{javadocPath}/org/gradle/api/plugins/catalog/CatalogPluginExtension.html[`catalog`] extension to the project.
 Configure the catalog contents through its nested `versionCatalog { }` block, which exposes a link:{javadocPath}/org/gradle/api/initialization/dsl/VersionCatalogBuilder.html[VersionCatalogBuilder].
 
 If you already have a `gradle/libs.versions.toml` file, you can publish it directly by importing it — keeping the TOML file as the single source of truth:

@@ -1,5 +1,3 @@
-import gradlebuild.basics.googleApisJs
-
 plugins {
     id("gradlebuild.internal.java")
 }
@@ -16,10 +14,6 @@ sourceSets {
 val reports = configurations.create("reports")
 val flamegraph = configurations.create("flamegraph")
 configurations.compileOnly { extendsFrom(flamegraph) }
-
-repositories {
-    googleApisJs()
-}
 
 dependencies {
     reports(variantOf(libs.jquery) { artifactType("js") })
@@ -73,6 +67,8 @@ dependencies {
 }
 
 val reportResources = tasks.register<Copy>("reportResources") {
+    group = "build"
+    description = "Copies the JavaScript resources used by performance test reports into the generated resources directory."
     from(reports)
     into(layout.buildDirectory.file("generated-resources/report-resources/org/gradle/reporting"))
 }

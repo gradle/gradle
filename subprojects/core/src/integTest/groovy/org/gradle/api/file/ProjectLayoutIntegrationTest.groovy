@@ -336,16 +336,17 @@ class ProjectLayoutIntegrationTest extends AbstractIntegrationSpec {
         'FileCollection'             | 'project.layout.files(configurations.other)'
     }
 
-    def 'fails to resolve #collectionType with null element'() {
+    def 'ignores null element when resolving #collectionType'() {
         buildFile << """
             def fileCollection = $expression
             println("size = \${fileCollection.files.size()}")
         """
 
-        expect:
-        executer.withStacktraceEnabled()
-        fails('help')
-        errorOutput.contains('java.lang.NullPointerException')
+        when:
+        succeeds('help')
+
+        then:
+        outputContains('size = 0')
 
         where:
         collectionType               | expression

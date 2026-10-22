@@ -19,22 +19,26 @@ import com.google.common.collect.ObjectArrays;
 
 /**
  * A {@link CompositeSpec} which requires any one of its specs to be true in order to evaluate to
- * true. Uses lazy evaluation.
+ * true. As an exception, an {@code OrSpec} with no specs is satisfied by every object.
+ * <p>
+ * Uses lazy evaluation: member specs are evaluated in order, stopping at the first satisfied one.
  *
  * @param <T> The target type for this Spec
  * @since 0.7
  */
 public class OrSpec<T> extends CompositeSpec<T> {
     /**
-     * The empty.
+     * The shared {@code OrSpec} with no member specs, satisfied by every object.
      *
+     * @see #empty()
      * @since 3.2
      */
     public static final OrSpec<?> EMPTY = new OrSpec<Object>();
 
     /**
-     * Creates a new {@code OrSpec}.
+     * Creates a spec with no member specs, which is satisfied by every object.
      *
+     * @see #empty()
      * @since 3.0
      */
     public OrSpec() {
@@ -42,7 +46,7 @@ public class OrSpec<T> extends CompositeSpec<T> {
     }
 
     /**
-     * Creates a new {@code OrSpec}.
+     * Creates a spec with the given member specs, in order.
      *
      * @since 0.7
      */
@@ -52,7 +56,7 @@ public class OrSpec<T> extends CompositeSpec<T> {
     }
 
     /**
-     * Creates a new {@code OrSpec}.
+     * Creates a spec with the member specs of the given iterable, in iteration order.
      *
      * @since 1.3
      */
@@ -75,7 +79,7 @@ public class OrSpec<T> extends CompositeSpec<T> {
     }
 
     /**
-     * Or.
+     * Returns an {@code OrSpec} whose member specs are this spec's, followed by the given ones.
      *
      * @since 3.2
      */
@@ -96,7 +100,13 @@ public class OrSpec<T> extends CompositeSpec<T> {
     }
 
     /**
-     * Empty.
+     * Returns the shared {@code OrSpec} with no member specs, which is satisfied by every object.
+     * <p>
+     * This is an exception to the usual rule that an empty disjunction is false.
+     * Like every {@code OrSpec}, it is immutable,
+     * so it is a starting point for building a disjunction.
+     * Its vacuous truth is lost once {@code or(...)} is called on it with at least one spec.
+     * An {@code OrSpec} that has it as a member is satisfied by every object.
      *
      * @since 3.2
      */

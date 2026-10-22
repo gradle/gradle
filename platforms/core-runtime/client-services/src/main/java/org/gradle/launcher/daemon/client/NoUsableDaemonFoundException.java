@@ -18,21 +18,11 @@ package org.gradle.launcher.daemon.client;
 
 import org.gradle.internal.deprecation.Documentation;
 import org.gradle.internal.exceptions.DefaultMultiCauseException;
-import org.gradle.internal.exceptions.ResolutionProvider;
 
 import java.util.Collections;
-import java.util.List;
 
-public class NoUsableDaemonFoundException extends DefaultMultiCauseException implements ResolutionProvider {
-
-    private static final List<String> RESOLUTION = Collections.singletonList(Documentation.userManual("troubleshooting", "network_connection").getConsultDocumentationMessage());
-
+public class NoUsableDaemonFoundException extends DefaultMultiCauseException {
     public NoUsableDaemonFoundException(String message, Iterable<? extends Throwable> causes) {
-        super(message, causes);
-    }
-
-    @Override
-    public List<String> getResolutions() {
-        return RESOLUTION;
+        super(message, causes, Collections.singletonList(Documentation.userManual("troubleshooting", "network_connection").getConsultDocumentationMessage()));
     }
 }
