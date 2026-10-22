@@ -68,7 +68,6 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.internal.PatternSetFactory;
 import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
-import org.gradle.internal.UncheckedException;
 import org.gradle.internal.actor.ActorFactory;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.deprecation.DeprecationLogger;
@@ -749,7 +748,8 @@ public abstract class Test extends AbstractTestTask implements JavaForkOptions, 
                     }
                 });
             } catch (Exception e) {
-                throw UncheckedException.throwAsUncheckedException(e);
+                LOGGER.info("Ignoring unreadable previous test results in {}", getBinaryResultsDirectory().get(), e);
+                return Collections.emptySet();
             }
             return previousFailedTestClasses;
         } else {
