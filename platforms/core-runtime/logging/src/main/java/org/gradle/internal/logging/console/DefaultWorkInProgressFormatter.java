@@ -25,6 +25,13 @@ import java.util.List;
 
 public class DefaultWorkInProgressFormatter {
     private final static List<StyledTextOutputEvent.Span> IDLE_SPANS = Collections.singletonList(new StyledTextOutputEvent.Span("> IDLE"));
+    private static final String SEPARATOR = " > ";
+    // As in the class names shortened by JavaClassNameFormatter
+    private static final String ELLIPSIS = "...";
+    // A shorter end is of little use
+    private static final int MIN_END_LENGTH = 10;
+    // In place of a dropped end, to show that the line goes on
+    private static final String MORE = SEPARATOR + ELLIPSIS;
     private final ConsoleMetaData consoleMetaData;
 
     public DefaultWorkInProgressFormatter(ConsoleMetaData consoleMetaData) {
@@ -42,7 +49,7 @@ public class DefaultWorkInProgressFormatter {
                 continue;
             }
 
-            builder.insert(0, " > ").insert(3, message);
+            builder.insert(0, SEPARATOR).insert(SEPARATOR.length(), message);
         }
         if (builder.length() > 0) {
             builder.delete(0, 1);
@@ -70,8 +77,83 @@ public class DefaultWorkInProgressFormatter {
             maxWidth = 79;
         }
         if (maxWidth < formattedString.length()) {
-            return formattedString.substring(0, maxWidth);
+            return cut(formattedString.toString(), maxWidth);
         }
         return formattedString.toString();
+    }
+
+    private static String cut(String line, int width) {
+        int separatorIndex = line.indexOf(SEPARATOR);
+        if (separatorIndex < 0) {
+            return cutFirstSegment(line, width);
+        }
+        int headLength = separatorIndex + SEPARATOR.length();
+        int room = width - headLength - ELLIPSIS.length();
+        if (room >= MIN_END_LENGTH) {
+            return line.substring(0, headLength) + ELLIPSIS + end(line, room);
+        }
+        String firstSegment = line.substring(0, separatorIndex);
+        if (room >= 0) {
+            return firstSegment + MORE;
+        }
+        if (width >= 2 * MORE.length()) {
+            return cutFirstSegment(firstSegment, width - MORE.length()) + MORE;
+        }
+        // On a very narrow console, the whole width is given to the first segment
+        return firstSegment.length() <= width ? firstSegment : cutFirstSegment(firstSegment, width);
+    }
+
+    // The task name is kept when its length is at most half of the width, else the first segment is cut near half of the width
+    private static String cutFirstSegment(String firstSegment, int width) {
+        int taskNameStart = firstSegment.lastIndexOf(':');
+        if (taskNameStart >= 0) {
+            int taskNameLength = firstSegment.length() - taskNameStart;
+            int startLength = width - ELLIPSIS.length() - taskNameLength;
+            if (taskNameLength <= width / 2 && startLength > 0) {
+                return start(firstSegment, startLength) + ELLIPSIS + firstSegment.substring(taskNameStart);
+            }
+        }
+        String start = start(firstSegment, width / 2);
+        int room = width - start.length() - ELLIPSIS.length();
+        if (room <= 0) {
+            return prefix(firstSegment, width);
+        }
+        return start + ELLIPSIS + end(firstSegment, room);
+    }
+
+    // The start of the first segment, of at most the given length, so that a project name is not shown in part
+    private static String start(String firstSegment, int length) {
+        int projectNameEnd = firstSegment.lastIndexOf(':', length);
+        return projectNameEnd < 0 ? prefix(firstSegment, length) : firstSegment.substring(0, projectNameEnd);
+    }
+
+    // The end of the text, of at most the given length, from its first boundary with at least half of this length after it, if any
+    private static String end(String text, int length) {
+        int startIndex = text.length() - length;
+        int lastBoundaryIndex = text.length() - (length + 1) / 2;
+        for (int i = startIndex; i <= lastBoundaryIndex; i++) {
+            if (isBoundary(text.charAt(i - 1), text.charAt(i))) {
+                return text.substring(i);
+            }
+        }
+        return text.substring(splitsSurrogatePair(text, startIndex) ? startIndex + 1 : startIndex);
+    }
+
+    // The start of the text, of at most the given length
+    private static String prefix(String text, int length) {
+        return text.substring(0, splitsSurrogatePair(text, length) ? length - 1 : length);
+    }
+
+    // A character outside of the Basic Multilingual Plane, such as an emoji, is not shown in half
+    private static boolean splitsSurrogatePair(String text, int index) {
+        return index > 0 && index < text.length() && Character.isSurrogatePair(text.charAt(index - 1), text.charAt(index));
+    }
+
+    // After a space followed by a letter or a digit, after a '.' followed by a letter, or at a change from lower case to upper case.
+    // So a size such as "1.7 MB" is not cut to "7 MB", and the end does not start with the '>' of a separator.
+    private static boolean isBoundary(char before, char after) {
+        return (before == ' ' && Character.isLetterOrDigit(after))
+            || (before == '.' && Character.isLetter(after))
+            || (Character.isLowerCase(before) && Character.isUpperCase(after));
     }
 }
