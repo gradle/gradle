@@ -17,9 +17,11 @@
 package org.gradle.internal.logging.console;
 
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
+import org.gradle.internal.logging.format.TersePrettyDurationFormatter;
 import org.gradle.internal.logging.text.StyledTextOutput;
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData;
 
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 
@@ -33,58 +35,89 @@ public class DefaultWorkInProgressFormatter {
     // In place of a dropped end, to show that the line goes on
     private static final String MORE = SEPARATOR + ELLIPSIS;
     private final ConsoleMetaData consoleMetaData;
+    private final TersePrettyDurationFormatter durationFormatter = new TersePrettyDurationFormatter();
+    // Shorter in tests
+    private final long timeShownAfterMillis = Long.getLong("org.gradle.internal.console.time-shown-after", 10_000);
 
     public DefaultWorkInProgressFormatter(ConsoleMetaData consoleMetaData) {
         this.consoleMetaData = consoleMetaData;
     }
 
-    public List<StyledTextOutputEvent.Span> format(ProgressOperation op) {
+    public List<StyledTextOutputEvent.Span> format(ProgressOperation op, long now) {
         StringBuilder builder = new StringBuilder();
+        // Its time is shown, so the time of a slow test class is seen, not only the time of its test task
+        ProgressOperation deepestWithMessage = null;
         ProgressOperation current = op;
         while (current != null && !"org.gradle.internal.progress.BuildProgressLogger".equals(current.getCategory())) {
             String message = current.isHiddenWorkAction() ? null : current.getMessage();
+            if (message != null) {
+                if (deepestWithMessage == null) {
+                    deepestWithMessage = current;
+                }
+                builder.insert(0, SEPARATOR).insert(SEPARATOR.length(), message);
+            }
             current = current.getParent();
-
-            if (message == null) {
-                continue;
-            }
-
-            builder.insert(0, SEPARATOR).insert(SEPARATOR.length(), message);
         }
-        if (builder.length() > 0) {
-            ProgressOperation countOwner = op.getWorkActionCountOwner();
-            if (countOwner != null) {
-                int completed = countOwner.getCompletedWorkActions();
-                builder.append(SEPARATOR).append(completed).append(completed == 1 ? " work action completed" : " work actions completed");
-            }
-            builder.delete(0, 1);
-        } else {
+        if (deepestWithMessage == null) {
             return IDLE_SPANS;
         }
+        ProgressOperation countOwner = op.getWorkActionCountOwner();
+        if (countOwner != null) {
+            int completed = countOwner.getCompletedWorkActions();
+            builder.append(SEPARATOR).append(completed).append(completed == 1 ? " work action completed" : " work actions completed");
+        }
+        builder.delete(0, 1);
 
-        return Collections.singletonList(new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, trim(builder)));
+        int maxWidth = maxWidth();
+        long elapsed = now - deepestWithMessage.getStartTimestamp();
+        if (elapsed >= timeShownAfterMillis) {
+            String time = "  " + durationFormatter.format(elapsed);
+            int width = maxWidth - time.length();
+            // The time is only shown next to a part of the message of its operation
+            if (keepsEnd(builder, width)) {
+                return Arrays.asList(
+                    new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, trim(builder, width)),
+                    new StyledTextOutputEvent.Span(StyledTextOutput.Style.Normal, time)
+                );
+            }
+        }
+        return Collections.singletonList(new StyledTextOutputEvent.Span(StyledTextOutput.Style.Header, trim(builder, maxWidth)));
     }
 
     public List<StyledTextOutputEvent.Span> format() {
         return IDLE_SPANS;
     }
 
-    private String trim(StringBuilder formattedString) {
+    private int maxWidth() {
         // Don't write to the right-most column, as on some consoles the cursor will wrap to the next line and currently wrapping causes
         // layout weirdness
-        int maxWidth;
         int cols = consoleMetaData.getCols();
         if (cols > 0) {
-            maxWidth = cols - 1;
-        } else {
-            // Assume 80 wide. This is to minimize wrapping on console where we don't know the width (eg mintty)
-            // It's not intended to be a correct solution, simply a work around
-            maxWidth = 79;
+            return cols - 1;
         }
-        if (maxWidth < formattedString.length()) {
-            return cut(formattedString.toString(), maxWidth);
+        // Assume 80 wide. This is to minimize wrapping on console where we don't know the width (eg mintty)
+        // It's not intended to be a correct solution, simply a work around
+        return 79;
+    }
+
+    private static String trim(StringBuilder formattedString, int width) {
+        if (width < formattedString.length()) {
+            return cut(formattedString.toString(), width);
         }
         return formattedString.toString();
+    }
+
+    // Whether a part of the last message of the line is kept at the given width
+    private static boolean keepsEnd(StringBuilder line, int width) {
+        if (line.length() <= width) {
+            return true;
+        }
+        int separatorIndex = line.indexOf(SEPARATOR);
+        if (separatorIndex < 0) {
+            // At least one character of the message after the leading "> ", other than an ellipsis
+            return width > 2 && cut(line.toString(), width).replace(ELLIPSIS, "").length() > 2;
+        }
+        return roomForEnd(separatorIndex, width) >= MIN_END_LENGTH;
     }
 
     private static String cut(String line, int width) {
@@ -93,7 +126,7 @@ public class DefaultWorkInProgressFormatter {
             return cutFirstSegment(line, width);
         }
         int headLength = separatorIndex + SEPARATOR.length();
-        int room = width - headLength - ELLIPSIS.length();
+        int room = roomForEnd(separatorIndex, width);
         if (room >= MIN_END_LENGTH) {
             return line.substring(0, headLength) + ELLIPSIS + end(line, room);
         }
@@ -106,6 +139,11 @@ public class DefaultWorkInProgressFormatter {
         }
         // On a very narrow console, the whole width is given to the first segment
         return firstSegment.length() <= width ? firstSegment : cutFirstSegment(firstSegment, width);
+    }
+
+    // The width left for the end of a line, after its first segment, the separator and the ellipsis
+    private static int roomForEnd(int separatorIndex, int width) {
+        return width - separatorIndex - SEPARATOR.length() - ELLIPSIS.length();
     }
 
     // The task name is kept when its length is at most half of the width, else the first segment is cut near half of the width

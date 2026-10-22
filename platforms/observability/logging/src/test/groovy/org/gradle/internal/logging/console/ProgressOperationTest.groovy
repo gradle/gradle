@@ -23,7 +23,7 @@ class ProgressOperationTest extends Specification {
 
     def "message prefers status"() {
         given:
-        ProgressOperation progressOperation = new ProgressOperation("STATUS", "VARIANT_CATEGORY", new OperationIdentifier(1), null)
+        ProgressOperation progressOperation = new ProgressOperation("STATUS", "VARIANT_CATEGORY", new OperationIdentifier(1), null, 0)
 
         expect:
         progressOperation.getMessage() == "STATUS"
@@ -31,7 +31,7 @@ class ProgressOperationTest extends Specification {
 
     def "message is null if all inputs are null"() {
         given:
-        ProgressOperation progressOperation = new ProgressOperation(null, "VARIANT_CATEGORY", new OperationIdentifier(1), null)
+        ProgressOperation progressOperation = new ProgressOperation(null, "VARIANT_CATEGORY", new OperationIdentifier(1), null, 0)
 
         expect:
         progressOperation.getMessage() == null
@@ -39,7 +39,7 @@ class ProgressOperationTest extends Specification {
 
     def "allows children to be managed"() {
         given:
-        ProgressOperation progressOperation = new ProgressOperation("STATUS", "VARIANT_CATEGORY", new OperationIdentifier(1), null)
+        ProgressOperation progressOperation = new ProgressOperation("STATUS", "VARIANT_CATEGORY", new OperationIdentifier(1), null, 0)
         def mockOperation = Mock(ProgressOperation)
 
         when:
@@ -58,8 +58,8 @@ class ProgressOperationTest extends Specification {
     @Issue("https://github.com/gradle/gradle/issues/39544")
     def "does not count work actions as other children"() {
         given:
-        def progressOperation = new ProgressOperation("STATUS", "VARIANT_CATEGORY", new OperationIdentifier(1), null)
-        def workAction = new ProgressOperation("WORK", "VARIANT_CATEGORY", new OperationIdentifier(2), progressOperation, true)
+        def progressOperation = new ProgressOperation("STATUS", "VARIANT_CATEGORY", new OperationIdentifier(1), null, 0)
+        def workAction = new ProgressOperation("WORK", "VARIANT_CATEGORY", new OperationIdentifier(2), progressOperation, 0, true)
 
         when:
         progressOperation.addChild(workAction)
@@ -71,16 +71,16 @@ class ProgressOperationTest extends Specification {
     @Issue("https://github.com/gradle/gradle/issues/39544")
     def "shows its work actions from the second one"() {
         given:
-        def progressOperation = new ProgressOperation("STATUS", "VARIANT_CATEGORY", new OperationIdentifier(1), null)
+        def progressOperation = new ProgressOperation("STATUS", "VARIANT_CATEGORY", new OperationIdentifier(1), null, 0)
 
         when:
-        progressOperation.addChild(new ProgressOperation("A", "VARIANT_CATEGORY", new OperationIdentifier(2), progressOperation, true))
+        progressOperation.addChild(new ProgressOperation("A", "VARIANT_CATEGORY", new OperationIdentifier(2), progressOperation, 0, true))
 
         then:
         !progressOperation.showsWorkActions()
 
         when:
-        progressOperation.addChild(new ProgressOperation("B", "VARIANT_CATEGORY", new OperationIdentifier(3), progressOperation, true))
+        progressOperation.addChild(new ProgressOperation("B", "VARIANT_CATEGORY", new OperationIdentifier(3), progressOperation, 0, true))
 
         then:
         progressOperation.showsWorkActions()

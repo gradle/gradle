@@ -31,20 +31,22 @@ public class ProgressOperation {
     private final String category;
     private final OperationIdentifier operationId;
     private final ProgressOperation parent;
+    private final long startTimestamp;
     private final boolean workAction;
     private int startedWorkActions;
     private int completedWorkActions;
     private Set<ProgressOperation> children;
 
-    public ProgressOperation(String status, String category, OperationIdentifier operationId, ProgressOperation parent) {
-        this(status, category, operationId, parent, false);
+    public ProgressOperation(String status, String category, OperationIdentifier operationId, ProgressOperation parent, long startTimestamp) {
+        this(status, category, operationId, parent, startTimestamp, false);
     }
 
-    ProgressOperation(String status, String category, OperationIdentifier operationId, ProgressOperation parent, boolean workAction) {
+    ProgressOperation(String status, String category, OperationIdentifier operationId, ProgressOperation parent, long startTimestamp, boolean workAction) {
         this.status = status;
         this.category = category;
         this.operationId = operationId;
         this.parent = parent;
+        this.startTimestamp = startTimestamp;
         this.workAction = workAction;
     }
 
@@ -70,6 +72,10 @@ public class ProgressOperation {
 
     public OperationIdentifier getOperationId() {
         return operationId;
+    }
+
+    public long getStartTimestamp() {
+        return startTimestamp;
     }
 
     public ProgressOperation getParent() {

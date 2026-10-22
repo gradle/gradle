@@ -18,6 +18,7 @@ package org.gradle.internal.logging.console
 
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.operations.BuildOperationCategory
 import spock.lang.Issue
@@ -44,6 +45,84 @@ class WorkInProgressRendererTest extends OutputSpecification {
         then:
         progressArea.display == ["> :bar"]
         cursorParkText == ""
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39559")
+    def "shows how long the work of a line has run, at each update"() {
+        given:
+        metaData.getRows() >> 6
+
+        when:
+        renderer.onOutput(start(1, ":foo"))
+        renderer.onOutput(new UpdateNowEvent(tenAm))
+        renderer.onOutput(new UpdateNowEvent(tenAm + 9_999))
+        console.flush()
+
+        then:
+        progressArea.display == ["> :foo"]
+
+        when:
+        renderer.onOutput(new UpdateNowEvent(tenAm + 10_000))
+        console.flush()
+
+        then:
+        progressArea.display == ["> :foo  10s"]
+
+        when:
+        renderer.onOutput(new UpdateNowEvent(tenAm + 12_000))
+        console.flush()
+
+        then:
+        progressArea.display == ["> :foo  12s"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39559")
+    def "shows how long each work action has run on its line, and how long the task has run on the line of the count"() {
+        given:
+        metaData.getRows() >> 6
+
+        when:
+        renderer.onOutput(start(id: 1, status: ":work"))
+        renderer.onOutput(new UpdateNowEvent(tenAm))
+        renderer.onOutput(start(id: 2, parentId: 1, status: "Executing work action A", buildOperationCategory: BuildOperationCategory.WORK_ACTION))
+        renderer.onOutput(new UpdateNowEvent(tenAm + 2_000))
+        renderer.onOutput(start(id: 3, parentId: 1, status: "Executing work action B", buildOperationCategory: BuildOperationCategory.WORK_ACTION))
+        renderer.onOutput(new UpdateNowEvent(tenAm + 5_000))
+        renderer.onOutput(new UpdateNowEvent(tenAm + 16_000))
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work > 0 work actions completed  16s", "> :work > Executing work action A  14s", "> :work > Executing work action B  11s"]
+
+        when:
+        renderer.onOutput(complete(2))
+        renderer.onOutput(new UpdateNowEvent(tenAm + 20_000))
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work > 1 work action completed  20s", "> IDLE", "> :work > Executing work action B  15s"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39559")
+    def "times the work of a line on the clock of the console, which can differ from the clock of the daemon"() {
+        given:
+        metaData.getRows() >> 6
+
+        when:
+        // The clock of the console is one hour ahead of the timestamp of the start event
+        renderer.onOutput(start(1, ":foo"))
+        renderer.onOutput(new UpdateNowEvent(tenAm + 3_600_000))
+        console.flush()
+
+        then:
+        progressArea.display == ["> :foo"]
+
+        when:
+        renderer.onOutput(new UpdateNowEvent(tenAm + 3_610_000))
+        console.flush()
+
+        then:
+        progressArea.display == ["> :foo  10s"]
     }
 
     def "events are forwarded to the listener even if are not rendered"() {
