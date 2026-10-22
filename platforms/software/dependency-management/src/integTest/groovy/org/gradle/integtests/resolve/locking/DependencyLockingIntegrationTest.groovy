@@ -17,12 +17,76 @@
 package org.gradle.integtests.resolve.locking
 
 import org.gradle.api.artifacts.dsl.LockMode
+import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
+import spock.lang.Issue
 
 class DependencyLockingIntegrationTest extends AbstractValidatingLockingIntegrationTest {
 
     @Override
     LockMode lockMode() {
         LockMode.DEFAULT
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/39081')
+    @UnsupportedWithConfigurationCache(because = 'resolves configurations in a task action')
+    def 'regenerates lock state after task deletes lock file (early: #earlyResolution, delete: #deleteLockFile)'() {
+        given:
+        mavenRepo.module('org', 'foo', '1.0').publish()
+        mavenRepo.module('org', 'foo', '2.0').publish()
+        file('gradle.lockfile').text = '''org:foo:1.0=early,obsolete
+empty=earlyEmpty,obsoleteEmpty
+'''
+        buildFile << """
+            repositories {
+                maven { url = '${mavenRepo.uri}' }
+            }
+            configurations {
+                early { resolutionStrategy.activateDependencyLocking() }
+                earlyEmpty { resolutionStrategy.activateDependencyLocking() }
+                lockedConf { resolutionStrategy.activateDependencyLocking() }
+                renamedEmpty { resolutionStrategy.activateDependencyLocking() }
+                unlocked
+            }
+            dependencies {
+                early 'org:foo:2.0'
+                lockedConf 'org:foo:1.0'
+                unlocked 'org:foo:1.0'
+            }
+            ${earlyResolution == 'locked' ? 'configurations.early.files; configurations.earlyEmpty.files' : ''}
+            ${earlyResolution == 'unlocked' ? 'configurations.unlocked.files' : ''}
+            def lockFile = file('gradle.lockfile')
+            def configurationsToResolve = [configurations.early, configurations.earlyEmpty, configurations.lockedConf, configurations.renamedEmpty]
+            tasks.register('resetAndLock') {
+                doLast {
+                    if ($deleteLockFile) {
+                        println 'Deleted lock file: ' + lockFile.delete()
+                    }
+                    configurationsToResolve.each { println it.files }
+                }
+            }
+        """
+
+        when:
+        succeeds 'resetAndLock', '--write-locks'
+
+        then:
+        if (deleteLockFile) {
+            outputContains('Deleted lock file: true')
+        }
+        def expected = [early: ['org:foo:2.0'], earlyEmpty: [], lockedConf: ['org:foo:1.0'], renamedEmpty: []]
+        if (!deleteLockFile) {
+            expected.putAll(obsolete: ['org:foo:1.0'], obsoleteEmpty: [])
+        }
+        lockfileFixture.verifyLockfile(expected)
+
+        where:
+        earlyResolution | deleteLockFile
+        'locked'        | true
+        'unlocked'      | true
+        'none'          | true
+        'locked'        | false
+        'unlocked'      | false
+        'none'          | false
     }
 
     def 'succeeds without lock file present and does not create one'() {
