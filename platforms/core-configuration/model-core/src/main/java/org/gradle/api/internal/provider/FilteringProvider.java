@@ -24,8 +24,6 @@ import org.gradle.internal.evaluation.EvaluationScopeContext;
 import org.jspecify.annotations.NonNull;
 import org.jspecify.annotations.Nullable;
 
-import java.util.Set;
-
 /**
  * A filtering provider that uses a spec to filter the value of another provider.
  **/
@@ -96,8 +94,7 @@ public class FilteringProvider<T> extends AbstractMinimalProvider<T> {
 
     protected void beforeRead(EvaluationScopeContext ignored) {
         TaskDependencyContainer guardedDependencies = provider.getProducer()::visitGuardedDependencies;
-        Set<Task> producerTasks = TaskDependencyUtil.newTaskResolver().getDependencies(null, guardedDependencies);
-        for (Task producer : producerTasks) {
+        for (Task producer : TaskDependencyUtil.getDependencies(null, guardedDependencies)) {
             if (!producer.getState().getExecuted()) {
                 throw new ProducerNotCompletedException("filtered", provider, producer);
             }

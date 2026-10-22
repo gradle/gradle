@@ -86,7 +86,7 @@ public class DefaultBuildLogicBuilder implements BuildLogicBuilder {
 
     private List<TaskIdentifier> taskIdentifiersForBuildDependenciesOf(Configuration classpath) {
         TaskDependencyContainer taskDependencies = (TaskDependencyContainer) classpath;
-        Set<? extends Task> tasks = TaskDependencyUtil.newTaskResolver().getDependencies(null, taskDependencies);
+        Set<? extends Task> tasks = TaskDependencyUtil.getDependencies(null, taskDependencies);
 
         List<TaskIdentifier> tasksToBuild = new ArrayList<>();
         for (Task task : tasks) {

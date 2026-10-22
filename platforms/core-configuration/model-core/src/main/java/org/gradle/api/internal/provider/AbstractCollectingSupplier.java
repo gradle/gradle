@@ -41,6 +41,8 @@ abstract class AbstractCollectingSupplier<COLLECTOR extends ValueSupplier, TYPE>
 
     @Override
     public ValueProducer getProducer() {
+        // Collector producers are created lazily, as a collector may refer back to this
+        // supplier's owner, and creating them eagerly would trip circular evaluation detection.
         return ValueProducer.composite(Iterables.transform(collectors, ValueSupplier::getProducer));
     }
 
