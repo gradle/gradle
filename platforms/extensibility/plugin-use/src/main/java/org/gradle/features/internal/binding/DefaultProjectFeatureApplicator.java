@@ -19,6 +19,7 @@ package org.gradle.features.internal.binding;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.Named;
 import org.gradle.api.NamedDomainObjectContainer;
 import org.gradle.api.Plugin;
 import org.gradle.api.Project;
@@ -154,7 +155,13 @@ abstract public class DefaultProjectFeatureApplicator implements ProjectFeatureA
 
         // Instantiate the definition and build model objects with the feature-specific object factory
         OwnDefinition definition = featureObjectFactory.newInstance(projectFeature.getDefinitionImplementationType());
-        OwnBuildModel buildModelInstance = ProjectFeatureSupportInternal.createBuildModelInstance(featureObjectFactory, projectFeature);
+        String definitionName;
+        if (definition instanceof Named) {
+            definitionName = ((Named) definition).getName();
+        } else {
+            definitionName = null;
+        }
+        OwnBuildModel buildModelInstance = ProjectFeatureSupportInternal.createBuildModelInstance(featureObjectFactory, projectFeature, definitionName);
         ProjectFeatureSupportInternal.attachDefinitionContext(definition, buildModelInstance, this, getProjectFeatureDeclarations(), featureObjectFactory);
 
         // Construct an apply action context with the feature-specific object factory
