@@ -361,7 +361,7 @@ class GrammarToTree(
 
                 elementIfNoFailures {
                     if (referenceSelector != null) {
-                        propertyAccess(tree, node, checked(receiver!!), checked(referenceSelector!!), referenceSourceData!!)
+                        propertyAccess(tree, node, checked(receiver!!), checked(referenceSelector), referenceSourceData!!)
                     } else {
                         val functionCall = checked(functionCallSelector!!)
                         Element(FunctionCall(checked(receiver!!), functionCall.name, functionCall.args, isInfix = false, functionCall.sourceData))
@@ -524,7 +524,7 @@ class GrammarToTree(
 
                 var statements: List<ElementResult<DataStatement>>? = null
                 block?.let {
-                    statements = tree.children(block!!).map { statement(tree, it) }
+                    statements = tree.children(block).map { statement(tree, it) }
                 }
 
                 collectingFailure(statements ?: tree.parsingError(node, "Lambda expression without statements"))
@@ -576,7 +576,7 @@ class GrammarToTree(
 
                 syntacticIfNoFailures {
                     Syntactic(
-                        if (identifier != null) FunctionArgument.Named(identifier!!, checked(expression!!), tree.sourceData(node))
+                        if (identifier != null) FunctionArgument.Named(identifier, checked(expression!!), tree.sourceData(node))
                         else FunctionArgument.Positional(checked(expression!!), tree.sourceData(node))
                     )
                 }
@@ -618,7 +618,7 @@ class GrammarToTree(
                                         is Literal.LongLiteral -> {
                                             Element(Literal.LongLiteral(-literal.value, tree.sourceData(node)))
                                         }
-                                        else -> tree.parsingError(argument!!, "Unsupported constant in unary expression: ${literal::class.java}")
+                                        else -> tree.parsingError(argument, "Unsupported constant in unary expression: ${literal::class.java}")
                                     }
                                 }
                             }
