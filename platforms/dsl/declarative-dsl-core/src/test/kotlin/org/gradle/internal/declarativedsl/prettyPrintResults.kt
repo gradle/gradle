@@ -90,7 +90,7 @@ fun prettyPrintLanguageResult(languageResult: LanguageResult<*>, startDepth: Int
                 appendIndented(")")
             }
             is Element -> {
-                append(prettyPrintLanguageTree(current.element as LanguageTreeElement))
+                append(prettyPrintLanguageTree(current.element))
             }
             else -> { error("Unhandled language result type: ${current.javaClass.simpleName}") }
         }

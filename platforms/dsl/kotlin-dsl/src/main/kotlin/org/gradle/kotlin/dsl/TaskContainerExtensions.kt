@@ -71,7 +71,7 @@ operator fun ExistingDomainObjectDelegateProvider<out TaskContainer>.provideDele
     ExistingDomainObjectDelegate.of(
         delegateProvider.named(property.name)
     )
-})!!
+})
 
 
 /**
@@ -88,7 +88,7 @@ operator fun ExistingDomainObjectDelegateProviderWithAction<out TaskContainer, T
     ExistingDomainObjectDelegate.of(
         delegateProvider.named(property.name).apply { configure(action) }
     )
-})!!
+})
 
 
 /**
@@ -105,7 +105,7 @@ operator fun <U : Task> ExistingDomainObjectDelegateProviderWithType<out TaskCon
     ExistingDomainObjectDelegate.of(
         delegateProvider.named(property.name, type)
     )
-})!!
+})
 
 
 /**
@@ -122,7 +122,7 @@ operator fun <U : Task> ExistingDomainObjectDelegateProviderWithTypeAndAction<ou
     ExistingDomainObjectDelegate.of(
         delegateProvider.named(property.name, type).apply { configure(action) }
     )
-})!!
+})
 
 
 /**
@@ -139,7 +139,7 @@ operator fun RegisteringDomainObjectDelegateProvider<out TaskContainer>.provideD
     ExistingDomainObjectDelegate.of(
         delegateProvider.register(property.name)
     )
-})!!
+})
 
 
 /**
@@ -156,7 +156,7 @@ operator fun RegisteringDomainObjectDelegateProviderWithAction<out TaskContainer
     ExistingDomainObjectDelegate.of(
         delegateProvider.register(property.name, action)
     )
-})!!
+})
 
 
 /**
@@ -173,7 +173,7 @@ operator fun <U : Task> RegisteringDomainObjectDelegateProviderWithType<out Task
     ExistingDomainObjectDelegate.of(
         delegateProvider.register(property.name, type.java)
     )
-})!!
+})
 
 
 /**
@@ -190,7 +190,7 @@ operator fun <U : Task> RegisteringDomainObjectDelegateProviderWithTypeAndAction
     ExistingDomainObjectDelegate.of(
         delegateProvider.register(property.name, type.java, action)
     )
-})!!
+})
 
 
 /**
@@ -370,7 +370,7 @@ inline fun <reified T : Task> TaskContainer.create(name: String, noinline config
 val TaskContainer.creating
     get() = DeprecationLogger.whileDisabled(Factory {
         NamedDomainObjectContainerCreatingDelegateProvider.of(this)
-    })!!.also {
+    }).also {
         DeprecationLogger.deprecate("The 'val name by creating' property delegate syntax")
             .withAdvice("Use 'val element = create(name)' instead.")
             .willBeRemovedInGradle10()
@@ -390,7 +390,7 @@ val TaskContainer.creating
 fun TaskContainer.creating(configuration: Task.() -> Unit) =
     DeprecationLogger.whileDisabled(Factory {
         NamedDomainObjectContainerCreatingDelegateProvider.of(this, configuration)
-    })!!.also {
+    }).also {
         DeprecationLogger.deprecate("The 'val name by creating { }' property delegate syntax")
             .withAdvice("Use 'val element = create(name) { }' instead.")
             .willBeRemovedInGradle10()
@@ -408,7 +408,7 @@ fun TaskContainer.creating(configuration: Task.() -> Unit) =
 fun <U : Task> TaskContainer.creating(type: KClass<U>) =
     DeprecationLogger.whileDisabled(Factory {
         PolymorphicDomainObjectContainerCreatingDelegateProvider.of(this, type.java)
-    })!!.also {
+    }).also {
         DeprecationLogger.deprecate("The 'val name by creating(Type::class)' property delegate syntax")
             .withAdvice("Use 'val element = create<Type>(name)' instead.")
             .willBeRemovedInGradle10()
