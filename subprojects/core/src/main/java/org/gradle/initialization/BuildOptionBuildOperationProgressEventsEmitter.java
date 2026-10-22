@@ -39,7 +39,7 @@ public class BuildOptionBuildOperationProgressEventsEmitter implements BuildTree
     }
 
     @Override
-    public void afterStart() {
+    public void afterBuildTreeStart() {
         eventEmitter.emitNowForCurrent(new ConfigurationCacheSettingsFinalizedProgressDetails() {
             @Override
             public boolean isEnabled() {
