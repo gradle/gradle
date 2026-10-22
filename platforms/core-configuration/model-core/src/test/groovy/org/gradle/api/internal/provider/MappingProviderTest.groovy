@@ -66,6 +66,20 @@ class MappingProviderTest extends ProviderSpec<String> {
         return new ManagedFactories.ProviderManagedFactory()
     }
 
+    def "keeps changing content of fixed value"() {
+        given:
+        def upstream = new Providers.FixedValueWithChangingContentProvider("value")
+        def provider = new MappingProvider(String, upstream, { String value -> value.toUpperCase() })
+
+        when:
+        def value = provider.calculateExecutionTimeValue()
+
+        then:
+        value.hasFixedValue()
+        value.hasChangingContent()
+        value.fixedValue == "VALUE"
+    }
+
     static class MappingProviderCircularFunctionEvaluationTest extends CircularFunctionEvaluationSpec<String> {
         @Override
         ProviderInternal<String> providerWithSelfReference() {
