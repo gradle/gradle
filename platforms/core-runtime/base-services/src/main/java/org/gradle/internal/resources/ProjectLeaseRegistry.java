@@ -108,4 +108,10 @@ public interface ProjectLeaseRegistry extends BlockingNotifier {
      */
     <T> T whileDisallowingProjectLockChanges(Factory<T> action);
 
+    /**
+     * Returns {@code true} if the current thread may acquire or release project locks,
+     * that is, it is not running an action passed to {@link #whileDisallowingProjectLockChanges(Factory)}.
+     */
+    boolean mayChangeProjectLocks();
+
 }

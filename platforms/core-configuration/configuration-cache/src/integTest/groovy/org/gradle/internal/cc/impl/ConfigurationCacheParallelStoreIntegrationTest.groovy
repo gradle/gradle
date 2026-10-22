@@ -55,6 +55,168 @@ class ConfigurationCacheParallelStoreIntegrationTest extends AbstractConfigurati
         }
     }
 
+    def "lazy tasks of a project referenced by tasks of other projects can be realized while storing in parallel"() {
+        given:
+        def consumers = (1..30).collect { "consumer$it" }
+        def configurationCache = newConfigurationCacheFixture()
+        settingsFile << """
+            include 'lib', ${consumers.collect { "'${it}'" }.join(',')}
+        """
+        consumers.each { file(it).createDir() }
+        file("lib/build.gradle") << """
+            (1..50).each { i ->
+                tasks.register("libTask\$i") {
+                    outputs.file(layout.buildDirectory.file("libTask\${i}.txt"))
+                }
+            }
+        """
+        buildFile << """
+            abstract class ConsumerTask extends DefaultTask {
+                // Not an input, so that the lib tasks are not realized while the task graph is calculated
+                @Internal
+                abstract ConfigurableFileCollection getLibOutputs()
+
+                @TaskAction
+                void run() {}
+            }
+
+            subprojects {
+                if (name.startsWith('consumer')) {
+                    evaluationDependsOn(':lib')
+                    def lib = project(':lib')
+                    tasks.register('consume', ConsumerTask) {
+                        (1..50).each { i ->
+                            libOutputs.from(lib.tasks.named("libTask\$i").map { it.outputs.files })
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("--parallel", "consume")
+
+        then:
+        configurationCache.assertStateStored()
+    }
+
+    def "lazy tasks of projects referencing each other can realize tasks of other projects while storing in parallel"() {
+        given:
+        def projects = (1..30).collect { "proj$it" }
+        def configurationCache = newConfigurationCacheFixture()
+        settingsFile << """
+            include 'shared', ${projects.collect { "'${it}'" }.join(',')}
+        """
+        (projects + "shared").each { file(it).createDir() }
+        buildFile << """
+            abstract class ConsumerTask extends DefaultTask {
+                // Not an input, so that the referenced tasks are not realized while the task graph is calculated
+                @Internal
+                abstract ConfigurableFileCollection getOtherOutputs()
+
+                @TaskAction
+                void run() {}
+            }
+
+            project(':shared') {
+                (1..50).each { i ->
+                    tasks.register("sharedTask\$i")
+                }
+            }
+
+            def projectNames = [${projects.collect { "'${it}'" }.join(',')}]
+            subprojects {
+                if (name.startsWith('proj')) {
+                    evaluationDependsOn(':shared')
+                    def index = projectNames.indexOf(name)
+                    def neighbours = [projectNames[(index + 1) % projectNames.size()], projectNames[(index + projectNames.size() - 1) % projectNames.size()]]
+                    (1..50).each { i ->
+                        tasks.register("lazyTask\$i") {
+                            // Realizes a task of a third project while this task is realized on behalf of another project
+                            dependsOn(project(':shared').tasks.named("sharedTask\$i").get())
+                            outputs.file(layout.buildDirectory.file("lazyTask\${i}.txt"))
+                        }
+                    }
+                    tasks.register('consume', ConsumerTask) {
+                        neighbours.each { neighbour ->
+                            (1..50).each { i ->
+                                otherOutputs.from(project(":\$neighbour").tasks.named("lazyTask\$i").map { it.outputs.files })
+                            }
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("--parallel", "consume")
+
+        then:
+        configurationCache.assertStateStored()
+    }
+
+    def "lazy elements of #container of a project referenced by tasks of other projects can be realized while storing in parallel"() {
+        given:
+        def consumers = (1..30).collect { "consumer$it" }
+        def configurationCache = newConfigurationCacheFixture()
+        settingsFile << """
+            include 'lib', ${consumers.collect { "'${it}'" }.join(',')}
+        """
+        (consumers + "lib").each { file(it).createDir() }
+        buildFile << """
+            abstract class Item implements Named {
+                private final String name
+
+                @javax.inject.Inject
+                Item(String name) {
+                    this.name = name
+                }
+
+                String getName() {
+                    name
+                }
+
+                abstract RegularFileProperty getFile()
+            }
+
+            abstract class ConsumerTask extends DefaultTask {
+                // Not an input, so that the elements are not realized while the task graph is calculated
+                @Internal
+                abstract ConfigurableFileCollection getLibOutputs()
+
+                @TaskAction
+                void run() {}
+            }
+
+            project(':lib') {
+                $libSetup
+            }
+
+            subprojects {
+                if (name.startsWith('consumer')) {
+                    evaluationDependsOn(':lib')
+                    def lib = project(':lib')
+                    tasks.register('consume', ConsumerTask) {
+                        (1..50).each { i ->
+                            libOutputs.from($consumerReference)
+                        }
+                    }
+                }
+            }
+        """
+
+        when:
+        configurationCacheRun("--parallel", "consume")
+
+        then:
+        configurationCache.assertStateStored()
+
+        where:
+        container                                       | libSetup                                                                                                                                                                                                                                        | consumerReference
+        "a container created by the object factory"     | "def items = objects.domainObjectContainer(Item); (1..50).each { i -> items.register(\"item\$i\") { file.set(layout.buildDirectory.file(\"item\${i}.txt\")) } }; extensions.add('items', items)"                                          | "lib.extensions.getByName('items').named(\"item\$i\").flatMap { it.file }"
+        "a polymorphic container"                       | "def items = objects.polymorphicDomainObjectContainer(Item); items.registerFactory(Item) { objects.newInstance(Item, it) }; (1..50).each { i -> items.register(\"item\$i\", Item) { file.set(layout.buildDirectory.file(\"item\${i}.txt\")) } }; extensions.add('items', items)" | "lib.extensions.getByName('items').named(\"item\$i\").flatMap { it.file }"
+    }
+
     def "parallel store is disabled by default"() {
         given:
         settingsFile.createFile()
