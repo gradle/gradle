@@ -161,6 +161,26 @@ class TestCountLoggerTest extends Specification {
         e.getCauses().size() == 5
     }
 
+    def "counts executed tests when filtering is applied"() {
+        // Simulates a scenario where 5 tests were discovered but only 2 were executed due to filtering
+        TestDescriptor test1 = test()
+        TestDescriptor test2 = test()
+
+        logger.beforeSuite(rootSuite)
+
+        when:
+        // Each result reports a testCount of 1 (the number of executed tests in that result)
+        // When filtering is applied, testCount should reflect executed tests, not discovered tests
+        logger.afterTest(test1, result())
+        logger.afterTest(test2, result())
+        logger.afterSuite(rootSuite, result())
+
+        then:
+        // totalTests should be 2 (executed), not a higher number (e.g., 5 discovered)
+        logger.totalTests == 2
+        1 * progressLogger.progress('2 tests completed')
+    }
+
     private test() {
         [:] as TestDescriptor
     }
