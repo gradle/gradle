@@ -28,13 +28,15 @@ public class ProgressOperation {
     private final String category;
     private final OperationIdentifier operationId;
     private final ProgressOperation parent;
+    private final long startTimestamp;
     private Set<ProgressOperation> children;
 
-    public ProgressOperation(String status, String category, OperationIdentifier operationId, ProgressOperation parent) {
+    public ProgressOperation(String status, String category, OperationIdentifier operationId, ProgressOperation parent, long startTimestamp) {
         this.status = status;
         this.category = category;
         this.operationId = operationId;
         this.parent = parent;
+        this.startTimestamp = startTimestamp;
     }
 
     @Override
@@ -59,6 +61,10 @@ public class ProgressOperation {
 
     public OperationIdentifier getOperationId() {
         return operationId;
+    }
+
+    public long getStartTimestamp() {
+        return startTimestamp;
     }
 
     public ProgressOperation getParent() {

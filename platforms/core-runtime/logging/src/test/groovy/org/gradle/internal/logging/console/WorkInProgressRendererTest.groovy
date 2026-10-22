@@ -18,7 +18,9 @@ package org.gradle.internal.logging.console
 
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.events.OutputEventListener
+import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
+import spock.lang.Issue
 import spock.lang.Subject
 
 @Subject(WorkInProgressRenderer)
@@ -42,6 +44,57 @@ class WorkInProgressRendererTest extends OutputSpecification {
         then:
         progressArea.display == ["> :bar"]
         cursorParkText == ""
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39559")
+    def "shows how long the work of a line has run, at each update"() {
+        given:
+        metaData.getRows() >> 6
+
+        when:
+        renderer.onOutput(start(1, ":foo"))
+        renderer.onOutput(new UpdateNowEvent(tenAm))
+        renderer.onOutput(new UpdateNowEvent(tenAm + 9_999))
+        console.flush()
+
+        then:
+        progressArea.display == ["> :foo"]
+
+        when:
+        renderer.onOutput(new UpdateNowEvent(tenAm + 10_000))
+        console.flush()
+
+        then:
+        progressArea.display == ["> :foo  10s"]
+
+        when:
+        renderer.onOutput(new UpdateNowEvent(tenAm + 12_000))
+        console.flush()
+
+        then:
+        progressArea.display == ["> :foo  12s"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39559")
+    def "times the work of a line on the clock of the console, which can differ from the clock of the daemon"() {
+        given:
+        metaData.getRows() >> 6
+
+        when:
+        // The clock of the console is one hour ahead of the timestamp of the start event
+        renderer.onOutput(start(1, ":foo"))
+        renderer.onOutput(new UpdateNowEvent(tenAm + 3_600_000))
+        console.flush()
+
+        then:
+        progressArea.display == ["> :foo"]
+
+        when:
+        renderer.onOutput(new UpdateNowEvent(tenAm + 3_610_000))
+        console.flush()
+
+        then:
+        progressArea.display == ["> :foo  10s"]
     }
 
     def "events are forwarded to the listener even if are not rendered"() {

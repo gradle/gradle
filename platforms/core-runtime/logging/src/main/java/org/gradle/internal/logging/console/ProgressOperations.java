@@ -25,12 +25,12 @@ import java.util.Map;
 public class ProgressOperations {
     private final Map<OperationIdentifier, ProgressOperation> operationsById = new HashMap<OperationIdentifier, ProgressOperation>();
 
-    public ProgressOperation start(String status, String category, OperationIdentifier operationId, @Nullable OperationIdentifier parentOperationId) {
+    public ProgressOperation start(String status, String category, OperationIdentifier operationId, @Nullable OperationIdentifier parentOperationId, long startTimestamp) {
         ProgressOperation parent = null;
         if (parentOperationId != null) {
             parent = operationsById.get(parentOperationId);
         }
-        ProgressOperation operation = new ProgressOperation(status, category, operationId, parent);
+        ProgressOperation operation = new ProgressOperation(status, category, operationId, parent, startTimestamp);
         if (parent != null) {
             parent.addChild(operation);
         }
