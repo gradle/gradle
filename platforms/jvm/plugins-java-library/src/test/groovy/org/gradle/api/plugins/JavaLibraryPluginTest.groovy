@@ -19,8 +19,10 @@ package org.gradle.api.plugins
 import org.gradle.api.artifacts.Dependency
 import org.gradle.api.artifacts.ModuleDependency
 import org.gradle.api.internal.component.SoftwareComponentInternal
+import org.gradle.api.internal.plugins.PluginApplicationException
 import org.gradle.api.internal.tasks.JvmConstants
 import org.gradle.test.fixtures.AbstractProjectBuilderSpec
+import org.gradle.testing.base.TestingExtension
 import org.gradle.util.TestUtil
 
 import static org.gradle.util.internal.WrapUtil.toSet
@@ -222,6 +224,20 @@ class JavaLibraryPluginTest extends AbstractProjectBuilderSpec {
         apiVariant.dependencies == project.configurations.getByName(JvmConstants.API_CONFIGURATION_NAME).allDependencies.withType(ModuleDependency)
         apiVariant.dependencyConstraints.size() == 1
         apiVariant.dependencyConstraints == project.configurations.getByName(JvmConstants.API_CONFIGURATION_NAME).allDependencyConstraints
+    }
+
+    def "reports a missing default test suite"() {
+        given:
+        project.pluginManager.apply(JavaPlugin)
+        def testing = project.extensions.getByType(TestingExtension)
+        testing.suites.remove(testing.suites.getByName("test"))
+
+        when:
+        project.pluginManager.apply(JavaLibraryPlugin)
+
+        then:
+        PluginApplicationException e = thrown()
+        e.cause.message == "The default test suite 'test' is required. This project has no JVM test suite named 'test' in 'testing.suites'."
     }
 
 }
