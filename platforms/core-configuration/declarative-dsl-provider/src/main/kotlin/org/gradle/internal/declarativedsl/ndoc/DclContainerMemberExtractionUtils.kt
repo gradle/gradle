@@ -71,7 +71,7 @@ object DclContainerMemberExtractionUtils {
                         }
                     } ?: host.schemaBuildingError("Could not find the type argument for container element in ${containerType.toKType()}")
                     argWithSubstitution.flatMap {
-                        if (it?.classifier is KTypeParameter)
+                        if (it.classifier is KTypeParameter)
                             host.schemaBuildingFailure(SchemaBuildingIssue.IllegalUsageOfTypeParameterBoundByClass(it.toKType()))
                         else schemaResult(it)
                     }
