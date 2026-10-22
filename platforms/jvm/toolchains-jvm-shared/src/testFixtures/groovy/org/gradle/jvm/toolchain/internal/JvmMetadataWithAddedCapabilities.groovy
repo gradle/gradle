@@ -40,7 +40,8 @@ class JvmMetadataWithAddedCapabilities implements JvmInstallationMetadata {
 
     @Override
     Set<JavaInstallationCapability> getCapabilities() {
-        EnumSet<JavaInstallationCapability> capabilities = EnumSet.copyOf(metadata.getCapabilities())
+        EnumSet<JavaInstallationCapability> capabilities = EnumSet.noneOf(JavaInstallationCapability)
+        capabilities.addAll(metadata.getCapabilities())
         capabilities.addAll(additionalCapabilities)
         return Sets.immutableEnumSet(capabilities)
     }
