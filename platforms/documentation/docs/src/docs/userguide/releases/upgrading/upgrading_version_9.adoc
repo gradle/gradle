@@ -47,8 +47,9 @@ The previous step will help you identify potential problems by issuing deprecati
 This change affects builds that use the <<configuration_cache.adoc#config_cache,Configuration Cache>>.
 
 Gradle evaluates a provider of a task output after the task runs.
-This did not apply to providers derived from a task output with link:{javadocPath}/org/gradle/api/file/FileSystemLocationProperty.html#getAsFile()[`asFile`], link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#dir(java.lang.String)[`dir(...)`], link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#file(java.lang.String)[`file(...)`] or link:{javadocPath}/org/gradle/api/provider/Provider.html#zip(org.gradle.api.provider.Provider,java.util.function.BiFunction)[`zip(...)`]: Gradle evaluated them when storing the Configuration Cache entry, before the task ran, so they could see a missing or outdated file.
-Now they are evaluated after the task runs, too:
+This did not apply to providers derived from a task output with link:{javadocPath}/org/gradle/api/file/FileSystemLocationProperty.html#getAsFile()[`asFile`], link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#dir(java.lang.String)[`dir(...)`], link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#file(java.lang.String)[`file(...)`] or link:{javadocPath}/org/gradle/api/provider/Provider.html#zip(org.gradle.api.provider.Provider,java.util.function.BiFunction)[`zip(...)`].
+Gradle evaluated them when storing the Configuration Cache entry, before the task ran, so they could see a missing or outdated file.
+Gradle now evaluates them after the task runs as well:
 
 [source,kotlin]
 .build.gradle.kts
@@ -56,7 +57,7 @@ Now they are evaluated after the task runs, too:
 // Already evaluated after `producer` ran
 inputFiles.add(producer.flatMap { it.outputFile }.map { it.asFile }.filter { it.exists() })
 
-// Previously evaluated before `producer` ran, so the file was always filtered out; now the same as above
+// Previously evaluated before `producer` ran, so the result reflected stale build state; now the same as above
 inputFiles.add(producer.flatMap { it.outputFile.asFile }.filter { it.exists() })
 ----
 
