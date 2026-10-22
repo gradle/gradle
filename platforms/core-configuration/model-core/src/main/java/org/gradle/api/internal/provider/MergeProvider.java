@@ -17,7 +17,6 @@ package org.gradle.api.internal.provider;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.ImmutableList;
-import com.google.common.collect.Iterables;
 import org.gradle.api.provider.Provider;
 import org.gradle.internal.Cast;
 import org.jspecify.annotations.Nullable;
@@ -104,7 +103,11 @@ public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
 
     @Override
     public ValueProducer getProducer() {
-        return ValueProducer.composite(Iterables.transform(items, item -> Providers.internal(item).getProducer()));
+        ImmutableList.Builder<ValueProducer> producers = ImmutableList.builderWithExpectedSize(items.size());
+        for (Provider<R> item : items) {
+            producers.add(Providers.internal(item).getProducer());
+        }
+        return ValueProducer.composite(producers.build());
     }
 
 }

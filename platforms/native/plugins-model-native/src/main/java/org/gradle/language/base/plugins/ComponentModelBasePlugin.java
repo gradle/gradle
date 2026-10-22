@@ -219,7 +219,7 @@ public abstract class ComponentModelBasePlugin implements Plugin<Project> {
 
             @Override
             public void execute(Task task) {
-                Set<? extends Task> taskDependencies = TaskDependencyUtil.newTaskResolver().getDependencies(task, TaskInternalUtil.getTaskDependencies(task));
+                Set<? extends Task> taskDependencies = TaskDependencyUtil.getDependencies(task, TaskInternalUtil.getTaskDependencies(task));
 
                 if (taskDependencies.isEmpty()) {
                     TreeFormatter formatter = new TreeFormatter();
