@@ -62,10 +62,10 @@ class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpe
         assertSuccess(result)
     }
 
-    def "precompiled Kotlin plugins built with current Gradle version can be used with Gradle 9.0.0+"() {
+    def "precompiled Kotlin plugins built with current Gradle version can be used with Gradle 9.7.0+"() {
 
-        // 9.0.0 is the first version that embeds Kotlin 2.2 and can execute code compiled for Kotlin 2.2
-        assumeTrue(previous.version >= GradleVersion.version('9.0.0'))
+        // 9.7.0 is the first version that embeds Kotlin 2.4 and can read code compiled for Kotlin 2.5
+        assumeTrue(previous.version >= GradleVersion.version('9.7.0'))
 
         given:
         precompiledKotlinPluginsBuiltWith(current)

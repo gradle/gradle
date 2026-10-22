@@ -17,6 +17,7 @@
 package org.gradle.kotlin.dsl
 
 import org.gradle.api.HasImplicitReceiver
+import org.gradle.kotlin.dsl.support.KOTLIN_DSL_LANGUAGE_VERSION
 import org.jetbrains.kotlin.scripting.definitions.annotationsForSamWithReceivers
 import kotlin.script.experimental.api.KotlinType
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
@@ -35,8 +36,8 @@ abstract class KotlinDslStandaloneScriptCompilationConfiguration protected const
 
     isStandalone(true)
     compilerOptions.put(listOf(
-        "-language-version", "2.2",
-        "-api-version", "2.2",
+        "-language-version", KOTLIN_DSL_LANGUAGE_VERSION,
+        "-api-version", KOTLIN_DSL_LANGUAGE_VERSION,
         "-jvm-default=enable",
         "-Xjsr305=strict",
         "-Xjspecify-annotations=strict",
