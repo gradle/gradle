@@ -438,12 +438,14 @@ class ConfigurationCacheFingerprintController internal constructor(
             report.onInput(input)
 
         override fun reportProblem(
+            name: String,
             exception: Throwable?,
             documentationSection: DocumentationSection?,
             message: StructuredMessageBuilder
         ) =
             problems.onProblem(
                 problemFactory.problem(
+                    name,
                     StructuredMessage.build(message),
                     exception,
                     documentationSection

@@ -19,7 +19,6 @@ package org.gradle.api.internal.plugins;
 import org.apache.commons.lang3.reflect.TypeUtils;
 import org.gradle.api.Plugin;
 import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.configuration.ConfigurationTargetIdentifier;
 import org.gradle.internal.deprecation.Documentation;
@@ -70,7 +69,7 @@ public class ImperativeOnlyPluginTarget<T extends PluginAwareInternal> implement
         }
 
         String message = String.format("The plugin must be applied %s, but was applied %s", actualTargetType.getApplyTargetDescription(), targetType.getApplyTargetDescription());
-        ProblemId id = ProblemId.create("target-type-mismatch", "Unexpected plugin type", GradleCoreProblemGroup.pluginApplication());
+        ProblemId id = problems.getGroups().getGradle().getBuildDefinition().problemId("Plugin applied to the wrong target");
         throw problems.getInternalReporter()
             .throwing(new IllegalArgumentException(message), id, spec -> {
                 spec.contextualLabel(message)

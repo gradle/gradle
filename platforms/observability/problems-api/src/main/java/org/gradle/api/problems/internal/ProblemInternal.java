@@ -19,6 +19,7 @@ package org.gradle.api.problems.internal;
 import org.gradle.api.problems.AdditionalData;
 import org.gradle.api.problems.Problem;
 import org.gradle.api.problems.ProblemDefinition;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
 import org.jspecify.annotations.Nullable;
 
@@ -30,6 +31,11 @@ public interface ProblemInternal extends Problem {
      * Returns a problem builder with fields initialized with values from this instance.
      */
     ProblemBuilderInternal toBuilder(ProblemsInfrastructure infrastructure);
+
+    /**
+     * Returns a copy of this problem with the given id; everything else is unchanged.
+     */
+    ProblemInternal withId(ProblemId id);
 
     /**
      * Returns the problem definition, i.e. the data that is independent of the report context.

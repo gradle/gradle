@@ -28,8 +28,6 @@ import org.gradle.api.internal.project.ProjectStateRegistry;
 import org.gradle.api.internal.properties.GradlePropertiesController;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
-import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.configuration.project.BuiltInCommand;
 import org.gradle.initialization.layout.BuildLayout;
@@ -206,7 +204,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
         StartParameterInternal startParameter = gradle.getStartParameter();
         BuildLayout buildLayout = buildLayoutFactory.getLayoutFor(startParameter.toBuildLayoutConfiguration());
         if (buildLayout.getSettingsFileResolution() != null) {
-            ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(problems.getReporter());
+            ScriptResolutionResultReporter reporter = new ScriptResolutionResultReporter(problems);
             reporter.reportResolutionProblemsOf(buildLayout.getSettingsFileResolution());
         }
 
@@ -258,7 +256,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
     ) {
         ScriptResolutionResult resolutionResult = buildLayout.getSettingsFileResolution();
         if (resolutionResult != null) {
-            new ScriptResolutionResultReporter(problems.getReporter()).reportResolutionProblemsOf(resolutionResult);
+            new ScriptResolutionResultReporter(problems).reportResolutionProblemsOf(resolutionResult);
         }
 
         SettingsState state = settingsProcessor.process(gradle, buildLayout, classLoaderScope, startParameter);
@@ -289,7 +287,7 @@ public class DefaultSettingsPreparer implements SettingsPreparer {
                     projectDir
                 )
             ),
-            ProblemId.create("configuring-project-with-invalid-directory", "Configuring project with invalid directory", GradleCoreProblemGroup.configurationUsage()),
+            problems.getGroups().getGradle().getBuildDefinition().problemId("Configuring project with invalid directory"),
             spec ->
                 spec.solution("Make sure the project directory exists and is writable.")
                     .documentedAt(Documentation.userManual("multi_project_builds", "include_existing_projects_only").getUrl())

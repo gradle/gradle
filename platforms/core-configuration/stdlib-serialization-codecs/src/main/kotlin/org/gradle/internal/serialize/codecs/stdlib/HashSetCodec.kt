@@ -44,7 +44,7 @@ suspend fun WriteContext.writeCollectionCheckingForCircularElements(collection: 
     var writeCircularMarker = true
     writeCollection(collection) { element ->
         if (element != null && element in circularReferences && element.javaClass.overridesHashCode()) {
-            logPropertyProblem("serialize") {
+            logPropertyProblem("serialize", "Circular reference in hash-based collection") {
                 text("Circular references can lead to undefined behavior upon deserialization.")
             }
             if (writeCircularMarker) {

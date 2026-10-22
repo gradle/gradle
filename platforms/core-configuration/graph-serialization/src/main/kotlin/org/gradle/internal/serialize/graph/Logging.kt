@@ -18,7 +18,6 @@ package org.gradle.internal.serialize.graph
 
 import org.gradle.api.internal.GeneratedSubclasses.unpackType
 import org.gradle.internal.configuration.problems.DocumentationSection
-import org.gradle.internal.configuration.problems.DocumentationSection.NotYetImplemented
 import org.gradle.internal.configuration.problems.DocumentationSection.RequirementsDisallowedTypes
 import org.gradle.internal.configuration.problems.PropertyKind
 
@@ -28,6 +27,14 @@ import org.gradle.internal.configuration.problems.StructuredMessageBuilder
 import org.gradle.internal.configuration.problems.propertyDescriptionFor
 
 import kotlin.reflect.KClass
+
+
+/**
+ * The problem name for a value of a type the configuration cache cannot serialize.
+ */
+@PublishedApi
+internal
+const val TYPE_UNSUPPORTED_FOR_SERIALIZATION = "Type unsupported for serialization"
 
 
 fun MutableIsolateContext.reportUnsupportedFieldType(
@@ -48,9 +55,10 @@ fun IsolateContext.logUnsupportedBaseType(
     baseType: KClass<*>,
     actualType: Class<*>,
     documentationSection: DocumentationSection = DocumentationSection.RequirementsDisallowedTypes,
-    appendix: StructuredMessageBuilder = {}
+    appendix: StructuredMessageBuilder = {},
+    name: String = TYPE_UNSUPPORTED_FOR_SERIALIZATION
 ) {
-    logUnsupported(action, documentationSection, appendix) {
+    logUnsupported(action, name, documentationSection, appendix) {
         text(" object of type ")
         reference(actualType)
         text(", a subtype of ")
@@ -62,10 +70,11 @@ fun IsolateContext.logUnsupportedBaseType(
 
 fun IsolateContext.logPropertyProblem(
     action: String,
+    name: String,
     documentationSection: DocumentationSection? = null,
     message: StructuredMessageBuilder
 ) {
-    logPropertyProblem(action, PropertyProblem(trace, build(message), documentationSection = documentationSection))
+    logPropertyProblem(action, PropertyProblem(trace, name, build(message), documentationSection = documentationSection))
 }
 
 
@@ -73,9 +82,10 @@ fun IsolateContext.logUnsupported(
     action: String,
     baseType: KClass<*>,
     documentationSection: DocumentationSection = RequirementsDisallowedTypes,
-    appendix: StructuredMessageBuilder = {}
+    appendix: StructuredMessageBuilder = {},
+    name: String = TYPE_UNSUPPORTED_FOR_SERIALIZATION
 ) {
-    logUnsupported(action, documentationSection, appendix) {
+    logUnsupported(action, name, documentationSection, appendix) {
         text(" object of type ")
         reference(baseType)
     }
@@ -84,12 +94,14 @@ fun IsolateContext.logUnsupported(
 
 fun IsolateContext.logUnsupported(
     action: String,
+    name: String,
     documentationSection: DocumentationSection = RequirementsDisallowedTypes,
     appendix: StructuredMessageBuilder = {},
     unsupportedThings: StructuredMessageBuilder
 ) {
     logPropertyProblem(
         action,
+        name,
         documentationSection = documentationSection,
     ) {
         text("cannot ")
@@ -102,30 +114,11 @@ fun IsolateContext.logUnsupported(
 
 
 fun IsolateContext.logNotImplemented(baseType: Class<*>) {
-    logPropertyProblem {
+    logPropertyProblem("serialize", "Type not yet supported") {
         text("objects of type ")
         reference(baseType)
         text(" are not yet supported with the configuration cache.")
     }
-}
-
-
-fun IsolateContext.logNotImplemented(feature: String, documentationSection: DocumentationSection = NotYetImplemented) {
-    onProblem(
-        PropertyProblem(
-            trace,
-            build {
-                text("support for $feature is not yet implemented with the configuration cache.")
-            },
-            documentationSection = documentationSection
-        )
-    )
-}
-
-
-fun IsolateContext.logPropertyProblem(documentationSection: DocumentationSection? = null, message: StructuredMessageBuilder) {
-    val problem = PropertyProblem(trace, build(message), documentationSection = documentationSection)
-    logPropertyProblem("serialize", problem)
 }
 
 
