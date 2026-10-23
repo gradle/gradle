@@ -16,11 +16,8 @@
 
 package org.gradle.vcs.internal.resolver;
 
-import com.google.common.collect.ImmutableSet;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.VersionConstraint;
 import org.gradle.api.artifacts.component.ModuleComponentSelector;
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.ChangingValueDependencyResolutionListener;
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.LatestVersionSelector;
@@ -81,8 +78,7 @@ public class DefaultVcsVersionWorkingDirResolver implements VcsVersionWorkingDir
         }
 
         if (isDynamic(constraint)) {
-            ModuleVersionIdentifier resolvedId = DefaultModuleVersionIdentifier.newId(selector.getModuleIdentifier(), selectedVersion.getVersion());
-            listener.onDynamicVersionSelection(selector, ALWAYS_EXPIRED, ImmutableSet.of(resolvedId));
+            listener.onDynamicVersionSelection(selector, ALWAYS_EXPIRED);
         }
 
         File workingDir = prepareWorkingDir(repository, selectedVersion);

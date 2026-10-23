@@ -15,13 +15,14 @@
  */
 package org.gradle.api.internal.artifacts.cache;
 
-import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-
-import java.util.Set;
-
 /**
  * Command methods for controlling dependency resolution via the DSL.
  */
-public interface DependencyResolutionControl extends ResolutionControl<ModuleIdentifier, Set<ModuleVersionIdentifier>> {
+public interface DependencyResolutionControl extends ResolutionControl {
+
+    /**
+     * Return true if the version listing contains any versions. False otherwise.
+     */
+    boolean hasVersions();
+
 }

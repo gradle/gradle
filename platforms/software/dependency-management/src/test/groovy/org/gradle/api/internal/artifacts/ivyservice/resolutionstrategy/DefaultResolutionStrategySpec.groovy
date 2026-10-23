@@ -19,11 +19,9 @@ package org.gradle.api.internal.artifacts.ivyservice.resolutionstrategy
 import org.gradle.api.Action
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.artifacts.ComponentSelectionRules
-import org.gradle.api.artifacts.ResolvedModuleVersion
 import org.gradle.api.internal.artifacts.ComponentSelectorConverter
 import org.gradle.api.internal.artifacts.DefaultImmutableModuleIdentifierFactory
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.DependencySubstitutionInternal
 import org.gradle.api.internal.artifacts.GlobalDependencyResolutionRules
 import org.gradle.api.internal.artifacts.configurations.ConflictResolution
@@ -35,7 +33,6 @@ import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.Depen
 import org.gradle.api.internal.artifacts.ivyservice.dependencysubstitution.DependencySubstitutionsInternal
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionReasons
 import org.gradle.internal.Actions
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
 import org.gradle.internal.rules.NoInputsRuleAction
 import org.gradle.util.TestUtil
@@ -199,55 +196,39 @@ class DefaultResolutionStrategySpec extends Specification {
     }
 
     def "configures changing modules cache with jdk5+ units"() {
-        given:
-        def id = DefaultModuleVersionIdentifier.newId("foo", "bar", "1.0")
-        ResolvedModuleVersion moduleVersion = () -> id
-
         when:
         strategy.cacheChangingModulesFor(30000, "milliseconds")
 
         then:
-        !strategy.getCachePolicy().asImmutable().changingModuleExpiry(DefaultModuleComponentIdentifier.newId(id), moduleVersion, Duration.ofMillis(30000)).isMustCheck()
-        strategy.getCachePolicy().asImmutable().changingModuleExpiry(DefaultModuleComponentIdentifier.newId(id), moduleVersion, Duration.ofMillis(30001)).isMustCheck()
+        !strategy.getCachePolicy().asImmutable().moduleExpiry(Duration.ofMillis(30000), true).isMustCheck()
+        strategy.getCachePolicy().asImmutable().moduleExpiry(Duration.ofMillis(30001), true).isMustCheck()
     }
 
     def "configures changing modules cache with jdk6+ units"() {
-        given:
-        def id = DefaultModuleVersionIdentifier.newId("foo", "bar", "1.0")
-        ResolvedModuleVersion moduleVersion = () -> id
-
         when:
         strategy.cacheChangingModulesFor(5, "minutes")
 
         then:
-        !strategy.getCachePolicy().asImmutable().changingModuleExpiry(DefaultModuleComponentIdentifier.newId(id), moduleVersion, Duration.ofMinutes(5)).isMustCheck()
-        strategy.getCachePolicy().asImmutable().changingModuleExpiry(DefaultModuleComponentIdentifier.newId(id), moduleVersion, Duration.ofMinutes(6)).isMustCheck()
+        !strategy.getCachePolicy().asImmutable().moduleExpiry(Duration.ofMinutes(5), true).isMustCheck()
+        strategy.getCachePolicy().asImmutable().moduleExpiry(Duration.ofMinutes(6), true).isMustCheck()
     }
 
     def "configures dynamic version cache with jdk5+ units"() {
-        given:
-        def moduleId = DefaultModuleIdentifier.newId("foo", "bar")
-        def id = DefaultModuleVersionIdentifier.newId("foo", "bar", "1.0")
-
         when:
         strategy.cacheDynamicVersionsFor(10000, "milliseconds")
 
         then:
-        !strategy.getCachePolicy().asImmutable().versionListExpiry(moduleId, [id] as Set, Duration.ofMillis(10000)).isMustCheck()
-        strategy.getCachePolicy().asImmutable().versionListExpiry(moduleId, [id] as Set, Duration.ofMillis(10001)).isMustCheck()
+        !strategy.getCachePolicy().asImmutable().versionListExpiry(true, Duration.ofMillis(10000)).isMustCheck()
+        strategy.getCachePolicy().asImmutable().versionListExpiry(true, Duration.ofMillis(10001)).isMustCheck()
     }
 
     def "configures dynamic version cache with jdk6+ units"() {
-        given:
-        def moduleId = DefaultModuleIdentifier.newId("foo", "bar")
-        def id = DefaultModuleVersionIdentifier.newId("foo", "bar", "1.0")
-
         when:
         strategy.cacheDynamicVersionsFor(1, "hours")
 
         then:
-        !strategy.getCachePolicy().asImmutable().versionListExpiry(moduleId, [id] as Set, Duration.ofHours(1)).isMustCheck()
-        strategy.getCachePolicy().asImmutable().versionListExpiry(moduleId, [id] as Set, Duration.ofHours(2)).isMustCheck()
+        !strategy.getCachePolicy().asImmutable().versionListExpiry(true, Duration.ofHours(1)).isMustCheck()
+        strategy.getCachePolicy().asImmutable().versionListExpiry(true, Duration.ofHours(2)).isMustCheck()
     }
 
     def "mutation is checked for public API"() {
