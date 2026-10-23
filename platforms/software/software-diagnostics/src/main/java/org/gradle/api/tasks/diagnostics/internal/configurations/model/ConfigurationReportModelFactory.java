@@ -61,13 +61,17 @@ public final class ConfigurationReportModelFactory {
         final List<ReportAttribute> attributesWithDisambiguationRules = scanner.getAttributesWithDisambiguationRules();
 
         ConfigurationContainerInternal configurations = (ConfigurationContainerInternal) project.getConfigurations();
-        final Map<String, ReportConfiguration> convertedConfigurations = new HashMap<>(configurations.size());
+        // Converting a configuration can realize artifact tasks that reentrantly add configurations.
+        List<ConfigurationInternal> configurationsToReport = configurations.stream()
+            .map(ConfigurationInternal.class::cast)
+            .collect(Collectors.toList());
+        final Map<String, ReportConfiguration> convertedConfigurations = new HashMap<>(configurationsToReport.size());
 
         ImmutableCapabilities defaultCapabilities = ImmutableCapabilities.of(new ProjectDerivedCapability(project));
         VariantIdentityUniquenessVerifier.VerificationReport uniquenessReport = VariantIdentityUniquenessVerifier.buildReport(configurations, defaultCapabilities);
-        configurations.stream()
-            .map(ConfigurationInternal.class::cast)
-            .forEach(configuration -> getOrConvert(configuration, uniquenessReport, project, convertedConfigurations, defaultCapabilities));
+        configurationsToReport.forEach(configuration ->
+            getOrConvert(configuration, uniquenessReport, project, convertedConfigurations, defaultCapabilities)
+        );
 
         return new ConfigurationReportModel(project.getName(),
             convertedConfigurations.values().stream().sorted(Comparator.comparing(ReportConfiguration::getName)).collect(Collectors.toList()),

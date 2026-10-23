@@ -1414,4 +1414,30 @@ Artifacts
         doesNotPromptForRerunToFindMoreVariants()
         hasNonSelectableVariantsLegend()
     }
+
+    def "can report a variant when inspecting its artifact realizes a task that creates a configuration"() {
+        given:
+        buildFile << """
+            def artifactTask = tasks.register("artifactTask", Jar) {
+                configurations.maybeCreate("createdDuringTaskRealization")
+                destinationDirectory = layout.buildDirectory.dir("libs")
+                archiveFileName = "artifact.jar"
+            }
+
+            configurations.create("custom") {
+                canBeResolved = false
+                canBeConsumed = true
+                outgoing.artifact(artifactTask)
+            }
+            configurations.create("zzz") {
+                canBeConsumed = false
+            }
+        """
+
+        when:
+        succeeds ':outgoingVariants', '--all'
+
+        then:
+        outputContains("Variant custom (n)")
+    }
 }
