@@ -44,6 +44,7 @@ class WorkActionConsoleIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         ConcurrentTestUtil.poll {
+            RichConsoleStyling.assertHasWorkInProgress(running, "> :work > 0 work actions completed")
             RichConsoleStyling.assertHasWorkInProgress(running, "> :work > Executing work action CallAction")
         }
 
