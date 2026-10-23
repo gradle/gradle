@@ -16,6 +16,7 @@
 
 package gradlebuild.testcleanup
 
+import gradlebuild.basics.RepositoryMirrors
 import org.apache.commons.lang3.StringUtils
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.TaskOutcome
@@ -193,7 +194,7 @@ class TestFilesCleanupServiceTest {
 	        at java.base/java.util.stream.ForEachOps$ForEachOp$OfRef.accept(ForEachOps.java:183)
          */
         .withDebug(true)
-        .withArguments(*args, "--stacktrace", "--no-watch-fs")
+        .withArguments(listOf(*args, "--stacktrace", "--no-watch-fs") + RepositoryMirrors.testKitArguments())
 
     private
     fun assertArchivedFilesSeen(vararg archiveFileNames: String) {

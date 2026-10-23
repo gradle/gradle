@@ -17,7 +17,6 @@
 package org.gradle.internal.properties.annotations;
 
 import com.google.common.collect.ImmutableSet;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.internal.reflect.validation.TypeValidationContext;
 import org.jspecify.annotations.NullMarked;
 
@@ -57,7 +56,7 @@ public class NestedValidationUtil {
             validationContext.visitPropertyError(problem ->
                 problem
                     .forProperty(propertyName)
-                    .id("nested-type-unsupported", "Nested type unsupported", GradleCoreProblemGroup.validation().property())
+                    .id(problem.getGradleGroup().getPluginValidation().problemId("Nested type unsupported"))
                     .contextualLabel("with nested type '" + beanType.getName() + "' is not supported")
                     .documentedAt(userManual("validation_problems", "unsupported_nested_type"))
                     .details(reason)
@@ -97,7 +96,7 @@ public class NestedValidationUtil {
             validationContext.visitPropertyError(problem ->
                 problem
                     .forProperty(propertyName)
-                    .id("nested-map-unsupported-key-type", "Unsupported nested map key", GradleCoreProblemGroup.validation().property())
+                    .id(problem.getGradleGroup().getPluginValidation().problemId("Unsupported nested map key"))
                     .contextualLabel("where key of nested map is of type '" + keyType.getName() + "'")
                     .documentedAt(userManual("validation_problems", "unsupported_key_type_of_nested_map"))
                     .details("Key of nested map must be an enum or one of the following types: " + getSupportedKeyTypes())

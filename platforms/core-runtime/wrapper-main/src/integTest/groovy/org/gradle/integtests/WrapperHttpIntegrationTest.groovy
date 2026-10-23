@@ -725,7 +725,8 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         def failure = prepareWrapper(getDefaultAuthenticatedBaseUrl()).runWithFailure()
 
         then:
-        failure.assertHasCause("Test of distribution url ${getDefaultAuthenticatedBaseUrl()}/$TEST_DISTRIBUTION_URL failed.")
+        failure.assertHasCause("Test of distribution url http://***@$HOST:${server.port}/$TEST_DISTRIBUTION_URL failed.")
+        failure.assertNotOutput(PASSWORD)
     }
 
     def "fails when bearer token authentication credentials incorrect"() {
@@ -744,6 +745,7 @@ class WrapperHttpIntegrationTest extends AbstractWrapperIntegrationSpec {
         def failure = prepareWrapper(getDefaultAuthenticatedBaseUrl()).runWithFailure()
 
         then:
-        failure.assertHasCause("Test of distribution url ${getDefaultAuthenticatedBaseUrl()}/$TEST_DISTRIBUTION_URL failed.")
+        failure.assertHasCause("Test of distribution url http://***@$HOST:${server.port}/$TEST_DISTRIBUTION_URL failed.")
+        failure.assertNotOutput(PASSWORD)
     }
 }

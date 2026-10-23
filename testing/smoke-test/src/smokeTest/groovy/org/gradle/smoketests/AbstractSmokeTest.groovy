@@ -276,6 +276,18 @@ abstract class AbstractSmokeTest extends Specification {
         RepoScriptBlockUtil.googleRepository(dsl)
     }
 
+    protected static String mavenCentralRepositoryDefinition(GradleDsl dsl = GROOVY) {
+        RepoScriptBlockUtil.mavenCentralRepositoryDefinition(dsl)
+    }
+
+    protected static String googleRepositoryDefinition(GradleDsl dsl = GROOVY) {
+        RepoScriptBlockUtil.googleRepositoryDefinition(dsl)
+    }
+
+    protected static String gradlePluginRepositoryDefinition(GradleDsl dsl = GROOVY) {
+        RepoScriptBlockUtil.gradlePluginRepositoryDefinition(dsl)
+    }
+
     void copyRemoteProject(String remoteProject, File targetDir) {
         new TestFile(new File("build/$remoteProject")).copyTo(targetDir)
     }

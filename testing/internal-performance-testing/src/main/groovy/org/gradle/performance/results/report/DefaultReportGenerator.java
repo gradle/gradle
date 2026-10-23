@@ -55,7 +55,17 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
                 // The bucket task is cacheable and bakes its status + teamCityBuildId into the output, so on a build-cache
                 // hit the JSON replays a previous build's verdict. A scenario whose measurements were not produced by
                 // this pipeline (e.g. served from the build cache, or not run) has no current executions here, so
-                // isRegressedByMeasurement() is false and it is simply not gated.
+                // isRegressedByMeasurement() is false and the measured verdict below does not gate it.
+                //
+                // A scenario that errored out rather than regressing never reaches the database with a measurement
+                // either, so it needs its own check. Its evidence is the measurement-less execution row the runner
+                // writes from its finally block, which carries the id of the build that really ran it - a cache hit
+                // forks no test JVM and so cannot produce one.
+                if (scenario.isErroredInThisPipeline()) {
+                    System.out.println("Scenario errored in this pipeline without producing a measurement: " + scenario.getName());
+                    failureCollector.scenarioFailed();
+                    return;
+                }
                 if (!scenario.isRegressedByMeasurement()) {
                     return;
                 }

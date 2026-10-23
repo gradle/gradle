@@ -47,13 +47,17 @@ class MirrorPlugin implements Plugin<Gradle> {
 
     @CompileDynamic
     void maybeConfigurePluginManagement(Gradle gradle) {
-        if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("4.4")) {
+        if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("6.0")) {
+            gradle.beforeSettings { Settings settings ->
+                withMirrors(settings.pluginManagement.repositories)
+            }
+        } else if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("4.4")) {
             gradle.settingsEvaluated { Settings settings ->
                 withMirrors(settings.pluginManagement.repositories)
             }
         }
         if (GradleVersion.version(gradle.gradleVersion) >= GradleVersion.version("6.8")) {
-            gradle.settingsEvaluated { Settings settings ->
+            gradle.beforeSettings { Settings settings ->
                 withMirrors(settings.dependencyResolutionManagement.repositories)
             }
         }

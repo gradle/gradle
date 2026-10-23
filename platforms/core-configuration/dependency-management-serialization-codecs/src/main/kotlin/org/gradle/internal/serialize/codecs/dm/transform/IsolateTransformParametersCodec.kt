@@ -21,11 +21,11 @@ import org.gradle.api.internal.DocumentationRegistry
 import org.gradle.api.internal.artifacts.transform.DefaultTransform.IsolateTransformParameters
 import org.gradle.api.internal.artifacts.transform.TransformParameterScheme
 import org.gradle.api.internal.file.FileCollectionFactory
-import org.gradle.api.internal.initialization.StandaloneDomainObjectContext
 import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.internal.extensions.stdlib.uncheckedCast
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher
 import org.gradle.internal.isolation.IsolatableFactory
+import org.gradle.internal.model.DomainObjectContext
 import org.gradle.internal.operations.BuildOperationRunner
 import org.gradle.internal.serialize.graph.Codec
 import org.gradle.internal.serialize.graph.ReadContext
@@ -56,7 +56,7 @@ class IsolateTransformParametersCodec(
             parameterObject,
             implementationClass,
             cacheable,
-            StandaloneDomainObjectContext.ANONYMOUS,
+            DomainObjectContext.NONE,
             parameterScheme.inspectionScheme.propertyWalker,
             isolatableFactory,
             buildOperationRunner,

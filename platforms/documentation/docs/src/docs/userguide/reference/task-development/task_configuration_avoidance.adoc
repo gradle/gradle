@@ -63,7 +63,7 @@ A link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[`TaskProvider`] can 
 
 Calling link:{javadocPath}/org/gradle/api/provider/Provider.html#get()[`Provider.get()`] or looking up a task by name with link:{javadocPath}/org/gradle/api/tasks/TaskCollection.html#getByName(java.lang.String)[`TaskCollection.getByName(java.lang.String)`] will cause the task to be created and configured.
 
-Methods like link:{javadocPath}/org/gradle/api/Task.html#dependsOn(java.lang.Object...)[`Task.dependsOn(java.lang.Object)`] and link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html#builtBy(java.lang.Object...)[`ConfigurableFileCollection.builtBy(java.lang.Object)`] work with link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[`TaskProvider`] the same way as link:{groovyDslPath}/org.gradle.api.Task.html[`Task`] so you do not need to unwrap a `Provider` for explicit dependencies to continue to work.
+Methods like link:{javadocPath}/org/gradle/api/Task.html#dependsOn(java.lang.Object++...++)[`Task.dependsOn(java.lang.Object)`] and link:{javadocPath}/org/gradle/api/file/ConfigurableFileCollection.html#builtBy(java.lang.Object++...++)[`ConfigurableFileCollection.builtBy(java.lang.Object)`] work with link:{javadocPath}/org/gradle/api/tasks/TaskProvider.html[`TaskProvider`] the same way as link:{groovyDslPath}/org.gradle.api.Task.html[`Task`] so you do not need to unwrap a `Provider` for explicit dependencies to continue to work.
 
 You must use the configuration avoidance equivalent to configure a task by name.
 See the <<#sec:old_vs_new_configuration_api_overview,table below>> to identify the best alternative.

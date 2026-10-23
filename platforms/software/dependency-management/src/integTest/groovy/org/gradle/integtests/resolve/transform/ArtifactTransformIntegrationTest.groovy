@@ -140,6 +140,51 @@ class ArtifactTransformIntegrationTest extends AbstractHttpDependencyResolutionT
     }
 
     @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
+    def "does not apply transforms to optional artifacts that do not exist"() {
+        // A component with pom packaging may or may not have a jar. The jar is an optional artifact.
+        def m1 = mavenHttpRepo.module("org", "a").hasPackaging("pom").publishPom()
+        def m2 = mavenHttpRepo.module("org", "b").publish()
+        m2.artifactFile.text = "12"
+
+        given:
+        buildFile << """
+            repositories {
+                maven { url = "${mavenHttpRepo.uri}" }
+            }
+            dependencies {
+                compile("org:a:1.0")
+                compile("org:b:1.0")
+            }
+
+            ${configurationAndTransform('FileSizer')}
+        """
+
+        when:
+        m1.pom.expectGet()
+        m1.artifact.expectGetMissing()
+        m2.pom.expectGet()
+        m2.artifact.expectGet()
+        succeeds("resolve")
+
+        then:
+        outputContains("artifacts: [b-1.0.jar.txt (org:b:1.0)]")
+        outputContains("components: [org:b:1.0]")
+        file("build/libs").assertHasDescendants("b-1.0.jar.txt")
+        file("build/libs/b-1.0.jar.txt").text == "2"
+
+        and:
+        output.count("Transforming") == 1
+        output.count("Transforming b-1.0.jar to b-1.0.jar.txt") == 1
+
+        when:
+        server.resetExpectations()
+        succeeds("resolve")
+
+        then:
+        output.count("Transforming") == 0
+    }
+
+    @ToBeFixedForIsolatedProjects(because = "ArtifactTransformTestFixture is not IP compatible")
     def "can use transformations in build script dependencies"() {
         file("buildSrc/src/main/groovy/FileSizer.groovy") << fileSizer
 

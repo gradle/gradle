@@ -22,7 +22,6 @@ import org.gradle.api.problems.FileLocation;
 import org.gradle.api.problems.LineInFileLocation;
 import org.gradle.api.problems.OffsetInFileLocation;
 import org.gradle.api.problems.ProblemDefinition;
-import org.gradle.api.problems.ProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemLocation;
 import org.gradle.api.problems.Severity;
@@ -30,8 +29,9 @@ import org.gradle.api.problems.internal.DefaultProblemProgressDetails;
 import org.gradle.api.problems.internal.DefaultProblemsSummaryProgressDetails;
 import org.gradle.api.problems.internal.DeprecationData;
 import org.gradle.api.problems.internal.GeneralData;
-import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.PluginIdLocation;
+import org.gradle.api.problems.internal.ProblemGroupInternal;
+import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemSummaryData;
 import org.gradle.api.problems.internal.StackTraceLocation;
 import org.gradle.api.problems.internal.TaskLocation;
@@ -148,11 +148,12 @@ public class ProblemsProgressEventUtils {
     }
 
     private static InternalProblemId toInternalId(ProblemId problemId) {
-        return new DefaultProblemId(problemId.getName(), problemId.getDisplayName(), toInternalGroup(problemId.getGroup()));
+        return new DefaultProblemId(problemId.getName(), problemId.getDisplayName(), toInternalGroup(ProblemGroupInternal.of(problemId.getGroup())));
     }
 
-    private static InternalProblemGroup toInternalGroup(ProblemGroup group) {
-        return new DefaultProblemGroup(group.getName(), group.getDisplayName(), group.getParent() == null ? null : toInternalGroup(group.getParent()));
+    private static InternalProblemGroup toInternalGroup(ProblemGroupInternal group) {
+        ProblemGroupInternal parent = group.getParentInternal();
+        return new DefaultProblemGroup(group.getName(), group.getDisplayName(), parent == null ? null : toInternalGroup(parent));
     }
 
     private static @Nullable InternalContextualLabel toInternalContextualLabel(@Nullable String contextualLabel) {

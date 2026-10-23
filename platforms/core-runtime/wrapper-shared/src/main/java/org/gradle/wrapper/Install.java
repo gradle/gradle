@@ -43,7 +43,7 @@ import static java.util.Objects.requireNonNull;
 import static java.lang.String.format;
 import static java.util.Collections.emptyList;
 import static org.gradle.internal.file.PathTraversalChecker.safePathName;
-import static org.gradle.wrapper.Download.safeUri;
+import static org.gradle.util.internal.WrapperDistributionUrlConverter.safeUriDisplay;
 
 public class Install {
     public static final String DEFAULT_DISTRIBUTION_PATH = "wrapper/dists";
@@ -86,7 +86,7 @@ public class Install {
 
             fetchDistribution(localZipFile, distributionUrl, distDir, configuration);
 
-            InstallCheck installCheck = verifyDistributionRoot(distDir, safeUri(distributionUrl).toASCIIString());
+            InstallCheck installCheck = verifyDistributionRoot(distDir, safeUriDisplay(distributionUrl));
             if (installCheck.isVerified()) {
                 setExecutablePermissions(requireNonNull(installCheck.gradleHome));
                 markerFile.createNewFile();
@@ -111,7 +111,7 @@ public class Install {
 
                 deleteLocalTopLevelDirs(distDir);
 
-                verifyDownloadChecksum(distributionUrl.toASCIIString(), localZipFile, distributionSha256Sum);
+                verifyDownloadChecksum(safeUriDisplay(distributionUrl), localZipFile, distributionSha256Sum);
 
                 unzipLocal(localZipFile, distDir);
                 failed = false;
@@ -141,7 +141,7 @@ public class Install {
                 return reader.readLine();
             }
         } catch (Exception e) {
-            logger.log("Could not fetch hash for " + safeUri(distribution) + ".");
+            logger.log("Could not fetch hash for " + safeUriDisplay(distribution) + ".");
             logger.log("Reason: " + e.getMessage());
             return null;
         }
@@ -183,7 +183,7 @@ public class Install {
                 File tempDownloadFile = new File(localTargetFile.getParentFile(), localTargetFile.getName() + ".part");
                 tempDownloadFile.delete();
 
-                logger.log("Downloading " + safeUri(distributionUrl));
+                logger.log("Downloading " + safeUriDisplay(distributionUrl));
                 download.download(distributionUrl, tempDownloadFile);
                 if (localTargetFile.exists()) {
                     localTargetFile.delete();

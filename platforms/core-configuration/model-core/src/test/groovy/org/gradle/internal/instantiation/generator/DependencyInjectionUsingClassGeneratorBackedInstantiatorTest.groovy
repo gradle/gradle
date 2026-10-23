@@ -15,13 +15,17 @@
  */
 package org.gradle.internal.instantiation.generator
 
+import org.gradle.api.tasks.Nested
 import org.gradle.cache.internal.CrossBuildInMemoryCache
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.instantiation.InstantiatorFactory
 import org.gradle.internal.instantiation.PropertyRoleAnnotationHandler
+import org.gradle.internal.instantiation.managed.DefaultManagedObjectRegistry
+import org.gradle.internal.instantiation.managed.ManagedObjectRegistry
 import org.gradle.internal.service.DefaultServiceRegistry
 import org.gradle.internal.service.ServiceLookup
 import org.gradle.util.TestUtil
+import org.gradle.util.internal.ToBeImplemented
 import spock.lang.Specification
 
 import javax.inject.Inject
@@ -127,6 +131,24 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
         !factory.requiresService(Runnable)
     }
 
+    @ToBeImplemented("requiresService only inspects the type itself, not its nested managed types")
+    def "can query whether service is required when declared in a nested managed type with #type.simpleName"() {
+        given:
+        services.add(String, "string")
+        services.add(ManagedObjectRegistry, new DefaultManagedObjectRegistry())
+
+        when:
+        def factory = instantiator.factoryFor(type)
+
+        then:
+        factory.newInstance(services).nested.someService == "string"
+        !factory.requiresService(String) // should be required, since the nested instance receives it
+        !factory.requiresService(Runnable)
+
+        where:
+        type << [NestsGetterInjection, NestsInjectConstructor]
+    }
+
     static class HasGetterInjection {
         @Inject String getSomeService() { throw new UnsupportedOperationException() }
     }
@@ -155,5 +177,24 @@ class DependencyInjectionUsingClassGeneratorBackedInstantiatorTest extends Speci
             this.param1 = param1
             this.param2 = param2
         }
+    }
+
+    static class HasSingleInjectConstructor {
+        final String someService
+
+        @Inject
+        HasSingleInjectConstructor(String someService) {
+            this.someService = someService
+        }
+    }
+
+    static abstract class NestsGetterInjection {
+        @Nested
+        abstract AbstractHasGetterInjection getNested()
+    }
+
+    static abstract class NestsInjectConstructor {
+        @Nested
+        abstract HasSingleInjectConstructor getNested()
     }
 }

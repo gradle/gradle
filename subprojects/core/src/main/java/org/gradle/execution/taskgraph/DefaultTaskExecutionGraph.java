@@ -16,7 +16,7 @@
 
 package org.gradle.execution.taskgraph;
 
-import com.google.common.collect.ImmutableList;
+import com.google.common.collect.ImmutableMap;
 import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
@@ -34,6 +34,7 @@ import org.gradle.execution.plan.TaskNode;
 import org.gradle.internal.Cast;
 import org.gradle.internal.InternalListener;
 import org.gradle.internal.event.ListenerBroadcast;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -45,7 +46,6 @@ import org.jspecify.annotations.Nullable;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Set;
 
@@ -63,7 +63,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
     private final BuildOperationRunner buildOperationRunner;
     private final ListenerBuildOperationDecorator listenerBuildOperationDecorator;
     private @Nullable FinalizedExecutionPlan executionPlan;
-    private List<Task> allTasks = Collections.emptyList();
+    private volatile TasksSnapshot tasks = TasksSnapshot.EMPTY;
     private boolean hasFiredWhenReady;
 
     public DefaultTaskExecutionGraph(
@@ -90,8 +90,11 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         //  callbacks. We do not own the execution plan and should not store long-lived
         //  references to it.
         executionPlan = plan;
-        // Take a snapshot of all tasks, as nodes are removed from the plan as they execute
-        allTasks = ImmutableList.copyOf(executionPlan.getContents().getTasks());
+        // Take a snapshot of all tasks, so they remain queryable after the plan is discarded
+        // at the end of execution.
+        // TODO: Deprecate querying the plan outside of a whenReady callback so we can avoid
+        // retaining this snapshot.
+        tasks = new TasksSnapshot(ImmutableSet.copyOf(executionPlan.getContents().getTasks()));
         if (!hasFiredWhenReady) {
             fireWhenReady();
             hasFiredWhenReady = true;
@@ -218,38 +221,26 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public boolean hasTask(Task task) {
-        if (executionPlan == null) {
-            // TODO: Deprecate calling this method before whenReady is called
-            return false;
-        }
-
-        return executionPlan.getContents().getTasks().contains(task);
+        // TODO: Deprecate calling this method outside of a whenReady callback
+        return tasks.getAllTasks().contains(task);
     }
 
     @Nullable
     @Override
     public Task findTask(String path) {
-        if (executionPlan == null) {
-            // TODO: Deprecate calling this method before whenReady is called
-            return null;
-        }
-
-        for (Task task : executionPlan.getContents().getTasks()) {
-            if (task.getPath().equals(path)) {
-                return task;
-            }
-        }
-        return null;
+        return tasks.findTask(path);
     }
 
     @Override
     public boolean hasTask(String path) {
+        // TODO: Deprecate calling this method outside of a whenReady callback
         return findTask(path) != null;
     }
 
     @Override
     public List<Task> getAllTasks() {
-        return allTasks;
+        // TODO: Deprecate calling this method outside of a whenReady callback
+        return tasks.getAllTasks().asList();
     }
 
     @Override
@@ -259,6 +250,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
 
     @Override
     public Set<Task> getDependencies(Task task) {
+        // TODO: Deprecate calling this method outside of a whenReady callback
         if (executionPlan == null) {
             throw new IllegalStateException("Task graph has not been populated yet.");
         }
@@ -279,7 +271,7 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         graphListeners.removeAll();
         taskListeners.removeAll();
         executionPlan = null;
-        allTasks = Collections.emptyList();
+        tasks = TasksSnapshot.EMPTY;
     }
 
     @Override
@@ -337,6 +329,37 @@ public class DefaultTaskExecutionGraph implements TaskExecutionGraphInternal {
         @Override
         public String getBuildPath() {
             return buildPath.asString();
+        }
+
+    }
+
+    /**
+     * The tasks of the most recently populated plan.
+     */
+    private static final class TasksSnapshot {
+
+        static final TasksSnapshot EMPTY = new TasksSnapshot(ImmutableSet.of());
+
+        private final ImmutableSet<Task> tasks;
+        private final Lazy<ImmutableMap<String, Task>> tasksByPath;
+
+        TasksSnapshot(ImmutableSet<Task> tasks) {
+            this.tasks = tasks;
+            this.tasksByPath = Lazy.locking().of(() -> {
+                ImmutableMap.Builder<String, Task> builder = ImmutableMap.builderWithExpectedSize(tasks.size());
+                for (Task task : tasks) {
+                    builder.put(task.getPath(), task);
+                }
+                return builder.build();
+            });
+        }
+
+        ImmutableSet<Task> getAllTasks() {
+            return tasks;
+        }
+
+        @Nullable Task findTask(String path) {
+            return tasksByPath.get().get(path);
         }
 
     }

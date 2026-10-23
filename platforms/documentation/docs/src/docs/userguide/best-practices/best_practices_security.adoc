@@ -42,7 +42,7 @@ The official SHA-256 checksums can be found on the link:https://gradle.org/relea
 
 === Tags
 
-<<tags_reference.adoc#tag:properties,`#properties`>>, <<tags_reference.adoc#tag:wrapper,`#wrapper`>>
+`<<tags_reference.adoc#tag:properties,#properties>>`, `<<tags_reference.adoc#tag:wrapper,#wrapper>>`
 
 [[validate_wrapper_checksum]]
 == Validate the Gradle Wrapper on every Upgrade
@@ -68,7 +68,9 @@ You should verify that:
 
 Running an unverified Wrapper risks executing untrusted code before any of your build’s safeguards run.
 
-==== Do this
+=== Example
+
+==== Do This
 
 If you use the link:https://github.com/marketplace/actions/build-with-gradle#the-setup-gradle-action[`setup-gradle` action] (version v4 or newer) for link:https://github.com/features/actions[GitHub Actions], Wrapper validation will be performed automatically.
 The action validates the checksum of every `gradle-wrapper.jar` in your repository and fails the build if it finds any unknown Wrapper JAR.
@@ -77,7 +79,7 @@ If you use a different GitHub Actions setup, you can use the dedicated link:http
 
 === References
 
-- <</gradle_wrapper.adoc#configuring_checksum_verification,Gradle Wrapper checksum verification>>
+- <<gradle_wrapper.adoc#configuring_checksum_verification,Gradle Wrapper checksum verification>>
 - link:https://gradle.org/release-checksums[Gradle release checksums]
 
 === Tags
@@ -104,7 +106,9 @@ An unreviewed wrapper or build script could potentially access or modify files o
 NOTE: Opening an untrusted project in an IDE such as IntelliJ IDEA or Android Studio will typically trigger a Gradle sync automatically, which executes build logic.
 Review the project's wrapper and build scripts _before_ opening it in your IDE.
 
-==== Do this
+=== Example
+
+==== Do This
 
 ===== 1. Review the Build Scripts
 
@@ -184,7 +188,7 @@ include::sample[dir="snippets/best-practices/reproducibleBuilds-do/groovy",files
 
 === Tags
 
-<<tags_reference.adoc#tag:publishing,`#publishing`>>, <<tags_reference.adoc#tag:tasks,`#tasks`>>
+`<<tags_reference.adoc#tag:publishing,#publishing>>`, `<<tags_reference.adoc#tag:tasks,#tasks>>`
 
 
 [[build-published-artifacts-securely]]
@@ -199,6 +203,8 @@ Without it, the additional safeguards described here provide no verifiable assur
 
 When preparing a project for publishing, also use a secure and isolated build process.
 This both prevents security risks and ensures that the published artifact is a direct and verifiable result of the source code.
+
+=== Example
 
 ==== Don't Do This
 
@@ -220,4 +226,4 @@ Avoiding caching for publishing builds is an extra layer of certainty, not a sta
 
 === Tags
 
-<<tags_reference.adoc#tag:publishing,`#publishing`>>
+`<<tags_reference.adoc#tag:publishing,#publishing>>`

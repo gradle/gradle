@@ -73,7 +73,6 @@ dependencies {
 
     runtimeOnly(libs.commonsIo)
     runtimeOnly(libs.commonsLang)
-    runtimeOnly(libs.slf4jApi)
 
     runtimeOnly(projects.kotlinDsl) {
         because("KotlinScriptPluginFactory is loaded dynamically at runtime by ScriptPluginFactorySelector")

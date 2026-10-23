@@ -114,7 +114,7 @@ class DefaultPropertyTest extends AbstractPropertySpec<String> {
         property.set((Provider) null)
 
         then:
-        IllegalArgumentException e = thrown()
+        NullPointerException e = thrown()
         e.message == "Cannot set the value of a property using a null provider."
 
         and:
@@ -284,7 +284,7 @@ class DefaultPropertyTest extends AbstractPropertySpec<String> {
         property.convention((Provider) null)
 
         then:
-        IllegalArgumentException e = thrown()
+        NullPointerException e = thrown()
         e.message == "Cannot set the convention of a property using a null provider."
 
         and:

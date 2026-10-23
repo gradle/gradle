@@ -125,7 +125,7 @@ public abstract class UrlRepositoryDescriptor extends RepositoryDescriptor {
             for (ResourcePattern artifactPattern : artifactResources) {
                 cacheHasher.putString(artifactPattern.getPattern());
             }
-            cacheHasher.putInt(metadataResources.size());
+            cacheHasher.putInt(metadataSources.size());
             for (String source : metadataSources) {
                 cacheHasher.putString(source);
             }

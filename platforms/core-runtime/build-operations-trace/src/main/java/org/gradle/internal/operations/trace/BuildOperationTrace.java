@@ -33,10 +33,12 @@ import com.fasterxml.jackson.datatype.jdk8.Jdk8Module;
 import com.fasterxml.jackson.datatype.jsr310.JavaTimeModule;
 import com.google.common.base.Throwables;
 import com.google.common.collect.ImmutableMap;
+import org.gradle.api.InvalidUserDataException;
 import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.problems.internal.ProblemGroupInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.IoActions;
 import org.gradle.internal.UncheckedException;
@@ -67,6 +69,9 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Duration;
+import java.time.Instant;
+import java.time.ZoneOffset;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -90,6 +95,12 @@ import static org.gradle.internal.Cast.uncheckedCast;
  * Can be enabled for any build with {@code -Dorg.gradle.internal.operations.trace=«path-base»}.
  * The output file {@code «path-base»-log.txt} is in the JSON Lines format.
  * It contains a chronological log of events, each line is a JSON object.
+ * A later session that reuses the same path replaces that file.
+ * <p>
+ * To keep one file per build session, use {@code -Dorg.gradle.internal.operations.trace.dir=«directory»} instead.
+ * Each session writes {@code «directory»/«utc-timestamp»-«id».jsonl}, so a later session does not replace an earlier one.
+ * Setting both options fails the build.
+ * Either option accepts {@code false}, which unsets it, so a value in {@code gradle.properties} can be turned off for one run.
  * <p>
  * The «path-base» param is optional.
  * If invoked as {@code -Dorg.gradle.internal.operations.trace}, a base value of {@code "operations"} will be used.
@@ -102,6 +113,8 @@ import static org.gradle.internal.Cast.uncheckedCast;
  * <li>«path-base»-tree.json: a JSON tree of the event structure</li>
  * <li>«path-base»-tree.txt: A simplified tree representation showing basic information</li>
  * </ul>
+ * <p>
+ * With {@code trace.dir}, those tree files are written next to that session's {@code .jsonl} log.
  * <p>
  * Generally, the simplified tree view is best for browsing.
  * The JSON tree view can be used for more detailed analysis — open in a JSON tree viewer, like Chrome.
@@ -121,6 +134,17 @@ public class BuildOperationTrace implements Stoppable {
     public static final String SYSPROP = "org.gradle.internal.operations.trace";
 
     private static final InternalOption<@Nullable String> TRACE_OPTION = InternalOptions.ofStringOrNull(SYSPROP);
+
+    /**
+     * Directory that receives one trace file per build session.
+     * Cannot be combined with {@link #SYSPROP}.
+     * {@code false} unsets this option.
+     */
+    public static final String DIR_SYSPROP = SYSPROP + ".dir";
+
+    private static final InternalOption<@Nullable String> TRACE_DIR_OPTION = InternalOptions.ofStringOrNull(DIR_SYSPROP);
+
+    private static final DateTimeFormatter TRACE_FILE_TIMESTAMP = DateTimeFormatter.ofPattern("yyyyMMdd-HHmmss-SSS").withZone(ZoneOffset.UTC);
 
     /**
      * A list of either details or result class names, delimited by {@link #FILTER_SEPARATOR},
@@ -160,8 +184,8 @@ public class BuildOperationTrace implements Stoppable {
     public BuildOperationTrace(File userActionRootDir, InternalOptions internalOptions, BuildOperationListenerManager buildOperationListenerManager) {
         this.buildOperationListenerManager = buildOperationListenerManager;
 
-        Path basePath = resolveBasePath(internalOptions, userActionRootDir);
-        if (basePath == null) {
+        TraceTarget target = resolveTraceTarget(internalOptions, userActionRootDir);
+        if (target == null) {
             this.outputTree = false;
             this.listener = null;
             this.writer = null;
@@ -169,7 +193,7 @@ public class BuildOperationTrace implements Stoppable {
             return;
         }
 
-        this.writer = new TraceWriter(basePath);
+        this.writer = new TraceWriter(target.basePath, target.jsonLines);
         this.processor = new MultiProducerSingleConsumerProcessor<>("trace-writer", writer::write);
         this.processor.start();
 
@@ -187,14 +211,60 @@ public class BuildOperationTrace implements Stoppable {
     }
 
     @Nullable
-    private static Path resolveBasePath(InternalOptions internalOptions, File userActionRootDir) {
-        String basePath = internalOptions.getValueOrNull(TRACE_OPTION);
-        if (basePath == null || basePath.equals("false")) {
+    private static TraceTarget resolveTraceTarget(InternalOptions internalOptions, File userActionRootDir) {
+        String basePath = configuredTraceValue(internalOptions.getValueOrNull(TRACE_OPTION));
+        String directory = configuredTraceValue(internalOptions.getValueOrNull(TRACE_DIR_OPTION));
+        if (basePath != null && directory != null) {
+            throw new InvalidUserDataException(
+                "The system properties '" + SYSPROP + "' and '" + DIR_SYSPROP + "' cannot be used together. Set only one of them."
+            );
+        }
+        if (directory != null) {
+            if (directory.isEmpty()) {
+                throw new InvalidUserDataException("The system property '" + DIR_SYSPROP + "' must be a directory path.");
+            }
+            Path dir = userActionRootDir.toPath().resolve(directory);
+            return new TraceTarget(dir.resolve(newTraceFileBaseName()), true);
+        }
+        if (basePath == null) {
             return null;
         }
 
         Path base = userActionRootDir.toPath();
-        return basePath.isEmpty() ? base.resolve("operations") : base.resolve(basePath);
+        Path resolved = basePath.isEmpty() ? base.resolve("operations") : base.resolve(basePath);
+        return new TraceTarget(resolved, false);
+    }
+
+    /**
+     * {@code false} unsets the option. This happens before the conflict check, so a value in
+     * {@code gradle.properties} can be turned off for one run, or replaced by the other option.
+     */
+    @Nullable
+    private static String configuredTraceValue(@Nullable String value) {
+        if (value == null || value.equals("false")) {
+            return null;
+        }
+        return value;
+    }
+
+    /**
+     * UTC timestamp first, so files sort chronologically. The suffix separates sessions that start in the same
+     * millisecond, including sessions that share a daemon.
+     */
+    private static String newTraceFileBaseName() {
+        String timestamp = TRACE_FILE_TIMESTAMP.format(Instant.now());
+        String disambiguator = Long.toUnsignedString(System.nanoTime(), 36);
+        return timestamp + "-" + disambiguator;
+    }
+
+    private static final class TraceTarget {
+        private final Path basePath;
+        private final boolean jsonLines;
+
+        private TraceTarget(Path basePath, boolean jsonLines) {
+            this.basePath = basePath;
+            this.jsonLines = jsonLines;
+        }
     }
 
     @Nullable
@@ -222,13 +292,15 @@ public class BuildOperationTrace implements Stoppable {
     private static class TraceWriter {
 
         private final Path basePath;
+        private final Path logFile;
         private final ObjectMapper objectMapper;
         private final OutputStream logOutputStream;
 
-        public TraceWriter(Path basePath) {
+        public TraceWriter(Path basePath, boolean jsonLines) {
             this.basePath = basePath;
+            this.logFile = logFile(basePath, jsonLines);
             this.objectMapper = createObjectMapper();
-            this.logOutputStream = openStream(logFile(basePath).toFile());
+            this.logOutputStream = openStream(this.logFile.toFile());
         }
 
         private static ObjectMapper createObjectMapper() {
@@ -238,6 +310,7 @@ public class BuildOperationTrace implements Stoppable {
                     .addSerializer(Throwable.class, new JsonThrowableSerializer())
                     .addSerializer(AttributeContainer.class, new JsonAttributeContainerSerializer())
                     .addSerializer(ComponentArtifactIdentifier.class, new JsonComponentArtifactIdentifierSerializer())
+                    .addSerializer(ProblemGroupInternal.class, new JsonProblemGroupSerializer())
                     .setSerializerModifier(new SkipDeprecatedBeanSerializerModifier())
                 )
                 .registerModule(new JavaTimeModule())
@@ -276,7 +349,7 @@ public class BuildOperationTrace implements Stoppable {
 
         public void complete(boolean writeTree) {
             try {
-                System.out.println("Build operation trace: " + logFile(basePath));
+                System.out.println("Build operation trace: " + logFile);
                 if (writeTree) {
                     doWriteTreeJson();
                 }
@@ -287,7 +360,7 @@ public class BuildOperationTrace implements Stoppable {
 
         private void doWriteTreeJson() {
             try {
-                List<BuildOperationRecord> roots = readLogToTreeRoots(logFile(basePath), false);
+                List<BuildOperationRecord> roots = readLogToTreeRoots(logFile, false);
                 writeDetailTree(roots);
                 writeSummaryTree(roots);
             } catch (IOException e) {
@@ -509,7 +582,11 @@ public class BuildOperationTrace implements Stoppable {
     }
 
     private static Path logFile(Path basePath) {
-        return withSuffix(basePath, "-log.txt");
+        return logFile(basePath, false);
+    }
+
+    private static Path logFile(Path basePath, boolean jsonLines) {
+        return withSuffix(basePath, jsonLines ? ".jsonl" : "-log.txt");
     }
 
     private static Path withSuffix(Path base, String suffix) {
@@ -533,6 +610,27 @@ public class BuildOperationTrace implements Stoppable {
             return ((CustomOperationTraceSerialization) object).getCustomOperationTraceSerializableModel();
         } else {
             return object;
+        }
+    }
+
+    /**
+     * Problem groups form a tree: a group knows its parent, and predefined groups also expose their children through getters.
+     * Serializing them as beans would recurse forever, so only write the identity of a group and its parent chain. Applies to
+     * Gradle-owned groups; a foreign {@code ProblemGroup} subclass has no child getters and is serialized as a plain bean.
+     */
+    private static class JsonProblemGroupSerializer extends JsonSerializer<ProblemGroupInternal> {
+        @Override
+        public void serialize(ProblemGroupInternal group, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+            jsonGenerator.writeStartObject();
+            jsonGenerator.writeStringField("name", group.getName());
+            jsonGenerator.writeStringField("displayName", group.getDisplayName());
+            String description = group.getDescription();
+            if (description != null) {
+                jsonGenerator.writeStringField("description", description);
+            }
+            jsonGenerator.writeFieldName("parent");
+            serializerProvider.defaultSerializeValue(group.getParentInternal(), jsonGenerator);
+            jsonGenerator.writeEndObject();
         }
     }
 

@@ -39,8 +39,8 @@ version: '1.0'
         failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 2: Statement labels may not be used in build scripts."))
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'compilation:groovy-dsl:compilation-failed'
-            definition.id.displayName == 'Groovy DSL script compilation problem'
+            fqid == 'Gradle:DSL Evaluation:Script compilation failed'
+            definition.id.displayName == 'Script compilation failed'
             contextualLabel == "Could not compile build file '${buildFile}'."
             oneLocation(LineInFileLocation).path == buildFile.absolutePath
         }
@@ -56,8 +56,8 @@ version: '1.0'
         failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 2: Statement labels may not be used in build scripts."))
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'compilation:groovy-dsl:compilation-failed'
-            definition.id.displayName == 'Groovy DSL script compilation problem'
+            fqid == 'Gradle:DSL Evaluation:Script compilation failed'
+            definition.id.displayName == 'Script compilation failed'
             contextualLabel == "Could not compile build file '${buildFile}'."
             oneLocation(LineInFileLocation).path == buildFile.absolutePath
         }
@@ -83,8 +83,8 @@ description: "bar"
         failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 4: Statement labels may not be used in build scripts."))
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'compilation:groovy-dsl:compilation-failed'
-            definition.id.displayName == 'Groovy DSL script compilation problem'
+            fqid == 'Gradle:DSL Evaluation:Script compilation failed'
+            definition.id.displayName == 'Script compilation failed'
             contextualLabel == "Could not compile build file '${buildFile}'."
             oneLocation(LineInFileLocation).path == buildFile.absolutePath
         }
@@ -113,8 +113,8 @@ def foo() {
         failure.assertThatCause(CoreMatchers.containsString("build file '${buildFile}': 5: Statement labels may not be used in build scripts."))
         verifyAll(receivedProblem(0)) {
             severity == Severity.ERROR
-            fqid == 'compilation:groovy-dsl:compilation-failed'
-            definition.id.displayName == 'Groovy DSL script compilation problem'
+            fqid == 'Gradle:DSL Evaluation:Script compilation failed'
+            definition.id.displayName == 'Script compilation failed'
             contextualLabel == "Could not compile build file '${buildFile}'."
             oneLocation(LineInFileLocation).path == buildFile.absolutePath
         }

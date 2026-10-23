@@ -33,6 +33,16 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
 
     String getAuthConfig() { '' }
 
+    /**
+     * Artifact downloads run on the MAX_WORKERS build operation executor, whose queue is backed by
+     * {@code maxWorkerCount - 1} threads plus the submitting thread. A test that blocks until N downloads
+     * are simultaneously in flight therefore needs max workers > N: at exactly N it is sitting on the
+     * theoretical ceiling, so any other worker lease holder in the build leaves only N-1 downloads in
+     * flight, {@link BlockingHttpServer#expectConcurrent} never releases them, and the build wedges until
+     * the client's 60s HTTP socket timeout frees a lease and lets the last request through far too late.
+     */
+    private static final String MAX_WORKERS = '8'
+
     def "downloads artifacts in parallel from a Maven repo - #expression"() {
         def m1 = mavenRepo.module('test', 'test1', '1.0').publish()
         def m2 = mavenRepo.module('test', 'test2', '1.0').publish()
@@ -75,7 +85,7 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
             blockingServer.get(m4.artifact.path).sendFile(m4.artifact.file))
 
         expect:
-        executer.withArguments('--max-workers', '4')
+        executer.withArguments('--max-workers', MAX_WORKERS)
         succeeds("resolve")
 
         where:
@@ -130,7 +140,7 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
             blockingServer.get(m4.jar.path).sendFile(m4.jar.file))
 
         expect:
-        executer.withArguments('--max-workers', '4')
+        executer.withArguments('--max-workers', MAX_WORKERS)
         succeeds("resolve")
     }
 
@@ -272,7 +282,7 @@ class ParallelDownloadsIntegrationTest extends AbstractHttpDependencyResolutionT
             blockingServer.get(m4.jar.path).sendFile(m4.jar.file))
 
         expect:
-        executer.withArguments('--max-workers', '4')
+        executer.withArguments('--max-workers', MAX_WORKERS)
         succeeds("resolve")
     }
 

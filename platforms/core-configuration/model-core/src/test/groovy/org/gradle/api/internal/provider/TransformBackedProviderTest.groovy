@@ -16,7 +16,6 @@
 
 package org.gradle.api.internal.provider
 
-import org.gradle.api.InvalidUserCodeException
 import org.gradle.api.Task
 import org.gradle.api.Transformer
 import org.gradle.api.internal.provider.CircularEvaluationSpec.CircularChainEvaluationSpec
@@ -60,8 +59,14 @@ class TransformBackedProviderTest extends Specification {
         provider.isPresent()
 
         then:
-        def ex = thrown(InvalidUserCodeException)
-        ex.message == "Querying the mapped value of <prop> before <task> has completed is not supported"
+        def ex = thrown(ProducerNotCompletedException)
+        ex.message == "Querying the mapped value of <prop> before <task> has completed is not supported. " +
+            "The mapped value may depend on the content produced by <task>, so it can only be calculated after <task> has completed."
+        ex.resolutions == [
+            "To use the value in another task, declare it as an input of that task, so that the task runs after <task>.",
+            "To use the value in the actions of <task>, query the property with 'get()' and transform the result.",
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
+        ]
         0 * progressEventEmitter._
     }
 
@@ -74,8 +79,14 @@ class TransformBackedProviderTest extends Specification {
         provider.get()
 
         then:
-        def ex = thrown(InvalidUserCodeException)
-        ex.message == "Querying the mapped value of <prop> before <task> has completed is not supported"
+        def ex = thrown(ProducerNotCompletedException)
+        ex.message == "Querying the mapped value of <prop> before <task> has completed is not supported. " +
+            "The mapped value may depend on the content produced by <task>, so it can only be calculated after <task> has completed."
+        ex.resolutions == [
+            "To use the value in another task, declare it as an input of that task, so that the task runs after <task>.",
+            "To use the value in the actions of <task>, query the property with 'get()' and transform the result.",
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
+        ]
         0 * progressEventEmitter._
     }
 
@@ -100,8 +111,14 @@ class TransformBackedProviderTest extends Specification {
         provider.getOrNull()
 
         then:
-        def ex = thrown(InvalidUserCodeException)
-        ex.message == "Querying the mapped value of <prop> before <task> has completed is not supported"
+        def ex = thrown(ProducerNotCompletedException)
+        ex.message == "Querying the mapped value of <prop> before <task> has completed is not supported. " +
+            "The mapped value may depend on the content produced by <task>, so it can only be calculated after <task> has completed."
+        ex.resolutions == [
+            "To use the value in another task, declare it as an input of that task, so that the task runs after <task>.",
+            "To use the value in the actions of <task>, query the property with 'get()' and transform the result.",
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
+        ]
         0 * progressEventEmitter._
     }
 
@@ -114,8 +131,14 @@ class TransformBackedProviderTest extends Specification {
         provider.getOrElse(12)
 
         then:
-        def ex = thrown(InvalidUserCodeException)
-        ex.message == "Querying the mapped value of <prop> before <task> has completed is not supported"
+        def ex = thrown(ProducerNotCompletedException)
+        ex.message == "Querying the mapped value of <prop> before <task> has completed is not supported. " +
+            "The mapped value may depend on the content produced by <task>, so it can only be calculated after <task> has completed."
+        ex.resolutions == [
+            "To use the value in another task, declare it as an input of that task, so that the task runs after <task>.",
+            "To use the value in the actions of <task>, query the property with 'get()' and transform the result.",
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
+        ]
         0 * progressEventEmitter._
     }
 
@@ -128,8 +151,14 @@ class TransformBackedProviderTest extends Specification {
         provider.get()
 
         then:
-        def ex = thrown(InvalidUserCodeException)
-        ex.message == "Querying the mapped value of map(<prop>) before <task> has completed is not supported"
+        def ex = thrown(ProducerNotCompletedException)
+        ex.message == "Querying the mapped value of map(<prop>) before <task> has completed is not supported. " +
+            "The mapped value may depend on the content produced by <task>, so it can only be calculated after <task> has completed."
+        ex.resolutions == [
+            "To use the value in another task, declare it as an input of that task, so that the task runs after <task>.",
+            "To use the value in the actions of <task>, query the property with 'get()' and transform the result.",
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
+        ]
         0 * progressEventEmitter._
     }
 
@@ -142,8 +171,14 @@ class TransformBackedProviderTest extends Specification {
         provider.get()
 
         then:
-        def ex = thrown(InvalidUserCodeException)
-        ex.message == "Querying the mapped value of <prop> before <task> has completed is not supported"
+        def ex = thrown(ProducerNotCompletedException)
+        ex.message == "Querying the mapped value of <prop> before <task> has completed is not supported. " +
+            "The mapped value may depend on the content produced by <task>, so it can only be calculated after <task> has completed."
+        ex.resolutions == [
+            "To use the value in another task, declare it as an input of that task, so that the task runs after <task>.",
+            "To use the value in the actions of <task>, query the property with 'get()' and transform the result.",
+            "If only the location of a file or directory is needed, use the 'locationOnly' provider of the file property instead."
+        ]
         0 * progressEventEmitter._
     }
 

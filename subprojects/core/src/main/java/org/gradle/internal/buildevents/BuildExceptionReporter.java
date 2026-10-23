@@ -22,8 +22,6 @@ import org.gradle.api.internal.DocumentationRegistry;
 import org.gradle.api.logging.LogLevel;
 import org.gradle.api.logging.configuration.LoggingConfiguration;
 import org.gradle.api.logging.configuration.ShowStacktrace;
-import org.gradle.api.problems.ProblemGroup;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.initialization.BuildClientMetaData;
 import org.gradle.internal.enterprise.core.GradleEnterprisePluginManager;
@@ -421,13 +419,10 @@ public class BuildExceptionReporter implements Action<Throwable> {
             resolutions.addAll(((ResolutionProvider) failure.getOriginal()).getResolutions());
         }
 
-        Collection<ProblemInternal> all = failure.getProblems();
-        for (ProblemInternal problem : all) {
-            // Java compilation problems are rendered by JavaCompilationWriter which emits only the details,
-            // so their solutions still need to reach the user via the resolution section.
-            // All other problem writers render solutions and doc links inline.
-            ProblemGroup group = problem.getDefinition().getId().getGroup();
-            if (GradleCoreProblemGroup.compilation().java().equals(group)) {
+        if (failure.getOriginal() instanceof CompilationFailedIndicator) {
+            // Compiler diagnostics are rendered as their details only (see getMessage), so their solutions still need
+            // to reach the user via the resolution section. All other problems render their solutions inline.
+            for (ProblemInternal problem : failure.getProblems()) {
                 resolutions.addAll(problem.getSolutions());
             }
         }
@@ -480,7 +475,9 @@ public class BuildExceptionReporter implements Action<Throwable> {
                     builder.append(System.lineSeparator());
                 }
                 StringWriter problemWriter = new StringWriter();
-                ProblemWriter.grouping().write(problems, problemWriter);
+                // Compiler diagnostics carry the compiler's own rendering in their details, including the location.
+                ProblemWriter writer = failure.getOriginal() instanceof CompilationFailedIndicator ? ProblemWriter.detailsOnly() : ProblemWriter.grouping();
+                writer.write(problems, problemWriter);
                 builder.append(problemWriter);
 
                 // Workaround to keep the original behavior for Java compilation. We should render counters for all problems in the future.

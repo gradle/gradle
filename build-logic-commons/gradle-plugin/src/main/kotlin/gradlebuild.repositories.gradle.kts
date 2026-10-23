@@ -14,7 +14,13 @@
  * limitations under the License.
  */
 
+import gradlebuild.basics.googleApisJs
+
 repositories {
+    // Serves the jquery and flot JavaScript artifacts bundled into generated reports.
+    // The helper applies its own content filter, so this repository is only ever
+    // consulted for those two groups.
+    googleApisJs()
     maven {
         name = "Gradle public repository"
         url = uri("https://repo.gradle.org/gradle/public")
@@ -43,5 +49,12 @@ repositories {
             includeGroup("io.usethesource")
         }
     }
-    mavenCentral()
+    mavenCentral {
+        content {
+            // The japicmp baseline is served by the Gradle distributions ivy repository declared in
+            // gradlebuild.binary-compatibility. Asking Maven Central for it can only ever 404, and
+            // when the mirror answers 503 under load instead, Gradle disables the whole repository.
+            excludeModule("gradle", "gradle")
+        }
+    }
 }

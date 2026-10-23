@@ -14,23 +14,6 @@
 <!-- end div class="layout" -->
 
 <script type="text/javascript">
-    // Polyfill Element.matches()
-    if (!Element.prototype.matches) {
-        Element.prototype.matches = Element.prototype.msMatchesSelector || Element.prototype.webkitMatchesSelector;
-    }
-    // Polyfill Element.closest()
-    if (!Element.prototype.closest) {
-        Element.prototype.closest = function (s) {
-            var el = this;
-            if (!document.documentElement.contains(el)) return null;
-            do {
-                if (typeof el.matches === "function" && el.matches(s)) return el;
-                el = el.parentElement || el.parentNode;
-            } while (el !== null);
-            return null;
-        };
-    }
-
     function getCurrentChapterFileName(givenUrl) {
         var currentChapterFileName = givenUrl.substr(givenUrl.lastIndexOf("/") + 1);
         if (currentChapterFileName === "index.html" || currentChapterFileName === "") {

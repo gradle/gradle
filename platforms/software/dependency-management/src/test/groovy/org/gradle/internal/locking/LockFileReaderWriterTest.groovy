@@ -17,24 +17,23 @@
 package org.gradle.internal.locking
 
 import org.gradle.api.file.RegularFileProperty
-import org.gradle.api.internal.DomainObjectContext
 import org.gradle.api.internal.artifacts.DependencyManagementInstanceIdentity
 import org.gradle.api.internal.file.FileResolver
 import org.gradle.api.internal.file.TestFiles
+import org.gradle.api.internal.project.ProjectDomainObjectContext
 import org.gradle.api.internal.project.ProjectIdentity
-import org.gradle.api.internal.project.ProjectState
+import org.gradle.internal.model.DomainObjectContext
 import org.gradle.internal.resource.local.FileResourceListener
-import org.gradle.internal.service.scopes.ProjectDomainObjectContext
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
-
-import java.nio.charset.StandardCharsets
 import org.gradle.util.GradleVersion
 import org.gradle.util.Path
 import org.junit.Rule
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
+
+import java.nio.charset.StandardCharsets
 
 class LockFileReaderWriterTest extends Specification {
     @Rule
@@ -47,9 +46,7 @@ class LockFileReaderWriterTest extends Specification {
     FileResolver resolver = Mock()
     ProjectIdentity identity = ProjectIdentity.forSubproject(Path.ROOT, Path.path(":foo"))
     DomainObjectContext context = Mock(ProjectDomainObjectContext) {
-        getModel() >> Mock(ProjectState) {
-            getIdentity() >> identity
-        }
+        getIdentity() >> identity
     }
     DependencyManagementInstanceIdentity instanceIdentity = new DependencyManagementInstanceIdentity(identity)
     FileResourceListener listener = Mock()
@@ -324,9 +321,7 @@ empty=d
         given:
         ProjectIdentity owningProject = ProjectIdentity.forRootProject(Path.ROOT, "root")
         DomainObjectContext rootContext = Mock(ProjectDomainObjectContext) {
-            getModel() >> Mock(ProjectState) {
-                getIdentity() >> owningProject
-            }
+            getIdentity() >> owningProject
         }
         FileResolver rootResolver = Mock()
         rootResolver.canResolveRelativePath() >> true

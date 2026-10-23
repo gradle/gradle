@@ -21,6 +21,9 @@ dependencies {
 // tag::use_artifact_type[]
 dependencies {
     implementation(libs.my.lib) {
+        // A String-notation dependency with a type or classifier resolves non-transitively by default.
+        // The catalog accessor does not get this automatic behavior, so set it explicitly to match.
+        isTransitive = false
         artifact {
             name = "my-lib"
             type = "aar"

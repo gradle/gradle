@@ -128,13 +128,9 @@ class FlakyTestQuarantine(
             gradleWrapper {
                 name =
                     "FLAKY_TEST_QUARANTINE_${testCoverage.testType.name.uppercase()}_${testCoverage.testJvmVersion.name.uppercase()}"
-                // Each cross-version target costs minutes to fork a JVM and unpack the distribution under
-                // test. Whether a test still flakes does not depend on which patch release it runs against,
-                // so the quarantine takes the one target per major that quickFeedbackCrossVersionTest covers.
                 val testTaskName =
                     when (testCoverage.testType) {
                         TestType.ISOLATED_PROJECTS -> "isolatedProjectsIntegTest"
-                        TestType.ALL_VERSIONS_CROSS_VERSION -> "quickFeedbackCrossVersionTest"
                         else -> "${testCoverage.testType.asCamelCase()}Test"
                     }
                 tasks = "clean $testTaskName"

@@ -21,7 +21,6 @@ import org.gradle.api.artifacts.ResolutionStrategy;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
-import org.gradle.api.internal.DomainObjectContext;
 import org.gradle.api.internal.FeaturePreviews;
 import org.gradle.api.internal.artifacts.ComponentModuleMetadataHandlerInternal;
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal;
@@ -53,6 +52,7 @@ import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesSchemaInternal;
 import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchemaFactory;
 import org.gradle.api.internal.attributes.immutable.artifact.ImmutableArtifactTypeRegistry;
+import org.gradle.api.internal.project.ProjectDomainObjectContext;
 import org.gradle.api.internal.project.ProjectIdentity;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.buildoption.FeatureFlags;
@@ -61,16 +61,16 @@ import org.gradle.internal.component.local.model.LocalComponentGraphResolveState
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
 import org.gradle.internal.model.CalculatedValue;
 import org.gradle.internal.model.CalculatedValueContainerFactory;
-import org.gradle.internal.service.scopes.ProjectDomainObjectContext;
+import org.gradle.internal.model.DomainObjectContext;
 import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
+import javax.inject.Inject;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
-import javax.inject.Inject;
 
 /**
  * Responsible for resolving a configuration. Delegates to a {@link ShortCircuitingResolutionExecutor} to perform
@@ -168,7 +168,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
         ImmutableList<ResolutionParameters.ModuleVersionLock> moduleVersionLocks = includeConsistentResolutionLocks ? configuration.getConsistentResolutionVersionLocks() : ImmutableList.of();
         ImmutableArtifactTypeRegistry immutableArtifactTypeRegistry = attributeSchemaServices.getArtifactTypeRegistryFactory().create(artifactTypeRegistry);
         ImmutableModuleReplacements moduleReplacements = componentModuleMetadataHandler.getModuleReplacements();
-        ProjectIdentity projectIdentity = configuration.getDomainObjectContext() instanceof ProjectDomainObjectContext pdoc ? pdoc.getModel().getIdentity() : null;
+        ProjectIdentity projectIdentity = configuration.getDomainObjectContext() instanceof ProjectDomainObjectContext pdoc ? pdoc.getIdentity() : null;
         ConfigurationFailureResolutions failureResolutions = new ConfigurationFailureResolutions(projectIdentity, configuration.getName());
 
         return new ResolutionParameters(
@@ -414,7 +414,7 @@ public class DefaultConfigurationResolver implements ConfigurationResolver {
             //  an adhoc root component, and should use an AdhocRootComponentProvider.
             return new ProjectRootComponentProvider(
                 owner.getModel(),
-                pdoc.getModel().getIdentity(),
+                pdoc.getIdentity(),
                 moduleIdentity,
                 schema,
                 configurations,

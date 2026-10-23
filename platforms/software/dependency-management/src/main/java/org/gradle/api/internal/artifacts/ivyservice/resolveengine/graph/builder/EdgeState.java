@@ -228,7 +228,7 @@ class EdgeState implements DependencyGraphEdge {
      */
     @Nullable
     ComponentState getTargetComponent() {
-        if (selector == null || selector.requiresSelection() || selector.getFailure() != null) {
+        if (substitutionFailure != null || selector == null || selector.requiresSelection() || selector.getFailure() != null) {
             return null;
         }
         ModuleResolveState targetModule = selector.getTargetModule();

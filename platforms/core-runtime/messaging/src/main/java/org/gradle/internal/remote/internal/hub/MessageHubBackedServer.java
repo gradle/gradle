@@ -34,8 +34,8 @@ public class MessageHubBackedServer implements MessagingServer {
     }
 
     @Override
-    public ConnectionAcceptor accept(Action<ObjectConnection> action) {
-        return connector.accept(new ConnectEventAction(action), false);
+    public ConnectionAcceptor accept(Action<ObjectConnection> action, byte[] connectionToken) {
+        return connector.accept(new ConnectEventAction(action), false, connectionToken);
     }
 
     private class ConnectEventAction implements Action<ConnectCompletion> {

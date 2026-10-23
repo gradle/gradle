@@ -27,7 +27,6 @@ import org.gradle.api.initialization.dsl.VersionCatalogBuilder;
 import org.gradle.api.internal.catalog.problems.VersionCatalogProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.Problems;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemInternal;
 import org.gradle.api.problems.internal.ProblemReporterInternal;
 import org.gradle.api.problems.internal.ProblemSpecInternal;
@@ -66,7 +65,6 @@ import static org.gradle.api.internal.catalog.problems.VersionCatalogProblemId.U
 import static org.gradle.internal.RenderingUtils.quotedOxfordListOf;
 import static org.gradle.internal.deprecation.Documentation.userManual;
 import static org.gradle.util.internal.TextUtil.getPluralEnding;
-import static org.gradle.util.internal.TextUtil.screamingSnakeToKebabCase;
 
 public class TomlCatalogFileParser {
     public static final String CURRENT_VERSION = "1.1";
@@ -116,7 +114,7 @@ public class TomlCatalogFileParser {
     }
 
     private void parse() throws IOException {
-        StrictVersionParser strictVersionParser = new StrictVersionParser(Interners.newStrongInterner(), getInternalProblems());
+        StrictVersionParser strictVersionParser = StrictVersionParser.forVersionCatalog(Interners.newStrongInterner(), getInternalProblems());
         try (InputStream inputStream = new BufferedInputStream(Files.newInputStream(catalogFilePath))) {
             TomlParseResult result = Toml.parse(inputStream);
             assertNoParseErrors(result);
@@ -145,17 +143,16 @@ public class TomlCatalogFileParser {
     }
 
     @NullMarked
-    private static ProblemSpec configureVersionCatalogError(ProblemSpecInternal builder, String message, VersionCatalogProblemId catalogProblemId) {
+    private ProblemSpec configureVersionCatalogError(ProblemSpecInternal builder, String message, VersionCatalogProblemId catalogProblemId) {
         return configureVersionCatalogError(builder, message, catalogProblemId, input -> input);
     }
 
-    private static ProblemSpecInternal configureVersionCatalogError(ProblemSpecInternal builder, String label, VersionCatalogProblemId catalogProblemId, Function<ProblemSpecInternal, ProblemSpecInternal> locationDefiner) {
+    private ProblemSpecInternal configureVersionCatalogError(ProblemSpecInternal builder, String label, VersionCatalogProblemId catalogProblemId, Function<ProblemSpecInternal, ProblemSpecInternal> locationDefiner) {
         ProblemSpecInternal definingLocation = builder
-            .id(screamingSnakeToKebabCase(catalogProblemId.name()), catalogProblemId.getDisplayName(), GradleCoreProblemGroup.versionCatalog())
+            .id(catalogProblemId.problemId(getInternalProblems().getGroups()))
             .contextualLabel(label)
             .documentedAt(userManual(VERSION_CATALOG_PROBLEMS, catalogProblemId.name().toLowerCase(Locale.ROOT)));
-        ProblemSpecInternal definingCategory = locationDefiner.apply(definingLocation);
-        return definingCategory;
+        return locationDefiner.apply(definingLocation);
     }
 
     private void assertNoParseErrors(TomlParseResult result) {

@@ -40,6 +40,7 @@ dependencies {
 
     implementation(projects.baseServices)
     implementation(projects.coreApi)
+    implementation(projects.problemsApi)
 
     implementation(libs.jacksonCore)
     implementation(libs.jacksonDatabind)

@@ -12,5 +12,5 @@ dependencies {
 
     implementation(buildLibs.develocityPlugin)
     implementation(buildLibs.gson)
-    implementation(buildLibs.kgp)
+    implementation(buildLibs.kotlinGradlePlugin)
 }
