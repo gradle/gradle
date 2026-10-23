@@ -52,7 +52,7 @@ public class ResolveMutationsNode extends Node {
     }
 
     @Override
-    public String toString() {
+    public String getDisplayName() {
         return "Resolve mutations for " + node;
     }
 
