@@ -18,6 +18,7 @@ package org.gradle.launcher.daemon
 
 import org.gradle.integtests.fixtures.AvailableJavaHomes
 import org.gradle.internal.jvm.Jvm
+import org.gradle.launcher.daemon.configuration.DaemonParameters
 import org.gradle.launcher.daemon.registry.DaemonDir
 import org.gradle.launcher.daemon.server.api.HandleStop
 import org.gradle.test.precondition.Requires
@@ -59,7 +60,7 @@ class DaemonLifecycleSpec extends AbstractDaemonLifecycleSpec {
     def "existing foreground idle daemons are used"() {
         // Both the foreground daemon and the client must request the same daemon JVM args,
         // so the client's build runs in the foreground daemon instead of a forked daemon.
-        List<String> daemonJvmArgs = ["-ea", "-Xms256m", "-Xmx512m"]
+        List<String> daemonJvmArgs = ["-ea"] + DaemonParameters.DEFAULT_JVM_ARGS
 
         when:
         run {

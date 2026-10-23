@@ -68,11 +68,13 @@ The Gradle Client sends the Gradle Daemon build information such as command line
 The Daemon is responsible for resolving dependencies, executing build scripts, creating and running tasks; when it is done, it sends the client the output.
 Communication between the client and the Daemon happens via a local socket connection.
 
-Daemons use the JVM's default minimum heap size.
-
-If the requested build environment does not specify a maximum heap size, the Daemon uses up to 512MB of heap.
+If the requested build environment specifies neither `-Xms` nor `-Xmx`, the Daemon uses a minimum heap size of 256MB and a maximum heap size of 512MB.
 512MB is adequate for most builds.
 Larger builds with hundreds of subprojects, configuration, and source code may benefit from a larger heap size.
+
+Unless `-XX:MaxMetaspaceSize` is specified, the Daemon also limits Metaspace, where the JVM stores class metadata, to 768MB.
+Builds that load many plugins or large compiler plugins may need a larger limit.
+See <<config_gradle.adoc#sec:configuring_jvm_memory,Configuring JVM memory>> for how to change these values.
 
 [[sec:status]]
 == Check Daemon status
@@ -140,12 +142,10 @@ org.gradle.daemon=true
 [[sec:disabling_the_daemon]]
 == Disable Daemon
 
-You can disable the Daemon in multiple ways but there are important considerations:
+You can disable the Daemon in multiple ways, but when the Daemon is disabled, the build only runs in the client JVM if the client's JVM args (`JAVA_OPTS` and `GRADLE_OPTS`) match the JVM args the build requires.
+The required JVM args are `org.gradle.jvmargs` <<config_gradle.adoc#sec:configuring_jvm_memory,merged with the default JVM args>>, so `JAVA_OPTS` or `GRADLE_OPTS` must also contain the defaults or explicit overrides for them.
 
-Single-use Daemon :: If the JVM args of the client process don't match what the build requires, a single-used Daemon (disposable JVM) is created.
-This means the Daemon is required for the build, so it is created, used, and then stopped at the end of the build.
-
-No Daemon :: If the `JAVA_OPTS` and `GRADLE_OPTS` match `org.gradle.jvmargs`, the Daemon will not be used at all since the build happens in the client JVM.
+Otherwise, Gradle uses a single-use Daemon (disposable JVM): it is created, used for the build, and then stopped at the end of the build.
 
 [[disable_for_a_build]]
 === Disable for a build
@@ -188,8 +188,6 @@ There are two recommended ways to disable the Daemon globally across an environm
 
 * add `org.gradle.daemon=false` to the `$<<directory_layout.adoc#dir:gradle_user_home,GRADLE_USER_HOME>>`/gradle.properties` file
 * add the flag `-Dorg.gradle.daemon=false` to the `GRADLE_OPTS` environment variable
-
-Don't forget to make sure your JVM arguments and `GRADLE_OPTS` / `JAVA_OPTS` match if you want to completely disable the Daemon and not simply invoke a single-use one.
 
 [[sec:stopping_an_existing_daemon]]
 == Stop Daemon
@@ -574,15 +572,19 @@ The following JVM system properties are immutable:
 * `javax.net.ssl.trustStoreType`
 * `com.sun.management.jmxremote`
 
-The following JVM attributes controlled by startup arguments are also immutable:
+All JVM arguments other than system properties are also immutable, such as:
 
 * The maximum heap size (the `-Xmx` JVM argument)
 * The minimum heap size (the `-Xms` JVM argument)
+* The maximum Metaspace size (the `-XX:MaxMetaspaceSize` JVM argument)
 * The boot classpath (the `-Xbootclasspath` argument)
 * The "assertion" status (the `-ea` argument)
 
 If the requested build environment requirements for any of these properties and attributes
 differ from the Daemon's JVM requirements, the Daemon is not compatible.
+
+The requested JVM arguments are `org.gradle.jvmargs` <<config_gradle.adoc#sec:configuring_jvm_memory,merged with the default JVM args>>.
+For example, a build that does not set `-Xmx` requests the default `-Xmx512m`, so it cannot use a Daemon that was started with `-Xmx2g`.
 
 NOTE: For more information about build environments, see <<build_environment.adoc#build_environment,the build environment documentation>>.
 
@@ -616,9 +618,9 @@ Similarly, the Daemon maintains in-memory caches of build data, such as the hash
 [[sec:performance_monitoring]]
 == Performance Monitoring
 
-Gradle actively monitors heap usage to detect memory leaks in the Daemon.
+Gradle actively monitors heap and Metaspace usage to detect memory leaks in the Daemon.
 
-When a memory leak exhausts available heap space, the Daemon:
+When a memory leak exhausts available heap or Metaspace, the Daemon:
 
 . Finishes the currently running build.
 . Restarts before running the next build.

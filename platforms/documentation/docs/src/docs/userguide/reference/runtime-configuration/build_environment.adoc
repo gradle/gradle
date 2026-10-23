@@ -479,8 +479,10 @@ _Default is empty, meaning Gradle will not use any environment variables to find
 Specifies the JVM arguments used for the Gradle Daemon.
 The setting is particularly useful for <<config_gradle.adoc#sec:configuring_jvm_memory,configuring JVM memory settings>> for build performance.
 This does not affect the JVM settings for the Gradle client VM.
+The arguments you specify are merged with the default arguments, so you only need to set the ones you want to change.
+See <<config_gradle.adoc#sec:configuring_jvm_memory,Configuring JVM memory>> for how the defaults are merged.
 +
-_Default is `-Xmx512m "-XX:MaxMetaspaceSize=384m"`._
+_Default is `-Xms256m -Xmx512m -XX:MaxMetaspaceSize=768m -XX:+HeapDumpOnOutOfMemoryError`._
 
 `org.gradle.logging.level=(quiet,warn,lifecycle,info,debug)`::
 When set to quiet, warn, info, or debug, Gradle will use this <<logging.adoc#sec:choosing_a_log_level,log level>>.

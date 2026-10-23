@@ -56,6 +56,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Locale;
 import java.util.Properties;
@@ -215,10 +216,17 @@ public class GradleBuildExperimentRunner extends AbstractBuildExperimentRunner {
             throw UncheckedException.throwAsUncheckedException(e);
         }
         String[] jvmOptsFromGradleProperties = gradleProperties.getProperty("org.gradle.jvmargs").split(" ");
-        final ImmutableList<String> actualJvmArgs = ImmutableList.<String>builder()
+        ImmutableList.Builder<String> jvmArgsBuilder = ImmutableList.<String>builder()
             .add(jvmOptsFromGradleProperties)
-            .addAll(invocationSpec.getJvmArguments())
-            .build();
+            .addAll(invocationSpec.getJvmArguments());
+        // Since Gradle 10, the daemon gets a default MaxMetaspaceSize even when org.gradle.jvmargs is set, while older baselines run with no limit.
+        // Pin it explicitly, to the same value as the new default, so the baseline and the current version run with the same limit.
+        boolean hasMaxMetaspaceSize = Stream.concat(Arrays.stream(jvmOptsFromGradleProperties), invocationSpec.getJvmArguments().stream())
+            .anyMatch(arg -> arg.startsWith("-XX:MaxMetaspaceSize="));
+        if (!hasMaxMetaspaceSize) {
+            jvmArgsBuilder.add("-XX:MaxMetaspaceSize=768m");
+        }
+        final ImmutableList<String> actualJvmArgs = jvmArgsBuilder.build();
         return new GradleScenarioDefinition(
             OutputDirSelectorUtil.fileSafeNameFor(experimentSpec.getDisplayName()),
             experimentSpec.getDisplayName(),

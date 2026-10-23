@@ -36,25 +36,90 @@ class DaemonParametersTest extends Specification {
         parameters.effectiveJvmArgs.size() == 4 + 4 // 4 immutable system properties and 4 memory related properties
     }
 
-    def "configuring jvmargs replaces the defaults"() {
+    def "merges jvmargs #userArgs with the defaults"() {
         when:
-        parameters.setJvmArgs(["-Xmx17m"])
+        parameters.setJvmArgs(userArgs)
 
         then:
-        parameters.effectiveJvmArgs.intersect(parameters.DEFAULT_JVM_ARGS).empty
+        def effectiveArgs = parameters.effectiveJvmArgs.findAll { !it.startsWith("-D") }
+        effectiveArgs as Set == expectedArgs as Set
+        effectiveArgs.size() == expectedArgs.size()
+
+        where:
+        userArgs                                                 || expectedArgs
+        []                                                       || ["-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=768m", "-XX:+HeapDumpOnOutOfMemoryError"]
+        ["-XX:+UseG1GC"]                                         || ["-XX:+UseG1GC", "-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=768m", "-XX:+HeapDumpOnOutOfMemoryError"]
+        ["-Xmx2g"]                                               || ["-Xmx2g", "-XX:MaxMetaspaceSize=768m", "-XX:+HeapDumpOnOutOfMemoryError"]
+        ["-Xms1g"]                                               || ["-Xms1g", "-XX:MaxMetaspaceSize=768m", "-XX:+HeapDumpOnOutOfMemoryError"]
+        ["-Xms1g", "-Xmx2g"]                                     || ["-Xms1g", "-Xmx2g", "-XX:MaxMetaspaceSize=768m", "-XX:+HeapDumpOnOutOfMemoryError"]
+        ["-XX:MaxMetaspaceSize=1g"]                              || ["-XX:MaxMetaspaceSize=1g", "-Xmx512m", "-Xms256m", "-XX:+HeapDumpOnOutOfMemoryError"]
+        ["-XX:-HeapDumpOnOutOfMemoryError"]                      || ["-XX:-HeapDumpOnOutOfMemoryError", "-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=768m"]
+        ["-XX:+HeapDumpOnOutOfMemoryError"]                      || ["-XX:+HeapDumpOnOutOfMemoryError", "-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=768m"]
+        DaemonParameters.DEFAULT_JVM_ARGS                        || DaemonParameters.DEFAULT_JVM_ARGS
+        ["-XX:MaxRAMPercentage=75"]                              || ["-XX:MaxRAMPercentage=75", "-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=768m", "-XX:+HeapDumpOnOutOfMemoryError"]
     }
 
-    def "does not apply defaults when jvmargs already specified"() {
+    def "places defaults before user-supplied jvmargs"() {
         when:
-        parameters.setJvmArgs(["-Xmx17m"])
-        parameters.requestedJvmCriteria = new DaemonJvmCriteria.Spec(JavaLanguageVersion.of(8), null, null, false)
+        parameters.setJvmArgs(["-XX:MaxHeapSize=2g"])
 
         then:
-        parameters.effectiveJvmArgs.containsAll(["-Xmx17m"])
-        parameters.effectiveJvmArgs.intersect(parameters.DEFAULT_JVM_ARGS).empty
+        parameters.effectiveJvmArgs.take(4) == ["-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=768m", "-XX:+HeapDumpOnOutOfMemoryError"]
+        parameters.effectiveJvmArgs.indexOf("-XX:MaxHeapSize=2g") > 3
     }
 
-    def "can apply defaults for Java 8 and later"() {
+    def "merges defaults with jvmargs added after setting jvmargs"() {
+        when:
+        parameters.setJvmArgs(["-XX:MaxMetaspaceSize=1g"])
+        parameters.addJvmArgs(["-Xmx2g", "-XX:-HeapDumpOnOutOfMemoryError"])
+
+        then:
+        def effectiveArgs = parameters.effectiveJvmArgs.findAll { !it.startsWith("-D") }
+        effectiveArgs as Set == ["-XX:MaxMetaspaceSize=1g", "-Xmx2g", "-XX:-HeapDumpOnOutOfMemoryError"] as Set
+    }
+
+    def "replaces previously set jvmargs when setting jvmargs again"() {
+        when:
+        parameters.setJvmArgs(["-Xmx2g", "-XX:MaxMetaspaceSize=1g"])
+        parameters.setJvmArgs(["-XX:+UseG1GC"])
+
+        then:
+        def effectiveArgs = parameters.effectiveJvmArgs.findAll { !it.startsWith("-D") }
+        effectiveArgs as Set == ["-XX:+UseG1GC"] + DaemonParameters.DEFAULT_JVM_ARGS as Set
+    }
+
+    def "merging defaults is idempotent for #userArgs"() {
+        given:
+        parameters.setJvmArgs(userArgs)
+        def effectiveArgs = parameters.effectiveJvmArgs
+
+        when:
+        def roundTripped = new DaemonParameters(userHomeDir, TestFiles.fileCollectionFactory())
+        roundTripped.setJvmArgs(effectiveArgs)
+
+        then:
+        roundTripped.effectiveJvmArgs as Set == effectiveArgs as Set
+        roundTripped.effectiveJvmArgs.size() == effectiveArgs.size()
+
+        where:
+        userArgs << [
+            [],
+            ["-Xmx2g"],
+            ["-XX:-HeapDumpOnOutOfMemoryError", "-ea", "-Dfoo=bar"]
+        ]
+    }
+
+    def "keeps assertions and debug arguments when merging defaults"() {
+        when:
+        parameters.setJvmArgs(["-ea"])
+        parameters.setDebug(true)
+
+        then:
+        parameters.effectiveJvmArgs.containsAll(["-ea", "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=5005"])
+        parameters.effectiveJvmArgs.containsAll(DaemonParameters.DEFAULT_JVM_ARGS)
+    }
+
+    def "applies defaults regardless of requested daemon JVM"() {
         when:
         parameters.requestedJvmCriteria = new DaemonJvmCriteria.Spec(JavaLanguageVersion.of(9), null, null, false)
 
