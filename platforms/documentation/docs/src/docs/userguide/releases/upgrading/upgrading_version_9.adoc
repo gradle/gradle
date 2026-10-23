@@ -42,12 +42,13 @@ The previous step will help you identify potential problems by issuing deprecati
 === Potential breaking changes
 
 [[derived_task_output_providers_execution_time]]
-==== Providers derived from task outputs are evaluated at execution time
+==== Transformations after `asFile`, `dir`, `file` and `zip` on task outputs are deferred
 
 This change affects builds that use the <<configuration_cache.adoc#config_cache,Configuration Cache>>.
 
-Gradle evaluates a provider of a task output after the task runs.
-This did not apply to providers derived from a task output with link:{javadocPath}/org/gradle/api/file/FileSystemLocationProperty.html#getAsFile()[`asFile`], link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#dir(java.lang.String)[`dir(...)`], link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#file(java.lang.String)[`file(...)`] or link:{javadocPath}/org/gradle/api/provider/Provider.html#zip(org.gradle.api.provider.Provider,java.util.function.BiFunction)[`zip(...)`].
+A `map` or `filter` on a task output property may read the files the task produces, so Gradle evaluates it after the task runs.
+Before this change, this did not apply when the task output location was first derived with link:{javadocPath}/org/gradle/api/file/FileSystemLocationProperty.html#getAsFile()[`asFile`], link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#dir(java.lang.String)[`dir(...)`] or link:{javadocPath}/org/gradle/api/file/DirectoryProperty.html#file(java.lang.String)[`file(...)`].
+The function passed to link:{javadocPath}/org/gradle/api/provider/Provider.html#zip(org.gradle.api.provider.Provider,java.util.function.BiFunction)[`zip(...)`] was not deferred either.
 Gradle evaluated them when storing the Configuration Cache entry, before the task ran, so they could see a missing or outdated file.
 Gradle now evaluates them after the task runs as well:
 
@@ -60,6 +61,9 @@ inputFiles.add(producer.flatMap { it.outputFile }.map { it.asFile }.filter { it.
 // Previously evaluated before `producer` ran, so the result reflected stale build state; now the same as above
 inputFiles.add(producer.flatMap { it.outputFile.asFile }.filter { it.exists() })
 ----
+
+Only the transformations are deferred.
+Locations derived from a task output, such as the `File` returned by `asFile`, are still computed when the Configuration Cache entry is stored.
 
 Because these transformations now run at execution time, the Configuration Cache stores the transformation and everything it references instead of its result.
 A transformation that references objects the Configuration Cache cannot store, such as the `Project` or an extension, now fails with a Configuration Cache problem.
