@@ -78,7 +78,7 @@ public class PropertiesFileHandler {
             } finally {
                 inStream.close();
             }
-        } catch (IOException e) {
+        } catch (IOException | IllegalArgumentException e) {
             throw new RuntimeException("Error when loading properties file=" + propertiesFile, e);
         }
         return properties;
