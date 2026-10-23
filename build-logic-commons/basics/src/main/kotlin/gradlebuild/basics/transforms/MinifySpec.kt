@@ -25,7 +25,7 @@ import java.io.Serializable
  * @param keepClasses class name patterns to keep, along with everything they reach
  * @param excludedClasses class name patterns to subtract from [keepClasses]
  * @param removePackages packages taken off the input, with their classes and their resources
- * @param sideEffectFreeCalls `some.Class#void method()` whose calls are dropped, for what they reach
+ * @param stubbedMethods `some.Class#void method()` whose body is emptied, for what it reaches
  * @param removeUnreachable whether to drop what no kept class reaches, which a library that resolves
  * its own classes by name cannot have
  * @param dropLocalVariables drops the local variable tables, which only a debugger reads
@@ -34,7 +34,7 @@ data class MinifySpec(
     val keepClasses: Set<String> = emptySet(),
     val excludedClasses: Set<String> = emptySet(),
     val removePackages: Set<String> = emptySet(),
-    val sideEffectFreeCalls: Set<String> = emptySet(),
+    val stubbedMethods: Set<String> = emptySet(),
     val removeUnreachable: Boolean = true,
     val dropLocalVariables: Boolean = false
 ) : Serializable {

@@ -13,7 +13,6 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-import org.gradle.api.JavaVersion
 import gradlebuild.basics.classanalysis.Attributes.artifactType
 import gradlebuild.basics.classanalysis.Attributes.minified
 import gradlebuild.basics.transforms.Minify
@@ -37,8 +36,8 @@ val minifyPatterns = mapOf(
     "it.unimi.dsi:fastutil" to MinifySpec(
         keepClasses = setOf(
             // What the distribution refers to, and what declares the members it inherits: the
-            // minifier keeps every member of a class named here, and only what is reachable of the
-            // rest. Derived by reading the references to this library out of the distribution.
+            // minifier keeps every class named here and every class they reach, whole. Derived by
+            // reading the references to this library out of the distribution.
             "it.unimi.dsi.fastutil.Function",
             "it.unimi.dsi.fastutil.Stack",
             "it.unimi.dsi.fastutil.ints.AbstractInt2LongFunction",
@@ -154,15 +153,14 @@ val minifyPatterns = mapOf(
             "org.bouncycastle.pqc.legacy",
         ),
         dropLocalVariables = true,
-        sideEffectFreeCalls = setOf(
+        stubbedMethods = setOf(
             // The provider skips algorithms whose classes are absent, because it looks them up by name.
             // This is the one place where it names post-quantum classes directly.
             "org.bouncycastle.jce.provider.BouncyCastleProvider#void loadPQCKeys()",
         ),
     ),
     "org.jetbrains.kotlin:kotlin-compiler-embeddable" to MinifySpec(
-        // The compiler resolves its own services by name, so nothing here is unreachable. R8 cannot
-        // process it either
+        // The compiler resolves its own services by name, so nothing here is unreachable
         removeUnreachable = false,
         dropLocalVariables = true,
         removePackages = setOf(
@@ -207,17 +205,6 @@ val minifyPatterns = mapOf(
     ),
 )
 
-val libraryDependencies = configurations.resolvable("minifierLibraries") {
-    // Of the libraries that are minified, the Kotlin compiler is the only one that refers to anything
-    // outside itself, and the minifier stops at the first supertype it cannot find
-    versionCatalogs.find("libs").flatMap { it.findLibrary("kotlinCompilerEmbeddable") }.ifPresent(dependencies::addLater)
-}
-
-val minifier = configurations.resolvable("minifier") {
-    versionCatalogs.find("buildLibs").flatMap { it.findLibrary("proguard") }.ifPresent(dependencies::addLater)
-    exclude(group = "org.json")
-}
-
 plugins.withId("java-base") {
     dependencies {
         attributesSchema {
@@ -237,9 +224,6 @@ plugins.withId("java-base") {
             to.attribute(minified, true).attribute(artifactType, "jar")
             parameters {
                 minifySpecsByCoordinates = minifyPatterns
-                minifierClasspath.from(minifier)
-                minifiedLibraries.from(libraryDependencies)
-                platformLibrary = layout.settingsDirectory.file("build/minifier/platform-${JavaVersion.current().majorVersion}.jar")
             }
         }
     }
@@ -250,7 +234,7 @@ plugins.withId("java-base") {
         // note: constraints can't be used here because they end up in gradle module metadata
         val attributesFactory = gradle.serviceOf<AttributesFactory>()
         configurations.all {
-            if (isCanBeResolved && !isCanBeConsumed && name != libraryDependencies.name && !name.startsWith("jmh")) {
+            if (isCanBeResolved && !isCanBeConsumed && !name.startsWith("jmh")) {
                 resolutionStrategy.dependencySubstitution.all {
                     val requested = this.requested as? ModuleComponentSelector ?: return@all
                     minifyPatterns.forEach { coordinates, _ ->
