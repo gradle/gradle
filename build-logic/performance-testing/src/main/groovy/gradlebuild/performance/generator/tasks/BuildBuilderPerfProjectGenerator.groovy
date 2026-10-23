@@ -30,6 +30,7 @@ import org.gradle.api.tasks.OutputDirectory
 import org.gradle.api.tasks.PathSensitive
 import org.gradle.api.tasks.PathSensitivity
 import org.gradle.api.tasks.TaskAction
+import org.gradle.internal.os.OperatingSystem
 import org.gradle.process.ExecOperations
 import org.gradle.work.DisableCachingByDefault
 
@@ -61,7 +62,7 @@ abstract class BuildBuilderPerfProjectGenerator extends ProjectGeneratorTask {
     @InputFile
     @PathSensitive(PathSensitivity.NONE)
     Provider<RegularFile> getBuildBuilderLauncher() {
-        buildBuilderInstall.file("bin/build-builder")
+        buildBuilderInstall.file("bin/build-builder" + (OperatingSystem.current().windows ? ".bat" : ""))
     }
 
     /**
