@@ -37,7 +37,7 @@ import org.gradle.api.publish.tasks.GenerateModuleMetadata
  * The per-project repo slice is exposed through the `distributionRepositoryElements` variant
  * (category `gradle-distribution-repository`); the distribution build resolves all slices and
  * merges them under `repo/` (distinct `<group-path>/<module>/` trees, so a plain copy merge is
- * safe). Any published module can opt in — the facility is not XDCL-specific, and is the intended
+ * safe). Any published module can opt in — the facility is not XDL-specific, and is the intended
  * home for distribution components that should participate in ordinary dependency resolution
  * rather than (only) the module registry.
  */

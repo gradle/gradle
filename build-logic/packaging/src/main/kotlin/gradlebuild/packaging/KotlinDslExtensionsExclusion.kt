@@ -22,10 +22,10 @@ package gradlebuild.packaging
  * classpath). The generator sweeps every `gradle-*` distribution jar for both halves of its
  * output — plugin-id accessors (from `META-INF/gradle-plugins` descriptors) and API type
  * extensions (over everything the public-API spec admits) — so a jar whose plugin ids or types
- * must not become generated public API opts out by carrying this marker: the XDCL ecosystem
+ * must not become generated public API opts out by carrying this marker: the XDL ecosystem
  * carriers (their plugin ids) and schema libraries (their generated facade types).
  *
- * Presence-only and empty; written by `gradlebuild.xdcl-ecosystem-library` and
- * `GenerateXdclCarrierManifests`. Purely distribution-build metadata — the runtime never reads it.
+ * Presence-only and empty; written by `gradlebuild.xdl-ecosystem-library` and
+ * `GenerateXdlCarrierManifests`. Purely distribution-build metadata — the runtime never reads it.
  */
 const val NO_KOTLIN_DSL_EXTENSIONS_MARKER = "META-INF/gradle/no-kotlin-dsl-extensions.marker"

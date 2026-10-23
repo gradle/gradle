@@ -1,0 +1,30 @@
+package org.gradle.xdl.ecosystem.plugindev.dsl
+
+import org.gradle.xdl.ecosystem.common.dsl
+
+// The declarative face of authoring an XDL Gradle plugin. The template itself is deliberately
+// minimal: the plugin's identity, schemas, and defaults are single-sourced from the project's own
+// `src/main/xdl/` files (the `<plugin-id>.xdl` plugin block — role 1), so the project type only has
+// to mark the project as an XDL plugin build and carry the dependency surface every plugin project
+// needs (e.g. to depend on a published ecosystem schema library). Repositories are declared once in
+// the settings (`dependencyResolutionManagement`), not per project.
+
+/// Top-level project type for authoring an XDL Gradle plugin: schemas and the plugin declaration
+/// live under `src/main/xdl/`; the reaction wires the real Gradle plugin-development machinery
+/// (java-library, java-gradle-plugin, and the bundled xdl codegen plugin) onto the project.
+template XdlGradlePlugin
+ with HasDependencies {
+  xdlGradlePlugin {
+  }
+}
+
+/// `XdlGradlePlugin` for a plugin whose reactions are written in Kotlin: the same wiring plus a
+/// Kotlin toolchain. The toolchain is not part of the distribution, so the settings must put one on
+/// the build classpath — `{ id "embedded-kotlin", apply false }` (the distribution-matched
+/// toolchain; the front end fills in the version) or
+/// `{ id "org.jetbrains.kotlin.jvm", version "…", apply false }` for a specific Kotlin version.
+template XdlGradlePluginKotlin
+ with HasDependencies {
+  xdlGradlePluginKotlin {
+  }
+}

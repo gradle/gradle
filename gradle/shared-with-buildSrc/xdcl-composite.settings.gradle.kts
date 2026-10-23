@@ -1,6 +1,6 @@
-// Shadow mode: source the org.xdcl libraries straight from an xdcl checkout — no publish
+// Shadow mode: source the org.xdl libraries straight from an xdcl checkout — no publish
 // round-trip, no SNAPSHOT staleness. Substitution matches the distribution.versions.toml
-// coordinates by group:name and is the ONLY source of org.xdcl artifacts, so a substitution gap
+// coordinates by group:name and is the ONLY source of org.xdl artifacts, so a substitution gap
 // fails resolution loudly instead of picking up stale jars.
 //
 // Applied from BOTH the root settings and build-logic's settings, so the composite is declared in
@@ -8,7 +8,7 @@
 //
 //   1. a git-ignored `xdcl-checkout.txt` at the repository root, holding a path (relative to the
 //      root, or absolute) — for building against an arbitrary checkout;
-//   2. the in-repo `xdcl/` git submodule, which pins the exact org.xdcl revision this branch
+//   2. the in-repo `xdcl/` git submodule, which pins the exact org.xdl revision this branch
 //      builds against and makes the branch self-contained (`git submodule update --init`);
 //   3. the sibling `../xdcl`, the historical convention (see the build-from-source docs).
 //

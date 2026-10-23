@@ -41,7 +41,7 @@ public class PluginDescriptor {
      * join the script classpath when this plugin is applied, resolved at the running distribution's
      * version. Only meaningful for plugins shipped in the Gradle distribution: a distribution
      * plugin's own classes bypass artifact resolution, so a companion library it needs on the
-     * consuming build's classpath (e.g. a built-in XDCL ecosystem's published schema library, served
+     * consuming build's classpath (e.g. a built-in XDL ecosystem's published schema library, served
      * by the distribution-embedded Maven repository) is declared here and injected by core plugin
      * resolution. Empty when the descriptor declares none.
      */

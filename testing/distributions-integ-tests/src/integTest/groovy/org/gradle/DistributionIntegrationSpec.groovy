@@ -36,8 +36,8 @@ import static org.hamcrest.MatcherAssert.assertThat
 abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
 
     protected static final NATIVE_PLATFORM_BINARIES = 16
-    // 116 stock third-party jars + the org.xdcl closure on the core runtime (xdcl-provider,
-    // xdcl-gradle, xdcl-gradle-api and their data, defaults, eval, schema, text transitives).
+    // 116 stock third-party jars + the org.xdl closure on the core runtime (xdl-provider,
+    // xdl-gradle, xdl-gradle-api and their data, defaults, eval, schema, text transitives).
     protected static final THIRD_PARTY_LIB_COUNT = 116 + 8
 
     @Shared
@@ -203,7 +203,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
      * Change this whenever you add or remove subprojects for distribution-packaged plugins (lib/plugins).
      */
     int getPackagedPluginsJarCount() {
-        // 97 stock plugins + the XDCL codegen plugin and the built-in ecosystem libraries and
+        // 97 stock plugins + the XDL codegen plugin and the built-in ecosystem libraries and
         // carriers (common, plugin-development).
         97 + 5
     }
@@ -233,7 +233,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
         coreLibJarsCount + packagedPluginsJarCount + agentJarsCount + apiJarsCount + thirdPartyLibJarsCount + NATIVE_PLATFORM_BINARIES
     }
 
-    @Ignore("Disabled on xdcl/release: the 9.7.1 -> 9.8.0 merge moves the distribution size past the baseline margin")
+    @Ignore("Disabled on xdl/release: the 9.7.1 -> 9.8.0 merge moves the distribution size past the baseline margin")
     def "distribution size should not change too much"() {
         expect:
         def actualKB = (int) Math.ceil((double) getZip().size() / 1024)

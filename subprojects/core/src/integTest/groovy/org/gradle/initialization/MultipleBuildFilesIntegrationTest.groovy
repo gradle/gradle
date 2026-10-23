@@ -66,8 +66,8 @@ class MultipleBuildFilesIntegrationTest extends AbstractIntegrationSpec {
         collectedProblems.empty
 
         where:
-        // build.gradle.xdcl is intentionally absent: an xdcl project script only evaluates when the
-        // build's settings script is settings.gradle.xdcl and a settings plugin contributes its schema.
+        // build.gradle.xdl is intentionally absent: an xdl project script only evaluates when the
+        // build's settings script is settings.gradle.xdl and a settings plugin contributes its schema.
         buildFileName << ['build.gradle', 'build.gradle.kts', 'build.gradle.dcl']
     }
 

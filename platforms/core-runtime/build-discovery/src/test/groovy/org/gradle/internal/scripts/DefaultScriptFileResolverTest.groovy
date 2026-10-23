@@ -33,7 +33,7 @@ class DefaultScriptFileResolverTest extends Specification {
     def "list of extensions are what we expect"() {
         expect:
         ScriptingLanguages.all().collect { it.extension } == [
-            ".gradle.xdcl",
+            ".gradle.xdl",
             ".gradle",
             ".gradle.kts",
             ".gradle.dcl"
@@ -42,7 +42,7 @@ class DefaultScriptFileResolverTest extends Specification {
 
     def "when no script file is found, resolution result should be empty"() {
         given:
-        createFiles(testDir, ["a.gradle", "a.gradle.kts", "a.gradle.dcl", "a.gradle.xdcl"])
+        createFiles(testDir, ["a.gradle", "a.gradle.kts", "a.gradle.dcl", "a.gradle.xdl"])
 
         when:
         def resolver = new DefaultScriptFileResolver()
@@ -69,16 +69,16 @@ class DefaultScriptFileResolverTest extends Specification {
 
         where:
         createFiles                                                   | expectedSelectedCandidate | expectedNotifiedFiles
-        []                                                            | null                      | ["a.gradle.xdcl", "a.gradle", "a.gradle.kts", "a.gradle.dcl"]
-        ["a.gradle"]                                                  | "a.gradle"                | ["a.gradle.xdcl", "a.gradle"]
-        ["a.gradle.kts"]                                              | "a.gradle.kts"            | ["a.gradle.xdcl", "a.gradle", "a.gradle.kts"]
-        ["a.gradle.dcl"]                                              | "a.gradle.dcl"            | ["a.gradle.xdcl", "a.gradle", "a.gradle.kts", "a.gradle.dcl"]
-        ["a.gradle.xdcl"]                                             | "a.gradle.xdcl"           | ["a.gradle.xdcl"]
-        ["a.gradle", "a.gradle.kts"]                                  | "a.gradle"                | ["a.gradle.xdcl", "a.gradle"]
-        ["a.gradle", "a.gradle.dcl"]                                  | "a.gradle"                | ["a.gradle.xdcl", "a.gradle"]
-        ["a.gradle.kts", "a.gradle.dcl"]                              | "a.gradle.kts"            | ["a.gradle.xdcl", "a.gradle", "a.gradle.kts"]
-        ["a.gradle.dcl", "a.gradle.xdcl"]                             | "a.gradle.xdcl"           | ["a.gradle.xdcl"]
-        ["a.gradle", "a.gradle.kts", "a.gradle.dcl", "a.gradle.xdcl"] | "a.gradle.xdcl"           | ["a.gradle.xdcl"]
+        []                                                            | null                      | ["a.gradle.xdl", "a.gradle", "a.gradle.kts", "a.gradle.dcl"]
+        ["a.gradle"]                                                  | "a.gradle"                | ["a.gradle.xdl", "a.gradle"]
+        ["a.gradle.kts"]                                              | "a.gradle.kts"            | ["a.gradle.xdl", "a.gradle", "a.gradle.kts"]
+        ["a.gradle.dcl"]                                              | "a.gradle.dcl"            | ["a.gradle.xdl", "a.gradle", "a.gradle.kts", "a.gradle.dcl"]
+        ["a.gradle.xdl"]                                             | "a.gradle.xdl"           | ["a.gradle.xdl"]
+        ["a.gradle", "a.gradle.kts"]                                  | "a.gradle"                | ["a.gradle.xdl", "a.gradle"]
+        ["a.gradle", "a.gradle.dcl"]                                  | "a.gradle"                | ["a.gradle.xdl", "a.gradle"]
+        ["a.gradle.kts", "a.gradle.dcl"]                              | "a.gradle.kts"            | ["a.gradle.xdl", "a.gradle", "a.gradle.kts"]
+        ["a.gradle.dcl", "a.gradle.xdl"]                             | "a.gradle.xdl"           | ["a.gradle.xdl"]
+        ["a.gradle", "a.gradle.kts", "a.gradle.dcl", "a.gradle.xdl"] | "a.gradle.xdl"           | ["a.gradle.xdl"]
     }
 
     /**
@@ -111,7 +111,7 @@ class DefaultScriptFileResolverTest extends Specification {
      * Generate a list of filenames with all known scripting language extensions.
      *
      * @param basename the base name of the file, e.g `build`
-     * @return a list of filenames with all known extensions, e.g. `['build.gradle', 'build.gradle.kts', 'build.gradle.dcl', 'build.gradle.xdcl']`
+     * @return a list of filenames with all known extensions, e.g. `['build.gradle', 'build.gradle.kts', 'build.gradle.dcl', 'build.gradle.xdl']`
      */
     static List<String> withExtensions(String basename) {
         return ScriptingLanguages.all().collect {
