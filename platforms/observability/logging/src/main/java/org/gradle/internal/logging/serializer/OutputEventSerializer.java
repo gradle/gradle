@@ -29,6 +29,7 @@ import org.gradle.internal.logging.events.ReadStdInEvent;
 import org.gradle.internal.logging.events.SelectOptionPromptEvent;
 import org.gradle.internal.logging.events.StyledTextOutputEvent;
 import org.gradle.internal.logging.events.TextQuestionPromptEvent;
+import org.gradle.internal.logging.events.UpdateNowEvent;
 import org.gradle.internal.logging.events.UserInputRequestEvent;
 import org.gradle.internal.logging.events.UserInputResumeEvent;
 import org.gradle.internal.logging.events.YesNoQuestionPromptEvent;
@@ -64,6 +65,8 @@ public class OutputEventSerializer {
     public static Serializer<OutputEvent> create() {
         DefaultSerializerRegistry registry = new DefaultSerializerRegistry();
         registerTypes(registry);
+        // Clock events are created by the console, not sent by the daemon, and are only written to disk while a prompt is open
+        registry.register(UpdateNowEvent.class, new UpdateNowEventSerializer());
         return registry.build(OutputEvent.class);
     }
 }
