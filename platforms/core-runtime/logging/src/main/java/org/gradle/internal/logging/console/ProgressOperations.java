@@ -65,6 +65,7 @@ public class ProgressOperations {
         ProgressOperation parent = operationsById.get(parentOperationId);
         if (parent != null) {
             parent.workActionStarted();
+            parent.workActionCompleted();
         }
         return parent;
     }
@@ -76,6 +77,9 @@ public class ProgressOperations {
         }
         if (op.getParent() != null) {
             op.getParent().removeChild(op);
+            if (op.isWorkAction()) {
+                op.getParent().workActionCompleted();
+            }
         }
         return op;
     }

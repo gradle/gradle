@@ -32,6 +32,7 @@ public class ProgressOperation {
     private final ProgressOperation parent;
     private final boolean workAction;
     private int startedWorkActions;
+    private int completedWorkActions;
     private Set<ProgressOperation> children;
 
     public ProgressOperation(String status, String category, OperationIdentifier operationId, ProgressOperation parent) {
@@ -101,6 +102,14 @@ public class ProgressOperation {
 
     void workActionStarted() {
         startedWorkActions++;
+    }
+
+    void workActionCompleted() {
+        completedWorkActions++;
+    }
+
+    int getCompletedWorkActions() {
+        return completedWorkActions;
     }
 
     /**

@@ -42,6 +42,36 @@ class DefaultWorkInProgressFormatterTest extends Specification {
         statusBarFormatter.format(op1).first().text == "> STATUS_1"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39544")
+    def "adds the number of completed work actions to the line of their parent, from its second work action"() {
+        given:
+        def task = new ProgressOperation(":work", "VARIANT_CATEGORY", new OperationIdentifier(1), null)
+        def first = new ProgressOperation("Executing work action A", "VARIANT_CATEGORY", new OperationIdentifier(2), task, true)
+        task.addChild(first)
+
+        expect:
+        statusBarFormatter.format(task).first().text == "> :work"
+
+        when:
+        task.addChild(new ProgressOperation("Executing work action B", "VARIANT_CATEGORY", new OperationIdentifier(3), task, true))
+
+        then:
+        statusBarFormatter.format(task).first().text == "> :work > 0 work actions completed"
+        statusBarFormatter.format(first).first().text == "> :work > Executing work action A"
+
+        when:
+        task.workActionCompleted()
+
+        then:
+        statusBarFormatter.format(task).first().text == "> :work > 1 work action completed"
+
+        when:
+        task.workActionCompleted()
+
+        then:
+        statusBarFormatter.format(task).first().text == "> :work > 2 work actions completed"
+    }
+
     def "keeps a line of #length characters, which fits in one less than the console width"() {
         given:
         consoleMetaData.getCols() >> 80

@@ -282,7 +282,7 @@ class WorkInProgressRendererTest extends OutputSpecification {
         console.flush()
 
         then:
-        progressArea.display == ["> :work", "> :work > Executing work action A", "> :work > Executing work action B"]
+        progressArea.display == ["> :work > 0 work actions completed", "> :work > Executing work action A", "> :work > Executing work action B"]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/39544")
@@ -300,7 +300,7 @@ class WorkInProgressRendererTest extends OutputSpecification {
         console.flush()
 
         then:
-        progressArea.display == ["> :work", "> :work > Executing work action B"]
+        progressArea.display == ["> :work > 1 work action completed", "> :work > Executing work action B"]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/39544")
@@ -318,7 +318,7 @@ class WorkInProgressRendererTest extends OutputSpecification {
         console.flush()
 
         then:
-        progressArea.display == ["> :work", "> :work > Executing work action A"]
+        progressArea.display == ["> :work > 1 work action completed", "> :work > Executing work action A"]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/39544")
@@ -343,7 +343,7 @@ class WorkInProgressRendererTest extends OutputSpecification {
         console.flush()
 
         then:
-        progressArea.display == ["> :work", "> :work > Executing work action A", "> :work > Executing work action B"]
+        progressArea.display == ["> :work > 0 work actions completed", "> :work > Executing work action A", "> :work > Executing work action B"]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/39544")
@@ -361,7 +361,7 @@ class WorkInProgressRendererTest extends OutputSpecification {
         console.flush()
 
         then:
-        progressArea.display == ["> :work", "> IDLE", "> :work > Executing work action B"]
+        progressArea.display == ["> :work > 1 work action completed", "> IDLE", "> :work > Executing work action B"]
 
         when:
         renderer.onOutput(complete(3))
@@ -369,7 +369,7 @@ class WorkInProgressRendererTest extends OutputSpecification {
         console.flush()
 
         then:
-        progressArea.display == ["> :work", "> IDLE", "> IDLE"]
+        progressArea.display == ["> :work > 2 work actions completed", "> IDLE", "> IDLE"]
     }
 
     @Issue("https://github.com/gradle/gradle/issues/39544")
@@ -386,7 +386,7 @@ class WorkInProgressRendererTest extends OutputSpecification {
         console.flush()
 
         then:
-        progressArea.display == ["> :work", "> :work > Executing work action A"]
+        progressArea.display == ["> :work > 0 work actions completed", "> :work > Executing work action A"]
         cursorParkText == "  (2 lines not showing)"
 
         when:
@@ -395,7 +395,7 @@ class WorkInProgressRendererTest extends OutputSpecification {
         console.flush()
 
         then:
-        progressArea.display == ["> :work", "> :work > Executing work action B"]
+        progressArea.display == ["> :work > 1 work action completed", "> :work > Executing work action B"]
         cursorParkText == "  (1 line not showing)"
 
         when:
@@ -404,7 +404,7 @@ class WorkInProgressRendererTest extends OutputSpecification {
         console.flush()
 
         then:
-        progressArea.display == ["> :work", "> :work > Executing work action C"]
+        progressArea.display == ["> :work > 2 work actions completed", "> :work > Executing work action C"]
         cursorParkText == ""
 
         when:
@@ -413,8 +413,26 @@ class WorkInProgressRendererTest extends OutputSpecification {
         console.flush()
 
         then:
-        progressArea.display == ["> :work", "> IDLE"]
+        progressArea.display == ["> :work > 3 work actions completed", "> IDLE"]
         cursorParkText == ""
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39544")
+    def "counts the work actions that start and end between two updates"() {
+        given:
+        metaData.getRows() >> 6
+
+        when:
+        renderer.onOutput(start(id: 1, status: ":work"))
+        renderer.onOutput(start(id: 2, parentId: 1, status: "Executing work action A", buildOperationCategory: BuildOperationCategory.WORK_ACTION))
+        renderer.onOutput(complete(2))
+        renderer.onOutput(start(id: 3, parentId: 1, status: "Executing work action B", buildOperationCategory: BuildOperationCategory.WORK_ACTION))
+        renderer.onOutput(complete(3))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work > 2 work actions completed"]
     }
 
 
