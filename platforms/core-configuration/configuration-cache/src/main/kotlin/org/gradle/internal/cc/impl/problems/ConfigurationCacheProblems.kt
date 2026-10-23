@@ -132,7 +132,7 @@ class ConfigurationCacheProblems(
 
     private
     val degradationController: DefaultConfigurationCacheDegradationController
-) : AbstractProblemsListener(), IsolatedProjectsProblemsListener, ProblemReporter, AutoCloseable {
+) : AbstractProblemsListener(), IsolatedProjectsProblemsListener, ProblemReporter {
 
     private
     val summarizer = ConfigurationCacheProblemsSummary()
@@ -187,10 +187,6 @@ class ConfigurationCacheProblems(
 
     init {
         listenerManager.addListener(postBuildHandler)
-    }
-
-    override fun close() {
-        listenerManager.removeListener(postBuildHandler)
     }
 
     fun action(action: ConfigurationCacheAction, actionDescription: StructuredMessage) {

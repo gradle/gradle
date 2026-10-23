@@ -16,7 +16,9 @@
 
 package org.gradle.internal.concurrent
 
+import org.gradle.internal.UncheckedException
 import org.gradle.internal.exceptions.DefaultMultiCauseException
+import spock.lang.Issue
 import spock.lang.Specification
 
 class CompositeStoppableTest extends Specification {
@@ -108,6 +110,35 @@ class CompositeStoppableTest extends Specification {
         then:
         1 * a.close()
         1 * b.stop()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16390")
+    def closesAnAutoCloseableElement() {
+        AutoCloseable a = Mock()
+
+        stoppable.add(a)
+
+        when:
+        stoppable.stop()
+
+        then:
+        1 * a.close()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16390")
+    def wrapsCheckedExceptionFromAutoCloseableElement() {
+        AutoCloseable a = Mock()
+        def failure = new Exception()
+
+        stoppable.add(a)
+
+        when:
+        stoppable.stop()
+
+        then:
+        1 * a.close() >> { throw failure }
+        def e = thrown(UncheckedException)
+        e.cause == failure
     }
 
     def doesNothingWhenArbitraryObjectDoesNotHaveStopOrCloseMethod() {
