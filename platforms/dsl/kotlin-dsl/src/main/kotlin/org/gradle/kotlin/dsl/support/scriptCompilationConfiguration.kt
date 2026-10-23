@@ -14,17 +14,12 @@
  * limitations under the License.
  */
 
-// TODO: migrate off the legacy Kotlin scripting API, deprecated since Kotlin API version 2.4
-@file:Suppress("DEPRECATION")
-
 package org.gradle.kotlin.dsl.support
 
 import org.gradle.api.Project
 import org.gradle.api.initialization.Settings
 import org.gradle.api.invocation.Gradle
 import org.gradle.kotlin.dsl.provider.PrecompiledScriptsEnvironment.EnvironmentProperties
-import org.jetbrains.kotlin.scripting.definitions.getEnvironment
-import kotlin.script.dependencies.Environment
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
 import kotlin.script.experimental.api.ScriptConfigurationRefinementContext
 import kotlin.script.experimental.api.asSuccess
@@ -33,7 +28,7 @@ import kotlin.script.experimental.api.hostConfiguration
 import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.experimental.api.refineConfiguration
 import kotlin.script.experimental.api.with
-import kotlin.script.experimental.host.ScriptingHostConfiguration
+import kotlin.script.experimental.util.PropertiesCollection
 
 object PluginsBlockCompilationConfiguration : ScriptCompilationConfiguration(
     {
@@ -61,12 +56,6 @@ object BuildScriptCompilationConfiguration : ScriptCompilationConfiguration(
 
 
 fun ScriptCompilationConfiguration.Builder.defaultImportsForScript() {
-    fun scriptResolverEnvironmentOf(context: ScriptConfigurationRefinementContext): Environment? =
-        context
-            .compilationConfiguration[ScriptCompilationConfiguration.hostConfiguration]
-            ?.get(ScriptingHostConfiguration.getEnvironment)
-            ?.invoke()
-
     refineConfiguration {
         beforeCompiling { context ->
             val environment = scriptResolverEnvironmentOf(context)
@@ -80,15 +69,32 @@ fun ScriptCompilationConfiguration.Builder.defaultImportsForScript() {
 }
 
 
+// Looked up by name, because `getRefinementEnvironment` is only available since Kotlin 2.5,
+// and `getEnvironment` is deprecated.
 internal
-fun implicitImportsFrom(environment: Environment?) =
+val refinementEnvironmentKey = environmentKey("getRefinementEnvironment")
+
+internal
+val legacyEnvironmentKey = environmentKey("getEnvironment")
+
+private
+fun environmentKey(name: String) = PropertiesCollection.Key<() -> Map<String, Any?>?>(name)
+
+internal
+fun scriptResolverEnvironmentOf(context: ScriptConfigurationRefinementContext): Map<String, Any?>? =
+    context.compilationConfiguration[ScriptCompilationConfiguration.hostConfiguration]?.let { hostConfiguration ->
+        listOf(refinementEnvironmentKey, legacyEnvironmentKey).firstNotNullOfOrNull { hostConfiguration[it]?.invoke() }
+    }
+
+internal
+fun implicitImportsFrom(environment: Map<String, Any?>?) =
     environment.stringList(EnvironmentProperties.kotlinDslImplicitImports)
 
 internal
-fun Environment?.stringList(key: String) =
+fun Map<String, Any?>?.stringList(key: String) =
     string(key)?.split(':')
         ?: emptyList()
 
 private
-fun Environment?.string(key: String) =
+fun Map<String, Any?>?.string(key: String) =
     this?.get(key) as? String
