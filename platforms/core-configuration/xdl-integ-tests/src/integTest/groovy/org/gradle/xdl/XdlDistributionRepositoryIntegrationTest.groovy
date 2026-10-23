@@ -221,7 +221,7 @@ class XdlDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec {
                 includedBuilds ["build-logic"]
               }
               plugins [
-                { id "plugin-development-ecosystem" },
+                { id "declarative-plugins" },
                 { id "newer-dep-plugin" }
               ]
               rootProject { name "probe" }
@@ -300,7 +300,7 @@ class XdlDistributionRepositoryIntegrationTest extends AbstractIntegrationSpec {
                 repositories ["${mavenRepo.uri}"]
               }
               plugins [
-                { id "plugin-development-ecosystem" },
+                { id "declarative-plugins" },
                 { id "third-party-ecosystem" version "1.0" }
               ]
               rootProject { name "probe" }

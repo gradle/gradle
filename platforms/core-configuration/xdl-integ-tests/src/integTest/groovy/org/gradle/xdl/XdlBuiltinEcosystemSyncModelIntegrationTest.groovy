@@ -51,7 +51,7 @@ class XdlBuiltinEcosystemSyncModelIntegrationTest extends AbstractIntegrationSpe
         file('settings.gradle.xdl') << '''
             settings {
               plugins [
-                { id "plugin-development-ecosystem" }
+                { id "declarative-plugins" }
               ]
               rootProject { name "probe" }
             }

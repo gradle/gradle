@@ -25,7 +25,7 @@ import org.gradle.test.preconditions.JdkVersionTestPreconditions
 
 /**
  * The Kotlin face of the built-in plugin-development ecosystem, end-to-end against a real
- * distribution (forking). {@code xdlGradlePluginKotlin { }} needs a Kotlin toolchain the
+ * distribution (forking). {@code declarativePluginsKotlin { }} needs a Kotlin toolchain the
  * distribution does not ship, so the settings put one on the build classpath — either through the
  * {@code embedded-kotlin} front-end alias (id and version desugared by the provider) or the
  * official {@code org.jetbrains.kotlin.jvm} plugin at an explicit version — and the reaction
@@ -39,13 +39,13 @@ import org.gradle.test.preconditions.JdkVersionTestPreconditions
     value = JdkVersionTestPreconditions.KotlinSupportedJdk,
     reason = "The Kotlin compiler falls back to its highest known JVM target on a newer JDK, which the Kotlin plugin then rejects as inconsistent with javac's"
 )
-class XdlGradlePluginKotlinDistributionIntegrationTest extends AbstractIntegrationSpec {
+class DeclarativePluginsKotlinDistributionIntegrationTest extends AbstractIntegrationSpec {
 
     private static String settingsWithToolchain(String toolchainRequest) {
         """
             settings {
               plugins [
-                { id "plugin-development-ecosystem" }
+                { id "declarative-plugins" }
                 $toolchainRequest
               ]
               dependencyResolutionManagement {
@@ -58,7 +58,7 @@ class XdlGradlePluginKotlinDistributionIntegrationTest extends AbstractIntegrati
 
     private void kotlinPluginProject() {
         file('build.gradle.xdl') << '''
-            xdlGradlePluginKotlin {
+            declarativePluginsKotlin {
             }
         '''
         file('src/main/xdl/demo.xdls') << '''
@@ -127,12 +127,12 @@ class XdlGradlePluginKotlinDistributionIntegrationTest extends AbstractIntegrati
         assertPluginJar()
     }
 
-    def "an included build-logic build authored with xdlGradlePluginKotlin supplies a plugin consumed by a declarative root build"() {
+    def "an included build-logic build authored with declarativePluginsKotlin supplies a plugin consumed by a declarative root build"() {
         given: 'an included build-logic build that is itself declarative, with a Kotlin reaction'
         file('build-logic/settings.gradle.xdl') << """
             settings {
               plugins [
-                { id "plugin-development-ecosystem" }
+                { id "declarative-plugins" }
                 { id "embedded-kotlin", apply false }
               ]
               dependencyResolutionManagement {
@@ -141,7 +141,7 @@ class XdlGradlePluginKotlinDistributionIntegrationTest extends AbstractIntegrati
             }
         """
         file('build-logic/build.gradle.xdl') << '''
-            xdlGradlePluginKotlin {
+            declarativePluginsKotlin {
             }
         '''
         file('build-logic/src/main/xdl/demo.xdls') << '''
@@ -201,7 +201,7 @@ class XdlGradlePluginKotlinDistributionIntegrationTest extends AbstractIntegrati
         given: 'a version that exists nowhere, so resolution fails naming exactly what was requested'
         file('settings.gradle.xdl') << settingsWithToolchain(
             '{ id "embedded-kotlin", version "999.0.0", apply false }')
-        file('build.gradle.xdl') << 'xdlGradlePluginKotlin {\n}'
+        file('build.gradle.xdl') << 'declarativePluginsKotlin {\n}'
 
         when:
         fails("help")
@@ -216,12 +216,12 @@ class XdlGradlePluginKotlinDistributionIntegrationTest extends AbstractIntegrati
         file('settings.gradle.xdl') << '''
             settings {
               plugins [
-                { id "plugin-development-ecosystem" }
+                { id "declarative-plugins" }
               ]
               rootProject { name "demo-plugin" }
             }
         '''
-        file('build.gradle.xdl') << 'xdlGradlePluginKotlin {\n}'
+        file('build.gradle.xdl') << 'declarativePluginsKotlin {\n}'
 
         when:
         fails("help")

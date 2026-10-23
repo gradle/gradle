@@ -19,7 +19,7 @@ plugins {
     id("gradlebuild.xdl-builtin-ecosystem")
 }
 
-description = "The built-in XDL plugin-development ecosystem plugin (plugin-development-ecosystem): a carrier generated from plugin-development-ecosystem.xdl that binds XdlGradlePluginReaction and XdlGradlePluginKotlinReaction. Unlike the java ecosystem it registers no model of its own — the reactions apply the REAL plugin-development machinery (java-library, java-gradle-plugin, for Kotlin a settings-supplied Kotlin toolchain, and the bundled xdl codegen plugin) by id. Shipped in the distribution and applied by id; the schema + facades it consumes live in the published :xdl-plugin-development library."
+description = "The built-in XDL plugin-development ecosystem plugin (declarative-plugins): a carrier generated from declarative-plugins.xdl that binds DeclarativePluginsReaction and DeclarativePluginsKotlinReaction. Unlike the java ecosystem it registers no model of its own — the reactions apply the REAL plugin-development machinery (java-library, java-gradle-plugin, for Kotlin a settings-supplied Kotlin toolchain, and the bundled xdl codegen plugin) by id. Shipped in the distribution and applied by id; the schema + facades it consumes live in the published :xdl-plugin-development library."
 
 dependencies {
     api(projects.coreApi)

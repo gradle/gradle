@@ -16,7 +16,7 @@
 
 /**
  * The built-in XDL plugin-development ecosystem carrier: the reaction wiring the real
- * plugin-development machinery onto a project declared as {@code xdlGradlePlugin { }}.
+ * plugin-development machinery onto a project declared as {@code declarativePlugins { }}.
  */
 @org.jspecify.annotations.NullMarked
 package org.gradle.xdl.ecosystem.plugindev;

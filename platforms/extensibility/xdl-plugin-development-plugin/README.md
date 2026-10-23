@@ -1,12 +1,12 @@
-# The plugin-development ecosystem — an XDL face for the XDL plugin itself
+# The declarative-plugins ecosystem — an XDL face for the XDL plugin itself
 
-`plugin-development-ecosystem` makes *authoring an XDL plugin* declarative: a project declares `xdlGradlePlugin { }` (plus the common
+`declarative-plugins` makes *authoring an XDL plugin* declarative: a project declares `declarativePlugins { }` (plus the common
 dependency/repository traits) and gets a working plugin build. It demonstrates a pattern the other built-in ecosystems deliberately avoid —
 the carrier's reaction registers no model of its own but applies the **real** machinery by id: `java-library`, `java-gradle-plugin`,
 and the bundled `xdl-gradle-plugin` (which is itself a distribution module, so `ModuleRegistry` resolves it like any other).
 
 The schema (and the generated facades) live in the published sibling `:xdl-plugin-development`; this module is the
-distribution-only carrier binding `XdlGradlePluginReaction` and `XdlGradlePluginKotlinReaction`. See
+distribution-only carrier binding `DeclarativePluginsReaction` and `DeclarativePluginsKotlinReaction`. See
 `integrations/gradle/doc/builtin-ecosystem-schemas.md` in the `xdl` (xdl-scripting-language) repository for the
 built-in-ecosystem design this follows.
 
@@ -16,7 +16,7 @@ built-in-ecosystem design this follows.
 // settings.gradle.xdl
 settings {
   plugins [
-    { id "plugin-development-ecosystem" }
+    { id "declarative-plugins" }
   ]
   dependencyResolutionManagement {
     repositories [:mavenCentral]
@@ -24,7 +24,7 @@ settings {
 }
 
 // build.gradle.xdl
-xdlGradlePlugin {
+declarativePlugins {
   dependencies {
     implementation ["org.gradle:gradle-xdl-common-ecosystem:9.7.0"]
   }
@@ -41,7 +41,7 @@ descriptor. So the declarative surface only has to mark the project as an XDL pl
 
 ## Kotlin reactions
 
-`xdlGradlePluginKotlin { }` is the same project type for a plugin whose reactions are written in Kotlin. The Kotlin
+`declarativePluginsKotlin { }` is the same project type for a plugin whose reactions are written in Kotlin. The Kotlin
 toolchain is not part of the distribution, so the settings must put one on the build classpath — the reaction applies
 whichever is there (embedded first):
 
@@ -49,7 +49,7 @@ whichever is there (embedded first):
 // settings.gradle.xdl
 settings {
   plugins [
-    { id "plugin-development-ecosystem" }
+    { id "declarative-plugins" }
     { id "embedded-kotlin", apply false }
   ]
   dependencyResolutionManagement {
@@ -58,7 +58,7 @@ settings {
 }
 
 // build.gradle.xdl
-xdlGradlePluginKotlin {
+declarativePluginsKotlin {
 }
 ```
 

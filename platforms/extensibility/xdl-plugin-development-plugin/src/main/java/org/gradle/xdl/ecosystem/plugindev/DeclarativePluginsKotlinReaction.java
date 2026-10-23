@@ -21,13 +21,13 @@ import org.gradle.api.Project;
 import org.gradle.api.plugins.UnknownPluginException;
 import org.gradle.api.xdl.Reaction;
 import org.gradle.api.xdl.ReactionScope;
-import org.gradle.xdl.ecosystem.plugindev.dsl.XdlGradlePluginKotlin;
+import org.gradle.xdl.ecosystem.plugindev.dsl.DeclarativePluginsKotlin;
 
 import java.util.List;
 
 /**
- * {@link XdlGradlePluginReaction} for a plugin whose reactions are written in Kotlin: reacts to an
- * {@code xdlGradlePluginKotlin { }} definition with the same wiring plus a Kotlin toolchain.
+ * {@link DeclarativePluginsReaction} for a plugin whose reactions are written in Kotlin: reacts to a
+ * {@code declarativePluginsKotlin { }} definition with the same wiring plus a Kotlin toolchain.
  *
  * <p>The toolchain is not part of the distribution, so the settings must have put one on the build
  * classpath (settings-classpath plugins are applicable by id from any project — the project plugin
@@ -46,7 +46,7 @@ import java.util.List;
  * {@code dependencyResolutionManagement { repositories [:mavenCentral] }} — to cover the Kotlin
  * artifacts (and anything the plugin's own {@code dependencies} need).
  */
-public class XdlGradlePluginKotlinReaction implements Reaction<XdlGradlePluginKotlin, Project> {
+public class DeclarativePluginsKotlinReaction implements Reaction<DeclarativePluginsKotlin, Project> {
 
     /** In preference order; the first one on the classpath wins. */
     private static final List<String> KOTLIN_TOOLCHAIN_PLUGIN_IDS = List.of(
@@ -55,7 +55,7 @@ public class XdlGradlePluginKotlinReaction implements Reaction<XdlGradlePluginKo
     );
 
     @Override
-    public void on(XdlGradlePluginKotlin data, Project project, ReactionScope scope) {
+    public void on(DeclarativePluginsKotlin data, Project project, ReactionScope scope) {
         // A java plugin must precede the Kotlin toolchain: EmbeddedKotlinPlugin wires the
         // compileOnly/testImplementation configurations the java plugins create.
         project.getPluginManager().apply("java-library");
@@ -79,7 +79,7 @@ public class XdlGradlePluginKotlinReaction implements Reaction<XdlGradlePluginKo
             }
         }
         throw new GradleException(
-            "xdlGradlePluginKotlin requires a Kotlin toolchain on the build classpath, but neither "
+            "declarativePluginsKotlin requires a Kotlin toolchain on the build classpath, but neither "
                 + "'org.gradle.kotlin.embedded-kotlin' nor 'org.jetbrains.kotlin.jvm' was found. "
                 + "Declare one in the settings plugins list:\n"
                 + "  plugins [\n"

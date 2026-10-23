@@ -19,7 +19,7 @@ plugins {
     id("gradlebuild.xdl-ecosystem-library")
 }
 
-description = "Built-in XDL plugin-development ecosystem: schema (plugin-development.xdls) + generated facades for the xdlGradlePlugin project type. Published for plugin authors and shipped in the distribution (prototype)"
+description = "Built-in XDL plugin-development ecosystem: schema (plugin-development.xdls) + generated facades for the declarativePlugins project type. Published for plugin authors and shipped in the distribution (prototype)"
 
 // A schema-only library: plugin-development.xdls (packed under META-INF/xdl/ by xdl-gradle-plugin)
 // and the facades generated from it. The reaction that activates it lives in the sibling carrier

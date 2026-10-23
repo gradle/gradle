@@ -21,29 +21,29 @@ import org.gradle.test.fixtures.archive.JarTestFixture
 
 /**
  * The built-in XDL plugin-development ecosystem, end-to-end against a real distribution (forking).
- * Applying {@code plugin-development-ecosystem} PULLS its schema from the distribution via
- * ModuleRegistry, so {@code xdlGradlePlugin { }} resolves and XdlGradlePluginReaction wires the
+ * Applying {@code declarative-plugins} PULLS its schema from the distribution via
+ * ModuleRegistry, so {@code declarativePlugins { }} resolves and DeclarativePluginsReaction wires the
  * REAL plugin-development machinery: java-library + java-gradle-plugin + the bundled
  * xdl-gradle-plugin. The project's own {@code src/main/xdl/} single-sources everything else — the
  * schema generates facades, and the {@code <plugin-id>.xdl} plugin block feeds the {@code
  * gradlePlugin} registration (role 1), from which java-gradle-plugin generates the plugin descriptor.
  */
-class XdlPluginDevelopmentEcosystemDistributionIntegrationTest extends AbstractIntegrationSpec {
+class DeclarativePluginsDistributionIntegrationTest extends AbstractIntegrationSpec {
 
-    def "the built-in plugin-development-ecosystem builds a real XDL plugin jar from a declarative project"() {
+    def "the built-in declarative-plugins builds a real XDL plugin jar from a declarative project"() {
         given: 'a build that opts into the built-in plugin-development ecosystem'
         file('settings.gradle.xdl') << '''
             settings {
               plugins [
-                { id "plugin-development-ecosystem" }
+                { id "declarative-plugins" }
               ]
               rootProject { name "demo-plugin" }
             }
         '''
 
-        and: 'an empty xdlGradlePlugin project type — everything else is single-sourced from src/main/xdl'
+        and: 'an empty declarativePlugins project type — everything else is single-sourced from src/main/xdl'
         file('build.gradle.xdl') << '''
-            xdlGradlePlugin {
+            declarativePlugins {
             }
         '''
 
@@ -87,7 +87,7 @@ class XdlPluginDevelopmentEcosystemDistributionIntegrationTest extends AbstractI
         file('settings.gradle.xdl') << """
             settings {
               plugins [
-                { id "plugin-development-ecosystem" }
+                { id "declarative-plugins" }
               ]
               dependencyResolutionManagement {
                 repositories ["${mavenRepo.uri}"]
@@ -96,7 +96,7 @@ class XdlPluginDevelopmentEcosystemDistributionIntegrationTest extends AbstractI
             }
         """
         file('build.gradle.xdl') << '''
-            xdlGradlePlugin {
+            declarativePlugins {
               dependencies {
                 api ["org.test:api-dep:1.0"]
                 implementation ["org.test:impl-dep:1.0"]
@@ -125,17 +125,17 @@ class XdlPluginDevelopmentEcosystemDistributionIntegrationTest extends AbstractI
         outputDoesNotContain("org.test:compile-only-dep")
     }
 
-    def "an included build authored with xdlGradlePlugin supplies a plugin consumed by a declarative root build"() {
-        given: 'an included build-logic build that is itself declarative: an xdlGradlePlugin project'
+    def "an included build authored with declarativePlugins supplies a plugin consumed by a declarative root build"() {
+        given: 'an included build-logic build that is itself declarative: an declarativePlugins project'
         file('build-logic/settings.gradle.xdl') << '''
             settings {
               plugins [
-                { id "plugin-development-ecosystem" }
+                { id "declarative-plugins" }
               ]
             }
         '''
         file('build-logic/build.gradle.xdl') << '''
-            xdlGradlePlugin {
+            declarativePlugins {
             }
         '''
 
@@ -194,7 +194,7 @@ class XdlPluginDevelopmentEcosystemDistributionIntegrationTest extends AbstractI
         outputContains("demo-reaction-name=hello-from-xdl in consumer")
     }
 
-    def "xdlGradlePlugin is unavailable when the plugin-development ecosystem is not applied"() {
+    def "declarativePlugins is unavailable when the plugin-development ecosystem is not applied"() {
         given: 'a build that opts into no ecosystem'
         enableProblemsApiCheck()
         file('settings.gradle.xdl') << '''
@@ -203,7 +203,7 @@ class XdlPluginDevelopmentEcosystemDistributionIntegrationTest extends AbstractI
             }
         '''
         file('build.gradle.xdl') << '''
-            xdlGradlePlugin {
+            declarativePlugins {
             }
         '''
 
@@ -213,7 +213,7 @@ class XdlPluginDevelopmentEcosystemDistributionIntegrationTest extends AbstractI
         then:
         verifyAll(receivedProblem) {
             definition.id.fqid == 'scripts:xdl:xdl-evaluation-error'
-            contextualLabel.contains("xdlGradlePlugin")
+            contextualLabel.contains("declarativePlugins")
         }
     }
 }

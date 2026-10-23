@@ -19,10 +19,10 @@ package org.gradle.xdl.ecosystem.plugindev;
 import org.gradle.api.Project;
 import org.gradle.api.xdl.Reaction;
 import org.gradle.api.xdl.ReactionScope;
-import org.gradle.xdl.ecosystem.plugindev.dsl.XdlGradlePlugin;
+import org.gradle.xdl.ecosystem.plugindev.dsl.DeclarativePlugins;
 
 /**
- * Reacts to an {@code xdlGradlePlugin { }} definition by wiring the REAL plugin-development
+ * Reacts to a {@code declarativePlugins { }} definition by wiring the REAL plugin-development
  * machinery onto the live {@link Project} — unlike the java ecosystem, it registers no model of its
  * own:
  *
@@ -39,10 +39,10 @@ import org.gradle.xdl.ecosystem.plugindev.dsl.XdlGradlePlugin;
  * Declared {@code dependencies} go through {@link DeclaredDependencies}; repositories come from the
  * settings ({@code dependencyResolutionManagement}), not from the root.
  */
-public class XdlGradlePluginReaction implements Reaction<XdlGradlePlugin, Project> {
+public class DeclarativePluginsReaction implements Reaction<DeclarativePlugins, Project> {
 
     @Override
-    public void on(XdlGradlePlugin data, Project project, ReactionScope scope) {
+    public void on(DeclarativePlugins data, Project project, ReactionScope scope) {
         project.getPluginManager().apply("java-library");
         project.getPluginManager().apply("java-gradle-plugin");
         project.getPluginManager().apply("xdl-gradle-plugin");
