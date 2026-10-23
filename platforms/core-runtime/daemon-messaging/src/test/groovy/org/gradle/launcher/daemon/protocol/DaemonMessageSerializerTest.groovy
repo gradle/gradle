@@ -31,7 +31,10 @@ import org.gradle.internal.logging.events.TextQuestionPromptEvent
 import org.gradle.internal.logging.events.UserInputRequestEvent
 import org.gradle.internal.logging.events.UserInputResumeEvent
 import org.gradle.internal.logging.events.YesNoQuestionPromptEvent
+import org.gradle.internal.classloader.SystemClassLoaderSpec
 import org.gradle.internal.serialize.DefaultSerializer
+import org.gradle.tooling.internal.provider.serialization.ClassLoaderDetails
+import org.gradle.internal.serialize.kryo.KryoBackedEncoder
 import org.gradle.internal.serialize.PlaceholderException
 import org.gradle.internal.serialize.Serializer
 import org.gradle.internal.serialize.SerializerSpec
@@ -85,13 +88,13 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         result.value.failure == null
         result.value.exception == null
 
-        def buildResult = BuildActionResult.of(new SerializedPayload("header", ["hi".bytes]))
+        def buildResult = BuildActionResult.of(new SerializedPayload(sampleHeader(), ["hi".bytes]))
         def message2 = new Success(buildResult)
         def result2 = serialize(message2, serializer)
         result2 instanceof Success
         result2.value instanceof BuildActionResult
         !result2.value.wasCancelled()
-        result2.value.result.header == "header"
+        assertSampleHeader(result2.value.result.header)
         result2.value.result.serializedModel.size() == 1
         result2.value.failure == null
         result2.value.exception == null
@@ -115,7 +118,7 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         result4.value.failure == null
         result4.value.exception instanceof RuntimeException
 
-        def buildFailedWithSerializedFailure = BuildActionResult.failed(new SerializedPayload("header", ["hi".bytes]))
+        def buildFailedWithSerializedFailure = BuildActionResult.failed(new SerializedPayload(sampleHeader(), ["hi".bytes]))
         def message5 = new Success(buildFailedWithSerializedFailure)
         def result5 = serialize(message5, serializer)
         result5 instanceof Success
@@ -312,22 +315,58 @@ class DaemonMessageSerializerTest extends SerializerSpec {
         result2.diagnostics.pid == null
     }
 
-    def "can serialize other messages"() {
+    def "can serialize command messages, preserving identifier and token"() {
         expect:
-        def messageResult = serialize(message, serializer)
-        messageResult.class == message.class
+        def result = serialize(message, serializer)
+        result.class == message.class
+        result.identifier == message.identifier
+        result.token == message.token
 
         where:
-        message                                                  | _
-        new Stop(UUID.randomUUID(), [1, 2, 3] as byte[])         | _
-        new StopWhenIdle(UUID.randomUUID(), [1, 2, 3] as byte[]) | _
-        new ReportStatus(UUID.randomUUID(), [1, 2, 3] as byte[]) | _
+        message << [
+            new Stop(UUID.randomUUID(), [1, 2, 3] as byte[]),
+            new StopWhenIdle(UUID.randomUUID(), [1, 2, 3] as byte[]),
+            new ReportStatus(UUID.randomUUID(), [1, 2, 3] as byte[]),
+            new InvalidateVirtualFileSystemAfterChange(["a", "b"], UUID.randomUUID(), [1, 2, 3] as byte[]),
+        ]
+    }
+
+    def "can serialize InvalidateVirtualFileSystemAfterChange paths"() {
+        expect:
+        def result = serialize(new InvalidateVirtualFileSystemAfterChange(["x", "y", "z"], UUID.randomUUID(), [9] as byte[]), serializer)
+        result instanceof InvalidateVirtualFileSystemAfterChange
+        result.changedPaths == ["x", "y", "z"]
+    }
+
+    def "refuses to read a Java-serialized message"() {
+        given:
+        def bytes = new ByteArrayOutputStream()
+        def encoder = new KryoBackedEncoder(bytes)
+        encoder.writeSmallInt(1)
+        encoder.flush()
+
+        when:
+        fromBytes(bytes.toByteArray(), serializer)
+
+        then:
+        def e = thrown(IllegalArgumentException)
+        e.message.contains("Unexpected type tag 1")
     }
 
     OutputEvent serialize(OutputEvent event, Serializer<Object> serializer) {
         def result = serialize(new OutputMessage(event), serializer)
         assert result instanceof OutputMessage
         return result.event
+    }
+
+    private static Map<Short, ClassLoaderDetails> sampleHeader() {
+        [(1 as short): new ClassLoaderDetails(UUID.randomUUID(), SystemClassLoaderSpec.INSTANCE)]
+    }
+
+    private static void assertSampleHeader(header) {
+        assert header instanceof Map
+        assert header.size() == 1
+        assert (header.values() as List)[0].spec instanceof SystemClassLoaderSpec
     }
 
     private static class TestAction implements BuildAction, Serializable {

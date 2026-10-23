@@ -41,4 +41,21 @@ class ClassLoaderObjectInputStreamTest extends Specification {
         readArrayObject.class.isArray()
         readArrayObject.class.componentType.name == "MyClass"
     }
+
+    def "refuses to deserialize a class on the denylist"() {
+        setup:
+        // MethodClosure is a documented gadget sink and is on the test classpath; it stands in for TemplatesImpl,
+        // which the same denylist blocks but which cannot be instantiated portably.
+        def gadget = new org.codehaus.groovy.runtime.MethodClosure("hello", "toUpperCase")
+        def output = new ByteArrayOutputStream()
+        new ObjectOutputStream(output).withCloseable { it.writeObject(gadget) }
+
+        when:
+        def ois = new ClassLoaderObjectInputStream(new ByteArrayInputStream(output.toByteArray()), getClass().classLoader)
+        ois.readObject()
+
+        then:
+        def e = thrown(InvalidClassException)
+        e.message.contains("MethodClosure")
+    }
 }
