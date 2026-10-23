@@ -84,16 +84,16 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
     @Override
     public int size() {
+        return estimatedSize();
+    }
+
+    @Override
+    public int estimatedSize() {
         int count = 0;
         for (Element<T> element : inserted) {
             count += element.size();
         }
         return count;
-    }
-
-    @Override
-    public int estimatedSize() {
-        return size();
     }
 
     @Override
@@ -355,6 +355,25 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
         public boolean isRealized() {
             return realized;
+        }
+
+        boolean isProvidedByCollection() {
+            return delegate instanceof ElementsFromCollectionProvider;
+        }
+
+        List<T> peekValues() {
+            ImmutableList.Builder<T> builder = ImmutableList.builder();
+            super.collectInto(builder);
+            List<T> values = new ArrayList<>(builder.build());
+            if (removedValues != null) {
+                values.removeAll(removedValues);
+            }
+            return values;
+        }
+
+        @Override
+        public int size() {
+            return realized ? cache.size() - duplicates.size() : super.size();
         }
 
         public void realize() {
