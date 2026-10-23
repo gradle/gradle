@@ -96,10 +96,7 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
 
         file("buildSrc/settings.gradle.kts") << """
             pluginManagement {
-                repositories {
-                    ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-                    ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-                }
+                ${RepoScriptBlockUtil.gradlePluginAndMavenCentralRepositories(GradleDsl.KOTLIN)}
             }
         """
 
@@ -108,10 +105,7 @@ class ResilientGradleBuildBuilderCrossVersionSpec extends KotlinDslPluginRelated
                 `kotlin-dsl`
             }
 
-            repositories {
-                ${RepoScriptBlockUtil.gradlePluginRepositoryDefinition(GradleDsl.KOTLIN)}
-                ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition(GradleDsl.KOTLIN)}
-            }
+            ${RepoScriptBlockUtil.gradlePluginAndMavenCentralRepositories(GradleDsl.KOTLIN)}
         """
 
         file("buildSrc/src/main/kotlin/my-conventions.gradle.kts") << """

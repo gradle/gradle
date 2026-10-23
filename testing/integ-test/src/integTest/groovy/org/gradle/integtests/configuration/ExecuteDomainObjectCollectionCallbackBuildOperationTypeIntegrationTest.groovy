@@ -30,6 +30,10 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
 
     def ops = new BuildOperationsFixture(executer, temporaryFolder)
 
+    def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
+    }
+
     private static Closure fooTaskRealizationOpsQuery = { it.only(RealizeTaskBuildOperationType, { it.details.taskPath == ':foo' }) }
     private static Closure addingPluginBuildOpQuery = { it.only(ApplyPluginBuildOperationType, { it.details.pluginClass == 'AddingPlugin' }) }
 
@@ -335,9 +339,9 @@ class ExecuteDomainObjectCollectionCallbackBuildOperationTypeIntegrationTest ext
         """
         buildFile << """
             buildscript {
-                ${mavenCentralRepository()}
+                repositories { ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()} }
             }
-            ${mavenCentralRepository()}
+            repositories { ${RepoScriptBlockUtil.mavenCentralRepositoryDefinition()} }
         """
 
         when:

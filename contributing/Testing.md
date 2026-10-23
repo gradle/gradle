@@ -64,6 +64,42 @@ For example:
     def "can use exec in settings"() { ... }
 ``` 
 
+## Add a repository for dependencies that are not on public repositories
+
+Some versions under test are not on Maven Central or the Plugin Portal. A Kotlin dev build is an example.
+Do not declare the repository of such a version in the tests themselves.
+Register the repository in `EXTRA_REPOSITORIES` in [RepoScriptBlockUtil](../testing/internal-distribution-testing/src/main/groovy/org/gradle/integtests/fixtures/RepoScriptBlockUtil.groovy).
+Add it to `MirroredRepository` in the same file, so that CI can replace its URL with a mirror.
+
+Keep a repository in the list only while tests need it. The list drops `null` entries.
+For example, the Kotlin dev repository is in the list only while a tested Kotlin version is a dev build:
+
+```groovy
+kotlinDevVersionTested()                         // (1) condition
+    ? new ExtraRepository(
+        MirroredRepository.KOTLIN_DEV.name,      // (2) name
+        MirroredRepository.KOTLIN_DEV.mirrorUrl, // (3) URL
+        [/org\.jetbrains\.kotlin(\..+)?/]        // (4) group regexes
+    )
+    : null
+```
+
+1. The condition decides if the test run uses the repository.
+2. The name identifies the repository in the repository blocks and in the init script.
+3. The URL is the location of the repository.
+4. Gradle searches the repository only for the groups that match the group regexes.
+
+Builds get an extra repository in two ways:
+
+- From the repositories blocks of `RepoScriptBlockUtil`, for example `mavenCentralRepository()`, and from the `repositoriesBlock` of the Kotlin DSL fixtures.
+  In Tooling API tests, use these blocks. Do not use the definitions of single repositories, for example `mavenCentralRepositoryDefinition()`.
+  Tooling API builds do not get the init script.
+- From an init script. Every smoke test build, performance test build and `GradleExecuter` build gets the init script.
+  Tests can see the init script in build operations, applied scripts, and listener callbacks.
+  If a test asserts on these, on the declared repositories or on plugin resolution errors, call `executer.withoutExtraRepositories()`.
+
+When you add a repository to the list, tests that assert on the repositories of a build can fail. Call `executer.withoutExtraRepositories()` in them.
+
 # Cross Version Tests
 
 Some tests in the Gradle codebase are executed with a wide range of supported Gradle versions.
