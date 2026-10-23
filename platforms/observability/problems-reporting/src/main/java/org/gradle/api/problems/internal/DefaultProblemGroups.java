@@ -45,7 +45,7 @@ import java.util.Objects;
  * {@code Problems} services in a process; group equality is structural (name and parent), so instance identity does not matter
  * across processes.
  */
-final class DefaultProblemGroups implements ProblemGroupsInternal {
+public final class DefaultProblemGroups implements ProblemGroupsInternal {
 
     public static final DefaultProblemGroups INSTANCE = new DefaultProblemGroups();
 

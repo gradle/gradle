@@ -117,6 +117,7 @@ problems.reporter.report(problems.groups.transformation.group("KMP").problemId("
 
 Each predefined group carries a description of what belongs in it, so consumers of problem reports have a documented set of group names to navigate, filter, and aggregate by.
 On the console, problems now show the chain of groups they belong to, for example `Unused import (in Compilation > Java)`.
+The Groups tab of the HTML problems report lists the root groups in the order of the predefined hierarchy and shows the description of each predefined group.
 The existing `ProblemGroup.create()` and `ProblemId.create()` methods keep working, and a group created with them whose name matches a predefined group is now reported as that predefined group; migrating to the predefined groups is recommended.
 
 The legacy problem groups are gone, and both the group and the name of Gradle's own problem ids changed, so Tooling API clients, Build Scans, and any tooling that matches problems by id need to update.
