@@ -1,0 +1,97 @@
+-injars '<work>/jars/fastutil-8.5.2.jar'(!META-INF/*.SF,!META-INF/*.RSA,!META-INF/*.DSA,!META-INF/*.EC,!**it/unimi/dsi/fastutil/io/**)
+-outjars '<work>/out/fastutil-min.jar'
+-libraryjars '<work>/jars/fastutil-8.5.2.jar'(**it/unimi/dsi/fastutil/io/**)
+-libraryjars '<work>/jars/platform-25.jar'
+-libraryjars '<work>/jars/kotlin-compiler-embeddable-2.4.21.jar'
+-libraryjars '<work>/jars/lib/annotations-13.0.jar'
+-libraryjars '<work>/jars/lib/kotlin-build-tools-api-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlin-daemon-embeddable-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlin-reflect-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlin-script-runtime-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlin-stdlib-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlinx-coroutines-core-jvm-1.8.0.jar'
+-keepnames class ** { *; }
+-keepattributes !LocalVariableTable,!LocalVariableTypeTable,*
+-dontwarn
+-dontnote
+-dontoptimize
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.Function { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.Stack { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.AbstractInt2LongFunction { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.AbstractInt2LongMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.AbstractInt2ObjectFunction { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.AbstractInt2ObjectMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.AbstractInt2ReferenceFunction { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.AbstractInt2ReferenceMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.AbstractIntCollection { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.AbstractIntList { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.AbstractIntSet { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.Int2IntFunction { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.Int2IntMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.Int2IntOpenHashMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.Int2LongFunction { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.Int2LongMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.Int2LongMap$Entry { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.Int2LongOpenHashMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.Int2ObjectFunction { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.Int2ObjectMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.Int2ObjectOpenHashMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.Int2ReferenceFunction { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.Int2ReferenceOpenHashMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.IntArrayList { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.IntCollection { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.IntIterable { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.IntIterator { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.IntList { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.IntOpenHashSet { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.IntSet { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.IntSets { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.ints.IntStack { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.AbstractLong2IntFunction { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.AbstractLong2IntMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.AbstractLong2ObjectFunction { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.AbstractLong2ObjectMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.AbstractLongCollection { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.AbstractLongList { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.AbstractLongSet { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.Long2IntFunction { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.Long2IntMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.Long2IntOpenHashMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.Long2ObjectFunction { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.Long2ObjectMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.Long2ObjectMaps { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.LongArrayList { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.LongCollection { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.LongList { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.LongOpenHashSet { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.LongSet { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.longs.LongSets { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.AbstractObject2IntFunction { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.AbstractObject2IntMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.AbstractObjectCollection { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.AbstractObjectSet { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.AbstractReference2IntFunction { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.AbstractReference2IntMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.AbstractReference2ObjectFunction { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.AbstractReference2ObjectMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.AbstractReferenceCollection { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.AbstractReferenceList { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.AbstractReferenceSet { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.Object2IntFunction { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.Object2IntMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.Object2IntOpenHashMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.ObjectCollection { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.ObjectIterable { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.ObjectIterators { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.ObjectListIterator { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.ObjectOpenHashSet { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.ObjectSet { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.Reference2IntFunction { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.Reference2IntMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.Reference2IntOpenHashMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.Reference2ObjectFunction { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.Reference2ObjectOpenHashMap { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.ReferenceArrayList { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.ReferenceList { *; }
+-keep,includedescriptorclasses class it.unimi.dsi.fastutil.objects.ReferenceOpenHashSet { *; }

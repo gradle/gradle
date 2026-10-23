@@ -1,0 +1,27 @@
+   0.19 ProGuard, version 7.10.0
+   0.19 Reading input...
+   0.20 Reading program jar [$WORK/jars/kotlin-compiler-embeddable-2.4.21.jar] (filtered)
+   1.65 Reading library jar [$WORK/jars/platform-25.jar] (filtered)
+   2.75 Reading library jar [$WORK/jars/kotlin-compiler-embeddable-2.4.21.jar] (filtered)
+   3.05 Reading library jar [$WORK/jars/lib/annotations-13.0.jar] (filtered)
+   3.05 Reading library jar [$WORK/jars/lib/kotlin-build-tools-api-2.4.21.jar] (filtered)
+   3.05 Reading library jar [$WORK/jars/lib/kotlin-daemon-embeddable-2.4.21.jar] (filtered)
+   3.06 Reading library jar [$WORK/jars/lib/kotlin-reflect-2.4.21.jar] (filtered)
+   3.13 Reading library jar [$WORK/jars/lib/kotlin-script-runtime-2.4.21.jar] (filtered)
+   3.13 Reading library jar [$WORK/jars/lib/kotlin-stdlib-2.4.21.jar] (filtered)
+   3.16 Reading library jar [$WORK/jars/lib/kotlinx-coroutines-core-jvm-1.8.0.jar] (filtered)
+   3.23 Initializing...
+   6.77 Ignoring unused library classes...
+   6.77   Original number of library classes:              34376
+   6.77   Final number of library classes:                 1773
+   6.77 Marking classes and class members to be kept...
+   7.30 Inlining subroutines...
+   7.74 Obfuscating...
+  16.05   Number of obfuscated classes:                  0
+  16.05   Number of obfuscated fields:                   0
+  16.05   Number of obfuscated methods:                  0
+  16.48 Preverifying...
+  26.31 Writing output...
+  26.31 Preparing output jar [$WORK/out/kotlin-min.jar] (filtered)
+  26.31   Copying resources from program jar [$WORK/jars/kotlin-compiler-embeddable-2.4.21.jar] (filtered)
+TOTAL 31.2s

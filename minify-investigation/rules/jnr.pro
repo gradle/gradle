@@ -1,0 +1,25 @@
+-injars '<work>/jars/jnr-constants-0.10.4.jar'(!META-INF/*.SF,!META-INF/*.RSA,!META-INF/*.DSA,!META-INF/*.EC)
+-outjars '<work>/out/jnr-min.jar'
+-libraryjars '<work>/jars/platform-25.jar'
+-libraryjars '<work>/jars/kotlin-compiler-embeddable-2.4.21.jar'
+-libraryjars '<work>/jars/lib/annotations-13.0.jar'
+-libraryjars '<work>/jars/lib/kotlin-build-tools-api-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlin-daemon-embeddable-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlin-reflect-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlin-script-runtime-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlin-stdlib-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlinx-coroutines-core-jvm-1.8.0.jar'
+-keepnames class ** { *; }
+-keepattributes !LocalVariableTable,!LocalVariableTypeTable,*
+-dontwarn
+-dontnote
+-dontoptimize
+-keep,includedescriptorclasses class jnr.constants.platform.Signal { *; }
+-keep,includedescriptorclasses class jnr.constants.platform.aix.Signal { *; }
+-keep,includedescriptorclasses class jnr.constants.platform.darwin.Signal { *; }
+-keep,includedescriptorclasses class jnr.constants.platform.freebsd.Signal { *; }
+-keep,includedescriptorclasses class jnr.constants.platform.openbsd.Signal { *; }
+-keep,includedescriptorclasses class jnr.constants.platform.linux.Signal { *; }
+-keep,includedescriptorclasses class jnr.constants.platform.solaris.Signal { *; }
+-keep,includedescriptorclasses class jnr.constants.Constant { *; }
+-keep,includedescriptorclasses class jnr.constants.ConstantResolver { *; }

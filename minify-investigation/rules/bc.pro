@@ -1,0 +1,20 @@
+-injars '<work>/jars/bcprov-jdk18on-1.85.jar'(!META-INF/*.SF,!META-INF/*.RSA,!META-INF/*.DSA,!META-INF/*.EC,!**org/bouncycastle/pqc/jcajce/**,!**org/bouncycastle/pqc/legacy/**)
+-outjars '<work>/out/bc-min.jar'
+-libraryjars '<work>/jars/platform-25.jar'
+-libraryjars '<work>/jars/bcprov-jdk18on-1.85.jar'(**org/bouncycastle/pqc/jcajce/**,**org/bouncycastle/pqc/legacy/**)
+-libraryjars '<work>/jars/kotlin-compiler-embeddable-2.4.21.jar'
+-libraryjars '<work>/jars/lib/annotations-13.0.jar'
+-libraryjars '<work>/jars/lib/kotlin-build-tools-api-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlin-daemon-embeddable-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlin-reflect-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlin-script-runtime-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlin-stdlib-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlinx-coroutines-core-jvm-1.8.0.jar'
+-keepnames class ** { *; }
+-keepattributes !LocalVariableTable,!LocalVariableTypeTable,*
+-dontwarn
+-dontnote
+-keep,includedescriptorclasses class !org.bouncycastle.pqc.**,!org.bouncycastle.jcajce.provider.asymmetric.Dilithium**,!org.bouncycastle.jcajce.provider.asymmetric.Falcon**,!org.bouncycastle.jcajce.provider.asymmetric.NTRU**,!org.bouncycastle.jcajce.provider.asymmetric.SLHDSA**,!org.bouncycastle.jcajce.provider.asymmetric.SPHINCSPlus**,!org.bouncycastle.jcajce.provider.asymmetric.mldsa.**,!org.bouncycastle.jcajce.provider.asymmetric.slhdsa.**,!org.bouncycastle.jcajce.provider.asymmetric.mlkem.**,!org.bouncycastle.crypto.signers.mldsa.**,!org.bouncycastle.crypto.signers.slhdsa.**,!org.bouncycastle.crypto.signers.Hash**,!org.bouncycastle.crypto.signers.SLHDSASigner,!org.bouncycastle.crypto.kems.mlkem.**,org.bouncycastle.** { *; }
+-keep,includedescriptorclasses class !org.bouncycastle.jcajce.provider.asymmetric.Dilithium**,!org.bouncycastle.jcajce.provider.asymmetric.Falcon**,!org.bouncycastle.jcajce.provider.asymmetric.NTRU**,!org.bouncycastle.jcajce.provider.asymmetric.SLHDSA**,!org.bouncycastle.jcajce.provider.asymmetric.SPHINCSPlus**,!org.bouncycastle.jcajce.provider.asymmetric.mldsa.**,!org.bouncycastle.jcajce.provider.asymmetric.slhdsa.**,!org.bouncycastle.jcajce.provider.asymmetric.mlkem.**,!org.bouncycastle.crypto.signers.mldsa.**,!org.bouncycastle.crypto.signers.slhdsa.**,!org.bouncycastle.crypto.signers.Hash**,!org.bouncycastle.crypto.signers.SLHDSASigner,!org.bouncycastle.crypto.kems.mlkem.**,org.bouncycastle.pqc.crypto.mlkem.** { *; }
+-keep,includedescriptorclasses class !org.bouncycastle.jcajce.provider.asymmetric.Dilithium**,!org.bouncycastle.jcajce.provider.asymmetric.Falcon**,!org.bouncycastle.jcajce.provider.asymmetric.NTRU**,!org.bouncycastle.jcajce.provider.asymmetric.SLHDSA**,!org.bouncycastle.jcajce.provider.asymmetric.SPHINCSPlus**,!org.bouncycastle.jcajce.provider.asymmetric.mldsa.**,!org.bouncycastle.jcajce.provider.asymmetric.slhdsa.**,!org.bouncycastle.jcajce.provider.asymmetric.mlkem.**,!org.bouncycastle.crypto.signers.mldsa.**,!org.bouncycastle.crypto.signers.slhdsa.**,!org.bouncycastle.crypto.signers.Hash**,!org.bouncycastle.crypto.signers.SLHDSASigner,!org.bouncycastle.crypto.kems.mlkem.**,org.bouncycastle.pqc.crypto.ntruprime.** { *; }
+-assumenosideeffects class org.bouncycastle.jce.provider.BouncyCastleProvider { void loadPQCKeys(); }

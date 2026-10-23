@@ -1,0 +1,17 @@
+-injars '<work>/jars/kotlin-compiler-embeddable-2.4.21.jar'(!META-INF/*.SF,!META-INF/*.RSA,!META-INF/*.DSA,!META-INF/*.EC,!**org/jetbrains/kotlin/analysis/decompiler/js/**,!**org/jetbrains/kotlin/analysis/decompiler/konan/**,!**org/jetbrains/kotlin/backend/konan/**,!**org/jetbrains/kotlin/backend/wasm/**,!**org/jetbrains/kotlin/builtins/konan/**,!**org/jetbrains/kotlin/descriptors/konan/**,!**org/jetbrains/kotlin/fir/analysis/diagnostics/js/**,!**org/jetbrains/kotlin/fir/analysis/diagnostics/native/**,!**org/jetbrains/kotlin/fir/analysis/diagnostics/wasm/**,!**org/jetbrains/kotlin/fir/analysis/js/**,!**org/jetbrains/kotlin/fir/analysis/native/**,!**org/jetbrains/kotlin/fir/analysis/wasm/**,!**org/jetbrains/kotlin/fir/backend/native/**,!**org/jetbrains/kotlin/frontend/js/**,!**org/jetbrains/kotlin/incremental/js/**,!**org/jetbrains/kotlin/ir/backend/js/**,!**org/jetbrains/kotlin/ir/inline/konan/**,!**org/jetbrains/kotlin/js/**,!**org/jetbrains/kotlin/native/**,!**org/jetbrains/kotlin/resolve/konan/**,!**org/jetbrains/kotlin/serialization/js/**,!**org/jetbrains/kotlin/wasm/**)
+-outjars '<work>/out/kotlin-min.jar'
+-libraryjars '<work>/jars/platform-25.jar'
+-libraryjars '<work>/jars/kotlin-compiler-embeddable-2.4.21.jar'(**org/jetbrains/kotlin/analysis/decompiler/js/**,**org/jetbrains/kotlin/analysis/decompiler/konan/**,**org/jetbrains/kotlin/backend/konan/**,**org/jetbrains/kotlin/backend/wasm/**,**org/jetbrains/kotlin/builtins/konan/**,**org/jetbrains/kotlin/descriptors/konan/**,**org/jetbrains/kotlin/fir/analysis/diagnostics/js/**,**org/jetbrains/kotlin/fir/analysis/diagnostics/native/**,**org/jetbrains/kotlin/fir/analysis/diagnostics/wasm/**,**org/jetbrains/kotlin/fir/analysis/js/**,**org/jetbrains/kotlin/fir/analysis/native/**,**org/jetbrains/kotlin/fir/analysis/wasm/**,**org/jetbrains/kotlin/fir/backend/native/**,**org/jetbrains/kotlin/frontend/js/**,**org/jetbrains/kotlin/incremental/js/**,**org/jetbrains/kotlin/ir/backend/js/**,**org/jetbrains/kotlin/ir/inline/konan/**,**org/jetbrains/kotlin/js/**,**org/jetbrains/kotlin/native/**,**org/jetbrains/kotlin/resolve/konan/**,**org/jetbrains/kotlin/serialization/js/**,**org/jetbrains/kotlin/wasm/**)
+-libraryjars '<work>/jars/lib/annotations-13.0.jar'
+-libraryjars '<work>/jars/lib/kotlin-build-tools-api-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlin-daemon-embeddable-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlin-reflect-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlin-script-runtime-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlin-stdlib-2.4.21.jar'
+-libraryjars '<work>/jars/lib/kotlinx-coroutines-core-jvm-1.8.0.jar'
+-keepnames class ** { *; }
+-keepattributes !LocalVariableTable,!LocalVariableTypeTable,*
+-dontwarn
+-dontnote
+-dontshrink
+-dontoptimize

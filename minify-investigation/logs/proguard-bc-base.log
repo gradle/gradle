@@ -1,0 +1,75 @@
+   0.19 ProGuard, version 7.10.0
+   0.19 Reading input...
+   0.20 Reading program jar [$WORK/jars/bcprov-jdk18on-1.85.jar] (filtered)
+   0.35 Reading library jar [$WORK/jars/platform-25.jar] (filtered)
+   1.39 Reading library jar [$WORK/jars/bcprov-jdk18on-1.85.jar] (filtered)
+   1.41 Reading library jar [$WORK/jars/kotlin-compiler-embeddable-2.4.21.jar] (filtered)
+   2.39 Reading library jar [$WORK/jars/lib/annotations-13.0.jar] (filtered)
+   2.39 Reading library jar [$WORK/jars/lib/kotlin-build-tools-api-2.4.21.jar] (filtered)
+   2.40 Reading library jar [$WORK/jars/lib/kotlin-daemon-embeddable-2.4.21.jar] (filtered)
+   2.40 Reading library jar [$WORK/jars/lib/kotlin-reflect-2.4.21.jar] (filtered)
+   2.47 Reading library jar [$WORK/jars/lib/kotlin-script-runtime-2.4.21.jar] (filtered)
+   2.48 Reading library jar [$WORK/jars/lib/kotlin-stdlib-2.4.21.jar] (filtered)
+   2.51 Reading library jar [$WORK/jars/lib/kotlinx-coroutines-core-jvm-1.8.0.jar] (filtered)
+   2.54 Initializing...
+   3.06 Ignoring unused library classes...
+   3.06   Original number of library classes:              58813
+   3.06   Final number of library classes:                 553
+   3.06 Marking classes and class members to be kept...
+   3.72 Inlining subroutines...
+   3.76 Shrinking...
+   4.23 Removing unused program classes and class elements...
+   4.23   Original number of program classes:            4826
+   4.23   Final number of program classes:               4014
+   4.23 Optimizing (pass 1/1)...
+   7.63   Number of finalized classes:                   0
+   7.63   Number of unboxed enum classes:                0
+   7.63   Number of vertically merged classes:           0   (disabled)
+   7.63   Number of horizontally merged classes:         0   (disabled)
+   7.63   Number of merged wrapper classes:              0   (disabled)
+   7.63   Number of removed write-only fields:           0
+   7.63   Number of privatized fields:                   0
+   7.63   Number of generalized field accesses:          3137
+   7.63   Number of specialized field types:             0
+   7.63   Number of inlined constant fields:             0
+   7.63   Number of privatized methods:                  0
+   7.63   Number of staticized methods:                  0
+   7.63   Number of finalized methods:                   302
+   7.63   Number of desynchronized methods:              0
+   7.63   Number of simplified method signatures:        0
+   7.63   Number of removed method parameters:           0
+   7.63   Number of generalized method invocations:      2621
+   7.63   Number of specialized method parameter types:  0
+   7.63   Number of specialized method return types:     0
+   7.63   Number of inlined constant parameters:         0
+   7.63   Number of inlined constant return values:      0
+   7.63   Number of inlined short method calls:          0
+   7.63   Number of inlined unique method calls:         0
+   7.63   Number of inlined tail recursion calls:        9
+   7.63   Number of merged code blocks:                  15
+   7.63   Number of variable peephole optimizations:     8934
+   7.63   Number of arithmetic peephole optimizations:   1706
+   7.63   Number of cast peephole optimizations:         0
+   7.63   Number of field peephole optimizations:        298
+   7.63   Number of branch peephole optimizations:       2270
+   7.63   Number of object peephole optimizations:       5
+   7.63   Number of string peephole optimizations:       1444
+   7.63   Number of math peephole optimizations:         0
+   7.63   Number of simplified instructions:             750
+   7.63   Number of removed instructions:                1900
+   7.63   Number of removed local variables:             198
+   7.63   Number of removed exception blocks:            114
+   7.63   Number of optimized local variable frames:     3434
+   7.63 Shrinking...
+   7.88 Removing unused program classes and class elements...
+   7.88   Original number of program classes:            4014
+   7.88   Final number of program classes:               4014
+   7.89 Obfuscating...
+   8.33   Number of obfuscated classes:                  0
+   8.33   Number of obfuscated fields:                   0
+   8.33   Number of obfuscated methods:                  0
+   8.48 Preverifying...
+   9.44 Writing output...
+   9.45 Preparing output jar [$WORK/out/bc-min.jar] (filtered)
+   9.45   Copying resources from program jar [$WORK/jars/bcprov-jdk18on-1.85.jar] (filtered)
+TOTAL 9.9s
