@@ -75,6 +75,7 @@ public interface ProblemGroupInternal {
     /**
      * Structural equality shared by all implementations: two groups are equal if their names and parents are equal.
      */
+    @SuppressWarnings("deprecation") // the other group may be foreign, and only the public getter knows its parent
     static boolean structurallyEquals(ProblemGroup self, @Nullable Object o) {
         if (self == o) {
             return true;
@@ -89,7 +90,7 @@ public interface ProblemGroupInternal {
     /**
      * Hash code consistent with {@link #structurallyEquals(ProblemGroup, Object)}.
      */
-    static int structuralHashCode(ProblemGroup self) {
-        return Objects.hash(self.getName(), self.getParent());
+    static int structuralHashCode(ProblemGroupInternal self) {
+        return Objects.hash(self.getName(), self.getParentInternal());
     }
 }

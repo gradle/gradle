@@ -43,6 +43,7 @@ final class PredefinedProvisioningProblemGroup extends ProvisioningProblemGroup 
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
         return NAME;
     }
@@ -54,6 +55,7 @@ final class PredefinedProvisioningProblemGroup extends ProvisioningProblemGroup 
 
     @Override
     @Nullable
+    @Deprecated
     public ProblemGroup getParent() {
         return null;
     }

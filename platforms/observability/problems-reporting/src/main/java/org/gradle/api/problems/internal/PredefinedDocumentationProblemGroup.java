@@ -44,6 +44,7 @@ final class PredefinedDocumentationProblemGroup extends DocumentationProblemGrou
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
         return NAME;
     }
@@ -55,6 +56,7 @@ final class PredefinedDocumentationProblemGroup extends DocumentationProblemGrou
 
     @Override
     @Nullable
+    @Deprecated
     public ProblemGroup getParent() {
         return null;
     }

@@ -117,7 +117,9 @@ problems.reporter.report(problems.groups.transformation.group("KMP").problemId("
 
 Each predefined group carries a description of what belongs in it, so consumers of problem reports have a documented set of group names to navigate, filter, and aggregate by.
 On the console, problems now show the chain of groups they belong to, for example `Unused import (in Compilation > Java)`.
-The existing `ProblemGroup.create()` and `ProblemId.create()` methods keep working, and a group created with them whose name matches a predefined group is now reported as that predefined group; migrating to the predefined groups is recommended.
+`ProblemGroup.create()` and `ProblemId.create()` are deprecated and keep working until Gradle 11.
+`ProblemGroup.getParent()` and `getDisplayName()` on problem groups and ids, including the Tooling API types, are deprecated and keep working until Gradle 10; see the [upgrading guide](userguide/upgrading_version_9.html#problems_api_legacy_identity).
+A group created with the factory methods whose name matches a predefined group is now reported as that predefined group.
 
 The legacy problem groups are gone, and both the group and the name of Gradle's own problem ids changed, so Tooling API clients, Build Scans, and any tooling that matches problems by id need to update.
 

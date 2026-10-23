@@ -317,7 +317,8 @@ Gradle itself reports problems into these predefined groups:
 |`Provisioning > Tools and Toolchains` |Unusable JVM installations and Daemon JVM toolchains that cannot be provisioned
 |===
 
-A group created with `ProblemGroup.create()` whose name matches a predefined group, such as `ProblemGroup.create("Java", "Java", problems.groups.compilation)`, is reported as that predefined group, with its description.
+A group created with the deprecated `ProblemGroup.create()` whose name matches a predefined group, such as `ProblemGroup.create("Java", "Java", problems.groups.compilation)`, is reported as that predefined group, with its description; see <<upgrading_version_9.adoc#problems_api_legacy_identity,the upgrading guide>>.
+Use the predefined group instead, here `problems.groups.compilation.java`.
 
 [[sec:problem_summarization]]
 == Problem Summarization
@@ -360,7 +361,7 @@ Execution failed for task ':myFailingTask'.
 > Run with --scan to generate a Build Scan (powered by Develocity).
 BUILD FAILED in 0ms  // <5>
 ----
-<1> The display name of the problem ID.
+<1> The name of the problem.
 <2> The contextual label (or the supplied exception's message if the contextual label is missing).
 <3> The content of the `details` property.
 <4> The solutions or recommended actions.

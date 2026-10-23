@@ -36,6 +36,7 @@ public class DefaultProblemGroup extends ProblemGroup implements ProblemGroupInt
         this(groupId, displayName, null);
     }
 
+    @SuppressWarnings("deprecation") // only Gradle may subclass
     public DefaultProblemGroup(String name, String displayName, @Nullable ProblemGroup parent) {
         validateFields(name, displayName);
         this.name = TextUtil.replaceLineSeparatorsOf(name, "");
@@ -51,6 +52,7 @@ public class DefaultProblemGroup extends ProblemGroup implements ProblemGroupInt
      * implementations are copied so that only known, serializable types are stored and reported.
      */
     @Nullable
+    @SuppressWarnings("deprecation") // a foreign group keeps its display name and parent until Gradle 10
     public static ProblemGroup owned(@Nullable ProblemGroup group) {
         if (group == null || group instanceof ProblemGroupInternal) {
             return group;
@@ -74,12 +76,14 @@ public class DefaultProblemGroup extends ProblemGroup implements ProblemGroupInt
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
         return displayName;
     }
 
     @Nullable
     @Override
+    @Deprecated
     public ProblemGroup getParent() {
         // every Gradle-owned implementation extends ProblemGroup
         return (ProblemGroup) parent;

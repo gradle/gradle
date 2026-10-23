@@ -147,6 +147,7 @@ public class ProblemsProgressEventUtils {
         );
     }
 
+    @SuppressWarnings("deprecation") // sends the display name of a legacy id; 9.x clients read it until Gradle 11, so Gradle 10 sends the name
     private static InternalProblemId toInternalId(ProblemId problemId) {
         return new DefaultProblemId(problemId.getName(), problemId.getDisplayName(), toInternalGroup(ProblemGroupInternal.of(problemId.getGroup())));
     }

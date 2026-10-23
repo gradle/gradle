@@ -44,6 +44,7 @@ public class WorkValidationUtils {
         return truncate(deduplicateByProperties(problems));
     }
 
+    @SuppressWarnings("deprecation") // renders the display name of a legacy id until Gradle 10
     public static void reportAsDeprecation(Iterable<? extends ProblemInternal> problems) {
         problems.forEach(warning ->
             withDocumentation(warning, deprecateBehaviour(singleLineWarning(warning))
@@ -55,6 +56,7 @@ public class WorkValidationUtils {
         );
     }
 
+    @SuppressWarnings("deprecation") // renders the display name of a legacy id until Gradle 10
     private static String singleLineWarning(ProblemInternal problem) {
         String label = problem.getContextualLabel() != null
             ? problem.getContextualLabel()

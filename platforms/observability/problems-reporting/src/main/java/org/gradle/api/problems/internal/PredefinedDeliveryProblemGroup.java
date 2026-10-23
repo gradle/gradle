@@ -43,6 +43,7 @@ final class PredefinedDeliveryProblemGroup extends DeliveryProblemGroup implemen
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
         return NAME;
     }
@@ -54,6 +55,7 @@ final class PredefinedDeliveryProblemGroup extends DeliveryProblemGroup implemen
 
     @Override
     @Nullable
+    @Deprecated
     public ProblemGroup getParent() {
         return null;
     }

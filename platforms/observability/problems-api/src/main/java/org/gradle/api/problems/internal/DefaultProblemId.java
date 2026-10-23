@@ -29,6 +29,7 @@ public class DefaultProblemId extends ProblemId implements Serializable {
     private final String displayName;
     private final ProblemGroup parent;
 
+    @SuppressWarnings("deprecation") // only Gradle may subclass
     public DefaultProblemId(String name, String displayName, ProblemGroup parent) {
         validateFields(name, displayName, parent);
         this.name = TextUtil.replaceLineSeparatorsOf(name, "");
@@ -54,6 +55,7 @@ public class DefaultProblemId extends ProblemId implements Serializable {
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
         return displayName;
     }
@@ -69,6 +71,7 @@ public class DefaultProblemId extends ProblemId implements Serializable {
         return name + " (in " + groupPath(parent) + ")";
     }
 
+    @SuppressWarnings("deprecation") // ProblemId.create keeps a foreign group, which only the public getter can walk
     private static String groupPath(ProblemGroup group) {
         ProblemGroup parent = group.getParent();
         return parent == null ? group.getName() : groupPath(parent) + " > " + group.getName();

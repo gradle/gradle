@@ -38,6 +38,7 @@ import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
+import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.internal.ProblemGroupInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.IoActions;
@@ -311,6 +312,7 @@ public class BuildOperationTrace implements Stoppable {
                     .addSerializer(AttributeContainer.class, new JsonAttributeContainerSerializer())
                     .addSerializer(ComponentArtifactIdentifier.class, new JsonComponentArtifactIdentifierSerializer())
                     .addSerializer(ProblemGroupInternal.class, new JsonProblemGroupSerializer())
+                    .addSerializer(ProblemId.class, new JsonProblemIdSerializer())
                     .setSerializerModifier(new SkipDeprecatedBeanSerializerModifier())
                 )
                 .registerModule(new JavaTimeModule())
@@ -630,6 +632,23 @@ public class BuildOperationTrace implements Stoppable {
             }
             jsonGenerator.writeFieldName("parent");
             serializerProvider.defaultSerializeValue(group.getParentInternal(), jsonGenerator);
+            jsonGenerator.writeEndObject();
+        }
+    }
+
+    /**
+     * {@link ProblemId#getDisplayName()} is deprecated, so the bean serialization would skip it. Write it explicitly, as the
+     * display name of a legacy id can differ from its name until Gradle 10.
+     */
+    private static class JsonProblemIdSerializer extends JsonSerializer<ProblemId> {
+        @Override
+        @SuppressWarnings("deprecation")
+        public void serialize(ProblemId id, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
+            jsonGenerator.writeStartObject();
+            jsonGenerator.writeStringField("name", id.getName());
+            jsonGenerator.writeStringField("displayName", id.getDisplayName());
+            jsonGenerator.writeFieldName("group");
+            serializerProvider.defaultSerializeValue(id.getGroup(), jsonGenerator);
             jsonGenerator.writeEndObject();
         }
     }

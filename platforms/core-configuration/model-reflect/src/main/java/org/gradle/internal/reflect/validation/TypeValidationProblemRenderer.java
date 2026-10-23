@@ -37,6 +37,7 @@ public class TypeValidationProblemRenderer {
         return renderMinimalInformationAbout(problem, renderDocLink, true);
     }
 
+    @SuppressWarnings("deprecation") // renders the display name of a legacy id until Gradle 10
     public static String renderMinimalInformationAbout(ProblemInternal problem, boolean renderDocLink, boolean renderSolutions) {
         TreeFormatter formatter = new TreeFormatter();
         formatter.node(endLineWithDot(Optional.ofNullable(problem.getContextualLabel()).orElseGet(() -> problem.getDefinition().getId().getDisplayName())));

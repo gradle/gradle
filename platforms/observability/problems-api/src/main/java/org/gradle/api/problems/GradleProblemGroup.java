@@ -43,6 +43,7 @@ public abstract class GradleProblemGroup extends ProblemGroup {
      *
      * @since 9.9.0
      */
+    @SuppressWarnings("deprecation") // only Gradle may subclass
     protected GradleProblemGroup() {
     }
 

@@ -47,6 +47,7 @@ final class PredefinedCompilationProblemGroup extends CompilationProblemGroup im
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
         return NAME;
     }
@@ -58,6 +59,7 @@ final class PredefinedCompilationProblemGroup extends CompilationProblemGroup im
 
     @Override
     @Nullable
+    @Deprecated
     public ProblemGroup getParent() {
         return null;
     }

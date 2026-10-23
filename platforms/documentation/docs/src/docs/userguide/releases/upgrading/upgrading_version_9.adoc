@@ -744,6 +744,41 @@ Gradle no longer reports problems with the id `UpdateDaemonJvm.TASK_CONFIGURATIO
 The `updateDaemonJvm` task reports its configuration problems in `Provisioning > Tools and Toolchains`, as `No toolchain download repositories configured` and `Daemon JVM toolchain not resolvable for requested platforms`, see <<runtime_problem_ids_moved_to_predefined_groups,Runtime problem ids moved to the predefined problem groups>>.
 The constant is deprecated and will be removed in Gradle 10.
 
+[[problems_api_legacy_identity]]
+==== Deprecation of the legacy problem identity API
+
+The incubating Problems API provides a <<reporting_problems.adoc#sec:predefined_problem_groups,predefined hierarchy of problem groups>>, available from the `Problems` service as `problems.groups`.
+The API that builds or reads problem identity outside that hierarchy is deprecated.
+`ProblemGroup.create()` and `ProblemId.create()` will be removed in Gradle 11.
+`getDisplayName()` on `ProblemGroup` and `ProblemId` and `ProblemGroup.getParent()` will be removed in Gradle 10, and Gradle 10 will not support subclassing `ProblemGroup` or `ProblemId`.
+Plugins that call it get a compiler warning.
+
+Create the group from the predefined hierarchy and the id from the group:
+
+[source,kotlin]
+----
+// before
+val group = ProblemGroup.create("sample-group", "Sample Group")
+val id = ProblemId.create("missing-recipient", "Recipient not set", group)
+
+// after
+val group = problems.groups.others.group("Sample Group")
+val id = group.problemId("Recipient not set")
+----
+
+Pick the predefined root group that matches what the problem is about, for example `problems.groups.compilation`, and create a sub-group of it or report into one of its predefined sub-groups; `others` is for problems that fit no other root.
+The name of a predefined id is also its display name, and group names are limited to letters, digits, spaces and the characters `-_.+/&'#`.
+
+Use `getName()` instead of `getDisplayName()`, both in the Problems API and in the Tooling API (`org.gradle.tooling.events.problems`).
+Until Gradle 10, the method returns the display name given to `ProblemGroup.create()` or `ProblemId.create()`, and the name for groups and ids from the predefined hierarchy.
+Gradle 10 still sends a display name, equal to the name, to Tooling API clients of earlier versions, so those clients keep working.
+A plugin that subclasses `ProblemGroup` or `ProblemId` must still implement `getDisplayName()`; mark the implementation `@Deprecated` to avoid the compiler warning.
+
+`ProblemGroup.getParent()` in the Problems API has no replacement.
+The groups from `problems.groups` have a fixed place in the predefined hierarchy, so plugins have no need to walk it.
+A plugin that subclasses `ProblemGroup` must still implement `getParent()` until Gradle 10; mark the implementation `@Deprecated` as well.
+The Tooling API `ProblemGroup.getParent()` is not deprecated, as clients use it to show the group hierarchy.
+
 [[kotlin_dsl_scripts_model_explicit_scripts]]
 ==== Deprecation of restricting the `KotlinDslScriptsModel` to explicit scripts
 
