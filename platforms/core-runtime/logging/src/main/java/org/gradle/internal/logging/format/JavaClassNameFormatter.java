@@ -13,19 +13,22 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.gradle.api.internal.tasks.testing.logging;
+package org.gradle.internal.logging.format;
 
-import org.jspecify.annotations.NonNull;
+import org.jspecify.annotations.NullMarked;
 
+@NullMarked
 public class JavaClassNameFormatter {
     private static final char PACKAGE_SEPARATOR = '.';
+    // Class names are shortened to this length on worker lines
+    private static final int MAX_LENGTH = 60;
 
-    public static String abbreviateJavaPackage(@NonNull String qualifiedClassName, int maxLength) {
-        if (qualifiedClassName.length() <= maxLength || qualifiedClassName.indexOf(PACKAGE_SEPARATOR) == -1) {
+    public static String abbreviateJavaPackage(String qualifiedClassName) {
+        if (qualifiedClassName.length() <= MAX_LENGTH || qualifiedClassName.indexOf(PACKAGE_SEPARATOR) == -1) {
             return qualifiedClassName;
         }
 
-        final int maxLengthWithoutEllipsis = maxLength - 3;
+        final int maxLengthWithoutEllipsis = MAX_LENGTH - 3;
         int beginIdx = 0;
         // We always want to include className, even if longer than max length
         int endIdx = qualifiedClassName.lastIndexOf(PACKAGE_SEPARATOR);

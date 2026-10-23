@@ -36,12 +36,14 @@ import org.gradle.internal.Describables
 import org.gradle.internal.DisplayName
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.model.DomainObjectContext
+import org.gradle.internal.operations.TestBuildOperationRunner
 import org.gradle.internal.resource.local.FileResourceListener
 import org.gradle.test.fixtures.file.TestFile
 import org.gradle.test.fixtures.file.TestNameTestDirectoryProvider
 import org.gradle.util.GradleVersion
 import org.gradle.util.Path
 import org.junit.Rule
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -64,6 +66,7 @@ class DefaultDependencyLockingProviderTest extends Specification {
     DependencyManagementInstanceIdentity instanceIdentity = new DependencyManagementInstanceIdentity(Describables.of("root project 'root'"))
     DependencySubstitutionRules dependencySubstitutionRules = Mock()
     FileResourceListener listener = Mock()
+    TestBuildOperationRunner buildOperationRunner = new TestBuildOperationRunner()
     PropertyFactory propertyFactory = new DefaultPropertyFactory(Stub(PropertyHost))
     FilePropertyFactory filePropertyFactory = TestFiles.filePropertyFactory()
 
@@ -97,6 +100,28 @@ org:foo:1.0=conf
 empty=
 """
 
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39528")
+    def 'writes the lock state in a build operation named after its owner, which names the build of the owner'() {
+        given:
+        context = Mock(ProjectDomainObjectContext) {
+            getIdentity() >> ProjectIdentity.forSubproject(Path.path(":included"), Path.path(":sub"))
+        }
+        instanceIdentity = new DependencyManagementInstanceIdentity(Describables.of("project ':included:sub'"))
+        tmpDir.file(LockFileReaderWriter.UNIQUE_LOCKFILE_NAME) << "empty=conf"
+        startParameter.isWriteDependencyLocks() >> true
+        provider = newProvider()
+        provider.loadLockState('conf', owner)
+        provider.persistResolvedDependencies('conf', owner, [module('org', 'foo', '1.0')] as Set, emptySet())
+
+        when:
+        provider.buildFinished()
+
+        then:
+        def write = buildOperationRunner.log.descriptors.last()
+        write.displayName == "Write dependency locks for project ':included:sub'"
+        write.progressDisplayName == "Write dependency locks for project ':included:sub'"
     }
 
     def 'can load lockfile as strict constraints (Unique: #unique)'() {
@@ -285,7 +310,7 @@ empty=
     }
 
     private DefaultDependencyLockingProvider newProvider() {
-        new DefaultDependencyLockingProvider(resolver, startParameter, context, instanceIdentity, "", dependencySubstitutionRules, propertyFactory, filePropertyFactory, listener)
+        new DefaultDependencyLockingProvider(resolver, startParameter, context, instanceIdentity, "", dependencySubstitutionRules, propertyFactory, filePropertyFactory, listener, buildOperationRunner)
     }
 
     def writeLockFile(List<String> modules, boolean unique = true, String lockFileId = 'conf') {
