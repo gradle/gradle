@@ -44,6 +44,7 @@ pluginManagement {
     }
 }
 
+apply(from = "../gradle/shared-with-buildSrc/embedded-kotlin.settings.gradle.kts")
 apply(from = "../gradle/shared-with-buildSrc/mirrors.settings.gradle.kts")
 
 include("architecture-docs")
