@@ -43,8 +43,8 @@ class KotlinLanguageVersionPluginCompatibilityIntegrationTest extends AbstractIn
         kotlinLanguageVersion | maxKgpVersion
         "1.8"                 | "2.2.21"
         "1.9"                 | "2.3.21"
-        "2.0"                 | EMBEDDED_KOTLIN_VERSION
-        "2.1"                 | EMBEDDED_KOTLIN_VERSION
+        "2.0"                 | "2.4.21"
+        "2.1"                 | "2.4.21"
         "2.2"                 | EMBEDDED_KOTLIN_VERSION
     }
 

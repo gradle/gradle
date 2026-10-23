@@ -77,10 +77,10 @@ import kotlin.reflect.jvm.jvmName
 
 @VisibleForTesting
 fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
-    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 26
+    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 28
     return JvmTarget.fromString(majorVersion)
         ?: if (this <= JavaVersion.VERSION_1_8) JVM_1_8
-        else JvmTarget.JVM_26
+        else JvmTarget.JVM_28
 }
 
 
@@ -99,6 +99,7 @@ internal class BTACompiler(val moduleRegistry: ModuleRegistry) {
     companion object {
         private const val MODULE_NAME = "buildscript"
         private val logger = LoggerFactory.getLogger(BTACompiler::class.java)
+        private val kotlinDslLanguageVersion = KotlinVersion.entries.single { it.stringValue == KOTLIN_DSL_LANGUAGE_VERSION }
     }
 
     private val session = kotlinToolchains.createBuildSession()
@@ -200,8 +201,8 @@ internal class BTACompiler(val moduleRegistry: ModuleRegistry) {
     }
 
     private fun JvmCompilerArguments.Builder.configureLanguageVersion(compilerOptions: KotlinCompilerOptions) {
-        this[LANGUAGE_VERSION] = KotlinVersion.V2_2
-        this[API_VERSION] = KotlinVersion.V2_2
+        this[LANGUAGE_VERSION] = kotlinDslLanguageVersion
+        this[API_VERSION] = kotlinDslLanguageVersion
         this[JVM_TARGET] = compilerOptions.jvmTarget.toKotlinJvmTarget().toBuildToolsApiJvmTarget()
 
         this[X_SKIP_METADATA_VERSION_CHECK] = compilerOptions.skipMetadataVersionCheck
