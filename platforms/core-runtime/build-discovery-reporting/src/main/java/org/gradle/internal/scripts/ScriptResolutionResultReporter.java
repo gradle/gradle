@@ -16,19 +16,17 @@
 
 package org.gradle.internal.scripts;
 
-import org.gradle.api.problems.ProblemId;
-import org.gradle.api.problems.ProblemReporter;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
+import org.gradle.api.problems.Problems;
 
 import java.io.File;
 import java.util.stream.Collectors;
 
 public class ScriptResolutionResultReporter {
 
-    private final ProblemReporter problemReporter;
+    private final Problems problems;
 
-    public ScriptResolutionResultReporter(ProblemReporter problemReporter) {
-        this.problemReporter = problemReporter;
+    public ScriptResolutionResultReporter(Problems problems) {
+        this.problems = problems;
     }
 
     public void reportResolutionProblemsOf(ScriptResolutionResult result) {
@@ -42,8 +40,8 @@ public class ScriptResolutionResultReporter {
             .map(name -> "'" + name + "'")
             .collect(Collectors.joining(", "));
 
-        problemReporter.report(
-            ProblemId.create("multiple-scripts", "Multiple scripts", GradleCoreProblemGroup.scripts()),
+        problems.getReporter().report(
+            problems.getGroups().getGradle().getBuildDefinition().problemId("Multiple script files in one directory"),
             spec -> spec.contextualLabel(
                 String.format("Multiple %s script files were found in directory '%s'", result.getBasename(), result.getDirectory())
             ).details(

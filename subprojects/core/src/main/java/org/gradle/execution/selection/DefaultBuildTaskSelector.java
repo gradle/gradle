@@ -19,10 +19,10 @@ package org.gradle.execution.selection;
 import org.apache.commons.lang3.StringUtils;
 import org.gradle.api.Task;
 import org.gradle.api.internal.project.ProjectState;
+import org.gradle.api.problems.GradleSecondLevelProblemGroup;
 import org.gradle.api.problems.ProblemId;
 import org.gradle.api.problems.ProblemSpec;
 import org.gradle.api.problems.internal.GeneralDataSpec;
-import org.gradle.api.problems.internal.GradleCoreProblemGroup;
 import org.gradle.api.problems.internal.ProblemSpecInternal;
 import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.specs.Spec;
@@ -175,9 +175,13 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         }
 
         String message = String.format("Cannot locate %s that match '%s' as %s", context.getType(), context.getOriginalPath(), nameMatcher.formatErrorMessage("project", project.getDisplayName()));
-        throw problemsService.getInternalReporter().throwing(new ProjectSelectionException(message), nameMatcher.problemId(), spec -> {
+        throw problemsService.getInternalReporter().throwing(new ProjectSelectionException(message), nameMatcher.problemId(invocation(), "project"), spec -> {
             configureProblem(spec, message, context.getOriginalPath().asString());
         });
+    }
+
+    private GradleSecondLevelProblemGroup invocation() {
+        return problemsService.getGroups().getGradle().getInvocation();
     }
 
     private static void configureProblem(ProblemSpec spec, String message, String requestedPath) {
@@ -193,7 +197,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
 
         if (name.isEmpty() || StringUtils.isBlank(name)) {
             String message = String.format("Cannot locate matching %s for an empty path. The path should include a task name (for example %s).", type, examplePaths());
-            ProblemId id = ProblemId.create("empty-path", "Empty path", GradleCoreProblemGroup.taskSelection());
+            ProblemId id = invocation().problemId("Empty task path");
             throw problemsService.getInternalReporter().throwing(new TaskSelectionException(message), id, spec -> {
                 configureProblem(spec, message, name);
             });
@@ -202,7 +206,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
         Pattern root = Pattern.compile("\\s*:(\\s*:)*\\s*");
         if (root.matcher(name).matches()) {
             String message = String.format("Cannot locate %s that match '%s'. The path should include a task name (for example %s).", type, name, examplePaths());
-            ProblemId id = ProblemId.create("missing-task-name", "Missing task name", GradleCoreProblemGroup.taskSelection());
+            ProblemId id = invocation().problemId("Missing task name");
             throw problemsService.getInternalReporter().throwing(new TaskSelectionException(message), id, spec -> {
                 configureProblem(spec, message, name);
             });
@@ -222,7 +226,7 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
             }
 
             String message = String.format("Cannot locate %s that match '%s'. The path should not include an empty segment (try '%s' instead).", type, name, normalized);
-            ProblemId id = ProblemId.create("empty-segments", "Empty segments", GradleCoreProblemGroup.taskSelection());
+            ProblemId id = invocation().problemId("Task path with empty segments");
             throw problemsService.getInternalReporter().throwing(new TaskSelectionException(message), id, spec -> {
                 configureProblem(spec, message, name);
             });
