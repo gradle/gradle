@@ -31,9 +31,13 @@ class TaskValidationReportFixture {
     }
 
     void verify(Map<String, String> messages) {
+        verify(messages.collect { message, severity -> Tuple2.tuple(message, severity) })
+    }
+
+    void verify(List<Tuple2<String, String>> messages) {
         def expectedReportContents = messages
-            .collect { message, severity ->
-                "$severity: $message"
+            .collect { messageAndSeverity ->
+                "${messageAndSeverity.v2}: ${messageAndSeverity.v1}"
             }
             .join(PROBLEM_SEPARATOR)
             .replaceAll("\n+", "\n")
