@@ -35,7 +35,7 @@ jsch = "0.2.16!!"
 jsoup = "1.23.2!!"
 jspecify = "1.0.0!!"
 jsr305 = "3.0.2!!"
-kotlin = "2.4.21!!"
+kotlin = "2.5.20-dev-2076!!"
 kotlinxSerialization = "1.11.0!!"
 kryo = "2.24.0!!"
 minlog = "1.2!!"
@@ -139,7 +139,6 @@ kotlinScriptingCompilerImplEmbeddable = { group = "org.jetbrains.kotlin", name =
 kotlinScriptingJvm = { group = "org.jetbrains.kotlin", name = "kotlin-scripting-jvm", version.ref = "kotlin" }
 kotlinScriptingJvmHost = { group = "org.jetbrains.kotlin", name = "kotlin-scripting-jvm-host", version.ref = "kotlin" }
 kotlinStdlib = { group = "org.jetbrains.kotlin", name = "kotlin-stdlib", version.ref = "kotlin" }
-kotlinToolingCore = { group = "org.jetbrains.kotlin", name = "kotlin-tooling-core", version.ref = "kotlin" }
 kotlinxCoroutinesJvm = { group = "org.jetbrains.kotlinx", name = "kotlinx-coroutines-core-jvm", version.ref = "kotlinCoroutines" }
 kotlinxSerializationCore = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-core", version.ref = "kotlinxSerialization" }
 kotlinxSerializationJson = { group = "org.jetbrains.kotlinx", name = "kotlinx-serialization-json", version.ref = "kotlinxSerialization" }

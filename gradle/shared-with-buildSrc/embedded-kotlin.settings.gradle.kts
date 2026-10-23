@@ -19,8 +19,9 @@ import org.gradle.api.artifacts.repositories.MavenArtifactRepository
 import org.gradle.kotlin.dsl.support.expectedKotlinDslPluginsVersion
 import java.net.URI
 
-// A build that runs on the Gradle under development needs Kotlin DSL plugins built against the Kotlin that this Gradle embeds.
-// The published plugins are built against the embedded Kotlin of an older Gradle.
+// A build that runs on the Gradle under development needs two things from extra repositories.
+// First, it needs the Kotlin that this Gradle embeds, on every script classpath. For a dev build, only the Kotlin dev repository has this Kotlin.
+// Second, it needs Kotlin DSL plugins built against this Kotlin. The published plugins are built against the embedded Kotlin of an older Gradle.
 // Thus the plugins built from this checkout replace them. They come from the repository that the property names.
 val kotlinDslGroups = "org\\.gradle\\.kotlin(\\..+)?"
 val pluginsRepository = providers.gradleProperty("gradlebuild.kotlinDslPluginsRepository").map { File(it) }.orNull?.takeIf { it.isDirectory }
@@ -30,6 +31,8 @@ data class ExtraRepository(val name: String, val url: URI, val groups: String, v
 val extraRepositories = listOfNotNull(
     // Exclusive, because the Plugin Portal can already have the same version, published from another branch
     pluginsRepository?.let { ExtraRepository("Locally built Kotlin DSL plugins", it.toURI(), kotlinDslGroups, exclusive = true) },
+    // Declared after the existing repositories. Thus a stable Kotlin never causes a lookup in this repository.
+    ExtraRepository("Kotlin dev repository", URI("https://packages.jetbrains.team/maven/p/kt/dev"), "org\\.jetbrains\\.kotlin(\\..+)?"),
 )
 
 fun normalizeUrl(url: Any) = url.toString().replace("https://", "http://").trimEnd('/') + "/"

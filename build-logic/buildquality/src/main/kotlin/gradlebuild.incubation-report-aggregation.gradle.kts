@@ -3,6 +3,7 @@ import gradlebuild.basics.capitalize
 import gradlebuild.basics.releasedVersionsFile
 import gradlebuild.basics.repoRoot
 import gradlebuild.incubation.tasks.IncubatingApiAggregateReportTask
+import org.gradle.api.artifacts.component.ProjectComponentIdentifier
 
 plugins {
     id("base")
@@ -42,4 +43,8 @@ fun resolver(reportType: String) = configurations.create("incubatingReport${repo
         attribute(DocsType.DOCS_TYPE_ATTRIBUTE, objects.named("incubation-report-$reportType"))
     }
     extendsFrom(reports)
-}.incoming.artifactView { lenient(true) }.files
+}.incoming.artifactView {
+    lenient(true)
+    // Only projects produce reports. If an external module resolves without attributes, it contributes its jar.
+    componentFilter { it is ProjectComponentIdentifier }
+}.files

@@ -17,7 +17,7 @@ target.withGroovyBuilder {                                          // <1>
     if (hasProperty("foo")) { /*...*/ }
     val foo = getProperty("foo")
     setProperty("foo", "bar")
-    invokeMethod("name", arrayOf("parameters", 42, aReference))
+    invokeMethod("name", arrayOf<Any>("parameters", 42, aReference))
 
     // Kotlin DSL utilities
     "name"("parameters", 42, aReference)                            // <3>
