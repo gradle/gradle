@@ -16,13 +16,14 @@
 
 package org.gradle.api.internal.project;
 
-import org.gradle.api.AntBuilder;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
 @ServiceScope(Scope.Project.class)
+@Deprecated
 public interface AntBuilderFactory {
 
-    AntBuilder createAntBuilder();
+    @Deprecated
+    org.gradle.api.AntBuilder createAntBuilder();
 
 }

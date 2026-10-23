@@ -15,6 +15,10 @@
 [[ant]]
 = Using Ant from Gradle
 
+WARNING: Gradle's built-in integration with Ant is deprecated and will be removed in Gradle 10.
+The types and methods described on this page, including `AntBuilder`, `Project.ant {}`, `Task.ant` and `ant.importBuild()`, will no longer be available, and Ant classes will no longer be on the build script classpath.
+See <<upgrading_version_9.adoc#deprecated_ant_builder,Deprecation of the Ant integration>> in the upgrade guide for the recommended alternatives.
+
 Gradle provides integration with Ant.
 
 Gradle integrates with Ant, allowing you to use individual Ant tasks or entire Ant builds in your Gradle builds.
@@ -43,7 +47,7 @@ Using link:{javadocPath}/org/gradle/api/Task.html#getAnt()[Task.ant] to run Ant 
 As a result, the configuration cache is automatically disabled when importing an Ant build.
 
 [[sec:ant_api]]
-The Ant integration is provided by the link:{javadocPath}/org/gradle/api/AntBuilder.html[AntBuilder API].
+The Ant integration is provided by the link:{javadocPath}/org/gradle/api/AntBuilder.html[AntBuilder API] deprecated-label:[].
 
 [[sec:using_ant_tasks]]
 == Using Ant tasks and types

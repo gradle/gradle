@@ -17,12 +17,12 @@ package org.gradle.api.internal.file;
 
 import groovy.lang.Closure;
 import org.gradle.api.file.DirectoryTree;
-import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 import java.util.Collections;
 
-public class AntFileSetBuilder implements AntBuilderAware {
+@Deprecated
+public class AntFileSetBuilder implements org.gradle.api.tasks.AntBuilderAware {
 
     private final Iterable<DirectoryTree> trees;
 
@@ -31,6 +31,7 @@ public class AntFileSetBuilder implements AntBuilderAware {
     }
 
     @Override
+    @Deprecated
     public Object addToAntBuilder(final Object node, String nodeName) {
         final DynamicObject dynamicObject = new BeanDynamicObject(node);
         for (final DirectoryTree tree : trees) {

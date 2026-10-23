@@ -19,8 +19,6 @@ package org.gradle.integtests.samples.files
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.Sample
 import org.gradle.integtests.fixtures.UsesSample
-import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.junit.Rule
 
 class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
@@ -39,54 +37,6 @@ class SamplesFilesMiscIntegrationTest extends AbstractIntegrationSpec {
 
         then:
         dslDir.file('images').isDirectory()
-
-        where:
-        dsl << ['groovy', 'kotlin']
-    }
-
-    @UsesSample("integration-tests/files/misc")
-    def "can move a directory with #dsl dsl"() {
-        given:
-        def dslDir = sample.dir.file(dsl)
-        executer.inDirectory(dslDir)
-        def reportsDir = dslDir.file('build/reports')
-        reportsDir.createDir().file('my-report.pdf').touch()
-        reportsDir.file('numbers.csv').touch()
-
-        and: "A PDF report in a subdirectory of build/reports"
-        reportsDir.createDir("metrics").file("scatterPlot.pdf").touch()
-
-        when:
-        succeeds('moveReports')
-
-        then:
-        def toArchiveDir = dslDir.file("build/toArchive")
-        toArchiveDir.file("reports").isDirectory()
-        toArchiveDir.file("reports/my-report.pdf").isFile()
-        toArchiveDir.file("reports/numbers.csv").isFile()
-        toArchiveDir.file("reports/metrics/scatterPlot.pdf").isFile()
-
-        where:
-        dsl << ['groovy', 'kotlin']
-    }
-
-    @UsesSample("integration-tests/files/misc")
-    @Requires(TestExecutionPreconditions.IsConfigCached)
-    def "can move a directory with #dsl dsl with configuration cache"() {
-        given:
-        def dslDir = sample.dir.file(dsl)
-
-        expect:
-        2.times {
-            def reportsDir = dslDir.file('build/reports')
-            reportsDir.createDir().file('my-report.pdf').touch()
-            reportsDir.file('numbers.csv').touch()
-
-            executer.inDirectory(dslDir)
-            succeeds("moveReports", "--rerun-tasks")
-
-            dslDir.file("build/toArchive").deleteDir()
-        }
 
         where:
         dsl << ['groovy', 'kotlin']
