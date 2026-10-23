@@ -40,7 +40,6 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflict
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultCapabilitiesConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultModuleConflictHandler;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.ModuleConflictHandler;
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.ComponentStateFactory;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.selectors.SelectorStateResolver;
 import org.gradle.api.internal.attributes.AttributeSchemaServices;
 import org.gradle.api.internal.attributes.AttributesFactory;
@@ -49,7 +48,6 @@ import org.gradle.api.internal.attributes.immutable.ImmutableAttributesSchema;
 import org.gradle.api.specs.Spec;
 import org.gradle.internal.component.local.model.LocalComponentGraphResolveState;
 import org.gradle.internal.component.local.model.LocalVariantGraphResolveState;
-import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
 import org.gradle.internal.component.model.ComponentIdGenerator;
 import org.gradle.internal.component.model.DependencyMetadata;
@@ -73,7 +71,7 @@ import java.util.Map;
  * Global resolution state.
  */
 @SuppressWarnings("this-escape")
-public class ResolveState implements ComponentStateFactory<ComponentState> {
+public class ResolveState {
     private final Spec<? super DependencyMetadata> edgeFilter;
     private final Map<ModuleIdentifier, ModuleResolveState> modules;
     private final Map<VariantIdentifier, NodeState> nodes;
@@ -142,7 +140,7 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
         this.moduleConflictHandler = new DefaultModuleConflictHandler(moduleConflictResolver, moduleReplacements, this);
         this.capabilitiesConflictHandler = new DefaultCapabilitiesConflictHandler(capabilityResolutionRules, this);
 
-        ModuleVersionIdentifier rootModuleVersionId = rootComponentState.getModuleVersionId();
+        ModuleVersionIdentifier rootModuleVersionId = rootComponentState.getMetadata().getModuleVersionId();
         ComponentIdentifier rootComponentId = rootComponentState.getId();
         this.consumerAttributes = rootVariant.getAttributes();
         this.consumerSchema = rootComponentState.getMetadata().getAttributesSchema();
@@ -155,12 +153,12 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
 
         // Create root component and module
         ModuleResolveState rootModule = getModule(rootModuleVersionId.getModule(), true);
-        ComponentState rootComponent = rootModule.getVersion(rootModuleVersionId, rootComponentId);
+        ComponentState rootComponent = rootModule.getVersion(rootComponentId, rootModuleVersionId.getVersion());
         rootComponent.setRoot();
         rootComponent.setState(rootComponentState, ComponentGraphSpecificResolveState.EMPTY_STATE);
         rootModule.select(rootComponent);
 
-        this.selectorStateResolver = new SelectorStateResolver<>(moduleConflictHandler.getResolver(), this, rootComponent, resolveOptimizations, this.versionComparator, versionParser);
+        this.selectorStateResolver = new SelectorStateResolver<>(moduleConflictHandler.getResolver(), rootComponent, resolveOptimizations, this.versionComparator, versionParser);
         rootModule.setSelectorStateResolver(selectorStateResolver);
 
         // Create root node
@@ -207,15 +205,6 @@ public class ResolveState implements ComponentStateFactory<ComponentState> {
 
     private ModuleResolveState getModule(ModuleIdentifier id, boolean rootModule) {
         return modules.computeIfAbsent(id, mid -> new ModuleResolveState(this, id, metaDataResolver, attributesFactory, versionComparator, versionParser, selectorStateResolver, resolveOptimizations, rootModule, conflictResolution));
-    }
-
-    @Override
-    public ComponentState getRevision(ComponentIdentifier componentIdentifier, ModuleVersionIdentifier id, ComponentGraphResolveState state, ComponentGraphSpecificResolveState graphState) {
-        ComponentState componentState = getModule(id.getModule()).getVersion(id, componentIdentifier);
-        if (!componentState.alreadyResolved()) {
-            componentState.setState(state, graphState);
-        }
-        return componentState;
     }
 
     public Collection<NodeState> getNodes() {

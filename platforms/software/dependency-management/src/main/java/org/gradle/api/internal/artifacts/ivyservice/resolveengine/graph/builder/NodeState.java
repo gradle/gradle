@@ -1311,7 +1311,8 @@ public class NodeState implements DependencyGraphNode {
         ImmutableCapabilities capabilities = metadata.getCapabilities();
         if (capabilities.isEmpty()) {
             // No capabilities declared. Use the component's implicit capability.
-            if (component.getId().getGroup().equals(group) && component.getId().getName().equals(name)) {
+            ModuleIdentifier moduleId = component.getModule().getId();
+            if (moduleId.getGroup().equals(group) && moduleId.getName().equals(name)) {
                 return component.getImplicitCapability();
             }
         } else {

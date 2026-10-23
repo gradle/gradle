@@ -16,16 +16,7 @@
 
 package org.gradle.api.internal.artifacts.ivyservice.resolveengine
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier
-import org.gradle.api.artifacts.MutableVersionConstraint
-import org.gradle.api.artifacts.component.ComponentIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
-import org.gradle.api.internal.artifacts.dependencies.DefaultMutableVersionConstraint
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder.VirtualPlatformState
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.CandidateModule
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.conflicts.DefaultConflictResolverDetails
-import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentSelectionDescriptorInternal
-import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier
 import org.gradle.internal.component.model.ComponentGraphResolveMetadata
 import spock.lang.Specification
 
@@ -35,25 +26,32 @@ abstract class AbstractConflictResolverTest extends Specification {
     ConflictResolverDetails<ComponentResolutionState> details = new DefaultConflictResolverDetails(participants)
 
     ModuleConflictResolver resolver
-    TestComponent root = new TestComponent(DefaultModuleVersionIdentifier.newId('', 'root', ''))
 
     protected void resolveConflicts() {
         resolver.select(details)
     }
 
-    protected TestComponent module(String org, String name, String version) {
-        new TestComponent(DefaultModuleVersionIdentifier.newId(org, name, version))
+    protected ComponentResolutionState prefer(String version) {
+        participant(version, null)
     }
 
-    protected TestComponent prefer(String version) {
-        module('org', 'foo', version).with {
-            participants << it
-            it
+    protected ComponentResolutionState strictly(String version) {
+        prefer(version)
+    }
+
+    protected ComponentResolutionState release(String version) {
+        participant(version, Stub(ComponentGraphResolveMetadata) {
+            getStatus() >> 'release'
+        })
+    }
+
+    private ComponentResolutionState participant(String version, ComponentGraphResolveMetadata metadata) {
+        def component = Stub(ComponentResolutionState) {
+            getVersion() >> version
+            getMetadataOrNull() >> metadata
         }
-    }
-
-    protected TestComponent strictly(String version) {
-        prefer(version).strict()
+        participants << component
+        component
     }
 
     protected void selected(ComponentResolutionState state) {
@@ -74,72 +72,6 @@ abstract class AbstractConflictResolverTest extends Specification {
     protected void candidateVersions(List<String> versions) {
         versions.each {
             prefer(it)
-        }
-    }
-
-    private static class TestComponent implements ComponentResolutionState {
-        final ModuleVersionIdentifier id
-        final ComponentIdentifier componentId
-        ComponentGraphResolveMetadata metadata
-        boolean rejected = false
-        private MutableVersionConstraint constraint
-        String repositoryName
-
-        TestComponent(ModuleVersionIdentifier id) {
-            this.id = id
-            this.componentId = DefaultModuleComponentIdentifier.newId(id)
-            this.constraint = new DefaultMutableVersionConstraint(id.version)
-        }
-
-        TestComponent strict() {
-            constraint.strictly(id.version)
-            this
-        }
-
-        TestComponent rejectAll() {
-            constraint.rejectAll()
-            this
-        }
-
-        @Override
-        CandidateModule getModule() {
-            return null
-        }
-
-        @Override
-        ComponentGraphResolveMetadata getMetadataOrNull() {
-            return metadata
-        }
-
-        TestComponent release() {
-            metadata = ['getStatus': {'release'}] as ComponentGraphResolveMetadata
-            this
-        }
-
-        @Override
-        void addCause(ComponentSelectionDescriptorInternal componentSelectionDescriptor) {
-
-        }
-
-        @Override
-        void reject() {
-
-        }
-
-        @Override
-        String getVersion() {
-            id.version
-        }
-
-        String toString() { id }
-
-        @Override
-        Set<VirtualPlatformState> getPlatformOwners() {
-            Collections.emptySet()
-        }
-
-        @Override
-        VirtualPlatformState getPlatformState() {
         }
     }
 }

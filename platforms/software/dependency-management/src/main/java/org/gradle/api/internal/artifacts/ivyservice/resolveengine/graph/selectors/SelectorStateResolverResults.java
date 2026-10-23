@@ -56,13 +56,13 @@ class SelectorStateResolverResults {
             ComponentIdResolveResult idResolveResult = entry.result;
 
             if (selectorState.isForce() && !hasSoftForce) {
-                T forcedComponent = componentForIdResolveResult(componentFactory, idResolveResult, selectorState);
+                T forcedComponent = componentForIdResolveResult(componentFactory, idResolveResult);
                 return Collections.singletonList(forcedComponent);
             }
 
             if (idResolveResult.mark(this)) {
                 if (idResolveResult.getFailure() == null) {
-                    T componentState = componentForIdResolveResult(componentFactory, idResolveResult, selectorState);
+                    T componentState = componentForIdResolveResult(componentFactory, idResolveResult);
                     if (resolved == null) {
                         resolved = new ArrayList<>();
                     }
@@ -111,8 +111,11 @@ class SelectorStateResolverResults {
         return false;
     }
 
-    public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult, ResolvableSelectorState selector) {
-        T component = componentFactory.getRevision(idResolveResult.getId(), idResolveResult.getModuleVersionId(), idResolveResult.getState(), idResolveResult.getGraphState());
+    public static <T extends ComponentResolutionState> T componentForIdResolveResult(ComponentStateFactory<T> componentFactory, ComponentIdResolveResult idResolveResult) {
+        T component = componentFactory.getComponentState(idResolveResult.getId(), idResolveResult.getModuleVersionId().getVersion());
+        if (!component.alreadyResolved()) {
+            component.setState(idResolveResult.getState(), idResolveResult.getGraphState());
+        }
         if (idResolveResult.isRejected()) {
             component.reject();
         }

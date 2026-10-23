@@ -48,7 +48,7 @@ class ProjectDependencyResolverTest extends Specification {
     def "resolves project dependency"() {
         setup:
         def selector = TestComponentIdentifiers.newSelector(":project")
-        def componentState = Mock(LocalComponentGraphResolveState)
+        def componentState = Stub(LocalComponentGraphResolveState)
         def result = Mock(BuildableComponentIdResolveResult)
         def id = newProjectId(":project")
 

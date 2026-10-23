@@ -43,8 +43,7 @@ public class DefaultComponentSelectorConverter implements ComponentSelectorConve
             DefaultProjectComponentSelector projectSelector = (DefaultProjectComponentSelector) selector;
             ProjectComponentIdentifier projectId = projectSelector.toIdentifier();
             LocalComponentGraphResolveState projectComponent = localComponentRegistry.getComponent(projectId);
-            ModuleVersionIdentifier moduleVersionId = projectComponent.getModuleVersionId();
-            return DefaultModuleVersionIdentifier.newId(moduleVersionId.getModule(), moduleVersionId.getVersion());
+            return projectComponent.getMetadata().getModuleVersionId();
         }
         if (selector instanceof LibraryComponentSelector) {
             LibraryComponentSelector libraryComponentSelector = (LibraryComponentSelector) selector;
