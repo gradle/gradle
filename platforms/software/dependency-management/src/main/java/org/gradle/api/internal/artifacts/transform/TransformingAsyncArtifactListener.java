@@ -180,13 +180,8 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                 // No input artifact yet, should execute
                 return true;
             }
-            if (!artifact.getFileSource().getValue().isSuccessful()) {
-                // Failed to resolve input artifact, no need to execute
-                storeResult(Try.failure(artifact.getFileSource().getValue().getFailure().get()));
-                return false;
-            }
-            if (handleOptionalInputArtifact() != null) {
-                // Optional input artifact does not exist, nothing to transform
+            if (resultWithoutTransform() != null) {
+                // The input artifact failed or does not exist, no need to execute
                 return false;
             }
 
@@ -218,13 +213,9 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             }
 
             artifact.getFileSource().finalizeIfNotAlready();
-            if (!artifact.getFileSource().getValue().isSuccessful()) {
-                return storeResult(Try.failure(artifact.getFileSource().getValue().getFailure().get()));
-            }
-            Try<ImmutableList<File>> noInputResult = handleOptionalInputArtifact();
-            if (noInputResult != null) {
-                // Optional input artifact does not exist, nothing to transform
-                return noInputResult;
+            Try<ImmutableList<File>> resultWithoutTransform = resultWithoutTransform();
+            if (resultWithoutTransform != null) {
+                return resultWithoutTransform;
             }
 
             Lazy<Try<TransformStepSubject>> invocation;
@@ -245,16 +236,23 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         }
 
         /**
-         * Handles an optional input artifact that does not exist. Transforming such an artifact
-         * results in no output files.
+         * Stores and returns the result for an input artifact that doesn't need transforming. That is the case when it
+         * failed to resolve, or when it is an optional input artifact that does not exist, which results in no output files.
+         * The input artifact must already be finalized.
          *
-         * @return the transformed files if the input artifact is optional and does not exist, or null otherwise.
+         * @return the stored result if the input artifact doesn't need transforming, or null otherwise.
          */
-        private @Nullable Try<ImmutableList<File>> handleOptionalInputArtifact() {
-            if (artifact.getFileSource().get() != null) {
-                return null;
+        private @Nullable Try<ImmutableList<File>> resultWithoutTransform() {
+            Try<@Nullable File> input = artifact.getFileSource().getValue();
+            if (!input.isSuccessful()) {
+                // Failed to resolve input artifact
+                return storeResult(Try.failure(input.getFailure().get()));
             }
-            return storeResult(Try.successful(ImmutableList.of()));
+            if (input.get() == null) {
+                // Optional input artifact does not exist, nothing to transform
+                return storeResult(Try.successful(ImmutableList.of()));
+            }
+            return null;
         }
 
         private synchronized Try<ImmutableList<File>> storeResult(Try<ImmutableList<File>> result) {
