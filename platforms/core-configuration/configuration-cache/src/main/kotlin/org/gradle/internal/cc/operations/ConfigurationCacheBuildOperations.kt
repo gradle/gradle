@@ -73,6 +73,36 @@ fun BuildOperationRunner.withWorkGraphStoreOperation(@Suppress("UNUSED_PARAMETER
     })
 
 
+/**
+ * Runs an empty operation in place of a store that was counted in the configuration progress but was skipped,
+ * so the progress still reaches its total.
+ */
+internal
+fun BuildOperationRunner.skippedWorkGraphStoreOperation(): Unit =
+    skippedProgressOperation("Skip storing configuration cache state", BuildOperationCategory.STORE_CONFIGURATION_CACHE)
+
+
+/**
+ * Runs an empty operation in place of a load that was counted in the configuration progress but was skipped,
+ * so the progress still reaches its total.
+ */
+internal
+fun BuildOperationRunner.skippedWorkGraphLoadOperation(): Unit =
+    skippedProgressOperation("Skip loading configuration cache state", BuildOperationCategory.LOAD_CONFIGURATION_CACHE)
+
+
+private
+fun BuildOperationRunner.skippedProgressOperation(displayName: String, category: BuildOperationCategory): Unit =
+    run(object : RunnableBuildOperation {
+        override fun description(): BuildOperationDescriptor.Builder = BuildOperationDescriptor
+            .displayName(displayName)
+            .metadata(category)
+            .totalProgress(0)
+
+        override fun run(context: BuildOperationContext) = Unit
+    })
+
+
 private
 object WorkGraphLoadDetails : ConfigurationCacheLoadBuildOperationType.Details
 

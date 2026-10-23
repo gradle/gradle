@@ -53,6 +53,8 @@ import org.gradle.internal.cc.impl.services.DeferredRootBuildGradle
 import org.gradle.internal.cc.operations.ModelStoreResult
 import org.gradle.internal.cc.operations.WorkGraphLoadResult
 import org.gradle.internal.cc.operations.WorkGraphStoreResult
+import org.gradle.internal.cc.operations.skippedWorkGraphLoadOperation
+import org.gradle.internal.cc.operations.skippedWorkGraphStoreOperation
 import org.gradle.internal.cc.operations.withModelLoadOperation
 import org.gradle.internal.cc.operations.withModelStoreOperation
 import org.gradle.internal.cc.operations.withWorkGraphLoadOperation
@@ -321,9 +323,15 @@ class DefaultConfigurationCache internal constructor(
                 runWorkThatContributesToCacheEntry {
                     val finalizedGraph = scheduler(graph)
                     val rootBuild = buildStateRegistry.rootBuild
-                    degradeGracefullyOr { saveWorkGraph(rootBuild) }
+                    if (problems.shouldDegradeGracefully()) {
+                        completeSkippedStore()
+                    } else {
+                        saveWorkGraph(rootBuild)
+                    }
                     crossConfigurationTimeBarrier()
                     if (problems.shouldDiscardEntry) {
+                        // The entry is not reloaded, see ConfigurationCacheAwareBuildTreeWorkController
+                        completeSkippedLoadAfterStore()
                         BuildTreeConfigurationCache.ScheduleOutcome.NotStored(finalizedGraph)
                     } else {
                         BuildTreeConfigurationCache.ScheduleOutcome.Stored(finalizedGraph)
@@ -378,10 +386,23 @@ class DefaultConfigurationCache internal constructor(
         return result
     }
 
+    /**
+     * Completes the store step counted in the root build configuration progress when it does not run.
+     */
     private
-    fun degradeGracefullyOr(action: () -> Unit) {
-        if (!problems.shouldDegradeGracefully()) {
-            action()
+    fun completeSkippedStore() {
+        if (countedOperations.store) {
+            buildOperationRunner.skippedWorkGraphStoreOperation()
+        }
+    }
+
+    /**
+     * Completes the load-after-store step counted in the root build configuration progress when it does not run.
+     */
+    private
+    fun completeSkippedLoadAfterStore() {
+        if (countedOperations.loadAfterStore) {
+            buildOperationRunner.skippedWorkGraphLoadOperation()
         }
     }
 
