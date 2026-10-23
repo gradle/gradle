@@ -348,7 +348,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements T
                     protected TransformStepSubject transform() {
                         return transformStep
                             .createInvocation(TransformStepSubject.initial(artifact), upstreamDependencies, context)
-                            .completeAndGet()
+                            .get()
                             .get();
                     }
 
@@ -428,7 +428,7 @@ public abstract class TransformStepNode extends CreationOrderedNode implements T
                         return previousTransformStepNode.getTransformedSubject()
                             .flatMap(transformedSubject -> transformStep
                                 .createInvocation(transformedSubject, upstreamDependencies, context)
-                                .completeAndGet())
+                                .get())
                             .get();
                     }
 
