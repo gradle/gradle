@@ -16,9 +16,12 @@
 
 package org.gradle.internal.logging.console
 
+import org.gradle.api.internal.file.temp.TemporaryFileProvider
 import org.gradle.internal.logging.OutputSpecification
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.UpdateNowEvent
+import org.gradle.internal.logging.events.UserInputRequestEvent
+import org.gradle.internal.logging.events.UserInputResumeEvent
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import spock.lang.Issue
 import spock.lang.Subject
@@ -95,6 +98,44 @@ class WorkInProgressRendererTest extends OutputSpecification {
 
         then:
         progressArea.display == ["> :foo  10s"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39559")
+    def "times the work of a line from when the console gets its start, also just before a prompt"() {
+        given:
+        metaData.getRows() >> 6
+        def prompting = new UserInputConsoleRenderer(renderer, console, Mock(GlobalUserInputReceiver), Mock(TemporaryFileProvider))
+
+        when:
+        prompting.onOutput(start(1, ":foo"))
+        prompting.onOutput(new UserInputRequestEvent())
+        prompting.onOutput(new UpdateNowEvent(tenAm))
+        prompting.onOutput(new UpdateNowEvent(tenAm + 72_000))
+        prompting.onOutput(new UserInputResumeEvent(tenAm + 72_000))
+        prompting.onOutput(new UpdateNowEvent(tenAm + 72_100))
+        console.flush()
+
+        then:
+        progressArea.display == ["> :foo  1m 12s"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39559")
+    def "times the work of a line from when the console gets its start, also during a prompt"() {
+        given:
+        metaData.getRows() >> 6
+        def prompting = new UserInputConsoleRenderer(renderer, console, Mock(GlobalUserInputReceiver), Mock(TemporaryFileProvider))
+
+        when:
+        prompting.onOutput(new UserInputRequestEvent())
+        prompting.onOutput(start(1, ":foo"))
+        prompting.onOutput(new UpdateNowEvent(tenAm))
+        prompting.onOutput(new UpdateNowEvent(tenAm + 72_000))
+        prompting.onOutput(new UserInputResumeEvent(tenAm + 72_000))
+        prompting.onOutput(new UpdateNowEvent(tenAm + 72_100))
+        console.flush()
+
+        then:
+        progressArea.display == ["> :foo  1m 12s"]
     }
 
     def "events are forwarded to the listener even if are not rendered"() {

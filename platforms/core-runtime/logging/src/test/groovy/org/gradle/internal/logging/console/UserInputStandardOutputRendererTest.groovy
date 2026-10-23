@@ -27,6 +27,7 @@ import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.logging.events.UserInputRequestEvent
 import org.gradle.internal.logging.events.UserInputResumeEvent
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
 import spock.lang.TempDir
@@ -157,6 +158,90 @@ class UserInputStandardOutputRendererTest extends Specification {
 
         then:
         renderer.bufferedEventCount == 0
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39559")
+    def "holds the first clock event after held events, at most once per second, and replays it after them"() {
+        given:
+        def replayed = []
+        listener.onOutput(_) >> { OutputEvent e -> replayed << e }
+        def event1 = new TestOutputEvent()
+        def event2 = new TestOutputEvent()
+        def event3 = new TestOutputEvent()
+        def heldClockEvent1 = new UpdateNowEvent(100)
+        def heldClockEvent2 = new UpdateNowEvent(1_100)
+        def resume = new UserInputResumeEvent(123)
+
+        when:
+        renderer.onOutput(new UserInputRequestEvent())
+        // No event held before this clock event
+        renderer.onOutput(new UpdateNowEvent(0))
+        renderer.onOutput(event1)
+        renderer.onOutput(heldClockEvent1)
+        // No event held since the last held clock event
+        renderer.onOutput(new UpdateNowEvent(200))
+        renderer.onOutput(event2)
+        // Less than 1 s after the last held clock event
+        renderer.onOutput(new UpdateNowEvent(1_000))
+        renderer.onOutput(heldClockEvent2)
+        renderer.onOutput(event3)
+        renderer.onOutput(resume)
+
+        then:
+        replayed == [resume, event1, heldClockEvent1, event2, heldClockEvent2, event3]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39559")
+    def "holds the first clock event of a prompt only when events received before the prompt wait for one"() {
+        given:
+        def received = []
+        listener.onOutput(_) >> { OutputEvent e -> received << e }
+        def event1 = new TestOutputEvent()
+        def event2 = new TestOutputEvent()
+        def heldClockEvent = new UpdateNowEvent(100)
+        def liveClockEvent = new UpdateNowEvent(200)
+        def resume1 = new UserInputResumeEvent(123)
+        def resume2 = new UserInputResumeEvent(456)
+
+        when:
+        renderer.onOutput(event1)
+        renderer.onOutput(new UserInputRequestEvent())
+        renderer.onOutput(heldClockEvent)
+        renderer.onOutput(resume1)
+        renderer.onOutput(event2)
+        renderer.onOutput(liveClockEvent)
+        renderer.onOutput(new UserInputRequestEvent())
+        renderer.onOutput(new UpdateNowEvent(300))
+        renderer.onOutput(resume2)
+
+        then:
+        received == [event1, resume1, heldClockEvent, event2, liveClockEvent, resume2]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39559")
+    def "replays held clock events in order with the events written to disk"() {
+        given:
+        def replayed = []
+        listener.onOutput(_) >> { OutputEvent e -> replayed << e }
+        def events = (1..AbstractUserInputRenderer.MEMORY_QUEUE_LIMIT).collect {
+            new LogEvent(it * 1_000, "cat", LogLevel.LIFECYCLE, "message $it", null)
+        }
+
+        when:
+        renderer.onOutput(new UserInputRequestEvent())
+        events.each {
+            renderer.onOutput(it)
+            renderer.onOutput(new UpdateNowEvent(it.timestamp))
+        }
+
+        then:
+        hasOverflowFile()
+
+        when:
+        renderer.onOutput(new UserInputResumeEvent(123))
+
+        then:
+        replayed.findAll { !(it instanceof UserInputResumeEvent) }.collect { it instanceof UpdateNowEvent ? it.timestamp : it.message } == events.collectMany { [it.message, it.timestamp] }
     }
 
     def "overflow file is deleted after replay"() {
