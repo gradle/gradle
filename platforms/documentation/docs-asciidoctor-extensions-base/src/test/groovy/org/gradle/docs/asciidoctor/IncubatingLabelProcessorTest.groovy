@@ -30,6 +30,11 @@ class IncubatingLabelProcessorTest extends Specification {
         extensionRegistry.inlineMacro(IncubatingLabelProcessor.class)
     }
 
+    def cleanup() {
+        // Each instance holds a JRuby runtime, which is large enough to exhaust the test JVM heap if leaked
+        asciidoctor.shutdown()
+    }
+
     private String convertContent(String content) {
         return asciidoctor.convert(content, Options.builder().build())
     }

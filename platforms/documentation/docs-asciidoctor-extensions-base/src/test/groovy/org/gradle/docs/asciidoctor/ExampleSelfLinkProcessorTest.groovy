@@ -32,6 +32,11 @@ class ExampleSelfLinkProcessorTest extends Specification {
         asciidoctor = Asciidoctor.Factory.create()
     }
 
+    def cleanup() {
+        // Each instance holds a JRuby runtime, which is large enough to exhaust the test JVM heap if leaked
+        asciidoctor.shutdown()
+    }
+
     def "renders example with title adding link to self"() {
         given:
         String asciidocContent = """

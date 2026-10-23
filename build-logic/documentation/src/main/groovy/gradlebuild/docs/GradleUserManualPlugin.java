@@ -62,6 +62,7 @@ public class GradleUserManualPlugin implements Plugin<Project> {
      * distinct aliases to avoid writing to the same directory.
      */
     private static final String CHUNKED_HTML_OUTPUT = "chunkedHtml";
+    private static final String MARKDOWN_OUTPUT = "markdown";
 
     @Override
     public void apply(Project project) {
@@ -227,12 +228,29 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             outputTo(task, extension.getUserManual().getStagingRoot().dir("render-multi"));
         });
 
+        // The Markdown rendering is the AI-readable copy of the manual: one .md per page, served next to
+        // the HTML. Redirect stubs carry no prose, so they are left out.
+        Provider<PatternFilterable> markdownSources = providers.of(UserManualPages.class, spec -> {
+            spec.getParameters().getUserManualRoot().set(extension.getUserManual().getRoot());
+            spec.getParameters().getExcludedFileNames().addAll("javaProject.*Layout\\.adoc", "userguide_single\\.adoc");
+            spec.getParameters().getExcludedDirectories().add("redirects");
+        }).map(pages -> new PatternSet().include(pages));
+
+        TaskProvider<AsciidoctorTask> asciidoctorUserguideMultiPageMarkdown = registerUserManualOutput(project, asciidoc, extension, "userguideMultiPage",
+            GradleBuildDocumentationPlugin.MARKDOWN_FORMATTER, MARKDOWN_OUTPUT);
+        asciidoctorUserguideMultiPageMarkdown.configure(task -> {
+            task.setDescription("Generates the multi-page user manual as Markdown, one .md file per page.");
+            task.setSourcePatterns(markdownSources);
+            task.onlyIf("quick feedback mode is not enabled", t -> !quickFeedback.get());
+            outputTo(task, extension.getUserManual().getStagingRoot().dir("render-markdown"));
+        });
+
         // The plugin derives the conversion task names from the publication and the output alias, which is
         // not what contributors have always typed. These keep the historical names working as entry points.
         registerRenderingAlias(project, "userguideSinglePageHtml", "Generates HTML single-page user manual.", asciidoctorUserguideSinglePageHtml);
         registerRenderingAlias(project, "userguideMultiPage", "Generates multi-page user manual.", asciidoctorUserguideMultiPageChunkedHtml);
 
-        return asList(asciidoctorUserguideSinglePageHtml, asciidoctorUserguideMultiPageChunkedHtml);
+        return asList(asciidoctorUserguideSinglePageHtml, asciidoctorUserguideMultiPageChunkedHtml, asciidoctorUserguideMultiPageMarkdown);
     }
 
     /**
@@ -288,9 +306,26 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             sourceSet.attributes(attrs -> attrs.attributeProvider(attributes));
             sources.execute(sourceSet);
         }));
+        return registerUserManualOutput(project, asciidoc, extension, name, GradleBuildDocumentationPlugin.HTML_FORMATTER, outputAlias);
+    }
+
+    /**
+     * Adds an output of the {@link GradleBuildDocumentationPlugin#ASCIIDOCTORJ_TOOLCHAIN} toolchain to a user manual
+     * publication, and returns its conversion task. A publication can carry several outputs, one per format.
+     */
+    private static TaskProvider<AsciidoctorTask> registerUserManualOutput(
+        Project project,
+        AsciidoctorModelExtension asciidoc,
+        GradleDocumentationExtension extension,
+        String publicationName,
+        String formatter,
+        String outputAlias
+    ) {
+        Provider<Directory> stagedDocumentation = extension.getUserManual().getStagedDocumentation();
+        AsciidoctorPublication publication = asciidoc.getPublications().getByName(publicationName);
         // The alias names the output, and the plugin derives both the conversion task name and the
         // per-run log directory (reports/asciidoc/logs/<toolchain>/<alias>) from it.
-        publication.output(GradleBuildDocumentationPlugin.ASCIIDOCTORJ_TOOLCHAIN, GradleBuildDocumentationPlugin.HTML_FORMATTER, outputAlias);
+        publication.output(GradleBuildDocumentationPlugin.ASCIIDOCTORJ_TOOLCHAIN, formatter, outputAlias);
 
         TaskProvider<AsciidoctorTask> task = project.getTasks().named(publication.taskNameFor(outputAlias), AsciidoctorTask.class);
         task.configure(t -> {
