@@ -37,7 +37,9 @@ abstract class MyCustomDisambiguationRule implements AttributeDisambiguationRule
     @Override
     void execute(MultipleCandidatesDetails<String> details) {
         // Prefer "api" kind over others
-        details.closestMatch("api")
+        if (details.candidateValues.contains("api")) {
+            details.closestMatch("api")
+        }
     }
 }
 
@@ -61,8 +63,11 @@ abstract class CustomDisambiguationRule implements AttributeDisambiguationRule<U
 
     @Override
     void execute(MultipleCandidatesDetails<Usage> details) {
-        // Prefer the JAVA_API usage over others (e.g., JAVA_RUNTIME) when multiple candidates exist
-        details.closestMatch(objects.named(Usage, Usage.JAVA_API))  // <3>
+        // Prefer the JAVA_API usage over others (e.g., JAVA_RUNTIME) when it is one of the candidates
+        def javaApi = objects.named(Usage, Usage.JAVA_API)
+        if (details.candidateValues.contains(javaApi)) {
+            details.closestMatch(javaApi)  // <3>
+        }
     }
 }
 // end::disambiguation_rule[]
