@@ -27,8 +27,7 @@ import org.gradle.internal.serialize.Serializer;
  * Since Gradle creates a high volume of progress events, this serializer trades simplicity
  * for the smallest possible serialized form. It uses a single byte indicating the presence of optional
  * fields instead of writing an "absent" byte for each of them like most of our serializers do.
- * It also encodes the {@link BuildOperationCategory} in this byte, since that enum only has 3 values
- * for the forseeable future.
+ * It also encodes the {@link BuildOperationCategory} in the flags.
  */
 public class ProgressStartEventSerializer implements Serializer<ProgressStartEvent> {
     private static final short PARENT_PROGRESS_ID = 1;
@@ -43,7 +42,7 @@ public class ProgressStartEventSerializer implements Serializer<ProgressStartEve
     private static final short CATEGORY_IS_BUILD_OP = 1 << 10;
     private static final short CATEGORY_NAME = 1 << 11;
     private static final short BUILD_OP_CATEGORY_OFFSET = 12;
-    private static final short BUILD_OP_CATEGORY_MASK = 0x7;
+    private static final short BUILD_OP_CATEGORY_MASK = 0xF;
 
     public ProgressStartEventSerializer() {
         BuildOperationCategory maxCategory = BuildOperationCategory.values()[BuildOperationCategory.values().length - 1];
