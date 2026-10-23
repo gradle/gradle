@@ -50,9 +50,9 @@ public class ProgressBar {
     // Note: These characters require font support. Modern monospace fonts (Fira Code,
     // JetBrains Mono, Cascadia Code, DejaVu Sans Mono) support them well. Older fonts
     // like Courier New may only have the full block (█) and show replacement characters
-    // for partial blocks. The detection logic in ConsoleMetaData.supportsUnicode() uses
-    // conservative heuristics (UTF-8 locale, modern terminal detection) to avoid enabling
-    // Unicode mode when fonts are unlikely to support these characters.
+    // for partial blocks. The Unicode bar is only used when a UTF-8 locale or a modern terminal
+    // is found by ConsoleMetaData.supportsUnicode(), and when the font is not known to lack these
+    // characters, see ConsoleMetaData.supportsEighthBlocks().
     private static final char[] UNICODE_BLOCKS = {
         '·', // Empty
         '▏', // ▏ 1/8 block  '\u258F',
@@ -109,8 +109,8 @@ public class ProgressBar {
     }
 
     static ProgressBar createProgressBar(ConsoleMetaData consoleMetaData, String initialSuffix, int totalProgress) {
-        // Use Unicode progress bars if terminal supports it, otherwise use ASCII
-        if (consoleMetaData.supportsUnicode()) {
+        // Use Unicode progress bars if terminal supports it and its font has the eighth blocks, otherwise use ASCII
+        if (consoleMetaData.supportsUnicode() && consoleMetaData.supportsEighthBlocks()) {
             return getUnicodeProgressBar(consoleMetaData, initialSuffix, totalProgress);
         } else {
             return getAsciiProgressBar(consoleMetaData, initialSuffix, totalProgress);

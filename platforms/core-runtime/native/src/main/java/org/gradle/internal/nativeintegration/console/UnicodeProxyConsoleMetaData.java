@@ -64,6 +64,17 @@ public abstract class UnicodeProxyConsoleMetaData implements ConsoleMetaData {
         public boolean supportsUnicode() {
             return supportsUnicode;
         }
+
+        // With --console-unicode=enable, the eighth blocks are also used on the Linux console
+        @Override
+        public boolean supportsEighthBlocks() {
+            return supportsUnicode || metaData.supportsEighthBlocks();
+        }
+    }
+
+    @Override
+    public boolean supportsEighthBlocks() {
+        return metaData.supportsEighthBlocks();
     }
 
     @Override
