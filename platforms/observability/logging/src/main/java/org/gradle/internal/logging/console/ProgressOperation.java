@@ -19,7 +19,9 @@ package org.gradle.internal.logging.console;
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.util.internal.GUtil;
 
-import java.util.HashSet;
+import java.util.ArrayList;
+import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 public class ProgressOperation {
@@ -28,13 +30,20 @@ public class ProgressOperation {
     private final String category;
     private final OperationIdentifier operationId;
     private final ProgressOperation parent;
+    private final boolean workAction;
+    private int startedWorkActions;
     private Set<ProgressOperation> children;
 
     public ProgressOperation(String status, String category, OperationIdentifier operationId, ProgressOperation parent) {
+        this(status, category, operationId, parent, false);
+    }
+
+    ProgressOperation(String status, String category, OperationIdentifier operationId, ProgressOperation parent, boolean workAction) {
         this.status = status;
         this.category = category;
         this.operationId = operationId;
         this.parent = parent;
+        this.workAction = workAction;
     }
 
     @Override
@@ -67,7 +76,11 @@ public class ProgressOperation {
 
     public boolean addChild(ProgressOperation operation) {
         if (children == null) {
-            children = new HashSet<ProgressOperation>();
+            // In start order, so lines are given to work actions in that order
+            children = new LinkedHashSet<ProgressOperation>();
+        }
+        if (operation.isWorkAction()) {
+            workActionStarted();
         }
         return children.add(operation);
     }
@@ -79,7 +92,45 @@ public class ProgressOperation {
         return children.remove(operation);
     }
 
-    public boolean hasChildren() {
-        return children != null && !children.isEmpty();
+    boolean isWorkAction() {
+        return workAction;
+    }
+
+    void workActionStarted() {
+        startedWorkActions++;
+    }
+
+    /**
+     * Whether the work actions of this operation are shown, which is from its second work action on.
+     * A line for a single work action is of little use next to the line of this operation.
+     */
+    boolean showsWorkActions() {
+        return startedWorkActions > 1;
+    }
+
+    /**
+     * The running work actions of this operation, in the order they started.
+     */
+    List<ProgressOperation> getWorkActions() {
+        List<ProgressOperation> workActions = new ArrayList<ProgressOperation>();
+        if (children != null) {
+            for (ProgressOperation child : children) {
+                if (child.isWorkAction()) {
+                    workActions.add(child);
+                }
+            }
+        }
+        return workActions;
+    }
+
+    boolean hasChildrenOtherThanWorkActions() {
+        if (children != null) {
+            for (ProgressOperation child : children) {
+                if (!child.isWorkAction()) {
+                    return true;
+                }
+            }
+        }
+        return false;
     }
 }
