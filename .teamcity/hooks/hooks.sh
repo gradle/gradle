@@ -30,6 +30,8 @@ case "${PHASE}" in
   *) echo "Usage: $(basename "$0") (pre|post)" >&2; exit 2 ;;
 esac
 
+rm -rf "${HOME}/.m2/.develocity"
+
 # Only smoke tests share the integration-test Gradle user home, so only they benefit here.
 if [[ "${BUILD_TYPE_ID:-}" != *SmokeTest* ]]; then
   echo "Skipping artifact cache: BUILD_TYPE_ID='${BUILD_TYPE_ID:-}' is not a SmokeTest build."
