@@ -419,7 +419,8 @@ public class ClassGenerationBenchmark {
         }
 
         @Override
-        public void applyRoleTo(ModelObject owner, Object target) {
+        public Object applyRoleTo(ModelObject owner, Object target) {
+            return target;
         }
     }
 }
