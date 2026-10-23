@@ -29,6 +29,7 @@ import org.gradle.performance.results.PerformanceTestHistory;
 import org.gradle.performance.results.ResultsStore;
 import org.gradle.performance.results.ResultsStoreHelper;
 import org.gradle.util.internal.GFileUtils;
+import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.io.IOException;
@@ -37,8 +38,10 @@ import java.lang.reflect.Type;
 import java.net.URL;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -63,8 +66,10 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
         try (ResultsStore store = getResultsStore()) {
             PerformanceExecutionDataProvider executionDataProvider = getExecutionDataProvider(store, resultJsons, getDependencyPerformanceTestTeamCityBuildIds());
             PerformanceFlakinessDataProvider flakinessDataProvider = getFlakinessDataProvider();
-            generateReport(store, flakinessDataProvider, executionDataProvider, outputDirectory, projectName);
-            checkResult(flakinessDataProvider, executionDataProvider);
+            FailureCollector failureCollector = new FailureCollector();
+            collectFailures(flakinessDataProvider, executionDataProvider, failureCollector);
+            generateReport(store, flakinessDataProvider, executionDataProvider, failureCollector, outputDirectory, projectName);
+            checkResult(executionDataProvider, failureCollector);
         } catch (IOException | ReflectiveOperationException e) {
             throw new RuntimeException(e);
         }
@@ -78,8 +83,8 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
         return new DefaultPerformanceExecutionDataProvider(store, resultJsons, performanceTestBuildIds);
     }
 
-    protected void generateReport(ResultsStore store, PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, File outputDirectory, String projectName) throws IOException {
-        renderIndexPage(flakinessDataProvider, executionDataProvider, new File(outputDirectory, "index.html"));
+    protected void generateReport(ResultsStore store, PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, FailureCollector failureCollector, File outputDirectory, String projectName) throws IOException {
+        renderIndexPage(flakinessDataProvider, executionDataProvider, failureCollector, new File(outputDirectory, "index.html"));
         // The result JSONs no longer carry build IDs; use this pipeline's authoritative bucket build IDs so the
         // per-scenario history graphs highlight the executions produced by this run.
         List<String> executedBuildIds = new ArrayList<>(getDependencyPerformanceTestTeamCityBuildIds());
@@ -101,14 +106,12 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
         copyResource("performanceReport.js", outputDirectory);
     }
 
-    protected void renderIndexPage(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, File output) throws IOException {
-        new FileRenderer().render(null, new IndexPageGenerator(flakinessDataProvider, executionDataProvider), output);
+    protected void renderIndexPage(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, FailureCollector failureCollector, File output) throws IOException {
+        new FileRenderer().render(null, new IndexPageGenerator(flakinessDataProvider, executionDataProvider, failureCollector), output);
     }
 
-    protected void checkResult(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider) {
+    protected void checkResult(PerformanceExecutionDataProvider executionDataProvider, FailureCollector failureCollector) {
         boolean onlyOneTestExecuted = executionDataProvider.getReportScenarios().size() == 1;
-        FailureCollector failureCollector = new FailureCollector();
-        collectFailures(flakinessDataProvider, executionDataProvider, failureCollector);
         String resultString = onlyOneTestExecuted
             ? formatSingleResultString(executionDataProvider, failureCollector)
             : formatResultString(failureCollector);
@@ -196,49 +199,73 @@ public abstract class AbstractReportGenerator<R extends ResultsStore> {
     }
 
     public static class FailureCollector {
-        private int buildFailures = 0;
-        private int regressedScenarios = 0;
-        private int flakyScenarioBigRegressions = 0;
-        private int flakyScenarioSmallRegressions = 0;
-        private boolean failBuild;
+        private final Map<PerformanceReportScenario, Failure> failures = new HashMap<>();
 
-        public void scenarioFailed() {
-            buildFailures++;
-            failBuild = true;
+        public void scenarioFailed(PerformanceReportScenario scenario) {
+            failures.put(scenario, Failure.BUILD_FAILURE);
         }
 
-        public void scenarioRegressed() {
-            regressedScenarios++;
-            failBuild = true;
+        public void scenarioRegressed(PerformanceReportScenario scenario) {
+            failures.put(scenario, Failure.STABLE_REGRESSION);
         }
 
-        public void flakyScenarioWithBigRegression() {
-            flakyScenarioBigRegressions++;
-            failBuild = true;
+        public void flakyScenarioWithBigRegression(PerformanceReportScenario scenario) {
+            failures.put(scenario, Failure.BIG_FLAKY_REGRESSION);
         }
 
-        public void flakyScenarioWithSmallRegression() {
-            flakyScenarioSmallRegressions++;
+        public void flakyScenarioWithSmallRegression(PerformanceReportScenario scenario) {
+            failures.put(scenario, Failure.SMALL_FLAKY_REGRESSION);
+        }
+
+        @Nullable
+        public Failure getFailure(PerformanceReportScenario scenario) {
+            return failures.get(scenario);
+        }
+
+        public boolean failsBuild(PerformanceReportScenario scenario) {
+            Failure failure = failures.get(scenario);
+            return failure != null && failure.isFailBuild();
+        }
+
+        public boolean isFailBuild() {
+            return failures.values().stream().anyMatch(Failure::isFailBuild);
+        }
+
+        public int getBuildFailures() {
+            return count(Failure.BUILD_FAILURE);
+        }
+
+        public int getRegressedScenarios() {
+            return count(Failure.STABLE_REGRESSION);
+        }
+
+        public int getFlakyScenarioBigRegressions() {
+            return count(Failure.BIG_FLAKY_REGRESSION);
+        }
+
+        public int getFlakyScenarioSmallRegressions() {
+            return count(Failure.SMALL_FLAKY_REGRESSION);
+        }
+
+        private int count(Failure failure) {
+            return (int) failures.values().stream().filter(failure::equals).count();
+        }
+    }
+
+    public enum Failure {
+        BUILD_FAILURE(true),
+        STABLE_REGRESSION(true),
+        BIG_FLAKY_REGRESSION(true),
+        SMALL_FLAKY_REGRESSION(false);
+
+        private final boolean failBuild;
+
+        Failure(boolean failBuild) {
+            this.failBuild = failBuild;
         }
 
         public boolean isFailBuild() {
             return failBuild;
-        }
-
-        public int getBuildFailures() {
-            return buildFailures;
-        }
-
-        public int getRegressedScenarios() {
-            return regressedScenarios;
-        }
-
-        public int getFlakyScenarioBigRegressions() {
-            return flakyScenarioBigRegressions;
-        }
-
-        public int getFlakyScenarioSmallRegressions() {
-            return flakyScenarioSmallRegressions;
         }
     }
 }
