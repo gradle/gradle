@@ -85,6 +85,24 @@ Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engine
 ### Dependency management enhancements
 Gradle provides a flexible [dependency management](userguide/getting_started_dep_man.html) engine for declaring, resolving, and verifying the dependencies your build needs.
 
+#### Nested `Gradle.settingsEvaluated` callbacks are honored
+
+Gradle now honors nested [`Gradle.settingsEvaluated`](javadoc/org/gradle/api/invocation/Gradle.html#settingsEvaluated(org.gradle.api.Action)) callbacks.
+Previously, a `settingsEvaluated` callback registered from within another `settingsEvaluated` callback was silently ignored.
+
+Nested callbacks now run after all previously registered callbacks finish, within the same lifecycle phase, matching the behavior of nested [`Project.afterEvaluate`](javadoc/org/gradle/api/Project.html#afterEvaluate(org.gradle.api.Action)):
+
+```kotlin
+gradle.settingsEvaluated {
+    // runs first
+    gradle.settingsEvaluated {
+        // runs after all outer callbacks finish, in the same phase
+    }
+}
+```
+
+See the [`settingsEvaluated`](userguide/build_lifecycle.html#settings_evaluated) section in the Gradle User Manual for more details.
+
 ### Platform and toolchain management
 Gradle provides comprehensive support for [JVM languages](userguide/building_java_projects.html), featuring automated [Toolchains](userguide/toolchains.html) for seamless JDK management.
 

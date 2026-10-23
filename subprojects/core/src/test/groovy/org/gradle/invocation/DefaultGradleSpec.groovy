@@ -264,6 +264,54 @@ class DefaultGradleSpec extends Specification {
         1 * action.execute(_)
     }
 
+    def "notifySettingsEvaluated fires callbacks registered by other settings evaluated callbacks"() {
+        given:
+        def settings = Stub(SettingsInternal)
+        def events = []
+        gradle.settingsEvaluated {
+            events << 'outer1'
+            gradle.settingsEvaluated {
+                events << 'nested1'
+                gradle.settingsEvaluated {
+                    events << 'nested2'
+                }
+            }
+        }
+        gradle.settingsEvaluated {
+            events << 'outer2'
+        }
+
+        when:
+        gradle.notifySettingsEvaluated(settings)
+
+        then:
+        events == ['outer1', 'outer2', 'nested1', 'nested2']
+    }
+
+    def "settings evaluated callbacks are fired exactly once"() {
+        given:
+        def settings = Stub(SettingsInternal)
+        def count = 0
+        gradle.settingsEvaluated {
+            count++
+            gradle.settingsEvaluated {
+                count++
+            }
+        }
+
+        when:
+        gradle.notifySettingsEvaluated(settings)
+
+        then:
+        count == 2
+
+        when:
+        gradle.buildListenerBroadcaster.settingsEvaluated(settings)
+
+        then:
+        count == 3 // only the directly registered callback remains in the broadcast
+    }
+
     def "broadcasts before settings events to actions"() {
         given:
         def action = Mock(Action)
