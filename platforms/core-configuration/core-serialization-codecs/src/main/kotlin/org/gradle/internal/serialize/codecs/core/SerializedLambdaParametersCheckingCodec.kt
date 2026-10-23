@@ -120,6 +120,7 @@ class SerializedLambdaParametersCheckingCodec(
     ) {
         logUnsupported(
             "serialize",
+            "Unsupported lambda parameter type",
             // TODO: maybe introduce a separate section for the lambda serialization contract
             DocumentationSection.RequirementsDisallowedTypes
         ) {

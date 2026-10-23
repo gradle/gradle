@@ -48,7 +48,7 @@ public class DefaultProblems implements ProblemsInternal {
         this.operationIdRef = operationIdRef;
         this.exceptionProblemRegistry = exceptionProblemRegistry;
         this.exceptionAnalyser = exceptionAnalyser;
-        this.infrastructure = new ProblemsInfrastructure(new AdditionalDataBuilderFactory(), instantiator, payloadSerializer, isolatableFactory, isolatableSerializer, problemStream);
+        this.infrastructure = new ProblemsInfrastructure(new AdditionalDataBuilderFactory(), instantiator, payloadSerializer, isolatableFactory, isolatableSerializer, problemStream, DefaultProblemGroups.INSTANCE);
         this.reporterInternal = createReporter();
     }
 

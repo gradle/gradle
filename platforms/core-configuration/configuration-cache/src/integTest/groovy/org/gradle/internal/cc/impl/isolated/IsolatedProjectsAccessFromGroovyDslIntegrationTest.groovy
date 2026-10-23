@@ -575,13 +575,13 @@ class IsolatedProjectsAccessFromGroovyDslIntegrationTest extends AbstractIsolate
         then:
         fixture.assertIsolatedProjectsProblems(mode) {
             projectsConfigured(":")
-            problem("Build file 'build.gradle': line 2: use of 'Project.getProperties()' is not allowed with Isolated Projects")
+            problem("Build file 'build.gradle': line 2: use of '$method' is not allowed with Isolated Projects")
         }
 
         where:
-        expr                 | deprecation
-        "properties"         | "Dynamically calling getProperties() on a script has been deprecated. "
-        "project.properties" | "The Project.getProperties method has been deprecated. "
+        expr                 | method                    | deprecation
+        "properties"         | "Script.getProperties()"  | "Dynamically calling getProperties() on a script has been deprecated. "
+        "project.properties" | "Project.getProperties()" | "The Project.getProperties method has been deprecated. "
 
         combined:
         mode << ALL_MODES

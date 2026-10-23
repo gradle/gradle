@@ -126,7 +126,7 @@ internal class ConfigurationCachePromoHandler(
         problems.addIfNeeded(true)
     }
 
-    override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+    override fun onError(trace: PropertyTrace, name: String, error: Exception, message: StructuredMessageBuilder) {
         problems.addIfNeeded(true)
     }
 
