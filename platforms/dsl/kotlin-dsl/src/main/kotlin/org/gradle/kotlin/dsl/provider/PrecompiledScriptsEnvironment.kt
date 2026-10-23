@@ -14,15 +14,11 @@
  * limitations under the License.
  */
 
-// TODO: migrate off the legacy Kotlin scripting API, deprecated since Kotlin API version 2.4
-@file:Suppress("DEPRECATION")
-
 package org.gradle.kotlin.dsl.provider
 
 import org.gradle.kotlin.dsl.support.implicitImportsFrom
 import org.gradle.kotlin.dsl.support.stringList
 import org.gradle.kotlin.dsl.support.KotlinScriptHashing
-import kotlin.script.dependencies.Environment
 
 object PrecompiledScriptsEnvironment {
 
@@ -32,11 +28,11 @@ object PrecompiledScriptsEnvironment {
     }
 
     internal
-    fun implicitImportsForScript(scriptText: CharSequence, environment: Environment?) =
+    fun implicitImportsForScript(scriptText: CharSequence, environment: Map<String, Any?>?) =
         implicitImportsFrom(environment) + precompiledScriptPluginImportsFrom(environment, scriptText)
 
     private
-    fun precompiledScriptPluginImportsFrom(environment: Environment?, scriptText: CharSequence): List<String> =
+    fun precompiledScriptPluginImportsFrom(environment: Map<String, Any?>?, scriptText: CharSequence): List<String> =
         // Normalised hash: the light tree parser hands over raw script text, which may contain CRLF separators.
         environment.stringList(KotlinScriptHashing.hashOf(scriptText))
 }

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-// TODO: migrate off the legacy Kotlin scripting API, deprecated since Kotlin API version 2.4
 @file:Suppress("DEPRECATION")
 
 package org.gradle.kotlin.dsl
