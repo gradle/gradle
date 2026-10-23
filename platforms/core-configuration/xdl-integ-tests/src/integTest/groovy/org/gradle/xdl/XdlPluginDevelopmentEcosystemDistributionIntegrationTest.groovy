@@ -51,7 +51,7 @@ class XdlPluginDevelopmentEcosystemDistributionIntegrationTest extends AbstractI
         file('src/main/xdl/demo.xdls') << '''
             package com.example.demo
 
-            template Demo {
+            root Demo {
               demo {
                 name: String
               }
@@ -83,7 +83,7 @@ class XdlPluginDevelopmentEcosystemDistributionIntegrationTest extends AbstractI
         mavenRepo.module("org.test", "compile-only-dep", "1.0").publish()
         mavenRepo.module("org.test", "runtime-only-dep", "1.0").publish()
 
-        and: 'a declarative plugin project: the repository in settings, the four dependency scopes on the template'
+        and: 'a declarative plugin project: the repository in settings, the four dependency scopes on the root'
         file('settings.gradle.xdl') << """
             settings {
               plugins [
@@ -143,7 +143,7 @@ class XdlPluginDevelopmentEcosystemDistributionIntegrationTest extends AbstractI
         file('build-logic/src/main/xdl/demo.xdls') << '''
             package com.example.demo
 
-            template Demo {
+            root Demo {
               demo {
                 name: String
               }
@@ -190,7 +190,7 @@ class XdlPluginDevelopmentEcosystemDistributionIntegrationTest extends AbstractI
         when:
         succeeds("help")
 
-        then: 'the plugin was built declaratively, its schema resolved the template, and its reaction fired'
+        then: 'the plugin was built declaratively, its schema resolved the root, and its reaction fired'
         outputContains("demo-reaction-name=hello-from-xdl in consumer")
     }
 
@@ -207,7 +207,7 @@ class XdlPluginDevelopmentEcosystemDistributionIntegrationTest extends AbstractI
             }
         '''
 
-        when: 'the unapplied ecosystem contributed no schema, so its template never reached the frozen registry'
+        when: 'the unapplied ecosystem contributed no schema, so its root never reached the frozen registry'
         fails("help")
 
         then:

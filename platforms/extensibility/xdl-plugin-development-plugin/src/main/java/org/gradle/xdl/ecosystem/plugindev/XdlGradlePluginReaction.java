@@ -37,7 +37,7 @@ import org.gradle.xdl.ecosystem.plugindev.dsl.XdlGradlePlugin;
  * </ul>
  *
  * Declared {@code dependencies} go through {@link DeclaredDependencies}; repositories come from the
- * settings ({@code dependencyResolutionManagement}), not from the template.
+ * settings ({@code dependencyResolutionManagement}), not from the root.
  */
 public class XdlGradlePluginReaction implements Reaction<XdlGradlePlugin, Project> {
 

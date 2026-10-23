@@ -16,7 +16,7 @@ record Dependencies {
 // Gradle's default PREFER_PROJECT mode serves to every project.
 
 /// Capability trait for anything carrying library dependencies, by scope. Composed both at the
-/// project-type level (every JVM template is `with … & HasDependencies`) and per source set (each
+/// project-type level (every JVM root is `with … & HasDependencies`) and per source set (each
 /// source record is `with HasDependencies`), so a reaction's scope wiring can accept either
 /// facade uniformly.
 trait HasDependencies {

@@ -26,7 +26,7 @@ description = "Built-in XDL plugin-development ecosystem: schema (plugin-develop
 // :xdl-plugin-development-plugin.
 dependencies {
     // plugin-development.xdls `import`s org.gradle.xdl.ecosystem.common.dsl (the HasDependencies
-    // trait the templates compose). `api` so consumers see the common facades; also how xdlCodegen
+    // trait the roots compose). `api` so consumers see the common facades; also how xdlCodegen
     // resolves the import (importedSchemaDirectories).
     // Published, so the externally-available gate is satisfied.
     api(projects.xdlCommonEcosystem)

@@ -64,7 +64,7 @@ class XdlGradlePluginKotlinDistributionIntegrationTest extends AbstractIntegrati
         file('src/main/xdl/demo.xdls') << '''
             package com.example.demo
 
-            template Demo {
+            root Demo {
               demo {
                 name: String
               }
@@ -147,7 +147,7 @@ class XdlGradlePluginKotlinDistributionIntegrationTest extends AbstractIntegrati
         file('build-logic/src/main/xdl/demo.xdls') << '''
             package com.example.demo
 
-            template Demo {
+            root Demo {
               demo {
                 name: String
               }
@@ -193,7 +193,7 @@ class XdlGradlePluginKotlinDistributionIntegrationTest extends AbstractIntegrati
         when:
         succeeds("help")
 
-        then: 'the Kotlin-built plugin resolved the template and its reaction fired'
+        then: 'the Kotlin-built plugin resolved the root and its reaction fired'
         outputContains("demo-reaction-name=hello-from-kotlin in consumer")
     }
 

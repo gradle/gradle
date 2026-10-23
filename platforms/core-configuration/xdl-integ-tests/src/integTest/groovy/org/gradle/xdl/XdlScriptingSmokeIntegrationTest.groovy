@@ -335,7 +335,7 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
         }
     }
 
-    def "can register project template and associated reactions via settings plugin from included build"() {
+    def "can register project root and associated reactions via settings plugin from included build"() {
         given:
         xdlSettingsFile '''
             settings {
@@ -343,7 +343,7 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
                   includedBuilds ["build-logic"]
                 }
                 plugins [
-                  { id "project-templates" }
+                  { id "project-roots" }
                 ]
                 include [
                   "app",
@@ -367,9 +367,9 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
             }
             gradlePlugin {
               plugins {
-                projectTemplatesPlugin {
-                  id = "project-templates"
-                  implementationClass = "my.ProjectTemplatesPlugin"
+                projectRootsPlugin {
+                  id = "project-roots"
+                  implementationClass = "my.ProjectRootsPlugin"
                 }
               }
             }
@@ -377,15 +377,15 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
         xdlsFile 'build-logic/src/main/xdl/my.xdls', '''
             package my.dsl
 
-            template MyApplication {
+            root MyApplication {
               application {}
             }
 
-            template MyLibrary {
+            root MyLibrary {
               library {}
             }
         '''
-        javaFile 'build-logic/src/main/java/my/ProjectTemplatesPlugin.java', """
+        javaFile 'build-logic/src/main/java/my/ProjectRootsPlugin.java', """
             package my;
 
             import org.gradle.api.Plugin;
@@ -394,9 +394,9 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.xdl.*; // xdl API is visible as part of the Gradle API
             import my.dsl.*; // generated facades dir is automatically wired in as a generated source-set
 
-            @BindReaction(ProjectTemplatesPlugin.ApplicationReaction.class)
-            @BindReaction(ProjectTemplatesPlugin.LibraryReaction.class)
-            public class ProjectTemplatesPlugin implements Plugin<Settings> {
+            @BindReaction(ProjectRootsPlugin.ApplicationReaction.class)
+            @BindReaction(ProjectRootsPlugin.LibraryReaction.class)
+            public class ProjectRootsPlugin implements Plugin<Settings> {
 
                 static class ApplicationReaction implements Reaction<MyApplication, Project> {
                     @Override public void on(MyApplication data, Project context, ReactionScope scope) {
@@ -447,7 +447,7 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
                   includedBuilds ["build-logic"]
                 }
                 plugins [
-                  { id "project-templates" }
+                  { id "project-roots" }
                 ]
                 include [
                   "app",
@@ -507,7 +507,7 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
 
             import my.base.dsl
 
-            template MyApplication with MyComponent  {
+            root MyApplication with MyComponent  {
               application {}
             }
         '''
@@ -527,7 +527,7 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
 
             import my.base.dsl
 
-            template MyLibrary with MyComponent  {
+            root MyLibrary with MyComponent  {
               library {}
             }
         '''
@@ -538,9 +538,9 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
             }
             gradlePlugin {
               plugins {
-                projectTemplatesPlugin {
-                  id = "project-templates"
-                  implementationClass = "my.ProjectTemplatesPlugin"
+                projectRootsPlugin {
+                  id = "project-roots"
+                  implementationClass = "my.ProjectRootsPlugin"
                 }
               }
             }
@@ -550,7 +550,7 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
                 api(project(":base"))
             }
         '''
-        javaFile 'build-logic/plugin/src/main/java/my/ProjectTemplatesPlugin.java', """
+        javaFile 'build-logic/plugin/src/main/java/my/ProjectRootsPlugin.java', """
             package my;
 
             import org.gradle.api.Plugin;
@@ -561,10 +561,10 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
             import my.app.dsl.*;
             import my.lib.dsl.*;
 
-            @BindReaction(ProjectTemplatesPlugin.ComponentReaction.class)
-            @BindReaction(ProjectTemplatesPlugin.ApplicationReaction.class)
-            @BindReaction(ProjectTemplatesPlugin.LibraryReaction.class)
-            public class ProjectTemplatesPlugin implements Plugin<Settings> {
+            @BindReaction(ProjectRootsPlugin.ComponentReaction.class)
+            @BindReaction(ProjectRootsPlugin.ApplicationReaction.class)
+            @BindReaction(ProjectRootsPlugin.LibraryReaction.class)
+            public class ProjectRootsPlugin implements Plugin<Settings> {
 
                 static class ComponentReaction implements Reaction<MyComponent, Project> {
                     @Override public void on(MyComponent data, Project context, ReactionScope scope) {
@@ -606,7 +606,7 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
                   includedBuilds ["build-logic"]
                 }
                 plugins [
-                  { id "project-templates" }
+                  { id "project-roots" }
                 ]
                 include [
                   "app",
@@ -635,9 +635,9 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
             }
             gradlePlugin {
               plugins {
-                projectTemplatesPlugin {
-                  id = "project-templates"
-                  implementationClass = "my.ProjectTemplatesPlugin"
+                projectRootsPlugin {
+                  id = "project-roots"
+                  implementationClass = "my.ProjectRootsPlugin"
                 }
               }
             }
@@ -650,15 +650,15 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
               version: String?
             }
 
-            template MyApplication with MyComponent {
+            root MyApplication with MyComponent {
               application {}
             }
 
-            template MyLibrary with MyComponent {
+            root MyLibrary with MyComponent {
               library {}
             }
         '''
-        javaFile 'build-logic/src/main/java/my/ProjectTemplatesPlugin.java', """
+        javaFile 'build-logic/src/main/java/my/ProjectRootsPlugin.java', """
             package my;
 
             import org.gradle.api.Plugin;
@@ -667,9 +667,9 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
             import org.gradle.api.xdl.*; // xdl API is visible as part of the Gradle API
             import my.dsl.*; // generated facades dir is automatically wired in as a generated source-set
 
-            @BindReaction(ProjectTemplatesPlugin.ApplicationReaction.class)
-            @BindReaction(ProjectTemplatesPlugin.LibraryReaction.class)
-            public class ProjectTemplatesPlugin implements Plugin<Settings> {
+            @BindReaction(ProjectRootsPlugin.ApplicationReaction.class)
+            @BindReaction(ProjectRootsPlugin.LibraryReaction.class)
+            public class ProjectRootsPlugin implements Plugin<Settings> {
 
                 static class ApplicationReaction implements Reaction<MyApplication, Project> {
                     @Override public void on(MyApplication data, Project context, ReactionScope scope) {
@@ -782,8 +782,8 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
         // The plugin SHIPS its defaults AND binds its reactions from its single src/main/xdl/<id>.xdl
         // (xdl-gradle-plugin generates the Plugin<Settings> carrier) — no hand-written plugin, no manual
         // gradlePlugin registration. The filename is the canonical plugin id ("components"). The
-        // templates are `with Defaults`, so a project's build.gradle.xdl can host its own
-        // project-stratum `defaults [ ]` block.
+        // roots are `with Defaults`, so a project's build.gradle.xdl can host its own
+        // project-layer `defaults [ ]` block.
         xdlFile 'build-logic/settings.gradle.xdl', 'settings {}'
         buildFile 'build-logic/build.gradle', '''
             plugins {
@@ -801,11 +801,11 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
               version: String?
             }
 
-            template MyApplication with MyComponent & Defaults {
+            root MyApplication with MyComponent & Defaults {
               application {}
             }
 
-            template MyLibrary with MyComponent & Defaults {
+            root MyLibrary with MyComponent & Defaults {
               library {}
             }
         '''
@@ -856,7 +856,7 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
                 ]
             }
         '''
-        // app: a PROJECT-stratum default sets `name`; `version` falls through to the settings stratum.
+        // app: a PROJECT-layer default sets `name`; `version` falls through to the settings layer.
         xdlFile 'app/build.gradle.xdl', '''
             application {
               defaults [ MyComponent { name "app-name" } ]
@@ -879,7 +879,7 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
 
     /**
      * An included build-logic plugin (id {@code components}) that contributes ONLY a one-trait schema
-     * ({@code MyComponent} carried by a single template, so a defaults conflict yields exactly one
+     * ({@code MyComponent} carried by a single root, so a defaults conflict yields exactly one
      * warning) plus a reaction that prints the resolved {@code version}. Used by the poison tests; the
      * conflict itself is declared in the consuming {@code settings.gradle.xdl}.
      */
@@ -907,7 +907,7 @@ class XdlScriptingSmokeIntegrationTest extends AbstractIntegrationSpec {
               version: String?
             }
 
-            template MyApplication with MyComponent {
+            root MyApplication with MyComponent {
               application {}
             }
         '''
