@@ -18,6 +18,7 @@ package org.gradle.internal.logging.console
 
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
+import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
 
@@ -57,6 +58,27 @@ class ProgressBarTest extends Specification {
         true               | "│···············│ 0% EXECUTING"
         false              | "[...............] 0% EXECUTING"
         id = unicode ? "unicode" : "ascii"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39562")
+    def "draws the #bar bar on a console that supports Unicode when the font #has eighth blocks"() {
+        given:
+        def consoleMetaData = Stub(ConsoleMetaData) {
+            supportsUnicode() >> true
+            supportsEighthBlocks() >> eighthBlocks
+        }
+        progressBar = ProgressBar.createProgressBar(consoleMetaData, BUILD_PHASE, 9)
+        // 2 of 9 ends the done part with an eighth block
+        2.times { progressBar.update(false) }
+
+        expect:
+        progress == rendering
+
+        where:
+        eighthBlocks | bar       | rendering
+        false        | "ASCII"   | "[###............] 22% EXECUTING"
+        true         | "Unicode" | "│███▎···········│ 22% EXECUTING"
+        has = eighthBlocks ? "has" : "has no"
     }
 
     def "fills completed progress as work completes (#id)"() {
