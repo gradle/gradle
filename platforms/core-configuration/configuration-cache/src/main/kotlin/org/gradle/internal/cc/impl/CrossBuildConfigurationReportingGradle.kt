@@ -59,7 +59,7 @@ class CrossBuildConfigurationReportingGradle(
 
     private fun onBuildMutableStateAccess(what: String) {
         ipProblems.report {
-            problem {
+            problem("Build cannot access Gradle state of another build") {
                 text("Build ")
                 reference(referrer.identityPath.asString())
                 text(" cannot access ")

@@ -17,6 +17,7 @@
 package org.gradle.api.problems.internal;
 
 import org.gradle.api.problems.ProblemId;
+import org.jspecify.annotations.Nullable;
 
 import java.io.InvalidObjectException;
 
@@ -31,6 +32,15 @@ interface ResolvableProblemGroup extends ProblemGroupInternal {
      * such a child.
      */
     ResolvableProblemGroup resolveChild(String name) throws InvalidObjectException;
+
+    /**
+     * Returns the predefined child with the given name, or {@code null} if this group has none. Unlike
+     * {@link #resolveChild(String)}, this never creates a group and never fails.
+     */
+    @Nullable
+    default ResolvableProblemGroup findPredefinedChild(String name) {
+        return null;
+    }
 
     /**
      * Returns the id of the problem with the given name in this group. Root groups cannot hold problems; the groups

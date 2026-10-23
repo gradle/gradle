@@ -1169,14 +1169,14 @@ public abstract class DefaultProject extends AbstractPluginAware implements Proj
             .nagUser();
 
         IsolatedProjectsProblemsReporter reporter = getIsolatedProjectsProblemsReporter();
-        reportGetPropertiesProblem(reporter);
+        reportGetPropertiesProblem(reporter, "Project.getProperties()");
         return reporter.runIgnoringProblemsOnCurrentThread(extensibleDynamicObject::getProperties);
     }
 
-    public static void reportGetPropertiesProblem(IsolatedProjectsProblemsReporter reporter) {
+    public static void reportGetPropertiesProblem(IsolatedProjectsProblemsReporter reporter, String method) {
         reporter.report(factory ->
-            factory.problem(message -> message
-                .text("use of ").reference("Project.getProperties()")
+            factory.problem("Unsupported API usage", message -> message
+                .text("use of ").reference(method)
                 .text(" is not allowed with Isolated Projects")
             ).build()
         );

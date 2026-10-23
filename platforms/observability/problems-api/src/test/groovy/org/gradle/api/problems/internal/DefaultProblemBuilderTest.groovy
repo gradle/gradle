@@ -17,7 +17,10 @@
 package org.gradle.api.problems.internal
 
 
+import org.gradle.api.problems.GradleProblemGroup
+import org.gradle.api.problems.GradleSecondLevelProblemGroup
 import org.gradle.api.problems.ProblemGroup
+import org.gradle.api.problems.ProblemGroups
 import org.gradle.api.problems.ProblemId
 import org.gradle.internal.isolation.IsolatableFactory
 import org.gradle.internal.problems.NoOpProblemDiagnosticsFactory
@@ -31,6 +34,14 @@ class DefaultProblemBuilderTest extends Specification {
 
     def problemGroup = ProblemGroup.create("group", "label")
     def problemId = ProblemId.create('id', 'Problem Id', problemGroup)
+    def buildLogicGroup = ProblemGroup.create('Build Logic', 'Build Logic')
+    def groups = Stub(ProblemGroups) {
+        getGradle() >> Stub(GradleProblemGroup) {
+            getBuildLogic() >> Stub(GradleSecondLevelProblemGroup) {
+                problemId(_) >> { String name -> new DefaultProblemId(name, name, buildLogicGroup) }
+            }
+        }
+    }
 
     def 'additionalData accepts GeneralDataInternalSpec'() {
         given:
@@ -49,7 +60,7 @@ class DefaultProblemBuilderTest extends Specification {
     }
 
     DefaultProblemBuilder createProblemBuilder() {
-        new DefaultProblemBuilder(new ProblemsInfrastructure(new AdditionalDataBuilderFactory(), Mock(Instantiator.class), Mock(PayloadSerializer.class), Mock(IsolatableFactory), Mock(IsolatableToBytesSerializer), EMPTY_STREAM))
+        new DefaultProblemBuilder(new ProblemsInfrastructure(new AdditionalDataBuilderFactory(), Mock(Instantiator.class), Mock(PayloadSerializer.class), Mock(IsolatableFactory), Mock(IsolatableToBytesSerializer), EMPTY_STREAM, groups))
     }
 
     def 'additionalData accepts DeprecationDataInternalSpec'() {
@@ -122,6 +133,17 @@ class DefaultProblemBuilderTest extends Specification {
 
         then:
         data == null
+        problem.definition.id.name == 'Unsupported additional data type in reported problem'
+        problem.definition.id.group == buildLogicGroup
+    }
+
+    def 'problem without id is reported in Build Logic'() {
+        when:
+        def problem = createProblemBuilder().build()
+
+        then:
+        problem.definition.id.name == 'Reported problem has no id'
+        problem.definition.id.group == buildLogicGroup
     }
 
     def "keeps Gradle-owned group instances when building from name and group"() {
