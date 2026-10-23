@@ -90,6 +90,10 @@ class Gradleception(
         params {
             // Override the default commit id so the build steps produce reproducible distribution
             param("env.BUILD_COMMIT_ID", "HEAD")
+            // QUICKCHECK_WITH_GRADLE_BUILT_BY_GRADLE deliberately runs without the configuration cache, and
+            // Isolated Projects cannot be used without it. Opt this build out of IP rather than turn the
+            // configuration cache back on for that step, which was switched off on purpose in #4237.
+            param("enableIsolatedProjects", "false")
         }
 
         if (buildJvm.version != BuildToolBuildJvm.version) {
