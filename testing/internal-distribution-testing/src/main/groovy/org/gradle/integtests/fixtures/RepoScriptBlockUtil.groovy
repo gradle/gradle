@@ -30,6 +30,28 @@ class RepoScriptBlockUtil {
         return !Boolean.parseBoolean(System.getenv("IGNORE_MIRROR"))
     }
 
+    private static String mirrorUrl(String name) {
+        String mirrorUrl = System.getProperty("org.gradle.integtest.mirrors." + name)
+        if (mirrorUrl || !isMirrorEnabled()) {
+            return mirrorUrl
+        }
+        return repoMirrorUrlsFromEnvironment()[name]
+    }
+
+    private static Map<String, String> repoMirrorUrlsFromEnvironment() {
+        Map<String, String> result = [:]
+        String repoMirrorUrls = System.getenv("REPO_MIRROR_URLS")
+        if (repoMirrorUrls) {
+            repoMirrorUrls.split(',').each { String nameToUrl ->
+                String[] parts = nameToUrl.split(':', 2)
+                if (parts.length == 2) {
+                    result[parts[0]] = parts[1]
+                }
+            }
+        }
+        return result
+    }
+
     static String repositoryDefinition(GradleDsl dsl = GROOVY, String type, String name, String url) {
         if (dsl == KOTLIN) {
             """
@@ -49,19 +71,19 @@ class RepoScriptBlockUtil {
     }
 
     private static enum MirroredRepository {
-        MAVEN_CENTRAL(MAVEN_CENTRAL_URL, System.getProperty('org.gradle.integtest.mirrors.mavencentral'), "maven"),
-        GOOGLE(GOOGLE_URL, System.getProperty('org.gradle.integtest.mirrors.google'), "maven"),
-        LIGHTBEND_MAVEN("https://repo.lightbend.com/lightbend/maven-releases", System.getProperty('org.gradle.integtest.mirrors.lightbendmaven'), "maven"),
-        LIGHTBEND_IVY("https://repo.lightbend.com/lightbend/ivy-releases", System.getProperty('org.gradle.integtest.mirrors.lightbendivy'), "ivy"),
-        SPRING_RELEASES('https://repo.spring.io/release', System.getProperty('org.gradle.integtest.mirrors.springreleases'), 'maven'),
-        SPRING_SNAPSHOTS('https://repo.spring.io/snapshot/', System.getProperty('org.gradle.integtest.mirrors.springsnapshots'), 'maven'),
-        GRADLE('https://repo.gradle.org/gradle/repo', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
-        JBOSS('https://repository.jboss.org/maven2/', System.getProperty('org.gradle.integtest.mirrors.jboss'), 'maven'),
-        GRADLE_PLUGIN("https://plugins.gradle.org/m2", System.getProperty('org.gradle.integtest.mirrors.gradle-prod-plugins'), 'maven'),
-        GRADLE_LIB_RELEASES('https://repo.gradle.org/gradle/libs-releases', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
-        GRADLE_LIB_MILESTONES('https://repo.gradle.org/gradle/libs-milestones', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
-        GRADLE_LIB_SNAPSHOTS('https://repo.gradle.org/gradle/libs-snapshots', System.getProperty('org.gradle.integtest.mirrors.gradle'), 'maven'),
-        GRADLE_JAVASCRIPT('https://repo.gradle.org/gradle/javascript-public', System.getProperty('org.gradle.integtest.mirrors.gradlejavascript'), 'maven')
+        MAVEN_CENTRAL(MAVEN_CENTRAL_URL, mirrorUrl('mavencentral'), "maven"),
+        GOOGLE(GOOGLE_URL, mirrorUrl('google'), "maven"),
+        LIGHTBEND_MAVEN("https://repo.lightbend.com/lightbend/maven-releases", mirrorUrl('lightbendmaven'), "maven"),
+        LIGHTBEND_IVY("https://repo.lightbend.com/lightbend/ivy-releases", mirrorUrl('lightbendivy'), "ivy"),
+        SPRING_RELEASES('https://repo.spring.io/release', mirrorUrl('springreleases'), 'maven'),
+        SPRING_SNAPSHOTS('https://repo.spring.io/snapshot/', mirrorUrl('springsnapshots'), 'maven'),
+        GRADLE('https://repo.gradle.org/gradle/repo', mirrorUrl('gradle'), 'maven'),
+        JBOSS('https://repository.jboss.org/maven2/', mirrorUrl('jboss'), 'maven'),
+        GRADLE_PLUGIN("https://plugins.gradle.org/m2", mirrorUrl('gradle-prod-plugins'), 'maven'),
+        GRADLE_LIB_RELEASES('https://repo.gradle.org/gradle/libs-releases', mirrorUrl('gradle'), 'maven'),
+        GRADLE_LIB_MILESTONES('https://repo.gradle.org/gradle/libs-milestones', mirrorUrl('gradle'), 'maven'),
+        GRADLE_LIB_SNAPSHOTS('https://repo.gradle.org/gradle/libs-snapshots', mirrorUrl('gradle'), 'maven'),
+        GRADLE_JAVASCRIPT('https://repo.gradle.org/gradle/javascript-public', mirrorUrl('gradlejavascript'), 'maven')
 
         String originalUrl
         String mirrorUrl
