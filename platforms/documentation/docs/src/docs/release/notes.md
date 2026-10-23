@@ -73,6 +73,43 @@ vvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvvv -->
 ### Configuration Cache improvements
 Gradle provides a [Configuration Cache](userguide/configuration_cache.html) that improves build time by caching the result of the configuration phase and reusing it for subsequent builds.
 
+#### Task lifecycle listeners
+
+`TaskExecutionListener`, `TaskActionListener`, and `gradle.taskGraph.beforeTask`/`afterTask` cannot be used with the Configuration Cache.
+`OperationCompletionListener` replaces them for observing task results, but some use cases need code that runs on the task's thread right before and after the task executes:
+enriching task failures with task-specific details, releasing resources even when the task fails, setting up thread-local context for the task, or vetoing a task before it runs.
+
+This release introduces [`TaskLifecycleListener`](javadoc/org/gradle/api/tasks/TaskLifecycleListener.html), a Configuration Cache-compatible replacement for these listeners.
+A listener is a class registered with a task by type.
+Gradle creates a new instance of it for each task execution, so instance fields can carry state from `beforeExecution` to `afterExecution`:
+
+```kotlin
+abstract class TaskTimingListener : TaskLifecycleListener<Task> {
+    @get:ServiceReference("taskTimings")
+    abstract val timings: Property<TaskTimingsService>
+
+    private var startNanos = 0L
+
+    override fun beforeExecution(task: Task) {
+        startNanos = System.nanoTime()
+    }
+
+    override fun afterExecution(task: Task, state: TaskState) {
+        timings.get().record(task.path, System.nanoTime() - startNanos)
+    }
+}
+
+tasks.configureEach {
+    addLifecycleListener(TaskTimingListener::class.java)
+}
+```
+
+Listeners are called for every scheduled task, including up-to-date, skipped, and cached tasks.
+Build services referenced by a listener via `@ServiceReference` are used by the task as if the task referenced them, so they honor `maxParallelUsages`.
+Only the listener types are stored in the Configuration Cache.
+
+See the [Configuration Cache requirements](userguide/configuration_cache_requirements.html#config_cache:requirements:task_lifecycle_listeners) for more details.
+
 ### Test reporting and execution
 Gradle provides a [set of features and abstractions](userguide/java_testing.html) for testing JVM code, along with test reports to display results.
 

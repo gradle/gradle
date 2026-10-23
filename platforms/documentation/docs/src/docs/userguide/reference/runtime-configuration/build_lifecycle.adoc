@@ -416,6 +416,10 @@ Many `BuildListeners` are deprecated and/or are *not* Configuration Cache friend
 | Fires before and after each task executes.
 | ❌
 
+| (Incubating) link:{javadocPath}/org/gradle/api/tasks/TaskLifecycleListener.html[`TaskLifecycleListener`]
+| Fires before and after the execution of the task it is registered with.
+| ✅
+
 | (Deprecated) link:{javadocPath}/org/gradle/api/execution/TaskExecutionGraphListener.html[`TaskExecutionGraphListener`]
 | Fires when the task execution graph has been populated.
 | ❌
