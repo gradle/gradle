@@ -19,7 +19,6 @@ package org.gradle.api.internal.artifacts.ivyservice.ivyresolve
 import org.gradle.api.artifacts.ComponentSelection
 import org.gradle.api.internal.artifacts.ComponentSelectionRulesInternal
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
-import org.gradle.api.internal.artifacts.DefaultModuleVersionIdentifier
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionComparator
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.DefaultVersionSelectorScheme
 import org.gradle.api.internal.artifacts.ivyservice.ivyresolve.strategy.VersionParser
@@ -51,13 +50,13 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
     def "chooses latest version for component meta data"() {
         def one = Stub(ExternalModuleComponentGraphResolveMetadata) {
-            getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
+            getId() >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "name"), "1.0")
         }
         def two = Stub(ExternalModuleComponentGraphResolveMetadata) {
-            getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.1")
+            getId() >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "name"), "1.1")
         }
         def three = Stub(ExternalModuleComponentGraphResolveMetadata) {
-            getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.2")
+            getId() >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "name"), "1.2")
         }
 
         when:
@@ -75,10 +74,10 @@ class DefaultVersionedComponentChooserTest extends Specification {
 
     def "chooses non-generated descriptor over generated"() {
         def one = Mock(ExternalModuleComponentGraphResolveMetadata) {
-            getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
+            getId() >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "name"), "1.0")
         }
         def two = Mock(ExternalModuleComponentGraphResolveMetadata) {
-            getModuleVersionId() >> DefaultModuleVersionIdentifier.newId("group", "name", "1.0")
+            getId() >> DefaultModuleComponentIdentifier.newId(DefaultModuleIdentifier.newId("group", "name"), "1.0")
         }
 
         when:

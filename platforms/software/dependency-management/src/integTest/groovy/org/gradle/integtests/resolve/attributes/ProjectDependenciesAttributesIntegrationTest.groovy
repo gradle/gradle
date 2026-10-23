@@ -196,7 +196,7 @@ class ProjectDependenciesAttributesIntegrationTest extends AbstractIntegrationSp
                 }
             }
         } else {
-            failure.assertHasCause("""Multiple incompatible variants of test:producer:unspecified were selected:
+            failure.assertHasCause("""Multiple incompatible variants of project ':producer' were selected:
    - Variant blueVariant has attributes {color=blue}
    - Variant redVariant has attributes {color=red}""")
         }

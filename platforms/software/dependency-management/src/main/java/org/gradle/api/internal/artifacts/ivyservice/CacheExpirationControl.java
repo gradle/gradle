@@ -19,40 +19,24 @@ package org.gradle.api.internal.artifacts.ivyservice;
 import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.Action;
-import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
-import org.gradle.api.artifacts.ResolvedModuleVersion;
-import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
 import org.gradle.api.internal.artifacts.cache.ArtifactResolutionControl;
 import org.gradle.api.internal.artifacts.cache.DependencyResolutionControl;
 import org.gradle.api.internal.artifacts.cache.ModuleResolutionControl;
-import org.gradle.internal.component.external.model.ModuleComponentArtifactMetadata;
 
-import java.io.File;
 import java.time.Duration;
-import java.util.Set;
 
 /**
  * Determines whether cached external artifacts and metadata should be considered expired.
  */
 public interface CacheExpirationControl {
 
-    Expiry versionListExpiry(ModuleIdentifier moduleIdentifier, Set<ModuleVersionIdentifier> moduleVersions, Duration age);
+    Expiry versionListExpiry(boolean hasVersions, Duration age);
 
-    Expiry missingModuleExpiry(ModuleComponentIdentifier component, Duration age);
+    Expiry moduleExpiry(Duration age, boolean changing);
 
-    Expiry moduleExpiry(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, Duration age);
+    Expiry moduleArtifactsExpiry(Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync);
 
-    Expiry moduleExpiry(ResolvedModuleVersion resolvedModuleVersion, Duration age, boolean changing);
-
-    Expiry moduleArtifactsExpiry(
-        ModuleVersionIdentifier moduleVersionId, Set<ModuleComponentArtifactMetadata> artifacts,
-        Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync
-    );
-
-    Expiry artifactExpiry(ModuleComponentArtifactMetadata artifactMetadata, File cachedArtifactFile, Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync);
-
-    Expiry changingModuleExpiry(ModuleComponentIdentifier component, ResolvedModuleVersion resolvedModuleVersion, Duration age);
+    Expiry artifactExpiry(boolean missing, Duration age, boolean belongsToChangingModule, boolean moduleDescriptorInSync);
 
     @VisibleForTesting
     ImmutableList<Action<? super DependencyResolutionControl>> getDependencyCacheRules();

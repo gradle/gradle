@@ -16,7 +16,6 @@
 
 package org.gradle.internal.cc.impl.fingerprint
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.ivyservice.CacheExpirationControl
@@ -194,12 +193,8 @@ internal class ConfigurationCacheFingerprintEventHandler(
         delegate?.startParameterProjectPropertiesObserved()
     }
 
-    override fun onDynamicVersionSelection(
-        requested: ModuleComponentSelector,
-        expiry: CacheExpirationControl.Expiry,
-        versions: Set<ModuleVersionIdentifier>
-    ) {
-        delegate?.onDynamicVersionSelection(requested, expiry, versions)
+    override fun onDynamicVersionSelection(requested: ModuleComponentSelector, expiry: CacheExpirationControl.Expiry) {
+        delegate?.onDynamicVersionSelection(requested, expiry)
     }
 
     override fun onChangingModuleResolve(moduleId: ModuleComponentIdentifier, expiry: CacheExpirationControl.Expiry) {

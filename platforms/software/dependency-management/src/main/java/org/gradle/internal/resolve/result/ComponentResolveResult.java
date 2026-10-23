@@ -15,7 +15,6 @@
  */
 package org.gradle.internal.resolve.result;
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.internal.component.model.ComponentGraphResolveState;
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState;
@@ -31,15 +30,10 @@ public interface ComponentResolveResult extends ResolveResult {
 
     /**
      * Returns the identifier of the component.
-     */
-    ComponentIdentifier getId();
-
-    /**
-     * Returns the module version id of the component.
      *
      * @throws org.gradle.internal.resolve.ModuleVersionResolveException If resolution was unsuccessful and the id is unknown.
      */
-    ModuleVersionIdentifier getModuleVersionId() throws ModuleVersionResolveException;
+    ComponentIdentifier getId();
 
     /**
      * Returns the graph resolution state for the component.
@@ -61,4 +55,5 @@ public interface ComponentResolveResult extends ResolveResult {
     @Override
     @Nullable
     ModuleVersionResolveException getFailure();
+
 }
