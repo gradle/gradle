@@ -1158,6 +1158,24 @@ The value of this property is derived from: <source>""")
         "getOrElse" | _
     }
 
+    def "size is zero when property has no value"() {
+        given:
+        property.set((Iterable) null)
+
+        expect:
+        !property.present
+        property.size() == 0
+    }
+
+    def "size is zero when property is set to provider with no value"() {
+        given:
+        property.set(notDefined())
+
+        expect:
+        !property.present
+        property.size() == 0
+    }
+
     def "does not run side effect when calling 'size'"() {
         def sideEffect1 = Mock(ValueSupplier.SideEffect)
         def sideEffect2 = Mock(ValueSupplier.SideEffect)

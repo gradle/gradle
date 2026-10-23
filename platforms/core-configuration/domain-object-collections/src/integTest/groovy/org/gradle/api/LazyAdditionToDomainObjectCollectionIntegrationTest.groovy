@@ -354,6 +354,32 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         factory << ["domainObjectSet", "namedDomainObjectSet", "namedDomainObjectList"]
     }
 
+    def "can configure elements of subtype of #factory when provider added with addAllLater has no value"() {
+        buildFile """
+            ${namedThing}
+            class SubThing extends NamedThing {
+                SubThing(String name) {
+                    super(name)
+                }
+            }
+
+            def collection = objects.${factory}(NamedThing)
+            collection.add(new SubThing("s"))
+            collection.addAllLater(provider { null })
+
+            collection.withType(SubThing) { println "configured " + it }
+            println "read = " + collection.toList()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("configured s")
+        outputContains("read = [s]")
+
+        where:
+        factory << ["domainObjectSet", "namedDomainObjectSet", "namedDomainObjectList"]
+    }
+
     def "size of domain object set does not count duplicates of values added with addAllLater"() {
         buildFile """
             def set = objects.domainObjectSet(String)
