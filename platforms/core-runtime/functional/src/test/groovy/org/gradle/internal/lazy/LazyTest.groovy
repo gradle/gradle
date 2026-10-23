@@ -376,7 +376,7 @@ class LazyTest extends Specification {
         "fixed -> fixed"     | { -> Lazy.fixed(5) }           | { input -> Lazy.fixed(input + 25) }           | true              | true
     }
 
-    def "flat mapped lazy is not initialized until the second lazy is read"() {
+    def "flat mapped lazy is not initialized until it is read, even once both of its lazies are"() {
         def first = Lazy.locking().of { 5 }
         def second = Lazy.locking().of { 30 }
         def composed = first.flatMap { second }
@@ -387,12 +387,17 @@ class LazyTest extends Specification {
         !composed.isInitialized()
         !second.isInitialized()
 
+        when: "the second lazy is read directly"
+        second.get()
+        then: "the composed lazy is still not initialized, as it has not called the mapper yet"
+        second.isInitialized()
+        !composed.isInitialized()
+
         when: "the composed lazy is read"
         def result = composed.get()
         then: "it is initialized"
         result == 30
         composed.isInitialized()
-        second.isInitialized()
     }
 
     /*

@@ -25,10 +25,10 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.Resol
 import org.gradle.api.internal.attributes.ImmutableAttributes;
 import org.gradle.api.internal.file.FileCollectionInternal;
 import org.gradle.api.internal.file.FileCollectionStructureVisitor;
-import org.gradle.internal.Deferrable;
 import org.gradle.internal.DisplayName;
 import org.gradle.internal.Try;
 import org.gradle.internal.component.external.model.ImmutableCapabilities;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationQueue;
@@ -91,7 +91,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         private final ImmutableAttributes target;
         private final List<BoundTransformStep> transformSteps;
         private Try<TransformStepSubject> transformedSubject;
-        private Deferrable<Try<TransformStepSubject>> invocation;
+        private Lazy<Try<TransformStepSubject>> invocation;
 
         public TransformedArtifact(
             DisplayName artifactSetName,
@@ -186,12 +186,12 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                 return false;
             }
 
-            Deferrable<Try<TransformStepSubject>> invocation = createInvocation();
+            Lazy<Try<TransformStepSubject>> invocation = createInvocation();
             synchronized (this) {
                 this.invocation = invocation;
-                if (invocation.getCompleted().isPresent()) {
+                if (invocation.isInitialized()) {
                     // Have already executed the transform, no need to execute
-                    transformedSubject = invocation.getCompleted().get();
+                    transformedSubject = invocation.get();
                     return false;
                 } else {
                     // Have not executed the transform, should execute
@@ -220,7 +220,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                 return noInputResult;
             }
 
-            Deferrable<Try<TransformStepSubject>> invocation;
+            Lazy<Try<TransformStepSubject>> invocation;
             synchronized (this) {
                 invocation = this.invocation;
             }
@@ -228,7 +228,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             if (invocation == null) {
                 invocation = createInvocation();
             }
-            Try<TransformStepSubject> result = invocation.completeAndGet();
+            Try<TransformStepSubject> result = invocation.get();
             synchronized (this) {
                 transformedSubject = result;
                 return result;
@@ -252,10 +252,10 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             return result;
         }
 
-        private Deferrable<Try<TransformStepSubject>> createInvocation() {
+        private Lazy<Try<TransformStepSubject>> createInvocation() {
             TransformStepSubject initialSubject = TransformStepSubject.initial(artifact);
             BoundTransformStep initialStep = transformSteps.get(0);
-            Deferrable<Try<TransformStepSubject>> invocation = initialStep.getTransformStep()
+            Lazy<Try<TransformStepSubject>> invocation = initialStep.getTransformStep()
                 .createInvocation(initialSubject, initialStep.getUpstreamDependencies(), null);
             for (int i = 1; i < transformSteps.size(); i++) {
                 BoundTransformStep nextStep = transformSteps.get(i);
@@ -263,7 +263,7 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                     .flatMap(intermediateResult -> intermediateResult
                         .map(intermediateSubject -> nextStep.getTransformStep()
                             .createInvocation(intermediateSubject, nextStep.getUpstreamDependencies(), null))
-                        .getOrMapFailure(failure -> Deferrable.completed(Try.failure(failure))));
+                        .getOrMapFailure(failure -> Lazy.fixed(Try.failure(failure))));
             }
             return invocation;
         }
