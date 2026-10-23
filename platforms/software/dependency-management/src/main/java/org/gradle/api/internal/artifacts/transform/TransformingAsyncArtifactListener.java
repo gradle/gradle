@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.artifacts.transform;
 
+import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.gradle.internal.component.model.VariantIdentifier;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.ArtifactVisitor;
@@ -37,6 +38,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.io.File;
 import java.util.List;
+import java.util.Optional;
 
 public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Visitor {
     private final List<BoundTransformStep> transformSteps;
@@ -90,8 +92,8 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         private final ResolvableArtifact artifact;
         private final ImmutableAttributes target;
         private final List<BoundTransformStep> transformSteps;
-        private Try<TransformStepSubject> transformedSubject;
-        private Deferrable<Try<TransformStepSubject>> invocation;
+        private @Nullable Try<ImmutableList<File>> transformedFiles;
+        private @Nullable Deferrable<Try<TransformStepSubject>> invocation;
 
         public TransformedArtifact(
             DisplayName artifactSetName,
@@ -160,12 +162,17 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
             finalizeValue();
         }
 
+        @VisibleForTesting
+        synchronized boolean hasPendingInvocation() {
+            return invocation != null;
+        }
+
         /**
          * Returns true if this artifact should be queued for execution, false when a value is already available.
          */
         private boolean prepareInvocation() {
             synchronized (this) {
-                if (transformedSubject != null) {
+                if (transformedFiles != null) {
                     // Already have a result, no need to execute
                     return false;
                 }
@@ -175,11 +182,9 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
                 return true;
             }
             if (!artifact.getFileSource().getValue().isSuccessful()) {
-                synchronized (this) {
-                    // Failed to resolve input artifact, no need to execute
-                    transformedSubject = Try.failure(artifact.getFileSource().getValue().getFailure().get());
-                    return false;
-                }
+                // Failed to resolve input artifact, no need to execute
+                storeResult(Try.failure(artifact.getFileSource().getValue().getFailure().get()));
+                return false;
             }
             if (handleOptionalInputArtifact() != null) {
                 // Optional input artifact does not exist, nothing to transform
@@ -188,33 +193,37 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
 
             Deferrable<Try<TransformStepSubject>> invocation = createInvocation();
             synchronized (this) {
-                this.invocation = invocation;
-                if (invocation.getCompleted().isPresent()) {
+                if (transformedFiles != null) {
+                    // Another thread stored a result while we were creating the invocation, so drop ours,
+                    // as nothing would ever release it if we kept it
+                    return false;
+                }
+                Optional<Try<TransformStepSubject>> completed = invocation.getCompleted();
+                if (completed.isPresent()) {
                     // Have already executed the transform, no need to execute
-                    transformedSubject = invocation.getCompleted().get();
+                    storeResult(completed.get().map(TransformStepSubject::getFiles));
                     return false;
                 } else {
                     // Have not executed the transform, should execute
+                    this.invocation = invocation;
                     return true;
                 }
             }
         }
 
-        private Try<TransformStepSubject> finalizeValue() {
+        private Try<ImmutableList<File>> finalizeValue() {
             synchronized (this) {
-                if (transformedSubject != null) {
-                    return transformedSubject;
+                Try<ImmutableList<File>> currentFiles = transformedFiles;
+                if (currentFiles != null) {
+                    return currentFiles;
                 }
             }
 
             artifact.getFileSource().finalizeIfNotAlready();
             if (!artifact.getFileSource().getValue().isSuccessful()) {
-                synchronized (this) {
-                    transformedSubject = Try.failure(artifact.getFileSource().getValue().getFailure().get());
-                    return transformedSubject;
-                }
+                return storeResult(Try.failure(artifact.getFileSource().getValue().getFailure().get()));
             }
-            Try<TransformStepSubject> noInputResult = handleOptionalInputArtifact();
+            Try<ImmutableList<File>> noInputResult = handleOptionalInputArtifact();
             if (noInputResult != null) {
                 // Optional input artifact does not exist, nothing to transform
                 return noInputResult;
@@ -222,34 +231,45 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
 
             Deferrable<Try<TransformStepSubject>> invocation;
             synchronized (this) {
+                Try<ImmutableList<File>> currentFiles = transformedFiles;
+                if (currentFiles != null) {
+                    // Another thread stored a result since the first check and released the invocation, so use that result
+                    // instead of creating a new invocation and running the transform again
+                    return currentFiles;
+                }
                 invocation = this.invocation;
             }
 
             if (invocation == null) {
                 invocation = createInvocation();
             }
-            Try<TransformStepSubject> result = invocation.completeAndGet();
-            synchronized (this) {
-                transformedSubject = result;
-                return result;
-            }
+            return storeResult(invocation.completeAndGet().map(TransformStepSubject::getFiles));
         }
 
         /**
          * Handles an optional input artifact that does not exist. Transforming such an artifact
          * results in no output files.
          *
-         * @return the transformed subject if the input artifact is optional and does not exist, or null otherwise.
+         * @return the transformed files if the input artifact is optional and does not exist, or null otherwise.
          */
-        private @Nullable Try<TransformStepSubject> handleOptionalInputArtifact() {
+        private @Nullable Try<ImmutableList<File>> handleOptionalInputArtifact() {
             if (artifact.getFileSource().get() != null) {
                 return null;
             }
-            Try<TransformStepSubject> result = Try.successful(TransformStepSubject.initial(artifact).createSubjectFromResult(ImmutableList.of()));
-            synchronized (this) {
-                transformedSubject = result;
+            return storeResult(Try.successful(ImmutableList.of()));
+        }
+
+        private synchronized Try<ImmutableList<File>> storeResult(Try<ImmutableList<File>> result) {
+            // The first stored result wins, so every caller sees the same result
+            Try<ImmutableList<File>> currentFiles = transformedFiles;
+            if (currentFiles == null) {
+                currentFiles = result;
+                transformedFiles = result;
             }
-            return result;
+            // We only need the files from here on, so the invocation is cleared,
+            // since it can keep the whole transform execution alive for as long as this artifact is cached
+            invocation = null;
+            return currentFiles;
         }
 
         private Deferrable<Try<TransformStepSubject>> createInvocation() {
@@ -272,10 +292,10 @@ public class TransformingAsyncArtifactListener implements ResolvedArtifactSet.Vi
         public void visit(ArtifactVisitor visitor) {
             // The last step produces the output being queried, the earlier steps only its intermediate results
             transformSteps.get(transformSteps.size() - 1).getTransformStep().deprecateIfQueriedFromTransformAction();
-            Try<TransformStepSubject> transformedSubject = finalizeValue();
-            transformedSubject.ifSuccessfulOrElse(
-                subject -> {
-                    for (File output : subject.getFiles()) {
+            Try<ImmutableList<File>> transformedFiles = finalizeValue();
+            transformedFiles.ifSuccessfulOrElse(
+                files -> {
+                    for (File output : files) {
                         ResolvableArtifact resolvedArtifact = artifact.transformedTo(output);
                         visitor.visitArtifact(artifactSetName, sourceVariantId, target, capabilities, resolvedArtifact);
                     }
