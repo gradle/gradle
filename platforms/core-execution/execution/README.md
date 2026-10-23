@@ -197,7 +197,7 @@ This can cause transforms with the same identity to be invoked several times, of
 (Think of "minimize the Guava JAR" that is invoked for every subproject requiring Guava.)
 
 To handle this use case and make sure there is no race condition the execution engine has a "deferred" path.
-In this mode the execution engine will return eagerly with a `Deferrable<T>` that either holds an already cached result, or it can be completed synchronously at a later time.
+In this mode the execution engine will return eagerly with a `Lazy<T>` that either holds an already cached result, or it can be completed synchronously at a later time.
 When work is completed, it gets stored in the identity cache.
 When execution happens via the synchronous, non-deferred way, the identity cache is ignored.
 

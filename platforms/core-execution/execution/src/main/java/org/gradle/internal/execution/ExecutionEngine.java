@@ -20,10 +20,10 @@ import com.google.common.annotations.VisibleForTesting;
 import com.google.common.collect.ImmutableList;
 import org.gradle.cache.Cache;
 import org.gradle.caching.internal.origin.OriginMetadata;
-import org.gradle.internal.Deferrable;
 import org.gradle.internal.Try;
 import org.gradle.internal.execution.caching.CachingState;
 import org.gradle.internal.execution.history.ExecutionOutputState;
+import org.gradle.internal.lazy.Lazy;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -54,11 +54,11 @@ public interface ExecutionEngine {
         /**
          * Load the unit of work from the given cache, or defer its execution.
          *
-         * If the cache already contains the outputs for the given work, an already finished {@link Deferrable} will be returned.
-         * Otherwise, the execution is wrapped in a not-yet-complete {@link Deferrable} to be evaluated later.
+         * If the cache already contains the outputs for the given work, an already initialized {@link Lazy} will be returned.
+         * Otherwise, the execution is wrapped in a not-yet-initialized {@link Lazy} to be evaluated later.
          * The work is looked up by its {@link Identity identity} in the given cache.
          */
-        <T> Deferrable<Try<T>> executeDeferred(Cache<Identity, DeferredResult<T>> cache);
+        <T> Lazy<Try<T>> executeDeferred(Cache<Identity, DeferredResult<T>> cache);
     }
 
     interface Result {
