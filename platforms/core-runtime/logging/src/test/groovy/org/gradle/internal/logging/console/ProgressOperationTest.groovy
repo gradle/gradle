@@ -16,6 +16,7 @@
 package org.gradle.internal.logging.console
 
 import org.gradle.internal.operations.OperationIdentifier
+import spock.lang.Issue
 import spock.lang.Specification
 
 class ProgressOperationTest extends Specification {
@@ -45,12 +46,43 @@ class ProgressOperationTest extends Specification {
         progressOperation.addChild(mockOperation)
 
         then:
-        progressOperation.hasChildren()
+        progressOperation.hasChildrenOtherThanWorkActions()
 
         when:
         progressOperation.removeChild(mockOperation)
 
         then:
-        !progressOperation.hasChildren()
+        !progressOperation.hasChildrenOtherThanWorkActions()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39544")
+    def "does not count work actions as other children"() {
+        given:
+        def progressOperation = new ProgressOperation("STATUS", "VARIANT_CATEGORY", new OperationIdentifier(1), null)
+        def workAction = new ProgressOperation("WORK", "VARIANT_CATEGORY", new OperationIdentifier(2), progressOperation, true)
+
+        when:
+        progressOperation.addChild(workAction)
+
+        then:
+        !progressOperation.hasChildrenOtherThanWorkActions()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39544")
+    def "shows its work actions from the second one"() {
+        given:
+        def progressOperation = new ProgressOperation("STATUS", "VARIANT_CATEGORY", new OperationIdentifier(1), null)
+
+        when:
+        progressOperation.addChild(new ProgressOperation("A", "VARIANT_CATEGORY", new OperationIdentifier(2), progressOperation, true))
+
+        then:
+        !progressOperation.showsWorkActions()
+
+        when:
+        progressOperation.addChild(new ProgressOperation("B", "VARIANT_CATEGORY", new OperationIdentifier(3), progressOperation, true))
+
+        then:
+        progressOperation.showsWorkActions()
     }
 }
