@@ -29,9 +29,9 @@ public class BuildScanReportGenerator extends AbstractReportGenerator<BuildScanR
         executionDataProvider.getReportScenarios()
             .forEach(scenario -> {
                 if (scenario.isBuildFailed()) {
-                    failureCollector.scenarioFailed();
+                    failureCollector.scenarioFailed(scenario);
                 } else if (scenario.isRegressed()) {
-                    failureCollector.scenarioRegressed();
+                    failureCollector.scenarioRegressed(scenario);
                 }
             });
     }

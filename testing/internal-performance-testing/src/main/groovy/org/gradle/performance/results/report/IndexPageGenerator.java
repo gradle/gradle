@@ -39,18 +39,20 @@ import static org.gradle.performance.results.report.Tag.FixedTag.UNKNOWN;
 import static org.gradle.performance.results.report.Tag.FixedTag.UNTAGGED;
 
 public class IndexPageGenerator extends AbstractTablePageGenerator {
-    public IndexPageGenerator(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider) {
+    private final AbstractReportGenerator.FailureCollector failureCollector;
+
+    public IndexPageGenerator(PerformanceFlakinessDataProvider flakinessDataProvider, PerformanceExecutionDataProvider executionDataProvider, AbstractReportGenerator.FailureCollector failureCollector) {
         super(flakinessDataProvider, executionDataProvider);
+        this.failureCollector = failureCollector;
     }
 
     @Override
     public void render(final ResultsStore store, Writer writer) {
-        long successCount = executionDataProvider.getReportScenarios().stream().filter(PerformanceReportScenario::isSuccessful).count();
+        long failureCount = executionDataProvider.getReportScenarios().stream().filter(failureCollector::failsBuild).count();
         long smallRegressions = executionDataProvider.getReportScenarios().stream()
-            .filter(PerformanceReportScenario::isRegressed)
-            .filter(scenario -> !failsBuild(scenario))
+            .filter(scenario -> failureCollector.getFailure(scenario) == AbstractReportGenerator.Failure.SMALL_FLAKY_REGRESSION)
             .count();
-        long failureCount = executionDataProvider.getReportScenarios().size() - successCount - smallRegressions;
+        long successCount = executionDataProvider.getReportScenarios().size() - failureCount - smallRegressions;
 
         new TableHtml(writer) {
             @Override
@@ -88,11 +90,11 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
                 if (scenario.isFromCache()) {
                     // Not executed in this build chain; any carried-over status is not this chain's outcome.
                     return "alert-success";
+                } else if (failureCollector.failsBuild(scenario)) {
+                    return "alert-danger";
                 } else if (scenario.isUnknown()) {
                     return "alert-dark";
-                } else if (!scenario.isSuccessful()) {
-                    return failsBuild(scenario) ? "alert-danger" : "alert-warning";
-                } else if (scenario.isAboutToRegress()) {
+                } else if (failureCollector.getFailure(scenario) != null || !scenario.isSuccessful() || scenario.isAboutToRegress()) {
                     return "alert-warning";
                 } else if (scenario.isImproved()) {
                     return "alert-success";
@@ -104,6 +106,7 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
             @Override
             protected Set<Tag> determineTags(PerformanceReportScenario scenario) {
                 Set<Tag> result = new HashSet<>();
+                AbstractReportGenerator.Failure failure = failureCollector.getFailure(scenario);
 
                 markFlakyTestInfo(scenario, result);
 
@@ -111,12 +114,10 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
                     // The carried-over JSON may say FAILED, but that verdict belongs to the build that originally
                     // produced the cached result - tag it FROM-CACHE instead of presenting it as this chain's failure.
                     result.add(FROM_CACHE);
+                } else if (failure != null) {
+                    result.add(failure == AbstractReportGenerator.Failure.BUILD_FAILURE ? FAILED : failure.isFailBuild() ? REGRESSED : NEARLY_FAILED);
                 } else if (scenario.isUnknown()) {
                     result.add(UNKNOWN);
-                } else if (scenario.isBuildFailed()) {
-                    result.add(FAILED);
-                } else if (scenario.isRegressed()) {
-                    result.add(failsBuild(scenario) ? REGRESSED : NEARLY_FAILED);
                 } else if (scenario.isAboutToRegress()) {
                     result.add(NEARLY_FAILED);
                 } else if (scenario.isImproved()) {
@@ -170,11 +171,5 @@ public class IndexPageGenerator extends AbstractTablePageGenerator {
                 }
             }
         };
-    }
-
-    private boolean failsBuild(PerformanceReportScenario scenario) {
-        return scenario.getCurrentExecutions().stream()
-            .map(execution -> flakinessDataProvider.getScenarioRegressionResult(scenario.getPerformanceExperiment(), execution))
-            .allMatch(PerformanceFlakinessDataProvider.ScenarioRegressionResult::isFailsBuild);
     }
 }

@@ -63,7 +63,7 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
                 // forks no test JVM and so cannot produce one.
                 if (scenario.isErroredInThisPipeline()) {
                     System.out.println("Scenario errored in this pipeline without producing a measurement: " + scenario.getName());
-                    failureCollector.scenarioFailed();
+                    failureCollector.scenarioFailed(scenario);
                     return;
                 }
                 if (!scenario.isRegressedByMeasurement()) {
@@ -75,11 +75,11 @@ public class DefaultReportGenerator extends AbstractReportGenerator<AllResultsSt
                     .collect(Collectors.toSet());
                 System.out.println("Scenario regressed based on measured results: " + scenario.getName());
                 if (regressionResults.contains(STABLE_REGRESSION)) {
-                    failureCollector.scenarioRegressed();
+                    failureCollector.scenarioRegressed(scenario);
                 } else if (regressionResults.stream().allMatch(BIG_FLAKY_REGRESSION::equals)) {
-                    failureCollector.flakyScenarioWithBigRegression();
+                    failureCollector.flakyScenarioWithBigRegression(scenario);
                 } else {
-                    failureCollector.flakyScenarioWithSmallRegression();
+                    failureCollector.flakyScenarioWithSmallRegression(scenario);
                 }
             });
     }
