@@ -14,9 +14,6 @@
  * limitations under the License.
  */
 
-// TODO: migrate off the legacy Kotlin scripting API, deprecated since Kotlin API version 2.4
-@file:Suppress("DEPRECATION")
-
 package org.gradle.kotlin.dsl.precompile.v1
 
 import org.gradle.api.HasImplicitReceiver
@@ -32,29 +29,24 @@ import org.gradle.kotlin.dsl.support.DefaultKotlinScript
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForGradle
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForProject
 import org.gradle.kotlin.dsl.support.defaultKotlinScriptHostForSettings
+import org.gradle.kotlin.dsl.support.scriptResolverEnvironmentOf
 import org.gradle.kotlin.dsl.support.textOf
 import org.gradle.plugin.use.PluginDependenciesSpec
 import org.gradle.plugin.use.PluginDependency
 import org.gradle.plugin.use.PluginDependencySpec
 import org.jetbrains.kotlin.scripting.definitions.annotationsForSamWithReceivers
-import org.jetbrains.kotlin.scripting.definitions.getEnvironment
-import kotlin.script.dependencies.Environment
 import kotlin.script.experimental.annotations.KotlinScript
 import kotlin.script.experimental.api.KotlinType
 import kotlin.script.experimental.api.ScriptCompilationConfiguration
-import kotlin.script.experimental.api.ScriptConfigurationRefinementContext
 import kotlin.script.experimental.api.SourceCode
 import kotlin.script.experimental.api.asSuccess
 import kotlin.script.experimental.api.baseClass
 import kotlin.script.experimental.api.defaultImports
-import kotlin.script.experimental.api.hostConfiguration
 import kotlin.script.experimental.api.implicitReceivers
 import kotlin.script.experimental.api.isStandalone
 import kotlin.script.experimental.api.refineConfiguration
 import kotlin.script.experimental.api.with
 import kotlin.script.experimental.host.FileBasedScriptSource
-import kotlin.script.experimental.host.ScriptingHostConfiguration
-import kotlin.script.extensions.SamWithReceiverAnnotations
 
 
 /**
@@ -92,7 +84,6 @@ object PrecompiledPluginsBlockCompilationConfiguration : ScriptCompilationConfig
     fileExtension = "init.gradle.kts",
     compilationConfiguration = PrecompiledInitScriptCompilationConfiguration::class
 )
-@SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 open class PrecompiledInitScript(
     target: Gradle
@@ -108,7 +99,6 @@ open class PrecompiledInitScript(
     fileExtension = "settings.gradle.kts",
     compilationConfiguration = PrecompiledSettingsScriptCompilationConfiguration::class
 )
-@SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 open class PrecompiledSettingsScript(
     target: Settings
@@ -166,7 +156,6 @@ open class PrecompiledSettingsScript(
     fileExtension = "gradle.kts",
     compilationConfiguration = PrecompiledProjectScriptCompilationConfiguration::class
 )
-@SamWithReceiverAnnotations("org.gradle.api.HasImplicitReceiver")
 @GradleDsl
 open class PrecompiledProjectScript(
     target: Project
@@ -260,14 +249,6 @@ fun scriptFileNameOf(script: SourceCode): String? =
     (script as? FileBasedScriptSource)?.file?.name
         ?: script.name
         ?: script.locationId?.substringAfterLast('/')?.substringAfterLast('\\')
-
-
-private
-fun scriptResolverEnvironmentOf(context: ScriptConfigurationRefinementContext): Environment? =
-    context
-        .compilationConfiguration[ScriptCompilationConfiguration.hostConfiguration]
-        ?.get(ScriptingHostConfiguration.getEnvironment)
-        ?.invoke()
 
 
 private

@@ -14,7 +14,6 @@
  * limitations under the License.
  */
 
-// TODO: migrate off the legacy Kotlin scripting API, deprecated since Kotlin API version 2.4
 @file:Suppress("DEPRECATION", "DEPRECATION_ERROR")
 
 package org.gradle.kotlin.dsl.resolver
@@ -22,7 +21,6 @@ package org.gradle.kotlin.dsl.resolver
 import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.kotlin.dsl.fixtures.AbstractKotlinIntegrationTest
-import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.hamcrest.CoreMatchers.equalTo
@@ -36,7 +34,6 @@ import org.junit.Assert.assertSame
 import org.junit.Assert.assertTrue
 import org.junit.Before
 import org.junit.Test
-import org.junit.experimental.categories.Category
 import org.mockito.kotlin.doReturn
 import org.mockito.kotlin.mock
 import java.io.File
