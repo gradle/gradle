@@ -32,10 +32,16 @@ public final class WorkerLineOperation implements RunnableBuildOperation {
     private final Runnable work;
 
     public WorkerLineOperation(Path buildPath, String displayName, String lineText, Runnable work) {
-        boolean rootBuild = Path.ROOT.equals(buildPath);
-        this.displayName = rootBuild ? displayName : displayName + " (" + buildPath.asString() + ")";
-        this.lineText = rootBuild ? lineText : buildPath.asString() + " > " + lineText;
+        this.displayName = Path.ROOT.equals(buildPath) ? displayName : displayName + " (" + buildPath.asString() + ")";
+        this.lineText = lineText(buildPath, lineText);
         this.work = work;
+    }
+
+    /**
+     * The line text of work of the given build: the text alone for the root build, or after the path of the build for a non-root build.
+     */
+    public static String lineText(Path buildPath, String text) {
+        return Path.ROOT.equals(buildPath) ? text : buildPath.asString() + " > " + text;
     }
 
     @Override

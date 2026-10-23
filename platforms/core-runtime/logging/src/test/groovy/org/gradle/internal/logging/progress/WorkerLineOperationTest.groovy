@@ -41,6 +41,17 @@ class WorkerLineOperationTest extends Specification {
         "included build" | Path.path(":plugins") | "Run flow action org.example.Foo (:plugins)" | ":plugins > Flow action o.e.Foo"
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39539")
+    def "gives the line text of work of the #build"() {
+        expect:
+        WorkerLineOperation.lineText(buildPath, "Building task graph") == lineText
+
+        where:
+        build            | buildPath             | lineText
+        "root build"     | Path.ROOT             | "Building task graph"
+        "included build" | Path.path(":plugins") | ":plugins > Building task graph"
+    }
+
     def "runs the work"() {
         when:
         new WorkerLineOperation(Path.ROOT, "Run flow action org.example.Foo", "Flow action o.e.Foo", work).run(Stub(BuildOperationContext))

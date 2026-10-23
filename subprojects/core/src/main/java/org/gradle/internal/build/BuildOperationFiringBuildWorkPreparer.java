@@ -25,6 +25,7 @@ import org.gradle.execution.plan.FinalizedExecutionPlan;
 import org.gradle.execution.plan.QueryableExecutionPlan;
 import org.gradle.execution.plan.ScheduledWork;
 import org.gradle.execution.plan.ToPlannedNodeConverterRegistry;
+import org.gradle.internal.logging.progress.WorkerLineOperation;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -111,21 +112,13 @@ public class BuildOperationFiringBuildWorkPreparer implements BuildWorkPreparer 
         public BuildOperationDescriptor.@NonNull Builder description() {
             //noinspection Convert2Lambda
             return BuildOperationDescriptor.displayName(gradle.contextualize("Calculate task graph"))
-                .progressDisplayName(buildingTaskGraphDisplayName(gradle))
+                .progressDisplayName(WorkerLineOperation.lineText(gradle.getIdentityPath(), "Building task graph"))
                 .details(new Details() {
                     @Override
                     public String getBuildPath() {
                         return gradle.getIdentityPath().asString();
                     }
                 });
-        }
-
-        private static String buildingTaskGraphDisplayName(GradleInternal gradle) {
-            if (gradle.isRootBuild()) {
-                return "Building task graph of root build";
-            } else {
-                return "Building task graph of build '" + gradle.getIdentityPath().asString() + "'";
-            }
         }
 
         private PlannedNodeGraph computePlannedNodeGraph(ScheduledWork scheduledWork) {
