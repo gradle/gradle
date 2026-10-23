@@ -17,6 +17,7 @@ package org.gradle.api.internal.tasks.execution;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.GradleException;
+import org.gradle.api.Task;
 import org.gradle.api.internal.TaskInternal;
 import org.gradle.api.internal.changedetection.TaskExecutionMode;
 import org.gradle.api.internal.changedetection.TaskExecutionModeResolver;
@@ -31,6 +32,7 @@ import org.gradle.api.problems.internal.ProblemTaskIdentityTracker;
 import org.gradle.api.problems.internal.TaskIdentity;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.TaskExecutionException;
+import org.gradle.api.tasks.TaskLifecycleListener;
 import org.gradle.execution.plan.LocalTaskNode;
 import org.gradle.execution.plan.MissingTaskDependencyDetector;
 import org.gradle.execution.plan.Node;
@@ -58,6 +60,10 @@ import org.gradle.internal.operations.RunnableBuildOperation;
 import org.gradle.internal.work.AsyncWorkTracker;
 import org.jspecify.annotations.Nullable;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Set;
 
 import static org.gradle.internal.execution.Execution.ExecutionOutcome.EXECUTED_INCREMENTALLY;
 
@@ -87,6 +93,7 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
     private final TaskDependencyFactory taskDependencyFactory;
     private final PathToFileResolver fileResolver;
     private final MissingTaskDependencyDetector missingTaskDependencyDetector;
+    private final TaskLifecycleListenerInstantiator lifecycleListenerInstantiator;
 
     public DefaultTaskNodeExecutor(
         BuildOperationRunner buildOperationRunner,
@@ -107,7 +114,8 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
         FileCollectionFactory fileCollectionFactory,
         TaskDependencyFactory taskDependencyFactory,
         PathToFileResolver fileResolver,
-        MissingTaskDependencyDetector missingTaskDependencyDetector
+        MissingTaskDependencyDetector missingTaskDependencyDetector,
+        TaskLifecycleListenerInstantiator lifecycleListenerInstantiator
     ) {
         this.taskExecutionListener = taskExecutionListener;
         this.taskListener = taskListener;
@@ -126,6 +134,7 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
         this.taskDependencyFactory = taskDependencyFactory;
         this.fileResolver = fileResolver;
         this.missingTaskDependencyDetector = missingTaskDependencyDetector;
+        this.lifecycleListenerInstantiator = lifecycleListenerInstantiator;
     }
 
     @Override
@@ -168,7 +177,7 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
         }
 
         TaskStateInternal state = task.getState();
-        ExecutionEngine.@Nullable Result result = executeWithFallbackOperationId(node);
+        ExecutionEngine.@Nullable Result result = executeWithLifecycleListeners(node);
         ExecuteTaskBuildOperationResult operationResult = toOperationResult(state, result);
 
         try {
@@ -178,6 +187,52 @@ public class DefaultTaskNodeExecutor implements TaskNodeExecutor {
             state.addFailure(new TaskExecutionException(task, t));
         }
         return operationResult;
+    }
+
+    /**
+     * Notifies the {@link TaskLifecycleListener}s registered with the task around its execution.
+     * A new instance of each listener is created for each task execution.
+     *
+     * If a listener fails before execution, the task fails and is not executed.
+     * Listeners that were notified before execution are still notified after execution.
+     */
+    private ExecutionEngine.@Nullable Result executeWithLifecycleListeners(LocalTaskNode node) {
+        TaskInternal task = node.getTask();
+        Set<Class<? extends TaskLifecycleListener<?>>> listenerTypes = task.getLifecycleListeners();
+        if (listenerTypes.isEmpty()) {
+            return executeWithFallbackOperationId(node);
+        }
+
+        TaskStateInternal state = task.getState();
+        List<TaskLifecycleListener<Task>> notifiedListeners = new ArrayList<>(listenerTypes.size());
+        boolean beforeExecutionFailed = false;
+        try {
+            state.setNotifyingBeforeExecution(true);
+            try {
+                for (Class<? extends TaskLifecycleListener<?>> listenerType : listenerTypes) {
+                    TaskLifecycleListener<Task> listener = lifecycleListenerInstantiator.newInstance(listenerType);
+                    listener.beforeExecution(task);
+                    notifiedListeners.add(listener);
+                }
+            } finally {
+                state.setNotifyingBeforeExecution(false);
+            }
+        } catch (Throwable t) {
+            beforeExecutionFailed = true;
+            state.setOutcome(new TaskExecutionException(task, t));
+        }
+
+        // The task is already failed when a listener could not be created or failed before execution
+        ExecutionEngine.@Nullable Result result = beforeExecutionFailed ? null : executeWithFallbackOperationId(node);
+
+        for (TaskLifecycleListener<Task> listener : notifiedListeners) {
+            try {
+                listener.afterExecution(task, state);
+            } catch (Throwable t) {
+                state.addFailure(new TaskExecutionException(task, t));
+            }
+        }
+        return result;
     }
 
     /**

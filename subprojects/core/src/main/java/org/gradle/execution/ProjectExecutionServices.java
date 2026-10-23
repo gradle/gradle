@@ -28,6 +28,7 @@ import org.gradle.api.internal.tasks.TaskDependencyFactory;
 import org.gradle.api.internal.tasks.execution.DefaultTaskCacheabilityResolver;
 import org.gradle.api.internal.tasks.execution.DefaultTaskNodeExecutor;
 import org.gradle.api.internal.tasks.execution.TaskCacheabilityResolver;
+import org.gradle.api.internal.tasks.execution.TaskLifecycleListenerInstantiator;
 import org.gradle.execution.plan.ExecutionNodeAccessHierarchies;
 import org.gradle.execution.plan.MissingTaskDependencyDetector;
 import org.gradle.execution.plan.TaskNodeExecutor;
@@ -47,10 +48,12 @@ import org.gradle.internal.file.ReservedFileSystemLocation;
 import org.gradle.internal.file.ReservedFileSystemLocationRegistry;
 import org.gradle.internal.fingerprint.impl.FileCollectionFingerprinterRegistrations;
 import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
+import org.gradle.internal.instantiation.InstantiatorFactory;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.Provides;
 import org.gradle.internal.service.ServiceRegistrationProvider;
+import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistryBuilder;
 import org.gradle.internal.snapshot.ValueSnapshotter;
 import org.gradle.internal.work.AsyncWorkTracker;
@@ -100,7 +103,8 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
         TaskExecutionModeResolver repository,
         ExecutionEngine executionEngine,
         InputFingerprinter inputFingerprinter,
-        MissingTaskDependencyDetector missingTaskDependencyDetector
+        MissingTaskDependencyDetector missingTaskDependencyDetector,
+        TaskLifecycleListenerInstantiator lifecycleListenerInstantiator
     ) {
         return new DefaultTaskNodeExecutor(
             buildOperationRunner,
@@ -120,8 +124,14 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
             taskDependencyFactory,
             // TODO Can we inject a PathToFileResolver here directly?
             fileOperations.getFileResolver(),
-            missingTaskDependencyDetector
+            missingTaskDependencyDetector,
+            lifecycleListenerInstantiator
         );
+    }
+
+    @Provides
+    TaskLifecycleListenerInstantiator createTaskLifecycleListenerInstantiator(InstantiatorFactory instantiatorFactory, ServiceRegistry projectServices) {
+        return new TaskLifecycleListenerInstantiator(instantiatorFactory, projectServices);
     }
 
     @Provides

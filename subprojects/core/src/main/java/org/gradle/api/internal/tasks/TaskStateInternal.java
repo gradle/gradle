@@ -26,6 +26,7 @@ import java.util.List;
 
 public class TaskStateInternal implements TaskState {
     private boolean executing;
+    private boolean notifyingBeforeExecution;
     private boolean actionable = true;
     private boolean didWork;
     private RuntimeException failure;
@@ -115,6 +116,18 @@ public class TaskStateInternal implements TaskState {
 
     public void setExecuting(boolean executing) {
         this.executing = executing;
+    }
+
+    /**
+     * Whether lifecycle listeners are being notified before the task executes.
+     * The task cannot be mutated then, only the values of its properties can be changed.
+     */
+    public boolean isNotifyingBeforeExecution() {
+        return notifyingBeforeExecution;
+    }
+
+    public void setNotifyingBeforeExecution(boolean notifyingBeforeExecution) {
+        this.notifyingBeforeExecution = notifyingBeforeExecution;
     }
 
     @Override
