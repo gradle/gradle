@@ -19,11 +19,13 @@ package org.gradle.api.internal.tasks;
 import org.gradle.api.Action;
 import org.gradle.api.Task;
 import org.gradle.api.internal.artifacts.transform.TransformNodeDependency;
+import org.gradle.internal.UncheckedException;
 import org.jspecify.annotations.Nullable;
 
 import java.util.Collections;
 import java.util.Set;
 
+import static java.lang.String.format;
 import static java.util.Arrays.asList;
 import static org.gradle.api.internal.tasks.WorkDependencyResolver.TASK_AS_TASK;
 
@@ -67,7 +69,15 @@ public class TaskDependencyUtil {
         }
 
         RecordingTaskDependencyResolveContext recording = new RecordingTaskDependencyResolveContext(task);
-        dependencies.visitDependencies(recording);
+        try {
+            dependencies.visitDependencies(recording);
+        } catch (Exception e) {
+            if (task != null) {
+                throw new TaskDependencyResolveException(format("Could not determine the dependencies of %s.", task), e);
+            } else {
+                throw UncheckedException.throwAsUncheckedException(e);
+            }
+        }
         if (recording.isEmpty()) {
             return Collections.emptySet();
         }
