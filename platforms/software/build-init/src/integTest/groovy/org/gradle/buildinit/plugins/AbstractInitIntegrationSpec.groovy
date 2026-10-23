@@ -46,6 +46,9 @@ abstract class AbstractInitIntegrationSpec extends AbstractIntegrationSpec {
         initializeIntoTestDir()
         executer.withRepositoryMirrors()
         mirrorMavenCentralForInit()
+        executer.beforeExecute {
+            it.withArgument("-Pkotlin.compiler.execution.strategy=in-process")
+        }
     }
 
     void initializeIntoTestDir() {
