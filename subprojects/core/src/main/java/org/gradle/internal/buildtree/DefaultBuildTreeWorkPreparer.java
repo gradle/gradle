@@ -24,16 +24,18 @@ import org.jspecify.annotations.Nullable;
 public class DefaultBuildTreeWorkPreparer implements BuildTreeWorkPreparer {
     private final BuildState targetBuild;
     private final BuildLifecycleController targetBuildController;
+    private final boolean countedInRootConfiguration;
 
-    public DefaultBuildTreeWorkPreparer(BuildState targetBuild, BuildLifecycleController buildLifecycleController) {
+    public DefaultBuildTreeWorkPreparer(BuildState targetBuild, BuildLifecycleController buildLifecycleController, boolean countedInRootConfiguration) {
         this.targetBuild = targetBuild;
         this.targetBuildController = buildLifecycleController;
+        this.countedInRootConfiguration = countedInRootConfiguration;
     }
 
     @Override
     public BuildTreeWorkGraph.FinalizedGraph scheduleRequestedTasks(BuildTreeWorkGraph graph, @Nullable EntryTaskSelector selector) {
         targetBuildController.prepareToScheduleTasks();
-        return graph.scheduleWork(graphBuilder -> {
+        return graph.scheduleWork(countedInRootConfiguration ? 0 : 1, graphBuilder -> {
             if (selector != null) {
                 graphBuilder.addFinalization(targetBuild, selector::postProcessExecutionPlan);
             }

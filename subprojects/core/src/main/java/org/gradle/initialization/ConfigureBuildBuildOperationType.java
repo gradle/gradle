@@ -26,6 +26,11 @@ public class ConfigureBuildBuildOperationType implements BuildOperationType<Conf
          * @since 4.6
          */
         String getBuildPath();
+
+        /**
+         * {@return the number of projects in the build}
+         */
+        int getProjectCount();
     }
 
     public interface Result {

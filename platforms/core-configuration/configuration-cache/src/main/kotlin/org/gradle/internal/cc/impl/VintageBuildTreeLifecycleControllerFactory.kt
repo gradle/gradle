@@ -52,7 +52,7 @@ open class VintageBuildTreeLifecycleControllerFactory(
 
     // Used when CC is not enabled
     override fun createController(targetBuild: BuildLifecycleController, workExecutor: BuildTreeWorkExecutor, finishExecutor: BuildTreeFinishExecutor): BuildTreeLifecycleController {
-        return createControllerImpl(createWorkPreparer(targetBuild), createModelCreator(targetBuild), targetBuild, workExecutor, finishExecutor)
+        return createControllerImpl(createWorkPreparer(targetBuild, false), createModelCreator(targetBuild), targetBuild, workExecutor, finishExecutor)
     }
 
     internal
@@ -72,8 +72,8 @@ open class VintageBuildTreeLifecycleControllerFactory(
         DefaultBuildTreeModelCreator(targetBuild.gradle.owner, createIntermediateActionRunner(), parameterCarrierFactory, buildStateRegistry, buildOperationRunner)
 
     internal
-    fun createWorkPreparer(targetBuild: BuildLifecycleController): BuildTreeWorkPreparer =
-        DefaultBuildTreeWorkPreparer(targetBuild.gradle.owner, targetBuild)
+    fun createWorkPreparer(targetBuild: BuildLifecycleController, countedInRootConfiguration: Boolean): BuildTreeWorkPreparer =
+        DefaultBuildTreeWorkPreparer(targetBuild.gradle.owner, targetBuild, countedInRootConfiguration)
 
     private
     fun createIntermediateActionRunner() =

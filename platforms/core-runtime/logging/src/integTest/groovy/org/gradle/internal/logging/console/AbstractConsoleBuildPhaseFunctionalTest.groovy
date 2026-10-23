@@ -19,6 +19,7 @@ package org.gradle.internal.logging.console
 import org.gradle.integtests.fixtures.modes.ToBeFixedForIsolatedProjects
 import org.gradle.integtests.fixtures.modes.UnsupportedWithIsolatedProjects
 import org.gradle.integtests.fixtures.console.AbstractConsoleGroupedTaskFunctionalTest
+import org.gradle.integtests.fixtures.executer.GradleContextualExecuter
 import org.gradle.integtests.fixtures.executer.GradleHandle
 import org.gradle.integtests.fixtures.flow.FlowActionsFixture
 import org.gradle.test.fixtures.ConcurrentTestUtil
@@ -92,17 +93,17 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         bBuildScript.waitForAllPendingCalls()
-        assertHasBuildPhase("40% CONFIGURING")
+        assertHasBuildPhase(GradleContextualExecuter.isConfigCache() ? "25% CONFIGURING" : "33% CONFIGURING")
         bBuildScript.releaseAll()
 
         and:
         bAfterEvaluate.waitForAllPendingCalls()
-        assertHasBuildPhase("40% CONFIGURING")
+        assertHasBuildPhase(GradleContextualExecuter.isConfigCache() ? "25% CONFIGURING" : "33% CONFIGURING")
         bAfterEvaluate.releaseAll()
 
         and:
         taskGraph.waitForAllPendingCalls()
-        assertHasBuildPhase("100% CONFIGURING")
+        assertHasBuildPhase(GradleContextualExecuter.isConfigCache() ? "62% CONFIGURING" : "83% CONFIGURING")
         taskGraph.releaseAll()
 
         and:
@@ -180,12 +181,12 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         rootBuildScript.waitForAllPendingCalls()
-        assertHasBuildPhase("75% CONFIGURING")
+        assertHasBuildPhase(GradleContextualExecuter.isConfigCache() ? "42% CONFIGURING" : "60% CONFIGURING")
         rootBuildScript.releaseAll()
 
         and:
         childTaskGraph.waitForAllPendingCalls()
-        assertHasBuildPhase("100% CONFIGURING")
+        assertHasBuildPhase(GradleContextualExecuter.isConfigCache() ? "57% CONFIGURING" : "80% CONFIGURING")
         childTaskGraph.releaseAll()
 
         and:
@@ -270,7 +271,7 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         rootBuildScript.waitForAllPendingCalls()
-        assertHasBuildPhase("75% CONFIGURING")
+        assertHasBuildPhase(GradleContextualExecuter.isConfigCache() ? "50% CONFIGURING" : "66% CONFIGURING")
         rootBuildScript.releaseAll()
 
         and:
@@ -285,6 +286,83 @@ abstract class AbstractConsoleBuildPhaseFunctionalTest extends AbstractConsoleGr
 
         and:
         waitForFinish()
+    }
+
+    def "configuring phase completes before executing when #scenario"() {
+        blockWhenRunningMainTasksStarts('run-main-tasks')
+        buildFile << """
+            abstract class DegradingTask extends DefaultTask {
+                @Inject
+                abstract org.gradle.api.internal.ConfigurationCacheDegradationController getDegradationController()
+            }
+            tasks.register("hello", DegradingTask) { task ->
+                $taskConfiguration
+                doFirst {
+                    ${server.callFromBuild('task')}
+                }
+            }
+        """
+
+        given:
+        def runMainTasks = server.expectAndBlock('run-main-tasks')
+        def task = server.expectAndBlock('task')
+        gradle = executer.withTasks("hello").start()
+
+        expect:
+        runMainTasks.waitForAllPendingCalls()
+        assertHasBuildPhase("100% CONFIGURING")
+        runMainTasks.releaseAll()
+
+        and:
+        task.waitForAllPendingCalls()
+        assertHasBuildPhase("0% EXECUTING")
+        task.releaseAll()
+
+        and:
+        waitForFinish()
+
+        where:
+        scenario                            | taskConfiguration
+        "the configuration is stored"       | ""
+        "the stored entry is discarded"     | "notCompatibleWithConfigurationCache('testing')"
+        "the store degrades gracefully"     | "degradationController.requireConfigurationCacheDegradation(task, provider { 'testing' })"
+    }
+
+    /**
+     * Blocks the build when the root build starts running its main tasks, before the console switches to the executing phase.
+     * This makes the final state of the configuring phase observable.
+     */
+    void blockWhenRunningMainTasksStarts(String resource) {
+        initScriptFile """
+            import org.gradle.internal.operations.BuildOperationCategory
+            import org.gradle.internal.operations.BuildOperationDescriptor
+            import org.gradle.internal.operations.BuildOperationListener
+            import org.gradle.internal.operations.BuildOperationListenerManager
+            import org.gradle.internal.operations.OperationFinishEvent
+            import org.gradle.internal.operations.OperationIdentifier
+            import org.gradle.internal.operations.OperationProgressEvent
+            import org.gradle.internal.operations.OperationStartEvent
+
+            def manager = gradle.services.get(BuildOperationListenerManager)
+            manager.addListener(new BlockingListener(manager: manager))
+
+            class BlockingListener implements BuildOperationListener {
+                BuildOperationListenerManager manager
+
+                void started(BuildOperationDescriptor buildOperation, OperationStartEvent startEvent) {
+                    // Listeners are notified before the console receives the start of the operation
+                    if (buildOperation.metadata == BuildOperationCategory.RUN_MAIN_TASKS) {
+                        manager.removeListener(this)
+                        ${server.callFromBuild(resource)}
+                    }
+                }
+
+                void progress(OperationIdentifier operationIdentifier, OperationProgressEvent progressEvent) {}
+
+                void finished(BuildOperationDescriptor buildOperation, OperationFinishEvent finishEvent) {}
+            }
+        """
+        executer.usingInitScript(initScriptFile)
     }
 
     @ToBeFixedForIsolatedProjects(because = "multi-project tests via BlockingHttpServer/parallel fail under IP")

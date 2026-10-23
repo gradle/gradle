@@ -21,6 +21,7 @@ import org.gradle.internal.cc.impl.CheckedFingerprint
 import org.gradle.internal.configuration.problems.StructuredMessage
 import org.gradle.internal.configurationcache.ConfigurationCacheLoadBuildOperationType
 import org.gradle.internal.configurationcache.ConfigurationCacheStoreBuildOperationType
+import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.BuildOperationContext
 import org.gradle.internal.operations.BuildOperationDescriptor
 import org.gradle.internal.operations.BuildOperationRunner
@@ -36,11 +37,13 @@ import java.io.File
 
 
 internal
-fun BuildOperationRunner.withWorkGraphLoadOperation(block: () -> Pair<WorkGraphLoadResult, BuildTreeWorkGraph.FinalizedGraph>): BuildTreeWorkGraph.FinalizedGraph =
+fun BuildOperationRunner.withWorkGraphLoadOperation(totalProgress: Int, block: () -> Pair<WorkGraphLoadResult, BuildTreeWorkGraph.FinalizedGraph>): BuildTreeWorkGraph.FinalizedGraph =
     call(object : CallableBuildOperation<BuildTreeWorkGraph.FinalizedGraph> {
         override fun description(): BuildOperationDescriptor.Builder = BuildOperationDescriptor
             .displayName("Load configuration cache state")
             .progressDisplayName("Loading configuration cache state")
+            .metadata(BuildOperationCategory.LOAD_CONFIGURATION_CACHE)
+            .totalProgress(totalProgress)
             .details(WorkGraphLoadDetails)
 
         override fun call(context: BuildOperationContext): BuildTreeWorkGraph.FinalizedGraph =
@@ -52,11 +55,13 @@ fun BuildOperationRunner.withWorkGraphLoadOperation(block: () -> Pair<WorkGraphL
 
 
 internal
-fun BuildOperationRunner.withWorkGraphStoreOperation(@Suppress("UNUSED_PARAMETER") cacheKey: String, block: () -> WorkGraphStoreResult): Unit =
+fun BuildOperationRunner.withWorkGraphStoreOperation(@Suppress("UNUSED_PARAMETER") cacheKey: String, totalProgress: Int, block: () -> WorkGraphStoreResult): Unit =
     run(object : RunnableBuildOperation {
         override fun description(): BuildOperationDescriptor.Builder = BuildOperationDescriptor
             .displayName("Store configuration cache state")
             .progressDisplayName("Storing configuration cache state")
+            .metadata(BuildOperationCategory.STORE_CONFIGURATION_CACHE)
+            .totalProgress(totalProgress)
             .details(WorkGraphStoreDetails)
 
         override fun run(context: BuildOperationContext) {
@@ -65,6 +70,36 @@ fun BuildOperationRunner.withWorkGraphStoreOperation(@Suppress("UNUSED_PARAMETER
                 it.storeFailure?.let { failure -> context.failed(failure) }
             }
         }
+    })
+
+
+/**
+ * Runs an empty operation in place of a store that was counted in the configuration progress but was skipped,
+ * so the progress still reaches its total.
+ */
+internal
+fun BuildOperationRunner.skippedWorkGraphStoreOperation(): Unit =
+    skippedProgressOperation("Skip storing configuration cache state", BuildOperationCategory.STORE_CONFIGURATION_CACHE)
+
+
+/**
+ * Runs an empty operation in place of a load that was counted in the configuration progress but was skipped,
+ * so the progress still reaches its total.
+ */
+internal
+fun BuildOperationRunner.skippedWorkGraphLoadOperation(): Unit =
+    skippedProgressOperation("Skip loading configuration cache state", BuildOperationCategory.LOAD_CONFIGURATION_CACHE)
+
+
+private
+fun BuildOperationRunner.skippedProgressOperation(displayName: String, category: BuildOperationCategory): Unit =
+    run(object : RunnableBuildOperation {
+        override fun description(): BuildOperationDescriptor.Builder = BuildOperationDescriptor
+            .displayName(displayName)
+            .metadata(category)
+            .totalProgress(0)
+
+        override fun run(context: BuildOperationContext) = Unit
     })
 
 

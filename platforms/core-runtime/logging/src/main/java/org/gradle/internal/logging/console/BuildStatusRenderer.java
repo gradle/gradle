@@ -39,7 +39,7 @@ import java.util.Set;
 public class BuildStatusRenderer implements OutputEventListener {
 
     private enum Phase {
-        Initializing, Configuring, Executing
+        Initializing, Loading, Configuring, Executing
     }
 
     private final OutputEventListener listener;
@@ -47,6 +47,7 @@ public class BuildStatusRenderer implements OutputEventListener {
     private final Console console;
     private final ConsoleMetaData consoleMetaData;
     private @Nullable OperationIdentifier buildProgressOperationId;
+    private @Nullable OperationIdentifier loadProgressOperationId;
     private @Nullable Phase currentPhase;
     private final Set<OperationIdentifier> currentPhaseChildren = new HashSet<>();
     private long currentTimePeriod;
@@ -88,6 +89,16 @@ public class BuildStatusRenderer implements OutputEventListener {
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_PROJECT && currentPhase == Phase.Configuring) {
                     // Any configuring event received from nested or buildSrc builds before the root build starts configuring is ignored
                     currentPhaseChildren.add(startEvent.getProgressOperationId());
+                } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.LOAD_CONFIGURATION_CACHE && currentPhase != Phase.Executing) {
+                    // Only a load outside of configuration moves us to loading
+                    if (currentPhase != Phase.Configuring) {
+                        phaseStarted(Phase.Loading, 0);
+                    }
+                    loadProgressOperationId = startEvent.getProgressOperationId();
+                    phaseHasMoreProgressAndAddChild(startEvent);
+                } else if (isWorkGraphPreparationCategory(startEvent.getBuildOperationCategory()) && currentPhase == Phase.Configuring && loadProgressOperationId == null) {
+                    // Only step work graph in Configuring, when in Loading we don't want to show this separately
+                    phaseHasMoreProgressAndAddChild(startEvent);
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_MAIN_TASKS) {
                     phaseStarted(startEvent, Phase.Executing);
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.RUN_WORK && currentPhase == Phase.Executing) {
@@ -100,6 +111,9 @@ public class BuildStatusRenderer implements OutputEventListener {
             }
         } else if (event instanceof ProgressCompleteEvent) {
             ProgressCompleteEvent completeEvent = (ProgressCompleteEvent) event;
+            if (completeEvent.getProgressOperationId().equals(loadProgressOperationId)) {
+                loadProgressOperationId = null;
+            }
             if (completeEvent.getProgressOperationId().equals(buildProgressOperationId)) {
                 buildEnded();
             } else if (currentPhaseChildren.remove(completeEvent.getProgressOperationId())) {
@@ -124,11 +138,18 @@ public class BuildStatusRenderer implements OutputEventListener {
         console.flush();
     }
 
+    private static boolean isWorkGraphPreparationCategory(BuildOperationCategory category) {
+        return category == BuildOperationCategory.BUILD_WORK_GRAPH || category == BuildOperationCategory.STORE_CONFIGURATION_CACHE;
+    }
+
     private void phaseStarted(ProgressStartEvent progressStartEvent, Phase phase) {
+        phaseStarted(phase, progressStartEvent.getTotalProgress());
+    }
+
+    private void phaseStarted(Phase phase, int totalProgress) {
         timerEnabled = true;
         currentPhase = phase;
         currentPhaseChildren.clear();
-        int totalProgress = progressStartEvent.getTotalProgress();
         progressBar = ProgressBar.createProgressBar(consoleMetaData, phase.name().toUpperCase(Locale.ROOT), totalProgress);
     }
 
@@ -136,6 +157,11 @@ public class BuildStatusRenderer implements OutputEventListener {
         if (progressBar != null) {
             progressBar.moreProgress(progressStartEvent.getTotalProgress());
         }
+    }
+
+    private void phaseHasMoreProgressAndAddChild(ProgressStartEvent progressStartEvent) {
+        phaseHasMoreProgress(progressStartEvent);
+        currentPhaseChildren.add(progressStartEvent.getProgressOperationId());
     }
 
     private void phaseProgressed(ProgressCompleteEvent progressEvent) {
@@ -148,6 +174,7 @@ public class BuildStatusRenderer implements OutputEventListener {
         progressBar = ProgressBar.createProgressBar(consoleMetaData, "WAITING", 1);
         currentPhase = null;
         buildProgressOperationId = null;
+        loadProgressOperationId = null;
         currentPhaseChildren.clear();
         timerEnabled = false;
     }

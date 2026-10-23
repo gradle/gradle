@@ -33,6 +33,7 @@ import org.gradle.internal.buildtree.BuildTreeWorkGraphPreparer;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ExecutorFactory;
 import org.gradle.internal.concurrent.ManagedExecutor;
+import org.gradle.internal.operations.BuildOperationCategory;
 import org.gradle.internal.operations.BuildOperationContext;
 import org.gradle.internal.operations.BuildOperationDescriptor;
 import org.gradle.internal.operations.BuildOperationRunner;
@@ -200,7 +201,7 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
         }
 
         @Override
-        public FinalizedGraph scheduleWork(Consumer<? super Builder> action) {
+        public FinalizedGraph scheduleWork(int totalProgress, Consumer<? super Builder> action) {
             assertIsOwner();
             expectInState(State.NotPrepared);
             state = State.Preparing;
@@ -218,6 +219,8 @@ public class DefaultIncludedBuildTaskGraph implements BuildTreeWorkGraphControll
                 @Override
                 public BuildOperationDescriptor.Builder description() {
                     return BuildOperationDescriptor.displayName("Calculate build tree task graph")
+                        .metadata(BuildOperationCategory.BUILD_WORK_GRAPH)
+                        .totalProgress(totalProgress)
                         .details(new CalculateTreeTaskGraphBuildOperationType.Details() {
                         });
                 }

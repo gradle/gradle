@@ -58,6 +58,21 @@ public enum BuildOperationCategory implements BuildOperationMetadata {
     TRANSFORM(true, true, false),
 
     /**
+     * Building the work-graph of a build.
+     */
+    BUILD_WORK_GRAPH(false, false, false),
+
+    /**
+     * Storing the configuration cache for a build tree.
+     */
+    STORE_CONFIGURATION_CACHE(false, false, false),
+
+    /**
+     * Loading the configuration cache for a build tree.
+     */
+    LOAD_CONFIGURATION_CACHE(false, false, false),
+
+    /**
      * Operation doesn't belong to any category.
      */
     UNCATEGORIZED(false, false, false);
