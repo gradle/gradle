@@ -28,12 +28,33 @@ public class DefaultProblemId extends ProblemId implements Serializable {
     private final String name;
     private final String displayName;
     private final ProblemGroup parent;
+    /**
+     * Whether the deprecated {@code ProblemId.create} factory created this id, so that reporting it can nag. Not part of
+     * the identity: equals and hashCode ignore it.
+     */
+    private final boolean createdThroughFactory;
 
     public DefaultProblemId(String name, String displayName, ProblemGroup parent) {
+        this(name, displayName, parent, false);
+    }
+
+    private DefaultProblemId(String name, String displayName, ProblemGroup parent, boolean createdThroughFactory) {
         validateFields(name, displayName, parent);
         this.name = TextUtil.replaceLineSeparatorsOf(name, "");
         this.displayName = TextUtil.replaceLineSeparatorsOf(displayName, "");
         this.parent = parent;
+        this.createdThroughFactory = createdThroughFactory;
+    }
+
+    /**
+     * Creates the id for {@code ProblemId.create}.
+     */
+    public static DefaultProblemId createdThroughFactory(String name, String displayName, ProblemGroup parent) {
+        return new DefaultProblemId(name, displayName, parent, true);
+    }
+
+    public boolean isCreatedThroughFactory() {
+        return createdThroughFactory;
     }
 
     private static void validateFields(String name, String displayName, ProblemGroup parent) {

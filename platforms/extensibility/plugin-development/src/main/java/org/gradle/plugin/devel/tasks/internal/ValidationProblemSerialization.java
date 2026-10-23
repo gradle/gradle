@@ -17,6 +17,8 @@
 package org.gradle.plugin.devel.tasks.internal;
 
 import com.google.common.collect.ImmutableList;
+import com.google.gson.ExclusionStrategy;
+import com.google.gson.FieldAttributes;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import com.google.gson.JsonParseException;
@@ -103,6 +105,7 @@ public class ValidationProblemSerialization {
 
     private static GsonBuilder createGsonBuilder(ProblemGroupsInternal groups) {
         GsonBuilder gsonBuilder = new GsonBuilder();
+        gsonBuilder.setExclusionStrategies(new ReportedIdExclusionStrategy());
         gsonBuilder.registerTypeAdapterFactory(new ProblemReportAdapterFactory());
         gsonBuilder.registerTypeHierarchyAdapter(ProblemId.class, new ProblemIdAdapter(groups));
         gsonBuilder.registerTypeHierarchyAdapter(DocLink.class, new DocLinkAdapter());
@@ -111,6 +114,24 @@ public class ValidationProblemSerialization {
         gsonBuilder.registerTypeAdapterFactory(new ThrowableAdapterFactory());
 
         return gsonBuilder;
+    }
+
+    /**
+     * Leaves out the id a problem was reported with before the reporter replaced its legacy groups. Only the nag for the
+     * legacy identity API reads it, when the problem is reported, so it has no use in the report. A legacy group chain
+     * that the predefined hierarchy cannot hold would also fail {@link ProblemIdAdapter}. Read back, the problem reports
+     * its own id as the reported one.
+     */
+    private static class ReportedIdExclusionStrategy implements ExclusionStrategy {
+        @Override
+        public boolean shouldSkipField(FieldAttributes field) {
+            return field.getDeclaringClass() == DefaultProblem.class && field.getName().equals("reportedId");
+        }
+
+        @Override
+        public boolean shouldSkipClass(Class<?> clazz) {
+            return false;
+        }
     }
 
     /**

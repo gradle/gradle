@@ -90,6 +90,6 @@ public abstract class ProblemId {
      * @since 8.13
      */
     public static ProblemId create(String name, String displayName, ProblemGroup group) {
-        return new DefaultProblemId(name, displayName, group);
+        return DefaultProblemId.createdThroughFactory(name, displayName, group);
     }
 }

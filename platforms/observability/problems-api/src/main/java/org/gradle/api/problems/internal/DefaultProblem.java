@@ -40,6 +40,11 @@ public class DefaultProblem implements Serializable, ProblemInternal {
     private final Throwable exception;
     private final AdditionalData additionalData;
     private final boolean writtenToConsole;
+    /**
+     * The id the producer reported, when the reporter replaced it; {@code null} when it is the definition's id.
+     */
+    @Nullable
+    private final ProblemId reportedId;
 
     public DefaultProblem(
         ProblemDefinition problemDefinition,
@@ -62,6 +67,21 @@ public class DefaultProblem implements Serializable, ProblemInternal {
         @Nullable AdditionalData additionalData,
         boolean writtenToConsole
     ) {
+        this(problemDefinition, contextualLabel, solutions, originLocations, contextualLocations, details, exception, additionalData, writtenToConsole, null);
+    }
+
+    private DefaultProblem(
+        ProblemDefinition problemDefinition,
+        @Nullable String contextualLabel,
+        List<String> solutions,
+        List<ProblemLocation> originLocations,
+        List<ProblemLocation> contextualLocations,
+        @Nullable String details,
+        @Nullable Throwable exception,
+        @Nullable AdditionalData additionalData,
+        boolean writtenToConsole,
+        @Nullable ProblemId reportedId
+    ) {
         this.problemDefinition = problemDefinition;
         this.contextualLabel = contextualLabel;
         this.solutions = solutions;
@@ -71,6 +91,7 @@ public class DefaultProblem implements Serializable, ProblemInternal {
         this.exception = exception;
         this.additionalData = additionalData;
         this.writtenToConsole = writtenToConsole;
+        this.reportedId = reportedId;
     }
 
     @Override
@@ -138,8 +159,14 @@ public class DefaultProblem implements Serializable, ProblemInternal {
             details,
             exception,
             additionalData,
-            writtenToConsole
+            writtenToConsole,
+            getReportedId()
         );
+    }
+
+    @Override
+    public ProblemId getReportedId() {
+        return reportedId != null ? reportedId : problemDefinition.getId();
     }
 
     @Override
