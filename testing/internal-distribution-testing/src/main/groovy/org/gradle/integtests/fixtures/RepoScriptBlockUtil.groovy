@@ -240,87 +240,10 @@ class RepoScriptBlockUtil {
     }
 
     static String extraRepositoriesInitScript(List<ExtraRepository> repositories = EXTRA_REPOSITORIES) {
-        def declarations = repositories.collect { ExtraRepository repository ->
-            def includes = repository.groupRegexes.collect { "includeGroupByRegex('${escapeBackslashes(it)}')" }.join("\n")
-            """
-                    if (!repos.any { it instanceof MavenArtifactRepository && normalizeUrl(it.url) == normalizeUrl('${repository.url}') }) {
-                        repos.maven {
-                            name = '${repository.name}'
-                            url = '${repository.url}'
-                            if (SUPPORTS_CONTENT_FILTERING) {
-                                content {
-                                    ${includes}
-                                }
-                            }
-                        }
-                    }
-            """
-        }.join("")
-        return """
-            import org.gradle.util.GradleVersion
-
-            apply plugin: ExtraRepositoriesPlugin
-
-            class ExtraRepositoriesPlugin implements Plugin<Gradle> {
-
-                static final boolean SUPPORTS_CONTENT_FILTERING = GradleVersion.current() >= GradleVersion.version("5.1")
-
-                void apply(Gradle gradle) {
-                    if (GradleVersion.current() >= GradleVersion.version("6.0")) {
-                        gradle.beforeSettings { Settings settings ->
-                            def repos = settings.pluginManagement.repositories
-                            ExtraRepositoriesPlugin.addTo(repos)
-                            // By default, Gradle searches the Gradle Plugin Portal for plugins. A declared plugin repository turns that default off, so declare the Gradle Plugin Portal too.
-                            // When the build declares its own plugin repository, remove the Gradle Plugin Portal at once. Settings plugins resolve while the settings script runs.
-                            def portal = repos.gradlePluginPortal()
-                            repos.whenObjectAdded { if (!it.is(portal)) repos.remove(portal) }
-                        }
-                    }
-                    if (GradleVersion.current() >= GradleVersion.version("6.8")) {
-                        gradle.settingsEvaluated { Settings settings ->
-                            ExtraRepositoriesPlugin.addUnlessEmpty(settings.dependencyResolutionManagement.repositories)
-                        }
-                    }
-                    def projectClosure = { Project project ->
-                        project.buildscript.configurations["classpath"].incoming.beforeResolve {
-                            ExtraRepositoriesPlugin.addUnlessEmpty(project.buildscript.repositories)
-                        }
-                        // Declare the repositories when a configuration resolves, not earlier. Then builds that resolve nothing do not see them.
-                        def declareOnResolve = { Configuration configuration ->
-                            configuration.incoming.beforeResolve {
-                                ExtraRepositoriesPlugin.addUnlessEmpty(project.repositories)
-                            }
-                        }
-                        if (GradleVersion.current() >= GradleVersion.version("4.9")) {
-                            project.configurations.configureEach(declareOnResolve)
-                        } else {
-                            project.configurations.all(declareOnResolve)
-                        }
-                    }
-                    if (GradleVersion.current() >= GradleVersion.version("8.8")) {
-                        gradle.lifecycle.beforeProject(projectClosure)
-                    } else {
-                        gradle.allprojects(projectClosure)
-                    }
-                }
-
-                // Repositories declared in a project override those declared in settings. Thus, do not declare a repository in a project that declares none.
-                static void addUnlessEmpty(RepositoryHandler repos) {
-                    if (!repos.isEmpty()) {
-                        addTo(repos)
-                    }
-                }
-
-                static void addTo(RepositoryHandler repos) {
-                    ${declarations}
-                }
-
-                static String normalizeUrl(Object url) {
-                    String result = url.toString().replace('https://', 'http://')
-                    return result.endsWith("/") ? result : result + "/"
-                }
-            }
-        """
+        def data = repositories.collect { [name: it.name, url: it.url, groupRegexes: it.groupRegexes] }
+        // Gradle does not accept a package statement in an init script. Keep the line empty, so line numbers in errors match the file.
+        def source = RepoScriptBlockUtil.getResource("ExtraRepositories.groovy").getText().replaceFirst(/(?m)^package .*$/, "")
+        return source + "\nExtraRepositories.declareIn(gradle, ${data.inspect()})\n"
     }
 
     static File createMirrorInitScript() {
