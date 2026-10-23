@@ -390,6 +390,23 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         "addAllLater duplicate"  | 'set.add("a"); set.addAllLater(provider { ["a", "b"] })' | ["a", "b"]
     }
 
+    def "removing value provided with addAllLater keeps duplicates in domain object set hidden"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            set.add("b")
+            set.addAllLater(provider { ["a", "b"] })
+
+            println "read = " + set.toList()
+            set.remove("a")
+            println "after remove = " + set.toList() + ", size = " + set.size()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("read = [b, a]")
+        outputContains("after remove = [b], size = 1")
+    }
+
     def getNamedThing() {
         """
             class NamedThing implements Named {
