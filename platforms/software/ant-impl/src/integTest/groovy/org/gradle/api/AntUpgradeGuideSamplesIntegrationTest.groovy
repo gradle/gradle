@@ -24,6 +24,109 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
  */
 class AntUpgradeGuideSamplesIntegrationTest extends AbstractIntegrationSpec {
 
+    private static final String KOTLIN_REPLACE_TOKENS = '''\
+tasks.register<Copy>("processTemplates") {
+    from("src/templates")
+    into(layout.buildDirectory.dir("templates"))
+
+    val tokens = mapOf("version" to "1.0")
+    inputs.properties(tokens)
+    val pattern = Regex(tokens.keys.joinToString("|") { Regex.escape("@$it@") })
+    filter { line: String -> pattern.replace(line) { tokens.getValue(it.value.removeSurrounding("@")) } }
+}
+'''
+
+    private static final String GROOVY_REPLACE_TOKENS = '''\
+import java.util.regex.Pattern
+
+tasks.register("processTemplates", Copy) {
+    from("src/templates")
+    into(layout.buildDirectory.dir("templates"))
+
+    def tokens = [version: "1.0"]
+    inputs.properties(tokens)
+    def pattern = tokens.keySet().collect { Pattern.quote("@${it}@") }.join("|")
+    filter { String line -> line.replaceAll(pattern) { String match -> tokens[match[1..-2]] } }
+}
+'''
+
+    // Tokens at the start and end of the content, chained, unknown, empty, adjacent, unterminated and containing the delimiter
+    private static final String TOKENS_INPUT = '''\
+@foo@
+version=@version@ and @version@@version@
+@@version@ @unknown@ @ @@ user@example.com
+@empty@|@a@b@|@a@|@long
+@longer
+@longer@ @lon@
+@special@ @multiline@ @multiline@@version@
+@version@'''
+
+    private static final String GENERATE_JAXB_CLASSES_TASK = '''\
+import org.gradle.api.DefaultTask;
+import org.gradle.api.file.ConfigurableFileCollection;
+import org.gradle.api.file.DirectoryProperty;
+import org.gradle.api.file.RegularFileProperty;
+import org.gradle.api.provider.Property;
+import org.gradle.api.tasks.CacheableTask;
+import org.gradle.api.tasks.Classpath;
+import org.gradle.api.tasks.Input;
+import org.gradle.api.tasks.InputFile;
+import org.gradle.api.tasks.OutputDirectory;
+import org.gradle.api.tasks.PathSensitive;
+import org.gradle.api.tasks.PathSensitivity;
+import org.gradle.api.tasks.TaskAction;
+import org.gradle.process.ExecOperations;
+
+import javax.inject.Inject;
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+
+@CacheableTask
+public abstract class GenerateJaxbClasses extends DefaultTask {
+    @Classpath
+    public abstract ConfigurableFileCollection getToolClasspath();
+
+    @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract RegularFileProperty getSchema();
+
+    @Input
+    public abstract Property<String> getPackageName();
+
+    @OutputDirectory
+    public abstract DirectoryProperty getOutputDir();
+
+    @Inject
+    protected abstract ExecOperations getExecOperations();
+
+    @TaskAction
+    public void generate() throws IOException {
+        File buildFile = new File(getTemporaryDir(), "build.xml");
+        Files.writeString(buildFile.toPath(), """
+            <project name="jaxb">
+                <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask"/>
+                <target name="generate">
+                    <xjc schema="${schema}" destdir="${destdir}" package="${package}"/>
+                </target>
+            </project>
+            """);
+
+        getExecOperations().javaexec(spec -> {
+            spec.classpath(getToolClasspath());
+            spec.getMainClass().set("org.apache.tools.ant.Main");
+            spec.args(
+                "-buildfile", buildFile.getAbsolutePath(),
+                "-Dschema=" + getSchema().get().getAsFile().getAbsolutePath(),
+                "-Ddestdir=" + getOutputDir().get().getAsFile().getAbsolutePath(),
+                "-Dpackage=" + getPackageName().get(),
+                "generate"
+            );
+        });
+    }
+}
+'''
+
     private static final String ORDER_SCHEMA = '''\
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema">
     <xs:element name="order">
@@ -36,50 +139,33 @@ class AntUpgradeGuideSamplesIntegrationTest extends AbstractIntegrationSpec {
 </xs:schema>
 '''
 
-    private static final String XJC_ANT_BUILD_FILE = '''\
-<project name="jaxb">
-    <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask"/>
-    <target name="generate">
-        <xjc schema="${schema}" destdir="${destdir}" package="com.example.order"/>
-    </target>
-</project>
-'''
-
     def setup() {
         executer.withRepositoryMirrors() // So the samples and these integ tests can match verbatim.
     }
 
     def "can run a tool's Ant task in a separate process with the Kotlin DSL"() {
         file("src/main/schema/order.xsd") << ORDER_SCHEMA
-        file("src/main/ant/build.xml") << XJC_ANT_BUILD_FILE
+        file("buildSrc/src/main/java/GenerateJaxbClasses.java") << GENERATE_JAXB_CLASSES_TASK
         buildKotlinFile << '''
-            val antClasspath = configurations.create("antClasspath")
+            val antTool = configurations.dependencyScope("antTool")
+            val antClasspath = configurations.resolvable("antClasspath") {
+                extendsFrom(antTool)
+            }
 
             repositories {
                 mavenCentral()
             }
 
             dependencies {
-                antClasspath("org.apache.ant:ant:1.10.17")
-                antClasspath("org.glassfish.jaxb:jaxb-xjc:4.0.9")
+                antTool("org.apache.ant:ant:1.10.17")
+                antTool("org.glassfish.jaxb:jaxb-xjc:4.0.9")
             }
 
-            tasks.register<JavaExec>("generateJaxbClasses") {
-                val buildFile = layout.projectDirectory.file("src/main/ant/build.xml")
-                val schema = layout.projectDirectory.file("src/main/schema/order.xsd")
-                val outputDir = layout.buildDirectory.dir("generated/jaxb")
-                inputs.file(buildFile)
-                inputs.file(schema)
-                outputs.dir(outputDir)
-
-                classpath = antClasspath
-                mainClass = "org.apache.tools.ant.Main"
-                args(
-                    "-buildfile", buildFile.asFile.absolutePath,
-                    "-Dschema=${schema.asFile.absolutePath}",
-                    "-Ddestdir=${outputDir.get().asFile.absolutePath}",
-                    "generate"
-                )
+            tasks.register<GenerateJaxbClasses>("generateJaxbClasses") {
+                toolClasspath.from(antClasspath)
+                schema = layout.projectDirectory.file("src/main/schema/order.xsd")
+                packageName = "com.example.order"
+                outputDir = layout.buildDirectory.dir("generated/jaxb")
             }
         '''
 
@@ -93,35 +179,27 @@ class AntUpgradeGuideSamplesIntegrationTest extends AbstractIntegrationSpec {
 
     def "can run a tool's Ant task in a separate process with the Groovy DSL"() {
         file("src/main/schema/order.xsd") << ORDER_SCHEMA
-        file("src/main/ant/build.xml") << XJC_ANT_BUILD_FILE
+        file("buildSrc/src/main/java/GenerateJaxbClasses.java") << GENERATE_JAXB_CLASSES_TASK
         buildFile << '''
-            configurations.create("antClasspath")
+            def antToolScope = configurations.dependencyScope("antTool")
+            def antClasspath = configurations.resolvable("antClasspath") {
+                extendsFrom(antToolScope)
+            }
 
             repositories {
                 mavenCentral()
             }
 
             dependencies {
-                antClasspath("org.apache.ant:ant:1.10.17")
-                antClasspath("org.glassfish.jaxb:jaxb-xjc:4.0.9")
+                antTool("org.apache.ant:ant:1.10.17")
+                antTool("org.glassfish.jaxb:jaxb-xjc:4.0.9")
             }
 
-            tasks.register("generateJaxbClasses", JavaExec) {
-                def buildFile = layout.projectDirectory.file("src/main/ant/build.xml")
-                def schema = layout.projectDirectory.file("src/main/schema/order.xsd")
-                def outputDir = layout.buildDirectory.dir("generated/jaxb")
-                inputs.file(buildFile)
-                inputs.file(schema)
-                outputs.dir(outputDir)
-
-                classpath = configurations.antClasspath
-                mainClass = "org.apache.tools.ant.Main"
-                args(
-                    "-buildfile", buildFile.asFile.absolutePath,
-                    "-Dschema=${schema.asFile.absolutePath}",
-                    "-Ddestdir=${outputDir.get().asFile.absolutePath}",
-                    "generate"
-                )
+            tasks.register("generateJaxbClasses", GenerateJaxbClasses) {
+                toolClasspath.from(antClasspath)
+                schema = layout.projectDirectory.file("src/main/schema/order.xsd")
+                packageName = "com.example.order"
+                outputDir = layout.buildDirectory.dir("generated/jaxb")
             }
         '''
 
@@ -133,100 +211,9 @@ class AntUpgradeGuideSamplesIntegrationTest extends AbstractIntegrationSpec {
         file("build/generated/jaxb/com/example/order/ObjectFactory.java").assertIsFile()
     }
 
-    def "can use Ant from the build script classpath with the Kotlin DSL"() {
-        file("someFile.txt") << "content"
-        buildKotlinFile << '''
-            import org.apache.tools.ant.taskdefs.Checksum
-
-            buildscript {
-                repositories {
-                    mavenCentral()
-                }
-                dependencies {
-                    classpath("org.apache.ant:ant:1.10.17")
-                }
-            }
-
-            tasks.register("checksum") {
-                val inputFile = layout.projectDirectory.file("someFile.txt")
-                val outputDir = layout.buildDirectory.dir("checksums")
-                inputs.file(inputFile)
-                outputs.dir(outputDir)
-
-                doLast {
-                    val antProject = org.apache.tools.ant.Project()
-                    antProject.init()
-
-                    val checksum = Checksum()
-                    checksum.project = antProject
-                    checksum.setFile(inputFile.asFile)
-                    checksum.setTodir(outputDir.get().asFile)
-                    checksum.execute()
-                }
-            }
-        '''
-
-        when:
-        succeeds("checksum")
-
-        then:
-        file("build/checksums/someFile.txt.MD5").assertIsFile()
-    }
-
-    def "can use Ant from the build script classpath with the Groovy DSL"() {
-        file("someFile.txt") << "content"
-        buildFile << '''
-            import org.apache.tools.ant.taskdefs.Checksum
-
-            buildscript {
-                repositories {
-                    mavenCentral()
-                }
-                dependencies {
-                    classpath("org.apache.ant:ant:1.10.17")
-                }
-            }
-
-            tasks.register("checksum") {
-                def inputFile = layout.projectDirectory.file("someFile.txt")
-                def outputDir = layout.buildDirectory.dir("checksums")
-                inputs.file(inputFile)
-                outputs.dir(outputDir)
-
-                doLast {
-                    def antProject = new org.apache.tools.ant.Project()
-                    antProject.init()
-
-                    def checksum = new Checksum()
-                    checksum.project = antProject
-                    checksum.file = inputFile.asFile
-                    checksum.todir = outputDir.get().asFile
-                    checksum.execute()
-                }
-            }
-        '''
-
-        when:
-        succeeds("checksum")
-
-        then:
-        file("build/checksums/someFile.txt.MD5").assertIsFile()
-    }
-
-    def "can replace tokens with a filter written by hand with the Kotlin DSL"() {
+    def "can replace tokens with a filter with the Kotlin DSL"() {
         file("src/templates/app.properties") << "version=@version@"
-        buildKotlinFile << '''
-            tasks.register<Copy>("processTemplates") {
-                from("src/templates")
-                into(layout.buildDirectory.dir("templates"))
-
-                val tokens = mapOf("version" to "1.0")
-                inputs.properties(tokens)
-                filter { line: String ->
-                    tokens.entries.fold(line) { result, (name, value) -> result.replace("@$name@", value) }
-                }
-            }
-        '''
+        buildKotlinFile << KOTLIN_REPLACE_TOKENS
 
         when:
         succeeds("processTemplates")
@@ -235,26 +222,57 @@ class AntUpgradeGuideSamplesIntegrationTest extends AbstractIntegrationSpec {
         file("build/templates/app.properties").text == "version=1.0"
     }
 
-    def "can replace tokens with a filter written by hand with the Groovy DSL"() {
+    def "can replace tokens with a filter with the Groovy DSL"() {
         file("src/templates/app.properties") << "version=@version@"
-        buildFile << '''
-            def tokens = [version: "1.0"]
-
-            tasks.register("processTemplates", Copy) {
-                inputs.properties(tokens)
-                from("src/templates")
-                into(layout.buildDirectory.dir("templates"))
-                filter { String line ->
-                    tokens.inject(line) { result, token -> result.replace("@${token.key}@", token.value) }
-                }
-            }
-        '''
+        buildFile << GROOVY_REPLACE_TOKENS
 
         when:
         succeeds("processTemplates")
 
         then:
         file("build/templates/app.properties").text == "version=1.0"
+    }
+
+    def "filter replaces tokens like Ant's ReplaceTokens with the Kotlin DSL"() {
+        file("src/templates/tokens.txt") << TOKENS_INPUT
+        buildKotlinFile << KOTLIN_REPLACE_TOKENS.replace(
+            'mapOf("version" to "1.0")',
+            'mapOf("foo" to "@bar@", "bar" to "@baz@", "baz" to "foobar", "version" to "1.0", "empty" to "", "a@b" to "key with a delimiter", "longer" to "x", "special" to "\\$1 \\\\ \\n", "multiline" to "first\\nsecond")'
+        ) << '''
+            tasks.register<Copy>("withAnt") {
+                from("src/templates")
+                into(layout.buildDirectory.dir("ant"))
+                filter<org.apache.tools.ant.filters.ReplaceTokens>("tokens" to mapOf("foo" to "@bar@", "bar" to "@baz@", "baz" to "foobar", "version" to "1.0", "empty" to "", "a@b" to "key with a delimiter", "longer" to "x", "special" to "\\$1 \\\\ \\n", "multiline" to "first\\nsecond"))
+            }
+        '''
+
+        when:
+        succeeds("processTemplates", "withAnt")
+
+        then:
+        file("build/templates/tokens.txt").text == file("build/ant/tokens.txt").text
+        file("build/templates/tokens.txt").text.startsWith("@bar@\n")
+    }
+
+    def "filter replaces tokens like Ant's ReplaceTokens with the Groovy DSL"() {
+        file("src/templates/tokens.txt") << TOKENS_INPUT
+        buildFile << GROOVY_REPLACE_TOKENS.replace(
+            '[version: "1.0"]',
+            '[foo: "@bar@", bar: "@baz@", baz: "foobar", version: "1.0", empty: "", "a@b": "key with a delimiter", longer: "x", special: \'\\$1 \\\\ \\n\', multiline: "first\\nsecond"]'
+        ) << '''
+            tasks.register("withAnt", Copy) {
+                from("src/templates")
+                into(layout.buildDirectory.dir("ant"))
+                filter(org.apache.tools.ant.filters.ReplaceTokens, tokens: [foo: "@bar@", bar: "@baz@", baz: "foobar", version: "1.0", empty: "", "a@b": "key with a delimiter", longer: "x", special: '\\$1 \\\\ \\n', multiline: "first\\nsecond"])
+            }
+        '''
+
+        when:
+        succeeds("processTemplates", "withAnt")
+
+        then:
+        file("build/templates/tokens.txt").text == file("build/ant/tokens.txt").text
+        file("build/templates/tokens.txt").text.startsWith("@bar@\n")
     }
 
     def "can replace tokens with Ant's ReplaceTokens with the Kotlin DSL"() {

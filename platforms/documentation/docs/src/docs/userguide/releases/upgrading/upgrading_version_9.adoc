@@ -767,7 +767,7 @@ This is a consequence of <<deprecated_ant_builder,the deprecation of the Ant int
 
 The most common way build scripts rely on Ant classes is link:{javadocPath}/org/gradle/api/file/ContentFilterable.html#filter(java.util.Map,java.lang.Class)[`filter(Map, Class)`] on the `Copy` task or on a `CopySpec`, which takes an Ant `FilterReader` such as `ReplaceTokens`.
 
-For example, instead of using Ant's `ReplaceTokens` filter, implement the filter using link:{javadocPath}/org/gradle/api/file/ContentFilterable.html#filter(org.gradle.api.Transformer)[`filter(Transformer)`]:
+To replace Ant's `ReplaceTokens` filter, use link:{javadocPath}/org/gradle/api/file/ContentFilterable.html#filter(org.gradle.api.Transformer)[`filter(Transformer)`] to replace the tokens of each line in a single pass:
 
 ====
 [.multi-language-sample]
@@ -781,9 +781,8 @@ tasks.register<Copy>("processTemplates") {
 
     val tokens = mapOf("version" to "1.0")
     inputs.properties(tokens)
-    filter { line: String ->
-        tokens.entries.fold(line) { result, (name, value) -> result.replace("@$name@", value) }
-    }
+    val pattern = Regex(tokens.keys.joinToString("|") { Regex.escape("@$it@") })
+    filter { line: String -> pattern.replace(line) { tokens.getValue(it.value.removeSurrounding("@")) } }
 }
 ----
 =====
@@ -792,21 +791,25 @@ tasks.register<Copy>("processTemplates") {
 .build.gradle
 [source,groovy]
 ----
-def tokens = [version: "1.0"]
-
 tasks.register("processTemplates", Copy) {
-    inputs.properties(tokens)
     from("src/templates")
     into(layout.buildDirectory.dir("templates"))
-    filter { String line ->
-        tokens.inject(line) { result, token -> result.replace("@${token.key}@", token.value) }
-    }
+
+    def tokens = [version: "1.0"]
+    inputs.properties(tokens)
+    def pattern = tokens.keySet().collect { Pattern.quote("@${it}@") }.join("|")
+    filter { String line -> line.replaceAll(pattern) { String match -> tokens[match[1..-2]] } }
 }
 ----
 =====
 ====
 
-Alternatively, if you want to keep using Ant's filters, add Ant to the classpath of your build logic.
+As long as no token key contains a line break, this replaces tokens the same way as `ReplaceTokens`.
+Otherwise, implement a `java.io.FilterReader` and pass it to `filter(Map, Class)`, <<run_ant_as_a_separate_process,run Ant in a separate process>>, or include Ant on the script classpath as described below.
+
+===== Manually adding Ant to the script classpath
+
+If you want to keep using Ant's filters, add Ant to the classpath of your build logic.
 If your build uses convention plugins, add Ant as a dependency of the build that contains them, for example with `implementation("org.apache.ant:ant:1.10.17")`.
 Otherwise, add Ant to the `classpath` configuration in the `buildscript` block of your build script:
 
@@ -859,6 +862,9 @@ tasks.register("processTemplates", Copy) {
 =====
 ====
 
+NOTE: Before Gradle 10, this puts a second copy of Ant on the build script classpath, and Gradle's own copy of the Ant classes is used.
+Only depend on Ant directly like this starting with Gradle 10.
+
 [[deprecated_ant_builder]]
 ==== Deprecation of the Ant integration
 
@@ -880,20 +886,23 @@ The following types and methods will be removed:
 * link:{javadocPath}/org/gradle/api/file/FileCollection.AntType.html[`FileCollection.AntType`]
 * link:{javadocPath}/org/gradle/api/tasks/util/PatternSet.html#addToAntBuilder(java.lang.Object,java.lang.String)[`PatternSet.addToAntBuilder(Object, String)`]
 
-===== Call the tool directly
+===== Switch to Gradle equivalent
 
 Some Ant usage has a direct Gradle equivalent.
 Prefer the link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[`Copy`], link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html[`Zip`] or link:{groovyDslPath}/org.gradle.api.tasks.Exec.html[`Exec`] task types, or the link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[`FileSystemOperations`] service, wherever one fits.
+
+===== Call the tool directly
 
 If you use Ant to run another tool, prefer running that tool directly instead.
 For example, use a link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[`JavaExec`] task to run its main class, or use the <<worker_api.adoc#tasks_parallel_worker,Worker API>> to call its Java API with the tool on the classpath of the work.
 You can also put the tool on the classpath of your build logic and call its Java API during configuration time or from a task action.
 
+[[run_ant_as_a_separate_process]]
 ===== Run Ant as a separate process
 
-If the tool you want to run has no entry point other than an Ant task, you can execute Ant in a separate Java process.
-First, declare a configuration that depends on Ant and the tool you want to execute.
-Then, execute Ant with `JavaExec` using that configuration as the runtime classpath.
+If the tool you want to run has no entry point other than an Ant task, you can execute Ant in a separate Java process in a Task.
+First, declare configurations for Ant and the tool you want to execute.
+Then, register the task that executes Ant, using the resolvable configuration as its classpath.
 
 ====
 [.multi-language-sample]
@@ -901,33 +910,25 @@ Then, execute Ant with `JavaExec` using that configuration as the runtime classp
 .build.gradle.kts
 [source,kotlin]
 ----
-val antClasspath = configurations.create("antClasspath")
+val antTool = configurations.dependencyScope("antTool")
+val antClasspath = configurations.resolvable("antClasspath") {
+    extendsFrom(antTool)
+}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    antClasspath("org.apache.ant:ant:1.10.17")
-    antClasspath("org.glassfish.jaxb:jaxb-xjc:4.0.9")
+    antTool("org.apache.ant:ant:1.10.17")
+    antTool("org.glassfish.jaxb:jaxb-xjc:4.0.9")
 }
 
-tasks.register<JavaExec>("generateJaxbClasses") {
-    val buildFile = layout.projectDirectory.file("src/main/ant/build.xml")
-    val schema = layout.projectDirectory.file("src/main/schema/order.xsd")
-    val outputDir = layout.buildDirectory.dir("generated/jaxb")
-    inputs.file(buildFile)
-    inputs.file(schema)
-    outputs.dir(outputDir)
-
-    classpath = antClasspath
-    mainClass = "org.apache.tools.ant.Main"
-    args(
-        "-buildfile", buildFile.asFile.absolutePath,
-        "-Dschema=${schema.asFile.absolutePath}",
-        "-Ddestdir=${outputDir.get().asFile.absolutePath}",
-        "generate"
-    )
+tasks.register<GenerateJaxbClasses>("generateJaxbClasses") {
+    toolClasspath.from(antClasspath)
+    schema = layout.projectDirectory.file("src/main/schema/order.xsd")
+    packageName = "com.example.order"
+    outputDir = layout.buildDirectory.dir("generated/jaxb")
 }
 ----
 =====
@@ -936,129 +937,79 @@ tasks.register<JavaExec>("generateJaxbClasses") {
 .build.gradle
 [source,groovy]
 ----
-configurations.create("antClasspath")
+def antToolScope = configurations.dependencyScope("antTool")
+def antClasspath = configurations.resolvable("antClasspath") {
+    extendsFrom(antToolScope)
+}
 
 repositories {
     mavenCentral()
 }
 
 dependencies {
-    antClasspath("org.apache.ant:ant:1.10.17")
-    antClasspath("org.glassfish.jaxb:jaxb-xjc:4.0.9")
+    antTool("org.apache.ant:ant:1.10.17")
+    antTool("org.glassfish.jaxb:jaxb-xjc:4.0.9")
 }
 
-tasks.register("generateJaxbClasses", JavaExec) {
-    def buildFile = layout.projectDirectory.file("src/main/ant/build.xml")
-    def schema = layout.projectDirectory.file("src/main/schema/order.xsd")
-    def outputDir = layout.buildDirectory.dir("generated/jaxb")
-    inputs.file(buildFile)
-    inputs.file(schema)
-    outputs.dir(outputDir)
-
-    classpath = configurations.antClasspath
-    mainClass = "org.apache.tools.ant.Main"
-    args(
-        "-buildfile", buildFile.asFile.absolutePath,
-        "-Dschema=${schema.asFile.absolutePath}",
-        "-Ddestdir=${outputDir.get().asFile.absolutePath}",
-        "generate"
-    )
+tasks.register("generateJaxbClasses", GenerateJaxbClasses) {
+    toolClasspath.from(antClasspath)
+    schema = layout.projectDirectory.file("src/main/schema/order.xsd")
+    packageName = "com.example.order"
+    outputDir = layout.buildDirectory.dir("generated/jaxb")
 }
 ----
 =====
 ====
 
-The Ant build file declares the task of the tool with `<taskdef>` and reads the properties passed on the command line:
+The task generates an Ant build file, then executes Ant with link:{javadocPath}/org/gradle/process/ExecOperations.html#javaexec(org.gradle.api.Action)[`ExecOperations.javaexec()`].
 
-.src/main/ant/build.xml
-[source,xml]
+.buildSrc/src/main/java/GenerateJaxbClasses.java
+[source,java]
 ----
-<project name="jaxb">
-    <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask"/>
-    <target name="generate">
-        <xjc schema="${schema}" destdir="${destdir}" package="com.example.order"/>
-    </target>
-</project>
-----
+@CacheableTask
+public abstract class GenerateJaxbClasses extends DefaultTask {
+    @Classpath
+    public abstract ConfigurableFileCollection getToolClasspath();
 
-===== Use Ant from the classpath of your build logic
+    @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract RegularFileProperty getSchema();
 
-You can also add Ant to the classpath of your build logic and use its Java API directly.
-If your build uses convention plugins, add Ant as a dependency of the build that contains them, for example with `implementation("org.apache.ant:ant:1.10.17")`, and use it in the tasks that your plugins register.
-Otherwise, add Ant to the `classpath` configuration in the `buildscript` block of your build script.
+    @Input
+    public abstract Property<String> getPackageName();
 
-====
-[.multi-language-sample]
-=====
-.build.gradle.kts
-[source,kotlin]
-----
-import org.apache.tools.ant.taskdefs.Checksum
+    @OutputDirectory
+    public abstract DirectoryProperty getOutputDir();
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath("org.apache.ant:ant:1.10.17")
-    }
-}
+    @Inject
+    protected abstract ExecOperations getExecOperations();
 
-tasks.register("checksum") {
-    val inputFile = layout.projectDirectory.file("someFile.txt")
-    val outputDir = layout.buildDirectory.dir("checksums")
-    inputs.file(inputFile)
-    outputs.dir(outputDir)
+    @TaskAction
+    public void generate() throws IOException {
+        File buildFile = new File(getTemporaryDir(), "build.xml");
+        Files.writeString(buildFile.toPath(), """
+            <project name="jaxb">
+                <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask"/>
+                <target name="generate">
+                    <xjc schema="${schema}" destdir="${destdir}" package="${package}"/>
+                </target>
+            </project>
+            """);
 
-    doLast {
-        val antProject = org.apache.tools.ant.Project()
-        antProject.init()
-
-        val checksum = Checksum()
-        checksum.project = antProject
-        checksum.setFile(inputFile.asFile)
-        checksum.setTodir(outputDir.get().asFile)
-        checksum.execute()
+        getExecOperations().javaexec(spec -> {
+            spec.classpath(getToolClasspath());
+            spec.getMainClass().set("org.apache.tools.ant.Main");
+            spec.args(
+                "-buildfile", buildFile.getAbsolutePath(),
+                "-Dschema=" + getSchema().get().getAsFile().getAbsolutePath(),
+                "-Ddestdir=" + getOutputDir().get().getAsFile().getAbsolutePath(),
+                "-Dpackage=" + getPackageName().get(),
+                "generate"
+            );
+        });
     }
 }
 ----
-=====
-[.multi-language-sample]
-=====
-.build.gradle
-[source,groovy]
-----
-import org.apache.tools.ant.taskdefs.Checksum
-
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath("org.apache.ant:ant:1.10.17")
-    }
-}
-
-tasks.register("checksum") {
-    def inputFile = layout.projectDirectory.file("someFile.txt")
-    def outputDir = layout.buildDirectory.dir("checksums")
-    inputs.file(inputFile)
-    outputs.dir(outputDir)
-
-    doLast {
-        def antProject = new org.apache.tools.ant.Project()
-        antProject.init()
-
-        def checksum = new Checksum()
-        checksum.project = antProject
-        checksum.file = inputFile.asFile
-        checksum.todir = outputDir.get().asFile
-        checksum.execute()
-    }
-}
-----
-=====
-====
 
 [[changes_9.8.0]]
 == Upgrading from 9.7.0 and earlier
