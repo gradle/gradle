@@ -86,7 +86,7 @@ public class DefaultTaskDependency implements TaskDependencyInternal {
 
     @Override
     public Set<? extends Task> getDependencies(@Nullable Task task) {
-        Set<? extends Task> result = TaskDependencyUtil.newTaskResolver().getDependencies(task, this);
+        Set<? extends Task> result = TaskDependencyUtil.getDependencies(task, this);
         if (dependencyUsageTracker != null) {
             dependencyUsageTracker.onTaskDependencyUsage(result);
         }
