@@ -16,12 +16,16 @@
 
 package org.gradle.internal.logging.console
 
+import org.gradle.internal.logging.events.StyledTextOutputEvent.Span
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.operations.OperationIdentifier
 import spock.lang.Issue
 import spock.lang.Specification
 import spock.lang.Subject
+
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Header
+import static org.gradle.internal.logging.text.StyledTextOutput.Style.Normal
 
 class DefaultWorkInProgressFormatterTest extends Specification {
     // Two UTF-16 code units
@@ -32,14 +36,14 @@ class DefaultWorkInProgressFormatterTest extends Specification {
 
     def "formats operations"() {
         given:
-        def op1 = new ProgressOperation("STATUS_1", "VARIANT_CATEGORY", new OperationIdentifier(1), null)
-        def op2 = new ProgressOperation(null,  null, new OperationIdentifier(2), op1)
-        def op3 = new ProgressOperation("STATUS_2", "VARIANT_CATEGORY", new OperationIdentifier(3), op2)
+        def op1 = new ProgressOperation("STATUS_1", "VARIANT_CATEGORY", new OperationIdentifier(1), null, 0)
+        def op2 = new ProgressOperation(null,  null, new OperationIdentifier(2), op1, 0)
+        def op3 = new ProgressOperation("STATUS_2", "VARIANT_CATEGORY", new OperationIdentifier(3), op2, 0)
 
         expect:
-        statusBarFormatter.format(op3).first().text == "> STATUS_1 > STATUS_2"
-        statusBarFormatter.format(op2).first().text == "> STATUS_1"
-        statusBarFormatter.format(op1).first().text == "> STATUS_1"
+        statusBarFormatter.format(op3, 0).first().text == "> STATUS_1 > STATUS_2"
+        statusBarFormatter.format(op2, 0).first().text == "> STATUS_1"
+        statusBarFormatter.format(op1, 0).first().text == "> STATUS_1"
     }
 
     def "keeps a line of #length characters, which fits in one less than the console width"() {
@@ -47,7 +51,7 @@ class DefaultWorkInProgressFormatterTest extends Specification {
         consoleMetaData.getCols() >> 80
 
         expect:
-        statusBarFormatter.format(operationOf(line)).first().text == "> $line"
+        statusBarFormatter.format(operationOf(line), 0).first().text == "> $line"
 
         where:
         line << [":compileJava", ":services:payments:test > " + "x" * 51]
@@ -60,7 +64,7 @@ class DefaultWorkInProgressFormatterTest extends Specification {
         consoleMetaData.getCols() >> cols
 
         when:
-        def text = statusBarFormatter.format(operationOf(line)).first().text
+        def text = statusBarFormatter.format(operationOf(line), 0).first().text
 
         then:
         text == expected
@@ -84,7 +88,7 @@ class DefaultWorkInProgressFormatterTest extends Specification {
         consoleMetaData.getCols() >> cols
 
         when:
-        def text = statusBarFormatter.format(operationOf(line)).first().text
+        def text = statusBarFormatter.format(operationOf(line), 0).first().text
 
         then:
         text == expected
@@ -103,7 +107,7 @@ class DefaultWorkInProgressFormatterTest extends Specification {
         consoleMetaData.getCols() >> cols
 
         when:
-        def text = statusBarFormatter.format(operationOf(line)).first().text
+        def text = statusBarFormatter.format(operationOf(line), 0).first().text
 
         then:
         text == expected
@@ -121,7 +125,7 @@ class DefaultWorkInProgressFormatterTest extends Specification {
         consoleMetaData.getCols() >> cols
 
         when:
-        def text = statusBarFormatter.format(operationOf(line)).first().text
+        def text = statusBarFormatter.format(operationOf(line), 0).first().text
 
         then:
         text == expected
@@ -141,7 +145,7 @@ class DefaultWorkInProgressFormatterTest extends Specification {
         consoleMetaData.getCols() >> 30
 
         expect:
-        statusBarFormatter.format(operationOf(line)).first().text == expected
+        statusBarFormatter.format(operationOf(line), 0).first().text == expected
 
         where:
         cut                | line                                             | expected
@@ -154,16 +158,67 @@ class DefaultWorkInProgressFormatterTest extends Specification {
         consoleMetaData.getCols() >> 6
 
         expect:
-        statusBarFormatter.format(operationOf("these are more than 10 characters")).first().text == "> the"
+        statusBarFormatter.format(operationOf("these are more than 10 characters"), 0).first().text == "> the"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39559")
+    def "shows the time after the line once the work has run for 10 s (#elapsed ms)"() {
+        given:
+        def operation = new ProgressOperation(":compileJava", "VARIANT_CATEGORY", new OperationIdentifier(1), null, 1_000)
+
+        expect:
+        statusBarFormatter.format(operation, 1_000 + elapsed) == expected
+
+        where:
+        elapsed | expected
+        9_999   | [new Span(Header, "> :compileJava")]
+        10_000  | [new Span(Header, "> :compileJava"), new Span(Normal, "  10s")]
+        72_000  | [new Span(Header, "> :compileJava"), new Span(Normal, "  1m 12s")]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39559")
+    def "shows the time of the deepest operation with a message"() {
+        given:
+        def task = new ProgressOperation(":test", "VARIANT_CATEGORY", new OperationIdentifier(1), null, 0)
+        def testClass = new ProgressOperation("Executing test FooTest", "VARIANT_CATEGORY", new OperationIdentifier(2), task, 50_000)
+        def withoutMessage = new ProgressOperation(null, "VARIANT_CATEGORY", new OperationIdentifier(3), testClass, 71_000)
+
+        expect:
+        text(statusBarFormatter.format(testClass, 72_000)) == "> :test > Executing test FooTest  22s"
+        text(statusBarFormatter.format(withoutMessage, 72_000)) == "> :test > Executing test FooTest  22s"
+        text(statusBarFormatter.format(task, 72_000)) == "> :test  1m 12s"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39559")
+    def "shows the time only next to a part of the message of its operation, when #reason (#cols columns)"() {
+        given:
+        consoleMetaData.getCols() >> cols
+
+        when:
+        def text = text(statusBarFormatter.format(operationOf(line), 25_000))
+
+        then:
+        text == expected
+        text.length() <= cols - 1
+
+        where:
+        reason                                      | cols | line                                                                                                                                 | expected
+        "the end of a long line is kept"            | 80   | ":services:payments:test > Executing test com.example.payments.retry.SlowNetworkRetryIntegrationTest"                                 | "> :services:payments:test > ...retry.SlowNetworkRetryIntegrationTest  25s"
+        "the end is only kept without the time"     | 80   | ":platforms:core-configuration:configuration-cache:integTest > Executing test org...impl.ConfigurationCacheValueSourceIntegrationTest" | "> :platforms:core-configuration:configuration-cache:integTest > ...egrationTest"
+        "the end is dropped"                        | 80   | ":platforms:core-configuration:configuration-cache:configCacheIntegTest > Executing test com.example.FooTest"                         | "> :platforms:core-configuration:configuration-cache:configCacheIntegTest > ..."
+        "one character of the message is kept"      | 9    | ":compileJava"                                                                                                                       | "> :  25s"
+        "no character of the message is kept"       | 8    | ":compileJava"                                                                                                                       | "> ...va"
+        "the first character does not fit"          | 9    | ROCKET + "compileJava"                                                                                                               | "> " + ROCKET + "...a"
+        "only an ellipsis of the message fits"      | 12   | ROCKET + "compileJava" + ROCKET                                                                                                      | "> " + ROCKET + "c...a" + ROCKET
     }
 
     def "placeholder is used when message is empty"() {
         given:
-        def operation = new ProgressOperation(null, null, new OperationIdentifier(1), null)
+        def operation = new ProgressOperation(null, null, new OperationIdentifier(1), null, 0)
 
         expect:
-        statusBarFormatter.format(operation).first().text == "> IDLE"
-        statusBarFormatter.format(operation).first().style == StyledTextOutput.Style.Normal
+        statusBarFormatter.format(operation, 0).first().text == "> IDLE"
+        statusBarFormatter.format(operation, 0).first().style == StyledTextOutput.Style.Normal
     }
 
     /**
@@ -172,8 +227,12 @@ class DefaultWorkInProgressFormatterTest extends Specification {
     private static ProgressOperation operationOf(String line) {
         ProgressOperation operation = null
         line.split(" > ").eachWithIndex { String message, int i ->
-            operation = new ProgressOperation(message, "VARIANT_CATEGORY", new OperationIdentifier(i + 1), operation)
+            operation = new ProgressOperation(message, "VARIANT_CATEGORY", new OperationIdentifier(i + 1), operation, 0)
         }
         operation
+    }
+
+    private static String text(List<Span> spans) {
+        spans*.text.join("")
     }
 }
