@@ -61,7 +61,7 @@ public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
     @Override
     public ExecutionTimeValue<? extends List<R>> calculateExecutionTimeValue() {
         for (Provider<R> provider : items) {
-            if (isChangingValue(Providers.internal(provider))) {
+            if (hasChangingContent(Providers.internal(provider))) {
                 return ExecutionTimeValue.changingValue(this);
             }
         }
@@ -69,8 +69,8 @@ public class MergeProvider<R> extends AbstractMinimalProvider<List<R>> {
         return super.calculateExecutionTimeValue();
     }
 
-    private boolean isChangingValue(ProviderInternal<?> provider) {
-        return provider.calculateExecutionTimeValue().isChangingValue();
+    private boolean hasChangingContent(ProviderInternal<?> provider) {
+        return provider.calculateExecutionTimeValue().hasChangingContent();
     }
 
     @Override

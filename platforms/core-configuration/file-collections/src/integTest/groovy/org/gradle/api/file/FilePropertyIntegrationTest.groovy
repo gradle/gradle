@@ -20,6 +20,7 @@ import org.gradle.api.problems.Severity
 import org.gradle.api.tasks.TasksWithInputsAndOutputs
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.internal.reflect.validation.ValidationMessageChecker
+import spock.lang.Issue
 
 class FilePropertyIntegrationTest extends AbstractIntegrationSpec implements TasksWithInputsAndOutputs, ValidationMessageChecker {
     def setup() {
@@ -724,6 +725,58 @@ task useDirProviderApi {
         fileMethod    | dirMethod
         'dependsOn'   | 'dependsOn'
         'inputs.file' | 'inputs.dir'
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/26437")
+    def "content of task output #propertyType asFile is not queried before the producer task runs"() {
+        buildFile """
+            abstract class Producer extends DefaultTask {
+                @${outputAnnotation}
+                abstract ${propertyType} getOutput()
+
+                @TaskAction
+                void go() {
+                    ${createOutput}
+                }
+            }
+
+            abstract class Consumer extends DefaultTask {
+                @InputFiles
+                @Optional
+                abstract ListProperty<File> getInputFiles()
+
+                @TaskAction
+                void go() {
+                    println "inputs: " + inputFiles.getOrElse([]).collect { it.name }
+                }
+            }
+
+            def producer = tasks.register("producer", Producer) {
+                output = layout.buildDirectory.${locationMethod}("output")
+            }
+
+            tasks.register("consumer", Consumer) {
+                inputFiles.add(producer.flatMap { it.output.asFile }.filter { it.exists() })
+            }
+        """
+
+        when:
+        run("consumer")
+
+        then:
+        outputContains("inputs: [output]")
+
+        when:
+        file("build/output").deleteDir()
+        run("consumer")
+
+        then:
+        outputContains("inputs: [output]")
+
+        where:
+        propertyType          | outputAnnotation  | locationMethod | createOutput
+        "RegularFileProperty" | "OutputFile"      | "file"         | 'output.get().asFile.text = "content"'
+        "DirectoryProperty"   | "OutputDirectory" | "dir"          | 'output.get().asFile.mkdirs()'
     }
 
     def "can use @Optional on properties with type Property"() {

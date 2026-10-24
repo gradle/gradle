@@ -55,15 +55,15 @@ public class BiProvider<R, A, B> extends AbstractMinimalProvider<R> {
     @Override
     public ExecutionTimeValue<? extends R> calculateExecutionTimeValue() {
         try (EvaluationScopeContext ignored = openScope()) {
-            if (isChangingValue(left) || isChangingValue(right)) {
+            if (hasChangingContent(left) || hasChangingContent(right)) {
                 return ExecutionTimeValue.changingValue(this);
             }
         }
         return super.calculateExecutionTimeValue();
     }
 
-    private static boolean isChangingValue(ProviderInternal<?> provider) {
-        return provider.calculateExecutionTimeValue().isChangingValue();
+    private static boolean hasChangingContent(ProviderInternal<?> provider) {
+        return provider.calculateExecutionTimeValue().hasChangingContent();
     }
 
     @Override
