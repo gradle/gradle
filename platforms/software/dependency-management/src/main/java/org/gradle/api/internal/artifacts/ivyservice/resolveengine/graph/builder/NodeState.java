@@ -741,13 +741,20 @@ public class NodeState implements DependencyGraphNode {
 
     /**
      * Whenever an incoming edge is added or removed from this node, if that edge is
-     * endorsing strict versions and this node has strict versions declared, other children
-     * of the source node need to be re-processed in order to ensure they handle the updated
+     * endorsing strict versions and either this node has strict versions declared or the
+     * source node's cached endorsed strict versions are non-empty, other children of the
+     * source node need to be re-processed in order to ensure they handle the updated
      * endorsed strict versions from their parent.
      */
     private void requeueChildrenOfEndorsingParent(EdgeState incomingEdge) {
         if (incomingEdge.getDependencyMetadata().isEndorsingStrictVersions()) {
             NodeState sourceNode = incomingEdge.getFrom();
+            StrictVersionConstraints sourceEndorsed = sourceNode.cachedEndorsedStrictVersions;
+            boolean declaresNoStrictVersions = ownStrictVersions != null && ownStrictVersions.isEmpty();
+            boolean sourceEndorsesNothing = sourceEndorsed == null || sourceEndorsed.isEmpty();
+            if (declaresNoStrictVersions && sourceEndorsesNothing) {
+                return;
+            }
             sourceNode.invalidateEndorsedStrictVersions();
             for (EdgeState edge : sourceNode.getOutgoingEdges()) {
                 for (NodeState node : edge.getTargetNodes()) {

@@ -30,9 +30,12 @@ import org.gradle.internal.component.model.VariantGraphResolveState
 import spock.lang.Specification
 
 class NodeStateTest extends Specification {
+    List<NodeState> requeued = []
+
     def resolveState = Stub(ResolveState) {
         getEdgeFilter() >> Specs.satisfyAll()
         getDependencySubstitutionApplicator() >> DependencySubstitutionApplicator.NO_OP
+        onMoreSelected(_) >> { NodeState node -> requeued << node }
     }
 
     int idIdx = 0
@@ -178,6 +181,48 @@ class NodeStateTest extends Specification {
         ancestorsStrictVersions == modules(["a", "b"])
         parent1.ownStrictVersions == modules(["b", "c"])
         parent2.ownStrictVersions == modules(["b", "d"])
+    }
+
+    def "adding an endorsing edge requeues siblings only if the endorsed node declares strict versions"() {
+        given:
+        def root = root()
+        def sibling = node()
+        edge(root, sibling)
+        def platform = node(strictVersions)
+        requeued.clear()
+
+        when:
+        endorsingEdge(root, platform)
+
+        then:
+        requeued.contains(sibling) == expectRequeue
+        sibling.ancestorsStrictVersions == modules(strictVersions)
+
+        where:
+        strictVersions | expectRequeue
+        []             | false
+        ["a"]          | true
+    }
+
+    def "removing an endorsing edge requeues siblings only if the endorsed node declares strict versions"() {
+        given:
+        def root = root()
+        def sibling = node()
+        edge(root, sibling)
+        def platform = node(strictVersions)
+        def endorsing = endorsingEdge(root, platform)
+        requeued.clear()
+
+        when:
+        platform.removeIncomingEdge(endorsing)
+
+        then:
+        requeued.contains(sibling) == expectRequeue
+
+        where:
+        strictVersions | expectRequeue
+        []             | false
+        ["a"]          | true
     }
 
     private EdgeState edge(NodeState from, NodeState to) {
