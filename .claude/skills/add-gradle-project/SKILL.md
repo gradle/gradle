@@ -18,7 +18,7 @@ Before starting, you need these details from the user (ask if not provided):
    - `platform("jvm")` - flat list of subprojects
    - `platform("extensibility")` - flat list of subprojects
    - `platform("native")` - flat list of subprojects
-   - Top-level modules (not inside a platform): `documentation`, `ide`, `enterprise`
+   - Top-level modules (not inside a platform): `documentation`, `ide`, `enterprise`, `observability`
    - Special sections: `packaging`, `testing`
 3. **Whether the project contains public API and what language is used** - Determines the plugin:
    - Public API/Java → `gradlebuild.distribution.api-java`
