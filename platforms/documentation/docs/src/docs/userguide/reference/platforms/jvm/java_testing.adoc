@@ -141,6 +141,17 @@ A pattern naming an individual non-method test can stop matching when you upgrad
 Engines that register their tests only while a class is executing, such as https://kotest.io/[Kotest], are a different case.
 Gradle applies filters after test discovery, before those tests exist, so you can select or exclude them only by their spec class.
 
+Tests that live in a file rather than in a class, such as a link:https://cucumber.io/[Cucumber] scenario in a `.feature` file, are matched one of two ways depending on how they were found:
+
+1. A file under one of the directories listed in `testDefinitionDirs` is matched by its path relative to that directory.
+2. A file outside those directories was reached some other way, for example through a JUnit Platform `@Suite` class that selects feature files itself, and is matched by its enclosing class, exactly like the ArchUnit case above.
+
+So `--tests "RunCukesTest"` runs every scenario that suite reaches, and `excludeTestsMatching "RunCukesTest"` skips them all.
+
+NOTE: Matching a test by its path under `testDefinitionDirs` is an <<feature_lifecycle.adoc#sec:incubating_state,incubating>> feature that may change.
+
+See <<#sec:non_class_based_testing_filtering,Filtering>> under Non-class-based testing for the path conversion rules and for what happens to a file that has neither.
+
 The following two sections look at the specific cases of simple class/method names and fully-qualified names.
 
 [[simple_name_pattern]]
@@ -1007,7 +1018,8 @@ Non-class-based tests can be filtered in the same way as <<java_testing.adoc#tes
 
 NOTE: Non-class-based filtering is an <<feature_lifecycle.adoc#sec:incubating_state,incubating>> feature that may change.
 
-Non-class-based test filtering is performed by converting the relative file path into a fully qualified name. The package structure is constructed from the test definition directory.
+A test definition under one of the directories listed in `testDefinitionDirs` is filtered by converting its path relative to that directory into a fully qualified name.
+The package structure is constructed from the test definition directory.
 File path separators are converted into dots (`.`) and the file extension is removed.
 
 [cols="1,1", options="header"]
@@ -1033,6 +1045,18 @@ To run all tests within the `sub` directory:
 ----
 $ ./gradlew test --tests "sub.*"
 ----
+
+[[sec:filtering_definitions_outside_definition_dirs]]
+==== Test definitions outside the definition directories
+
+Only a test definition under one of the `testDefinitionDirs` directories has a relative path to convert.
+A definition that lies under none of them was reached some other way, typically through a class-based entry point such as a JUnit Platform `@Suite` that selects its own files, which is how Cucumber is commonly set up.
+
+Such a test is matched by the class that encloses it instead, in the same way as any other <<#filtering_non_method_tests,test that is not declared as a method>>.
+For a suite class `RunCukesTest` that selects feature files of its own, `--tests "RunCukesTest"` runs every scenario it reaches, and `excludeTestsMatching "RunCukesTest"` skips them all.
+
+A test definition with neither a relative path nor an enclosing class cannot be named by any pattern, so it is skipped whenever a filter is in effect.
+To make such a definition selectable, put it under one of the `testDefinitionDirs` directories, or reach it through a class.
 
 [[sec:ambiguity_with_test_selection]]
 ==== Ambiguity with test selection
