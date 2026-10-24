@@ -463,6 +463,45 @@ class ProblemsServiceIntegrationTest extends AbstractIntegrationSpec {
         receivedProblem != null
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/39281")
+    def "problems report lists the groups of the reported problems in display order, with their descriptions"() {
+        given:
+        withReportProblemTask """
+            problems.getReporter().report(problems.groups.others.group("My plugin").problemId("Plugin problem")) {}
+            problems.getReporter().report(problems.groups.compilation.java.problemId("Unused import")) {}
+            problems.getReporter().report(problems.groups.compilation.undefined.problemId("Unknown compiler")) {}
+            problems.getReporter().report(problems.groups.dependencies.declaration.problemId("Declaration problem")) {}
+        """
+
+        when:
+        executer.withArgument("--problems-report")
+        run("reportProblem")
+
+        then:
+        def report = new ProblemsReportFixture(testDirectory.file(problemsReportOutputDirectory, problemsReportHtmlName))
+        def groups = report.summary['groups'] as List<Map<String, Object>>
+
+        groups*.get('path') == [
+            ["Dependencies"],
+            ["Dependencies", "Declaration"],
+            ["Compilation"],
+            ["Compilation", "Java"],
+            ["Compilation", "Undefined"],
+            ["Others"],
+            ["Others", "My plugin"],
+        ]
+        groups.findAll { it['path'] != ["Others", "My plugin"] }.every { it['description'] }
+        !groups.find { it['path'] == ["Others", "My plugin"] }.containsKey('description')
+
+        and:
+        (0..3).collect { receivedProblem(it).definition.id.fqid } as Set == [
+            "Others:My plugin:Plugin problem",
+            "Compilation:Java:Unused import",
+            "Compilation:Undefined:Unknown compiler",
+            "Dependencies:Declaration:Declaration problem",
+        ] as Set
+    }
+
     def "problem report can be disabled"() {
         given:
         withReportProblemTask """

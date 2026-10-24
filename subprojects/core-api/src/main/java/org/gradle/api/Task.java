@@ -550,8 +550,10 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
      *
      * @return The <code>AntBuilder</code>
      * @since 0.7
+     * @deprecated This method will be removed in Gradle 10.
      */
     @Internal
+    @Deprecated
     AntBuilder getAnt();
 
     /**

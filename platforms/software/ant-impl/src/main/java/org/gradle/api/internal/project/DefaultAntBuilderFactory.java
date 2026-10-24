@@ -23,6 +23,7 @@ import org.gradle.internal.concurrent.CompositeStoppable;
 
 import java.io.Closeable;
 
+@Deprecated
 public class DefaultAntBuilderFactory implements AntBuilderFactory, Closeable {
 
     private final Project project;
@@ -37,6 +38,7 @@ public class DefaultAntBuilderFactory implements AntBuilderFactory, Closeable {
     }
 
     @Override
+    @Deprecated
     public DefaultAntBuilder createAntBuilder() {
         AntLoggingAdapter loggingAdapter = loggingAdapterFactory.create();
         DefaultAntBuilder antBuilder = new DefaultAntBuilder(project, loggingAdapter, taskDependencyFactory);

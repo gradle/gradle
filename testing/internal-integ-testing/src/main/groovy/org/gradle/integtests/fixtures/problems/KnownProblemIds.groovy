@@ -75,6 +75,7 @@ class KnownProblemIds {
         'Packaging:Signing': 'Signing',
         'Provisioning': 'Provisioning',
         'Provisioning:Tools and Toolchains': 'Tools and Toolchains',
+        'Others:My plugin': 'My plugin',
         'Others:Undefined': 'Undefined',
 
         // groups from integration tests
@@ -114,6 +115,8 @@ class KnownProblemIds {
         'Gradle:Build Logic:Project feature definition declared safe has an implementation type': ['Project feature definition declared safe has an implementation type'],
         'Gradle:Build Logic:Project feature apply action injects an unknown service': ['Project feature apply action injects an unknown service'],
         'Gradle:Build Logic:Project feature apply action declared safe injects an unsafe service': ['Project feature apply action declared safe injects an unsafe service'],
+        'Others:My plugin:Plugin problem': ['Plugin problem'],
+        'Dependencies:Declaration:Declaration problem': ['Declaration problem'],
         'Compilation:Java:Compiler initialization failed': ['Compiler initialization failed'],
         'Compilation:Groovy:tools.jar is missing': ['tools.jar is missing'],
         // Java compiler diagnostics are named after javac's message templates, an open set that changes with the JDK

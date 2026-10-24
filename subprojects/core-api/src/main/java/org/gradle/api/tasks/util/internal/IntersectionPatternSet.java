@@ -21,6 +21,7 @@ import org.gradle.api.file.FileTreeElement;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
 import org.gradle.api.tasks.util.PatternSet;
+import org.gradle.internal.deprecation.DeprecationLogger;
 
 public class IntersectionPatternSet extends PatternSet {
 
@@ -41,12 +42,20 @@ public class IntersectionPatternSet extends PatternSet {
     }
 
     @Override
+    @Deprecated
     public Object addToAntBuilder(Object node, String childNodeName) {
+        DeprecationLogger.deprecateMethod(PatternSet.class, "addToAntBuilder(Object, String)")
+            .willBeRemovedInGradle10()
+            .withUpgradeGuideSection(9, "deprecated_ant_builder")
+            .nagUser();
+
         return PatternSetAntBuilderDelegate.and(node, new Action<Object>() {
             @Override
             public void execute(Object andNode) {
-                org.gradle.api.tasks.util.internal.IntersectionPatternSet.super.addToAntBuilder(andNode, null);
-                other.addToAntBuilder(andNode, null);
+                DeprecationLogger.whileDisabled(() -> {
+                    IntersectionPatternSet.super.addToAntBuilder(andNode, null);
+                    other.addToAntBuilder(andNode, null);
+                });
             }
         });
     }
