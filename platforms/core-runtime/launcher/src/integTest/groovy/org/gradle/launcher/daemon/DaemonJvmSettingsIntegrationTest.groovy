@@ -16,71 +16,98 @@
 
 package org.gradle.launcher.daemon
 
-import org.gradle.api.JavaVersion
 import org.gradle.integtests.fixtures.daemon.DaemonIntegrationSpec
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 
+import java.lang.management.ManagementFactory
+
 class DaemonJvmSettingsIntegrationTest extends DaemonIntegrationSpec {
     def "uses current JVM and default JVM args when none specified"() {
-        file('build.gradle') << """
-assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-Xmx512m')
-assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.contains('-XX:+HeapDumpOnOutOfMemoryError')
-"""
-
         given:
         executer.useOnlyRequestedJvmOpts()
+        buildFile printJvmArgs()
 
-        expect:
+        when:
         succeeds()
+
+        then:
+        def daemonArgs = daemonJvmArgs()
+        daemonArgs.contains('-Xmx512m')
+        daemonArgs.contains('-XX:+HeapDumpOnOutOfMemoryError')
     }
 
     @Requires(TestExecutionPreconditions.NotEmbeddedExecutor)
-    def "JVM args from gradle.properties packaged in distribution override defaults"() {
+    def "JVM args from gradle.properties packaged in distribution are merged with defaults"() {
         setup:
         requireIsolatedGradleDistribution()
         executer.useOnlyRequestedJvmOpts()
 
-        file('build.gradle') << """
-            def inputArguments = java.lang.management.ManagementFactory.runtimeMXBean.inputArguments
-            assert inputArguments.contains('-Xmx1024m')
-            assert inputArguments.count { !it.startsWith('--add-opens=') && !it.startsWith('--add-exports=') && !it.startsWith('--enable-native-access=') && !it.startsWith('--sun-misc-unsafe-memory-access=') && !it.startsWith('-D') && !it.startsWith('-javaagent:') } == 1
-        """
+        buildFile printJvmArgs()
 
         when:
         distribution.gradleHomeDir.file('gradle.properties') << 'org.gradle.jvmargs=-Xmx1024m'
+        succeeds()
 
         then:
-        succeeds()
+        def daemonArgs = daemonJvmArgs()
+        daemonArgs.contains('-Xmx1024m')
+        daemonArgs.contains('-XX:MaxMetaspaceSize=768m')
+        daemonArgs.contains('-XX:+HeapDumpOnOutOfMemoryError')
+        daemonArgs.count { !it.startsWith('--add-opens=') && !it.startsWith('--add-exports=') && !it.startsWith('--enable-native-access=') && !it.startsWith('--sun-misc-unsafe-memory-access=') && !it.startsWith('-D') && !it.startsWith('-javaagent:') } == 3
 
         cleanup:
         stopDaemonsNow()
     }
 
+    def "merges JVM args #jvmArgs from gradle.properties with defaults"() {
+        setup:
+        executer.useOnlyRequestedJvmOpts()
+        file('gradle.properties').writeProperties('org.gradle.jvmargs': jvmArgs)
+        buildFile printJvmArgs()
+
+        when:
+        succeeds()
+
+        then:
+        def daemonArgs = daemonJvmArgs()
+        daemonArgs.containsAll(expectedArgs)
+        daemonArgs.intersect(unexpectedArgs).empty
+
+        where:
+        jvmArgs                           | expectedArgs                                                                                                 | unexpectedArgs
+        "-XX:+UseSerialGC"                | ["-XX:+UseSerialGC", "-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=768m", "-XX:+HeapDumpOnOutOfMemoryError"] | []
+        "-Xmx1024m"                       | ["-Xmx1024m", "-XX:MaxMetaspaceSize=768m", "-XX:+HeapDumpOnOutOfMemoryError"]                                | ["-Xmx512m", "-Xms256m"]
+        "-Xms128m"                        | ["-Xms128m", "-XX:MaxMetaspaceSize=768m", "-XX:+HeapDumpOnOutOfMemoryError"]                                 | ["-Xmx512m", "-Xms256m"]
+        "-XX:MaxMetaspaceSize=1g"         | ["-XX:MaxMetaspaceSize=1g", "-Xmx512m", "-Xms256m", "-XX:+HeapDumpOnOutOfMemoryError"]                       | ["-XX:MaxMetaspaceSize=768m"]
+        "-XX:-HeapDumpOnOutOfMemoryError" | ["-XX:-HeapDumpOnOutOfMemoryError", "-Xmx512m", "-Xms256m", "-XX:MaxMetaspaceSize=768m"]                     | ["-XX:+HeapDumpOnOutOfMemoryError"]
+    }
+
+    def "reuses daemon across builds with JVM args merged with defaults"() {
+        setup:
+        executer.useOnlyRequestedJvmOpts()
+        file('gradle.properties').writeProperties('org.gradle.jvmargs': "-Xmx1024m")
+
+        when:
+        succeeds()
+        executer.useOnlyRequestedJvmOpts()
+        succeeds()
+
+        then:
+        daemons.daemons.size() == 1
+    }
+
     def "uses defaults for max/min heap size when JAVA_TOOL_OPTIONS is set (#javaToolOptions)"() {
         setup:
         executer.requireDaemon().requireIsolatedDaemons()
-        boolean java9orAbove = JavaVersion.current().java9Compatible
-
         buildFile """
             import java.lang.management.ManagementFactory
-            import java.lang.management.MemoryMXBean
-
-            println "GRADLE_VERSION: " + gradle.gradleVersion
 
             task verify {
                 doFirst {
-                    MemoryMXBean memBean = ManagementFactory.getMemoryMXBean()
-                    println "Initial Heap: " + memBean.heapMemoryUsage.init
-                    assert memBean.heapMemoryUsage.init == 256 * 1024 * 1024
-                    println "    Max Heap: " + memBean.heapMemoryUsage.max
-
-                    // Java 8 does not report max heap size exactly matching the command line setting
-                    if ($java9orAbove) {
-                        assert memBean.heapMemoryUsage.max == 512 * 1024 * 1024
-                    } else {
-                        assert memBean.heapMemoryUsage.max > 256 * 1024 * 1024
-                    }
+                    def heapUsage = ManagementFactory.memoryMXBean.heapMemoryUsage
+                    println "INITIAL_HEAP: " + heapUsage.init
+                    println "MAX_HEAP: " + heapUsage.max
                 }
             }
         """
@@ -92,8 +119,9 @@ assert java.lang.management.ManagementFactory.runtimeMXBean.inputArguments.conta
         run "verify"
 
         then:
-        String gradleVersion = (output =~ /GRADLE_VERSION: (.*)/)[0][1]
-        daemons(gradleVersion).daemons.size() == 1
+        daemons.daemons.size() == 1
+        outputContains("INITIAL_HEAP: ${256 * 1024 * 1024}")
+        outputContains("MAX_HEAP: ${512 * 1024 * 1024}")
 
         where:
         javaToolOptions << ["-Xms513m", "-Xmx255m", "-Xms128m -Xmx256m"]
@@ -111,5 +139,17 @@ println 'Started'
 
         then:
         succeeds()
+    }
+
+    private static String printJvmArgs() {
+        """
+            ${ManagementFactory.name}.runtimeMXBean.inputArguments.each {
+                println "JVM_ARG: " + it
+            }
+        """
+    }
+
+    private List<String> daemonJvmArgs() {
+        output.readLines().findAll { it.startsWith("JVM_ARG: ") }.collect { it - "JVM_ARG: " }
     }
 }
