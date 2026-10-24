@@ -273,4 +273,38 @@ lockedConf=org:foo:1.0"""
         failure.assertHasResolution('Verify the lockfile content.')
     }
 
+    def 'reports the malformed entry of a lock file'() {
+        given:
+        mavenRepo.module('org', 'foo', '1.0').publish()
+
+        buildFile << """
+dependencyLocking {
+    lockAllConfigurations()
+}
+
+repositories {
+    maven {
+        name = 'repo'
+        url = "${mavenRepo.uri}"
+    }
+}
+configurations {
+    lockedConf
+}
+
+dependencies {
+    lockedConf 'org:foo:1.0'
+}
+"""
+        lockfileFixture.createLockfile('lockedConf', ['org:foo'])
+
+        when:
+        fails 'checkDeps'
+
+        then:
+        failure.assertHasCause("Invalid lock state for configuration ':lockedConf'")
+        failure.assertHasCause("The module notation does not respect the lock file format of 'group:name:version' - received 'org:foo'")
+        failure.assertHasResolution('Verify the lockfile content.')
+    }
+
 }
