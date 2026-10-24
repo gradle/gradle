@@ -30,6 +30,7 @@ import spock.lang.Specification
 
 import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.BUILD_EXECUTION
 import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.BUILD_PHASE
+import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.CONFIGURATION_CACHE
 import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.FILE_DOWNLOAD
 import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.PROBLEMS
 import static org.gradle.tooling.internal.protocol.InternalBuildProgressListener.PROJECT_CONFIGURATION_EXECUTION
@@ -60,7 +61,7 @@ class BuildProgressListenerAdapterTest extends Specification {
         expectedSubscribedOperations << Sets.powerSet([TEST_EXECUTION, TASK_EXECUTION,
                                                        BUILD_EXECUTION, WORK_ITEM_EXECUTION,
                                                        PROJECT_CONFIGURATION_EXECUTION, TRANSFORM_EXECUTION,
-                                                       TEST_OUTPUT, TEST_METADATA, FILE_DOWNLOAD, BUILD_PHASE, PROBLEMS, ROOT] as Set)
+                                                       TEST_OUTPUT, TEST_METADATA, FILE_DOWNLOAD, BUILD_PHASE, PROBLEMS, ROOT, CONFIGURATION_CACHE] as Set)
     }
 
     def "parent descriptor of a descriptor can be of a different type"() {
