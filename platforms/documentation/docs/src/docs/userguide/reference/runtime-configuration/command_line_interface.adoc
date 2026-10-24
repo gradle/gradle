@@ -785,15 +785,50 @@ Past the stack-capture cap (50 problems by default, 5000 under <<isolated_projec
 [[sec:rich_console]]
 === Rich console
 
-Gradle's rich console displays extra information while builds are running.
+In the rich console, the progress of the build is shown at the bottom of the console, below the output of the build.
 
 image::rich-cli.png[alt="Gradle Rich Console"]
 
-Features:
+The first line is the status bar.
+It has a progress bar, the percentage of completed work in the current phase, the name of the phase, and the time since the start of the build:
 
-* Progress bar and timer visually describe the overall status
-* Parallel work-in-progress lines below describe what is happening now
-* Colors and fonts are used to highlight significant output and errors
+----
+│███············│ 20% EXECUTING [12s]
+----
+
+When the console supports Unicode, the progress bar is drawn with Unicode block characters.
+Otherwise, and on the Linux text console, the progress bar is drawn with ASCII characters:
+
+----
+[###............] 20% EXECUTING [12s]
+----
+
+You can choose the characters with the `--console-unicode` option, see <<#sec:command_line_customizing_log_format,Customizing log format>>.
+
+Below the status bar, the work in progress is shown on worker lines, one line for each piece of work:
+
+* A task, and for a test task, the current test class. For a download, the file.
+* Configuration work, such as the configuration of a project, the check of the configuration cache fingerprint, or the generation of version catalog accessors.
+* Work after the last task, such as flow actions, or the `close()` method of build services.
+* The work actions of a task, such as the ones submitted with the <<worker_api.adoc#worker_api,Worker API>>, when the task has more than one work action.
+  The number of completed work actions is then shown on the line of the task.
+
+On some lines of an included build, the path of the build is put first, as in `> :lib > Building task graph`.
+When no work is in progress on a line, `> IDLE` is shown.
+
+After 10 seconds of work on a line, the time since the start of this work is shown at the end of the line, when it fits next to a part of the message of this work.
+When a line is too long for the console, the middle of the line is cut, so that the task path and the end of the line are kept:
+
+----
+> :services:payments:test > ...retry.SlowNetworkRetryIntegrationTest  41s
+----
+
+When the task path takes too much of the line, the end is replaced by `++ > ...++`.
+
+The worker lines take at most half of the height of the console.
+When more work is in progress than there are lines, the number of lines that are not shown is given under the worker lines, for example `(2 lines not showing)`.
+
+Colors and fonts are used to highlight significant output and errors.
 
 [[sec:command_line_execution_options]]
 == Execution options

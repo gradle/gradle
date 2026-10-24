@@ -79,6 +79,36 @@ Gradle provides a [set of features and abstractions](userguide/java_testing.html
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
 
+#### Rich console improvements
+
+In the [rich console](userguide/command_line_interface.html#sec:rich_console), the work in progress is shown on worker lines, below the progress bar.
+In this release, more work is shown on these lines, and more information is shown on each line.
+
+![Rich console of a build with a slow test class, Worker API work actions and a flow action](release-notes-assets/rich-console-improvements.gif)
+
+Before, some work had no worker line of its own.
+This work is now shown on worker lines:
+
+* Before the tasks: the check of the configuration cache fingerprint, the `projectsLoaded`, `projectsEvaluated` and `taskGraph.whenReady` listeners, and the generation of [version catalog](userguide/version_catalogs.html) and project accessors.
+* After the last task: [flow actions](userguide/dataflow_actions.html), the `close()` method of [build services](userguide/build_services.html), and the write operations for dependency locks and dependency verification metadata.
+* During a task: the work actions of the task, such as the ones submitted with the [Worker API](userguide/worker_api.html). When a task has more than one work action, each work action in progress is shown on its own line. The number of completed work actions is shown on the line of the task, as for test tasks.
+
+For the work of an included build, the path of the build is put first, as in `> :lib > Running projects evaluated listeners`.
+
+More information is also shown on each worker line:
+
+* After 10 seconds of work on a line, the time since the start of this work is shown at the end of the line. For a test task, the time of the current test class is shown. With this time, you can see the difference between a blocked task and a new task.
+* When a line is too long for the console, the middle of the line is cut. The task path at the start and the end of the line are kept. Before, the end of the line was cut, and the name of a test class was often lost:
+
+```text
+Before  > :services:payments:test > Executing test com.example.payments.retry.SlowNetwo
+After   > :services:payments:test > ...retry.SlowNetworkRetryIntegrationTest  25s
+```
+
+On the Linux text console, the progress bar is now drawn with ASCII characters.
+The fonts of this console do not have the partial block characters of the Unicode bar, so a replacement character was shown at the edge of the filled part.
+With [`--console-unicode=enable`](userguide/command_line_interface.html#sec:command_line_customizing_log_format), the Unicode bar is still used.
+
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
