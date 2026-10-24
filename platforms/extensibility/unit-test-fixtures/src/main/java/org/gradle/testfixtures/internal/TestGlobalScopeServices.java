@@ -44,14 +44,23 @@ import java.util.Collections;
 import java.util.List;
 
 public class TestGlobalScopeServices extends GlobalScopeServices {
+    private final boolean usePersistentCache;
+
     public TestGlobalScopeServices() {
+        this(false);
+    }
+
+    public TestGlobalScopeServices(boolean usePersistentCache) {
         super(false, AgentStatus.disabled(), CurrentGradleInstallation.locate());
+        this.usePersistentCache = usePersistentCache;
     }
 
     @Provides
     @Override
     protected CacheFactory createCacheFactory(FileLockManager fileLockManager, ExecutorFactory executorFactory, BuildOperationRunner buildOperationRunner) {
-        return new TestInMemoryCacheFactory();
+        return usePersistentCache
+            ? super.createCacheFactory(fileLockManager, executorFactory, buildOperationRunner)
+            : new TestInMemoryCacheFactory();
     }
 
     @Override
