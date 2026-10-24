@@ -58,6 +58,11 @@ class ToolchainReportRendererTest extends Specification {
     def "jdk is rendered properly"() {
         given:
         def javaHome = temporaryFolder.createDir("javahome")
+        def binDir = javaHome.createDir("bin")
+        binDir.file(OperatingSystem.current().getExecutableName('javac')).touch()
+        binDir.file(OperatingSystem.current().getExecutableName('javadoc')).touch()
+        binDir.file(OperatingSystem.current().getExecutableName('jar')).touch()
+
         def metadata = JvmInstallationMetadata.from(
                 javaHome,
                 "1.8.0", "adoptopenjdk",
@@ -66,11 +71,6 @@ class ToolchainReportRendererTest extends Specification {
                 "myArch"
             )
         installation.source >> "SourceSupplier"
-
-        def binDir = javaHome.createDir("bin")
-        binDir.file(OperatingSystem.current().getExecutableName('javac')).touch()
-        binDir.file(OperatingSystem.current().getExecutableName('javadoc')).touch()
-        binDir.file(OperatingSystem.current().getExecutableName('jar')).touch()
 
         expect:
         assertOutput(metadata, """{identifier} + AdoptOpenJDK JDK 8 (1.8.0-b01){normal}
