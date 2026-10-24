@@ -181,6 +181,7 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
         List<String> allArgs = logLevel.args + ['-I', initScript]
 
         when:
+        expectAntDeprecations(level)
         executer.noExtraLogging().inDirectory(loggingDir).withArguments(allArgs)
         run "log"
         then:
@@ -203,6 +204,7 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
         List<String> allArgs = logLevel.args + ['-I', initScript] + ['-I', customLoggerInitScript]
 
         when:
+        expectAntDeprecations(level)
         executer.noExtraLogging().inDirectory(loggingDir).withArguments(allArgs)
         run "log"
         then:
@@ -267,6 +269,21 @@ class LoggingIntegrationTest extends AbstractIntegrationSpec {
 
         where:
         level << ['quiet', 'lifecycle', 'info', 'debug']
+    }
+
+    // The build logs from Ant, which is deprecated. Remove the Ant logging from the build in Gradle 10.
+    private void expectAntDeprecations(String level) {
+        if (level == 'quiet') {
+            // Deprecation warnings are not logged at the quiet level
+            return
+        }
+        // One for each line of the build using Ant
+        4.times {
+            executer.expectDocumentedDeprecationWarning(
+                "The Project.getAnt() method has been deprecated. This is scheduled to be removed in Gradle 10. " +
+                    "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_ant_builder"
+            )
+        }
     }
 }
 

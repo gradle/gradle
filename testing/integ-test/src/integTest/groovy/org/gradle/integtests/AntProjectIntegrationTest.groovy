@@ -25,6 +25,7 @@ import static org.gradle.integtests.fixtures.executer.TaskOrderSpecs.exact
 import static org.hamcrest.CoreMatchers.startsWith
 
 class AntProjectIntegrationTest extends AbstractIntegrationTest {
+
     @Test
     void antTargetsAndGradleTasksCanDependOnEachOther() {
         testFile('build.xml') << """
@@ -47,6 +48,7 @@ task ant(dependsOn: target1)
         target1File.assertDoesNotExist()
         target2File.assertDoesNotExist()
 
+        expectAntDeprecation()
         inTestDirectory().withTasks('ant').run().assertTasksScheduledInOrder(':initialize', ':target2', ':target1', ':ant')
 
         target1File.assertExists()
@@ -81,6 +83,8 @@ task ant(dependsOn: [target1, target2])
         target1File.assertDoesNotExist()
         target2File.assertDoesNotExist()
 
+        expectAntDeprecation()
+        expectAntDeprecation()
         inTestDirectory().withTasks('ant').run().assertTasksScheduled(':target1', ':target2', ':ant')
 
         target1File.assertExists()
@@ -115,6 +119,7 @@ task ant(dependsOn: [target1, target2])
         target1File.assertDoesNotExist()
         target2File.assertDoesNotExist()
 
+        expectAntDeprecation()
         inTestDirectory().withTasks('ant').run().assertTasksScheduled(':target1', ':target2', ':ant')
 
         target1File.assertExists()
@@ -135,6 +140,7 @@ task ant(dependsOn: [target1, target2])
         buildFile << """
 ant.importBuild('build.xml')
 """
+        expectAntDeprecation()
         ExecutionFailure failure = inTestDirectory().withTasks('target1').runWithFailure()
         failure.assertHasFileName("Build file '$buildFile'")
         failure.assertThatDescription(startsWith('A problem occurred evaluating root project'))
@@ -154,6 +160,7 @@ ant.importBuild('build.xml')
         buildFile << """
 ant.importBuild('build.xml')
 """
+        expectAntDeprecation()
         ExecutionFailure failure = inTestDirectory().withTasks('target1').runWithFailure()
         failure.assertHasDescription('Execution failed for task \':target1\' (registered in build file \'build.gradle\').')
         failure.assertHasCause('broken')
@@ -177,6 +184,7 @@ ant.importBuild('build.xml')
         testFile('build.gradle') << """
 ant.importBuild('build.xml')
 """
+        expectAntDeprecation()
         inTestDirectory().withTasks('a', 'e', 'h').run()
             .assertTasksScheduledInOrder any(
                 exact(any(':d', ':c', ':b'), ':a'),
@@ -197,6 +205,7 @@ ant.importBuild('build.xml')
         testFile('build.gradle') << """
 ant.importBuild('build.xml')
 """
+        expectAntDeprecation()
         inTestDirectory().withTasks('a').run().assertTasksScheduledInOrder(':b', ':c', ':a')
     }
 
@@ -210,6 +219,7 @@ ant.importBuild('build.xml')
         testFile('build.gradle') << """
 ant.importBuild('build.xml')
 """
+        expectAntDeprecation()
         inTestDirectory().withTasks('a').runWithFailure().assertHasCause("Imported Ant target 'a' depends on target or task 'b' which does not exist")
     }
 
@@ -224,6 +234,7 @@ ant.importBuild('build.xml')
 ant.importBuild('build.xml')
 """
         // Testing that we don't get some obscure error message trying to set c.shouldRunAfter b
+        expectAntDeprecation()
         inTestDirectory().withTasks('a').runWithFailure().assertHasCause("Imported Ant target 'a' depends on target or task 'b' which does not exist")
     }
 
@@ -246,6 +257,7 @@ ant.importBuild(file('build.xml')) { antTaskName ->
 
 task ant(dependsOn: 'ant-target1')
 """
+        expectAntDeprecation()
         inTestDirectory().withTasks('clean', 'ant').run().assertTasksScheduledInOrder(':clean', ':ant-clean', ':ant-target2', ':ant-target1', ':ant')
 
     }
@@ -267,7 +279,16 @@ ant.importBuild(file('build.xml')) { antTaskName ->
 
 task runAnt(dependsOn: 'a')
 """
+        expectAntDeprecation()
         inTestDirectory().withTasks('runAnt').run().assertTasksScheduledInOrder(':c', ':ant-b', ':a', ':runAnt')
 
     }
+
+    private void expectAntDeprecation() {
+        executer.expectDocumentedDeprecationWarning(
+            "The Project.getAnt() method has been deprecated. This is scheduled to be removed in Gradle 10. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_ant_builder"
+        )
+    }
+
 }

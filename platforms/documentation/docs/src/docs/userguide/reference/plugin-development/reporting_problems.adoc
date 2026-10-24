@@ -394,6 +394,10 @@ Run with `--warning-mode=all` or `--warning-mode=fail` to infer a location for e
 
 Console output includes a link to the report, see the <<sec:problems_api_usage,example output>> above.
 
+The *Groups* tab lists the root groups in the order of the <<sec:predefined_problem_groups,predefined hierarchy>>, with any other root groups listed by name before `Others`.
+Sub-groups are listed by name, with `Undefined` last.
+Hovering over the question mark next to a predefined group shows its description.
+
 image::problems-report-html.png[]
 
 `AdditionalData` is not included in the HTML report.

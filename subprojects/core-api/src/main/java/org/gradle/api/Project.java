@@ -1295,7 +1295,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      *
      * @return The <code>AntBuilder</code> for this project. Never returns null.
      * @since 0.7
+     * @deprecated This method will be removed in Gradle 10.
      */
+    @Deprecated
     @HiddenInDefinition
     AntBuilder getAnt();
 
@@ -1306,7 +1308,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @return Creates an <code>AntBuilder</code> for this project. Never returns null.
      * @see #getAnt()
      * @since 0.7
+     * @deprecated This method will be removed in Gradle 10.
      */
+    @Deprecated
     @HiddenInDefinition
     AntBuilder createAntBuilder();
 
@@ -1318,7 +1322,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureClosure The closure to execute against the <code>AntBuilder</code>.
      * @return The <code>AntBuilder</code>. Never returns null.
      * @since 0.7
+     * @deprecated This method will be removed in Gradle 10.
      */
+    @Deprecated
     @HiddenInDefinition
     AntBuilder ant(@DelegatesTo(AntBuilder.class) Closure configureClosure);
 
@@ -1329,7 +1335,9 @@ public interface Project extends Comparable<Project>, ExtensionAware, PluginAwar
      * @param configureAction The action to execute against the <code>AntBuilder</code>.
      * @return The <code>AntBuilder</code>. Never returns null.
      * @since 3.5
+     * @deprecated This method will be removed in Gradle 10.
      */
+    @Deprecated
     @HiddenInDefinition
     AntBuilder ant(Action<? super AntBuilder> configureAction);
 

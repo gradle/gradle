@@ -16,6 +16,8 @@
 
 package org.gradle.api.internal.project.ant;
 
+@Deprecated
 public interface AntLoggingAdapterFactory {
+    @Deprecated
     AntLoggingAdapter create();
 }

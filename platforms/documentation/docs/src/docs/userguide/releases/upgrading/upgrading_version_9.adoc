@@ -917,6 +917,258 @@ my-plugin = "1.5"
 my-plugin = { id = "com.example.my-plugin", version.ref = "my-plugin" }
 ----
 
+[[ant_build_script_classpath]]
+==== Deprecation of implicit Ant classes on the build script classpath
+
+Starting with Gradle 10, Ant classes will no longer be implicitly available to build scripts.
+This is a consequence of <<deprecated_ant_builder,the deprecation of the Ant integration>> described below.
+
+The most common way build scripts rely on Ant classes is link:{javadocPath}/org/gradle/api/file/ContentFilterable.html#filter(java.util.Map,java.lang.Class)[`filter(Map, Class)`] on the `Copy` task or on a `CopySpec`, which takes an Ant `FilterReader` such as `ReplaceTokens`.
+
+To replace Ant's `ReplaceTokens` filter, use link:{javadocPath}/org/gradle/api/file/ContentFilterable.html#filter(org.gradle.api.Transformer)[`filter(Transformer)`] to replace the tokens of each line in a single pass:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+tasks.register<Copy>("processTemplates") {
+    from("src/templates")
+    into(layout.buildDirectory.dir("templates"))
+
+    val tokens = mapOf("version" to "1.0")
+    inputs.properties(tokens)
+    val pattern = Regex(tokens.keys.joinToString("|") { Regex.escape("@$it@") })
+    filter { line: String -> pattern.replace(line) { tokens.getValue(it.value.removeSurrounding("@")) } }
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+tasks.register("processTemplates", Copy) {
+    from("src/templates")
+    into(layout.buildDirectory.dir("templates"))
+
+    def tokens = [version: "1.0"]
+    inputs.properties(tokens)
+    def pattern = tokens.keySet().collect { Pattern.quote("@${it}@") }.join("|")
+    filter { String line -> line.replaceAll(pattern) { String match -> tokens[match[1..-2]] } }
+}
+----
+=====
+====
+
+As long as no token key contains a line break, this replaces tokens the same way as `ReplaceTokens`.
+Otherwise, implement a `java.io.FilterReader` and pass it to `filter(Map, Class)`, <<run_ant_as_a_separate_process,run Ant in a separate process>>, or include Ant on the script classpath as described below.
+
+===== Manually adding Ant to the script classpath
+
+If you want to keep using Ant's filters, add Ant to the classpath of your build logic.
+If your build uses convention plugins, add Ant as a dependency of the build that contains them, for example with `implementation("org.apache.ant:ant:1.10.17")`.
+Otherwise, add Ant to the `classpath` configuration in the `buildscript` block of your build script:
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+import org.apache.tools.ant.filters.ReplaceTokens
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.apache.ant:ant:1.10.17")
+    }
+}
+
+tasks.register<Copy>("processTemplates") {
+    from("src/templates")
+    into(layout.buildDirectory.dir("templates"))
+    filter<ReplaceTokens>("tokens" to mapOf("version" to "1.0"))
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+import org.apache.tools.ant.filters.ReplaceTokens
+
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath("org.apache.ant:ant:1.10.17")
+    }
+}
+
+tasks.register("processTemplates", Copy) {
+    from("src/templates")
+    into(layout.buildDirectory.dir("templates"))
+    filter(ReplaceTokens, tokens: [version: "1.0"])
+}
+----
+=====
+====
+
+NOTE: Before Gradle 10, this puts a second copy of Ant on the build script classpath, and Gradle's own copy of the Ant classes is used.
+Only depend on Ant directly like this starting with Gradle 10.
+
+[[deprecated_ant_builder]]
+==== Deprecation of the Ant integration
+
+Gradle's built-in integration with Ant is deprecated and will be removed in Gradle 10.
+Ant classes will also stop being implicitly available to build scripts; see <<ant_build_script_classpath,Deprecation of implicit Ant classes on the build script classpath>>.
+
+The following types and methods will be removed:
+
+* link:{javadocPath}/org/gradle/api/AntBuilder.html[`AntBuilder`]
+* link:{javadocPath}/org/gradle/api/tasks/ant/AntTarget.html[`AntTarget`]
+* link:{javadocPath}/org/gradle/api/tasks/AntBuilderAware.html[`AntBuilderAware`]
+* link:{javadocPath}/org/gradle/api/Project.html#getAnt()[`Project.getAnt()`]
+* link:{javadocPath}/org/gradle/api/Project.html#ant(groovy.lang.Closure)[`Project.ant(Closure)`]
+* link:{javadocPath}/org/gradle/api/Project.html#ant(org.gradle.api.Action)[`Project.ant(Action)`]
+* link:{javadocPath}/org/gradle/api/Project.html#createAntBuilder()[`Project.createAntBuilder()`]
+* link:{javadocPath}/org/gradle/api/Task.html#getAnt()[`Task.getAnt()`]
+* link:{javadocPath}/org/gradle/api/file/FileCollection.html#addToAntBuilder(java.lang.Object,java.lang.String)[`FileCollection.addToAntBuilder(Object, String)`]
+* link:{javadocPath}/org/gradle/api/file/FileCollection.html#addToAntBuilder(java.lang.Object,java.lang.String,org.gradle.api.file.FileCollection.AntType)[`FileCollection.addToAntBuilder(Object, String, AntType)`]
+* link:{javadocPath}/org/gradle/api/file/FileCollection.AntType.html[`FileCollection.AntType`]
+* link:{javadocPath}/org/gradle/api/tasks/util/PatternSet.html#addToAntBuilder(java.lang.Object,java.lang.String)[`PatternSet.addToAntBuilder(Object, String)`]
+
+===== Switch to Gradle equivalent
+
+Some Ant usage has a direct Gradle equivalent.
+Prefer the link:{groovyDslPath}/org.gradle.api.tasks.Copy.html[`Copy`], link:{groovyDslPath}/org.gradle.api.tasks.bundling.Zip.html[`Zip`] or link:{groovyDslPath}/org.gradle.api.tasks.Exec.html[`Exec`] task types, or the link:{javadocPath}/org/gradle/api/file/FileSystemOperations.html[`FileSystemOperations`] service, wherever one fits.
+
+===== Call the tool directly
+
+If you use Ant to run another tool, prefer running that tool directly instead.
+For example, use a link:{groovyDslPath}/org.gradle.api.tasks.JavaExec.html[`JavaExec`] task to run its main class, or use the <<worker_api.adoc#tasks_parallel_worker,Worker API>> to call its Java API with the tool on the classpath of the work.
+You can also put the tool on the classpath of your build logic and call its Java API during configuration time or from a task action.
+
+[[run_ant_as_a_separate_process]]
+===== Run Ant as a separate process
+
+If the tool you want to run has no entry point other than an Ant task, you can execute Ant in a separate Java process in a Task.
+First, declare configurations for Ant and the tool you want to execute.
+Then, register the task that executes Ant, using the resolvable configuration as its classpath.
+
+====
+[.multi-language-sample]
+=====
+.build.gradle.kts
+[source,kotlin]
+----
+val antTool = configurations.dependencyScope("antTool")
+val antClasspath = configurations.resolvable("antClasspath") {
+    extendsFrom(antTool)
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    antTool("org.apache.ant:ant:1.10.17")
+    antTool("org.glassfish.jaxb:jaxb-xjc:4.0.9")
+}
+
+tasks.register<GenerateJaxbClasses>("generateJaxbClasses") {
+    toolClasspath.from(antClasspath)
+    schema = layout.projectDirectory.file("src/main/schema/order.xsd")
+    packageName = "com.example.order"
+    outputDir = layout.buildDirectory.dir("generated/jaxb")
+}
+----
+=====
+[.multi-language-sample]
+=====
+.build.gradle
+[source,groovy]
+----
+def antToolScope = configurations.dependencyScope("antTool")
+def antClasspath = configurations.resolvable("antClasspath") {
+    extendsFrom(antToolScope)
+}
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    antTool("org.apache.ant:ant:1.10.17")
+    antTool("org.glassfish.jaxb:jaxb-xjc:4.0.9")
+}
+
+tasks.register("generateJaxbClasses", GenerateJaxbClasses) {
+    toolClasspath.from(antClasspath)
+    schema = layout.projectDirectory.file("src/main/schema/order.xsd")
+    packageName = "com.example.order"
+    outputDir = layout.buildDirectory.dir("generated/jaxb")
+}
+----
+=====
+====
+
+The task generates an Ant build file, then executes Ant with link:{javadocPath}/org/gradle/process/ExecOperations.html#javaexec(org.gradle.api.Action)[`ExecOperations.javaexec()`].
+
+.buildSrc/src/main/java/GenerateJaxbClasses.java
+[source,java]
+----
+@CacheableTask
+public abstract class GenerateJaxbClasses extends DefaultTask {
+    @Classpath
+    public abstract ConfigurableFileCollection getToolClasspath();
+
+    @InputFile
+    @PathSensitive(PathSensitivity.RELATIVE)
+    public abstract RegularFileProperty getSchema();
+
+    @Input
+    public abstract Property<String> getPackageName();
+
+    @OutputDirectory
+    public abstract DirectoryProperty getOutputDir();
+
+    @Inject
+    protected abstract ExecOperations getExecOperations();
+
+    @TaskAction
+    public void generate() throws IOException {
+        File buildFile = new File(getTemporaryDir(), "build.xml");
+        Files.writeString(buildFile.toPath(), """
+            <project name="jaxb">
+                <taskdef name="xjc" classname="com.sun.tools.xjc.XJCTask"/>
+                <target name="generate">
+                    <xjc schema="${schema}" destdir="${destdir}" package="${package}"/>
+                </target>
+            </project>
+            """);
+
+        getExecOperations().javaexec(spec -> {
+            spec.classpath(getToolClasspath());
+            spec.getMainClass().set("org.apache.tools.ant.Main");
+            spec.args(
+                "-buildfile", buildFile.getAbsolutePath(),
+                "-Dschema=" + getSchema().get().getAsFile().getAbsolutePath(),
+                "-Ddestdir=" + getOutputDir().get().getAsFile().getAbsolutePath(),
+                "-Dpackage=" + getPackageName().get(),
+                "generate"
+            );
+        });
+    }
+}
+----
+
 [[changes_9.8.0]]
 == Upgrading from 9.7.0 and earlier
 
