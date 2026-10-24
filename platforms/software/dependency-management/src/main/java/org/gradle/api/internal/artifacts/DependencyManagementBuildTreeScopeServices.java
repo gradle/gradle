@@ -70,6 +70,7 @@ import org.gradle.api.internal.artifacts.repositories.metadata.DefaultMetadataFi
 import org.gradle.api.internal.artifacts.repositories.metadata.IvyMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MavenMutableModuleMetadataFactory;
 import org.gradle.api.internal.artifacts.repositories.metadata.MetadataFileSource;
+import org.gradle.api.internal.artifacts.transform.SharedTransformedVariantCache;
 import org.gradle.api.internal.artifacts.transform.TransformStepNodeFactory;
 import org.gradle.api.internal.attributes.AttributeDesugaring;
 import org.gradle.api.internal.file.temp.TemporaryFileProvider;
@@ -123,6 +124,7 @@ class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationP
         registration.add(LocalVariantGraphResolveStateBuilder.class, DefaultLocalVariantGraphResolveStateBuilder.class);
         registration.add(ResolvedVariantCache.class);
         registration.add(VariantArtifactSetCache.class);
+        registration.add(SharedTransformedVariantCache.class);
     }
 
     @Provides
