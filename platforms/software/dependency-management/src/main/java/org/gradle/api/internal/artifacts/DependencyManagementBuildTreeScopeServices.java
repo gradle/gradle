@@ -58,8 +58,10 @@ import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectArtifac
 import org.gradle.api.internal.artifacts.ivyservice.projectmodule.ProjectPublicationRegistry;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.artifact.VariantArtifactSetCache;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.AttributeContainerSerializer;
+import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ComponentIdentifierSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ThisBuildTreeOnlyGraphElementStore;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.store.ResolutionResultsStoreFactory;
+import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenFileLocations;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenMirrorResolver;
 import org.gradle.api.internal.artifacts.mvnsettings.DefaultMavenSettingsProvider;
@@ -167,9 +169,12 @@ class DependencyManagementBuildTreeScopeServices implements ServiceRegistrationP
     }
 
     @Provides
-    ModuleSourcesSerializer createModuleSourcesSerializer(ImmutableModuleIdentifierFactory moduleIdentifierFactory, FileStoreAndIndexProvider fileStoreAndIndexProvider) {
+    ModuleSourcesSerializer createModuleSourcesSerializer(FileStoreAndIndexProvider fileStoreAndIndexProvider) {
         Map<Integer, PersistentModuleSource.Codec<? extends PersistentModuleSource>> codecs = ImmutableMap.of(
-            MetadataFileSource.CODEC_ID, new DefaultMetadataFileSourceCodec(moduleIdentifierFactory, fileStoreAndIndexProvider.getArtifactIdentifierFileStore()),
+            MetadataFileSource.CODEC_ID, new DefaultMetadataFileSourceCodec(
+                new ComponentArtifactIdentifierSerializer(new ComponentIdentifierSerializer()),
+                fileStoreAndIndexProvider.getArtifactIdentifierFileStore()
+            ),
             ModuleDescriptorHashModuleSource.CODEC_ID, new ModuleDescriptorHashCodec()
         );
         return new ModuleSourcesSerializer(codecs);

@@ -24,6 +24,8 @@ import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 
+import java.io.IOException;
+
 /**
  * A thread-safe and reusable serializer for {@link DefaultModuleComponentArtifactIdentifier}.
  */
@@ -31,13 +33,13 @@ public class DefaultModuleComponentArtifactIdentifierSerializer implements Seria
     private final ComponentIdentifierSerializer componentIdentifierSerializer = new ComponentIdentifierSerializer();
 
     @Override
-    public void write(Encoder encoder, DefaultModuleComponentArtifactIdentifier value) throws Exception {
+    public void write(Encoder encoder, DefaultModuleComponentArtifactIdentifier value) throws IOException {
         componentIdentifierSerializer.write(encoder, value.getComponentIdentifier());
         IvyArtifactNameSerializer.INSTANCE.write(encoder, value.getName());
     }
 
     @Override
-    public DefaultModuleComponentArtifactIdentifier read(Decoder decoder) throws Exception {
+    public DefaultModuleComponentArtifactIdentifier read(Decoder decoder) throws IOException {
         ModuleComponentIdentifier componentIdentifier = (ModuleComponentIdentifier) componentIdentifierSerializer.read(decoder);
         IvyArtifactName name = IvyArtifactNameSerializer.INSTANCE.read(decoder);
         return new DefaultModuleComponentArtifactIdentifier(componentIdentifier, name);
