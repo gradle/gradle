@@ -316,6 +316,70 @@ class ConfigurationCacheDependencyResolutionIntegrationTest extends AbstractInte
         outputContains("variants = [{artifactType=jar, color=green}, {artifactType=jar, color=green}]")
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/38831")
+    def "transformed artifacts of one project with same file name are not deduplicated on configuration cache load"() {
+        createDirs("a")
+        settingsFile << """
+            include 'a'
+        """
+        setupBuildWithColorTransformImplementation()
+        file("a/other/a.jar").text = "other"
+        buildFile << """
+            dependencies {
+                implementation project(':a')
+            }
+            project(':a') {
+                artifacts {
+                    implementation file("other/a.jar")
+                }
+            }
+        """
+
+        when:
+        run(":resolveArtifacts")
+
+        then:
+        assertTransformed("a.jar", "a.jar")
+        outputContains("files = [a.jar.green, a.jar.green]")
+
+        when:
+        run(":resolveArtifacts")
+
+        then:
+        configurationCache.assertStateLoaded()
+        assertTransformed()
+        outputContains("files = [a.jar.green, a.jar.green]")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/38831")
+    def "transformed artifact ids of external dependencies keep the input artifact id on configuration cache load"() {
+        setupBuildWithArtifactTransformsOfExternalDependencies()
+        buildFile << """
+            tasks.register("showIds") {
+                def artifacts = configurations.resolver.incoming.artifactView {
+                    attributes.attribute(color, 'green')
+                }.artifacts
+                inputs.files artifacts.artifactFiles
+                doLast {
+                    println "ids = \${artifacts.artifacts.collect { it.id.inputArtifactId.getClass().simpleName }}"
+                }
+            }
+        """
+
+        when:
+        run(":showIds")
+
+        then:
+        outputContains("ids = [ModuleComponentFileArtifactIdentifier, ModuleComponentFileArtifactIdentifier]")
+
+        when:
+        run(":showIds")
+
+        then:
+        configurationCache.assertStateLoaded()
+        outputContains("ids = [ModuleComponentFileArtifactIdentifier, ModuleComponentFileArtifactIdentifier]")
+    }
+
     def setupBuildWithArtifactTransformsOfExternalDependencies() {
         httpServer.start()
         withColorVariants(remoteRepo.module("group", "thing1", "1.2")).publish().allowAll()

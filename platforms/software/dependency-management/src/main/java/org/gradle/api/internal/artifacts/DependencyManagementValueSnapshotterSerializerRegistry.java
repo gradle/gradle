@@ -18,6 +18,7 @@ package org.gradle.api.internal.artifacts;
 
 import com.google.common.collect.ImmutableList;
 import org.gradle.api.artifacts.ModuleVersionIdentifier;
+import org.gradle.api.artifacts.component.ComponentArtifactIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.result.ComponentSelectionDescriptor;
@@ -41,28 +42,15 @@ import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.Resolut
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedComponentResultSerializer;
 import org.gradle.api.internal.artifacts.ivyservice.resolveengine.result.ResolvedVariantResultSerializer;
 import org.gradle.api.internal.artifacts.metadata.ComponentArtifactIdentifierSerializer;
-import org.gradle.api.internal.artifacts.metadata.ComponentFileArtifactIdentifierSerializer;
-import org.gradle.api.internal.artifacts.metadata.ModuleComponentFileArtifactIdentifierSerializer;
-import org.gradle.api.internal.artifacts.metadata.PublishArtifactLocalArtifactMetadataSerializer;
-import org.gradle.api.internal.artifacts.metadata.TransformedComponentFileArtifactIdentifierSerializer;
 import org.gradle.api.internal.attributes.AttributesFactory;
 import org.gradle.api.internal.model.NamedObjectInstantiator;
 import org.gradle.internal.Cast;
-import org.gradle.internal.component.external.model.DefaultModuleComponentArtifactIdentifier;
 import org.gradle.internal.component.external.model.DefaultModuleComponentIdentifier;
-import org.gradle.internal.component.external.model.ModuleComponentFileArtifactIdentifier;
-import org.gradle.internal.component.local.model.ComponentFileArtifactIdentifier;
-import org.gradle.internal.component.local.model.OpaqueComponentArtifactIdentifier;
-import org.gradle.internal.component.local.model.PublishArtifactLocalArtifactMetadata;
-import org.gradle.internal.component.local.model.TransformedComponentFileArtifactIdentifier;
 import org.gradle.internal.resolve.caching.DesugaringAttributeContainerSerializer;
-import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.DefaultSerializerRegistry;
-import org.gradle.internal.serialize.Encoder;
 import org.gradle.internal.serialize.Serializer;
 import org.gradle.internal.snapshot.impl.ValueSnapshotterSerializerRegistry;
 
-import java.io.File;
 import java.util.List;
 
 @SuppressWarnings("this-escape")
@@ -71,11 +59,7 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
     private static final List<Class<?>> SUPPORTED_TYPES = ImmutableList.of(
         Capability.class,
         ModuleVersionIdentifier.class,
-        PublishArtifactLocalArtifactMetadata.class,
-        OpaqueComponentArtifactIdentifier.class,
-        DefaultModuleComponentArtifactIdentifier.class,
-        ModuleComponentFileArtifactIdentifier.class,
-        ComponentFileArtifactIdentifier.class,
+        ComponentArtifactIdentifier.class,
         ComponentIdentifier.class,
         AttributeContainer.class,
         ResolvedVariantResult.class,
@@ -102,12 +86,7 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
 
         register(Capability.class, new CapabilitySerializer());
         register(ModuleVersionIdentifier.class, moduleVersionIdentifierSerializer);
-        register(PublishArtifactLocalArtifactMetadata.class, new PublishArtifactLocalArtifactMetadataSerializer(componentIdentifierSerializer));
-        register(OpaqueComponentArtifactIdentifier.class, new OpaqueComponentArtifactIdentifierSerializer());
-        register(DefaultModuleComponentArtifactIdentifier.class, new ComponentArtifactIdentifierSerializer());
-        register(ModuleComponentFileArtifactIdentifier.class, new ModuleComponentFileArtifactIdentifierSerializer());
-        register(ComponentFileArtifactIdentifier.class, new ComponentFileArtifactIdentifierSerializer());
-        register(TransformedComponentFileArtifactIdentifier.class, new TransformedComponentFileArtifactIdentifierSerializer());
+        register(ComponentArtifactIdentifier.class, new ComponentArtifactIdentifierSerializer(componentIdentifierSerializer));
         register(DefaultModuleComponentIdentifier.class, Cast.uncheckedCast(componentIdentifierSerializer));
         register(DefaultProjectComponentIdentifier.class, Cast.uncheckedCast(componentIdentifierSerializer));
         register(AttributeContainer.class, attributeContainerSerializer);
@@ -144,21 +123,5 @@ public class DependencyManagementValueSnapshotterSerializerRegistry extends Defa
             }
         }
         return type;
-    }
-
-    /**
-     * A thread-safe and reusable serializer for {@link OpaqueComponentArtifactIdentifier}.
-     */
-    private static class OpaqueComponentArtifactIdentifierSerializer implements Serializer<OpaqueComponentArtifactIdentifier> {
-
-        @Override
-        public OpaqueComponentArtifactIdentifier read(Decoder decoder) throws Exception {
-            return new OpaqueComponentArtifactIdentifier(new File(decoder.readString()));
-        }
-
-        @Override
-        public void write(Encoder encoder, OpaqueComponentArtifactIdentifier value) throws Exception {
-            encoder.writeString(value.getFile().getCanonicalPath());
-        }
     }
 }
