@@ -193,6 +193,61 @@ class EclipseTestConfigurationsWithProjectDependenciesIntegrationTest extends Ab
         assertProjectDependencyDoesNotHaveTestAttribute('a', 'b')
     }
 
+    @Issue('https://github.com/gradle/gradle/issues/32284')
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
+    def "compile-only project dependencies are not marked with test classpath attribute"() {
+        given:
+        file('a/build.gradle') << """
+            dependencies {
+                compileOnly project(':b')
+            }
+        """
+
+        when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
+        run 'eclipse'
+
+        then:
+        assertProjectDependencyDoesNotHaveTestAttribute('a', 'b')
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/32284')
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
+    def "test compile-only project dependencies are marked with test classpath attribute"() {
+        given:
+        file('a/build.gradle') << """
+            dependencies {
+                testCompileOnly project(':b')
+            }
+        """
+
+        when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
+        run 'eclipse'
+
+        then:
+        assertProjectDependencyHasTestAttribute('a', 'b')
+    }
+
+    @Issue('https://github.com/gradle/gradle/issues/32284')
+    @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
+    def "dependencies present in compile-only and test configurations are not marked with test classpath attribute"() {
+        given:
+        file('a/build.gradle') << """
+            dependencies {
+                compileOnly project(':b')
+                testImplementation project(':b')
+            }
+        """
+
+        when:
+        expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
+        run 'eclipse'
+
+        then:
+        assertProjectDependencyDoesNotHaveTestAttribute('a', 'b')
+    }
+
     @Issue('https://github.com/gradle/gradle/issues/21968')
     @ToBeFixedForIsolatedProjects(because = "Eclipse plugin uses allprojects/subprojects")
     def 'dependencies for different features present in test and non-test configurations are not marked with test classpath attribute'() {
