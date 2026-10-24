@@ -56,6 +56,9 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
+        if (!unique) {
+            executer.expectDocumentedDeprecationWarning(lockfileFixture.legacyLockfileDeprecation("configuration ':lockedConf'", 'lockedConf'))
+        }
         succeeds 'checkDeps'
 
         then:
@@ -104,6 +107,9 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
+        if (!unique) {
+            executer.expectDocumentedDeprecationWarning(lockfileFixture.legacyLockfileDeprecation("configuration ':lockedConf'", 'lockedConf'))
+        }
         succeeds 'checkDeps'
 
         then:
@@ -152,6 +158,9 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf', ['org:bar:1.0', 'org:foo:1.0', 'org:baz:1.0'], unique)
 
         when:
+        if (!unique) {
+            executer.expectDocumentedDeprecationWarning(lockfileFixture.legacyLockfileDeprecation("configuration ':lockedConf'", 'lockedConf'))
+        }
         succeeds 'checkDeps'
 
         then:
@@ -198,6 +207,9 @@ dependencies {
         lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
+        if (!unique) {
+            executer.expectDocumentedDeprecationWarning(lockfileFixture.legacyLockfileDeprecation("configuration ':lockedConf'", 'lockedConf'))
+        }
         succeeds 'checkDeps'
 
         then:
@@ -238,6 +250,9 @@ configurations {
         lockfileFixture.createLockfile('lockedConf', ['org:foo:1.0'], unique)
 
         when:
+        if (!unique) {
+            executer.expectDocumentedDeprecationWarning(lockfileFixture.legacyLockfileDeprecation("configuration ':lockedConf'", 'lockedConf'))
+        }
         succeeds 'checkDeps'
 
         then:

@@ -28,7 +28,7 @@ class EclipseDependencyLockingIntegrationTest extends AbstractEclipseIntegration
         mvnRepo.module("groupOne", "artifactTwo", "1.1").publish()
         def repoJar = mvnRepo.module("groupOne", "artifactTwo", "2.0").publish().artifactFile
 
-        file('gradle/dependency-locks/compileClasspath.lockfile') << 'groupOne:artifactTwo:1.1'
+        file('gradle.lockfile') << 'groupOne:artifactTwo:1.1=compileClasspath'
 
         //when
         expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
@@ -65,7 +65,7 @@ class EclipseDependencyLockingIntegrationTest extends AbstractEclipseIntegration
         def artifactOne = mvnRepo.module("groupOne", "artifactOne", "1.1").publish().artifactFile
         def artifactTwo = mvnRepo.module("groupOne", "artifactTwo", "2.0").publish().artifactFile
 
-        file('gradle/dependency-locks/compileClasspath.lockfile') << 'groupOne:artifactOne:1.1'
+        file('gradle.lockfile') << 'groupOne:artifactOne:1.1=compileClasspath'
 
         //when
         expectTaskDeprecations("eclipse", "eclipseClasspath", "eclipseJdt", "eclipseProject")
