@@ -18,6 +18,7 @@ package org.gradle.api.internal.collections;
 
 import com.google.common.base.Objects;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.collect.Iterators;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.BuildableBackedProvider;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
@@ -56,6 +57,28 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
     @Override
     public Iterator<T> iteratorNoFlush() {
         return new RealizedElementCollectionIterator(getInserted(), NO_DUPLICATES);
+    }
+
+    @Override
+    public int size() {
+        int count = 0;
+        Set<T> seen = null;
+        for (Element<T> element : getInserted()) {
+            if (element.isRealized() || !element.isProvidedByCollection()) {
+                count += element.size();
+                continue;
+            }
+            if (seen == null) {
+                seen = new HashSet<>();
+                Iterators.addAll(seen, iteratorNoFlush());
+            }
+            for (T value : element.peekValues()) {
+                if (seen.add(value)) {
+                    count++;
+                }
+            }
+        }
+        return count;
     }
 
     @Override

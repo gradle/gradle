@@ -56,7 +56,15 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     @Override
     public boolean isEmpty() {
-        return values.isEmpty() && pending.isEmpty();
+        if (!values.isEmpty()) {
+            return false;
+        }
+        for (Collectors.TypedCollector<T> collector : pending) {
+            if (collector.size() != 0) {
+                return false;
+            }
+        }
+        return true;
     }
 
     @Override
@@ -66,17 +74,39 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     @Override
     public int size() {
+        int count = values.size();
+        Set<T> pendingValues = null;
+        for (Collectors.TypedCollector<T> collector : pending) {
+            if (!(collector instanceof CollectionProviderCollector)) {
+                count += collector.size();
+                continue;
+            }
+            if (pendingValues == null) {
+                pendingValues = new TreeSet<>(values.comparator());
+            }
+            for (T value : collectValues(collector)) {
+                if (!values.contains(value) && pendingValues.add(value)) {
+                    count++;
+                }
+            }
+        }
+        return count;
+    }
+
+    private static <T> List<T> collectValues(Collectors.TypedCollector<T> collector) {
+        ImmutableList.Builder<T> builder = ImmutableList.builder();
+        collector.collectInto(builder);
+        return builder.build();
+    }
+
+    @Override
+    public int estimatedSize() {
         int pendingSize = 0;
         for (Collectors.TypedCollector<T> collector : pending) {
             pendingSize += collector.size();
         }
 
         return values.size() + pendingSize;
-    }
-
-    @Override
-    public int estimatedSize() {
-        return size();
     }
 
     @Override
@@ -240,7 +270,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     private Collectors.TypedCollector<T> collectorFromCollectionProvider(final CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
-        return new Collectors.TypedCollector<>(provider.getElementType(), new Collectors.ElementsFromCollectionProvider<>(provider));
+        return new CollectionProviderCollector<>(provider);
     }
 
     @Override
@@ -285,5 +315,12 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     @Override
     public MutationGuard getLazyBehaviorGuard() {
         return lazyGuard;
+    }
+
+    // Unlike single element providers, the size of these is only known by querying the provider
+    private static class CollectionProviderCollector<T> extends Collectors.TypedCollector<T> {
+        CollectionProviderCollector(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+            super(provider.getElementType(), new Collectors.ElementsFromCollectionProvider<>(provider));
+        }
     }
 }

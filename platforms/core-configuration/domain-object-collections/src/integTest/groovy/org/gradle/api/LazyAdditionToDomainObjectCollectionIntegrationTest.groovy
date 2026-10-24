@@ -19,6 +19,7 @@ package org.gradle.api
 import groovy.test.NotYetImplemented
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.integtests.fixtures.executer.TaskOrderSpecs
+import spock.lang.Issue
 
 class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegrationSpec {
     def setup() {
@@ -248,6 +249,188 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         expect:
         succeeds("help")
         outputContains("withType(Base) called on")
+    }
+
+    def "values of provider added with addAllLater to #factory are captured when first read"() {
+        buildFile """
+            ${namedThing}
+
+            def files = objects.fileCollection()
+            files.from("a")
+            def collection = objects.${factory}(NamedThing)
+            collection.addAllLater(files.elements.map { it.collect { new NamedThing(it.asFile.name) } })
+
+            println "first = " + collection.toList()
+            files.from("b")
+            println "second = " + collection.toList()
+            println "size = " + collection.size()
+            println "isEmpty = " + collection.isEmpty()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("first = [a]")
+        outputContains("second = [a]")
+        outputContains("size = 1")
+        outputContains("isEmpty = false")
+
+        where:
+        factory << ["domainObjectSet", "namedDomainObjectSet", "namedDomainObjectList"]
+    }
+
+    def "size of #factory matches what a read would return before provider added with addAllLater is read"() {
+        buildFile """
+            ${namedThing}
+
+            def files = objects.fileCollection()
+            files.from("a")
+            def collection = objects.${factory}(NamedThing)
+            collection.addAllLater(files.elements.map { it.collect { new NamedThing(it.asFile.name) } })
+
+            println "size = " + collection.size()
+            files.from("b")
+            println "size after change = " + collection.size()
+            println "read = " + collection.toList()
+            files.from("c")
+            println "size after read = " + collection.size()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("size = 1")
+        outputContains("size after change = 2")
+        outputContains("read = [a, b]")
+        outputContains("size after read = 2")
+
+        where:
+        factory << ["domainObjectSet", "namedDomainObjectSet", "namedDomainObjectList"]
+    }
+
+    def "size and emptiness of #factory match iteration when provider added with addAllLater becomes empty"() {
+        buildFile """
+            ${namedThing}
+
+            def names = objects.listProperty(String)
+            names.add("a")
+            def collection = objects.${factory}(NamedThing)
+            collection.addAllLater(names.map { it.collect { new NamedThing(it) } })
+
+            println "read = " + collection.toList()
+            names.set([])
+            println "after change = " + collection.toList() + ", size = " + collection.size() + ", isEmpty = " + collection.isEmpty()
+
+            def empty = objects.${factory}(NamedThing)
+            empty.addAllLater(provider { [] })
+            println "empty = " + empty.toList() + ", size = " + empty.size() + ", isEmpty = " + empty.isEmpty()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("read = [a]")
+        outputContains("after change = [a], size = 1, isEmpty = false")
+        outputContains("empty = [], size = 0, isEmpty = true")
+
+        where:
+        factory << ["domainObjectSet", "namedDomainObjectSet", "namedDomainObjectList"]
+    }
+
+    def "size and emptiness of #factory match iteration when provider added with addAllLater has no value"() {
+        buildFile """
+            ${namedThing}
+
+            def collection = objects.${factory}(NamedThing)
+            collection.addAllLater(provider { null })
+
+            println "before read: size = " + collection.size() + ", isEmpty = " + collection.isEmpty() + ", filtered isEmpty = " + collection.withType(NamedThing).isEmpty()
+            println "read = " + collection.toList() + ", size = " + collection.size() + ", isEmpty = " + collection.isEmpty()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("before read: size = 0, isEmpty = true, filtered isEmpty = true")
+        outputContains("read = [], size = 0, isEmpty = true")
+
+        where:
+        factory << ["domainObjectSet", "namedDomainObjectSet", "namedDomainObjectList"]
+    }
+
+    def "can configure elements of subtype of #factory when provider added with addAllLater has no value"() {
+        buildFile """
+            ${namedThing}
+            class SubThing extends NamedThing {
+                SubThing(String name) {
+                    super(name)
+                }
+            }
+
+            def collection = objects.${factory}(NamedThing)
+            collection.add(new SubThing("s"))
+            collection.addAllLater(provider { null })
+
+            collection.withType(SubThing) { println "configured " + it }
+            println "read = " + collection.toList()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("configured s")
+        outputContains("read = [s]")
+
+        where:
+        factory << ["domainObjectSet", "namedDomainObjectSet", "namedDomainObjectList"]
+    }
+
+    def "size of domain object set does not count duplicates of values added with addAllLater"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            set.add("a")
+            set.addAllLater(provider { ["a", "c"] })
+
+            println "size before read = " + set.size()
+            println "read = " + set.toList() + ", size = " + set.size()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("size before read = 2")
+        outputContains("read = [a, c], size = 2")
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/33152")
+    def "can stream domain object set with #description"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            ${addition}
+
+            println "stream = " + set.stream().toList() + ", size = " + set.size() + ", isEmpty = " + set.isEmpty()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("stream = ${expected}, size = ${expected.size()}, isEmpty = ${expected.isEmpty()}")
+
+        where:
+        description              | addition                                                 | expected
+        "addLater duplicate"     | 'set.add("a"); set.addLater(provider { "a" })'           | ["a"]
+        "addLater without value" | 'set.addLater(provider { null })'                        | []
+        "addAllLater duplicate"  | 'set.add("a"); set.addAllLater(provider { ["a", "b"] })' | ["a", "b"]
+    }
+
+    def "removing value provided with addAllLater keeps duplicates in domain object set hidden"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            set.add("b")
+            set.addAllLater(provider { ["a", "b"] })
+
+            println "read = " + set.toList()
+            set.remove("a")
+            println "after remove = " + set.toList() + ", size = " + set.size()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("read = [b, a]")
+        outputContains("after remove = [b], size = 1")
     }
 
     def getNamedThing() {
