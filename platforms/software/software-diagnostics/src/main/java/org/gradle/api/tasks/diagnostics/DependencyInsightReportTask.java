@@ -158,6 +158,8 @@ public abstract class DependencyInsightReportTask extends DefaultTask {
             zConfigurationAttributes = getProject().provider(configuration::getAttributes);
 
             rootComponentProperty.set(configuration.getIncoming().getResolutionResult().getRootComponent());
+        } else if (configuration != null && dependencySpec == null) {
+            configurationName = configuration.getName();
         }
         return rootComponentProperty;
     }
