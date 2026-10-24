@@ -26,11 +26,15 @@ public class ProgressOperations {
     private final Map<OperationIdentifier, ProgressOperation> operationsById = new HashMap<OperationIdentifier, ProgressOperation>();
 
     public ProgressOperation start(String status, String category, OperationIdentifier operationId, @Nullable OperationIdentifier parentOperationId) {
+        return start(status, category, operationId, parentOperationId, false);
+    }
+
+    ProgressOperation start(String status, String category, OperationIdentifier operationId, @Nullable OperationIdentifier parentOperationId, boolean workAction) {
         ProgressOperation parent = null;
         if (parentOperationId != null) {
             parent = operationsById.get(parentOperationId);
         }
-        ProgressOperation operation = new ProgressOperation(status, category, operationId, parent);
+        ProgressOperation operation = new ProgressOperation(status, category, operationId, parent, workAction);
         if (parent != null) {
             parent.addChild(operation);
         }
@@ -50,6 +54,22 @@ public class ProgressOperations {
         return op;
     }
 
+    /**
+     * Counts a work action that started and completed between two updates, without being shown, and returns its parent, if known.
+     */
+    @Nullable
+    ProgressOperation workActionUnshown(@Nullable OperationIdentifier parentOperationId) {
+        if (parentOperationId == null) {
+            return null;
+        }
+        ProgressOperation parent = operationsById.get(parentOperationId);
+        if (parent != null) {
+            parent.workActionStarted();
+            parent.workActionCompleted();
+        }
+        return parent;
+    }
+
     public ProgressOperation complete(OperationIdentifier operationId) {
         ProgressOperation op = operationsById.remove(operationId);
         if (op == null) {
@@ -57,6 +77,9 @@ public class ProgressOperations {
         }
         if (op.getParent() != null) {
             op.getParent().removeChild(op);
+            if (op.isWorkAction()) {
+                op.getParent().workActionCompleted();
+            }
         }
         return op;
     }
