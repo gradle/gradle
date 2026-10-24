@@ -419,6 +419,11 @@ When set to `false`, Gradle does not prompt the user for input on the console an
 +
 _Default is `true`._
 
+`org.gradle.console.unicode=(auto,enable,disable)`::
+Specifies whether the progress bar of the rich console is drawn with Unicode characters, as with <<command_line_interface.adoc#sec:command_line_customizing_log_format,`--console-unicode`>>.
++
+_Default is `auto`._
+
 `org.gradle.continue=(true,false)`::
 If enabled, continue task execution after a task failure, else stop task execution after a task failure.
 +

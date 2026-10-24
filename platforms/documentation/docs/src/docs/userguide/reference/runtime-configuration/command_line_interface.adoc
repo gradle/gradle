@@ -14,7 +14,7 @@
 
 [[command_line_interface]]
 = Command-Line Interface
-:keywords: cli, clean, check, projects, tasks, rerun-tasks, continue, build-cache, no-build-cache, configuration-cache, no-configuration-cache, configuration-cache-problems, configure-on-demand, no-configure-on-demand, max-workers, parallel, no-parallel, priority, profile, scan, watch-fs, no-watch-fs, help, version, show-version, full-stacktrace, stacktrace, org.gradle.debug, org.gradle.debug.host, org.gradle.debug.port, org.gradle.debug.server, org.gradle.debug.suspend, project-cache-dir, system-prop, init-script, project-prop, org.gradle.jvmargs, org.gradle.java.home, gradle-user-home, dependency-verification, write-verification-metadata, refresh-keys, export-keys, include-build, offline, refresh-dependencies, dry-run, continuous, write-locks, update-locks , no-rebuild, org.gradle.warning.mode, warning-mode, no-problems-report, problems-report, org.gradle.console, console, non-interactive, org.gradle.console.interactive, org.gradle.logging.level, quiet, warn, info, debug, daemon, no-daemon, foreground, status, stop, org.gradle.daemon.idletimeout, exclude-task, distribution-type, gradle-distribution-url, gradle-distribution-sha256-sum, gradle-version
+:keywords: cli, clean, check, projects, tasks, rerun-tasks, continue, build-cache, no-build-cache, configuration-cache, no-configuration-cache, configuration-cache-problems, configure-on-demand, no-configure-on-demand, max-workers, parallel, no-parallel, priority, profile, scan, watch-fs, no-watch-fs, help, version, show-version, full-stacktrace, stacktrace, org.gradle.debug, org.gradle.debug.host, org.gradle.debug.port, org.gradle.debug.server, org.gradle.debug.suspend, project-cache-dir, system-prop, init-script, project-prop, org.gradle.jvmargs, org.gradle.java.home, gradle-user-home, dependency-verification, write-verification-metadata, refresh-keys, export-keys, include-build, offline, refresh-dependencies, dry-run, continuous, write-locks, update-locks , no-rebuild, org.gradle.warning.mode, warning-mode, no-problems-report, problems-report, org.gradle.console, console, non-interactive, org.gradle.console.interactive, console-unicode, org.gradle.console.unicode, org.gradle.logging.level, quiet, warn, info, debug, daemon, no-daemon, foreground, status, stop, org.gradle.daemon.idletimeout, exclude-task, distribution-type, gradle-distribution-url, gradle-distribution-sha256-sum, gradle-version
 
 The command-line interface is the **primary method of interacting with Gradle**.
 
@@ -722,6 +722,25 @@ Set to `verbose` to enable color and other rich output like `rich` with output t
 NOTE: When the `NO_COLOR` environment variable is set and non-empty, Gradle suppresses color output regardless of the console mode.
 Bold, underline, and rich features like progress bars are unaffected.
 See link:https://no-color.org/[no-color.org].
+
+You can control whether the progress bar of the rich console is drawn with Unicode characters in the following ways:
+
+`-Dorg.gradle.console.unicode=(auto,enable,disable)`::
+A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that specifies whether the progress bar of the rich console is drawn with Unicode characters. Different values are described immediately below.
+
+`--console-unicode=(auto,enable,disable)`::
+Specifies whether the progress bar of the rich console is drawn with Unicode characters.
+When Unicode is detected, or enabled with this option, the output of the rich, verbose and colored consoles is written in UTF-8.
++
+Set to `auto` (the default) to use Unicode characters when the console supports Unicode.
+This is detected from the environment, such as the locale (`LANG` or `LC_ALL`) and the terminal type (`TERM`).
+On Windows, the code page of the console must also be UTF-8.
+On the Linux text console, where `TERM` is `linux`, the progress bar is drawn with ASCII characters, as its fonts do not have the partial block characters of the Unicode bar.
+Under tmux, or GNU screen without the `screen.linux` terminfo entry, on the Linux text console, `TERM` has another value, so use `--console-unicode=disable` there.
++
+Set to `enable` to use Unicode characters, also for the progress bar on the Linux text console.
++
+Set to `disable` to draw the progress bar with ASCII characters.
 
 [[sec:command_line_problems]]
 === Reporting problems
