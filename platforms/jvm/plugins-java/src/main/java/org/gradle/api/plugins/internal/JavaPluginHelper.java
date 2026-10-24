@@ -68,7 +68,7 @@ public class JavaPluginHelper {
 
         TestSuite defaultTestSuite = testing.getSuites().findByName(JvmTestSuitePlugin.DEFAULT_TEST_SUITE_NAME);
         if (!(defaultTestSuite instanceof JvmTestSuite)) {
-            throw new GradleException(message);
+            throw new GradleException("The default test suite 'test' is required. This project has no JVM test suite named 'test' in 'testing.suites'.");
         }
 
         return (JvmTestSuite) defaultTestSuite;
