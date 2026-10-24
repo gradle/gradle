@@ -735,6 +735,15 @@ In general, the `ResolvedConfiguration`, `LenientConfiguration`, `ResolvedDepend
 They are not compatible with the <<configuration_cache_requirements.adoc#config_cache:requirements:disallowed_types,Configuration Cache>> and, unlike the modern APIs, do not carry the task dependencies required to build the artifacts they return.
 Prefer the `ResolutionResult`, `ArtifactView`, link:{javadocPath}/org/gradle/api/file/FileCollection.html[`FileCollection`], and link:{javadocPath}/org/gradle/api/artifacts/ArtifactCollection.html[`ArtifactCollection`] APIs, described in <<artifact_resolution.adoc#sec:available_apis,Artifact Resolution>>.
 
+[[codenarc_without_ant]]
+==== CodeNarc no longer runs through Ant
+
+The <<codenarc_plugin.adoc#codenarc_plugin,CodeNarc plugin>> now runs CodeNarc through its Java API instead of the CodeNarc Ant task.
+Reports and failures are unchanged.
+
+The console output of CodeNarc is no longer prefixed with `[ant:codenarc]`.
+If you parse the output of the `console` report, adjust your tooling accordingly.
+
 === Deprecations
 
 [[deprecated_update_daemon_jvm_task_configuration_problem_id]]
