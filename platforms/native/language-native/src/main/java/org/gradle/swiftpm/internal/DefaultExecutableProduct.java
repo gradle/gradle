@@ -15,6 +15,7 @@
  */
 
 package org.gradle.swiftpm.internal;
+import org.gradle.api.tasks.Input;
 
 public class DefaultExecutableProduct extends AbstractProduct {
     public DefaultExecutableProduct(String name, DefaultTarget target) {
@@ -22,6 +23,7 @@ public class DefaultExecutableProduct extends AbstractProduct {
     }
 
     @Override
+    @Input
     public boolean isExecutable() {
         return true;
     }
