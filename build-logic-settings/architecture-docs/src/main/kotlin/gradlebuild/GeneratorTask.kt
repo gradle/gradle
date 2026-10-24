@@ -38,15 +38,15 @@ abstract class GeneratorTask : DefaultTask() {
     @TaskAction
     fun generate() {
         val markdownFile = outputFile.asFile.get()
-        val head = if (markdownFile.exists()) {
+        val (head, tail) = if (markdownFile.exists()) {
             val content = markdownFile.readText().lines()
             val markerPos = content.indexOfFirst { it.contains(markerComment) }
             require(markerPos >= 0) { "Could not locate the generated diagram in $markdownFile" }
             val endPos = content.subList(markerPos, content.size).indexOfFirst { it.contains(endDiagram) && !it.contains(startDiagram) }
             require(endPos >= 0) { "Could not locate the end of the generated diagram in $markdownFile" }
-            content.subList(0, markerPos)
+            content.subList(0, markerPos) to content.subList(markerPos + endPos + 1, content.size)
         } else {
-            emptyList()
+            emptyList<String>() to emptyList()
         }
 
         markdownFile.bufferedWriter().use {
@@ -55,6 +55,8 @@ abstract class GeneratorTask : DefaultTask() {
                     println(line)
                 }
                 graph(elements.get())
+                // The last element of tail is the empty string after the final line break
+                print(tail.joinToString("\n"))
             }
         }
     }
