@@ -49,7 +49,7 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
 
     @Override
     public Set<BuildInitTestFramework> getTestFrameworks(ModularizationOption modularizationOption) {
-        return ImmutableSet.of(BuildInitTestFramework.KOTLINTEST);
+        return ImmutableSet.of(BuildInitTestFramework.KOTLINTEST, BuildInitTestFramework.SPOCK);
     }
 
     @Override
@@ -59,7 +59,9 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
         String kotlinVersion = libraryVersionProvider.getVersion("kotlin");
         buildScriptBuilder.plugin("Apply the Kotlin JVM plugin to add support for Kotlin.", "org.jetbrains.kotlin.jvm", kotlinVersion, "kotlin-jvm");
 
-        if (!settings.isUseTestSuites()) {
+        if (settings.getTestFramework() == BuildInitTestFramework.SPOCK) {
+            addSpock(settings, buildScriptBuilder);
+        } else if (!settings.isUseTestSuites()) {
             buildScriptBuilder.testImplementationDependency("Use the Kotlin Test integration.",
                 BuildInitDependency.of("org.jetbrains.kotlin:kotlin-test"));
             buildScriptBuilder.testRuntimeOnlyDependency(null,
@@ -79,6 +81,9 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
 
     @Override
     protected TemplateOperation testTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
+        if (settings.getTestFramework() == BuildInitTestFramework.SPOCK) {
+            return spockTestTemplate(settings, templateFactory, pluginId, testClassName);
+        }
         return templateFactory.fromSourceTemplate("plugin/kotlin/kotlintest/PluginTest.kt.template", t -> {
             t.subproject(settings.getSubprojects().get(0));
             t.sourceSet("test");
@@ -89,6 +94,9 @@ public class KotlinGradlePluginProjectInitDescriptor extends JvmGradlePluginProj
 
     @Override
     protected TemplateOperation functionalTestTemplate(InitSettings settings, TemplateFactory templateFactory, String pluginId, String testClassName) {
+        if (settings.getTestFramework() == BuildInitTestFramework.SPOCK) {
+            return spockFunctionalTestTemplate(settings, templateFactory, pluginId, testClassName);
+        }
         return templateFactory.fromSourceTemplate("plugin/kotlin/kotlintest/PluginFunctionalTest.kt.template", t -> {
             t.subproject(settings.getSubprojects().get(0));
             t.sourceSet("functionalTest");
