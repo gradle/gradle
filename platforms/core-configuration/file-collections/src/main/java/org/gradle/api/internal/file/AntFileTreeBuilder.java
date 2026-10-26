@@ -17,14 +17,14 @@ package org.gradle.api.internal.file;
 
 import com.google.common.collect.ImmutableMap;
 import groovy.lang.Closure;
-import org.gradle.api.tasks.AntBuilderAware;
 import org.gradle.internal.metaobject.BeanDynamicObject;
 import org.gradle.internal.metaobject.DynamicObject;
 
 import java.io.File;
 import java.util.Map;
 
-public class AntFileTreeBuilder implements AntBuilderAware {
+@Deprecated
+public class AntFileTreeBuilder implements org.gradle.api.tasks.AntBuilderAware {
 
     private final Map<String, File> files;
 
@@ -33,6 +33,7 @@ public class AntFileTreeBuilder implements AntBuilderAware {
     }
 
     @Override
+    @Deprecated
     public Object addToAntBuilder(Object node, String childNodeName) {
         final DynamicObject dynamicObject = new BeanDynamicObject(node);
         dynamicObject.invokeMethod(childNodeName == null ? "resources" : childNodeName, new Closure(this) {

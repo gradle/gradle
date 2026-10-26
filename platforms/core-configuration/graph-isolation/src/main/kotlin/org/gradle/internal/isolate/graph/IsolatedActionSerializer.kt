@@ -187,7 +187,7 @@ object ThrowingProblemsListener : AbstractProblemsListener() {
         throw ConfigurationCacheError("Failed to isolate 'GradleLifecycle' action: ${problem.message}")
     }
 
-    override fun onError(trace: PropertyTrace, error: Exception, message: StructuredMessageBuilder) {
+    override fun onError(trace: PropertyTrace, name: String, error: Exception, message: StructuredMessageBuilder) {
         // TODO: consider throwing more specific exception
         throw ConfigurationCacheError(
             "Failed to isolate 'GradleLifecycle' action: $trace: ${StructuredMessage.build(message).render()}",

@@ -439,7 +439,7 @@ abstract class DistributionIntegrationSpec extends AbstractIntegrationSpec {
     protected static void assertDocsExist(TestFile contentsDir, String version) {
         // Javadoc
         contentsDir.file('docs/javadoc/index.html').assertIsFile()
-        contentsDir.file('docs/javadoc/index.html').assertContents(containsString("Gradle API ${version}"))
+        contentsDir.file('docs/javadoc/index.html').assertContents(containsString("Gradle API ${GradleVersion.version(version).baseVersion.version}"))
         contentsDir.file('docs/javadoc/org/gradle/api/Project.html').assertIsFile()
 
         // Userguide

@@ -140,6 +140,7 @@ val minifyPatterns = mapOf(
             "org.bouncycastle.jcajce.provider.asymmetric.NTRU**",
             "org.bouncycastle.jcajce.provider.asymmetric.SLHDSA**",
             "org.bouncycastle.jcajce.provider.asymmetric.SPHINCSPlus**",
+            "org.bouncycastle.jcajce.provider.asymmetric.XMSS**",
             "org.bouncycastle.jcajce.provider.asymmetric.mldsa.**",
             "org.bouncycastle.jcajce.provider.asymmetric.slhdsa.**",
             "org.bouncycastle.jcajce.provider.asymmetric.mlkem.**",

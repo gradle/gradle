@@ -78,7 +78,7 @@ class CrossProjectConfigurationReportingGradle(
 
     private fun onMutableStateAccess(what: String) {
         ipProblems.report {
-            problem {
+            problem("Project cannot access Gradle state") {
                 text("Project ")
                 reference(referrerProject.buildTreePath)
                 text(" cannot access ")

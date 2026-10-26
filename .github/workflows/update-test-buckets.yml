@@ -38,7 +38,7 @@ jobs:
           distribution: temurin
           java-version: 21
       - name: Connect to Gradle internal network via Cloudflare WARP
-        uses: gradle/actions-internal/warp-connect@aa19f8bbcb077bd205d801983c97921d735ca90e
+        uses: gradle/actions-internal/warp-connect@main
         with:
           client_id: ${{ env.WARP_CLIENT_ID }}
           client_secret: ${{ env.WARP_CLIENT_SECRET }}

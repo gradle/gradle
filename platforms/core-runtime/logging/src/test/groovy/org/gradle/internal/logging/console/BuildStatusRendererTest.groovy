@@ -17,12 +17,14 @@
 package org.gradle.internal.logging.console
 
 import org.gradle.internal.logging.OutputSpecification
+import org.gradle.internal.logging.events.BuildStartTimeEvent
 import org.gradle.internal.logging.events.OutputEventListener
 import org.gradle.internal.logging.events.ProgressStartEvent
 import org.gradle.internal.logging.events.UpdateNowEvent
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
 import org.gradle.internal.operations.BuildOperationCategory
 import org.gradle.internal.operations.OperationIdentifier
+import spock.lang.Issue
 
 class BuildStatusRendererTest extends OutputSpecification {
     def listener = Mock(OutputEventListener)
@@ -64,6 +66,20 @@ class BuildStatusRendererTest extends OutputSpecification {
 
         then:
         statusBar.display == "[...............] 0% INITIALIZING [1s]"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39523")
+    def "times the build from when it started"() {
+        given:
+        currentTimeMs = 5000
+
+        when:
+        renderer.onOutput(new BuildStartTimeEvent(2000))
+        renderer.onOutput(startRootBuildOperation(1))
+        renderer.onOutput(updateNow())
+
+        then:
+        statusBar.display == "[...............] 0% INITIALIZING [3s]"
     }
 
     def "hides timer between build phases"() {

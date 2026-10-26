@@ -106,6 +106,7 @@ See the [Rich console](userguide/command_line_interface.html#sec:rich_console) s
 #### Predefined problem groups in the Problems API
 
 The incubating [Problems API](userguide/reporting_problems.html#header) now provides a predefined hierarchy of problem groups, available from the `Problems` service as `problems.groups`.
+Eleven root groups cover the areas a problem can come from, each with predefined subgroups: `Compilation > Java`, `Dependencies > Declaration`, `Packaging > Signing`, `Provisioning > Tools and Toolchains`, `Gradle > Plugin Validation` and so on.
 Plugins report into the matching predefined group or add a subgroup below one.
 The types of the hierarchy enforce placement:
 
@@ -114,25 +115,20 @@ problems.reporter.report(problems.groups.compilation.java.problemId("Unused impo
 problems.reporter.report(problems.groups.transformation.group("KMP").problemId("Bundle failed")) {}
 ```
 
-Gradle's deprecation warnings are reported into `Gradle > Deprecation`, named after the kind of deprecation, for example `Task usage` instead of `deprecation:the-buildneeded-task-has-been-deprecated`. Details of the usage, such as the name of a task or configuration, no longer appear in the name; they remain in the problem's contextual label.
-
-Predefined groups are documented with a description of what belongs in them, giving consumers of problem reports a documented set of group names to navigate, filter, and aggregate the problems plugins report.
+Each predefined group carries a description of what belongs in it, so consumers of problem reports have a documented set of group names to navigate, filter, and aggregate by.
 On the console, problems now show the chain of groups they belong to, for example `Unused import (in Compilation > Java)`.
-The existing `ProblemGroup.create()` and `ProblemId.create()` methods keep working; migrating to the predefined groups is recommended.
+The Groups tab of the HTML problems report lists the root groups in the order of the predefined hierarchy and shows the description of each predefined group.
+The existing `ProblemGroup.create()` and `ProblemId.create()` methods keep working, and a group created with them whose name matches a predefined group is now reported as that predefined group; migrating to the predefined groups is recommended.
 
-Gradle's own compilation problems now use the predefined groups: Java compiler diagnostics and compiler initialization failures report into `Compilation > Java`, a missing `tools.jar` for the Groovy compiler into `Compilation > Groovy`, and Groovy DSL script compilation failures into `Gradle > DSL Evaluation`.
-Both the group and the name of these problem ids changed, so Tooling API and report consumers that match on the old ids need to update.
-For example, `compilation:java:initialization-failed` is now `Compilation:Java:Compiler initialization failed`.
-The console heading for a failed compiler start changes with it, from `Java compilation initialization error` to `Compiler initialization failed`.
-Java compiler diagnostics are named after the kind of diagnostic, for example `Cannot find symbol` instead of the javac code `compiler.err.cant.resolve.location`; the compiler's message stays in the problem's contextual label.
+The legacy problem groups are gone, and both the group and the name of Gradle's own problem ids changed, so Tooling API clients, Build Scans, and any tooling that matches problems by id need to update.
 
-Gradle's own dependency problems use the predefined groups as well: version catalog problems report into `Dependencies > Declaration`, failures while resolving the dependency graph, such as selecting a version, a variant, or a capability, into `Dependencies > Graph Resolution`, and artifact selection failures into `Dependencies > Artifact Resolution`.
-They are now named by their former display names, and version catalog problem names mention the version catalog, for example `dependency-version-catalog:toml-syntax-error` is now `Dependencies:Declaration:Version catalog TOML syntax error`.
-See the [upgrade guide](userguide/upgrading_version_9.html#dependency_problem_ids_moved_to_predefined_groups) for the complete list.
+See the upgrade guide for the complete list of changed problem ids:
 
-Gradle's own validation problems use the predefined groups as well: problems about input, output, and caching annotations report into `Gradle > Plugin Validation`, problems about how build logic uses the build model, including types that cannot be part of a Declarative schema, into `Gradle > Build Logic`, and missing or unusable property values into `Gradle > Build Definition`.
-They are now named by their former display names, with a few names reworded to describe the problem, for example `validation:property-validation:value-not-set` is now `Gradle:Build Definition:Value not set`.
-See the [upgrade guide](userguide/upgrading_version_9.html#validation_problem_ids_moved_to_predefined_groups) for the complete list.
+* [Deprecation](userguide/upgrading_version_9.html#deprecation_problem_ids_moved_to_predefined_groups)
+* [Compilation](userguide/upgrading_version_9.html#compilation_problem_ids_moved_to_predefined_groups)
+* [Dependency](userguide/upgrading_version_9.html#dependency_problem_ids_moved_to_predefined_groups)
+* [Validation](userguide/upgrading_version_9.html#validation_problem_ids_moved_to_predefined_groups)
+* [Runtime](userguide/upgrading_version_9.html#runtime_problem_ids_moved_to_predefined_groups)
 
 See the [Predefined Problem Groups](userguide/reporting_problems.html#sec:predefined_problem_groups) section in the Gradle User Manual for more details.
 

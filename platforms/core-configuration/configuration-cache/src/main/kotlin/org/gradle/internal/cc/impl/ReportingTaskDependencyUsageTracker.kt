@@ -39,7 +39,7 @@ class ReportingTaskDependencyUsageTracker(
         checkForCoupledProjects(taskDependencies)
 
         ipProblems.report {
-            problem {
+            problem("Direct access to task dependencies") {
                 text("Project ")
                 reference(referrer.buildTreePath)
                 text(" cannot access task dependencies directly")

@@ -14,6 +14,8 @@
  * limitations under the License.
  */
 
+@file:Suppress("DEPRECATION")
+
 package org.gradle.kotlin.dsl.support.delegates
 
 import groovy.lang.Closure
@@ -99,7 +101,9 @@ abstract class ProjectDelegate : Project {
         @Suppress("DEPRECATION")
         delegate.buildDir
 
+    @Deprecated("Will be removed in Gradle 10")
     override fun getAnt(): AntBuilder =
+        @Suppress("DEPRECATION")
         delegate.ant
 
     override fun getVersion(): Any =
@@ -404,16 +408,22 @@ abstract class ProjectDelegate : Project {
     override fun getPlugins(): PluginContainer =
         delegate.plugins
 
+    @Deprecated("Will be removed in Gradle 10")
     override fun ant(configureClosure: Closure<*>): AntBuilder =
+        @Suppress("DEPRECATION")
         delegate.ant(configureClosure)
 
+    @Deprecated("Will be removed in Gradle 10")
     override fun ant(configureAction: Action<in AntBuilder>): AntBuilder =
+        @Suppress("DEPRECATION")
         delegate.ant(configureAction)
 
     override fun getAllprojects(): MutableSet<Project> =
         delegate.allprojects
 
+    @Deprecated("Will be removed in Gradle 10")
     override fun createAntBuilder(): AntBuilder =
+        @Suppress("DEPRECATION")
         delegate.createAntBuilder()
 
     override fun getObjects(): ObjectFactory =

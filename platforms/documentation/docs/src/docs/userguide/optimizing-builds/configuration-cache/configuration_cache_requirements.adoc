@@ -323,10 +323,10 @@ Use a task input or output property or a script variable to capture the result o
 | link:{javadocPath}/org/gradle/process/ExecOperations.html#javaexec(org.gradle.api.Action)[ExecOperations.javaexec {}]
 
 | `project.ant {}`
-| link:{javadocPath}/org/gradle/api/Task.html#getAnt()[Task.ant]
+| No supported replacement. Gradle's Ant integration is *deprecated* and will be removed in Gradle 10, so prefer migrating off Ant rather than moving the call to `Task.ant`, which is deprecated as well. See <<upgrading_version_9.adoc#deprecated_ant_builder,Deprecation of the Ant integration>> for the alternatives.
 
 | `project.createAntBuilder()`
-| link:{javadocPath}/org/gradle/api/Task.html#getAnt()[Task.ant]
+| No supported replacement, for the same reason as `project.ant {}` above (*deprecated*).
 
 |===
 

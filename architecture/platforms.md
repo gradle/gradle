@@ -32,6 +32,9 @@ The diagram below shows the current set of architecture modules and platforms:
     ide["ide module"]
     style ide stroke:#1abc9c,fill:#b1f4e7,stroke-width:2px,color:#000;
 
+    observability["observability module"]
+    style observability stroke:#1abc9c,fill:#b1f4e7,stroke-width:2px,color:#000;
+
     subgraph software["software platform"]
     end
     style software fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;
@@ -114,6 +117,10 @@ Provides cross-cutting integration with Gradle's commercial product.
 ### IDE integration
 
 Provides cross-cutting integration with IDEs and other tooling.
+
+### Observability
+
+Provides cross-cutting support for reporting what happens during a build. This includes the Problems API, its implementation and the rendering of problems.
 
 ### Build infrastructure
 

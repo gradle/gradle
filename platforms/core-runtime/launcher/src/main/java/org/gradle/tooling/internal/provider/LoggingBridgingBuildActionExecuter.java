@@ -21,6 +21,7 @@ import org.gradle.internal.daemon.client.execution.ClientBuildRequestContext;
 import org.gradle.internal.invocation.BuildAction;
 import org.gradle.internal.io.NullOutputStream;
 import org.gradle.internal.logging.LoggingManagerInternal;
+import org.gradle.internal.logging.events.BuildStartTimeEvent;
 import org.gradle.internal.logging.events.OutputEvent;
 import org.gradle.internal.logging.events.OutputEventListener;
 import org.gradle.internal.logging.events.ProgressCompleteEvent;
@@ -37,12 +38,14 @@ import java.io.OutputStream;
  */
 public class LoggingBridgingBuildActionExecuter implements BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> {
     private final LoggingManagerInternal loggingManager;
+    private final OutputEventListener outputEventListener;
     private final Stoppable stoppable;
     private final BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> delegate;
 
-    public LoggingBridgingBuildActionExecuter(BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> delegate, LoggingManagerInternal loggingManager, Stoppable stoppable) {
+    public LoggingBridgingBuildActionExecuter(BuildActionExecutor<ConnectionOperationParameters, ClientBuildRequestContext> delegate, LoggingManagerInternal loggingManager, OutputEventListener outputEventListener, Stoppable stoppable) {
         this.delegate = delegate;
         this.loggingManager = loggingManager;
+        this.outputEventListener = outputEventListener;
         this.stoppable = stoppable;
     }
 
@@ -56,6 +59,7 @@ public class LoggingBridgingBuildActionExecuter implements BuildActionExecutor<C
         loggingManager.setLevelInternal(actionParameters.getBuildLogLevel());
         loggingManager.start();
         try {
+            outputEventListener.onOutput(new BuildStartTimeEvent(buildRequestContext.getStartTime()));
             return delegate.execute(action, parameters, buildRequestContext);
         } finally {
             loggingManager.stop();

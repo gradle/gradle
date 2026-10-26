@@ -16,6 +16,7 @@
 
 package org.gradle.internal.logging.console;
 
+import org.gradle.internal.logging.events.BuildStartTimeEvent;
 import org.gradle.internal.logging.events.EndOutputEvent;
 import org.gradle.internal.logging.events.FlushOutputEvent;
 import org.gradle.internal.logging.events.OutputEvent;
@@ -54,6 +55,7 @@ public class BuildStatusRenderer implements OutputEventListener {
     private @Nullable ProgressBar progressBar;
 
     // Used to maintain timer
+    private @Nullable Long clientBuildStartTime;
     private long buildStartTimestamp;
     private boolean timerEnabled;
 
@@ -66,13 +68,15 @@ public class BuildStatusRenderer implements OutputEventListener {
 
     @Override
     public void onOutput(OutputEvent event) {
-        if (event instanceof ProgressStartEvent) {
+        if (event instanceof BuildStartTimeEvent) {
+            clientBuildStartTime = ((BuildStartTimeEvent) event).getStartTime();
+        } else if (event instanceof ProgressStartEvent) {
             ProgressStartEvent startEvent = (ProgressStartEvent) event;
             if (startEvent.isBuildOperationStart()) {
                 if (buildStartTimestamp == 0 && startEvent.getParentProgressOperationId() == null) {
                     // The very first event starts the Initializing phase
-                    // TODO - should use BuildRequestMetaData to determine the build start time
-                    buildStartTimestamp = startEvent.getTimestamp();
+                    // If the start time of the client is known, this start time is used for the timer, as for the build summary
+                    buildStartTimestamp = clientBuildStartTime != null ? clientBuildStartTime : startEvent.getTimestamp();
                     buildProgressOperationId = startEvent.getProgressOperationId();
                     phaseStarted(startEvent, Phase.Initializing);
                 } else if (startEvent.getBuildOperationCategory() == BuildOperationCategory.CONFIGURE_ROOT_BUILD) {

@@ -194,13 +194,17 @@ module("ide") {
     subproject("ide-model-impls")
     subproject("ide-native")
     subproject("ide-plugins")
+    subproject("tooling-api")
+    subproject("tooling-api-builders")
+}
+
+// Observability Module
+module("observability") {
     subproject("problems")
     subproject("problems-api")
     subproject("problems-impl")
     subproject("problems-rendering")
     subproject("problems-reporting")
-    subproject("tooling-api")
-    subproject("tooling-api-builders")
 }
 
 // Software Platform

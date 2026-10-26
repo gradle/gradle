@@ -95,6 +95,7 @@ public abstract class AbstractFileTree extends AbstractFileCollection implements
     }
 
     @Override
+    @Deprecated
     protected void addAsResourceCollection(Object builder, String nodeName) {
         new AntFileTreeBuilder(getAsMap()).addToAntBuilder(builder, nodeName);
     }

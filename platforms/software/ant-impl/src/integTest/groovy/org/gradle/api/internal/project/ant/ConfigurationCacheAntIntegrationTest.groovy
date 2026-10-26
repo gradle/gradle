@@ -50,6 +50,7 @@ class ConfigurationCacheAntIntegrationTest extends AbstractIntegrationSpec {
         buildFile """
             ant.importBuild 'build.xml'
         """
+        expectAntDeprecation("The Project.getAnt() method has been deprecated.")
 
         when:
         run('test-build')
@@ -70,6 +71,8 @@ class ConfigurationCacheAntIntegrationTest extends AbstractIntegrationSpec {
                 baseDir = project.layout.projectDirectory.asFile
             }
         """
+        expectAntDeprecation("The org.gradle.api.tasks.ant.AntTarget type has been deprecated.")
+        expectAntDeprecation("The Task.getAnt() method has been deprecated.")
 
         when:
         run('test-build')
@@ -78,5 +81,12 @@ class ConfigurationCacheAntIntegrationTest extends AbstractIntegrationSpec {
         outputContains("[ant:echo] Hello from Ant!")
         configurationCache.assertNoConfigurationCache()
         postBuildOutputContains("Configuration cache disabled because incompatible task was found.")
+    }
+
+    private void expectAntDeprecation(String summary) {
+        executer.expectDocumentedDeprecationWarning(
+            "${summary} This is scheduled to be removed in Gradle 10. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_ant_builder"
+        )
     }
 }

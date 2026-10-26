@@ -368,7 +368,7 @@ fun ReadContext.decodeUsingJavaSerialization(): Any? =
 
 
 fun WriteContext.reportCollectionWriteFailure(collectionKind: String, size: Int, totalWritten: Int, sizeAfterIteration: Int) {
-    onError(ConcurrentModificationException("Collection corrupted or changed while iterating")) {
+    onError("Collection changed while serializing", ConcurrentModificationException("Collection corrupted or changed while iterating")) {
         text("The $collectionKind size() is $size, but $totalWritten entries were available when iterating over it. ")
         if (sizeAfterIteration != size) {
             text("The size changed to $sizeAfterIteration after iterating.")

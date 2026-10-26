@@ -45,9 +45,17 @@ class AntImportBuildIntegrationTest extends AbstractIntegrationSpec {
         outputContains("[ant:echo] Basedir is: " + expectedBasedir.getAbsolutePath())
     }
 
+    private void expectAntDeprecation(String summary) {
+        executer.expectDocumentedDeprecationWarning(
+            "${summary} This is scheduled to be removed in Gradle 10. " +
+                "Consult the upgrading guide for further information: https://docs.gradle.org/current/userguide/upgrading_version_9.html#deprecated_ant_builder"
+        )
+    }
+
 
     def "by default basedir is same as Ant file location"() {
         expect:
+        expectAntDeprecation("The Project.getAnt() method has been deprecated.")
         "test basedir"("""
             ant.importBuild 'build.xml'
         """, testDirectory, "test-build")
@@ -56,6 +64,7 @@ class AntImportBuildIntegrationTest extends AbstractIntegrationSpec {
     @Issue("gradle/gradle#1698")
     def "user can set different basedir for imported Ant file"() {
         expect:
+        expectAntDeprecation("The Project.getAnt() method has been deprecated.")
         "test basedir"("""
             ant.importBuild('build.xml', '..')
         """, testDirectory.getParentFile(), "test-build")
@@ -63,6 +72,7 @@ class AntImportBuildIntegrationTest extends AbstractIntegrationSpec {
 
     def "user can specify transformer without specifying basedir"() {
         expect:
+        expectAntDeprecation("The Project.getAnt() method has been deprecated.")
         "test basedir"("""
             ant.importBuild('build.xml') { antTaskName ->
                 'ant-' + antTaskName
@@ -73,6 +83,7 @@ class AntImportBuildIntegrationTest extends AbstractIntegrationSpec {
     @Issue("gradle/gradle#1698")
     def "user can specify both basedir and transformer"() {
         expect:
+        expectAntDeprecation("The Project.getAnt() method has been deprecated.")
         "test basedir"("""
             ant.importBuild('build.xml', '..') { antTaskName ->
                 'ant-' + antTaskName

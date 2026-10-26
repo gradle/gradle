@@ -223,6 +223,11 @@ class ReceivedProblem implements ProblemInternal {
         throw new UnsupportedOperationException("Not implemented")
     }
 
+    @Override
+    ProblemInternal withId(ProblemId id) {
+        throw new UnsupportedOperationException("Not implemented")
+    }
+
     static class ReceivedProblemDefinition implements ProblemDefinition {
         private final ReceivedProblemId id
         private final Severity severity

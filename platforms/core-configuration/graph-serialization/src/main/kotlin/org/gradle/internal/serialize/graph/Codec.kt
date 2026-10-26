@@ -173,7 +173,7 @@ interface IsolateContext {
 
     fun onProblem(problem: PropertyProblem)
 
-    fun onError(error: Exception, message: StructuredMessageBuilder)
+    fun onError(name: String, error: Exception, message: StructuredMessageBuilder)
 
     val name: String
         get() = this::class.simpleName!!

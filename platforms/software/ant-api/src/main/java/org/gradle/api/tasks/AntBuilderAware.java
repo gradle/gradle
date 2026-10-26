@@ -19,12 +19,16 @@ package org.gradle.api.tasks;
 /**
  * An {@code AntBuilderAware} represents an object which can add itself to Ant tasks, using an {@link org.gradle.api.AntBuilder}.
  * @since 0.7
+ * @deprecated This type will be removed in Gradle 10.
  */
+@Deprecated
 public interface AntBuilderAware {
     /**
      * Add to ant builder.
      *
      * @since 0.7
+     * @deprecated This method will be removed in Gradle 10.
      */
+    @Deprecated
     Object addToAntBuilder(Object node, String childNodeName);
 }

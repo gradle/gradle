@@ -43,7 +43,14 @@ class GradleBuildExternalPluginsValidationSmokeTest extends AbstractGradleceptio
 
     def "performs static validation of plugins used by the Gradle build"() {
         when:
-        allPlugins.passing { true }
+        allPlugins.passing { it != 'org.ysb33r.grolifant5.api.core.plugins.GrolifantServicePlugin' }
+        def appRunnerSpecProblem = Tuple2.tuple(
+            ignoredAnnotationOnField { type('org.ysb33r.grolifant5.api.core.runnable.AbstractExecSpec').property('appRunnerSpec').annotatedWith('Nested').includeLink() },
+            "error"
+        )
+        allPlugins.onPlugin('org.ysb33r.grolifant5.api.core.plugins.GrolifantServicePlugin', ':docs') {
+            failsWith([appRunnerSpecProblem] * 3)
+        }
 
         then:
         allPlugins.performValidation([

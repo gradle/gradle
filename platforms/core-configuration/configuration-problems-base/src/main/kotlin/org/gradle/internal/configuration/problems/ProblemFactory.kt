@@ -31,23 +31,23 @@ interface ProblemFactory {
     fun locationForCaller(consumer: String? = null): PropertyTrace
 
     /**
-     * Creates a problem with the given message and exception.
+     * Creates a problem with the given name, message and exception.
      *
      * Problem has no documentation, and a default location is inferred from the calling thread's state.
      */
-    fun problem(message: StructuredMessage, exception: Throwable? = null, documentationSection: DocumentationSection? = null, getStackTrace: Boolean = true): PropertyProblem
+    fun problem(name: String, message: StructuredMessage, exception: Throwable? = null, documentationSection: DocumentationSection? = null, getStackTrace: Boolean = true): PropertyProblem
 
     /**
-     * Creates a problem with the given message.
+     * Creates a problem with the given name and message.
      *
      * By default, the problem has no exception or documentation, and a default location is inferred from the calling thread's state.
      */
-    fun problem(consumer: String?, message: Action<StructuredMessage.Builder>): Builder
+    fun problem(name: String, consumer: String?, message: Action<StructuredMessage.Builder>): Builder
 
     /**
-     * Creates a problem with the given message, attributed to no particular consumer.
+     * Creates a problem with the given name and message, attributed to no particular consumer.
      */
-    fun problem(message: Action<StructuredMessage.Builder>): Builder = problem(null, message)
+    fun problem(name: String, message: Action<StructuredMessage.Builder>): Builder = problem(name, null, message)
 
     interface Builder {
 

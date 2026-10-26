@@ -19,7 +19,6 @@ package org.gradle.api.tasks.util.internal;
 import groovy.lang.Closure;
 import groovy.lang.GroovyObject;
 import org.gradle.api.Action;
-import org.gradle.api.tasks.AntBuilderAware;
 
 import java.util.HashMap;
 import java.util.Map;
@@ -28,7 +27,8 @@ import java.util.Set;
 /**
  * Externalised from PatternSet to isolate the Groovy usage.
  */
-public class PatternSetAntBuilderDelegate implements AntBuilderAware {
+@Deprecated
+public class PatternSetAntBuilderDelegate implements org.gradle.api.tasks.AntBuilderAware {
 
     private final Set<String> includes;
     private final Set<String> excludes;
@@ -76,6 +76,7 @@ public class PatternSetAntBuilderDelegate implements AntBuilderAware {
     }
 
     @Override
+    @Deprecated
     public Object addToAntBuilder(Object node, String childNodeName) {
         return and(node, new Action<Object>() {
             @Override

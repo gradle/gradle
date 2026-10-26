@@ -393,8 +393,8 @@ abstract class AbstractIsolateContext<T>(
         currentProblemsListener.onProblem(problem)
     }
 
-    override fun onError(error: Exception, message: StructuredMessageBuilder) {
-        currentProblemsListener.onError(trace, error, message)
+    override fun onError(name: String, error: Exception, message: StructuredMessageBuilder) {
+        currentProblemsListener.onError(trace, name, error, message)
     }
 
     override suspend fun forIncompatibleTask(trace: PropertyTrace, reason: String, action: suspend () -> Unit) {

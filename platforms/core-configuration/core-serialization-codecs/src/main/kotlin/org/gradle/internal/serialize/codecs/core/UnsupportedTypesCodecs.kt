@@ -156,10 +156,15 @@ fun BindingsBuilder.unsupportedTypes() {
 }
 
 
+private
+const val BUILD_SERVICE_USED_AT_CONFIGURATION_TIME = "Build service used at configuration time"
+
+
 object UnsupportedFingerprintBuildServiceProviderCodec : Codec<BuildServiceProvider<*, *>> {
     override suspend fun WriteContext.encode(value: BuildServiceProvider<*, *>) {
         logUnsupported(
             "serialize",
+            BUILD_SERVICE_USED_AT_CONFIGURATION_TIME,
             documentationSection = DocumentationSection.NotYetImplementedBuildServiceInFingerprint
         ) {
             text(" BuildServiceProvider of service ")
@@ -171,7 +176,12 @@ object UnsupportedFingerprintBuildServiceProviderCodec : Codec<BuildServiceProvi
     }
 
     override suspend fun ReadContext.decode(): BuildServiceProvider<*, *>? {
-        logUnsupported("deserialize", BuildServiceProvider::class, documentationSection = DocumentationSection.NotYetImplementedBuildServiceInFingerprint)
+        logUnsupported(
+            "deserialize",
+            BuildServiceProvider::class,
+            documentationSection = DocumentationSection.NotYetImplementedBuildServiceInFingerprint,
+            name = BUILD_SERVICE_USED_AT_CONFIGURATION_TIME
+        )
         return null
     }
 }
@@ -189,7 +199,7 @@ object UnsupportedFingerprintFlowProviders : Codec<BuildWorkResultProvider> {
 
     private
     fun IsolateContext.logUnsupported(action: String) {
-        logUnsupported(action) {
+        logUnsupported(action, "Build work result used at configuration time") {
             text(" ")
             reference(BuildWorkResultProvider::class)
             text(" used at configuration time")

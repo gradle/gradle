@@ -22,7 +22,7 @@ import org.gradle.api.internal.SettingsInternal
 import org.gradle.api.internal.artifacts.DefaultProjectComponentIdentifier
 import org.gradle.api.internal.file.IdentityFileResolver
 import org.gradle.api.internal.initialization.ClassLoaderScope
-import org.gradle.api.problems.ProblemReporter
+import org.gradle.api.problems.Problems
 import org.gradle.initialization.DefaultProjectDescriptor
 import org.gradle.initialization.DefaultProjectDescriptorRegistry
 import org.gradle.internal.build.BuildIdentity
@@ -855,15 +855,15 @@ class DefaultProjectStateRegistryTest extends ConcurrentSpec {
     }
 
     BuildState build(Path identityPath, String... projects) {
-        def problemReporter = Stub(ProblemReporter)
+        def problems = Stub(Problems)
         def descriptors = new DefaultProjectDescriptorRegistry()
         def rootDir = tmpDir.file("build-root")
         def fileResolver = new IdentityFileResolver()
         def rootName = identityPath == Path.ROOT ? "root" : identityPath.name
         // Use side effects of constructors to populate the descriptor registry
-        def root = new DefaultProjectDescriptor(null, rootName, rootDir, descriptors, fileResolver, problemReporter)
+        def root = new DefaultProjectDescriptor(null, rootName, rootDir, descriptors, fileResolver, problems)
         projects.each {
-            new DefaultProjectDescriptor(root, it, rootDir.file(it), descriptors, fileResolver, problemReporter)
+            new DefaultProjectDescriptor(root, it, rootDir.file(it), descriptors, fileResolver, problems)
         }
 
         def settings = Stub(SettingsInternal)
