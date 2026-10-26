@@ -191,6 +191,15 @@ val minifyPatterns = mapOf(
             "org.jetbrains.kotlin.wasm",
         ),
     ),
+    "org.jetbrains.kotlin:kotlin-build-tools-impl" to MinifySpec(
+        removeUnreachable = false,
+        removePackages = setOf(
+            // jsr305 also ships this package
+            "javax.annotation",
+        ),
+        // The compiler comes with this library. The compiler also ships part of the same relocated Guava.
+        removeClassesShippedBy = setOf("org.jetbrains.kotlin:kotlin-compiler-embeddable"),
+    ),
     "com.github.jnr:jnr-constants" to MinifySpec(
         dropLocalVariables = true,
         keepClasses = setOf(
@@ -256,7 +265,8 @@ plugins.withId("java-base") {
         // Legacy configurations only lose roles after creation, so this covers every configuration that
         // ends up resolvable-only; the rule checks the final role when it runs. jmh*, shadow and gr8Gr
         // are left consumable and resolvable by third-party plugins, so the rule is not installed there.
-        if (isCanBeResolved && name != libraryDependencies.name && !name.startsWith("jmh") && name != "shadow" && name != "gr8Gr") {
+        // The minified Kotlin libraries expect the compiler version of the version catalog. The tool classpaths of KGP can have a different compiler.
+        if (isCanBeResolved && name != libraryDependencies.name && !name.startsWith("jmh") && name != "shadow" && name != "gr8Gr" && !name.startsWith("kotlin")) {
             val configuration = this
             resolutionStrategy.dependencySubstitution.all {
                 if (configuration.isCanBeConsumed) return@all

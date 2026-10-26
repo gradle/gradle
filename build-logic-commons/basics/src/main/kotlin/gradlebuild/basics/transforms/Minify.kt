@@ -100,8 +100,9 @@ abstract class Minify : TransformAction<Minify.Parameters> {
 
     private
     fun minify(artifact: File, spec: MinifySpec, output: File) {
+        val input = if (spec.removeClassesShippedBy.isEmpty()) artifact else withoutClassesShippedBy(artifact, spec.removeClassesShippedBy)
         val rules = File.createTempFile("minify", ".pro")
-        rules.writeText(minifyRules(artifact, spec, output).joinToString("\n"))
+        rules.writeText(minifyRules(artifact, input, spec, output).joinToString("\n"))
         val log = ByteArrayOutputStream()
         try {
             val result = execOperations.javaexec {
@@ -118,6 +119,9 @@ abstract class Minify : TransformAction<Minify.Parameters> {
             }
         } finally {
             rules.delete()
+            if (input != artifact) {
+                input.delete()
+            }
         }
         normalizeTimestamps(output)
     }
@@ -136,6 +140,25 @@ abstract class Minify : TransformAction<Minify.Parameters> {
             }
         }
         Files.move(normalized.toPath(), jar.toPath(), StandardCopyOption.REPLACE_EXISTING)
+    }
+
+    // There are too many classes for an input filter of the minifier
+    private
+    fun withoutClassesShippedBy(artifact: File, libraries: Set<String>): File {
+        val shipped = libraries.flatMapTo(HashSet(), ::classesShippedBy)
+        val filtered = File.createTempFile("minify", ".jar")
+        ZipFile(artifact).use { zip ->
+            ZipOutputStream(filtered.outputStream().buffered()).use { out ->
+                for (entry in zip.entries()) {
+                    if (entry.name !in shipped) {
+                        out.putNextEntry(ZipEntry(entry.name).apply { time = entry.time })
+                        zip.getInputStream(entry).use { it.copyTo(out) }
+                        out.closeEntry()
+                    }
+                }
+            }
+        }
+        return filtered
     }
 
     private
@@ -166,12 +189,24 @@ abstract class Minify : TransformAction<Minify.Parameters> {
     }
 
     private
-    fun minifyRules(artifact: File, spec: MinifySpec, output: File) = buildList {
+    fun classesShippedBy(coordinates: String): List<String> {
+        val name = coordinates.substringAfter(":")
+        val library = parameters.minifiedLibraries.files.singleOrNull { jarArtifactRegex.matchEntire(it.name)?.groupValues?.get(1) == name }
+            ?: error("Minification: $coordinates is not a minifier library")
+        // The classes that the minification of that library removes are not shipped either
+        val removed = specsByArtifacts[name]?.removePackages.orEmpty().map { it.replace('.', '/') + "/" }
+        return ZipFile(library).use { zip ->
+            zip.entries().asSequence().map { it.name }.filter { it.endsWith(".class") && removed.none(it::startsWith) }.toList()
+        }
+    }
+
+    private
+    fun minifyRules(artifact: File, input: File, spec: MinifySpec, output: File) = buildList {
         val removedPackages = spec.removePackages.map { "**${it.replace('.', '/')}/**" }
 
         val inputFilters = listOf("!META-INF/*.SF", "!META-INF/*.RSA", "!META-INF/*.DSA", "!META-INF/*.EC") +
             removedPackages.map { "!$it" }
-        add("-injars '${artifact.absolutePath}'(${inputFilters.joinToString(",")})")
+        add("-injars '${input.absolutePath}'(${inputFilters.joinToString(",")})")
         add("-outjars '${output.absolutePath}'")
         add("-libraryjars '${generatedJdkJmods().absolutePath}'")
         if (removedPackages.isNotEmpty()) {
