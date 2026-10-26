@@ -33,6 +33,7 @@ import org.gradle.api.tasks.Internal;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInputs;
+import org.gradle.api.tasks.TaskLifecycleListener;
 import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.api.tasks.TaskOutputs;
 import org.gradle.api.tasks.TaskState;
@@ -515,6 +516,21 @@ public interface Task extends Comparable<Task>, ExtensionAware, Named {
     Task doLast(@DelegatesTo(Task.class)
                 @ClosureParams(value = SimpleType.class, options = "org.gradle.api.Task")
                 Closure action);
+
+    /**
+     * Registers a listener to be notified before and after this task is executed.
+     *
+     * <p>Gradle creates a new instance of the listener for each execution of this task.
+     * Registering the same listener type more than once has no effect.</p>
+     *
+     * <p>The listener must accept this task. The type of task the listener is declared for is checked when the listener is registered.</p>
+     *
+     * @param listenerType The type of the listener.
+     * @see TaskLifecycleListener
+     * @since 9.10.0
+     */
+    @Incubating
+    void addLifecycleListener(Class<? extends TaskLifecycleListener<?>> listenerType);
 
     /**
      * <p>Returns if this task is enabled or not.</p>

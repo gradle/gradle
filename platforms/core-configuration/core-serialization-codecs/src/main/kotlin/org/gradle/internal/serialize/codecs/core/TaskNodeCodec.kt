@@ -34,6 +34,7 @@ import org.gradle.api.logging.StandardOutputListener
 import org.gradle.api.provider.HasConfigurableValue
 import org.gradle.api.provider.Provider
 import org.gradle.api.specs.Spec
+import org.gradle.api.tasks.TaskLifecycleListener
 import org.gradle.api.tasks.TaskProvider
 import org.gradle.execution.plan.LocalTaskNode
 import org.gradle.execution.plan.TaskNodeFactory
@@ -123,6 +124,7 @@ class TaskNodeCodec(
                         writeRegisteredPropertiesOf(task)
                     }
                     writeTaskActions(task)
+                    writeLifecycleListeners(task)
                     writeDestroyablesOf(task)
                     writeLocalStateOf(task)
                     writeRequiredServices(task)
@@ -163,6 +165,7 @@ class TaskNodeCodec(
             }
             readRegisteredPropertiesOf(task)
             readTaskActions(task)
+            readLifecycleListeners(task)
             readDestroyablesOf(task)
             readLocalStateOf(task)
             readRequiredServices(task)
@@ -255,6 +258,20 @@ class TaskNodeCodec(
     suspend fun ReadContext.readTaskActions(task: TaskInternal) {
         withVirtualPropertyTrace(TaskVirtualProperty.ACTIONS) {
             task.restoreTaskActions(readCollectionInto(::ArrayList) { readNonNull() })
+        }
+    }
+
+    private
+    fun WriteContext.writeLifecycleListeners(task: TaskInternal) {
+        withVirtualPropertyTrace(TaskVirtualProperty.LIFECYCLE_LISTENERS) {
+            writeCollection(task.lifecycleListeners) { writeClass(it) }
+        }
+    }
+
+    private
+    fun ReadContext.readLifecycleListeners(task: TaskInternal) {
+        withVirtualPropertyTrace(TaskVirtualProperty.LIFECYCLE_LISTENERS) {
+            task.restoreLifecycleListeners(readList { readClassOf<TaskLifecycleListener<*>>() })
         }
     }
 
@@ -359,6 +376,7 @@ enum class TaskVirtualProperty(val traceName: String) {
     ACTIONS("actions"),
     CACHE_IF("cacheIf specs"),
     DO_NOT_CACHE_IF("doNotCacheIf specs"),
+    LIFECYCLE_LISTENERS("lifecycle listeners"),
     LOGGING_LISTENERS("logging listeners"),
     ONLY_IF("onlyIf specs"),
     UP_TO_DATE("upToDate specs"),

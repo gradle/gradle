@@ -24,6 +24,7 @@ import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.TaskLifecycleListener;
 import org.gradle.internal.Factory;
 import org.gradle.internal.logging.LoggingManagerInternal;
 import org.gradle.internal.logging.StandardOutputCapture;
@@ -33,6 +34,7 @@ import org.gradle.util.Path;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.util.Collection;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -54,6 +56,17 @@ public interface TaskInternal extends Task, Configurable<Task> {
      * @param taskActions the actions to restore
      */
     void restoreTaskActions(List<InputChangesAwareTaskAction> taskActions);
+
+    /**
+     * Returns the types of the lifecycle listeners registered with this task, in registration order.
+     */
+    @Internal
+    Set<Class<? extends TaskLifecycleListener<?>>> getLifecycleListeners();
+
+    /**
+     * Sets the lifecycle listeners of this task. Used by the configuration cache when restoring the task.
+     */
+    void restoreLifecycleListeners(Collection<Class<? extends TaskLifecycleListener<?>>> listenerTypes);
 
     @Internal
     boolean hasTaskActions();
