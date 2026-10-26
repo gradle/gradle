@@ -191,6 +191,15 @@ val minifyPatterns = mapOf(
             "org.jetbrains.kotlin.wasm",
         ),
     ),
+    "org.jetbrains.kotlin:kotlin-build-tools-impl" to MinifySpec(
+        removeUnreachable = false,
+        removePackages = setOf(
+            // jsr305 also ships this package
+            "javax.annotation",
+        ),
+        // The compiler comes with this library. The compiler also ships part of the same relocated Guava.
+        removeClassesShippedBy = setOf("org.jetbrains.kotlin:kotlin-compiler-embeddable"),
+    ),
     "com.github.jnr:jnr-constants" to MinifySpec(
         dropLocalVariables = true,
         keepClasses = setOf(
@@ -251,7 +260,8 @@ plugins.withId("java-base") {
         // note: constraints can't be used here because they end up in gradle module metadata
         val attributesFactory = gradle.serviceOf<AttributesFactory>()
         configurations.all {
-            if (isCanBeResolved && !isCanBeConsumed && name != libraryDependencies.name && !name.startsWith("jmh")) {
+            // The minified Kotlin libraries expect the compiler version of the version catalog. The tool classpaths of KGP can have a different compiler.
+            if (isCanBeResolved && !isCanBeConsumed && name != libraryDependencies.name && !name.startsWith("jmh") && !name.startsWith("kotlin")) {
                 resolutionStrategy.dependencySubstitution.all {
                     val requested = this.requested as? ModuleComponentSelector ?: return@all
                     minifyPatterns.forEach { coordinates, _ ->

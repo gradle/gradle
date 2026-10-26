@@ -77,10 +77,10 @@ import kotlin.reflect.jvm.jvmName
 
 @VisibleForTesting
 fun JavaVersion.toKotlinJvmTarget(): JvmTarget {
-    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 26
+    // JvmTarget.fromString(JavaVersion.majorVersion) works from Java 9 to Java 28
     return JvmTarget.fromString(majorVersion)
         ?: if (this <= JavaVersion.VERSION_1_8) JVM_1_8
-        else JvmTarget.JVM_26
+        else JvmTarget.JVM_28
 }
 
 
