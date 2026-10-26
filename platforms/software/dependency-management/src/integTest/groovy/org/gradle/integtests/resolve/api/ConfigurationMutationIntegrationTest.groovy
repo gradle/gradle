@@ -807,4 +807,23 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
         // An eager listener on the set itself makes addLater query the provider right away
         "dependencies"    | "1.0"
     }
+
+    def "eager listener on allDependencies can add dependencies to the configuration"() {
+        buildFile """
+            def impl = configurations.dependencyScope("impl").get()
+
+            impl.allDependencies.all {
+                if (it.name == "a") {
+                    impl.dependencies.add(project.dependencies.create("org:b:1.0"))
+                }
+            }
+            impl.dependencies.add(project.dependencies.create("org:a:1.0"))
+
+            println "dependencies = " + impl.dependencies.collect { it.name }
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("dependencies = [a, b]")
+    }
 }

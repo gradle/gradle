@@ -557,6 +557,45 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         ]
     }
 
+    def "elements of #containerType carries task dependencies when eager action is registered before adding providers"() {
+        buildFile.text = """
+            ${namedThing}
+
+            def task1 = tasks.register("task1")
+            def task2 = tasks.register("task2")
+
+            def container = objects.$containerType(NamedThing)
+            container.all { }
+            // Mapping the task providers keeps the tasks as producers, while the values are available during configuration
+            container.addAllLater(task1.map { [new NamedThing("a"), new NamedThing("b")] })
+            container.addLater(task2.map { new NamedThing("c") })
+            def elements = container.elements
+
+            def task3 = tasks.register("task3") {
+                inputs.property("elements", elements.map { it*.name })
+                doLast {
+                    println(elements.get())
+                }
+            }
+        """
+
+        when:
+        succeeds(":task3")
+
+        then:
+        outputContains("[a, b, c]")
+        result.assertTaskOrder(TaskOrderSpecs.any(":task1", ":task2"), ":task3")
+
+        where:
+        containerType << [
+            "domainObjectContainer",
+            "polymorphicDomainObjectContainer",
+            "domainObjectSet",
+            "namedDomainObjectSet",
+            "namedDomainObjectList"
+        ]
+    }
+
     def "elements of filtered collection may contain task dependencies"() {
         buildFile.text = """
             ${namedThing}

@@ -46,6 +46,8 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     // Each DomainObjectSet has a pending set and a Configuration has several DomainObjectSets
     // And a Project has many Configurations.
     private Set<Collectors.TypedCollector<T>> pending = Collections.emptySet();
+    // Realized collectors are retained, so the producers of their elements remain build dependencies of getElements()
+    private Set<Collectors.TypedCollector<T>> realized = Collections.emptySet();
     private Action<T> addRealizedAction;
     private EventSubscriptionVerifier<T> subscriptionVerifier = type -> false;
     private final MutationGuard lazyGuard = new DefaultMutationGuard();
@@ -155,6 +157,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     @Override
     public void clear() {
         pending = Collections.emptySet();
+        realized = Collections.emptySet();
         values.clear();
     }
 
@@ -182,6 +185,10 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     private void realize(Iterable<Collectors.TypedCollector<T>> collectors) {
         for (Collectors.TypedCollector<T> collector : collectors) {
             pending.remove(collector);
+            if (realized == Collections.EMPTY_SET) {
+                realized = new LinkedHashSet<>();
+            }
+            realized.add(collector);
             ImmutableList.Builder<T> builder = ImmutableList.builder();
             // Collect elements discarding potential side effects aggregated in the returned value
             collector.collectInto(builder);
@@ -234,7 +241,12 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     private boolean removeByProvider(ProviderInternal<?> provider) {
-        Iterator<Collectors.TypedCollector<T>> iterator = pending.iterator();
+        removeFirstProvidedBy(realized, provider);
+        return removeFirstProvidedBy(pending, provider);
+    }
+
+    private static <T> boolean removeFirstProvidedBy(Set<Collectors.TypedCollector<T>> collectors, ProviderInternal<?> provider) {
+        Iterator<Collectors.TypedCollector<T>> iterator = collectors.iterator();
         while (iterator.hasNext()) {
             Collectors.TypedCollector<T> collector = iterator.next();
             if (collector.isProvidedBy(provider)) {
@@ -280,9 +292,9 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     public ProviderInternal<Set<T>> getElements() {
         return new BuildableBackedProvider<>(
             context -> {
-                // TODO: As this is implemented, the returned provider will "lose" build
-                // dependencies if elements are realized early. To fix this, we would need
-                // to retain the pending elements for the lifetime of this element source.
+                for (Collectors.TypedCollector<T> collector : realized) {
+                    context.add(collector.getProducer());
+                }
                 for (Collectors.TypedCollector<T> collector : pending) {
                     context.add(collector.getProducer());
                 }
@@ -307,7 +319,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     @Override
     public void realizeExternal(ProviderInternal<? extends T> provider) {
-        removePending(provider);
+        removeFirstProvidedBy(pending, provider);
     }
 
     @Override
