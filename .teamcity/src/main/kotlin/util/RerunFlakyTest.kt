@@ -25,7 +25,6 @@ import common.KillProcessMode.KILL_PROCESSES_STARTED_BY_GRADLE
 import common.Os
 import common.applyDefaultSettings
 import common.buildToolGradleParameters
-import common.checkCleanM2AndAndroidUserHome
 import common.compileAllDependency
 import common.functionalTestExtraParameters
 import common.functionalTestParameters
@@ -82,10 +81,6 @@ class RerunFlakyTest(
                 }
             }
             killProcessStep(KILL_PROCESSES_STARTED_BY_GRADLE, os, arch, BuildStep.ExecutionMode.ALWAYS)
-        }
-
-        steps {
-            checkCleanM2AndAndroidUserHome(os)
         }
 
         params {

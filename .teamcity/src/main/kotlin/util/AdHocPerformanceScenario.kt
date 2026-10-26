@@ -7,7 +7,6 @@ import common.KillProcessMode.KILL_ALL_GRADLE_PROCESSES
 import common.Os
 import common.applyPerformanceTestSettings
 import common.buildToolGradleParameters
-import common.checkCleanM2AndAndroidUserHome
 import common.gradleWrapper
 import common.killProcessStep
 import common.performanceTestCommandLine
@@ -117,7 +116,6 @@ abstract class AdHocPerformanceScenario(
                         ) + buildToolGradleParameters(isContinue = false)
                     ).joinToString(separator = " ")
             }
-            checkCleanM2AndAndroidUserHome(os)
         }
     })
 
