@@ -582,13 +582,20 @@ tasks.configureEach {
 
 tasks.withType<Checkstyle>().addLifecycleListener(CheckstyleFailureReporter::class.java) // <5>
 ----
-<1> State shared between task executions lives in a build service. The task uses the services referenced by its listeners as if it referenced them itself, so they honor `maxParallelUsages`.
+<1> State shared between task executions lives in a build service. The task uses the services referenced by its listeners as if it referenced them itself, so they honor `maxParallelUsages`. The service must be thread-safe, as the listeners of tasks executing in parallel use it concurrently.
 <2> Gradle creates a new listener instance for each task execution, so instance fields carry state from `beforeExecution` to `afterExecution`.
 <3> `afterExecution` is called regardless of the outcome of the task, with the failure, if any, available from the `TaskState`.
 <4> Registering a listener for any task.
 <5> Registering a listener that accepts only `Checkstyle` tasks on a typed task collection. Such a listener can also be registered directly on a `Checkstyle` task. The task type the listener accepts is checked when it is registered.
 
 Only the listener types are stored in the Configuration Cache, and the listeners are created again when the tasks execute, on both cache hits and cache misses.
+
+[IMPORTANT]
+====
+The legacy listeners were notified one task at a time.
+Task lifecycle listeners are called on the thread executing the task, so the listeners of tasks executing in parallel are notified concurrently.
+When migrating, make sure that state shared between task executions, such as data recorded in a build service, is thread-safe.
+====
 
 The listener methods are called as follows:
 
