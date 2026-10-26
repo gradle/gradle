@@ -21,6 +21,8 @@ import org.gradle.integtests.fixtures.FileSystemWatchingHelper
 import org.gradle.integtests.fixtures.TestBuildCache
 import org.gradle.integtests.fixtures.modes.UnsupportedWithConfigurationCache
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
+import org.junit.Rule
 
 import static org.hamcrest.CoreMatchers.anyOf
 import static org.hamcrest.CoreMatchers.containsString
@@ -28,6 +30,9 @@ import static org.hamcrest.CoreMatchers.startsWith
 
 
 class TaskLifecycleListenerIntegrationTest extends AbstractIntegrationSpec {
+
+    @Rule
+    BlockingHttpServer blockingServer = new BlockingHttpServer()
 
     def "listener is notified around task actions"() {
         buildFile """
@@ -172,6 +177,61 @@ after :foo executed=true failure=null"""
         then:
         failure.assertThatCause(containsString("the listener accepts tasks of type"))
         failure.assertThatCause(containsString("GreetingTask, but the task is of type org.gradle.api.DefaultTask."))
+    }
+
+    def "listeners of tasks executing in parallel are notified concurrently"() {
+        blockingServer.start()
+        createDirs("a", "b")
+        settingsFile """
+            include("a", "b")
+
+            abstract class BlockingListener implements TaskLifecycleListener<Task> {
+                void beforeExecution(Task task) {
+                    def projectName = task.path.split(':')[1]
+                    ${blockingServer.callFromBuildUsingExpression("projectName")}
+                }
+            }
+
+            gradle.lifecycle.beforeProject {
+                tasks.register("work") {
+                    addLifecycleListener(BlockingListener)
+                }
+            }
+        """
+
+        expect:
+        blockingServer.expectConcurrent("a", "b")
+        run ":a:work", ":b:work", "--parallel", "--max-workers=2"
+    }
+
+    def "listener is notified on the thread executing the task"() {
+        buildFile """
+            abstract class ThreadListener implements TaskLifecycleListener<Task> {
+                void beforeExecution(Task task) {
+                    println "before thread \${Thread.currentThread().id}"
+                }
+
+                void afterExecution(Task task, TaskState state) {
+                    println "after thread \${Thread.currentThread().id}"
+                }
+            }
+
+            tasks.register("foo") {
+                addLifecycleListener(ThreadListener)
+                doLast {
+                    println "action thread \${Thread.currentThread().id}"
+                }
+            }
+        """
+
+        when:
+        run "foo"
+
+        then:
+        def threads = ["before", "action", "after"].collect { phase ->
+            output.readLines().find { it.startsWith("$phase thread ") }.tokenize(" ").last()
+        }
+        threads.unique().size() == 1
     }
 
     def "new listener instance is created for each task execution"() {

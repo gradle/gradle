@@ -33,6 +33,10 @@ import org.gradle.api.Task;
  * by the task the listener is registered with, as if the task referenced it itself.
  * Shared state between task executions must be kept in a build service, not in the listener itself.</p>
  *
+ * <p>Both methods are called on the thread that executes the task. Listeners of tasks executing in parallel
+ * are notified concurrently. Each listener instance is used by a single task execution, so its fields need
+ * no synchronization, but build services and other state shared between task executions must be thread-safe.</p>
+ *
  * <p>Unlike tasks, listeners cannot have {@link Nested @Nested} properties.
  * Build services must be referenced via {@code @ServiceReference} properties of the listener itself.</p>
  *
