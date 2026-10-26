@@ -316,8 +316,7 @@ public class DefaultConfigurableFileCollection extends CompositeFileCollection i
         if (forNewExplicitValue) {
             return isExplicit() ? value : conventionReadValue();
         }
-        // A new convention that references this collection means its previous convention, never the explicit value
-        return isExplicit() ? copySources(valueState.convention()) : value;
+        return isExplicit() ? copySources(value) : value;
     }
 
     private ValueCollector conventionReadValue() {

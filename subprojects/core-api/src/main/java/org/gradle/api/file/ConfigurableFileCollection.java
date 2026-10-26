@@ -78,11 +78,6 @@ public interface ConfigurableFileCollection extends FileCollection, HasConfigura
      * If, at the time this method is invoked, the set of source paths for this collection is empty, the convention will be used
      * to resolve this file collection.
      *
-     * <p>
-     * This collection, when found in the given paths, means its previous convention. The explicit source paths never
-     * take part in the convention.
-     * </p>
-     *
      * @param paths The paths. {@code null} values are ignored.
      * @return this collection
      *
