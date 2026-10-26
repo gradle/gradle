@@ -80,10 +80,11 @@ fun fetchKotlinBuildScriptModelFor(request: KotlinBuildScriptModelRequest): Kotl
 fun fetchKotlinBuildScriptModelFor(
     importedProjectDir: File,
     scriptFile: File?,
-    connectorForProject: Function<File, GradleConnector>
+    connectorForProject: Function<File, GradleConnector>,
+    options: List<String>
 ): KotlinBuildScriptModel =
 
-    fetchKotlinBuildScriptModelFor(FetchParameters(importedProjectDir, scriptFile, connectorForProject))
+    fetchKotlinBuildScriptModelFor(FetchParameters(importedProjectDir, scriptFile, connectorForProject, options))
 
 
 private

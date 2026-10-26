@@ -44,8 +44,6 @@ import java.io.File
 @Suppress("FunctionName")
 class KotlinDslPluginCrossVersionSmokeTest : AbstractKotlinIntegrationTest() {
 
-    override val forceLocallyBuiltKotlinDslPlugins = false
-
     private val oldestSupportedKotlinDslPluginVersion = "6.2.0"
 
     @Before
