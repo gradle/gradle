@@ -42,6 +42,7 @@ import javax.inject.Inject;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.InvalidPathException;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -250,7 +251,7 @@ public abstract class DefaultSourceDirectorySet extends CompositeFileTree implem
     private static boolean isExistingNonDirectory(File file) {
         try {
             return !Files.readAttributes(file.toPath(), BasicFileAttributes.class).isDirectory();
-        } catch (IOException e) {
+        } catch (IOException | InvalidPathException e) {
             return false;
         }
     }
