@@ -20,6 +20,8 @@ import org.gradle.integtests.fixtures.AbstractIntegrationSpec
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
 
+import static org.hamcrest.CoreMatchers.equalTo
+
 class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
 
     def "Set logging level using org.gradle.logging.level=#logLevel"() {
@@ -49,6 +51,21 @@ class CommandLineIntegrationLoggingSpec extends AbstractIntegrationSpec {
         'lifecycle' | 'info'      | ['-Dorg.gradle.logging.level=lifecycle']
         'info'      | 'debug'     | ['-Dorg.gradle.logging.level=info']
         'debug'     | ''          | ['-Dorg.gradle.logging.level=debug']
+    }
+
+    @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
+    def "reasonable failure message when org.gradle.logging.level=#value"() {
+        when:
+        executer.withArgument("-Dorg.gradle.logging.level=$value").requireDaemon().requireIsolatedDaemons()
+
+        then:
+        fails "help"
+
+        and:
+        failure.assertThatDescription(equalTo("Value '$value' given for org.gradle.logging.level Gradle property is invalid (must be one of quiet, warn, lifecycle, info, or debug)" as String))
+
+        where:
+        value << ["error", "ERROR", "foo"]
     }
 
     @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "explicitly requests a daemon")
