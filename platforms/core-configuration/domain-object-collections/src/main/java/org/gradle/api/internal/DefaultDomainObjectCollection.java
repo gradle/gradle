@@ -195,9 +195,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     public void configureEach(Action<? super T> action) {
         assertEagerContext("configureEach(Action)");
         Action<? super T> wrappedAction = wrapLazyAction(decorate(action));
-        Action<? super T> registerLazyAddActionDecorated = eventRegister.registerLazyAddAction(wrappedAction);
 
         // copy in case any actions mutate the store
+        // The copy is taken before the action is registered: iterating may realize nested collections of a composite,
+        // and the elements they announce on the way are part of the copy, so they would otherwise reach the action twice.
         Collection<T> copied = null;
         Iterator<T> iterator = iteratorNoFlush();
         while (iterator.hasNext()) {
@@ -212,6 +213,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             copied.add(iterator.next());
         }
 
+        Action<? super T> registerLazyAddActionDecorated = eventRegister.registerLazyAddAction(wrappedAction);
         if (copied != null) {
             for (T next : copied) {
                 registerLazyAddActionDecorated.execute(next);

@@ -762,4 +762,49 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
 [foo-2.0.jar]""")
     }
 
+    def "dependency added with addLater sees configuration done after allDependencies was queried"() {
+        buildFile """
+            def version = objects.property(String)
+            def impl = configurations.dependencyScope("impl").get()
+
+            // eager evaluation
+            println "all dependencies before = " + impl.allDependencies.toList()
+            impl.dependencies.addLater(version.map { project.dependencies.create("org:lib:\$it") })
+            version.set("1.0")
+
+            println "dependencies = " + impl.dependencies.collect { it.group + ":" + it.name + ":" + it.version }
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("all dependencies before = []")
+        outputContains("dependencies = [org:lib:1.0]")
+    }
+
+    def "eager listener on #collection sees dependency added with addLater with version #version"() {
+        buildFile """
+            def version = objects.property(String)
+            def impl = configurations.dependencyScope("impl").get()
+            version.set("1.0")
+
+            impl.${collection}.all { println "listener saw " + it.group + ":" + it.name + ":" + it.version }
+            impl.dependencies.addLater(version.map { project.dependencies.create("org:lib:\$it") })
+            version.set("2.0")
+
+            println "dependencies = " + impl.dependencies.collect { it.group + ":" + it.name + ":" + it.version }
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("dependencies = [org:lib:${version}]")
+        output.count("listener saw org:lib:") == 1
+        outputContains("listener saw org:lib:${version}")
+
+        where:
+        collection        | version
+        // The composite of all dependencies forwards additions lazily, so the provider is queried when the dependencies are read
+        "allDependencies" | "2.0"
+        // An eager listener on the set itself makes addLater query the provider right away
+        "dependencies"    | "1.0"
+    }
 }

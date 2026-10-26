@@ -128,7 +128,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     public void addCollection(DomainObjectCollection<? extends T> collection) {
         if (!getStore().containsCollection(collection)) {
             getStore().addComposited((DomainObjectCollectionInternal<? extends T>) collection);
-            collection.all((InternalAction<T>) t -> getDelegate().getEventRegister().fireObjectAdded(t));
+            forwardAdditions(collection);
             collection.whenObjectRemoved((Action<T>) t -> getDelegate().getEventRegister().fireObjectRemoved(t));
         }
     }
@@ -136,10 +136,14 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     public void addCollectionProvider(Provider<DomainObjectCollection<? extends T>> collectionProvider) {
         if (!getStore().containsCollectionProvider(collectionProvider)) {
             getStore().addComposited(collectionProvider, collection -> {
-                collection.all((InternalAction<T>) t -> getDelegate().getEventRegister().fireObjectAdded(t));
+                forwardAdditions(collection);
                 collection.whenObjectRemoved((Action<T>) t -> getDelegate().getEventRegister().fireObjectRemoved(t));
             });
         }
+    }
+
+    private void forwardAdditions(DomainObjectCollection<? extends T> collection) {
+        collection.configureEach((InternalAction<T>) t -> getDelegate().getEventRegister().fireObjectAdded(t));
     }
 
     public void removeCollection(DomainObjectCollection<? extends T> collection) {

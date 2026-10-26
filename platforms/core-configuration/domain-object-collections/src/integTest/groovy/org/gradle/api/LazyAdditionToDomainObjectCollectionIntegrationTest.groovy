@@ -433,6 +433,71 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         outputContains("after remove = [b], size = 1")
     }
 
+    def "eager action registered before #method on #factory is executed once on the element kept in the collection"() {
+        buildFile """
+            ${namedThing}
+
+            def configured = []
+            def collection = objects.${factory}(NamedThing)
+            collection.all { configured << it }
+            if ("${method}" == "addLater") {
+                collection.addLater(provider { new NamedThing("x") })
+            } else {
+                collection.addAllLater(provider { [new NamedThing("x")] })
+            }
+
+            def read = collection.toList()
+            println "configured = " + configured.size() + ", read = " + read + ", same instance = " + configured[0].is(read[0])
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("configured = 1, read = [x], same instance = true")
+
+        where:
+        factory << ["domainObjectSet", "namedDomainObjectSet", "namedDomainObjectList"]
+        combined:
+        method << ["addLater", "addAllLater"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/23904")
+    def "values of provider added with addAllLater are captured once when #description"() {
+        file("a.txt").text = "a"
+        file("b.txt").text = "b"
+        buildFile """
+            def files = objects.fileCollection()
+            def setOne = objects.domainObjectSet(String)
+            def setTwo = objects.domainObjectSet(String)
+            files.from("a.txt")
+
+            def addAllLater = { setOne.addAllLater(files.elements.map { it.collect { f -> f.asFile.name + "_once" } }) }
+            def addAll = { setOne.all { println "all called for " + it; setTwo.add(it + "_twice") } }
+            if (${addAllLaterFirst}) {
+                addAllLater()
+                addAll()
+            } else {
+                addAll()
+                addAllLater()
+            }
+
+            files.from("b.txt")
+            println "setOne = " + setOne.toList()
+            println "setTwo = " + setTwo.toList()
+        """
+
+        expect:
+        succeeds("help")
+        output.count("all called for a.txt_once") == 1
+        outputDoesNotContain("all called for b.txt_once")
+        outputContains("setOne = [a.txt_once]")
+        outputContains("setTwo = [a.txt_once_twice]")
+
+        where:
+        description                     | addAllLaterFirst
+        "eager action registered first" | false
+        "addAllLater called first"      | true
+    }
+
     def getNamedThing() {
         """
             class NamedThing implements Named {
