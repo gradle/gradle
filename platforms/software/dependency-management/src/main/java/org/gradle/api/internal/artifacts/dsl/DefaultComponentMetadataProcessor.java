@@ -84,8 +84,9 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
 
     private ModuleComponentResolveMetadata maybeForceRealization(ModuleComponentResolveMetadata metadata) {
         if (FORCE_REALIZE) {
-            metadata = realizeMetadata(metadata);
-            metadata = forceSerialization(metadata);
+            ModuleComponentResolveMetadata realized = realizeMetadata(metadata);
+            ModuleComponentResolveMetadata reread = forceSerialization(realized);
+            metadata = realized.isComponentMetadataRuleCachingEnabled() ? reread : reread.withSources(realized.getSources());
         }
         return metadata;
     }
