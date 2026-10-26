@@ -93,7 +93,7 @@ This work is now shown on worker lines:
 * After the last task: [flow actions](userguide/dataflow_actions.html), the `close()` method of [build services](userguide/build_services.html), and the write operations for dependency locks and dependency verification metadata.
 * During a task: the work actions of the task, such as the ones submitted with the [Worker API](userguide/worker_api.html). When a task has more than one work action, each work action in progress is shown on its own line. The number of completed work actions is shown on the line of the task, as for test tasks.
 
-For the work of an included build, the path of the build is put first, as in `> :lib > Running projects evaluated listeners`.
+On some lines of an included build, the path of the build is put first, as in `> :lib > Running projects evaluated listeners`.
 
 More information is also shown on each worker line:
 
@@ -108,6 +108,8 @@ After   > :services:payments:test > ...retry.SlowNetworkRetryIntegrationTest  25
 On the Linux text console, the progress bar is now drawn with ASCII characters.
 The fonts of this console do not have the partial block characters of the Unicode bar, so a replacement character was shown at the edge of the filled part.
 With [`--console-unicode=enable`](userguide/command_line_interface.html#sec:command_line_customizing_log_format), the Unicode bar is still used.
+
+See the [Rich console](userguide/command_line_interface.html#sec:rich_console) section in the Gradle User Manual for more details.
 
 ### Build authoring improvements
 Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.

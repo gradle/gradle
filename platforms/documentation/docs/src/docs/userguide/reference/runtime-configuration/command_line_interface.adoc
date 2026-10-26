@@ -725,10 +725,10 @@ See link:https://no-color.org/[no-color.org].
 
 You can control whether the progress bar of the rich console is drawn with Unicode characters in the following ways:
 
-`-Dorg.gradle.console.unicode=(auto,enable,disable)`::
+`-Dorg.gradle.console.unicode=(auto,enable,disable)` incubating-label:[]::
 A <<build_environment.adoc#sec:gradle_configuration_properties,Gradle property>> that specifies whether the progress bar of the rich console is drawn with Unicode characters. Different values are described immediately below.
 
-`--console-unicode=(auto,enable,disable)`::
+`--console-unicode=(auto,enable,disable)` incubating-label:[]::
 Specifies whether the progress bar of the rich console is drawn with Unicode characters.
 When Unicode is detected, or enabled with this option, the output of the rich, verbose and colored consoles is written in UTF-8.
 +
