@@ -15,9 +15,16 @@
  */
 
 import gradlebuild.basics.capitalize
+import gradlebuild.basics.kotlindsl.publishedKotlinDslPluginVersion
 import gradlebuild.pluginpublish.extension.PluginPublishExtension
 import org.gradle.plugin.compatibility.compatibility
+import org.objectweb.asm.ClassReader
+import org.objectweb.asm.ClassVisitor
+import org.objectweb.asm.ClassWriter
+import org.objectweb.asm.MethodVisitor
+import org.objectweb.asm.Opcodes
 import java.time.Year
+import java.util.zip.ZipFile
 
 plugins {
     id("gradlebuild.module-identity")
@@ -59,11 +66,17 @@ publishing.publications.withType<MavenPublication>().configureEach {
 
 // publish plugin to local repository for integration testing -----------------
 // See AbstractPluginTest
+// Test builds apply the plugins at the version that Gradle expects, which is the published version.
+// Thus the test repository holds the plugins of this build at that version, not at the version of this build.
+// The version is compiled into the plugins jar, so the jar in the test repository gets a class with the published version.
+val stagingRepository = layout.buildDirectory.dir("repository-staging")
 val localRepository = layout.buildDirectory.dir("repository")
+val checkoutVersion = gradleModule.identity.reproducibleVersion
+val versionClassPath = "org/gradle/kotlin/dsl/plugins/VersionKt.class"
 
-val publishPluginsToTestRepository = tasks.register("publishPluginsToTestRepository") {
-    dependsOn("publishPluginMavenPublicationToTestRepository")
-    val repoDir = localRepository // Prevent capturing the Gradle script instance for configuration cache compatibility
+val publishPluginsToStagingRepository = tasks.register("publishPluginsToStagingRepository") {
+    dependsOn("publishPluginMavenPublicationToStagingRepository")
+    val repoDir = stagingRepository // Prevent capturing the Gradle script instance for configuration cache compatibility
     // This should be unified with publish-public-libraries if possible
     doLast {
         repoDir.get().asFileTree.matching { include("**/maven-metadata.xml") }.forEach {
@@ -80,6 +93,66 @@ val publishPluginsToTestRepository = tasks.register("publishPluginsToTestReposit
             it.writeText(content)
         }
     }
+}
+
+// GenerateKotlinDslPluginsExtensions generates the class. It holds the version as a string constant.
+val writeTestRepositoryVersionClass = tasks.register("writeTestRepositoryVersionClass") {
+    val pluginsJar = tasks.jar.flatMap { it.archiveFile }
+    val classesDir = layout.buildDirectory.dir("test-repository-classes")
+    val classPath = versionClassPath
+    val checkout = checkoutVersion
+    inputs.file(pluginsJar)
+    inputs.property("checkoutVersion", checkout)
+    inputs.property("publishedVersion", publishedKotlinDslPluginVersion)
+    outputs.dir(classesDir)
+    doLast {
+        val original = ZipFile(pluginsJar.get().asFile).use { jar -> jar.getInputStream(jar.getEntry(classPath)).readBytes() }
+        val reader = ClassReader(original)
+        val writer = ClassWriter(reader, 0)
+        reader.accept(object : ClassVisitor(Opcodes.ASM9, writer) {
+            override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<String>?) =
+                object : MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, descriptor, signature, exceptions)) {
+                    override fun visitLdcInsn(value: Any) {
+                        super.visitLdcInsn(if (value == checkout.get()) publishedKotlinDslPluginVersion else value)
+                    }
+                }
+        }, 0)
+        classesDir.get().file(classPath).asFile.apply { parentFile.mkdirs() }.writeBytes(writer.toByteArray())
+    }
+}
+
+val testRepositoryPluginsJar = tasks.register<Jar>("testRepositoryPluginsJar") {
+    destinationDirectory = layout.buildDirectory.dir("test-repository-jar")
+    archiveFileName = "gradle-kotlin-dsl-plugins-$publishedKotlinDslPluginVersion.jar"
+    from(zipTree(tasks.jar.flatMap { it.archiveFile })) {
+        exclude(versionClassPath, "META-INF/MANIFEST.MF")
+    }
+    from(writeTestRepositoryVersionClass)
+}
+
+val publishPluginsToTestRepository = tasks.register<Sync>("publishPluginsToTestRepository") {
+    dependsOn(publishPluginsToStagingRepository)
+    val checkout = checkoutVersion
+    val pluginsJarName = checkout.map { "gradle-kotlin-dsl-plugins-$it.jar" }
+    from(stagingRepository) {
+        // The checksums do not match the changed files
+        exclude("**/*.md5", "**/*.sha1", "**/*.sha256", "**/*.sha512")
+        eachFile {
+            if (name == pluginsJarName.get()) {
+                exclude()
+            } else {
+                path = path.replace(checkout.get(), publishedKotlinDslPluginVersion)
+            }
+        }
+        filesMatching(listOf("**/*.pom", "**/*.module", "**/maven-metadata.xml")) {
+            filter { line: String -> line.replace(checkout.get(), publishedKotlinDslPluginVersion) }
+        }
+    }
+    from(testRepositoryPluginsJar) {
+        into("org/gradle/kotlin/gradle-kotlin-dsl-plugins/$publishedKotlinDslPluginVersion")
+    }
+    into(localRepository)
+    includeEmptyDirs = false
 }
 
 val futurePluginVersionsPropertiesFile = layout.buildDirectory.file("generated-resources/future-plugin-versions/future-plugin-versions.properties")
@@ -103,8 +176,8 @@ configurations.runtimeElements {
 publishing {
     repositories {
         maven {
-            name = "test"
-            url = uri(localRepository)
+            name = "staging"
+            url = uri(stagingRepository)
         }
     }
 }
@@ -119,8 +192,8 @@ gradlePlugin {
 
         tags.addAll("Kotlin", "DSL")
 
-        publishPluginsToTestRepository.configure {
-            dependsOn("publish${plugin.name.capitalize()}PluginMarkerMavenPublicationToTestRepository")
+        publishPluginsToStagingRepository.configure {
+            dependsOn("publish${plugin.name.capitalize()}PluginMarkerMavenPublicationToStagingRepository")
         }
 
         writeFuturePluginVersions {
@@ -145,21 +218,6 @@ configurations.create("localLibsRepositoryElements") {
     isCanBeConsumed = true
     outgoing.artifact(localRepository) {
         builtBy(publishPluginsToTestRepository)
-    }
-}
-
-configurations.create("futureVersion") {
-    isCanBeResolved = false
-    isCanBeConsumed = true
-    attributes {
-        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
-        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
-        attribute(LibraryElements.LIBRARY_ELEMENTS_ATTRIBUTE, objects.named("future-versions-resource"))
-    }
-    outgoing {
-        artifact(futurePluginVersionsDestDir) {
-            builtBy(writeFuturePluginVersions)
-        }
     }
 }
 

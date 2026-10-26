@@ -10,14 +10,17 @@ import org.gradle.util.GradleVersion
 
 // The build only copies this file.
 // RepoScriptBlockUtil.extraRepositoriesInitScript reads the file as text and adds a call to declareIn with the extra repositories.
-// Each repository is a map with the keys 'name', 'url' and 'groupRegexes'.
+// Each repository is a map with the keys 'name', 'url', 'groupRegexes' and 'versionRegex'.
 // All methods are static and get the repositories as an argument: Gradle isolates the actions for projects, so they must not capture an object.
 @SuppressWarnings("unused") // Only the generated init script calls this class.
 class ExtraRepositories {
 
     static final boolean SUPPORTS_CONTENT_FILTERING = GradleVersion.current() >= GradleVersion.version("5.1")
 
-    static void declareIn(Gradle gradle, List<Map<String, Object>> repositories) {
+    static void declareIn(Gradle gradle, String gradleHomeUnderTest, List<Map<String, Object>> allRepositories) {
+        // Only builds on the Gradle version under test get the repositories with a version regex (see RepoScriptBlockUtil.ExtraRepository).
+        boolean underTest = gradleHomeUnderTest != null && gradle.gradleHomeDir?.canonicalPath == gradleHomeUnderTest
+        def repositories = underTest ? allRepositories : allRepositories.findAll { it.versionRegex == null }
         declareInPluginManagement(gradle, repositories)
         declareInDependencyResolutionManagement(gradle, repositories)
         declareInProjects(gradle, repositories)
@@ -82,14 +85,26 @@ class ExtraRepositories {
             if (ExtraRepositories.isDeclared(repos, repository.url as String)) {
                 return
             }
-            repos.maven { MavenArtifactRepository maven ->
+            def maven = repos.maven { MavenArtifactRepository maven ->
                 maven.name = repository.name
                 maven.url = repository.url
                 if (ExtraRepositories.SUPPORTS_CONTENT_FILTERING) {
                     maven.content { descriptor ->
-                        repository.groupRegexes.each { descriptor.includeGroupByRegex(it as String) }
+                        repository.groupRegexes.each {
+                            if (repository.versionRegex != null) {
+                                descriptor.includeVersionByRegex(it as String, ".*", repository.versionRegex as String)
+                            } else {
+                                descriptor.includeGroupByRegex(it as String)
+                            }
+                        }
                     }
                 }
+            }
+            // Gradle takes a fixed version from the first repository that has it.
+            // Exclusive content cannot do this: it changes the filters of the other repositories, which can be in use already.
+            if (repository.versionRegex != null) {
+                repos.remove(maven)
+                repos.addFirst(maven)
             }
         }
     }

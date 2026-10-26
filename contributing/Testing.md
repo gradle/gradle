@@ -111,6 +111,20 @@ The init script changes what a test can see in a build under test:
 If a test asserts on one of these, call `executer.withoutExtraRepositories()`. Then the builds of that test do not get the init script.
 When you add a repository to the list, such tests can start to fail. Then add the call to them.
 
+## Use the Kotlin DSL plugins built from this source
+
+Test builds that apply the `kotlin-dsl` plugin get a published version of that plugin.
+A published version is tied to the Kotlin version that Gradle embedded when the plugin was published.
+After a bump of the embedded Kotlin version, the two Kotlin versions differ.
+When testing such a bump many tests will fail because of the version mismatch.
+Also, these tests do not test the right plugin: they should be using a `kotlin-dsl` plugin that is tied to the current embedded Kotlin version.
+
+To use the plugins built from this source in the tests of a project, apply `gradlebuild.kotlin-dsl-plugin-bundle-integ-tests` to the project.
+This plugin publishes the Kotlin DSL plugins to the local repository of the integration tests and cross version tests, at the version that Gradle expects.
+There, the repository is registered as an extra repository (see above). Builds search this repository first, and only for that version. Other versions still come from the Plugin Portal.
+Only builds on the distribution under test get the repository, and only from the init script.
+Tooling API tests must give the init script to their builds. The Kotlin DSL model specs that extend `AbstractKotlinScriptModelCrossVersionTest` do this.
+
 # Cross Version Tests
 
 Some tests in the Gradle codebase are executed with a wide range of supported Gradle versions.
