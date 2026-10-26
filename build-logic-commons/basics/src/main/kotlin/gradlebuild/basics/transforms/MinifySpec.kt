@@ -25,6 +25,8 @@ import java.io.Serializable
  * @param keepClasses class name patterns to keep, along with everything they reach
  * @param excludedClasses class name patterns to subtract from [keepClasses]
  * @param removePackages packages taken off the input, with their classes and their resources
+ * @param removeClassesShippedBy coordinates of minifier libraries. Their classes are taken off the input.
+ * Use it for a library that always comes with these libraries.
  * @param sideEffectFreeCalls `some.Class#void method()` whose calls are dropped, for what they reach
  * @param removeUnreachable whether to drop what no kept class reaches, which a library that resolves
  * its own classes by name cannot have
@@ -34,6 +36,7 @@ data class MinifySpec(
     val keepClasses: Set<String> = emptySet(),
     val excludedClasses: Set<String> = emptySet(),
     val removePackages: Set<String> = emptySet(),
+    val removeClassesShippedBy: Set<String> = emptySet(),
     val sideEffectFreeCalls: Set<String> = emptySet(),
     val removeUnreachable: Boolean = true,
     val dropLocalVariables: Boolean = false
