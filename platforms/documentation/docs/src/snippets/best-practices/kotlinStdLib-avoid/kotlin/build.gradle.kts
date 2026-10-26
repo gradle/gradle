@@ -1,6 +1,6 @@
 // tag::avoid-this[]
 plugins {
-    kotlin("jvm").version("2.5.0-Beta2")
+    kotlin("jvm").version("2.5.20-dev-2076")
 }
 
 dependencies {
