@@ -46,8 +46,6 @@ fun isExpectedCompileCacheMiss() =
         "Check_Gradleception",
         "Check_GradleceptionWithJavaMaxLts",
         "Check_GradleceptionWithGroovy4",
-        "CompileAllBuild_BuildCacheNG",
-        "CompileAllBuild_NGRemote"
     ) || isBuildCommitDistribution()
 
 fun isBuildCommitDistribution() = providers.gradleProperty("buildCommitDistribution").map { it.toBoolean() }.getOrElse(false)
