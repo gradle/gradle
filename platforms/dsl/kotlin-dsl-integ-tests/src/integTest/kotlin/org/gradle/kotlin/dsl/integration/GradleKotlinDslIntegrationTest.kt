@@ -643,7 +643,7 @@ class GradleKotlinDslIntegrationTest : AbstractKotlinIntegrationTest() {
                 Script compilation error:
 
                   Line 1: publishing { }
-                          ^ Candidate 'val PluginDependenciesSpec.publishing: PluginDependencySpec' is inapplicable because of a receiver type mismatch.
+                          ^ Candidate 'val PluginDependenciesSpec.publishing: PluginDependencySpec' is inapplicable because of a receiver type mismatch. Actual receiver type is 'CompiledKotlinBuildScript'.
 
                 1 error
                 """
