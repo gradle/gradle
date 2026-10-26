@@ -121,6 +121,38 @@ If your build asserts on an attribute value read from a `ResolutionResult` or fr
 Build operations and published Gradle Module Metadata already reported the name, so assertions against those are unaffected.
 Do not reintroduce the old string by overriding `getName()` to return `toString()`; see <<variant_attributes.adoc#sec:creating-attributes, Creating attributes>> for why the two must agree.
 
+[[domain_object_collection_providers_queried_once]]
+==== Values of providers added to domain object collections are captured once
+
+link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#addLater(org.gradle.api.provider.Provider)[`addLater(Provider)`] and link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#addAllLater(org.gradle.api.provider.Provider)[`addAllLater(Provider)`] add the value of the provider to the collection when the elements are first needed.
+Gradle now queries the provider only that one time, so changes made to its inputs afterwards are not reflected in the collection.
+
+Previously, when an eager action such as link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#all(org.gradle.api.Action)[`all(Action)`] or link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#whenObjectAdded(org.gradle.api.Action)[`whenObjectAdded(Action)`] was registered before the provider was added, Gradle queried the provider when it was added and again when the collection was first read.
+As a result, eager actions could run twice for the same element, and the collection picked up changes made between the two queries.
+Now the provider is queried once, when it is added, and eager actions run once for each element:
+
+[source,kotlin]
+.build.gradle.kts
+----
+val libVersion = objects.property<String>()
+val impl = configurations.dependencyScope("impl").get()
+libVersion.set("1.0")
+
+impl.dependencies.all { println("configuring $name:$version") }
+impl.dependencies.addLater(libVersion.map { dependencyFactory.create("org:lib:$it") })
+libVersion.set("2.0")
+
+// Before: the action ran for org:lib:1.0 and again for org:lib:2.0, and the collection contained org:lib:2.0
+// Now: the action runs once, for org:lib:1.0, and the collection contains org:lib:1.0
+----
+
+To pick up changes made after the provider is added, register the action with link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#configureEach(org.gradle.api.Action)[`configureEach(Action)`] instead of `all(Action)` or `whenObjectAdded(Action)`.
+Lazy actions do not require the value right away, so the provider is queried when the elements are first read, unless another eager action is registered on the collection.
+Alternatively, configure the inputs of the provider before adding it.
+
+Actions registered on derived collections, such as link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#getAllDependencies()[`Configuration.getAllDependencies()`] and link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#getAllArtifacts()[`Configuration.getAllArtifacts()`], are not affected.
+For them, the provider is queried when the dependencies or artifacts are first read.
+
 [[changes_9.9.0]]
 == Upgrading from 9.8.0 and earlier
 

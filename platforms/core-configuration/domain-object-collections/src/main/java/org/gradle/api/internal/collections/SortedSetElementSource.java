@@ -214,12 +214,6 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
         //  onValueChange callback above.
         if (subscriptionVerifier.isSubscribed(provider.getType())) {
             realize(Collections.singleton(collector));
-
-            // Ugly backwards-compatibility hack. Previous implementations would notify listeners without
-            // actually telling the ElementSource that the element was realized.
-            // We can avoid this in the future if we make ChangingValue more widespread -- particularly
-            // if we make CollectionProviders implement ChangingValue
-            pending.add(collector);
         }
         return added;
     }
@@ -269,12 +263,6 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
         //  onValueChange callback above.
         if (subscriptionVerifier.isSubscribed(provider.getElementType())) {
             realize(Collections.singleton(collector));
-
-            // Ugly backwards-compatibility hack. Previous implementations would notify listeners without
-            // actually telling the ElementSource that the element was realized.
-            // We can avoid this in the future if we make ChangingValue more widespread -- particularly
-            // if we make CollectionProviders implement ChangingValue
-            pending.add(collector);
         }
         return added;
     }
