@@ -737,6 +737,71 @@ Prefer the `ResolutionResult`, `ArtifactView`, link:{javadocPath}/org/gradle/api
 
 === Deprecations
 
+[[querying_transform_output_from_transform_action]]
+==== Deprecation of querying artifact transform outputs from an artifact transform action
+
+Querying the output of an artifact transform from another artifact transform action, without declaring the first as an input of the other action, is deprecated and will become an error in Gradle 10.
+
+This may happen when a transform action resolves a configuration or an artifact view that is not declared on its parameters, for example one held by a shared build service the action uses, and that resolution requires another artifact transform.
+
+To fix this warning, declare the files the transform action uses as one of its inputs.
+Use a parameter annotated with `@InputFiles`, and set it when registering the transform.
+Here, `MakeGreen` only keeps the artifacts that another configuration also contains, using the files of that configuration transformed by another artifact transform named `MakeRed`:
+
+[source,kotlin]
+----
+val color = Attribute.of("color", String::class.java)
+
+interface Parameters : TransformParameters {
+    @get:InputFiles
+    val redFiles: ConfigurableFileCollection
+}
+
+abstract class MakeGreen : TransformAction<Parameters> {
+    @get:InputArtifact
+    abstract val inputArtifact: Provider<FileSystemLocation>
+
+    override fun transform(outputs: TransformOutputs) {
+        val input = inputArtifact.get().asFile
+        // Use the files declared on the parameters, rather than files
+        // reached in another way, like through a build service
+        val redNames = parameters.redFiles.files.map { it.name }
+        if (input.name + ".red" in redNames) {
+            input.copyTo(outputs.file(input.name + ".green"))
+        }
+    }
+}
+
+val deps = configurations.dependencyScope("deps")
+val resolved = configurations.resolvable("resolved") {
+    extendsFrom(deps)
+    attributes.attribute(color, "blue")
+}
+
+dependencies {
+    attributesSchema {
+        attribute(color)
+    }
+    deps("org:bar:1")
+    registerTransform(MakeRed::class) {
+        from.attribute(color, "blue")
+        to.attribute(color, "red")
+    }
+    registerTransform(MakeGreen::class) {
+        from.attribute(color, "blue")
+        to.attribute(color, "green")
+        parameters {
+            // Declare the output of MakeRed as an input
+            redFiles.from(resolved.map {
+                it.incoming.artifactView {
+                    attributes.attribute(color, "red")
+                }.files
+            })
+        }
+    }
+}
+----
+
 [[deprecated_update_daemon_jvm_task_configuration_problem_id]]
 ==== Deprecation of `UpdateDaemonJvm.TASK_CONFIGURATION_PROBLEM_ID`
 

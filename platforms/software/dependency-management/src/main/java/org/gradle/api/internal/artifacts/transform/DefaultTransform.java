@@ -42,6 +42,7 @@ import org.gradle.api.problems.internal.ProblemsInternal;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.reflect.InjectionPointQualifier;
 import org.gradle.internal.Describables;
+import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.internal.execution.InputFingerprinter;
 import org.gradle.internal.execution.InputVisitor.InputFileValueSupplier;
 import org.gradle.internal.execution.WorkValidationException;
@@ -99,6 +100,11 @@ import static org.gradle.internal.deprecation.Documentation.userManual;
 
 @SuppressWarnings("this-escape")
 public class DefaultTransform implements Transform {
+
+    /**
+     * Whether the current thread runs the action of a transform.
+     */
+    private static final ThreadLocal<Boolean> ACTION_RUNNING = ThreadLocal.withInitial(() -> false);
 
     private final Class<? extends TransformAction<?>> implementationClass;
     private final ImmutableAttributes fromAttributes;
@@ -275,7 +281,13 @@ public class DefaultTransform implements Transform {
     public TransformExecutionResult transform(Provider<FileSystemLocation> inputArtifactProvider, File outputDir, TransformDependencies dependencies, @Nullable InputChanges inputChanges) {
         TransformAction<?> transformAction = newTransformAction(inputArtifactProvider, dependencies, inputChanges);
         DefaultTransformOutputs transformOutputs = new DefaultTransformOutputs(inputArtifactProvider.get().getAsFile(), outputDir, fileLookup);
-        transformAction.transform(transformOutputs);
+        boolean actionWasRunning = ACTION_RUNNING.get();
+        ACTION_RUNNING.set(true);
+        try {
+            transformAction.transform(transformOutputs);
+        } finally {
+            ACTION_RUNNING.set(actionWasRunning);
+        }
         return transformOutputs.getRegisteredOutputs();
     }
 
@@ -644,22 +656,26 @@ public class DefaultTransform implements Transform {
 
         private IsolatedParameters isolateParameters(InputFingerprinter inputFingerprinter) {
             ModelContainer<?> model = owner.getModel();
+            if (model != ModelContainer.EMPTY && ACTION_RUNNING.get()) {
+                // Transform actions execute on parallel worker threads, which to avoid deadlocking, are not permitted to acquire locks.
+                // If a transform action attempts to isolate the parameters of _another_ transform, that usage of that other transform
+                // was not declared, and we therefore did not isolate its parameters before this parallel step. To avoid "forcing" access
+                // to the parameter's model, we deprecate this scenario.
+                DeprecationLogger.deprecateBehaviour("Querying the output of one artifact transform from the action of another, without declaring that output as an input of the other.")
+                    .withContext(String.format(
+                        "The output of artifact transform %s, registered in %s, was queried by the action of another artifact transform, which did not declare it as an input.",
+                        implementationClass.getName(), owner.getDisplayName()
+                    ))
+                    .withAdvice("Declare the output of the one artifact transform as an input of the other, using a parameter annotated with @InputFiles.")
+                    .willBecomeAnErrorInGradle10()
+                    .withUpgradeGuideSection(9, "querying_transform_output_from_transform_action")
+                    .nagUser();
+            }
             if (!model.hasMutableState()) {
-                // This may happen when a task visits artifacts using a FileCollection instance created from a Configuration instance in a different project (not an artifact produced by a different project, these work fine)
-                // There is a check in DefaultConfiguration that deprecates resolving dependencies via FileCollection instance created by a different project, however that check may not
-                // necessarily be triggered. For example, the configuration may be legitimately resolved by some other task prior to the problematic task running
-                // TODO - hoist this up into configuration file collection visiting (and not when visiting the upstream dependencies of a transform), and deprecate this in Gradle 7.x
-                //
-                // This may also happen when a transform takes upstream dependencies and the dependencies are transformed using a different transform
-                // In this case, the main thread that schedules the work should isolate the transform parameters prior to scheduling the work. However, the dependencies may
-                // be filtered from the result, so that the transform is not visited by the main thread, or the transform worker may start work before the main thread
-                // has a chance to isolate the upstream transform
-                // TODO - ensure all transform parameters required by a transform worker are isolated prior to starting the worker
-                //
-                // Force access to the state of the owner, regardless of whether any other thread has access. This is because attempting to acquire a lock for a project may deadlock
-                // when performed from a worker thread (see DefaultBuildOperationQueue.waitForCompletion() which intentionally does not release the project locks while waiting)
-                // TODO - add validation to fail eagerly when a worker attempts to lock a project
-                //
+                // TODO: In Gradle 10, once the above deprecation throws, replace forceAccessToMutableState() with
+                //  model.fromMutableState(), and remove forceAccessToMutableState(), which has no other caller.
+                // TODO: Once CalculatedValueContainer acquires the lock of the context that owns the value it calculates,
+                //  the lock is always held here, so remove this branch.
                 return model.forceAccessToMutableState(o -> doIsolateParameters(inputFingerprinter));
             } else {
                 return doIsolateParameters(inputFingerprinter);
