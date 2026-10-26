@@ -143,7 +143,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     }
 
     private void forwardAdditions(DomainObjectCollection<? extends T> collection) {
-        collection.configureEach((InternalAction<T>) t -> getDelegate().getEventRegister().fireObjectAdded(t));
+        ((DomainObjectCollectionInternal<? extends T>) collection).observeElements(t -> getDelegate().getEventRegister().fireObjectAdded(t));
     }
 
     public void removeCollection(DomainObjectCollection<? extends T> collection) {
