@@ -92,8 +92,9 @@ class PrecompiledKotlinPluginCrossVersionSpec extends CrossVersionIntegrationSpe
 
         where:
         minGradle | kotlinLanguageVersion
-        "6.8"     | "2.0"
-        "8.11"    | "2.1"
+        "9.0.0"   | "2.2"
+        "9.0.0"   | "2.3"
+        "9.0.0"   | "2.4"
     }
 
     private void precompiledKotlinPluginsBuiltWith(GradleDistribution distribution, String kotlinVersion = null) {
