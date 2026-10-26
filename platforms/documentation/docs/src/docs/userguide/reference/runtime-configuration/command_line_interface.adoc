@@ -735,8 +735,9 @@ When Unicode is detected, or enabled with this option, the output of the rich, v
 Set to `auto` (the default) to use Unicode characters when the console supports Unicode.
 This is detected from the environment, such as the locale (`LANG` or `LC_ALL`) and the terminal type (`TERM`).
 On Windows, the code page of the console must also be UTF-8.
-On the Linux text console, where `TERM` is `linux`, the progress bar is drawn with ASCII characters, as its fonts do not have the partial block characters of the Unicode bar.
-Under tmux, or GNU screen without the `screen.linux` terminfo entry, on the Linux text console, `TERM` has another value, so use `--console-unicode=disable` there.
+On the Linux text console, where `TERM` starts with `linux`, the progress bar is drawn with ASCII characters, as its fonts do not have the partial block characters of the Unicode bar.
+In tmux, or in GNU screen without the `screen.linux` terminfo entry, `TERM` does not identify the Linux text console, so Gradle uses the Unicode bar.
+Use `--console-unicode=disable` there.
 +
 Set to `enable` to use Unicode characters, also for the progress bar on the Linux text console.
 +
@@ -797,17 +798,18 @@ It has a progress bar, the percentage of completed work in the current phase, th
 ----
 
 When the console supports Unicode, the progress bar is drawn with Unicode block characters.
-Otherwise, and on the Linux text console, the progress bar is drawn with ASCII characters:
+When the console does not support Unicode, or on the Linux text console, the progress bar is drawn with ASCII characters:
 
 ----
 [###............] 20% EXECUTING [12s]
 ----
 
-You can choose the characters with the `--console-unicode` option, see <<#sec:command_line_customizing_log_format,Customizing log format>>.
+To choose the characters, use the `--console-unicode` option.
+See <<#sec:command_line_customizing_log_format,Customizing log format>>.
 
 Below the status bar, the work in progress is shown on worker lines, one line for each piece of work:
 
-* A task, and for a test task, the current test class. For a download, the file.
+* A task. For a test task, the current test class. For a download, the file being downloaded.
 * Configuration work, such as the configuration of a project, the check of the configuration cache fingerprint, or the generation of version catalog accessors.
 * Work after the last task, such as flow actions, or the `close()` method of build services.
 * The work actions of a task, such as the ones submitted with the <<worker_api.adoc#worker_api,Worker API>>, when the task has more than one work action.

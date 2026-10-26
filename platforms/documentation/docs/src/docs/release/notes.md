@@ -82,7 +82,7 @@ Gradle provides an intuitive [command-line interface](userguide/command_line_int
 #### Rich console improvements
 
 In the [rich console](userguide/command_line_interface.html#sec:rich_console), the work in progress is shown on worker lines, below the progress bar.
-In this release, more work is shown on these lines, and more information is shown on each line.
+In this release, worker lines cover more of the build and tell you more about each piece of work.
 
 ![Rich console of a build with a slow test class, Worker API work actions and a flow action](release-notes-assets/rich-console-improvements.gif)
 
