@@ -204,7 +204,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     Element<T> cachingElement(ProviderInternal<? extends T> provider) {
-        final Element<T> element = new Element<>(provider.getType(), new ElementFromProvider<>(provider), SerializableLambdas.action(this::doAddRealized));
+        final Element<T> element = new Element<>(provider.getType(), new ElementFromProvider<>(provider), SerializableLambdas.action(this::doAddRealized), SerializableLambdas.action(this::addRealizedDuplicate));
         if (provider instanceof ChangingValue) {
             Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(SerializableLambdas.action(previousValue -> clearCachedElement(element)));
         }
@@ -212,7 +212,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     Element<T> cachingElement(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
-        final Element<T> element = new Element<>(provider.getElementType(), new ElementsFromCollectionProvider<>(provider), SerializableLambdas.action(this::doAddRealized));
+        final Element<T> element = new Element<>(provider.getElementType(), new ElementsFromCollectionProvider<>(provider), SerializableLambdas.action(this::doAddRealized), SerializableLambdas.action(this::addRealizedDuplicate));
         if (provider instanceof ChangingValue) {
             Cast.<ChangingValue<Iterable<T>>>uncheckedNonnullCast(provider).onValueChange(SerializableLambdas.action(previousValues -> clearCachedElement(element)));
         }
@@ -226,6 +226,12 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     abstract boolean addRealized(T element);
+
+    /**
+     * Called instead of {@link #addRealized(Object)} for a value equal to one the element announced already, which is not announced again.
+     */
+    void addRealizedDuplicate(T value) {
+    }
 
     @Override
     public boolean removePending(ProviderInternal<? extends T> provider) {
@@ -328,7 +334,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             return next != null;
         }
 
-        private void updateNext() {
+        void updateNext() {
             if (nextIndex == -1) {
                 nextIndex = 0;
             }
@@ -420,15 +426,19 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         private boolean detached;
 
         private final Action<T> realizeAction;
+        @Nullable
+        private final Action<T> duplicateAction;
 
-        Element(@Nullable Class<? extends T> type, Collector<T> delegate, Action<T> realizeAction) {
+        Element(@Nullable Class<? extends T> type, Collector<T> delegate, Action<T> realizeAction, Action<T> duplicateAction) {
             super(type, delegate);
             this.realizeAction = realizeAction;
+            this.duplicateAction = duplicateAction;
         }
 
         Element(T value) {
             super(null, new SingleElement<T>(value));
             this.realizeAction = null;
+            this.duplicateAction = null;
             realize();
         }
 
@@ -476,8 +486,11 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
                         while (!detached && cache != null && announcedCount < cache.size()) {
                             T value = cache.get(announcedCount);
                             announcedCount++;
-                            if (notified.add(value)) {
+                            // An equal value that was announced may have been removed meanwhile, then this one takes its place
+                            if (notified.add(value) || !hasOtherAnnounced(value)) {
                                 realizeAction.execute(value);
+                            } else if (duplicateAction != null) {
+                                duplicateAction.execute(value);
                             }
                         }
                     } finally {
@@ -533,6 +546,18 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             removedValues.add(value);
         }
 
+        // Values that are not announced yet are not in the collection, so they stay
+        boolean removeAnnounced(T value) {
+            boolean removed = false;
+            for (int index = cache.size() - 1; index >= 0; index--) {
+                if (Objects.equal(cache.get(index), value) && isAnnounced(index)) {
+                    removeAt(index);
+                    removed = true;
+                }
+            }
+            return removed;
+        }
+
         boolean isProvided() {
             return realizeAction != null;
         }
@@ -540,6 +565,17 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         // A provided element whose values were all removed stays, so adding its provider again is known to have no effect
         boolean isEmptiedByRemoval() {
             return realized && removals > 0 && cache.isEmpty();
+        }
+
+        // The value being announced counts as announced already
+        private boolean hasOtherAnnounced(T value) {
+            int announcedOccurrences = 0;
+            for (int index = 0; index < cache.size(); index++) {
+                if (Objects.equal(cache.get(index), value) && isAnnounced(index) && ++announcedOccurrences > 1) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         boolean isAnnounced(int index) {

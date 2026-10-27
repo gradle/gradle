@@ -44,9 +44,8 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
      */
     private Set<T> nonProvidedValues = Collections.emptySet();
 
-    // Values of providers realized on add for an eager listener, which a value added directly can be a duplicate of.
-    // Values removed since may still be in here, which only costs a needless check for duplicates.
-    private Set<T> valuesRealizedOnAdd = Collections.emptySet();
+    // Elements added with a provider. Elements removed with their provider are dropped when found.
+    private List<Element<T>> providedElements = Collections.emptyList();
 
     private void ensureNonProviderValuesMutable() {
         if (nonProvidedValues == Collections.EMPTY_SET) {
@@ -57,12 +56,12 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
     @Override
     public Iterator<T> iterator() {
         realizePending();
-        return new RealizedElementCollectionIterator(getInserted(), NO_DUPLICATES);
+        return new NoDuplicatesIterator();
     }
 
     @Override
     public Iterator<T> iteratorNoFlush() {
-        return new RealizedElementCollectionIterator(getInserted(), NO_DUPLICATES);
+        return new NoDuplicatesIterator();
     }
 
     /**
@@ -104,7 +103,8 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
         ensureNonProviderValuesMutable();
         if (nonProvidedValues.add(element)) {
             getInserted().add(new Element<T>(element));
-            if (valuesRealizedOnAdd.contains(element)) {
+            if (isProvidedValue(element)) {
+                // Provided values are deduplicated when they are realized, so a value realized earlier is checked here
                 markDuplicates(element);
             }
             return true;
@@ -115,22 +115,23 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
 
     @Override
     public boolean addRealized(T value) {
+        // Announced even if another element shows an equal value already, as the one shown may be this one
         markDuplicates(value);
         return true;
     }
 
     @Override
+    void addRealizedDuplicate(T value) {
+        markDuplicates(value);
+    }
+
+    @Override
     protected void clearCachedElement(Element<T> element) {
-        List<T> previousValues = element.isRealized() ? element.getValues() : null;
+        // Taken before clearing: reading the values afterwards would query the provider for the new ones
+        List<T> previousValues = element.isRealized() ? element.getValues() : Collections.emptyList();
         super.clearCachedElement(element);
-        if (previousValues != null) {
-            for (T value : element.getValues()) {
-                markDuplicates(value);
-            }
-            // A value hidden as a duplicate of a previous value may be visible again
-            for (T value : previousValues) {
-                markDuplicates(value);
-            }
+        for (T value : previousValues) {
+            markDuplicates(value);
         }
     }
 
@@ -161,8 +162,88 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
     @Override
     public void clear() {
         nonProvidedValues = Collections.emptySet();
-        valuesRealizedOnAdd = Collections.emptySet();
+        providedElements = Collections.emptyList();
         super.clear();
+    }
+
+    // The removed value takes the equal values hidden as its duplicates with it, otherwise they would show up again later
+    private class NoDuplicatesIterator extends RealizedElementCollectionIterator {
+        NoDuplicatesIterator() {
+            super(getInserted(), NO_DUPLICATES);
+        }
+
+        @Override
+        public void remove() {
+            int index = previousIndex;
+            int subIndex = previousSubIndex;
+            if (index < 0) {
+                super.remove();
+                return;
+            }
+            Element<T> current = backingList.get(index);
+            T value = current.getValues().get(subIndex);
+            super.remove();
+            nonProvidedValues.remove(value);
+            if (!providedElements.isEmpty() && removeHiddenDuplicates(value, index)) {
+                boolean currentKept = index < backingList.size() && backingList.get(index) == current;
+                nextIndex = index;
+                nextSubIndex = currentKept ? subIndex - 1 : -1;
+                expectedModCount = modCount;
+                updateNext();
+            }
+        }
+    }
+
+    // Hidden duplicates always come after the visible value, so only elements from its position on are searched
+    private boolean removeHiddenDuplicates(T value, int fromIndex) {
+        boolean removed = false;
+        List<Element<T>> inserted = getInserted();
+        int index = fromIndex;
+        while (index < inserted.size()) {
+            Element<T> element = inserted.get(index);
+            boolean removedFromElement = false;
+            if (element.isRealized()) {
+                removedFromElement = element.removeAnnounced(value);
+            }
+            if (removedFromElement && element.getValues().isEmpty() && !element.isProvided()) {
+                inserted.remove(index);
+                modCount++;
+            } else {
+                index++;
+            }
+            removed |= removedFromElement;
+        }
+        return removed;
+    }
+
+    private void addProvidedElement(Element<T> element) {
+        if (providedElements.isEmpty()) {
+            providedElements = new ArrayList<>();
+        }
+        providedElements.add(element);
+        addPendingElement(element);
+    }
+
+    private boolean isProvidedValue(T value) {
+        Iterator<Element<T>> iterator = providedElements.iterator();
+        while (iterator.hasNext()) {
+            Element<T> element = iterator.next();
+            if (element.isDetached()) {
+                iterator.remove();
+            } else if (element.isRealized() && element.getValues().contains(value)) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    private boolean isAddedBy(ProviderInternal<?> provider) {
+        for (Element<T> element : getInserted()) {
+            if (element.isProvidedBy(provider)) {
+                return true;
+            }
+        }
+        return false;
     }
 
     // Values that are not announced yet don't count
@@ -176,6 +257,7 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
                         if (seen) {
                             element.setDuplicate(index);
                         } else {
+                            // The occurrence that was first may be gone, e.g. when a provider value changed
                             element.clearDuplicate(index);
                             seen = true;
                         }
@@ -188,46 +270,23 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
     @Override
     public boolean addPending(ProviderInternal<? extends T> provider) {
         modCount++;
-        if (!isAddedBy(provider)) {
-            addPendingElement(cachingElement(provider));
-            return true;
-        } else {
+        // Compared by provider: an element realized on add holds its values, so it is not equal to a new one
+        if (isAddedBy(provider)) {
             return false;
         }
+        addProvidedElement(cachingElement(provider));
+        return true;
     }
 
     @Override
     public boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
         modCount++;
-        if (!isAddedBy(provider)) {
-            addPendingElement(cachingElement(provider));
-            return true;
-        } else {
+        // Compared by provider: an element realized on add holds its values, so it is not equal to a new one
+        if (isAddedBy(provider)) {
             return false;
         }
-    }
-
-    // Compared by provider: a realized element holds its values, so it is not equal to a new one
-    private boolean isAddedBy(ProviderInternal<?> provider) {
-        for (Element<T> element : getInserted()) {
-            if (element.isProvidedBy(provider)) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    protected boolean addPendingElement(Element<T> element) {
-        boolean added = super.addPendingElement(element);
-        // Realized here only for an eager listener, otherwise the element was cleared again
-        if (element.isRealized()) {
-            if (valuesRealizedOnAdd.isEmpty()) {
-                valuesRealizedOnAdd = new HashSet<>();
-            }
-            valuesRealizedOnAdd.addAll(element.getValues());
-        }
-        return added;
+        addProvidedElement(cachingElement(provider));
+        return true;
     }
 
     @Override

@@ -56,6 +56,28 @@ class SortedSetElementSourceTest extends ElementSourceSpec {
         source.iterator().collect() == []
     }
 
+    def "same value yielded twice is still known to come from the provider after a listener removed the first one"() {
+        given:
+        def value = "x"
+        def added = Mock(CollectionProviderInternal)
+        _ * added.elementType >> String
+        _ * added.calculateValue(_) >> ValueSupplier.Value.of([value, value])
+        def first = true
+        source.onPendingAdded {
+            if (first) {
+                first = false
+                source.remove(it)
+            }
+        }
+        source.addPendingCollection(added)
+        source.realizePending()
+
+        expect:
+        source.iterator().collect() == ["x"]
+        source.removeRealized(added) == ["x"]
+        source.iterator().collect() == []
+    }
+
     def "can remove elements using iteratorNoFlush"() {
         source.add("foo")
         source.addPending(provider("bar"))

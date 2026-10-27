@@ -569,6 +569,28 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         outputContains("values = [a], removed = []")
     }
 
+    def "value added directly and hidden by equal value of provider realized by eager action is removed with it"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            set.all { }
+            set.addLater(provider { "a" })
+            set.add("a")
+            set.remove("a")
+            println "after remove = " + set.toList()
+
+            def added = provider { "a" }
+            set.addLater(added)
+            println "remove result = " + set.remove(added)
+            println "values = " + set.toList()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("after remove = []")
+        outputContains("remove result = true")
+        outputContains("values = []")
+    }
+
     def "adding the same provider again after it was realized by eager action has no effect"() {
         buildFile """
             def set = objects.domainObjectSet(String)
@@ -878,6 +900,18 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         outputContains("queried = 1, values = []")
     }
 
+    def "equal values of one provider are shown once"() {
+        buildFile """
+            def set = objects.domainObjectSet(File)
+            set.addAllLater(provider { [file("a"), file("a")] })
+            println "size = " + set.size() + ", values = " + set.collect { it.name }
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("size = 1, values = [a]")
+    }
+
     def "removing a provider while another one is realized removes its value when the other one did not announce an equal value yet"() {
         buildFile """
             ${namedThing}
@@ -902,6 +936,116 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         succeeds("help")
         outputContains("removed x")
         outputContains("names = [x, y], x is the second one = true")
+    }
+
+    def "equal value of a provider is announced when a listener removed the one announced before"() {
+        buildFile """
+            def set = objects.domainObjectSet(File)
+            def seen = []
+            def first = true
+            set.whenObjectAdded {
+                seen << it.name
+                if (first) {
+                    first = false
+                    set.remove(it)
+                }
+            }
+            set.addAllLater(provider { [file("a"), file("a")] })
+
+            println "seen = " + seen + ", values = " + set.collect { it.name }
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("seen = [a, a], values = [a]")
+    }
+
+    def "same value yielded twice by one provider is announced once"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            set.whenObjectAdded { println "added " + it }
+            def value = "a"
+            set.addAllLater(provider { [value, value] })
+
+            println "values = " + set.toList()
+        """
+
+        expect:
+        succeeds("help")
+        output.count("added a") == 1
+        outputContains("values = [a]")
+    }
+
+    def "same value yielded twice by one provider is announced again when a listener removed it"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            def seen = []
+            def first = true
+            set.whenObjectAdded {
+                seen << it
+                if (first) {
+                    first = false
+                    set.remove(it)
+                }
+            }
+            def value = "a"
+            set.addAllLater(provider { [value, value] })
+
+            println "seen = " + seen + ", values = " + set.toList()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("seen = [a, a], values = [a]")
+    }
+
+    def "value of a provider is configured when an equal value was added directly before realizing it"() {
+        buildFile """
+            class Item {
+                String name
+                boolean configured
+                Item(String name) { this.name = name }
+                boolean equals(Object o) { o instanceof Item && o.name == name }
+                int hashCode() { name.hashCode() }
+            }
+
+            def set = objects.domainObjectSet(Item)
+            set.configureEach { it.configured = true }
+            set.addLater(provider { new Item("a") })
+            set.add(new Item("a"))
+
+            println "configured = " + set.collect { it.configured }
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("configured = [true]")
+    }
+
+    def "equal value of another provider is configured when the provider that showed it is removed"() {
+        buildFile """
+            class Item {
+                String name
+                boolean configured
+                Item(String name) { this.name = name }
+                boolean equals(Object o) { o instanceof Item && o.name == name }
+                int hashCode() { name.hashCode() }
+            }
+
+            def set = objects.domainObjectSet(Item)
+            set.configureEach { it.configured = true }
+            def first = provider { new Item("a") }
+            set.addLater(first)
+            set.addLater(provider { new Item("a") })
+            set.toList()
+            set.remove(first)
+
+            println "configured = " + set.collect { it.configured }
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("configured = [true]")
     }
 
     def "listener can remove elements with an iterator while values of a provider are announced"() {
