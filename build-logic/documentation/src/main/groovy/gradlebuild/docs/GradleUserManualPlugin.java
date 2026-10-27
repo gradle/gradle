@@ -30,6 +30,7 @@ import org.gradle.api.file.Directory;
 import org.gradle.api.file.DuplicatesStrategy;
 import org.gradle.api.file.ProjectLayout;
 import org.gradle.api.file.RelativePath;
+import org.gradle.api.logging.Logger;
 import org.gradle.api.model.ObjectFactory;
 import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
@@ -44,10 +45,16 @@ import org.gradle.api.tasks.util.PatternFilterable;
 import org.gradle.api.tasks.util.PatternSet;
 import org.gradle.language.base.plugins.LifecycleBasePlugin;
 
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.util.Arrays.asList;
 import static java.util.Collections.singletonMap;
@@ -63,6 +70,11 @@ public class GradleUserManualPlugin implements Plugin<Project> {
      */
     private static final String CHUNKED_HTML_OUTPUT = "chunkedHtml";
     private static final String MARKDOWN_OUTPUT = "markdown";
+
+    /**
+     * Agents tend to truncate or summarize pages above this size, which loses the details the Markdown copy is for.
+     */
+    private static final long MARKDOWN_PAGE_SIZE_WARNING_THRESHOLD = 100 * 1024;
 
     @Override
     public void apply(Project project) {
@@ -243,6 +255,8 @@ public class GradleUserManualPlugin implements Plugin<Project> {
             task.setSourcePatterns(markdownSources);
             task.onlyIf("quick feedback mode is not enabled", t -> !quickFeedback.get());
             outputTo(task, extension.getUserManual().getStagingRoot().dir("render-markdown"));
+            Provider<Directory> markdownDir = task.getOutputDir();
+            task.doLast(t -> warnAboutLargeMarkdownPages(t.getLogger(), markdownDir.get().getAsFile().toPath()));
         });
 
         // The plugin derives the conversion task names from the publication and the output alias, which is
@@ -251,6 +265,21 @@ public class GradleUserManualPlugin implements Plugin<Project> {
         registerRenderingAlias(project, "userguideMultiPage", "Generates multi-page user manual.", asciidoctorUserguideMultiPageChunkedHtml);
 
         return asList(asciidoctorUserguideSinglePageHtml, asciidoctorUserguideMultiPageChunkedHtml, asciidoctorUserguideMultiPageMarkdown);
+    }
+
+    private static void warnAboutLargeMarkdownPages(Logger logger, Path markdownDir) {
+        try (Stream<Path> files = Files.walk(markdownDir)) {
+            List<Path> pages = files.filter(file -> file.toString().endsWith(".md")).collect(Collectors.toList());
+            for (Path page : pages) {
+                long size = Files.size(page);
+                if (size > MARKDOWN_PAGE_SIZE_WARNING_THRESHOLD) {
+                    logger.warn("Markdown page {} is {} KB, larger than the {} KB that agents read reliably.",
+                        markdownDir.relativize(page), size / 1024, MARKDOWN_PAGE_SIZE_WARNING_THRESHOLD / 1024);
+                }
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException(e);
+        }
     }
 
     /**

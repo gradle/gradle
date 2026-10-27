@@ -15,26 +15,17 @@
  */
 package org.gradle.docs.asciidoctor
 
-import org.asciidoctor.Asciidoctor
 import org.asciidoctor.Options
 import org.asciidoctor.extension.JavaExtensionRegistry
-import spock.lang.Specification
 import spock.lang.Subject
 
 
 @Subject(GuidesContributeIncludeProcessor)
-class GuidesContributeIncludeProcessorTest extends Specification {
-    Asciidoctor asciidoctor
+class GuidesContributeIncludeProcessorTest extends AbstractAsciidoctorTest {
 
     def setup() {
-        asciidoctor = Asciidoctor.Factory.create()
         JavaExtensionRegistry extensionRegistry = asciidoctor.javaExtensionRegistry()
         extensionRegistry.includeProcessor(GuidesContributeIncludeProcessor.class)
-    }
-
-    def cleanup() {
-        // Each instance holds a JRuby runtime, which is large enough to exhaust the test JVM heap if leaked
-        asciidoctor.shutdown()
     }
 
     def "defaults repo to gradle/guides and issue to blank url"() {

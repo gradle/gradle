@@ -15,28 +15,14 @@
  */
 package org.gradle.docs.asciidoctor
 
-import org.asciidoctor.Asciidoctor
 import org.asciidoctor.Options
 import org.asciidoctor.SafeMode
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import spock.lang.Specification
 
-class MarkdownConverterTest extends Specification {
+class MarkdownConverterTest extends AbstractAsciidoctorTest {
     @Rule
     TemporaryFolder tmpDir = new TemporaryFolder()
-
-    Asciidoctor asciidoctor
-
-    def setup() {
-        // Picks up GradleDocsConverterRegistry and GradleDocsAsciidoctorExtensionRegistry from META-INF/services
-        asciidoctor = Asciidoctor.Factory.create()
-    }
-
-    def cleanup() {
-        // Each instance holds a JRuby runtime, which is large enough to exhaust the test JVM heap if leaked
-        asciidoctor.shutdown()
-    }
 
     private String toMarkdown(String asciidoc) {
         asciidoctor.convert(asciidoc, Options.builder()
@@ -51,7 +37,7 @@ class MarkdownConverterTest extends Specification {
         String md = toMarkdown("""
 = The Java Plugin
 
-Some *bold*, _emphasised_ and `monospaced` text.
+Some *bold*, _emphasized_, and `monospaced` text.
 
 == Usage
 
@@ -60,7 +46,7 @@ Apply it.
 
         then:
         md.startsWith("# The Java Plugin\n")
-        md.contains("Some **bold**, *emphasised* and `monospaced` text.")
+        md.contains("Some **bold**, *emphasized*, and `monospaced` text.")
         md.contains("## Usage\n\nApply it.")
     }
 
@@ -81,6 +67,27 @@ See <<sec:tasks,the tasks>> and <<building_java_projects.adoc#building_java_proj
         md.contains('<a id="sec:tasks"></a>\n## Tasks')
         md.contains('[the tasks](#sec:tasks)')
         md.contains('[Building Java Projects](building_java_projects.md#building_java_projects)')
+    }
+
+    def "uses the target title for cross-references without text"() {
+        when:
+        String md = toMarkdown("""
+= Doc
+
+[[sec:tasks]]
+== Tasks
+
+[[sec:custom,Custom Reftext]]
+== Configuration
+
+See <<sec:tasks>>, <<sec:custom>>, <<missing>> and xref:other_page.adoc[].
+""")
+
+        then:
+        md.contains('[Tasks](#sec:tasks)')
+        md.contains('[Custom Reftext](#sec:custom)')
+        md.contains('[[missing]](#missing)')
+        md.contains('[other_page.md](other_page.md)')
     }
 
     def "resolves attributes in link targets"() {
@@ -264,6 +271,52 @@ Groovy can execute Strings.footnote:[In Groovy you can execute Strings.]
         then:
         md.contains("Groovy can execute Strings.[^1]")
         md.trim().endsWith("[^1]: In Groovy you can execute Strings.")
+    }
+
+    def "keeps footnotes that precede an AsciiDoc table cell"() {
+        when:
+        String md = toMarkdown("""
+= Doc
+
+Groovy can execute Strings.footnote:[In Groovy you can execute Strings.]
+
+|===
+a| Some *nested* content.
+|===
+""")
+
+        then:
+        md.contains("| Some **nested** content. |")
+        md.trim().endsWith("[^1]: In Groovy you can execute Strings.")
+    }
+
+    def "resolves attributes in code blocks that enable attribute substitution"() {
+        when:
+        String md = toMarkdown("""
+= Doc
+:gradleVersion: 9.6.0
+
+[source,properties,subs="attributes"]
+----
+distributionUrl=https\\\\://services.gradle.org/distributions/gradle-{gradleVersion}-bin.zip
+----
+
+[source,kotlin,subs="+attributes"]
+----
+version = "{gradleVersion}" // <1>
+----
+<1> The version
+
+[source,text]
+----
+No substitution here: {gradleVersion}
+----
+""")
+
+        then:
+        md.contains('```properties\ndistributionUrl=https\\\\://services.gradle.org/distributions/gradle-9.6.0-bin.zip\n```')
+        md.contains('```kotlin\nversion = "9.6.0"\n```')
+        md.contains('```text\nNo substitution here: {gradleVersion}\n```')
     }
 
     def "renders Gradle's label macros as plain text"() {

@@ -306,7 +306,7 @@ Configuring project ':subproject1' without an existing directory is not allowed.
 > Make sure the project directory exists and is writable.
 ----
 
-See <<upgrading_version_8.adoc#deprecated_missing_project_directory>> for more details.
+See <<upgrading_version_8.adoc#deprecated_missing_project_directory,Including projects without an existing directory>> for more details.
 
 [[task_changes]]
 == Task changes

@@ -16,24 +16,14 @@
 
 package org.gradle.docs.asciidoctor
 
-import org.asciidoctor.Asciidoctor
 import org.asciidoctor.Options
 import org.asciidoctor.extension.JavaExtensionRegistry
-import spock.lang.Specification
 
-class DeprecatedLabelProcessorTest extends Specification {
-
-    Asciidoctor asciidoctor
+class DeprecatedLabelProcessorTest extends AbstractAsciidoctorTest {
 
     def setup() {
-        asciidoctor = Asciidoctor.Factory.create()
         JavaExtensionRegistry extensionRegistry = asciidoctor.javaExtensionRegistry()
         extensionRegistry.inlineMacro(DeprecatedLabelProcessor.class)
-    }
-
-    def cleanup() {
-        // Each instance holds a JRuby runtime, which is large enough to exhaust the test JVM heap if leaked
-        asciidoctor.shutdown()
     }
 
     private String convertContent(String content) {

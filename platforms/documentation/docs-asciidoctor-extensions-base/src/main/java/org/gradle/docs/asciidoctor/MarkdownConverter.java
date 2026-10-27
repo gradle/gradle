@@ -73,8 +73,15 @@ public class MarkdownConverter extends StringConverter {
     private static final Pattern NUMERIC_ENTITY = Pattern.compile("&#(x[0-9a-fA-F]+|\\d+);");
     private static final Pattern TAG = Pattern.compile("<[^>]+>");
     private static final Pattern EXCESS_BLANK_LINES = Pattern.compile("\n{3,}");
+    private static final Pattern TRAILING_WHITESPACE = Pattern.compile("[ \\t]+$", Pattern.MULTILINE);
 
     private final Map<String, String> footnotes = new LinkedHashMap<>();
+
+    /**
+     * How many documents are being converted. Nested documents ({@code a|} table cells) reuse this converter
+     * in the middle of their parent's body.
+     */
+    private int documentDepth;
 
     public MarkdownConverter(String backend, Map<String, Object> opts) {
         super(backend, opts);
@@ -99,9 +106,9 @@ public class MarkdownConverter extends StringConverter {
             case "paragraph":
                 return anchor(node) + title(node) + content(node) + "\n\n";
             case "listing":
-                return anchor(node) + title(node) + fence(((Block) node).getSource(), language(node));
+                return anchor(node) + title(node) + fence(source((Block) node), language(node));
             case "literal":
-                return anchor(node) + title(node) + fence(((Block) node).getSource(), "");
+                return anchor(node) + title(node) + fence(source((Block) node), "");
             case "admonition":
                 return admonition(node);
             case "ulist":
@@ -155,8 +162,18 @@ public class MarkdownConverter extends StringConverter {
     }
 
     private String document(Document document) {
+        if (documentDepth > 0) {
+            // A nested document is part of its parent, which collects the footnotes and post-processes the page
+            return content(document);
+        }
         footnotes.clear();
-        String body = content(document);
+        String body;
+        documentDepth++;
+        try {
+            body = content(document);
+        } finally {
+            documentDepth--;
+        }
         StringBuilder out = new StringBuilder();
         out.append(anchor(document));
         String doctitle = document.getDoctitle();
@@ -279,18 +296,46 @@ public class MarkdownConverter extends StringConverter {
 
     private static String inlineAnchor(PhraseNode node) {
         switch (type(node)) {
-            case "xref":
-            case "link": {
+            case "xref": {
                 String text = node.getText();
                 if (text == null || text.isEmpty()) {
-                    text = attribute(node, "refid");
+                    text = xrefText(node);
                 }
                 return "[" + text + "](" + node.getTarget() + ")";
             }
+            case "link":
+                return "[" + node.getText() + "](" + node.getTarget() + ")";
             default:
                 String id = node.getId();
                 return id != null ? "<a id=\"" + id + "\"></a>" : "";
         }
+    }
+
+    /**
+     * Text for a cross-reference without explicit text, resolved like the html5 converter:
+     * the path of another page, else the reftext or title of the target, else {@code [refid]}.
+     * Unlike html5, it ignores {@code xrefstyle}, which the user manual does not set.
+     */
+    private static String xrefText(PhraseNode node) {
+        String path = attribute(node, "path");
+        if (!path.isEmpty()) {
+            return path;
+        }
+        String refid = attribute(node, "refid");
+        Object ref = node.getDocument().getCatalog().getRefs().get(refid);
+        if (ref instanceof ContentNode) {
+            String reftext = ((ContentNode) ref).getReftext();
+            if (reftext != null && !reftext.isEmpty()) {
+                return reftext;
+            }
+        }
+        if (ref instanceof StructuralNode) {
+            String title = ((StructuralNode) ref).getTitle();
+            if (title != null && !title.isEmpty()) {
+                return title;
+            }
+        }
+        return "[" + refid + "]";
     }
 
     private String inlineFootnote(PhraseNode node) {
@@ -349,6 +394,17 @@ public class MarkdownConverter extends StringConverter {
 
     private static String language(ContentNode node) {
         return attribute(node, "language");
+    }
+
+    /**
+     * The verbatim source of a code block, with attributes resolved if the block enables them, e.g. {@code subs="attributes"}.
+     */
+    private static String source(Block block) {
+        if (!block.isSubstitutionEnabled("attributes")) {
+            return block.getSource();
+        }
+        // Substitutions also convert callouts, which leaves the whitespace that preceded them
+        return TRAILING_WHITESPACE.matcher(content(block)).replaceAll("");
     }
 
     private static String fence(String source, String language) {

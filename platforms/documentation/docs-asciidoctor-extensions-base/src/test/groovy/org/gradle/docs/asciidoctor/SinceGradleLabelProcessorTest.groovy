@@ -15,22 +15,9 @@
  */
 package org.gradle.docs.asciidoctor
 
-import org.asciidoctor.Asciidoctor
 import org.asciidoctor.Options
-import spock.lang.Specification
 
-class SinceGradleLabelProcessorTest extends Specification {
-
-    Asciidoctor asciidoctor
-
-    def setup() {
-        asciidoctor = Asciidoctor.Factory.create()
-    }
-
-    def cleanup() {
-        // Each instance holds a JRuby runtime, which is large enough to exhaust the test JVM heap if leaked
-        asciidoctor.shutdown()
-    }
+class SinceGradleLabelProcessorTest extends AbstractAsciidoctorTest {
 
     private String convertContent(String content) {
         return asciidoctor.convert(content, Options.builder().build())

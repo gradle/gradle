@@ -15,26 +15,16 @@
  */
 package org.gradle.docs.asciidoctor
 
-import org.asciidoctor.Asciidoctor
 import org.asciidoctor.Options
 import org.junit.Rule
 import org.junit.rules.TemporaryFolder
-import spock.lang.Specification
 
-class ExampleSelfLinkProcessorTest extends Specification {
+class ExampleSelfLinkProcessorTest extends AbstractAsciidoctorTest {
     @Rule
     TemporaryFolder tmpDir = new TemporaryFolder()
 
-    Asciidoctor asciidoctor
-
     def setup() {
         tmpDir.newFolder("src", "samples")
-        asciidoctor = Asciidoctor.Factory.create()
-    }
-
-    def cleanup() {
-        // Each instance holds a JRuby runtime, which is large enough to exhaust the test JVM heap if leaked
-        asciidoctor.shutdown()
     }
 
     def "renders example with title adding link to self"() {
