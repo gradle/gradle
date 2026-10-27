@@ -51,8 +51,6 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     private final Spec<T> uniqueSpec = new ItemIsUniqueInCompositeSpec();
     private final Spec<T> notInSpec = new ItemNotInCompositeSpec();
 
-    private final CollectionCallbackActionDecorator callbackActionDecorator;
-
     @SafeVarargs
     @SuppressWarnings("varargs")
     public static <T> CompositeDomainObjectSet<T> create(Class<T> type, DomainObjectCollection<? extends T>... collections) {
@@ -62,16 +60,15 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     @SafeVarargs
     public static <T> CompositeDomainObjectSet<T> create(Class<T> type, CollectionCallbackActionDecorator callbackActionDecorator, DomainObjectCollection<? extends T>... collections) {
         DefaultDomainObjectSet<T> delegate = new DefaultDomainObjectSet<T>(type, new DomainObjectCompositeCollection<T>(), callbackActionDecorator);
-        CompositeDomainObjectSet<T> out = new CompositeDomainObjectSet<T>(delegate, callbackActionDecorator);
+        CompositeDomainObjectSet<T> out = new CompositeDomainObjectSet<T>(delegate);
         for (DomainObjectCollection<? extends T> c : collections) {
             out.addCollection(c);
         }
         return out;
     }
 
-    private CompositeDomainObjectSet(DefaultDomainObjectSet<T> delegate, CollectionCallbackActionDecorator callbackActionDecorator) {
+    private CompositeDomainObjectSet(DefaultDomainObjectSet<T> delegate) {
         super(delegate);
-        this.callbackActionDecorator = callbackActionDecorator;
     }
 
     public class ItemIsUniqueInCompositeSpec implements Spec<T> {
@@ -230,11 +227,8 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
 
     @Override
     public void all(Action<? super T> action) {
-        //calling overloaded method with extra behavior:
-        for (T t : this) {
-            callbackActionDecorator.decorate(action).execute(t);
-        }
-        whenObjectAdded(action);
+        // The current elements are listed once, an added one is passed on only if no other composited collection has it already, like for whenObjectAdded()
+        getDelegate().all(action, uniqueSpec);
     }
 
     @Override

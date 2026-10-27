@@ -643,6 +643,41 @@ class CompositeDomainObjectSetTest extends Specification {
         0 * builderProvider.calculateValue(_)
     }
 
+    def "lazy listener of an outer composite sees element that several collections of a nested composite add later"() {
+        given:
+        def collection1 = collection()
+        def collection2 = collection()
+        def inner = composite(collection1, collection2)
+        def outer = composite(inner)
+        def seen = []
+        outer.configureEach { seen << it }
+        collection1.addLater(Providers.of("x"))
+        collection2.addLater(Providers.of("x"))
+
+        when:
+        def read = outer.toList()
+
+        then:
+        read == ["x"]
+        seen == ["x"]
+    }
+
+    def "lazy listener sees element that several collections of the composite have pending once"() {
+        given:
+        def collection1 = collection()
+        def collection2 = collection()
+        collection1.addLater(Providers.of("x"))
+        collection2.addLater(Providers.of("x"))
+        def composite = composite(collection1, collection2)
+        def seen = []
+
+        when:
+        composite.configureEach { seen << it }
+
+        then:
+        seen == ["x"]
+    }
+
     def "collection removed from composite is not eager for its listeners even if the provider gives a different collection"() {
         given:
         def queried = false
@@ -685,6 +720,25 @@ class CompositeDomainObjectSetTest extends Specification {
         added == []
         composite.toList() == []
         !queried
+    }
+
+    def "all on composite sees element its action adds with a provider"() {
+        given:
+        def source = collection("a")
+        def composite = composite(source)
+        def seen = []
+
+        when:
+        composite.all {
+            seen << it
+            if (it == "a") {
+                source.addLater(Providers.of("b"))
+            }
+        }
+
+        then:
+        seen == ["a", "b"]
+        composite.toList() == ["a", "b"]
     }
 
     def "collection that a listener removes and adds again while it is added keeps the eager listeners of the composite"() {
