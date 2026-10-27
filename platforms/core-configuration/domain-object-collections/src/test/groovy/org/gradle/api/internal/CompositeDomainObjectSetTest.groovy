@@ -923,4 +923,123 @@ class CompositeDomainObjectSetTest extends Specification {
         then:
         queried
     }
+
+    def "lazy action whose registration failed to read the composite still sees elements added later"() {
+        given:
+        def failing = Mock(ProviderInternal)
+        _ * failing.type >> String
+        _ * failing.calculateValue(_) >> { throw new RuntimeException("boom") }
+        def source = collection()
+        source.addLater(failing)
+        def composite = composite(source)
+        def seen = []
+
+        when:
+        composite.configureEach { seen << it }
+
+        then:
+        thrown(RuntimeException)
+
+        when:
+        source.add("a")
+
+        then:
+        seen == ["a"]
+    }
+
+    def "collection whose wiring failed is not eager for listeners of the composite after it is removed"() {
+        given:
+        def failing = Mock(ProviderInternal)
+        _ * failing.type >> StringBuilder
+        _ * failing.calculateValue(_) >> { throw new RuntimeException("boom") }
+        def queried = false
+        def laterProvider = Mock(ProviderInternal)
+        _ * laterProvider.type >> String
+        _ * laterProvider.calculateValue(_) >> { queried = true; ValueSupplier.Value.of("later") }
+        def source = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        source.addLater(failing)
+        def inner = CompositeDomainObjectSet.create(CharSequence, source)
+        def outer = CompositeDomainObjectSet.create(CharSequence)
+        outer.withType(String).whenObjectAdded { }
+
+        when:
+        outer.addCollection(inner)
+
+        then:
+        thrown(RuntimeException)
+
+        when:
+        source.remove(failing)
+        outer.removeCollection(inner)
+        source.addLater(laterProvider)
+
+        then:
+        !queried
+    }
+
+    def "collection composited twice keeps the eager listeners of the composite when the instance whose wiring failed is removed"() {
+        given:
+        def failing = Mock(ProviderInternal)
+        _ * failing.type >> String
+        _ * failing.calculateValue(_) >> { throw new RuntimeException("boom") }
+        def queried = false
+        def laterProvider = Mock(ProviderInternal)
+        _ * laterProvider.type >> String
+        _ * laterProvider.calculateValue(_) >> { queried = true; ValueSupplier.Value.of("later") }
+        def source = collection()
+        def provided = TestUtil.providerFactory().provider { source }
+        def composite = composite()
+        composite.all { }
+        composite.addCollectionProvider(provided)
+        source.addLater(failing)
+
+        when:
+        composite.toList()
+
+        then:
+        thrown(RuntimeException)
+
+        when:
+        source.remove(failing)
+        composite.addCollection(source)
+        composite.removeCollectionProvider(provided)
+        source.addLater(laterProvider)
+
+        then:
+        queried
+    }
+
+    def "eager listener of composite sees elements of a provided collection whose wiring failed"() {
+        given:
+        def fail = true
+        def failing = Mock(ProviderInternal)
+        _ * failing.type >> String
+        _ * failing.calculateValue(_) >> {
+            if (fail) {
+                throw new RuntimeException("boom")
+            }
+            ValueSupplier.Value.of("a")
+        }
+        def source = collection()
+        source.addLater(failing)
+        def composite = composite()
+        def seen = []
+        composite.whenObjectAdded { seen << it }
+        composite.addCollectionProvider(TestUtil.providerFactory().provider { source })
+
+        when:
+        composite.toList()
+
+        then:
+        thrown(RuntimeException)
+
+        when:
+        fail = false
+        source.add("b")
+        def read = composite.toList()
+
+        then:
+        read as Set == ["a", "b"] as Set
+        seen as Set == ["a", "b"] as Set
+    }
 }

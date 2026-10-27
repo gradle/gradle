@@ -231,7 +231,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             decorate(action),
             addedElementsSpec,
             added -> eventRegister.registerForwardingAddAction(added, targetSubscriptions),
-            // Same as for an eager action registered here
+            // Same as for an eager action registered here. Done once the forwarding is registered, so it stays registered if this fails.
             () -> store.realizePendingSubscribedBy(targetSubscriptions)
         );
     }
@@ -248,7 +248,19 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     private static <T> void applyToCopy(AnnouncedWhileCopying<T> announcedWhileCopying, Supplier<@Nullable Collection<T>> copy) {
-        announcedWhileCopying.finishCopying(copy.get());
+        Collection<T> copied;
+        try {
+            copied = copy.get();
+        } catch (RuntimeException | Error failure) {
+            // The action stays registered, so it has to stop recording, and the elements announced so far are in the collection
+            try {
+                announcedWhileCopying.finishCopying(null);
+            } catch (RuntimeException | Error other) {
+                failure.addSuppressed(other);
+            }
+            throw failure;
+        }
+        announcedWhileCopying.finishCopying(copied);
     }
 
     // Elements announced while the copy is taken are passed to the action after the copied ones, so the action sees them in order

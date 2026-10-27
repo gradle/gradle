@@ -130,8 +130,8 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     public void addCollection(DomainObjectCollection<? extends T> collection) {
         if (!getStore().containsCollection(collection)) {
             DomainObjectCompositeCollection.StoredCollection<T> stored = getStore().addComposited((DomainObjectCollectionInternal<? extends T>) collection);
-            forwardAdditions(collection, stored);
             collection.whenObjectRemoved((Action<T>) t -> getDelegate().getEventRegister().fireObjectRemoved(t));
+            forwardAdditions(collection, stored);
         }
     }
 
@@ -139,8 +139,9 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         if (!getStore().containsCollectionProvider(collectionProvider)) {
             getStore().addComposited(collectionProvider, stored -> {
                 DomainObjectCollection<? extends T> collection = stored.getWithoutSideEffects();
-                forwardAdditions(collection, stored);
+                // Registered first, wiring the collection may fail later on
                 collection.whenObjectRemoved((Action<T>) t -> getDelegate().getEventRegister().fireObjectRemoved(t));
+                forwardAdditions(collection, stored);
             });
         }
     }
@@ -300,8 +301,9 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
                     collection = provider.get();
                 }
                 if (!realized) {
-                    onRealization.execute(this);
+                    // Marked first: while it is wired, its elements already count as part of the composite
                     realized = true;
+                    onRealization.execute(this);
                 }
                 return collection;
             }
