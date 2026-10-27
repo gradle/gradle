@@ -26,11 +26,9 @@ import org.gradle.jvm.toolchain.JdkRepository
 import org.gradle.platform.internal.CurrentBuildPlatform
 import org.gradle.test.fixtures.Flaky
 import org.gradle.test.precondition.Requires
-import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.test.preconditions.InstalledJdkTestPreconditions
+import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
-
-import java.util.Locale
 
 import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
 import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
