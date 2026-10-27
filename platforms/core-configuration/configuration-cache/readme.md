@@ -69,7 +69,7 @@ The build does not proceed to the execution phase.
 
 There can be CC problems during the execution phase as well, even if store and load were successful.
 For instance, a task action can call forbidden APIs, such as `Task.getProject()`, or
-reach for project state via [script](../../../subprojects/core/src/main/java/org/gradle/groovy/scripts/BasicScript.java) object instance
+reach for project state via [script](../../dsl/groovy-dsl/src/main/java/org/gradle/groovy/scripts/BasicScript.java) object instance
 (see `BrokenScript` in [GroovyCodecs.kt](../../../platforms/core-configuration/core-serialization-codecs/src/main/kotlin/org/gradle/internal/serialize/codecs/core/GroovyCodecs.kt)).
 On a CC hit, only CC load is performed, so the project state would not have been initialized before such access.
 Therefore, we prevent user logic from working with bad state by interrupting the task.
