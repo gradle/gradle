@@ -202,6 +202,9 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     @Override
     public void clear() {
+        for (RealizedValues<T> realizedValues : realized.values()) {
+            realizedValues.markRemoved();
+        }
         pending = Collections.emptySet();
         realized = Collections.emptyMap();
         values.clear();
@@ -235,7 +238,10 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     private void realize(Iterable<Collectors.TypedCollector<T>> collectors) {
         for (Collectors.TypedCollector<T> collector : collectors) {
-            pending.remove(collector);
+            if (!pending.remove(collector)) {
+                // Realized or removed meanwhile, e.g. by a listener or through the provider itself
+                continue;
+            }
             ImmutableList.Builder<T> builder = ImmutableList.builder();
             List<T> previouslyCollecting = addedWhileCollecting;
             List<T> addedByProvider = new ArrayList<>();
@@ -257,13 +263,23 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
                 }
             }
             realized.put(collector, realizedValues);
-            for (T element : collected) {
-                if (values.add(element)) {
-                    realizedValues.addAdded(element);
-                    if (addRealizedAction != null) {
-                        addRealizedAction.execute(element);
+            realizedValues.announcedCount = 0;
+            try {
+                for (T element : collected) {
+                    if (realizedValues.removed) {
+                        // A listener removed the provider or cleared the collection
+                        break;
+                    }
+                    realizedValues.announcedCount++;
+                    if (values.add(element)) {
+                        realizedValues.addAdded(element);
+                        if (addRealizedAction != null) {
+                            addRealizedAction.execute(element);
+                        }
                     }
                 }
+            } finally {
+                realizedValues.announcedCount = -1;
             }
         }
     }
@@ -317,6 +333,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
                     // Nothing known to remove: either the provider added its element itself, or its values were removed already
                     return null;
                 }
+                realizedValues.markRemoved();
                 // Only values that the provider added are removed: an equal value that was there before stays
                 List<T> removed = new ArrayList<>(realizedValues.added.size());
                 for (T value : realizedValues.added) {
@@ -336,8 +353,10 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     @Nullable
     private RealizedValues<T> findCapturing(T value) {
         for (RealizedValues<T> realizedValues : realized.values()) {
-            for (T candidate : realizedValues.captured) {
-                if (isEquivalent(candidate, value)) {
+            List<T> captured = realizedValues.captured;
+            for (int index = 0; index < captured.size(); index++) {
+                // A value that is not announced yet is not in the collection
+                if (isEquivalent(captured.get(index), value) && realizedValues.isAnnounced(index)) {
                     return realizedValues;
                 }
             }
@@ -472,6 +491,11 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
         // The captured values that were not in the collection yet
         private List<T> added = Collections.emptyList();
         private final boolean external;
+        // Set when the provider is removed or the collection is cleared, possibly while its values are announced
+        private boolean removed;
+        // While the values are announced: how many of the captured ones were announced. These are always the first ones,
+        // as values are announced in order and only announced ones are forgotten. Negative otherwise.
+        private int announcedCount = -1;
 
         RealizedValues(List<T> captured) {
             this(captured, false);
@@ -493,14 +517,40 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
             added.add(value);
         }
 
+        boolean isAnnounced(int index) {
+            return announcedCount < 0 || index < announcedCount;
+        }
+
         void forget(Predicate<T> matching) {
             if (!added.isEmpty()) {
                 added.removeIf(matching);
             }
-            if (captured.stream().anyMatch(matching)) {
-                List<T> remaining = new ArrayList<>(captured);
-                remaining.removeIf(matching);
+            // Values not announced yet are not in the collection, so removing an equal one doesn't concern them
+            List<T> remaining = null;
+            int remainingAnnounced = announcedCount;
+            for (int index = 0; index < captured.size(); index++) {
+                T candidate = captured.get(index);
+                if (isAnnounced(index) && matching.test(candidate)) {
+                    if (remaining == null) {
+                        remaining = new ArrayList<>(captured.subList(0, index));
+                    }
+                    if (announcedCount >= 0) {
+                        remainingAnnounced--;
+                    }
+                } else if (remaining != null) {
+                    remaining.add(candidate);
+                }
+            }
+            if (remaining != null) {
                 captured = remaining;
+                announcedCount = remainingAnnounced;
+            }
+        }
+
+        void markRemoved() {
+            // The external marker is shared, and its provider has no values to announce
+            if (!external) {
+                removed = true;
             }
         }
     }

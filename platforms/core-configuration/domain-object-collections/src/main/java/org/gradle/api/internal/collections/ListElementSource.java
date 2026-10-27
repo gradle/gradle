@@ -184,7 +184,7 @@ public class ListElementSource<T> extends AbstractIterationOrderRetainingElement
                     int j = previousSubIndex - 1;
                     while (j >= 0) {
                         T value = collected.get(j);
-                        if (acceptanceSpec.isSatisfiedBy(new ValuePointer<>(candidate, j))) {
+                        if (accepts(candidate, j)) {
                             previousIndex = i;
                             previousSubIndex = j;
                             previous = value;

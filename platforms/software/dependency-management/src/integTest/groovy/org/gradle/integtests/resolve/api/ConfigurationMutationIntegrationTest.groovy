@@ -781,6 +781,30 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
         outputContains("dependencies = [org:lib:1.0]")
     }
 
+    def "dependencies changed by a listener stay visible while the values of a provider are announced"() {
+        buildFile """
+            def dependencies = configurations.dependencyScope("impl").get().dependencies
+            def a = project.dependencies.create("org:a:1.0")
+            def b = project.dependencies.create("org:b:1.0")
+            dependencies.all { it.version { strictly("9") } }
+            dependencies.whenObjectAdded {
+                if (it.name == "b") {
+                    println "size = " + dependencies.size()
+                    println "removed = " + dependencies.remove(a)
+                }
+            }
+            dependencies.addAllLater(provider { [a, b] })
+
+            println "names = " + dependencies.collect { it.name }
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("size = 2")
+        outputContains("removed = true")
+        outputContains("names = [b]")
+    }
+
     def "eager listener on dependencies sees dependency added with addLater once"() {
         buildFile """
             def version = objects.property(String)

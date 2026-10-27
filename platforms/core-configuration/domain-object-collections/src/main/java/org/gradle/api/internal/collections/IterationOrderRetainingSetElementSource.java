@@ -165,13 +165,14 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
         super.clear();
     }
 
+    // Values that are not announced yet don't count
     private void markDuplicates(T value) {
         boolean seen = false;
         for (Element<T> element : getInserted()) {
             if (element.isRealized()) {
                 List<T> collected = element.getValues();
                 for (int index = 0; index < collected.size(); index++) {
-                    if (Objects.equal(collected.get(index), value)) {
+                    if (Objects.equal(collected.get(index), value) && element.isAnnounced(index)) {
                         if (seen) {
                             element.setDuplicate(index);
                         } else {

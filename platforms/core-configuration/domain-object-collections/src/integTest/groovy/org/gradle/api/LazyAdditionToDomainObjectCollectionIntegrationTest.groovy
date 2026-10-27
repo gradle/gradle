@@ -611,6 +611,28 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         outputContains("values = [a, b]")
     }
 
+    def "listener can remove a value of the provider that is being realized"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            set.add("x")
+            def seen = []
+            set.all {
+                seen << it
+                if (it == "a") {
+                    set.remove("x")
+                }
+            }
+            set.addAllLater(provider { ["a", "x", "y"] })
+
+            println "values = " + set.toList() + ", seen = " + seen
+        """
+
+        expect:
+        succeeds("help")
+        // The value of the provider is not in the collection yet when the listener removes the one added directly
+        outputContains("values = [a, x, y], seen = [x, a, x, y]")
+    }
+
     def "value added directly to #containerType stays when provider with equal value realized by eager action is removed"() {
         buildFile """
             ${namedThing}
@@ -631,6 +653,29 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
 
         where:
         containerType << ["domainObjectContainer", "namedDomainObjectSet"]
+    }
+
+    def "listener removing the provider that is being realized is not told about its other values"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            def added = objects.listProperty(String).value(["a", "b"])
+            def seen = []
+            def removed = []
+            set.whenObjectRemoved { removed << it }
+            set.all {
+                seen << it
+                if (it == "a") {
+                    set.remove(added)
+                }
+            }
+            set.addAllLater(added)
+
+            println "values = " + set.toList() + ", seen = " + seen + ", removed = " + removed
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("values = [], seen = [a], removed = [a]")
     }
 
     def "removing a named provider realized by eager action removes its name"() {
@@ -687,6 +732,32 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         outputContains("queried = 1, names = []")
     }
 
+    def "listener calling #mutation while values of a provider are announced only sees removal of announced values"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            def removed = []
+            set.whenObjectRemoved { removed << it }
+            set.all {
+                if (it == "a") {
+                    set.${mutation}
+                }
+            }
+            set.addAllLater(provider { ["a", "b"] })
+
+            println "values = " + set.toList() + ", removed = " + removed
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("values = ${values}, removed = [${removed}]")
+
+        where:
+        mutation      | values   | removed
+        // The value is not in the collection yet when it is removed
+        "remove('b')" | "[a, b]" | ""
+        "clear()"     | "[]"     | "a"
+    }
+
     def "removing a registered provider realized while another one was realized removes its element"() {
         buildFile """
             ${namedThing}
@@ -702,6 +773,49 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         expect:
         succeeds("help")
         outputContains("remove result = true, names = [a]")
+    }
+
+    def "listener adding and removing a value while the values of a provider are announced"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            def events = []
+            set.whenObjectAdded {
+                events << "added " + it
+                if (it == "a") {
+                    set.add("b")
+                    events << "read " + set.toList()
+                    events << "removed " + set.remove("b")
+                }
+            }
+            set.addAllLater(provider { ["a", "b"] })
+
+            println "values = " + set.toList() + ", events = " + events
+        """
+
+        expect:
+        succeeds("help")
+        // The value of the provider is added after the one the listener added and removed
+        outputContains("values = [a, b], events = [added a, added b, read [a, b], removed true, added b]")
+    }
+
+    def "listener removing a value added directly keeps the equal value of the provider that is being realized"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            set.add("x")
+            set.whenObjectAdded {
+                if (it == "a") {
+                    set.remove("x")
+                }
+            }
+            set.addAllLater(provider { ["a", "x"] })
+
+            println "values = " + set.toList()
+        """
+
+        expect:
+        succeeds("help")
+        // The value of the provider is not in the collection yet when the listener removes the one added directly
+        outputContains("values = [a, x]")
     }
 
     def "adding a registered provider that was realized through itself has no effect"() {
@@ -722,6 +836,30 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         outputContains("remove result = true, names = []")
     }
 
+    def "values of a provider are still announced after a listener removed equal values added otherwise"() {
+        buildFile """
+            ${namedThing}
+
+            def collection = objects.namedDomainObjectSet(NamedThing)
+            def b = new NamedThing("b")
+            collection.add(b)
+            collection.all {
+                if (it.name == "a") {
+                    collection.remove(it)
+                    collection.remove(b)
+                }
+            }
+            collection.addAllLater(provider { [new NamedThing("a"), new NamedThing("b")] })
+
+            println "names = " + collection.names
+        """
+
+        expect:
+        succeeds("help")
+        // The value of the provider is not in the collection yet when the listener removes the one added directly
+        outputContains("names = [b]")
+    }
+
     def "adding a provider again after its value was removed has no effect"() {
         buildFile """
             def set = objects.domainObjectSet(String)
@@ -738,6 +876,60 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         expect:
         succeeds("help")
         outputContains("queried = 1, values = []")
+    }
+
+    def "removing a provider while another one is realized removes its value when the other one did not announce an equal value yet"() {
+        buildFile """
+            ${namedThing}
+
+            def collection = objects.namedDomainObjectSet(NamedThing)
+            def first = new NamedThing("x")
+            def second = new NamedThing("x")
+            def removedProvider = provider { first }
+            collection.whenObjectAdded {
+                if (it.name == "y") {
+                    collection.remove(removedProvider)
+                }
+            }
+            collection.whenObjectRemoved { println "removed " + it.name }
+            collection.addLater(removedProvider)
+            collection.addAllLater(provider { [new NamedThing("y"), second] })
+
+            println "names = " + collection.names + ", x is the second one = " + collection.findByName("x").is(second)
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("removed x")
+        outputContains("names = [x, y], x is the second one = true")
+    }
+
+    def "listener can remove elements with an iterator while values of a provider are announced"() {
+        buildFile """
+            interface Item {}
+            class SpecialItem implements Item {
+                String toString() { "a" }
+            }
+            class OtherItem implements Item {
+                String name
+                OtherItem(String name) { this.name = name }
+                String toString() { name }
+            }
+
+            def a = new SpecialItem()
+            def b = new OtherItem("b")
+            def c = new OtherItem("c")
+            def set = objects.domainObjectSet(Item)
+            set.withType(SpecialItem).whenObjectAdded { set.removeIf { it.is(a) || it.is(c) } }
+            set.add(c)
+            set.addAllLater(provider { [a, b] })
+
+            println "values = " + set.toList()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("values = [b]")
     }
 
     def getNamedThing() {
