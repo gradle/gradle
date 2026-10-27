@@ -282,8 +282,47 @@ include::sample[dir="snippets/reference/dependency-management/controlling-depend
 ====
 
 Attribute types support most Java primitive classes; such as `String`, `Boolean`, and any subtype of `Number` (including `Integer`).
-Or anything extending `org.gradle.api.Named`.
-Plain Java `Enum` types (that do not implement `Named`) are **not** supported as attribute value types — resolution and publishing paths that desugar attributes require the value type to implement `Named`.
+Or anything extending link:{javadocPath}/org/gradle/api/Named.html[`Named`].
+Plain Java `Enum` types (that do not implement `Named`) are deprecated as attribute value types and will be rejected in Gradle 10; see <<upgrading_version_9.adoc#unsupported_attribute_value_type, the deprecation notice>> in the upgrade guide.
+
+Gradle reduces a `Named` attribute value to a String whenever it has to match, report, cache, or publish one, and it derives that String from `getName()`.
+Create those values through link:{javadocPath}/org/gradle/api/model/ObjectFactory.html#named(java.lang.Class,java.lang.String)[`ObjectFactory.named`], as shown below.
+The instance Gradle generates returns the name from both `getName()` and `toString()`, so the two can never drift apart.
+
+If you declare your own `Named` type instead, **never give it a `toString()` that returns something other than its `getName()`**.
+Nothing enforces this, and such a value still resolves and publishes correctly, so what you get is diagnostics that contradict each other: a resolution failure message renders the value with `toString()`, while `dependencyInsight` reports the requested value with `toString()` and the matched variant's value with `getName()`, putting two strings for one attribute in the same table.
+
+An `enum` implementing `Named` is the easy way to fall into this, because `Enum` supplies a `toString()` for you:
+
+====
+[.multi-language-sample]
+=====
+[source,kotlin]
+----
+enum class MyType : Named {
+    TYPE_A, TYPE_B;
+
+    // The problem: getName() is "type_a" while the inherited toString() stays "TYPE_A"
+    override fun getName() = name.lowercase()
+}
+----
+=====
+[.multi-language-sample]
+=====
+[source,groovy]
+----
+enum MyType implements Named {
+    TYPE_A, TYPE_B
+
+    // The problem: getName() is "type_a" while the inherited toString() stays "TYPE_A"
+    @Override
+    String getName() { return name().toLowerCase() }
+}
+----
+=====
+====
+
+Either return `name()` from `getName()`, or override `toString()` to return `getName()` as well.
 
 Attributes should always be declared in the _attribute schema_ found on the `dependencies` handler:
 
