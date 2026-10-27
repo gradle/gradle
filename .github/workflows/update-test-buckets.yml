@@ -44,7 +44,7 @@ jobs:
           client_secret: ${{ env.WARP_CLIENT_SECRET }}
       - name: Clone gradle/ci-health repository
         run: |
-          git clone https://${{ env.BOT_GRADLE_GITHUB_TOKEN }}@github.com/gradle/ci-health.git /tmp/gradle-ci-health
+          git clone https://x-access-token:${{ env.BOT_GRADLE_GITHUB_TOKEN }}@github.com/gradle/ci-health.git /tmp/gradle-ci-health
       - name: Generate test class runtime JSON
         run: |
           cd /tmp/gradle-ci-health
