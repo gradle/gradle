@@ -17,6 +17,7 @@
 package org.gradle.internal.service
 
 import org.gradle.internal.concurrent.Stoppable
+import spock.lang.Issue
 import spock.lang.Specification
 
 import java.lang.reflect.Type
@@ -89,6 +90,21 @@ class ServiceRegistryLifecycleTest extends Specification implements ServiceRegis
 
         given:
         registry.add(TestCloseService, service)
+
+        when:
+        registry.close()
+
+        then:
+        1 * service.close()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16390")
+    def "close invokes close method on each auto-closeable service"() {
+        def registry = newRegistry()
+        def service = Mock(TestAutoCloseService)
+
+        given:
+        registry.add(TestAutoCloseService, service)
 
         when:
         registry.close()
@@ -485,6 +501,10 @@ class ServiceRegistryLifecycleTest extends Specification implements ServiceRegis
     }
 
     interface TestCloseService extends Closeable {
+        void close()
+    }
+
+    interface TestAutoCloseService extends AutoCloseable {
         void close()
     }
 

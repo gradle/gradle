@@ -16,7 +16,9 @@
 
 package org.gradle.internal.concurrent
 
+import org.gradle.internal.UncheckedException
 import org.gradle.internal.exceptions.DefaultMultiCauseException
+import spock.lang.Issue
 import spock.lang.Specification
 
 class CompositeStoppableTest extends Specification {
@@ -110,6 +112,50 @@ class CompositeStoppableTest extends Specification {
         1 * b.stop()
     }
 
+    @Issue("https://github.com/gradle/gradle/issues/16390")
+    def closesAnAutoCloseableElement() {
+        AutoCloseable a = Mock()
+
+        stoppable.add(a)
+
+        when:
+        stoppable.stop()
+
+        then:
+        1 * a.close()
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16390")
+    def wrapsCheckedExceptionFromAutoCloseableElement() {
+        AutoCloseable a = Mock()
+        def failure = new Exception()
+
+        stoppable.add(a)
+
+        when:
+        stoppable.stop()
+
+        then:
+        1 * a.close() >> { throw failure }
+        def e = thrown(UncheckedException)
+        e.cause == failure
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/16390")
+    def stopsRatherThanClosesAnElementThatIsBothStoppableAndAutoCloseable() {
+        StoppableAndAutoCloseable a = Mock()
+
+        // Added as a list: with add(Stoppable), the element is not checked for AutoCloseable
+        stoppable.add([a])
+
+        when:
+        stoppable.stop()
+
+        then:
+        1 * a.stop()
+        0 * a.close()
+    }
+
     def doesNothingWhenArbitraryObjectDoesNotHaveStopOrCloseMethod() {
         Runnable r = Mock()
 
@@ -132,5 +178,13 @@ class CompositeStoppableTest extends Specification {
 
         then:
         1 * a.stop()
+    }
+
+    /**
+     * Like {@link ManagedExecutor} on Java 19+, where {@link java.util.concurrent.ExecutorService}
+     * is {@link AutoCloseable}. Such an element has to be stopped, not closed: a failed job
+     * of a {@code ManagedExecutor} is rethrown on {@code stop()} only.
+     */
+    interface StoppableAndAutoCloseable extends Stoppable, AutoCloseable {
     }
 }
