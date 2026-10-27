@@ -627,5 +627,5 @@ Each is either a candidate for switching to a `provider` (so the input is droppe
 The next performance step beyond plain CC is typically **Parallel Configuration Cache** (`org.gradle.configuration-cache.parallel=true`), which parallelizes the storing of CC entries themselves (loading is always parallel).
 It is still incubating; see <<configuration_cache_enabling.adoc#config_cache:usage:parallel, Enabling Parallel Configuration Caching>>.
 
-Looking further ahead, Isolated Projects builds on CC's per-project isolation to enable parallel project configuration, but it is pre-alpha and depends on CC being fully adopted first.
+Looking further ahead, <<isolated_projects.adoc#isolated_projects,Isolated Projects>> builds on CC's per-project isolation to enable parallel project configuration, and it requires CC to be fully adopted first.
 For the current state of the Configuration Cache itself, see <<configuration_cache_status.adoc#config_cache_status, Configuration Cache Status>>.
