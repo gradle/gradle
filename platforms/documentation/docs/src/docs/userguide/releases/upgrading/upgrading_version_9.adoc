@@ -1442,7 +1442,8 @@ The most common case is a plain Java `Enum` that does not implement `Named`.
 Such types often work at first but fail later during dependency resolution, publishing, or Configuration Cache serialization — where the machinery assumes an attribute value can be reconstructed by name.
 
 To fix a build affected by this deprecation, change the attribute value type to one of the supported types.
-For enums, the simplest fix is to make the enum implement `Named` and return the constant's name from `getName()`.
+For enums, the smallest change is to make the enum implement `Named` and return the constant's name from `getName()`.
+Prefer `String` where you can: see <<best_practices_dependencies.adoc#favor_string_attribute_values,Favor `String` Values for Custom Attributes>> for why a `Named` type — including a `Named` enum — usually costs more than it returns.
 
 See the <<variant_attributes.adoc#sec:creating-attributes, variant attributes documentation>> for the full set of supported attribute value types.
 
