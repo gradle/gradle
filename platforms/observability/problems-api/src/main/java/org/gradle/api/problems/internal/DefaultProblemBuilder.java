@@ -314,14 +314,14 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
         if (problemId instanceof DefaultProblemId && group == problemId.getGroup()) {
             this.id = problemId;
         } else {
-            this.id = ProblemId.create(problemId.getName(), problemId.getDisplayName(), group);
+            this.id = new DefaultProblemId(problemId.getName(), DefaultProblemId.displayNameOf(problemId), group);
         }
         return this;
     }
 
     @Override
     public ProblemBuilderInternal id(String name, String displayName, ProblemGroup parent) {
-        this.id = ProblemId.create(name, displayName, cloneGroup(parent));
+        this.id = new DefaultProblemId(name, displayName, cloneGroup(parent));
         return this;
     }
 

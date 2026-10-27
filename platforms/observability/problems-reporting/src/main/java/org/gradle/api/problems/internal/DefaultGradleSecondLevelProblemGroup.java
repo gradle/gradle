@@ -46,7 +46,14 @@ final class DefaultGradleSecondLevelProblemGroup extends GradleSecondLevelProble
     }
 
     @Override
+    @Deprecated
     public String getDisplayName() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_DISPLAY_NAME);
+        return getDisplayNameInternal();
+    }
+
+    @Override
+    public String getDisplayNameInternal() {
         return name;
     }
 
@@ -56,7 +63,9 @@ final class DefaultGradleSecondLevelProblemGroup extends GradleSecondLevelProble
     }
 
     @Override
+    @Deprecated
     public ProblemGroup getParent() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_PARENT);
         // every Gradle-owned implementation extends ProblemGroup
         return (ProblemGroup) parent;
     }

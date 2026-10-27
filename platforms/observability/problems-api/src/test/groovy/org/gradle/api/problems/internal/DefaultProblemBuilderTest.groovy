@@ -246,6 +246,8 @@ class DefaultProblemBuilderTest extends Specification {
 
         String getDisplayName() { name }
 
+        String getDisplayNameInternal() { name }
+
         ProblemGroupInternal getParentInternal() { (ProblemGroupInternal) parent }
 
         boolean equals(Object o) { ProblemGroupInternal.structurallyEquals(this, o) }
@@ -266,7 +268,7 @@ class DefaultProblemBuilderTest extends Specification {
 
         boolean equals(Object o) { ProblemGroupInternal.structurallyEquals(this, o) }
 
-        int hashCode() { ProblemGroupInternal.structuralHashCode(this) }
+        int hashCode() { Objects.hash(name, parent) }
     }
 
     private static class ForeignId extends ProblemId {
