@@ -1,6 +1,5 @@
 plugins {
     id("gradlebuild.distribution.api-java")
-    id("gradlebuild.cross-version-tests")
 }
 
 description = "Gradle plugin development plugins"
@@ -11,28 +10,23 @@ dependencies {
     api(projects.coreApi)
     api(projects.daemonServerWorker)
     api(projects.files)
-    api(projects.groovyDsl)
     api(projects.logging)
     api(projects.modelReflect)
     api(projects.platformJvm)
     api(projects.problemsApi)
-    api(projects.resources)
     api(projects.stdlibJavaExtensions)
     api(projects.toolchainsJvmShared)
     api(projects.workers)
 
-    api(libs.groovy)
     api(libs.gson)
     api(libs.jspecify)
     api(libs.inject)
 
     implementation(projects.buildOption)
     implementation(projects.buildProcessServices)
-    implementation(projects.classloaders)
     implementation(projects.dependencyManagement)
     implementation(projects.execution)
     implementation(projects.fileOperations)
-    implementation(projects.hashing)
     implementation(projects.ivy)
     implementation(projects.jvmServices)
     implementation(projects.languageJava)
@@ -41,7 +35,6 @@ dependencies {
     implementation(projects.maven)
     implementation(projects.messaging)
     implementation(projects.modelCore)
-    implementation(projects.modelGroovy)
     implementation(projects.normalizationApi)
     implementation(projects.pluginUse)
     implementation(projects.pluginsGroovy)
@@ -87,10 +80,6 @@ dependencies {
     }
 
     integTestDistributionRuntimeOnly(projects.distributionsJvm)
-
-    crossVersionTestImplementation(projects.internalIntegTesting)
-
-    crossVersionTestDistributionRuntimeOnly(projects.distributionsJvm)
 
     testFixturesImplementation(projects.modelCore)
     testFixturesImplementation(projects.logging)
