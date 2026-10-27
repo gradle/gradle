@@ -40,11 +40,17 @@ The diagram below shows the current set of architecture modules and platforms:
     style reporting_plugins fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;
     reporting_plugins --> core
 
+    subgraph essential_plugins["essential-plugins platform"]
+    end
+    style essential_plugins fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;
+    essential_plugins --> core
+
     subgraph software["software platform"]
     end
     style software fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;
     software --> core
     software --> reporting_plugins
+    software --> essential_plugins
 
     subgraph jvm["jvm platform"]
     end
@@ -96,6 +102,11 @@ It is made up of 3 architecture modules:
 ### Reporting plugins platform
 
 This is a platform that builds on the core platform to provide the `reporting-base` plugin with the reporting extension and the public reporting API, and the `build-dashboard` plugin.
+
+### Essential plugins platform
+
+This is a platform that builds on the core automation platform to provide the plugins that are applied to every build, regardless of what it builds.
+This includes the wrapper plugin.
 
 ### Software development platform
 

@@ -133,6 +133,9 @@ platforms/observability/          @gradle/bt-tide
 # Reporting plugins
 platforms/reporting-plugins/      @gradle/bt-tide
 
+# Essential plugins
+platforms/essential-plugins/      @gradle/bt-tide
+
 # Native
 platforms/native/                 @gradle/bt-jvm
 

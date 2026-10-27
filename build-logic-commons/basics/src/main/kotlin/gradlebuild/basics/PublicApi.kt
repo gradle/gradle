@@ -49,6 +49,11 @@ object PublicApi {
 
     val excludes = listOf("**/internal/**")
 
+    val generated = listOf(
+        // interceptors and adapters that the instrumentation annotation processor generates
+        "org/gradle/internal/classpath/generated/**"
+    )
+
     private val includePackagePatterns: List<Pattern> by lazy {
         includes.map {
             if (it.endsWith("/**")) {
