@@ -28,6 +28,7 @@ import org.gradle.internal.jvm.SupportedJavaVersionsExpectations
 import org.gradle.internal.operations.trace.BuildOperationTrace
 import org.gradle.testkit.runner.BuildResult
 import org.gradle.testkit.runner.BuildTask
+import org.gradle.testkit.runner.ConfigurationCacheOutcome
 import org.gradle.testkit.runner.GradleRunner
 import org.gradle.testkit.runner.InvalidPluginMetadataException
 import org.gradle.testkit.runner.InvalidRunnerConfigurationException
@@ -431,6 +432,11 @@ class SmokeTestGradleRunner extends GradleRunner {
         @Override
         BuildTask task(String taskPath) {
             return delegate.task(taskPath)
+        }
+
+        @Override
+        ConfigurationCacheOutcome getConfigurationCacheOutcome() {
+            return delegate.configurationCacheOutcome
         }
 
         void assertConfigurationCacheStateStored() {
