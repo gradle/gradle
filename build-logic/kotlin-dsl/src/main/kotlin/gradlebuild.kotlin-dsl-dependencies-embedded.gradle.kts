@@ -15,7 +15,6 @@
  */
 
 import gradlebuild.basics.accessors.kotlinMainSourceSet
-import gradlebuild.basics.kotlindsl.publishedKotlinDslPluginVersion
 import gradlebuild.basics.util.ReproduciblePropertiesWriter
 import gradlebuild.configureAsRuntimeJarClasspath
 import gradlebuild.kotlindsl.generator.tasks.GenerateKotlinDependencyExtensions
@@ -30,6 +29,7 @@ val apiExtensionsOutputDir = layout.buildDirectory.dir("generated-sources/kotlin
 
 val libs = project.versionCatalogs.named("libs")
 val kotlinVersion = libs.findVersion("kotlin").get().getStrictVersion()
+val publishedKotlinDslPluginVersion = libs.findVersion("kotlinDslPlugins").get().requiredVersion
 
 tasks {
 

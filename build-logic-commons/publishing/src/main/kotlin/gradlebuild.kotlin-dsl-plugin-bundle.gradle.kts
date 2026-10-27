@@ -15,7 +15,6 @@
  */
 
 import gradlebuild.basics.capitalize
-import gradlebuild.basics.kotlindsl.publishedKotlinDslPluginVersion
 import gradlebuild.pluginpublish.extension.PluginPublishExtension
 import org.gradle.plugin.compatibility.compatibility
 import org.objectweb.asm.ClassReader
@@ -69,6 +68,7 @@ publishing.publications.withType<MavenPublication>().configureEach {
 // Test builds apply the plugins at the version that Gradle expects, which is the published version.
 // Thus the test repository holds the plugins of this build at that version, not at the version of this build.
 // The version is compiled into the plugins jar, so the jar in the test repository gets a class with the published version.
+val publishedKotlinDslPluginVersion by lazy { versionCatalogs.named("libs").findVersion("kotlinDslPlugins").get().requiredVersion }
 val stagingRepository = layout.buildDirectory.dir("repository-staging")
 val localRepository = layout.buildDirectory.dir("repository")
 val checkoutVersion = gradleModule.identity.reproducibleVersion
@@ -101,9 +101,10 @@ val writeTestRepositoryVersionClass = tasks.register("writeTestRepositoryVersion
     val classesDir = layout.buildDirectory.dir("test-repository-classes")
     val classPath = versionClassPath
     val checkout = checkoutVersion
+    val published = publishedKotlinDslPluginVersion
     inputs.file(pluginsJar)
     inputs.property("checkoutVersion", checkout)
-    inputs.property("publishedVersion", publishedKotlinDslPluginVersion)
+    inputs.property("publishedVersion", published)
     outputs.dir(classesDir)
     doLast {
         val original = ZipFile(pluginsJar.get().asFile).use { jar -> jar.getInputStream(jar.getEntry(classPath)).readBytes() }
@@ -113,7 +114,7 @@ val writeTestRepositoryVersionClass = tasks.register("writeTestRepositoryVersion
             override fun visitMethod(access: Int, name: String, descriptor: String, signature: String?, exceptions: Array<String>?) =
                 object : MethodVisitor(Opcodes.ASM9, super.visitMethod(access, name, descriptor, signature, exceptions)) {
                     override fun visitLdcInsn(value: Any) {
-                        super.visitLdcInsn(if (value == checkout.get()) publishedKotlinDslPluginVersion else value)
+                        super.visitLdcInsn(if (value == checkout.get()) published else value)
                     }
                 }
         }, 0)
@@ -133,6 +134,7 @@ val testRepositoryPluginsJar = tasks.register<Jar>("testRepositoryPluginsJar") {
 val publishPluginsToTestRepository = tasks.register<Sync>("publishPluginsToTestRepository") {
     dependsOn(publishPluginsToStagingRepository)
     val checkout = checkoutVersion
+    val published = publishedKotlinDslPluginVersion
     val pluginsJarName = checkout.map { "gradle-kotlin-dsl-plugins-$it.jar" }
     from(stagingRepository) {
         // The checksums do not match the changed files
@@ -141,11 +143,11 @@ val publishPluginsToTestRepository = tasks.register<Sync>("publishPluginsToTestR
             if (name == pluginsJarName.get()) {
                 exclude()
             } else {
-                path = path.replace(checkout.get(), publishedKotlinDslPluginVersion)
+                path = path.replace(checkout.get(), published)
             }
         }
         filesMatching(listOf("**/*.pom", "**/*.module", "**/maven-metadata.xml")) {
-            filter { line: String -> line.replace(checkout.get(), publishedKotlinDslPluginVersion) }
+            filter { line: String -> line.replace(checkout.get(), published) }
         }
     }
     from(testRepositoryPluginsJar) {
