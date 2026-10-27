@@ -510,17 +510,17 @@ By declaring compatible attributes, you decouple your projects from internal nam
 == Favor `String` Values for Custom Attributes
 
 When declaring a custom <<variant_attributes.adoc#variant-attributes,attribute>>, use `String` as its value type.
-Use `Boolean` or a subtype of `Number` when the attribute models a flag or a quantity.
+Use `Boolean` or `Integer` when the attribute models a flag or a quantity.
 Avoid using `Named` types.
 
 === Explanation
 
 Gradle accepts four kinds of attribute value type: `String`, `Boolean`, any subtype of `Number`, and any type implementing link:{javadocPath}/org/gradle/api/Named.html[`Named`].
-The first three are plain data.
+The first three are plain data, though only `Integer` among the numeric types can be published.
 Gradle's own attributes, such as `Usage` and `LibraryElements`, use `Named` interfaces, which makes `Named` look like the idiomatic choice for your own attributes.
 It is not.
 
-No matter which of these types you declare, the value is converted to a plain string whenever it leaves the build.
+A `Named` value is converted to a plain string whenever it leaves the build.
 It is published to <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>, and reported in resolution results, only as this string.
 A `Named` type adds machinery on top of that string without changing what the string does:
 
@@ -560,7 +560,7 @@ include::sample[dir="snippets/best-practices/preferStringAttributes-do/groovy",f
 <2> *The value is written literally*: no `ObjectFactory` is involved.
 <3> *The value is read as-is*: no unwrapping step.
 
-Both builds declare the same attribute, match on the same value, and print `my-format = json`.
+Both builds declare the same attribute, set the same value, and print `my-format = json`.
 The `String` version does it without a supporting type.
 
 ==== Enums Are Not an Exception
@@ -590,7 +590,7 @@ Within a single build that constraint may be acceptable; across a publication bo
 ==== Mutable State on an Enum is Silently Dropped
 
 The example above keeps `extension` `final`, so its value is fixed by the enum's own initializers and is reconstructed wherever the constant is.
-A *mutable* field assigned per constant during configuration behaves far worse, because an attribute value is stored as nothing more than its type name and its constant name.
+A *mutable* field assigned per constant during configuration behaves far worse, because the <<configuration_cache.adoc#config_cache,Configuration Cache>> stores an enum constant as a reference to its class and position, not as an object with fields.
 
 ====
 include::sample[dir="snippets/best-practices/preferStringAttributesMutableEnum-avoid/kotlin",files="build.gradle.kts[tags=avoid-this]"]
@@ -599,9 +599,9 @@ include::sample[dir="snippets/best-practices/preferStringAttributesMutableEnum-a
 
 <1> *A mutable field*, defaulted by the enum's own initializer.
 <2> *Assigned during the configuration phase*, not by the initializer.
-<3> *The attribute value is read back and its mutable state captured* for use during task execution.
+<3> *The attribute value is read back and the enum constant captured by the task* for use during task execution.
 
-With the <<configuration_cache.adoc#config_cache,Configuration Cache>> enabled, the value read back from the attribute depends on whether the daemon that serves the build still happens to have the enum class loaded:
+With the Configuration Cache enabled, the field's value at execution time depends on whether the daemon that serves the build still happens to have the enum class loaded:
 
 [source,text]
 ----
@@ -616,18 +616,19 @@ attr value = TYPE_A, extension = unset
 ----
 
 On a cache hit the configuration phase does not run, so the assignment never happens again.
-A warm daemon hides this, because the mutated constant is still in memory and the stored name resolves straight back to it.
+A warm daemon hides this, because the mutated constant is still in memory and the stored reference resolves straight back to it.
 A cold daemon re-initializes the enum class and the field reverts to `unset`.
 
 The result is a build whose behavior changes based on daemon lifetime — the hardest class of bug to reproduce.
-Nothing warns you, because from Gradle's point of view the attribute round-tripped perfectly: the name is intact, and the name is all an attribute value is.
+Nothing warns you, because from Gradle's point of view the value round-tripped perfectly: the same constant comes back, and its fields were never part of what was stored.
+This applies to any enum a task captures, and an attribute value is an easy way for one to end up there.
 
 Mutable state on an enum used as an attribute value is therefore **never safe**, and immutable state is usable only inside the declaring build.
 If you accept those limits deliberately, a `Named` enum can work.
 
 [TIP]
 ====
-The simpler default is to keep the two responsibilities separate: declare an attribute as a `String` or as a numeric type.
+The simpler default is to keep the two responsibilities separate: declare an attribute as a `String`, or as a `Boolean` or `Integer` for flags and quantities.
 If your build also needs a type that maps names to behavior, let that type exist on its own terms rather than as the attribute's value type.
 ====
 
