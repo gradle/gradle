@@ -99,14 +99,15 @@ public class WorkInProgressRenderer implements OutputEventListener {
     }
 
     private void attach(ProgressOperation operation) {
-        if (operation.hasChildrenOtherThanWorkActions() || !isRenderable(operation)) {
+        // The children of an operation can end after this operation, which is then not shown again
+        if (!operations.isRunning(operation) || operation.hasChildrenOtherThanWorkActions() || !isRenderable(operation) || isShownOrWaiting(operation)) {
             return;
         }
 
-        // The child is shown on the line of its parent, if any, in place of the parent
+        // The child is shown on the line of its line owner, if any, in place of this owner
         // A work action is shown on a line of its own instead
         if (operation.getParent() != null && !operation.isWorkAction()) {
-            unshow(operation.getParent());
+            unshow(lineOwner(operation.getParent()));
         }
 
         // No more unused label? Try to resize.
@@ -130,11 +131,23 @@ public class WorkInProgressRenderer implements OutputEventListener {
         operationIdToAssignedLabels.put(operation.getOperationId(), association);
     }
 
+    // The operation whose line is used by a child of parent: parent itself, or else its nearest ancestor that is not a hidden work action
+    private static ProgressOperation lineOwner(ProgressOperation parent) {
+        ProgressOperation owner = parent;
+        while (owner.isHiddenWorkAction() && owner.getParent() != null) {
+            owner = owner.getParent();
+        }
+        return owner;
+    }
+
     // The work actions that started before the second work action are also shown
     private void showWorkActions(@Nullable ProgressOperation parent) {
         if (parent == null || !parent.showsWorkActions()) {
             return;
         }
+        // While the first work action was hidden, the line of the line owner was possibly given to a child of this work action
+        // So the line owner is attached again
+        attach(lineOwner(parent));
         for (ProgressOperation workAction : parent.getWorkActions()) {
             if (!isShownOrWaiting(workAction)) {
                 attach(workAction);
@@ -156,7 +169,7 @@ public class WorkInProgressRenderer implements OutputEventListener {
 
         // A work action is shown next to its parent, so its line, if any, is given to a waiting operation
         if (!operation.isWorkAction() && operation.getParent() != null && isRenderable(operation.getParent())) {
-            attach(operation.getParent());
+            attach(lineOwner(operation.getParent()));
         } else if (lineFreed && !unassignedProgressOperations.isEmpty()) {
             attach(unassignedProgressOperations.pop());
             reportLinesNotShown();

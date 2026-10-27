@@ -84,4 +84,8 @@ public class ProgressOperations {
         }
         return op;
     }
+
+    boolean isRunning(ProgressOperation operation) {
+        return operationsById.containsKey(operation.getOperationId());
+    }
 }

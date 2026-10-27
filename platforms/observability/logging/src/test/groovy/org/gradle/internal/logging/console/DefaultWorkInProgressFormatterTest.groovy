@@ -43,6 +43,46 @@ class DefaultWorkInProgressFormatterTest extends Specification {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/39544")
+    def "leaves out the message of the single work action of an operation, as its line is not shown"() {
+        given:
+        def task = new ProgressOperation(":pmdMain", "VARIANT_CATEGORY", new OperationIdentifier(1), null)
+        def workAction = new ProgressOperation("Executing work action PmdInvoker", "VARIANT_CATEGORY", new OperationIdentifier(2), task, true)
+        task.addChild(workAction)
+        def resolution = new ProgressOperation("Resolve dependencies", "VARIANT_CATEGORY", new OperationIdentifier(3), workAction)
+        workAction.addChild(resolution)
+
+        expect:
+        statusBarFormatter.format(resolution).first().text == "> :pmdMain > Resolve dependencies"
+
+        when:
+        task.addChild(new ProgressOperation("Executing work action PmdInvoker", "VARIANT_CATEGORY", new OperationIdentifier(4), task, true))
+
+        then:
+        statusBarFormatter.format(resolution).first().text == "> :pmdMain > Executing work action PmdInvoker > Resolve dependencies"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39544")
+    def "adds the number of completed work actions submitted by the single work action of an operation to the line of this operation"() {
+        given:
+        def task = new ProgressOperation(":work", "VARIANT_CATEGORY", new OperationIdentifier(1), null)
+        def workAction = new ProgressOperation("Executing work action A", "VARIANT_CATEGORY", new OperationIdentifier(2), task, true)
+        task.addChild(workAction)
+        def submitted = new ProgressOperation("Executing work action B", "VARIANT_CATEGORY", new OperationIdentifier(3), workAction, true)
+        workAction.addChild(submitted)
+        workAction.addChild(new ProgressOperation("Executing work action C", "VARIANT_CATEGORY", new OperationIdentifier(4), workAction, true))
+
+        expect:
+        statusBarFormatter.format(task).first().text == "> :work > 0 work actions completed"
+        statusBarFormatter.format(submitted).first().text == "> :work > Executing work action B"
+
+        when:
+        workAction.workActionCompleted()
+
+        then:
+        statusBarFormatter.format(task).first().text == "> :work > 1 work action completed"
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39544")
     def "adds the number of completed work actions to the line of their parent, from its second work action"() {
         given:
         def task = new ProgressOperation(":work", "VARIANT_CATEGORY", new OperationIdentifier(1), null)

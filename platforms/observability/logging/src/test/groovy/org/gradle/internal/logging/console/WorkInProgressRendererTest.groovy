@@ -263,6 +263,236 @@ class WorkInProgressRendererTest extends OutputSpecification {
     }
 
     @Issue("https://github.com/gradle/gradle/issues/39544")
+    def "gives the line of a task to the work of its single work action, and takes it back when this work ends"() {
+        given:
+        metaData.getRows() >> 6
+
+        when:
+        renderer.onOutput(start(id: 1, status: ":pmdMain"))
+        renderer.onOutput(start(id: 2, parentId: 1, status: "Executing work action PmdInvoker", buildOperationCategory: BuildOperationCategory.WORK_ACTION))
+        renderer.onOutput(start(id: 3, parentId: 2, status: "Resolve dependencies"))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :pmdMain > Resolve dependencies"]
+
+        when:
+        renderer.onOutput(complete(3))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :pmdMain"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39544")
+    def "keeps the line of a task for the work of its single work action when the own work of the task ends"() {
+        given:
+        metaData.getRows() >> 6
+
+        when:
+        renderer.onOutput(start(id: 1, status: ":work"))
+        renderer.onOutput(start(id: 2, parentId: 1, status: "Executing work action A", buildOperationCategory: BuildOperationCategory.WORK_ACTION))
+        renderer.onOutput(start(id: 3, parentId: 2, status: "Resolve dependencies"))
+        renderer.onOutput(start(id: 4, parentId: 1, status: "Resolve dependencies of :foo"))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work > Resolve dependencies", "> :work > Resolve dependencies of :foo"]
+
+        when:
+        renderer.onOutput(complete(4))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work > Resolve dependencies", "> IDLE"]
+
+        when:
+        renderer.onOutput(complete(3))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work", "> IDLE"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39544")
+    def "gives the line of a task to the work of a work action submitted by its single work action"() {
+        given:
+        metaData.getRows() >> 6
+
+        when:
+        renderer.onOutput(start(id: 1, status: ":work"))
+        renderer.onOutput(start(id: 2, parentId: 1, status: "Executing work action A", buildOperationCategory: BuildOperationCategory.WORK_ACTION))
+        renderer.onOutput(start(id: 3, parentId: 2, status: "Executing work action B", buildOperationCategory: BuildOperationCategory.WORK_ACTION))
+        renderer.onOutput(start(id: 4, parentId: 3, status: "Resolve dependencies"))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work > Resolve dependencies"]
+
+        when:
+        renderer.onOutput(complete(4))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39544")
+    def "does not show an operation again when the work of its single work action ends after this operation"() {
+        given:
+        metaData.getRows() >> 6
+
+        when:
+        renderer.onOutput(start(id: 1, status: ":work"))
+        renderer.onOutput(start(id: 2, parentId: 1, status: "B"))
+        renderer.onOutput(start(id: 3, parentId: 2, status: "Executing work action A", buildOperationCategory: BuildOperationCategory.WORK_ACTION))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work > B"]
+
+        when:
+        renderer.onOutput(complete(2))
+        renderer.onOutput(start(id: 4, parentId: 3, status: "Resolve dependencies"))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work", "> :work > B > Resolve dependencies"]
+
+        when:
+        renderer.onOutput(complete(4))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work", "> IDLE"]
+
+        when:
+        renderer.onOutput(complete(3))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work", "> IDLE"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39544")
+    def "shows the work actions submitted by the single work action of a task next to the line of the task, and their count on this line"() {
+        given:
+        metaData.getRows() >> 6
+
+        when:
+        renderer.onOutput(start(id: 1, status: ":work"))
+        renderer.onOutput(start(id: 2, parentId: 1, status: "Executing work action A", buildOperationCategory: BuildOperationCategory.WORK_ACTION))
+        renderer.onOutput(start(id: 3, parentId: 2, status: "Executing work action B", buildOperationCategory: BuildOperationCategory.WORK_ACTION))
+        renderer.onOutput(start(id: 4, parentId: 2, status: "Executing work action C", buildOperationCategory: BuildOperationCategory.WORK_ACTION))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work > 0 work actions completed", "> :work > Executing work action B", "> :work > Executing work action C"]
+
+        when:
+        renderer.onOutput(complete(3))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work > 1 work action completed", "> IDLE", "> :work > Executing work action C"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39544")
+    def "shows the line of a task again when its single work action submits a second work action while the work of the first one has the line of the task"() {
+        given:
+        metaData.getRows() >> 6
+
+        when:
+        renderer.onOutput(start(id: 1, status: ":work"))
+        renderer.onOutput(start(id: 2, parentId: 1, status: "Executing work action A", buildOperationCategory: BuildOperationCategory.WORK_ACTION))
+        renderer.onOutput(start(id: 3, parentId: 2, status: "Executing work action B", buildOperationCategory: BuildOperationCategory.WORK_ACTION))
+        renderer.onOutput(start(id: 4, parentId: 3, status: "Resolve dependencies"))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work > Resolve dependencies"]
+
+        when:
+        renderer.onOutput(start(id: 5, parentId: 2, status: "Executing work action C", buildOperationCategory: BuildOperationCategory.WORK_ACTION))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work > Executing work action B > Resolve dependencies", "> :work > 0 work actions completed", "> :work > Executing work action C"]
+
+        when:
+        renderer.onOutput(complete(4))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work > Executing work action B", "> :work > 0 work actions completed", "> :work > Executing work action C"]
+
+        when:
+        renderer.onOutput(complete(3))
+        renderer.onOutput(complete(5))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> IDLE", "> :work > 2 work actions completed", "> IDLE"]
+
+        when:
+        renderer.onOutput(complete(2))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> IDLE", "> :work", "> IDLE"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39544")
+    def "shows the line of a task again when a second work action starts while the work of the first one has the line of the task"() {
+        given:
+        metaData.getRows() >> 6
+
+        when:
+        renderer.onOutput(start(id: 1, status: ":work"))
+        renderer.onOutput(start(id: 2, parentId: 1, status: "Executing work action A", buildOperationCategory: BuildOperationCategory.WORK_ACTION))
+        renderer.onOutput(start(id: 3, parentId: 2, status: "Resolve dependencies"))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work > Resolve dependencies"]
+
+        when:
+        renderer.onOutput(start(id: 4, parentId: 1, status: "Executing work action B", buildOperationCategory: BuildOperationCategory.WORK_ACTION))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work > Executing work action A > Resolve dependencies", "> :work > 0 work actions completed", "> :work > Executing work action B"]
+
+        when:
+        renderer.onOutput(complete(3))
+        renderer.onOutput(updateNow())
+        console.flush()
+
+        then:
+        progressArea.display == ["> :work > Executing work action A", "> :work > 0 work actions completed", "> :work > Executing work action B"]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39544")
     def "shows the lines of the work actions of a task next to its line, from the second one"() {
         given:
         metaData.getRows() >> 6

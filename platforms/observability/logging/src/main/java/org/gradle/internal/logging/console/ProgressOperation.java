@@ -18,6 +18,7 @@ package org.gradle.internal.logging.console;
 
 import org.gradle.internal.operations.OperationIdentifier;
 import org.gradle.util.internal.GUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.LinkedHashSet;
@@ -118,6 +119,31 @@ public class ProgressOperation {
     }
 
     /**
+     * Whether this is the single work action of its parent.
+     * Such a work action is hidden: its line and its message are not shown.
+     */
+    boolean isHiddenWorkAction() {
+        return workAction && parent != null && !parent.showsWorkActions();
+    }
+
+    /**
+     * The operation whose count of completed work actions is shown on the line of this operation, if any.
+     * This is this operation, or else its hidden work action, at any depth, as a hidden work action has no line.
+     */
+    @Nullable
+    ProgressOperation getWorkActionCountOwner() {
+        ProgressOperation owner = this;
+        while (!owner.showsWorkActions()) {
+            List<ProgressOperation> workActions = owner.getWorkActions();
+            if (workActions.isEmpty()) {
+                return null;
+            }
+            owner = workActions.get(0);
+        }
+        return owner;
+    }
+
+    /**
      * The running work actions of this operation, in the order they started.
      */
     List<ProgressOperation> getWorkActions() {
@@ -132,10 +158,14 @@ public class ProgressOperation {
         return workActions;
     }
 
+    /**
+     * Whether this operation has children other than work actions.
+     * The children of a hidden work action are counted as children of this operation, at any depth.
+     */
     boolean hasChildrenOtherThanWorkActions() {
         if (children != null) {
             for (ProgressOperation child : children) {
-                if (!child.isWorkAction()) {
+                if (!child.isWorkAction() || (child.isHiddenWorkAction() && child.hasChildrenOtherThanWorkActions())) {
                     return true;
                 }
             }
