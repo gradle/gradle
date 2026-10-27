@@ -232,9 +232,9 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, DomainO
     }
 
     @Override
-    public void observeElements(Action<? super T> action) {
-        onMethodCall("observeElements(Action)");
-        ((DomainObjectCollectionInternal<T>) getDelegate()).observeElements(action);
+    public void forwardElements(Action<? super T> action) {
+        onMethodCall("forwardElements(Action)");
+        ((DomainObjectCollectionInternal<T>) getDelegate()).forwardElements(action);
     }
 
     @Override

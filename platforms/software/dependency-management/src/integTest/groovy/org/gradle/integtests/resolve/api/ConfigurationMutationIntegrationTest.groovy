@@ -781,13 +781,13 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
         outputContains("dependencies = [org:lib:1.0]")
     }
 
-    def "eager listener on #collection sees dependency added with addLater with version #version"() {
+    def "eager listener on dependencies sees dependency added with addLater once"() {
         buildFile """
             def version = objects.property(String)
             def impl = configurations.dependencyScope("impl").get()
             version.set("1.0")
 
-            impl.${collection}.all { println "listener saw " + it.group + ":" + it.name + ":" + it.version }
+            impl.dependencies.all { println "listener saw " + it.group + ":" + it.name + ":" + it.version }
             impl.dependencies.addLater(version.map { project.dependencies.create("org:lib:\$it") })
             version.set("2.0")
 
@@ -796,34 +796,30 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
 
         expect:
         succeeds("help")
-        outputContains("dependencies = [org:lib:${version}]")
         output.count("listener saw org:lib:") == 1
-        outputContains("listener saw org:lib:${version}")
-
-        where:
-        collection        | version
-        // The composite of all dependencies forwards additions lazily, so the provider is queried when the dependencies are read
-        "allDependencies" | "2.0"
-        // An eager listener on the set itself makes addLater query the provider right away
-        "dependencies"    | "1.0"
+        outputContains("listener saw org:lib:1.0")
+        outputContains("dependencies = [org:lib:1.0]")
     }
 
-    def "eager listener on allDependencies can add dependencies to the configuration"() {
+    def "eager listener on allDependencies sees dependency added with addLater again when the dependencies are read"() {
         buildFile """
+            def version = objects.property(String)
             def impl = configurations.dependencyScope("impl").get()
+            version.set("1.0")
 
-            impl.allDependencies.all {
-                if (it.name == "a") {
-                    impl.dependencies.add(project.dependencies.create("org:b:1.0"))
-                }
-            }
-            impl.dependencies.add(project.dependencies.create("org:a:1.0"))
+            impl.allDependencies.all { println "listener saw " + it.group + ":" + it.name + ":" + it.version }
+            impl.dependencies.addLater(version.map { project.dependencies.create("org:lib:\$it") })
+            version.set("2.0")
 
-            println "dependencies = " + impl.dependencies.collect { it.name }
+            println "dependencies = " + impl.dependencies.collect { it.group + ":" + it.name + ":" + it.version }
         """
 
         expect:
         succeeds("help")
-        outputContains("dependencies = [a, b]")
+        // Only the derived collection is listened to, so the provider is queried on add and again when the dependencies are read
+        output.count("listener saw org:lib:") == 2
+        outputContains("listener saw org:lib:1.0")
+        outputContains("listener saw org:lib:2.0")
+        outputContains("dependencies = [org:lib:2.0]")
     }
 }

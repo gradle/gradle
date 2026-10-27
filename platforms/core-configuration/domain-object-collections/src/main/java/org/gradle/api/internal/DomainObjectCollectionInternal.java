@@ -36,10 +36,9 @@ public interface DomainObjectCollectionInternal<T> extends DomainObjectCollectio
     void beforeCollectionChanges(Action<String> action);
 
     /**
-     * Like {@link #configureEach(Action)}, the action is executed for each element once it is realized, without realizing pending elements.
-     * Unlike it, the action does not run under the lazy behavior guard, so whatever it notifies may mutate this collection.
-     * Meant for forwarding element events to other collections, such as composites, where user listeners may react to them.
+     * Like {@link #all(Action)}, for forwarding the elements to a composite collection.
+     * Unlike with {@code all}, pending elements realized on add are queried again when this collection is read.
      */
-    void observeElements(Action<? super T> action);
+    void forwardElements(Action<? super T> action);
 
 }
