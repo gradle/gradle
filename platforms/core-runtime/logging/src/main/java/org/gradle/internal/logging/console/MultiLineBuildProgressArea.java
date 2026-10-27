@@ -121,23 +121,11 @@ public class MultiLineBuildProgressArea implements BuildProgressArea {
             ansi.cursorAt(Cursor.newBottomLeft()).newLines(newLines);
         }
 
-        // Redraw every entry of this area
-        for (int i = 0; i < entries.size(); ++i) {
-            DefaultRedrawableLabel label = entries.get(i);
-
-            label.redraw(ansi);
-
-            // Ensure a clean end of the line when the area scrolls
-            if (isVisible && newLines > 0 && (i + newLines) < entries.size()) {
-                int currentLength = label.getWritePosition().col;
-                int previousLength = entries.get(i + newLines).getWritePosition().col;
-                if (currentLength < previousLength) {
-                    ansi.writeAt(label.getWritePosition()).eraseForward();
-                }
-            }
-        }
-
+        // The entries are drawn while the area is visible, and erased once when it is hidden
         if (isPreviouslyVisible || isVisible) {
+            for (DefaultRedrawableLabel label : entries) {
+                label.redraw(ansi);
+            }
             ansi.cursorAt(parkCursor());
         }
         isPreviouslyVisible = isVisible;

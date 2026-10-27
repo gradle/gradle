@@ -121,6 +121,7 @@ class MultiLineBuildProgressAreaTest extends Specification {
             1 * ansi.cursorUp(5)
 
             expectAreaRedraw()
+            progressArea.getHeight() * ansi.eraseLine(Ansi.Erase.FORWARD)
             0 * ansi._
         }
     }
@@ -150,9 +151,24 @@ class MultiLineBuildProgressAreaTest extends Specification {
 
             expectAreaRedraw("Small")
 
-            (progressArea.buildProgressLabels.size() - 2) * ansi.eraseLine(Ansi.Erase.FORWARD)
+            progressArea.getHeight() * ansi.eraseLine(Ansi.Erase.FORWARD)
             0 * ansi._
         }
+    }
+
+    def "doesn't do any ansi calls when the area was never visible, also after a line of output"() {
+        given:
+        def neverVisibleArea = new MultiLineBuildProgressArea()
+
+        when:
+        ansiExecutor.write { neverVisibleArea.redraw(it) }
+        // A line of output moves the area down to the row after it, as in the colored console
+        neverVisibleArea.newLineAdjustment()
+        neverVisibleArea.scrollDownBy(1)
+        ansiExecutor.write { neverVisibleArea.redraw(it) }
+
+        then:
+        0 * ansi._
     }
 
     def "doesn't do any ansi calls when visibility is set to false before the first redraw"() {

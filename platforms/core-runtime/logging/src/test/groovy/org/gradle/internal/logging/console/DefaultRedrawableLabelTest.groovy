@@ -20,6 +20,7 @@ import org.fusesource.jansi.Ansi
 import org.gradle.internal.logging.events.StyledTextOutputEvent
 import org.gradle.internal.logging.text.StyledTextOutput
 import org.gradle.internal.nativeintegration.console.ConsoleMetaData
+import spock.lang.Issue
 import spock.lang.Specification
 
 class DefaultRedrawableLabelTest extends Specification{
@@ -175,7 +176,8 @@ class DefaultRedrawableLabelTest extends Specification{
         0 * ansi._
     }
 
-    def "scrolling the label by non-zero number of rows between redraw will rewrite the text to ansi to the new location"() {
+    @Issue("https://github.com/gradle/gradle/issues/39584")
+    def "scrolling the label by non-zero number of rows between redraw will rewrite the text to ansi to the new location and erase the rest of the row"() {
         given:
         label.text = "text"
 
@@ -192,10 +194,24 @@ class DefaultRedrawableLabelTest extends Specification{
         } else {
             1 * ansi.cursorDown(rows)
         }
+        1 * ansi.eraseLine(Ansi.Erase.FORWARD)
         0 * ansi._
 
         where:
         rows << [-9, -5, -1, 1, 4, 9]
+    }
+
+    @Issue("https://github.com/gradle/gradle/issues/39584")
+    def "erases the rest of the row when a label with no text is scrolled after it was shown"() {
+        when:
+        redraw()
+        label.scrollBy(1)
+        redraw()
+
+        then:
+        1 * ansi.cursorDown(1)
+        1 * ansi.eraseLine(Ansi.Erase.FORWARD)
+        0 * ansi._
     }
 
     def "scrolling the label by zero row between redraw won't rewrite the text to ansi"() {

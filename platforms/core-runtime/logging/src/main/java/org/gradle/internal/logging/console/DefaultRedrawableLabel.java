@@ -30,6 +30,7 @@ public class DefaultRedrawableLabel implements RedrawableLabel {
     private int previousWriteRow = absolutePositionRow;
     private boolean isVisible = true;
     private boolean previousVisibility = isVisible;
+    private boolean shown;
 
     DefaultRedrawableLabel(Cursor writePos) {
         this.writePos = writePos;
@@ -83,7 +84,8 @@ public class DefaultRedrawableLabel implements RedrawableLabel {
 
         if (isVisible) {
             if (previousWriteRow == absolutePositionRow && writtenSpans.equals(spans)) {
-                // Does not need to be redrawn
+                // Does not need to be redrawn, but its row is part of the area, also without text
+                shown = true;
                 return;
             }
 
@@ -93,6 +95,7 @@ public class DefaultRedrawableLabel implements RedrawableLabel {
 
             writtenSpans = spans;
             previousWriteRow = absolutePositionRow;
+            shown = true;
         }
     }
 
@@ -106,10 +109,11 @@ public class DefaultRedrawableLabel implements RedrawableLabel {
             }
         }
 
-        if (previousWriteRow == absolutePositionRow && textLength < writtenTextLength) {
+        // A label that scrolled since it was shown can be on a row with the text of another label or of the output.
+        // A new label is on an empty row, also on the row of the parking line, as this line has no text while the area can be made larger.
+        if ((shown && previousWriteRow != absolutePositionRow) || textLength < writtenTextLength) {
             ansi.eraseForward();
         }
-        // Note: We can't conclude anything if the label scrolled so we leave the erasing to the parent widget.
     }
 
     private static Action<AnsiContext> writeText(final String text) {
