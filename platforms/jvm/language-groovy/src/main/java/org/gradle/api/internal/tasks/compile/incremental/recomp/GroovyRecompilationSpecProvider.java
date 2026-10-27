@@ -19,7 +19,6 @@ package org.gradle.api.internal.tasks.compile.incremental.recomp;
 import com.google.common.collect.ImmutableSet;
 import org.gradle.api.file.FileTree;
 import org.gradle.api.internal.file.FileOperations;
-import org.gradle.api.internal.tasks.compile.GroovyJavaJointCompileSpec;
 import org.gradle.api.internal.tasks.compile.JavaCompileSpec;
 import org.gradle.internal.file.Deleter;
 import org.gradle.work.FileChange;
@@ -42,11 +41,17 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
     }
 
     /**
-     * For all classes with Java source that we will be recompiled due to some change, we need to recompile all subclasses.
-     * This is because Groovy might try to load some subclass when analysing Groovy classes before Java compilation, but if parent class was stale,
-     * it has been deleted, so class loading of a subclass will fail.
+     * For all classes that we will recompile due to some change, we need to recompile their accessible dependents as well.
+     * Groovy may load classes of the previous compilation from the classpath, not only read them: the compiler does so when it
+     * analyzes Groovy classes before Java compilation, and an AST transformation does so whenever it asks a classpath class for
+     * its {@code ClassNode#getTypeClass()}. Loading a class loads the classes it refers to, and a class being recompiled has been
+     * deleted from the output, so loading a stale class that refers to it fails with a {@code NoClassDefFoundError}.
+     * <p>
+     * A class recompiled because its own source changed already brings its accessible dependents along; this adds them for
+     * the classes recompiled only because a private dependency changed.
      *
-     * Fix for issue <a href="https://github.com/gradle/gradle/issues/22531">#22531</a>.
+     * Fix for issues <a href="https://github.com/gradle/gradle/issues/22531">#22531</a> and
+     * <a href="https://github.com/gradle/gradle/issues/22519">#22519</a>.
      */
     @Override
     protected void processCompilerSpecificDependencies(
@@ -55,23 +60,15 @@ public class GroovyRecompilationSpecProvider extends AbstractRecompilationSpecPr
         SourceFileChangeProcessor sourceFileChangeProcessor,
         SourceFileClassNameConverter sourceFileClassNameConverter
     ) {
-        if (!supportsGroovyJavaJointCompilation(spec)) {
-            return;
-        }
-        Set<String> classesWithJavaSource = recompilationSpec.getClassesToCompile().stream()
+        Set<String> recompiledClasses = recompilationSpec.getClassesToCompile().stream()
             .flatMap(classToCompile -> sourceFileClassNameConverter.getRelativeSourcePaths(classToCompile).stream())
-            .filter(sourcePath -> sourcePath.endsWith(".java"))
             .flatMap(sourcePath -> sourceFileClassNameConverter.getClassNames(sourcePath).stream())
             .collect(Collectors.toSet());
-        if (!classesWithJavaSource.isEmpty()) {
+        if (!recompiledClasses.isEmpty()) {
             // We need to collect just accessible dependents, since it seems
             // private references to classes are not problematic when Groovy compiler loads a class
-            sourceFileChangeProcessor.processOnlyAccessibleChangeOfClasses(classesWithJavaSource, recompilationSpec);
+            sourceFileChangeProcessor.processOnlyAccessibleChangeOfClasses(recompiledClasses, recompilationSpec);
         }
-    }
-
-    private boolean supportsGroovyJavaJointCompilation(JavaCompileSpec spec) {
-        return spec instanceof GroovyJavaJointCompileSpec && ((GroovyJavaJointCompileSpec) spec).getGroovyCompileOptions().getFileExtensions().contains("java");
     }
 
     @Override
