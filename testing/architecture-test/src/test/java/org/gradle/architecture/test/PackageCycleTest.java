@@ -81,7 +81,6 @@ public class PackageCycleTest {
             "org/gradle/plugins/ide/idea/internal/**",
             "org/gradle/plugins/ide/idea/model/internal/**"
         )),
-        entry("build-init", List.of("org/gradle/api/tasks/wrapper/internal/*")),
         // Pre-existing cycles between classpath subpackages (classpath <-> intercept, classpath <-> transforms)
         entry("classpath", List.of("org/gradle/internal/classpath/**")),
         entry("code-quality", List.of("org/gradle/api/plugins/quality/internal/*")),
@@ -194,7 +193,8 @@ public class PackageCycleTest {
         entry("toolchains-jvm", List.of("org/gradle/jvm/toolchain/**")),
         entry("toolchains-jvm-shared", List.of("org/gradle/jvm/toolchain/JavaToolchainDownload**")),
         entry("war", List.of("org/gradle/api/plugins/internal/*")),
-        entry("worker-process-services", List.of("org/gradle/process/internal/worker/**"))
+        entry("worker-process-services", List.of("org/gradle/process/internal/worker/**")),
+        entry("wrapper-plugin", List.of("org/gradle/api/tasks/wrapper/internal/*"))
     );
 
     private static final Pattern MODULE_FROM_LOCATION = Pattern.compile("/([^/]+)/build/(classes|libs)/");

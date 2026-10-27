@@ -20,7 +20,6 @@ dependencies {
     api(projects.daemonServerWorker)
     api(projects.daemonServices)
     api(projects.dependencyManagement)
-    api(projects.fileCollections)
     api(projects.logging)
     api(projects.platformJvm)
     api(projects.serviceProvider)
@@ -29,21 +28,14 @@ dependencies {
     api(projects.workers)
 
     implementation(projects.buildInitSpecsApi)
-    implementation(projects.fileOperations)
     implementation(projects.loggingApi)
     implementation(projects.platformNative)
-    implementation(projects.pluginsApplication) {
-        because("Needs access to StartScriptGenerator.")
-    }
     implementation(projects.pluginsJvmTestSuite)
     implementation(projects.serviceLookup)
-    implementation(projects.startParameter)
-    implementation(projects.wrapperShared)
-    implementation(projects.resources)
+    implementation(projects.wrapperPlugin)
 
     implementation(libs.groovy)
     implementation(libs.groovyTemplates)
-    implementation(libs.gson)
     implementation(libs.commonsLang)
     implementation(libs.maven3SettingsBuilder)
     implementation(libs.maven3Model)
@@ -68,9 +60,7 @@ dependencies {
 
     compileOnly(projects.platformBase)
 
-    runtimeOnly(projects.wrapperMain) {
-        because("WrapperGenerator uses the /gradle-wrapper.jar resource")
-    }
+    runtimeOnly(projects.pluginsApplication)
 
     testFixturesImplementation(projects.baseServices)
     testFixturesImplementation(projects.platformBase)
@@ -80,6 +70,7 @@ dependencies {
     testFixturesImplementation(projects.testingBase)
     testFixturesImplementation(projects.testSuitesBase)
     testFixturesImplementation(projects.pluginsJvmTestSuite)
+    testFixturesImplementation(testFixtures(projects.wrapperPlugin))
 
 
     testImplementation(projects.baseServicesGroovy)
@@ -101,6 +92,7 @@ dependencies {
     }
 
     integTestImplementation(projects.native)
+    integTestImplementation(testFixtures(projects.wrapperPlugin))
 
     integTestRuntimeOnly(providedLibs.maven3Compat)
 

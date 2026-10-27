@@ -137,6 +137,9 @@ dependencies {
         because("ClassBytesRepositoryTest makes use of Groovydoc task.")
     }
     integTestImplementation(projects.internalTesting)
+    integTestImplementation(projects.wrapperPlugin) {
+        because("ClassBytesRepositoryTest makes use of Wrapper task.")
+    }
     integTestImplementation(testLibs.mockitoKotlin)
 
     testRuntimeOnly(projects.distributionsNative) {
