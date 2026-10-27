@@ -642,4 +642,71 @@ class CompositeDomainObjectSetTest extends Specification {
         seen == ["a"]
         0 * builderProvider.calculateValue(_)
     }
+
+    def "collection removed from composite is not eager for its listeners even if the provider gives a different collection"() {
+        given:
+        def queried = false
+        def stringProvider = Mock(ProviderInternal)
+        _ * stringProvider.type >> String
+        _ * stringProvider.calculateValue(_) >> { queried = true; ValueSupplier.Value.of("y") }
+        def collection = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        def filteredCollections = TestUtil.providerFactory().provider { collection.withType(String) }
+        def composite = CompositeDomainObjectSet.create(String)
+        composite.addCollectionProvider(filteredCollections)
+        composite.toList()
+        composite.whenObjectAdded { }
+
+        when:
+        composite.removeCollectionProvider(filteredCollections)
+        collection.addLater(stringProvider)
+
+        then:
+        !queried
+    }
+
+    def "collection that a listener removes while it is added is not part of the composite"() {
+        given:
+        def queried = false
+        def laterProvider = Mock(ProviderInternal)
+        _ * laterProvider.type >> String
+        _ * laterProvider.calculateValue(_) >> { queried = true; ValueSupplier.Value.of("y") }
+        def source = collection()
+        def composite = composite()
+        def added = []
+        composite.whenObjectAdded { added << it }
+        source.addLater(Providers.of("x"))
+        source.configureEach { composite.removeCollection(source) }
+
+        when:
+        composite.addCollection(source)
+        source.addLater(laterProvider)
+
+        then:
+        added == []
+        composite.toList() == []
+        !queried
+    }
+
+    def "collection that a listener removes and adds again while it is added keeps the eager listeners of the composite"() {
+        given:
+        def source = collection("a")
+        def composite = composite()
+        def seen = []
+        def done = false
+        composite.whenObjectAdded {
+            seen << it
+            if (!done) {
+                done = true
+                composite.removeCollection(source)
+                composite.addCollection(source)
+            }
+        }
+        composite.addCollection(source)
+
+        when:
+        source.addLater(Providers.of("b"))
+
+        then:
+        seen.contains("b")
+    }
 }

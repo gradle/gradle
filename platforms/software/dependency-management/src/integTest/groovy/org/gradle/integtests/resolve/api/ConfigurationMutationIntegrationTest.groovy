@@ -915,6 +915,23 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
         outputContains("names = [b]")
     }
 
+    def "configuration that is no longer extended does not realize dependencies for listeners of the extending one"() {
+        buildFile """
+            def parent = configurations.dependencyScope("parent").get()
+            def impl = configurations.dependencyScope("impl") { extendsFrom(parent) }.get()
+            impl.allDependencies.all { }
+            impl.setExtendsFrom([])
+
+            def queried = false
+            parent.dependencies.addLater(provider { queried = true; project.dependencies.create("org:lib:1.0") })
+            println "queried = " + queried
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("queried = false")
+    }
+
     def "eager listener on allDependencies can add dependencies to the configuration"() {
         buildFile """
             def impl = configurations.dependencyScope("impl").get()

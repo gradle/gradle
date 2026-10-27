@@ -239,6 +239,12 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, DomainO
     }
 
     @Override
+    public void stopForwardingElements(EventSubscriptionVerifier<? super T> targetSubscriptions) {
+        onMethodCall("stopForwardingElements(EventSubscriptionVerifier)");
+        ((DomainObjectCollectionInternal<T>) getDelegate()).stopForwardingElements(targetSubscriptions);
+    }
+
+    @Override
     public void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
         onMethodCall("realizePendingSubscribedBy(EventSubscriptionVerifier)");
         ((DomainObjectCollectionInternal<T>) getDelegate()).realizePendingSubscribedBy(subscriptions);

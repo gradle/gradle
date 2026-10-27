@@ -19,6 +19,7 @@ import com.google.common.collect.ImmutableSet;
 import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
+import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.ElementSource;
 import org.gradle.api.internal.collections.EventSubscriptionVerifier;
 import org.gradle.api.internal.provider.BuildableBackedProvider;
@@ -128,38 +129,73 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
 
     public void addCollection(DomainObjectCollection<? extends T> collection) {
         if (!getStore().containsCollection(collection)) {
-            getStore().addComposited((DomainObjectCollectionInternal<? extends T>) collection);
-            forwardAdditions(collection);
+            DomainObjectCompositeCollection.StoredCollection<T> stored = getStore().addComposited((DomainObjectCollectionInternal<? extends T>) collection);
+            forwardAdditions(collection, stored);
             collection.whenObjectRemoved((Action<T>) t -> getDelegate().getEventRegister().fireObjectRemoved(t));
         }
     }
 
     public void addCollectionProvider(Provider<DomainObjectCollection<? extends T>> collectionProvider) {
         if (!getStore().containsCollectionProvider(collectionProvider)) {
-            getStore().addComposited(collectionProvider, collection -> {
-                forwardAdditions(collection);
+            getStore().addComposited(collectionProvider, stored -> {
+                DomainObjectCollection<? extends T> collection = stored.getWithoutSideEffects();
+                forwardAdditions(collection, stored);
                 collection.whenObjectRemoved((Action<T>) t -> getDelegate().getEventRegister().fireObjectRemoved(t));
             });
         }
     }
 
     // Eager listeners of this composite count as eager listeners of the collection
-    private void forwardAdditions(DomainObjectCollection<? extends T> collection) {
-        ((DomainObjectCollectionInternal<? extends T>) collection).forwardElements(
-            (InternalAction<T>) t -> getDelegate().getEventRegister().fireObjectAdded(t),
-            getDelegate().getEventRegister()
-        );
+    private void forwardAdditions(DomainObjectCollection<? extends T> collection, DomainObjectCompositeCollection.StoredCollection<T> stored) {
+        DomainObjectCollectionInternal<? extends T> source = (DomainObjectCollectionInternal<? extends T>) collection;
+        try {
+            source.forwardElements(
+                (InternalAction<T>) t -> {
+                    // A collection that was removed, possibly by a listener while it was wired, is not part of this one anymore
+                    if (getStore().isComposited(stored)) {
+                        getDelegate().getEventRegister().fireObjectAdded(t);
+                    }
+                },
+                subscriptionsFor(stored)
+            );
+        } finally {
+            // Removed by a listener while it was wired, possibly before the forwarding was registered
+            if (!getStore().isComposited(stored)) {
+                stopForwarding(stored, collection);
+            }
+        }
+    }
+
+    // Each composited collection gets its own, so stopping the forwarding of one doesn't affect another one, e.g. the same collection added again
+    private EventSubscriptionVerifier<T> subscriptionsFor(DomainObjectCompositeCollection.StoredCollection<T> stored) {
+        if (stored.subscriptions == null) {
+            CollectionEventRegister<T> eventRegister = getDelegate().getEventRegister();
+            // Not the register itself: the identity is what tells the composited collections apart
+            stored.subscriptions = type -> eventRegister.isSubscribed(type);
+        }
+        return stored.subscriptions;
+    }
+
+    private void stopForwarding(DomainObjectCompositeCollection.StoredCollection<T> stored, DomainObjectCollection<? extends T> collection) {
+        if (stored.subscriptions != null) {
+            ((DomainObjectCollectionInternal<? extends T>) collection).stopForwardingElements(stored.subscriptions);
+        }
     }
 
     public void removeCollection(DomainObjectCollection<? extends T> collection) {
-        getStore().removeComposited(collection);
+        DomainObjectCompositeCollection.StoredCollection<T> removed = getStore().removeComposited(collection);
+        if (removed != null) {
+            stopForwarding(removed, collection);
+        }
         for (T item : collection) {
             getDelegate().getEventRegister().fireObjectRemoved(item);
         }
     }
 
     public void removeCollectionProvider(Provider<DomainObjectCollection<? extends T>> collectionProvider) {
-        getStore().removeComposited(collectionProvider, collection -> {
+        getStore().removeComposited(collectionProvider, stored -> {
+            DomainObjectCollection<? extends T> collection = stored.getWithoutSideEffects();
+            stopForwarding(stored, collection);
             for (T item : collection) {
                 getDelegate().getEventRegister().fireObjectRemoved(item);
             }
@@ -211,19 +247,23 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
 
         private final List<StoredCollection<T>> store = new LinkedList<>();
 
-        interface StoredCollection<T> {
+        abstract static class StoredCollection<T> {
+            // What the forwarding to the composite uses, see subscriptionsFor()
+            @Nullable
+            EventSubscriptionVerifier<T> subscriptions;
+
             /**
              * Returns the collection, executing any side-effects associated with its realization.
              */
-            DomainObjectCollection<? extends T> get();
+            abstract DomainObjectCollection<? extends T> get();
             /**
              * Returns the collection without executing any side-effects associated with its realization.  This should be used only for actions
              * performed during collection realization, such as firing events for newly realized elements.
              */
-            DomainObjectCollection<? extends T> getWithoutSideEffects();
+            abstract DomainObjectCollection<? extends T> getWithoutSideEffects();
         }
 
-        static class RealizedCollection<T> implements StoredCollection<T> {
+        static class RealizedCollection<T> extends StoredCollection<T> {
             private final DomainObjectCollection<? extends T> collection;
 
             RealizedCollection(DomainObjectCollection<? extends T> collection) {
@@ -231,43 +271,43 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
             }
 
             @Override
-            public DomainObjectCollection<? extends T> get() {
+            DomainObjectCollection<? extends T> get() {
                 return collection;
             }
 
             @Override
-            public DomainObjectCollection<? extends T> getWithoutSideEffects() {
+            DomainObjectCollection<? extends T> getWithoutSideEffects() {
                 return collection;
             }
         }
 
-        static class ProvidedCollection<T> implements StoredCollection<T> {
+        static class ProvidedCollection<T> extends StoredCollection<T> {
             private final Provider<DomainObjectCollection<? extends T>> provider;
-            private final Action<DomainObjectCollection<? extends T>> onRealization;
+            private final Action<StoredCollection<T>> onRealization;
             private boolean realized;
 
             @Nullable
             private DomainObjectCollection<? extends T> collection = null;
 
-            ProvidedCollection(Provider<DomainObjectCollection<? extends T>> provider, Action<DomainObjectCollection<? extends T>> onRealization) {
+            ProvidedCollection(Provider<DomainObjectCollection<? extends T>> provider, Action<StoredCollection<T>> onRealization) {
                 this.provider = provider;
                 this.onRealization = onRealization;
             }
 
             @Override
-            public DomainObjectCollection<? extends T> get() {
+            DomainObjectCollection<? extends T> get() {
                 if (collection == null) {
                     collection = provider.get();
                 }
                 if (!realized) {
-                    onRealization.execute(collection);
+                    onRealization.execute(this);
                     realized = true;
                 }
                 return collection;
             }
 
             @Override
-            public DomainObjectCollection<? extends T> getWithoutSideEffects() {
+            DomainObjectCollection<? extends T> getWithoutSideEffects() {
                 if (collection == null) {
                     collection = provider.get();
                 }
@@ -281,6 +321,10 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
 
         private static boolean isWired(StoredCollection<?> stored) {
             return !(stored instanceof ProvidedCollection) || ((ProvidedCollection<?>) stored).realized;
+        }
+
+        boolean isComposited(StoredCollection<T> stored) {
+            return store.contains(stored);
         }
 
         public boolean containsCollection(DomainObjectCollection<? extends T> collection) {
@@ -356,26 +400,30 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
             throw new UnsupportedOperationException();
         }
 
-        public void addComposited(DomainObjectCollectionInternal<? extends T> collection) {
-            this.store.add(new RealizedCollection<>(collection));
+        public StoredCollection<T> addComposited(DomainObjectCollectionInternal<? extends T> collection) {
+            StoredCollection<T> stored = new RealizedCollection<>(collection);
+            this.store.add(stored);
+            return stored;
         }
 
-        public void addComposited(Provider<DomainObjectCollection<? extends T>> collectionProvider, Action<DomainObjectCollection<? extends T>> onRealization) {
+        public void addComposited(Provider<DomainObjectCollection<? extends T>> collectionProvider, Action<StoredCollection<T>> onRealization) {
             this.store.add(new ProvidedCollection<>(collectionProvider, onRealization));
         }
 
-        public void removeComposited(DomainObjectCollection<? extends T> collection) {
+        @Nullable
+        public StoredCollection<T> removeComposited(DomainObjectCollection<? extends T> collection) {
             Iterator<StoredCollection<T>> iterator = store.iterator();
             while (iterator.hasNext()) {
                 StoredCollection<T> next = iterator.next();
                 if (next instanceof RealizedCollection && next.get() == collection) {
                     iterator.remove();
-                    break;
+                    return next;
                 }
             }
+            return null;
         }
 
-        public void removeComposited(Provider<DomainObjectCollection<? extends T>> collectionProvider, Action<DomainObjectCollection<? extends T>> onRealized) {
+        public void removeComposited(Provider<DomainObjectCollection<? extends T>> collectionProvider, Action<StoredCollection<T>> onRealized) {
             Iterator<StoredCollection<T>> iterator = store.iterator();
             while (iterator.hasNext()) {
                 StoredCollection<T> next = iterator.next();
@@ -384,7 +432,8 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
                     if (provided.getProvider() == collectionProvider) {
                         iterator.remove();
                         if (provided.realized) {
-                            onRealized.execute(provided.getProvider().get());
+                            // With the collection that was wired, the provider may give a different one now
+                            onRealized.execute(provided);
                         }
                         break;
                     }

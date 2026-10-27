@@ -46,6 +46,11 @@ public interface DomainObjectCollectionInternal<T> extends DomainObjectCollectio
     void forwardElements(Action<? super T> action, EventSubscriptionVerifier<? super T> targetSubscriptions);
 
     /**
+     * Stops counting the eager listeners of a collection that elements were forwarded to, when this collection is no longer part of it.
+     */
+    void stopForwardingElements(EventSubscriptionVerifier<? super T> targetSubscriptions);
+
+    /**
      * Realizes the pending elements whose type is subscribed to by the given subscriptions.
      */
     void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions);

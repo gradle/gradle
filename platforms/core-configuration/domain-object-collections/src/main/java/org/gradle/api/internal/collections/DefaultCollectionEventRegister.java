@@ -107,6 +107,11 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
     }
 
     @Override
+    public void unregisterForwardingTarget(EventSubscriptionVerifier<? super T> targetSubscriptions) {
+        forwardingTargets.remove(targetSubscriptions);
+    }
+
+    @Override
     public void registerRemoveAction(Class<? extends T> type, Action<? super T> removeAction) {
         registerRemoveDecoratedAction(removeAction);
     }
@@ -159,6 +164,20 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
         public boolean isSubscribed(@Nullable Class<? extends S> type) {
             return (type == null || filter.getType().isAssignableFrom(type)) && targetSubscriptions.isSubscribed(type);
         }
+
+        @Override
+        public boolean equals(Object o) {
+            if (!(o instanceof FilteredSubscriptions)) {
+                return false;
+            }
+            FilteredSubscriptions<?> that = (FilteredSubscriptions<?>) o;
+            return filter == that.filter && targetSubscriptions.equals(that.targetSubscriptions);
+        }
+
+        @Override
+        public int hashCode() {
+            return System.identityHashCode(filter) * 31 + targetSubscriptions.hashCode();
+        }
     }
 
     private class FilteredEventRegister<S extends T> implements CollectionEventRegister<S> {
@@ -208,6 +227,11 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
         @Override
         public Action<? super S> registerForwardingAddAction(Action<? super S> addAction, EventSubscriptionVerifier<? super S> targetSubscriptions) {
             return delegate.registerForwardingAddAction(filter.filtered(addAction), new FilteredSubscriptions<>(filter, targetSubscriptions));
+        }
+
+        @Override
+        public void unregisterForwardingTarget(EventSubscriptionVerifier<? super S> targetSubscriptions) {
+            delegate.unregisterForwardingTarget(new FilteredSubscriptions<>(filter, targetSubscriptions));
         }
 
         @Override

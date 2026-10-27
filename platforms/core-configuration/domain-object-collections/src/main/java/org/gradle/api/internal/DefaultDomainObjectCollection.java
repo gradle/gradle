@@ -233,6 +233,11 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     }
 
     @Override
+    public void stopForwardingElements(EventSubscriptionVerifier<? super T> targetSubscriptions) {
+        eventRegister.unregisterForwardingTarget(targetSubscriptions);
+    }
+
+    @Override
     public void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
         store.realizePendingSubscribedBy(subscriptions);
     }

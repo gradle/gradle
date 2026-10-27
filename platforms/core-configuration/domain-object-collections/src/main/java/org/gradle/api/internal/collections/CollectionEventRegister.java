@@ -44,6 +44,11 @@ public interface CollectionEventRegister<T> extends EventSubscriptionVerifier<T>
      */
     Action<? super T> registerForwardingAddAction(Action<? super T> addAction, EventSubscriptionVerifier<? super T> targetSubscriptions);
 
+    /**
+     * Stops taking over the subscriptions of the other collection, when elements are not forwarded to it anymore.
+     */
+    void unregisterForwardingTarget(EventSubscriptionVerifier<? super T> targetSubscriptions);
+
     void registerRemoveAction(Class<? extends T> type, Action<? super T> removeAction);
 
     <S extends T> CollectionEventRegister<S> filtered(CollectionFilter<S> filter);
