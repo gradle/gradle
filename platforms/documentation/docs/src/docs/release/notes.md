@@ -96,7 +96,7 @@ This also improves the [Test Retry plugin](https://github.com/gradle/test-retry-
 Previously, it reran every non-method-based test whenever any test in the task was retried, even ones that had passed. 
 Now it reruns only the failed ones.
 
-See the [Upgrade Guide](userguide/upgrading_version_9.html#filters_apply_to_non_method_tests) for breaking changes, and the [Test filtering](userguide/java_testing.html#filtering_non_method_tests) section in the Gradle User Manual for more details.
+See the [Upgrade Guide](userguide/upgrading_version_9.html#filters_apply_to_non_method_tests) for breaking changes, and the [Filtering Non-Method Tests](userguide/java_testing.html#filtering_non_method_tests) section in the Gradle User Manual for more details.
 
 ### CLI, logging, and problem reporting
 Gradle provides an intuitive [command-line interface](userguide/command_line_interface.html), detailed [logs](userguide/logging.html), and a structured [problems report](userguide/reporting_problems.html#sec:generated_html_report) that helps developers quickly identify and resolve build issues.
