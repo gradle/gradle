@@ -1191,7 +1191,7 @@
   },
   {
     "name": "plugin-use",
-    "path": "platforms/extensibility/plugin-use",
+    "path": "platforms/core-configuration/plugin-use",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

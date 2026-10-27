@@ -75,7 +75,7 @@ This platform does not provide special support for a particular kind of automati
 It is made up of 3 architecture modules:
 
 - **core-runtime**: Provides the runtimes or "containers" in which code runs. These runtimes include the Gradle client, the daemon and the worker processes. This is the base module on which all other architecture modules depend.
-- **core-configuration**: Allows the build structure and work, such as tasks, to be specified. This includes the project model, the DSL and so on.
+- **core-configuration**: Allows the build structure and work, such as tasks, to be specified. This includes the project model, the DSL, plugin resolution and so on.
 - **core-execution**: Runs the work efficiently. This includes scheduling, execution, caching and so on.
 
 ### Software development platform
@@ -96,7 +96,7 @@ This platform provides specific support for Java, Groovy and Scala, and includes
 
 ### Extensibility platform
 
-This is a platform that builds on the core, software and JVM platforms to add support for extending Gradle by implementing and applying plugins.
+This is a platform that builds on the core, software and JVM platforms to add support for extending Gradle by implementing and testing plugins.
 
 This platform includes the plugin publishing plugin and the plugin portal.
 
