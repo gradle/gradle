@@ -64,6 +64,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def classpathHasher = Mock(ClasspathHasher)
     def pluginHandler = Mock(PluginHandler)
     def compileOperationsFactory = new DefaultCompileOperationFactory(documentationRegistry)
+    def nestedScriptPluginFactory = Mock(ScriptPluginFactory)
 
     def factory = new DefaultScriptPluginFactory(
         new DefaultServiceRegistry(),
@@ -71,7 +72,8 @@ class DefaultScriptPluginFactoryTest extends Specification {
         loggingManagerFactory,
         pluginHandler,
         pluginRequestApplicator,
-        compileOperationsFactory
+        compileOperationsFactory,
+        nestedScriptPluginFactory
     )
 
     def setup() {
@@ -230,8 +232,6 @@ class DefaultScriptPluginFactoryTest extends Specification {
 
     void "configured target uses given script plugin factory for nested scripts"() {
         given:
-        def otherScriptPluginFactory = Mock(ScriptPluginFactory)
-        factory.setScriptPluginFactory(otherScriptPluginFactory)
         final Object target = new Object()
 
         when:
@@ -246,7 +246,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptCompiler.compile(DefaultScript, target, targetScope, { it.transformer != null }, !null) >> scriptRunner
         _ * scriptRunner.data >> new BuildScriptData(true)
         _ * scriptRunner.runDoesSomething >> true
-        1 * scriptRunner.run(target, { scriptServices -> scriptServices.get(ScriptPluginFactory) == otherScriptPluginFactory })
+        1 * scriptRunner.run(target, { scriptServices -> scriptServices.get(ScriptPluginFactory) == nestedScriptPluginFactory })
         0 * scriptRunner._
     }
 }

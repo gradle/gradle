@@ -11,6 +11,7 @@ dependencies {
     api(projects.coreApi)
     api(projects.daemonServerWorker)
     api(projects.files)
+    api(projects.groovyDsl)
     api(projects.logging)
     api(projects.modelReflect)
     api(projects.platformJvm)

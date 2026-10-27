@@ -296,6 +296,7 @@ platform("dsl") {
     uses(software)
     uses(jvm)
     uses(extensibility)
+    subproject("groovy-dsl")
     subproject("kotlin-dsl")
     subproject("kotlin-dsl-integ-tests")
     subproject("kotlin-dsl-plugins")

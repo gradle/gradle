@@ -42,6 +42,8 @@ import org.gradle.plugin.management.internal.PluginRequests;
 import org.gradle.plugin.use.internal.PluginRequestApplicator;
 import org.gradle.plugin.use.internal.PluginsAwareScript;
 
+import javax.inject.Inject;
+
 public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final ServiceRegistry scriptServices;
     private final ScriptCompilerFactory scriptCompilerFactory;
@@ -49,12 +51,17 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
     private final PluginHandler pluginHandler;
     private final PluginRequestApplicator pluginRequestApplicator;
     private final CompileOperationFactory compileOperationFactory;
-    private ScriptPluginFactory scriptPluginFactory;
+    private final ScriptPluginFactory scriptPluginFactory;
 
+    /**
+     * Instantiated by {@link ScriptPluginFactorySelector}, which is also the {@code scriptPluginFactory} injected here.
+     * Scripts applied from a Groovy script go through the selector, so they can be written in any DSL.
+     */
+    @Inject
     public DefaultScriptPluginFactory(
         ServiceRegistry scriptServices, ScriptCompilerFactory scriptCompilerFactory, LoggingManagerFactory loggingFactoryManager,
         PluginHandler pluginHandler, PluginRequestApplicator pluginRequestApplicator,
-        CompileOperationFactory compileOperationFactory
+        CompileOperationFactory compileOperationFactory, ScriptPluginFactory scriptPluginFactory
     ) {
         this.scriptServices = scriptServices;
         this.scriptCompilerFactory = scriptCompilerFactory;
@@ -62,10 +69,6 @@ public class DefaultScriptPluginFactory implements ScriptPluginFactory {
         this.pluginHandler = pluginHandler;
         this.pluginRequestApplicator = pluginRequestApplicator;
         this.compileOperationFactory = compileOperationFactory;
-        this.scriptPluginFactory = this;
-    }
-
-    public void setScriptPluginFactory(ScriptPluginFactory scriptPluginFactory) {
         this.scriptPluginFactory = scriptPluginFactory;
     }
 
