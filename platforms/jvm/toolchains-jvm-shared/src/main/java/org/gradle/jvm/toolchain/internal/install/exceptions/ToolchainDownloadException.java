@@ -27,17 +27,16 @@ import java.util.Arrays;
 @Contextual
 public class ToolchainDownloadException extends GradleException {
     @SuppressWarnings("this-escape")
-    public ToolchainDownloadException(JavaToolchainSpec spec, String url, @Nullable String cause) {
+    public ToolchainDownloadException(JavaToolchainSpec spec, @Nullable String url, @Nullable String cause, String... resolutions) {
         super(getMessage(spec, url, cause));
-        Arrays.asList(ToolchainProvisioningException.AUTO_DETECTION_RESOLUTION, ToolchainProvisioningException.DOWNLOAD_REPOSITORIES_RESOLUTION)
-            .forEach(this::addResolution);
+        Arrays.asList(resolutions).forEach(this::addResolution);
     }
 
     public ToolchainDownloadException(JavaToolchainSpec spec, URI uri, Throwable cause) {
         super(getMessage(spec, uri.toString(), cause.getMessage()), cause);
     }
 
-    private static String getMessage(JavaToolchainSpec spec, String url, @Nullable String cause) {
-        return "Unable to download toolchain matching the requirements (" + spec.getDisplayName() + ") from '" + url + "'" + (cause != null && !cause.isEmpty() ? ", due to: " + cause : ".");
+    private static String getMessage(JavaToolchainSpec spec, @Nullable String url, @Nullable String cause) {
+        return "Unable to download toolchain matching the requirements (" + spec.getDisplayName() + ")" + (url != null ? " from '" + url + "'" : "") + (cause != null && !cause.isEmpty() ? ", due to: " + cause : ".");
     }
 }
