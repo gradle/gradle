@@ -61,6 +61,16 @@ public interface DomainObjectCollectionInternal<T> extends DomainObjectCollectio
     boolean hasPendingElementsSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions);
 
     /**
+     * Whether the element is in this collection already, without realizing pending elements.
+     */
+    boolean containsRealized(Object element);
+
+    /**
+     * Like {@link #containsRealized(Object)}, but also counts the elements of composited collections that are not wired yet, without wiring them.
+     */
+    boolean containsRealizedIncludingUnwired(Object element);
+
+    /**
      * Whether there are elements that are not realized yet.
      */
     boolean hasPendingElements();

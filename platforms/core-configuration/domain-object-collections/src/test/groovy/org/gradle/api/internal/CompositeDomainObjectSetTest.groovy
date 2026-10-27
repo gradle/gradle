@@ -643,6 +643,22 @@ class CompositeDomainObjectSetTest extends Specification {
         0 * builderProvider.calculateValue(_)
     }
 
+    def "element that several collections of a nested composite contain reaches the listeners of the outer composite"() {
+        given:
+        def inner = composite()
+        inner.addCollectionProvider(collectionProvider("x"))
+        inner.addCollectionProvider(collectionProvider("x"))
+        def outer = composite()
+        def added = []
+        outer.whenObjectAdded { added << it }
+
+        when:
+        outer.addCollection(inner)
+
+        then:
+        added == ["x"]
+    }
+
     def "lazy listener of an outer composite sees element that several collections of a nested composite add later"() {
         given:
         def collection1 = collection()
@@ -678,6 +694,26 @@ class CompositeDomainObjectSetTest extends Specification {
         seen == ["x"]
     }
 
+    def "removing an element from one collection does not realize pending elements of the others"() {
+        given:
+        def collection1 = collection()
+        def collection2 = collection()
+        def composite = composite(collection1, collection2)
+        def seen = []
+        def removed = []
+        composite.configureEach { seen << it }
+        composite.whenObjectRemoved { removed << it }
+        collection1.add("x")
+        collection2.addLater(Providers.of("x"))
+
+        when:
+        collection1.remove("x")
+
+        then:
+        seen == ["x"]
+        removed == ["x"]
+    }
+
     def "reading includes pending element a listener adds to a collection that was read already"() {
         given:
         def collection1 = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
@@ -706,6 +742,28 @@ class CompositeDomainObjectSetTest extends Specification {
 
         expect:
         composite.toList()*.toString() == ["p", "z"]
+    }
+
+    def "uniqueness check does not realize pending elements of a filtered view of a nested composite"() {
+        given:
+        def queried = false
+        def builderProvider = Mock(ProviderInternal)
+        _ * builderProvider.type >> StringBuilder
+        _ * builderProvider.calculateValue(_) >> { queried = true; ValueSupplier.Value.of(new StringBuilder("y")) }
+        def collection1 = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        def collection2 = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        def inner = CompositeDomainObjectSet.create(CharSequence, collection1, collection2)
+        def outer = CompositeDomainObjectSet.create(String, inner.withType(String))
+        def added = []
+        outer.whenObjectAdded { added << it }
+        collection2.addLater(builderProvider)
+
+        when:
+        collection1.add("x")
+
+        then:
+        added == ["x"]
+        !queried
     }
 
     def "reading includes pending element a listener adds to a filtered collection that was read already"() {

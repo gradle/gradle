@@ -329,6 +329,16 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         return store.hasPendingElements();
     }
 
+    @Override
+    public boolean containsRealized(Object element) {
+        return store.containsRealized(element);
+    }
+
+    @Override
+    public boolean containsRealizedIncludingUnwired(Object element) {
+        return store.containsRealizedIncludingUnwired(element);
+    }
+
     @Nullable
     private Collection<T> copyRealizedElements() {
         // copy in case any actions mutate the store

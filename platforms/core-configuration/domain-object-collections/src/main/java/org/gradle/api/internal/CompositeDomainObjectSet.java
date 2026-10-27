@@ -71,12 +71,14 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         super(delegate);
     }
 
+    // Only counts the elements the composited collections have announced already: realizing others here would announce them
+    // while the check is running, so each announcement would see the other one, and the element would not be announced at all
     public class ItemIsUniqueInCompositeSpec implements Spec<T> {
         @Override
         public boolean isSatisfiedBy(T element) {
             int matches = 0;
-            for (DomainObjectCompositeCollection.StoredCollection<T> stored : getStore().store) {
-                if (stored.getWithoutSideEffects().contains(element)) {
+            for (DomainObjectCollectionInternal<? extends T> collection : getStore().wiredCollections()) {
+                if (collection.containsRealized(element)) {
                     if (++matches > 1) {
                         return false;
                     }
@@ -90,7 +92,8 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     public class ItemNotInCompositeSpec implements Spec<T> {
         @Override
         public boolean isSatisfiedBy(T element) {
-            return !getStore().contains(element);
+            // Unlike for additions, provided collections that are not wired yet count as well, but nothing is realized
+            return !getStore().containsRealizedIncludingUnwired(element);
         }
     }
 
@@ -321,6 +324,17 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
             return new ArrayList<>(store);
         }
 
+        // Provided collections that are not wired yet are left until they are read, which announces their elements
+        List<DomainObjectCollectionInternal<? extends T>> wiredCollections() {
+            List<DomainObjectCollectionInternal<? extends T>> wired = new ArrayList<>(store.size());
+            for (StoredCollection<T> stored : store) {
+                if (isWired(stored)) {
+                    wired.add((DomainObjectCollectionInternal<? extends T>) stored.get());
+                }
+            }
+            return wired;
+        }
+
         private static boolean isWired(StoredCollection<?> stored) {
             return !(stored instanceof ProvidedCollection) || ((ProvidedCollection<?>) stored).realized;
         }
@@ -508,6 +522,27 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         @Override
         public void realizePending() {
 
+        }
+
+        // The composite store's iteratorNoFlush() reads the collections, so this asks them instead
+        @Override
+        public boolean containsRealized(Object element) {
+            for (DomainObjectCollectionInternal<? extends T> collection : wiredCollections()) {
+                if (collection.containsRealized(element)) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        @Override
+        public boolean containsRealizedIncludingUnwired(Object element) {
+            for (StoredCollection<T> stored : snapshot()) {
+                if (((DomainObjectCollectionInternal<? extends T>) stored.getWithoutSideEffects()).containsRealizedIncludingUnwired(element)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override

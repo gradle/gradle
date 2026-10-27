@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.collections;
 
+import com.google.common.collect.Iterators;
 import org.gradle.api.Action;
 import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
@@ -110,6 +111,20 @@ public interface ElementSource<T> extends Iterable<T> {
      */
     default boolean hasPendingElements(Class<?> type) {
         return hasPendingElements();
+    }
+
+    /**
+     * Whether the element is in this source already, without realizing pending elements.
+     */
+    default boolean containsRealized(Object element) {
+        return Iterators.contains(iteratorNoFlush(), element);
+    }
+
+    /**
+     * Like {@link #containsRealized(Object)}, but also counts the elements of composited collections that are not wired yet, without wiring them.
+     */
+    default boolean containsRealizedIncludingUnwired(Object element) {
+        return containsRealized(element);
     }
 
     boolean addPending(ProviderInternal<? extends T> provider);

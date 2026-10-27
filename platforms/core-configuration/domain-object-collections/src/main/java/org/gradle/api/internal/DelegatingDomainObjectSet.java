@@ -251,6 +251,18 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, DomainO
     }
 
     @Override
+    public boolean containsRealizedIncludingUnwired(Object element) {
+        onMethodCall("containsRealizedIncludingUnwired(Object)");
+        return ((DomainObjectCollectionInternal<T>) getDelegate()).containsRealizedIncludingUnwired(element);
+    }
+
+    @Override
+    public boolean containsRealized(Object element) {
+        onMethodCall("containsRealized(Object)");
+        return ((DomainObjectCollectionInternal<T>) getDelegate()).containsRealized(element);
+    }
+
+    @Override
     public boolean hasPendingElementsSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
         onMethodCall("hasPendingElementsSubscribedBy(EventSubscriptionVerifier)");
         return ((DomainObjectCollectionInternal<T>) getDelegate()).hasPendingElementsSubscribedBy(subscriptions);

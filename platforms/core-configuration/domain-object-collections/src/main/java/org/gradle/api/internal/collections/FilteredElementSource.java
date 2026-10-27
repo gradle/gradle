@@ -187,6 +187,16 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
+    public boolean containsRealized(Object element) {
+        return filter.isSatisfiedBy(element) && collection.containsRealized(element);
+    }
+
+    @Override
+    public boolean containsRealizedIncludingUnwired(Object element) {
+        return filter.isSatisfiedBy(element) && collection.containsRealizedIncludingUnwired(element);
+    }
+
+    @Override
     public boolean hasPendingElements() {
         // Reading this realizes only the pending elements of the filtered type, the others stay pending
         return collection.hasPendingElements(filter.getType());

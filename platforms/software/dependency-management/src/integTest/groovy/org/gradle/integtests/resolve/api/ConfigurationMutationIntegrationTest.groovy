@@ -891,6 +891,22 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
         outputContains("dependencies = [a, b]")
     }
 
+    def "eager listener on allDependencies sees a dependency declared in two extended configurations once"() {
+        buildFile """
+            def api = configurations.dependencyScope("api").get()
+            def implementation = configurations.dependencyScope("implementation") { extendsFrom(api) }.get()
+            def classpath = configurations.dependencyScope("classpath") { extendsFrom(implementation) }.get()
+
+            classpath.allDependencies.all { println "seen " + it.group + ":" + it.name + ":" + it.version }
+            api.dependencies.add(project.dependencies.create("org:foo:1.0"))
+            implementation.dependencies.add(project.dependencies.create("org:foo:1.0"))
+        """
+
+        expect:
+        succeeds("help")
+        output.count("seen org:foo:1.0") == 1
+    }
+
     def "listener on allDependencies can extend the configuration while dependencies are realized"() {
         buildFile """
             def parent = configurations.dependencyScope("parent").get()
@@ -1039,6 +1055,25 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
         expect:
         succeeds("help")
         outputContains("queried = false")
+    }
+
+    def "removing a dependency that an indirectly extended configuration also declares does not notify listeners of allDependencies"() {
+        buildFile """
+            def grandparent = configurations.dependencyScope("grandparent").get()
+            def parent = configurations.dependencyScope("parent") { extendsFrom(grandparent) }.get()
+            def impl = configurations.dependencyScope("impl") { extendsFrom(parent) }.get()
+            grandparent.dependencies.add(project.dependencies.create("org:lib:1.0"))
+            impl.dependencies.add(project.dependencies.create("org:lib:1.0"))
+
+            impl.allDependencies.whenObjectRemoved { println "removed " + it.name }
+            impl.dependencies.removeIf { it.name == "lib" }
+            println "all dependencies = " + impl.allDependencies.collect { it.name }
+        """
+
+        expect:
+        succeeds("help")
+        outputDoesNotContain("removed lib")
+        outputContains("all dependencies = [lib]")
     }
 
     def "eager listener on allDependencies can add dependencies to the configuration"() {
