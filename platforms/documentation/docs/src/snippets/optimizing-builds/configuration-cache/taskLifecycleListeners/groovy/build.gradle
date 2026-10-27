@@ -1,0 +1,47 @@
+import java.util.concurrent.ConcurrentHashMap
+
+import org.gradle.api.services.BuildServiceParameters
+
+// tag::task-lifecycle-listeners[]
+abstract class TaskTimingsService implements BuildService<BuildServiceParameters.None> {
+    private final Map<String, Long> timings = new ConcurrentHashMap<>() // <1>
+
+    void record(String path, long nanos) {
+        timings.put(path, nanos)
+    }
+}
+
+abstract class TaskTimingListener implements TaskLifecycleListener<Task> {
+    @ServiceReference("taskTimings")
+    abstract Property<TaskTimingsService> getTimings() // <2>
+
+    private long startNanos // <3>
+
+    void beforeExecution(Task task) {
+        startNanos = System.nanoTime()
+    }
+
+    void afterExecution(Task task, TaskState state) { // <4>
+        timings.get().record(task.path, System.nanoTime() - startNanos)
+    }
+}
+
+abstract class CopyReporter implements TaskLifecycleListener<Copy> {
+    void afterExecution(Copy task, TaskState state) {
+        println "${task.name} copied files to ${task.destinationDirectory.get().asFile.name}"
+    }
+}
+
+gradle.sharedServices.registerIfAbsent('taskTimings', TaskTimingsService)
+
+tasks.configureEach {
+    addLifecycleListener(TaskTimingListener) // <5>
+}
+
+tasks.withType(Copy).addLifecycleListener(CopyReporter) // <6>
+// end::task-lifecycle-listeners[]
+
+tasks.register('copyDocs', Copy) {
+    from 'src/docs'
+    into layout.buildDirectory.dir('docs')
+}

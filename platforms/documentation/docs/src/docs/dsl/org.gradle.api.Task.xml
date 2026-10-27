@@ -111,6 +111,9 @@
                 <td>doLast</td>
             </tr>
             <tr>
+                <td>addLifecycleListener</td>
+            </tr>
+            <tr>
                 <td>property</td>
             </tr>
             <tr>

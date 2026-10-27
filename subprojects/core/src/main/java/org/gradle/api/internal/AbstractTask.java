@@ -18,6 +18,7 @@ package org.gradle.api.internal;
 
 import com.google.common.collect.Collections2;
 import com.google.common.collect.ImmutableSet;
+import com.google.common.reflect.TypeToken;
 import groovy.lang.Closure;
 import groovy.lang.MissingPropertyException;
 import groovy.util.ObservableList;
@@ -47,7 +48,9 @@ import org.gradle.api.internal.tasks.TaskMutator;
 import org.gradle.api.internal.tasks.TaskRequiredServices;
 import org.gradle.api.internal.tasks.TaskStateInternal;
 import org.gradle.api.internal.tasks.execution.DescribingAndSpec;
+import org.gradle.api.internal.tasks.properties.GetServiceReferencesVisitor;
 import org.gradle.api.internal.tasks.properties.ServiceReferenceSpec;
+import org.gradle.api.internal.tasks.properties.TaskScheme;
 import org.gradle.api.logging.Logger;
 import org.gradle.api.logging.Logging;
 import org.gradle.api.plugins.ExtensionContainer;
@@ -55,13 +58,16 @@ import org.gradle.api.provider.Property;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.provider.SetProperty;
 import org.gradle.api.services.BuildService;
+import org.gradle.api.services.ServiceReference;
 import org.gradle.api.services.internal.BuildServiceProvider;
 import org.gradle.api.services.internal.BuildServiceRegistryInternal;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.tasks.Internal;
+import org.gradle.api.tasks.Nested;
 import org.gradle.api.tasks.TaskDependency;
 import org.gradle.api.tasks.TaskDestroyables;
 import org.gradle.api.tasks.TaskInstantiationException;
+import org.gradle.api.tasks.TaskLifecycleListener;
 import org.gradle.api.tasks.TaskLocalState;
 import org.gradle.internal.Cast;
 import org.gradle.internal.Factory;
@@ -78,6 +84,9 @@ import org.gradle.internal.logging.StandardOutputCapture;
 import org.gradle.internal.logging.slf4j.ContextAwareTaskLogger;
 import org.gradle.internal.logging.slf4j.DefaultContextAwareTaskLogger;
 import org.gradle.internal.metaobject.DynamicObject;
+import org.gradle.internal.properties.PropertyValue;
+import org.gradle.internal.properties.annotations.PropertyMetadata;
+import org.gradle.internal.properties.annotations.TypeMetadata;
 import org.gradle.internal.properties.bean.PropertyWalker;
 import org.gradle.internal.resources.ResourceLock;
 import org.gradle.internal.scripts.ScriptOriginUtil;
@@ -91,10 +100,13 @@ import org.jspecify.annotations.Nullable;
 import java.beans.PropertyChangeEvent;
 import java.beans.PropertyChangeListener;
 import java.io.File;
+import java.lang.reflect.ParameterizedType;
+import java.lang.reflect.Type;
 import java.time.Duration;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
@@ -117,6 +129,10 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     private final ProjectInternal project;
 
     private List<InputChangesAwareTaskAction> actions;
+
+    @Nullable
+    private LinkedHashSet<Class<? extends TaskLifecycleListener<?>>> lifecycleListeners;
+
 
     private boolean enabled = true;
 
@@ -569,6 +585,84 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
             }
         });
         return this;
+    }
+
+    @Override
+    public void addLifecycleListener(Class<? extends TaskLifecycleListener<?>> listenerType) {
+        if (listenerType == null) {
+            throw new InvalidUserDataException("Listener type must not be null!");
+        }
+        taskMutator.mutate("Task.addLifecycleListener(Class)", () -> {
+            checkLifecycleListenerAcceptsThisTask(listenerType);
+            if (lifecycleListeners == null) {
+                lifecycleListeners = new LinkedHashSet<>();
+            }
+            if (lifecycleListeners.add(listenerType)) {
+                taskRequiredServices.registerLifecycleListenerServices(collectServiceReferences(listenerType));
+            }
+        });
+    }
+
+    /**
+     * Checks the task type the listener is declared for, as the compiler cannot do this for Groovy or reflective callers.
+     */
+    private void checkLifecycleListenerAcceptsThisTask(Class<?> listenerType) {
+        Type acceptedType = TypeToken.of(listenerType).resolveType(TaskLifecycleListener.class.getTypeParameters()[0]).getType();
+        if (!(acceptedType instanceof Class) && !(acceptedType instanceof ParameterizedType)) {
+            throw new InvalidUserDataException(String.format(
+                "Cannot add lifecycle listener %s to %s: the task type the listener accepts cannot be determined. Declare the listener as implementing TaskLifecycleListener with a concrete task type.",
+                listenerType.getName(), this
+            ));
+        }
+        Class<?> acceptedTaskType = TypeToken.of(acceptedType).getRawType();
+        if (!acceptedTaskType.isInstance(this)) {
+            throw new InvalidUserDataException(String.format(
+                "Cannot add lifecycle listener %s to %s: the listener accepts tasks of type %s, but the task is of type %s.",
+                listenerType.getName(), this, acceptedTaskType.getName(), GeneratedSubclasses.unpackType(this).getName()
+            ));
+        }
+    }
+
+    /**
+     * Collects the build services referenced by the listener via {@link ServiceReference}.
+     * The task uses these services as if it referenced them itself.
+     *
+     * <p>The references are collected when the listener is registered rather than when the required services of the task are queried:
+     * they depend only on the listener type, not on any values, so they cannot change afterward.
+     * The task then always knows the services of its listeners, including after loading from the configuration cache,
+     * where the listener types are restored without collecting their references again.</p>
+     *
+     * <p>Nested beans are rejected, as the services they reference could only be found from a listener instance.</p>
+     */
+    private List<? extends BuildServiceProvider<?, ?>> collectServiceReferences(Class<? extends TaskLifecycleListener<?>> listenerType) {
+        TypeMetadata typeMetadata = getServices().get(TaskScheme.class).getMetadataStore().getTypeMetadata(listenerType);
+        GetServiceReferencesVisitor collector = new GetServiceReferencesVisitor();
+        for (PropertyMetadata property : typeMetadata.getPropertiesMetadata()) {
+            if (property.getPropertyType() == Nested.class) {
+                throw new InvalidUserDataException(String.format(
+                    "Cannot add lifecycle listener %s to %s: property '%s' is annotated with @Nested, which is not supported for lifecycle listeners. Use @ServiceReference properties or instance fields instead.",
+                    listenerType.getName(), this, property.getPropertyName()
+                ));
+            }
+            if (property.getPropertyType() == ServiceReference.class) {
+                // The handler only reads the property metadata, not its value
+                typeMetadata.getAnnotationHandlerFor(property).visitPropertyValue(property.getPropertyName(), PropertyValue.ABSENT, property, collector);
+            }
+        }
+        return toConsumedServices(collector.getServiceReferences());
+    }
+
+    /**
+     * The services referenced by the listeners are restored together with the other services used by the task.
+     */
+    @Override
+    public void restoreLifecycleListeners(Collection<Class<? extends TaskLifecycleListener<?>>> listenerTypes) {
+        lifecycleListeners = listenerTypes.isEmpty() ? null : new LinkedHashSet<>(listenerTypes);
+    }
+
+    @Override
+    public Set<Class<? extends TaskLifecycleListener<?>>> getLifecycleListeners() {
+        return lifecycleListeners == null ? Collections.emptySet() : Collections.unmodifiableSet(lifecycleListeners);
     }
 
     @Override
@@ -1089,12 +1183,15 @@ public abstract class AbstractTask implements TaskInternal, DynamicObjectAware {
     @Override
     public void acceptServiceReferences(Set<ServiceReferenceSpec> serviceReferences) {
         if (!taskRequiredServices.hasServiceReferences()) {
-            BuildServiceRegistryInternal buildServiceRegistry = getBuildServiceRegistry();
-            List<? extends BuildServiceProvider<?, ?>> asConsumedServices = serviceReferences.stream()
-                .map(it -> buildServiceRegistry.consume(it.getBuildServiceName(), it.getBuildServiceType()))
-                .collect(Collectors.toList());
-            taskRequiredServices.acceptServiceReferences(asConsumedServices);
+            taskRequiredServices.acceptServiceReferences(toConsumedServices(serviceReferences));
         }
+    }
+
+    private List<? extends BuildServiceProvider<?, ?>> toConsumedServices(Set<ServiceReferenceSpec> serviceReferences) {
+        BuildServiceRegistryInternal buildServiceRegistry = getBuildServiceRegistry();
+        return serviceReferences.stream()
+            .map(it -> buildServiceRegistry.consume(it.getBuildServiceName(), it.getBuildServiceType()))
+            .collect(Collectors.toList());
     }
 
     @Override

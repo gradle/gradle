@@ -20,9 +20,16 @@ import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.internal.DynamicObjectAware
 import org.gradle.api.internal.GeneratedSubclass
 import org.gradle.api.internal.IConventionAware
+import org.gradle.api.internal.provider.Providers
 import org.gradle.api.plugins.ExtensionAware
 import org.gradle.api.provider.Property
 import org.gradle.api.provider.Provider
+import org.gradle.api.services.BuildService
+import org.gradle.api.services.BuildServiceParameters
+import org.gradle.api.services.BuildServiceRegistry
+import org.gradle.api.services.ServiceReference
+import org.gradle.api.services.internal.BuildServiceProvider
+import org.gradle.api.services.internal.BuildServiceRegistryInternal
 import org.gradle.api.tasks.Nested
 import org.gradle.cache.internal.TestCrossBuildInMemoryCacheFactory
 import org.gradle.internal.instantiation.ClassGenerationException
@@ -148,6 +155,30 @@ class AsmBackedClassGeneratorInjectUndecoratedTest extends AbstractClassGenerato
     private Map<Class<?>, Set<Class<?>>> injectedServicesByDeclaringType(Class<?> type) {
         def constructorSelector = new Jsr330ConstructorSelector(generator, new TestCrossBuildInMemoryCacheFactory().newClassCache())
         return constructorSelector.forType(type).injectedServicesByDeclaringType(constructorSelector)
+    }
+
+    def "can use service reference in class without injected services"() {
+        def service = Stub(TestService)
+        def provider = Stub(BuildServiceProvider) {
+            asSupplier(_, _, _) >> { args -> Providers.of(service).asSupplier(*args) }
+        }
+        def registry = Stub(BuildServiceRegistryInternal) {
+            consume("test", TestService) >> provider
+        }
+        def services = defaultServices()
+        _ * services.get(BuildServiceRegistry) >> registry
+
+        expect:
+        def bean = create(BeanWithServiceReference, services)
+        bean.service.get() == service
+    }
+
+    static abstract class TestService implements BuildService<BuildServiceParameters.None> {
+    }
+
+    static abstract class BeanWithServiceReference {
+        @ServiceReference("test")
+        abstract Property<TestService> getService()
     }
 
     static class Bean {

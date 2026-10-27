@@ -526,7 +526,7 @@ Plugins and build scripts must **not** register build listeners that are created
 This includes listeners such as `BuildListener`, `TaskExecutionListener`, and the `gradle.taskGraph.afterTask` and `gradle.buildFinished` callbacks.
 These callbacks run as part of the configuration phase, so they don't fire when the configuration phase is skipped on a cache hit.
 
-The Configuration Cache provides supported replacements for the two most common patterns: observing task execution events, and running logic at the end of the build.
+The Configuration Cache provides supported replacements for the most common patterns: observing task execution events, running logic right before and after a task executes, and running logic at the end of the build.
 
 === Replacing `taskGraph.afterTask` and `buildFinished` with a Build Service
 
@@ -549,6 +549,48 @@ include::sample[dir="snippets/optimizing-builds/configuration-cache/buildService
 <2> `gradle.buildFinished` end-of-build logic moves into the service's `close()` method. Gradle calls `close()` when the service is no longer needed, on both cache hits and cache misses.
 <3> The mutable script-level `failedTasks` list is replaced by a field on the service. State is owned by the service instance, not captured by a closure.
 <4> `BuildEventsListenerRegistry.onTaskCompletion(provider)` is the supported way to subscribe an `OperationCompletionListener`-implementing service to task-completion events. Gradle instantiates the service lazily when the first event is dispatched, so nothing about the service has to be materialized at configuration time.
+
+[[config_cache:requirements:task_lifecycle_listeners]]
+=== Replacing `taskGraph.beforeTask`, `TaskExecutionListener`, and `TaskActionListener` with a Task Lifecycle Listener incubating-label:[]
+
+An `OperationCompletionListener` receives task events asynchronously, after the task has finished.
+Some use cases need code that runs on the task's thread right before and after the task executes, for example to enrich task failures with task-specific details, to release resources even when the task fails, or to veto a task before it runs.
+
+For these, register a link:{javadocPath}/org/gradle/api/tasks/TaskLifecycleListener.html[`TaskLifecycleListener`] with the task.
+A listener is registered by type, using `Task.addLifecycleListener(Class)` or `TaskCollection.addLifecycleListener(Class)`:
+
+====
+include::sample[dir="snippets/optimizing-builds/configuration-cache/taskLifecycleListeners/kotlin",files="build.gradle.kts[tags=task-lifecycle-listeners]"]
+include::sample[dir="snippets/optimizing-builds/configuration-cache/taskLifecycleListeners/groovy",files="build.gradle[tags=task-lifecycle-listeners]"]
+====
+<1> State shared between task executions lives in a build service. The service must be thread-safe, as the listeners of tasks executing in parallel use it concurrently.
+<2> The task uses the services referenced by its listeners as if it referenced them itself, so they honor `maxParallelUsages`.
+<3> Gradle creates a new listener instance for each task execution, so instance fields carry state from `beforeExecution` to `afterExecution`.
+<4> `afterExecution` is called regardless of the outcome of the task, with the failure, if any, available from the `TaskState`.
+<5> Registering a listener for any task.
+<6> Registering a listener that accepts only `Copy` tasks on a typed task collection. Such a listener can also be registered directly on a `Copy` task. The task type the listener accepts is checked when it is registered.
+
+Only the listener types are stored in the Configuration Cache, and the listeners are created again when the tasks execute, on both cache hits and cache misses.
+
+[IMPORTANT]
+====
+The legacy listeners were notified one task at a time.
+Task lifecycle listeners are called on the thread executing the task, so the listeners of tasks executing in parallel are notified concurrently.
+When migrating, make sure that state shared between task executions, such as data recorded in a build service, is thread-safe.
+====
+
+The listener methods are called as follows:
+
+* `beforeExecution` is called before the task inputs are snapshotted, for every scheduled task, including tasks that are later up-to-date, skipped, or loaded from the build cache.
+It can change the values of task inputs, and the changed values are fingerprinted.
+It cannot change the task's outputs, including values that determine which outputs exist, such as whether a report is enabled.
+It also cannot change the task in other ways, such as adding dependencies or actions.
+Changing an input value does not add task dependencies, so tasks producing files used by the changed input must be wired at configuration time.
+* If `beforeExecution` fails, the task fails without running its actions. `afterExecution` is still called on listeners whose `beforeExecution` already ran. The same applies when a listener cannot be created.
+* `afterExecution` is called after the task outputs are recorded. If it fails, the task fails in the current build, but later builds can still consider the task up-to-date or load it from the build cache. Listeners must not produce task outputs.
+
+Listeners can inject `ObjectFactory`, `ProviderFactory`, `FileSystemOperations`, `ArchiveOperations`, `ExecOperations`, `ProjectLayout`, and `Problems` via `@Inject`.
+Unlike tasks, listeners cannot have `@Nested` properties.
 
 === Replacing `buildFinished` with a Dataflow Action
 
