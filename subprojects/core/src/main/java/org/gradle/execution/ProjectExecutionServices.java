@@ -49,7 +49,6 @@ import org.gradle.internal.hash.ClassLoaderHierarchyHasher;
 import org.gradle.internal.operations.BuildOperationRunner;
 import org.gradle.internal.service.CloseableServiceRegistry;
 import org.gradle.internal.service.Provides;
-import org.gradle.internal.service.ServiceRegistration;
 import org.gradle.internal.service.ServiceRegistry;
 import org.gradle.internal.service.ServiceRegistrationProvider;
 import org.gradle.internal.service.ServiceRegistryBuilder;
@@ -62,49 +61,44 @@ import org.gradle.normalization.internal.InputNormalizationHandlerInternal;
 public class ProjectExecutionServices implements ServiceRegistrationProvider {
 
     public static CloseableServiceRegistry create(ProjectInternal project) {
-        ServiceRegistry projectServices = project.getServices();
         return ServiceRegistryBuilder.builder()
             .scopeStrictly(Scope.ProjectExecution.class)
             .displayName("project execution services for '" + project.getPath() + "'")
             .parent(project.getGradle().getServices())
-            // TODO: The file collection factory and the task dependency factory still retain a reference to the Project instance
-            .provider(new ProjectExecutionServices(
-                projectServices.get(FileResolver.class),
-                projectServices.get(FileCollectionFactory.class),
-                projectServices.get(TaskDependencyFactory.class),
-                projectServices.get(InputNormalizationHandlerInternal.class),
-                new DefaultReservedFileSystemLocationRegistry(projectServices.getAll(ReservedFileSystemLocation.class))
-            ))
+            .provider(new ProjectExecutionServices(project.getServices()))
             .build();
     }
 
-    private final FileResolver fileResolver;
-    private final FileCollectionFactory fileCollectionFactory;
-    private final TaskDependencyFactory taskDependencyFactory;
-    private final InputNormalizationHandlerInternal inputNormalizationHandler;
-    private final ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry;
+    // TODO: Execution services should not depend on project services, which retain a reference to the Project instance
+    private final ServiceRegistry projectServices;
 
-    private ProjectExecutionServices(
-        FileResolver fileResolver,
-        FileCollectionFactory fileCollectionFactory,
-        TaskDependencyFactory taskDependencyFactory,
-        InputNormalizationHandlerInternal inputNormalizationHandler,
-        ReservedFileSystemLocationRegistry reservedFileSystemLocationRegistry
-    ) {
-        this.fileResolver = fileResolver;
-        this.fileCollectionFactory = fileCollectionFactory;
-        this.taskDependencyFactory = taskDependencyFactory;
-        this.inputNormalizationHandler = inputNormalizationHandler;
-        this.reservedFileSystemLocationRegistry = reservedFileSystemLocationRegistry;
+    private ProjectExecutionServices(ServiceRegistry projectServices) {
+        this.projectServices = projectServices;
     }
 
     @Provides
-    void configure(ServiceRegistration registration) {
-        registration.add(FileResolver.class, fileResolver);
-        registration.add(FileCollectionFactory.class, fileCollectionFactory);
-        registration.add(TaskDependencyFactory.class, taskDependencyFactory);
-        registration.add(InputNormalizationHandlerInternal.class, inputNormalizationHandler);
-        registration.add(ReservedFileSystemLocationRegistry.class, reservedFileSystemLocationRegistry);
+    FileResolver createFileResolver() {
+        return projectServices.get(FileResolver.class);
+    }
+
+    @Provides
+    FileCollectionFactory createFileCollectionFactory() {
+        return projectServices.get(FileCollectionFactory.class);
+    }
+
+    @Provides
+    TaskDependencyFactory createTaskDependencyFactory() {
+        return projectServices.get(TaskDependencyFactory.class);
+    }
+
+    @Provides
+    InputNormalizationHandlerInternal createInputNormalizationHandler() {
+        return projectServices.get(InputNormalizationHandlerInternal.class);
+    }
+
+    @Provides
+    ReservedFileSystemLocationRegistry createReservedFileSystemLocationRegistry() {
+        return new DefaultReservedFileSystemLocationRegistry(projectServices.getAll(ReservedFileSystemLocation.class));
     }
 
     @Provides
@@ -121,7 +115,7 @@ public class ProjectExecutionServices implements ServiceRegistrationProvider {
     TaskNodeExecutor createTaskNodeExecutor(
         AsyncWorkTracker asyncWorkTracker,
         BuildOperationRunner buildOperationRunner,
-        TaskExecutionGraphInternal taskGraph,
+        TaskExecutionGraphInternal taskGraph, // Build scoped on purpose: Isolated Projects checks in the project one apply to user code only
         ClassLoaderHierarchyHasher classLoaderHierarchyHasher,
         ExecutionHistoryStore executionHistoryStore,
         FileCollectionFactory fileCollectionFactory,
