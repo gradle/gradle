@@ -19,6 +19,7 @@ package org.gradle.internal.configuration.inputs;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.util.Properties;
 
 class NoOpInputsListener implements InstrumentedInputsListener {
     static final InstrumentedInputsListener INSTANCE = new NoOpInputsListener();
@@ -36,6 +37,9 @@ class NoOpInputsListener implements InstrumentedInputsListener {
 
     @Override
     public void systemPropertiesCleared(String consumer) {}
+
+    @Override
+    public void systemPropertiesReplaced(Properties properties, String consumer) {}
 
     @Override
     public void envVariableQueried(String key, @Nullable String value, String consumer) {}

@@ -19,6 +19,7 @@ package org.gradle.internal.configuration.inputs;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;
+import java.util.Properties;
 
 public interface InstrumentedInputsListener {
     /**
@@ -53,6 +54,15 @@ public interface InstrumentedInputsListener {
      * @param consumer the name of the class that is removing the system properties
      */
     void systemPropertiesCleared(String consumer);
+
+    /**
+     * Invoked when the code replaces all system properties at once.
+     * This is equivalent to clearing all system properties and then setting every entry of the new set.
+     *
+     * @param properties the new system properties
+     * @param consumer the name of the class that is replacing the system properties
+     */
+    void systemPropertiesReplaced(Properties properties, String consumer);
 
     /**
      * Invoked when the code reads the environment variable.

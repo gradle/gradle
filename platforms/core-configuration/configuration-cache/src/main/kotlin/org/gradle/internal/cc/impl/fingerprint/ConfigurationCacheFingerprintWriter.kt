@@ -71,6 +71,7 @@ import org.gradle.util.Path
 import java.io.File
 import java.net.URI
 import java.util.EnumSet
+import java.util.Properties
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicReference
 
@@ -358,6 +359,11 @@ class ConfigurationCacheFingerprintWriter(
 
     fun systemPropertiesCleared() {
         sink().systemPropertiesCleared()
+    }
+
+    fun systemPropertiesReplaced(properties: Properties, consumer: String?) {
+        systemPropertiesCleared()
+        properties.forEach { (key, value) -> systemPropertyChanged(key, value, consumer) }
     }
 
     fun systemPropertyRead(key: String, value: Any?, consumer: String?) {

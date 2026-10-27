@@ -176,8 +176,7 @@ public class Instrumented {
     }
 
     public static void setSystemProperties(Properties properties, String consumer) {
-        listener().systemPropertiesCleared(consumer);
-        properties.forEach((k, v) -> listener().systemPropertyChanged(k, v, consumer));
+        listener().systemPropertiesReplaced(properties, consumer);
         System.setProperties(properties);
     }
 
