@@ -21,6 +21,7 @@ dependencies {
     implementation(buildLibs.commonsLang3)
     implementation(buildLibs.asciidoctor)
     implementation(buildLibs.asciidoctorJvm)
+    implementation(platform(buildLibs.nettyBom))
     implementation(buildLibs.dokkaPlugin)
     implementation(buildLibs.jspecify)
 
