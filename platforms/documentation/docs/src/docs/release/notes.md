@@ -139,7 +139,7 @@ Gradle already reports progress this way to ConEmu, Ghostty, kitty, and iTerm2.
 See the [Rich console](userguide/command_line_interface.html#sec:rich_console) section in the Gradle User Manual for more details.
 
 ### Build authoring improvements
-Gradle provides \[rich APIs\](`userguide/getting_started_dev.html`) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
+Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
 #### The `wrapper` task preserves customized properties
 The [`wrapper`](userguide/gradle_wrapper.html#gradle_wrapper) task now preserves values from an existing `gradle-wrapper.properties` file when you regenerate the wrapper, for example, with `./gradlew wrapper --gradle-version @version@`.  
@@ -160,9 +160,9 @@ Build logic often has a value at hand and needs to pass it to an API that accept
 
 [`ProviderFactory`](javadoc/org/gradle/api/provider/ProviderFactory.html) now has three incubating methods for these cases:
 
-* [`absent()`](javadoc/org/gradle/api/provider/ProviderFactory.html#absent\(\)) returns a provider that never has a value.
-* [`present(value)`](javadoc/org/gradle/api/provider/ProviderFactory.html#present\(T\)) returns a provider that always has the given value.
-* [`presentIfNotNull(value)`](javadoc/org/gradle/api/provider/ProviderFactory.html#presentIfNotNull\(T\)) returns a provider that has the given value when it is not `null`, and has no value otherwise.
+* [`absent()`](javadoc/org/gradle/api/provider/ProviderFactory.html#absent()) returns a provider that never has a value.
+* [`present(value)`](javadoc/org/gradle/api/provider/ProviderFactory.html#present(T)) returns a provider that always has the given value.
+* [`presentIfNotNull(value)`](javadoc/org/gradle/api/provider/ProviderFactory.html#presentIfNotNull(T)) returns a provider that has the given value when it is not `null`, and has no value otherwise.
 
 ```kotlin
 val missing: Provider<String> = providers.absent()
@@ -177,7 +177,7 @@ Unlike `provider(Callable)`, these methods do not compute the value on demand, s
 See the [Lazy Objects API Reference](userguide/lazy_configuration.html#lazy_objects_api_reference) section in the Gradle User Manual for more details.
 
 ### Core plugin and plugin authoring enhancements
-Gradle provides a comprehensive plugin system, including built-in \[Core Plugins\](`userguide/plugin_reference.html`) for standard tasks and powerful APIs for creating custom plugins.
+Gradle provides a comprehensive plugin system, including built-in [Core Plugins](userguide/plugin_reference.html) for standard tasks and powerful APIs for creating custom plugins.
 
 #### `Sync` can empty its destination when its source is empty
 A [`Sync`](dsl/org.gradle.api.tasks.Sync.html) task works like `Copy`, but its destination directory contains only the files it copied; anything else in the destination is deleted. `Sync` now has an incubating `skipWhenSourceIsEmpty` property. Set it to `false` to make the task run when its source is empty, so the destination directory ends up empty too:
