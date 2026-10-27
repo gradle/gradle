@@ -550,7 +550,7 @@ class GroovyIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrem
     }
 
     @Issue("https://github.com/gradle/gradle/issues/22814")
-    def 'does full recompilation on fatal failure'() {
+    def 'incremental compilation does not fail when a trait helper loads a class that is recompiled for a private dependency'() {
         given:
         def a = source("class A extends ABase implements WithTrait { def m() { println('a') } }")
         source "class ABase { def mBase() { println(A) } }"
@@ -568,23 +568,15 @@ class GroovyIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrem
                 }
             }
         """
-        run "compileGroovy"
-        outputs.recompiledClasses('ABase', 'A', 'WithTrait', 'WithTrait$Trait$FieldHelper', 'WithTrait$AllPluginsValidation', 'WithTrait$Trait$Helper')
+        outputs.snapshot { run "compileGroovy" }
 
         when:
+        // ABase uses A only in a method body, so it is recompiled as a private dependent of A, and the classes referring to
+        // ABase are recompiled with it: the trait's helper loads them, and ABase is missing from the output meanwhile
         a.text = "class A extends ABase implements WithTrait { def m() { println('b') } }"
-
-        then:
-        executer.withStackTraceChecksDisabled()
-        def execution = runAndFail "compileGroovy"
-        execution.assertHasCause("Unrecoverable compilation error")
-
-        when:
-        executer.withStacktraceEnabled()
-        run"compileGroovy", "--info"
+        run "compileGroovy"
 
         then:
         outputs.recompiledClasses('ABase', 'A', 'WithTrait', 'WithTrait$Trait$FieldHelper', 'WithTrait$AllPluginsValidation', 'WithTrait$Trait$Helper')
-        outputContains("Full recompilation is required")
     }
 }

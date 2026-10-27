@@ -16,6 +16,7 @@
 
 package org.gradle.java.compile.incremental
 
+import org.gradle.integtests.fixtures.CompiledLanguage
 import spock.lang.Unroll
 
 abstract class AbstractClassChangeIncrementalCompilationIntegrationTest extends AbstractJavaGroovyIncrementalCompilationSupport {
@@ -41,6 +42,14 @@ abstract class AbstractClassChangeIncrementalCompilationIntegrationTest extends 
 
         then:
         outputs.recompiledClasses 'B', 'C'
+    }
+
+    /**
+     * The given classes when compiling Groovy, none otherwise. Groovy compilation also recompiles the accessible dependents of a
+     * class that is recompiled because of a private dependency, since loading a stale dependent would fail on the recompiled class.
+     */
+    protected List<String> groovyAccessibleDependentsOfPrivateDependents(String... classes) {
+        language == CompiledLanguage.GROOVY ? classes as List : []
     }
 
     class IncrementalLib {
@@ -135,7 +144,7 @@ abstract class AbstractClassChangeIncrementalCompilationIntegrationTest extends 
         run language.compileTaskName
 
         then:
-        outputs.recompiledClasses 'AccessedFromPrivateMethod', 'SomeClass', 'SomeClass$Foo'
+        outputs.recompiledClasses(*(['AccessedFromPrivateMethod', 'SomeClass', 'SomeClass$Foo'] + groovyAccessibleDependentsOfPrivateDependents('UsingSomeClass')))
     }
 
     def "change to class accessed from private method body only recompile that class and the direct consumer"() {
@@ -149,7 +158,7 @@ abstract class AbstractClassChangeIncrementalCompilationIntegrationTest extends 
         run language.compileTaskName
 
         then:
-        outputs.recompiledClasses 'AccessedFromPrivateMethodBody', 'SomeClass', 'SomeClass$Foo'
+        outputs.recompiledClasses(*(['AccessedFromPrivateMethodBody', 'SomeClass', 'SomeClass$Foo'] + groovyAccessibleDependentsOfPrivateDependents('UsingSomeClass')))
     }
 
     def "change to class accessed from package private field only recompile that class and transitive consumer"() {
@@ -177,7 +186,7 @@ abstract class AbstractClassChangeIncrementalCompilationIntegrationTest extends 
         run language.compileTaskName
 
         then:
-        outputs.recompiledClasses 'AccessedFromPrivateField', 'SomeClass', 'SomeClass$Foo'
+        outputs.recompiledClasses(*(['AccessedFromPrivateField', 'SomeClass', 'SomeClass$Foo'] + groovyAccessibleDependentsOfPrivateDependents('UsingSomeClass')))
     }
 
     def "change to class accessed from private inner class's public field only recompile that class and direct consumer"() {
@@ -191,7 +200,7 @@ abstract class AbstractClassChangeIncrementalCompilationIntegrationTest extends 
         run language.compileTaskName
 
         then:
-        outputs.recompiledClasses 'AccessedFromPrivateClassPublicField', 'SomeClass', 'SomeClass$Foo'
+        outputs.recompiledClasses(*(['AccessedFromPrivateClassPublicField', 'SomeClass', 'SomeClass$Foo'] + groovyAccessibleDependentsOfPrivateDependents('UsingSomeClass')))
     }
 
     def "change to class accessed from private inner class's public method body only recompile that class and direct consumer"() {
@@ -205,7 +214,7 @@ abstract class AbstractClassChangeIncrementalCompilationIntegrationTest extends 
         run language.compileTaskName
 
         then:
-        outputs.recompiledClasses 'AccessedFromPrivateClass', 'SomeClass', 'SomeClass$Foo'
+        outputs.recompiledClasses(*(['AccessedFromPrivateClass', 'SomeClass', 'SomeClass$Foo'] + groovyAccessibleDependentsOfPrivateDependents('UsingSomeClass')))
     }
 
     def "detects deletion of an isolated source class with an inner class"() {
