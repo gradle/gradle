@@ -52,6 +52,14 @@ The diagram below shows the current set of architecture modules and platforms:
     extensibility --> core
     extensibility --> jvm
 
+    subgraph dsl["dsl platform"]
+    end
+    style dsl fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;
+    dsl --> core
+    dsl --> software
+    dsl --> jvm
+    dsl --> extensibility
+
     subgraph native["native platform"]
     end
     style native fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;
@@ -105,6 +113,10 @@ This platform includes the plugin publishing plugin and the plugin portal.
 This is a platform that builds on the core and software platforms to add support for developing native software.
 
 This platform provides specific support for Swift, C++ and C.
+
+### DSL platform
+
+This is a platform that builds on the core, software, JVM and extensibility platforms. It provides the Kotlin DSL, its plugins, precompiled script plugins and the tooling models that IDEs use for Kotlin build scripts.
 
 ## Cross-cutting architecture modules
 

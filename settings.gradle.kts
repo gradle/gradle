@@ -127,13 +127,6 @@ val core = platform("core") {
         subproject("input-tracking")
         subproject("isolated-action-services")
         subproject("java-api-extractor")
-        subproject("kotlin-dsl")
-        subproject("kotlin-dsl-provider-plugins")
-        subproject("kotlin-dsl-tooling-builders")
-        subproject("kotlin-dsl-tooling-model-impls")
-        subproject("kotlin-dsl-tooling-models")
-        subproject("kotlin-dsl-plugins")
-        subproject("kotlin-dsl-integ-tests")
         subproject("stdlib-kotlin-extensions")
         subproject("stdlib-serialization-codecs")
         subproject("model-core")
@@ -288,13 +281,28 @@ val jvm = platform("jvm") {
 }
 
 // Extensibility Platform
-platform("extensibility") {
+val extensibility = platform("extensibility") {
     uses(core)
     uses(jvm)
     subproject("plugin-use")
     subproject("plugin-development")
     subproject("unit-test-fixtures")
     subproject("test-kit")
+}
+
+// DSL Platform
+platform("dsl") {
+    uses(core)
+    uses(software)
+    uses(jvm)
+    uses(extensibility)
+    subproject("kotlin-dsl")
+    subproject("kotlin-dsl-integ-tests")
+    subproject("kotlin-dsl-plugins")
+    subproject("kotlin-dsl-provider-plugins")
+    subproject("kotlin-dsl-tooling-builders")
+    subproject("kotlin-dsl-tooling-model-impls")
+    subproject("kotlin-dsl-tooling-models")
 }
 
 // Native Platform
