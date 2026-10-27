@@ -46,11 +46,11 @@ The diagram below shows the current set of architecture modules and platforms:
     jvm --> core
     jvm --> software
 
-    subgraph extensibility["extensibility platform"]
+    subgraph plugin_dev["plugin-dev platform"]
     end
-    style extensibility fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;
-    extensibility --> core
-    extensibility --> jvm
+    style plugin_dev fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;
+    plugin_dev --> core
+    plugin_dev --> jvm
 
     subgraph native["native platform"]
     end
@@ -94,7 +94,7 @@ This includes software that is implemented using Java, Kotlin or some other JVM 
 
 This platform provides specific support for Java, Groovy and Scala, and includes the foojay toolchain plugin.
 
-### Extensibility platform
+### Plugin development platform
 
 This is a platform that builds on the core, software and JVM platforms to add support for extending Gradle by implementing and testing plugins.
 

@@ -75,7 +75,7 @@ The project is organized into **platforms** under `platforms/`:
 - `native/` - Native platform support
 - `ide/` - IDE integration (`tooling-api`)
 - `documentation/` - User docs and samples
-- `extensibility/` - Plugin system and test-kit
+- `plugin-dev/` - Plugin development and test-kit
 - `enterprise/` - Develocity/Gradle Enterprise integration
 
 Build logic plugins live in `build-logic/`, `build-logic-commons/`, and `build-logic-settings/`.

@@ -288,8 +288,8 @@ val jvm = platform("jvm") {
     subproject("war")
 }
 
-// Extensibility Platform
-platform("extensibility") {
+// Plugin Development Platform
+platform("plugin-dev") {
     uses(core)
     uses(jvm)
     subproject("plugin-development")
