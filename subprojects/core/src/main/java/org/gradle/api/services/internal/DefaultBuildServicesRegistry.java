@@ -271,21 +271,6 @@ public class DefaultBuildServicesRegistry implements BuildServiceRegistryInterna
     }
 
     @Override
-    public BuildServiceProvider<?, ?> register(String name, Class<? extends BuildService<?>> implementationType, BuildServiceParameters parameters, int maxUsages) {
-        return withRegistrations(registrations -> {
-            DefaultServiceRegistration<?, ?> registration = Cast.uncheckedCast(registrations.findByName(name));
-            if (registration != null) {
-                if (registration.provider.isKeepAlive()) {
-                    // Reuse the service instance
-                    return registration.provider;
-                }
-                throw new IllegalArgumentException(String.format("Service '%s' has already been registered.", name));
-            }
-            return doRegister(name, uncheckedNonnullCast(implementationType), parameters, maxUsages <= 0 ? null : maxUsages, registrations);
-        });
-    }
-
-    @Override
     public BuildServiceProvider<?, ?> consume(String name, Class<? extends BuildService<?>> implementationType) {
         return doConsume(name, uncheckedCast(implementationType));
     }
