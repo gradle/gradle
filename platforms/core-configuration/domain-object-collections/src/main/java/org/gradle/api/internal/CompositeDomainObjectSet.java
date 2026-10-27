@@ -150,6 +150,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
                 (InternalAction<T>) t -> {
                     // A collection that was removed, possibly by a listener while it was wired, is not part of this one anymore
                     if (getStore().isComposited(stored)) {
+                        stored.announcements++;
                         getDelegate().getEventRegister().fireObjectAdded(t);
                     }
                 },
@@ -242,6 +243,8 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         private final List<StoredCollection<T>> store = new LinkedList<>();
 
         abstract static class StoredCollection<T> {
+            // Counts the elements the collection announced, so a read can tell whether listeners added any after it was read
+            int announcements;
             // What the forwarding to the composite uses, see subscriptionsFor()
             @Nullable
             EventSubscriptionVerifier<T> subscriptions;
@@ -313,6 +316,11 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
             }
         }
 
+        // Reading the collections may realize their elements, and listeners may then change which collections are composited
+        List<StoredCollection<T>> snapshot() {
+            return new ArrayList<>(store);
+        }
+
         private static boolean isWired(StoredCollection<?> stored) {
             return !(stored instanceof ProvidedCollection) || ((ProvidedCollection<?>) stored).realized;
         }
@@ -340,11 +348,37 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
             if (store.isEmpty()) {
                 return Collections.emptySet();
             }
-            ImmutableSet.Builder<T> tmp = ImmutableSet.builderWithExpectedSize(estimatedSize());
-            for (StoredCollection<T> collection : store) {
-                tmp.addAll(collection.get());
+            // Reading a collection may realize its pending elements, and listeners may then add elements to collections
+            // that were read already, so the collections are read again until that does not happen
+            while (true) {
+                List<StoredCollection<T>> collections = snapshot();
+                int[] announcementsWhenRead = new int[collections.size()];
+                ImmutableSet.Builder<T> tmp = ImmutableSet.builderWithExpectedSize(estimatedSize());
+                for (int index = 0; index < collections.size(); index++) {
+                    tmp.addAll(collections.get(index).get());
+                    announcementsWhenRead[index] = collections.get(index).announcements;
+                }
+                if (!changedSince(collections, announcementsWhenRead)) {
+                    return tmp.build();
+                }
             }
-            return tmp.build();
+        }
+
+        // After a read, everything is wired and realized, so a collection that is not wired or has pending elements changed afterwards
+        private boolean changedSince(List<StoredCollection<T>> collections, int[] announcementsWhenRead) {
+            return announcedSince(collections, announcementsWhenRead) || hasPendingElements();
+        }
+
+        private boolean announcedSince(List<StoredCollection<T>> collections, int[] announcementsWhenRead) {
+            if (!collections.equals(store)) {
+                return true;
+            }
+            for (int index = 0; index < collections.size(); index++) {
+                if (collections.get(index).announcements != announcementsWhenRead[index]) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override
@@ -359,7 +393,21 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
 
         @Override
         public boolean contains(Object o) {
-            return store.stream().anyMatch(it -> it.getWithoutSideEffects().contains(o));
+            // Like collect(), the collections are checked again if listeners may have added the element to one checked already
+            while (true) {
+                List<StoredCollection<T>> collections = snapshot();
+                int[] announcementsWhenChecked = new int[collections.size()];
+                for (int index = 0; index < collections.size(); index++) {
+                    if (collections.get(index).getWithoutSideEffects().contains(o)) {
+                        return true;
+                    }
+                    announcementsWhenChecked[index] = collections.get(index).announcements;
+                }
+                // Checking doesn't wire provided collections, so these are not taken as changes here
+                if (!announcedSince(collections, announcementsWhenChecked)) {
+                    return false;
+                }
+            }
         }
 
         @Override
@@ -369,7 +417,12 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
                 return Collections.emptyIterator();
             }
             if (store.size() == 1) {
-                return (Iterator<T>) store.get(0).get().iterator();
+                // Reading the only collection may change it or the composited collections too, then all of them are read again
+                List<StoredCollection<T>> collections = snapshot();
+                Iterator<T> iterator = (Iterator<T>) collections.get(0).get().iterator();
+                if (!changedSince(collections, new int[] {collections.get(0).announcements})) {
+                    return iterator;
+                }
             }
             return collect().iterator();
         }
@@ -462,15 +515,49 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
             realizePendingSubscribedBy(elementType -> elementType == null || type.isAssignableFrom(elementType));
         }
 
-        // Eager actions on the composite count as eager actions on the composited collections. Provided collections that are
-        // not wired yet are left until they are read, then their pending elements are realized for these actions.
         @Override
-        public void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
-            for (StoredCollection<T> stored : new ArrayList<>(store)) {
-                if (isWired(stored)) {
-                    ((DomainObjectCollectionInternal<? extends T>) stored.get()).realizePendingSubscribedBy(subscriptions);
+        public boolean hasPendingElements() {
+            for (StoredCollection<T> stored : store) {
+                if (stored instanceof ProvidedCollection && !((ProvidedCollection<T>) stored).realized) {
+                    return true;
+                }
+                if (((DomainObjectCollectionInternal<? extends T>) stored.get()).hasPendingElements()) {
+                    return true;
                 }
             }
+            return false;
+        }
+
+        // Eager actions on the composite count as eager actions on the composited collections. Provided collections that are
+        // not wired yet are left until they are read, then their pending elements are realized for these actions.
+        // Like reads, this repeats when listeners may have added pending elements to collections that were done already.
+        @Override
+        public void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
+            while (true) {
+                List<StoredCollection<T>> collections = snapshot();
+                int[] announcementsBefore = new int[collections.size()];
+                for (int index = 0; index < collections.size(); index++) {
+                    announcementsBefore[index] = collections.get(index).announcements;
+                }
+                for (StoredCollection<T> stored : collections) {
+                    if (isWired(stored)) {
+                        ((DomainObjectCollectionInternal<? extends T>) stored.get()).realizePendingSubscribedBy(subscriptions);
+                    }
+                }
+                if (!announcedSince(collections, announcementsBefore) && !hasPendingElementsSubscribedBy(subscriptions)) {
+                    return;
+                }
+            }
+        }
+
+        @Override
+        public boolean hasPendingElementsSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
+            for (StoredCollection<T> stored : store) {
+                if (isWired(stored) && ((DomainObjectCollectionInternal<? extends T>) stored.get()).hasPendingElementsSubscribedBy(subscriptions)) {
+                    return true;
+                }
+            }
+            return false;
         }
 
         @Override

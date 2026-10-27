@@ -678,6 +678,48 @@ class CompositeDomainObjectSetTest extends Specification {
         seen == ["x"]
     }
 
+    def "reading includes pending element a listener adds to a collection that was read already"() {
+        given:
+        def collection1 = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        def collection2 = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        def composite = CompositeDomainObjectSet.create(CharSequence, collection1, collection2)
+        collection2.withType(String).whenObjectAdded { collection1.addLater(Providers.of(new StringBuilder("x"))) }
+        // The declared type is wider than the type of the listener, so the element stays pending until it is read
+        def added = TestUtil.objectFactory().property(CharSequence)
+        added.set("a")
+        collection2.addLater(added)
+
+        expect:
+        composite.toList()*.toString() == ["x", "a"]
+    }
+
+    def "reading a composite of one collection includes collection a listener adds while it is read"() {
+        given:
+        def collection1 = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        def collection2 = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        collection2.add("z")
+        def composite = CompositeDomainObjectSet.create(CharSequence, collection1)
+        collection1.withType(String).whenObjectAdded { composite.addCollection(collection2) }
+        def added = TestUtil.objectFactory().property(CharSequence)
+        added.set("p")
+        collection1.addLater(added)
+
+        expect:
+        composite.toList()*.toString() == ["p", "z"]
+    }
+
+    def "reading includes pending element a listener adds to a filtered collection that was read already"() {
+        given:
+        def collection1 = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        def collection2 = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        def composite = CompositeDomainObjectSet.create(CharSequence, collection1.withType(String), collection2)
+        collection2.configureEach { collection1.addLater(Providers.of("x")) }
+        collection2.addLater(Providers.of(new StringBuilder("p")))
+
+        expect:
+        composite.toList()*.toString() == ["x", "p"]
+    }
+
     def "collection removed from composite is not eager for its listeners even if the provider gives a different collection"() {
         given:
         def queried = false
@@ -697,6 +739,43 @@ class CompositeDomainObjectSetTest extends Specification {
 
         then:
         !queried
+    }
+
+    @Timeout(10)
+    def "reading a composite of a filtered view of a filtered view leaves pending elements of other types alone"() {
+        given:
+        def builderProvider = Mock(ProviderInternal)
+        _ * builderProvider.type >> StringBuilder
+        def collection = new DefaultDomainObjectSet<CharSequence>(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        collection.addLater(builderProvider)
+        collection.add("a")
+        def composite = CompositeDomainObjectSet.create(String, collection.matching { true }.withType(String))
+
+        expect:
+        composite.toList() == ["a"]
+    }
+
+    def "eager listener on composite realizes pending element a listener adds to another collection while pending elements are realized"() {
+        given:
+        def queried = false
+        def lateProvider = Mock(ProviderInternal)
+        _ * lateProvider.type >> String
+        _ * lateProvider.calculateValue(_) >> { queried = true; ValueSupplier.Value.of("late") }
+        def collection1 = collection()
+        def collection2 = collection()
+        def composite = composite(collection1, collection2)
+        collection2.configureEach {
+            if (it == "y") {
+                collection1.addLater(lateProvider)
+            }
+        }
+        collection2.addLater(Providers.of("y"))
+
+        when:
+        composite.whenObjectAdded { }
+
+        then:
+        queried
     }
 
     def "collection that a listener removes while it is added is not part of the composite"() {
@@ -762,5 +841,28 @@ class CompositeDomainObjectSetTest extends Specification {
 
         then:
         seen.contains("b")
+    }
+
+    def "eager listener on composite realizes pending element a listener adds while elements that are not forwarded are realized"() {
+        given:
+        def queried = false
+        def lateProvider = Mock(ProviderInternal)
+        _ * lateProvider.type >> String
+        _ * lateProvider.calculateValue(_) >> { queried = true; ValueSupplier.Value.of("a") }
+        def collection1 = collection()
+        def collection2 = collection()
+        def composite = composite(collection1, collection2.matching { it.startsWith("x") })
+        collection2.configureEach {
+            if (it == "y") {
+                collection1.addLater(lateProvider)
+            }
+        }
+        collection2.addLater(Providers.of("y"))
+
+        when:
+        composite.whenObjectAdded { }
+
+        then:
+        queried
     }
 }

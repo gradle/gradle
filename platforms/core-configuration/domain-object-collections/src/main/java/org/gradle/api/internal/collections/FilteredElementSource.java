@@ -187,8 +187,25 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
+    public boolean hasPendingElements() {
+        // Reading this realizes only the pending elements of the filtered type, the others stay pending
+        return collection.hasPendingElements(filter.getType());
+    }
+
+    @Override
+    public boolean hasPendingElements(Class<?> type) {
+        // Like realizePending(Class)
+        return collection.hasPendingElements(type);
+    }
+
+    @Override
     public void realizePendingSubscribedBy(EventSubscriptionVerifier<? super S> subscriptions) {
         collection.realizePendingSubscribedBy(filtered(subscriptions));
+    }
+
+    @Override
+    public boolean hasPendingElementsSubscribedBy(EventSubscriptionVerifier<? super S> subscriptions) {
+        return collection.hasPendingElementsSubscribedBy(filtered(subscriptions));
     }
 
     private EventSubscriptionVerifier<T> filtered(EventSubscriptionVerifier<? super S> subscriptions) {

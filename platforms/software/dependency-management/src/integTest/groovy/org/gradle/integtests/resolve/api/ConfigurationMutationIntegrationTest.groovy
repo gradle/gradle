@@ -891,6 +891,26 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
         outputContains("dependencies = [a, b]")
     }
 
+    def "listener on allDependencies can extend the configuration while dependencies are realized"() {
+        buildFile """
+            def parent = configurations.dependencyScope("parent").get()
+            def impl = configurations.dependencyScope("impl").get()
+            impl.allDependencies.configureEach {
+                if (it.name == "x") {
+                    impl.extendsFrom(parent)
+                }
+            }
+            impl.dependencies.addLater(provider { project.dependencies.create("org:x:1.0") })
+            impl.allDependencies.whenObjectAdded { }
+
+            println "extends = " + impl.extendsFrom*.name
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("extends = [parent]")
+    }
+
     def "lazy action on allDependencies sees dependency added while the extended configurations are read"() {
         buildFile """
             def parent = configurations.dependencyScope("parent").get()
@@ -924,6 +944,29 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
         succeeds("help")
         outputContains("configured foo")
         outputContains("all dependencies = [foo]")
+    }
+
+    def "reading allDependencies includes dependency that a listener adds while the dependencies are read"() {
+        buildFile """
+            def parent = configurations.dependencyScope("parent").get()
+            def impl = configurations.dependencyScope("impl") { extendsFrom(parent) }.get()
+            impl.allDependencies.toList()
+            parent.dependencies.configureEach {
+                if (it.name == "p") {
+                    impl.dependencies.add(project.dependencies.create("org:x:1.0"))
+                }
+            }
+            parent.dependencies.addLater(provider { project.dependencies.create("org:p:1.0") })
+
+            impl.allDependencies.all { println "all " + it.name }
+            println "all dependencies = " + impl.allDependencies.collect { it.name }
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("all x")
+        outputContains("all p")
+        outputContains("all dependencies = [x, p]")
     }
 
     def "typed eager action on allDependencies runs once for a dependency of a wider declared type"() {

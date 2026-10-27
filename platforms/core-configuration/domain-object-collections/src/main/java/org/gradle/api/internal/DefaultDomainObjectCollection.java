@@ -319,6 +319,16 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         store.realizePendingSubscribedBy(subscriptions);
     }
 
+    @Override
+    public boolean hasPendingElementsSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
+        return store.hasPendingElementsSubscribedBy(subscriptions);
+    }
+
+    @Override
+    public boolean hasPendingElements() {
+        return store.hasPendingElements();
+    }
+
     @Nullable
     private Collection<T> copyRealizedElements() {
         // copy in case any actions mutate the store

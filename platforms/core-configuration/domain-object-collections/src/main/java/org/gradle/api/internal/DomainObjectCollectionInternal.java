@@ -55,4 +55,14 @@ public interface DomainObjectCollectionInternal<T> extends DomainObjectCollectio
      */
     void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions);
 
+    /**
+     * Whether there are pending elements that {@link #realizePendingSubscribedBy(EventSubscriptionVerifier)} would realize.
+     */
+    boolean hasPendingElementsSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions);
+
+    /**
+     * Whether there are elements that are not realized yet.
+     */
+    boolean hasPendingElements();
+
 }

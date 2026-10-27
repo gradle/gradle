@@ -152,6 +152,31 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     @Override
+    public boolean hasPendingElements() {
+        return hasPendingElements(Object.class);
+    }
+
+    @Override
+    public boolean hasPendingElements(Class<?> type) {
+        for (Element<T> element : inserted) {
+            if (!element.isRealized() && (element.getType() == null || type.isAssignableFrom(element.getType()))) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public boolean hasPendingElementsSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
+        for (Element<T> element : inserted) {
+            if (!element.isRealized() && subscriptions.isSubscribed(element.getType())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
         realizePendingMatching(element -> subscriptions.isSubscribed(element.getType()));
     }

@@ -211,6 +211,21 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     @Override
+    public boolean hasPendingElements() {
+        return !pending.isEmpty();
+    }
+
+    @Override
+    public boolean hasPendingElements(Class<?> type) {
+        for (Collectors.TypedCollector<T> collector : pending) {
+            if (collector.getType() == null || type.isAssignableFrom(collector.getType())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
     public void realizePending() {
         realizePendingMatching(collector -> true);
     }
@@ -218,6 +233,16 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     @Override
     public void realizePending(Class<?> type) {
         realizePendingMatching(collector -> collector.getType() == null || type.isAssignableFrom(collector.getType()));
+    }
+
+    @Override
+    public boolean hasPendingElementsSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
+        for (Collectors.TypedCollector<T> collector : pending) {
+            if (subscriptions.isSubscribed(collector.getType())) {
+                return true;
+            }
+        }
+        return false;
     }
 
     @Override

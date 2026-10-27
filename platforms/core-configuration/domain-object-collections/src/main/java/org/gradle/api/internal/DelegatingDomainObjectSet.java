@@ -245,6 +245,18 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, DomainO
     }
 
     @Override
+    public boolean hasPendingElements() {
+        onMethodCall("hasPendingElements()");
+        return ((DomainObjectCollectionInternal<T>) getDelegate()).hasPendingElements();
+    }
+
+    @Override
+    public boolean hasPendingElementsSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
+        onMethodCall("hasPendingElementsSubscribedBy(EventSubscriptionVerifier)");
+        return ((DomainObjectCollectionInternal<T>) getDelegate()).hasPendingElementsSubscribedBy(subscriptions);
+    }
+
+    @Override
     public void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
         onMethodCall("realizePendingSubscribedBy(EventSubscriptionVerifier)");
         ((DomainObjectCollectionInternal<T>) getDelegate()).realizePendingSubscribedBy(subscriptions);
