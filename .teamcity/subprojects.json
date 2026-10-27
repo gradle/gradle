@@ -1401,7 +1401,7 @@
   },
   {
     "name": "reporting",
-    "path": "platforms/software/reporting",
+    "path": "platforms/reporting-plugins/reporting",
     "unitTests": true,
     "functionalTests": true,
     "crossVersionTests": false

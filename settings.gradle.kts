@@ -207,9 +207,16 @@ module("observability") {
     subproject("problems-reporting")
 }
 
+// Reporting Plugins Platform
+val reportingPlugins = platform("reporting-plugins") {
+    uses(core)
+    subproject("reporting")
+}
+
 // Software Platform
 val software = platform("software") {
     uses(core)
+    uses(reportingPlugins)
     subproject("ant-api")
     subproject("ant")
     subproject("ant-impl")
@@ -236,7 +243,6 @@ val software = platform("software") {
     subproject("resources-gcs")
     subproject("resources-s3")
     subproject("resources-sftp")
-    subproject("reporting")
     subproject("security")
     subproject("signing")
     subproject("software-diagnostics")
@@ -249,6 +255,7 @@ val software = platform("software") {
 // JVM Platform
 val jvm = platform("jvm") {
     uses(core)
+    uses(reportingPlugins)
     uses(software)
     subproject("antlr")
     subproject("code-quality")

@@ -73,6 +73,7 @@ The project is organized into **platforms** under `platforms/`:
 - `software/` - Software platform (`dependency-management`, `testing-base`, `maven`, `ivy`)
 - `jvm/` - JVM platform (`java`, `groovy`, `scala`, `jacoco`)
 - `native/` - Native platform support
+- `reporting-plugins/` - Reporting base and Build Dashboard plugins (`reporting`)
 - `ide/` - IDE integration (`tooling-api`)
 - `documentation/` - User docs and samples
 - `extensibility/` - Plugin system and test-kit
