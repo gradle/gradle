@@ -199,7 +199,9 @@ public abstract class AbstractCollectionProperty<T, C extends Collection<T>> ext
 
     @Override
     public int size() {
-        return calculateOwnPresentValue().getWithoutSideEffect().size();
+        // A missing value has no elements, the same as when its elements are collected
+        Value<? extends C> value = calculateOwnValue(ValueConsumer.IgnoreUnsafeRead);
+        return value.isMissing() ? 0 : value.getWithoutSideEffect().size();
     }
 
     /**
