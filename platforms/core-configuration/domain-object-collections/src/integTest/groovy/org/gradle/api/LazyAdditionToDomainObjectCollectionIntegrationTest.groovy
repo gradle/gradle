@@ -588,6 +588,29 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         outputContains("after remove = []")
     }
 
+    def "reading includes pending elements added by listeners while pending elements are realized"() {
+        buildFile """
+            def set = objects.domainObjectSet(CharSequence)
+            set.withType(String).whenObjectAdded {
+                if (it == "a") {
+                    def other = objects.property(CharSequence)
+                    other.set(new StringBuilder("b"))
+                    set.addLater(other)
+                }
+            }
+            // The declared type is wider than the type of the listener, so the element stays pending until it is read
+            def added = objects.property(CharSequence)
+            added.set("a")
+            set.addLater(added)
+
+            println "values = " + set.collect { it.toString() }
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("values = [a, b]")
+    }
+
     def "value added directly to #containerType stays when provider with equal value realized by eager action is removed"() {
         buildFile """
             ${namedThing}

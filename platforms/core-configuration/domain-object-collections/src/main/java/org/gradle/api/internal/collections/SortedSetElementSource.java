@@ -18,7 +18,6 @@ package org.gradle.api.internal.collections;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
@@ -210,22 +209,27 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     @Override
     public void realizePending() {
-        if (!pending.isEmpty()) {
-            List<Collectors.TypedCollector<T>> copied = Lists.newArrayList(pending);
-            realize(copied);
-        }
+        realizePendingMatching(collector -> true);
     }
 
     @Override
     public void realizePending(Class<?> type) {
-        if (!pending.isEmpty()) {
-            List<Collectors.TypedCollector<T>> copied = new ArrayList<>();
+        realizePendingMatching(collector -> collector.getType() == null || type.isAssignableFrom(collector.getType()));
+    }
+
+    // Listeners may add pending elements while others are realized, so this repeats until none of them match
+    private void realizePendingMatching(Predicate<Collectors.TypedCollector<T>> condition) {
+        while (!pending.isEmpty()) {
+            List<Collectors.TypedCollector<T>> matching = new ArrayList<>();
             for (Collectors.TypedCollector<T> collector : pending) {
-                if (collector.getType() == null || type.isAssignableFrom(collector.getType())) {
-                    copied.add(collector);
+                if (condition.test(collector)) {
+                    matching.add(collector);
                 }
             }
-            realize(copied);
+            if (matching.isEmpty()) {
+                return;
+            }
+            realize(matching);
         }
     }
 

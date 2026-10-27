@@ -50,6 +50,7 @@ import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.function.Predicate;
 
 abstract public class AbstractIterationOrderRetainingElementSource<T> implements ElementSource<T>, TaskDependencyContainer {
 
@@ -139,22 +140,41 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
     @Override
     public void realizePending() {
-        for (Element<T> element : inserted) {
-            if (!element.isRealized()) {
-                modCount++;
-                element.realize();
-            }
-        }
+        realizePendingMatching(element -> true);
     }
 
     @Override
     public void realizePending(Class<?> type) {
+        realizePendingMatching(element -> element.getType() == null || type.isAssignableFrom(element.getType()));
+    }
+
+    // Realizing an element notifies listeners, which may add pending elements. So the elements are collected first,
+    // and this repeats until none of them match.
+    private void realizePendingMatching(Predicate<Element<T>> condition) {
+        List<Element<T>> pending = collectPending(condition);
+        while (pending != null) {
+            for (Element<T> element : pending) {
+                if (!element.isRealized()) {
+                    modCount++;
+                    element.realize();
+                }
+            }
+            pending = collectPending(condition);
+        }
+    }
+
+    @Nullable
+    private List<Element<T>> collectPending(Predicate<Element<T>> condition) {
+        List<Element<T>> pending = null;
         for (Element<T> element : inserted) {
-            if (!element.isRealized() && (element.getType() == null || type.isAssignableFrom(element.getType()))) {
-                modCount++;
-                element.realize();
+            if (!element.isRealized() && condition.test(element)) {
+                if (pending == null) {
+                    pending = new ArrayList<>();
+                }
+                pending.add(element);
             }
         }
+        return pending;
     }
 
     protected void clearCachedElement(Element<T> element) {
