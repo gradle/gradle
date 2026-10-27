@@ -49,6 +49,7 @@ final class PredefinedCompilationProblemGroup extends CompilationProblemGroup im
     @Override
     @Deprecated
     public String getDisplayName() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_DISPLAY_NAME);
         return getDisplayNameInternal();
     }
 
@@ -66,6 +67,7 @@ final class PredefinedCompilationProblemGroup extends CompilationProblemGroup im
     @Nullable
     @Deprecated
     public ProblemGroup getParent() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_PARENT);
         return null;
     }
 

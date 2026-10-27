@@ -751,7 +751,9 @@ The incubating Problems API provides a <<reporting_problems.adoc#sec:predefined_
 The API that builds or reads problem identity outside that hierarchy is deprecated.
 `ProblemGroup.create()` and `ProblemId.create()` will be removed in Gradle 11.
 `getDisplayName()` on `ProblemGroup` and `ProblemId` and `ProblemGroup.getParent()` will be removed in Gradle 10, and Gradle 10 will not support subclassing `ProblemGroup` or `ProblemId`.
-Plugins that call it get a compiler warning.
+Plugins that use any of it get a compiler warning.
+Calling the deprecated getters on Gradle's groups and ids, or subclassing `ProblemGroup` or `ProblemId`, also emits a deprecation warning when the build runs.
+Like every deprecation, the warning fails the build under `--warning-mode=fail`.
 
 Create the group from the predefined hierarchy and the id from the group:
 

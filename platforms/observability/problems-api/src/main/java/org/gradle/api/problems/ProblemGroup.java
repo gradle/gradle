@@ -18,6 +18,8 @@ package org.gradle.api.problems;
 
 import org.gradle.api.Incubating;
 import org.gradle.api.problems.internal.DefaultProblemGroup;
+import org.gradle.api.problems.internal.LegacyProblemIdentityUsage;
+import org.gradle.api.problems.internal.ProblemGroupInternal;
 import org.jspecify.annotations.Nullable;
 
 import javax.annotation.concurrent.Immutable;
@@ -50,6 +52,9 @@ public abstract class ProblemGroup {
         // clients should use the groups from Problems.getGroups()
         // Gradle 10: make this constructor package-private instead of removing it, since removing it would make javac
         // generate a public one. Subclasses in this package keep working; internal subclasses must move into this package.
+        if (!(this instanceof ProblemGroupInternal)) {
+            LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_SUBCLASS);
+        }
     }
 
     /**

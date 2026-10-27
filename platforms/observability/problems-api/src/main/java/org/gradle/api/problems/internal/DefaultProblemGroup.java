@@ -77,6 +77,7 @@ public class DefaultProblemGroup extends ProblemGroup implements ProblemGroupInt
     @Override
     @Deprecated
     public String getDisplayName() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_DISPLAY_NAME);
         return displayName;
     }
 
@@ -89,6 +90,7 @@ public class DefaultProblemGroup extends ProblemGroup implements ProblemGroupInt
     @Override
     @Deprecated
     public ProblemGroup getParent() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_PARENT);
         // every Gradle-owned implementation extends ProblemGroup
         return (ProblemGroup) parent;
     }

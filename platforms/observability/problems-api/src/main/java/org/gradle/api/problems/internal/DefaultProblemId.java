@@ -57,6 +57,7 @@ public class DefaultProblemId extends ProblemId implements Serializable {
     @Override
     @Deprecated
     public String getDisplayName() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.ID_DISPLAY_NAME);
         return displayName;
     }
 

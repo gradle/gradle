@@ -157,6 +157,8 @@ class KnownProblemIds {
         'Gradle:Deprecation:Property set via the Gradle-generated \'propName value\' or \'propName\\(value\\)\' syntax in Groovy DSL': ['Property set via the Gradle-generated \'propName value\' or \'propName\\(value\\)\' syntax in Groovy DSL'],
         'Gradle:Deprecation:Querying the output of an artifact transform from a task action without declaring it as a task input': ['Querying the output of an artifact transform from a task action without declaring it as a task input'],
         'Gradle:Deprecation:Method usage': ['Method usage'],
+        'Gradle:Deprecation:Subclassing ProblemGroup': ['Subclassing ProblemGroup'],
+        'Gradle:Deprecation:Subclassing ProblemId': ['Subclassing ProblemId'],
         'Gradle:Deprecation:Non-required plugin version in version catalog': ['Non-required plugin version in version catalog'],
         'Gradle:Plugin Validation:test problem': ['test problem'],
         'Gradle:Invocation:Task not found': ['Task not found'],

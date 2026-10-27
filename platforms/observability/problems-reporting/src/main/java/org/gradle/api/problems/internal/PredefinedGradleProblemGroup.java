@@ -53,6 +53,7 @@ final class PredefinedGradleProblemGroup extends GradleProblemGroup implements G
     @Override
     @Deprecated
     public String getDisplayName() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_DISPLAY_NAME);
         return getDisplayNameInternal();
     }
 
@@ -70,6 +71,7 @@ final class PredefinedGradleProblemGroup extends GradleProblemGroup implements G
     @Nullable
     @Deprecated
     public ProblemGroup getParent() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_PARENT);
         return null;
     }
 

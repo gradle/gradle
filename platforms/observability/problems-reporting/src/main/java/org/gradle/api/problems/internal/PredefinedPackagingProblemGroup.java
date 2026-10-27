@@ -47,6 +47,7 @@ final class PredefinedPackagingProblemGroup extends PackagingProblemGroup implem
     @Override
     @Deprecated
     public String getDisplayName() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_DISPLAY_NAME);
         return getDisplayNameInternal();
     }
 
@@ -64,6 +65,7 @@ final class PredefinedPackagingProblemGroup extends PackagingProblemGroup implem
     @Nullable
     @Deprecated
     public ProblemGroup getParent() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_PARENT);
         return null;
     }
 

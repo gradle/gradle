@@ -46,6 +46,7 @@ final class PredefinedDocumentationProblemGroup extends DocumentationProblemGrou
     @Override
     @Deprecated
     public String getDisplayName() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_DISPLAY_NAME);
         return getDisplayNameInternal();
     }
 
@@ -63,6 +64,7 @@ final class PredefinedDocumentationProblemGroup extends DocumentationProblemGrou
     @Nullable
     @Deprecated
     public ProblemGroup getParent() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_PARENT);
         return null;
     }
 

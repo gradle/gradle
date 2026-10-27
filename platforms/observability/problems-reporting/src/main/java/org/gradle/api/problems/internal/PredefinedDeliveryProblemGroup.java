@@ -45,6 +45,7 @@ final class PredefinedDeliveryProblemGroup extends DeliveryProblemGroup implemen
     @Override
     @Deprecated
     public String getDisplayName() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_DISPLAY_NAME);
         return getDisplayNameInternal();
     }
 
@@ -62,6 +63,7 @@ final class PredefinedDeliveryProblemGroup extends DeliveryProblemGroup implemen
     @Nullable
     @Deprecated
     public ProblemGroup getParent() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_PARENT);
         return null;
     }
 

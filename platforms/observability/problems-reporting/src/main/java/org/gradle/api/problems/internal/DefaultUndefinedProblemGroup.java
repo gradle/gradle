@@ -50,6 +50,7 @@ final class DefaultUndefinedProblemGroup extends UndefinedProblemGroup implement
     @Override
     @Deprecated
     public String getDisplayName() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_DISPLAY_NAME);
         return getDisplayNameInternal();
     }
 
@@ -66,6 +67,7 @@ final class DefaultUndefinedProblemGroup extends UndefinedProblemGroup implement
     @Override
     @Deprecated
     public ProblemGroup getParent() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_PARENT);
         // every Gradle-owned implementation extends ProblemGroup
         return (ProblemGroup) parent;
     }

@@ -45,6 +45,7 @@ final class PredefinedProvisioningProblemGroup extends ProvisioningProblemGroup 
     @Override
     @Deprecated
     public String getDisplayName() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_DISPLAY_NAME);
         return getDisplayNameInternal();
     }
 
@@ -62,6 +63,7 @@ final class PredefinedProvisioningProblemGroup extends ProvisioningProblemGroup 
     @Nullable
     @Deprecated
     public ProblemGroup getParent() {
+        LegacyProblemIdentityUsage.used(LegacyProblemIdentityUsage.Usage.GROUP_PARENT);
         return null;
     }
 
