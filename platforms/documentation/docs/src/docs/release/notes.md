@@ -120,6 +120,8 @@ On the console, problems now show the chain of groups they belong to, for exampl
 The Groups tab of the HTML problems report lists the root groups in the order of the predefined hierarchy and shows the description of each predefined group.
 The existing `ProblemGroup.create()` and `ProblemId.create()` methods keep working, and a group created with them whose name matches a predefined group is now reported as that predefined group; migrating to the predefined groups is recommended.
 
+![Groups tab of the problems report showing the predefined groups and the description of one of them](release-notes-assets/problems-report-groups.png)
+
 The legacy problem groups are gone, and both the group and the name of Gradle's own problem ids changed, so Tooling API clients, Build Scans, and any tooling that matches problems by id need to update.
 
 See the upgrade guide for the complete list of changed problem ids:
