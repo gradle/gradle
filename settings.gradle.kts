@@ -132,6 +132,7 @@ val core = platform("core") {
         subproject("model-core")
         subproject("model-reflect")
         subproject("model-groovy")
+        subproject("plugin-use")
         subproject("project-features")
         subproject("project-features-api")
         subproject("project-features-demos")
@@ -284,7 +285,6 @@ val jvm = platform("jvm") {
 val extensibility = platform("extensibility") {
     uses(core)
     uses(jvm)
-    subproject("plugin-use")
     subproject("plugin-development")
     subproject("unit-test-fixtures")
     subproject("test-kit")
