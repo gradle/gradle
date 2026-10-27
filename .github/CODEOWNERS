@@ -73,7 +73,6 @@ testing/architecture-test/src/changes/archunit-store/internal-api-nullability.tx
 
 # Core automation platform (core/configuration)
 platforms/core-configuration/               @gradle/bt-cortex
-testing/smoke-ide-test/                     @gradle/bt-cortex
 subprojects/composite-builds                @gradle/bt-cortex
 
 # Core automation platform (Kotlin DSL)
@@ -142,6 +141,7 @@ platforms/native/                 @gradle/bt-jvm
 # IDE Experience
 platforms/ide/                    @gradle/bt-tide
 platforms/ide/ide-native/         @gradle/bt-tide @gradle/bt-jvm
+testing/smoke-ide-test/           @gradle/bt-tide
 
 # Documentation
 platforms/documentation/          @gradle/bt-docs-reviewers
