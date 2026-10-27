@@ -96,7 +96,6 @@ platforms/core-configuration/declarative-dsl-tooling-models/        @gradle/bt-d
 
 # Core automation platform (core/runtime)
 platforms/core-runtime/                                     @gradle/bt-cortex
-platforms/core-runtime/build-operations/                    @gradle/bt-cortex
 platforms/core-runtime/files/                               @gradle/bt-cortex
 
 # Core automation platform (core/execution)

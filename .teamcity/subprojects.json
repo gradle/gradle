@@ -204,14 +204,14 @@
   },
   {
     "name": "build-operations",
-    "path": "platforms/core-runtime/build-operations",
+    "path": "platforms/observability/build-operations",
     "unitTests": true,
     "functionalTests": false,
     "crossVersionTests": false
   },
   {
     "name": "build-operations-trace",
-    "path": "platforms/core-runtime/build-operations-trace",
+    "path": "platforms/observability/build-operations-trace",
     "unitTests": false,
     "functionalTests": true,
     "crossVersionTests": false
