@@ -234,7 +234,7 @@ public abstract class DefaultSourceDirectorySet extends CompositeFileTree implem
                 result.addAll(nested.getSourceTrees());
             } else {
                 for (File srcDir : fileCollectionFactory.resolving(path)) {
-                    if (!srcDir.isDirectory() && srcDir.exists()) {
+                    if (srcDir.isFile()) {
                         throw new InvalidUserDataException(String.format("Source directory '%s' is not a directory.", srcDir));
                     }
                     result.add(directoryFileTreeFactory.create(srcDir, patterns));
