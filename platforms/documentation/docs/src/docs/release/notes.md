@@ -15,7 +15,21 @@ We are excited to announce Gradle @version@ (released [@releaseDate@](https://gr
 This release features [1](), [2](), ... [n](), and more.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
-[devareddy05](https://github.com/devareddy05).
+[devareddy05](https://github.com/devareddy05),
+[DragonFSKY](https://github.com/DragonFSKY),
+[fru1tworld](https://github.com/fru1tworld),
+[Ivan Khanas](https://github.com/ikxeno),
+[Jeremy Schoemaker](https://github.com/shoemoney),
+[John Burns](https://github.com/wakingrufus),
+[Labh R Jethe](https://github.com/itsCodeTide),
+[monkey](https://github.com/Develop-KIM),
+[Nelson Osacky](https://github.com/runningcode),
+[Roberto Perez Alcolea](https://github.com/rpalcolea),
+[Róbert Papp](https://github.com/TWiStErRob),
+[SeungTaek Lim](https://github.com/namest504),
+[Stefan Oehme](https://github.com/oehme),
+[万彬宇](https://github.com/Wanbinyu),
+[한의준](https://github.com/exijn)
 
 <!-- 
 Include only their name, impactful features should be called out separately below.
