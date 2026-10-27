@@ -18,8 +18,11 @@ package org.gradle.internal.logging.console
 
 import org.gradle.api.logging.configuration.ConsoleOutput
 import org.gradle.integtests.fixtures.AbstractIntegrationSpec
+import org.gradle.test.fixtures.ConcurrentTestUtil
+import org.gradle.test.fixtures.server.http.BlockingHttpServer
 import org.gradle.test.precondition.Requires
 import org.gradle.test.preconditions.TestExecutionPreconditions
+import org.junit.Rule
 import spock.lang.Issue
 
 @Requires(value = TestExecutionPreconditions.NotEmbeddedExecutor, reason = "Environment variables are only set for a forked build")
@@ -28,8 +31,19 @@ class RichConsoleLinuxConsoleFunctionalTest extends AbstractIntegrationSpec {
 
     private static final String ASCII_BAR = /\[[#.]{15}\] \d+% /
 
+    @Rule
+    BlockingHttpServer server = new BlockingHttpServer()
+
     def setup() {
         executer.withConsole(ConsoleOutput.Rich)
+        server.start()
+        buildFile << """
+            tasks.register('block') {
+                doLast {
+                    ${server.callFromBuild("block")}
+                }
+            }
+        """
     }
 
     def "draws the ASCII progress bar on the Linux console when TERM is #term"() {
@@ -38,10 +52,9 @@ class RichConsoleLinuxConsoleFunctionalTest extends AbstractIntegrationSpec {
         executer.withEnvironmentVars(TERM: term, LANG: "en_US.UTF-8")
 
         when:
-        succeeds('help')
+        def plainOutput = outputOfBuildUntilBarDrawn()
 
         then:
-        def plainOutput = outputWithoutAnsiCodes()
         plainOutput =~ ASCII_BAR
         !plainOutput.contains(ProgressBar.UNICODE_PROGRESS_BAR_PREFIX)
 
@@ -55,16 +68,28 @@ class RichConsoleLinuxConsoleFunctionalTest extends AbstractIntegrationSpec {
         executer.withArgument("--console-unicode=enable")
 
         when:
-        succeeds('help')
+        def plainOutput = outputOfBuildUntilBarDrawn()
 
         then:
-        def plainOutput = outputWithoutAnsiCodes()
         plainOutput.contains(ProgressBar.UNICODE_PROGRESS_BAR_PREFIX)
         !(plainOutput =~ ASCII_BAR)
     }
 
+    // The bar is drawn at the clock events of the console, every 100 ms, so the build is blocked until a bar is in its output
+    private String outputOfBuildUntilBarDrawn() {
+        def call = server.expectAndBlock("block")
+        def running = executer.withTasks('block').start()
+        call.waitForAllPendingCalls()
+        ConcurrentTestUtil.poll {
+            // In either style, so that the style is checked by each test
+            assert withoutAnsiCodes(running.standardOutput) =~ /\d+% EXECUTING/
+        }
+        call.releaseAll()
+        withoutAnsiCodes(running.waitForFinish().output)
+    }
+
     // Not LogContent.ansiCharsToPlainText(): with the codes applied, the status bar is erased at the end of the build
-    private String outputWithoutAnsiCodes() {
+    private static String withoutAnsiCodes(String output) {
         output.replaceAll(/\u001B\[[\d;]*[A-Za-z]/, "")
     }
 }
