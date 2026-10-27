@@ -498,6 +498,159 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         "addAllLater called first"      | true
     }
 
+    def "provider realized for an eager action can be removed from #factory"() {
+        buildFile """
+            ${namedThing}
+
+            def collection = objects.${factory}(NamedThing)
+            collection.all { }
+            collection.whenObjectRemoved { println "removed " + it }
+            def thing = provider { new NamedThing("x") }
+            collection.addLater(thing)
+
+            println "removed provider = " + collection.remove(thing) + ", values = " + collection.toList()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("removed x")
+        outputContains("removed provider = true, values = []")
+
+        where:
+        factory << ["domainObjectSet", "namedDomainObjectSet", "namedDomainObjectList"]
+    }
+
+    def "value added directly is shown once and kept when the provider an eager action realized with an equal value is removed"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            set.all { }
+            set.whenObjectRemoved { println "removed " + it }
+            def value = provider { "a" }
+            set.addLater(value)
+            set.add("a")
+            println "values = " + set.toList()
+
+            set.remove(value)
+            println "after remove = " + set.toList()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("values = [a]")
+        outputContains("after remove = [a]")
+        outputDoesNotContain("removed a")
+    }
+
+    def "provider added twice after an eager action is realized once and can be removed"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            set.all { println "added " + it }
+            def value = provider { "a" }
+            set.addLater(value)
+            set.addLater(value)
+
+            println "removed provider = " + set.remove(value) + ", values = " + set.toList()
+        """
+
+        expect:
+        succeeds("help")
+        output.count("added a") == 1
+        outputContains("removed provider = true, values = []")
+    }
+
+    def "provider added twice to a named collection after an eager action is realized once and can be removed"() {
+        buildFile """
+            ${namedThing}
+
+            def collection = objects.namedDomainObjectSet(NamedThing)
+            collection.all { println "added " + it }
+            def thing = provider { new NamedThing("x") }
+            collection.addLater(thing)
+            collection.addLater(thing)
+
+            println "removed provider = " + collection.remove(thing) + ", values = " + collection.toList()
+        """
+
+        expect:
+        succeeds("help")
+        output.count("added x") == 1
+        outputContains("removed provider = true, values = []")
+    }
+
+    def "provider added again after the collection was read is queried again"() {
+        buildFile """
+            def value = "a"
+            def provider = provider { value }
+            def set = objects.domainObjectSet(String)
+            set.addLater(provider)
+            set.toList()
+            value = "b"
+
+            println "added again = " + set.addLater(provider) + ", values = " + set.toList()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("values = [a, b]")
+    }
+
+    def "name of a registered element an eager action realized is free again after removing its provider"() {
+        buildFile """
+            ${namedThing}
+
+            def things = objects.domainObjectContainer(NamedThing) { new NamedThing(it) }
+            things.all { }
+            def thing = things.register("a")
+            things.remove(thing)
+            println "names = " + things.names
+
+            things.register("a")
+            println "names after registering again = " + things.names
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("names = []")
+        outputContains("names after registering again = [a]")
+    }
+
+    def "removing a provider an eager action realized keeps the element with the same name added before"() {
+        buildFile """
+            ${namedThing}
+
+            def collection = objects.namedDomainObjectSet(NamedThing)
+            collection.all { }
+            collection.whenObjectRemoved { println "removed " + it }
+            def added = new NamedThing("a")
+            collection.add(added)
+            def thing = provider { new NamedThing("a") }
+            collection.addLater(thing)
+
+            collection.remove(thing)
+            println "values = " + collection.toList() + ", kept the one added before = " + collection.getByName("a").is(added)
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("values = [a], kept the one added before = true")
+        outputDoesNotContain("removed a")
+    }
+
+    def "provider an eager action realized can be removed through a filtered view"() {
+        buildFile """
+            def set = objects.domainObjectSet(String)
+            set.all { }
+            def value = provider { "a" }
+            set.addLater(value)
+
+            println "removed provider = " + set.matching { true }.remove(value) + ", values = " + set.toList()
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("removed provider = true, values = []")
+    }
+
     def getNamedThing() {
         """
             class NamedThing implements Named {

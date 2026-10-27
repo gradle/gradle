@@ -29,14 +29,17 @@ import org.gradle.api.internal.provider.CollectionProviderInternal;
 import org.gradle.api.internal.provider.Collectors;
 import org.gradle.api.internal.provider.ProviderInternal;
 import org.gradle.internal.Cast;
+import org.jspecify.annotations.Nullable;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.Iterator;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
 
@@ -46,8 +49,9 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     // Each DomainObjectSet has a pending set and a Configuration has several DomainObjectSets
     // And a Project has many Configurations.
     private Set<Collectors.TypedCollector<T>> pending = Collections.emptySet();
-    // Realized collectors are retained, so the producers of their elements remain build dependencies of getElements()
-    private Set<Collectors.TypedCollector<T>> realized = Collections.emptySet();
+    // Collectors realized on add for an eager listener, with their values. Kept so that their producers
+    // remain build dependencies of getElements() and they can be removed without querying them again.
+    private Map<Collectors.TypedCollector<T>, List<T>> realizedOnAdd = Collections.emptyMap();
     private Action<T> addRealizedAction;
     private EventSubscriptionVerifier<T> subscriptionVerifier = type -> false;
     private final MutationGuard lazyGuard = new DefaultMutationGuard();
@@ -157,7 +161,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     @Override
     public void clear() {
         pending = Collections.emptySet();
-        realized = Collections.emptySet();
+        realizedOnAdd = Collections.emptyMap();
         values.clear();
     }
 
@@ -184,19 +188,20 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     private void realize(Iterable<Collectors.TypedCollector<T>> collectors) {
         for (Collectors.TypedCollector<T> collector : collectors) {
-            pending.remove(collector);
-            if (realized == Collections.EMPTY_SET) {
-                realized = new LinkedHashSet<>();
-            }
-            realized.add(collector);
-            ImmutableList.Builder<T> builder = ImmutableList.builder();
-            // Collect elements discarding potential side effects aggregated in the returned value
-            collector.collectInto(builder);
-            List<T> realized = builder.build();
-            for (T element : realized) {
-                doAddRealized(element);
-            }
+            realize(collector);
         }
+    }
+
+    private List<T> realize(Collectors.TypedCollector<T> collector) {
+        pending.remove(collector);
+        ImmutableList.Builder<T> builder = ImmutableList.builder();
+        // Collect elements discarding potential side effects aggregated in the returned value
+        collector.collectInto(builder);
+        List<T> realized = builder.build();
+        for (T element : realized) {
+            doAddRealized(element);
+        }
+        return realized;
     }
 
     private void doAddRealized(T value) {
@@ -215,13 +220,14 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
             }));
         }
         Collectors.TypedCollector<T> collector = collectorFromProvider(provider);
+        if (realizedOnAdd.containsKey(collector)) {
+            return false;
+        }
 
         boolean added = pending.add(collector);
         // TODO: We likely want to also immediately realize ChangingValue providers in the
         //  onValueChange callback above.
-        if (subscriptionVerifier.isSubscribed(provider.getType())) {
-            realize(Collections.singleton(collector));
-        }
+        realizeIfSubscribed(collector, provider.getType());
         return added;
     }
 
@@ -241,12 +247,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     }
 
     private boolean removeByProvider(ProviderInternal<?> provider) {
-        removeFirstProvidedBy(realized, provider);
-        return removeFirstProvidedBy(pending, provider);
-    }
-
-    private static <T> boolean removeFirstProvidedBy(Set<Collectors.TypedCollector<T>> collectors, ProviderInternal<?> provider) {
-        Iterator<Collectors.TypedCollector<T>> iterator = collectors.iterator();
+        Iterator<Collectors.TypedCollector<T>> iterator = pending.iterator();
         while (iterator.hasNext()) {
             Collectors.TypedCollector<T> collector = iterator.next();
             if (collector.isProvidedBy(provider)) {
@@ -269,14 +270,53 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
             }));
         }
         Collectors.TypedCollector<T> collector = collectorFromCollectionProvider(provider);
+        if (realizedOnAdd.containsKey(collector)) {
+            return false;
+        }
 
         boolean added = pending.add(collector);
         // TODO: We likely want to also immediately realize ChangingValue providers in the
         //  onValueChange callback above.
-        if (subscriptionVerifier.isSubscribed(provider.getElementType())) {
-            realize(Collections.singleton(collector));
-        }
+        realizeIfSubscribed(collector, provider.getElementType());
         return added;
+    }
+
+    private void realizeIfSubscribed(Collectors.TypedCollector<T> collector, @Nullable Class<? extends T> type) {
+        if (!subscriptionVerifier.isSubscribed(type)) {
+            return;
+        }
+        List<T> realizedValues = realize(collector);
+        if (subscriptionVerifier.isSubscribedByListener(type)) {
+            if (realizedOnAdd.isEmpty()) {
+                realizedOnAdd = new LinkedHashMap<>();
+            }
+            realizedOnAdd.put(collector, realizedValues);
+        } else {
+            // Only realized to be forwarded to a composite collection, so the provider is queried again when this collection is read
+            pending.add(collector);
+        }
+    }
+
+    @Override
+    @Nullable
+    public List<T> removeRealized(ProviderInternal<? extends T> provider) {
+        Iterator<Map.Entry<Collectors.TypedCollector<T>, List<T>>> iterator = realizedOnAdd.entrySet().iterator();
+        while (iterator.hasNext()) {
+            Map.Entry<Collectors.TypedCollector<T>, List<T>> entry = iterator.next();
+            if (entry.getKey().isProvidedBy(provider)) {
+                iterator.remove();
+                List<T> removed = new ArrayList<>();
+                for (T value : entry.getValue()) {
+                    // Only the instance the provider added: an equal value added otherwise kept that one
+                    if (values.ceiling(value) == value) {
+                        values.remove(value);
+                        removed.add(value);
+                    }
+                }
+                return removed;
+            }
+        }
+        return null;
     }
 
     private Collectors.TypedCollector<T> collectorFromCollectionProvider(final CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
@@ -292,7 +332,10 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     public ProviderInternal<Set<T>> getElements() {
         return new BuildableBackedProvider<>(
             context -> {
-                for (Collectors.TypedCollector<T> collector : realized) {
+                // TODO: As this is implemented, the returned provider will "lose" build
+                // dependencies of elements realized by reading this source. To fix this, we would need
+                // to retain the pending elements for the lifetime of this element source.
+                for (Collectors.TypedCollector<T> collector : realizedOnAdd.keySet()) {
                     context.add(collector.getProducer());
                 }
                 for (Collectors.TypedCollector<T> collector : pending) {
@@ -319,7 +362,7 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     @Override
     public void realizeExternal(ProviderInternal<? extends T> provider) {
-        removeFirstProvidedBy(pending, provider);
+        removePending(provider);
     }
 
     @Override

@@ -167,8 +167,17 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     @Override
     public void all(Action<? super T> action) {
         assertEagerContext("all(Action)");
-        Action<? super T> decoratedAction = addEagerAction(action);
+        executeForAllElements(addEagerAction(action));
+    }
 
+    @Override
+    public void forwardElements(Action<? super T> action) {
+        assertEagerContext("forwardElements(Action)");
+        store.realizePending(type);
+        executeForAllElements(eventRegister.registerForwardingAddAction(type, decorate(action)));
+    }
+
+    private void executeForAllElements(Action<? super T> decoratedAction) {
         if (store.constantTimeIsEmpty()) {
             return;
         }
@@ -194,19 +203,10 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
     @Override
     public void configureEach(Action<? super T> action) {
         assertEagerContext("configureEach(Action)");
-        applyToRealizedAndFutureElements(wrapLazyAction(decorate(action)));
-    }
+        Action<? super T> wrappedAction = wrapLazyAction(decorate(action));
+        Action<? super T> registerLazyAddActionDecorated = eventRegister.registerLazyAddAction(wrappedAction);
 
-    @Override
-    public void observeElements(Action<? super T> action) {
-        assertEagerContext("observeElements(Action)");
-        applyToRealizedAndFutureElements(decorate(action));
-    }
-
-    private void applyToRealizedAndFutureElements(Action<? super T> action) {
         // copy in case any actions mutate the store
-        // The copy is taken before the action is registered: iterating may realize nested collections of a composite,
-        // and the elements they announce on the way are part of the copy, so they would otherwise reach the action twice.
         Collection<T> copied = null;
         Iterator<T> iterator = iteratorNoFlush();
         while (iterator.hasNext()) {
@@ -221,7 +221,6 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             copied.add(iterator.next());
         }
 
-        Action<? super T> registerLazyAddActionDecorated = eventRegister.registerLazyAddAction(action);
         if (copied != null) {
             for (T next : copied) {
                 registerLazyAddActionDecorated.execute(next);
@@ -388,6 +387,15 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             if (getStore().removePending(providerInternal)) {
                 // NOTE: When removing provider, we don't need to fireObjectRemoved as they were never added in the first place.
                 didRemove(providerInternal);
+                return true;
+            }
+            List<T> removedValues = getStore().removeRealized(providerInternal);
+            if (removedValues != null) {
+                didRemove(providerInternal);
+                for (T value : removedValues) {
+                    didRemove(value);
+                    eventRegister.fireObjectRemoved(value);
+                }
                 return true;
             } else if (getType().isAssignableFrom(providerInternal.getType()) && providerInternal.isPresent()) {
                 // The provider is of compatible type and the element was either already realized or we are removing a provider to the element
