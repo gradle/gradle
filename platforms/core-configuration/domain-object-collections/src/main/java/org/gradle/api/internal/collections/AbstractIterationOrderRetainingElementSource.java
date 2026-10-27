@@ -253,7 +253,9 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         for (Element<T> element : inserted) {
-            context.add(element.getProducer());
+            if (!element.isEmptiedByRemoval()) {
+                context.add(element.getProducer());
+            }
         }
     }
 

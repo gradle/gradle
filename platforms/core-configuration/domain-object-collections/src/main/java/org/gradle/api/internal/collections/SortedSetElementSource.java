@@ -414,8 +414,11 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     public ProviderInternal<Set<T>> getElements() {
         return new BuildableBackedProvider<>(
             context -> {
-                for (Collectors.TypedCollector<T> collector : realized.keySet()) {
-                    context.add(collector.getProducer());
+                for (Map.Entry<Collectors.TypedCollector<T>, RealizedValues<T>> entry : realized.entrySet()) {
+                    // Values removed by value take their producer with them
+                    if (entry.getValue().external || !entry.getValue().captured.isEmpty()) {
+                        context.add(entry.getKey().getProducer());
+                    }
                 }
                 for (Collectors.TypedCollector<T> collector : pending) {
                     context.add(collector.getProducer());

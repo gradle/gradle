@@ -815,6 +815,47 @@ class LazyAdditionToDomainObjectCollectionIntegrationTest extends AbstractIntegr
         ]
     }
 
+    def "elements of #containerType drops task dependencies of elements removed with #removal"() {
+        buildFile.text = """
+            ${namedThing}
+
+            def task1 = tasks.register("task1")
+            def container = objects.$containerType(NamedThing)
+            def first = objects.property(NamedThing).value(task1.map { new NamedThing("a") })
+            container.addLater(first)
+            container.addLater(provider { new NamedThing("b") })
+            container.${removal}
+            println "removing provider again = " + container.remove(first)
+            def elements = container.elements
+
+            tasks.register("task3") {
+                inputs.property("elements", elements.map { it*.name })
+                doLast {
+                    println(elements.get())
+                }
+            }
+        """
+
+        when:
+        succeeds(":task3")
+
+        then:
+        outputContains("removing provider again = false")
+        outputContains("[b]")
+        notExecuted(":task1")
+
+        where:
+        containerType << [
+            "domainObjectContainer",
+            "polymorphicDomainObjectContainer",
+            "domainObjectSet",
+            "namedDomainObjectSet",
+            "namedDomainObjectList"
+        ]
+        combined:
+        removal << ["remove(container.find { it.name == 'a' })", "removeIf { it.name == 'a' }"]
+    }
+
     def "elements of filtered collection may contain task dependencies"() {
         buildFile.text = """
             ${namedThing}
