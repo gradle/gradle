@@ -12,7 +12,17 @@
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-This release features [1](), [2](), ... [n](), and more.
+In this release, Kotlin DSL scripts benefit from [incremental compilation](#performance-improvements), making script recompilation after a change in buildSrc or an included build up to 65% faster in large multi-project builds.
+
+[Test filters](#test-reporting-and-execution) now apply to JUnit Platform tests that are not declared as methods, such as ArchUnit rules and Spek scopes, so --tests runs only the tests you select.
+
+In [CLI, logging, and problem reporting](#cli-logging-and-problem-reporting), the Problems API introduces a predefined hierarchy of problem groups, and build progress now appears on the Windows taskbar in Windows Terminal.
+
+[Build authoring](#build-authoring-improvements) becomes more convenient, with the wrapper task preserving customized properties when you regenerate it, and new ProviderFactory methods.
+
+For [plugin authors](#core-plugin-and-plugin-authoring-enhancements), the Sync task can now empty its destination when its source is empty.
+
+Finally, [Eclipse users](#tooling-and-ide-integration) can now sync builds that have Isolated Projects enabled, and the [User Manual](#documentation-and-training) gains a new chapter on securing Gradle builds.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [devareddy05](https://github.com/devareddy05),
