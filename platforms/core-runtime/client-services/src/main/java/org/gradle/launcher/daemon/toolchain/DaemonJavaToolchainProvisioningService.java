@@ -118,9 +118,9 @@ public class DaemonJavaToolchainProvisioningService implements JavaToolchainProv
         try {
             return new URI(stringUri);
         } catch (NullPointerException e) {
+            String cause = String.format("No defined toolchain download url for %s on %s architecture.", buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT));
             String property = DaemonJvmPropertiesUtils.getToolchainUrlPropertyForPlatform(buildPlatform.toBuildPlatform());
-            String cause = String.format("'%s' has no download URL for this platform ('%s').", DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE, property);
-            String resolution = String.format("Add a download URL for this platform as '%s' to '%s'.", property, DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE);
+            String resolution = String.format("Add a download URL for this platform to '%s' as '%s=<SERVER_URL>'.", DaemonJvmPropertiesDefaults.DAEMON_JVM_PROPERTIES_FILE, property);
             throw new ToolchainDownloadException(spec, null, cause, resolution, DAEMON_PROVISIONING_RESOLUTION);
         } catch (URISyntaxException e) {
             String cause =  String.format("Invalid toolchain download url %s for %s on %s architecture.", stringUri, buildPlatform.getOperatingSystem(), buildPlatform.getArchitecture().toString().toLowerCase(Locale.ROOT));

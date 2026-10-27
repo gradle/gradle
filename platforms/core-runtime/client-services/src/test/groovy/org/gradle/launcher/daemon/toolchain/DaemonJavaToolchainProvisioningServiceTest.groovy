@@ -146,9 +146,9 @@ class DaemonJavaToolchainProvisioningServiceTest extends Specification {
 
         then:
         def e = thrown(ToolchainDownloadException)
-        e.message == "Unable to download toolchain matching the requirements ({languageVersion=11}), due to: 'gradle/gradle-daemon-jvm.properties' has no download URL for this platform ('toolchainUrl.LINUX.AARCH64')."
+        e.message == "Unable to download toolchain matching the requirements ({languageVersion=11}), due to: No defined toolchain download url for LINUX on aarch64 architecture."
         e.resolutions == [
-            "Add a download URL for this platform as 'toolchainUrl.LINUX.AARCH64' to 'gradle/gradle-daemon-jvm.properties'.",
+            "Add a download URL for this platform to 'gradle/gradle-daemon-jvm.properties' as 'toolchainUrl.LINUX.AARCH64=<SERVER_URL>'.",
             "For more information, please refer to ${DocumentationRegistry.BASE_URL}/userguide/gradle_daemon.html#sec:detect_provision in the Gradle documentation."
         ]
     }

@@ -30,6 +30,8 @@ import org.gradle.test.preconditions.TestExecutionPreconditions
 import org.gradle.test.preconditions.InstalledJdkTestPreconditions
 import org.gradle.testfixtures.internal.NativeServicesTestFixture
 
+import java.util.Locale
+
 import static org.gradle.integtests.fixtures.SuggestionsMessages.GET_HELP
 import static org.gradle.integtests.fixtures.SuggestionsMessages.INFO_DEBUG
 import static org.gradle.integtests.fixtures.SuggestionsMessages.SCAN
@@ -96,8 +98,8 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
     def "toolchain download without url for the current platform fails"() {
         given:
         writeJvmCriteria(AvailableJavaHomes.differentVersion.javaVersion)
-        def currentPlatform = new CurrentBuildPlatform(NativeServicesTestFixture.getInstance().get(SystemInfo), OperatingSystem.current()).toBuildPlatform()
-        def toolchainUrlProperty = getToolchainUrlPropertyForPlatform(currentPlatform)
+        def currentPlatform = new CurrentBuildPlatform(NativeServicesTestFixture.getInstance().get(SystemInfo), OperatingSystem.current())
+        def toolchainUrlProperty = getToolchainUrlPropertyForPlatform(currentPlatform.toBuildPlatform())
 
         when:
         failure = executer
@@ -107,9 +109,9 @@ class DaemonToolchainDownloadIntegrationTest extends AbstractIntegrationSpec imp
 
         then:
         failure.assertHasDescription("Unable to download toolchain matching the requirements ({languageVersion=${AvailableJavaHomes.differentVersion.javaVersionMajor}, vendor=any vendor, implementation=vendor-specific, nativeImageCapable=false}), " +
-            "due to: 'gradle/gradle-daemon-jvm.properties' has no download URL for this platform ('${toolchainUrlProperty}').")
+            "due to: No defined toolchain download url for ${currentPlatform.operatingSystem} on ${currentPlatform.architecture.toString().toLowerCase(Locale.ROOT)} architecture.")
             .assertHasResolutions(
-                "Add a download URL for this platform as '${toolchainUrlProperty}' to 'gradle/gradle-daemon-jvm.properties'.",
+                "Add a download URL for this platform to 'gradle/gradle-daemon-jvm.properties' as '${toolchainUrlProperty}=<SERVER_URL>'.",
                 "For more information, please refer to https://docs.gradle.org/current/userguide/gradle_daemon.html#sec:detect_provision in the Gradle documentation.",
                 STACKTRACE_MESSAGE, INFO_DEBUG, SCAN, GET_HELP
             )
