@@ -31,6 +31,7 @@ import org.gradle.internal.metaobject.DynamicObject;
 import org.gradle.internal.extensibility.ExtensibleDynamicObject;
 import org.gradle.internal.metaobject.DynamicObjectUtil;
 import org.gradle.internal.scripts.GradleScript;
+import org.gradle.internal.scripts.ScriptTargetAware;
 import org.gradle.internal.service.ServiceRegistry;
 import org.jspecify.annotations.Nullable;
 
@@ -39,7 +40,7 @@ import java.util.Map;
 import java.util.function.Supplier;
 
 @SuppressWarnings("this-escape")
-public abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, DynamicObjectAware, GradleScript {
+public abstract class BasicScript extends org.gradle.groovy.scripts.Script implements org.gradle.api.Script, DynamicObjectAware, GradleScript, ScriptTargetAware {
     private StandardOutputCapture standardOutputCapture;
     private Object target;
     private final ScriptDynamicObject dynamicObject = new ScriptDynamicObject(this);
@@ -52,6 +53,7 @@ public abstract class BasicScript extends org.gradle.groovy.scripts.Script imple
         setScriptTarget(target);
     }
 
+    @Override
     public Object getScriptTarget() {
         return target;
     }

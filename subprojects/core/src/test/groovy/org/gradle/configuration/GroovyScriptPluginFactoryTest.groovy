@@ -45,7 +45,7 @@ import org.gradle.plugin.management.internal.PluginRequests
 import org.gradle.plugin.use.internal.PluginRequestApplicator
 import spock.lang.Specification
 
-class DefaultScriptPluginFactoryTest extends Specification {
+class GroovyScriptPluginFactoryTest extends Specification {
 
     def scriptCompilerFactory = Mock(ScriptCompilerFactory)
     def scriptCompiler = Mock(ScriptCompiler)
@@ -64,14 +64,16 @@ class DefaultScriptPluginFactoryTest extends Specification {
     def classpathHasher = Mock(ClasspathHasher)
     def pluginHandler = Mock(PluginHandler)
     def compileOperationsFactory = new DefaultCompileOperationFactory(documentationRegistry)
+    def nestedScriptPluginFactory = Mock(ScriptPluginFactory)
 
-    def factory = new DefaultScriptPluginFactory(
+    def factory = new GroovyScriptPluginFactory(
         new DefaultServiceRegistry(),
         scriptCompilerFactory,
         loggingManagerFactory,
         pluginHandler,
         pluginRequestApplicator,
-        compileOperationsFactory
+        compileOperationsFactory,
+        nestedScriptPluginFactory
     )
 
     def setup() {
@@ -230,8 +232,6 @@ class DefaultScriptPluginFactoryTest extends Specification {
 
     void "configured target uses given script plugin factory for nested scripts"() {
         given:
-        def otherScriptPluginFactory = Mock(ScriptPluginFactory)
-        factory.setScriptPluginFactory(otherScriptPluginFactory)
         final Object target = new Object()
 
         when:
@@ -246,7 +246,7 @@ class DefaultScriptPluginFactoryTest extends Specification {
         1 * scriptCompiler.compile(DefaultScript, target, targetScope, { it.transformer != null }, !null) >> scriptRunner
         _ * scriptRunner.data >> new BuildScriptData(true)
         _ * scriptRunner.runDoesSomething >> true
-        1 * scriptRunner.run(target, { scriptServices -> scriptServices.get(ScriptPluginFactory) == otherScriptPluginFactory })
+        1 * scriptRunner.run(target, { scriptServices -> scriptServices.get(ScriptPluginFactory) == nestedScriptPluginFactory })
         0 * scriptRunner._
     }
 }
