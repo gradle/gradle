@@ -52,13 +52,12 @@ public class DefaultProblemGroup extends ProblemGroup implements ProblemGroupInt
      * implementations are copied so that only known, serializable types are stored and reported.
      */
     @Nullable
-    @SuppressWarnings("deprecation") // a foreign group keeps its display name and parent until Gradle 10
     public static ProblemGroup owned(@Nullable ProblemGroup group) {
         if (group == null || group instanceof ProblemGroupInternal) {
             return group;
         }
         // the constructor copies the parent chain
-        return new DefaultProblemGroup(group.getName(), group.getDisplayName(), group.getParent());
+        return new DefaultProblemGroup(group.getName(), ProblemGroupInternal.displayNameOf(group), ProblemGroupInternal.parentOf(group));
     }
 
     private static void validateFields(String name, String displayName) {
@@ -78,6 +77,11 @@ public class DefaultProblemGroup extends ProblemGroup implements ProblemGroupInt
     @Override
     @Deprecated
     public String getDisplayName() {
+        return displayName;
+    }
+
+    @Override
+    public String getDisplayNameInternal() {
         return displayName;
     }
 

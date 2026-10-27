@@ -50,6 +50,11 @@ final class DefaultUndefinedProblemGroup extends UndefinedProblemGroup implement
     @Override
     @Deprecated
     public String getDisplayName() {
+        return getDisplayNameInternal();
+    }
+
+    @Override
+    public String getDisplayNameInternal() {
         return ProblemNames.UNDEFINED_NAME;
     }
 

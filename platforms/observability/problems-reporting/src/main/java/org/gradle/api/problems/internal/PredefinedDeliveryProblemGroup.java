@@ -45,6 +45,11 @@ final class PredefinedDeliveryProblemGroup extends DeliveryProblemGroup implemen
     @Override
     @Deprecated
     public String getDisplayName() {
+        return getDisplayNameInternal();
+    }
+
+    @Override
+    public String getDisplayNameInternal() {
         return NAME;
     }
 

@@ -246,6 +246,8 @@ class DefaultProblemBuilderTest extends Specification {
 
         String getDisplayName() { name }
 
+        String getDisplayNameInternal() { name }
+
         ProblemGroupInternal getParentInternal() { (ProblemGroupInternal) parent }
 
         boolean equals(Object o) { ProblemGroupInternal.structurallyEquals(this, o) }

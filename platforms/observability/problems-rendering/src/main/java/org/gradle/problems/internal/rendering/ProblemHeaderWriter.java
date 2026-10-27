@@ -17,6 +17,7 @@
 package org.gradle.problems.internal.rendering;
 
 import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.internal.DefaultProblemId;
 import org.gradle.api.problems.internal.ProblemInternal;
 
 import java.io.PrintWriter;
@@ -34,15 +35,15 @@ class ProblemHeaderWriter implements PartialProblemWriter {
         output.print(headerFor(options, problem));
     }
 
-    @SuppressWarnings("deprecation") // renders the display name of a legacy id until Gradle 10
     private String headerFor(RenderOptions options, ProblemInternal problem) {
         ProblemId id = problem.getDefinition().getId();
+        String displayName = DefaultProblemId.displayNameOf(id);
         StringBuilder result = new StringBuilder(options.getPrefix());
-        result.append(ProblemGroupRenderer.renderProblemName(id.getDisplayName()));
+        result.append(ProblemGroupRenderer.renderProblemName(displayName));
         if (options.isRenderId()) {
             // The display name is shown already, so only add the id name when it differs, then the group chain.
             result.append(" (");
-            if (!id.getName().equals(id.getDisplayName())) {
+            if (!id.getName().equals(displayName)) {
                 result.append("id: ").append(ProblemGroupRenderer.renderProblemName(id.getName())).append(", ");
             }
             result.append("in ").append(ProblemGroupRenderer.render(id.getGroup())).append(")");

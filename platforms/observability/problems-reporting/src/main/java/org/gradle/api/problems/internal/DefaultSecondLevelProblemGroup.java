@@ -58,6 +58,11 @@ final class DefaultSecondLevelProblemGroup extends SecondLevelProblemGroup imple
     @Override
     @Deprecated
     public String getDisplayName() {
+        return getDisplayNameInternal();
+    }
+
+    @Override
+    public String getDisplayNameInternal() {
         return name;
     }
 

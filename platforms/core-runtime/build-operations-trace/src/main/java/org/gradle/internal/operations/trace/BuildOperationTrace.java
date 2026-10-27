@@ -39,6 +39,7 @@ import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.attributes.Attribute;
 import org.gradle.api.attributes.AttributeContainer;
 import org.gradle.api.problems.ProblemId;
+import org.gradle.api.problems.internal.DefaultProblemId;
 import org.gradle.api.problems.internal.ProblemGroupInternal;
 import org.gradle.internal.Cast;
 import org.gradle.internal.IoActions;
@@ -625,7 +626,7 @@ public class BuildOperationTrace implements Stoppable {
         public void serialize(ProblemGroupInternal group, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
             jsonGenerator.writeStartObject();
             jsonGenerator.writeStringField("name", group.getName());
-            jsonGenerator.writeStringField("displayName", group.getDisplayName());
+            jsonGenerator.writeStringField("displayName", group.getDisplayNameInternal());
             String description = group.getDescription();
             if (description != null) {
                 jsonGenerator.writeStringField("description", description);
@@ -642,11 +643,10 @@ public class BuildOperationTrace implements Stoppable {
      */
     private static class JsonProblemIdSerializer extends JsonSerializer<ProblemId> {
         @Override
-        @SuppressWarnings("deprecation")
         public void serialize(ProblemId id, JsonGenerator jsonGenerator, SerializerProvider serializerProvider) throws IOException {
             jsonGenerator.writeStartObject();
             jsonGenerator.writeStringField("name", id.getName());
-            jsonGenerator.writeStringField("displayName", id.getDisplayName());
+            jsonGenerator.writeStringField("displayName", DefaultProblemId.displayNameOf(id));
             jsonGenerator.writeFieldName("group");
             serializerProvider.defaultSerializeValue(id.getGroup(), jsonGenerator);
             jsonGenerator.writeEndObject();

@@ -46,6 +46,11 @@ final class PredefinedTransformationProblemGroup extends TransformationProblemGr
     @Override
     @Deprecated
     public String getDisplayName() {
+        return getDisplayNameInternal();
+    }
+
+    @Override
+    public String getDisplayNameInternal() {
         return NAME;
     }
 

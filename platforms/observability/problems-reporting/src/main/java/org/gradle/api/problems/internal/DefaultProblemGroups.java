@@ -163,7 +163,6 @@ public final class DefaultProblemGroups implements ProblemGroupsInternal {
     }
 
     @Override
-    @SuppressWarnings("deprecation") // keeps the display name of a legacy id until Gradle 10
     public ProblemId canonical(ProblemId id) {
         List<ProblemGroup> rootToLeaf = new ArrayList<>();
         for (ProblemGroupInternal current = ProblemGroupInternal.of(id.getGroup()); current != null; current = current.getParentInternal()) {
@@ -180,13 +179,13 @@ public final class DefaultProblemGroups implements ProblemGroupsInternal {
                 if (predefined != null) {
                     canonicalGroup = predefined;
                 } else if (changed) {
-                    canonicalGroup = new DefaultProblemGroup(group.getName(), group.getDisplayName(), canonicalParent);
+                    canonicalGroup = new DefaultProblemGroup(group.getName(), ProblemGroupInternal.displayNameOf(group), canonicalParent);
                 }
             }
             changed |= canonicalGroup != group;
             canonicalParent = canonicalGroup;
         }
-        return changed ? new DefaultProblemId(id.getName(), id.getDisplayName(), Objects.requireNonNull(canonicalParent)) : id;
+        return changed ? new DefaultProblemId(id.getName(), DefaultProblemId.displayNameOf(id), Objects.requireNonNull(canonicalParent)) : id;
     }
 
     @Nullable

@@ -309,13 +309,12 @@ public class DefaultProblemBuilder implements ProblemBuilderInternal {
     }
 
     @Override
-    @SuppressWarnings("deprecation") // keeps the display name of a legacy id until Gradle 10
     public ProblemBuilderInternal id(ProblemId problemId) {
         ProblemGroup group = cloneGroup(problemId.getGroup());
         if (problemId instanceof DefaultProblemId && group == problemId.getGroup()) {
             this.id = problemId;
         } else {
-            this.id = new DefaultProblemId(problemId.getName(), problemId.getDisplayName(), group);
+            this.id = new DefaultProblemId(problemId.getName(), DefaultProblemId.displayNameOf(problemId), group);
         }
         return this;
     }

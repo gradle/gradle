@@ -47,6 +47,11 @@ final class PredefinedPackagingProblemGroup extends PackagingProblemGroup implem
     @Override
     @Deprecated
     public String getDisplayName() {
+        return getDisplayNameInternal();
+    }
+
+    @Override
+    public String getDisplayNameInternal() {
         return NAME;
     }
 

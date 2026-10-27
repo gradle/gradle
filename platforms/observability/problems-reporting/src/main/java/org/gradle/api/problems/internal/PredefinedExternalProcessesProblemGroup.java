@@ -46,6 +46,11 @@ final class PredefinedExternalProcessesProblemGroup extends ExternalProcessesPro
     @Override
     @Deprecated
     public String getDisplayName() {
+        return getDisplayNameInternal();
+    }
+
+    @Override
+    public String getDisplayNameInternal() {
         return NAME;
     }
 
