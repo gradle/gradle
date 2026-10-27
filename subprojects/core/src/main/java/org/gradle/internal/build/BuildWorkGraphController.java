@@ -16,7 +16,8 @@
 
 package org.gradle.internal.build;
 
-import org.gradle.composite.internal.TaskIdentifier;
+import org.gradle.api.internal.TaskInternal;
+import org.gradle.execution.plan.TaskNode;
 import org.gradle.internal.service.scopes.Scope;
 import org.gradle.internal.service.scopes.ServiceScope;
 
@@ -27,12 +28,13 @@ import java.util.Collection;
  */
 @ServiceScope(Scope.Build.class)
 public interface BuildWorkGraphController {
+
     /**
-     * Locates a future task node in this build's work graph, for use from some other build's work graph.
+     * Locates a task node in this build's work graph, for use from some other build's work graph.
      *
      * <p>This method does not schedule the task for execution, use {@link BuildWorkGraph#schedule(Collection)} to schedule the task.
      */
-    ExportedTaskNode locateTask(TaskIdentifier taskIdentifier);
+    TaskNode locateTaskNode(TaskInternal task);
 
     /**
      * Creates a new, empty work graph for this build.
@@ -46,4 +48,5 @@ public interface BuildWorkGraphController {
      * Discards all work state, discarding any cached models and other state
      */
     void resetState();
+
 }

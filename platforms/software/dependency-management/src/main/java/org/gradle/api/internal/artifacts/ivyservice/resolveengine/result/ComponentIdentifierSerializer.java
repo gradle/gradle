@@ -32,6 +32,7 @@ import org.gradle.internal.component.local.model.OpaqueComponentIdentifier;
 import org.gradle.internal.serialize.AbstractSerializer;
 import org.gradle.internal.serialize.Decoder;
 import org.gradle.internal.serialize.Encoder;
+import org.gradle.internal.util.PathSerializer;
 import org.jspecify.annotations.Nullable;
 
 import java.io.File;

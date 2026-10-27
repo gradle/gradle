@@ -41,7 +41,6 @@ import org.gradle.api.internal.provider.PropertyFactory
 import org.gradle.api.internal.tasks.TaskDependencyFactory
 import org.gradle.api.problems.internal.ProblemsInternal
 import org.gradle.api.tasks.util.internal.PatternSetFactory
-import org.gradle.composite.internal.BuildTreeWorkGraphController
 import org.gradle.internal.build.BuildStateRegistry
 import org.gradle.internal.buildtree.BuildModelParameters
 import org.gradle.internal.execution.InputFingerprinter
@@ -158,6 +157,7 @@ import org.gradle.internal.serialize.graph.reentrant
 import org.gradle.internal.service.scopes.Scope
 import org.gradle.internal.service.scopes.ServiceScope
 import org.gradle.internal.state.ManagedFactoryRegistry
+import org.gradle.internal.util.PathSerializer
 
 
 @ServiceScope(Scope.Build::class)
@@ -203,7 +203,6 @@ class DefaultConfigurationCacheCodecs(
     patternSetFactory: PatternSetFactory,
     fileOperations: FileOperations,
     fileFactory: FileFactory,
-    includedTaskGraph: BuildTreeWorkGraphController,
     buildStateRegistry: BuildStateRegistry,
     documentationRegistry: DocumentationRegistry,
     taskDependencyFactory: TaskDependencyFactory,
@@ -375,7 +374,7 @@ class DefaultConfigurationCacheCodecs(
         providerTypes(propertyFactory, filePropertyFactory, nestedProviderCodec(buildStateRegistry))
         fileCollectionTypes(directoryFileTreeFactory, fileCollectionFactory, artifactSetConverter, fileOperations, fileFactory, patternSetFactory, fileLookup, taskDependencyFactory)
 
-        bind(TaskInAnotherBuildCodec(includedTaskGraph))
+        bind(TaskInAnotherBuildCodec(PathSerializer()))
 
         bind(DefaultResolvableArtifactCodec(calculatedValueContainerFactory))
     }
