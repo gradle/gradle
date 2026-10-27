@@ -42,7 +42,7 @@ import java.util.List;
 import java.util.function.Consumer;
 
 @ManagedObjectProvider
-@ServiceScope({Scope.Global.class, Scope.BuildTree.class, Scope.Build.class, Scope.Project.class})
+@ServiceScope({Scope.Global.class, Scope.BuildTree.class, Scope.Build.class, Scope.Project.class, Scope.ProjectExecution.class})
 public interface FileCollectionFactory {
     /**
      * Creates a copy of this factory that uses the given resolver to convert various types to File instances.
