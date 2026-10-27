@@ -72,6 +72,16 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
         return values.isEmpty() && pending.isEmpty();
     }
 
+    /**
+     * Returns the number of elements iteration would produce, without realizing any pending element.
+     * <p>
+     * A pending single-element provider is cheaply counted as one.
+     * A pending collection provider has to be queried to learn its size anyway, so its values are collected and
+     * only those not already present in {@link #values} or in an earlier collection provider are counted,
+     * just as adding them to the sorted set on realization would drop them.
+     * <p>
+     * A pending single-element provider whose value is a duplicate is still counted until it is realized.
+     */
     @Override
     public int size() {
         int count = values.size();

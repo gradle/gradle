@@ -59,6 +59,17 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
         return new RealizedElementCollectionIterator(getInserted(), NO_DUPLICATES);
     }
 
+    /**
+     * Returns the number of elements iteration would produce, without realizing any pending element.
+     * <p>
+     * Realized elements already exclude their duplicates, and a pending single-element provider is cheaply
+     * counted as one, so these contribute their own size.
+     * A pending collection provider has to be queried to learn its size anyway, so its values are peeked and
+     * only those not already present in the realized elements or in an earlier collection provider are counted,
+     * just as realizing it would mark them as duplicates.
+     * <p>
+     * A pending single-element provider whose value is a duplicate is still counted until it is realized.
+     */
     @Override
     public int size() {
         int count = 0;
