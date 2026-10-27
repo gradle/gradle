@@ -742,6 +742,13 @@
     "crossVersionTests": false
   },
   {
+    "name": "groovy-dsl-plugins",
+    "path": "platforms/dsl/groovy-dsl-plugins",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": true
+  },
+  {
     "name": "groovy-loader",
     "path": "platforms/core-runtime/groovy-loader",
     "unitTests": false,
@@ -1194,7 +1201,7 @@
     "path": "platforms/extensibility/plugin-development",
     "unitTests": true,
     "functionalTests": true,
-    "crossVersionTests": true
+    "crossVersionTests": false
   },
   {
     "name": "plugin-use",
