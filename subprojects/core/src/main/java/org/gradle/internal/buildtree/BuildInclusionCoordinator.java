@@ -46,6 +46,7 @@ public class BuildInclusionCoordinator {
     private final Map<BuildState, BuildSynchronizer> synchronizers = new ConcurrentHashMap<>();
     private final GlobalDependencySubstitutionRegistry substitutionRegistry;
     private final WorkerLeaseService workerLeaseService;
+    private final ResilientTaskScheduling resilientTaskScheduling;
     private boolean registerRootSubstitutions;
 
     private static class BuildSynchronizer {
@@ -72,9 +73,10 @@ public class BuildInclusionCoordinator {
 
     }
 
-    public BuildInclusionCoordinator(GlobalDependencySubstitutionRegistry substitutionRegistry, WorkerLeaseService workerLeaseService) {
+    public BuildInclusionCoordinator(GlobalDependencySubstitutionRegistry substitutionRegistry, WorkerLeaseService workerLeaseService, ResilientTaskScheduling resilientTaskScheduling) {
         this.substitutionRegistry = substitutionRegistry;
         this.workerLeaseService = workerLeaseService;
+        this.resilientTaskScheduling = resilientTaskScheduling;
     }
 
     public void prepareForInclusion(IncludedBuildState build, boolean asPlugin) {
@@ -94,7 +96,23 @@ public class BuildInclusionCoordinator {
 
     private void registerGlobalLibrarySubstitutions() {
         for (IncludedBuildState includedBuild : libraryBuilds) {
-            registerSubstitutionsFor(includedBuild);
+            registerSubstitutionsForIncludedBuild(includedBuild);
+        }
+    }
+
+    /**
+     * Registering the substitutions of an included build configures it. With resilient task scheduling, a build that fails to
+     * configure contributes no substitutions and is recorded as broken, instead of failing the configuration of the including build.
+     */
+    private void registerSubstitutionsForIncludedBuild(IncludedBuildState build) {
+        if (!resilientTaskScheduling.isEnabled()) {
+            registerSubstitutionsFor(build);
+            return;
+        }
+        try {
+            registerSubstitutionsFor(build);
+        } catch (RuntimeException e) {
+            resilientTaskScheduling.recordBrokenBuild(build, e);
         }
     }
 
@@ -132,7 +150,7 @@ public class BuildInclusionCoordinator {
                 BuildState child = reference.getTarget();
 
                 if (seen.add(child) && child instanceof IncludedBuildState) {
-                    registerSubstitutionsFor((IncludedBuildState) child);
+                    registerSubstitutionsForIncludedBuild((IncludedBuildState) child);
                     stack.push(child);
                 }
             }

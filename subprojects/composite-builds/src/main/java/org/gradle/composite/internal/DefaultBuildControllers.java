@@ -22,6 +22,7 @@ import org.gradle.internal.UncheckedException;
 import org.gradle.internal.build.BuildIdentity;
 import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.ExecutionResult;
+import org.gradle.internal.buildtree.ResilientTaskScheduling;
 import org.gradle.internal.concurrent.CompositeStoppable;
 import org.gradle.internal.concurrent.ManagedExecutor;
 import org.gradle.internal.work.WorkerLeaseService;
@@ -33,6 +34,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.atomic.AtomicBoolean;
+import java.util.function.BooleanSupplier;
 
 class DefaultBuildControllers implements BuildControllers {
     // Always iterate over the controllers in a fixed order
@@ -42,13 +44,15 @@ class DefaultBuildControllers implements BuildControllers {
     private final PlanExecutor planExecutor;
     private final int monitoringPollTime;
     private final TimeUnit monitoringPollTimeUnit;
+    private final ResilientTaskScheduling resilientTaskScheduling;
 
-    DefaultBuildControllers(ManagedExecutor executorService, WorkerLeaseService workerLeaseService, PlanExecutor planExecutor, int monitoringPollTime, TimeUnit monitoringPollTimeUnit) {
+    DefaultBuildControllers(ManagedExecutor executorService, WorkerLeaseService workerLeaseService, PlanExecutor planExecutor, int monitoringPollTime, TimeUnit monitoringPollTimeUnit, ResilientTaskScheduling resilientTaskScheduling) {
         this.executorService = executorService;
         this.workerLeaseService = workerLeaseService;
         this.planExecutor = planExecutor;
         this.monitoringPollTime = monitoringPollTime;
         this.monitoringPollTimeUnit = monitoringPollTimeUnit;
+        this.resilientTaskScheduling = resilientTaskScheduling;
     }
 
     @Override
@@ -69,13 +73,39 @@ class DefaultBuildControllers implements BuildControllers {
         while (tasksDiscovered) {
             tasksDiscovered = false;
             for (BuildController buildController : ImmutableList.copyOf(controllers.values())) {
-                if (buildController.scheduleQueuedTasks()) {
+                if (buildController.isBroken()) {
+                    continue;
+                }
+                if (tolerateBrokenBuild(buildController, buildController::scheduleQueuedTasks)) {
                     tasksDiscovered = true;
                 }
             }
         }
         for (BuildController buildController : controllers.values()) {
-            buildController.finalizeWorkGraph();
+            if (buildController.isBroken()) {
+                continue;
+            }
+            tolerateBrokenBuild(buildController, () -> {
+                buildController.finalizeWorkGraph();
+                return false;
+            });
+        }
+    }
+
+    /**
+     * Scheduling tasks for a build configures it. With resilient task scheduling, a build that fails to configure is taken
+     * out of this task run instead of failing the calculation of the whole build tree work graph.
+     */
+    private boolean tolerateBrokenBuild(BuildController buildController, BooleanSupplier action) {
+        if (!resilientTaskScheduling.isEnabled()) {
+            return action.getAsBoolean();
+        }
+        try {
+            return action.getAsBoolean();
+        } catch (RuntimeException e) {
+            buildController.markBroken();
+            resilientTaskScheduling.recordBrokenBuild(buildController.getBuild(), e);
+            return false;
         }
     }
 

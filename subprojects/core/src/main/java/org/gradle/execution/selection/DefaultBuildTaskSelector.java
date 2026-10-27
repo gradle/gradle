@@ -36,6 +36,7 @@ import org.gradle.internal.build.BuildState;
 import org.gradle.internal.build.BuildStateRegistry;
 import org.gradle.internal.build.IncludedBuildState;
 import org.gradle.internal.build.RootBuildState;
+import org.gradle.internal.buildtree.ResilientTaskScheduling;
 import org.gradle.util.Path;
 import org.gradle.util.internal.NameMatcher;
 import org.jspecify.annotations.Nullable;
@@ -56,13 +57,15 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
     private final TaskSelector taskSelector;
     private final List<BuiltInCommand> commands;
     private final ProblemsInternal problemsService;
+    private final ResilientTaskScheduling resilientTaskScheduling;
 
     @Inject
-    public DefaultBuildTaskSelector(BuildStateRegistry buildRegistry, TaskSelector taskSelector, List<BuiltInCommand> commands, ProblemsInternal problemsService) {
+    public DefaultBuildTaskSelector(BuildStateRegistry buildRegistry, TaskSelector taskSelector, List<BuiltInCommand> commands, ProblemsInternal problemsService, ResilientTaskScheduling resilientTaskScheduling) {
         this.buildRegistry = buildRegistry;
         this.taskSelector = taskSelector;
         this.commands = commands;
         this.problemsService = problemsService;
+        this.resilientTaskScheduling = resilientTaskScheduling;
     }
 
     @Override
@@ -96,16 +99,16 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
             }
             if (projectPath != null) {
                 ProjectState project = defaultBuild.getProjects().getProject(Path.path(projectPath));
-                return getSelectorForBuild(defaultBuild).getSelection(selection, project, selection.getOriginalPath().getName(), true);
+                return selectIn(defaultBuild, selection, project, selection.getOriginalPath().getName(), true);
             } else {
                 Path projectPrefix = selection.getOriginalPath().getParent();
                 ProjectState project = defaultBuild.getProjects().getProject(projectPrefix);
-                return getSelectorForBuild(defaultBuild).getSelection(selection, project, selection.getOriginalPath().getName(), false);
+                return selectIn(defaultBuild, selection, project, selection.getOriginalPath().getName(), false);
             }
         }
 
         ProjectResolutionResult resolutionResult = resolveProject(selection, selection.getOriginalPath(), defaultBuild);
-        return getSelectorForBuild(resolutionResult.build).getSelection(selection, resolutionResult.project, resolutionResult.taskName, resolutionResult.includeSubprojects);
+        return selectIn(resolutionResult.build, selection, resolutionResult.project, resolutionResult.taskName, resolutionResult.includeSubprojects);
     }
 
     @Override
@@ -252,6 +255,14 @@ public class DefaultBuildTaskSelector implements BuildTaskSelector {
             }
         }
         return null;
+    }
+
+    private TaskSelection selectIn(BuildState target, TaskSelector.SelectionContext context, ProjectState project, String taskName, boolean selectAllMatching) {
+        if (!(target instanceof RootBuildState) && resilientTaskScheduling.isEnabled() && !resilientTaskScheduling.canScheduleTasksFor(target)) {
+            LOGGER.info("Build {} failed to configure, skipping the selection of task '{}' in it", target.getDisplayName().getDisplayName(), context.getOriginalPath());
+            return new TaskSelection(project.getProjectPath().asString(), taskName, tasks -> {});
+        }
+        return getSelectorForBuild(target).getSelection(context, project, taskName, selectAllMatching);
     }
 
     private TaskSelector getSelectorForBuild(BuildState target) {

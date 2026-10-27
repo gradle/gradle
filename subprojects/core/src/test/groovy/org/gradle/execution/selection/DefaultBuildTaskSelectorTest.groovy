@@ -16,6 +16,7 @@
 
 package org.gradle.execution.selection
 
+import org.gradle.internal.buildtree.ResilientTaskScheduling
 import org.gradle.api.Task
 import org.gradle.api.internal.GradleInternal
 import org.gradle.api.internal.project.ProjectState
@@ -42,7 +43,8 @@ class DefaultBuildTaskSelectorTest extends Specification {
         buildRegistry,
         taskSelector,
         [new HelpBuiltInCommand()],
-        TestUtil.problemsService()
+        TestUtil.problemsService(),
+        ResilientTaskScheduling.disabled()
     )
     def root = rootBuild()
     def target = root.state

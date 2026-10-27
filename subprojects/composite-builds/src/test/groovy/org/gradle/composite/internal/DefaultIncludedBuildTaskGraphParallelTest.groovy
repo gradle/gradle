@@ -16,6 +16,7 @@
 
 package org.gradle.composite.internal
 
+import org.gradle.internal.buildtree.ResilientTaskScheduling
 import org.gradle.api.Action
 import org.gradle.api.BuildCancelledException
 import org.gradle.api.DefaultTask
@@ -564,7 +565,8 @@ class DefaultIncludedBuildTaskGraphParallelTest extends AbstractIncludedBuildTas
                 planExecutor,
                 preparer,
                 MONITOR_POLL_TIME,
-                TimeUnit.MILLISECONDS
+                TimeUnit.MILLISECONDS,
+                ResilientTaskScheduling.disabled()
             )
         }
 

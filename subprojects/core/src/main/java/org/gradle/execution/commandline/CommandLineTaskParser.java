@@ -48,7 +48,10 @@ public class CommandLineTaskParser {
             String path = remainingPaths.remove(0);
             TaskSelection selection = taskSelector.resolveTaskName(taskExecutionRequest.getRootDir(), taskExecutionRequest.getProjectPath(), targetBuild, path);
             Set<Task> tasks = selection.getTasks();
-            remainingPaths = taskConfigurer.configureTasks(tasks, remainingPaths);
+            // The selection is empty when its build failed to configure under resilient task scheduling; there are no tasks whose options could consume arguments
+            if (!tasks.isEmpty()) {
+                remainingPaths = taskConfigurer.configureTasks(tasks, remainingPaths);
+            }
             out.add(selection);
         }
         return out;

@@ -196,8 +196,13 @@ public class BuildTreeScopeServices implements ServiceRegistrationProvider {
     }
 
     @Provides
-    protected BuildTaskSelector createBuildTaskSelector(BuildStateRegistry buildRegistry, TaskSelector taskSelector, List<BuiltInCommand> commands, ProblemsInternal problemsService) {
-        return new DefaultBuildTaskSelector(buildRegistry, taskSelector, commands, problemsService);
+    protected BuildTaskSelector createBuildTaskSelector(BuildStateRegistry buildRegistry, TaskSelector taskSelector, List<BuiltInCommand> commands, ProblemsInternal problemsService, ResilientTaskScheduling resilientTaskScheduling) {
+        return new DefaultBuildTaskSelector(buildRegistry, taskSelector, commands, problemsService, resilientTaskScheduling);
+    }
+
+    @Provides
+    protected ResilientTaskScheduling createResilientTaskScheduling(InternalOptions internalOptions) {
+        return new ResilientTaskScheduling(internalOptions);
     }
 
     @Provides
