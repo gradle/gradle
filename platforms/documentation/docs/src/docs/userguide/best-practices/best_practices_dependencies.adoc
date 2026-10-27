@@ -521,7 +521,7 @@ Gradle's own attributes, such as `Usage` and `LibraryElements`, use `Named` inte
 It is not.
 
 No matter which of these types you declare, the value is converted to a plain string whenever it leaves the build.
-It is published to Gradle Module Metadata, and reported in resolution results, only as this string.
+It is published to <<publishing_gradle_module_metadata.adoc#sec:understanding-gradle-module-md,Gradle Module Metadata>>, and reported in resolution results, only as this string.
 A `Named` type adds machinery on top of that string without changing what the string does:
 
 * *It does not restrict the set of legal values.*
@@ -550,16 +550,6 @@ include::sample[dir="snippets/best-practices/preferStringAttributes-avoid/groovy
 <3> *Reading the value requires `getName()`*: recovering the string means unwrapping the value that was wrapped on the way in.
 
 ==== Do This Instead
-
-++++
-<div style="text-align: right;">
-  <a class="download-project-link"
-     data-base-path="https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/preferStringAttributes-do/"
-     href="https://download-directory.github.io/?url=https://github.com/gradle/gradle/tree/master/platforms/documentation/docs/src/snippets/best-practices/preferStringAttributes-do/kotlin">
-    <img src="https://img.shields.io/badge/Download%20Project-GitHub-blue?logo=github&style=flat" alt="Download"/>
-  </a>
-</div>
-++++
 
 ====
 include::sample[dir="snippets/best-practices/preferStringAttributes-do/kotlin",files="build.gradle.kts[tags=do-this]"]
@@ -615,13 +605,13 @@ With the <<configuration_cache.adoc#config_cache,Configuration Cache>> enabled, 
 
 [source,text]
 ----
-$ gradle showExtension                      # cache miss: configuration runs
+$ gradle --configuration-cache showExtension                   # cache miss: configuration runs
 attr value = TYPE_A, extension = txt-a
 
-$ gradle showExtension                      # cache hit, same daemon
+$ gradle --configuration-cache showExtension                   # cache hit, same daemon
 attr value = TYPE_A, extension = txt-a
 
-$ gradle --stop && gradle showExtension      # cache hit, fresh daemon
+$ gradle --stop && gradle --configuration-cache showExtension   # cache hit, fresh daemon
 attr value = TYPE_A, extension = unset
 ----
 
