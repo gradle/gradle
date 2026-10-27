@@ -138,12 +138,12 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
     @Nullable
     public List<T> removeRealized(ProviderInternal<? extends T> provider) {
         List<T> removed = super.removeRealized(provider);
-        if (removed == null) {
-            return null;
+        if (removed == null || removed.isEmpty()) {
+            return removed;
         }
         List<T> gone = new ArrayList<>(removed.size());
         for (T value : removed) {
-            // An equal value hidden as a duplicate of the removed one takes its place
+            // A duplicate hidden by the removed value, e.g. one added directly, takes its place
             markDuplicates(value);
             if (!Iterators.contains(iteratorNoFlush(), value)) {
                 gone.add(value);
@@ -206,11 +206,10 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
         }
     }
 
-    // Compared by provider: an element realized on add keeps its values, so it is not equal to a new one.
-    // An element realized by reading the collection doesn't count, so the provider is added and queried again.
+    // Compared by provider: a realized element holds its values, so it is not equal to a new one
     private boolean isAddedBy(ProviderInternal<?> provider) {
         for (Element<T> element : getInserted()) {
-            if ((!element.isRealized() || element.isRealizedOnAdd()) && element.isProvidedBy(provider)) {
+            if (element.isProvidedBy(provider)) {
                 return true;
             }
         }
@@ -220,7 +219,8 @@ public class IterationOrderRetainingSetElementSource<T> extends AbstractIteratio
     @Override
     protected boolean addPendingElement(Element<T> element) {
         boolean added = super.addPendingElement(element);
-        if (element.isRealizedOnAdd()) {
+        // Realized here only for an eager listener, otherwise the element was cleared again
+        if (element.isRealized()) {
             if (valuesRealizedOnAdd.isEmpty()) {
                 valuesRealizedOnAdd = new HashSet<>();
             }

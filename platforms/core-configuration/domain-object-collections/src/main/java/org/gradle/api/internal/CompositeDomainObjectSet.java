@@ -421,6 +421,12 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
         }
 
         @Override
+        @Nullable
+        public List<T> removeRealized(ProviderInternal<? extends T> provider) {
+            throw new UnsupportedOperationException();
+        }
+
+        @Override
         public boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
             throw new UnsupportedOperationException();
         }

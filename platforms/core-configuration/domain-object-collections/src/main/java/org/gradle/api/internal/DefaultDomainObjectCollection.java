@@ -307,9 +307,12 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         doAddLater(provider);
     }
 
-    protected void doAddLater(Provider<? extends T> provider) {
+    /**
+     * @return whether the provider was added, which it is not when it was added before
+     */
+    protected boolean doAddLater(Provider<? extends T> provider) {
         ProviderInternal<? extends T> providerInternal = Providers.internal(provider);
-        store.addPending(providerInternal);
+        return store.addPending(providerInternal);
     }
 
     @Override
@@ -398,7 +401,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
                 }
                 return true;
             } else if (getType().isAssignableFrom(providerInternal.getType()) && providerInternal.isPresent()) {
-                // The provider is of compatible type and the element was either already realized or we are removing a provider to the element
+                // The provider is of compatible type and points to an element that was not added with it
                 o = providerInternal.get();
             }
             // Else, the provider is of incompatible type, maybe we have a domain object collection of Provider, fallthrough

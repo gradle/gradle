@@ -95,14 +95,12 @@ public interface ElementSource<T> extends Iterable<T> {
     boolean removePending(ProviderInternal<? extends T> provider);
 
     /**
-     * Removes the element added by the given provider if it was realized when added for an eager listener, without querying the provider again.
+     * Removes the element added by the given provider if it was already realized, without querying the provider again.
      *
-     * @return the values that are no longer in this source, or {@code null} if this source has no such element added by the provider
+     * @return the values that are no longer in this source, or {@code null} if no realized element was added by the provider
      */
     @Nullable
-    default List<T> removeRealized(ProviderInternal<? extends T> provider) {
-        return null;
-    }
+    List<T> removeRealized(ProviderInternal<? extends T> provider);
 
     boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider);
 

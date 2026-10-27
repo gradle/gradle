@@ -26,6 +26,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
@@ -192,8 +193,13 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
 
     @Override
     public boolean removePending(ProviderInternal<? extends S> provider) {
-        // Removal events can't be fired through a filtered view, so a provider realized on add is removed without them
-        return collection.removePending(provider) || collection.removeRealized(provider) != null;
+        return collection.removePending(provider);
+    }
+
+    @Override
+    @Nullable
+    public List<S> removeRealized(ProviderInternal<? extends S> provider) {
+        throw new UnsupportedOperationException(String.format("Cannot remove '%s' from '%s' as it is a filtered collection", provider, this));
     }
 
     @Override

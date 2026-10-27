@@ -210,9 +210,13 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         Iterator<Element<T>> iterator = inserted.iterator();
         while (iterator.hasNext()) {
             Element<T> next = iterator.next();
-            if (next.isRealized() && next.isRealizedOnAdd() && next.isProvidedBy(provider)) {
+            if (next.isRealized() && next.isProvidedBy(provider)) {
                 modCount++;
                 iterator.remove();
+                if (next.isEmptiedByRemoval()) {
+                    // Its values were removed already, so removing it falls back to querying it, as for other providers
+                    return null;
+                }
                 return next.getValues();
             }
         }
@@ -238,9 +242,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         boolean added = inserted.add(element);
         if (subscriptionVerifier.isSubscribed(element.getType())) {
             element.realize();
-            if (subscriptionVerifier.isSubscribedByListener(element.getType())) {
-                element.markRealizedOnAdd();
-            } else {
+            if (!subscriptionVerifier.isSubscribedByListener(element.getType())) {
                 // Only realized to be forwarded to a composite collection, so the provider is queried again when this collection is read
                 element.clearCache();
             }
@@ -332,6 +334,9 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
                 if (collected.size() > 1) {
                     element.remove(collected.get(previousSubIndex));
                     nextSubIndex--;
+                } else if (element.isProvided()) {
+                    // Kept, see isEmptiedByRemoval(); the next value is in a later element
+                    element.remove(collected.get(previousSubIndex));
                 } else {
                     backingList.remove(previousIndex);
                     nextIndex--;
@@ -355,8 +360,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         private List<T> removedValues = null;
         private IntSet duplicates = IntSets.emptySet();
         private boolean realized;
-        // Realized when added for an eager listener, so it can be removed by its provider without querying the provider again
-        private boolean realizedOnAdd;
+        private int removals;
 
         private final Action<T> realizeAction;
 
@@ -373,14 +377,6 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
         public boolean isRealized() {
             return realized;
-        }
-
-        boolean isRealizedOnAdd() {
-            return realizedOnAdd;
-        }
-
-        void markRealizedOnAdd() {
-            realizedOnAdd = true;
         }
 
         boolean isProvidedByCollection() {
@@ -450,10 +446,20 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
                     return false;
                 }
                 cache.remove(index);
+                removals++;
                 shiftDuplicatesAfterRemovalOf(index);
                 return true;
             }
             return true;
+        }
+
+        boolean isProvided() {
+            return realizeAction != null;
+        }
+
+        // A provided element whose values were all removed stays, so adding its provider again is known to have no effect
+        boolean isEmptiedByRemoval() {
+            return realized && removals > 0 && cache.isEmpty();
         }
 
         // Duplicates are tracked by index, so the ones after the removed value move one position back

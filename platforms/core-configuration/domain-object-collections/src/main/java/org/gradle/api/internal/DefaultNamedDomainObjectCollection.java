@@ -161,13 +161,16 @@ public class DefaultNamedDomainObjectCollection<T> extends DefaultDomainObjectCo
     }
 
     @Override
-    protected void doAddLater(Provider<? extends T> provider) {
-        super.doAddLater(provider);
+    protected boolean doAddLater(Provider<? extends T> provider) {
+        if (!super.doAddLater(provider)) {
+            return false;
+        }
         if (provider instanceof Named) {
             final Named named = (Named) provider;
             index.putPending(named.getName(), Providers.internal(provider));
             deferredElementKnown(named.getName(), provider);
         }
+        return true;
     }
 
     public void whenElementKnown(Action<? super ElementInfo<T>> action) {
