@@ -23,6 +23,7 @@ import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.DefaultCollectionEventRegister;
 import org.gradle.api.internal.collections.ElementSource;
+import org.gradle.api.internal.collections.EventSubscriptionVerifier;
 import org.gradle.api.internal.collections.FilteredElementSource;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
@@ -33,10 +34,12 @@ import org.gradle.api.internal.provider.Providers;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
+import org.gradle.internal.Actions;
 import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.util.AbstractCollection;
 import java.util.ArrayList;
@@ -170,13 +173,6 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         executeForAllElements(addEagerAction(action));
     }
 
-    @Override
-    public void forwardElements(Action<? super T> action) {
-        assertEagerContext("forwardElements(Action)");
-        store.realizePending(type);
-        executeForAllElements(eventRegister.registerForwardingAddAction(type, decorate(action)));
-    }
-
     private void executeForAllElements(Action<? super T> decoratedAction) {
         if (store.constantTimeIsEmpty()) {
             return;
@@ -206,6 +202,43 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         Action<? super T> wrappedAction = wrapLazyAction(decorate(action));
         Action<? super T> registerLazyAddActionDecorated = eventRegister.registerLazyAddAction(wrappedAction);
 
+        Collection<T> copied = copyRealizedElements();
+        if (copied != null) {
+            for (T next : copied) {
+                registerLazyAddActionDecorated.execute(next);
+            }
+        }
+    }
+
+    @Override
+    public void forwardElements(Action<? super T> action, EventSubscriptionVerifier<? super T> targetSubscriptions) {
+        forwardElements(action, Specs.satisfyAll(), targetSubscriptions);
+    }
+
+    /**
+     * Like {@link #forwardElements(Action, EventSubscriptionVerifier)}, but elements added later are only forwarded if they satisfy the spec.
+     */
+    void forwardElements(Action<? super T> action, Spec<? super T> addedElementsSpec, EventSubscriptionVerifier<? super T> targetSubscriptions) {
+        assertEagerContext("forwardElements(Action, EventSubscriptionVerifier)");
+        Action<? super T> decoratedAction = decorate(action);
+        // Same as for an eager action registered here
+        store.realizePendingSubscribedBy(targetSubscriptions);
+        Collection<T> copied = copyRealizedElements();
+        eventRegister.registerForwardingAddAction(Actions.filter(decoratedAction, addedElementsSpec), targetSubscriptions);
+        if (copied != null) {
+            for (T next : copied) {
+                decoratedAction.execute(next);
+            }
+        }
+    }
+
+    @Override
+    public void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
+        store.realizePendingSubscribedBy(subscriptions);
+    }
+
+    @Nullable
+    private Collection<T> copyRealizedElements() {
         // copy in case any actions mutate the store
         Collection<T> copied = null;
         Iterator<T> iterator = iteratorNoFlush();
@@ -220,12 +253,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             }
             copied.add(iterator.next());
         }
-
-        if (copied != null) {
-            for (T next : copied) {
-                registerLazyAddActionDecorated.execute(next);
-            }
-        }
+        return copied;
     }
 
     protected <I extends T> Action<? super I> wrapLazyAction(Action<? super I> action) {

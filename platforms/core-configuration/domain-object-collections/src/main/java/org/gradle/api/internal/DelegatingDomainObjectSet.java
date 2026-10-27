@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.internal.collections.EventSubscriptionVerifier;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -232,9 +233,15 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, DomainO
     }
 
     @Override
-    public void forwardElements(Action<? super T> action) {
-        onMethodCall("forwardElements(Action)");
-        ((DomainObjectCollectionInternal<T>) getDelegate()).forwardElements(action);
+    public void forwardElements(Action<? super T> action, EventSubscriptionVerifier<? super T> targetSubscriptions) {
+        onMethodCall("forwardElements(Action, EventSubscriptionVerifier)");
+        ((DomainObjectCollectionInternal<T>) getDelegate()).forwardElements(action, targetSubscriptions);
+    }
+
+    @Override
+    public void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
+        onMethodCall("realizePendingSubscribedBy(EventSubscriptionVerifier)");
+        ((DomainObjectCollectionInternal<T>) getDelegate()).realizePendingSubscribedBy(subscriptions);
     }
 
     @Override

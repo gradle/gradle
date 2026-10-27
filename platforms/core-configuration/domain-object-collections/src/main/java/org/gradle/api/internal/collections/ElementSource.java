@@ -90,6 +90,11 @@ public interface ElementSource<T> extends Iterable<T> {
 
     void realizePending(Class<?> type);
 
+    /**
+     * Realizes the pending elements whose type is subscribed to by the given subscriptions.
+     */
+    void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions);
+
     boolean addPending(ProviderInternal<? extends T> provider);
 
     boolean removePending(ProviderInternal<? extends T> provider);

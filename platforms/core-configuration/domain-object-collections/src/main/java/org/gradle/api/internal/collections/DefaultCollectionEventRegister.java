@@ -21,7 +21,10 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
 
 public class DefaultCollectionEventRegister<T> implements CollectionEventRegister<T> {
@@ -34,8 +37,7 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
 
     private boolean baseTypeSubscribed;
     private Set<Class<?>> subscribedTypes;
-    private boolean baseTypeForwarded;
-    private @Nullable Set<Class<?>> forwardedTypes;
+    private List<EventSubscriptionVerifier<? super T>> forwardingTargets = Collections.emptyList();
 
     public DefaultCollectionEventRegister(Class<? extends T> baseType, CollectionCallbackActionDecorator decorator) {
         this.baseType = baseType;
@@ -44,11 +46,6 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
 
     @Override
     public boolean isSubscribed(@Nullable Class<? extends T> type) {
-        return isSubscribedByListener(type) || isForwarded(type);
-    }
-
-    @Override
-    public boolean isSubscribedByListener(@Nullable Class<? extends T> type) {
         if (baseTypeSubscribed) {
             return true;
         }
@@ -62,21 +59,8 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
                 }
             }
         }
-        return false;
-    }
-
-    private boolean isForwarded(@Nullable Class<? extends T> type) {
-        if (baseTypeForwarded) {
-            return true;
-        }
-        if (forwardedTypes == null) {
-            return false;
-        }
-        if (type == null) {
-            return true;
-        }
-        for (Class<?> forwardedType : forwardedTypes) {
-            if (forwardedType.isAssignableFrom(type)) {
+        for (EventSubscriptionVerifier<? super T> target : forwardingTargets) {
+            if (target.isSubscribed(type)) {
                 return true;
             }
         }
@@ -109,20 +93,16 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
     }
 
     @Override
-    public Action<? super T> registerForwardingAddAction(Class<? extends T> type, Action<? super T> addAction) {
-        if (type.equals(baseType)) {
-            baseTypeForwarded = true;
-        } else {
-            if (forwardedTypes == null) {
-                forwardedTypes = new HashSet<>();
-            }
-            forwardedTypes.add(type);
-        }
+    public Action<? super T> registerLazyAddAction(Action<? super T> addAction) {
         return registerLazyAddDecoratedAction(addAction);
     }
 
     @Override
-    public Action<? super T> registerLazyAddAction(Action<? super T> addAction) {
+    public Action<? super T> registerForwardingAddAction(Action<? super T> addAction, EventSubscriptionVerifier<? super T> targetSubscriptions) {
+        if (forwardingTargets.isEmpty()) {
+            forwardingTargets = new ArrayList<>(1);
+        }
+        forwardingTargets.add(targetSubscriptions);
         return registerLazyAddDecoratedAction(addAction);
     }
 
@@ -162,6 +142,22 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
                 subscribedTypes = new HashSet<Class<?>>();
             }
             subscribedTypes.add(type);
+        }
+    }
+
+    // Elements outside the filter are not forwarded, so the target's subscriptions don't apply to them
+    private static class FilteredSubscriptions<S> implements EventSubscriptionVerifier<S> {
+        private final CollectionFilter<S> filter;
+        private final EventSubscriptionVerifier<? super S> targetSubscriptions;
+
+        FilteredSubscriptions(CollectionFilter<S> filter, EventSubscriptionVerifier<? super S> targetSubscriptions) {
+            this.filter = filter;
+            this.targetSubscriptions = targetSubscriptions;
+        }
+
+        @Override
+        public boolean isSubscribed(@Nullable Class<? extends S> type) {
+            return (type == null || filter.getType().isAssignableFrom(type)) && targetSubscriptions.isSubscribed(type);
         }
     }
 
@@ -205,13 +201,13 @@ public class DefaultCollectionEventRegister<T> implements CollectionEventRegiste
         }
 
         @Override
-        public Action<? super S> registerForwardingAddAction(Class<? extends S> type, Action<? super S> addAction) {
-            return delegate.registerForwardingAddAction(type, filter.filtered(addAction));
+        public Action<? super S> registerLazyAddAction(Action<? super S> addAction) {
+            return delegate.registerLazyAddAction(filter.filtered(addAction));
         }
 
         @Override
-        public Action<? super S> registerLazyAddAction(Action<? super S> addAction) {
-            return delegate.registerLazyAddAction(filter.filtered(addAction));
+        public Action<? super S> registerForwardingAddAction(Action<? super S> addAction, EventSubscriptionVerifier<? super S> targetSubscriptions) {
+            return delegate.registerForwardingAddAction(filter.filtered(addAction), new FilteredSubscriptions<>(filter, targetSubscriptions));
         }
 
         @Override

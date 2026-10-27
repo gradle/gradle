@@ -220,6 +220,11 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
         realizePendingMatching(collector -> collector.getType() == null || type.isAssignableFrom(collector.getType()));
     }
 
+    @Override
+    public void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
+        realizePendingMatching(collector -> subscriptions.isSubscribed(collector.getType()));
+    }
+
     // Listeners may add pending elements while others are realized, so this repeats until none of them match
     private void realizePendingMatching(Predicate<Collectors.TypedCollector<T>> condition) {
         while (!pending.isEmpty()) {
@@ -301,7 +306,9 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
         boolean added = pending.add(collector);
         // TODO: We likely want to also immediately realize ChangingValue providers in the
         //  onValueChange callback above.
-        realizeIfSubscribed(collector, provider.getType());
+        if (subscriptionVerifier.isSubscribed(provider.getType())) {
+            realize(Collections.singleton(collector));
+        }
         return added;
     }
 
@@ -408,20 +415,10 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
         boolean added = pending.add(collector);
         // TODO: We likely want to also immediately realize ChangingValue providers in the
         //  onValueChange callback above.
-        realizeIfSubscribed(collector, provider.getElementType());
+        if (subscriptionVerifier.isSubscribed(provider.getElementType())) {
+            realize(Collections.singleton(collector));
+        }
         return added;
-    }
-
-    private void realizeIfSubscribed(Collectors.TypedCollector<T> collector, @Nullable Class<? extends T> type) {
-        if (!subscriptionVerifier.isSubscribed(type)) {
-            return;
-        }
-        realize(Collections.singleton(collector));
-        if (!subscriptionVerifier.isSubscribedByListener(type)) {
-            // Only realized to be forwarded to a composite collection, so the provider is queried again when this collection is read
-            realized.remove(collector);
-            pending.add(collector);
-        }
     }
 
     private Collectors.TypedCollector<T> collectorFromCollectionProvider(final CollectionProviderInternal<T, ? extends Iterable<T>> provider) {

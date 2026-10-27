@@ -187,6 +187,15 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
+    public void realizePendingSubscribedBy(EventSubscriptionVerifier<? super S> subscriptions) {
+        collection.realizePendingSubscribedBy(filtered(subscriptions));
+    }
+
+    private EventSubscriptionVerifier<T> filtered(EventSubscriptionVerifier<? super S> subscriptions) {
+        return type -> (type == null || filter.getType().isAssignableFrom(type)) && subscriptions.isSubscribed(Cast.uncheckedCast(type));
+    }
+
+    @Override
     public boolean addPending(ProviderInternal<? extends S> provider) {
         return collection.addPending(provider);
     }

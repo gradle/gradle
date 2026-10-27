@@ -151,8 +151,14 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         realizePendingMatching(element -> element.getType() == null || type.isAssignableFrom(element.getType()));
     }
 
-    // Realizing an element notifies listeners, which may change this source. So the elements are collected first,
-    // and realized while they are still in it. Listeners may also add pending elements, so this repeats until none of them match.
+    @Override
+    public void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
+        realizePendingMatching(element -> subscriptions.isSubscribed(element.getType()));
+    }
+
+    // Realizing an element notifies listeners, which may change this source, e.g. listeners of a composite
+    // that elements are forwarded to. So the elements are collected first, and realized while they are still in it.
+    // Listeners may also add pending elements, so this repeats until none of them match.
     private void realizePendingMatching(Predicate<Element<T>> condition) {
         List<Element<T>> pending = collectPending(condition);
         while (pending != null) {
@@ -291,10 +297,6 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         boolean added = inserted.add(element);
         if (subscriptionVerifier.isSubscribed(element.getType())) {
             element.realize();
-            if (!subscriptionVerifier.isSubscribedByListener(element.getType())) {
-                // Only realized to be forwarded to a composite collection, so the provider is queried again when this collection is read
-                element.clearCache();
-            }
         }
         return added;
     }

@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.internal.collections.ElementSource;
+import org.gradle.api.internal.collections.EventSubscriptionVerifier;
 
 /**
  * Internal counterpart to {@link DomainObjectCollection}.
@@ -36,9 +37,17 @@ public interface DomainObjectCollectionInternal<T> extends DomainObjectCollectio
     void beforeCollectionChanges(Action<String> action);
 
     /**
-     * Like {@link #all(Action)}, for forwarding the elements to a composite collection.
-     * Unlike with {@code all}, pending elements realized on add are queried again when this collection is read.
+     * Forwards elements to another collection, such as a composite: like {@link #configureEach(Action)}, the action is executed for each element once it is realized.
+     * <p>
+     * Unlike {@code configureEach}, the action does not run under the lazy behavior guard, so listeners of the other collection may mutate this one.
+     * Eager listeners of the other collection, as reported by {@code targetSubscriptions}, count as eager listeners of this collection,
+     * so pending elements are realized for them as they would be for listeners registered here directly.
      */
-    void forwardElements(Action<? super T> action);
+    void forwardElements(Action<? super T> action, EventSubscriptionVerifier<? super T> targetSubscriptions);
+
+    /**
+     * Realizes the pending elements whose type is subscribed to by the given subscriptions.
+     */
+    void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions);
 
 }

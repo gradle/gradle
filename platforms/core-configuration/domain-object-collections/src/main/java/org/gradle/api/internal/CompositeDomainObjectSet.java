@@ -31,6 +31,7 @@ import org.gradle.internal.Cast;
 import org.gradle.util.internal.ConfigureUtil;
 import org.jspecify.annotations.Nullable;
 
+import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
 import java.util.Iterator;
@@ -128,7 +129,7 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     public void addCollection(DomainObjectCollection<? extends T> collection) {
         if (!getStore().containsCollection(collection)) {
             getStore().addComposited((DomainObjectCollectionInternal<? extends T>) collection);
-            forwardElements(collection);
+            forwardAdditions(collection);
             collection.whenObjectRemoved((Action<T>) t -> getDelegate().getEventRegister().fireObjectRemoved(t));
         }
     }
@@ -136,14 +137,18 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     public void addCollectionProvider(Provider<DomainObjectCollection<? extends T>> collectionProvider) {
         if (!getStore().containsCollectionProvider(collectionProvider)) {
             getStore().addComposited(collectionProvider, collection -> {
-                forwardElements(collection);
+                forwardAdditions(collection);
                 collection.whenObjectRemoved((Action<T>) t -> getDelegate().getEventRegister().fireObjectRemoved(t));
             });
         }
     }
 
-    private void forwardElements(DomainObjectCollection<? extends T> collection) {
-        ((DomainObjectCollectionInternal<? extends T>) collection).forwardElements((InternalAction<T>) t -> getDelegate().getEventRegister().fireObjectAdded(t));
+    // Eager listeners of this composite count as eager listeners of the collection
+    private void forwardAdditions(DomainObjectCollection<? extends T> collection) {
+        ((DomainObjectCollectionInternal<? extends T>) collection).forwardElements(
+            (InternalAction<T>) t -> getDelegate().getEventRegister().fireObjectAdded(t),
+            getDelegate().getEventRegister()
+        );
     }
 
     public void removeCollection(DomainObjectCollection<? extends T> collection) {
@@ -197,9 +202,9 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
     }
 
     @Override
-    public void forwardElements(Action<? super T> action) {
-        // Elements are forwarded only once even if several composited collections have them, and a composite has no pending elements of its own
-        all(action);
+    public void forwardElements(Action<? super T> action, EventSubscriptionVerifier<? super T> targetSubscriptions) {
+        // Like all(): the realized elements are listed once, and an added one only if no other composited collection has it already
+        getDelegate().forwardElements(action, uniqueSpec, targetSubscriptions);
     }
 
     private final static class DomainObjectCompositeCollection<T> implements ElementSource<T> {
@@ -272,6 +277,10 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
             public Provider<DomainObjectCollection<? extends T>> getProvider() {
                 return provider;
             }
+        }
+
+        private static boolean isWired(StoredCollection<?> stored) {
+            return !(stored instanceof ProvidedCollection) || ((ProvidedCollection<?>) stored).realized;
         }
 
         public boolean containsCollection(DomainObjectCollection<? extends T> collection) {
@@ -407,7 +416,18 @@ public class CompositeDomainObjectSet<T> extends DelegatingDomainObjectSet<T> {
 
         @Override
         public void realizePending(Class<?> type) {
+            realizePendingSubscribedBy(elementType -> elementType == null || type.isAssignableFrom(elementType));
+        }
 
+        // Eager actions on the composite count as eager actions on the composited collections. Provided collections that are
+        // not wired yet are left until they are read, then their pending elements are realized for these actions.
+        @Override
+        public void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
+            for (StoredCollection<T> stored : new ArrayList<>(store)) {
+                if (isWired(stored)) {
+                    ((DomainObjectCollectionInternal<? extends T>) stored.get()).realizePendingSubscribedBy(subscriptions);
+                }
+            }
         }
 
         @Override

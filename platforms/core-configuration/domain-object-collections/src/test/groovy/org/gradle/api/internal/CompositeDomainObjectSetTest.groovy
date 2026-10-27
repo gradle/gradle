@@ -17,9 +17,13 @@ package org.gradle.api.internal
 
 import org.gradle.api.Action
 import org.gradle.api.DomainObjectCollection
+import org.gradle.api.internal.provider.ProviderInternal
+import org.gradle.api.internal.provider.Providers
+import org.gradle.api.internal.provider.ValueSupplier
 import org.gradle.util.TestUtil
 import spock.lang.Issue
 import spock.lang.Specification
+import spock.lang.Timeout
 
 class CompositeDomainObjectSetTest extends Specification {
 
@@ -615,5 +619,27 @@ class CompositeDomainObjectSetTest extends Specification {
         composite.toList() == ["a", "b"]
         added == ["a", "b"]
         removed == []
+    }
+
+    def "eager listener on a type of the composite realizes only pending elements of that type when a collection is added"() {
+        given:
+        def stringProvider = Mock(ProviderInternal)
+        def builderProvider = Mock(ProviderInternal)
+        _ * stringProvider.type >> String
+        _ * stringProvider.calculateValue(_) >> ValueSupplier.Value.of("a")
+        _ * builderProvider.type >> StringBuilder
+        def collection = new DefaultDomainObjectSet(CharSequence, CollectionCallbackActionDecorator.NOOP)
+        collection.addLater(stringProvider)
+        collection.addLater(builderProvider)
+        def composite = CompositeDomainObjectSet.create(CharSequence)
+        def seen = []
+        composite.withType(String).whenObjectAdded { seen << it }
+
+        when:
+        composite.addCollection(collection)
+
+        then:
+        seen == ["a"]
+        0 * builderProvider.calculateValue(_)
     }
 }
