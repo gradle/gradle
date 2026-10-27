@@ -509,7 +509,8 @@ By declaring compatible attributes, you decouple your projects from internal nam
 [[favor_string_attribute_values]]
 == Favor `String` Values for Custom Attributes
 
-When declaring a custom <<variant_attributes.adoc#variant-attributes,attribute>>, use `String` as its value type — or `Boolean` or a subtype of `Number` when the value genuinely is one.
+When declaring a custom <<variant_attributes.adoc#variant-attributes,attribute>>, use `String` as its value type.
+Use `Boolean` or a subtype of `Number` when the attribute models a flag or a quantity.
 Avoid using `Named` types.
 
 === Explanation
@@ -577,7 +578,7 @@ The `String` version does it without a supporting type.
 An `enum` implementing `Named` is the most tempting reason to reach for a `Named` type, because putting state and behavior on the enum lets one type serve both as the value matched during dependency resolution and as the thing that value names.
 It can be made to work, and it avoids the `ObjectFactory` ceremony, since an enum constant is already an instance.
 
-In most cases, it is still not an exception to the recommendation above.
+It is still not an exception to the recommendation above.
 Only the name crosses the publication boundary, so any member you add is reachable solely inside the build that declares the enum.
 This makes this approach suitable only for local use within a single build.
 

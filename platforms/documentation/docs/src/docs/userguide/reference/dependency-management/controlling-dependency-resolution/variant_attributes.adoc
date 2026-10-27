@@ -292,7 +292,8 @@ What `Named` does offer is a type you can attach members to, at the cost of a ty
 
 [TIP]
 ====
-For custom attributes, use `String` — or `Boolean` or a `Number` subtype when the value genuinely is one — rather than a `Named` type.
+For custom attributes, prefer `String` over a `Named` type.
+Use `Boolean` or a subtype of `Number` when the attribute models a flag or a quantity.
 See <<best_practices_dependencies.adoc#favor_string_attribute_values,Favor `String` Values for Custom Attributes>>.
 ====
 
