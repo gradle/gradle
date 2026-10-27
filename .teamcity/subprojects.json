@@ -1764,6 +1764,13 @@
     "crossVersionTests": true
   },
   {
+    "name": "wrapper-plugin",
+    "path": "platforms/essential-plugins/wrapper-plugin",
+    "unitTests": true,
+    "functionalTests": true,
+    "crossVersionTests": false
+  },
+  {
     "name": "wrapper-shared",
     "path": "platforms/core-runtime/wrapper-shared",
     "unitTests": true,

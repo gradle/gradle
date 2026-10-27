@@ -207,9 +207,16 @@ module("observability") {
     subproject("report-rendering")
 }
 
+// Essential Plugins Platform
+val essentialPlugins = platform("essential-plugins") {
+    uses(core)
+    subproject("wrapper-plugin")
+}
+
 // Software Platform
 val software = platform("software") {
     uses(core)
+    uses(essentialPlugins)
     subproject("ant-api")
     subproject("ant")
     subproject("ant-impl")

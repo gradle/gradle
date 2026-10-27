@@ -70,6 +70,7 @@ The project is organized into **platforms** under `platforms/`:
 - `core-runtime/` - Core runtime components
 - `core-configuration/` - Configuration handling (includes `configuration-cache`, `kotlin-dsl`, `model-core`)
 - `core-execution/` - Execution and caching
+- `essential-plugins/` - Plugins applied to every build (`wrapper-plugin`)
 - `software/` - Software platform (`dependency-management`, `testing-base`, `maven`, `ivy`)
 - `jvm/` - JVM platform (`java`, `groovy`, `scala`, `jacoco`)
 - `native/` - Native platform support

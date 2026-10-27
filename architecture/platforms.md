@@ -35,10 +35,16 @@ The diagram below shows the current set of architecture modules and platforms:
     observability["observability module"]
     style observability stroke:#1abc9c,fill:#b1f4e7,stroke-width:2px,color:#000;
 
+    subgraph essential_plugins["essential-plugins platform"]
+    end
+    style essential_plugins fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;
+    essential_plugins --> core
+
     subgraph software["software platform"]
     end
     style software fill:#c2e0f4,stroke:#3498db,stroke-width:2px,color:#000;
     software --> core
+    software --> essential_plugins
 
     subgraph jvm["jvm platform"]
     end
@@ -77,6 +83,11 @@ It is made up of 3 architecture modules:
 - **core-runtime**: Provides the runtimes or "containers" in which code runs. These runtimes include the Gradle client, the daemon and the worker processes. This is the base module on which all other architecture modules depend.
 - **core-configuration**: Allows the build structure and work, such as tasks, to be specified. This includes the project model, the DSL and so on.
 - **core-execution**: Runs the work efficiently. This includes scheduling, execution, caching and so on.
+
+### Essential plugins platform
+
+This is a platform that builds on the core automation platform to provide the plugins that are applied to every build, regardless of what it builds.
+This includes the wrapper plugin.
 
 ### Software development platform
 
