@@ -16,7 +16,6 @@
 package org.gradle.internal.scripts;
 
 import org.gradle.scripts.ScriptingLanguage;
-import org.jspecify.annotations.Nullable;
 
 import java.util.Arrays;
 import java.util.Collections;
@@ -49,7 +48,7 @@ public final class ScriptingLanguages {
         return GROOVY;
     }
 
-    private static ScriptingLanguage scriptingLanguage(final String extension, @Nullable final String scriptPluginFactory) {
+    private static ScriptingLanguage scriptingLanguage(final String extension, final String scriptPluginFactory) {
         return new ScriptingLanguage() {
             @Override
             public String getExtension() {
@@ -57,7 +56,7 @@ public final class ScriptingLanguages {
             }
 
             @Override
-            public @Nullable String getProvider() {
+            public String getProvider() {
                 return scriptPluginFactory;
             }
         };
