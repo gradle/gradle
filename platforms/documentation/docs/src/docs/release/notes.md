@@ -12,17 +12,17 @@
 
 We are excited to announce Gradle @version@ (released [@releaseDate@](https://gradle.org/releases/)).
 
-In this release, Kotlin DSL scripts benefit from [incremental compilation](#performance-improvements), making script recompilation after a change in buildSrc or an included build up to 65% faster in large multi-project builds.
+In this release, Kotlin DSL scripts benefit from [incremental compilation](#performance-improvements), making script recompilation after a change in `buildSrc` or an included build up to 65% faster in large multi-project builds.
 
-[Test filters](#test-reporting-and-execution) now apply to JUnit Platform tests that are not declared as methods, such as ArchUnit rules and Spek scopes, so --tests runs only the tests you select.
+[Test filters](#test-reporting-and-execution) now also apply to JUnit Platform tests that are not declared as methods, such as ArchUnit rules and Spek scopes, so `--tests` runs only the tests you select.
 
-In [CLI, logging, and problem reporting](#cli-logging-and-problem-reporting), the Problems API introduces a predefined hierarchy of problem groups, and build progress now appears on the Windows taskbar in Windows Terminal.
+In [CLI, logging, and problem reporting](#cli-logging-and-problem-reporting), the Problems API groups problems by area, such as `Compilation > Java`, so you can see where each one comes from, and Windows Terminal shows build progress on the taskbar.
 
-[Build authoring](#build-authoring-improvements) becomes more convenient, with the wrapper task preserving customized properties when you regenerate it, and new ProviderFactory methods.
+[Build authoring](#build-authoring-improvements) becomes more convenient, with the wrapper task preserving customized properties when you regenerate it, and new `ProviderFactory` methods.
 
-For [plugin authors](#core-plugin-and-plugin-authoring-enhancements), the Sync task can now empty its destination when its source is empty.
+For [plugin authors](#core-plugin-and-plugin-authoring-enhancements), the `Sync` task can now empty its destination when its source is empty.
 
-Finally, [Eclipse users](#tooling-and-ide-integration) can now sync builds that have Isolated Projects enabled, and the [User Manual](#documentation-and-training) gains a new chapter on securing Gradle builds.
+Finally, [Eclipse users](#tooling-and-ide-integration) can now sync builds that have Isolated Projects enabled, and the [User Manual](#documentation-and-training) is now also available as Markdown and gains a new chapter on securing Gradle builds.
 
 We would like to thank the following community members for their contributions to this release of Gradle:
 [devareddy05](https://github.com/devareddy05),
@@ -62,6 +62,8 @@ Gradle continuously improves [build performance](userguide/performance.html) thr
 
 #### Incremental compilation of Kotlin DSL scripts
 [Kotlin DSL](userguide/kotlin_dsl.html) scripts are now compiled using the [Kotlin Build Tools API](https://kotlinlang.org/docs/build-tools-api.html), making incremental compilation available for build scripts.
+
+![Kotlin DSL script recompilation time, Gradle 9.8.0 vs 9.9.0](release-notes-assets/kotlin-dsl-incremental-compilation.png)
 
 When a script has to be recompiled, for example, after a signature change in `buildSrc` or an included build, only the affected parts are compiled again. In one of our performance tests on a large multi-project build, this makes recompiling scripts 65% faster.
 
@@ -138,8 +140,8 @@ Gradle already reports progress this way to ConEmu, Ghostty, kitty, and iTerm2.
 
 See the [Rich console](userguide/command_line_interface.html#sec:rich_console) section in the Gradle User Manual for more details.
 
-### Build authoring improvements
-Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
+### General improvements
+Gradle provides various incremental updates and optimizations to ensure the continued reliability of the build ecosystem.
 
 #### The `wrapper` task preserves customized properties
 The [`wrapper`](userguide/gradle_wrapper.html#gradle_wrapper) task now preserves values from an existing `gradle-wrapper.properties` file when you regenerate the wrapper, for example, with `./gradlew wrapper --gradle-version @version@`.  
@@ -154,6 +156,9 @@ URL validation is preserved like any other value, so a single `--no-validate-url
 User-declared `Wrapper` tasks now also write the default network timeout, retry count, and retry backoff when those properties are not otherwise configured.
 
 See the [Preserving Existing Wrapper Properties](userguide/gradle_wrapper.html#sec:preserving_wrapper_properties) section in the Gradle User Manual for more details.
+
+### Build authoring improvements
+Gradle provides [rich APIs](userguide/getting_started_dev.html) for build engineers and plugin authors, enabling the creation of custom, reusable build logic and better maintainability.
 
 #### Providers for values that are already known
 Build logic often has a value at hand and needs to pass it to an API that accepts a [`Provider`](javadoc/org/gradle/api/provider/Provider.html). Previously, this required wrapping the value in a `Callable` with `providers.provider { value }`, or `providers.provider { null }` for a provider that has no value.
@@ -194,8 +199,8 @@ By default, `Sync` still skips the task when its source has no files or director
 
 See [Synchronizing from an empty source](userguide/working_with_files.html#sec:sync_task_empty_source) in the Gradle User Manual for more details.
 
-### Tooling and IDE integration
-Gradle provides [Tooling APIs](userguide/third_party_integration.html) that facilitate deep integration with modern IDEs and CI/CD pipelines.
+### Isolated Projects
+[Isolated Projects](userguide/isolated_projects.html) is an incubating performance feature that safely runs project configuration in parallel, significantly reducing configuration time in many scenarios, including IDE sync and CI builds.
 
 #### Eclipse sync works with Isolated Projects
 [Buildship](https://projects.eclipse.org/projects/tools.buildship), the Gradle integration for Eclipse, can now synchronize builds that have [Isolated Projects](userguide/isolated_projects.html) enabled.
@@ -229,6 +234,8 @@ Use it to find the first member spec that an object does not satisfy.
 ## Documentation and training
 
 ### User Manual
+Every page of the User Manual is now also available as Markdown, so AI agents and other tools can read the documentation directly. Replace `.html` with `.md` in a page's URL, for example, [userguide/gradle_wrapper.md](userguide/gradle_wrapper.md).
+
 A new chapter, [Securing Gradle Builds,](userguide/security.html) covers securing the [build tool](userguide/securing_build_tool.html), [repositories](userguide/securing_repositories.html), and [dependencies](userguide/securing_dependencies.html).
 
 The rewrite of the core plugin reference pages continues with the [Java](userguide/java_plugin.html), [Java Library](userguide/java_library_plugin.html), [Java Platform](userguide/java_platform_plugin.html), [Java Test Fixtures](userguide/java_test_fixtures_plugin.html), [JVM Test Suite](userguide/jvm_test_suite_plugin.html), [JaCoCo](userguide/jacoco_plugin.html), [War](userguide/war_plugin.html), [Distribution](userguide/distribution_plugin.html), and [Version Catalog](userguide/version_catalog_plugin.html) plugins. The [Build Init plugin](userguide/build_init_plugin.html) page now documents the test frameworks it supports.
