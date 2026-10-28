@@ -76,7 +76,7 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
 
         SourceFileChangeProcessor sourceFileChangeProcessor = new SourceFileChangeProcessor(previous);
         processSourceChanges(current, sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
-        processCompilerSpecificDependencies(spec, recompilationSpec, sourceFileChangeProcessor, sourceFileClassNameConverter);
+        processCompilerSpecificDependencies(recompilationSpec, sourceFileChangeProcessor, sourceFileClassNameConverter);
         collectAllSourcePathsAndIndependentClasses(sourceFileChangeProcessor, recompilationSpec, sourceFileClassNameConverter);
 
         Set<String> typesToReprocess = previous.getTypesToReprocess(recompilationSpec.getClassesToCompile());
@@ -133,7 +133,6 @@ abstract class AbstractRecompilationSpecProvider implements RecompilationSpecPro
     }
 
     protected abstract void processCompilerSpecificDependencies(
-        JavaCompileSpec spec,
         RecompilationSpec recompilationSpec,
         SourceFileChangeProcessor sourceFileChangeProcessor,
         SourceFileClassNameConverter sourceFileClassNameConverter
