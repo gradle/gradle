@@ -571,12 +571,12 @@ class GroovyIncrementalCompilationAfterFailureIntegrationTest extends BaseIncrem
         outputs.snapshot { run "compileGroovy" }
 
         when:
-        // ABase uses A only in a method body, so it is recompiled as a private dependent of A, and the classes referring to
-        // ABase are recompiled with it: the trait's helper loads them, and ABase is missing from the output meanwhile
+        // ABase uses A only in a method body, so it is recompiled as a private dependent of A. The trait's helper loads
+        // AllPluginsValidation, which refers to ABase, and the JVM finds ABase in its stashed class file meanwhile
         a.text = "class A extends ABase implements WithTrait { def m() { println('b') } }"
         run "compileGroovy"
 
         then:
-        outputs.recompiledClasses('ABase', 'A', 'WithTrait', 'WithTrait$Trait$FieldHelper', 'WithTrait$AllPluginsValidation', 'WithTrait$Trait$Helper')
+        outputs.recompiledClasses('A', 'ABase')
     }
 }
