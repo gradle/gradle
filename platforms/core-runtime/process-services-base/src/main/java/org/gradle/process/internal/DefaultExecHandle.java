@@ -40,6 +40,7 @@ import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.concurrent.Executor;
 import java.util.concurrent.locks.Condition;
 import java.util.concurrent.locks.Lock;
@@ -393,6 +394,16 @@ public class DefaultExecHandle implements ExecHandle, ProcessSettings {
         lock.lock();
         try {
             return execResult;
+        } finally {
+            lock.unlock();
+        }
+    }
+
+    @Override
+    public Optional<Integer> getProcessExitValue() {
+        lock.lock();
+        try {
+            return execHandleRunner == null ? Optional.empty() : execHandleRunner.getProcessExitValue();
         } finally {
             lock.unlock();
         }
