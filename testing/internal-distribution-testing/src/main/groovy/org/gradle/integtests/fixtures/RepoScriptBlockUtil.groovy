@@ -133,7 +133,9 @@ class RepoScriptBlockUtil {
      * An init script declares them in every executer build, smoke test build and performance test build (see {@link #extraRepositoriesInitScript}).
      */
     private static final List<ExtraRepository> EXTRA_REPOSITORIES = ([
-        kotlinDevVersionTested() ? new ExtraRepository(MirroredRepository.KOTLIN_DEV.name, MirroredRepository.KOTLIN_DEV.mirrorUrl, [/org\.jetbrains\.kotlin(\..+)?/]) : null
+        kotlinDevVersionTested() ?
+            new ExtraRepository(MirroredRepository.KOTLIN_DEV.name, MirroredRepository.KOTLIN_DEV.mirrorUrl, [/org\.jetbrains\.kotlin(\..+)?/])
+            : null,
     ].findAll() as List<ExtraRepository>).asImmutable()
 
     private static boolean kotlinDevVersionTested() {
