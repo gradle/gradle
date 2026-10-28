@@ -79,6 +79,7 @@ public abstract class GradleBuildDocumentationPlugin implements Plugin<Project> 
 
     @Override
     public void apply(Project project) {
+        project.getPluginManager().apply("java");
         ProjectLayout layout = project.getLayout();
         TaskContainer tasks = project.getTasks();
         ObjectFactory objects = project.getObjects();

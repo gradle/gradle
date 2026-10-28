@@ -95,6 +95,8 @@ object Config {
 @Suppress("unused")
 class PerformanceTestPlugin : Plugin<Project> {
     override fun apply(project: Project): Unit = project.run {
+        pluginManager.apply("java")
+        pluginManager.apply("gradlebuild.jvm-compile")
         val performanceTestSourceSet = createPerformanceTestSourceSet()
         configureTestSourceSetInIde(performanceTestSourceSet)
         addPerformanceTestConfigurationAndDependencies()

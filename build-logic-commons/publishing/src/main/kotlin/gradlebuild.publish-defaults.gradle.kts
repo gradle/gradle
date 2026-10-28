@@ -21,6 +21,7 @@ import org.gradle.authentication.http.HttpHeaderAuthentication
 
 plugins {
     id("publishing")
+    id("gradlebuild.module-identity")
 }
 
 val artifactoryUrl
