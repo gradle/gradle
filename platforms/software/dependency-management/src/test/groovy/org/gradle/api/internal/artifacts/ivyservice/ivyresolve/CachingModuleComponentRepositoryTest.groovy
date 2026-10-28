@@ -163,7 +163,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         def module = Mock(ModuleComponentIdentifier)
         def localAccess = repo.localAccess
         realRemoteAccess.estimateMetadataFetchingCost(module) >> remoteAnswer
-        cacheExpirationControl.missingModuleExpiry(_, _) >> Stub(CacheExpirationControl.Expiry) {
+        cacheExpirationControl.moduleExpiry(_, false) >> Stub(CacheExpirationControl.Expiry) {
             isMustCheck() >> mustRefreshMissingModule
         }
         moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
@@ -191,7 +191,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         def module = Mock(ModuleComponentIdentifier)
         def localAccess = repo.localAccess
         realRemoteAccess.estimateMetadataFetchingCost(module) >> remoteAnswer
-        cacheExpirationControl.changingModuleExpiry(_, _, _) >> Stub(CacheExpirationControl.Expiry) {
+        cacheExpirationControl.moduleExpiry(_, true) >> Stub(CacheExpirationControl.Expiry) {
             isMustCheck() >> mustRefreshChangingModule
         }
         moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {
@@ -223,7 +223,7 @@ class CachingModuleComponentRepositoryTest extends Specification {
         def module = Mock(ModuleComponentIdentifier)
         def localAccess = repo.localAccess
         realRemoteAccess.estimateMetadataFetchingCost(module) >> remoteAnswer
-        cacheExpirationControl.moduleExpiry(_, _, _) >> Stub(CacheExpirationControl.Expiry) {
+        cacheExpirationControl.moduleExpiry(_, false) >> Stub(CacheExpirationControl.Expiry) {
             isMustCheck() >> mustRefreshModule
         }
         moduleDescriptorCache.getCachedModuleDescriptor(_, module) >> Stub(ModuleMetadataCache.CachedMetadata) {

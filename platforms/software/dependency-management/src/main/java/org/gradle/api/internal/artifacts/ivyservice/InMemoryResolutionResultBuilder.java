@@ -66,7 +66,7 @@ public class InMemoryResolutionResultBuilder implements DependencyGraphVisitor {
                 component.getSelectionReason(),
                 component.getRepositoryName(),
                 component.getComponentId(),
-                component.getModuleVersion()
+                component.getResolveState().getMetadata().getModuleVersionId()
             );
         }
 

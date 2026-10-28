@@ -18,7 +18,6 @@ package org.gradle.api.internal.artifacts.ivyservice.resolveengine.graph.builder
 
 import com.google.common.collect.Sets;
 import org.gradle.api.artifacts.ModuleIdentifier;
-import org.gradle.api.artifacts.ModuleVersionIdentifier;
 import org.gradle.api.artifacts.component.ComponentIdentifier;
 import org.gradle.api.artifacts.component.ComponentSelector;
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier;
@@ -62,7 +61,7 @@ public class ModuleResolveState implements CandidateModule {
     private final ModuleIdentifier id;
     private final ComponentMetaDataResolver metaDataResolver;
     private final List<EdgeState> unattachedEdges = new LinkedList<>();
-    private final Map<ModuleVersionIdentifier, ComponentState> versions = new LinkedHashMap<>();
+    private final Map<String, ComponentState> versions = new LinkedHashMap<>();
     private final ModuleSelectors<SelectorState> selectors;
     private final ConflictResolution conflictResolution;
     private final AttributesFactory attributesFactory;
@@ -296,10 +295,13 @@ public class ModuleResolveState implements CandidateModule {
         }
     }
 
-    public ComponentState getVersion(ModuleVersionIdentifier id, ComponentIdentifier componentIdentifier) {
-        assert id.getModule().equals(this.id);
-        ComponentState componentState = versions.computeIfAbsent(id, k ->
-            new ComponentState(resolveState.getIdGenerator().nextGraphNodeId(), this, id, componentIdentifier, metaDataResolver)
+    public ComponentState getVersion(ComponentIdentifier componentIdentifier, String version) {
+        // TODO: If two components have the same version, we silently alias them here. We should
+        // instead handle this more explicitly. Should this be a version conflict? How would we
+        // resolve it (they have the same version). A capability conflict? Should we fail outright?
+        // This generally occurs when a project claims the same version as a published component.
+        ComponentState componentState = versions.computeIfAbsent(version, v ->
+            new ComponentState(resolveState.getIdGenerator().nextGraphNodeId(), this, v, componentIdentifier, metaDataResolver)
         );
 
         // Starting in Gradle 10, the root component's module identity will no longer
@@ -481,7 +483,7 @@ public class ModuleResolveState implements CandidateModule {
             // Selection deferred as we know another selector will be added soon
             return;
         }
-        ComponentState newSelected = selectorStateResolver.selectBest(getId(), selectors);
+        ComponentState newSelected = selectorStateResolver.selectBest(getId(), selectors, this::getVersion);
         newSelected.setSelectors(selectors);
         if (selected == null) {
             select(newSelected);

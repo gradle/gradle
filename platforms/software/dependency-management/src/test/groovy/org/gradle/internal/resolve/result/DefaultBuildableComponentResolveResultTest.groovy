@@ -16,12 +16,10 @@
 
 package org.gradle.internal.resolve.result
 
-import org.gradle.api.artifacts.ModuleVersionIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentIdentifier
 import org.gradle.api.artifacts.component.ModuleComponentSelector
 import org.gradle.api.internal.artifacts.DefaultModuleIdentifier
 import org.gradle.internal.component.external.model.DefaultModuleComponentSelector
-import org.gradle.internal.component.external.model.ModuleComponentResolveMetadata
 import org.gradle.internal.component.model.ComponentGraphResolveState
 import org.gradle.internal.component.model.ComponentGraphSpecificResolveState
 import org.gradle.internal.resolve.ModuleVersionNotFoundException
@@ -32,12 +30,9 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
     def result = new DefaultBuildableComponentResolveResult()
 
     def "can query id and metadata when resolved"() {
-        ModuleVersionIdentifier id = Stub()
-        def metadata = Stub(ModuleComponentResolveMetadata) {
-            getModuleVersionId() >> id
-        }
+        ModuleComponentIdentifier id = Stub()
         def state = Stub(ComponentGraphResolveState) {
-            getMetadata() >> metadata
+            getId() >> id
         }
         def graphState = Stub(ComponentGraphSpecificResolveState)
 
@@ -45,14 +40,14 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
         result.resolved(state, graphState)
 
         then:
-        result.moduleVersionId == id
+        result.id == id
         result.state == state
         result.graphState == graphState
     }
 
     def "cannot get id when no result has been specified"() {
         when:
-        result.moduleVersionId
+        result.id
 
         then:
         IllegalStateException e = thrown()
@@ -92,7 +87,7 @@ class DefaultBuildableComponentResolveResultTest extends Specification {
 
         when:
         result.failed(failure)
-        result.moduleVersionId
+        result.id
 
         then:
         ModuleVersionResolveException e = thrown()

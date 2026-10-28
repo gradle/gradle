@@ -41,7 +41,7 @@ public class DefaultCachePolicy implements CachePolicy {
     private static final Action<ModuleResolutionControl> DEFAULT_CHANGING_MODULE_RULE = moduleCacheRuleFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
     private static final Action<ArtifactResolutionControl> DEFAULT_CHANGING_MODULE_ARTIFACT_RULE = artifactCacheRuleFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
     private static final Action<ArtifactResolutionControl> DEFAULT_MISSING_ARTIFACT_RULE = artifactResolutionControl -> {
-        if (artifactResolutionControl.getCachedResult() == null) {
+        if (artifactResolutionControl.isMissing()) {
             artifactResolutionControl.cacheFor(SECONDS_IN_DAY, TimeUnit.SECONDS);
         }
     };
@@ -105,7 +105,7 @@ public class DefaultCachePolicy implements CachePolicy {
 
     private static Action<DependencyResolutionControl> dependencyCacheRuleFor(int value, TimeUnit unit) {
         return dependencyResolutionControl -> {
-            if (!dependencyResolutionControl.getCachedResult().isEmpty()) {
+            if (dependencyResolutionControl.hasVersions()) {
                 dependencyResolutionControl.cacheFor(value, unit);
             }
         };

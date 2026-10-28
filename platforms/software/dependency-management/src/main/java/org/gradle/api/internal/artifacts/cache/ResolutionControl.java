@@ -15,29 +15,12 @@
  */
 package org.gradle.api.internal.artifacts.cache;
 
-import org.jspecify.annotations.Nullable;
-
 import java.util.concurrent.TimeUnit;
 
 /**
  * Command methods for controlling dependency resolution via the DSL.
- * @param <A> The type of the request object for this resolution
- * @param <B> The type of the result of this resolution
  */
-public interface ResolutionControl<A, B> {
-    /**
-     * Returns the query object that was requested in this resolution.
-     * @return the request object
-     */
-    A getRequest();
-
-    /**
-     * Returns the cached result file or null if the result has not been cached.
-     * @return the cached result
-     */
-    @Nullable
-    B getCachedResult();
-
+public interface ResolutionControl {
     /**
      * States that the cached value should be used if it is no older than the specified duration.
      * @param value The number of units
