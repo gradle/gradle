@@ -86,6 +86,10 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         if (FORCE_REALIZE) {
             ModuleComponentResolveMetadata realized = realizeMetadata(metadata);
             ModuleComponentResolveMetadata reread = forceSerialization(realized);
+            // Metadata from local repositories is never persisted in production
+            // (see ExternalResourceResolver.maybeDisableComponentMetadataRuleCaching).
+            // Decoding rebuilds metadata file sources from the cache file store, where
+            // local files don't live, so keep the original sources for it.
             metadata = realized.isComponentMetadataRuleCachingEnabled() ? reread : reread.withSources(realized.getSources());
         }
         return metadata;
@@ -106,8 +110,8 @@ public class DefaultComponentMetadataProcessor implements ComponentMetadataProce
         Serializer<ModuleComponentResolveMetadata> serializer = ruleExecutor.getComponentMetadataContextSerializer();
         try (ByteArrayOutputStream baos = new ByteArrayOutputStream()) {
             serializer.write(new OutputStreamBackedEncoder(baos), metadata);
-            // TODO: CC cannot enable this assertion because moduleSource is not serialized, so doesn't appear in the deserialized form
-            //assert metadata.equals(rereadMetadata);
+            // TODO: Cannot assert that the reread metadata equals the original, because module sources are rebuilt
+            //  on decode and isComponentMetadataRuleCachingEnabled is not serialized
             metadata = serializer.read(new InputStreamBackedDecoder(new ByteArrayInputStream(baos.toByteArray())));
         } catch (Exception e) {
             throw new RuntimeException(e);
