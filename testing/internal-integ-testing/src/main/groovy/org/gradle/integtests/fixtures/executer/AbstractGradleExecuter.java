@@ -1194,7 +1194,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
             // maven.repo.local is unset, so such a build - e.g. an auto-tested sample, a cross-version test,
             // or any executer that does not go through AbstractIntegrationSpec's M2Installation - would
             // otherwise resolve from or publish into the build agent's real ~/.m2/repository and trip the
-            // CHECK_CLEAN_M2_ANDROID_USER_HOME CI step. AbstractIntegrationSpec tests already pass
+            // post-build user home check in .teamcity/hooks. AbstractIntegrationSpec tests already pass
             // -Dmaven.repo.local via M2Installation, and `using m2` sets a user home, so both are left
             // untouched by this default.
             properties.put("maven.repo.local", testDirectoryProvider.getTestDirectory().file("maven-local-should-not-leak").getAbsolutePath());

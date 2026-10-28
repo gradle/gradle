@@ -50,9 +50,9 @@ public class ProgressBar {
     // Note: These characters require font support. Modern monospace fonts (Fira Code,
     // JetBrains Mono, Cascadia Code, DejaVu Sans Mono) support them well. Older fonts
     // like Courier New may only have the full block (█) and show replacement characters
-    // for partial blocks. The Unicode bar is only used when a UTF-8 locale or a modern terminal
-    // is found by ConsoleMetaData.supportsUnicode(), and when the font is not known to lack these
-    // characters, see ConsoleMetaData.supportsEighthBlocks().
+    // for partial blocks. The detection logic in ConsoleMetaData.supportsUnicode() uses
+    // conservative heuristics (UTF-8 locale, modern terminal detection) to avoid enabling
+    // Unicode mode when fonts are unlikely to support these characters.
     private static final char[] UNICODE_BLOCKS = {
         '·', // Empty
         '▏', // ▏ 1/8 block  '\u258F',
@@ -65,24 +65,14 @@ public class ProgressBar {
         '█'  // █ full block '\u2588'
     };
 
-    private enum Style {
-        UNICODE(UNICODE_PROGRESS_BAR_PREFIX, UNICODE_PROGRESS_BAR_SUFFIX),
-        ASCII(ASCII_PROGRESS_BAR_PREFIX, ASCII_PROGRESS_BAR_SUFFIX);
-
-        private final String prefix;
-        private final String suffix;
-
-        Style(String prefix, String suffix) {
-            this.prefix = prefix;
-            this.suffix = suffix;
-        }
-    }
-
     private final TersePrettyDurationFormatter elapsedTimeFormatter = new TersePrettyDurationFormatter();
 
     private final ConsoleMetaData consoleMetaData;
-    private final Style style;
+    private final String progressBarPrefix;
     private final int progressBarWidth;
+    private final String progressBarSuffix;
+    private final char fillerChar;
+    private final char incompleteChar;
     private final String suffix;
 
     private int current;
@@ -92,25 +82,31 @@ public class ProgressBar {
     private @Nullable String lastElapsedTimeStr;
     private @Nullable List<Span> formatted;
 
-    private ProgressBar(
+    public ProgressBar(
         ConsoleMetaData consoleMetaData,
-        Style style,
+        String progressBarPrefix,
         int progressBarWidth,
+        String progressBarSuffix,
+        char completeChar,
+        char incompleteChar,
         String suffix,
         int initialProgress,
         int totalProgress
     ) {
         this.consoleMetaData = consoleMetaData;
-        this.style = style;
+        this.progressBarPrefix = progressBarPrefix;
         this.progressBarWidth = progressBarWidth;
+        this.progressBarSuffix = progressBarSuffix;
+        this.fillerChar = completeChar;
+        this.incompleteChar = incompleteChar;
         this.suffix = suffix;
         this.current = initialProgress;
         this.total = totalProgress;
     }
 
     static ProgressBar createProgressBar(ConsoleMetaData consoleMetaData, String initialSuffix, int totalProgress) {
-        // Use Unicode progress bars if terminal supports it and its font has the eighth blocks, otherwise use ASCII
-        if (consoleMetaData.supportsUnicode() && consoleMetaData.supportsEighthBlocks()) {
+        // Use Unicode progress bars if terminal supports it, otherwise use ASCII
+        if (consoleMetaData.supportsUnicode()) {
             return getUnicodeProgressBar(consoleMetaData, initialSuffix, totalProgress);
         } else {
             return getAsciiProgressBar(consoleMetaData, initialSuffix, totalProgress);
@@ -119,12 +115,28 @@ public class ProgressBar {
 
     // Unicode mode: smooth progress with block characters
     static ProgressBar getUnicodeProgressBar(ConsoleMetaData consoleMetaData, String initialSuffix, int totalProgress) {
-        return new ProgressBar(consoleMetaData, Style.UNICODE, PROGRESS_BAR_WIDTH, initialSuffix, 0, totalProgress);
+        return new ProgressBar(consoleMetaData,
+            UNICODE_PROGRESS_BAR_PREFIX,
+            PROGRESS_BAR_WIDTH,
+            UNICODE_PROGRESS_BAR_SUFFIX,
+            ' ', // Not used in Unicode mode
+            ' ', // Not used in Unicode mode
+            initialSuffix,
+            0,
+            totalProgress);
     }
 
     // ASCII mode: hash-based progress for compatibility
     static ProgressBar getAsciiProgressBar(ConsoleMetaData consoleMetaData, String initialSuffix, int totalProgress) {
-        return new ProgressBar(consoleMetaData, Style.ASCII, PROGRESS_BAR_WIDTH, initialSuffix, 0, totalProgress);
+        return new ProgressBar(consoleMetaData,
+            ASCII_PROGRESS_BAR_PREFIX,
+            PROGRESS_BAR_WIDTH,
+            ASCII_PROGRESS_BAR_SUFFIX,
+            ASCII_PROGRESS_BAR_COMPLETE_CHAR,
+            ASCII_PROGRESS_BAR_INCOMPLETE_CHAR,
+            initialSuffix,
+            0,
+            totalProgress);
     }
 
     public void moreProgress(int totalProgress) {
@@ -161,9 +173,9 @@ public class ProgressBar {
 
         // Prepend taskbar progress sequence (invisible control sequence)
         String taskbarSequence = buildTaskbarProgressSequence(progressPercent, failing);
-        String statusPrefix = trimToConsole(consoleCols, 0, taskbarSequence + style.prefix);
+        String statusPrefix = trimToConsole(consoleCols, 0, taskbarSequence + progressBarPrefix);
 
-        if (style == Style.UNICODE) {
+        if (consoleMetaData.supportsUnicode()) {
             return getUnicodeFormatted(timerEnabled, consoleCols, statusPrefix, progressPercent, elapsedTimeStr);
         } else {
             return getAsciiFormatted(timerEnabled, consoleCols, statusPrefix, progressPercent, elapsedTimeStr);
@@ -175,8 +187,8 @@ public class ProgressBar {
         int completedWidth = getCompletedWidth();
         int remainingWidth = progressBarWidth - completedWidth;
 
-        String coloredProgress = trimToConsole(consoleCols, statusPrefix.length(), StringUtils.repeat(ASCII_PROGRESS_BAR_COMPLETE_CHAR, completedWidth));
-        String statusSuffix = trimToConsole(consoleCols, statusPrefix.length() + coloredProgress.length(), StringUtils.repeat(ASCII_PROGRESS_BAR_INCOMPLETE_CHAR, remainingWidth)
+        String coloredProgress = trimToConsole(consoleCols, statusPrefix.length(), StringUtils.repeat(fillerChar, completedWidth));
+        String statusSuffix = trimToConsole(consoleCols, statusPrefix.length() + coloredProgress.length(), StringUtils.repeat(incompleteChar, remainingWidth)
             + renderProgressStatus(timerEnabled, progressPercent, elapsedTimeStr));
 
         lastElapsedTimeStr = elapsedTimeStr;
@@ -203,7 +215,7 @@ public class ProgressBar {
     }
 
     private String renderProgressStatus(boolean timerEnabled, int progressPercent, String elapsedTimeStr) {
-        return style.suffix + " " + progressPercent + '%' + ' ' + suffix
+        return progressBarSuffix + " " + progressPercent + '%' + ' ' + suffix
             + (timerEnabled ? " [" + elapsedTimeStr + "]" : "");
     }
 
