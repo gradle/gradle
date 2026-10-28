@@ -19,6 +19,7 @@ import org.gradle.api.Action;
 import org.gradle.api.Describable;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.internal.collections.ElementSource;
+import org.gradle.api.internal.collections.EventSubscriptionVerifier;
 
 /**
  * Internal counterpart to {@link DomainObjectCollection}.
@@ -36,9 +37,42 @@ public interface DomainObjectCollectionInternal<T> extends DomainObjectCollectio
     void beforeCollectionChanges(Action<String> action);
 
     /**
-     * Like {@link #all(Action)}, for forwarding the elements to a composite collection.
-     * Unlike with {@code all}, pending elements realized on add are queried again when this collection is read.
+     * Forwards elements to another collection, such as a composite: like {@link #configureEach(Action)}, the action is executed for each element once it is realized.
+     * <p>
+     * Unlike {@code configureEach}, the action does not run under the lazy behavior guard, so listeners of the other collection may mutate this one.
+     * Eager listeners of the other collection, as reported by {@code targetSubscriptions}, count as eager listeners of this collection,
+     * so pending elements are realized for them as they would be for listeners registered here directly.
      */
-    void forwardElements(Action<? super T> action);
+    void forwardElements(Action<? super T> action, EventSubscriptionVerifier<? super T> targetSubscriptions);
+
+    /**
+     * Stops counting the eager listeners of a collection that elements were forwarded to, when this collection is no longer part of it.
+     */
+    void stopForwardingElements(EventSubscriptionVerifier<? super T> targetSubscriptions);
+
+    /**
+     * Realizes the pending elements whose type is subscribed to by the given subscriptions.
+     */
+    void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions);
+
+    /**
+     * Whether there are pending elements that {@link #realizePendingSubscribedBy(EventSubscriptionVerifier)} would realize.
+     */
+    boolean hasPendingElementsSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions);
+
+    /**
+     * Whether the element is in this collection already, without realizing pending elements.
+     */
+    boolean containsRealized(Object element);
+
+    /**
+     * Like {@link #containsRealized(Object)}, but also counts the elements of composited collections that are not wired yet, without wiring them.
+     */
+    boolean containsRealizedIncludingUnwired(Object element);
+
+    /**
+     * Whether there are elements that are not realized yet.
+     */
+    boolean hasPendingElements();
 
 }

@@ -18,7 +18,6 @@ package org.gradle.api.internal.collections;
 
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.ImmutableSet;
-import com.google.common.collect.Lists;
 import org.gradle.api.Action;
 import org.gradle.api.internal.DefaultMutationGuard;
 import org.gradle.api.internal.MutationGuard;
@@ -42,6 +41,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.TreeSet;
+import java.util.function.Predicate;
 
 public class SortedSetElementSource<T> implements ElementSource<T> {
     private final TreeSet<T> values;
@@ -49,9 +49,12 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     // Each DomainObjectSet has a pending set and a Configuration has several DomainObjectSets
     // And a Project has many Configurations.
     private Set<Collectors.TypedCollector<T>> pending = Collections.emptySet();
-    // Collectors realized on add for an eager listener, with their values. Kept so that their producers
-    // remain build dependencies of getElements() and they can be removed without querying them again.
-    private Map<Collectors.TypedCollector<T>, List<T>> realizedOnAdd = Collections.emptyMap();
+    // Realized collectors are retained with the values they captured, so the producers of these values remain
+    // build dependencies of getElements(), and the values can be removed by provider without querying it again
+    private Map<Collectors.TypedCollector<T>, RealizedValues<T>> realized = Collections.emptyMap();
+    // Values added while a provider is queried, as providers that create the elements, like register(), add them themselves
+    @Nullable
+    private List<T> addedWhileCollecting;
     private Action<T> addRealizedAction;
     private EventSubscriptionVerifier<T> subscriptionVerifier = type -> false;
     private final MutationGuard lazyGuard = new DefaultMutationGuard();
@@ -128,12 +131,36 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     @Override
     public Iterator<T> iterator() {
         realizePending();
-        return values.iterator();
+        return new ValuesIterator();
     }
 
     @Override
     public Iterator<T> iteratorNoFlush() {
-        return values.iterator();
+        return new ValuesIterator();
+    }
+
+    // Values removed through the iterator are forgotten by the realized collectors as well, like with remove(Object)
+    private class ValuesIterator implements Iterator<T> {
+        private final Iterator<T> delegate = values.iterator();
+        @Nullable
+        private T last;
+
+        @Override
+        public boolean hasNext() {
+            return delegate.hasNext();
+        }
+
+        @Override
+        public T next() {
+            last = delegate.next();
+            return last;
+        }
+
+        @Override
+        public void remove() {
+            delegate.remove();
+            forgetRealized(last);
+        }
     }
 
     @Override
@@ -150,84 +177,163 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     @Override
     public boolean add(T element) {
-        return values.add(element);
+        boolean added = values.add(element);
+        if (added && addedWhileCollecting != null) {
+            addedWhileCollecting.add(element);
+        }
+        return added;
     }
 
     @Override
     public boolean remove(Object o) {
-        return values.remove(o);
+        if (values.remove(o)) {
+            forgetRealized(o);
+            return true;
+        }
+        return false;
     }
 
-    @Override
-    public void clear() {
-        pending = Collections.emptySet();
-        realizedOnAdd = Collections.emptyMap();
-        values.clear();
-    }
-
-    @Override
-    public void realizePending() {
-        if (!pending.isEmpty()) {
-            List<Collectors.TypedCollector<T>> copied = Lists.newArrayList(pending);
-            realize(copied);
+    // The collectors stay, so adding their providers again has no effect
+    private void forgetRealized(Object value) {
+        for (RealizedValues<T> realizedValues : realized.values()) {
+            realizedValues.forget(candidate -> isEquivalent(candidate, value));
         }
     }
 
     @Override
+    public void clear() {
+        for (RealizedValues<T> realizedValues : realized.values()) {
+            realizedValues.markRemoved();
+        }
+        pending = Collections.emptySet();
+        realized = Collections.emptyMap();
+        values.clear();
+    }
+
+    @Override
+    public boolean hasPendingElements() {
+        return !pending.isEmpty();
+    }
+
+    @Override
+    public boolean hasPendingElements(Class<?> type) {
+        for (Collectors.TypedCollector<T> collector : pending) {
+            if (collector.getType() == null || type.isAssignableFrom(collector.getType())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void realizePending() {
+        realizePendingMatching(collector -> true);
+    }
+
+    @Override
     public void realizePending(Class<?> type) {
-        if (!pending.isEmpty()) {
-            List<Collectors.TypedCollector<T>> copied = new ArrayList<>();
+        realizePendingMatching(collector -> collector.getType() == null || type.isAssignableFrom(collector.getType()));
+    }
+
+    @Override
+    public boolean hasPendingElementsSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
+        for (Collectors.TypedCollector<T> collector : pending) {
+            if (subscriptions.isSubscribed(collector.getType())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
+        realizePendingMatching(collector -> subscriptions.isSubscribed(collector.getType()));
+    }
+
+    // Listeners may add pending elements while others are realized, so this repeats until none of them match
+    private void realizePendingMatching(Predicate<Collectors.TypedCollector<T>> condition) {
+        while (!pending.isEmpty()) {
+            List<Collectors.TypedCollector<T>> matching = new ArrayList<>();
             for (Collectors.TypedCollector<T> collector : pending) {
-                if (collector.getType() == null || type.isAssignableFrom(collector.getType())) {
-                    copied.add(collector);
+                if (condition.test(collector)) {
+                    matching.add(collector);
                 }
             }
-            realize(copied);
+            if (matching.isEmpty()) {
+                return;
+            }
+            realize(matching);
         }
     }
 
     private void realize(Iterable<Collectors.TypedCollector<T>> collectors) {
         for (Collectors.TypedCollector<T> collector : collectors) {
-            realize(collector);
-        }
-    }
-
-    private List<T> realize(Collectors.TypedCollector<T> collector) {
-        pending.remove(collector);
-        ImmutableList.Builder<T> builder = ImmutableList.builder();
-        // Collect elements discarding potential side effects aggregated in the returned value
-        collector.collectInto(builder);
-        List<T> realized = builder.build();
-        for (T element : realized) {
-            doAddRealized(element);
-        }
-        return realized;
-    }
-
-    private void doAddRealized(T value) {
-        if (values.add(value) && addRealizedAction != null) {
-            addRealizedAction.execute(value);
+            if (!pending.remove(collector)) {
+                // Realized or removed meanwhile, e.g. by a listener or through the provider itself
+                continue;
+            }
+            ImmutableList.Builder<T> builder = ImmutableList.builder();
+            List<T> previouslyCollecting = addedWhileCollecting;
+            List<T> addedByProvider = new ArrayList<>();
+            addedWhileCollecting = addedByProvider;
+            try {
+                // Collect elements discarding potential side effects aggregated in the returned value
+                collector.collectInto(builder);
+            } finally {
+                addedWhileCollecting = previouslyCollecting;
+            }
+            List<T> collected = builder.build();
+            if (realized == Collections.EMPTY_MAP) {
+                realized = new LinkedHashMap<>();
+            }
+            RealizedValues<T> realizedValues = new RealizedValues<>(collected);
+            for (T value : addedByProvider) {
+                if (collected.stream().anyMatch(candidate -> isEquivalent(candidate, value))) {
+                    realizedValues.addAdded(value);
+                }
+            }
+            realized.put(collector, realizedValues);
+            realizedValues.announcedCount = 0;
+            try {
+                for (T element : collected) {
+                    if (realizedValues.removed) {
+                        // A listener removed the provider or cleared the collection
+                        break;
+                    }
+                    realizedValues.announcedCount++;
+                    if (values.add(element)) {
+                        realizedValues.addAdded(element);
+                        if (addRealizedAction != null) {
+                            addRealizedAction.execute(element);
+                        }
+                    }
+                }
+            } finally {
+                realizedValues.announcedCount = -1;
+            }
         }
     }
 
     @Override
     public boolean addPending(final ProviderInternal<? extends T> provider) {
+        Collectors.TypedCollector<T> collector = collectorFromProvider(provider);
+        if (realized.containsKey(collector)) {
+            return false;
+        }
         ensurePendingIsMutable();
         if (provider instanceof ChangingValue) {
             Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(SerializableLambdas.action(previousValue -> {
-                values.remove(previousValue);
+                remove(previousValue);
                 pending.add(collectorFromProvider(provider));
             }));
-        }
-        Collectors.TypedCollector<T> collector = collectorFromProvider(provider);
-        if (realizedOnAdd.containsKey(collector)) {
-            return false;
         }
 
         boolean added = pending.add(collector);
         // TODO: We likely want to also immediately realize ChangingValue providers in the
         //  onValueChange callback above.
-        realizeIfSubscribed(collector, provider.getType());
+        if (subscriptionVerifier.isSubscribed(provider.getType())) {
+            realize(Collections.singleton(collector));
+        }
         return added;
     }
 
@@ -246,70 +352,27 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
         return removeByProvider(provider);
     }
 
-    private boolean removeByProvider(ProviderInternal<?> provider) {
-        Iterator<Collectors.TypedCollector<T>> iterator = pending.iterator();
-        while (iterator.hasNext()) {
-            Collectors.TypedCollector<T> collector = iterator.next();
-            if (collector.isProvidedBy(provider)) {
-                iterator.remove();
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public boolean addPendingCollection(final CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
-        ensurePendingIsMutable();
-        if (provider instanceof ChangingValue) {
-            Cast.<ChangingValue<Iterable<T>>>uncheckedNonnullCast(provider).onValueChange(SerializableLambdas.action(previousValues -> {
-                for (T value : previousValues) {
-                    values.remove(value);
-                }
-                pending.add(collectorFromCollectionProvider(provider));
-            }));
-        }
-        Collectors.TypedCollector<T> collector = collectorFromCollectionProvider(provider);
-        if (realizedOnAdd.containsKey(collector)) {
-            return false;
-        }
-
-        boolean added = pending.add(collector);
-        // TODO: We likely want to also immediately realize ChangingValue providers in the
-        //  onValueChange callback above.
-        realizeIfSubscribed(collector, provider.getElementType());
-        return added;
-    }
-
-    private void realizeIfSubscribed(Collectors.TypedCollector<T> collector, @Nullable Class<? extends T> type) {
-        if (!subscriptionVerifier.isSubscribed(type)) {
-            return;
-        }
-        List<T> realizedValues = realize(collector);
-        if (subscriptionVerifier.isSubscribedByListener(type)) {
-            if (realizedOnAdd.isEmpty()) {
-                realizedOnAdd = new LinkedHashMap<>();
-            }
-            realizedOnAdd.put(collector, realizedValues);
-        } else {
-            // Only realized to be forwarded to a composite collection, so the provider is queried again when this collection is read
-            pending.add(collector);
-        }
-    }
-
     @Override
     @Nullable
     public List<T> removeRealized(ProviderInternal<? extends T> provider) {
-        Iterator<Map.Entry<Collectors.TypedCollector<T>, List<T>>> iterator = realizedOnAdd.entrySet().iterator();
+        Iterator<Map.Entry<Collectors.TypedCollector<T>, RealizedValues<T>>> iterator = realized.entrySet().iterator();
         while (iterator.hasNext()) {
-            Map.Entry<Collectors.TypedCollector<T>, List<T>> entry = iterator.next();
+            Map.Entry<Collectors.TypedCollector<T>, RealizedValues<T>> entry = iterator.next();
             if (entry.getKey().isProvidedBy(provider)) {
                 iterator.remove();
-                List<T> removed = new ArrayList<>();
-                for (T value : entry.getValue()) {
-                    // Only the instance the provider added: an equal value added otherwise kept that one
-                    if (values.ceiling(value) == value) {
-                        values.remove(value);
+                RealizedValues<T> realizedValues = entry.getValue();
+                if (realizedValues.external || realizedValues.captured.isEmpty()) {
+                    // Nothing known to remove: either the provider added its element itself, or its values were removed already
+                    return null;
+                }
+                realizedValues.markRemoved();
+                // Only values that the provider added are removed: an equal value that was there before stays
+                List<T> removed = new ArrayList<>(realizedValues.added.size());
+                for (T value : realizedValues.added) {
+                    RealizedValues<T> otherCapturing = findCapturing(value);
+                    if (otherCapturing != null) {
+                        otherCapturing.addAdded(value);
+                    } else if (values.remove(value)) {
                         removed.add(value);
                     }
                 }
@@ -317,6 +380,70 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
             }
         }
         return null;
+    }
+
+    @Nullable
+    private RealizedValues<T> findCapturing(T value) {
+        for (RealizedValues<T> realizedValues : realized.values()) {
+            List<T> captured = realizedValues.captured;
+            for (int index = 0; index < captured.size(); index++) {
+                // A value that is not announced yet is not in the collection
+                if (isEquivalent(captured.get(index), value) && realizedValues.isAnnounced(index)) {
+                    return realizedValues;
+                }
+            }
+        }
+        return null;
+    }
+
+    // The same equality as the one of the values
+    private boolean isEquivalent(T candidate, Object value) {
+        Comparator<? super T> comparator = values.comparator();
+        if (comparator == null) {
+            return Cast.<Comparable<Object>>uncheckedNonnullCast(candidate).compareTo(value) == 0;
+        }
+        return comparator.compare(candidate, Cast.uncheckedNonnullCast(value)) == 0;
+    }
+
+    private boolean removeByProvider(ProviderInternal<?> provider) {
+        return removePendingCollector(provider) != null;
+    }
+
+    private Collectors.@Nullable TypedCollector<T> removePendingCollector(ProviderInternal<?> provider) {
+        Iterator<Collectors.TypedCollector<T>> iterator = pending.iterator();
+        while (iterator.hasNext()) {
+            Collectors.TypedCollector<T> collector = iterator.next();
+            if (collector.isProvidedBy(provider)) {
+                iterator.remove();
+                return collector;
+            }
+        }
+        return null;
+    }
+
+    @Override
+    public boolean addPendingCollection(final CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
+        Collectors.TypedCollector<T> collector = collectorFromCollectionProvider(provider);
+        if (realized.containsKey(collector)) {
+            return false;
+        }
+        ensurePendingIsMutable();
+        if (provider instanceof ChangingValue) {
+            Cast.<ChangingValue<Iterable<T>>>uncheckedNonnullCast(provider).onValueChange(SerializableLambdas.action(previousValues -> {
+                for (T value : previousValues) {
+                    remove(value);
+                }
+                pending.add(collectorFromCollectionProvider(provider));
+            }));
+        }
+
+        boolean added = pending.add(collector);
+        // TODO: We likely want to also immediately realize ChangingValue providers in the
+        //  onValueChange callback above.
+        if (subscriptionVerifier.isSubscribed(provider.getElementType())) {
+            realize(Collections.singleton(collector));
+        }
+        return added;
     }
 
     private Collectors.TypedCollector<T> collectorFromCollectionProvider(final CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
@@ -332,11 +459,11 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
     public ProviderInternal<Set<T>> getElements() {
         return new BuildableBackedProvider<>(
             context -> {
-                // TODO: As this is implemented, the returned provider will "lose" build
-                // dependencies of elements realized by reading this source. To fix this, we would need
-                // to retain the pending elements for the lifetime of this element source.
-                for (Collectors.TypedCollector<T> collector : realizedOnAdd.keySet()) {
-                    context.add(collector.getProducer());
+                for (Map.Entry<Collectors.TypedCollector<T>, RealizedValues<T>> entry : realized.entrySet()) {
+                    // Values removed by value take their producer with them
+                    if (entry.getValue().external || !entry.getValue().captured.isEmpty()) {
+                        context.add(entry.getKey().getProducer());
+                    }
                 }
                 for (Collectors.TypedCollector<T> collector : pending) {
                     context.add(collector.getProducer());
@@ -362,12 +489,92 @@ public class SortedSetElementSource<T> implements ElementSource<T> {
 
     @Override
     public void realizeExternal(ProviderInternal<? extends T> provider) {
-        removePending(provider);
+        Collectors.TypedCollector<T> collector = removePendingCollector(provider);
+        if (collector != null) {
+            // The provider added its element itself, so its value is not known here. It is retained like the others,
+            // so adding it again has no effect, while removing it falls back to querying it.
+            if (realized == Collections.EMPTY_MAP) {
+                realized = new LinkedHashMap<>();
+            }
+            realized.put(collector, RealizedValues.external());
+        }
     }
 
     @Override
     public MutationGuard getLazyBehaviorGuard() {
         return lazyGuard;
+    }
+
+    private static final class RealizedValues<T> {
+        private static final RealizedValues<?> EXTERNAL = new RealizedValues<>(Collections.emptyList(), true);
+
+        // Values are rarely forgotten, so the captured list is only copied then
+        private List<T> captured;
+        // The captured values that were not in the collection yet
+        private List<T> added = Collections.emptyList();
+        private final boolean external;
+        // Set when the provider is removed or the collection is cleared, possibly while its values are announced
+        private boolean removed;
+        // While the values are announced: how many of the captured ones were announced. These are always the first ones,
+        // as values are announced in order and only announced ones are forgotten. Negative otherwise.
+        private int announcedCount = -1;
+
+        RealizedValues(List<T> captured) {
+            this(captured, false);
+        }
+
+        private RealizedValues(List<T> captured, boolean external) {
+            this.captured = captured;
+            this.external = external;
+        }
+
+        static <T> RealizedValues<T> external() {
+            return Cast.uncheckedNonnullCast(EXTERNAL);
+        }
+
+        void addAdded(T value) {
+            if (added == Collections.EMPTY_LIST) {
+                added = new ArrayList<>(captured.size());
+            }
+            added.add(value);
+        }
+
+        boolean isAnnounced(int index) {
+            return announcedCount < 0 || index < announcedCount;
+        }
+
+        void forget(Predicate<T> matching) {
+            if (!added.isEmpty()) {
+                added.removeIf(matching);
+            }
+            // Values not announced yet are not in the collection, so removing an equal one doesn't concern them
+            List<T> remaining = null;
+            int remainingAnnounced = announcedCount;
+            for (int index = 0; index < captured.size(); index++) {
+                T candidate = captured.get(index);
+                if (isAnnounced(index) && matching.test(candidate)) {
+                    if (remaining == null) {
+                        remaining = new ArrayList<>(captured.subList(0, index));
+                    }
+                    if (announcedCount >= 0) {
+                        remainingAnnounced--;
+                    }
+                } else if (remaining != null) {
+                    remaining.add(candidate);
+                }
+            }
+            if (remaining != null) {
+                captured = remaining;
+                announcedCount = remainingAnnounced;
+            }
+        }
+
+        void markRemoved() {
+            // The external marker is shared, and its provider has no values to announce
+            if (!external) {
+                removed = true;
+            }
+        }
     }
 
     // Unlike single element providers, the size of these is only known by querying the provider

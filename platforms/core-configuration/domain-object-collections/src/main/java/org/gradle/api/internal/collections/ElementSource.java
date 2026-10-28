@@ -16,6 +16,7 @@
 
 package org.gradle.api.internal.collections;
 
+import com.google.common.collect.Iterators;
 import org.gradle.api.Action;
 import org.gradle.api.internal.MutationGuard;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
@@ -90,19 +91,53 @@ public interface ElementSource<T> extends Iterable<T> {
 
     void realizePending(Class<?> type);
 
+    /**
+     * Realizes the pending elements whose type is subscribed to by the given subscriptions.
+     */
+    void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions);
+
+    /**
+     * Whether there are pending elements that {@link #realizePendingSubscribedBy(EventSubscriptionVerifier)} would realize.
+     */
+    boolean hasPendingElementsSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions);
+
+    /**
+     * Whether there are elements that are not realized yet.
+     */
+    boolean hasPendingElements();
+
+    /**
+     * Whether there are elements that are not realized yet, which {@link #realizePending(Class)} would realize.
+     */
+    default boolean hasPendingElements(Class<?> type) {
+        return hasPendingElements();
+    }
+
+    /**
+     * Whether the element is in this source already, without realizing pending elements.
+     */
+    default boolean containsRealized(Object element) {
+        return Iterators.contains(iteratorNoFlush(), element);
+    }
+
+    /**
+     * Like {@link #containsRealized(Object)}, but also counts the elements of composited collections that are not wired yet, without wiring them.
+     */
+    default boolean containsRealizedIncludingUnwired(Object element) {
+        return containsRealized(element);
+    }
+
     boolean addPending(ProviderInternal<? extends T> provider);
 
     boolean removePending(ProviderInternal<? extends T> provider);
 
     /**
-     * Removes the element added by the given provider if it was realized when added for an eager listener, without querying the provider again.
+     * Removes the element added by the given provider if it was already realized, without querying the provider again.
      *
-     * @return the values that are no longer in this source, or {@code null} if this source has no such element added by the provider
+     * @return the values that are no longer in this source, or {@code null} if no realized element was added by the provider
      */
     @Nullable
-    default List<T> removeRealized(ProviderInternal<? extends T> provider) {
-        return null;
-    }
+    List<T> removeRealized(ProviderInternal<? extends T> provider);
 
     boolean addPendingCollection(CollectionProviderInternal<T, ? extends Iterable<T>> provider);
 

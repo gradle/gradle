@@ -23,6 +23,7 @@ import org.gradle.api.internal.collections.CollectionEventRegister;
 import org.gradle.api.internal.collections.CollectionFilter;
 import org.gradle.api.internal.collections.DefaultCollectionEventRegister;
 import org.gradle.api.internal.collections.ElementSource;
+import org.gradle.api.internal.collections.EventSubscriptionVerifier;
 import org.gradle.api.internal.collections.FilteredElementSource;
 import org.gradle.api.internal.lambdas.SerializableLambdas;
 import org.gradle.api.internal.provider.CollectionProviderInternal;
@@ -37,13 +38,18 @@ import org.gradle.internal.Cast;
 import org.gradle.internal.ImmutableActionSet;
 import org.gradle.internal.deprecation.DeprecationLogger;
 import org.gradle.util.internal.ConfigureUtil;
+import org.jspecify.annotations.Nullable;
 
 import java.util.AbstractCollection;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
+import java.util.function.Consumer;
+import java.util.function.Supplier;
 
 public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> implements DomainObjectCollectionInternal<T> {
 
@@ -166,24 +172,32 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
 
     @Override
     public void all(Action<? super T> action) {
+        all(action, Specs.satisfyAll());
+    }
+
+    /**
+     * Like {@link #all(Action)}, but elements added later are only passed to the action if they satisfy the spec.
+     */
+    void all(Action<? super T> action, Spec<? super T> addedElementsSpec) {
         assertEagerContext("all(Action)");
-        executeForAllElements(addEagerAction(action));
-    }
-
-    @Override
-    public void forwardElements(Action<? super T> action) {
-        assertEagerContext("forwardElements(Action)");
+        // Like addEagerAction(), but the action is registered before the elements are read, as reading may realize more of them,
+        // e.g. those of the collections of a composite that don't match the type of a filtered view.
         store.realizePending(type);
-        executeForAllElements(eventRegister.registerForwardingAddAction(type, decorate(action)));
-    }
+        Action<? super T> decoratedAction = decorate(action);
+        AnnouncedWhileCopying<T> announcedWhileCopying = new AnnouncedWhileCopying<>(decoratedAction, addedElementsSpec);
+        eventRegister.registerEagerAddAction(type, announcedWhileCopying);
 
-    private void executeForAllElements(Action<? super T> decoratedAction) {
         if (store.constantTimeIsEmpty()) {
+            announcedWhileCopying.finishCopying(null);
             return;
         }
 
+        applyToCopy(announcedWhileCopying, this::copyElements);
+    }
+
+    @Nullable
+    private Collection<T> copyElements() {
         // copy in case any actions mutate the store
-        // linked list because the underlying store may preserve order
         // We make best effort not to create an intermediate collection if this container
         // is empty.
         Collection<T> copied = null;
@@ -193,19 +207,152 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             }
             copied.add(t);
         }
-        if (copied != null) {
-            for (T t : copied) {
-                decoratedAction.execute(t);
-            }
-        }
+        return copied;
     }
 
     @Override
     public void configureEach(Action<? super T> action) {
         assertEagerContext("configureEach(Action)");
         Action<? super T> wrappedAction = wrapLazyAction(decorate(action));
-        Action<? super T> registerLazyAddActionDecorated = eventRegister.registerLazyAddAction(wrappedAction);
+        registerAndApplyToRealized(wrappedAction, Specs.satisfyAll(), eventRegister::registerLazyAddAction, () -> {});
+    }
 
+    @Override
+    public void forwardElements(Action<? super T> action, EventSubscriptionVerifier<? super T> targetSubscriptions) {
+        forwardElements(action, Specs.satisfyAll(), targetSubscriptions);
+    }
+
+    /**
+     * Like {@link #forwardElements(Action, EventSubscriptionVerifier)}, but elements added later are only forwarded if they satisfy the spec.
+     */
+    void forwardElements(Action<? super T> action, Spec<? super T> addedElementsSpec, EventSubscriptionVerifier<? super T> targetSubscriptions) {
+        assertEagerContext("forwardElements(Action, EventSubscriptionVerifier)");
+        registerAndApplyToRealized(
+            decorate(action),
+            addedElementsSpec,
+            added -> eventRegister.registerForwardingAddAction(added, targetSubscriptions),
+            // Same as for an eager action registered here. Done once the forwarding is registered, so it stays registered if this fails.
+            () -> store.realizePendingSubscribedBy(targetSubscriptions)
+        );
+    }
+
+    // The action is registered before the realized elements are copied: copying may realize elements of the collections
+    // of a composite, which are announced on the way.
+    private void registerAndApplyToRealized(Action<? super T> action, Spec<? super T> addedElementsSpec, Consumer<Action<? super T>> register, Runnable beforeCopying) {
+        AnnouncedWhileCopying<T> announcedWhileCopying = new AnnouncedWhileCopying<>(action, addedElementsSpec);
+        register.accept(announcedWhileCopying);
+        applyToCopy(announcedWhileCopying, () -> {
+            beforeCopying.run();
+            return copyRealizedElements();
+        });
+    }
+
+    private static <T> void applyToCopy(AnnouncedWhileCopying<T> announcedWhileCopying, Supplier<@Nullable Collection<T>> copy) {
+        Collection<T> copied;
+        try {
+            copied = copy.get();
+        } catch (RuntimeException | Error failure) {
+            // The action stays registered, so it has to stop recording, and the elements announced so far are in the collection
+            try {
+                announcedWhileCopying.finishCopying(null);
+            } catch (RuntimeException | Error other) {
+                failure.addSuppressed(other);
+            }
+            throw failure;
+        }
+        announcedWhileCopying.finishCopying(copied);
+    }
+
+    // Elements announced while the copy is taken are passed to the action after the copied ones, so the action sees them in order
+    private static class AnnouncedWhileCopying<T> implements Action<T> {
+        private final Action<? super T> delegate;
+        private final Spec<? super T> spec;
+        private boolean recording = true;
+        @Nullable
+        private List<T> announced;
+
+        AnnouncedWhileCopying(Action<? super T> delegate, Spec<? super T> spec) {
+            this.delegate = delegate;
+            this.spec = spec;
+        }
+
+        @Override
+        public void execute(T element) {
+            if (!spec.isSatisfiedBy(element)) {
+                return;
+            }
+            if (recording) {
+                if (announced == null) {
+                    announced = new ArrayList<>();
+                }
+                announced.add(element);
+                return;
+            }
+            delegate.execute(element);
+        }
+
+        // Elements both copied and announced, possibly by several collections of a composite, are passed once
+        void finishCopying(@Nullable Collection<T> copied) {
+            recording = false;
+            List<T> announcedNotCopied = null;
+            if (announced != null) {
+                // Decided before the action runs, as it may change the elements and their hash codes
+                Set<T> seen = copied == null ? new HashSet<>() : new HashSet<>(copied);
+                for (T element : announced) {
+                    if (seen.add(element)) {
+                        if (announcedNotCopied == null) {
+                            announcedNotCopied = new ArrayList<>();
+                        }
+                        announcedNotCopied.add(element);
+                    }
+                }
+                announced = null;
+            }
+            if (copied != null) {
+                for (T element : copied) {
+                    delegate.execute(element);
+                }
+            }
+            if (announcedNotCopied != null) {
+                for (T element : announcedNotCopied) {
+                    delegate.execute(element);
+                }
+            }
+        }
+    }
+
+    @Override
+    public void stopForwardingElements(EventSubscriptionVerifier<? super T> targetSubscriptions) {
+        eventRegister.unregisterForwardingTarget(targetSubscriptions);
+    }
+
+    @Override
+    public void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
+        store.realizePendingSubscribedBy(subscriptions);
+    }
+
+    @Override
+    public boolean hasPendingElementsSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
+        return store.hasPendingElementsSubscribedBy(subscriptions);
+    }
+
+    @Override
+    public boolean hasPendingElements() {
+        return store.hasPendingElements();
+    }
+
+    @Override
+    public boolean containsRealized(Object element) {
+        return store.containsRealized(element);
+    }
+
+    @Override
+    public boolean containsRealizedIncludingUnwired(Object element) {
+        return store.containsRealizedIncludingUnwired(element);
+    }
+
+    @Nullable
+    private Collection<T> copyRealizedElements() {
         // copy in case any actions mutate the store
         Collection<T> copied = null;
         Iterator<T> iterator = iteratorNoFlush();
@@ -220,12 +367,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
             }
             copied.add(iterator.next());
         }
-
-        if (copied != null) {
-            for (T next : copied) {
-                registerLazyAddActionDecorated.execute(next);
-            }
-        }
+        return copied;
     }
 
     protected <I extends T> Action<? super I> wrapLazyAction(Action<? super I> action) {
@@ -307,9 +449,12 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
         doAddLater(provider);
     }
 
-    protected void doAddLater(Provider<? extends T> provider) {
+    /**
+     * @return whether the provider was added, which it is not when it was added before
+     */
+    protected boolean doAddLater(Provider<? extends T> provider) {
         ProviderInternal<? extends T> providerInternal = Providers.internal(provider);
-        store.addPending(providerInternal);
+        return store.addPending(providerInternal);
     }
 
     @Override
@@ -398,7 +543,7 @@ public class DefaultDomainObjectCollection<T> extends AbstractCollection<T> impl
                 }
                 return true;
             } else if (getType().isAssignableFrom(providerInternal.getType()) && providerInternal.isPresent()) {
-                // The provider is of compatible type and the element was either already realized or we are removing a provider to the element
+                // The provider is of compatible type and points to an element that was not added with it
                 o = providerInternal.get();
             }
             // Else, the provider is of incompatible type, maybe we have a domain object collection of Provider, fallthrough

@@ -19,6 +19,7 @@ import groovy.lang.Closure;
 import org.gradle.api.Action;
 import org.gradle.api.DomainObjectCollection;
 import org.gradle.api.DomainObjectSet;
+import org.gradle.api.internal.collections.EventSubscriptionVerifier;
 import org.gradle.api.provider.Provider;
 import org.gradle.api.specs.Spec;
 import org.gradle.api.specs.Specs;
@@ -232,9 +233,45 @@ public class DelegatingDomainObjectSet<T> implements DomainObjectSet<T>, DomainO
     }
 
     @Override
-    public void forwardElements(Action<? super T> action) {
-        onMethodCall("forwardElements(Action)");
-        ((DomainObjectCollectionInternal<T>) getDelegate()).forwardElements(action);
+    public void forwardElements(Action<? super T> action, EventSubscriptionVerifier<? super T> targetSubscriptions) {
+        onMethodCall("forwardElements(Action, EventSubscriptionVerifier)");
+        ((DomainObjectCollectionInternal<T>) getDelegate()).forwardElements(action, targetSubscriptions);
+    }
+
+    @Override
+    public void stopForwardingElements(EventSubscriptionVerifier<? super T> targetSubscriptions) {
+        onMethodCall("stopForwardingElements(EventSubscriptionVerifier)");
+        ((DomainObjectCollectionInternal<T>) getDelegate()).stopForwardingElements(targetSubscriptions);
+    }
+
+    @Override
+    public boolean hasPendingElements() {
+        onMethodCall("hasPendingElements()");
+        return ((DomainObjectCollectionInternal<T>) getDelegate()).hasPendingElements();
+    }
+
+    @Override
+    public boolean containsRealizedIncludingUnwired(Object element) {
+        onMethodCall("containsRealizedIncludingUnwired(Object)");
+        return ((DomainObjectCollectionInternal<T>) getDelegate()).containsRealizedIncludingUnwired(element);
+    }
+
+    @Override
+    public boolean containsRealized(Object element) {
+        onMethodCall("containsRealized(Object)");
+        return ((DomainObjectCollectionInternal<T>) getDelegate()).containsRealized(element);
+    }
+
+    @Override
+    public boolean hasPendingElementsSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
+        onMethodCall("hasPendingElementsSubscribedBy(EventSubscriptionVerifier)");
+        return ((DomainObjectCollectionInternal<T>) getDelegate()).hasPendingElementsSubscribedBy(subscriptions);
+    }
+
+    @Override
+    public void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
+        onMethodCall("realizePendingSubscribedBy(EventSubscriptionVerifier)");
+        ((DomainObjectCollectionInternal<T>) getDelegate()).realizePendingSubscribedBy(subscriptions);
     }
 
     @Override

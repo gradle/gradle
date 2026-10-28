@@ -106,7 +106,28 @@ println("dependencies: " + impl.dependencies.map { "${it.group}:${it.name}:${it.
 ----
 
 To pick up changes made after the provider is added, configure its inputs before adding it, or register the action with link:{javadocPath}/org/gradle/api/DomainObjectCollection.html#configureEach(org.gradle.api.Action)[`configureEach(Action)`], which does not query the provider right away.
-Eager actions registered only on derived collections, such as link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#getAllDependencies()[`Configuration.getAllDependencies()`], are not affected.
+
+[[derived_domain_object_collections_query_providers_lazily]]
+==== Derived collections no longer query providers right away
+
+Derived collections, such as link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#getAllDependencies()[`Configuration.getAllDependencies()`] and link:{javadocPath}/org/gradle/api/artifacts/Configuration.html#getAllArtifacts()[`Configuration.getAllArtifacts()`], contain the elements of the collections they are derived from.
+
+Previously, once a derived collection was obtained, every provider added to these collections was queried as soon as it was added, even if nothing used the derived collection.
+
+Now such providers are queried when the elements are first needed.
+Eager actions registered on a derived collection count as eager actions on the collections it is currently derived from, so the providers are captured once, as described above.
+A provider that fails now reports the failure when the elements are read:
+
+[source,kotlin]
+.build.gradle.kts
+----
+val impl = configurations.dependencyScope("impl").get()
+impl.allDependencies
+impl.dependencies.addLater(provider<Dependency> { error("not available yet") })
+
+// Before: fails at addLater()
+// Now: fails when the dependencies are read, e.g. when they are resolved
+----
 
 [[changes_9.9.0]]
 == Upgrading from 9.8.0 and earlier

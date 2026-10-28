@@ -45,11 +45,12 @@ import org.jspecify.annotations.Nullable;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.ConcurrentModificationException;
+import java.util.HashSet;
 import java.util.Iterator;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.NoSuchElementException;
 import java.util.Set;
+import java.util.function.Predicate;
 
 abstract public class AbstractIterationOrderRetainingElementSource<T> implements ElementSource<T>, TaskDependencyContainer {
 
@@ -129,6 +130,9 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     @Override
     public void clear() {
         modCount++;
+        for (Element<T> element : inserted) {
+            element.detach();
+        }
         inserted.clear();
     }
 
@@ -139,22 +143,90 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
     @Override
     public void realizePending() {
-        for (Element<T> element : inserted) {
-            if (!element.isRealized()) {
-                modCount++;
-                element.realize();
-            }
-        }
+        realizePendingMatching(element -> true);
     }
 
     @Override
     public void realizePending(Class<?> type) {
+        realizePendingMatching(element -> element.getType() == null || type.isAssignableFrom(element.getType()));
+    }
+
+    @Override
+    public boolean hasPendingElements() {
+        return hasPendingElements(Object.class);
+    }
+
+    @Override
+    public boolean hasPendingElements(Class<?> type) {
         for (Element<T> element : inserted) {
             if (!element.isRealized() && (element.getType() == null || type.isAssignableFrom(element.getType()))) {
-                modCount++;
-                element.realize();
+                return true;
             }
         }
+        return false;
+    }
+
+    @Override
+    public boolean hasPendingElementsSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
+        for (Element<T> element : inserted) {
+            if (!element.isRealized() && subscriptions.isSubscribed(element.getType())) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    @Override
+    public void realizePendingSubscribedBy(EventSubscriptionVerifier<? super T> subscriptions) {
+        realizePendingMatching(element -> subscriptions.isSubscribed(element.getType()));
+    }
+
+    // Realizing an element notifies listeners, which may change this source, e.g. listeners of a composite
+    // that elements are forwarded to. So the elements are collected first, and realized while they are still in it.
+    // Listeners may also add pending elements, so this repeats until none of them match.
+    private void realizePendingMatching(Predicate<Element<T>> condition) {
+        List<Element<T>> pending = collectPending(condition);
+        while (pending != null) {
+            realizeStillInserted(pending);
+            pending = collectPending(condition);
+        }
+    }
+
+    @Nullable
+    private List<Element<T>> collectPending(Predicate<Element<T>> condition) {
+        List<Element<T>> pending = null;
+        for (Element<T> element : inserted) {
+            if (!element.isRealized() && condition.test(element)) {
+                if (pending == null) {
+                    pending = new ArrayList<>();
+                }
+                pending.add(element);
+            }
+        }
+        return pending;
+    }
+
+    private void realizeStillInserted(List<Element<T>> pending) {
+        int expectedModCount = modCount;
+        boolean changedByListeners = false;
+        for (Element<T> element : pending) {
+            changedByListeners |= modCount != expectedModCount;
+            if (element.isRealized() || (changedByListeners && !containsElement(element))) {
+                continue;
+            }
+            modCount++;
+            expectedModCount = modCount;
+            element.realize();
+        }
+    }
+
+    private boolean containsElement(Element<T> element) {
+        for (Element<T> candidate : inserted) {
+            if (candidate == element) {
+                return true;
+            }
+        }
+        return false;
     }
 
     protected void clearCachedElement(Element<T> element) {
@@ -163,7 +235,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     Element<T> cachingElement(ProviderInternal<? extends T> provider) {
-        final Element<T> element = new Element<>(provider.getType(), new ElementFromProvider<>(provider), SerializableLambdas.action(this::doAddRealized));
+        final Element<T> element = new Element<>(provider.getType(), new ElementFromProvider<>(provider), SerializableLambdas.action(this::doAddRealized), SerializableLambdas.action(this::addRealizedDuplicate));
         if (provider instanceof ChangingValue) {
             Cast.<ChangingValue<T>>uncheckedNonnullCast(provider).onValueChange(SerializableLambdas.action(previousValue -> clearCachedElement(element)));
         }
@@ -171,7 +243,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     }
 
     Element<T> cachingElement(CollectionProviderInternal<T, ? extends Iterable<T>> provider) {
-        final Element<T> element = new Element<>(provider.getElementType(), new ElementsFromCollectionProvider<>(provider), SerializableLambdas.action(this::doAddRealized));
+        final Element<T> element = new Element<>(provider.getElementType(), new ElementsFromCollectionProvider<>(provider), SerializableLambdas.action(this::doAddRealized), SerializableLambdas.action(this::addRealizedDuplicate));
         if (provider instanceof ChangingValue) {
             Cast.<ChangingValue<Iterable<T>>>uncheckedNonnullCast(provider).onValueChange(SerializableLambdas.action(previousValues -> clearCachedElement(element)));
         }
@@ -186,6 +258,12 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
     abstract boolean addRealized(T element);
 
+    /**
+     * Called instead of {@link #addRealized(Object)} for a value equal to one the element announced already, which is not announced again.
+     */
+    void addRealizedDuplicate(T value) {
+    }
+
     @Override
     public boolean removePending(ProviderInternal<? extends T> provider) {
         return removeByProvider(provider);
@@ -198,6 +276,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             if (!next.isRealized() && next.isProvidedBy(provider)) {
                 modCount++;
                 iterator.remove();
+                next.detach();
                 return true;
             }
         }
@@ -210,10 +289,15 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         Iterator<Element<T>> iterator = inserted.iterator();
         while (iterator.hasNext()) {
             Element<T> next = iterator.next();
-            if (next.isRealized() && next.isRealizedOnAdd() && next.isProvidedBy(provider)) {
+            if (next.isRealized() && next.isProvidedBy(provider)) {
                 modCount++;
                 iterator.remove();
-                return next.getValues();
+                next.detach();
+                if (next.isEmptiedByRemoval()) {
+                    // Its values were removed already, so removing it falls back to querying it, as for other providers
+                    return null;
+                }
+                return next.getVisibleValues();
             }
         }
         return null;
@@ -238,12 +322,6 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         boolean added = inserted.add(element);
         if (subscriptionVerifier.isSubscribed(element.getType())) {
             element.realize();
-            if (subscriptionVerifier.isSubscribedByListener(element.getType())) {
-                element.markRealizedOnAdd();
-            } else {
-                // Only realized to be forwarded to a composite collection, so the provider is queried again when this collection is read
-                element.clearCache();
-            }
         }
         return added;
     }
@@ -251,7 +329,9 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
     @Override
     public void visitDependencies(TaskDependencyResolveContext context) {
         for (Element<T> element : inserted) {
-            context.add(element.getProducer());
+            if (!element.isEmptiedByRemoval()) {
+                context.add(element.getProducer());
+            }
         }
     }
 
@@ -281,7 +361,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             return next != null;
         }
 
-        private void updateNext() {
+        void updateNext() {
             if (nextIndex == -1) {
                 nextIndex = 0;
             }
@@ -294,7 +374,7 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
                     int j = nextSubIndex + 1;
                     while (j < collected.size()) {
                         T value = collected.get(j);
-                        if (acceptanceSpec.isSatisfiedBy(new ValuePointer<T>(candidate, j))) {
+                        if (accepts(candidate, j)) {
                             nextIndex = i;
                             nextSubIndex = j;
                             next = value;
@@ -308,6 +388,11 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
             }
             nextIndex = i;
             next = null;
+        }
+
+        // Values of an element that is being realized become visible when they are announced
+        boolean accepts(Element<T> candidate, int index) {
+            return candidate.isAnnounced(index) && acceptanceSpec.isSatisfiedBy(new ValuePointer<T>(candidate, index));
         }
 
         @Override
@@ -331,7 +416,13 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
                 List<T> collected = element.getValues();
                 if (collected.size() > 1) {
                     element.remove(collected.get(previousSubIndex));
-                    nextSubIndex--;
+                    // The next value may be in a later element, e.g. when the rest of this one is not announced yet
+                    if (nextIndex == previousIndex) {
+                        nextSubIndex--;
+                    }
+                } else if (element.isProvided()) {
+                    // Kept, see isEmptiedByRemoval(); the next value is in a later element
+                    element.remove(collected.get(previousSubIndex));
                 } else {
                     backingList.remove(previousIndex);
                     nextIndex--;
@@ -355,32 +446,31 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         private List<T> removedValues = null;
         private IntSet duplicates = IntSets.emptySet();
         private boolean realized;
-        // Realized when added for an eager listener, so it can be removed by its provider without querying the provider again
-        private boolean realizedOnAdd;
+        private int removals;
+        // While the element is realized: how many of its values were announced. These are always the first ones,
+        // as values are announced in order and removing one of them moves the ones after it back. Negative otherwise.
+        private int announcedCount = -1;
+        private boolean detached;
 
         private final Action<T> realizeAction;
+        @Nullable
+        private final Action<T> duplicateAction;
 
-        Element(@Nullable Class<? extends T> type, Collector<T> delegate, Action<T> realizeAction) {
+        Element(@Nullable Class<? extends T> type, Collector<T> delegate, Action<T> realizeAction, Action<T> duplicateAction) {
             super(type, delegate);
             this.realizeAction = realizeAction;
+            this.duplicateAction = duplicateAction;
         }
 
         Element(T value) {
             super(null, new SingleElement<T>(value));
             this.realizeAction = null;
+            this.duplicateAction = null;
             realize();
         }
 
         public boolean isRealized() {
             return realized;
-        }
-
-        boolean isRealizedOnAdd() {
-            return realizedOnAdd;
-        }
-
-        void markRealizedOnAdd() {
-            realizedOnAdd = true;
         }
 
         boolean isProvidedByCollection() {
@@ -399,7 +489,10 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
 
         @Override
         public int size() {
-            return realized ? cache.size() - duplicates.size() : super.size();
+            if (!realized) {
+                return super.size();
+            }
+            return announcedCount < 0 ? cache.size() - duplicates.size() : getVisibleValues().size();
         }
 
         public void realize() {
@@ -413,12 +506,22 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
                 }
                 realized = true;
                 if (realizeAction != null) {
-                    Set<T> realizedValues = new LinkedHashSet<>();
-                    for (T value : cache) {
-                        if (!realizedValues.contains(value)) {
-                            realizeAction.execute(value);
-                            realizedValues.add(value);
+                    announcedCount = 0;
+                    Set<T> notified = new HashSet<>();
+                    try {
+                        // Listeners may remove values of this element, or the element itself, while it is realized
+                        while (!detached && cache != null && announcedCount < cache.size()) {
+                            T value = cache.get(announcedCount);
+                            announcedCount++;
+                            // An equal value that was announced may have been removed meanwhile, then this one takes its place
+                            if (notified.add(value) || !hasOtherAnnounced(value)) {
+                                realizeAction.execute(value);
+                            } else if (duplicateAction != null) {
+                                duplicateAction.execute(value);
+                            }
                         }
+                    } finally {
+                        announcedCount = -1;
                     }
                 }
             }
@@ -440,20 +543,93 @@ abstract public class AbstractIterationOrderRetainingElementSource<T> implements
         }
 
         public boolean remove(T value) {
+            if (cache != null) {
+                int index = cache.indexOf(value);
+                if (index < 0) {
+                    rememberRemoved(value);
+                    return false;
+                }
+                removeAt(index);
+                return true;
+            }
+            rememberRemoved(value);
+            return true;
+        }
+
+        private void removeAt(int index) {
+            rememberRemoved(cache.get(index));
+            cache.remove(index);
+            if (index < announcedCount) {
+                announcedCount--;
+            }
+            removals++;
+            shiftDuplicatesAfterRemovalOf(index);
+        }
+
+        private void rememberRemoved(T value) {
             if (removedValues == null) {
                 removedValues = new ArrayList<>();
             }
             removedValues.add(value);
-            if (cache != null) {
-                int index = cache.indexOf(value);
-                if (index < 0) {
-                    return false;
+        }
+
+        // Values that are not announced yet are not in the collection, so they stay
+        boolean removeAnnounced(T value) {
+            boolean removed = false;
+            for (int index = cache.size() - 1; index >= 0; index--) {
+                if (Objects.equal(cache.get(index), value) && isAnnounced(index)) {
+                    removeAt(index);
+                    removed = true;
                 }
-                cache.remove(index);
-                shiftDuplicatesAfterRemovalOf(index);
-                return true;
             }
-            return true;
+            return removed;
+        }
+
+        boolean isProvided() {
+            return realizeAction != null;
+        }
+
+        // A provided element whose values were all removed stays, so adding its provider again is known to have no effect
+        boolean isEmptiedByRemoval() {
+            return realized && removals > 0 && cache.isEmpty();
+        }
+
+        // The value being announced counts as announced already
+        private boolean hasOtherAnnounced(T value) {
+            int announcedOccurrences = 0;
+            for (int index = 0; index < cache.size(); index++) {
+                if (Objects.equal(cache.get(index), value) && isAnnounced(index) && ++announcedOccurrences > 1) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        boolean isAnnounced(int index) {
+            return announcedCount < 0 || index < announcedCount;
+        }
+
+        void detach() {
+            detached = true;
+        }
+
+        boolean isDetached() {
+            return detached;
+        }
+
+        // Values of an element that is still being realized are visible once they are announced
+        List<T> getVisibleValues() {
+            if (duplicates.isEmpty() && announcedCount < 0) {
+                return cache;
+            }
+            List<T> visible = new ArrayList<>(cache.size());
+            for (int index = 0; index < cache.size(); index++) {
+                T value = cache.get(index);
+                if (!duplicates.contains(index) && isAnnounced(index)) {
+                    visible.add(value);
+                }
+            }
+            return visible;
         }
 
         // Duplicates are tracked by index, so the ones after the removed value move one position back

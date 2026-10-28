@@ -781,13 +781,13 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
         outputContains("dependencies = [org:lib:1.0]")
     }
 
-    def "eager listener on dependencies sees dependency added with addLater once"() {
+    def "eager listener on #collection sees dependency added with addLater as it was when added"() {
         buildFile """
             def version = objects.property(String)
             def impl = configurations.dependencyScope("impl").get()
             version.set("1.0")
 
-            impl.dependencies.all { println "listener saw " + it.group + ":" + it.name + ":" + it.version }
+            impl.${collection}.all { println "listener saw " + it.group + ":" + it.name + ":" + it.version }
             impl.dependencies.addLater(version.map { project.dependencies.create("org:lib:\$it") })
             version.set("2.0")
 
@@ -796,30 +796,302 @@ class ConfigurationMutationIntegrationTest extends AbstractDependencyResolutionT
 
         expect:
         succeeds("help")
+        outputContains("dependencies = [org:lib:1.0]")
         output.count("listener saw org:lib:") == 1
         outputContains("listener saw org:lib:1.0")
-        outputContains("dependencies = [org:lib:1.0]")
+
+        where:
+        collection << ["allDependencies", "dependencies"]
     }
 
-    def "eager listener on allDependencies sees dependency added with addLater again when the dependencies are read"() {
+    def "eager listener on allDependencies sees dependency added with addLater to an extended configuration as it was when added"() {
         buildFile """
             def version = objects.property(String)
+            def parent = configurations.dependencyScope("parent").get()
+            def impl = configurations.dependencyScope("impl") { extendsFrom(parent) }.get()
+            version.set("1.0")
+
+            impl.allDependencies.all { println "listener saw " + it.group + ":" + it.name + ":" + it.version }
+            parent.dependencies.addLater(version.map { project.dependencies.create("org:lib:\$it") })
+            version.set("2.0")
+
+            println "dependencies = " + impl.allDependencies.collect { it.group + ":" + it.name + ":" + it.version }
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("dependencies = [org:lib:1.0]")
+        output.count("listener saw org:lib:") == 1
+        outputContains("listener saw org:lib:1.0")
+    }
+
+    def "eager listener on allDependencies sees dependency added with addLater to a configuration extended after the listener was registered when it is read"() {
+        buildFile """
+            def version = objects.property(String)
+            def parent = configurations.dependencyScope("parent").get()
             def impl = configurations.dependencyScope("impl").get()
             version.set("1.0")
 
             impl.allDependencies.all { println "listener saw " + it.group + ":" + it.name + ":" + it.version }
-            impl.dependencies.addLater(version.map { project.dependencies.create("org:lib:\$it") })
+            impl.extendsFrom(parent)
+            parent.dependencies.addLater(version.map { project.dependencies.create("org:lib:\$it") })
             version.set("2.0")
 
-            println "dependencies = " + impl.dependencies.collect { it.group + ":" + it.name + ":" + it.version }
+            println "dependencies = " + impl.allDependencies.collect { it.group + ":" + it.name + ":" + it.version }
         """
 
         expect:
         succeeds("help")
-        // Only the derived collection is listened to, so the provider is queried on add and again when the dependencies are read
-        output.count("listener saw org:lib:") == 2
-        outputContains("listener saw org:lib:1.0")
-        outputContains("listener saw org:lib:2.0")
+        // Collections inherited with extendsFrom join all dependencies when they are read, the listener doesn't make them eager before that
         outputContains("dependencies = [org:lib:2.0]")
+        output.count("listener saw org:lib:") == 1
+        outputContains("listener saw org:lib:2.0")
+    }
+
+    def "eager listener on allDependencies registered after addLater can add dependencies to the configuration"() {
+        buildFile """
+            def impl = configurations.dependencyScope("impl").get()
+            impl.dependencies.addLater(provider { project.dependencies.create("org:a:1.0") })
+
+            impl.allDependencies.whenObjectAdded {
+                if (it.name == "a") {
+                    impl.dependencies.add(project.dependencies.create("org:b:1.0"))
+                }
+            }
+            impl.dependencies.addLater(provider { project.dependencies.create("org:a:2.0") })
+
+            println "dependencies = " + impl.dependencies.collect { it.name + ":" + it.version }
+        """
+
+        expect:
+        succeeds("help")
+        // The first dependency is realized when the listener is registered, so like for a listener on the dependencies, the listener only sees the second one
+        outputContains("dependencies = [a:1.0, a:2.0, b:1.0]")
+    }
+
+    def "eager listener on a type of allDependencies can add dependencies when a pending dependency of that type is realized"() {
+        buildFile """
+            def impl = configurations.dependencyScope("impl").get()
+            impl.allDependencies.withType(ExternalModuleDependency).whenObjectAdded {
+                if (it.name == "a") {
+                    impl.dependencies.add(project.dependencies.create("org:b:1.0"))
+                }
+            }
+
+            // The declared type is wider than the type of the listener, so the dependency stays pending until it is read
+            def dependency = objects.property(Dependency)
+            dependency.set(project.dependencies.create("org:a:1.0"))
+            impl.dependencies.addLater(dependency)
+
+            println "dependencies = " + impl.dependencies.collect { it.name }
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("dependencies = [a, b]")
+    }
+
+    def "eager listener on allDependencies sees a dependency declared in two extended configurations once"() {
+        buildFile """
+            def api = configurations.dependencyScope("api").get()
+            def implementation = configurations.dependencyScope("implementation") { extendsFrom(api) }.get()
+            def classpath = configurations.dependencyScope("classpath") { extendsFrom(implementation) }.get()
+
+            classpath.allDependencies.all { println "seen " + it.group + ":" + it.name + ":" + it.version }
+            api.dependencies.add(project.dependencies.create("org:foo:1.0"))
+            implementation.dependencies.add(project.dependencies.create("org:foo:1.0"))
+        """
+
+        expect:
+        succeeds("help")
+        output.count("seen org:foo:1.0") == 1
+    }
+
+    def "listener on allDependencies can extend the configuration while dependencies are realized"() {
+        buildFile """
+            def parent = configurations.dependencyScope("parent").get()
+            def impl = configurations.dependencyScope("impl").get()
+            impl.allDependencies.configureEach {
+                if (it.name == "x") {
+                    impl.extendsFrom(parent)
+                }
+            }
+            impl.dependencies.addLater(provider { project.dependencies.create("org:x:1.0") })
+            impl.allDependencies.whenObjectAdded { }
+
+            println "extends = " + impl.extendsFrom*.name
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("extends = [parent]")
+    }
+
+    def "lazy action on allDependencies sees dependency added while the extended configurations are read"() {
+        buildFile """
+            def parent = configurations.dependencyScope("parent").get()
+            def impl = configurations.dependencyScope("impl") { extendsFrom(parent) }.get()
+            parent.dependencies.configureEach {
+                impl.dependencies.add(project.dependencies.create("org:x:1.0"))
+            }
+            parent.dependencies.addLater(provider { project.dependencies.create("org:p:1.0") })
+
+            impl.allDependencies.configureEach { println "configured " + it.name }
+        """
+
+        expect:
+        succeeds("help")
+        output.count("configured x") == 1
+        output.count("configured p") == 1
+    }
+
+    def "lazy action on allDependencies sees dependency of a configuration that is extended through two paths"() {
+        buildFile """
+            def base = configurations.dependencyScope("base").get()
+            def mid = configurations.dependencyScope("mid") { extendsFrom(base) }.get()
+            def top = configurations.dependencyScope("top") { extendsFrom(mid, base) }.get()
+
+            top.allDependencies.configureEach { println "configured " + it.name }
+            base.dependencies.add(project.dependencies.create("org:foo:1.0"))
+            println "all dependencies = " + top.allDependencies.collect { it.name }
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("configured foo")
+        outputContains("all dependencies = [foo]")
+    }
+
+    def "reading allDependencies includes dependency that a listener adds while the dependencies are read"() {
+        buildFile """
+            def parent = configurations.dependencyScope("parent").get()
+            def impl = configurations.dependencyScope("impl") { extendsFrom(parent) }.get()
+            impl.allDependencies.toList()
+            parent.dependencies.configureEach {
+                if (it.name == "p") {
+                    impl.dependencies.add(project.dependencies.create("org:x:1.0"))
+                }
+            }
+            parent.dependencies.addLater(provider { project.dependencies.create("org:p:1.0") })
+
+            impl.allDependencies.all { println "all " + it.name }
+            println "all dependencies = " + impl.allDependencies.collect { it.name }
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("all x")
+        outputContains("all p")
+        outputContains("all dependencies = [x, p]")
+    }
+
+    def "typed eager action on allDependencies runs once for a dependency of a wider declared type"() {
+        buildFile """
+            def impl = configurations.dependencyScope("impl").get()
+            def dependency = objects.property(Dependency)
+            dependency.set(project.dependencies.create("org:lib:1.0"))
+            impl.dependencies.addLater(dependency)
+
+            impl.allDependencies.withType(ExternalModuleDependency).all { println "seen " + it.name }
+        """
+
+        expect:
+        succeeds("help")
+        output.count("seen lib") == 1
+    }
+
+    def "lazy action on allDependencies that changes dependencies runs once for each"() {
+        buildFile """
+            def impl = configurations.dependencyScope("impl").get()
+            impl.dependencies.addLater(provider { project.dependencies.create("org:lib:1.0") })
+
+            impl.allDependencies.configureEach {
+                println "configured " + it.name
+                it.version { strictly("1.0") }
+            }
+        """
+
+        expect:
+        succeeds("help")
+        output.count("configured lib") == 1
+    }
+
+    def "dependencies changed by a listener stay visible while the values of a provider are announced"() {
+        buildFile """
+            def dependencies = configurations.dependencyScope("impl").get().dependencies
+            def a = project.dependencies.create("org:a:1.0")
+            def b = project.dependencies.create("org:b:1.0")
+            dependencies.all { it.version { strictly("9") } }
+            dependencies.whenObjectAdded {
+                if (it.name == "b") {
+                    println "size = " + dependencies.size()
+                    println "removed = " + dependencies.remove(a)
+                }
+            }
+            dependencies.addAllLater(provider { [a, b] })
+
+            println "names = " + dependencies.collect { it.name }
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("size = 2")
+        outputContains("removed = true")
+        outputContains("names = [b]")
+    }
+
+    def "configuration that is no longer extended does not realize dependencies for listeners of the extending one"() {
+        buildFile """
+            def parent = configurations.dependencyScope("parent").get()
+            def impl = configurations.dependencyScope("impl") { extendsFrom(parent) }.get()
+            impl.allDependencies.all { }
+            impl.setExtendsFrom([])
+
+            def queried = false
+            parent.dependencies.addLater(provider { queried = true; project.dependencies.create("org:lib:1.0") })
+            println "queried = " + queried
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("queried = false")
+    }
+
+    def "removing a dependency that an indirectly extended configuration also declares does not notify listeners of allDependencies"() {
+        buildFile """
+            def grandparent = configurations.dependencyScope("grandparent").get()
+            def parent = configurations.dependencyScope("parent") { extendsFrom(grandparent) }.get()
+            def impl = configurations.dependencyScope("impl") { extendsFrom(parent) }.get()
+            grandparent.dependencies.add(project.dependencies.create("org:lib:1.0"))
+            impl.dependencies.add(project.dependencies.create("org:lib:1.0"))
+
+            impl.allDependencies.whenObjectRemoved { println "removed " + it.name }
+            impl.dependencies.removeIf { it.name == "lib" }
+            println "all dependencies = " + impl.allDependencies.collect { it.name }
+        """
+
+        expect:
+        succeeds("help")
+        outputDoesNotContain("removed lib")
+        outputContains("all dependencies = [lib]")
+    }
+
+    def "eager listener on allDependencies can add dependencies to the configuration"() {
+        buildFile """
+            def impl = configurations.dependencyScope("impl").get()
+
+            impl.allDependencies.all {
+                if (it.name == "a") {
+                    impl.dependencies.add(project.dependencies.create("org:b:1.0"))
+                }
+            }
+            impl.dependencies.add(project.dependencies.create("org:a:1.0"))
+
+            println "dependencies = " + impl.dependencies.collect { it.name }
+        """
+
+        expect:
+        succeeds("help")
+        outputContains("dependencies = [a, b]")
     }
 }

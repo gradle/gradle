@@ -26,6 +26,7 @@ import org.jspecify.annotations.Nullable;
 
 import java.util.Collection;
 import java.util.Iterator;
+import java.util.List;
 import java.util.NoSuchElementException;
 
 public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
@@ -186,14 +187,55 @@ public class FilteredElementSource<T, S extends T> implements ElementSource<S> {
     }
 
     @Override
+    public boolean containsRealized(Object element) {
+        return filter.isSatisfiedBy(element) && collection.containsRealized(element);
+    }
+
+    @Override
+    public boolean containsRealizedIncludingUnwired(Object element) {
+        return filter.isSatisfiedBy(element) && collection.containsRealizedIncludingUnwired(element);
+    }
+
+    @Override
+    public boolean hasPendingElements() {
+        // Reading this realizes only the pending elements of the filtered type, the others stay pending
+        return collection.hasPendingElements(filter.getType());
+    }
+
+    @Override
+    public boolean hasPendingElements(Class<?> type) {
+        // Like realizePending(Class)
+        return collection.hasPendingElements(type);
+    }
+
+    @Override
+    public void realizePendingSubscribedBy(EventSubscriptionVerifier<? super S> subscriptions) {
+        collection.realizePendingSubscribedBy(filtered(subscriptions));
+    }
+
+    @Override
+    public boolean hasPendingElementsSubscribedBy(EventSubscriptionVerifier<? super S> subscriptions) {
+        return collection.hasPendingElementsSubscribedBy(filtered(subscriptions));
+    }
+
+    private EventSubscriptionVerifier<T> filtered(EventSubscriptionVerifier<? super S> subscriptions) {
+        return type -> (type == null || filter.getType().isAssignableFrom(type)) && subscriptions.isSubscribed(Cast.uncheckedCast(type));
+    }
+
+    @Override
     public boolean addPending(ProviderInternal<? extends S> provider) {
         return collection.addPending(provider);
     }
 
     @Override
     public boolean removePending(ProviderInternal<? extends S> provider) {
-        // Removal events can't be fired through a filtered view, so a provider realized on add is removed without them
-        return collection.removePending(provider) || collection.removeRealized(provider) != null;
+        return collection.removePending(provider);
+    }
+
+    @Override
+    @Nullable
+    public List<S> removeRealized(ProviderInternal<? extends S> provider) {
+        throw new UnsupportedOperationException(String.format("Cannot remove '%s' from '%s' as it is a filtered collection", provider, this));
     }
 
     @Override
