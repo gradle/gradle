@@ -31,6 +31,11 @@ import org.gradle.test.fixtures.server.http.MavenHttpRepository
 import org.junit.Test
 
 class ResolveConfigurationDependenciesBuildOperationIntegrationTest extends AbstractHttpDependencyResolutionTest {
+
+    def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
+    }
+
     def failedResolve = new ResolveFailureTestFixture(buildFile, "compile")
     def operations = new BuildOperationsFixture(executer, temporaryFolder)
 

@@ -183,6 +183,11 @@ tasks.named<Test>("docsTest") {
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-core-plugins-code-quality*")
         }
 
+        if (libs.versions.kotlin.get().matches(Regex(".+-\\d+"))) {
+            // The init script of the sample resolves the embedded Kotlin from repositories that do not have dev builds
+            excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-plugin-development-init-kotlin_*")
+        }
+
         if (OperatingSystem.current().isMacOsX && System.getProperty("os.arch") == "aarch64") {
             excludeTestsMatching("org.gradle.docs.samples.*.snippet-reference-platforms-native-*")
         }

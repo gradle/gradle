@@ -28,6 +28,7 @@ class IvyModuleArtifactResolutionIntegrationTest extends AbstractHttpDependencyR
     def httpRepo = ivyHttpRepo
 
     def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
         initBuild(httpRepo)
         fixture = new MetadataArtifactResolveTestFixture(buildFile)
         fixture.basicSetup()

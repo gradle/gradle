@@ -178,6 +178,7 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     private boolean disableToolchainDownload = true;
     private boolean disableToolchainDetection = true;
     private boolean disablePluginRepositoryMirror = false;
+    private boolean extraRepositoriesDisabled = false;
 
     private final List<ExpectedDeprecationWarning> expectedDeprecationWarnings = new ArrayList<>();
     private boolean eagerClassLoaderCreationChecksOn = true;
@@ -479,6 +480,9 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
 
         if (disablePluginRepositoryMirror) {
             executer.withPluginRepositoryMirrorDisabled();
+        }
+        if (extraRepositoriesDisabled) {
+            executer.withoutExtraRepositories();
         }
 
         return executer;
@@ -977,6 +981,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
     }
 
     @Override
+    public GradleExecuter withoutExtraRepositories() {
+        extraRepositoriesDisabled = true;
+        return this;
+    }
+
+    @Override
     public GradleExecuter ignoreCleanupAssertions() {
         this.ignoreCleanupAssertions = true;
         return this;
@@ -1092,6 +1102,12 @@ public abstract class AbstractGradleExecuter implements GradleExecuter, Resettab
         for (File initScript : initScripts) {
             allArgs.add("--init-script");
             allArgs.add(initScript.getAbsolutePath());
+        }
+        File extraRepositoriesInitScript = RepoScriptBlockUtil.extraRepositoriesInitScriptFile();
+        if (extraRepositoriesInitScript != null && !extraRepositoriesDisabled) {
+            // Pass the option and its value as one argument. The wrapper does not know this option. If the value is a
+            // separate argument, the wrapper stops parsing there and misses later options such as --gradle-user-home.
+            allArgs.add("--init-script=" + extraRepositoriesInitScript.getAbsolutePath());
         }
         if (quiet) {
             allArgs.add("--quiet");

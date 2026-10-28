@@ -17,10 +17,12 @@
 package org.gradle.kotlin.dsl.fixtures
 
 import org.gradle.integtests.fixtures.AbstractIntegrationTest
+import org.gradle.integtests.fixtures.RepoScriptBlockUtil
 import org.gradle.integtests.fixtures.executer.ExecutionFailure
 import org.gradle.integtests.fixtures.executer.ExecutionResult
 import org.gradle.integtests.fixtures.executer.IntegrationTestBuildContext
 import org.gradle.kotlin.dsl.resolver.GradleInstallation
+import org.gradle.test.fixtures.dsl.GradleDsl
 import org.junit.Before
 import java.io.File
 import java.util.Properties
@@ -154,6 +156,7 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
         get() = """
             repositories {
                 gradlePluginPortal() // production URL rewritten during tests
+                ${RepoScriptBlockUtil.extraRepositoriesDefinition(GradleDsl.KOTLIN)}
             }
         """
 
@@ -223,7 +226,17 @@ abstract class AbstractKotlinIntegrationTest : AbstractIntegrationTest() {
 
     protected
     fun withKotlinBuildSrc() {
-        withDefaultSettingsIn("buildSrc")
+        // The plugin repositories also serve the dependencies of the kotlin-dsl plugin, for example the
+        // Kotlin Gradle plugin at the embedded Kotlin version, which can be in an extra repository only.
+        withSettingsIn(
+            "buildSrc",
+            """
+            pluginManagement {
+                $repositoriesBlock
+            }
+            $defaultSettingsScript
+            """
+        )
         withBuildScriptIn(
             "buildSrc",
             """

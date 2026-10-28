@@ -164,14 +164,16 @@ class KotlinDslPluginWithExplicitKGPVersionTest(
     /**
      * A lightweight Maven repository proxy that serves a synthetic version of the KGP plugin.
      *
-     * Metadata files (POM, .module) are fetched from the Plugin Portal, have their version strings
-     * rewritten, and are served with the modified content. All other files (jars, checksums,
+     * Metadata files (POM, .module) are fetched from the Plugin Portal, or from the Kotlin dev repository for a dev build.
+     * Their version strings are rewritten, and they are served with the modified content. All other files (jars, checksums,
      * etc.) are redirected to the upstream URL via HTTP 302.
      */
     class SyntheticKgpRepo(
         private val syntheticVersion: String,
         private val realVersion: String,
-        private val upstreamBaseUrl: String = RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl()
+        private val upstreamBaseUrl: String =
+            if (KotlinGradlePluginVersions.isKotlinDevVersion(realVersion)) RepoScriptBlockUtil.kotlinDevRepositoryMirrorUrl()
+            else RepoScriptBlockUtil.gradlePluginRepositoryMirrorUrl()
     ) : Closeable {
 
         private val httpClient = OkHttpClient()

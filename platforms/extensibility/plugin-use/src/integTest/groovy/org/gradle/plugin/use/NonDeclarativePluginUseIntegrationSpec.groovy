@@ -26,6 +26,7 @@ import static org.hamcrest.CoreMatchers.startsWith
 class NonDeclarativePluginUseIntegrationSpec extends AbstractPluginSpec {
 
     def setup() {
+        executer.beforeExecute { withoutExtraRepositories() }
         executer.requireOwnGradleUserHomeDir()
     }
 
