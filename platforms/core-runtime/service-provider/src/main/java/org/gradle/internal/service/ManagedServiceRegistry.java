@@ -17,23 +17,44 @@
 package org.gradle.internal.service;
 
 /**
- * Managed version of a {@link ServiceRegistry} that controls the lifetime of the registry members,
- * such as service instances and factories.
+ * A {@link ServiceRegistry} that manages the lifecycle of its services.
  * <p>
- * Members created by the registry are stopped and closed when this registry is {@link #close() closed}.
+ * Registries are created with a {@link ServiceRegistryBuilder},
+ * and their services are declared by {@link ServiceRegistrationProvider}s.
+ *
+ * <h2>Service lifecycle</h2>
+ *
+ * Services are created lazily
+ * and might not be instantiated at all during the lifetime of the registry.
+ * <p>
+ * The registry owns all of its service instances,
+ * including instances registered ready-made rather than created by the registry.
+ * They are disposed of when the registry is {@link #close() closed}.
+ * <p>
+ * The registry should be closed when it is no longer required,
+ * so that resources held by its services are released.
  */
 public interface ManagedServiceRegistry extends ServiceRegistry, AutoCloseable {
 
     /**
-     * Closes this registry by stopping and closing all members managed by it.
+     * Closes this registry and disposes of its service instances.
      * <p>
-     * If a member implements {@link java.io.Closeable#close() Closeable} or
-     * {@link org.gradle.internal.concurrent.Stoppable#stop() Stoppable} then the appropriate
-     * method is called to dispose of it.
+     * Services that were never instantiated are not created on close.
+     * Services of parent and child registries are left as they are.
      * <p>
-     * Members are closed in reverse dependency order.
-     *
-     * @see ManagedServiceRegistry
+     * An instance that implements {@link org.gradle.internal.concurrent.Stoppable Stoppable}
+     * is {@link org.gradle.internal.concurrent.Stoppable#stop() stopped}.
+     * Otherwise, an instance that implements {@link AutoCloseable}
+     * is {@link AutoCloseable#close() closed}.
+     * Any other instance is left as it is.
+     * <p>
+     * Instances are disposed of in reverse dependency order:
+     * a service is disposed of only after the services of this registry that depend on it.
+     * Disposal continues past failures,
+     * and the failures are rethrown once all instances have been processed.
+     * <p>
+     * Once closed, the registry can no longer be used to look up services.
+     * Closing it again has no effect.
      */
     @Override
     void close();

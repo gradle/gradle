@@ -19,7 +19,6 @@ import org.gradle.internal.collect.PersistentArray;
 import org.gradle.internal.collect.PersistentList;
 import org.gradle.internal.collect.PersistentMap;
 import org.gradle.internal.concurrent.CompositeStoppable;
-import org.gradle.internal.concurrent.Stoppable;
 import org.jspecify.annotations.Nullable;
 
 import java.lang.annotation.Annotation;
@@ -50,11 +49,6 @@ import static org.gradle.util.internal.CollectionUtils.join;
 
 /**
  * A hierarchical {@link ServiceRegistry} implementation.
- *
- * <p>Service instances are closed when the registry that created them is closed using {@link #close()}.
- * If a service instance implements {@link AutoCloseable} or {@link org.gradle.internal.concurrent.Stoppable}
- * then the appropriate {@link AutoCloseable#close()} or {@link Stoppable#stop()} method is called.
- * Instances are closed in reverse dependency order.
  *
  * <p>Service registries are arranged in a hierarchy. If a service of a given type cannot be located, the registry uses its parent registry, if any, to locate the service.</p>
  *
@@ -263,7 +257,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements M
     }
 
     /**
-     * Adds a service instance to this registry with the given public type. The given object is closed when this registry is closed.
+     * Adds a service instance to this registry with the given public type.
      */
     public <T> DefaultServiceRegistry add(Class<? extends T> serviceType, T serviceInstance) {
         add(ServiceAccess.getPublicScope(), serviceType, serviceInstance);
@@ -271,7 +265,7 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements M
     }
 
     /**
-     * Adds a service instance to this registry. The given object is closed when this registry is closed.
+     * Adds a service instance to this registry.
      */
     public DefaultServiceRegistry add(Object serviceInstance) {
         return add(serviceInstance.getClass(), serviceInstance);
@@ -292,9 +286,6 @@ public class DefaultServiceRegistry extends AbstractServiceRegistry implements M
         return this;
     }
 
-    /**
-     * Closes all services for this registry. For each service, if the service implements {@link AutoCloseable} or {@link Stoppable}, the appropriate {@code close()} or {@code stop()} method is called.
-     */
     @Override
     public void close() {
         noLongerMutable();
