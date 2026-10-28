@@ -69,7 +69,7 @@ public class WorkInProgressRenderer implements OutputEventListener {
         queue.add(event);
 
         if (event instanceof UpdateNowEvent) {
-            renderNow();
+            renderNow(((UpdateNowEvent) event).getTimestamp());
         } else if (event instanceof EndOutputEvent) {
             progressArea.setVisible(false);
         }
@@ -216,7 +216,7 @@ public class WorkInProgressRenderer implements OutputEventListener {
         return false;
     }
 
-    private void renderNow() {
+    private void renderNow(long now) {
         if (queue.isEmpty()) {
             return;
         }
@@ -237,7 +237,15 @@ public class WorkInProgressRenderer implements OutputEventListener {
                         showWorkActions(operations.workActionUnshown(startEvent.getParentProgressOperationId()));
                     }
                 } else {
-                    ProgressOperation operation = operations.start(startEvent.getStatus(), startEvent.getCategory(), startEvent.getProgressOperationId(), startEvent.getParentProgressOperationId(), workAction);
+                    // Timed on the clock of the console, as the timestamp of the event is taken on the clock of the daemon
+                    ProgressOperation operation = operations.start(
+                        startEvent.getStatus(),
+                        startEvent.getCategory(),
+                        startEvent.getProgressOperationId(),
+                        startEvent.getParentProgressOperationId(),
+                        now,
+                        workAction
+                    );
                     if (!workAction) {
                         attach(operation);
                     } else if (operation.getParent() == null) {
@@ -261,7 +269,7 @@ public class WorkInProgressRenderer implements OutputEventListener {
         queue.clear();
 
         for (AssociationLabel associatedLabel : operationIdToAssignedLabels.values()) {
-            associatedLabel.renderNow();
+            associatedLabel.renderNow(now);
         }
         for (StyledLabel emptyLabel : unusedProgressLabels) {
             emptyLabel.setText(labelFormatter.format());
@@ -277,8 +285,8 @@ public class WorkInProgressRenderer implements OutputEventListener {
             this.label = label;
         }
 
-        void renderNow() {
-            label.setText(labelFormatter.format(operation));
+        void renderNow(long now) {
+            label.setText(labelFormatter.format(operation, now));
         }
     }
 }
