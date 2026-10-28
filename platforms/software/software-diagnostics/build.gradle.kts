@@ -7,7 +7,15 @@ description = """Reports related to the dependency management functionality used
 in the Gradle builds of software projects.  Any reports or reporting tasks related to or dependent upon
 dependency management types should be included here."""
 
-val implementationResources = configurations.create("implementationResources")
+val implementationResources = configurations.dependencyScope("implementationResources")
+val implementationResourcesPath = configurations.resolvable("implementationResourcesPath") {
+    extendsFrom(implementationResources.get())
+    // jquery is served as an attribute-less Ivy variant; request what Maven-hosted JS needs too
+    attributes {
+        attribute(Usage.USAGE_ATTRIBUTE, objects.named(Usage.JAVA_RUNTIME))
+        attribute(Category.CATEGORY_ATTRIBUTE, objects.named(Category.LIBRARY))
+    }
+}
 
 dependencies {
     api(projects.baseDiagnostics)
@@ -75,7 +83,7 @@ gradleModule {
 val reportResources = tasks.register<Copy>("reportResources") {
     group = "build"
     description = "Copies the JavaScript resources used by the HTML dependency report into the generated resources directory."
-    from(implementationResources)
+    from(implementationResourcesPath)
     into(layout.buildDirectory.file("generated-resources/report-resources/org/gradle/api/tasks/diagnostics/htmldependencyreport"))
     rename { oldName ->
         oldName.split("-").first() + ".js"
