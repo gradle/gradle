@@ -42,6 +42,8 @@ public interface WorkerProcess extends Describable {
      */
     Optional<ExecResult> getExecResult();
 
+    Optional<Integer> getProcessExitValue();
+
     JvmMemoryStatus getJvmMemoryStatus();
 
     /**
