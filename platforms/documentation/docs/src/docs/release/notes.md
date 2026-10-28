@@ -123,6 +123,8 @@ The Groups tab of the HTML problems report lists the root groups in the order of
 Calling these Problems API getters from a build, or subclassing `ProblemGroup` or `ProblemId`, now emits a deprecation warning.
 A group created with the factory methods whose name matches a predefined group is now reported as that predefined group.
 
+![Groups tab of the problems report showing the predefined groups and the description of one of them](release-notes-assets/problems-report-groups.png)
+
 The legacy problem groups are gone, and both the group and the name of Gradle's own problem ids changed, so Tooling API clients, Build Scans, and any tooling that matches problems by id need to update.
 
 See the upgrade guide for the complete list of changed problem ids:
