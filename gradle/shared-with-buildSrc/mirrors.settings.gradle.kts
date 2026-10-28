@@ -72,9 +72,9 @@ with(Helper(providers)) {
         buildscript.configurations["classpath"].incoming.beforeResolve {
             withMirrors(buildscript.repositories)
         }
-        afterEvaluate {
-            withMirrors(repositories)
-        }
+        // Repositories are configured before they are added, so the live callback in
+        // withMirrors sees their final URLs without waiting for the project to evaluate.
+        withMirrors(repositories)
     }
 
     gradle.settingsEvaluated {
